@@ -381,7 +381,7 @@ public class DocumentImpl implements Document {
 	}
 
 	public void addNumber(
-			String name, String value, Class<? extends Number> type) {
+		String name, String value, Class<? extends Number> type) {
 
 		if (Validator.isNotNull(value)) {
 			Field field = new Field(name, value);
@@ -398,7 +398,7 @@ public class DocumentImpl implements Document {
 	}
 
 	public void addNumber(
-			String name, String[] values, Class<? extends Number> type) {
+		String name, String[] values, Class<? extends Number> type) {
 
 		if (values == null) {
 			return;

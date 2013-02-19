@@ -267,6 +267,16 @@ public class ServiceTestUtil {
 			String screenName, boolean autoScreenName, long[] groupIds)
 		throws Exception {
 
+		return addUser(
+			screenName, autoScreenName, "ServiceTestSuite", "ServiceTestSuite",
+			groupIds);
+	}
+
+	public static User addUser(
+			String screenName, boolean autoScreenName, String firstName,
+			String lastName, long[] groupIds)
+		throws Exception {
+
 		User user = UserLocalServiceUtil.fetchUserByScreenName(
 			TestPropsValues.getCompanyId(), screenName);
 
@@ -281,9 +291,7 @@ public class ServiceTestUtil {
 		long facebookId = 0;
 		String openId = StringPool.BLANK;
 		Locale locale = LocaleUtil.getDefault();
-		String firstName = "ServiceTestSuite";
 		String middleName = StringPool.BLANK;
-		String lastName = "ServiceTestSuite";
 		int prefixId = 0;
 		int suffixId = 0;
 		boolean male = true;

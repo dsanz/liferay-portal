@@ -27,11 +27,10 @@ import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.SortFactoryUtil;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.model.Group;
-import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.Sync;
@@ -41,7 +40,6 @@ import com.liferay.portlet.usersadmin.util.UserIndexer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,29 +80,24 @@ public class DocumentImplTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_group = ServiceTestUtil.addGroup("testSearch");
-
 		_indexer = IndexerRegistryUtil.getIndexer(UserIndexer.class);
 
 		_indexer.registerIndexerPostProcessor(
 			new ExtendedUserIndexerPostProcessor());
 
-		generateTestData();
+		populateUsersNumbers();
 
-		for (String screenName : _usersSingleDouble.keySet()) {
-			User user = ServiceTestUtil.addUser(
-				screenName, _group.getGroupId());
+		for (String screenName : _userSingleDouble.keySet()) {
+			String firstName = screenName.replaceFirst(
+				"User", StringPool.BLANK);
 
-			user.setFirstName(screenName.replaceFirst("user", ""));
-			user.setLastName("Smith");
-			user.setStatus(WorkflowConstants.STATUS_APPROVED);
-
-			UserLocalServiceUtil.updateUser(user);
+			ServiceTestUtil.addUser(
+				screenName, false, firstName, "Smith", null);
 		}
 	}
 
 	@Test
-	public void testSearchResultsCount() throws Exception {
+	public void testFirstNameSearchResultsCount() throws Exception {
 		checkNumberOfSearchResults(buildSearchContext("first"), 1);
 
 		checkNumberOfSearchResults(buildSearchContext("second"), 1);
@@ -119,20 +112,15 @@ public class DocumentImplTest {
 	}
 
 	@Test
-	public void testSearchResultsCount2() throws Exception {
-		checkNumberOfSearchResults(buildSearchContext("Smith"), 6);
-	}
-
-	@Test
-	public void testSearchResultsCount3() throws Exception {
+	public void testFirstNamesSearchResultsCount() throws Exception {
 		checkNumberOfSearchResults(
 			buildSearchContext("sixth second first fourth fifth third"), 6);
 	}
 
 	@Test
-	public void testSearchSortedByMultiDouble1() throws Exception {
+	public void testFirstNamesSearchSortedByMultiDouble() throws Exception {
 		String[] expected =
-			new String[] {"firstuser", "thirduser", "fifthuser", "sixthuser"};
+			new String[] {"firstUser", "thirdUser", "fifthUser", "sixthUser"};
 
 		checkSortedSearchResultsOrder(
 			"third sixth fifth first", expected, MULTI_DOUBLE,
@@ -152,19 +140,9 @@ public class DocumentImplTest {
 	}
 
 	@Test
-	public void testSearchSortedByMultiDouble2() throws Exception {
+	public void testFirstNamesSearchSortedByMultiFloat() throws Exception {
 		String[] expected =
-			new String[] {"firstuser", "thirduser", "fifthuser", "seconduser",
-						"fourthuser", "sixthuser"};
-
-		checkSortedSearchResultsOrder(
-			"Smith", expected, MULTI_DOUBLE, Sort.DOUBLE_TYPE);
-	}
-
-	@Test
-	public void testSearchSortedByMultiFloat() throws Exception {
-		String[] expected =
-			new String[] {"firstuser", "seconduser", "fourthuser", "sixthuser"};
+			new String[] {"firstUser", "secondUser", "fourthUser", "sixthUser"};
 
 		checkSortedSearchResultsOrder(
 			"sixth second first fourth", expected, MULTI_FLOAT,
@@ -184,19 +162,9 @@ public class DocumentImplTest {
 	}
 
 	@Test
-	public void testSearchSortedByMultiInteger1() throws Exception {
+	public void testFirstNamesSearchSortedByMultiInteger() throws Exception {
 		String[] expected =
-			new String[] {"fourthuser", "fifthuser", "sixthuser", "firstuser",
-						"seconduser", "thirduser"};
-
-		checkSortedSearchResultsOrder(
-			"Smith", expected, MULTI_INT, Sort.INT_TYPE);
-	}
-
-	@Test
-	public void testSearchSortedByMultiInteger2() throws Exception {
-		String[] expected =
-			new String[] {"fourthuser", "fifthuser", "sixthuser"};
+			new String[] {"fourthUser", "fifthUser", "sixthUser"};
 
 		checkSortedSearchResultsOrder(
 			"fourth fifth sixth", expected, MULTI_INT, Sort.INT_TYPE);
@@ -209,50 +177,40 @@ public class DocumentImplTest {
 	}
 
 	@Test
-	public void testSearchSortedByMultiLong1() throws Exception {
-		String[] expected1 =
-			new String[] {"firstuser", "seconduser", "thirduser", "fourthuser",
-				"fifthuser", "sixthuser"};
-
-		checkSortedSearchResultsOrder(
-			"Smith", expected1, MULTI_LONG, Sort.LONG_TYPE);
-	}
-
-	@Test
-	public void testSearchSortedByMultiLong2() throws Exception {
-		String[] expected1 =
-			new String[] {"firstuser", "seconduser", "thirduser", "fourthuser",
-				"fifthuser", "sixthuser"};
-
-		checkSortedSearchResultsOrder(
-			"sixth second first fourth fifth third", expected1, MULTI_LONG,
-			Sort.LONG_TYPE);
-
-		checkSortedSearchResultsOrder(
-			"second first fourth fifth third sixth", expected1, MULTI_LONG,
-			Sort.LONG_TYPE);
-
-		checkSortedSearchResultsOrder(
-			"first fourth fifth third sixth second", expected1, MULTI_LONG,
-			Sort.LONG_TYPE);
-
-		checkSortedSearchResultsOrder(
-			"fourth fifth third sixth second first", expected1, MULTI_LONG,
-			Sort.LONG_TYPE);
-
-		checkSortedSearchResultsOrder(
-			"fifth third sixth second first fourth", expected1, MULTI_LONG,
-			Sort.LONG_TYPE);
-
-		checkSortedSearchResultsOrder(
-			"third sixth second first fourth fifth", expected1, MULTI_LONG,
-			Sort.LONG_TYPE);
-	}
-
-	@Test
-	public void testSearchSortedBySingleDouble1() throws Exception {
+	public void testFirstNamesSearchSortedByMultiLong() throws Exception {
 		String[] expected =
-			new String[] {"firstuser", "thirduser", "fifthuser", "sixthuser"};
+			new String[] {"firstUser", "secondUser", "thirdUser", "fourthUser",
+				"fifthUser", "sixthUser"};
+
+		checkSortedSearchResultsOrder(
+			"sixth second first fourth fifth third", expected, MULTI_LONG,
+			Sort.LONG_TYPE);
+
+		checkSortedSearchResultsOrder(
+			"second first fourth fifth third sixth", expected, MULTI_LONG,
+			Sort.LONG_TYPE);
+
+		checkSortedSearchResultsOrder(
+			"first fourth fifth third sixth second", expected, MULTI_LONG,
+			Sort.LONG_TYPE);
+
+		checkSortedSearchResultsOrder(
+			"fourth fifth third sixth second first", expected, MULTI_LONG,
+			Sort.LONG_TYPE);
+
+		checkSortedSearchResultsOrder(
+			"fifth third sixth second first fourth", expected, MULTI_LONG,
+			Sort.LONG_TYPE);
+
+		checkSortedSearchResultsOrder(
+			"third sixth second first fourth fifth", expected, MULTI_LONG,
+			Sort.LONG_TYPE);
+	}
+
+	@Test
+	public void testFirstNamesSearchSortedBySingleDouble() throws Exception {
+		String[] expected =
+			new String[] {"firstUser", "thirdUser", "fifthUser", "sixthUser"};
 
 		checkSortedSearchResultsOrder(
 			"third sixth fifth first", expected, SINGLE_DOUBLE,
@@ -272,19 +230,9 @@ public class DocumentImplTest {
 	}
 
 	@Test
-	public void testSearchSortedBySingleDouble2() throws Exception {
+	public void testFirstNamesSearchSortedBySingleFloat() throws Exception {
 		String[] expected =
-			new String[] {"firstuser", "thirduser", "fifthuser", "seconduser",
-						"fourthuser", "sixthuser"};
-
-		checkSortedSearchResultsOrder(
-			"Smith", expected, SINGLE_DOUBLE, Sort.DOUBLE_TYPE);
-	}
-
-	@Test
-	public void testSearchSortedBySingleFloat() throws Exception {
-		String[] expected =
-			new String[] {"firstuser", "seconduser", "fourthuser", "sixthuser"};
+			new String[] {"firstUser", "secondUser", "fourthUser", "sixthUser"};
 
 		checkSortedSearchResultsOrder(
 			"sixth second first fourth", expected, SINGLE_FLOAT,
@@ -304,20 +252,9 @@ public class DocumentImplTest {
 	}
 
 	@Test
-	public void testSearchSortedBySingleInteger1() throws Exception {
+	public void testFirstNamesSearchSortedBySingleInteger() throws Exception {
 		String[] expected =
-			new String[] {"fourthuser", "fifthuser", "sixthuser", "firstuser",
-						"seconduser", "thirduser"};
-
-		checkSortedSearchResultsOrder(
-			"Smith", expected, SINGLE_INT, Sort.INT_TYPE);
-
-	}
-
-	@Test
-	public void testSearchSortedBySingleInteger2() throws Exception {
-		String[] expected =
-			new String[] {"fourthuser", "fifthuser", "sixthuser"};
+			new String[] {"fourthUser", "fifthUser", "sixthUser"};
 
 		checkSortedSearchResultsOrder(
 			"fourth fifth sixth", expected, SINGLE_INT, Sort.INT_TYPE);
@@ -330,71 +267,120 @@ public class DocumentImplTest {
 	}
 
 	@Test
-	public void testSearchSortedBySingleLong1() throws Exception {
-		String[] expected1 =
-			new String[] {"firstuser", "seconduser", "thirduser", "fourthuser",
-				"fifthuser", "sixthuser"};
+	public void testFirstNamesSearchSortedBySingleLong() throws Exception {
+		String[] expected =
+			new String[] {"firstUser", "secondUser", "thirdUser", "fourthUser",
+				"fifthUser", "sixthUser"};
 
 		checkSortedSearchResultsOrder(
-			"Smith", expected1, SINGLE_LONG, Sort.LONG_TYPE);
+			"sixth second first fourth fifth third", expected, SINGLE_LONG,
+			Sort.LONG_TYPE);
+
+		checkSortedSearchResultsOrder(
+			"second first fourth fifth third sixth", expected, SINGLE_LONG,
+			Sort.LONG_TYPE);
+
+		checkSortedSearchResultsOrder(
+			"first fourth fifth third sixth second", expected, SINGLE_LONG,
+			Sort.LONG_TYPE);
+
+		checkSortedSearchResultsOrder(
+			"fourth fifth third sixth second first", expected, SINGLE_LONG,
+			Sort.LONG_TYPE);
+
+		checkSortedSearchResultsOrder(
+			"fifth third sixth second first fourth", expected, SINGLE_LONG,
+			Sort.LONG_TYPE);
+
+		checkSortedSearchResultsOrder(
+			"third sixth second first fourth fifth", expected, SINGLE_LONG,
+			Sort.LONG_TYPE);
 	}
 
 	@Test
-	public void testSearchSortedBySingleLong2() throws Exception {
-		String[] expected1 =
-			new String[] {"firstuser", "seconduser", "thirduser", "fourthuser",
-				"fifthuser", "sixthuser"};
+	public void testLastNameSearchResultsCount() throws Exception {
+		checkNumberOfSearchResults(buildSearchContext("Smith"), 6);
+	}
+
+	@Test
+	public void testLastNameSearchSortedByMultiDouble() throws Exception {
+		String[] expected =
+			new String[] {"firstUser", "thirdUser", "fifthUser", "secondUser",
+				"fourthUser", "sixthUser"};
 
 		checkSortedSearchResultsOrder(
-			"sixth second first fourth fifth third", expected1, SINGLE_LONG,
-			Sort.LONG_TYPE);
+			"Smith", expected, MULTI_DOUBLE, Sort.DOUBLE_TYPE);
+	}
+
+	@Test
+	public void testLastNameSearchSortedByMultiInteger() throws Exception {
+		String[] expected =
+			new String[] {"fourthUser", "fifthUser", "sixthUser", "firstUser",
+				"secondUser", "thirdUser"};
 
 		checkSortedSearchResultsOrder(
-			"second first fourth fifth third sixth", expected1, SINGLE_LONG,
-			Sort.LONG_TYPE);
+			"Smith", expected, MULTI_INT, Sort.INT_TYPE);
+	}
+
+	@Test
+	public void testLastNameSearchSortedByMultiLong() throws Exception {
+		String[] expected =
+			new String[] {"firstUser", "secondUser", "thirdUser", "fourthUser",
+				"fifthUser", "sixthUser"};
 
 		checkSortedSearchResultsOrder(
-			"first fourth fifth third sixth second", expected1, SINGLE_LONG,
-			Sort.LONG_TYPE);
+			"Smith", expected, MULTI_LONG, Sort.LONG_TYPE);
+	}
+
+	@Test
+	public void testLastNameSearchSortedBySingleDouble() throws Exception {
+		String[] expected =
+			new String[] {"firstUser", "thirdUser", "fifthUser", "secondUser",
+				"fourthUser", "sixthUser"};
 
 		checkSortedSearchResultsOrder(
-			"fourth fifth third sixth second first", expected1, SINGLE_LONG,
-			Sort.LONG_TYPE);
+			"Smith", expected, SINGLE_DOUBLE, Sort.DOUBLE_TYPE);
+	}
+
+	@Test
+	public void testLastNameSearchSortedBySingleInteger() throws Exception {
+		String[] expected =
+			new String[] {"fourthUser", "fifthUser", "sixthUser", "firstUser",
+						"secondUser", "thirdUser"};
 
 		checkSortedSearchResultsOrder(
-			"fifth third sixth second first fourth", expected1, SINGLE_LONG,
-			Sort.LONG_TYPE);
+			"Smith", expected, SINGLE_INT, Sort.INT_TYPE);
+	}
+
+	@Test
+	public void testLastNameSearchSortedBySingleLong() throws Exception {
+		String[] expected =
+			new String[] {"firstUser", "secondUser", "thirdUser", "fourthUser",
+				"fifthUser", "sixthUser"};
 
 		checkSortedSearchResultsOrder(
-			"third sixth second first fourth fifth", expected1, SINGLE_LONG,
-			Sort.LONG_TYPE);
+			"Smith", expected, SINGLE_LONG, Sort.LONG_TYPE);
 	}
 
 	protected SearchContext buildSearchContext(String keywords)
 		throws Exception {
+
 		SearchContext searchContext = ServiceTestUtil.getSearchContext();
 
-		searchContext.setGroupIds(new long[]{});
+		searchContext.setGroupIds(new long[] {});
 		searchContext.setKeywords(keywords);
 		searchContext.setAttribute(Field.STATUS, WorkflowConstants.STATUS_ANY);
 
 		return searchContext;
 	}
 
-	protected void checkNumberOfSearchResults(Hits results, long expectedHits)
-		throws Exception {
-
-		if (expectedHits >= 0) {
-			Assert.assertEquals(results.getLength(), expectedHits);
-		}
-	}
-
 	protected void checkNumberOfSearchResults(
-			SearchContext searchContext, long expectedHits)
+			SearchContext searchContext, long expectedResults)
 		throws Exception {
 
-		checkNumberOfSearchResults(
-			_indexer.search(searchContext), expectedHits);
+		Hits results = _indexer.search(searchContext);
+
+		Assert.assertEquals(expectedResults, results.getLength());
 	}
 
 	protected void checkSearchResultsData(Hits results) {
@@ -402,36 +388,32 @@ public class DocumentImplTest {
 			String screenName = doc.get("screenName");
 
 			Assert.assertEquals(
-				_usersSingleDouble.get(screenName),
-				Double.valueOf(doc.get(SINGLE_DOUBLE)).doubleValue(), 0);
+				Double.valueOf(doc.get(SINGLE_DOUBLE)),
+				_userSingleDouble.get(screenName), 0);
 
 			Assert.assertEquals(
-				_usersSingleLong.get(screenName),
-				Long.valueOf(doc.get(SINGLE_LONG)).longValue(), 0);
+				Long.valueOf(doc.get(SINGLE_LONG)),
+				_userSingleLong.get(screenName), 0);
 
 			Assert.assertEquals(
-				_usersSingleFloat.get(screenName),
-				Float.valueOf(doc.get(SINGLE_FLOAT)).floatValue(), 0);
+				Float.valueOf(doc.get(SINGLE_FLOAT)),
+				_userSingleFloat.get(screenName), 0);
 
 			Assert.assertEquals(
-				_usersSingleInteger.get(screenName),
-				Integer.valueOf(doc.get(SINGLE_INT)).intValue(), 0);
+				Integer.valueOf(doc.get(SINGLE_INT)),
+				_userSingleInteger.get(screenName), 0);
 
 			Assert.assertArrayEquals(
-				_usersMultiDouble.get(screenName).toArray(new Double[]{}),
-				getMultiDouble(doc));
+				getMultiDouble(doc), _userMultiDouble.get(screenName));
 
 			Assert.assertArrayEquals(
-				_usersMultiLong.get(screenName).toArray(new Long[]{}),
-				getMultiLong(doc));
+				getMultiLong(doc), _userMultiLong.get(screenName));
 
 			Assert.assertArrayEquals(
-				_usersMultiFloat.get(screenName).toArray(new Float[]{}),
-				getMultiFloat(doc));
+				getMultiFloat(doc), _userMultiFloat.get(screenName));
 
 			Assert.assertArrayEquals(
-				_usersMultiInteger.get(screenName).toArray(new Integer[]{}),
-				getMultiInteger(doc));
+				getMultiInteger(doc), _userMultiInteger.get(screenName));
 		}
 	}
 
@@ -445,94 +427,37 @@ public class DocumentImplTest {
 			searchContext.getSearchEngineId(), searchContext.getCompanyId(),
 			query, sort, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
-		checkNumberOfSearchResults(results, expected.length);
+		Assert.assertEquals(expected.length, results.getLength());
 
 		for (int i = 0; i < expected.length; i++) {
-			Assert.assertEquals(results.doc(i).get("screenName"), expected[i]);
+			Assert.assertEquals(expected[i], results.doc(i).get("screenName"));
 		}
 
 		checkSearchResultsData(results);
 	}
 
 	protected void checkSortedSearchResultsOrder(
-		String keywords, String[] expectedAsc, String field, int sort)
-			throws Exception {
+			String keywords, String[] expectedAsc, String field, int type)
+		throws Exception {
 
-		String[] expectedDsc = reverse(expectedAsc);
+		String[] expectedDsc = Arrays.copyOf(expectedAsc, expectedAsc.length);
+
+		ArrayUtil.reverse(expectedDsc);
 
 		SearchContext searchContext = buildSearchContext(keywords);
 
-		checkSortedSearchResultsOrder(
-			searchContext, SortFactoryUtil.create(field, sort, false),
-			expectedAsc);
+		Sort sort = SortFactoryUtil.create(field, type, false);
 
-		checkSortedSearchResultsOrder(
-			searchContext, SortFactoryUtil.create(field, sort, true),
-			expectedDsc);
-	}
+		checkSortedSearchResultsOrder(searchContext, sort, expectedAsc);
 
-	protected void generateTestData() {
-		generateTestItem(
-			"firstuser", 0.0000000000001, new Long(Integer.MIN_VALUE - 9L));
-
-		generateTestItem(
-			"seconduser",0.0000020000002, new Long(Integer.MIN_VALUE - 8L));
-
-		generateTestItem(
-			"thirduser",0.0000000000003, new Long(Integer.MIN_VALUE - 7L));
-
-		generateTestItem("fourthuser",0.0000040000004, Integer.MIN_VALUE + 7);
-
-		generateTestItem("fifthuser",0.0000000000005, Integer.MIN_VALUE + 8);
-
-		generateTestItem("sixthuser",0.0000060000006, Integer.MIN_VALUE + 9);
-	}
-
-	protected void generateTestItem(
-		String screenName, double number1, long number2) {
-
-		_usersSingleDouble.put(screenName, number1);
-
-		_usersSingleFloat.put(screenName, new Float((float)number1));
-
-		_usersSingleInteger.put(screenName, Long.valueOf(number2).intValue());
-
-		_usersSingleLong.put(screenName, number2);
-
-		List<Double> doubleList = new ArrayList<Double>();
-
-		List<Float> floatList = new ArrayList<Float>();
-
-		List<Integer> intList = new ArrayList<Integer>();
-
-		List<Long> longList = new ArrayList<Long>();
-
-		double doublePow = number1;
-
-		long longSum;
-
-		for (int i=1; i<5; i++) {
-			doublePow *= number1;
-			doubleList.add(doublePow);
-			floatList.add(new Float((float)doublePow));
-			longSum = number2 + i;
-			longList.add(longSum);
-			intList.add(Long.valueOf(longSum).intValue());
-		}
-
-		_usersMultiDouble.put(screenName, doubleList);
-
-		_usersMultiFloat.put(screenName, floatList);
-
-		_usersMultiInteger.put(screenName, intList);
-
-		_usersMultiLong.put(screenName, longList);
+		checkSortedSearchResultsOrder(searchContext, sort, expectedDsc);
 	}
 
 	protected Double[] getMultiDouble(Document doc) {
 		List<Double> multiDouble = new ArrayList<Double>();
-		for (String item : doc.getValues(MULTI_DOUBLE)) {
-			multiDouble.add(Double.valueOf(item));
+
+		for (String value : doc.getValues(MULTI_DOUBLE)) {
+			multiDouble.add(Double.valueOf(value));
 		}
 
 		return multiDouble.toArray(new Double[]{});
@@ -540,8 +465,9 @@ public class DocumentImplTest {
 
 	protected Float[] getMultiFloat(Document doc) {
 		List<Float> multiFloat = new ArrayList<Float>();
-		for (String item : doc.getValues(MULTI_FLOAT)) {
-			multiFloat.add(Float.valueOf(item));
+
+		for (String value : doc.getValues(MULTI_FLOAT)) {
+			multiFloat.add(Float.valueOf(value));
 		}
 
 		return multiFloat.toArray(new Float[]{});
@@ -549,8 +475,9 @@ public class DocumentImplTest {
 
 	protected Integer[] getMultiInteger(Document doc) {
 		List<Integer> multiInt = new ArrayList<Integer>();
-		for (String item : doc.getValues(MULTI_INT)) {
-			multiInt.add(Integer.valueOf(item));
+
+		for (String value : doc.getValues(MULTI_INT)) {
+			multiInt.add(Integer.valueOf(value));
 		}
 
 		return multiInt.toArray(new Integer[]{});
@@ -558,42 +485,109 @@ public class DocumentImplTest {
 
 	protected Long[] getMultiLong(Document doc) {
 		List<Long> multiLong = new ArrayList<Long>();
-		for (String item : doc.getValues(MULTI_LONG)) {
-			multiLong.add(Long.valueOf(item));
+
+		for (String value : doc.getValues(MULTI_LONG)) {
+			multiLong.add(Long.valueOf(value));
 		}
 
 		return multiLong.toArray(new Long[]{});
 	}
 
-	protected String[] reverse(String[] array) {
-		String[] reversed = Arrays.copyOf(array, array.length);
-		Collections.reverse(Arrays.asList(reversed));
-		return reversed;
+	protected void populateMultiUserNumbers(
+		String screenName, Double[] numberDoubles, Long[] numberLongs) {
+
+		Float[] numberFloats = new Float[numberDoubles.length];
+		Integer[] numberIntegers = new Integer[numberLongs.length];
+
+		for (int i = 0; i < numberDoubles.length; i++) {
+			double numberDouble = numberDoubles[i];
+
+			numberFloats[i] = new Float((float)numberDouble);
+		}
+
+		for (int i = 0; i < numberLongs.length; i++) {
+			long numberLong = numberLongs[i];
+
+			numberIntegers[i] = Long.valueOf(numberLong).intValue();
+		}
+
+		_userMultiDouble.put(screenName, numberDoubles);
+
+		_userMultiFloat.put(screenName, numberFloats);
+
+		_userMultiInteger.put(screenName, numberIntegers);
+
+		_userMultiLong.put(screenName, numberLongs);
 	}
 
-	protected Group _group;
+	protected void populateSingleUserNumbers(
+		String screenName, Double numberDouble, Long numberLong) {
+
+		_userSingleDouble.put(screenName, numberDouble);
+
+		_userSingleFloat.put(screenName, numberDouble.floatValue());
+
+		_userSingleInteger.put(screenName, numberLong.intValue());
+
+		_userSingleLong.put(screenName, numberLong);
+	}
+
+	protected void populateUsersNumbers() {
+		populateSingleUserNumbers(
+			"firstUser", 0.0000000000001, new Long(Integer.MIN_VALUE - 9L));
+		populateMultiUserNumbers(
+			"firstUser", new Double[] {0.0000000000001, 0.0000000000002},
+			new Long[] {(Integer.MIN_VALUE - 9L), (Integer.MIN_VALUE - 8L)});
+
+		populateSingleUserNumbers(
+			"secondUser", 0.0000020000002, new Long(Integer.MIN_VALUE - 8L));
+		populateMultiUserNumbers(
+			"secondUser", new Double[]{0.0000020000003, 0.0000020000004},
+			new Long[]{(Integer.MIN_VALUE - 7L), (Integer.MIN_VALUE - 6L)});
+
+		populateSingleUserNumbers(
+			"thirdUser", 0.0000000000003, new Long(Integer.MIN_VALUE - 7L));
+		populateMultiUserNumbers(
+			"thirdUser", new Double[]{0.0000000000003, 0.0000000000004},
+			new Long[]{(Integer.MIN_VALUE - 5L), (Integer.MIN_VALUE - 4L)});
+
+		populateSingleUserNumbers(
+			"fourthUser", 0.0000040000004, new Long(Integer.MIN_VALUE + 7L));
+		populateMultiUserNumbers(
+			"fourthUser", new Double[]{0.0000040000004, 0.0000040000005},
+			new Long[]{(Integer.MIN_VALUE + 7L), (Integer.MIN_VALUE + 8L)});
+
+		populateSingleUserNumbers(
+			"fifthUser", 0.0000000000005, new Long(Integer.MIN_VALUE + 8L));
+		populateMultiUserNumbers(
+			"fifthUser", new Double[]{0.0000000000005, 0.0000000000006},
+			new Long[]{(Integer.MIN_VALUE + 9L), (Integer.MIN_VALUE + 10L)});
+
+		populateSingleUserNumbers(
+			"sixthUser", 0.0000060000006, new Long(Integer.MIN_VALUE + 9L));
+		populateMultiUserNumbers(
+			"sixthUser", new Double[]{0.0000060000006, 0.0000060000007},
+			new Long[]{(Integer.MIN_VALUE + 11L), (Integer.MIN_VALUE + 12L)});
+	}
 
 	protected Indexer _indexer;
 
-	protected Map<String, List<Double>> _usersMultiDouble =
-		new HashMap<String, List<Double>>();
+	protected Map<String, Double[]> _userMultiDouble =
+		new HashMap<String, Double[]>();
+	protected Map<String, Float[]> _userMultiFloat =
+		new HashMap<String, Float[]>();
+	protected Map<String, Integer[]> _userMultiInteger =
+			new HashMap<String, Integer[]>();
+	protected Map<String, Long[]> _userMultiLong =
+		new HashMap<String, Long[]>();
 
-	protected Map<String, List<Float>> _usersMultiFloat =
-			new HashMap<String, List<Float>>();
-
-	protected Map<String, List<Integer>> _usersMultiInteger =
-			new HashMap<String, List<Integer>>();
-
-	protected Map<String, List<Long>> _usersMultiLong =
-		new HashMap<String, List<Long>>();
-
-	protected Map<String, Double> _usersSingleDouble =
+	protected Map<String, Double> _userSingleDouble =
 		new HashMap<String, Double>();
-	protected Map<String, Float> _usersSingleFloat =
+	protected Map<String, Float> _userSingleFloat =
 		new HashMap<String, Float>();
-	protected Map<String, Integer> _usersSingleInteger =
+	protected Map<String, Integer> _userSingleInteger =
 		new HashMap<String, Integer>();
-	protected Map<String, Long> _usersSingleLong = new HashMap<String, Long>();
+	protected Map<String, Long> _userSingleLong = new HashMap<String, Long>();
 
 	protected class ExtendedUserIndexerPostProcessor extends
 		BaseIndexerPostProcessor {
@@ -604,30 +598,15 @@ public class DocumentImplTest {
 
 			String screenName = document.get("screenName");
 
+			document.addNumber(MULTI_DOUBLE, _userMultiDouble.get(screenName));
+			document.addNumber(MULTI_FLOAT, _userMultiFloat.get(screenName));
+			document.addNumber(MULTI_INT, _userMultiInteger.get(screenName));
+			document.addNumber(MULTI_LONG, _userMultiLong.get(screenName));
 			document.addNumber(
-				SINGLE_DOUBLE, _usersSingleDouble.get(screenName));
-
-			document.addNumber(SINGLE_FLOAT, _usersSingleFloat.get(screenName));
-
-			document.addNumber(SINGLE_INT, _usersSingleInteger.get(screenName));
-
-			document.addNumber(SINGLE_LONG, _usersSingleLong.get(screenName));
-
-			document.addNumber(
-				MULTI_DOUBLE,
-				_usersMultiDouble.get(screenName).toArray(new Double[]{}));
-
-			document.addNumber(
-				MULTI_FLOAT,
-				_usersMultiFloat.get(screenName).toArray(new Float[]{}));
-
-			document.addNumber(
-				MULTI_INT,
-				_usersMultiInteger.get(screenName).toArray(new Integer[]{}));
-
-			document.addNumber(
-				MULTI_LONG,
-				_usersMultiLong.get(screenName).toArray(new Long[]{}));
+				SINGLE_DOUBLE, _userSingleDouble.get(screenName));
+			document.addNumber(SINGLE_FLOAT, _userSingleFloat.get(screenName));
+			document.addNumber(SINGLE_INT, _userSingleInteger.get(screenName));
+			document.addNumber(SINGLE_LONG, _userSingleLong.get(screenName));
 		}
 	}
 
