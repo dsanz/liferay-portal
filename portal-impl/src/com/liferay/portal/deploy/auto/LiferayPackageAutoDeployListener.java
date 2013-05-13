@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * @author Ryan Park
@@ -55,6 +56,14 @@ public class LiferayPackageAutoDeployListener extends BaseAutoDeployListener {
 			_log.info(
 				"Liferay package for " + file.getPath() +" extracted " +
 					"successfully. Deployment will start in a few seconds.");
+		}
+		else if ((code == AutoDeployer.CODE_MISSING_FIXPACK_DEPENDENCIES) &&
+				 _log.isWarnEnabled()) {
+			_log.warn(
+				"Liferay package for " + file.getPath() + " requires " +
+				"some portal fixes to be installed. Please check " +
+				"following fixes: " + Arrays.asList(
+					autoDeploymentContext.getMissingFixes()).toString());
 		}
 	}
 

@@ -41,6 +41,14 @@ public class AutoDeploymentContext {
 		return _file;
 	}
 
+	public String[] getMissingFixes() {
+		return _missingFixes;
+	}
+
+	public String[] getRequiredFixes() {
+		return _requiredFixes;
+	}
+
 	public void setAppServerType(String appServerType) {
 		_appServerType = appServerType;
 	}
@@ -57,9 +65,19 @@ public class AutoDeploymentContext {
 		_file = file;
 	}
 
+	public void setMissingFixes(String[] missingFixes) {
+		_missingFixes = missingFixes;
+	}
+
+	public void setRequiredFixes(String[] requiredFixes) {
+		_requiredFixes = requiredFixes;
+	}
+
 	private String _appServerType;
 	private String _context;
 	private String _destDir;
 	private File _file;
+	private String _missingFixes[];
+	private String _requiredFixes[];
 
 }

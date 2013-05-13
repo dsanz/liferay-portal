@@ -27,6 +27,8 @@ public interface AutoDeployer {
 
 	public static final int CODE_SKIP_NEWER_VERSION = 2;
 
+	public static final int CODE_MISSING_FIXPACK_DEPENDENCIES = 3;
+
 	public int autoDeploy(AutoDeploymentContext autoDeploymentContext)
 		throws AutoDeployException;
 

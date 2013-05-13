@@ -14,6 +14,7 @@
 
 package com.liferay.portal.deploy.auto;
 
+import com.liferay.portal.deploy.FixPacksDependenciesUtil;
 import com.liferay.portal.kernel.deploy.auto.AutoDeployException;
 import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
 import com.liferay.portal.kernel.log.Log;
@@ -59,6 +60,10 @@ public class LiferayPackageAutoDeployer implements AutoDeployer {
 
 		ZipFile zipFile = null;
 
+		boolean fixpackDependenciesChecked = false;
+
+		boolean fixpackDependenciesMet = false;
+
 		try {
 			File file = autoDeploymentContext.getFile();
 
@@ -83,39 +88,60 @@ public class LiferayPackageAutoDeployer implements AutoDeployer {
 					continue;
 				}
 
-				if (_log.isInfoEnabled()) {
-					_log.info(
-						"Extracting " + zipEntryFileName + " from " +
-							file.getName());
-				}
-
 				InputStream inputStream = zipFile.getInputStream(zipEntry);
 
-				if (zipEntryFileName.equals("liferay-marketplace.properties")) {
-					inputStream = zipFile.getInputStream(zipEntry);
+				if (!fixpackDependenciesChecked) {
+					if (zipEntryFileName.equals(
+						"liferay-marketplace.properties")) {
 
-					propertiesString = StringUtil.read(inputStream);
+						propertiesString = StringUtil.read(inputStream);
+
+						fixpackDependenciesMet =
+							FixPacksDependenciesUtil.checkFixPackDependencies(
+								autoDeploymentContext, propertiesString);
+					}
+					else {
+						continue;
+					}
+
+					fixpackDependenciesChecked = true;
+				}
+
+				if (!fixpackDependenciesMet) {
+					FixPacksDependenciesUtil.registerMissingDeployment(
+						autoDeploymentContext);
+
+					return AutoDeployer.CODE_MISSING_FIXPACK_DEPENDENCIES;
 				}
 				else {
-					fileNames.add(zipEntryFileName);
+					if (_log.isInfoEnabled()) {
+						_log.info(
+							"Extracting " + zipEntryFileName + " from " +
+							file.getName());
+					}
 
-					FileUtil.write(
-						_baseDir + StringPool.SLASH + zipEntryFileName,
-						inputStream);
+					if (!zipEntryFileName.equals(
+						"liferay-marketplace.properties")) {
+
+						fileNames.add(zipEntryFileName);
+
+						FileUtil.write(
+							_baseDir + StringPool.SLASH + zipEntryFileName,
+							inputStream);
+					}
+				}
+
+				if (propertiesString != null) {
+					Message message = new Message();
+
+					message.put("command", "deploy");
+					message.put("fileNames", fileNames);
+					message.put("properties", propertiesString);
+
+					MessageBusUtil.sendMessage(
+						DestinationNames.MARKETPLACE, message);
 				}
 			}
-
-			if (propertiesString != null) {
-				Message message = new Message();
-
-				message.put("command", "deploy");
-				message.put("fileNames", fileNames);
-				message.put("properties", propertiesString);
-
-				MessageBusUtil.sendMessage(
-					DestinationNames.MARKETPLACE, message);
-			}
-
 			return AutoDeployer.CODE_DEFAULT;
 		}
 		catch (Exception e) {
