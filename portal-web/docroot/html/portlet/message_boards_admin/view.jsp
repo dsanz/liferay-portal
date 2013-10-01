@@ -103,9 +103,10 @@ if ((category != null) && layout.isTypeControlPanel()) {
 						modelResourceDescription="<%= HtmlUtil.escape(modelResourceDescription) %>"
 						resourcePrimKey="<%= resourcePrimKey %>"
 						var="permissionsURL"
+						windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 					/>
 
-					<aui:button href="<%= permissionsURL %>" value="permissions" />
+					<aui:button href="<%= permissionsURL %>" useDialog="<%= true %>" value="permissions" />
 				</c:if>
 			</div>
 		</c:if>
@@ -157,9 +158,10 @@ if ((category != null) && layout.isTypeControlPanel()) {
 							iteratorURL="<%= portletURL %>"
 							rowChecker="<%= new RowChecker(renderResponse) %>"
 							total="<%= categoriesCount %>"
+							var="categorySearchContainer"
 						>
 							<liferay-ui:search-container-results
-								results="<%= MBCategoryServiceUtil.getCategories(scopeGroupId, categoryId, WorkflowConstants.STATUS_APPROVED, searchContainer.getStart(), searchContainer.getEnd()) %>"
+								results="<%= MBCategoryServiceUtil.getCategories(scopeGroupId, categoryId, WorkflowConstants.STATUS_APPROVED, categorySearchContainer.getStart(), categorySearchContainer.getEnd()) %>"
 							/>
 
 							<liferay-ui:search-container-row
@@ -178,7 +180,7 @@ if ((category != null) && layout.isTypeControlPanel()) {
 
 							<br>
 
-							<aui:button onClick='<%= renderResponse.getNamespace() + "deleteCategories();" %>' value='<%= TrashUtil.isTrashEnabled(scopeGroupId) ? "move-to-the-recycle-bin" : "delete" %>' />
+							<aui:button disabled="<%= true %>" name="deleteCategory" onClick='<%= renderResponse.getNamespace() + "deleteCategories();" %>' value='<%= TrashUtil.isTrashEnabled(scopeGroupId) ? "move-to-the-recycle-bin" : "delete" %>' />
 
 							<div class="separator"><!-- --></div>
 
@@ -192,7 +194,11 @@ if ((category != null) && layout.isTypeControlPanel()) {
 				<aui:form action="<%= portletURL.toString() %>" method="get" name="fm1">
 
 					<%
-					portletURL.setParameter("topLink", ParamUtil.getString(request, "topLink"));
+					int status = WorkflowConstants.STATUS_APPROVED;
+
+					if (permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId)) {
+						status = WorkflowConstants.STATUS_ANY;
+					}
 					%>
 
 					<aui:input name="<%= Constants.CMD %>" type="hidden" />
@@ -205,10 +211,11 @@ if ((category != null) && layout.isTypeControlPanel()) {
 						headerNames="thread,flag,started-by,posts,views,last-post"
 						iteratorURL="<%= portletURL %>"
 						rowChecker="<%= new RowChecker(renderResponse) %>"
-						total="<%= MBThreadServiceUtil.getThreadsCount(scopeGroupId, categoryId, WorkflowConstants.STATUS_APPROVED) %>"
+						total="<%= MBThreadServiceUtil.getThreadsCount(scopeGroupId, categoryId, status) %>"
+						var="threadSearchContainer"
 					>
 						<liferay-ui:search-container-results
-							results="<%= MBThreadServiceUtil.getThreads(scopeGroupId, categoryId, WorkflowConstants.STATUS_APPROVED, searchContainer.getStart(), searchContainer.getEnd()) %>"
+							results="<%= MBThreadServiceUtil.getThreads(scopeGroupId, categoryId, status, threadSearchContainer.getStart(), threadSearchContainer.getEnd()) %>"
 						/>
 
 						<liferay-ui:search-container-row
@@ -234,7 +241,6 @@ if ((category != null) && layout.isTypeControlPanel()) {
 							message = message.toEscapedModel();
 
 							row.setBold(!MBThreadFlagLocalServiceUtil.hasThreadFlag(themeDisplay.getUserId(), thread));
-							row.setObject(new Object[] {message});
 							row.setRestricted(!MBMessagePermission.contains(permissionChecker, message, ActionKeys.VIEW));
 							%>
 
@@ -340,6 +346,16 @@ if ((category != null) && layout.isTypeControlPanel()) {
 
 							</liferay-ui:search-container-column-text>
 
+							<liferay-ui:search-container-column-status
+								href="<%= rowURL %>"
+								name="status"
+								status="<%= thread.getStatus() %>"
+							/>
+
+							<%
+							row.setObject(new Object[] {message});
+							%>
+
 							<liferay-ui:search-container-column-jsp
 								align="right"
 								path="/html/portlet/message_boards/message_action.jsp"
@@ -348,11 +364,11 @@ if ((category != null) && layout.isTypeControlPanel()) {
 
 						<br>
 
-						<aui:button onClick='<%= renderResponse.getNamespace() + "deleteThreads();" %>' value='<%= TrashUtil.isTrashEnabled(scopeGroupId) ? "move-to-the-recycle-bin" : "delete" %>' />
+						<aui:button disabled="<%= true %>" name="delete" onClick='<%= renderResponse.getNamespace() + "deleteThreads();" %>' value='<%= TrashUtil.isTrashEnabled(scopeGroupId) ? "move-to-the-recycle-bin" : "delete" %>' />
 
-						<aui:button onClick='<%= renderResponse.getNamespace() + "lockThreads();" %>' value="lock" />
+						<aui:button disabled="<%= true %>" name="lockThread" onClick='<%= renderResponse.getNamespace() + "lockThreads();" %>' value="lock" />
 
-						<aui:button onClick='<%= renderResponse.getNamespace() + "unlockThreads();" %>' value="unlock" />
+						<aui:button disabled="<%= true %>" name="unlockThread" onClick='<%= renderResponse.getNamespace() + "unlockThreads();" %>' value="unlock" />
 
 						<div class="separator"><!-- --></div>
 
@@ -419,8 +435,7 @@ if ((category != null) && layout.isTypeControlPanel()) {
 
 					results = MBThreadServiceUtil.getGroupThreads(scopeGroupId, groupThreadsUserId, calendar.getTime(), WorkflowConstants.STATUS_APPROVED, searchContainer.getStart(), searchContainer.getEnd());
 
-					pageContext.setAttribute("results", results);
-					pageContext.setAttribute("total", total);
+					searchContainer.setResults(results);
 					%>
 
 				</liferay-ui:search-container-results>
@@ -633,9 +648,9 @@ if ((category != null) && layout.isTypeControlPanel()) {
 					value="<%= HtmlUtil.escape(PortalUtil.getUserName(ban.getUserId(), StringPool.BLANK)) %>"
 				/>
 
-				<liferay-ui:search-container-column-text
+				<liferay-ui:search-container-column-date
 					name="ban-date"
-					value="<%= dateFormatDateTime.format(ban.getCreateDate()) %>"
+					value="<%= ban.getCreateDate() %>"
 				/>
 
 				<c:if test="<%= PropsValues.MESSAGE_BOARDS_EXPIRE_BAN_INTERVAL > 0 %>">
@@ -663,25 +678,22 @@ if ((category != null) && layout.isTypeControlPanel()) {
 </c:choose>
 
 <aui:script>
+	Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />deleteCategory', '#<portlet:namespace /><%= searchContainerReference.getId("categorySearchContainer") %>SearchContainer', document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
+	Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />delete', '#<portlet:namespace /><%= searchContainerReference.getId("threadSearchContainer") %>SearchContainer', document.<portlet:namespace />fm1, '<portlet:namespace />allRowIds');
+	Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />lockThread', '#<portlet:namespace /><%= searchContainerReference.getId("threadSearchContainer") %>SearchContainer', document.<portlet:namespace />fm1, '<portlet:namespace />allRowIds');
+	Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />unlockThread', '#<portlet:namespace /><%= searchContainerReference.getId("threadSearchContainer") %>SearchContainer', document.<portlet:namespace />fm1, '<portlet:namespace />allRowIds');
+
 	Liferay.provide(
 		window,
 		'<portlet:namespace />deleteCategories',
 		function() {
-			var deleteCategories = true;
+			if (<%= TrashUtil.isTrashEnabled(scopeGroupId) %> || confirm('<%= UnicodeLanguageUtil.get(pageContext, TrashUtil.isTrashEnabled(scopeGroupId) ? "are-you-sure-you-want-to-move-the-selected-entries-to-the-recycle-bin" : "are-you-sure-you-want-to-delete-the-selected-entries") %>')) {
+				document.<portlet:namespace />fm.method = "post";
+				document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= TrashUtil.isTrashEnabled(scopeGroupId) ? Constants.MOVE_TO_TRASH : Constants.DELETE %>";
+				document.<portlet:namespace />fm.<portlet:namespace />deleteCategoryIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
 
-			var deleteCategoryIds = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-
-			if (!deleteCategoryIds) {
-				deleteCategories = false;
-			}
-
-			if (deleteCategories) {
-				if (confirm('<%= UnicodeLanguageUtil.get(pageContext, TrashUtil.isTrashEnabled(scopeGroupId) ? "are-you-sure-you-want-to-move-the-selected-entries-to-the-recycle-bin" : "are-you-sure-you-want-to-delete-the-selected-entries") %>')) {
-					document.<portlet:namespace />fm.method = "post";
-					document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= TrashUtil.isTrashEnabled(scopeGroupId) ? Constants.MOVE_TO_TRASH : Constants.DELETE %>";
-					document.<portlet:namespace />fm.<portlet:namespace />deleteCategoryIds.value = deleteCategoryIds;
-					submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/message_boards_admin/edit_category" /></portlet:actionURL>");
-				}
+				submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/message_boards_admin/edit_category" /></portlet:actionURL>");
 			}
 		},
 		['liferay-util-list-fields']
@@ -691,10 +703,11 @@ if ((category != null) && layout.isTypeControlPanel()) {
 		window,
 		'<portlet:namespace />deleteThreads',
 		function() {
-			if (confirm('<%= UnicodeLanguageUtil.get(pageContext, TrashUtil.isTrashEnabled(scopeGroupId) ? "are-you-sure-you-want-to-move-the-selected-entries-to-the-recycle-bin" : "are-you-sure-you-want-to-delete-the-selected-entries") %>')) {
+			if (<%= TrashUtil.isTrashEnabled(scopeGroupId) %> || confirm('<%= UnicodeLanguageUtil.get(pageContext, TrashUtil.isTrashEnabled(scopeGroupId) ? "are-you-sure-you-want-to-move-the-selected-entries-to-the-recycle-bin" : "are-you-sure-you-want-to-delete-the-selected-entries") %>')) {
 				document.<portlet:namespace />fm1.method = "post";
 				document.<portlet:namespace />fm1.<portlet:namespace /><%= Constants.CMD %>.value = "<%= TrashUtil.isTrashEnabled(scopeGroupId) ? Constants.MOVE_TO_TRASH : Constants.DELETE %>";
-				document.<portlet:namespace />fm1.<portlet:namespace />threadIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm1, "<portlet:namespace />allRowIds");
+				document.<portlet:namespace />fm1.<portlet:namespace />threadIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm1, '<portlet:namespace />allRowIds');
+
 				submitForm(document.<portlet:namespace />fm1, "<portlet:actionURL><portlet:param name="struts_action" value="/message_boards_admin/delete_thread" /></portlet:actionURL>");
 			}
 		},
@@ -707,7 +720,8 @@ if ((category != null) && layout.isTypeControlPanel()) {
 		function() {
 			document.<portlet:namespace />fm1.method = "post";
 			document.<portlet:namespace />fm1.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.LOCK %>";
-			document.<portlet:namespace />fm1.<portlet:namespace />threadIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm1, "<portlet:namespace />allRowIds");
+			document.<portlet:namespace />fm1.<portlet:namespace />threadIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm1, '<portlet:namespace />allRowIds');
+
 			submitForm(document.<portlet:namespace />fm1, "<portlet:actionURL><portlet:param name="struts_action" value="/message_boards_admin/edit_message" /></portlet:actionURL>");
 		},
 		['liferay-util-list-fields']
@@ -719,7 +733,8 @@ if ((category != null) && layout.isTypeControlPanel()) {
 		function() {
 			document.<portlet:namespace />fm1.method = "post";
 			document.<portlet:namespace />fm1.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.UNLOCK %>";
-			document.<portlet:namespace />fm1.<portlet:namespace />threadIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm1, "<portlet:namespace />allRowIds");
+			document.<portlet:namespace />fm1.<portlet:namespace />threadIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm1, '<portlet:namespace />allRowIds');
+
 			submitForm(document.<portlet:namespace />fm1, "<portlet:actionURL><portlet:param name="struts_action" value="/message_boards_admin/edit_message" /></portlet:actionURL>");
 		},
 		['liferay-util-list-fields']

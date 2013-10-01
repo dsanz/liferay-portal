@@ -1,62 +1,77 @@
 <definition>
-	<command name="blogsEntryPG">
-		<execute macro="Page#pgGoto">
-			<var name="pageName" value="${pageName}" />
-		</execute>
-
-		<execute action="PGSearch#type" locator-key1="SEARCH_FIELD" value1="${entryTitle}" />
+	<command name="searchNoPG">
+		<execute action="PGSearch#type" locator-key1="SEARCH_FIELD" value1="${searchTerm}" />
 		<execute action="PGSearch#click" locator-key1="SEARCH_ICON" />
 
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TITLE_1" value1="${entryTitle}" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TYPE_1" value1="Blogs Entry" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_SUMMARY_1" value1="${entryContent}" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="SEARCH_RESULTS" value1="Showing 1 - 1." />
+		<var name="key_searchAssetTitle" value="${searchAssetTitle}" />
+
+		<execute action="PGSearchResults#assertElementNotPresent" locator-key1="ASSET_ENTRY_TABLE_TITLE" />
+		<execute action="PGSearchResults#assertElementNotPresent" locator-key1="ASSET_ENTRY_TABLE_TYPE" />
+
+		<if>
+			<isset var="searchAssetSummary" />
+			<then>
+				<execute action="PGSearchResults#assertElementNotPresent" locator-key1="ASSET_ENTRY_TABLE_SUMMARY" value1="${searchAssetSummary}" />
+			</then>
+		</if>
+
+		<if>
+			<equals arg1="${searchNoResults}" arg2="true" />
+			<then>
+				<execute action="PGSearchResults#assertTextEquals" locator-key1="INFO_MESSAGE" value1="No results were found that matched the keywords: ${searchTerm}." />
+			</then>
+		</if>
 	</command>
 
-	<command name="messageboardsThreadPG">
-		<execute macro="Page#pgGoto">
-			<var name="pageName" value="${pageName}" />
-		</execute>
-
-		<execute action="PGSearch#type" locator-key1="SEARCH_FIELD" value1="${threadSubject}" />
+	<command name="searchPG">
+		<execute action="PGSearch#type" locator-key1="SEARCH_FIELD" value1="${searchTerm}" />
 		<execute action="PGSearch#click" locator-key1="SEARCH_ICON" />
 
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TITLE_1" value1="${threadSubject}" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TYPE_1" value1="Message Boards Message" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_SUMMARY_1" value1="${threadBody}" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="SEARCH_RESULTS" value1="Showing 1 - 1." />
+		<var name="key_searchAssetTitle" value="${searchAssetTitle}" />
+
+		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TITLE" value1="${searchAssetTitle}" />
+		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TYPE" value1="${searchAssetType}" />
+
+		<if>
+			<isset var="searchAssetSummary" />
+			<then>
+				<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_SUMMARY" value1="${searchAssetSummary}" />
+			</then>
+		</if>
 	</command>
 
-	<command name="userPG">
-		<execute macro="Page#pgGoto">
-			<var name="pageName" value="${pageName}" />
-		</execute>
+	<command name="viewSearchNoPG">
+		<var name="key_searchAssetTitle" value="${searchAssetTitle}" />
 
-		<execute action="PGSearch#type" locator-key1="SEARCH_FIELD" value1="users*" />
-		<execute action="PGSearch#click" locator-key1="SEARCH_ICON" />
+		<execute action="PGSearchResults#assertElementNotPresent" locator-key1="ASSET_ENTRY_TABLE_TITLE" />
+		<execute action="PGSearchResults#assertElementNotPresent" locator-key1="ASSET_ENTRY_TABLE_TYPE" />
 
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TITLE_1" value1="${userFirstName} ${userLastName}" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TYPE_1" value1="User" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="SEARCH_RESULTS" value1="Showing 1 - 1." />
+		<if>
+			<isset var="searchAssetSummary" />
+			<then>
+				<execute action="PGSearchResults#assertElementNotPresent" locator-key1="ASSET_ENTRY_TABLE_SUMMARY" value1="${searchAssetSummary}" />
+			</then>
+		</if>
 
-		<execute action="PGSearchResults#type" locator-key1="SEARCH_FIELD" value1="userf*" />
-		<execute action="PGSearchResults#click" locator-key1="SEARCH_ICON" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TITLE_1" value1="${userFirstName} ${userLastName}" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TYPE_1" value1="User" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="SEARCH_RESULTS" value1="Showing 1 - 1." />
+		<if>
+			<equals arg1="${searchNoResults}" arg2="true" />
+			<then>
+				<execute action="PGSearchResults#assertTextEquals" locator-key1="INFO_MESSAGE" value1="No results were found that matched the keywords: ${searchTerm}." />
+			</then>
+		</if>
 	</command>
 
-	<command name="wikiPagePG">
-		<execute macro="Page#pgGoto">
-			<var name="pageName" value="${pageName}" />
-		</execute>
+	<command name="viewSearchPG">
+		<var name="key_searchAssetTitle" value="${searchAssetTitle}" />
 
-		<execute action="PGSearch#type" locator-key1="SEARCH_FIELD" value1="${wikiPageTitle}" />
-		<execute action="PGSearch#click" locator-key1="SEARCH_ICON" />
+		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TITLE" value1="${searchAssetTitle}" />
+		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TYPE" value1="${searchAssetType}" />
 
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TITLE_1" value1="${wikiPageTitle}" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_TYPE_1" value1="Wiki Page" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_SUMMARY_1" value1="${wikiPageContent}" />
-		<execute action="PGSearchResults#assertTextEquals" locator-key1="SEARCH_RESULTS" value1="Showing 1 - 1." />
+		<if>
+			<isset var="searchAssetSummary" />
+			<then>
+				<execute action="PGSearchResults#assertTextEquals" locator-key1="ASSET_ENTRY_TABLE_SUMMARY" value1="${searchAssetSummary}" />
+			</then>
+		</if>
 	</command>
 </definition>

@@ -14,13 +14,16 @@
 
 package com.liferay.counter.service;
 
+import com.liferay.counter.model.Counter;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.process.ClassPathUtil;
 import com.liferay.portal.kernel.process.ProcessCallable;
 import com.liferay.portal.kernel.process.ProcessException;
 import com.liferay.portal.kernel.process.ProcessExecutor;
+import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
+import com.liferay.portal.kernel.scheduler.SchedulerException;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.util.InitUtil;
@@ -33,8 +36,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -45,8 +49,19 @@ import org.junit.runner.RunWith;
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class CounterLocalServiceTest {
 
-	@Before
-	public void setUp() throws Exception {
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+		_COUNTER_NAME = StringUtil.randomString();
+
+		CounterLocalServiceUtil.reset(_COUNTER_NAME);
+
+		Counter counter = CounterLocalServiceUtil.createCounter(_COUNTER_NAME);
+
+		CounterLocalServiceUtil.updateCounter(counter);
+	}
+
+	@AfterClass
+	public static void tearDownClass() throws Exception {
 		CounterLocalServiceUtil.reset(_COUNTER_NAME);
 	}
 
@@ -93,7 +108,7 @@ public class CounterLocalServiceTest {
 
 	private static final int _PROCESS_COUNT = 4;
 
-	private static String _COUNTER_NAME = "COUNTER_NAME";
+	private static String _COUNTER_NAME;
 
 	private static class IncrementProcessCallable
 		implements ProcessCallable<Long[]> {
@@ -111,8 +126,6 @@ public class CounterLocalServiceTest {
 			System.setProperty("catalina.base", ".");
 
 			PropsUtil.set(PropsValues.COUNTER_INCREMENT + _COUNTER_NAME, "1");
-			PropsUtil.set(
-				PropsKeys.SCHEDULER_ENABLED, Boolean.FALSE.toString());
 
 			InitUtil.initWithSpring();
 
@@ -125,6 +138,14 @@ public class CounterLocalServiceTest {
 			}
 			catch (SystemException se) {
 				throw new ProcessException(se);
+			}
+			finally {
+				try {
+					SchedulerEngineHelperUtil.shutdown();
+				}
+				catch (SchedulerException se) {
+					throw new ProcessException(se);
+				}
 			}
 
 			return ids.toArray(new Long[ids.size()]);

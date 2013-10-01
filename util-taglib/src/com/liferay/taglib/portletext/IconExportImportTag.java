@@ -14,7 +14,9 @@
 
 package com.liferay.taglib.portletext;
 
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.servlet.taglib.FileAvailabilityUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.taglib.ui.IconTag;
 
@@ -38,9 +40,26 @@ public class IconExportImportTag extends IconTag {
 		}
 
 		setCssClass("portlet-export-import portlet-export-import-icon");
-		setImage("download");
+		setImage("../aui/download-alt");
 		setMessage("export-import");
 		setMethod("get");
+
+		StringBundler sb = new StringBundler(11);
+
+		sb.append("Liferay.Portlet.openWindow('#p_p_id_");
+		sb.append(portletDisplay.getId());
+		sb.append("_', '");
+		sb.append(portletDisplay.getId());
+		sb.append("', '");
+		sb.append(portletDisplay.getURLExportImport());
+		sb.append("', '");
+		sb.append(portletDisplay.getNamespace());
+		sb.append("', '");
+		sb.append(LanguageUtil.get(pageContext, "export-import"));
+		sb.append("'); return false;");
+
+		setOnClick(sb.toString());
+
 		setToolTip(false);
 		setUrl(portletDisplay.getURLExportImport());
 

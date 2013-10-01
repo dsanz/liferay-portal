@@ -37,7 +37,7 @@ public class SystemEventCacheModel implements CacheModel<SystemEvent>,
 	Externalizable {
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(23);
+		StringBundler sb = new StringBundler(29);
 
 		sb.append("{systemEventId=");
 		sb.append(systemEventId);
@@ -57,6 +57,12 @@ public class SystemEventCacheModel implements CacheModel<SystemEvent>,
 		sb.append(classPK);
 		sb.append(", classUuid=");
 		sb.append(classUuid);
+		sb.append(", referrerClassNameId=");
+		sb.append(referrerClassNameId);
+		sb.append(", parentSystemEventId=");
+		sb.append(parentSystemEventId);
+		sb.append(", systemEventSetKey=");
+		sb.append(systemEventSetKey);
 		sb.append(", type=");
 		sb.append(type);
 		sb.append(", extraData=");
@@ -99,6 +105,9 @@ public class SystemEventCacheModel implements CacheModel<SystemEvent>,
 			systemEventImpl.setClassUuid(classUuid);
 		}
 
+		systemEventImpl.setReferrerClassNameId(referrerClassNameId);
+		systemEventImpl.setParentSystemEventId(parentSystemEventId);
+		systemEventImpl.setSystemEventSetKey(systemEventSetKey);
 		systemEventImpl.setType(type);
 
 		if (extraData == null) {
@@ -124,6 +133,9 @@ public class SystemEventCacheModel implements CacheModel<SystemEvent>,
 		classNameId = objectInput.readLong();
 		classPK = objectInput.readLong();
 		classUuid = objectInput.readUTF();
+		referrerClassNameId = objectInput.readLong();
+		parentSystemEventId = objectInput.readLong();
+		systemEventSetKey = objectInput.readLong();
 		type = objectInput.readInt();
 		extraData = objectInput.readUTF();
 	}
@@ -154,6 +166,9 @@ public class SystemEventCacheModel implements CacheModel<SystemEvent>,
 			objectOutput.writeUTF(classUuid);
 		}
 
+		objectOutput.writeLong(referrerClassNameId);
+		objectOutput.writeLong(parentSystemEventId);
+		objectOutput.writeLong(systemEventSetKey);
 		objectOutput.writeInt(type);
 
 		if (extraData == null) {
@@ -173,6 +188,9 @@ public class SystemEventCacheModel implements CacheModel<SystemEvent>,
 	public long classNameId;
 	public long classPK;
 	public String classUuid;
+	public long referrerClassNameId;
+	public long parentSystemEventId;
+	public long systemEventSetKey;
 	public int type;
 	public String extraData;
 }

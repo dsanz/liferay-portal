@@ -19,6 +19,8 @@ import com.liferay.portal.kernel.io.unsync.UnsyncPrintWriter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.ContextPathUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.SessionParamUtil;
@@ -171,13 +173,28 @@ public class DynamicCSSUtil {
 			return content;
 		}
 
+		String portalContextPath = PortalUtil.getPathContext();
+
+		String baseURL = portalContextPath;
+
+		String contextPath = ContextPathUtil.getContextPath(servletContext);
+
+		if (!contextPath.equals(portalContextPath)) {
+			baseURL = StringPool.SLASH.concat(
+				GetterUtil.getString(servletContext.getServletContextName()));
+		}
+
+		if (baseURL.endsWith(StringPool.SLASH)) {
+			baseURL = baseURL.substring(0, baseURL.length() - 1);
+		}
+
 		parsedContent = StringUtil.replace(
 			parsedContent,
 			new String[] {
-				"@portal_ctx@", "@theme_image_path@"
+				"@base_url@", "@portal_ctx@", "@theme_image_path@"
 			},
 			new String[] {
-				PortalUtil.getPathContext(),
+				baseURL, portalContextPath,
 				_getThemeImagesPath(request, themeDisplay, theme)
 			});
 
@@ -348,6 +365,11 @@ public class DynamicCSSUtil {
 
 		Map<String, Object> inputObjects = new HashMap<String, Object>();
 
+		String portalWebDir = PortalUtil.getPortalWebDir();
+
+		inputObjects.put(
+			"commonSassPath", portalWebDir.concat(_SASS_COMMON_DIR));
+
 		inputObjects.put("content", content);
 		inputObjects.put("cssRealPath", resourcePath);
 		inputObjects.put(
@@ -408,6 +430,8 @@ public class DynamicCSSUtil {
 	private static final String _CSS_IMPORT_BEGIN = "@import url(";
 
 	private static final String _CSS_IMPORT_END = ");";
+
+	private static final String _SASS_COMMON_DIR = "/html/css/common";
 
 	private static final String _SASS_DIR = "sass";
 

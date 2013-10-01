@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -48,6 +49,18 @@ public interface JSONWebServiceActionsManager {
 		String contextPath, Class<?> actionClass, Method actionMethod,
 		String path, String method);
 
+	public void registerJSONWebServiceAction(
+		String contextPath, Object actionObject, Class<?> actionClass,
+		Method actionMethod, String path, String method);
+
+	public int registerServletContext(ServletContext servletContext);
+
+	public int registerServletContext(String contextPath);
+
+	public int unregisterJSONWebServiceActions(Object actionObject);
+
 	public int unregisterJSONWebServiceActions(String contextPath);
+
+	public int unregisterServletContext(ServletContext servletContext);
 
 }

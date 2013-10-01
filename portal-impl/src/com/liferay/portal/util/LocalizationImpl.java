@@ -31,6 +31,8 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.xml.Document;
+import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.language.LanguageResources;
 
 import java.util.HashMap;
@@ -83,8 +85,16 @@ public class LocalizationImpl implements Localization {
 	}
 
 	@Override
-	public String[] getAvailableLocales(String xml) {
-		String attributeValue = _getRootAttribute(
+	public String[] getAvailableLanguageIds(Document document) {
+		String attributeValue = _getRootAttributeValue(
+			document, _AVAILABLE_LOCALES, StringPool.BLANK);
+
+		return StringUtil.split(attributeValue);
+	}
+
+	@Override
+	public String[] getAvailableLanguageIds(String xml) {
+		String attributeValue = _getRootAttributeValue(
 			xml, _AVAILABLE_LOCALES, StringPool.BLANK);
 
 		return StringUtil.split(attributeValue);
@@ -133,11 +143,20 @@ public class LocalizationImpl implements Localization {
 	}
 
 	@Override
-	public String getDefaultLocale(String xml) {
+	public String getDefaultLanguageId(Document document) {
 		String defaultLanguageId = LocaleUtil.toLanguageId(
 			LocaleUtil.getDefault());
 
-		return _getRootAttribute(xml, _DEFAULT_LOCALE, defaultLanguageId);
+		return _getRootAttributeValue(
+			document, _DEFAULT_LOCALE, defaultLanguageId);
+	}
+
+	@Override
+	public String getDefaultLanguageId(String xml) {
+		String defaultLanguageId = LocaleUtil.toLanguageId(
+			LocaleUtil.getDefault());
+
+		return _getRootAttributeValue(xml, _DEFAULT_LOCALE, defaultLanguageId);
 	}
 
 	@Override
@@ -168,9 +187,8 @@ public class LocalizationImpl implements Localization {
 		if (value != null) {
 			return value;
 		}
-		else {
-			value = StringPool.BLANK;
-		}
+
+		value = StringPool.BLANK;
 
 		String priorityLanguageId = null;
 
@@ -536,7 +554,7 @@ public class LocalizationImpl implements Localization {
 
 		String[] values = preferences.getValues(localizedKey, new String[0]);
 
-		if (useDefault && Validator.isNull(values)) {
+		if (useDefault && ArrayUtil.isEmpty(values)) {
 			values = preferences.getValues(key, new String[0]);
 		}
 
@@ -994,7 +1012,15 @@ public class LocalizationImpl implements Localization {
 		return value;
 	}
 
-	private String _getRootAttribute(
+	private String _getRootAttributeValue(
+		Document document, String name, String defaultValue) {
+
+		Element rootElement = document.getRootElement();
+
+		return rootElement.attributeValue(name, defaultValue);
+	}
+
+	private String _getRootAttributeValue(
 		String xml, String name, String defaultValue) {
 
 		String value = null;

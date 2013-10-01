@@ -17,6 +17,7 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -293,8 +294,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -317,8 +318,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		return GetterUtil.getString(_originalUuid);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserGroupId() {
 		return _userGroupId;
 	}
@@ -328,8 +329,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		_userGroupId = userGroupId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -351,8 +352,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		return _originalCompanyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -372,8 +373,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		_userUuid = userUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -388,8 +389,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		_userName = userName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -399,8 +400,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -410,8 +411,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		_modifiedDate = modifiedDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getParentUserGroupId() {
 		return _parentUserGroupId;
 	}
@@ -433,8 +434,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		return _originalParentUserGroupId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -459,8 +460,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		return GetterUtil.getString(_originalName);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getDescription() {
 		if (_description == null) {
 			return StringPool.BLANK;
@@ -475,8 +476,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		_description = description;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getAddedByLDAPImport() {
 		return _addedByLDAPImport;
 	}
@@ -489,6 +490,12 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	@Override
 	public void setAddedByLDAPImport(boolean addedByLDAPImport) {
 		_addedByLDAPImport = addedByLDAPImport;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(PortalUtil.getClassNameId(
+				UserGroup.class.getName()));
 	}
 
 	public long getColumnBitmask() {

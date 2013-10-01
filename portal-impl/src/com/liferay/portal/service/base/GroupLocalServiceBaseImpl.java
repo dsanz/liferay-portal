@@ -100,6 +100,7 @@ import com.liferay.portal.service.persistence.UserGroupPersistence;
 import com.liferay.portal.service.persistence.UserGroupRoleFinder;
 import com.liferay.portal.service.persistence.UserGroupRolePersistence;
 import com.liferay.portal.service.persistence.UserIdMapperPersistence;
+import com.liferay.portal.service.persistence.UserNotificationDeliveryPersistence;
 import com.liferay.portal.service.persistence.UserNotificationEventPersistence;
 import com.liferay.portal.service.persistence.UserPersistence;
 import com.liferay.portal.service.persistence.UserTrackerPathPersistence;
@@ -126,6 +127,7 @@ import com.liferay.portlet.bookmarks.service.persistence.BookmarksFolderFinder;
 import com.liferay.portlet.bookmarks.service.persistence.BookmarksFolderPersistence;
 import com.liferay.portlet.documentlibrary.service.persistence.DLFileEntryTypeFinder;
 import com.liferay.portlet.documentlibrary.service.persistence.DLFileEntryTypePersistence;
+import com.liferay.portlet.expando.service.persistence.ExpandoRowPersistence;
 import com.liferay.portlet.journal.service.persistence.JournalArticleFinder;
 import com.liferay.portlet.journal.service.persistence.JournalArticlePersistence;
 import com.liferay.portlet.messageboards.service.persistence.MBBanPersistence;
@@ -1116,6 +1118,25 @@ public abstract class GroupLocalServiceBaseImpl extends BaseLocalServiceImpl
 	public void setBackgroundTaskLocalService(
 		com.liferay.portal.service.BackgroundTaskLocalService backgroundTaskLocalService) {
 		this.backgroundTaskLocalService = backgroundTaskLocalService;
+	}
+
+	/**
+	 * Returns the background task remote service.
+	 *
+	 * @return the background task remote service
+	 */
+	public com.liferay.portal.service.BackgroundTaskService getBackgroundTaskService() {
+		return backgroundTaskService;
+	}
+
+	/**
+	 * Sets the background task remote service.
+	 *
+	 * @param backgroundTaskService the background task remote service
+	 */
+	public void setBackgroundTaskService(
+		com.liferay.portal.service.BackgroundTaskService backgroundTaskService) {
+		this.backgroundTaskService = backgroundTaskService;
 	}
 
 	/**
@@ -3568,6 +3589,44 @@ public abstract class GroupLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
+	 * Returns the staging local service.
+	 *
+	 * @return the staging local service
+	 */
+	public com.liferay.portal.service.StagingLocalService getStagingLocalService() {
+		return stagingLocalService;
+	}
+
+	/**
+	 * Sets the staging local service.
+	 *
+	 * @param stagingLocalService the staging local service
+	 */
+	public void setStagingLocalService(
+		com.liferay.portal.service.StagingLocalService stagingLocalService) {
+		this.stagingLocalService = stagingLocalService;
+	}
+
+	/**
+	 * Returns the staging remote service.
+	 *
+	 * @return the staging remote service
+	 */
+	public com.liferay.portal.service.StagingService getStagingService() {
+		return stagingService;
+	}
+
+	/**
+	 * Sets the staging remote service.
+	 *
+	 * @param stagingService the staging remote service
+	 */
+	public void setStagingService(
+		com.liferay.portal.service.StagingService stagingService) {
+		this.stagingService = stagingService;
+	}
+
+	/**
 	 * Returns the subscription local service.
 	 *
 	 * @return the subscription local service
@@ -4112,6 +4171,44 @@ public abstract class GroupLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
+	 * Returns the user notification delivery local service.
+	 *
+	 * @return the user notification delivery local service
+	 */
+	public com.liferay.portal.service.UserNotificationDeliveryLocalService getUserNotificationDeliveryLocalService() {
+		return userNotificationDeliveryLocalService;
+	}
+
+	/**
+	 * Sets the user notification delivery local service.
+	 *
+	 * @param userNotificationDeliveryLocalService the user notification delivery local service
+	 */
+	public void setUserNotificationDeliveryLocalService(
+		com.liferay.portal.service.UserNotificationDeliveryLocalService userNotificationDeliveryLocalService) {
+		this.userNotificationDeliveryLocalService = userNotificationDeliveryLocalService;
+	}
+
+	/**
+	 * Returns the user notification delivery persistence.
+	 *
+	 * @return the user notification delivery persistence
+	 */
+	public UserNotificationDeliveryPersistence getUserNotificationDeliveryPersistence() {
+		return userNotificationDeliveryPersistence;
+	}
+
+	/**
+	 * Sets the user notification delivery persistence.
+	 *
+	 * @param userNotificationDeliveryPersistence the user notification delivery persistence
+	 */
+	public void setUserNotificationDeliveryPersistence(
+		UserNotificationDeliveryPersistence userNotificationDeliveryPersistence) {
+		this.userNotificationDeliveryPersistence = userNotificationDeliveryPersistence;
+	}
+
+	/**
 	 * Returns the user notification event local service.
 	 *
 	 * @return the user notification event local service
@@ -4147,25 +4244,6 @@ public abstract class GroupLocalServiceBaseImpl extends BaseLocalServiceImpl
 	public void setUserNotificationEventPersistence(
 		UserNotificationEventPersistence userNotificationEventPersistence) {
 		this.userNotificationEventPersistence = userNotificationEventPersistence;
-	}
-
-	/**
-	 * Returns the user notification interpreter local service.
-	 *
-	 * @return the user notification interpreter local service
-	 */
-	public com.liferay.portal.service.UserNotificationInterpreterLocalService getUserNotificationInterpreterLocalService() {
-		return userNotificationInterpreterLocalService;
-	}
-
-	/**
-	 * Sets the user notification interpreter local service.
-	 *
-	 * @param userNotificationInterpreterLocalService the user notification interpreter local service
-	 */
-	public void setUserNotificationInterpreterLocalService(
-		com.liferay.portal.service.UserNotificationInterpreterLocalService userNotificationInterpreterLocalService) {
-		this.userNotificationInterpreterLocalService = userNotificationInterpreterLocalService;
 	}
 
 	/**
@@ -5094,6 +5172,44 @@ public abstract class GroupLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
+	 * Returns the expando row local service.
+	 *
+	 * @return the expando row local service
+	 */
+	public com.liferay.portlet.expando.service.ExpandoRowLocalService getExpandoRowLocalService() {
+		return expandoRowLocalService;
+	}
+
+	/**
+	 * Sets the expando row local service.
+	 *
+	 * @param expandoRowLocalService the expando row local service
+	 */
+	public void setExpandoRowLocalService(
+		com.liferay.portlet.expando.service.ExpandoRowLocalService expandoRowLocalService) {
+		this.expandoRowLocalService = expandoRowLocalService;
+	}
+
+	/**
+	 * Returns the expando row persistence.
+	 *
+	 * @return the expando row persistence
+	 */
+	public ExpandoRowPersistence getExpandoRowPersistence() {
+		return expandoRowPersistence;
+	}
+
+	/**
+	 * Sets the expando row persistence.
+	 *
+	 * @param expandoRowPersistence the expando row persistence
+	 */
+	public void setExpandoRowPersistence(
+		ExpandoRowPersistence expandoRowPersistence) {
+		this.expandoRowPersistence = expandoRowPersistence;
+	}
+
+	/**
 	 * Returns the journal article local service.
 	 *
 	 * @return the journal article local service
@@ -5819,6 +5935,25 @@ public abstract class GroupLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
+	 * Returns the social activity remote service.
+	 *
+	 * @return the social activity remote service
+	 */
+	public com.liferay.portlet.social.service.SocialActivityService getSocialActivityService() {
+		return socialActivityService;
+	}
+
+	/**
+	 * Sets the social activity remote service.
+	 *
+	 * @param socialActivityService the social activity remote service
+	 */
+	public void setSocialActivityService(
+		com.liferay.portlet.social.service.SocialActivityService socialActivityService) {
+		this.socialActivityService = socialActivityService;
+	}
+
+	/**
 	 * Returns the social activity persistence.
 	 *
 	 * @return the social activity persistence
@@ -6154,6 +6289,8 @@ public abstract class GroupLocalServiceBaseImpl extends BaseLocalServiceImpl
 	protected AddressPersistence addressPersistence;
 	@BeanReference(type = com.liferay.portal.service.BackgroundTaskLocalService.class)
 	protected com.liferay.portal.service.BackgroundTaskLocalService backgroundTaskLocalService;
+	@BeanReference(type = com.liferay.portal.service.BackgroundTaskService.class)
+	protected com.liferay.portal.service.BackgroundTaskService backgroundTaskService;
 	@BeanReference(type = BackgroundTaskPersistence.class)
 	protected BackgroundTaskPersistence backgroundTaskPersistence;
 	@BeanReference(type = com.liferay.portal.service.BrowserTrackerLocalService.class)
@@ -6414,6 +6551,10 @@ public abstract class GroupLocalServiceBaseImpl extends BaseLocalServiceImpl
 	protected com.liferay.portal.service.ShardLocalService shardLocalService;
 	@BeanReference(type = ShardPersistence.class)
 	protected ShardPersistence shardPersistence;
+	@BeanReference(type = com.liferay.portal.service.StagingLocalService.class)
+	protected com.liferay.portal.service.StagingLocalService stagingLocalService;
+	@BeanReference(type = com.liferay.portal.service.StagingService.class)
+	protected com.liferay.portal.service.StagingService stagingService;
 	@BeanReference(type = com.liferay.portal.service.SubscriptionLocalService.class)
 	protected com.liferay.portal.service.SubscriptionLocalService subscriptionLocalService;
 	@BeanReference(type = SubscriptionPersistence.class)
@@ -6472,12 +6613,14 @@ public abstract class GroupLocalServiceBaseImpl extends BaseLocalServiceImpl
 	protected com.liferay.portal.service.UserIdMapperLocalService userIdMapperLocalService;
 	@BeanReference(type = UserIdMapperPersistence.class)
 	protected UserIdMapperPersistence userIdMapperPersistence;
+	@BeanReference(type = com.liferay.portal.service.UserNotificationDeliveryLocalService.class)
+	protected com.liferay.portal.service.UserNotificationDeliveryLocalService userNotificationDeliveryLocalService;
+	@BeanReference(type = UserNotificationDeliveryPersistence.class)
+	protected UserNotificationDeliveryPersistence userNotificationDeliveryPersistence;
 	@BeanReference(type = com.liferay.portal.service.UserNotificationEventLocalService.class)
 	protected com.liferay.portal.service.UserNotificationEventLocalService userNotificationEventLocalService;
 	@BeanReference(type = UserNotificationEventPersistence.class)
 	protected UserNotificationEventPersistence userNotificationEventPersistence;
-	@BeanReference(type = com.liferay.portal.service.UserNotificationInterpreterLocalService.class)
-	protected com.liferay.portal.service.UserNotificationInterpreterLocalService userNotificationInterpreterLocalService;
 	@BeanReference(type = com.liferay.portal.service.UserTrackerLocalService.class)
 	protected com.liferay.portal.service.UserTrackerLocalService userTrackerLocalService;
 	@BeanReference(type = UserTrackerPersistence.class)
@@ -6576,6 +6719,10 @@ public abstract class GroupLocalServiceBaseImpl extends BaseLocalServiceImpl
 	protected DLFileEntryTypePersistence dlFileEntryTypePersistence;
 	@BeanReference(type = DLFileEntryTypeFinder.class)
 	protected DLFileEntryTypeFinder dlFileEntryTypeFinder;
+	@BeanReference(type = com.liferay.portlet.expando.service.ExpandoRowLocalService.class)
+	protected com.liferay.portlet.expando.service.ExpandoRowLocalService expandoRowLocalService;
+	@BeanReference(type = ExpandoRowPersistence.class)
+	protected ExpandoRowPersistence expandoRowPersistence;
 	@BeanReference(type = com.liferay.portlet.journal.service.JournalArticleLocalService.class)
 	protected com.liferay.portlet.journal.service.JournalArticleLocalService journalArticleLocalService;
 	@BeanReference(type = com.liferay.portlet.journal.service.JournalArticleService.class)
@@ -6656,6 +6803,8 @@ public abstract class GroupLocalServiceBaseImpl extends BaseLocalServiceImpl
 	protected ShoppingOrderFinder shoppingOrderFinder;
 	@BeanReference(type = com.liferay.portlet.social.service.SocialActivityLocalService.class)
 	protected com.liferay.portlet.social.service.SocialActivityLocalService socialActivityLocalService;
+	@BeanReference(type = com.liferay.portlet.social.service.SocialActivityService.class)
+	protected com.liferay.portlet.social.service.SocialActivityService socialActivityService;
 	@BeanReference(type = SocialActivityPersistence.class)
 	protected SocialActivityPersistence socialActivityPersistence;
 	@BeanReference(type = SocialActivityFinder.class)

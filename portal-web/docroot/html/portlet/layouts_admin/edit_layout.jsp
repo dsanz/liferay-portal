@@ -86,8 +86,8 @@ if (selLayout.isSupportsEmbeddedPortlets()) {
 
 	List<String> portletIds = selLayoutTypePortlet.getPortletIds();
 
-	for (Portlet portlet : selLayoutTypePortlet.getAllPortlets()) {
-		if (!portlet.isSystem() && !portletIds.contains(portlet.getPortletId())) {
+	for (Portlet portlet : selLayoutTypePortlet.getAllPortlets(false)) {
+		if (!portletIds.contains(portlet.getPortletId())) {
 			embeddedPortlets.add(portlet);
 		}
 	}
@@ -104,13 +104,20 @@ if (!group.isUser() && selLayout.isTypePortlet()) {
 }
 
 String[][] categorySections = {mainSections};
+
+String displayStyle = ParamUtil.getString(request, "displayStyle");
+boolean showAddAction = ParamUtil.getBoolean(request, "showAddAction", true);
 %>
 
-<liferay-util:include page="/html/portlet/layouts_admin/add_layout.jsp" />
+<c:if test="<%= !portletName.equals(PortletKeys.DOCKBAR) %>">
+	<div class="add-content-menu hide" id="<portlet:namespace />addLayout">
+		<liferay-util:include page="/html/portlet/layouts_admin/add_layout.jsp" />
+	</div>
+</c:if>
 
 <aui:nav-bar>
 	<aui:nav id="layoutsNav">
-		<c:if test="<%= LayoutPermissionUtil.contains(permissionChecker, selPlid, ActionKeys.ADD_LAYOUT) && PortalUtil.isLayoutParentable(selLayout.getType()) %>">
+		<c:if test="<%= LayoutPermissionUtil.contains(permissionChecker, selPlid, ActionKeys.ADD_LAYOUT) && showAddAction %>">
 			<aui:nav-item data-value="add-child-page" iconClass="icon-plus" label="add-child-page" />
 		</c:if>
 		<c:if test="<%= LayoutPermissionUtil.contains(permissionChecker, selPlid, ActionKeys.PERMISSIONS) %>">
@@ -129,11 +136,11 @@ String[][] categorySections = {mainSections};
 	<portlet:param name="struts_action" value="/layouts_admin/edit_layouts" />
 </portlet:actionURL>
 
-<aui:form action="<%= editLayoutURL %>" cssClass="edit-layout-form" enctype="multipart/form-data" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "saveLayout();" %>'>
+<aui:form action='<%= HttpUtil.addParameter(editLayoutURL, "refererPlid", plid) %>' cssClass="edit-layout-form" enctype="multipart/form-data" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "saveLayout();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
 	<aui:input name="redirect" type="hidden" value='<%= HttpUtil.addParameter(redirectURL.toString(), liferayPortletResponse.getNamespace() + "selPlid", selPlid) %>' />
 	<aui:input name="closeRedirect" type="hidden" value="<%= closeRedirect %>" />
-	<aui:input name="groupId" type="hidden" value="<%= groupId %>" />
+	<aui:input name="groupId" type="hidden" value="<%= selGroup.getGroupId() %>" />
 	<aui:input name="liveGroupId" type="hidden" value="<%= liveGroupId %>" />
 	<aui:input name="stagingGroupId" type="hidden" value="<%= stagingGroupId %>" />
 	<aui:input name="selPlid" type="hidden" value="<%= selPlid %>" />
@@ -165,32 +172,19 @@ String[][] categorySections = {mainSections};
 		</c:when>
 		<c:otherwise>
 			<c:if test="<%= !group.isLayoutPrototype() && (selLayout != null) %>">
-				<c:if test="<%= liveGroup.isStaged() %>">
-					<liferay-ui:error exception="<%= RemoteExportException.class %>">
+				<c:if test="<%= selGroup.isStagingGroup() %>">
+					<%@ include file="/html/portlet/layouts_admin/error_auth_exception.jspf" %>
 
-						<%
-						RemoteExportException ree = (RemoteExportException)errorException;
-						%>
-
-						<c:if test="<%= ree.getType() == RemoteExportException.BAD_CONNECTION %>">
-							<%= LanguageUtil.format(pageContext, "could-not-connect-to-address-x.-please-verify-that-the-specified-port-is-correct-and-that-the-remote-server-is-configured-to-accept-requests-from-this-server", "<em>" + ree.getURL() + "</em>") %>
-						</c:if>
-
-						<c:if test="<%= ree.getType() == RemoteExportException.NO_GROUP %>">
-							<%= LanguageUtil.format(pageContext, "remote-group-with-id-x-does-not-exist", ree.getGroupId()) %>
-						</c:if>
-
-						<c:if test="<%= ree.getType() == RemoteExportException.NO_LAYOUTS %>">
-							<liferay-ui:message key="no-pages-are-selected-for-export" />
-						</c:if>
-
-						<c:if test="<%= ree.getType() == RemoteExportException.NO_PERMISSIONS %>">
-							<liferay-ui:message arguments="<%= ree.getGroupId() %>" key="you-do-not-have-permissions-to-edit-the-site-with-id-x-on-the-remote-server" />
-						</c:if>
-					</liferay-ui:error>
+					<%@ include file="/html/portlet/layouts_admin/error_remote_export_exception.jspf" %>
 
 					<div class="alert alert-block">
 						<liferay-ui:message key="the-staging-environment-is-activated-changes-have-to-be-published-to-make-them-available-to-end-users" />
+					</div>
+				</c:if>
+
+				<c:if test="<%= selGroup.hasLocalOrRemoteStagingGroup() && !selGroup.isStagingGroup() %>">
+					<div class="alert alert-block">
+						<liferay-ui:message key="changes-are-immediately-available-to-end-users" />
 					</div>
 				</c:if>
 
@@ -214,7 +208,7 @@ String[][] categorySections = {mainSections};
 					</c:when>
 					<c:when test="<%= !SitesUtil.isLayoutDeleteable(selLayout) %>">
 						<div class="alert alert-block">
-							<liferay-ui:message key="this-page-cannot-be-deleted-because-it-is-associated-to-a-site-template" />
+							<liferay-ui:message key="this-page-cannot-be-deleted-and-cannot-have-child-pages-because-it-is-associated-to-a-site-template" />
 						</div>
 					</c:when>
 				</c:choose>
@@ -235,7 +229,9 @@ String[][] categorySections = {mainSections};
 					var popup;
 
 					var clickHandler = function(event) {
-						var dataValue = event.target.ancestor().attr('data-value');
+						var target = event.target;
+
+						var dataValue = target.ancestor('li').attr('data-value') || target.attr('data-value');
 
 						if (dataValue === 'add-child-page') {
 							content = A.one('#<portlet:namespace />addLayout');
@@ -245,7 +241,8 @@ String[][] categorySections = {mainSections};
 									{
 										dialog: {
 											bodyContent: content.show(),
-											zIndex: Liferay.zIndex.WINDOW + 2
+											cssClass: 'lfr-add-dialog',
+											width: 600
 										},
 										title: '<%= UnicodeLanguageUtil.get(pageContext, "add-child-page") %>'
 									}
@@ -253,6 +250,17 @@ String[][] categorySections = {mainSections};
 							}
 
 							popup.show();
+
+							var cancelButton = popup.get('contentBox').one('#<portlet:namespace />cancelAddOperation');
+
+							if (cancelButton) {
+								cancelButton.on(
+									'click',
+									function(event) {
+										popup.hide();
+									}
+								);
+							}
 
 							Liferay.Util.focusFormField(content.one('input:text'));
 						}
@@ -268,9 +276,6 @@ String[][] categorySections = {mainSections};
 							Liferay.Util.openWindow(
 								{
 									cache: false,
-									dialog: {
-										zIndex: Liferay.zIndex.WINDOW + 2
-									},
 									id: '<portlet:namespace /><%= selLayout.getFriendlyURL().substring(1) %>_permissions',
 									title: '<%= UnicodeLanguageUtil.get(pageContext, "permissions") %>',
 									uri: '<%= permissionURL %>'
@@ -286,9 +291,7 @@ String[][] categorySections = {mainSections};
 							popUp = Liferay.Util.Window.getWindow(
 								{
 									dialog: {
-										bodyContent: content.show(),
-										destroyOnHide: true,
-										zIndex: Liferay.zIndex.WINDOW + 2
+										bodyContent: content.show()
 									},
 									title: '<%= UnicodeLanguageUtil.get(pageContext, "copy-applications") %>'
 								}
@@ -319,12 +322,12 @@ String[][] categorySections = {mainSections};
 
 					A.one('#<portlet:namespace />layoutsNav').delegate('click', clickHandler, 'li a');
 				</aui:script>
-
 			</c:if>
 
 			<liferay-ui:form-navigator
 				categoryNames="<%= _CATEGORY_NAMES %>"
 				categorySections="<%= categorySections %>"
+				displayStyle="<%= displayStyle %>"
 				jspPath="/html/portlet/layouts_admin/layout/"
 				showButtons="<%= (selLayout.getGroupId() == groupId) && SitesUtil.isLayoutUpdateable(selLayout) && LayoutPermissionUtil.contains(permissionChecker, selPlid, ActionKeys.UPDATE) %>"
 			/>

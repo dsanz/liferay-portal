@@ -18,11 +18,12 @@ import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.RandomUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.Randomizer;
 import com.liferay.portal.kernel.util.UnmodifiableList;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -168,53 +169,67 @@ public class QueryUtil {
 		if ((start == ALL_POS) && (end == ALL_POS)) {
 			return query.list(unmodifiable);
 		}
-		else {
-			if (dialect.supportsLimit()) {
-				query.setMaxResults(end - start);
-				query.setFirstResult(start);
 
-				return query.list(unmodifiable);
+		if (start < 0) {
+			start = 0;
+		}
+
+		if (end < start) {
+			end = start;
+		}
+
+		if (start == end) {
+			if (unmodifiable) {
+				return Collections.emptyList();
 			}
 			else {
-				List<Object> list = new ArrayList<Object>();
+				return new ArrayList<Object>();
+			}
+		}
 
-				DB db = DBFactoryUtil.getDB();
+		if (dialect.supportsLimit()) {
+			query.setMaxResults(end - start);
+			query.setFirstResult(start);
 
-				if (!db.isSupportsScrollableResults()) {
-					if (_log.isWarnEnabled()) {
-						_log.warn(
-							"Database does not support scrollable results");
-					}
+			return query.list(unmodifiable);
+		}
 
-					return list;
-				}
+		List<Object> list = new ArrayList<Object>();
 
-				ScrollableResults sr = query.scroll();
+		DB db = DBFactoryUtil.getDB();
 
-				if (sr.first() && sr.scroll(start)) {
-					for (int i = start; i < end; i++) {
-						Object[] array = sr.get();
+		if (!db.isSupportsScrollableResults()) {
+			if (_log.isWarnEnabled()) {
+				_log.warn("Database does not support scrollable results");
+			}
 
-						if (array.length == 1) {
-							list.add(array[0]);
-						}
-						else {
-							list.add(array);
-						}
+			return list;
+		}
 
-						if (!sr.next()) {
-							break;
-						}
-					}
-				}
+		ScrollableResults sr = query.scroll();
 
-				if (unmodifiable) {
-					return new UnmodifiableList<Object>(list);
+		if (sr.first() && sr.scroll(start)) {
+			for (int i = start; i < end; i++) {
+				Object[] array = sr.get();
+
+				if (array.length == 1) {
+					list.add(array[0]);
 				}
 				else {
-					return list;
+					list.add(array);
+				}
+
+				if (!sr.next()) {
+					break;
 				}
 			}
+		}
+
+		if (unmodifiable) {
+			return new UnmodifiableList<Object>(list);
+		}
+		else {
+			return list;
 		}
 	}
 
@@ -236,7 +251,7 @@ public class QueryUtil {
 			return list(query, dialect, ALL_POS, ALL_POS, true);
 		}
 
-		int[] scrollIds = Randomizer.getInstance().nextInt(total, num);
+		int[] scrollIds = RandomUtil.nextInts(total, num);
 
 		List<Object> list = new ArrayList<Object>();
 

@@ -27,13 +27,13 @@ import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.SortedProperties;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.FileImpl;
 import com.liferay.portal.util.HttpImpl;
 import com.liferay.portal.util.JarUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.util.PwdGenerator;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
@@ -127,8 +127,8 @@ public class DataSourceFactoryImpl implements DataSourceFactory {
 		String liferayPoolProvider =
 			PropsValues.JDBC_DEFAULT_LIFERAY_POOL_PROVIDER;
 
-		if (liferayPoolProvider.equalsIgnoreCase("c3p0") ||
-			liferayPoolProvider.equalsIgnoreCase("c3po")) {
+		if (StringUtil.equalsIgnoreCase(liferayPoolProvider, "c3p0") ||
+			StringUtil.equalsIgnoreCase(liferayPoolProvider, "c3po")) {
 
 			if (_log.isDebugEnabled()) {
 				_log.debug("Initializing C3P0 data source");
@@ -136,7 +136,7 @@ public class DataSourceFactoryImpl implements DataSourceFactory {
 
 			dataSource = initDataSourceC3PO(properties);
 		}
-		else if (liferayPoolProvider.equalsIgnoreCase("dbcp")) {
+		else if (StringUtil.equalsIgnoreCase(liferayPoolProvider, "dbcp")) {
 			if (_log.isDebugEnabled()) {
 				_log.debug("Initializing DBCP data source");
 			}
@@ -175,13 +175,19 @@ public class DataSourceFactoryImpl implements DataSourceFactory {
 		return initDataSource(properties);
 	}
 
+	public static interface PACL {
+
+		public DataSource getDataSource(DataSource dataSource);
+
+	}
+
 	protected DataSource initDataSourceC3PO(Properties properties)
 		throws Exception {
 
 		ComboPooledDataSource comboPooledDataSource =
 			new ComboPooledDataSource();
 
-		String identityToken = PwdGenerator.getPassword(PwdGenerator.KEY2, 8);
+		String identityToken = StringUtil.randomString();
 
 		comboPooledDataSource.setIdentityToken(identityToken);
 
@@ -194,13 +200,13 @@ public class DataSourceFactoryImpl implements DataSourceFactory {
 
 			// Map org.apache.commons.dbcp.BasicDataSource to C3PO
 
-			if (key.equalsIgnoreCase("driverClassName")) {
+			if (StringUtil.equalsIgnoreCase(key, "driverClassName")) {
 				key = "driverClass";
 			}
-			else if (key.equalsIgnoreCase("url")) {
+			else if (StringUtil.equalsIgnoreCase(key, "url")) {
 				key = "jdbcUrl";
 			}
-			else if (key.equalsIgnoreCase("username")) {
+			else if (StringUtil.equalsIgnoreCase(key, "username")) {
 				key = "user";
 			}
 
@@ -275,7 +281,7 @@ public class DataSourceFactoryImpl implements DataSourceFactory {
 			}
 		}
 
-		String poolName = PwdGenerator.getPassword(PwdGenerator.KEY2, 8);
+		String poolName = StringUtil.randomString();
 
 		poolProperties.setName(poolName);
 
@@ -301,16 +307,16 @@ public class DataSourceFactoryImpl implements DataSourceFactory {
 	}
 
 	protected boolean isPropertyC3PO(String key) {
-		if (key.equalsIgnoreCase("acquireIncrement") ||
-			key.equalsIgnoreCase("acquireRetryAttempts") ||
-			key.equalsIgnoreCase("acquireRetryDelay") ||
-			key.equalsIgnoreCase("connectionCustomizerClassName") ||
-			key.equalsIgnoreCase("idleConnectionTestPeriod") ||
-			key.equalsIgnoreCase("maxIdleTime") ||
-			key.equalsIgnoreCase("maxPoolSize") ||
-			key.equalsIgnoreCase("minPoolSize") ||
-			key.equalsIgnoreCase("numHelperThreads") ||
-			key.equalsIgnoreCase("preferredTestQuery")) {
+		if (StringUtil.equalsIgnoreCase(key, "acquireIncrement") ||
+			StringUtil.equalsIgnoreCase(key, "acquireRetryAttempts") ||
+			StringUtil.equalsIgnoreCase(key, "acquireRetryDelay") ||
+			StringUtil.equalsIgnoreCase(key, "connectionCustomizerClassName") ||
+			StringUtil.equalsIgnoreCase(key, "idleConnectionTestPeriod") ||
+			StringUtil.equalsIgnoreCase(key, "maxIdleTime") ||
+			StringUtil.equalsIgnoreCase(key, "maxPoolSize") ||
+			StringUtil.equalsIgnoreCase(key, "minPoolSize") ||
+			StringUtil.equalsIgnoreCase(key, "numHelperThreads") ||
+			StringUtil.equalsIgnoreCase(key, "preferredTestQuery")) {
 
 			return true;
 		}
@@ -320,10 +326,10 @@ public class DataSourceFactoryImpl implements DataSourceFactory {
 	}
 
 	protected boolean isPropertyDBCP(String key) {
-		if (key.equalsIgnoreCase("defaultTransactionIsolation") ||
-			key.equalsIgnoreCase("maxActive") ||
-			key.equalsIgnoreCase("minIdle") ||
-			key.equalsIgnoreCase("removeAbandonedTimeout")) {
+		if (StringUtil.equalsIgnoreCase(key, "defaultTransactionIsolation") ||
+			StringUtil.equalsIgnoreCase(key, "maxActive") ||
+			StringUtil.equalsIgnoreCase(key, "minIdle") ||
+			StringUtil.equalsIgnoreCase(key, "removeAbandonedTimeout")) {
 
 			return true;
 		}
@@ -333,8 +339,8 @@ public class DataSourceFactoryImpl implements DataSourceFactory {
 	}
 
 	protected boolean isPropertyLiferay(String key) {
-		if (key.equalsIgnoreCase("jndi.name") ||
-			key.equalsIgnoreCase("liferay.pool.provider")) {
+		if (StringUtil.equalsIgnoreCase(key, "jndi.name") ||
+			StringUtil.equalsIgnoreCase(key, "liferay.pool.provider")) {
 
 			return true;
 		}
@@ -344,11 +350,11 @@ public class DataSourceFactoryImpl implements DataSourceFactory {
 	}
 
 	protected boolean isPropertyTomcat(String key) {
-		if (key.equalsIgnoreCase("fairQueue") ||
-			key.equalsIgnoreCase("jdbcInterceptors") ||
-			key.equalsIgnoreCase("jmxEnabled") ||
-			key.equalsIgnoreCase("timeBetweenEvictionRunsMillis") ||
-			key.equalsIgnoreCase("useEquals")) {
+		if (StringUtil.equalsIgnoreCase(key, "fairQueue") ||
+			StringUtil.equalsIgnoreCase(key, "jdbcInterceptors") ||
+			StringUtil.equalsIgnoreCase(key, "jmxEnabled") ||
+			StringUtil.equalsIgnoreCase(key, "timeBetweenEvictionRunsMillis") ||
+			StringUtil.equalsIgnoreCase(key, "useEquals")) {
 
 			return true;
 		}
@@ -409,12 +415,6 @@ public class DataSourceFactoryImpl implements DataSourceFactory {
 		public DataSource getDataSource(DataSource dataSource) {
 			return dataSource;
 		}
-
-	}
-
-	public static interface PACL {
-
-		public DataSource getDataSource(DataSource dataSource);
 
 	}
 

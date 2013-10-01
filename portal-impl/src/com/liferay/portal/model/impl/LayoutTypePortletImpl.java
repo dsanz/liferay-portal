@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletLayoutListener;
-import com.liferay.portal.kernel.portlet.PortletSecurityUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
@@ -62,7 +61,6 @@ import com.liferay.portlet.PortalPreferences;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.sites.util.SitesUtil;
 import com.liferay.util.JS;
-import com.liferay.util.PwdGenerator;
 
 import java.text.DateFormat;
 import java.text.Format;
@@ -71,7 +69,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
@@ -83,8 +80,7 @@ public class LayoutTypePortletImpl
 	extends LayoutTypeImpl implements LayoutTypePortlet {
 
 	public static String generateInstanceId() {
-		return PwdGenerator.getPassword(
-			PwdGenerator.KEY1 + PwdGenerator.KEY2 + PwdGenerator.KEY3, 12);
+		return StringUtil.randomString(12);
 	}
 
 	public LayoutTypePortletImpl(Layout layout) {
@@ -286,6 +282,25 @@ public class LayoutTypePortletImpl
 	}
 
 	@Override
+	public List<Portlet> getAllPortlets(boolean includeSystem)
+		throws PortalException, SystemException {
+
+		List<Portlet> filteredPortlets = new ArrayList<Portlet>();
+
+		List<Portlet> portlets = getAllPortlets();
+
+		for (Portlet portlet : portlets) {
+			if (portlet.isSystem() && !includeSystem) {
+				continue;
+			}
+
+			filteredPortlets.add(portlet);
+		}
+
+		return filteredPortlets;
+	}
+
+	@Override
 	public List<Portlet> getAllPortlets(String columnId)
 		throws PortalException, SystemException {
 
@@ -320,7 +335,7 @@ public class LayoutTypePortletImpl
 
 	@Override
 	public String getLayoutSetPrototypeLayoutProperty(String key) {
-		if (_layoutSetPrototypeLayout== null) {
+		if (_layoutSetPrototypeLayout == null) {
 			return StringPool.BLANK;
 		}
 
@@ -613,6 +628,21 @@ public class LayoutTypePortletImpl
 	@Override
 	public boolean hasUpdatePermission() {
 		return _updatePermission;
+	}
+
+	@Override
+	public boolean isCacheable() throws PortalException, SystemException {
+		for (String columnId : getColumns()) {
+			for (Portlet portlet : getAllPortlets(columnId)) {
+				Portlet rootPortlet = portlet.getRootPortlet();
+
+				if (!rootPortlet.isLayoutCacheable()) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	@Override
@@ -1384,8 +1414,6 @@ public class LayoutTypePortletImpl
 					PortletKeys.PREFS_OWNER_TYPE_USER, layout.getPlid()));
 		}
 
-		Set<String> whiteList = PortletSecurityUtil.getWhitelist();
-
 		for (PortletPreferences portletPreference : portletPreferences) {
 			String portletId = portletPreference.getPortletId();
 
@@ -1394,9 +1422,8 @@ public class LayoutTypePortletImpl
 
 			if (Validator.isNull(portletId) ||
 				columnPortlets.contains(portlet) ||
-				staticPortlets.contains(portlet) || portlet.isSystem() ||
-				portlet.isUndeployedPortlet() || !portlet.isActive() ||
-				!whiteList.contains(portletId)) {
+				staticPortlets.contains(portlet) || !portlet.isReady() ||
+				portlet.isUndeployedPortlet() || !portlet.isActive()) {
 
 				continue;
 			}

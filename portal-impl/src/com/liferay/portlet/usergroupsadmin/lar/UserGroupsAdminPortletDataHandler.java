@@ -18,12 +18,12 @@ import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.lar.BasePortletDataHandler;
 import com.liferay.portal.kernel.lar.DataLevel;
 import com.liferay.portal.kernel.lar.PortletDataContext;
+import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.model.UserGroup;
 import com.liferay.portal.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.service.persistence.UserGroupExportActionableDynamicQuery;
-import com.liferay.portal.util.PortletKeys;
 
 import java.util.List;
 
@@ -38,9 +38,12 @@ public class UserGroupsAdminPortletDataHandler extends BasePortletDataHandler {
 	public static final String NAMESPACE = "user_groups_admin";
 
 	public UserGroupsAdminPortletDataHandler() {
-		super();
-
 		setDataLevel(DataLevel.PORTAL);
+		setExportControls(
+			new PortletDataHandlerBoolean(
+				NAMESPACE, "user-groups", true, true, null,
+				UserGroup.class.getName()));
+		setSupportsDataStrategyCopyAsNew(false);
 	}
 
 	@Override
@@ -67,8 +70,7 @@ public class UserGroupsAdminPortletDataHandler extends BasePortletDataHandler {
 			PortletPreferences portletPreferences)
 		throws Exception {
 
-		portletDataContext.addPermissions(
-			PortletKeys.PORTAL, portletDataContext.getCompanyId());
+		portletDataContext.addPortalPermissions();
 
 		Element rootElement = addExportDataRootElement(portletDataContext);
 
@@ -89,9 +91,7 @@ public class UserGroupsAdminPortletDataHandler extends BasePortletDataHandler {
 			PortletPreferences portletPreferences, String data)
 		throws Exception {
 
-		portletDataContext.importPermissions(
-			PortletKeys.PORTAL, portletDataContext.getSourceCompanyId(),
-			portletDataContext.getCompanyId());
+		portletDataContext.importPortalPermissions();
 
 		Element userGroupsElement =
 			portletDataContext.getImportDataGroupElement(UserGroup.class);
@@ -108,7 +108,8 @@ public class UserGroupsAdminPortletDataHandler extends BasePortletDataHandler {
 
 	@Override
 	protected void doPrepareManifestSummary(
-			PortletDataContext portletDataContext)
+			PortletDataContext portletDataContext,
+			PortletPreferences portletPreferences)
 		throws Exception {
 
 		ActionableDynamicQuery actionableDynamicQuery =

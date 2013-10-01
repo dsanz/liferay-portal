@@ -60,11 +60,14 @@ BlogsEntry entry = (BlogsEntry)row.getObject();
 			modelResourceDescription="<%= entry.getTitle() %>"
 			resourcePrimKey="<%= String.valueOf(entry.getEntryId()) %>"
 			var="permissionsEntryURL"
+			windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 		/>
 
 		<liferay-ui:icon
 			image="permissions"
+			method="get"
 			url="<%= permissionsEntryURL %>"
+			useDialog="<%= true %>"
 		/>
 	</c:if>
 

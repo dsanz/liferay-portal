@@ -4,7 +4,7 @@
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetCategoryFinder.countByG_C_N">
 		<![CDATA[
 			SELECT
-				COUNT(*) AS COUNT_VALUE
+				COUNT(DISTINCT AssetEntries_AssetCategories.entryId) AS COUNT_VALUE
 			FROM
 				AssetCategory
 			INNER JOIN
@@ -27,7 +27,7 @@
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetCategoryFinder.countByG_N_P">
 		<![CDATA[
 			SELECT
-				COUNT(*) AS COUNT_VALUE
+				COUNT(DISTINCT AssetCategory.categoryId) AS COUNT_VALUE
 			FROM
 				AssetCategory
 			[$JOIN$]
@@ -126,39 +126,10 @@
 				([$TAG_ID$])
 		]]>
 	</sql>
-	<sql id="com.liferay.portlet.asset.service.persistence.AssetLinkFinder.findByE1_V">
-		<![CDATA[
-			SELECT
-				{AssetLink.*}
-			FROM
-				AssetLink
-			INNER JOIN
-				AssetEntry ON
-					(AssetEntry.entryId = AssetLink.entryId2)
-			WHERE
-				(AssetLink.entryId1 = ?) AND
-				(AssetEntry.visible = ?)
-		]]>
-	</sql>
-	<sql id="com.liferay.portlet.asset.service.persistence.AssetLinkFinder.findByE1_T_V">
-		<![CDATA[
-			SELECT
-				{AssetLink.*}
-			FROM
-				AssetLink
-			INNER JOIN
-				AssetEntry ON
-					(AssetEntry.entryId = AssetLink.entryId2)
-			WHERE
-				(AssetLink.entryId1 = ?) AND
-				(AssetLink.type_ = ?) AND
-				(AssetEntry.visible = ?)
-		]]>
-	</sql>
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetTagFinder.countByG_N">
 		<![CDATA[
 			SELECT
-				COUNT(*) AS COUNT_VALUE
+				COUNT(DISTINCT AssetEntries_AssetTags.entryId) AS COUNT_VALUE
 			FROM
 				AssetTag
 			INNER JOIN
@@ -180,7 +151,7 @@
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetTagFinder.countByG_C_N">
 		<![CDATA[
 			SELECT
-				COUNT(*) AS COUNT_VALUE
+				COUNT(DISTINCT AssetEntries_AssetTags.entryId) AS COUNT_VALUE
 			FROM
 				AssetTag
 			INNER JOIN
@@ -203,7 +174,7 @@
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetTagFinder.countByG_N_P">
 		<![CDATA[
 			SELECT
-				COUNT(*) AS COUNT_VALUE
+				COUNT(DISTINCT AssetTag.tagId) AS COUNT_VALUE
 			FROM
 				AssetTag
 			[$JOIN$]
@@ -349,7 +320,7 @@
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetVocabularyFinder.countByG_N">
 		<![CDATA[
 			SELECT
-				COUNT(*) AS COUNT_VALUE
+				COUNT(DISTINCT AssetVocabulary.vocabularyId) AS COUNT_VALUE
 			FROM
 				AssetVocabulary
 			WHERE

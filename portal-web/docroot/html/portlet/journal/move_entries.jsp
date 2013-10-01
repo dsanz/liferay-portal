@@ -27,9 +27,9 @@ List<JournalFolder> invalidMoveFolders = new ArrayList<JournalFolder>();
 List<JournalFolder> validMoveFolders = new ArrayList<JournalFolder>();
 
 for (JournalFolder curFolder : folders) {
-	boolean movePermission = JournalFolderPermission.contains(permissionChecker, curFolder, ActionKeys.UPDATE);
+	boolean hasUpdatePermission = JournalFolderPermission.contains(permissionChecker, curFolder, ActionKeys.UPDATE);
 
-	if (movePermission) {
+	if (hasUpdatePermission) {
 		validMoveFolders.add(curFolder);
 	}
 	else {
@@ -54,9 +54,9 @@ List<JournalArticle> validMoveArticles = new ArrayList<JournalArticle>();
 List<JournalArticle> invalidMoveArticles = new ArrayList<JournalArticle>();
 
 for (JournalArticle curArticle : articles) {
-	boolean movePermission = JournalArticlePermission.contains(permissionChecker, curArticle, ActionKeys.UPDATE);
+	boolean hasUpdatePermission = JournalArticlePermission.contains(permissionChecker, curArticle, ActionKeys.UPDATE);
 
-	if (movePermission) {
+	if (hasUpdatePermission) {
 		validMoveArticles.add(curArticle);
 	}
 	else {
@@ -76,7 +76,7 @@ for (JournalArticle curArticle : articles) {
 
 	<liferay-ui:header
 		backURL="<%= redirect %>"
-		title="move-articles"
+		title="move-web-content"
 	/>
 
 	<liferay-ui:error exception="<%= DuplicateFolderNameException.class %>" message="the-folder-you-selected-already-has-an-entry-with-this-name.-please-select-a-different-folder" />
@@ -142,7 +142,7 @@ for (JournalArticle curArticle : articles) {
 
 	<c:if test="<%= !validMoveArticles.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-articles-are-ready-to-be-moved", validMoveArticles.size()) %></h4>
+			<h4><%= LanguageUtil.format(pageContext, "x-web-content-instances-are-ready-to-be-moved", validMoveArticles.size()) %></h4>
 		</div>
 
 		<div class="move-list">
@@ -168,7 +168,7 @@ for (JournalArticle curArticle : articles) {
 
 	<c:if test="<%= !invalidMoveArticles.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-articles-cannot-be-moved", invalidMoveArticles.size()) %></h4>
+			<h4><%= LanguageUtil.format(pageContext, "x-web-content-instances-cannot-be-moved", invalidMoveArticles.size()) %></h4>
 		</div>
 
 		<div class="move-list">
@@ -215,15 +215,12 @@ for (JournalArticle curArticle : articles) {
 		}
 		%>
 
-		<portlet:renderURL var="viewFolderURL">
-			<portlet:param name="struts_action" value="/journal/view" />
-			<portlet:param name="folderId" value="<%= String.valueOf(newFolderId) %>" />
-		</portlet:renderURL>
-
 		<aui:field-wrapper label="new-folder">
-			<aui:a href="<%= viewFolderURL %>" id="folderName"><%= folderName %></aui:a>
+			<div class="input-append">
+				<liferay-ui:input-resource id="folderName" url="<%= folderName %>" />
 
-			<aui:button name="selectFolderButton" value="select" />
+				<aui:button name="selectFolderButton" value="select" />
+			</div>
 		</aui:field-wrapper>
 
 		<aui:button-row>
@@ -248,11 +245,10 @@ for (JournalArticle curArticle : articles) {
 					dialog: {
 						constrain: true,
 						modal: true,
-						zIndex: Liferay.zIndex.WINDOW + 2,
 						width: 680
 					},
 					id: '<portlet:namespace />selectFolder',
-					title: '<%= UnicodeLanguageUtil.format(pageContext, "select-x", "folder") %>',
+					title: '<liferay-ui:message arguments="folder" key="select-x" />',
 					uri: '<%= selectFolderURL.toString() %>'
 				},
 				function(event) {
@@ -263,7 +259,7 @@ for (JournalArticle curArticle : articles) {
 						nameValue: event.foldername
 					};
 
-					Liferay.Util.selectFolder(folderData, '<portlet:renderURL><portlet:param name="struts_action" value="/journal/view" /></portlet:renderURL>', '<portlet:namespace />');
+					Liferay.Util.selectFolder(folderData, '<portlet:namespace />');
 				}
 			);
 		}
@@ -277,5 +273,5 @@ for (JournalArticle curArticle : articles) {
 </aui:script>
 
 <%
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "move-articles"), currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "move-web-content"), currentURL);
 %>

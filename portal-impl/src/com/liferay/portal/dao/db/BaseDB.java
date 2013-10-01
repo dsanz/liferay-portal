@@ -113,8 +113,9 @@ public abstract class BaseDB implements DB {
 	public void buildCreateFile(String sqlDir, String databaseName)
 		throws IOException {
 
-		buildCreateFile(sqlDir, databaseName, POPULATED);
+		buildCreateFile(sqlDir, databaseName, BARE);
 		buildCreateFile(sqlDir, databaseName, MINIMAL);
+		buildCreateFile(sqlDir, databaseName, POPULATED);
 		buildCreateFile(sqlDir, databaseName, SHARDED);
 	}
 
@@ -505,7 +506,7 @@ public abstract class BaseDB implements DB {
 			validIndexNames = new HashSet<String>();
 
 			for (Index index : indexes) {
-				String indexName = index.getIndexName().toUpperCase();
+				String indexName = StringUtil.toUpperCase(index.getIndexName());
 
 				validIndexNames.add(indexName);
 			}
@@ -668,8 +669,8 @@ public abstract class BaseDB implements DB {
 			return validIndexNames;
 		}
 
-		String tablesSQLLowerCase = tablesSQL.toLowerCase();
-		String indexesSQLLowerCase = indexesSQL.toLowerCase();
+		String tablesSQLLowerCase = StringUtil.toLowerCase(tablesSQL);
+		String indexesSQLLowerCase = StringUtil.toLowerCase(indexesSQL);
 
 		Properties indexesPropertiesObj = PropertiesUtil.load(
 			indexesProperties);
@@ -682,14 +683,17 @@ public abstract class BaseDB implements DB {
 
 			String value = indexesPropertiesObj.getProperty(key);
 
-			indexesPropertiesObj.setProperty(key.toLowerCase(), value);
+			indexesPropertiesObj.setProperty(
+				StringUtil.toLowerCase(key), value);
 		}
 
 		for (Index index : indexes) {
-			String indexNameUpperCase = index.getIndexName().toUpperCase();
-			String indexNameLowerCase = indexNameUpperCase.toLowerCase();
+			String indexNameUpperCase = StringUtil.toUpperCase(
+				index.getIndexName());
+			String indexNameLowerCase = StringUtil.toLowerCase(
+				indexNameUpperCase);
 			String tableName = index.getTableName();
-			String tableNameLowerCase = tableName.toLowerCase();
+			String tableNameLowerCase = StringUtil.toLowerCase(tableName);
 			boolean unique = index.isUnique();
 
 			validIndexNames.add(indexNameUpperCase);
@@ -801,7 +805,10 @@ public abstract class BaseDB implements DB {
 	protected abstract String getServerName();
 
 	protected String getSuffix(int type) {
-		if (type == MINIMAL) {
+		if (type == BARE) {
+			return "-bare";
+		}
+		else if (type == MINIMAL) {
 			return "-minimal";
 		}
 		else if (type == SHARDED) {

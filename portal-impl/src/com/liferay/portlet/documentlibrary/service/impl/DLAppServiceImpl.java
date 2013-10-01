@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.search.Query;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackRegistryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -145,7 +146,7 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 		File file = null;
 
 		try {
-			if ((bytes != null) && (bytes.length > 0)) {
+			if (ArrayUtil.isNotEmpty(bytes)) {
 				file = FileUtil.createTempFile(bytes);
 			}
 
@@ -223,7 +224,7 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 
 	/**
 	 * Adds a file entry and associated metadata. It is created based on a
-	 * {@link java.io.InputStream} object.
+	 * {@link InputStream} object.
 	 *
 	 * <p>
 	 * This method takes two file names, the <code>sourceFileName</code> and the
@@ -373,9 +374,9 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 	 *         eventually reside
 	 * @param  fileName the file's original name
 	 * @param  tempFolderName the temporary folder's name
-	 * @param  file Name the file's original name
+	 * @param  file the file's data (optionally <code>null</code>)
 	 * @param  mimeType the file's MIME type
-	 * @return the file's name
+	 * @return the temporary file entry
 	 * @throws PortalException if the file name was invalid
 	 * @throws SystemException if a system exception occurred
 	 * @see    com.liferay.portal.kernel.util.TempFileUtil
@@ -393,6 +394,29 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 			groupId, getUserId(), fileName, tempFolderName, file, mimeType);
 	}
 
+	/**
+	 * Adds a temporary file entry. It is created based on the {@link
+	 * InputStream} object.
+	 *
+	 * <p>
+	 * This allows a client to upload a file into a temporary location and
+	 * manipulate its metadata prior to making it available for public usage.
+	 * This is different from checking in and checking out a file entry.
+	 * </p>
+	 *
+	 * @param  groupId the primary key of the group
+	 * @param  folderId the primary key of the folder where the file entry will
+	 *         eventually reside
+	 * @param  fileName the file's original name
+	 * @param  tempFolderName the temporary folder's name
+	 * @param  inputStream the file's data
+	 * @param  mimeType the file's MIME type
+	 * @return the temporary file entry
+	 * @throws PortalException if the file name was invalid or if a portal
+	 *         exception occurred
+	 * @throws SystemException if a system exception occurred
+	 * @see    com.liferay.portal.kernel.util.TempFileUtil
+	 */
 	@Override
 	public FileEntry addTempFileEntry(
 			long groupId, long folderId, String fileName, String tempFolderName,
@@ -966,6 +990,17 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 
 		return repository.getFileEntries(
 			folderId, fileEntryTypeId, start, end, obc);
+	}
+
+	@Override
+	public List<FileEntry> getFileEntries(
+			long repositoryId, long folderId, String[] mimeTypes)
+		throws PortalException, SystemException {
+
+		Repository repository = getRepository(repositoryId);
+
+		return repository.getFileEntries(
+			folderId, mimeTypes, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
 	/**
@@ -2064,8 +2099,7 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 	 * @return the temporary file entry names
 	 * @throws PortalException if the folder was invalid
 	 * @throws SystemException if a system exception occurred
-	 * @see    com.liferay.portlet.documentlibrary.service.impl.DLAppServiceImpl#addTempFileEntry(
-	 *         long, long, String, String, File)
+	 * @see    #addTempFileEntry(long, long, String, String, File, String)
 	 * @see    com.liferay.portal.kernel.util.TempFileUtil
 	 */
 	@Override
@@ -2238,6 +2272,7 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 	 * Moves the file entry with the primary key to the trash portlet.
 	 *
 	 * @param  fileEntryId the primary key of the file entry
+	 * @return the file entry
 	 * @throws PortalException if the file entry could not be found
 	 * @throws SystemException if a system exception occurred
 	 */
@@ -2391,6 +2426,7 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 	 * Moves the folder with the primary key to the trash portlet.
 	 *
 	 * @param  folderId the primary key of the folder
+	 * @return the file entry
 	 * @throws PortalException if the folder could not be found
 	 * @throws SystemException if a system exception occurred
 	 */
@@ -2571,6 +2607,29 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 		dlAppHelperLocalService.updateFileEntry(
 			getUserId(), fileEntry, fileEntry.getFileVersion(version),
 			fileEntry.getFileVersion(), serviceContext);
+	}
+
+	@Override
+	public Hits search(
+			long repositoryId, long creatorUserId, int status, int start,
+			int end)
+		throws PortalException, SystemException {
+
+		Repository repository = getRepository(repositoryId);
+
+		return repository.search(creatorUserId, status, start, end);
+	}
+
+	@Override
+	public Hits search(
+			long repositoryId, long creatorUserId, long folderId,
+			String[] mimeTypes, int status, int start, int end)
+		throws PortalException, SystemException {
+
+		Repository repository = getRepository(repositoryId);
+
+		return repository.search(
+			creatorUserId, folderId, mimeTypes, status, start, end);
 	}
 
 	@Override
@@ -2791,7 +2850,7 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 		File file = null;
 
 		try {
-			if ((bytes != null) && (bytes.length > 0)) {
+			if (ArrayUtil.isNotEmpty(bytes)) {
 				file = FileUtil.createTempFile(bytes);
 			}
 
@@ -2832,7 +2891,7 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 	 * @param  changeLog the file's version change log (optionally
 	 *         <code>null</code>)
 	 * @param  majorVersion whether the new file version is a major version
-	 * @param  file EntryId the primary key of the file entry
+	 * @param  file the file's data (optionally <code>null</code>)
 	 * @param  serviceContext the service context to be applied. Can set the
 	 *         asset category IDs, asset tag names, and expando bridge
 	 *         attributes for the file entry. In a Liferay repository, it may
@@ -2874,7 +2933,7 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 	}
 
 	/**
-	 * Updates a file entry and associated metadata based on an {@link java.io.
+	 * Updates a file entry and associated metadata based on an {@link
 	 * InputStream} object. If the file data is <code>null</code>, then only the
 	 * associated metadata (i.e., <code>title</code>, <code>description</code>,
 	 * and parameters in the <code>serviceContext</code>) will be updated.
@@ -3448,7 +3507,6 @@ public class DLAppServiceImpl extends DLAppServiceBaseImpl {
 					moveFolders(
 						currentFolder.getFolderId(), newFolder.getFolderId(),
 						fromRepository, toRepository, serviceContext);
-
 				}
 				else if (folderAndFileEntryAndFileShortcut
 							instanceof DLFileShortcut) {

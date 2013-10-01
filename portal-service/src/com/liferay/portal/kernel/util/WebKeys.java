@@ -33,6 +33,10 @@ public interface WebKeys {
 
 	public static final String AUTHENTICATION_TOKEN = "LIFERAY_SHARED_AUTHENTICATION_TOKEN";
 
+	public static final String BROWSER_SNIFFER_REVISION = "BROWSER_SNIFFER_REVISION";
+
+	public static final String BROWSER_SNIFFER_VERSION = "BROWSER_SNIFFER_VERSION";
+
 	public static final String CLP_MESSAGE_LISTENERS = "CLP_MESSAGE_LISTENERS";
 
 	public static final String CTX = "CTX";
@@ -107,6 +111,14 @@ public interface WebKeys {
 
 	public static final String PARALLEL_RENDERING_TIMEOUT_ERROR = "PARALLEL_RENDERING_TIMEOUT_ERROR";
 
+	public static final String PLUGIN_LAYOUT_TEMPLATES = "PLUGIN_LAYOUT_TEMPLATES";
+
+	public static final String PLUGIN_PORTLETS = "PLUGIN_PORTLETS";
+
+	public static final String PLUGIN_REPOSITORY_REPORT = "PLUGIN_REPOSITORY_REPORT";
+
+	public static final String PLUGIN_THEMES = "PLUGIN_THEMES";
+
 	public static final String PORTAL_MESSAGES = "LIFERAY_SHARED_PORTAL_MESSAGES";
 
 	public static final String PORTLET_CONFIGURATOR_VISIBILITY = "PORTLET_CONFIGURATOR_VISIBILITY";
@@ -138,6 +150,8 @@ public interface WebKeys {
 	public static final String RENDER_PORTLET_RESOURCE = "RENDER_PORTLET_RESOURCE";
 
 	public static final String SEARCH_CONTAINER = "SEARCH_CONTAINER";
+
+	public static final String SEARCH_CONTAINER_REFERENCE = "LIFERAY_SHARED_SEARCH_CONTAINER_REFERENCE";
 
 	public static final String SEARCH_CONTAINER_RESULT_ROW = "SEARCH_CONTAINER_RESULT_ROW";
 

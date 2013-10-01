@@ -15,9 +15,6 @@
 package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.cache.Lifecycle;
-import com.liferay.portal.kernel.cache.ThreadLocalCache;
-import com.liferay.portal.kernel.cache.ThreadLocalCacheManager;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.shard.ShardUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -27,6 +24,7 @@ import com.liferay.portal.kernel.util.DigesterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.RemotePreference;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -72,9 +70,13 @@ import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -87,6 +89,11 @@ import java.util.TreeSet;
 public class UserImpl extends UserBaseImpl {
 
 	public UserImpl() {
+	}
+
+	@Override
+	public void addRemotePreference(RemotePreference remotePreference) {
+		_remotePreferences.put(remotePreference.getName(), remotePreference);
 	}
 
 	@Override
@@ -134,10 +141,10 @@ public class UserImpl extends UserBaseImpl {
 	@Override
 	public String getDigest(String password) {
 		if (Validator.isNull(getScreenName())) {
-			throw new IllegalStateException("Screen name cannot be null");
+			throw new IllegalStateException("Screen name is null");
 		}
 		else if (Validator.isNull(getEmailAddress())) {
-			throw new IllegalStateException("Email address cannot be null");
+			throw new IllegalStateException("Email address is null");
 		}
 
 		StringBundler sb = new StringBundler(5);
@@ -327,62 +334,92 @@ public class UserImpl extends UserBaseImpl {
 	}
 
 	@Override
-	public List<Group> getMySites() throws PortalException, SystemException {
-		return getMySites(null, false, QueryUtil.ALL_POS);
+	public List<Group> getMySiteGroups()
+		throws PortalException, SystemException {
+
+		return getMySiteGroups(null, false, QueryUtil.ALL_POS);
 	}
 
+	@Override
+	public List<Group> getMySiteGroups(boolean includeControlPanel, int max)
+		throws PortalException, SystemException {
+
+		return getMySiteGroups(null, includeControlPanel, max);
+	}
+
+	@Override
+	public List<Group> getMySiteGroups(int max)
+		throws PortalException, SystemException {
+
+		return getMySiteGroups(null, false, max);
+	}
+
+	@Override
+	public List<Group> getMySiteGroups(
+			String[] classNames, boolean includeControlPanel, int max)
+		throws PortalException, SystemException {
+
+		return GroupServiceUtil.getUserSitesGroups(
+			getUserId(), classNames, includeControlPanel, max);
+	}
+
+	@Override
+	public List<Group> getMySiteGroups(String[] classNames, int max)
+		throws PortalException, SystemException {
+
+		return getMySiteGroups(classNames, false, max);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getMySiteGroups}
+	 */
+	@Override
+	public List<Group> getMySites() throws PortalException, SystemException {
+		return getMySiteGroups();
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getMySiteGroups(boolean,
+	 *             int)}
+	 */
 	@Override
 	public List<Group> getMySites(boolean includeControlPanel, int max)
 		throws PortalException, SystemException {
 
-		return getMySites(null, includeControlPanel, max);
+		return getMySiteGroups(includeControlPanel, max);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getMySiteGroups(int)}
+	 */
 	@Override
 	public List<Group> getMySites(int max)
 		throws PortalException, SystemException {
 
-		return getMySites(null, false, max);
+		return getMySiteGroups(max);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getMySiteGroups(String[],
+	 *             boolean, int)}
+	 */
 	@Override
 	public List<Group> getMySites(
 			String[] classNames, boolean includeControlPanel, int max)
 		throws PortalException, SystemException {
 
-		ThreadLocalCache<List<Group>> threadLocalCache =
-			ThreadLocalCacheManager.getThreadLocalCache(
-				Lifecycle.REQUEST, UserImpl.class.getName());
-
-		String key = StringUtil.toHexString(max);
-
-		if ((classNames != null) && (classNames.length > 0)) {
-			key = StringUtil.merge(classNames).concat(StringPool.POUND).concat(
-				key);
-		}
-
-		key = key.concat(StringPool.POUND).concat(
-			String.valueOf(includeControlPanel));
-
-		List<Group> myPlaces = threadLocalCache.get(key);
-
-		if (myPlaces != null) {
-			return myPlaces;
-		}
-
-		myPlaces = GroupServiceUtil.getUserPlaces(
-			getUserId(), classNames, includeControlPanel, max);
-
-		threadLocalCache.put(key, myPlaces);
-
-		return myPlaces;
+		return getMySiteGroups(classNames, includeControlPanel, max);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getMySiteGroups(String[],
+	 *             int)}
+	 */
 	@Override
 	public List<Group> getMySites(String[] classNames, int max)
 		throws PortalException, SystemException {
 
-		return getMySites(classNames, false, max);
+		return getMySiteGroups(classNames, max);
 	}
 
 	@Override
@@ -517,6 +554,18 @@ public class UserImpl extends UserBaseImpl {
 	}
 
 	@Override
+	public RemotePreference getRemotePreference(String name) {
+		return _remotePreferences.get(name);
+	}
+
+	@Override
+	public Iterable<RemotePreference> getRemotePreferences() {
+		Collection<RemotePreference> values = _remotePreferences.values();
+
+		return Collections.unmodifiableCollection(values);
+	}
+
+	@Override
 	public long[] getRoleIds() throws SystemException {
 		List<Role> roles = getRoles();
 
@@ -534,6 +583,19 @@ public class UserImpl extends UserBaseImpl {
 	@Override
 	public List<Role> getRoles() throws SystemException {
 		return RoleLocalServiceUtil.getUserRoles(getUserId());
+	}
+
+	@Override
+	public List<Group> getSiteGroups() throws PortalException, SystemException {
+		return getSiteGroups(false);
+	}
+
+	@Override
+	public List<Group> getSiteGroups(boolean includeAdministrative)
+		throws PortalException, SystemException {
+
+		return GroupLocalServiceUtil.getUserSitesGroups(
+			getUserId(), includeAdministrative);
 	}
 
 	@Override
@@ -622,7 +684,7 @@ public class UserImpl extends UserBaseImpl {
 			max++;
 		}
 
-		List<Group> groups = getMySites(true, max);
+		List<Group> groups = getMySiteGroups(true, max);
 
 		return !groups.isEmpty();
 	}
@@ -726,6 +788,8 @@ public class UserImpl extends UserBaseImpl {
 	private boolean _passwordModified;
 	private PasswordPolicy _passwordPolicy;
 	private String _passwordUnencrypted;
+	private transient Map<String, RemotePreference> _remotePreferences =
+		new HashMap<String, RemotePreference>();
 	private TimeZone _timeZone;
 
 }

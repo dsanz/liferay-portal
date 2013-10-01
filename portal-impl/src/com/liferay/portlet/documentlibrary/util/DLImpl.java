@@ -378,7 +378,8 @@ public class DLImpl implements DL {
 
 	@Override
 	public String getDDMStructureKey(String fileEntryTypeUuid) {
-		return _STRUCTURE_KEY_PREFIX + fileEntryTypeUuid.toUpperCase();
+		return _STRUCTURE_KEY_PREFIX +
+			StringUtil.toUpperCase(fileEntryTypeUuid);
 	}
 
 	@Override
@@ -414,7 +415,27 @@ public class DLImpl implements DL {
 	}
 
 	@Override
-	public String getDLControlPanelLink(
+	public String getDLFileEntryControlPanelLink(
+			PortletRequest portletRequest, long fileEntryId)
+		throws PortalException, SystemException {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PortletURL portletURL = PortletURLFactoryUtil.create(
+			portletRequest, PortletKeys.DOCUMENT_LIBRARY,
+			PortalUtil.getControlPanelPlid(themeDisplay.getCompanyId()),
+			PortletRequest.RENDER_PHASE);
+
+		portletURL.setParameter(
+			"struts_action", "/document_library/view_file_entry");
+		portletURL.setParameter("fileEntryId", String.valueOf(fileEntryId));
+
+		return portletURL.toString();
+	}
+
+	@Override
+	public String getDLFolderControlPanelLink(
 			PortletRequest portletRequest, long folderId)
 		throws PortalException, SystemException {
 
@@ -439,7 +460,7 @@ public class DLImpl implements DL {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailFileEntryAddedBody");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -477,7 +498,7 @@ public class DLImpl implements DL {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailFileEntryAddedSubject");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -500,7 +521,7 @@ public class DLImpl implements DL {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailFileEntryUpdatedBody");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -538,7 +559,7 @@ public class DLImpl implements DL {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailFileEntryUpdatedSubject");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -756,7 +777,7 @@ public class DLImpl implements DL {
 
 		String title = fileEntry.getTitle();
 
-		if (fileVersion.isInTrash()) {
+		if (fileEntry.isInTrash()) {
 			title = TrashUtil.getOriginalTitle(fileEntry.getTitle());
 		}
 
@@ -945,7 +966,7 @@ public class DLImpl implements DL {
 	@Override
 	public String getTitleWithExtension(String title, String extension) {
 		if (Validator.isNotNull(extension)) {
-			String periodAndExtension = StringPool.PERIOD + extension;
+			String periodAndExtension = StringPool.PERIOD.concat(extension);
 
 			if (!title.endsWith(periodAndExtension)) {
 				title += periodAndExtension;
@@ -1101,13 +1122,13 @@ public class DLImpl implements DL {
 
 	@Override
 	public boolean isOfficeExtension(String extension) {
-		if (extension.equalsIgnoreCase("doc") ||
-			extension.equalsIgnoreCase("docx") ||
-			extension.equalsIgnoreCase("dot") ||
-			extension.equalsIgnoreCase("ppt") ||
-			extension.equalsIgnoreCase("pptx") ||
-			extension.equalsIgnoreCase("xls") ||
-			extension.equalsIgnoreCase("xlsx")) {
+		if (StringUtil.equalsIgnoreCase(extension, "doc") ||
+			StringUtil.equalsIgnoreCase(extension, "docx") ||
+			StringUtil.equalsIgnoreCase(extension, "dot") ||
+			StringUtil.equalsIgnoreCase(extension, "ppt") ||
+			StringUtil.equalsIgnoreCase(extension, "pptx") ||
+			StringUtil.equalsIgnoreCase(extension, "xls") ||
+			StringUtil.equalsIgnoreCase(extension, "xlsx")) {
 
 			return true;
 		}

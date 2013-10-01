@@ -3,7 +3,7 @@
 
 <service-builder package-path="com.liferay.portlet.journal">
 	<namespace>Journal</namespace>
-	<entity name="JournalArticle" uuid="true" local-service="true" remote-service="true">
+	<entity name="JournalArticle" uuid="true" local-service="true" remote-service="true" trash-enabled="true">
 
 		<!-- PK fields -->
 
@@ -30,6 +30,7 @@
 		<column name="folderId" type="long" />
 		<column name="classNameId" type="long" />
 		<column name="classPK" type="long" />
+		<column name="treePath" type="String" />
 		<column name="articleId" type="String" accessor="true" />
 		<column name="version" type="double" />
 		<column name="title" type="String" localized="true" />
@@ -126,6 +127,24 @@
 			<finder-column name="companyId" />
 			<finder-column name="status" />
 		</finder>
+		<finder name="C_NotST" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="status" comparator="!=" />
+		</finder>
+		<finder name="LtD_S" return-type="Collection">
+			<finder-column name="displayDate" comparator="&lt;" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="R_I_S" return-type="Collection">
+			<finder-column name="resourcePrimKey" />
+			<finder-column name="indexable" />
+			<finder-column name="status" arrayable-operator="OR" />
+		</finder>
+		<finder name="G_U_C" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="userId" />
+			<finder-column name="classNameId" />
+		</finder>
 		<finder name="G_F_ST" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="folderId" />
@@ -150,11 +169,6 @@
 			<finder-column name="groupId" />
 			<finder-column name="classNameId" />
 			<finder-column name="layoutUuid" />
-		</finder>
-		<finder name="G_U_C" return-type="Collection">
-			<finder-column name="groupId" />
-			<finder-column name="userId" />
-			<finder-column name="classNameId" />
 		</finder>
 		<finder name="G_A_V" return-type="JournalArticle" unique="true">
 			<finder-column name="groupId" />
@@ -185,6 +199,7 @@
 		<reference package-path="com.liferay.portal" entity="Image" />
 		<reference package-path="com.liferay.portal" entity="PortletPreferences" />
 		<reference package-path="com.liferay.portal" entity="Subscription" />
+		<reference package-path="com.liferay.portal" entity="SystemEvent" />
 		<reference package-path="com.liferay.portal" entity="WorkflowDefinitionLink" />
 		<reference package-path="com.liferay.portal" entity="WorkflowInstanceLink" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetCategory" />
@@ -193,12 +208,12 @@
 		<reference package-path="com.liferay.portlet.asset" entity="AssetTag" />
 		<reference package-path="com.liferay.portlet.dynamicdatamapping" entity="DDMStructure" />
 		<reference package-path="com.liferay.portlet.dynamicdatamapping" entity="DDMTemplate" />
-		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
+		<reference package-path="com.liferay.portlet.expando" entity="ExpandoRow" />
 		<reference package-path="com.liferay.portlet.messageboards" entity="MBMessage" />
 		<reference package-path="com.liferay.portlet.ratings" entity="RatingsStats" />
 		<reference package-path="com.liferay.portlet.social" entity="SocialActivity" />
-		<reference package-path="com.liferay.portlet.social" entity="SocialActivityCounter" />
 		<reference package-path="com.liferay.portlet.trash" entity="TrashEntry" />
+		<reference package-path="com.liferay.portlet.trash" entity="TrashVersion" />
 	</entity>
 	<entity name="JournalArticleImage" local-service="true" remote-service="false">
 
@@ -391,7 +406,7 @@
 		<reference package-path="com.liferay.portlet.dynamicdatamapping" entity="DDMStructure" />
 		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
 	</entity>
-	<entity name="JournalFolder" uuid="true" local-service="true" remote-service="true">
+	<entity name="JournalFolder" uuid="true" local-service="true" remote-service="true" trash-enabled="true">
 
 		<!-- PK fields -->
 
@@ -411,7 +426,8 @@
 
 		<!-- Other fields -->
 
-		<column name="parentFolderId" type="long" />
+		<column name="parentFolderId" type="long" parent-container-model="true" />
+		<column name="treePath" type="String" />
 		<column name="name" type="String" />
 		<column name="description" type="String" />
 		<column name="status" type="int" />
@@ -442,6 +458,10 @@
 			<finder-column name="groupId" />
 			<finder-column name="name" />
 		</finder>
+		<finder name="C_NotS" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="status" comparator="!=" />
+		</finder>
 		<finder name="G_P_N" return-type="JournalFolder" unique="true">
 			<finder-column name="groupId" />
 			<finder-column name="parentFolderId" />
@@ -452,6 +472,11 @@
 			<finder-column name="parentFolderId" />
 			<finder-column name="status" />
 		</finder>
+		<finder name="G_P_NotS" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="parentFolderId" />
+			<finder-column name="status" comparator="!=" />
+		</finder>
 
 		<!-- References -->
 
@@ -461,8 +486,8 @@
 		<reference package-path="com.liferay.portlet.asset" entity="AssetLink" />
 		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
 		<reference package-path="com.liferay.portlet.social" entity="SocialActivity" />
-		<reference package-path="com.liferay.portlet.social" entity="SocialActivityCounter" />
 		<reference package-path="com.liferay.portlet.trash" entity="TrashEntry" />
+		<reference package-path="com.liferay.portlet.trash" entity="TrashVersion" />
 	</entity>
 	<entity name="JournalStructure" local-service="true" remote-service="true" deprecated="true">
 

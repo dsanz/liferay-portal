@@ -188,12 +188,12 @@ public class SocialActivitySetLocalServiceImpl
 			long userId, int start, int end)
 		throws SystemException {
 
-		return socialActivitySetFinder.findByUser(userId, start, end);
+		return socialActivitySetPersistence.findByUserId(userId, start, end);
 	}
 
 	@Override
 	public int getUserActivitySetsCount(long userId) throws SystemException {
-		return socialActivitySetFinder.countByUser(userId);
+		return socialActivitySetPersistence.countByUserId(userId);
 	}
 
 	@Override
@@ -212,6 +212,21 @@ public class SocialActivitySetLocalServiceImpl
 	}
 
 	@Override
+	public List<SocialActivitySet> getUserViewableActivitySets(
+			long userId, int start, int end)
+		throws SystemException {
+
+		return socialActivitySetFinder.findByUser(userId, start, end);
+	}
+
+	@Override
+	public int getUserViewableActivitySetsCount(long userId)
+		throws SystemException {
+
+		return socialActivitySetFinder.countByUser(userId);
+	}
+
+	@Override
 	public void incrementActivityCount(long activitySetId, long activityId)
 		throws PortalException, SystemException {
 
@@ -224,6 +239,7 @@ public class SocialActivitySetLocalServiceImpl
 			activityId);
 
 		activitySet.setModifiedDate(activity.getCreateDate());
+		activitySet.setUserId(activity.getUserId());
 
 		activitySet.setActivityCount(activitySet.getActivityCount() + 1);
 

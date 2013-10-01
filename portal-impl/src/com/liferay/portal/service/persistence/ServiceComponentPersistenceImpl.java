@@ -371,6 +371,10 @@ public class ServiceComponentPersistenceImpl extends BasePersistenceImpl<Service
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByBuildNamespace(buildNamespace);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<ServiceComponent> list = findByBuildNamespace(buildNamespace,
 				count - 1, count, orderByComparator);
 
@@ -899,6 +903,10 @@ public class ServiceComponentPersistenceImpl extends BasePersistenceImpl<Service
 	private static final String _FINDER_COLUMN_BNS_BNU_BUILDNAMESPACE_2 = "serviceComponent.buildNamespace = ? AND ";
 	private static final String _FINDER_COLUMN_BNS_BNU_BUILDNAMESPACE_3 = "(serviceComponent.buildNamespace IS NULL OR serviceComponent.buildNamespace = '') AND ";
 	private static final String _FINDER_COLUMN_BNS_BNU_BUILDNUMBER_2 = "serviceComponent.buildNumber = ?";
+
+	public ServiceComponentPersistenceImpl() {
+		setModelClass(ServiceComponent.class);
+	}
 
 	/**
 	 * Caches the service component in the entity cache if it is enabled.

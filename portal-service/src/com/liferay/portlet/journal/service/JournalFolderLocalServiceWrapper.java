@@ -403,6 +403,13 @@ public class JournalFolderLocalServiceWrapper
 
 	@Override
 	public com.liferay.portlet.journal.model.JournalFolder fetchFolder(
+		long folderId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderLocalService.fetchFolder(folderId);
+	}
+
+	@Override
+	public com.liferay.portlet.journal.model.JournalFolder fetchFolder(
 		long groupId, long parentFolderId, java.lang.String name)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalFolderLocalService.fetchFolder(groupId, parentFolderId,
@@ -486,6 +493,14 @@ public class JournalFolderLocalServiceWrapper
 
 	@Override
 	public java.util.List<java.lang.Object> getFoldersAndArticles(
+		long groupId, long folderId, int status)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderLocalService.getFoldersAndArticles(groupId,
+			folderId, status);
+	}
+
+	@Override
+	public java.util.List<java.lang.Object> getFoldersAndArticles(
 		long groupId, long folderId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -506,6 +521,13 @@ public class JournalFolderLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalFolderLocalService.getFoldersAndArticlesCount(groupId,
 			folderId);
+	}
+
+	@Override
+	public int getFoldersAndArticlesCount(long groupId, long folderId,
+		int status) throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderLocalService.getFoldersAndArticlesCount(groupId,
+			folderId, status);
 	}
 
 	@Override
@@ -556,10 +578,18 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public void moveFolderToTrash(long userId, long folderId)
+	public com.liferay.portlet.journal.model.JournalFolder moveFolderToTrash(
+		long userId, long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_journalFolderLocalService.moveFolderToTrash(userId, folderId);
+		return _journalFolderLocalService.moveFolderToTrash(userId, folderId);
+	}
+
+	@Override
+	public void rebuildTree(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_journalFolderLocalService.rebuildTree(companyId);
 	}
 
 	@Override

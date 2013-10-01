@@ -16,7 +16,7 @@
 	</condition>
 
 	<property name="gpg.executable" value="gpg${gpg.extension}" />
-	<property name="mvn.goal.deploy-file" value="deploy:deploy-file" />
+	<property name="mvn.goal.deploy-file" value="org.apache.maven.plugins:maven-deploy-plugin:2.7:deploy-file" />
 	<property name="mvn.goal.install-file" value="install:install-file" />
 	<property name="mvn.goal.sign-and-deploy" value="org.apache.maven.plugins:maven-gpg-plugin:1.4:sign-and-deploy-file" />
 
@@ -47,6 +47,11 @@
 		</antcall>
 
 		<antcall target="deploy-artifact">
+			<param name="artifact.id" value="portal-pacl" />
+			<param name="packaging" value="jar" />
+		</antcall>
+
+		<antcall target="deploy-artifact">
 			<param name="artifact.id" value="portal-parent" />
 			<param name="packaging" value="pom" />
 		</antcall>
@@ -73,6 +78,11 @@
 
 		<antcall target="deploy-artifact">
 			<param name="artifact.id" value="util-java" />
+			<param name="packaging" value="jar" />
+		</antcall>
+
+		<antcall target="deploy-artifact">
+			<param name="artifact.id" value="util-slf4j" />
 			<param name="packaging" value="jar" />
 		</antcall>
 
@@ -229,6 +239,11 @@
 		</antcall>
 
 		<antcall target="install-artifact">
+			<param name="artifact.id" value="portal-pacl" />
+			<param name="packaging" value="jar" />
+		</antcall>
+
+		<antcall target="install-artifact">
 			<param name="artifact.id" value="portal-parent" />
 			<param name="packaging" value="pom" />
 		</antcall>
@@ -255,6 +270,11 @@
 
 		<antcall target="install-artifact">
 			<param name="artifact.id" value="util-java" />
+			<param name="packaging" value="jar" />
+		</antcall>
+
+		<antcall target="install-artifact">
+			<param name="artifact.id" value="util-slf4j" />
 			<param name="packaging" value="jar" />
 		</antcall>
 

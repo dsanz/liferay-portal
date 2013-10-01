@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.portlet.PortletContainer;
 import com.liferay.portal.kernel.portlet.PortletContainerException;
 import com.liferay.portal.kernel.portlet.PortletContainerUtil;
 import com.liferay.portal.kernel.portlet.PortletModeFactory;
-import com.liferay.portal.kernel.portlet.PortletSecurity;
 import com.liferay.portal.kernel.resiliency.spi.SPIUtil;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
@@ -57,7 +56,6 @@ import com.liferay.portal.util.WebKeys;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.portlet.Event;
 import javax.portlet.PortletMode;
@@ -74,21 +72,18 @@ import javax.servlet.http.HttpServletResponse;
 public class SecurityPortletContainerWrapper implements PortletContainer {
 
 	public static PortletContainer createSecurityPortletContainerWrapper(
-		PortletContainer portletContainer, PortletSecurity portletSecurity) {
+		PortletContainer portletContainer) {
 
 		if (!SPIUtil.isSPI()) {
 			portletContainer = new SecurityPortletContainerWrapper(
-				portletContainer, portletSecurity);
+				portletContainer);
 		}
 
 		return portletContainer;
 	}
 
-	public SecurityPortletContainerWrapper(
-		PortletContainer portletContainer, PortletSecurity portletSecurity) {
-
+	public SecurityPortletContainerWrapper(PortletContainer portletContainer) {
 		_portletContainer = portletContainer;
-		_portletSecurity = portletSecurity;
 	}
 
 	@Override
@@ -342,10 +337,6 @@ public class SecurityPortletContainerWrapper implements PortletContainer {
 			HttpServletRequest request, Portlet portlet)
 		throws PortalException, SystemException {
 
-		if (portlet.isSystem()) {
-			return;
-		}
-
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
 
@@ -408,12 +399,6 @@ public class SecurityPortletContainerWrapper implements PortletContainer {
 			return true;
 		}
 
-		Set<String> whitelist = _portletSecurity.getWhitelist();
-
-		if (whitelist.contains(portletId)) {
-			return true;
-		}
-
 		String namespace = PortalUtil.getPortletNamespace(portletId);
 
 		String strutsAction = ParamUtil.getString(
@@ -421,12 +406,6 @@ public class SecurityPortletContainerWrapper implements PortletContainer {
 
 		if (Validator.isNull(strutsAction)) {
 			strutsAction = ParamUtil.getString(request, "struts_action");
-		}
-
-		Set<String> whitelistActions = _portletSecurity.getWhitelistActions();
-
-		if (whitelistActions.contains(strutsAction)) {
-			return true;
 		}
 
 		String requestPortletAuthenticationToken = ParamUtil.getString(
@@ -440,15 +419,11 @@ public class SecurityPortletContainerWrapper implements PortletContainer {
 				originalRequest, "p_p_auth");
 		}
 
-		if (Validator.isNotNull(requestPortletAuthenticationToken)) {
-			String actualPortletAuthenticationToken = AuthTokenUtil.getToken(
-				request, themeDisplay.getPlid(), portletId);
+		if (AuthTokenUtil.isValidPortletInvocationToken(
+				request, themeDisplay.getPlid(), portletId, strutsAction,
+			requestPortletAuthenticationToken)) {
 
-			if (requestPortletAuthenticationToken.equals(
-					actualPortletAuthenticationToken)) {
-
-				return true;
-			}
+			return true;
 		}
 
 		return false;
@@ -668,6 +643,5 @@ public class SecurityPortletContainerWrapper implements PortletContainer {
 		SecurityPortletContainerWrapper.class);
 
 	private PortletContainer _portletContainer;
-	private PortletSecurity _portletSecurity;
 
 }

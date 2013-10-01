@@ -17,20 +17,24 @@ package com.liferay.portlet.journal.model.impl;
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.templateparser.TransformerListener;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
+import com.liferay.portal.kernel.util.SetUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Image;
 import com.liferay.portal.service.ImageLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.webserver.WebServerServletTokenUtil;
+import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalArticleResource;
 import com.liferay.portlet.journal.model.JournalFolder;
+import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleResourceLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.portlet.journal.util.LocaleTransformerListener;
@@ -38,7 +42,6 @@ import com.liferay.portlet.journal.util.LocaleTransformerListener;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * @author Brian Wing Shun Chan
@@ -56,6 +59,15 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 	}
 
 	public JournalArticleImpl() {
+	}
+
+	@Override
+	public String buildTreePath() throws PortalException, SystemException {
+		StringBundler sb = new StringBundler();
+
+		buildTreePath(sb, getFolder());
+
+		return sb.toString();
 	}
 
 	@Override
@@ -92,45 +104,27 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 	}
 
 	@Override
+	public String[] getAvailableLanguageIds() {
+		Set<String> availableLanguageIds = SetUtil.fromArray(
+			super.getAvailableLanguageIds());
+
+		String[] contentAvailableLanguageIds =
+			LocalizationUtil.getAvailableLanguageIds(getContent());
+
+		for (String availableLanguageId : contentAvailableLanguageIds) {
+			availableLanguageIds.add(availableLanguageId);
+		}
+
+		return availableLanguageIds.toArray(
+			new String[availableLanguageIds.size()]);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getAvailableLanguageIds}
+	 */
+	@Override
 	public String[] getAvailableLocales() {
-		Set<String> availableLocales = new TreeSet<String>();
-
-		// Title
-
-		Map<Locale, String> titleMap = getTitleMap();
-
-		for (Map.Entry<Locale, String> entry : titleMap.entrySet()) {
-			Locale locale = entry.getKey();
-			String value = entry.getValue();
-
-			if (Validator.isNotNull(value)) {
-				availableLocales.add(locale.toString());
-			}
-		}
-
-		// Description
-
-		Map<Locale, String> descriptionMap = getDescriptionMap();
-
-		for (Map.Entry<Locale, String> entry : descriptionMap.entrySet()) {
-			Locale locale = entry.getKey();
-			String value = entry.getValue();
-
-			if (Validator.isNotNull(value)) {
-				availableLocales.add(locale.toString());
-			}
-		}
-
-		// Content
-
-		String[] availableLocalesArray = LocalizationUtil.getAvailableLocales(
-			getContent());
-
-		for (String availableLocale : availableLocalesArray) {
-			availableLocales.add(availableLocale);
-		}
-
-		return availableLocales.toArray(new String[availableLocales.size()]);
+		return getAvailableLanguageIds();
 	}
 
 	@Override
@@ -139,42 +133,32 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 	}
 
 	@Override
-	public String getDefaultLocale() {
-		String xml = getContent();
-
-		if (xml == null) {
-			return StringPool.BLANK;
-		}
-
-		String defaultLanguageId = LocalizationUtil.getDefaultLocale(xml);
+	public String getDefaultLanguageId() {
+		String defaultLanguageId = super.getDefaultLanguageId();
 
 		if (isTemplateDriven() && Validator.isNull(defaultLanguageId)) {
 			defaultLanguageId = LocaleUtil.toLanguageId(
-				LocaleUtil.getDefault());
+				LocaleUtil.getSiteDefault());
 		}
 
 		return defaultLanguageId;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getDefaultLanguageId}
+	 */
 	@Override
-	public JournalFolder getFolder() {
-		JournalFolder folder = null;
+	public String getDefaultLocale() {
+		return getDefaultLanguageId();
+	}
 
-		if (getFolderId() > 0) {
-			try {
-				folder = JournalFolderLocalServiceUtil.getFolder(getFolderId());
-			}
-			catch (Exception e) {
-				folder = new JournalFolderImpl();
-
-				_log.error(e);
-			}
-		}
-		else {
-			folder = new JournalFolderImpl();
+	@Override
+	public JournalFolder getFolder() throws PortalException, SystemException {
+		if (getFolderId() <= 0) {
+			return new JournalFolderImpl();
 		}
 
-		return folder;
+		return JournalFolderLocalServiceUtil.getFolder(getFolderId());
 	}
 
 	@Override
@@ -190,12 +174,17 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 	}
 
 	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(JournalArticle.class);
+	}
+
+	@Override
 	public Map<Locale, String> getTitleMap() {
 		Locale defaultLocale = LocaleThreadLocal.getDefaultLocale();
 
 		try {
 			Locale articleDefaultLocale = LocaleUtil.fromLanguageId(
-				getDefaultLocale());
+				getDefaultLanguageId());
 
 			LocaleThreadLocal.setDefaultLocale(articleDefaultLocale);
 
@@ -207,24 +196,22 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 	}
 
 	@Override
-	public JournalFolder getTrashContainer() {
-		JournalFolder folder = getFolder();
-
-		if (folder.isInTrash()) {
-			return folder;
-		}
-
-		return folder.getTrashContainer();
+	public long getTrashEntryClassPK() {
+		return getResourcePrimKey();
 	}
 
 	@Override
-	public boolean isInTrashContainer() {
-		if (getTrashContainer() != null) {
-			return true;
-		}
-		else {
+	public boolean hasApprovedVersion() throws SystemException {
+		JournalArticle article =
+			JournalArticleLocalServiceUtil.fetchLatestArticle(
+				getGroupId(), getArticleId(),
+				WorkflowConstants.STATUS_APPROVED);
+
+		if (article == null) {
 			return false;
 		}
+
+		return true;
 	}
 
 	@Override
@@ -238,7 +225,8 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 	}
 
 	/**
-	 * @throws LocaleException
+	 * @param  defaultImportLocale the default imported locale
+	 * @throws LocaleException if a locale exception occurred
 	 */
 	@Override
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
@@ -250,7 +238,19 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 		_smallImageType = smallImageType;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(JournalArticleImpl.class);
+	protected void buildTreePath(StringBundler sb, JournalFolder folder)
+		throws PortalException, SystemException {
+
+		if (folder == null) {
+			sb.append(StringPool.SLASH);
+		}
+		else {
+			buildTreePath(sb, folder.getParentFolder());
+
+			sb.append(folder.getFolderId());
+			sb.append(StringPool.SLASH);
+		}
+	}
 
 	private String _smallImageType;
 

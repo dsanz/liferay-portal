@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * @author Brian Wing Shun Chan
  */
-public class Fields implements Serializable {
+public class Fields implements Iterable<Field>, Serializable {
 
 	public boolean contains(String name) {
 		return _fieldsMap.containsKey(name);
@@ -80,7 +80,7 @@ public class Fields implements Serializable {
 	}
 
 	public Locale getDefaultLocale() {
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		Iterator<Field> itr = iterator();
 
@@ -97,6 +97,7 @@ public class Fields implements Serializable {
 		return _fieldsMap.keySet();
 	}
 
+	@Override
 	public Iterator<Field> iterator() {
 		return iterator(false);
 	}

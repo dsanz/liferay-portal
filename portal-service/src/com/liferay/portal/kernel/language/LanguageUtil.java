@@ -14,7 +14,11 @@
 
 package com.liferay.portal.kernel.language;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.List;
 import java.util.Locale;
@@ -186,6 +190,22 @@ public class LanguageUtil {
 		return getLanguage().getAvailableLocales();
 	}
 
+	public static Locale[] getAvailableLocales(long groupId) {
+		return getLanguage().getAvailableLocales(groupId);
+	}
+
+	public static String getBCP47LanguageId(HttpServletRequest request) {
+		return getLanguage().getBCP47LanguageId(request);
+	}
+
+	public static String getBCP47LanguageId(Locale locale) {
+		return getLanguage().getBCP47LanguageId(locale);
+	}
+
+	public static String getBCP47LanguageId(PortletRequest portletRequest) {
+		return getLanguage().getBCP47LanguageId(portletRequest);
+	}
+
 	public static String getCharset(Locale locale) {
 		return getLanguage().getCharset(locale);
 	}
@@ -262,12 +282,40 @@ public class LanguageUtil {
 		return getLanguage().isAvailableLocale(locale);
 	}
 
+	public static boolean isAvailableLocale(long groupId, Locale locale) {
+		return getLanguage().isAvailableLocale(groupId, locale);
+	}
+
+	public static boolean isAvailableLocale(long groupId, String languageId) {
+		return getLanguage().isAvailableLocale(groupId, languageId);
+	}
+
+	public static boolean isAvailableLocale(String languageId) {
+		return getLanguage().isAvailableLocale(languageId);
+	}
+
 	public static boolean isBetaLocale(Locale locale) {
 		return getLanguage().isBetaLocale(locale);
 	}
 
 	public static boolean isDuplicateLanguageCode(String languageCode) {
 		return getLanguage().isDuplicateLanguageCode(languageCode);
+	}
+
+	public static boolean isInheritLocales(long groupId)
+		throws PortalException, SystemException {
+
+		return getLanguage().isInheritLocales(groupId);
+	}
+
+	public static boolean isValidLanguageKey(Locale locale, String key) {
+		String value = getLanguage().get(locale, key, StringPool.BLANK);
+
+		return Validator.isNotNull(value);
+	}
+
+	public static void resetAvailableGroupLocales(long groupId) {
+		getLanguage().resetAvailableGroupLocales(groupId);
 	}
 
 	public static void resetAvailableLocales(long companyId) {

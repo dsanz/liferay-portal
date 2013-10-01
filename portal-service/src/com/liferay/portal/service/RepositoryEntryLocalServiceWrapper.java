@@ -359,6 +359,13 @@ public class RepositoryEntryLocalServiceWrapper
 	}
 
 	@Override
+	public java.util.List<com.liferay.portal.model.RepositoryEntry> getRepositoryEntries(
+		long repositoryId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _repositoryEntryLocalService.getRepositoryEntries(repositoryId);
+	}
+
+	@Override
 	public com.liferay.portal.model.RepositoryEntry updateRepositoryEntry(
 		long repositoryEntryId, java.lang.String mappedId)
 		throws com.liferay.portal.kernel.exception.PortalException,

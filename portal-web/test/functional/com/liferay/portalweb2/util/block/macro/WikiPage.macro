@@ -1,109 +1,263 @@
 <definition>
+	<var name="assetType" value="Wiki Page" />
 
 	<command name="addChildPagePG">
-		<execute macro="Page#pgGoto">
-			<var name="pageName" value="${pageName}" />
-		</execute>
-
-		<execute action="PGWiki#click" locator-key1="NAVIGATION_ALL_PAGES" />
+		<execute action="PGWiki#assertClick" locator-key1="NAVIGATION_ALL_PAGES" value1="All Pages" />
 
 		<execute action="PGWikiAllpages#click" locator1="link=${wikiPageTitle}" />
 
-		<execute action="PGWiki#click" locator-key1="ADD_CHILD_PAGE" />
+		<execute action="PGWiki#assertClick" locator-key1="ADD_CHILD_PAGE" value1="Add Child Page" />
 
 		<execute action="PGWikiAddpage#type" locator-key1="TITLE_FIELD" value1="${wikiChildPageTitle}" />
 		<execute action="PGWikiAddpage#type" locator-key1="BODY_FIELD" value1="${wikiChildPageContent}" />
-		<execute action="PGWikiAddpage#click" locator-key1="PUBLISH_BUTTON" />
+		<execute action="PGWikiAddpage#click" locator-key1="PUBLISH_BUTTON" value1="Publish" />
 
-		<execute action="PGWiki#assertTextEquals" locator-key1="SUCCESS_MESSAGE" />
+		<execute action="PGWiki#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
 		<execute action="PGWiki#assertTextEquals" locator-key1="WIKI_PAGE_CHILD_PAGE_1" value1="${wikiChildPageTitle}" />
 		<execute action="PGWiki#click" locator-key1="WIKI_PAGE_CHILD_PAGE_1" value1="${wikiChildPageTitle}" />
 		<execute action="PGWiki#assertTextEquals" locator-key1="WIKI_PAGE_TITLE" value1="${wikiChildPageTitle}" />
 		<execute action="PGWiki#assertTextEquals" locator-key1="WIKI_PAGE_BODY" value1="${wikiChildPageContent}" />
 	</command>
 
-	<command name="addFrontPagePG">
-		<execute macro="Page#pgGoto">
-			<var name="pageName" value="${pageName}" />
-		</execute>
+	<command name="addFrontPageCP">
+		<var name="key_wikiNodeName" value="${wikiNodeName}" />
 
-		<execute action="PGWiki#click" locator-key1="ADD_FRONTPAGE" />
+		<execute action="CPWiki#assertClick" locator-key1="WIKI_NODE_TABLE_WIKI" value1="${wikiNodeName}" />
+
+		<execute action="CPWikiAllpages#assertClick" locator-key1="NAVIGATION_FRONTPAGE" value1="FrontPage" />
+
+		<execute action="CPWikiFrontpage#assertClick" locator-key1="INFO_MESSAGE" value1="This page is empty. Edit it to add some text." />
+
+		<execute action="CPWikiAddpage#type" locator-key1="BODY_FIELD" value1="${wikiFrontPageContent}" />
+		<execute action="CPWikiAddpage#assertClick" locator-key1="PUBLISH_BUTTON" value1="Publish" />
+
+		<execute action="CPWikiFrontpage#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+		<execute action="CPWikiFrontpage#assertTextEquals" locator-key1="FRONTPAGE_BODY" value1="${wikiFrontPageContent}" />
+	</command>
+
+	<command name="addFrontPagePG">
+		<execute action="PGWiki#assertClick" locator-key1="ADD_FRONTPAGE" value1="This page is empty. Edit it to add some text." />
 
 		<execute action="PGWikiAddpage#type" locator-key1="BODY_FIELD" value1="${wikiPageContent}" />
-		<execute action="PGWikiAddpage#click" locator-key1="PUBLISH_BUTTON" />
+		<execute action="PGWikiAddpage#assertClick" locator-key1="PUBLISH_BUTTON" value1="Publish" />
 
-		<execute action="PGWiki#assertTextEquals" locator-key1="SUCCESS_MESSAGE" />
+		<execute action="PGWiki#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
 		<execute action="PGWiki#assertTextEquals" locator-key1="WIKI_PAGE_BODY" value1="${wikiPageContent}" />
 	</command>
 
 	<command name="addFrontPagePGHTMLSource" >
-		<execute macro="Page#pgGoto">
-			<var name="pageName" value="${pageName}" />
-		</execute>
-
-		<execute action="PGWiki#click" locator-key1="ADD_FRONTPAGE" />
+		<execute action="PGWiki#assertClick" locator-key1="ADD_FRONTPAGE" value1="This page is empty. Edit it to add some text." />
 
 		<execute action="PGWikiAddpage#select" locator-key1="FORMAT_DROPDOWN" value1="HTML" />
 		<execute action="PGWikiAddpage#confirm" locator-key1="CONFIRMATION" value1="You may lose some formatting when switching from Creole to HTML. Do you want to continue?" />
-		<execute action="PGWikiAddpage#click" locator-key1="SOURCE_HTML_BUTTON" />
+		<execute action="PGWikiAddpage#assertClick" locator-key1="SOURCE_HTML_BUTTON" value1="Source" />
 		<execute action="PGWikiAddpage#type" locator-key1="CK_EDITOR_SOURCE_FIELD" value1="${wikiPageContent}" />
-		<execute action="PGWikiAddpage#click" locator-key1="PUBLISH_BUTTON" />
+		<execute action="PGWikiAddpage#assertClick" locator-key1="PUBLISH_BUTTON" value1="Publish" />
 
-		<execute action="PGWiki#assertTextEquals" locator-key1="SUCCESS_MESSAGE" />
+		<execute action="PGWiki#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
 		<execute action="PGWiki#assertTextEquals" locator-key1="WIKI_PAGE_BODY" value1="${wikiPageText}" />
 	</command>
 
-	<command name="addPagePG">
-		<execute macro="Page#pgGoto">
-			<var name="pageName" value="${pageName}" />
-		</execute>
+	<command name="addPageCP">
+		<var name="key_wikiNodeName" value="${wikiNodeName}" />
+		<var name="key_wikiPageTitle" value="${wikiPageTitle}" />
 
-		<execute action="PGWiki#click" locator-key1="NAVIGATION_ALL_PAGES" />
-		<execute action="PGWikiAllpages#click" locator-key1="ADD_PAGE_BUTTON" />
+		<execute action="CPWiki#assertClick" locator-key1="WIKI_NODE_TABLE_WIKI" value1="${wikiNodeName}" />
+		<execute action="CPWikiAllpages#assertClick" locator-key1="NAVIGATION_ALL_PAGES" value1="All Pages" />
+		<execute action="CPWikiAllpages#assertClick" locator-key1="ADD_PAGE_BUTTON" value1="Add Page" />
+		<execute action="CPWikiAddpage#type" locator-key1="TITLE_FIELD" value1="${wikiPageTitle}" />
+		<execute action="PGWikiAddpage#type" locator-key1="BODY_FIELD" value1="${wikiPageContent}" />
+
+		<execute action="CPWikiAddpage#assertClick" locator-key1="PUBLISH_BUTTON" value1="Publish" />
+
+		<execute action="CPWikiAllpages#assertTextEquals" locator-key1="WIKI_PAGE_TABLE_PAGE" value1="${wikiPageTitle}" />
+
+		<execute action="CPWikiAllpages#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+	</command>
+
+	<command name="addPagePG">
+		<execute action="PGWiki#assertClick" locator-key1="NAVIGATION_ALL_PAGES" value1="All Pages" />
+		<execute action="PGWikiAllpages#assertClick" locator-key1="ADD_PAGE_BUTTON" value1="Add Page" />
 
 		<execute action="PGWikiAddpage#type" locator-key1="TITLE_FIELD" value1="${wikiPageTitle}" />
 		<execute action="PGWikiAddpage#type" locator-key1="BODY_FIELD" value1="${wikiPageContent}" />
-		<execute action="PGWikiAddpage#click" locator-key1="PUBLISH_BUTTON" />
+		<execute action="PGWikiAddpage#assertClick" locator-key1="PUBLISH_BUTTON" value1="Publish" />
 
-		<execute action="PGWikiAllpages#assertTextEquals" locator-key1="SUCCESS_MESSAGE" />
+		<execute action="PGWikiAllpages#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
 		<execute action="PGWikiAllpages#assertTextEquals" locator-key1="WIKI_PAGE_TABLE_PAGE_2" value1="${wikiPageTitle}" />
-		<execute action="PGWikiAllpages#click" locator-key1="WIKI_PAGE_TABLE_PAGE_2" value1="${wikiPageTitle}" />
+		<execute action="PGWikiAllpages#assertClick" locator-key1="WIKI_PAGE_TABLE_PAGE_2" value1="${wikiPageTitle}" />
 
 		<execute action="PGWiki#assertTextEquals" locator-key1="WIKI_PAGE_TITLE" value1="${wikiPageTitle}" />
 		<execute action="PGWiki#assertTextEquals" locator-key1="WIKI_PAGE_BODY" value1="${wikiPageContent}" />
 	</command>
 
+	<command name="addPageWithWorkflowPG">
+		<execute action="PGWiki#assertClick" locator-key1="NAVIGATION_ALL_PAGES" value1="All Pages" />
+
+		<execute action="PGWikiAllpages#assertClick" locator-key1="ADD_PAGE_BUTTON" value1="Add Page" />
+
+		<execute action="PGWikiAddpage#type" locator-key1="TITLE_FIELD" value1="${wikiPageTitle}" />
+		<execute action="PGWikiAddpage#type" locator-key1="BODY_FIELD" value1="${wikiPageContent}" />
+		<execute action="PGWikiAddpage#assertClick" locator-key1="SUBMIT_FOR_PUBLICATION_BUTTON" value1="Submit for Publication" />
+
+		<execute action="PGWikiAllpages#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+		<execute action="PGWikiAllpages#assertClick" locator-key1="NAVIGATION_DRAFT_PAGES" value1="Draft Pages" />
+
+		<var name="key_wikiPageTitle" value="${wikiPageTitle}" />
+
+		<execute action="PGWikiDraftpages#assertTextEquals" locator-key1="PENDING_APPROVAL" value1="Pending Approval" />
+		<execute action="PGWikiDraftpages#assertTextEquals" locator-key1="PENDING_APPROVAL_TABLE_PAGE" value1="${wikiPageTitle}" />
+		<execute action="PGWikiDraftpages#assertTextEquals" locator-key1="PENDING_APPROVAL_TABLE_STATUS" value1="Pending" />
+		<execute action="PGWikiDraftpages#assertTextEquals" locator-key1="PENDING_APPROVAL_TABLE_REVISION" value1="1.0" />
+		<execute action="PGWikiDraftpages#assertTextEquals" locator-key1="PENDING_APPROVAL_TABLE_USER" value1="${wikiPageUsername}" />
+		<execute action="PGWikiDraftpages#assertElementPresent" locator-key1="PENDING_APPROVAL_TABLE_DATE" />
+	</command>
+
+	<command name="compareVersionsCP">
+		<var name="key_wikiNodeName" value="${wikiNodeName}" />
+		<var name="key_wikiPageTitle" value="${wikiPageTitle}" />
+
+		<execute action="CPWiki#assertClick" locator-key1="WIKI_NODE_TABLE_WIKI" value1="${wikiNodeName}" />
+		<execute action="CPWikiAllpages#assertClick" locator-key1="NAVIGATION_ALL_PAGES" value1="All Pages" />
+		<execute action="CPWikiAllpages#assertClick" locator-key1="WIKI_PAGE_TABLE_PAGE" value1="${wikiPageTitle}" />
+
+		<execute action="CPWikiWikipage#assertClick" locator-key1="WIKI_PAGE_ACTIONS_DETAILS" value1="Details" />
+
+		<execute action="CPWikiWikipageDetails#assertClick" locator-key1="NAVIGATION_HISTORY" value1="History" />
+
+		<var name="key_wikiPageVersionNew" value="${wikiPageVersionNew}" />
+		<var name="key_wikiPageVersionOld" value="${wikiPageVersionOld}" />
+
+		<execute action="CPWikiWikipageHistory#assertClick" locator-key1="ACTIVITIES_TABLE_COMPARE_TO" value1="Compare to..." />
+
+		<execute action="CPWikiWikipageHistorySelectversion#selectFrame" locator-key1="SELECT_VERSION_IFRAME" />
+		<execute action="CPWikiWikipageHistorySelectversion#assertTextEquals" locator-key1="SELECT_VERSION_VERSION_NEW" value1="${wikiPageVersionNew}" />
+		<execute action="CPWikiWikipageHistorySelectversion#assertElementPresent" locator-key1="SELECT_VERSION_DATE_NEW" />
+		<execute action="CPWikiWikipageHistorySelectversion#assertTextEquals" locator-key1="SELECT_VERSION_VERSION_OLD" value1="${wikiPageVersionOld}" />
+		<execute action="CPWikiWikipageHistorySelectversion#assertElementPresent" locator-key1="SELECT_VERSION_DATE_OLD" />
+		<execute action="CPWikiWikipageHistorySelectversion#assertClick" locator-key1="SELECT_VERSION_CHOOSE_BUTTON_OLD" value1="Choose" />
+		<execute action="CPWikiWikipageHistorySelectversion#selectFrame" value1="relative=top" />
+
+		<execute action="CPWikiWikipageHistory#assertTextEquals" locator-key1="COMPARE_VERSIONS_DIFF" value1="${wikiPageVersionDiff}" />
+	</command>
+
 	<command name="deleteFrontPagePG">
-		<execute macro="Page#pgGoto">
-			<var name="pageName" value="${pageName}" />
-		</execute>
+		<var name="wikiPageTitle" value="FrontPage" />
 
-		<execute action="PGWiki#click" locator-key1="NAVIGATION_ALL_PAGES" />
+		<execute action="PGWiki#assertClick" locator-key1="NAVIGATION_ALL_PAGES" value1="All Pages" />
 
-		<execute action="PGWikiAllpages#click" locator-key1="WIKI_PAGE_TABLE_ACTIONS_1" />
-		<execute action="PGWikiAllpages#click" locator-key1="WIKI_PAGE_MENULIST_RECYCLE_BIN" />
-		<execute action="PGWikiAllpages#assertTextEquals" locator-key1="SUCCESS_MESSAGE_RECYCLE_BIN" />
-		<execute action="PGWikiAllpages#assertElementNotPresent" locator-key1="WIKI_PAGE_TABLE_PAGE_1" value1="FrontPage" />
+		<execute action="PGWikiAllpages#assertClick" locator-key1="WIKI_PAGE_TABLE_ACTIONS_1" value1="Actions" />
+		<execute action="PGWikiAllpages#assertClick" locator-key1="WIKI_PAGE_MENULIST_RECYCLE_BIN" value1="Move to the Recycle Bin" />
+		<execute action="PGWikiAllpages#assertTextEquals" locator-key1="SUCCESS_MESSAGE_RECYCLE_BIN" value1="The ${assetType} ${wikiPageTitle} was moved to the Recycle Bin. Undo" />
+		<execute action="PGWikiAllpages#assertElementNotPresent" locator-key1="WIKI_PAGE_TABLE_PAGE_1" />
 
-		<execute macro="RecycleBin#emptyRecycleBinCP" />
+		<execute macro="RecycleBin#emptyCP" />
+	</command>
+
+	<command name="editPageCP">
+		<var name="key_wikiNodeName" value="${wikiNodeName}" />
+		<var name="key_wikiPageTitle" value="${wikiPageTitle}" />
+
+		<execute action="CPWiki#assertClick" locator-key1="WIKI_NODE_TABLE_WIKI" value1="${wikiNodeName}" />
+		<execute action="CPWikiAllpages#assertClick" locator-key1="NAVIGATION_ALL_PAGES" value1="All Pages" />
+		<execute action="CPWikiAllpages#assertClick" locator-key1="WIKI_PAGE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPWikiAllpages#assertClick" locator-key1="WIKI_PAGE_MENULIST_EDIT" value1="Edit" />
+
+		<execute action="CPWikiEditpage#type" locator-key1="BODY_FIELD" value1="${wikiPageContentEdit}" />
+		<execute action="CPWikiEditpage#assertClick" locator-key1="PUBLISH_BUTTON" value1="Publish" />
+
+		<execute action="CPWikiWikipage#assertTextEquals" locator-key1="WIKI_PAGE_BODY" value1="${wikiPageContentEdit}" />
+
+		<execute action="CPWikiWikipage#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+	</command>
+
+	<command name="moveToRecycleBinCP">
+		<var name="key_wikiNodeName" value="${wikiNodeName}" />
+		<var name="key_wikiPageTitle" value="${wikiPageTitle}" />
+
+		<execute action="CPWiki#assertClick" locator-key1="WIKI_NODE_TABLE_WIKI" value1="${wikiNodeName}" />
+
+		<execute action="CPWikiAllpages#assertClick" locator-key1="WIKI_PAGE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPWikiAllpages#assertClick" locator-key1="WIKI_PAGE_MENULIST_RECYCLE_BIN" value1="Move to the Recycle Bin" />
+		<execute action="CPWikiAllpages#assertTextEquals" locator-key1="SUCCESS_MESSAGE_RECYCLE_BIN" value1="The ${assetType} ${wikiPageTitle} was moved to the Recycle Bin. Undo" />
 	</command>
 
 	<command name="tearDownCP">
-		<execute macro="Page#cpGotoContent">
+		<execute macro="Page#gotoContentCP">
 			<var name="portletName" value="Wiki" />
 		</execute>
 
-		<execute action="CPWiki#click" locator-key1="WIKI_NODE_TABLE_WIKI_1" />
+		<var name="key_wikiNodeName" value="Main" />
+
+		<execute action="CPWiki#assertClick" locator-key1="WIKI_NODE_TABLE_WIKI" value1="Main"/>
 
 		<while>
-			<condition action="CPWikiAllpages#isElementPresent" locator-key1="WIKI_PAGE_TABLE_ACTIONS_1" />
+			<condition action="CPWikiAllpages#isElementPresent" locator1="//a[@title='Actions']" />
 			<then>
-				<execute action="CPWikiAllpages#click" locator-key1="WIKI_PAGE_TABLE_ACTIONS_1" />
-				<execute action="CPWikiAllpages#click" locator-key1="WIKI_PAGE_MENULIST_RECYCLE_BIN" />
-				<execute action="CPWikiAllpages#assertTextEquals" locator-key1="SUCCESS_MESSAGE_RECYCLE_BIN" />
+				<execute action="CPWikiAllpages#assertClick" locator1="//a[@title='Actions']" value1="Actions"/>
+				<execute action="CPWikiAllpages#assertClick" locator-key1="WIKI_PAGE_MENULIST_RECYCLE_BIN" value1="Move to the Recycle Bin" />
+				<execute action="CPWikiAllpages#assertTextEquals" locator-key1="SUCCESS_MESSAGE_RECYCLE_BIN" value1="moved to the Recycle Bin. Undo" />
 			</then>
 		</while>
 
-		<execute macro="RecycleBin#emptyRecycleBinCP" />
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Recycle Bin" />
+		</execute>
+
+		<execute macro="RecycleBin#emptyCP" />
+	</command>
+
+	<command name="viewFrontPageCP">
+		<var name="key_wikiNodeName" value="${wikiNodeName}" />
+
+		<execute action="CPWiki#assertClick" locator-key1="WIKI_NODE_TABLE_WIKI" value1="${wikiNodeName}" />
+
+		<execute action="CPWikiAllpages#assertClick" locator-key1="NAVIGATION_FRONTPAGE" value1="FrontPage" />
+
+		<execute action="CPWikiFrontpage#assertTextEquals" locator-key1="PORLET_BODY_TITLE_HEADER" value1="${wikiNodeName}" />
+		<execute action="CPWikiFrontpage#assertTextEquals" locator-key1="FRONTPAGE_TITLE_HEADER" value1="FrontPage" />
+		<execute action="CPWikiFrontpage#assertTextEquals" locator-key1="FRONTPAGE_BODY" value1="${wikiFrontPageContent}" />
+		<execute action="CPWikiFrontpage#assertElementNotPresent" locator-key1="INFO_MESSAGE" />
+		<execute action="CPWikiFrontpage#assertTextNotPresent" value1="This page is empty. Edit it to add some text." />
+	</command>
+
+	<command name="viewFrontPageDefaultCP">
+		<var name="key_wikiNodeName" value="${wikiNodeName}" />
+
+		<execute action="CPWiki#assertClick" locator-key1="WIKI_NODE_TABLE_WIKI" value1="${wikiNodeName}" />
+
+		<execute action="CPWikiAllpages#assertClick" locator-key1="NAVIGATION_FRONTPAGE" value1="FrontPage" />
+
+		<execute action="CPWikiFrontpage#assertTextEquals" locator-key1="INFO_MESSAGE" value1="This page is empty. Edit it to add some text." />
+		<execute action="CPWikiFrontpage#assertTextNotPresent" value1="${wikiFrontPageContent}" />
+	</command>
+
+	<command name="viewPagePG">
+		<execute action="PGWiki#assertClick" locator-key1="NAVIGATION_ALL_PAGES" value1="All Pages" />
+
+		<var name="key_wikiPageTitle" value="${wikiPageTitle}" />
+
+		<execute action="PGWikiAllpages#assertTextEquals" locator-key1="WIKI_PAGE_TABLE_PAGE" value1="${wikiPageTitle}" />
+		<execute action="PGWikiAllpages#assertTextEquals" locator-key1="WIKI_PAGE_TABLE_STATUS" value1="Approved" />
+		<execute action="PGWikiAllpages#assertTextEquals" locator-key1="WIKI_PAGE_TABLE_REVISION" value1="${wikiPageRevision}" />
+		<execute action="PGWikiAllpages#assertTextEquals" locator-key1="WIKI_PAGE_TABLE_USER" value1="${wikiPageUsername}" />
+		<execute action="PGWikiAllpages#assertElementPresent" locator-key1="WIKI_PAGE_TABLE_DATE" />
+		<execute action="PGWikiAllpages#assertClick" locator-key1="WIKI_PAGE_TABLE_PAGE" value1="${wikiPageTitle}" />
+
+		<execute action="PGWiki#assertTextEquals" locator-key1="WIKI_PAGE_TITLE" value1="${wikiPageTitle}" />
+		<execute action="PGWiki#assertTextEquals" locator-key1="WIKI_PAGE_BODY" value1="${wikiPageContent}" />
+	</command>
+
+	<command name="viewPageWithWorkflowPG">
+		<execute action="PGWiki#assertClick" locator-key1="NAVIGATION_DRAFT_PAGES" value1="Draft Pages" />
+
+		<var name="key_wikiPageTitle" value="${wikiPageTitle}" />
+
+		<execute action="PGWikiDraftpages#assertTextEquals" locator-key1="PENDING_APPROVAL" value1="Pending Approval" />
+		<execute action="PGWikiDraftpages#assertTextEquals" locator-key1="PENDING_APPROVAL_TABLE_PAGE" value1="${wikiPageTitle}" />
+		<execute action="PGWikiDraftpages#assertTextEquals" locator-key1="PENDING_APPROVAL_TABLE_STATUS" value1="${wikiPageStatus}" />
+		<execute action="PGWikiDraftpages#assertTextEquals" locator-key1="PENDING_APPROVAL_TABLE_REVISION" value1="1.0" />
+		<execute action="PGWikiDraftpages#assertTextEquals" locator-key1="PENDING_APPROVAL_TABLE_USER" value1="${wikiPageUsername}" />
+		<execute action="PGWikiDraftpages#assertElementPresent" locator-key1="PENDING_APPROVAL_TABLE_DATE" />
 	</command>
 </definition>

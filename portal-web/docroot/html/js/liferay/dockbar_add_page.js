@@ -1,6 +1,7 @@
 AUI.add(
 	'liferay-dockbar-add-page',
 	function(A) {
+		var AObject = A.Object;
 		var Lang = A.Lang;
 
 		var Dockbar = Liferay.Dockbar;
@@ -21,9 +22,11 @@ AUI.add(
 
 		var STR_CANCEL_ADD_OPERATION = 'cancelAddOperation';
 
-		var STR_HIDDEN_CHECKBOX = 'hiddenCheckbox';
+		var STR_HIDDEN_CHECKBOX = 'addLayoutHiddenCheckbox';
 
-		var STR_NAME = 'name';
+		var STR_ID = 'id';
+
+		var STR_NAME = 'addLayoutName';
 
 		var STR_NODE_LIST = 'nodeList';
 
@@ -37,7 +40,7 @@ AUI.add(
 
 		var AddPage = A.Component.create(
 			{
-				AUGMENTS: [Dockbar.AddPageSearch, Liferay.PortletBase],
+				AUGMENTS: [Liferay.PortletBase],
 
 				EXTENDS: Dockbar.AddBase,
 
@@ -49,6 +52,12 @@ AUI.add(
 					},
 					parentLayoutId: {
 						validator: Lang.isNumber
+					},
+					refresh: {
+						validator: Lang.isBoolean
+					},
+					toggleOnCancel: {
+						validator: Lang.isBoolean
 					},
 					transition: {
 						validator: Lang.isObject,
@@ -74,7 +83,7 @@ AUI.add(
 								header: SELECTOR_TOGGLER_HEADER,
 								transition: instance.get(STR_TRANSITION)
 							}
-						);
+						).plug(Liferay.TogglerKeyFilter);
 
 						instance._addForm = instance.byId(STR_ADD_PAGE_FORM);
 
@@ -96,6 +105,65 @@ AUI.add(
 						instance._bindUI();
 					},
 
+					_addPage: function(event) {
+						var instance = this;
+
+						var addForm = instance._addForm;
+
+						var formValidator = instance._getFormValidator(addForm);
+
+						if (!formValidator.hasErrors()) {
+							instance._disableFormElements();
+
+							if (instance.get('refresh')) {
+								submitForm(addForm);
+							}
+							else {
+								event.preventDefault();
+
+								A.io.request(
+									addForm.get('action'),
+									{
+										dataType: 'json',
+										form: {
+											id: addForm.get(STR_ID)
+										},
+										after: {
+											success: function(event, id, obj) {
+												var responseData = this.get(STR_RESPONSE_DATA);
+
+												instance._loadingMask.hide();
+
+												var panel = addForm.ancestor();
+
+												panel.empty();
+
+												panel.plug(A.Plugin.ParseContent);
+
+												panel.setContent(responseData);
+											}
+										}
+									}
+								);
+
+								instance._loadingMask.show();
+							}
+						}
+						else {
+							AObject.some(
+								formValidator.errors,
+								function(item, index, collection) {
+									var field = formValidator.getField(index);
+
+									field.scrollIntoView();
+									field.focus();
+
+									return true;
+								}
+							);
+						}
+					},
+
 					_bindUI: function() {
 						var instance = this;
 
@@ -110,10 +178,18 @@ AUI.add(
 						instance._togglerDelegate.on('toggler:expandedChange', instance._updateActivePage, instance);
 					},
 
-					_addPage: function(event) {
+					_cancelAction: function(event) {
 						var instance = this;
 
-						event.preventDefault();
+						if (instance.get('toggleOnCancel')) {
+							event.preventDefault();
+
+							Dockbar.toggleAddPanel();
+						}
+					},
+
+					_disableFormElements: function() {
+						var instance = this;
 
 						var nodes = instance.get(STR_NODES);
 
@@ -123,42 +199,19 @@ AUI.add(
 
 								var active = header.hasClass(CSS_ACTIVE);
 
-								item.all('input, select, textarea').set('disabled', !active);
+								item.all('input, select, textarea').attr('disabled', !active);
 							}
 						);
-
-						A.io.request(
-							instance._addForm.get('action'),
-							{
-								dataType: 'json',
-								form: {
-									id: instance._addForm.get('id')
-								},
-								after: {
-									success: function(event, id, obj) {
-										var response = this.get(STR_RESPONSE_DATA);
-
-										instance._loadingMask.hide();
-
-										var panel = instance._addForm.ancestor();
-
-										panel.empty();
-
-										panel.plug(A.Plugin.ParseContent);
-
-										panel.setContent(response);
-									}
-								}
-							}
-						);
-
-						instance._loadingMask.show();
 					},
 
-					_cancelAction: function(event) {
-						event.preventDefault();
+					_getFormValidator: function(formNode) {
+						var instance = this;
 
-						Dockbar.loadPanel();
+						if (!instance._formValidator) {
+							instance._formValidator = Liferay.Form.get(formNode.attr('id')).formValidator;
+						}
+
+						return instance._formValidator;
 					},
 
 					_updateActivePage: function(event) {
@@ -184,9 +237,9 @@ AUI.add(
 
 								header.addClass(CSS_ACTIVE);
 
-								instance.byId('type').set(STR_VALUE, selectedType);
+								instance.byId('addLayoutType').set(STR_VALUE, selectedType);
 
-								instance.byId('layoutPrototypeId').set(STR_VALUE, selectedPrototypeId);
+								instance.byId('addLayoutPrototypeId').set(STR_VALUE, selectedPrototypeId);
 							}
 						}
 					},
@@ -212,6 +265,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-loading-mask-deprecated', 'aui-parse-content', 'aui-toggler-delegate', 'liferay-dockbar', 'liferay-dockbar-add-base', 'liferay-dockbar-add-page-search']
+		requires: ['aui-loading-mask-deprecated', 'aui-parse-content', 'aui-toggler-delegate', 'liferay-dockbar', 'liferay-dockbar-add-base', 'liferay-dockbar-add-page-search', 'liferay-portlet-base', 'liferay-toggler-key-filter']
 	}
 );

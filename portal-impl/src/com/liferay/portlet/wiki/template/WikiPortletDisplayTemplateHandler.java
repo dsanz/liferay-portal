@@ -53,7 +53,7 @@ public class WikiPortletDisplayTemplateHandler
 
 	@Override
 	public String getResourceName() {
-		return "com.liferay.portlet.wiki";
+		return PortletKeys.WIKI;
 	}
 
 	@Override

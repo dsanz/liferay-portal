@@ -23,6 +23,7 @@ import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
@@ -80,15 +81,18 @@ public class CommandArgument {
 		if (_currentFolder.equals("/")) {
 			return StringPool.BLANK;
 		}
-		else {
-			StringTokenizer st = new StringTokenizer(_currentFolder, "/");
 
-			return st.nextToken();
-		}
+		StringTokenizer st = new StringTokenizer(_currentFolder, "/");
+
+		return st.nextToken();
 	}
 
 	public HttpServletRequest getHttpServletRequest() {
 		return _request;
+	}
+
+	public Locale getLocale() {
+		return _themeDisplay.getLocale();
 	}
 
 	public String getNewFolder() {

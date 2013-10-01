@@ -18,7 +18,9 @@ import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.lar.BasePortletDataHandler;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
+import com.liferay.portal.kernel.lar.PortletDataHandlerControl;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portlet.polls.model.PollsChoice;
 import com.liferay.portlet.polls.model.PollsQuestion;
@@ -43,17 +45,18 @@ public class PollsPortletDataHandler extends BasePortletDataHandler {
 	public static final String NAMESPACE = "polls";
 
 	public PollsPortletDataHandler() {
-		setDeletionSystemEventClassNames(
-			PollsChoice.class.getName(), PollsQuestion.class.getName(),
-			PollsVote.class.getName());
 		setDataLocalized(true);
+		setDeletionSystemEventStagedModelTypes(
+			new StagedModelType(PollsQuestion.class));
 		setExportControls(
 			new PortletDataHandlerBoolean(
-				NAMESPACE, "questions", true, false, null,
-				PollsQuestion.class.getName()),
-			new PortletDataHandlerBoolean(
-				NAMESPACE, "votes", true, false, null,
-				PollsVote.class.getName()));
+				NAMESPACE, "questions", true, false,
+				new PortletDataHandlerControl[] {
+					new PortletDataHandlerBoolean(
+						NAMESPACE, "votes", true, false, null,
+						PollsVote.class.getName())
+				},
+				PollsQuestion.class.getName()));
 		setImportControls(getExportControls());
 	}
 
@@ -81,9 +84,7 @@ public class PollsPortletDataHandler extends BasePortletDataHandler {
 			PortletPreferences portletPreferences)
 		throws Exception {
 
-		portletDataContext.addPermissions(
-			PollsPermission.RESOURCE_NAME,
-			portletDataContext.getScopeGroupId());
+		portletDataContext.addPortletPermissions(PollsPermission.RESOURCE_NAME);
 
 		Element rootElement = addExportDataRootElement(portletDataContext);
 
@@ -103,15 +104,16 @@ public class PollsPortletDataHandler extends BasePortletDataHandler {
 				new PollsChoiceExportActionableDynamicQuery(portletDataContext);
 
 			choiceActionableDynamicQuery.performActions();
-		}
 
-		if (portletDataContext.getBooleanParameter(
-				PollsPortletDataHandler.NAMESPACE, "votes")) {
+			if (portletDataContext.getBooleanParameter(
+					PollsPortletDataHandler.NAMESPACE, "votes")) {
 
-			ActionableDynamicQuery voteActionableDynamicQuery =
-				new PollsVoteExportActionableDynamicQuery(portletDataContext);
+				ActionableDynamicQuery voteActionableDynamicQuery =
+					new PollsVoteExportActionableDynamicQuery(
+						portletDataContext);
 
-			voteActionableDynamicQuery.performActions();
+				voteActionableDynamicQuery.performActions();
+			}
 		}
 
 		return getExportDataRootElementString(rootElement);
@@ -123,10 +125,8 @@ public class PollsPortletDataHandler extends BasePortletDataHandler {
 			PortletPreferences portletPreferences, String data)
 		throws Exception {
 
-		portletDataContext.importPermissions(
-			PollsPermission.RESOURCE_NAME,
-			portletDataContext.getSourceGroupId(),
-			portletDataContext.getScopeGroupId());
+		portletDataContext.importPortletPermissions(
+			PollsPermission.RESOURCE_NAME);
 
 		Element questionsElement = portletDataContext.getImportDataGroupElement(
 			PollsQuestion.class);
@@ -169,7 +169,8 @@ public class PollsPortletDataHandler extends BasePortletDataHandler {
 
 	@Override
 	protected void doPrepareManifestSummary(
-			PortletDataContext portletDataContext)
+			PortletDataContext portletDataContext,
+			PortletPreferences portletPreferences)
 		throws Exception {
 
 		ActionableDynamicQuery choiceActionableDynamicQuery =

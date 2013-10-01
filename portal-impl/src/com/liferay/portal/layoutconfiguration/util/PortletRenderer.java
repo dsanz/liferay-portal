@@ -129,7 +129,6 @@ public class PortletRenderer {
 			request.setAttribute(
 				WebKeys.PORTLET_PARALLEL_RENDER, portletParallelRender);
 		}
-
 	}
 
 	private static final String _RENDER_PATH =
@@ -151,7 +150,7 @@ public class PortletRenderer {
 				ParallelRenderThreadLocalBinderUtil.getThreadLocalBinder(),
 				false, true);
 
-			_request= request;
+			_request = request;
 			_response = response;
 		}
 

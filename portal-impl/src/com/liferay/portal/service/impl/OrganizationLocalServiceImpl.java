@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Company;
@@ -288,7 +289,9 @@ public class OrganizationLocalServiceImpl
 		Group group = groupLocalService.addGroup(
 			userId, parentGroupId, Organization.class.getName(), organizationId,
 			GroupConstants.DEFAULT_LIVE_GROUP_ID, name, null,
-			GroupConstants.TYPE_SITE_PRIVATE, null, site, true, null);
+			GroupConstants.TYPE_SITE_PRIVATE, false,
+			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, null, site, true,
+			null);
 
 		// Role
 
@@ -471,8 +474,7 @@ public class OrganizationLocalServiceImpl
 
 		// Expando
 
-		expandoValueLocalService.deleteValues(
-			Organization.class.getName(), organization.getOrganizationId());
+		expandoRowLocalService.deleteRows(organization.getOrganizationId());
 
 		// Password policy relation
 
@@ -528,6 +530,11 @@ public class OrganizationLocalServiceImpl
 		throws SystemException {
 
 		return organizationPersistence.fetchByC_N(companyId, name);
+	}
+
+	@Override
+	public List<Organization> getNoAssetOrganizations() throws SystemException {
+		return organizationFinder.findByNoAssets();
 	}
 
 	/**
@@ -603,11 +610,7 @@ public class OrganizationLocalServiceImpl
 
 		Collections.sort(organizations, obc);
 
-		if ((start != QueryUtil.ALL_POS) || (end != QueryUtil.ALL_POS)) {
-			organizations = ListUtil.subList(organizations, start, end);
-		}
-
-		return organizations;
+		return ListUtil.subList(organizations, start, end);
 	}
 
 	/**
@@ -1443,7 +1446,7 @@ public class OrganizationLocalServiceImpl
 			searchContext.setQueryConfig(queryConfig);
 
 			if (sort != null) {
-				searchContext.setSorts(new Sort[] {sort});
+				searchContext.setSorts(sort);
 			}
 
 			searchContext.setStart(start);
@@ -1629,9 +1632,9 @@ public class OrganizationLocalServiceImpl
 		assetEntryLocalService.updateEntry(
 			userId, companyGroup.getGroupId(), null, null,
 			Organization.class.getName(), organization.getOrganizationId(),
-			null, 0, assetCategoryIds, assetTagNames, false, null, null, null,
-			null, organization.getName(), StringPool.BLANK, null, null, null, 0,
-			0, null, false);
+			organization.getUuid(), 0, assetCategoryIds, assetTagNames, false,
+			null, null, null, null, organization.getName(), StringPool.BLANK,
+			null, null, null, 0, 0, null, false);
 	}
 
 	/**
@@ -1773,8 +1776,9 @@ public class OrganizationLocalServiceImpl
 		if (!oldName.equals(name) || organizationGroup) {
 			groupLocalService.updateGroup(
 				group.getGroupId(), parentGroupId, name, group.getDescription(),
-				group.getType(), group.getFriendlyURL(), group.isActive(),
-				null);
+				group.getType(), group.isManualMembership(),
+				group.getMembershipRestriction(), group.getFriendlyURL(),
+				group.isActive(), null);
 		}
 
 		if (group.isSite() != site) {
@@ -2007,7 +2011,7 @@ public class OrganizationLocalServiceImpl
 				companyId, name);
 
 			if ((organization != null) &&
-				organization.getName().equalsIgnoreCase(name)) {
+				StringUtil.equalsIgnoreCase(organization.getName(), name)) {
 
 				if ((organizationId <= 0) ||
 					(organization.getOrganizationId() != organizationId)) {

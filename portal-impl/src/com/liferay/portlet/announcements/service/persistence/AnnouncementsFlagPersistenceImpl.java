@@ -348,6 +348,10 @@ public class AnnouncementsFlagPersistenceImpl extends BasePersistenceImpl<Announ
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByEntryId(entryId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AnnouncementsFlag> list = findByEntryId(entryId, count - 1, count,
 				orderByComparator);
 
@@ -832,6 +836,10 @@ public class AnnouncementsFlagPersistenceImpl extends BasePersistenceImpl<Announ
 	private static final String _FINDER_COLUMN_U_E_V_USERID_2 = "announcementsFlag.userId = ? AND ";
 	private static final String _FINDER_COLUMN_U_E_V_ENTRYID_2 = "announcementsFlag.entryId = ? AND ";
 	private static final String _FINDER_COLUMN_U_E_V_VALUE_2 = "announcementsFlag.value = ?";
+
+	public AnnouncementsFlagPersistenceImpl() {
+		setModelClass(AnnouncementsFlag.class);
+	}
 
 	/**
 	 * Caches the announcements flag in the entity cache if it is enabled.

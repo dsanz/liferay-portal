@@ -14,14 +14,14 @@
 
 package com.liferay.portal.backgroundtask.messaging;
 
-import com.liferay.portal.backgroundtask.executor.BackgroundTaskExecutor;
+import com.liferay.portal.kernel.backgroundtask.BackgroundTaskConstants;
+import com.liferay.portal.kernel.backgroundtask.BackgroundTaskExecutor;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.messaging.BaseMessageListener;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.BackgroundTask;
-import com.liferay.portal.model.BackgroundTaskConstants;
 import com.liferay.portal.service.BackgroundTaskLocalService;
 import com.liferay.portal.service.LockLocalServiceUtil;
 
@@ -41,8 +41,9 @@ public class BackgroundTaskQueuingMessageListener extends BaseMessageListener {
 
 		int status = (Integer)message.get("status");
 
-		if ((status == BackgroundTaskConstants.STATUS_FAILED) ||
-			(status == BackgroundTaskConstants.STATUS_NEW)) {
+		if ((status == BackgroundTaskConstants.STATUS_CANCELLED) ||
+			(status == BackgroundTaskConstants.STATUS_FAILED) ||
+			(status == BackgroundTaskConstants.STATUS_SUCCESSFUL)) {
 
 			executeQueuedBackgroundTasks(taskExecutorClassName);
 		}

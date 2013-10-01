@@ -15,10 +15,14 @@
 package com.liferay.portal.servlet.filters.virtualhost;
 
 import com.liferay.portal.LayoutFriendlyURLException;
+import com.liferay.portal.NoSuchLayoutException;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.struts.LastPath;
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -27,6 +31,7 @@ import com.liferay.portal.model.Group;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.impl.LayoutImpl;
 import com.liferay.portal.service.GroupLocalServiceUtil;
+import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.servlet.I18nServlet;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
 import com.liferay.portal.util.Portal;
@@ -78,8 +83,36 @@ public class VirtualHostFilter extends BasePortalFilter {
 		}
 	}
 
+	protected boolean isDocumentFriendlyURL(
+			HttpServletRequest request, long groupId, String friendlyURL)
+		throws PortalException, SystemException {
+
+		if (friendlyURL.startsWith(_PATH_DOCUMENTS) &&
+			WebServerServlet.hasFiles(request)) {
+
+			String path = HttpUtil.fixPath(request.getPathInfo());
+
+			String[] pathArray = StringUtil.split(path, CharPool.SLASH);
+
+			if (pathArray.length == 2) {
+				try {
+					LayoutLocalServiceUtil.getFriendlyURLLayout(
+						groupId, false, friendlyURL);
+				}
+				catch (NoSuchLayoutException nsle) {
+					return true;
+				}
+			}
+			else {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	protected boolean isValidFriendlyURL(String friendlyURL) {
-		friendlyURL = friendlyURL.toLowerCase();
+		friendlyURL = StringUtil.toLowerCase(friendlyURL);
 
 		if (PortalInstances.isVirtualHostsIgnorePath(friendlyURL) ||
 			friendlyURL.startsWith(_PATH_MODULE_SLASH) ||
@@ -160,7 +193,7 @@ public class VirtualHostFilter extends BasePortalFilter {
 
 				if (((pos != -1) && (pos != languageId.length())) ||
 					((pos == -1) &&
-					 !friendlyURL.equalsIgnoreCase(languageId))) {
+					 !StringUtil.equalsIgnoreCase(friendlyURL, languageId))) {
 
 					continue;
 				}
@@ -194,14 +227,6 @@ public class VirtualHostFilter extends BasePortalFilter {
 				VirtualHostFilter.class, request, response, filterChain);
 
 			return;
-		}
-		else if (friendlyURL.startsWith(_PATH_DOCUMENTS)) {
-			if (WebServerServlet.hasFiles(request)) {
-				processFilter(
-					VirtualHostFilter.class, request, response, filterChain);
-
-				return;
-			}
 		}
 
 		LayoutSet layoutSet = (LayoutSet)request.getAttribute(
@@ -266,6 +291,16 @@ public class VirtualHostFilter extends BasePortalFilter {
 						}
 					}
 					else {
+						if (isDocumentFriendlyURL(
+								request, group.getGroupId(), friendlyURL)) {
+
+							processFilter(
+								VirtualHostFilter.class, request, response,
+								filterChain);
+
+							return;
+						}
+
 						forwardURL.append(_PUBLIC_GROUP_SERVLET_MAPPING);
 					}
 

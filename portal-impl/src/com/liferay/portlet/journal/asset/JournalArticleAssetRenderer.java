@@ -91,8 +91,8 @@ public class JournalArticleAssetRenderer
 	}
 
 	@Override
-	public String[] getAvailableLocales() {
-		return _article.getAvailableLocales();
+	public String[] getAvailableLanguageIds() {
+		return _article.getAvailableLanguageIds();
 	}
 
 	@Override
@@ -232,6 +232,11 @@ public class JournalArticleAssetRenderer
 
 		Layout layout = themeDisplay.getLayout();
 
+		if (Validator.isNotNull(_article.getLayoutUuid())) {
+			layout = LayoutLocalServiceUtil.getLayoutByUuidAndCompanyId(
+				_article.getLayoutUuid(), _article.getCompanyId());
+		}
+
 		String portletId = (String)liferayPortletRequest.getAttribute(
 			WebKeys.PORTLET_ID);
 
@@ -261,14 +266,14 @@ public class JournalArticleAssetRenderer
 
 		List<Long> hitLayoutIds =
 			JournalContentSearchLocalServiceUtil.getLayoutIds(
-				layout.getGroupId(), layout.isPrivateLayout(),
+				_article.getGroupId(), layout.isPrivateLayout(),
 				_article.getArticleId());
 
 		if (!hitLayoutIds.isEmpty()) {
 			Long hitLayoutId = hitLayoutIds.get(0);
 
 			Layout hitLayout = LayoutLocalServiceUtil.getLayout(
-				layout.getGroupId(), layout.isPrivateLayout(),
+				_article.getGroupId(), layout.isPrivateLayout(),
 				hitLayoutId.longValue());
 
 			return PortalUtil.getLayoutURL(hitLayout, themeDisplay);
@@ -373,6 +378,12 @@ public class JournalArticleAssetRenderer
 
 		preferences.setValue("articleId", _article.getArticleId());
 		preferences.setValue("groupId", String.valueOf(_article.getGroupId()));
+
+		Layout layout = themeDisplay.getLayout();
+
+		JournalContentSearchLocalServiceUtil.updateContentSearch(
+			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
+			portletId, _article.getArticleId(), true);
 	}
 
 	@Override

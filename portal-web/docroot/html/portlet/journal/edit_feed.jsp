@@ -34,7 +34,7 @@ String ddmStructureName = StringPool.BLANK;
 
 if (Validator.isNotNull(structureId)) {
 	try {
-		ddmStructure = DDMStructureLocalServiceUtil.getStructure(groupId, PortalUtil.getClassNameId(JournalArticle.class), structureId, true);
+		ddmStructure = DDMStructureLocalServiceUtil.getStructure(themeDisplay.getSiteGroupId(), PortalUtil.getClassNameId(JournalArticle.class), structureId, true);
 
 		ddmStructureName = ddmStructure.getName(locale);
 	}
@@ -46,7 +46,7 @@ List<DDMTemplate> ddmTemplates = new ArrayList<DDMTemplate>();
 
 if (ddmStructure != null) {
 	ddmTemplates.addAll(DDMTemplateLocalServiceUtil.getTemplates(themeDisplay.getCompanyGroupId(), PortalUtil.getClassNameId(DDMStructure.class), ddmStructure.getStructureId()));
-	ddmTemplates.addAll(DDMTemplateLocalServiceUtil.getTemplates(groupId, PortalUtil.getClassNameId(DDMStructure.class), ddmStructure.getStructureId()));
+	ddmTemplates.addAll(DDMTemplateLocalServiceUtil.getTemplates(themeDisplay.getSiteGroupId(), PortalUtil.getClassNameId(DDMStructure.class), ddmStructure.getStructureId()));
 }
 
 String templateId = BeanParamUtil.getString(feed, request, "templateId");
@@ -55,7 +55,7 @@ if ((ddmStructure == null) && Validator.isNotNull(templateId)) {
 	DDMTemplate ddmTemplate = null;
 
 	try {
-		ddmTemplate = DDMTemplateLocalServiceUtil.getTemplate(groupId, PortalUtil.getClassNameId(DDMStructure.class), templateId, true);
+		ddmTemplate = DDMTemplateLocalServiceUtil.getTemplate(themeDisplay.getSiteGroupId(), PortalUtil.getClassNameId(DDMStructure.class), templateId, true);
 	}
 	catch (NoSuchTemplateException nste) {
 	}
@@ -67,7 +67,7 @@ if ((ddmStructure == null) && Validator.isNotNull(templateId)) {
 			structureId = ddmStructure.getStructureKey();
 			ddmStructureName = ddmStructure.getName(locale);
 
-			ddmTemplates = DDMTemplateLocalServiceUtil.getTemplates(groupId, PortalUtil.getClassNameId(DDMStructure.class), ddmTemplate.getClassPK());
+			ddmTemplates = DDMTemplateLocalServiceUtil.getTemplates(themeDisplay.getSiteGroupId(), PortalUtil.getClassNameId(DDMStructure.class), ddmTemplate.getClassPK());
 		}
 		catch (NoSuchStructureException nsse) {
 		}
@@ -138,7 +138,7 @@ if (feed != null) {
 						<aui:input name="autoFeedId" type="hidden" value="<%= true %>" />
 					</c:when>
 					<c:otherwise>
-						<aui:input cssClass="lfr-input-text-container" field="feedId" fieldParam="newFeedId" label="id" name="newFeedId" value="<%= newFeedId %>" />
+						<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" cssClass="lfr-input-text-container" field="feedId" fieldParam="newFeedId" label="id" name="newFeedId" value="<%= newFeedId %>" />
 
 						<aui:input label="autogenerate-id" name="autoFeedId" type="checkbox" />
 					</c:otherwise>
@@ -146,12 +146,12 @@ if (feed != null) {
 			</c:when>
 			<c:otherwise>
 				<aui:field-wrapper label="id">
-					<%= HtmlUtil.escape(feedId) %>
+					<liferay-ui:input-resource url="<%= feedId %>" />
 				</aui:field-wrapper>
 			</c:otherwise>
 		</c:choose>
 
-		<aui:input cssClass="lfr-input-text-container" name="name" />
+		<aui:input autoFocus="<%= ((feed != null) && !PropsValues.JOURNAL_FEED_FORCE_AUTOGENERATE_ID && windowState.equals(WindowState.MAXIMIZED)) %>" cssClass="lfr-input-text-container" name="name" />
 
 		<aui:input cssClass="lfr-textarea-container" name="description" />
 
@@ -193,11 +193,13 @@ if (feed != null) {
 				<aui:field-wrapper label="structure">
 					<aui:input name="structureId" type="hidden" value="<%= structureId %>" />
 
-					<%= HtmlUtil.escape(ddmStructureName) %>
+					<div class="input-append">
+						<liferay-ui:input-resource url="<%= ddmStructureName %>" />
 
-					<aui:button name="selectStructureButton" onClick='<%= renderResponse.getNamespace() + "openStructureSelector();" %>' value="select" />
+						<aui:button name="selectStructureButton" onClick='<%= renderResponse.getNamespace() + "openStructureSelector();" %>' value="select" />
 
-					<aui:button disabled="<%= Validator.isNull(structureId) %>" name="removeStructureButton" onClick='<%= renderResponse.getNamespace() + "removeStructure();" %>' value="remove" />
+						<aui:button disabled="<%= Validator.isNull(structureId) %>" name="removeStructureButton" onClick='<%= renderResponse.getNamespace() + "removeStructure();" %>' value="remove" />
+					</div>
 				</aui:field-wrapper>
 
 				<aui:field-wrapper label="template">
@@ -336,7 +338,7 @@ if (feed != null) {
 			<c:if test="<%= feed != null %>">
 
 				<%
-				String taglibPreviewButton = "Liferay.Util.openWindow(id:'" + renderResponse.getNamespace() + "preview', title: '" + UnicodeLanguageUtil.get(pageContext, "feed") + "', uri: '" + feedURL + "'});";
+				String taglibPreviewButton = "Liferay.Util.openWindow({id:'" + renderResponse.getNamespace() + "preview', title: '" + UnicodeLanguageUtil.get(pageContext, "feed") + "', uri: '" + feedURL + "'});";
 				%>
 
 				<aui:button onClick="<%= taglibPreviewButton %>" value="preview" />
@@ -354,11 +356,10 @@ if (feed != null) {
 				basePortletURL: '<%= PortletURLFactoryUtil.create(request, PortletKeys.DYNAMIC_DATA_MAPPING, themeDisplay.getPlid(), PortletRequest.RENDER_PHASE) %>',
 				classPK: <%= (ddmStructure != null) ? ddmStructure.getPrimaryKey(): 0 %>,
 				dialog: {
-					destroyOnHide: true,
-					zIndex: (++Liferay.zIndex.WINDOW)
+					destroyOnHide: true
 				},
 				eventName: '<portlet:namespace />selectStructure',
-				groupId: <%= groupId %>,
+				groupId: <%= themeDisplay.getSiteGroupId() %>,
 
 				<%
 				Portlet portlet = PortletLocalServiceUtil.getPortletById(portletDisplay.getId());
@@ -419,17 +420,6 @@ if (feed != null) {
 	}
 
 	Liferay.Util.disableToggleBoxes('<portlet:namespace />autoFeedIdCheckbox','<portlet:namespace />newFeedId', true);
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		<c:choose>
-			<c:when test="<%= PropsValues.JOURNAL_FEED_FORCE_AUTOGENERATE_ID %>">
-				Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-			</c:when>
-			<c:otherwise>
-				Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= (feed == null) ? "newFeedId" : "name" %>);
-			</c:otherwise>
-		</c:choose>
-	</c:if>
 </aui:script>
 
 <aui:script use="aui-base">

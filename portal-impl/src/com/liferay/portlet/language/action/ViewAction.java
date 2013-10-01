@@ -75,10 +75,13 @@ public class ViewAction extends PortletAction {
 		Locale locale = LocaleUtil.fromLanguageId(languageId);
 
 		List<Locale> availableLocales = ListUtil.fromArray(
-			LanguageUtil.getAvailableLocales());
+			LanguageUtil.getAvailableLocales(themeDisplay.getSiteGroupId()));
 
 		if (availableLocales.contains(locale)) {
-			if (themeDisplay.isSignedIn()) {
+			boolean persistState = ParamUtil.getBoolean(
+				request, "persistState", true);
+
+			if (themeDisplay.isSignedIn() && (persistState)) {
 				User user = themeDisplay.getUser();
 
 				Contact contact = user.getContact();
@@ -131,8 +134,7 @@ public class ViewAction extends PortletAction {
 			}
 			else {
 				redirect = PortalUtil.getGroupFriendlyURL(
-					themeDisplay.getScopeGroup(), layout.isPrivateLayout(),
-					themeDisplay, locale);
+					group, layout.isPrivateLayout(), themeDisplay, locale);
 			}
 		}
 		else {

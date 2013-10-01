@@ -205,11 +205,10 @@ public class Table {
 		if (!empty) {
 			return tempFileName;
 		}
-		else {
-			FileUtil.delete(tempFileName);
 
-			return null;
-		}
+		FileUtil.delete(tempFileName);
+
+		return null;
 	}
 
 	public Object[][] getColumns() {
@@ -277,7 +276,7 @@ public class Table {
 		String createSQL = getCreateSQL();
 
 		if (Validator.isNotNull(createSQL)) {
-			String createSQLLowerCase = createSQL.toLowerCase();
+			String createSQLLowerCase = StringUtil.toLowerCase(createSQL);
 
 			int x = createSQLLowerCase.indexOf("create table ");
 

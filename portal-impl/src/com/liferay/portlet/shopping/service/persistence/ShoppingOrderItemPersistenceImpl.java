@@ -348,6 +348,10 @@ public class ShoppingOrderItemPersistenceImpl extends BasePersistenceImpl<Shoppi
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByOrderId(orderId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<ShoppingOrderItem> list = findByOrderId(orderId, count - 1, count,
 				orderByComparator);
 
@@ -572,6 +576,10 @@ public class ShoppingOrderItemPersistenceImpl extends BasePersistenceImpl<Shoppi
 	}
 
 	private static final String _FINDER_COLUMN_ORDERID_ORDERID_2 = "shoppingOrderItem.orderId = ?";
+
+	public ShoppingOrderItemPersistenceImpl() {
+		setModelClass(ShoppingOrderItem.class);
+	}
 
 	/**
 	 * Caches the shopping order item in the entity cache if it is enabled.

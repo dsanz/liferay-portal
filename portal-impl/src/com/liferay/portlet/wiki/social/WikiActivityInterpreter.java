@@ -16,7 +16,6 @@ package com.liferay.portlet.wiki.social;
 
 import com.liferay.portal.NoSuchModelException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -29,7 +28,6 @@ import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.social.model.BaseSocialActivityInterpreter;
 import com.liferay.portlet.social.model.SocialActivity;
 import com.liferay.portlet.social.model.SocialActivityConstants;
-import com.liferay.portlet.trash.util.TrashUtil;
 import com.liferay.portlet.wiki.model.WikiPage;
 import com.liferay.portlet.wiki.model.WikiPageResource;
 import com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil;
@@ -75,15 +73,10 @@ public class WikiActivityInterpreter extends BaseSocialActivityInterpreter {
 			catch (NoSuchModelException nsme) {
 			}
 
-			FileVersion fileVersion = null;
+			String fileEntryTitle = activity.getExtraDataValue(
+				"fileEntryTitle");
 
-			if (fileEntry != null) {
-				fileVersion = fileEntry.getFileVersion();
-			}
-
-			String fileEntryTitle = activity.getExtraDataValue("title");
-
-			if ((fileVersion != null) && !fileVersion.isInTrash()) {
+			if ((fileEntry != null) && !fileEntry.isInTrash()) {
 				StringBundler sb = new StringBundler(9);
 
 				sb.append(serviceContext.getPathMain());
@@ -106,25 +99,6 @@ public class WikiActivityInterpreter extends BaseSocialActivityInterpreter {
 	}
 
 	@Override
-	protected String getEntryTitle(
-			SocialActivity activity, ServiceContext serviceContext)
-		throws Exception {
-
-		WikiPageResource pageResource =
-			WikiPageResourceLocalServiceUtil.getPageResource(
-				activity.getClassPK());
-
-		WikiPage page = WikiPageLocalServiceUtil.getPage(
-			pageResource.getNodeId(), pageResource.getTitle());
-
-		if (!page.isInTrash()) {
-			return TrashUtil.getOriginalTitle(page.getTitle());
-		}
-
-		return page.getTitle();
-	}
-
-	@Override
 	protected String getPath(
 		SocialActivity activity, ServiceContext serviceContext) {
 
@@ -138,8 +112,12 @@ public class WikiActivityInterpreter extends BaseSocialActivityInterpreter {
 		throws Exception {
 
 		WikiPageResource pageResource =
-			WikiPageResourceLocalServiceUtil.getPageResource(
+			WikiPageResourceLocalServiceUtil.fetchWikiPageResource(
 				activity.getClassPK());
+
+		if (pageResource == null) {
+			return null;
+		}
 
 		String creatorUserName = getUserName(
 			activity.getUserId(), serviceContext);

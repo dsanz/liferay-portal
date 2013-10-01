@@ -19,7 +19,6 @@ import java.text.SimpleDateFormat;
 
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import org.junit.Assert;
@@ -127,7 +126,7 @@ public class DateUtilTest extends PowerMockito {
 		when(
 			DateFormatFactoryUtil.getSimpleDateFormat(pattern)
 		).thenReturn(
-			new SimpleDateFormat(pattern, new Locale("es_ES"))
+			new SimpleDateFormat(pattern, LocaleUtil.SPAIN)
 		);
 	}
 

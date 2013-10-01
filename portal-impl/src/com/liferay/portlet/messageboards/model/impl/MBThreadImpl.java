@@ -17,6 +17,8 @@ package com.liferay.portlet.messageboards.model.impl;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Lock;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
@@ -25,10 +27,15 @@ import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.messageboards.model.MBCategory;
+import com.liferay.portlet.messageboards.model.MBCategoryConstants;
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.model.MBThread;
 import com.liferay.portlet.messageboards.service.MBCategoryLocalServiceUtil;
 import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
@@ -107,6 +114,20 @@ public class MBThreadImpl extends MBThreadBaseImpl {
 	}
 
 	@Override
+	public MBCategory getCategory() throws PortalException, SystemException {
+		long parentCategoryId = getCategoryId();
+
+		if ((parentCategoryId ==
+				MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) ||
+			(parentCategoryId == MBCategoryConstants.DISCUSSION_CATEGORY_ID)) {
+
+			return null;
+		}
+
+		return MBCategoryLocalServiceUtil.getCategory(getCategoryId());
+	}
+
+	@Override
 	public Lock getLock() {
 		try {
 			return LockLocalServiceUtil.getLock(
@@ -119,20 +140,17 @@ public class MBThreadImpl extends MBThreadBaseImpl {
 	}
 
 	@Override
-	public MBCategory getTrashContainer() {
-		try {
-			MBCategory category = MBCategoryLocalServiceUtil.getCategory(
-				getCategoryId());
+	public long[] getParticipantUserIds() throws SystemException {
+		Set<Long> participantUserIds = new HashSet<Long>();
 
-			if (category.isInTrash()) {
-				return category;
-			}
+		List<MBMessage> messages = MBMessageLocalServiceUtil.getThreadMessages(
+			getThreadId(), WorkflowConstants.STATUS_ANY);
 
-			return category.getTrashContainer();
+		for (MBMessage message : messages) {
+			participantUserIds.add(message.getUserId());
 		}
-		catch (Exception e) {
-			return null;
-		}
+
+		return ArrayUtil.toLongArray(participantUserIds);
 	}
 
 	@Override
@@ -148,19 +166,9 @@ public class MBThreadImpl extends MBThreadBaseImpl {
 	}
 
 	@Override
-	public boolean isInTrashContainer() {
-		if (getTrashContainer() != null) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	@Override
 	public boolean isLocked() {
 		try {
-			if (isInTrash() || isInTrashContainer()) {
+			if (isInTrash()) {
 				return true;
 			}
 

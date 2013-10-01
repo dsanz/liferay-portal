@@ -43,7 +43,7 @@ long frameworkVersionId = BeanParamUtil.getLong(frameworkVersion, request, "fram
 		<liferay-ui:message key="name" />
 	</td>
 	<td>
-		<liferay-ui:input-field bean="<%= frameworkVersion %>" field="name" model="<%= SCFrameworkVersion.class %>" />
+		<liferay-ui:input-field autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" bean="<%= frameworkVersion %>" field="name" model="<%= SCFrameworkVersion.class %>" />
 	</td>
 </tr>
 <tr>
@@ -94,12 +94,9 @@ long frameworkVersionId = BeanParamUtil.getLong(frameworkVersion, request, "fram
 <aui:script>
 	function <portlet:namespace />saveFrameworkVersion() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (frameworkVersion == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
 </aui:script>
 
 <%

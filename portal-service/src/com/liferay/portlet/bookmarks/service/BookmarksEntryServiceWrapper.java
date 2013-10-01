@@ -91,6 +91,12 @@ public class BookmarksEntryServiceWrapper implements BookmarksEntryService,
 	}
 
 	@Override
+	public int getEntriesCount(long groupId, long folderId, int status)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _bookmarksEntryService.getEntriesCount(groupId, folderId, status);
+	}
+
+	@Override
 	public com.liferay.portlet.bookmarks.model.BookmarksEntry getEntry(
 		long entryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -170,10 +176,11 @@ public class BookmarksEntryServiceWrapper implements BookmarksEntryService,
 	}
 
 	@Override
-	public void moveEntryToTrash(long entryId)
+	public com.liferay.portlet.bookmarks.model.BookmarksEntry moveEntryToTrash(
+		long entryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_bookmarksEntryService.moveEntryToTrash(entryId);
+		return _bookmarksEntryService.moveEntryToTrash(entryId);
 	}
 
 	@Override
@@ -197,6 +204,15 @@ public class BookmarksEntryServiceWrapper implements BookmarksEntryService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_bookmarksEntryService.restoreEntryFromTrash(entryId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.Hits search(long groupId,
+		long creatorUserId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _bookmarksEntryService.search(groupId, creatorUserId, status,
+			start, end);
 	}
 
 	@Override

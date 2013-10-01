@@ -17,7 +17,7 @@
 <%@ include file="/html/portlet/dynamic_data_mapping/init.jsp" %>
 
 <%
-String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all");
+String toolbarItem = ParamUtil.getString(request, "toolbarItem");
 
 String redirect = ParamUtil.getString(request, "redirect");
 
@@ -28,7 +28,6 @@ long classPK = ParamUtil.getLong(request, "classPK");
 
 <aui:nav-bar>
 	<aui:nav>
-		<aui:nav-item href="<%= PortalUtil.escapeRedirect(redirect) %>" label="view-all" selected='<%= toolbarItem.equals("view-all") %>' />
 
 		<%
 		String message = "add";
@@ -93,7 +92,6 @@ long classPK = ParamUtil.getLong(request, "classPK");
 						<liferay-portlet:renderURL varImpl="addPortletDisplayTemplateURL">
 							<portlet:param name="struts_action" value="/dynamic_data_mapping/edit_template" />
 							<portlet:param name="redirect" value="<%= redirect %>" />
-							<portlet:param name="backURL" value="<%= redirect %>" />
 							<portlet:param name="groupId" value="<%= String.valueOf(scopeGroupId) %>" />
 							<portlet:param name="type" value="<%= DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY %>" />
 						</liferay-portlet:renderURL>

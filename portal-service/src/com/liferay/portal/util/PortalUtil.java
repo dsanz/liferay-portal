@@ -176,6 +176,10 @@ public class PortalUtil {
 		return getPortal().addPreservedParameters(themeDisplay, url);
 	}
 
+	public static void addUserLocaleOptionsMessage(HttpServletRequest request) {
+		getPortal().addUserLocaleOptionsMessage(request);
+	}
+
 	public static void clearRequestParameters(RenderRequest renderRequest) {
 		getPortal().clearRequestParameters(renderRequest);
 	}
@@ -194,6 +198,12 @@ public class PortalUtil {
 		HttpServletRequest request, String input) {
 
 		return getPortal().generateRandomKey(request, input);
+	}
+
+	public static String getAbsoluteURL(
+		HttpServletRequest request, String url) {
+
+		return getPortal().getAbsoluteURL(request, url);
 	}
 
 	public static LayoutQueryStringComposite
@@ -217,6 +227,10 @@ public class PortalUtil {
 			requestContext);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             com.liferay.portal.kernel.language.LanguageUtil#getAvailableLocales}
+	 */
 	public static Locale[] getAlternateLocales(HttpServletRequest request)
 		throws PortalException, SystemException {
 
@@ -224,15 +238,26 @@ public class PortalUtil {
 	}
 
 	public static String getAlternateURL(
-		String canonicalURL, ThemeDisplay themeDisplay, Locale locale) {
+			String canonicalURL, ThemeDisplay themeDisplay, Locale locale,
+			Layout layout)
+		throws PortalException, SystemException {
 
-		return getPortal().getAlternateURL(canonicalURL, themeDisplay, locale);
+		return getPortal().getAlternateURL(
+			canonicalURL, themeDisplay, locale, layout);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletCSRFWhitelistActions}
+	 */
 	public static Set<String> getAuthTokenIgnoreActions() {
 		return getPortal().getAuthTokenIgnoreActions();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletCSRFWhitelist}
+	 */
 	public static Set<String> getAuthTokenIgnorePortlets() {
 		return getPortal().getAuthTokenIgnorePortlets();
 	}
@@ -607,6 +632,10 @@ public class PortalUtil {
 			group, privateLayoutSet, themeDisplay, locale);
 	}
 
+	public static int[] getGroupFriendlyURLIndex(String requestURI) {
+		return getPortal().getGroupFriendlyURLIndex(requestURI);
+	}
+
 	public static String[] getGroupPermissions(HttpServletRequest request) {
 		return getPortal().getGroupPermissions(request);
 	}
@@ -856,8 +885,8 @@ public class PortalUtil {
 		return getPortal().getLocale(request, response, initialize);
 	}
 
-	public static Locale getLocale(RenderRequest renderRequest) {
-		return getPortal().getLocale(renderRequest);
+	public static Locale getLocale(PortletRequest portletRequest) {
+		return getPortal().getLocale(portletRequest);
 	}
 
 	public static String getLocalizedFriendlyURL(
@@ -924,6 +953,18 @@ public class PortalUtil {
 
 	public static String getPathContext() {
 		return getPortal().getPathContext();
+	}
+
+	public static String getPathContext(HttpServletRequest request) {
+		return getPortal().getPathContext(request);
+	}
+
+	public static String getPathContext(PortletRequest portletRequest) {
+		return getPortal().getPathContext(portletRequest);
+	}
+
+	public static String getPathContext(String contextPath) {
+		return getPortal().getPathContext(contextPath);
 	}
 
 	public static String getPathFriendlyURLPrivateGroup() {
@@ -1043,7 +1084,7 @@ public class PortalUtil {
 
 	/**
 	 * @deprecated As of 6.2.0 replaced by {@link
-	 * PortletSecurityUtil#getWhitelist()}
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletInvocationWhitelist}
 	 */
 	public static Set<String> getPortletAddDefaultResourceCheckWhitelist() {
 		return getPortal().getPortletAddDefaultResourceCheckWhitelist();
@@ -1051,7 +1092,7 @@ public class PortalUtil {
 
 	/**
 	 * @deprecated As of 6.2.0 replaced by {@link
-	 * PortletSecurityUtil#getWhitelistActions()}
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletInvocationWhitelistActions}
 	 */
 	public static Set<String>
 		getPortletAddDefaultResourceCheckWhitelistActions() {
@@ -1287,6 +1328,10 @@ public class PortalUtil {
 		return getPortal().getSelectedUser(portletRequest, checkPermission);
 	}
 
+	public static String getServletContextName() {
+		return getPortal().getServletContextName();
+	}
+
 	public static Map<String, List<Portlet>> getSiteAdministrationCategoriesMap(
 			HttpServletRequest request)
 		throws SystemException {
@@ -1335,6 +1380,12 @@ public class PortalUtil {
 		throws PortalException, SystemException {
 
 		return getPortal().getSiteAndCompanyGroupIds(themeDisplay);
+	}
+
+	public static Locale getSiteDefaultLocale(long groupId)
+		throws PortalException, SystemException {
+
+		return getPortal().getSiteDefaultLocale(groupId);
 	}
 
 	public static long getSiteGroupId(long scopeGroupId)
@@ -1685,6 +1736,12 @@ public class PortalUtil {
 		return getPortal().isLayoutSitemapable(layout);
 	}
 
+	public static boolean isLoginRedirectRequired(HttpServletRequest request)
+		throws SystemException {
+
+		return getPortal().isLoginRedirectRequired(request);
+	}
+
 	public static boolean isMethodGet(PortletRequest portletRequest) {
 		return getPortal().isMethodGet(portletRequest);
 	}
@@ -1735,7 +1792,7 @@ public class PortalUtil {
 
 	/**
 	 * @deprecated As of 6.2.0 replaced by {@link
-	 * PortletSecurityUtil#resetWhitelist()}
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#resetPortletInvocationWhitelist}
 	 */
 	public static Set<String> resetPortletAddDefaultResourceCheckWhitelist() {
 		return getPortal().resetPortletAddDefaultResourceCheckWhitelist();
@@ -1743,7 +1800,7 @@ public class PortalUtil {
 
 	/**
 	 * @deprecated As of 6.2.0 replaced by {@link
-	 * PortletSecurityUtil#resetWhitelistActions()}
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#resetPortletInvocationWhitelistActions}
 	 */
 	public static Set<String>
 		resetPortletAddDefaultResourceCheckWhitelistActions() {

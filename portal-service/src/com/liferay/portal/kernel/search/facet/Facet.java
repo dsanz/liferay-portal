@@ -33,6 +33,8 @@ public interface Facet {
 
 	public FacetValueValidator getFacetValueValidator();
 
+	public String getFieldId();
+
 	public String getFieldName();
 
 	public SearchContext getSearchContext();

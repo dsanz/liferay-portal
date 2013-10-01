@@ -55,10 +55,6 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, locale);
 		/>
 	</c:if>
 
-	<liferay-ui:search-form
-		page="/html/portlet/dynamic_data_mapping/template_search.jsp"
-	/>
-
 	<div class="separator"><!-- --></div>
 
 	<liferay-ui:search-container
@@ -89,9 +85,9 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, locale);
 				value="<%= HtmlUtil.escape(template.getDescription(locale)) %>"
 			/>
 
-			<liferay-ui:search-container-column-text
+			<liferay-ui:search-container-column-date
 				name="modified-date"
-				value="<%= dateFormatDateTime.format(template.getModifiedDate()) %>"
+				value="<%= template.getModifiedDate() %>"
 			/>
 
 			<liferay-ui:search-container-column-text>

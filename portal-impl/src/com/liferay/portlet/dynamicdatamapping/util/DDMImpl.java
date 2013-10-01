@@ -356,7 +356,6 @@ public class DDMImpl implements DDM {
 
 				existingField.setDefaultLocale(newField.getDefaultLocale());
 			}
-
 		}
 
 		return existingFields;
@@ -383,9 +382,9 @@ public class DDMImpl implements DDM {
 		Locale defaultLocale = LocaleUtil.fromLanguageId(defaultLanguageId);
 
 		if (ddmStructure.isFieldPrivate(fieldName)) {
-			locale = LocaleUtil.getDefault();
+			locale = LocaleUtil.getSiteDefault();
 
-			defaultLocale = LocaleUtil.getDefault();
+			defaultLocale = LocaleUtil.getSiteDefault();
 		}
 
 		field.setDefaultLocale(defaultLocale);
@@ -500,7 +499,7 @@ public class DDMImpl implements DDM {
 				try {
 					byte[] bytes = FileUtil.getBytes(file);
 
-					if ((bytes != null) && (bytes.length > 0)) {
+					if (ArrayUtil.isNotEmpty(bytes)) {
 						fieldValue = UnicodeFormatter.bytesToHex(bytes);
 					}
 					else {

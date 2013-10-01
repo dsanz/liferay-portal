@@ -14,6 +14,14 @@
 
 package com.liferay.portlet.journal.util;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.search.Hits;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.search.QueryConfig;
+import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -57,12 +65,73 @@ import java.util.Map;
 public class JournalTestUtil {
 
 	public static JournalArticle addArticle(
+			long groupId, long folderId, long classNameId,
+			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
+			Map<Locale, String> contentMap, Locale defaultLocale,
+			boolean workflowEnabled, boolean approved,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		if (workflowEnabled) {
+			serviceContext = (ServiceContext)serviceContext.clone();
+
+			serviceContext.setWorkflowAction(
+				WorkflowConstants.ACTION_SAVE_DRAFT);
+
+			if (approved) {
+				serviceContext.setWorkflowAction(
+					WorkflowConstants.ACTION_PUBLISH);
+			}
+		}
+
+		String content = createLocalizedContent(contentMap, defaultLocale);
+
+		return JournalArticleLocalServiceUtil.addArticle(
+			serviceContext.getUserId(), groupId, folderId, classNameId, 0,
+			StringPool.BLANK, true, JournalArticleConstants.VERSION_DEFAULT,
+			titleMap, descriptionMap, content, "general", null, null, null, 1,
+			1, 1965, 0, 0, 0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, true, true,
+			false, null, null, null, null, serviceContext);
+	}
+
+	public static JournalArticle addArticle(
+			long groupId, long folderId, long classNameId, String title,
+			String description, String content, Locale defaultLocale,
+			boolean workflowEnabled, boolean approved,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		Map<Locale, String> titleMap = new HashMap<Locale, String>();
+
+		for (Locale locale : _locales) {
+			titleMap.put(locale, title);
+		}
+
+		Map<Locale, String> descriptionMap = new HashMap<Locale, String>();
+
+		for (Locale locale : _locales) {
+			descriptionMap.put(locale, description);
+		}
+
+		Map<Locale, String> contentMap = new HashMap<Locale, String>();
+
+		for (Locale locale : _locales) {
+			contentMap.put(locale, content);
+		}
+
+		return addArticle(
+			groupId, folderId, classNameId, titleMap, descriptionMap,
+			contentMap, defaultLocale, workflowEnabled, approved,
+			serviceContext);
+	}
+
+	public static JournalArticle addArticle(
 			long groupId, long folderId, String title, String content)
 		throws Exception {
 
 		return addArticle(
-			groupId, folderId, title, title, content, LocaleUtil.getDefault(),
-			false, false);
+			groupId, folderId, title, title, content,
+			LocaleUtil.getSiteDefault(), false, false);
 	}
 
 	public static JournalArticle addArticle(
@@ -84,48 +153,9 @@ public class JournalTestUtil {
 		ServiceContext serviceContext = ServiceTestUtil.getServiceContext();
 
 		return addArticle(
-			groupId, folderId, title, description, content, defaultLocale,
-			workflowEnabled, approved, serviceContext);
-	}
-
-	public static JournalArticle addArticle(
-			long groupId, long folderId, String title, String description,
-			String content, Locale defaultLocale, boolean workflowEnabled,
-			boolean approved, ServiceContext serviceContext)
-		throws Exception {
-
-		Map<Locale, String> titleMap = new HashMap<Locale, String>();
-
-		for (Locale locale : _locales) {
-			titleMap.put(locale, title);
-		}
-
-		Map<Locale, String> descriptionMap = new HashMap<Locale, String>();
-
-		for (Locale locale : _locales) {
-			descriptionMap.put(locale, description);
-		}
-
-		if (workflowEnabled) {
-			serviceContext = (ServiceContext)serviceContext.clone();
-
-			serviceContext.setWorkflowAction(
-				WorkflowConstants.ACTION_SAVE_DRAFT);
-
-			if (approved) {
-				serviceContext.setWorkflowAction(
-					WorkflowConstants.ACTION_PUBLISH);
-			}
-		}
-
-		return JournalArticleLocalServiceUtil.addArticle(
-			TestPropsValues.getUserId(), groupId, folderId,
-			JournalArticleConstants.CLASSNAME_ID_DEFAULT, 0, StringPool.BLANK,
-			true, JournalArticleConstants.VERSION_DEFAULT, titleMap,
-			descriptionMap, createLocalizedContent(content, defaultLocale),
-			"general", null, null, null, 1, 1, 1965, 0, 0, 0, 0, 0, 0, 0, true,
-			0, 0, 0, 0, 0, true, true, false, null, null, null, null,
-			serviceContext);
+			groupId, folderId, JournalArticleConstants.CLASSNAME_ID_DEFAULT,
+			title, description, content, defaultLocale, workflowEnabled,
+			approved, serviceContext);
 	}
 
 	public static JournalArticle addArticle(
@@ -134,7 +164,7 @@ public class JournalTestUtil {
 
 		return addArticle(
 			groupId, JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, title,
-			title, content, LocaleUtil.getDefault(), false, false);
+			title, content, LocaleUtil.getSiteDefault(), false, false);
 	}
 
 	public static JournalArticle addArticle(
@@ -152,9 +182,9 @@ public class JournalTestUtil {
 		throws Exception {
 
 		return addArticle(
-			groupId, JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, title,
-			title, content, LocaleUtil.getDefault(), false, false,
-			serviceContext);
+			groupId, JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			JournalArticleConstants.CLASSNAME_ID_DEFAULT, title, title, content,
+			LocaleUtil.getSiteDefault(), false, false, serviceContext);
 	}
 
 	public static JournalArticle addArticleWithWorkflow(boolean approved)
@@ -169,7 +199,7 @@ public class JournalTestUtil {
 
 		return addArticle(
 			groupId, JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, "title",
-			"content", LocaleUtil.getDefault(), true, approved);
+			"content", LocaleUtil.getSiteDefault(), true, approved);
 	}
 
 	public static JournalArticle addArticleWithWorkflow(
@@ -178,8 +208,23 @@ public class JournalTestUtil {
 		throws Exception {
 
 		return addArticle(
-			groupId, folderId, title, content, LocaleUtil.getDefault(), true,
-			approved);
+			groupId, folderId, title, content, LocaleUtil.getSiteDefault(),
+			true, approved);
+	}
+
+	public static JournalArticle addArticleWithWorkflow(
+			long groupId, Map<Locale, String> titleMap,
+			Map<Locale, String> descriptionMap, Map<Locale, String> contentMap,
+			boolean approved)
+		throws Exception {
+
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext();
+
+		return addArticle(
+			groupId, JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			JournalArticleConstants.CLASSNAME_ID_DEFAULT, titleMap,
+			descriptionMap, contentMap, LocaleUtil.getSiteDefault(), true,
+			approved, serviceContext);
 	}
 
 	public static JournalArticle addArticleWithWorkflow(
@@ -188,7 +233,8 @@ public class JournalTestUtil {
 
 		return addArticle(
 			groupId, JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, title,
-			"description", "content", LocaleUtil.getDefault(), true, approved);
+			"description", "content", LocaleUtil.getSiteDefault(), true,
+			approved);
 	}
 
 	public static JournalArticle addArticleWithWorkflow(
@@ -197,8 +243,9 @@ public class JournalTestUtil {
 		throws Exception {
 
 		return addArticle(
-			serviceContext.getScopeGroupId(), parentFolderId, title,
-			"description", "content", LocaleUtil.getDefault(), true, approved,
+			serviceContext.getScopeGroupId(), parentFolderId,
+			JournalArticleConstants.CLASSNAME_ID_DEFAULT, title, "description",
+			"content", LocaleUtil.getSiteDefault(), true, approved,
 			serviceContext);
 	}
 
@@ -208,7 +255,7 @@ public class JournalTestUtil {
 
 		return addArticle(
 			groupId, JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, title,
-			title, content, LocaleUtil.getDefault(), true, approved);
+			title, content, LocaleUtil.getSiteDefault(), true, approved);
 	}
 
 	public static JournalArticle addArticleWithWorkflow(
@@ -234,7 +281,7 @@ public class JournalTestUtil {
 		return addArticle(
 			TestPropsValues.getGroupId(),
 			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, title, title,
-			content, LocaleUtil.getDefault(), true, approved);
+			content, LocaleUtil.getSiteDefault(), true, approved);
 	}
 
 	public static JournalArticle addArticleWithXMLContent(
@@ -244,7 +291,7 @@ public class JournalTestUtil {
 
 		return addArticleWithXMLContent(
 			groupId, folderId, classNameId, xml, ddmStructureKey,
-			ddmTemplateKey, LocaleUtil.getDefault());
+			ddmTemplateKey, LocaleUtil.getSiteDefault());
 	}
 
 	public static JournalArticle addArticleWithXMLContent(
@@ -271,7 +318,7 @@ public class JournalTestUtil {
 		titleMap.put(defaultLocale, "Test Article");
 
 		return JournalArticleLocalServiceUtil.addArticle(
-			TestPropsValues.getUserId(), serviceContext.getScopeGroupId(),
+			serviceContext.getUserId(), serviceContext.getScopeGroupId(),
 			folderId, classNameId, 0, StringPool.BLANK, true, 0, titleMap, null,
 			xml, "general", ddmStructureKey, ddmTemplateKey, null, 1, 1, 1965,
 			0, 0, 0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, true, true, false, null,
@@ -286,7 +333,7 @@ public class JournalTestUtil {
 		return addArticleWithXMLContent(
 			groupId, JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			JournalArticleConstants.CLASSNAME_ID_DEFAULT, xml, ddmStructureKey,
-			ddmTemplateKey, LocaleUtil.getDefault());
+			ddmTemplateKey, LocaleUtil.getSiteDefault());
 	}
 
 	public static JournalArticle addArticleWithXMLContent(
@@ -297,7 +344,7 @@ public class JournalTestUtil {
 		return addArticleWithXMLContent(
 			serviceContext.getScopeGroupId(), parentFolderId,
 			JournalArticleConstants.CLASSNAME_ID_DEFAULT, xml, ddmStructureKey,
-			ddmTemplateKey, LocaleUtil.getDefault());
+			ddmTemplateKey, LocaleUtil.getSiteDefault());
 	}
 
 	public static JournalArticle addArticleWithXMLContent(
@@ -308,7 +355,7 @@ public class JournalTestUtil {
 			TestPropsValues.getGroupId(),
 			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			JournalArticleConstants.CLASSNAME_ID_DEFAULT, xml, ddmStructureKey,
-			ddmTemplateKey, LocaleUtil.getDefault());
+			ddmTemplateKey, LocaleUtil.getSiteDefault());
 	}
 
 	public static JournalArticle addArticleWithXMLContent(
@@ -407,7 +454,7 @@ public class JournalTestUtil {
 		throws Exception {
 
 		JournalFolder folder = JournalFolderLocalServiceUtil.fetchFolder(
-			serviceContext.getScopeGroupId(), name);
+			serviceContext.getScopeGroupId(), parentFolderId, name);
 
 		if (folder != null) {
 			return folder;
@@ -427,6 +474,22 @@ public class JournalTestUtil {
 		staticContentElement.setText(value);
 	}
 
+	public static Element addMetadataElement(
+		Element element, String locale, String label) {
+
+		Element metadataElement = element.addElement("meta-data");
+
+		metadataElement.addAttribute("locale", locale);
+
+		Element entryElement = metadataElement.addElement("entry");
+
+		entryElement.addAttribute("name", "label");
+
+		entryElement.addCDATA(label);
+
+		return entryElement;
+	}
+
 	public static Document createDocument(
 		String availableLocales, String defaultLocale) {
 
@@ -442,7 +505,7 @@ public class JournalTestUtil {
 	}
 
 	public static String createLocalizedContent(
-		String content, Locale defaultLocale) {
+		Map<Locale, String> content, Locale defaultLocale) {
 
 		StringBundler sb = new StringBundler((2 * _locales.length) - 1);
 
@@ -462,14 +525,63 @@ public class JournalTestUtil {
 		for (Locale locale : _locales) {
 			addLanguageIdElement(
 				document.getRootElement(), LocaleUtil.toLanguageId(locale),
-				content);
+				content.get(locale));
 		}
 
 		return document.asXML();
 	}
 
+	public static String createLocalizedContent(
+		String content, Locale defaultLocale) {
+
+		Map<Locale, String> contentMap = new HashMap<Locale, String>();
+
+		for (Locale locale : _locales) {
+			contentMap.put(locale, content);
+		}
+
+		return createLocalizedContent(contentMap, defaultLocale);
+	}
+
+	public static void expireArticle(long groupId, JournalArticle article)
+		throws PortalException, SystemException {
+
+		JournalArticleLocalServiceUtil.expireArticle(
+			article.getUserId(), article.getGroupId(), article.getArticleId(),
+			null, ServiceTestUtil.getServiceContext(groupId));
+	}
+
+	public static JournalArticle expireArticle(
+			long groupId, JournalArticle article, double version)
+		throws PortalException, SystemException {
+
+		return JournalArticleLocalServiceUtil.expireArticle(
+			article.getUserId(), article.getGroupId(), article.getArticleId(),
+			version, null, ServiceTestUtil.getServiceContext(groupId));
+	}
+
 	public static String getSampleTemplateXSL() {
 		return "$name.getData()";
+	}
+
+	public static int getSearchArticlesCount(long companyId, long groupId)
+		throws Exception {
+
+		Indexer indexer = IndexerRegistryUtil.getIndexer(JournalArticle.class);
+
+		SearchContext searchContext = new SearchContext();
+
+		searchContext.setCompanyId(companyId);
+		searchContext.setGroupIds(new long[] {groupId});
+		searchContext.setKeywords(StringPool.BLANK);
+
+		QueryConfig queryConfig = new QueryConfig();
+
+		searchContext.setQueryConfig(queryConfig);
+
+		Hits results = indexer.search(searchContext);
+
+		return results.getLength();
 	}
 
 	public static Map<String, Map<String, String>> getXsdMap(String xsd)
@@ -502,6 +614,15 @@ public class JournalTestUtil {
 	}
 
 	public static JournalArticle updateArticle(
+			JournalArticle article, String title)
+		throws Exception {
+
+		return updateArticle(
+			article, title, article.getContent(),
+			ServiceTestUtil.getServiceContext());
+	}
+
+	public static JournalArticle updateArticle(
 			JournalArticle article, String title, String content)
 		throws Exception {
 
@@ -520,11 +641,13 @@ public class JournalTestUtil {
 			titleMap.put(locale, title);
 		}
 
+		serviceContext.setCommand(Constants.UPDATE);
+
 		return JournalArticleLocalServiceUtil.updateArticle(
 			article.getUserId(), article.getGroupId(), article.getFolderId(),
 			article.getArticleId(), article.getVersion(), titleMap,
 			article.getDescriptionMap(),
-			createLocalizedContent(content, LocaleUtil.getDefault()),
+			createLocalizedContent(content, LocaleUtil.getSiteDefault()),
 			article.getLayoutUuid(), serviceContext);
 	}
 
@@ -585,7 +708,7 @@ public class JournalTestUtil {
 	}
 
 	private static Locale[] _locales = {
-		new Locale("en", "US"), new Locale("de", "DE"), new Locale("es", "ES")
+		LocaleUtil.US, LocaleUtil.GERMANY, LocaleUtil.SPAIN
 	};
 
 }

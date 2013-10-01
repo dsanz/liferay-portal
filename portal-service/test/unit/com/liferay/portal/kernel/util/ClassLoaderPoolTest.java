@@ -56,60 +56,26 @@ public class ClassLoaderPoolTest {
 		_contextNames = (Map<ClassLoader, String>)contextNamesField.get(null);
 
 		_contextNames.clear();
-
 	}
 
 	@Test
-	public void testRegister() {
-
-		// Register with a null context name
-
-		try {
-			ClassLoaderPool.register(null, null);
-
-			Assert.fail();
-		}
-		catch (NullPointerException npe) {
-		}
-
-		// Register with a null class loader
-
-		try {
-			ClassLoaderPool.register(StringPool.BLANK, null);
-
-			Assert.fail();
-		}
-		catch (NullPointerException npe) {
-		}
-
-		// Register with a valid context name and class loader
-
-		String contextName = "contextName";
-
+	public void testGetClassLoaderWithInvalidContextName() {
 		ClassLoader classLoader = new URLClassLoader(new URL[0]);
 
-		ClassLoaderPool.register(contextName, classLoader);
-
-		Assert.assertEquals(1, _contextNames.size());
-		Assert.assertEquals(1, _classLoaders.size());
-		Assert.assertSame(classLoader, _classLoaders.get(contextName));
-		Assert.assertEquals(contextName, _contextNames.get(classLoader));
-
-		// Get class loader with a valid context name
-
-		Assert.assertSame(
-			classLoader, ClassLoaderPool.getClassLoader(contextName));
-
-		// Get class loader with an invalid context name
+		ClassLoaderPool.register(_CONTEXT_NAME, classLoader);
 
 		Class<?> clazz = getClass();
 
 		Assert.assertSame(
 			clazz.getClassLoader(),
 			ClassLoaderPool.getClassLoader(StringPool.BLANK));
+	}
 
-		// Get class loader with an invalid context name where the portal class
-		// loader is not initialized
+	@Test
+	public void testGetClassLoaderWithInvalidContextNamePortalContextNotSet() {
+		ClassLoader classLoader = new URLClassLoader(new URL[0]);
+
+		ClassLoaderPool.register(_CONTEXT_NAME, classLoader);
 
 		PortalClassLoaderUtil.setClassLoader(null);
 
@@ -120,53 +86,125 @@ public class ClassLoaderPoolTest {
 		Assert.assertSame(
 			contextClassLoader,
 			ClassLoaderPool.getClassLoader(StringPool.BLANK));
+	}
 
-		// Get context name with a valid class loader
+	@Test
+	public void testGetClassLoaderWithValidContextName() {
+		ClassLoader classLoader = new URLClassLoader(new URL[0]);
 
-		Assert.assertEquals(
-			contextName, ClassLoaderPool.getContextName(classLoader));
+		ClassLoaderPool.register(_CONTEXT_NAME, classLoader);
 
-		// Get context name with a null class loader
+		Assert.assertSame(
+			classLoader, ClassLoaderPool.getClassLoader(_CONTEXT_NAME));
+	}
 
-		Assert.assertEquals(
-			StringPool.BLANK, ClassLoaderPool.getContextName(null));
+	@Test
+	public void testGetContextNameWithInvalidClassLoader() {
+		ClassLoader classLoader = new URLClassLoader(new URL[0]);
 
-		// Get context name with an invalid class loader
+		ClassLoaderPool.register(_CONTEXT_NAME, classLoader);
 
 		Assert.assertEquals(
 			StringPool.BLANK,
 			ClassLoaderPool.getContextName(new URLClassLoader(new URL[0])));
+	}
 
-		// Unregister by class loader with an valid class loader
+	@Test
+	public void testGetContextNameWithNullClassLoader() {
+		ClassLoader classLoader = new URLClassLoader(new URL[0]);
+
+		ClassLoaderPool.register(_CONTEXT_NAME, classLoader);
+
+		Assert.assertEquals(
+			StringPool.BLANK, ClassLoaderPool.getContextName(null));
+	}
+
+	@Test
+	public void testGetContextNameWithValidClassLoader() {
+		ClassLoader classLoader = new URLClassLoader(new URL[0]);
+
+		ClassLoaderPool.register(_CONTEXT_NAME, classLoader);
+
+		Assert.assertEquals(
+			_CONTEXT_NAME, ClassLoaderPool.getContextName(classLoader));
+	}
+
+	@Test
+	public void testRegister() {
+		ClassLoader classLoader = new URLClassLoader(new URL[0]);
+
+		ClassLoaderPool.register(_CONTEXT_NAME, classLoader);
+
+		Assert.assertEquals(1, _contextNames.size());
+		Assert.assertEquals(1, _classLoaders.size());
+		Assert.assertSame(classLoader, _classLoaders.get(_CONTEXT_NAME));
+		Assert.assertEquals(_CONTEXT_NAME, _contextNames.get(classLoader));
+	}
+
+	@Test
+	public void testRegisterWithNullClassLoader() {
+		try {
+			ClassLoaderPool.register(StringPool.BLANK, null);
+
+			Assert.fail();
+		}
+		catch (NullPointerException npe) {
+		}
+	}
+
+	@Test
+	public void testRegisterWithNullContextName() {
+		try {
+			ClassLoaderPool.register(null, null);
+
+			Assert.fail();
+		}
+		catch (NullPointerException npe) {
+		}
+	}
+
+	@Test
+	public void testUnregisterWithInvalidClassLoader() {
+		ClassLoaderPool.unregister(new URLClassLoader(new URL[0]));
+
+		assertEmptyMaps();
+	}
+
+	@Test
+	public void testUnregisterWithInvalidContextName() {
+		ClassLoaderPool.unregister(_CONTEXT_NAME);
+
+		assertEmptyMaps();
+	}
+
+	@Test
+	public void testUnregisterWithValidClassLoader() {
+		ClassLoader classLoader = new URLClassLoader(new URL[0]);
+
+		ClassLoaderPool.register(_CONTEXT_NAME, classLoader);
 
 		ClassLoaderPool.unregister(classLoader);
 
-		Assert.assertTrue(_contextNames.isEmpty());
-		Assert.assertTrue(_classLoaders.isEmpty());
+		assertEmptyMaps();
+	}
 
-		// Unregister by class loader with an invalid class loader
+	@Test
+	public void testUnregisterWithValidContextName() {
+		ClassLoader classLoader = new URLClassLoader(new URL[0]);
 
-		ClassLoaderPool.unregister(classLoader);
+		ClassLoaderPool.register(_CONTEXT_NAME, classLoader);
 
-		Assert.assertTrue(_contextNames.isEmpty());
-		Assert.assertTrue(_classLoaders.isEmpty());
+		ClassLoaderPool.unregister(_CONTEXT_NAME);
 
-		ClassLoaderPool.register(contextName, classLoader);
+		assertEmptyMaps();
+	}
 
-		// Unregister by class loader with an valid context name
-
-		ClassLoaderPool.unregister(contextName);
-
-		Assert.assertTrue(_contextNames.isEmpty());
-		Assert.assertTrue(_classLoaders.isEmpty());
-
-		// Unregister by class loader with an invalid context name
-
-		ClassLoaderPool.unregister(contextName);
-
+	protected void assertEmptyMaps() {
 		Assert.assertTrue(_contextNames.isEmpty());
 		Assert.assertTrue(_classLoaders.isEmpty());
 	}
+
+	private static final String _CONTEXT_NAME = "contextName";
 
 	private static Map<String, ClassLoader> _classLoaders;
 	private static Map<ClassLoader, String> _contextNames;

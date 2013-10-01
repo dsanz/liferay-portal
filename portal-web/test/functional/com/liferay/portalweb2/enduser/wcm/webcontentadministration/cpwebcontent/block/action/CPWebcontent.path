@@ -15,6 +15,16 @@
 </tr>
 <!---->
 <tr>
+	<td>PORTLET_TITLE</td>
+	<td>//h2[@id='cpPortletTitle']/span[@class='portlet-title-text']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NAVBAR_CONTAINER</td>
+	<td>//div[@class='navbar ']//div[@class='container']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SUCCESS_MESSAGE</td>
 	<td>//div[@class='alert alert-success']</td>
 	<td></td>
@@ -74,6 +84,11 @@
 <tr>
 	<td>TOOLBAR_MANAGE</td>
 	<td>//li/a[contains(.,'Manage')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TOOLBAR_DISPLAY_STYLE_BUTTON</td>
+	<td>//div[@id='_15_displayStyleButtons']/div/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -139,6 +154,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ADD_MENULIST_STRUCTURE_NAME</td>
+	<td>//li[@id='_15_addButtonContainer']/ul/li/a[contains(.,'${key_structureName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -157,6 +177,27 @@
 <tr>
 	<td>MANAGE_MENULIST_FEEDS</td>
 	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Feeds')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--DISPLAY_STYLE_MENULIST-->
+<tr>
+	<td>DISPLAY_STYLE_MENULIST_ICON</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Icon')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_STYLE_MENULIST_DESCRIPTIVE</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Descriptive')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_STYLE_MENULIST_LIST</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'List')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -216,32 +257,84 @@
 	<td></td>
 	<td></td>
 </tr>
-<!--ENTRY_TABLE-->
+<!--ENTRY_ICON-->
 <tr>
-	<td>ENTRY_TABLE_ENTRY_1</td>
+	<td>ENTRY_ICON_THUMBNAIL</td>
+	<td>//div[@data-title='${key_webContentTitle}']//div[@class='entry-thumbnail']/img</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_ICON_THUMBNAIL_GENERIC</td>
 	<td>//div[@class='entry-thumbnail']/img</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ENTRY_TABLE_MENULIST_ARROW_1</td>
-	<td>//div[@id='_15_entries']/div/span[contains(@class,'entry-action')]/div/a/i[@class='caret']</td>
+	<td>ENTRY_ICON_MENULIST_ARROW</td>
+	<td>//div[@data-title='${key_webContentTitle}']//span[@class='entry-action overlay']/div/a/i[@class='caret']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ENTRY_TABLE_CHECKBOX_1</td>
-	<td>//input[@id='_15_rowIdsJournalArticleCheckbox']</td>
+	<td>ENTRY_ICON_CHECKBOX</td>
+	<td>//div[@data-title='${key_webContentTitle}']//input[@id='_15_rowIdsJournalArticleCheckbox']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ENTRY_TABLE_TITLE_1</td>
-	<td>//div[@id='_15_entriesContainer']/div/a[contains(@class,'entry-link')]/span/span</td>
+	<td>ENTRY_ICON_TITLE</td>
+	<td>//div[@data-title='${key_webContentTitle}']//span[@class='entry-title']/span</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ENTRY_TABLE_WORKFLOW_STATUS_1</td>
-	<td>//span[@class='workflow-status-pending']</td>
+	<td>ENTRY_ICON_WORKFLOW_STATUS</td>
+	<td>//div[@data-title='${key_webContentTitle}']//span[@class='workflow-status']/strong</td>
 	<td></td>
 </tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--ENTRY_DESCRIPTIVE-->
+<tr>
+	<td>ENTRY_DESCRIPTIVE_THUMBNAIL</td>
+	<td>//div[@data-title='${key_webContentTitle}']//div[@class='entry-thumbnail']/img</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_DESCRIPTIVE_THUMBNAIL_GENERIC</td>
+	<td>//div[@class='entry-thumbnail']/img</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_DESCRIPTIVE_MENULIST_ARROW</td>
+	<td>//div[@data-title='${key_webContentTitle}']//span[@class='entry-action overlay']/div/a/i[@class='caret']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_DESCRIPTIVE_CHECKBOX</td>
+	<td>//div[@data-title='${key_webContentTitle}']//input[@id='_15_rowIdsJournalArticleCheckbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_DESCRIPTIVE_TITLE</td>
+	<td>//div[@data-title='${key_webContentTitle}']//span[@class='entry-title']/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_DESCRIPTIVE_VERSION</td>
+	<td>//div[@data-title='${key_webContentTitle}']//div[@class='entry-metadata']/small/dl/dd</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_DESCRIPTIVE_WORKFLOW_STATUS</td>
+	<td>//div[@data-title='${key_webContentTitle}']//span[@class='workflow-status']/strong</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--ENTRY_LIST-->
 <tr>
 	<td></td>
 	<td></td>
@@ -280,7 +373,7 @@
 </tr>
 <tr>
 	<td>ENTRY_MENULIST_MOVE_TO_THE_RECYCLE_BIN</td>
-	<td>//ul[contains(@class,'dropdown-menu lfr-menu-list')]/li/a[contains(.,'Move to the Recycle Bin')]</td>
+	<td>//ul[@class='dropdown-menu lfr-menu-list direction-down']/li/a[contains(.,'Move to the Recycle Bin')]</td>
 	<td></td>
 </tr>
 <tr>

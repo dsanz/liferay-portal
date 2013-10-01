@@ -282,7 +282,7 @@ public class VelocityTaglibImpl implements VelocityTaglib {
 	public void discussion(
 			String className, long classPK, String formAction, String formName,
 			boolean hideControls, boolean ratingsEnabled, String redirect,
-			String subject, long userId)
+			long userId)
 		throws Exception {
 
 		DiscussionTag discussionTag = new DiscussionTag();
@@ -296,10 +296,25 @@ public class VelocityTaglibImpl implements VelocityTaglib {
 		discussionTag.setHideControls(hideControls);
 		discussionTag.setRatingsEnabled(ratingsEnabled);
 		discussionTag.setRedirect(redirect);
-		discussionTag.setSubject(subject);
 		discussionTag.setUserId(userId);
 
 		discussionTag.runTag();
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #discussion(String, long,
+	 *             String, String, boolean, boolean, String, long)})}
+	 */
+	@Override
+	public void discussion(
+			String className, long classPK, String formAction, String formName,
+			boolean hideControls, boolean ratingsEnabled, String redirect,
+			String subject, long userId)
+		throws Exception {
+
+		discussion(
+			className, classPK, formAction, formName, hideControls,
+			ratingsEnabled, redirect, userId);
 	}
 
 	@Override
@@ -771,7 +786,7 @@ public class VelocityTaglibImpl implements VelocityTaglib {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #permissionsURL(String,
-	 *             String, String, long, String, String, int[])}
+	 *             String, String, Object, String, String, int[])}
 	 */
 	@Override
 	public void permissionsURL(

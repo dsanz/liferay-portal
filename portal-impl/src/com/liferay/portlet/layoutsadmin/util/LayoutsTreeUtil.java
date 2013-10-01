@@ -131,7 +131,6 @@ public class LayoutsTreeUtil {
 						virtualLayout.isPrivateLayout(),
 						virtualLayout.getLayoutId(), expandedLayoutIds,
 						incomplete);
-
 				}
 				else {
 					childrenJSON = getLayoutsJSON(
@@ -201,6 +200,10 @@ public class LayoutsTreeUtil {
 					jsonObject.put(
 						"layoutBranchId", layoutBranch.getLayoutBranchId());
 					jsonObject.put("layoutBranchName", layoutBranch.getName());
+				}
+
+				if (layoutRevision.isHead()) {
+					jsonObject.put("layoutRevisionHead", true);
 				}
 
 				jsonObject.put(

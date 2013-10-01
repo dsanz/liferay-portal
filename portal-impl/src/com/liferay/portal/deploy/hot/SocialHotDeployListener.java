@@ -47,7 +47,10 @@ public class SocialHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error registering social for ", t);
+				hotDeployEvent,
+				"Error registering social for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -60,7 +63,10 @@ public class SocialHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error unregistering social for ", t);
+				hotDeployEvent,
+				"Error unregistering social for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 

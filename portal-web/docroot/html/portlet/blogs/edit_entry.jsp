@@ -32,25 +32,27 @@ boolean allowTrackbacks = PropsValues.BLOGS_TRACKBACK_ENABLED && BeanParamUtil.g
 boolean smallImage = BeanParamUtil.getBoolean(entry, request, "smallImage");
 
 boolean preview = ParamUtil.getBoolean(request, "preview");
+boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
 %>
 
-<liferay-ui:header
-	backURL="<%= backURL %>"
-	localizeTitle="<%= (entry == null) %>"
-	title='<%= (entry == null) ? "new-blog-entry" : entry.getTitle() %>'
-/>
+<c:if test="<%= showHeader %>">
+	<liferay-ui:header
+		backURL="<%= backURL %>"
+		localizeTitle="<%= (entry == null) %>"
+		title='<%= (entry == null) ? "new-blog-entry" : entry.getTitle() %>'
+	/>
+</c:if>
 
 <portlet:actionURL var="editEntryURL">
 	<portlet:param name="struts_action" value="/blogs/edit_entry" />
 </portlet:actionURL>
 
-<aui:form action="<%= editEntryURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault();" %>'>
+<aui:form action="<%= editEntryURL %>" enctype="multipart/form-data" method="post" name="fm" onSubmit="event.preventDefault();">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="backURL" type="hidden" value="<%= backURL %>" />
 	<aui:input name="referringPortletResource" type="hidden" value="<%= referringPortletResource %>" />
 	<aui:input name="entryId" type="hidden" value="<%= entryId %>" />
-	<aui:input name="attachments" type="hidden" />
 	<aui:input name="preview" type="hidden" value="<%= false %>" />
 	<aui:input name="workflowAction" type="hidden" value="<%= WorkflowConstants.ACTION_PUBLISH %>" />
 
@@ -72,7 +74,7 @@ boolean preview = ParamUtil.getBoolean(request, "preview");
 	</c:if>
 
 	<aui:fieldset>
-		<aui:input name="title" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="title" />
 
 		<aui:input name="displayDate" />
 
@@ -126,7 +128,7 @@ boolean preview = ParamUtil.getBoolean(request, "preview");
 					for (String trackback : StringUtil.split(entry.getTrackbacks())) {
 					%>
 
-						<%= HtmlUtil.escape(trackback) %><br />
+						<liferay-ui:input-resource url="<%= trackback %>" /><br />
 
 					<%
 					}
@@ -290,11 +292,6 @@ boolean preview = ParamUtil.getBoolean(request, "preview");
 		return "<%= UnicodeFormatter.toString(content) %>";
 	}
 
-	function <portlet:namespace />manageAttachments() {
-		document.<portlet:namespace />fm.encoding = "multipart/form-data";
-		document.<portlet:namespace />fm.<portlet:namespace />attachments.value = "true";
-	}
-
 	function <portlet:namespace />previewEntry() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (entry == null) ? Constants.ADD : Constants.UPDATE %>";
 		document.<portlet:namespace />fm.<portlet:namespace />preview.value = "true";
@@ -444,10 +441,6 @@ boolean preview = ParamUtil.getBoolean(request, "preview");
 		},
 		['aui-io']
 	);
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />title);
-	</c:if>
 </aui:script>
 
 <aui:script use="aui-base">
@@ -464,7 +457,7 @@ boolean preview = ParamUtil.getBoolean(request, "preview");
 		);
 	}
 
-	<c:if test="<%= (entry == null) || (entry.getStatus() == WorkflowConstants.STATUS_DRAFT) %>">
+	<c:if test="<%= (entry == null) || ((entry.getUserId() == user.getUserId()) && (entry.getStatus() == WorkflowConstants.STATUS_DRAFT)) %>">
 		<portlet:namespace />saveDraftIntervalId = setInterval('<portlet:namespace />saveEntry(true, true)', 30000);
 		<portlet:namespace />oldTitle = document.<portlet:namespace />fm.<portlet:namespace />title.value;
 		<portlet:namespace />oldContent = <portlet:namespace />initEditor();

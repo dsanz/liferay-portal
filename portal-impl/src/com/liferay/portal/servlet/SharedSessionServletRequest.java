@@ -14,18 +14,7 @@
 
 package com.liferay.portal.servlet;
 
-import com.liferay.portal.kernel.servlet.filters.compoundsessionid.CompoundSessionIdHttpSession;
-import com.liferay.portal.kernel.servlet.filters.compoundsessionid.CompoundSessionIdSplitterUtil;
-import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.ServerDetector;
-import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.model.Portlet;
-import com.liferay.portal.model.PortletApp;
-import com.liferay.portal.service.PortletLocalServiceUtil;
-import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.PortletKeys;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -43,13 +32,6 @@ public class SharedSessionServletRequest extends HttpServletRequestWrapper {
 		super(request);
 
 		_portalSession = request.getSession();
-
-		if (CompoundSessionIdSplitterUtil.hasSessionDelimiter() &&
-			!(_portalSession instanceof CompoundSessionIdHttpSession)) {
-
-			_portalSession = new CompoundSessionIdHttpSession(_portalSession);
-		}
-
 		_shared = shared;
 	}
 
@@ -57,7 +39,7 @@ public class SharedSessionServletRequest extends HttpServletRequestWrapper {
 	public HttpSession getSession() {
 		checkPortalSession();
 
-		if (_shared || isPortletConfigurationPortlet()) {
+		if (_shared) {
 			return _portalSession;
 		}
 		else {
@@ -71,18 +53,17 @@ public class SharedSessionServletRequest extends HttpServletRequestWrapper {
 			checkPortalSession();
 		}
 
-		if (_shared || isPortletConfigurationPortlet()) {
+		if (_shared) {
 			return _portalSession;
 		}
-		else {
-			HttpSession portletSession = super.getSession(create);
 
-			if (portletSession != null) {
-				return getSharedSessionWrapper(_portalSession, portletSession);
-			}
+		HttpSession portletSession = super.getSession(create);
 
-			return null;
+		if (portletSession != null) {
+			return getSharedSessionWrapper(_portalSession, portletSession);
 		}
+
+		return null;
 	}
 
 	public HttpSession getSharedSession() {
@@ -101,60 +82,12 @@ public class SharedSessionServletRequest extends HttpServletRequestWrapper {
 	protected HttpSession getSharedSessionWrapper(
 		HttpSession portalSession, HttpSession portletSession) {
 
-		if (CompoundSessionIdSplitterUtil.hasSessionDelimiter() &&
-			!(portalSession instanceof CompoundSessionIdHttpSession)) {
-
-			portalSession = new CompoundSessionIdHttpSession(portalSession);
-		}
-
-		if (CompoundSessionIdSplitterUtil.hasSessionDelimiter() &&
-			!(portletSession instanceof CompoundSessionIdHttpSession)) {
-
-			portletSession = new CompoundSessionIdHttpSession(portletSession);
-		}
-
 		if (ServerDetector.isJetty()) {
 			return new JettySharedSessionWrapper(portalSession, portletSession);
 		}
 		else {
 			return new SharedSessionWrapper(portalSession, portletSession);
 		}
-	}
-
-	protected boolean isPortletConfigurationPortlet() {
-		String namespace = PortalUtil.getPortletNamespace(
-			PortletKeys.PORTLET_CONFIGURATION);
-
-		String portletResource = ParamUtil.getString(
-			this, namespace + "portletResource");
-
-		if (Validator.isNull(portletResource)) {
-			return false;
-		}
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)this.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		Portlet portlet = null;
-
-		try {
-			portlet = PortletLocalServiceUtil.getPortletById(
-				themeDisplay.getCompanyId(), portletResource);
-		}
-		catch (Exception e) {
-		}
-
-		if (portlet == null) {
-			return false;
-		}
-
-		PortletApp portletApp = portlet.getPortletApp();
-
-		if (portletApp.isWARFile()) {
-			return true;
-		}
-
-		return false;
 	}
 
 	private HttpSession _portalSession;

@@ -88,8 +88,8 @@ public class Entity {
 	public Entity(String name) {
 		this(
 			null, null, null, name, null, null, null, false, false, false, true,
-			null, null, null, null, null, true, false, false, null, null, null,
-			null, null, null, null, null, null);
+			null, null, null, null, null, true, false, false, false, null, null,
+			null, null, null, null, null, null, null);
 	}
 
 	public Entity(
@@ -98,11 +98,12 @@ public class Entity {
 		boolean uuidAccessor, boolean localService, boolean remoteService,
 		String persistenceClass, String finderClass, String dataSource,
 		String sessionFactory, String txManager, boolean cacheEnabled,
-		boolean jsonEnabled, boolean deprecated, List<EntityColumn> pkList,
-		List<EntityColumn> regularColList, List<EntityColumn> blobList,
-		List<EntityColumn> collectionList, List<EntityColumn> columnList,
-		EntityOrder order, List<EntityFinder> finderList,
-		List<Entity> referenceList, List<String> txRequiredList) {
+		boolean jsonEnabled, boolean trashEnabled, boolean deprecated,
+		List<EntityColumn> pkList, List<EntityColumn> regularColList,
+		List<EntityColumn> blobList, List<EntityColumn> collectionList,
+		List<EntityColumn> columnList, EntityOrder order,
+		List<EntityFinder> finderList, List<Entity> referenceList,
+		List<String> txRequiredList) {
 
 		_packagePath = packagePath;
 		_portletName = portletName;
@@ -124,6 +125,7 @@ public class Entity {
 		_txManager = GetterUtil.getString(txManager, DEFAULT_TX_MANAGER);
 		_cacheEnabled = cacheEnabled;
 		_jsonEnabled = jsonEnabled;
+		_trashEnabled = trashEnabled;
 		_deprecated = deprecated;
 		_pkList = pkList;
 		_regularColList = regularColList;
@@ -321,22 +323,20 @@ public class Entity {
 		if (hasCompoundPK()) {
 			return _name + "PK";
 		}
-		else {
-			EntityColumn col = _getPKColumn();
 
-			return col.getType();
-		}
+		EntityColumn col = _getPKColumn();
+
+		return col.getType();
 	}
 
 	public String getPKDBName() {
 		if (hasCompoundPK()) {
 			return getVarName() + "PK";
 		}
-		else {
-			EntityColumn col = _getPKColumn();
 
-			return col.getDBName();
-		}
+		EntityColumn col = _getPKColumn();
+
+		return col.getDBName();
 	}
 
 	public List<EntityColumn> getPKList() {
@@ -347,22 +347,20 @@ public class Entity {
 		if (hasCompoundPK()) {
 			return getVarName() + "PK";
 		}
-		else {
-			EntityColumn col = _getPKColumn();
 
-			return col.getName();
-		}
+		EntityColumn col = _getPKColumn();
+
+		return col.getName();
 	}
 
 	public String getPKVarNames() {
 		if (hasCompoundPK()) {
 			return getVarName() + "PKs";
 		}
-		else {
-			EntityColumn col = _getPKColumn();
 
-			return col.getNames();
-		}
+		EntityColumn col = _getPKColumn();
+
+		return col.getNames();
 	}
 
 	public String getPortletName() {
@@ -553,15 +551,14 @@ public class Entity {
 		if (hasCompoundPK()) {
 			return false;
 		}
-		else {
-			EntityColumn col = _getPKColumn();
 
-			if (col.isPrimitiveType(includeWrappers)) {
-				return true;
-			}
-			else {
-				return false;
-			}
+		EntityColumn col = _getPKColumn();
+
+		if (col.isPrimitiveType(includeWrappers)) {
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 
@@ -578,18 +575,16 @@ public class Entity {
 	}
 
 	public boolean isAttachedModel() {
-		if (hasColumn("classNameId") && hasColumn("classPK")) {
-			EntityColumn classNameIdCol = getColumn("classNameId");
+		if (!isTypedModel()) {
+			return false;
+		}
 
-			String classNameIdColType = classNameIdCol.getType();
-
+		if (hasColumn("classPK")) {
 			EntityColumn classPKCol = getColumn("classPK");
 
 			String classPKColType = classPKCol.getType();
 
-			if (classNameIdColType.equals("long") &&
-				classPKColType.equals("long")) {
-
+			if (classPKColType.equals("long")) {
 				return true;
 			}
 		}
@@ -774,6 +769,24 @@ public class Entity {
 		return false;
 	}
 
+	public boolean isTrashEnabled() {
+		return _trashEnabled;
+	}
+
+	public boolean isTypedModel() {
+		if (hasColumn("classNameId")) {
+			EntityColumn classNameIdCol = getColumn("classNameId");
+
+			String classNameIdColType = classNameIdCol.getType();
+
+			if (classNameIdColType.equals("long")) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public boolean isWorkflowEnabled() {
 		if (hasColumn("status") && hasColumn("statusByUserId") &&
 			hasColumn("statusByUserName") && hasColumn("statusDate")) {
@@ -835,6 +848,7 @@ public class Entity {
 	private String _sessionFactory;
 	private String _table;
 	private List<String> _transients;
+	private boolean _trashEnabled;
 	private String _txManager;
 	private List<String> _txRequiredList;
 	private boolean _uuid;

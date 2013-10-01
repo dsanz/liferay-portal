@@ -17,13 +17,8 @@
 <%@ include file="/html/taglib/ui/header/init.jsp" %>
 
 <%
-if (Validator.isNotNull(backLabel)) {
-	if (!backLabel.startsWith("&laquo; ")) {
-		backLabel = "&laquo; ".concat(LanguageUtil.format(pageContext, "back-to-x", HtmlUtil.escape(backLabel)));
-	}
-}
-else {
-	backLabel = "&laquo; ".concat(LanguageUtil.get(pageContext, "back"));
+if (Validator.isNull(backLabel)) {
+	backLabel = LanguageUtil.get(pageContext, "back");
 }
 
 if (Validator.isNotNull(backURL) && !backURL.equals("javascript:history.go(-1);")) {
@@ -36,7 +31,18 @@ String headerTitle = (localizeTitle) ? LanguageUtil.get(pageContext, title) : ti
 <div class="taglib-header <%= cssClass %>">
 	<c:if test="<%= showBackURL && Validator.isNotNull(backURL) %>">
 		<span class="header-back-to">
-			<a href="<%= backURL %>" id="<%= namespace %>TabsBack"><%= backLabel %></a>
+			<a class="icon-circle-arrow-left previous-level" href="<%= backURL %>" id="<%= namespace %>TabsBack" title="<%= HtmlUtil.escapeAttribute(backLabel) %>">
+				<span class="helper-hidden-accessible">
+					<c:choose>
+						<c:when test="<%= escapeXml %>">
+							<%= HtmlUtil.escape(backLabel) %>
+						</c:when>
+						<c:otherwise>
+							<%= backLabel %>
+						</c:otherwise>
+					</c:choose>
+				</span>
+			</a>
 		</span>
 	</c:if>
 

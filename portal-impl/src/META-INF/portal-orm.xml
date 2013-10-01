@@ -106,6 +106,7 @@
 				<temporal>TIMESTAMP</temporal>
 			</basic>
 			<basic name="status" />
+			<basic name="statusMessage" />
 			<transient name="modelAttributes" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
@@ -284,8 +285,11 @@
 				<column name="TYPE_" />
 			</basic>
 			<basic name="typeSettings" />
+			<basic name="manualMembership" />
+			<basic name="membershipRestriction" />
 			<basic name="friendlyURL" />
 			<basic name="site" />
+			<basic name="remoteStagingGroupCount" />
 			<basic name="active">
 				<column name="ACTIVE_" />
 			</basic>
@@ -1168,6 +1172,9 @@
 			<basic name="classNameId" />
 			<basic name="classPK" />
 			<basic name="classUuid" />
+			<basic name="referrerClassNameId" />
+			<basic name="parentSystemEventId" />
+			<basic name="systemEventSetKey" />
 			<basic name="type">
 				<column name="TYPE_" />
 			</basic>
@@ -1348,6 +1355,23 @@
 			</basic>
 			<basic name="description" />
 			<basic name="externalUserId" />
+			<transient name="modelAttributes" />
+			<transient name="primaryKey" />
+			<transient name="primaryKeyObj" />
+			<transient name="userUuid" />
+		</attributes>
+	</mapped-superclass>
+	<mapped-superclass class="com.liferay.portal.model.impl.UserNotificationDeliveryModelImpl">
+		<attributes>
+			<id name="userNotificationDeliveryId" />
+			<basic name="companyId" />
+			<basic name="userId" />
+			<basic name="portletId" />
+			<basic name="classNameId" />
+			<basic name="notificationType" />
+			<basic name="deliveryType" />
+			<basic name="deliver" />
+			<transient name="className" />
 			<transient name="modelAttributes" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
@@ -1884,6 +1908,7 @@
 			</basic>
 			<basic name="resourceBlockId" />
 			<basic name="folderId" />
+			<basic name="treePath" />
 			<basic name="name" />
 			<basic name="url" />
 			<basic name="description" />
@@ -1920,6 +1945,7 @@
 			</basic>
 			<basic name="resourceBlockId" />
 			<basic name="parentFolderId" />
+			<basic name="treePath" />
 			<basic name="name" />
 			<basic name="description" />
 			<basic name="status" />
@@ -2011,8 +2037,6 @@
 			<basic name="companyId" />
 			<basic name="userId" />
 			<basic name="userName" />
-			<basic name="versionUserId" />
-			<basic name="versionUserName" />
 			<basic name="createDate">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
@@ -2023,6 +2047,7 @@
 			<basic name="classPK" />
 			<basic name="repositoryId" />
 			<basic name="folderId" />
+			<basic name="treePath" />
 			<basic name="name" />
 			<basic name="extension" />
 			<basic name="mimeType" />
@@ -2045,7 +2070,6 @@
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
 			<transient name="userUuid" />
-			<transient name="versionUserUuid" />
 		</attributes>
 	</mapped-superclass>
 	<mapped-superclass class="com.liferay.portlet.documentlibrary.model.impl.DLFileEntryMetadataModelImpl">
@@ -2131,6 +2155,7 @@
 			<basic name="repositoryId" />
 			<basic name="folderId" />
 			<basic name="toFileEntryId" />
+			<basic name="treePath" />
 			<basic name="active">
 				<column name="ACTIVE_" />
 			</basic>
@@ -2166,6 +2191,7 @@
 			<basic name="repositoryId" />
 			<basic name="folderId" />
 			<basic name="fileEntryId" />
+			<basic name="treePath" />
 			<basic name="extension" />
 			<basic name="mimeType" />
 			<basic name="title" />
@@ -2210,6 +2236,7 @@
 			<basic name="repositoryId" />
 			<basic name="mountPoint" />
 			<basic name="parentFolderId" />
+			<basic name="treePath" />
 			<basic name="name" />
 			<basic name="description" />
 			<basic name="lastPostDate">
@@ -2233,6 +2260,20 @@
 			<transient name="primaryKeyObj" />
 			<transient name="statusByUserUuid" />
 			<transient name="userUuid" />
+		</attributes>
+	</mapped-superclass>
+	<mapped-superclass class="com.liferay.portlet.documentlibrary.model.impl.DLSyncEventModelImpl">
+		<attributes>
+			<id name="syncEventId" />
+			<basic name="modifiedTime" />
+			<basic name="event" />
+			<basic name="type">
+				<column name="TYPE_" />
+			</basic>
+			<basic name="typePK" />
+			<transient name="modelAttributes" />
+			<transient name="primaryKey" />
+			<transient name="primaryKeyObj" />
 		</attributes>
 	</mapped-superclass>
 	<mapped-superclass class="com.liferay.portlet.dynamicdatalists.model.impl.DDLRecordModelImpl">
@@ -2548,6 +2589,7 @@
 			<basic name="folderId" />
 			<basic name="classNameId" />
 			<basic name="classPK" />
+			<basic name="treePath" />
 			<basic name="articleId" />
 			<basic name="version" />
 			<basic name="title" />
@@ -2691,6 +2733,7 @@
 				<temporal>TIMESTAMP</temporal>
 			</basic>
 			<basic name="parentFolderId" />
+			<basic name="treePath" />
 			<basic name="name" />
 			<basic name="description" />
 			<basic name="status" />
@@ -3748,6 +3791,7 @@
 			</basic>
 			<basic name="classNameId" />
 			<basic name="classPK" />
+			<basic name="systemEventSetKey" />
 			<basic name="typeSettings" />
 			<basic name="status" />
 			<transient name="className" />
@@ -4085,6 +4129,7 @@
 			<transient name="remoteable" />
 			<transient name="renderTimeout" />
 			<transient name="renderWeight" />
+			<transient name="requiresNamespacedParameters" />
 			<transient name="resourceBundle" />
 			<transient name="restoreCurrentView" />
 			<transient name="roleMappers" />
@@ -4107,7 +4152,8 @@
 			<transient name="undeployedPortlet" />
 			<transient name="unlinkedRoles" />
 			<transient name="useDefaultTemplate" />
-			<transient name="userNotificationInterpreterClasses" />
+			<transient name="userNotificationDefinitions" />
+			<transient name="userNotificationHandlerClasses" />
 			<transient name="userPrincipalStrategy" />
 			<transient name="virtualPath" />
 			<transient name="webDAVStorageClass" />
@@ -4181,7 +4227,9 @@
 	</entity>
 	<entity class="com.liferay.portal.model.impl.SystemEventImpl" name="SystemEvent">
 		<table name="SystemEvent" />
-		<attributes />
+		<attributes>
+			<transient name="referrerClassName" />
+		</attributes>
 	</entity>
 	<entity class="com.liferay.portal.model.impl.TeamImpl" name="Team">
 		<table name="Team" />
@@ -4212,6 +4260,10 @@
 	</entity>
 	<entity class="com.liferay.portal.model.impl.UserIdMapperImpl" name="UserIdMapper">
 		<table name="UserIdMapper" />
+		<attributes />
+	</entity>
+	<entity class="com.liferay.portal.model.impl.UserNotificationDeliveryImpl" name="UserNotificationDelivery">
+		<table name="UserNotificationDelivery" />
 		<attributes />
 	</entity>
 	<entity class="com.liferay.portal.model.impl.UserNotificationEventImpl" name="UserNotificationEvent">
@@ -4350,6 +4402,10 @@
 	</entity>
 	<entity class="com.liferay.portlet.documentlibrary.model.impl.DLFolderImpl" name="DLFolder">
 		<table name="DLFolder" />
+		<attributes />
+	</entity>
+	<entity class="com.liferay.portlet.documentlibrary.model.impl.DLSyncEventImpl" name="DLSyncEvent">
+		<table name="DLSyncEvent" />
 		<attributes />
 	</entity>
 	<entity class="com.liferay.portlet.dynamicdatalists.model.impl.DDLRecordImpl" name="DDLRecord">
@@ -4568,6 +4624,7 @@
 		<table name="SocialActivity" />
 		<attributes>
 			<transient name="assetEntry" />
+			<transient name="extraDataValue" />
 		</attributes>
 	</entity>
 	<entity class="com.liferay.portlet.social.model.impl.SocialActivityAchievementImpl" name="SocialActivityAchievement">

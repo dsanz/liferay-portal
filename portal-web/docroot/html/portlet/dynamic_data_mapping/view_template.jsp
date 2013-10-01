@@ -30,6 +30,8 @@ if ((classPK > 0) && (structureClassNameId == classNameId)) {
 	structure = DDMStructureServiceUtil.getStructure(classPK);
 }
 
+boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
+
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("struts_action", "/dynamic_data_mapping/view_template");
@@ -54,10 +56,12 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, locale)
 	<liferay-ui:message key="they-are-referenced-by-web-contents" />
 </liferay-ui:error>
 
-<liferay-ui:header
-	backURL="<%= ddmDisplay.getViewTemplatesBackURL(liferayPortletRequest, liferayPortletResponse, classPK) %>"
-	title="<%= title %>"
-/>
+<c:if test="<%= showHeader %>">
+	<liferay-ui:header
+		backURL="<%= ddmDisplay.getViewTemplatesBackURL(liferayPortletRequest, liferayPortletResponse, classPK) %>"
+		title="<%= title %>"
+	/>
+</c:if>
 
 <aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
@@ -113,6 +117,7 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, locale)
 			rowURL.setParameter("classNameId", String.valueOf(classNameId));
 			rowURL.setParameter("classPK", String.valueOf(template.getClassPK()));
 			rowURL.setParameter("type", template.getType());
+			rowURL.setParameter("structureAvailableFields", renderResponse.getNamespace() + "getAvailableFields");
 
 			String rowHREF = rowURL.toString();
 			%>
@@ -193,19 +198,13 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, locale)
 			</c:if>
 
 			<c:if test='<%= !excludedColumnNames.contains("modified-date") %>'>
-				<liferay-ui:search-container-column-text
-					buffer="buffer"
+				<liferay-ui:search-container-column-date
 					href="<%= rowHREF %>"
 					name="modified-date"
 					orderable="<%= true %>"
 					orderableProperty="modified-date"
-				>
-
-					<%
-					buffer.append(dateFormatDateTime.format(template.getModifiedDate()));
-					%>
-
-				</liferay-ui:search-container-column-text>
+					value="<%= template.getModifiedDate() %>"
+				/>
 			</c:if>
 
 			<liferay-ui:search-container-column-jsp
@@ -216,7 +215,7 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, locale)
 
 		<c:if test="<%= total > 0 %>">
 			<aui:button-row>
-				<aui:button cssClass="delete-templates-button" onClick='<%= renderResponse.getNamespace() + "deleteTemplates();" %>' value="delete" />
+				<aui:button cssClass="delete-templates-button" disabled="<%= true %>" name="delete" onClick='<%= renderResponse.getNamespace() + "deleteTemplates();" %>' value="delete" />
 			</aui:button-row>
 
 			<div class="separator"><!-- --></div>
@@ -227,12 +226,11 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, locale)
 </aui:form>
 
 <aui:script>
+	Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />delete', '#<portlet:namespace /><%= searchContainerReference.getId() %>SearchContainer', document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 	function <portlet:namespace />copyTemplate(uri) {
 		Liferay.Util.openWindow(
 			{
-				dialog: {
-					zIndex: Liferay.zIndex.WINDOW + 2
-				},
 				id: '<portlet:namespace />copyTemplate',
 				refreshWindow: window,
 				title: '<%= UnicodeLanguageUtil.get(pageContext, "copy-template") %>',
@@ -248,35 +246,11 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, locale)
 			if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-delete-this") %>')) {
 				document.<portlet:namespace />fm.method = "post";
 				document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
-				document.<portlet:namespace />fm.<portlet:namespace />deleteTemplateIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
+				document.<portlet:namespace />fm.<portlet:namespace />deleteTemplateIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
 
 				submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/dynamic_data_mapping/edit_template" /></portlet:actionURL>");
 			}
 		},
 		['liferay-util-list-fields']
 	);
-</aui:script>
-
-<aui:script use="aui-base">
-	var buttons = A.all('.delete-templates-button');
-
-	if (buttons.size()) {
-		var toggleDisabled = A.bind('toggleDisabled', Liferay.Util, ':button');
-
-		var resultsGrid = A.one('.searchcontainer-content');
-
-		if (resultsGrid) {
-			resultsGrid.delegate(
-				'click',
-				function(event) {
-					var disabled = (resultsGrid.one(':checked') == null);
-
-					toggleDisabled(disabled);
-				},
-				':checkbox'
-			);
-		}
-
-		toggleDisabled(true);
-	}
 </aui:script>

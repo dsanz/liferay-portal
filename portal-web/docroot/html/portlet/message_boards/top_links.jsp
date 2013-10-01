@@ -97,7 +97,7 @@ portletURL.setParameter("struts_action", "/message_boards/view");
 			<portlet:param name="struts_action" value="/message_boards/search" />
 		</liferay-portlet:renderURL>
 
-		<div class="navbar-search pull-right">
+		<aui:nav-bar-search cssClass="pull-right">
 			<div class="form-search">
 				<aui:form action="<%= searchURL %>" method="get" name="searchFm">
 					<liferay-portlet:renderURLParams varImpl="searchURL" />
@@ -105,18 +105,14 @@ portletURL.setParameter("struts_action", "/message_boards/view");
 					<aui:input name="breadcrumbsCategoryId" type="hidden" value="<%= categoryId %>" />
 					<aui:input name="searchCategoryId" type="hidden" value="<%= categoryId %>" />
 
-					<div class="input-append">
-						<input class="search-query span9" id="<portlet:namespace/>keywords1" name="<portlet:namespace/>keywords" placeholder="<liferay-ui:message key="keywords" />" type="text" />
-
-						<aui:button primary="<%= false %>" type="submit" value="search" />
-					</div>
+					<liferay-ui:input-search id="keywords1" />
 				</aui:form>
 			</div>
-		</div>
+		</aui:nav-bar-search>
 
 		<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) && !themeDisplay.isFacebook() %>">
 			<aui:script>
-				Liferay.Util.focusFormField(document.<portlet:namespace />searchFm.<portlet:namespace />keywords);
+				Liferay.Util.focusFormField(document.getElementById('<portlet:namespace />keywords1'));
 			</aui:script>
 		</c:if>
 	</c:if>

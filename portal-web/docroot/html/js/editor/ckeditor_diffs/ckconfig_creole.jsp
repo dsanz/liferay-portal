@@ -17,6 +17,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <%@ page import="com.liferay.portal.kernel.language.LanguageUtil" %>
+<%@ page import="com.liferay.portal.kernel.util.ContentTypes" %>
 <%@ page import="com.liferay.portal.kernel.util.HtmlUtil" %>
 <%@ page import="com.liferay.portal.kernel.util.LocaleUtil" %>
 <%@ page import="com.liferay.portal.kernel.util.ParamUtil" %>
@@ -25,12 +26,13 @@
 
 <%
 String contentsLanguageId = ParamUtil.getString(request, "contentsLanguageId");
-String cssPath = ParamUtil.getString(request, "cssPath");
 String cssClasses = ParamUtil.getString(request, "cssClasses");
 String languageId = ParamUtil.getString(request, "languageId");
 long wikiPageResourcePrimKey = ParamUtil.getLong(request, "wikiPageResourcePrimKey");
 String attachmentURLPrefix = ParamUtil.getString(request, "attachmentURLPrefix");
 boolean resizable = ParamUtil.getBoolean(request, "resizable");
+
+response.setContentType(ContentTypes.TEXT_JAVASCRIPT);
 %>
 
 CKEDITOR.config.attachmentURLPrefix = '<%= HtmlUtil.escapeJS(attachmentURLPrefix) %>';
@@ -82,7 +84,8 @@ CKEDITOR.config.removePlugins = [
 	'smiley',
 	'showblocks',
 	'stylescombo',
-	'templates'
+	'templates',
+	'video'
 ].join();
 
 <c:if test="<%= resizable %>">
@@ -110,6 +113,20 @@ CKEDITOR.config.toolbar_creole = [
 	['Table', '-', 'HorizontalRule', 'SpecialChar' ],
 	['Find','Replace','-','SelectAll','RemoveFormat'],
 	['Source']
+];
+
+CKEDITOR.config.toolbar_phone = [
+	['Bold', 'Italic', 'Underline'],
+	['NumberedList', 'BulletedList'],
+	['Image', 'Link', 'Unlink']
+];
+
+CKEDITOR.config.toolbar_tablet = [
+	['Bold', 'Italic', 'Underline', 'Strike'],
+	['NumberedList', 'BulletedList'],
+	['Image', 'Link', 'Unlink'],
+	['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+	['Styles', 'FontSize']
 ];
 
 CKEDITOR.on(

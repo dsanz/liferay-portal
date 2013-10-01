@@ -355,6 +355,10 @@ public class DDMContentPersistenceImpl extends BasePersistenceImpl<DDMContent>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DDMContent> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1173,6 +1177,10 @@ public class DDMContentPersistenceImpl extends BasePersistenceImpl<DDMContent>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DDMContent> list = findByUuid_C(uuid, companyId, count - 1, count,
 				orderByComparator);
 
@@ -1700,6 +1708,10 @@ public class DDMContentPersistenceImpl extends BasePersistenceImpl<DDMContent>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DDMContent> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -2188,6 +2200,10 @@ public class DDMContentPersistenceImpl extends BasePersistenceImpl<DDMContent>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DDMContent> list = findByCompanyId(companyId, count - 1, count,
 				orderByComparator);
 
@@ -2412,6 +2428,10 @@ public class DDMContentPersistenceImpl extends BasePersistenceImpl<DDMContent>
 	}
 
 	private static final String _FINDER_COLUMN_COMPANYID_COMPANYID_2 = "ddmContent.companyId = ?";
+
+	public DDMContentPersistenceImpl() {
+		setModelClass(DDMContent.class);
+	}
 
 	/**
 	 * Caches the d d m content in the entity cache if it is enabled.

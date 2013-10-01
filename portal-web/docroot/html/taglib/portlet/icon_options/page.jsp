@@ -20,7 +20,7 @@
 	cssClass="portlet-options"
 	direction="down"
 	extended="<%= false %>"
-	icon=""
+	icon="../aui/cog"
 	message="options"
 	showArrow="<%= true %>"
 	showWhenSingleIcon="<%= true %>"
@@ -42,6 +42,12 @@
 	<liferay-portlet:icon-help />
 
 	<liferay-portlet:icon-print />
+
+	<liferay-portlet:icon-maximize />
+
+	<liferay-portlet:icon-minimize />
+
+	<liferay-portlet:icon-close />
 
 	<%
 	Portlet portlet = (Portlet)request.getAttribute(WebKeys.RENDER_PORTLET);
@@ -69,71 +75,69 @@
 		PortletURL basePortletURL = PortletURLFactoryUtil.create(request, PortletKeys.PORTLET_SHARING, layout.getPlid(), PortletRequest.RENDER_PHASE);
 		%>
 
-		<c:if test="<%= widgetShowAddAppLink || facebookShowAddAppLink || iGoogleShowAddAppLink || netvibesShowAddAppLinks || appShowShareWithFriendsLink %>">
-			<c:if test="<%= widgetShowAddAppLink %>">
+		<c:if test="<%= widgetShowAddAppLink %>">
 
-				<%
-				String widgetHREF = "javascript:Liferay.PortletSharing.showWidgetInfo('" + PortalUtil.getWidgetURL(portlet, themeDisplay) + "', '" + basePortletURL + "');";
-				%>
+			<%
+			String widgetHREF = "javascript:Liferay.PortletSharing.showWidgetInfo('" + PortalUtil.getWidgetURL(portlet, themeDisplay) + "', '" + basePortletURL + "');";
+			%>
 
-				<liferay-ui:icon
-					cssClass='<%= portletDisplay.getNamespace() + "expose-as-widget" %>'
-					image="../common/add"
-					label="<%= true %>"
-					message="add-to-any-website"
-					url="<%= widgetHREF %>"
-				/>
-			</c:if>
+			<liferay-ui:icon
+				cssClass='<%= portletDisplay.getNamespace() + "expose-as-widget" %>'
+				image="../aui/plus-sign"
+				label="<%= true %>"
+				message="add-to-any-website"
+				url="<%= widgetHREF %>"
+			/>
+		</c:if>
 
-			<c:if test="<%= facebookShowAddAppLink %>">
-				<liferay-ui:icon
-					image="../social_bookmarks/facebook"
-					label="<%= true %>"
-					message="add-to-facebook"
-					method="get"
-					url='<%= "http://www.facebook.com/add.php?api_key=" + facebookAPIKey + "&ref=pd" %>'
-				/>
-			</c:if>
+		<c:if test="<%= facebookShowAddAppLink %>">
+			<liferay-ui:icon
+				image="../aui/facebook"
+				label="<%= true %>"
+				message="add-to-facebook"
+				method="get"
+				url='<%= "http://www.facebook.com/add.php?api_key=" + facebookAPIKey + "&ref=pd" %>'
+			/>
+		</c:if>
 
-			<c:if test="<%= iGoogleShowAddAppLink %>">
+		<c:if test="<%= iGoogleShowAddAppLink %>">
 
-				<%
-				String googleGadgetHREF = "http://fusion.google.com/add?source=atgs&moduleurl=" + PortalUtil.getGoogleGadgetURL(portlet, themeDisplay);
-				%>
+			<%
+			String googleGadgetHREF = "http://fusion.google.com/add?source=atgs&moduleurl=" + PortalUtil.getGoogleGadgetURL(portlet, themeDisplay);
+			%>
 
-				<liferay-ui:icon
-					cssClass='<%= portletDisplay.getNamespace() + "expose-as-widget" %>'
-					image="../common/add"
-					label="<%= true %>"
-					message="add-to-igoogle"
-					url="<%= googleGadgetHREF %>"
-				/>
-			</c:if>
+			<liferay-ui:icon
+				cssClass='<%= portletDisplay.getNamespace() + "expose-as-widget" %>'
+				image="../aui/plus-sign"
+				label="<%= true %>"
+				message="add-to-igoogle"
+				url="<%= googleGadgetHREF %>"
+			/>
+		</c:if>
 
-			<c:if test="<%= netvibesShowAddAppLinks %>">
+		<c:if test="<%= netvibesShowAddAppLinks %>">
 
-				<%
-				String netvibesHREF = "javascript:Liferay.PortletSharing.showNetvibesInfo('" + PortalUtil.getNetvibesURL(portlet, themeDisplay) + "', '" + basePortletURL + "');";
-				%>
+			<%
+			String netvibesHREF = "javascript:Liferay.PortletSharing.showNetvibesInfo('" + PortalUtil.getNetvibesURL(portlet, themeDisplay) + "', '" + basePortletURL + "');";
+			%>
 
-				<liferay-ui:icon
-					image="../common/add"
-					label="<%= true %>"
-					message="add-to-netvibes"
-					method="get"
-					url="<%= netvibesHREF %>"
-				/>
-			</c:if>
+			<liferay-ui:icon
+				image="../aui/plus-sign"
+				label="<%= true %>"
+				message="add-to-netvibes"
+				method="get"
+				url="<%= netvibesHREF %>"
+			/>
+		</c:if>
 
-			<c:if test="<%= appShowShareWithFriendsLink %>">
-				<liferay-ui:icon
-					image="share"
-					label="<%= true %>"
-					message="share-this-application-with-friends"
-					method="get"
-					url="javascript:;"
-				/>
-			</c:if>
+		<c:if test="<%= appShowShareWithFriendsLink %>">
+			<liferay-ui:icon
+				image="../aui/share"
+				label="<%= true %>"
+				message="share-this-application-with-friends"
+				method="get"
+				url="javascript:;"
+			/>
 		</c:if>
 	</c:if>
 </liferay-ui:icon-menu>

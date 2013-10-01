@@ -22,8 +22,10 @@ import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.JavaDetector;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.Image;
 import com.liferay.portal.model.impl.ImageImpl;
 import com.liferay.portal.util.FileImpl;
@@ -33,8 +35,8 @@ import com.sun.media.jai.codec.ImageCodec;
 import com.sun.media.jai.codec.ImageDecoder;
 import com.sun.media.jai.codec.ImageEncoder;
 
-import java.awt.Graphics2D;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.IndexColorModel;
@@ -178,7 +180,9 @@ public class ImageToolImpl implements ImageTool {
 
 			String[] output = imageMagick.identify(imOperation.getCmdArgs());
 
-			if ((output.length == 1) && output[0].equalsIgnoreCase("CMYK")) {
+			if ((output.length == 1) &&
+				StringUtil.equalsIgnoreCase(output[0], "CMYK")) {
+
 				if (_log.isInfoEnabled()) {
 					_log.info("The image is in the CMYK colorspace");
 				}
@@ -293,12 +297,10 @@ public class ImageToolImpl implements ImageTool {
 		if (renderedImage instanceof BufferedImage) {
 			return (BufferedImage)renderedImage;
 		}
-		else {
-			RenderedImageAdapter adapter = new RenderedImageAdapter(
-				renderedImage);
 
-			return adapter.getAsBufferedImage();
-		}
+		RenderedImageAdapter adapter = new RenderedImageAdapter(renderedImage);
+
+		return adapter.getAsBufferedImage();
 	}
 
 	@Override
@@ -393,7 +395,7 @@ public class ImageToolImpl implements ImageTool {
 
 	@Override
 	public boolean isNullOrDefaultSpacer(byte[] bytes) {
-		if ((bytes == null) || (bytes.length == 0) ||
+		if (ArrayUtil.isEmpty(bytes) ||
 			Arrays.equals(bytes, getDefaultSpacer().getTextObj())) {
 
 			return true;
@@ -608,10 +610,10 @@ public class ImageToolImpl implements ImageTool {
 				type = "jpeg";
 			}
 
-			ImageDecoder decoder = ImageCodec.createImageDecoder(
+			ImageDecoder imageDecoder = ImageCodec.createImageDecoder(
 				type, new UnsyncByteArrayInputStream(bytes), null);
 
-			renderedImage = decoder.decodeAsRenderedImage();
+			renderedImage = imageDecoder.decodeAsRenderedImage();
 		}
 		catch (IOException ioe) {
 			if (_log.isDebugEnabled()) {

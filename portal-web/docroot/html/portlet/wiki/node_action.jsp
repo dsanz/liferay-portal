@@ -42,11 +42,14 @@ WikiNode node = (WikiNode)row.getObject();
 			modelResourceDescription="<%= node.getName() %>"
 			resourcePrimKey="<%= String.valueOf(node.getNodeId()) %>"
 			var="permissionsURL"
+			windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 		/>
 
 		<liferay-ui:icon
 			image="permissions"
+			method="get"
 			url="<%= permissionsURL %>"
+			useDialog="<%= true %>"
 		/>
 	</c:if>
 

@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -36,6 +37,7 @@ import com.liferay.portal.util.MaintenanceUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileVersion;
+import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.persistence.DLFileEntryActionableDynamicQuery;
 import com.liferay.portlet.documentlibrary.store.AdvancedFileSystemStore;
@@ -104,10 +106,8 @@ public class ConvertDocumentLibrary extends ConvertProcess {
 
 		String targetStoreClassName = values[0];
 
-		ClassLoader classLoader = ClassLoaderUtil.getPortalClassLoader();
-
-		_targetStore = (Store)classLoader.loadClass(
-			targetStoreClassName).newInstance();
+		_targetStore = (Store)InstanceFactory.newInstance(
+			ClassLoaderUtil.getPortalClassLoader(), targetStoreClassName);
 
 		migratePortlets();
 
@@ -139,6 +139,14 @@ public class ConvertDocumentLibrary extends ConvertProcess {
 
 		ActionableDynamicQuery actionableDynamicQuery =
 			new DLFileEntryActionableDynamicQuery() {
+
+			@Override
+			protected void addCriteria(DynamicQuery dynamicQuery) {
+				Property classNameIdProperty = PropertyFactoryUtil.forName(
+					"classNameId");
+
+				dynamicQuery.add(classNameIdProperty.eq(0L));
+			}
 
 			@Override
 			protected void performAction(Object object) throws SystemException {
@@ -242,7 +250,10 @@ public class ConvertDocumentLibrary extends ConvertProcess {
 					DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
 
 					migrateDLFileEntry(
-						mbMessage.getCompanyId(), dlFileEntry.getRepositoryId(),
+						mbMessage.getCompanyId(),
+						DLFolderConstants.getDataRepositoryId(
+							dlFileEntry.getRepositoryId(),
+							dlFileEntry.getFolderId()),
 						dlFileEntry);
 				}
 			}
@@ -285,7 +296,10 @@ public class ConvertDocumentLibrary extends ConvertProcess {
 					DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
 
 					migrateDLFileEntry(
-						wikiPage.getCompanyId(), dlFileEntry.getRepositoryId(),
+						wikiPage.getCompanyId(),
+						DLFolderConstants.getDataRepositoryId(
+							dlFileEntry.getRepositoryId(),
+							dlFileEntry.getFolderId()),
 						dlFileEntry);
 				}
 			}

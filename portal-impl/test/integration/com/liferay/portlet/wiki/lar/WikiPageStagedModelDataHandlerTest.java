@@ -14,11 +14,10 @@
 
 package com.liferay.portlet.wiki.lar;
 
-import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.lar.BaseStagedModelDataHandlerTestCase;
+import com.liferay.portal.lar.BaseWorkflowedStagedModelDataHandlerTestCase;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.model.StagedModel;
@@ -27,6 +26,8 @@ import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.RepositoryUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.test.Sync;
+import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
 import com.liferay.portal.test.TransactionalExecutionTestListener;
 import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portlet.wiki.attachments.WikiAttachmentsTest;
@@ -36,6 +37,7 @@ import com.liferay.portlet.wiki.service.WikiNodeLocalServiceUtil;
 import com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil;
 import com.liferay.portlet.wiki.util.WikiTestUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,11 +51,13 @@ import org.junit.runner.RunWith;
 @ExecutionTestListeners(
 	listeners = {
 		MainServletExecutionTestListener.class,
+		SynchronousDestinationExecutionTestListener.class,
 		TransactionalExecutionTestListener.class
 	})
+@Sync
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class WikiPageStagedModelDataHandlerTest
-	extends BaseStagedModelDataHandlerTestCase {
+	extends BaseWorkflowedStagedModelDataHandlerTestCase {
 
 	@Override
 	protected Map<String, List<StagedModel>> addDependentStagedModelsMap(
@@ -123,6 +127,31 @@ public class WikiPageStagedModelDataHandlerTest
 	}
 
 	@Override
+	protected List<StagedModel> addWorkflowedStagedModels(Group group)
+		throws Exception {
+
+		List<StagedModel> stagedModels = new ArrayList<StagedModel>();
+
+		WikiNode node = WikiTestUtil.addNode(
+			TestPropsValues.getUserId(), group.getGroupId(),
+			ServiceTestUtil.randomString(), ServiceTestUtil.randomString());
+
+		WikiPage page = WikiTestUtil.addPage(
+			TestPropsValues.getUserId(), group.getGroupId(), node.getNodeId(),
+			ServiceTestUtil.randomString(), true);
+
+		stagedModels.add(page);
+
+		WikiPage draftPage = WikiTestUtil.addPage(
+			TestPropsValues.getUserId(), group.getGroupId(), node.getNodeId(),
+			ServiceTestUtil.randomString(), false);
+
+		stagedModels.add(draftPage);
+
+		return stagedModels;
+	}
+
+	@Override
 	protected StagedModel getStagedModel(String uuid, Group group) {
 		try {
 			return WikiPageLocalServiceUtil.getWikiPageByUuidAndGroupId(
@@ -136,24 +165,6 @@ public class WikiPageStagedModelDataHandlerTest
 	@Override
 	protected Class<? extends StagedModel> getStagedModelClass() {
 		return WikiPage.class;
-	}
-
-	@Override
-	protected String getStagedModelPath(long groupId, StagedModel stagedModel) {
-		if (stagedModel instanceof FileEntry) {
-			FileEntry fileEntry = (FileEntry)stagedModel;
-
-			return ExportImportPathUtil.getModelPath(
-				groupId, FileEntry.class.getName(), fileEntry.getFileEntryId());
-		}
-		else if (stagedModel instanceof Folder) {
-			Folder folder = (Folder)stagedModel;
-
-			return ExportImportPathUtil.getModelPath(
-				groupId, Folder.class.getName(), folder.getFolderId());
-		}
-
-		return super.getStagedModelPath(groupId, stagedModel);
 	}
 
 	@Override
@@ -175,10 +186,13 @@ public class WikiPageStagedModelDataHandlerTest
 
 	@Override
 	protected void validateImport(
-			StagedModel stagedModel,
+			StagedModel stagedModel, StagedModelAssets stagedModelAssets,
 			Map<String, List<StagedModel>> dependentStagedModelsMap,
 			Group group)
 		throws Exception {
+
+		super.validateImport(
+			stagedModel, stagedModelAssets, dependentStagedModelsMap, group);
 
 		WikiPage page = (WikiPage)stagedModel;
 

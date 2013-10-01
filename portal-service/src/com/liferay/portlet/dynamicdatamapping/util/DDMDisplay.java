@@ -16,7 +16,7 @@ package com.liferay.portlet.dynamicdatamapping.util;
 
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
-import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
 
@@ -65,6 +65,14 @@ public interface DDMDisplay {
 
 	public long[] getTemplateClassNameIds(long classNameId);
 
+	public long[] getTemplateClassPKs(
+			long companyId, long classNameId, long classPK)
+		throws Exception;
+
+	public long[] getTemplateGroupIds(
+			ThemeDisplay themeDisplay, boolean showGlobalScope)
+		throws Exception;
+
 	public long getTemplateHandlerClassNameId(
 		DDMTemplate template, long classNameId);
 
@@ -88,8 +96,7 @@ public interface DDMDisplay {
 
 	public String getViewTemplatesTitle(DDMStructure structure, Locale locale);
 
-	public boolean isShowAddStructureButton(
-		PermissionChecker permissionChecker, long groupId);
+	public boolean isShowAddStructureButton();
 
 	public boolean isShowStructureSelector();
 

@@ -60,6 +60,10 @@
 			Liferay.Util.addInputType(node);
 		}
 	);
+
+	if (A.UA.mobile) {
+		Liferay.Util.addInputCancel();
+	}
 </aui:script>
 
 <%
@@ -124,10 +128,10 @@ if (layout != null) {
 								%>
 
 									{
-										deletable: <%= LayoutPermissionUtil.contains(themeDisplay.getPermissionChecker(), curLayout, ActionKeys.DELETE) %>,
+										deletable: <%= LayoutPermissionUtil.contains(permissionChecker, curLayout, ActionKeys.DELETE) %>,
 										id: <%= curLayout.getLayoutId() %>,
-										sortable: <%= GroupPermissionUtil.contains(themeDisplay.getPermissionChecker(), scopeGroupId, ActionKeys.MANAGE_LAYOUTS) && SitesUtil.isLayoutSortable(curLayout) %>,
-										updateable: <%= LayoutPermissionUtil.contains(themeDisplay.getPermissionChecker(), curLayout, ActionKeys.UPDATE) %>
+										sortable: <%= GroupPermissionUtil.contains(permissionChecker, scopeGroupId, ActionKeys.MANAGE_LAYOUTS) && SitesUtil.isLayoutSortable(curLayout) %>,
+										updateable: <%= LayoutPermissionUtil.contains(permissionChecker, curLayout, ActionKeys.UPDATE) %>
 									},
 
 								<%
@@ -146,7 +150,7 @@ if (layout != null) {
 				}
 			);
 
-			var navBlock = A.one('#navigation');
+			var navBlock = A.one(Liferay.Data.NAV_SELECTOR);
 
 			if (navBlock) {
 				navBlock.once(

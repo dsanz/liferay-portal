@@ -19,6 +19,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ADT_TITLE</td>
+	<td>//span[@class='portlet-title-text']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SUCCESS_MESSAGE</td>
 	<td>//div[@class='alert alert-success']</td>
 	<td></td>
@@ -35,7 +40,7 @@
 </tr>
 <tr>
 	<td>ADD</td>
-	<td>//div[@class='navbar ']/div/div/ul/li/a[contains(.,'Add')]</td>
+	<td>//div[@class='navbar ']//a[contains(.,'Add')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -59,6 +64,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CONFIRMATION</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -76,38 +86,8 @@
 </tr>
 <!--ADD_MENULIST-->
 <tr>
-	<td>ADD_MENULIST_WIKI_TEMPLATE</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Wiki Template')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ADD_MENULIST_CATEGORIES_NAVIGATION_TEMPLATE</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Categories Navigation Template')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ADD_MENULIST_DOCUMENTS_AND_MEDIA_TEMPLATE</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Documents and Media Template')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ADD_MENULIST_ASSET_PUBLISHER_TEMPLATE</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Asset Publisher Template')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ADD_MENULIST_SITE_MAP_TEMPLATE</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Site Map Template')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ADD_MENULIST_TAGS_NAVIGATION_TEMPLATE</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Tags Navigation Template')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ADD_MENULIST_BLOGS_TEMPLATE</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Blogs Template')]</td>
+	<td>ADD_MENULIST</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'${key_adtTitle} Template')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -116,6 +96,11 @@
 	<td></td>
 </tr>
 <!--ADT_TABLE-->
+<tr>
+	<td>ADT_TABLE_ALL_CHECKBOX</td>
+	<td>//input[@name='_183_allRowIds']</td>
+	<td></td>
+</tr>
 <tr>
 	<td>ADT_TABLE_CHECKBOX_1</td>
 	<td>//div[@id='_183_ddmTemplatesSearchContainer']//tr/td[1]/input</td>

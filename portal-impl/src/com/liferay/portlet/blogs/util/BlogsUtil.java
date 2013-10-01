@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelHintsUtil;
 import com.liferay.portal.util.PortalUtil;
@@ -41,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.portlet.PortletPreferences;
 
@@ -62,7 +64,7 @@ public class BlogsUtil {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailEntryAddedBody");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -99,7 +101,7 @@ public class BlogsUtil {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailEntryAddedSubject");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -121,7 +123,7 @@ public class BlogsUtil {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailEntryUpdatedBody");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -158,7 +160,7 @@ public class BlogsUtil {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailEntryUpdatedSubject");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -234,7 +236,7 @@ public class BlogsUtil {
 			return String.valueOf(entryId);
 		}
 
-		title = title.trim().toLowerCase();
+		title = StringUtil.toLowerCase(title.trim());
 
 		if (Validator.isNull(title) || Validator.isNumber(title) ||
 			title.equals("rss")) {
@@ -243,17 +245,15 @@ public class BlogsUtil {
 		}
 		else {
 			title = FriendlyURLNormalizerUtil.normalize(
-				title, _URL_TITLE_REPLACE_CHARS);
+				title, _friendlyURLPattern);
 		}
 
 		return ModelHintsUtil.trimString(
 			BlogsEntry.class.getName(), "urlTitle", title);
 	}
 
-	private static final char[] _URL_TITLE_REPLACE_CHARS = new char[] {
-		'.', '/'
-	};
-
 	private static Log _log = LogFactoryUtil.getLog(BlogsUtil.class);
+
+	private static Pattern _friendlyURLPattern = Pattern.compile("[^a-z0-9_-]");
 
 }

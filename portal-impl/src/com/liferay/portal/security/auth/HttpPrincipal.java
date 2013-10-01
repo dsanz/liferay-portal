@@ -26,6 +26,9 @@ import java.io.Serializable;
  */
 public class HttpPrincipal implements Serializable {
 
+	public HttpPrincipal() {
+	}
+
 	public HttpPrincipal(String url) {
 		_url = url;
 	}
@@ -71,6 +74,10 @@ public class HttpPrincipal implements Serializable {
 
 	public void setCompanyId(long companyId) {
 		_companyId = companyId;
+	}
+
+	public void setPassword(String password) {
+		_password = password;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(HttpPrincipal.class);

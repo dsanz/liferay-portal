@@ -61,10 +61,8 @@ public class RangeFacet extends BaseFacet {
 			end = range[1];
 		}
 
-		String fieldName = getFieldName();
-
 		String rangeParam = GetterUtil.getString(
-			searchContext.getAttribute(fieldName));
+			searchContext.getAttribute(getFieldId()));
 
 		if (!isStatic() && Validator.isNotNull(rangeParam)) {
 			String[] range = RangeParserUtil.parserRange(rangeParam);
@@ -97,7 +95,7 @@ public class RangeFacet extends BaseFacet {
 		}
 
 		TermRangeQuery facetTermRangeQuery = TermRangeQueryFactoryUtil.create(
-			searchContext, fieldName, startString, endString, true, true);
+			searchContext, getFieldName(), startString, endString, true, true);
 
 		return BooleanClauseFactoryUtil.create(
 			searchContext, facetTermRangeQuery,

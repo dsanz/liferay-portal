@@ -366,6 +366,10 @@ public class AnnouncementsEntryPersistenceImpl extends BasePersistenceImpl<Annou
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AnnouncementsEntry> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1332,6 +1336,10 @@ public class AnnouncementsEntryPersistenceImpl extends BasePersistenceImpl<Annou
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AnnouncementsEntry> list = findByUuid_C(uuid, companyId,
 				count - 1, count, orderByComparator);
 
@@ -2295,6 +2303,10 @@ public class AnnouncementsEntryPersistenceImpl extends BasePersistenceImpl<Annou
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUserId(userId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AnnouncementsEntry> list = findByUserId(userId, count - 1, count,
 				orderByComparator);
 
@@ -3171,6 +3183,10 @@ public class AnnouncementsEntryPersistenceImpl extends BasePersistenceImpl<Annou
 	public AnnouncementsEntry fetchByC_C_Last(long classNameId, long classPK,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_C(classNameId, classPK);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<AnnouncementsEntry> list = findByC_C(classNameId, classPK,
 				count - 1, count, orderByComparator);
@@ -4111,6 +4127,10 @@ public class AnnouncementsEntryPersistenceImpl extends BasePersistenceImpl<Annou
 		throws SystemException {
 		int count = countByC_C_A(classNameId, classPK, alert);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AnnouncementsEntry> list = findByC_C_A(classNameId, classPK,
 				alert, count - 1, count, orderByComparator);
 
@@ -4767,6 +4787,10 @@ public class AnnouncementsEntryPersistenceImpl extends BasePersistenceImpl<Annou
 	private static final String _FINDER_COLUMN_C_C_A_CLASSNAMEID_2 = "announcementsEntry.classNameId = ? AND ";
 	private static final String _FINDER_COLUMN_C_C_A_CLASSPK_2 = "announcementsEntry.classPK = ? AND ";
 	private static final String _FINDER_COLUMN_C_C_A_ALERT_2 = "announcementsEntry.alert = ?";
+
+	public AnnouncementsEntryPersistenceImpl() {
+		setModelClass(AnnouncementsEntry.class);
+	}
 
 	/**
 	 * Caches the announcements entry in the entity cache if it is enabled.

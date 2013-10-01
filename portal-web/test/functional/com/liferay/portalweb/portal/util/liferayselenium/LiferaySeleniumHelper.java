@@ -17,6 +17,7 @@ package com.liferay.portalweb.portal.util.liferayselenium;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portalweb.portal.BaseTestCase;
+import com.liferay.portalweb.portal.util.EmailCommands;
 import com.liferay.portalweb.portal.util.RuntimeVariables;
 import com.liferay.portalweb.portal.util.TestPropsValues;
 
@@ -39,7 +40,8 @@ public class LiferaySeleniumHelper {
 		liferaySelenium.assertElementPresent(locator);
 
 		if (liferaySelenium.isNotChecked(locator)) {
-			throw new Exception("Element is not checked at " + locator);
+			throw new Exception(
+				"Element is not checked at \"" + locator + "\"");
 		}
 	}
 
@@ -51,7 +53,8 @@ public class LiferaySeleniumHelper {
 
 		if (!pattern.equals(confirmation)) {
 			throw new Exception(
-				"Pattern " + pattern + " does not match " + confirmation);
+				"Pattern \"" + pattern + "\" does not match \"" + confirmation +
+					"\"");
 		}
 	}
 
@@ -60,7 +63,7 @@ public class LiferaySeleniumHelper {
 		throws Exception {
 
 		if (liferaySelenium.isElementPresent(locator)) {
-			throw new Exception("Element is present at " + locator);
+			throw new Exception("Element is present at \"" + locator + "\"");
 		}
 	}
 
@@ -69,8 +72,25 @@ public class LiferaySeleniumHelper {
 		throws Exception {
 
 		if (liferaySelenium.isElementNotPresent(locator)) {
-			throw new Exception("Element is not present at " + locator);
+			throw new Exception(
+				"Element is not present at \"" + locator + "\"");
 		}
+	}
+
+	public static void assertEmailContent(
+			LiferaySelenium liferaySelenium, String index, String content)
+		throws Exception {
+
+		BaseTestCase.assertEquals(
+			content, liferaySelenium.getEmailContent(index));
+	}
+
+	public static void assertEmailSubject(
+			LiferaySelenium liferaySelenium, String index, String subject)
+		throws Exception {
+
+		BaseTestCase.assertEquals(
+			subject, liferaySelenium.getEmailSubject(index));
 	}
 
 	public static void assertLocation(
@@ -92,7 +112,7 @@ public class LiferaySeleniumHelper {
 		liferaySelenium.assertElementPresent(locator);
 
 		if (liferaySelenium.isChecked(locator)) {
-			throw new Exception("Element is checked at " + locator);
+			throw new Exception("Element is checked at \"" + locator + "\"");
 		}
 	}
 
@@ -112,7 +132,8 @@ public class LiferaySeleniumHelper {
 			String text = liferaySelenium.getText(locator);
 
 			throw new Exception(
-				text + " contains " + pattern + " at " + locator);
+				"\"" + text + "\" contains \"" + pattern + "\" at \"" +
+					locator + "\"");
 		}
 	}
 
@@ -127,8 +148,8 @@ public class LiferaySeleniumHelper {
 			String text = liferaySelenium.getSelectedLabel(selectLocator);
 
 			throw new Exception(
-				"Pattern " + pattern + " matches " + text + " at " +
-					selectLocator);
+				"Pattern \"" + pattern + "\" matches \"" + text + "\" at \"" +
+					selectLocator + "\"");
 		}
 	}
 
@@ -142,7 +163,8 @@ public class LiferaySeleniumHelper {
 			String text = liferaySelenium.getText(locator);
 
 			throw new Exception(
-				"Pattern " + pattern + " matches " + text + " at " + locator);
+				"Pattern \"" + pattern + "\" matches \"" + text + "\" at \"" +
+					locator + "\"");
 		}
 	}
 
@@ -156,7 +178,8 @@ public class LiferaySeleniumHelper {
 			String value = liferaySelenium.getValue(locator);
 
 			throw new Exception(
-				"Pattern " + pattern + " matches " + value + " at " + locator);
+				"Pattern \"" + pattern + "\" matches \"" + value + "\" at \"" +
+					locator + "\"");
 		}
 	}
 
@@ -167,7 +190,7 @@ public class LiferaySeleniumHelper {
 		liferaySelenium.assertElementPresent(locator);
 
 		if (liferaySelenium.isVisible(locator)) {
-			throw new Exception("Element is visible at " + locator);
+			throw new Exception("Element is visible at \"" + locator + "\"");
 		}
 	}
 
@@ -181,7 +204,8 @@ public class LiferaySeleniumHelper {
 			String text = liferaySelenium.getText(locator);
 
 			throw new Exception(
-				text + " does not contain " + pattern + " at " + locator);
+				"\"" + text + "\" does not contain \"" + pattern + "\" at \"" +
+					locator + "\"");
 		}
 	}
 
@@ -196,8 +220,8 @@ public class LiferaySeleniumHelper {
 			String text = liferaySelenium.getSelectedLabel(selectLocator);
 
 			throw new Exception(
-				"Pattern " + pattern + " does not match " + text + " at " +
-					selectLocator);
+				"Pattern \"" + pattern + "\" does not match \"" + text +
+					"\" at \"" + selectLocator + "\"");
 		}
 	}
 
@@ -211,8 +235,8 @@ public class LiferaySeleniumHelper {
 			String text = liferaySelenium.getText(locator);
 
 			throw new Exception(
-				"Pattern " + pattern + " does not match " + text + " at " +
-					locator);
+				"Pattern \"" + pattern + "\" does not match \"" + text +
+					"\" at \"" + locator + "\"");
 		}
 	}
 
@@ -221,7 +245,7 @@ public class LiferaySeleniumHelper {
 		throws Exception {
 
 		if (liferaySelenium.isTextPresent(pattern)) {
-			throw new Exception(pattern + " is present");
+			throw new Exception("\"" + pattern + "\" is present");
 		}
 	}
 
@@ -230,7 +254,7 @@ public class LiferaySeleniumHelper {
 		throws Exception {
 
 		if (liferaySelenium.isTextNotPresent(pattern)) {
-			throw new Exception(pattern + " is not present");
+			throw new Exception("\"" + pattern + "\" is not present");
 		}
 	}
 
@@ -244,8 +268,8 @@ public class LiferaySeleniumHelper {
 			String value = liferaySelenium.getValue(locator);
 
 			throw new Exception(
-				"Pattern " + pattern + " does not match " + value + " at " +
-					locator);
+				"Pattern \"" + pattern + "\" does not match \"" + value +
+					"\" at \"" + locator + "\"");
 		}
 	}
 
@@ -256,8 +280,20 @@ public class LiferaySeleniumHelper {
 		liferaySelenium.assertElementPresent(locator);
 
 		if (liferaySelenium.isNotVisible(locator)) {
-			throw new Exception("Element is not visible at " + locator);
+			throw new Exception(
+				"Element is not visible at \"" + locator + "\"");
 		}
+	}
+
+	public static void connectToEmailAccount(
+			String emailAddress, String emailPassword)
+		throws Exception {
+
+		EmailCommands.connectToEmailAccount(emailAddress, emailPassword);
+	}
+
+	public static void deleteAllEmails() throws Exception {
+		EmailCommands.deleteAllEmails();
 	}
 
 	public static void echo(String message) {
@@ -266,6 +302,14 @@ public class LiferaySeleniumHelper {
 
 	public static void fail(String message) {
 		BaseTestCase.fail(message);
+	}
+
+	public static String getEmailContent(String index) throws Exception {
+		return EmailCommands.getEmailContent(GetterUtil.getInteger(index));
+	}
+
+	public static String getEmailSubject(String index) throws Exception {
+		return EmailCommands.getEmailSubject(GetterUtil.getInteger(index));
 	}
 
 	public static String getNumberDecrement(String value) {
@@ -330,6 +374,25 @@ public class LiferaySeleniumHelper {
 		Thread.sleep(GetterUtil.getInteger(waitTime));
 	}
 
+	public static void replyToEmail(
+			LiferaySelenium liferaySelenium, String to, String content)
+		throws Exception {
+
+		EmailCommands.replyToEmail(to, content);
+
+		liferaySelenium.pause("3000");
+	}
+
+	public static void sendEmail(
+			LiferaySelenium liferaySelenium, String to, String subject,
+			String content)
+		throws Exception {
+
+		EmailCommands.sendEmail(to, subject, content);
+
+		liferaySelenium.pause("3000");
+	}
+
 	public static void typeFrame(
 		LiferaySelenium liferaySelenium, String locator, String value) {
 
@@ -337,7 +400,8 @@ public class LiferaySeleniumHelper {
 
 		value = value.replace("\\", "\\\\");
 
-		liferaySelenium.runScript("document.body.innerHTML = '" + value + "'");
+		liferaySelenium.runScript(
+			"document.body.innerHTML = \"" + value + "\"");
 
 		liferaySelenium.selectFrame("relative=top");
 	}

@@ -75,18 +75,11 @@ if (step == 1) {
 
 			<liferay-ui:search-container
 				searchContainer="<%= new OrganizationSearch(renderRequest, portletURL) %>"
+				total="<%= organizations.size() %>"
 			>
-				<liferay-ui:search-container-results>
-
-					<%
-					total = organizations.size();
-					results = ListUtil.subList(organizations, searchContainer.getStart(), searchContainer.getEnd());
-
-					pageContext.setAttribute("results", results);
-					pageContext.setAttribute("total", total);
-					%>
-
-				</liferay-ui:search-container-results>
+				<liferay-ui:search-container-results
+					results="<%= ListUtil.subList(organizations, searchContainer.getStart(), searchContainer.getEnd()) %>"
+				/>
 
 				<liferay-ui:search-container-row
 					className="com.liferay.portal.model.Organization"
@@ -235,15 +228,20 @@ if (step == 1) {
 						roles = UsersAdminUtil.filterGroupRoles(permissionChecker, organization.getGroup().getGroupId(), roles);
 
 						total = roles.size();
+
+						searchContainer.setTotal(total);
+
 						results = ListUtil.subList(roles, searchContainer.getStart(), searchContainer.getEnd());
 					}
 					else {
-						results = RoleLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), new Integer[] {RoleConstants.TYPE_ORGANIZATION}, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
 						total = RoleLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getKeywords(), new Integer[] {RoleConstants.TYPE_ORGANIZATION});
+
+						searchContainer.setTotal(total);
+
+						results = RoleLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), new Integer[] {RoleConstants.TYPE_ORGANIZATION}, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
 					}
 
-					pageContext.setAttribute("results", results);
-					pageContext.setAttribute("total", total);
+					searchContainer.setResults(results);
 					%>
 
 				</liferay-ui:search-container-results>
@@ -267,8 +265,8 @@ if (step == 1) {
 							<%
 							Map<String, Object> data = new HashMap<String, Object>();
 
-							data.put("groupid", organization.getGroup().getGroupId());
-							data.put("groupname", HtmlUtil.escapeAttribute(organization.getGroup().getDescriptiveName(locale)));
+							data.put("groupdescriptivename", HtmlUtil.escapeAttribute(organization.getGroup().getDescriptiveName(locale)));
+							data.put("groupid", organization.getGroupId());
 							data.put("roleid", role.getRoleId());
 							data.put("roletitle", HtmlUtil.escapeAttribute(role.getTitle(locale)));
 							data.put("searchcontainername", "organizationRoles");
@@ -281,10 +279,6 @@ if (step == 1) {
 
 				<liferay-ui:search-iterator />
 			</liferay-ui:search-container>
-
-			<aui:script>
-				Liferay.Util.focusFormField(document.<portlet:namespace />selectOrganizationRoleFm.<portlet:namespace />name);
-			</aui:script>
 		</c:when>
 	</c:choose>
 </aui:form>

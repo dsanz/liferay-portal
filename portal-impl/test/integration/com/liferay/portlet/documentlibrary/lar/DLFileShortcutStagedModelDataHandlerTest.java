@@ -14,7 +14,6 @@
 
 package com.liferay.portlet.documentlibrary.lar;
 
-import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
@@ -25,6 +24,12 @@ import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.TransactionalExecutionTestListener;
+import com.liferay.portlet.asset.model.AssetCategory;
+import com.liferay.portlet.asset.model.AssetEntry;
+import com.liferay.portlet.asset.model.AssetVocabulary;
+import com.liferay.portlet.asset.service.AssetCategoryLocalServiceUtil;
+import com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil;
+import com.liferay.portlet.asset.service.AssetVocabularyLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
@@ -112,21 +117,33 @@ public class DLFileShortcutStagedModelDataHandlerTest
 	}
 
 	@Override
-	protected String getStagedModelPath(long groupId, StagedModel stagedModel) {
-		if (stagedModel instanceof FileEntry) {
-			FileEntry fileEntry = (FileEntry)stagedModel;
+	protected void validateAssets(
+			String classUuid, StagedModelAssets stagedModelAssets, Group group)
+		throws Exception {
 
-			return ExportImportPathUtil.getModelPath(
-				groupId, FileEntry.class.getName(), fileEntry.getFileEntryId());
-		}
-		else if (stagedModel instanceof Folder) {
-			Folder folder = (Folder)stagedModel;
+		AssetEntry assetEntry = AssetEntryLocalServiceUtil.getEntry(
+			group.getGroupId(), classUuid);
 
-			return ExportImportPathUtil.getModelPath(
-				groupId, Folder.class.getName(), folder.getFolderId());
-		}
+		List<AssetCategory> assetCategories =
+			AssetCategoryLocalServiceUtil.getEntryCategories(
+				assetEntry.getEntryId());
 
-		return super.getStagedModelPath(groupId, stagedModel);
+		Assert.assertEquals(1, assetCategories.size());
+
+		AssetCategory assetCategory = stagedModelAssets.getAssetCategory();
+		AssetCategory importedAssetCategory = assetCategories.get(0);
+
+		Assert.assertEquals(
+			assetCategory.getUuid(), importedAssetCategory.getUuid());
+
+		AssetVocabulary assetVocabulary =
+			stagedModelAssets.getAssetVocabulary();
+		AssetVocabulary importedAssetVocabulary =
+			AssetVocabularyLocalServiceUtil.getVocabulary(
+				importedAssetCategory.getVocabularyId());
+
+		Assert.assertEquals(
+			assetVocabulary.getUuid(), importedAssetVocabulary.getUuid());
 	}
 
 	@Override

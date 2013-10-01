@@ -1,14 +1,10 @@
 <definition>
 	<command name="addCP">
-		<execute macro="Page#cpGotoContent">
-			<var name="portletName" value="Web Content" />
-		</execute>
-
-		<execute action="CPWebcontent#click" locator-key1="TOOLBAR_MANAGE" />
-		<execute action="CPWebcontent#click" locator-key1="MANAGE_MENULIST_STRUCTURES" />
+		<execute action="CPWebcontent#assertClick" locator-key1="TOOLBAR_MANAGE" value1="Manage" />
+		<execute action="CPWebcontent#assertClick" locator-key1="MANAGE_MENULIST_STRUCTURES" value1="Structures" />
 
 		<execute action="CPWebcontentStructures#selectFrame" locator-key1="STRUCTURES_IFRAME" />
-		<execute action="CPWebcontentStructures#click" locator-key1="ADD" />
+		<execute action="CPWebcontentStructures#assertClick" locator-key1="ADD" value1="Add" />
 		<execute action="CPWebcontentStructures#selectFrame" />
 
 		<execute action="CPWebcontentStructuresAddstructure#selectFrame" locator-key1="STRUCTURES_IFRAME" />
@@ -17,33 +13,57 @@
 		<execute macro="CPWebcontentStructuresAddstructure#showDetails" />
 
 		<execute action="CPWebcontentStructuresAddstructure#type" locator-key1="DESCRIPTION_FIELD" value1="${structureDescription}" />
-		<execute action="CPWebcontentStructuresAddstructure#dragAndDrop" locator-key1="FIELD_MENU_TEXT" value1="Text" locator-key2="DIAGRAM_BUILDER_DROP_CONTAINER" />
-		<execute action="CPWebcontentStructuresAddstructure#click" locator-key1="SAVE_BUTTON" />
+
+		<execute macro="WebContentStructures#addFieldCmdCP">
+			<var name="structureFieldName" value="${structureFieldName}" />
+			<var name="structureFieldNameLabel" value="${structureFieldNameLabel}" />
+			<var name="structureFormFieldKey" value="${structureFormFieldKey}" />
+		</execute>
+
+		<execute action="CPWebcontentStructuresAddstructure#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
 		<execute action="CPWebcontentStructuresAddstructure#selectFrame" />
 
 		<execute action="CPWebcontentStructuresAddstructure#selectFrame" locator-key1="STRUCTURES_IFRAME" />
-		<execute action="CPWebcontentStructures#assertTextEquals" locator-key1="SUCCESS_MESSAGE" />
-		<execute action="CPWebcontentStructures#assertTextEquals" locator-key1="STRUCTURE_TABLE_NAME_1" value1="${structureName}" />
-		<execute action="CPWebcontentStructures#assertTextEquals" locator-key1="STRUCTURE_TABLE_DESCRIPTION_1" value1="${structureDescription}" />
+		<execute action="CPWebcontentStructures#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+
+		<var name="key_structureName" value="${structureName}" />
+
+		<execute action="CPWebcontentStructures#assertTextEquals" locator-key1="STRUCTURE_TABLE_NAME" value1="${structureName}" />
+		<execute action="CPWebcontentStructures#assertTextEquals" locator-key1="STRUCTURE_TABLE_DESCRIPTION" value1="${structureDescription}" />
+	</command>
+
+	<command name="addFieldCmdCP">
+		<var name="structureFieldNameLabel" value="${structureFieldName?replace(' ', '_')}" />
+		<var name="structureFieldNameLabel" value="${structureFieldName?lowercase()}" />
+		<var name="key_structureFieldName" value="${structureFieldName}" />
+
+		<execute action="CPWebcontentStructuresAddstructure#dragAndDrop" locator-key1="FIELD_MENU_NAME" locator-key2="DIAGRAM_BUILDER_DROP_CONTAINER" value1="${structureFieldName}" />
+		<execute action="CPWebcontentStructuresAddstructure#click" locator-key1="${structureFormFieldKey}" />
+		<execute action="CPWebcontentStructuresAddstructure#doubleClick" locator-key1="SETTINGS_MENU_NAME" />
+		<execute action="CPWebcontentStructuresAddstructure#type" locator-key1="SETTINGS_CELL_EDITOR_FIELD" value1="${structureFieldNameLabel}" />
+		<execute action="CPWebcontentStructuresAddstructure#assertClick" locator-key1="SETTINGS_CELL_EDITOR_SAVE_BUTTON" value1="Save" />
+		<execute action="CPWebcontentStructuresAddstructure#assertTextEquals" locator-key1="SETTINGS_MENU_NAME" value1="${structureFieldNameLabel}" />
+		<execute action="CPWebcontentStructuresAddstructure#assertClick" locator-key1="FIELD_MENU_LINK" value1="Fields" />
+		<execute action="CPWebcontentStructuresAddstructure#click" locator-key1="NAME_FIELD" />
 	</command>
 
 	<command name="tearDownCP">
-		<execute macro="Page#cpGotoContent">
+		<execute macro="Page#gotoContentCP">
 			<var name="portletName" value="Web Content" />
 		</execute>
 
-		<execute action="CPWebcontent#click" locator-key1="TOOLBAR_MANAGE" />
-		<execute action="CPWebcontent#click" locator-key1="MANAGE_MENULIST_STRUCTURES" />
+		<execute action="CPWebcontent#click" locator-key1="TOOLBAR_MANAGE" value1="Manage" />
+		<execute action="CPWebcontent#assertClick" locator-key1="MANAGE_MENULIST_STRUCTURES" value1="Structures" />
 
 		<execute action="CPWebcontentStructures#selectFrame" locator-key1="STRUCTURES_IFRAME" />
 
 		<while>
-			<condition action="CPWebcontentStructures#isElementPresent" locator-key1="STRUCTURE_TABLE_ACTIONS_1" />
+			<condition action="CPWebcontentStructures#isElementPresent" locator-key1="STRUCTURE_TABLE_ACTIONS_GENERIC" />
 			<then>
 				<execute action="CPWebcontentStructures#check" locator-key1="STRUCTURE_TABLE_SELECT_ALL_CHECKBOX" />
-				<execute action="CPWebcontentStructures#click" locator-key1="DELETE_BUTTON" />
+				<execute action="CPWebcontentStructures#click" locator-key1="DELETE_BUTTON" value1="Delete" />
 				<execute action="CPWebcontentStructures#confirm" value1="Are you sure you want to delete this? It will be deleted immediately." />
-				<execute action="CPWebcontentStructures#assertTextEquals" locator-key1="SUCCESS_MESSAGE" />
+				<execute action="CPWebcontentStructures#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
 			</then>
 		</while>
 

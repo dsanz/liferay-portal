@@ -61,7 +61,7 @@ refererURL.setParameter("updateLayout", "true");
 				<div class="lfr-add-content">
 					<liferay-ui:panel collapsible="<%= layout.isTypePortlet() %>" cssClass="lfr-content-category lfr-component panel-page-category" extended="<%= true %>" id="<%= panelId %>" persistState="<%= true %>" title='<%= LanguageUtil.get(pageContext, "highlighted") %>'>
 
-						<aui:nav cssClass="nav-list">
+						<aui:nav collapsible="<%= false %>" cssClass="nav-list">
 
 							<%
 							for (Portlet portlet : portlets) {
@@ -84,18 +84,23 @@ refererURL.setParameter("updateLayout", "true");
 								data.put("portlet-id", portlet.getPortletId());
 								data.put("title", PortalUtil.getPortletTitle(portlet, application, locale));
 
-								String cssClass = "lfr-content-item";
+								String cssClass = "drag-content-item";
 
 								if (portletLocked) {
 									cssClass += " lfr-portlet-used";
 								}
 							%>
 
-							<aui:nav-item cssClass='<%= cssClass %>'
-								data='<%= data %>'
-								href=""
-								iconClass='<%= portletInstanceable ? "icon-th-large" : "icon-stop" %>'
-								label="<%= PortalUtil.getPortletTitle(portlet, application, locale) %>">
+							<aui:nav-item cssClass="lfr-content-item" href="">
+								<span <%= AUIUtil.buildData(data) %> class="<%= cssClass %>">
+									<icon class="<%= portletInstanceable ? "icon-th-large" : "icon-stop" %>"></icon>
+
+									<liferay-ui:message key="<%= PortalUtil.getPortletTitle(portlet, application, locale) %>" />
+								</span>
+
+								<%
+								data.remove("draggable");
+								%>
 
 								<span <%= AUIUtil.buildData(data) %> class='add-content-item <%= portletLocked ? "lfr-portlet-used" : StringPool.BLANK %>'>
 									<liferay-ui:message key="add" />
@@ -118,13 +123,9 @@ refererURL.setParameter("updateLayout", "true");
 			</c:if>
 
 			<%
-			UnicodeProperties typeSettingsProperties = layout.getTypeSettingsProperties();
-
-			Set panelSelectedPortlets = SetUtil.fromArray(StringUtil.split(typeSettingsProperties.getProperty("panelSelectedPortlets")));
-
 			PortletCategory portletCategory = (PortletCategory)WebAppPool.get(company.getCompanyId(), WebKeys.PORTLET_CATEGORY);
 
-			portletCategory = _getRelevantPortletCategory(permissionChecker, portletCategory, panelSelectedPortlets, layoutTypePortlet, layout, user);
+			portletCategory = PortletCategoryUtil.getRelevantPortletCategory(permissionChecker, user.getCompanyId(), layout, portletCategory, layoutTypePortlet);
 
 			List<PortletCategory> categories = ListUtil.fromCollection(portletCategory.getCategories());
 
@@ -151,7 +152,16 @@ refererURL.setParameter("updateLayout", "true");
 		</liferay-ui:panel-container>
 
 		<c:if test="<%= layout.isTypePortlet() %>">
-			<div class="alert alert-info">
+			<ul class="lfr-add-apps-legend nav-list unstyled">
+				<li>
+					<aui:icon image="stop" label="can-be-added-once" />
+				</li>
+				<li>
+					<aui:icon image="th-large" label="can-be-added-several-times" />
+				</li>
+			</ul>
+
+			<div class="alert alert-info lfr-drag-portlet-message">
 				<liferay-ui:message key="to-add-a-portlet-to-the-page-just-drag-it" />
 			</div>
 		</c:if>
@@ -165,67 +175,40 @@ refererURL.setParameter("updateLayout", "true");
 			%>
 
 			<p class="lfr-install-more">
-				<aui:a href='<%= HttpUtil.removeParameter(marketplaceURL.toString(), "controlPanelCategory") %>' label="install-more-applications" />
+				<aui:a cssClass="btn btn-primary" href='<%= HttpUtil.removeParameter(marketplaceURL.toString(), "controlPanelCategory") %>' label="install-more-applications" />
 			</p>
 		</c:if>
 	</div>
 </aui:form>
 
-<%!
-private static PortletCategory _getRelevantPortletCategory(PermissionChecker permissionChecker, PortletCategory portletCategory, Set panelSelectedPortlets, LayoutTypePortlet layoutTypePortlet, Layout layout, User user) throws Exception {
-	PortletCategory relevantPortletCategory = new PortletCategory(portletCategory.getName(), portletCategory.getPortletIds());
+<aui:script use="liferay-dockbar-add-application,liferay-dockbar-portlet-dd">
+	var searchApplication = A.one('#<portlet:namespace />searchApplication');
 
-	for (PortletCategory curPortletCategory : portletCategory.getCategories()) {
-		Set<String> portletIds = new HashSet<String>();
-
-		if (curPortletCategory.isHidden()) {
-			continue;
-		}
-
-		for (String portletId : curPortletCategory.getPortletIds()) {
-			Portlet portlet = PortletLocalServiceUtil.getPortletById(user.getCompanyId(), portletId);
-
-			if (portlet != null) {
-				if (portlet.isSystem()) {
-				}
-				else if (!portlet.isActive() || portlet.isUndeployedPortlet()) {
-				}
-				else if (layout.isTypePanel() && panelSelectedPortlets.contains(portlet.getRootPortletId())) {
-					portletIds.add(portlet.getPortletId());
-				}
-				else if (layout.isTypePanel() && !panelSelectedPortlets.contains(portlet.getRootPortletId())) {
-				}
-				else if (!PortletPermissionUtil.contains(permissionChecker, layout, portlet, ActionKeys.ADD_TO_PAGE)) {
-				}
-				else if (!portlet.isInstanceable() && layoutTypePortlet.hasPortletId(portlet.getPortletId())) {
-					portletIds.add(portlet.getPortletId());
-				}
-				else {
-					portletIds.add(portlet.getPortletId());
-				}
-			}
-		}
-
-		PortletCategory curRelevantPortletCategory = _getRelevantPortletCategory(permissionChecker, curPortletCategory, panelSelectedPortlets, layoutTypePortlet, layout, user);
-
-		curRelevantPortletCategory.setPortletIds(portletIds);
-
-		if (!curRelevantPortletCategory.getCategories().isEmpty() || !portletIds.isEmpty()) {
-			relevantPortletCategory.addCategory(curRelevantPortletCategory);
-		}
-	}
-
-	return relevantPortletCategory;
-}
-%>
-
-<aui:script use="liferay-dockbar-add-application">
-	new Liferay.Dockbar.AddApplication(
+	var addApplication = new Liferay.Dockbar.AddApplication(
 		{
-			inputNode: A.one('#<portlet:namespace />searchApplication'),
+			focusItem: searchApplication,
+			inputNode: searchApplication,
 			namespace: '<portlet:namespace />',
 			nodeList: A.one('#<portlet:namespace />applicationList'),
-			nodeSelector: '.lfr-content-item'
+			nodeSelector: '.drag-content-item',
+			selected: !A.one('#<portlet:namespace />addApplicationForm').ancestor().hasClass('hide')
+		}
+	);
+
+	addApplication.plug(
+		Liferay.Dockbar.PortletDragDrop,
+		{
+			on: {
+				dragEnd: function(event) {
+					addApplication.addPortlet(
+						event.portletNode,
+						{
+							item: event.appendNode
+						}
+					);
+				}
+			},
+			srcNode: '#<portlet:namespace />applicationList'
 		}
 	);
 </aui:script>

@@ -54,6 +54,7 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 	function <portlet:namespace />emptyCart() {
 		document.<portlet:namespace />fm.<portlet:namespace />itemIds.value = "";
 		document.<portlet:namespace />fm.<portlet:namespace />couponCodes.value = "";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
@@ -82,6 +83,7 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 		%>
 
 		document.<portlet:namespace />fm.<portlet:namespace />itemIds.value = itemIds;
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 </aui:script>
@@ -396,13 +398,16 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 		%>
 
 		<aui:field-wrapper label="subtotal">
-			<c:if test="<%= subtotal == actualSubtotal %>">
-				<%= currencyFormat.format(subtotal) %>
-			</c:if>
-
-			<c:if test="<%= subtotal != actualSubtotal %>">
-				<strike><%= currencyFormat.format(subtotal) %></strike> <div class="alert alert-success"><%= currencyFormat.format(actualSubtotal) %></div>
-			</c:if>
+			<c:choose>
+				<c:when test="<%= subtotal == actualSubtotal %>">
+					<liferay-ui:input-resource url="<%= currencyFormat.format(subtotal) %>" />
+				</c:when>
+				<c:otherwise>
+					<div class="alert alert-success">
+						<strike><%= currencyFormat.format(subtotal) %></strike> <%= currencyFormat.format(actualSubtotal) %>
+					</div>
+				</c:otherwise>
+			</c:choose>
 		</aui:field-wrapper>
 
 		<c:if test="<%= subtotal != actualSubtotal %>">
@@ -416,7 +421,7 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 		<c:choose>
 			<c:when test="<%= !shoppingPrefs.useAlternativeShipping() %>">
 				<aui:field-wrapper label="shipping">
-					<%= currencyFormat.format(ShoppingUtil.calculateShipping(items)) %>
+					<liferay-ui:input-resource url="<%= currencyFormat.format(ShoppingUtil.calculateShipping(items)) %>" />
 				</aui:field-wrapper>
 			</c:when>
 			<c:otherwise>

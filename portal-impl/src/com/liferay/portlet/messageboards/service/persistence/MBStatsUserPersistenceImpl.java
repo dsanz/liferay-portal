@@ -341,6 +341,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBStatsUser> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -824,6 +828,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	public MBStatsUser fetchByUserId_Last(long userId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUserId(userId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<MBStatsUser> list = findByUserId(userId, count - 1, count,
 				orderByComparator);
@@ -1578,6 +1586,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 		throws SystemException {
 		int count = countByG_NotU_NotM(groupId, userId, messageCount);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBStatsUser> list = findByG_NotU_NotM(groupId, userId,
 				messageCount, count - 1, count, orderByComparator);
 
@@ -1829,6 +1841,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	private static final String _FINDER_COLUMN_G_NOTU_NOTM_GROUPID_2 = "mbStatsUser.groupId = ? AND ";
 	private static final String _FINDER_COLUMN_G_NOTU_NOTM_USERID_2 = "mbStatsUser.userId != ? AND ";
 	private static final String _FINDER_COLUMN_G_NOTU_NOTM_MESSAGECOUNT_2 = "mbStatsUser.messageCount != ?";
+
+	public MBStatsUserPersistenceImpl() {
+		setModelClass(MBStatsUser.class);
+	}
 
 	/**
 	 * Caches the message boards stats user in the entity cache if it is enabled.

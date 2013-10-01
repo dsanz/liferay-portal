@@ -340,6 +340,10 @@ public class AssetLinkPersistenceImpl extends BasePersistenceImpl<AssetLink>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByE1(entryId1);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AssetLink> list = findByE1(entryId1, count - 1, count,
 				orderByComparator);
 
@@ -821,6 +825,10 @@ public class AssetLinkPersistenceImpl extends BasePersistenceImpl<AssetLink>
 	public AssetLink fetchByE2_Last(long entryId2,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByE2(entryId2);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<AssetLink> list = findByE2(entryId2, count - 1, count,
 				orderByComparator);
@@ -1331,6 +1339,10 @@ public class AssetLinkPersistenceImpl extends BasePersistenceImpl<AssetLink>
 	public AssetLink fetchByE_E_Last(long entryId1, long entryId2,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByE_E(entryId1, entryId2);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<AssetLink> list = findByE_E(entryId1, entryId2, count - 1, count,
 				orderByComparator);
@@ -1855,6 +1867,10 @@ public class AssetLinkPersistenceImpl extends BasePersistenceImpl<AssetLink>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByE1_T(entryId1, type);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AssetLink> list = findByE1_T(entryId1, type, count - 1, count,
 				orderByComparator);
 
@@ -2376,6 +2392,10 @@ public class AssetLinkPersistenceImpl extends BasePersistenceImpl<AssetLink>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByE2_T(entryId2, type);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AssetLink> list = findByE2_T(entryId2, type, count - 1, count,
 				orderByComparator);
 
@@ -2870,6 +2890,10 @@ public class AssetLinkPersistenceImpl extends BasePersistenceImpl<AssetLink>
 	private static final String _FINDER_COLUMN_E_E_T_ENTRYID1_2 = "assetLink.entryId1 = ? AND ";
 	private static final String _FINDER_COLUMN_E_E_T_ENTRYID2_2 = "assetLink.entryId2 = ? AND ";
 	private static final String _FINDER_COLUMN_E_E_T_TYPE_2 = "assetLink.type = ?";
+
+	public AssetLinkPersistenceImpl() {
+		setModelClass(AssetLink.class);
+	}
 
 	/**
 	 * Caches the asset link in the entity cache if it is enabled.

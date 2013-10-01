@@ -16,10 +16,15 @@ package com.liferay.portal.repository.liferayrepository.model;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Lock;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
@@ -86,6 +91,25 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 
 		return DLFileEntryPermission.contains(
 			permissionChecker, _dlFileEntry, actionId);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof LiferayFileEntry)) {
+			return false;
+		}
+
+		LiferayFileEntry liferayFileEntry = (LiferayFileEntry)obj;
+
+		if (Validator.equals(_dlFileEntry, liferayFileEntry._dlFileEntry)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override
@@ -180,7 +204,16 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 
 	@Override
 	public Folder getFolder() {
-		return new LiferayFolder(_dlFileEntry.getFolder());
+		Folder folder = null;
+
+		try {
+			folder = new LiferayFolder(_dlFileEntry.getFolder());
+		}
+		catch (Exception e) {
+			return null;
+		}
+
+		return folder;
 	}
 
 	@Override
@@ -276,6 +309,11 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 	}
 
 	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(FileEntry.class);
+	}
+
+	@Override
 	public String getTitle() {
 		return _dlFileEntry.getTitle();
 	}
@@ -287,7 +325,7 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 
 	@Override
 	public String getUserName() {
-		return _dlFileEntry.getVersionUserName();
+		return _dlFileEntry.getUserName();
 	}
 
 	@Override
@@ -305,19 +343,66 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 		return _dlFileEntry.getVersion();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserId()}
+	 */
 	@Override
 	public long getVersionUserId() {
-		return _dlFileEntry.getVersionUserId();
+		long versionUserId = 0;
+
+		try {
+			DLFileVersion dlFileVersion = _dlFileEntry.getFileVersion();
+
+			versionUserId = dlFileVersion.getUserId();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return versionUserId;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserName()}
+	 */
 	@Override
 	public String getVersionUserName() {
-		return _dlFileEntry.getVersionUserName();
+		String versionUserName = StringPool.BLANK;
+
+		try {
+			DLFileVersion dlFileVersion = _dlFileEntry.getFileVersion();
+
+			versionUserName = dlFileVersion.getUserName();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return versionUserName;
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserUuid()}
+	 */
+	@Override
+	public String getVersionUserUuid() {
+		String versionUserUuid = StringPool.BLANK;
+
+		try {
+			DLFileVersion dlFileVersion = _dlFileEntry.getFileVersion();
+
+			versionUserUuid = dlFileVersion.getUserUuid();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return versionUserUuid;
 	}
 
 	@Override
-	public String getVersionUserUuid() throws SystemException {
-		return _dlFileEntry.getVersionUserUuid();
+	public int hashCode() {
+		return _dlFileEntry.hashCode();
 	}
 
 	@Override
@@ -343,6 +428,21 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 	@Override
 	public boolean isEscapedModel() {
 		return _escapedModel;
+	}
+
+	@Override
+	public boolean isInTrash() {
+		return _dlFileEntry.isInTrash();
+	}
+
+	@Override
+	public boolean isInTrashContainer() {
+		try {
+			return _dlFileEntry.isInTrashContainer();
+		}
+		catch (Exception e) {
+			return false;
+		}
 	}
 
 	@Override
@@ -442,6 +542,8 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 			return this;
 		}
 	}
+
+	private static Log _log = LogFactoryUtil.getLog(LiferayFileEntry.class);
 
 	private DLFileEntry _dlFileEntry;
 	private DLFileVersion _dlFileVersion;

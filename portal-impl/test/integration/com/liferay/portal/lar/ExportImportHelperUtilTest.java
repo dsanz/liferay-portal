@@ -41,10 +41,14 @@ import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.test.Sync;
+import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
 import com.liferay.portal.test.TransactionalExecutionTestListener;
 import com.liferay.portal.util.GroupTestUtil;
 import com.liferay.portal.util.LayoutTestUtil;
+import com.liferay.portal.util.PortalImpl;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
@@ -54,6 +58,9 @@ import com.liferay.portlet.journal.util.JournalTestUtil;
 
 import java.io.File;
 import java.io.InputStream;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -70,17 +77,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.powermock.api.mockito.PowerMockito;
+
 /**
  * @author Zsolt Berentey
  */
 @ExecutionTestListeners(
 	listeners = {
 		MainServletExecutionTestListener.class,
+		SynchronousDestinationExecutionTestListener.class,
 		TransactionalExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
+@Sync
 @Transactional
-public class ExportImportHelperUtilTest {
+public class ExportImportHelperUtilTest extends PowerMockito {
 
 	@Before
 	public void setUp() throws Exception {
@@ -116,6 +127,13 @@ public class ExportImportHelperUtilTest {
 
 		_portletDataContextExport.setExportDataRootElement(rootElement);
 
+		_stagingPrivateLayout = LayoutTestUtil.addLayout(
+			_stagingGroup.getGroupId(), ServiceTestUtil.randomString(), true);
+		_stagingPublicLayout = LayoutTestUtil.addLayout(
+			_stagingGroup.getGroupId(), ServiceTestUtil.randomString(), false);
+
+		_portletDataContextExport.setPlid(_stagingPublicLayout.getPlid());
+
 		_portletDataContextImport =
 			PortletDataContextFactoryUtil.createImportPortletDataContext(
 				_stagingGroup.getCompanyId(), _stagingGroup.getGroupId(),
@@ -124,6 +142,12 @@ public class ExportImportHelperUtilTest {
 				testReaderWriter);
 
 		_portletDataContextImport.setImportDataRootElement(rootElement);
+
+		_livePublicLayout = LayoutTestUtil.addLayout(
+			_liveGroup.getGroupId(), ServiceTestUtil.randomString(), false);
+
+		_portletDataContextImport.setPlid(_livePublicLayout.getPlid());
+
 		_portletDataContextImport.setSourceGroupId(_stagingGroup.getGroupId());
 
 		rootElement.addElement("entry");
@@ -175,7 +199,32 @@ public class ExportImportHelperUtilTest {
 	}
 
 	@Test
-	public void testExportLayoutReferences() throws Exception {
+	public void testExportLayoutReferencesWithContext() throws Exception {
+		PortalImpl portalImpl = spy(new PortalImpl());
+
+		when(
+			portalImpl.getPathContext()
+		).thenReturn(
+			"/de"
+		);
+
+		PortalUtil portalUtil = new PortalUtil();
+
+		portalUtil.setPortal(portalImpl);
+
+		_OLD_LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING =
+			PropsValues.LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING;
+
+		setFinalStaticField(
+			PropsValues.class.getField(
+				"LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING"),
+			"/en");
+
+		setFinalStaticField(
+			ExportImportHelperImpl.class.getDeclaredField(
+				"_PRIVATE_USER_SERVLET_MAPPING"),
+			"/en/");
+
 		Element rootElement =
 			_portletDataContextExport.getExportDataRootElement();
 
@@ -187,21 +236,76 @@ public class ExportImportHelperUtilTest {
 			rootElement.element("entry"), content, true);
 
 		Assert.assertFalse(
-			content.contains(PortalUtil.getPathFriendlyURLPrivateGroup()));
+			content.contains(
+				PropsValues.LAYOUT_FRIENDLY_URL_PRIVATE_GROUP_SERVLET_MAPPING));
 		Assert.assertFalse(
-			content.contains(PortalUtil.getPathFriendlyURLPrivateUser()));
-		Assert.assertFalse(
-			content.contains(PortalUtil.getPathFriendlyURLPublic()));
+			content.contains(
+				PropsValues.LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING));
 		Assert.assertFalse(content.contains(_stagingGroup.getFriendlyURL()));
+		Assert.assertFalse(content.contains(PortalUtil.getPathContext()));
+		Assert.assertFalse(content.contains("/en/en"));
+
+		setFinalStaticField(
+			PropsValues.class.getDeclaredField(
+				"LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING"),
+			_OLD_LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING);
+
+		setFinalStaticField(
+			ExportImportHelperImpl.class.getDeclaredField(
+				"_PRIVATE_USER_SERVLET_MAPPING"),
+			PropsValues.LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING +
+				StringPool.SLASH);
+
+		portalUtil.setPortal(new PortalImpl());
+	}
+
+	@Test
+	public void testExportLayoutReferencesWithoutContext() throws Exception {
+		_OLD_LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING =
+			PropsValues.LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING;
+
+		setFinalStaticField(
+			PropsValues.class.getField(
+				"LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING"),
+			"/en");
+
+		setFinalStaticField(
+			ExportImportHelperImpl.class.getDeclaredField(
+				"_PRIVATE_USER_SERVLET_MAPPING"), "/en/");
+
+		Element rootElement =
+			_portletDataContextExport.getExportDataRootElement();
+
+		String content = replaceParameters(
+			getContent("layout_references.txt"), _fileEntry);
+
+		content = ExportImportHelperUtil.replaceExportContentReferences(
+			_portletDataContextExport, _referrerStagedModel,
+			rootElement.element("entry"), content, true);
+
+		Assert.assertFalse(
+			content.contains(
+				PropsValues.LAYOUT_FRIENDLY_URL_PRIVATE_GROUP_SERVLET_MAPPING));
+		Assert.assertFalse(
+			content.contains(
+				PropsValues.LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING));
+		Assert.assertFalse(content.contains(_stagingGroup.getFriendlyURL()));
+		Assert.assertFalse(content.contains("/en/en"));
+
+		setFinalStaticField(
+			PropsValues.class.getDeclaredField(
+				"LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING"),
+			_OLD_LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING);
+
+		setFinalStaticField(
+			ExportImportHelperImpl.class.getDeclaredField(
+				"_PRIVATE_USER_SERVLET_MAPPING"),
+			PropsValues.LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING +
+				StringPool.SLASH);
 	}
 
 	@Test
 	public void testExportLinksToLayouts() throws Exception {
-		Layout publicLayout = LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), ServiceTestUtil.randomString(), false);
-		Layout privateLayout = LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), ServiceTestUtil.randomString(), true);
-
 		Element rootElement =
 			_portletDataContextExport.getExportDataRootElement();
 
@@ -215,9 +319,9 @@ public class ExportImportHelperUtilTest {
 		StringBundler sb = new StringBundler(5);
 
 		sb.append("[1@private-group@");
-		sb.append(privateLayout.getUuid());
+		sb.append(_stagingPrivateLayout.getUuid());
 		sb.append(StringPool.AT);
-		sb.append(privateLayout.getFriendlyURL());
+		sb.append(_stagingPrivateLayout.getFriendlyURL());
 		sb.append(StringPool.CLOSE_BRACKET);
 
 		Assert.assertTrue(content.contains(sb.toString()));
@@ -225,9 +329,9 @@ public class ExportImportHelperUtilTest {
 		sb.setIndex(0);
 
 		sb.append("[1@public@");
-		sb.append(publicLayout.getUuid());
+		sb.append(_stagingPublicLayout.getUuid());
 		sb.append(StringPool.AT);
-		sb.append(publicLayout.getFriendlyURL());
+		sb.append(_stagingPublicLayout.getFriendlyURL());
 		sb.append(StringPool.CLOSE_BRACKET);
 
 		Assert.assertTrue(content.contains(sb.toString()));
@@ -269,22 +373,18 @@ public class ExportImportHelperUtilTest {
 			_portletDataContextExport, entryElement, content, true);
 
 		Assert.assertFalse(
+			content.contains("@data_handler_group_friendly_url@"));
+		Assert.assertFalse(content.contains("@data_handler_path_context@"));
+		Assert.assertFalse(
 			content.contains("@data_handler_private_group_servlet_mapping@"));
 		Assert.assertFalse(
 			content.contains("@data_handler_private_user_servlet_mapping@"));
 		Assert.assertFalse(
 			content.contains("@data_handler_public_servlet_mapping@"));
-		Assert.assertFalse(
-			content.contains("@data_handler_group_friendly_url@"));
 	}
 
 	@Test
 	public void testImportLinksToLayouts() throws Exception {
-		LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), ServiceTestUtil.randomString(), false);
-		LayoutTestUtil.addLayout(
-			_stagingGroup.getGroupId(), ServiceTestUtil.randomString(), true);
-
 		Element rootElement =
 			_portletDataContextExport.getExportDataRootElement();
 
@@ -366,7 +466,7 @@ public class ExportImportHelperUtilTest {
 			content,
 			new String[] {
 				"[$GROUP_FRIENDLY_URL$]", "[$GROUP_ID$]", "[$IMAGE_ID$]",
-				"[$PATH_FRIENDLY_URL_PRIVATE_GROUP$]",
+				"[$PATH_CONTEXT$]", "[$PATH_FRIENDLY_URL_PRIVATE_GROUP$]",
 				"[$PATH_FRIENDLY_URL_PRIVATE_USER$]",
 				"[$PATH_FRIENDLY_URL_PUBLIC$]", "[$TITLE$]", "[$UUID$]"
 			},
@@ -374,19 +474,38 @@ public class ExportImportHelperUtilTest {
 				_stagingGroup.getFriendlyURL(),
 				String.valueOf(fileEntry.getGroupId()),
 				String.valueOf(fileEntry.getFileEntryId()),
-				PortalUtil.getPathFriendlyURLPrivateGroup(),
-				PortalUtil.getPathFriendlyURLPrivateUser(),
-				PortalUtil.getPathFriendlyURLPublic(), fileEntry.getTitle(),
-				fileEntry.getUuid()
+				PortalUtil.getPathContext(),
+				PropsValues.LAYOUT_FRIENDLY_URL_PRIVATE_GROUP_SERVLET_MAPPING,
+				PropsValues.LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING,
+				PropsValues.LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING,
+				fileEntry.getTitle(), fileEntry.getUuid()
 			});
 	}
 
+	protected void setFinalStaticField(Field field, Object newValue)
+		throws Exception {
+
+		field.setAccessible(true);
+
+		Field modifiersField = Field.class.getDeclaredField("modifiers");
+
+		modifiersField.setAccessible(true);
+		modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+
+		field.set(null, newValue);
+	}
+
+	private static String _OLD_LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING;
+
 	private FileEntry _fileEntry;
 	private Group _liveGroup;
+	private Layout _livePublicLayout;
 	private PortletDataContext _portletDataContextExport;
 	private PortletDataContext _portletDataContextImport;
 	private StagedModel _referrerStagedModel;
 	private Group _stagingGroup;
+	private Layout _stagingPrivateLayout;
+	private Layout _stagingPublicLayout;
 
 	private class TestReaderWriter implements ZipReader, ZipWriter {
 

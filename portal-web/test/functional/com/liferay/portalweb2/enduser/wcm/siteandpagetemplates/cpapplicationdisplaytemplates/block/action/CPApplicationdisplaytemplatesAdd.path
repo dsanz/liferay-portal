@@ -19,6 +19,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ADT_TITLE</td>
+	<td>//span[@class='portlet-title-text']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>HEADER</td>
 	<td>//h3[@class='header-title']/span</td>
 	<td></td>

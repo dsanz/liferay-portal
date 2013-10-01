@@ -17,9 +17,7 @@
 <%@ include file="/html/portal/init.jsp" %>
 
 <%
-String currentURL = PortalUtil.getCurrentURL(request);
-
-String referer = ParamUtil.getString(request, WebKeys.REFERER, currentURL);
+String referer = ParamUtil.getString(request, WebKeys.REFERER, themeDisplay.getPathMain());
 
 if (referer.equals(themeDisplay.getPathMain() + "/portal/update_email_address")) {
 	referer = themeDisplay.getPathMain() + "?doAsUserId=" + themeDisplay.getDoAsUserId();
@@ -66,7 +64,7 @@ String ticketKey = ParamUtil.getString(request, "ticketKey");
 		</c:choose>
 	</c:if>
 
-	<aui:input class="lfr-input-text-container" label="email-verification-code" name="ticketKey" size="36" type="text" value="<%= ticketKey %>" />
+	<aui:input autoFocus="<%= true %>" class="lfr-input-text-container" label="email-verification-code" name="ticketKey" size="36" type="text" value="<%= ticketKey %>" />
 
 	<aui:button-row>
 		<aui:button type="submit" value="verify" />
@@ -78,7 +76,3 @@ String ticketKey = ParamUtil.getString(request, "ticketKey");
 		</c:if>
 	</aui:button-row>
 </aui:form>
-
-<aui:script>
-	Liferay.Util.focusFormField(document.fm.ticketKey);
-</aui:script>

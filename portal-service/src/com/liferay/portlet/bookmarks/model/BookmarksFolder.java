@@ -31,6 +31,14 @@ public interface BookmarksFolder extends BookmarksFolderModel, PermissionedModel
 	 *
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portlet.bookmarks.model.impl.BookmarksFolderImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
+	public java.lang.String buildTreePath()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	public java.util.List<java.lang.Long> getAncestorFolderIds()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
 	public java.util.List<com.liferay.portlet.bookmarks.model.BookmarksFolder> getAncestors()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
@@ -38,10 +46,6 @@ public interface BookmarksFolder extends BookmarksFolderModel, PermissionedModel
 	public com.liferay.portlet.bookmarks.model.BookmarksFolder getParentFolder()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
-
-	public com.liferay.portlet.bookmarks.model.BookmarksFolder getTrashContainer();
-
-	public boolean isInTrashContainer();
 
 	public boolean isRoot();
 }

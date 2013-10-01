@@ -68,14 +68,14 @@ int entryEnd = ParamUtil.getInteger(request, "entryEnd", entriesPerPage);
 
 int total = 0;
 
-boolean ajaxRequest = ParamUtil.getBoolean(request, "ajax");
+boolean ajax = ParamUtil.getBoolean(request, "ajax");
 
 boolean showRepositoryTabs = ParamUtil.getBoolean(request, "showRepositoryTabs");
 
 boolean showSearchInfo = ParamUtil.getBoolean(request, "showSearchInfo");
 
 if (searchType == DLSearchConstants.FRAGMENT) {
-	if (ajaxRequest) {
+	if (ajax) {
 		showRepositoryTabs = false;
 
 		showSearchInfo = false;
@@ -90,7 +90,7 @@ if (searchType == DLSearchConstants.FRAGMENT) {
 		}
 	}
 }
-else if ((searchType == DLSearchConstants.SINGLE) && !ajaxRequest) {
+else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 	showSearchInfo = true;
 
 	if (folderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
@@ -120,12 +120,12 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajaxRequest) {
 				</span>
 			</c:if>
 
-			<liferay-ui:icon cssClass="close-search" id="closeSearch" image="../aui/closethick" url="javascript:;" />
+			<liferay-ui:icon cssClass="close-search" id="closeSearch" image="../aui/remove" url="javascript:;" />
 		</div>
 
 		<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
 			<aui:script>
-				Liferay.Util.focusFormField(document.<portlet:namespace />fm1.<portlet:namespace />keywords);
+				Liferay.Util.focusFormField(document.getElementById('<portlet:namespace />keywords'));
 			</aui:script>
 		</c:if>
 

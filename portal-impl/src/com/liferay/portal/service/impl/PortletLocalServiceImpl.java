@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.image.SpriteProcessor;
 import com.liferay.portal.kernel.image.SpriteProcessorUtil;
+import com.liferay.portal.kernel.lar.DefaultConfigurationPortletDataHandler;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.plugin.PluginPackage;
@@ -517,7 +518,8 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 			Set<String> mimeTypePortletModes = new HashSet<String>();
 
-			mimeTypePortletModes.add(PortletMode.VIEW.toString().toLowerCase());
+			mimeTypePortletModes.add(
+				StringUtil.toLowerCase(PortletMode.VIEW.toString()));
 
 			Map<String, Set<String>> portletModes = portlet.getPortletModes();
 
@@ -526,7 +528,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			Set<String> mimeTypeWindowStates = new HashSet<String>();
 
 			mimeTypeWindowStates.add(
-				WindowState.NORMAL.toString().toLowerCase());
+				StringUtil.toLowerCase(WindowState.NORMAL.toString()));
 
 			Map<String, Set<String>> windowStates = portlet.getWindowStates();
 
@@ -551,7 +553,9 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 	public Portlet getPortletById(String portletId) {
 		Map<String, Portlet> portletsPool = _getPortletsPool();
 
-		return portletsPool.get(portletId);
+		String rootPortletId = PortletConstants.getRootPortletId(portletId);
+
+		return portletsPool.get(rootPortletId);
 	}
 
 	@Override
@@ -597,7 +601,6 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 			if (showPortal &&
 				portlet.getPortletId().equals(PortletKeys.PORTAL)) {
-
 			}
 			else if (!showPortal &&
 					 portlet.getPortletId().equals(PortletKeys.PORTAL)) {
@@ -1324,7 +1327,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 					TimeUnit.SECOND.getValue());
 
 				schedulerEntry.setTimeUnit(
-					TimeUnit.parse(timeUnit.toLowerCase()));
+					TimeUnit.parse(StringUtil.toLowerCase(timeUnit)));
 			}
 
 			portletModel.addSchedulerEntry(schedulerEntry);
@@ -1359,10 +1362,17 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			GetterUtil.getString(
 				portletElement.elementText("url-encoder-class"),
 				portletModel.getURLEncoderClass()));
-		portletModel.setPortletDataHandlerClass(
-			GetterUtil.getString(
-				portletElement.elementText("portlet-data-handler-class"),
-				portletModel.getPortletDataHandlerClass()));
+
+		String portletDataHandlerClass = GetterUtil.getString(
+			portletElement.elementText("portlet-data-handler-class"),
+			portletModel.getPortletDataHandlerClass());
+
+		if (Validator.isNull(portletDataHandlerClass)) {
+			portletDataHandlerClass =
+				DefaultConfigurationPortletDataHandler.class.getName();
+		}
+
+		portletModel.setPortletDataHandlerClass(portletDataHandlerClass);
 
 		List<String> stagedModelDataHandlerClasses = new ArrayList<String>();
 
@@ -1409,20 +1419,23 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			GetterUtil.getString(
 				portletElement.elementText("social-request-interpreter-class"),
 				portletModel.getSocialRequestInterpreterClass()));
+		portletModel.setUserNotificationDefinitions(
+			GetterUtil.getString(
+				portletElement.elementText("user-notification-definitions"),
+				portletModel.getUserNotificationDefinitions()));
 
-		List<String> userNotificationInterpreterClasses =
-			new ArrayList<String>();
+		List<String> userNotificationHandlerClasses = new ArrayList<String>();
 
-		for (Element userNotificationInterpreterClassElement :
+		for (Element userNotificationHandlerClassElement :
 				portletElement.elements(
-					"user-notification-interpreter-class")) {
+					"user-notification-handler-class")) {
 
-			userNotificationInterpreterClasses.add(
-				userNotificationInterpreterClassElement.getText());
+			userNotificationHandlerClasses.add(
+				userNotificationHandlerClassElement.getText());
 		}
 
-		portletModel.setUserNotificationInterpreterClasses(
-			userNotificationInterpreterClasses);
+		portletModel.setUserNotificationHandlerClasses(
+			userNotificationHandlerClasses);
 
 		portletModel.setWebDAVStorageToken(
 			GetterUtil.getString(
@@ -1629,6 +1642,10 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 		portletModel.setAutopropagatedParameters(autopropagatedParameters);
 
+		portletModel.setRequiresNamespacedParameters(
+			GetterUtil.getBoolean(
+				portletElement.elementText("requires-namespaced-parameters"),
+				portletModel.isRequiresNamespacedParameters()));
 		portletModel.setActionTimeout(
 			GetterUtil.getInteger(
 				portletElement.elementText("action-timeout"),
@@ -1911,13 +1928,14 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 			Set<String> mimeTypePortletModes = new HashSet<String>();
 
-			mimeTypePortletModes.add(PortletMode.VIEW.toString().toLowerCase());
+			mimeTypePortletModes.add(
+				StringUtil.toLowerCase(PortletMode.VIEW.toString()));
 
 			for (Element portletModeElement :
 					supportsElement.elements("portlet-mode")) {
 
 				mimeTypePortletModes.add(
-					portletModeElement.getTextTrim().toLowerCase());
+					StringUtil.toLowerCase(portletModeElement.getTextTrim()));
 			}
 
 			portletModes.put(mimeType, mimeTypePortletModes);
@@ -1925,25 +1943,27 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			Set<String> mimeTypeWindowStates = new HashSet<String>();
 
 			mimeTypeWindowStates.add(
-				WindowState.NORMAL.toString().toLowerCase());
+				StringUtil.toLowerCase(WindowState.NORMAL.toString()));
 
 			List<Element> windowStateElements = supportsElement.elements(
 				"window-state");
 
 			if (windowStateElements.isEmpty()) {
 				mimeTypeWindowStates.add(
-					WindowState.MAXIMIZED.toString().toLowerCase());
+					StringUtil.toLowerCase(WindowState.MAXIMIZED.toString()));
 				mimeTypeWindowStates.add(
-					WindowState.MINIMIZED.toString().toLowerCase());
+					StringUtil.toLowerCase(WindowState.MINIMIZED.toString()));
 				mimeTypeWindowStates.add(
-					LiferayWindowState.EXCLUSIVE.toString().toLowerCase());
+					StringUtil.toLowerCase(
+						LiferayWindowState.EXCLUSIVE.toString()));
 				mimeTypeWindowStates.add(
-					LiferayWindowState.POP_UP.toString().toLowerCase());
+					StringUtil.toLowerCase(
+						LiferayWindowState.POP_UP.toString()));
 			}
 
 			for (Element windowStateElement : windowStateElements) {
 				mimeTypeWindowStates.add(
-					windowStateElement.getTextTrim().toLowerCase());
+					StringUtil.toLowerCase(windowStateElement.getTextTrim()));
 			}
 
 			windowStates.put(mimeType, mimeTypeWindowStates);

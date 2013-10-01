@@ -435,7 +435,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 
 		if (!isInheritLookAndFeel()) {
 			try {
-				Theme theme = _getTheme(device);
+				Theme theme = getTheme(device);
 
 				return theme.getSetting(key);
 			}
@@ -524,12 +524,11 @@ public class LayoutImpl extends LayoutBaseImpl {
 			if (parentLayoutId == layoutId) {
 				return true;
 			}
-			else {
-				Layout parentLayout = LayoutLocalServiceUtil.getLayout(
-					getGroupId(), isPrivateLayout(), parentLayoutId);
 
-				parentLayoutId = parentLayout.getParentLayoutId();
-			}
+			Layout parentLayout = LayoutLocalServiceUtil.getLayout(
+				getGroupId(), isPrivateLayout(), parentLayoutId);
+
+			parentLayoutId = parentLayout.getParentLayoutId();
 		}
 
 		return false;
@@ -776,8 +775,19 @@ public class LayoutImpl extends LayoutBaseImpl {
 		super.setTypeSettings(_typeSettingsProperties.toString());
 	}
 
+	protected Theme getTheme(String device)
+		throws PortalException, SystemException {
+
+		if (device.equals("regular")) {
+			return getTheme();
+		}
+		else {
+			return getWapTheme();
+		}
+	}
+
 	private static String _getFriendlyURLKeyword(String friendlyURL) {
-		friendlyURL = friendlyURL.toLowerCase();
+		friendlyURL = StringUtil.toLowerCase(friendlyURL);
 
 		for (String keyword : _friendlyURLKeywords) {
 			if (friendlyURL.startsWith(keyword)) {
@@ -812,7 +822,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 				}
 			}
 
-			_friendlyURLKeywords[i] = keyword.toLowerCase();
+			_friendlyURLKeywords[i] = StringUtil.toLowerCase(keyword);
 		}
 	}
 
@@ -852,17 +862,6 @@ public class LayoutImpl extends LayoutBaseImpl {
 		}
 
 		return layoutTypePortlet;
-	}
-
-	private Theme _getTheme(String device)
-		throws PortalException, SystemException {
-
-		if (device.equals("regular")) {
-			return getTheme();
-		}
-		else {
-			return getWapTheme();
-		}
 	}
 
 	private String _getURL(

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.util;
 
+import java.math.BigDecimal;
+
 import java.text.DateFormat;
 
 import java.util.Date;
@@ -209,11 +211,13 @@ public class GetterUtil {
 				return defaultValue;
 			}
 
-			if (getFloat(value) == getInteger(value)) {
-				return getInteger(value);
+			try {
+				String valueString = (String)value;
+
+				return new BigDecimal(valueString.trim());
 			}
-			else {
-				return getFloat(value);
+			catch (NumberFormatException nfe) {
+				return defaultValue;
 			}
 		}
 
@@ -286,23 +290,19 @@ public class GetterUtil {
 			return defaultValue;
 		}
 
-		try {
-			value = value.trim().toLowerCase();
+		value = value.trim();
 
-			if (value.equals(BOOLEANS[0]) || value.equals(BOOLEANS[1]) ||
-				value.equals(BOOLEANS[2]) || value.equals(BOOLEANS[3]) ||
-				value.equals(BOOLEANS[4])) {
+		value = StringUtil.toLowerCase(value);
 
-				return true;
-			}
-			else {
-				return false;
-			}
+		if (value.equals(BOOLEANS[0]) || value.equals(BOOLEANS[1]) ||
+			value.equals(BOOLEANS[2]) || value.equals(BOOLEANS[3]) ||
+			value.equals(BOOLEANS[4])) {
+
+			return true;
 		}
-		catch (Exception e) {
+		else {
+			return false;
 		}
-
-		return defaultValue;
 	}
 
 	public static Date get(
@@ -328,7 +328,7 @@ public class GetterUtil {
 	public static double get(String value, double defaultValue) {
 		if (value != null) {
 			try {
-				return Double.parseDouble(_trim(value));
+				return Double.parseDouble(value.trim());
 			}
 			catch (Exception e) {
 			}
@@ -343,7 +343,7 @@ public class GetterUtil {
 		}
 
 		try {
-			return Float.parseFloat(_trim(value));
+			return Float.parseFloat(value.trim());
 		}
 		catch (Exception e) {
 		}
@@ -356,7 +356,7 @@ public class GetterUtil {
 			return defaultValue;
 		}
 
-		return _parseInt(_trim(value), defaultValue);
+		return _parseInt(value.trim(), defaultValue);
 	}
 
 	public static long get(String value, long defaultValue) {
@@ -364,7 +364,7 @@ public class GetterUtil {
 			return defaultValue;
 		}
 
-		return _parseLong(_trim(value), defaultValue);
+		return _parseLong(value.trim(), defaultValue);
 	}
 
 	public static short get(String value, short defaultValue) {
@@ -372,7 +372,7 @@ public class GetterUtil {
 			return defaultValue;
 		}
 
-		return _parseShort(_trim(value), defaultValue);
+		return _parseShort(value.trim(), defaultValue);
 	}
 
 	public static String get(String value, String defaultValue) {
@@ -412,6 +412,10 @@ public class GetterUtil {
 
 	public static boolean[] getBooleanValues(
 		Object value, boolean[] defaultValue) {
+
+		if (value == null) {
+			return defaultValue;
+		}
 
 		Class<?> clazz = value.getClass();
 
@@ -476,6 +480,10 @@ public class GetterUtil {
 	public static Date[] getDateValues(
 		Object value, DateFormat dateFormat, Date[] defaultValue) {
 
+		if (value == null) {
+			return defaultValue;
+		}
+
 		Class<?> clazz = value.getClass();
 
 		if (clazz.isArray()) {
@@ -535,6 +543,10 @@ public class GetterUtil {
 	public static double[] getDoubleValues(
 		Object value, double[] defaultValue) {
 
+		if (value == null) {
+			return defaultValue;
+		}
+
 		Class<?> clazz = value.getClass();
 
 		if (clazz.isArray()) {
@@ -592,6 +604,10 @@ public class GetterUtil {
 	}
 
 	public static float[] getFloatValues(Object value, float[] defaultValue) {
+		if (value == null) {
+			return defaultValue;
+		}
+
 		Class<?> clazz = value.getClass();
 
 		if (clazz.isArray()) {
@@ -712,6 +728,10 @@ public class GetterUtil {
 	}
 
 	public static int[] getIntegerValues(Object value, int[] defaultValue) {
+		if (value == null) {
+			return defaultValue;
+		}
+
 		Class<?> clazz = value.getClass();
 
 		if (clazz.isArray()) {
@@ -830,6 +850,10 @@ public class GetterUtil {
 	}
 
 	public static long[] getLongValues(Object value, long[] defaultValue) {
+		if (value == null) {
+			return defaultValue;
+		}
+
 		Class<?> clazz = value.getClass();
 
 		if (!clazz.isArray()) {
@@ -899,6 +923,10 @@ public class GetterUtil {
 
 	public static Number[] getNumberValues(
 		Object value, Number[] defaultValue) {
+
+		if (value == null) {
+			return defaultValue;
+		}
 
 		Class<?> clazz = value.getClass();
 
@@ -979,6 +1007,10 @@ public class GetterUtil {
 	}
 
 	public static short[] getShortValues(Object value, short[] defaultValue) {
+		if (value == null) {
+			return defaultValue;
+		}
+
 		Class<?> clazz = value.getClass();
 
 		if (clazz.isArray()) {
@@ -1037,6 +1069,10 @@ public class GetterUtil {
 
 	public static String[] getStringValues(
 		Object value, String[] defaultValue) {
+
+		if (value == null) {
+			return defaultValue;
+		}
 
 		Class<?> clazz = value.getClass();
 
@@ -1205,30 +1241,6 @@ public class GetterUtil {
 		}
 
 		return (short)i;
-	}
-
-	private static String _trim(String value) {
-		value = value.trim();
-
-		int length = value.length();
-
-		StringBuilder sb = new StringBuilder(length);
-
-		for (int i = 0; i < length; i++) {
-			char c = value.charAt(i);
-
-			if (Character.isDigit(c) ||
-				((c == CharPool.DASH) &&
-				 ((i == 0) || (value.charAt(i - 1) == CharPool.UPPER_CASE_E) ||
-				  (value.charAt(i - 1) == CharPool.LOWER_CASE_E))) ||
-				(c == CharPool.PERIOD) || (c == CharPool.UPPER_CASE_E) ||
-				(c == CharPool.LOWER_CASE_E)) {
-
-				sb.append(c);
-			}
-		}
-
-		return sb.toString();
 	}
 
 }

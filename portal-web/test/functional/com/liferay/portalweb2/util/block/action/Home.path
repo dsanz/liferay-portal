@@ -29,8 +29,23 @@
 	<td></td>
 </tr>
 <tr>
-	<td>HOME_URL</td>
+	<td>GUEST_URL</td>
 	<td>/web/guest/home/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GUEST_PRIVATE_URL</td>
+	<td>/group/guest/home/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GUEST_PRIVATE_STAGING_URL</td>
+	<td>/group/guest-staging/home/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GUEST_STAGING_URL</td>
+	<td>/web/guest-staging/home/</td>
 	<td></td>
 </tr>
 <tr>
@@ -39,23 +54,75 @@
 	<td></td>
 </tr>
 <tr>
-	<td>SITE_URL_PRIVATE</td>
-	<td>/group/site-name/</td>
+	<td>ORGANIZATION_PRIVATE_URL</td>
+	<td>/group/organization-name/</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SITE_URL_PUBLIC</td>
+	<td>ORGANIZATION_PRIVATE_STAGING_URL</td>
+	<td>/group/organization-name-staging/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ORGANIZATION_STAGING_URL</td>
+	<td>/web/organization-name-staging/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_URL</td>
 	<td>/web/site-name/</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SITE_URL_STAGING</td>
-	<td>/web/site-name/staging-test-page</td>
+	<td>SITE_PRIVATE_URL</td>
+	<td>/group/site-name/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_PRIVATE_STAGING_URL</td>
+	<td>/group/site-name-staging/</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_STAGING_URL</td>
+	<td>/web/site-name-staging/</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_NAME</td>
-	<td>//h1[@class='site-title']/span</td>
+	<td>//h1[@class='site-title']/a/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SCOPE_SELECTOR</td>
+	<td>//a[@id='_145_controlPanelSiteSelector']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_SCOPE_SELECTOR</td>
+	<td>//div[contains(@class,'lfr-title-scope-selector')]/div/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--SCOPE_SELECTOR_MENULIST-->
+<tr>
+	<td>SCOPE_SELECTOR_MENULIST_ITEM</td>
+	<td>//ul[@aria-labelledby='_145_controlPanelSiteSelector']/li/a[contains(.,'${key_siteScopeName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--CONTENT_SCOPE_SELECTOR_MENULIST-->
+<tr>
+	<td>CONTENT_SCOPE_SELECTOR_MENULIST_ITEM</td>
+	<td>//ul[contains(@class,'lfr-menu-list')]/li/a[contains(.,'${key_contentScopeName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -65,23 +132,28 @@
 </tr>
 <!--PAGE-->
 <tr>
+	<td>PAGE</td>
+	<td>//li[contains(@class,'add-page')]/a[contains(.,'${key_pageName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PAGE_1</td>
 	<td>xpath=(//li[contains(@class,'lfr-nav-deletable')])[1]/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_1_CHILD_PAGE_1</td>
-	<td>xpath=(//li[contains(@class,'lfr-nav-deletable')])[1]/ul[@class='child-menu']/li/a</td>
+	<td>xpath=(//li[contains(@class,'lfr-nav-deletable')])[1]/ul[contains(@class,'child-menu')]/li/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_1_CHILD_PAGE_2</td>
-	<td>xpath=(//li[contains(@class,'lfr-nav-deletable')])[1]/ul[@class='child-menu']/li/a</td>
+	<td>xpath=(//li[contains(@class,'lfr-nav-deletable')])[1]/ul[contains(@class,'child-menu')]/li/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_1_CHILD_PAGE_3</td>
-	<td>xpath=(//li[contains(@class,'lfr-nav-deletable')])[1]/ul[@class='child-menu']/li/a</td>
+	<td>xpath=(//li[contains(@class,'lfr-nav-deletable')])[1]/ul[contains(@class,'child-menu')]/li/a</td>
 	<td></td>
 </tr>
 <tr>

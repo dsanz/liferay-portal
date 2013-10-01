@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.Subscription;
 import com.liferay.portal.model.SubscriptionConstants;
 import com.liferay.portal.model.User;
@@ -137,11 +136,14 @@ public class SubscriptionLocalServiceImpl
 
 			// Asset
 
+			AssetEntry assetEntry = null;
+
 			try {
-				assetEntryLocalService.getEntry(className, classPK);
+				assetEntry = assetEntryLocalService.getEntry(
+					className, classPK);
 			}
 			catch (Exception e) {
-				assetEntryLocalService.updateEntry(
+				assetEntry = assetEntryLocalService.updateEntry(
 					userId, groupId, subscription.getCreateDate(),
 					subscription.getModifiedDate(), className, classPK, null, 0,
 					null, null, false, null, null, null, null,
@@ -151,11 +153,12 @@ public class SubscriptionLocalServiceImpl
 
 			// Social
 
+			JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject();
+
+			extraDataJSONObject.put("title", assetEntry.getTitle());
+
 			if (className.equals(MBThread.class.getName())) {
 				MBThread mbThread = mbThreadLocalService.getMBThread(classPK);
-
-				JSONObject extraDataJSONObject =
-					JSONFactoryUtil.createJSONObject();
 
 				extraDataJSONObject.put("threadId", classPK);
 
@@ -170,7 +173,7 @@ public class SubscriptionLocalServiceImpl
 					socialActivityLocalService.addActivity(
 						userId, groupId, className, classPK,
 						SocialActivityConstants.TYPE_SUBSCRIBE,
-						StringPool.BLANK, 0);
+						extraDataJSONObject.toString(), 0);
 				}
 			}
 		}
@@ -247,10 +250,15 @@ public class SubscriptionLocalServiceImpl
 			String className = PortalUtil.getClassName(
 				subscription.getClassNameId());
 
+			JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject();
+
+			extraDataJSONObject.put("title", assetEntry.getTitle());
+
 			socialActivityLocalService.addActivity(
 				subscription.getUserId(), assetEntry.getGroupId(), className,
 				subscription.getClassPK(),
-				SocialActivityConstants.TYPE_UNSUBSCRIBE, StringPool.BLANK, 0);
+				SocialActivityConstants.TYPE_UNSUBSCRIBE,
+				extraDataJSONObject.toString(), 0);
 		}
 
 		return subscription;
@@ -368,6 +376,7 @@ public class SubscriptionLocalServiceImpl
 	 * @param  userId the primary key of the user
 	 * @param  start the lower bound of the range of results
 	 * @param  end the upper bound of the range of results (not inclusive)
+	 * @param  orderByComparator the comparator to order the subscriptions
 	 * @return the range of subscriptions of the user
 	 * @throws SystemException if a system exception occurred
 	 */

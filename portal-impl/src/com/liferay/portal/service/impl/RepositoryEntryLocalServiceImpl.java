@@ -22,6 +22,7 @@ import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.RepositoryEntryLocalServiceBaseImpl;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Brian Wing Shun Chan
@@ -58,6 +59,13 @@ public class RepositoryEntryLocalServiceImpl
 		repositoryEntryPersistence.update(repositoryEntry);
 
 		return repositoryEntry;
+	}
+
+	@Override
+	public List<RepositoryEntry> getRepositoryEntries(long repositoryId)
+		throws SystemException {
+
+		return repositoryEntryPersistence.findByRepositoryId(repositoryId);
 	}
 
 	@Override

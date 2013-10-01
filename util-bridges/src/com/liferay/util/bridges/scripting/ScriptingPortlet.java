@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletResponseUtil;
 import com.liferay.portal.kernel.scripting.ScriptingException;
+import com.liferay.portal.kernel.scripting.ScriptingHelperUtil;
 import com.liferay.portal.kernel.scripting.ScriptingUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -26,6 +27,7 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
@@ -88,7 +90,7 @@ public class ScriptingPortlet extends GenericPortlet {
 	@Override
 	public void doHelp(
 			RenderRequest renderRequest, RenderResponse renderResponse)
-		throws IOException {
+		throws IOException, PortletException {
 
 		include(helpFile, renderRequest, renderResponse);
 	}
@@ -96,13 +98,36 @@ public class ScriptingPortlet extends GenericPortlet {
 	@Override
 	public void doView(
 			RenderRequest renderRequest, RenderResponse renderResponse)
-		throws IOException {
+		throws IOException, PortletException {
 
 		include(viewFile, renderRequest, renderResponse);
 	}
 
 	@Override
-	public void init() {
+	public void init() throws PortletException {
+		super.init();
+
+		filePath = getInitParameter("file-path");
+
+		if (Validator.isNull(filePath)) {
+			throw new PortletException("file-path parameter is not set");
+		}
+		else if (filePath.contains(StringPool.BACK_SLASH) ||
+				 filePath.contains(StringPool.DOUBLE_SLASH) ||
+				 filePath.contains(StringPool.PERIOD) ||
+				 filePath.contains(StringPool.SPACE)) {
+
+			throw new PortletException(
+				"template-path " + filePath + " has invalid characters");
+		}
+		else if (!filePath.startsWith(StringPool.SLASH) ||
+				 !filePath.endsWith(StringPool.SLASH)) {
+
+			throw new PortletException(
+				"template-path " + filePath +
+					" must start and end with a /");
+		}
+
 		actionFile = getInitParameter("action-file");
 		editFile = getInitParameter("edit-file");
 		helpFile = getInitParameter("help-file");
@@ -116,7 +141,7 @@ public class ScriptingPortlet extends GenericPortlet {
 	@Override
 	public void processAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws IOException {
+		throws IOException, PortletException {
 
 		include(actionFile, actionRequest, actionResponse);
 	}
@@ -143,9 +168,19 @@ public class ScriptingPortlet extends GenericPortlet {
 	@Override
 	public void serveResource(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
-		throws IOException {
+		throws IOException, PortletException {
 
 		include(resourceFile, resourceRequest, resourceResponse);
+	}
+
+	protected void checkPath(String path) throws PortletException {
+		if (Validator.isNotNull(path) &&
+			(!path.startsWith(filePath) ||
+			 !Validator.isFilePath(path, false))) {
+
+			throw new PortletException(
+				"Path " + path + " is not accessible by this portlet");
+		}
 	}
 
 	protected void declareBeans(
@@ -168,8 +203,9 @@ public class ScriptingPortlet extends GenericPortlet {
 		PortletConfig portletConfig = getPortletConfig();
 		PortletContext portletContext = getPortletContext();
 
-		Map<String, Object> portletObjects = ScriptingUtil.getPortletObjects(
-			portletConfig, portletContext, portletRequest, portletResponse);
+		Map<String, Object> portletObjects =
+			ScriptingHelperUtil.getPortletObjects(
+				portletConfig, portletContext, portletRequest, portletResponse);
 
 		ScriptingUtil.exec(null, portletObjects, language, script);
 	}
@@ -217,17 +253,19 @@ public class ScriptingPortlet extends GenericPortlet {
 		StringBundler sb = new StringBundler();
 
 		for (String globalFile : globalFiles) {
-			InputStream is = getPortletContext().getResourceAsStream(
+			PortletContext portletContext = getPortletContext();
+
+			InputStream inputStream = portletContext.getResourceAsStream(
 				globalFile);
 
-			if (is == null) {
+			if (inputStream == null) {
 				if (_log.isWarnEnabled()) {
 					_log.warn("Global file " + globalFile + " does not exist");
 				}
 			}
 
-			if (is != null) {
-				String script = new String(FileUtil.getBytes(is));
+			if (inputStream != null) {
+				String script = new String(FileUtil.getBytes(inputStream));
 
 				sb.append(script);
 				sb.append(StringPool.NEW_LINE);
@@ -242,24 +280,28 @@ public class ScriptingPortlet extends GenericPortlet {
 	protected void include(
 			String path, PortletRequest portletRequest,
 			PortletResponse portletResponse)
-		throws IOException {
+		throws IOException, PortletException {
 
-		InputStream is = getPortletContext().getResourceAsStream(path);
+		checkPath(path);
 
-		if (is == null) {
+		PortletContext portletContext = getPortletContext();
+
+		InputStream inputStream = portletContext.getResourceAsStream(path);
+
+		if (inputStream == null) {
 			_log.error(path + " is not a valid " + language + " file");
 
 			return;
 		}
 
 		try {
-			declareBeans(is, portletRequest, portletResponse);
+			declareBeans(inputStream, portletRequest, portletResponse);
 		}
 		catch (ScriptingException se) {
 			SessionErrors.add(portletRequest, _ERROR, se);
 		}
 		finally {
-			is.close();
+			inputStream.close();
 		}
 	}
 
@@ -295,6 +337,7 @@ public class ScriptingPortlet extends GenericPortlet {
 
 	protected String actionFile;
 	protected String editFile;
+	protected String filePath;
 	protected String[] globalFiles;
 	protected String globalScript;
 	protected String helpFile;

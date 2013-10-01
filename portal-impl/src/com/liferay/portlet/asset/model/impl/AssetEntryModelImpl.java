@@ -46,6 +46,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * The base model implementation for the AssetEntry service. Represents a row in the &quot;AssetEntry&quot; database table, with each column mapped to a property of this class.
@@ -437,8 +439,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getEntryId() {
 		return _entryId;
 	}
@@ -448,8 +450,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		_entryId = entryId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
@@ -471,8 +473,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		return _originalGroupId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -494,8 +496,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		return _originalCompanyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -515,8 +517,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		_userUuid = userUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -531,8 +533,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		_userName = userName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -542,8 +544,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -573,8 +575,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		setClassNameId(classNameId);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
@@ -596,8 +598,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		return _originalClassNameId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassPK() {
 		return _classPK;
 	}
@@ -619,8 +621,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		return _originalClassPK;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getClassUuid() {
 		if (_classUuid == null) {
 			return StringPool.BLANK;
@@ -645,8 +647,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		return GetterUtil.getString(_originalClassUuid);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassTypeId() {
 		return _classTypeId;
 	}
@@ -656,8 +658,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		_classTypeId = classTypeId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getVisible() {
 		return _visible;
 	}
@@ -684,8 +686,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		return _originalVisible;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getStartDate() {
 		return _startDate;
 	}
@@ -695,8 +697,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		_startDate = startDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getEndDate() {
 		return _endDate;
 	}
@@ -706,8 +708,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		_endDate = endDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getPublishDate() {
 		return _publishDate;
 	}
@@ -727,8 +729,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		return _originalPublishDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getExpirationDate() {
 		return _expirationDate;
 	}
@@ -748,8 +750,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		return _originalExpirationDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getMimeType() {
 		if (_mimeType == null) {
 			return StringPool.BLANK;
@@ -764,8 +766,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		_mimeType = mimeType;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getTitle() {
 		if (_title == null) {
 			return StringPool.BLANK;
@@ -825,7 +827,7 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 
 	@Override
 	public void setTitle(String title, Locale locale) {
-		setTitle(title, locale, LocaleUtil.getDefault());
+		setTitle(title, locale, LocaleUtil.getSiteDefault());
 	}
 
 	@Override
@@ -850,7 +852,7 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 
 	@Override
 	public void setTitleMap(Map<Locale, String> titleMap) {
-		setTitleMap(titleMap, LocaleUtil.getDefault());
+		setTitleMap(titleMap, LocaleUtil.getSiteDefault());
 	}
 
 	@Override
@@ -863,8 +865,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 				"Title", LocaleUtil.toLanguageId(defaultLocale)));
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getDescription() {
 		if (_description == null) {
 			return StringPool.BLANK;
@@ -924,7 +926,7 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 
 	@Override
 	public void setDescription(String description, Locale locale) {
-		setDescription(description, locale, LocaleUtil.getDefault());
+		setDescription(description, locale, LocaleUtil.getSiteDefault());
 	}
 
 	@Override
@@ -951,7 +953,7 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 
 	@Override
 	public void setDescriptionMap(Map<Locale, String> descriptionMap) {
-		setDescriptionMap(descriptionMap, LocaleUtil.getDefault());
+		setDescriptionMap(descriptionMap, LocaleUtil.getSiteDefault());
 	}
 
 	@Override
@@ -966,8 +968,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 				LocaleUtil.toLanguageId(defaultLocale)));
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getSummary() {
 		if (_summary == null) {
 			return StringPool.BLANK;
@@ -1027,7 +1029,7 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 
 	@Override
 	public void setSummary(String summary, Locale locale) {
-		setSummary(summary, locale, LocaleUtil.getDefault());
+		setSummary(summary, locale, LocaleUtil.getSiteDefault());
 	}
 
 	@Override
@@ -1052,7 +1054,7 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 
 	@Override
 	public void setSummaryMap(Map<Locale, String> summaryMap) {
-		setSummaryMap(summaryMap, LocaleUtil.getDefault());
+		setSummaryMap(summaryMap, LocaleUtil.getSiteDefault());
 	}
 
 	@Override
@@ -1066,8 +1068,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 				getSummary(), "Summary", LocaleUtil.toLanguageId(defaultLocale)));
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUrl() {
 		if (_url == null) {
 			return StringPool.BLANK;
@@ -1082,8 +1084,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		_url = url;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getLayoutUuid() {
 		if (_layoutUuid == null) {
 			return StringPool.BLANK;
@@ -1108,8 +1110,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		return GetterUtil.getString(_originalLayoutUuid);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getHeight() {
 		return _height;
 	}
@@ -1119,8 +1121,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		_height = height;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getWidth() {
 		return _width;
 	}
@@ -1130,8 +1132,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		_width = width;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public double getPriority() {
 		return _priority;
 	}
@@ -1141,8 +1143,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		_priority = priority;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getViewCount() {
 		return _viewCount;
 	}
@@ -1170,15 +1172,96 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 	}
 
 	@Override
+	public String[] getAvailableLanguageIds() {
+		Set<String> availableLanguageIds = new TreeSet<String>();
+
+		Map<Locale, String> titleMap = getTitleMap();
+
+		for (Map.Entry<Locale, String> entry : titleMap.entrySet()) {
+			Locale locale = entry.getKey();
+			String value = entry.getValue();
+
+			if (Validator.isNotNull(value)) {
+				availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+			}
+		}
+
+		Map<Locale, String> descriptionMap = getDescriptionMap();
+
+		for (Map.Entry<Locale, String> entry : descriptionMap.entrySet()) {
+			Locale locale = entry.getKey();
+			String value = entry.getValue();
+
+			if (Validator.isNotNull(value)) {
+				availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+			}
+		}
+
+		Map<Locale, String> summaryMap = getSummaryMap();
+
+		for (Map.Entry<Locale, String> entry : summaryMap.entrySet()) {
+			Locale locale = entry.getKey();
+			String value = entry.getValue();
+
+			if (Validator.isNotNull(value)) {
+				availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+			}
+		}
+
+		return availableLanguageIds.toArray(new String[availableLanguageIds.size()]);
+	}
+
+	@Override
+	public String getDefaultLanguageId() {
+		String xml = getTitle();
+
+		if (xml == null) {
+			return StringPool.BLANK;
+		}
+
+		return LocalizationUtil.getDefaultLanguageId(xml);
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport() throws LocaleException {
+		prepareLocalizedFieldsForImport(null);
+	}
+
+	@Override
 	@SuppressWarnings("unused")
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException {
-		setTitle(getTitle(defaultImportLocale), defaultImportLocale,
-			defaultImportLocale);
-		setDescription(getDescription(defaultImportLocale),
-			defaultImportLocale, defaultImportLocale);
-		setSummary(getSummary(defaultImportLocale), defaultImportLocale,
-			defaultImportLocale);
+		Locale defaultLocale = LocaleUtil.getDefault();
+
+		String modelDefaultLanguageId = getDefaultLanguageId();
+
+		String title = getTitle(defaultLocale);
+
+		if (Validator.isNull(title)) {
+			setTitle(getTitle(modelDefaultLanguageId), defaultLocale);
+		}
+		else {
+			setTitle(getTitle(defaultLocale), defaultLocale, defaultLocale);
+		}
+
+		String description = getDescription(defaultLocale);
+
+		if (Validator.isNull(description)) {
+			setDescription(getDescription(modelDefaultLanguageId), defaultLocale);
+		}
+		else {
+			setDescription(getDescription(defaultLocale), defaultLocale,
+				defaultLocale);
+		}
+
+		String summary = getSummary(defaultLocale);
+
+		if (Validator.isNull(summary)) {
+			setSummary(getSummary(modelDefaultLanguageId), defaultLocale);
+		}
+		else {
+			setSummary(getSummary(defaultLocale), defaultLocale, defaultLocale);
+		}
 	}
 
 	@Override

@@ -427,7 +427,6 @@ public class SocialActivityLocalServiceWrapper
 	* @param assetEntry the asset from which to remove stored activities
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
-	* @deprecated As of 6.2.0, replaced by {@link #deleteActivities(long)}
 	*/
 	@Override
 	public void deleteActivities(
@@ -449,8 +448,9 @@ public class SocialActivityLocalServiceWrapper
 	*
 	* @param className the target asset's class name
 	* @param classPK the primary key of the target asset
+	* @throws PortalException if the user's activity counters could not be
+	deleted
 	* @throws SystemException if a system exception occurred
-	* @deprecated As of 6.2.0, replaced by {@link #deleteActivities(long)}
 	*/
 	@Override
 	public void deleteActivities(java.lang.String className, long classPK)
@@ -465,7 +465,6 @@ public class SocialActivityLocalServiceWrapper
 	* @param activityId the primary key of the stored activity
 	* @throws PortalException if the activity could not be found
 	* @throws SystemException if a system exception occurred
-	* @deprecated As of 6.2.0, replaced by {@link #deleteActivities(long)}
 	*/
 	@Override
 	public void deleteActivity(long activityId)
@@ -478,8 +477,9 @@ public class SocialActivityLocalServiceWrapper
 	* Removes the stored activity and its mirror activity from the database.
 	*
 	* @param activity the activity to be removed
+	* @throws PortalException if the user's activity counters could not be
+	deleted or if a portal exception occurred
 	* @throws SystemException if a system exception occurred
-	* @deprecated As of 6.2.0, replaced by {@link #deleteActivities(long)}
 	*/
 	@Override
 	public void deleteActivity(

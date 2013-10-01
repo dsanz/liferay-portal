@@ -19,7 +19,10 @@ import com.liferay.portal.kernel.cache.key.CacheKeyGeneratorUtil;
 import com.liferay.portal.kernel.concurrent.ConcurrentLFUCache;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.servlet.HttpOnlyCookieServletResponse;
 import com.liferay.portal.kernel.servlet.NonSerializableObjectRequestWrapper;
+import com.liferay.portal.kernel.servlet.SanitizedServletResponse;
+import com.liferay.portal.kernel.servlet.ServletVersionDetector;
 import com.liferay.portal.kernel.util.BasePortalLifecycle;
 import com.liferay.portal.kernel.util.ContextPathUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -41,10 +44,12 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Mika Koivisto
  * @author Brian Wing Shun Chan
+ * @author Shuyang Zhou
  */
 public class InvokerFilter extends BasePortalLifecycle implements Filter {
 
@@ -65,6 +70,16 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 
 		request = handleNonSerializableRequest(request);
 
+		HttpServletResponse response = (HttpServletResponse)servletResponse;
+
+		if (ServletVersionDetector.is3_0()) {
+			response =
+				HttpOnlyCookieServletResponse.getHttpOnlyCookieServletResponse(
+					response);
+		}
+
+		response = secureResponseHeaders(request, response);
+
 		request.setAttribute(WebKeys.INVOKER_FILTER_URI, uri);
 
 		try {
@@ -78,7 +93,7 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 
 			invokerFilterChain.setContextClassLoader(contextClassLoader);
 
-			invokerFilterChain.doFilter(request, servletResponse);
+			invokerFilterChain.doFilter(request, response);
 		}
 		finally {
 			request.removeAttribute(WebKeys.INVOKER_FILTER_URI);
@@ -245,6 +260,24 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 
 		return request;
 	}
+
+	protected HttpServletResponse secureResponseHeaders(
+		HttpServletRequest request, HttpServletResponse response) {
+
+		if (!GetterUtil.getBoolean(
+				request.getAttribute(_SECURE_RESPONSE), true)) {
+
+			return response;
+		}
+
+		request.setAttribute(_SECURE_RESPONSE, Boolean.FALSE);
+
+		return SanitizedServletResponse.getSanitizedServletResponse(
+			request, response);
+	}
+
+	private static final String _SECURE_RESPONSE =
+		InvokerFilter.class.getName() + "SECURE_RESPONSE";
 
 	private static Log _log = LogFactoryUtil.getLog(InvokerFilter.class);
 

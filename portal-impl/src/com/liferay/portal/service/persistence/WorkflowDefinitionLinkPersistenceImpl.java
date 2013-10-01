@@ -350,6 +350,10 @@ public class WorkflowDefinitionLinkPersistenceImpl extends BasePersistenceImpl<W
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<WorkflowDefinitionLink> list = findByCompanyId(companyId,
 				count - 1, count, orderByComparator);
 
@@ -918,6 +922,10 @@ public class WorkflowDefinitionLinkPersistenceImpl extends BasePersistenceImpl<W
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_W_W(companyId, workflowDefinitionName,
 				workflowDefinitionVersion);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<WorkflowDefinitionLink> list = findByC_W_W(companyId,
 				workflowDefinitionName, workflowDefinitionVersion, count - 1,
@@ -1526,6 +1534,10 @@ public class WorkflowDefinitionLinkPersistenceImpl extends BasePersistenceImpl<W
 	private static final String _FINDER_COLUMN_G_C_C_C_T_CLASSNAMEID_2 = "workflowDefinitionLink.classNameId = ? AND ";
 	private static final String _FINDER_COLUMN_G_C_C_C_T_CLASSPK_2 = "workflowDefinitionLink.classPK = ? AND ";
 	private static final String _FINDER_COLUMN_G_C_C_C_T_TYPEPK_2 = "workflowDefinitionLink.typePK = ?";
+
+	public WorkflowDefinitionLinkPersistenceImpl() {
+		setModelClass(WorkflowDefinitionLink.class);
+	}
 
 	/**
 	 * Caches the workflow definition link in the entity cache if it is enabled.

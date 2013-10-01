@@ -168,9 +168,19 @@ public class AuthVerifierPipeline {
 
 		Properties properties = authVerifierConfiguration.getProperties();
 
-		String[] urls = StringUtil.split(properties.getProperty("urls"));
+		String[] urlsExcludes = StringUtil.split(
+			properties.getProperty("urls.excludes"));
 
-		if (urls.length == 0) {
+		if ((urlsExcludes.length > 0) &&
+			(Wildcard.matchOne(requestURI, urlsExcludes) > -1)) {
+
+			return false;
+		}
+
+		String[] urlsIncludes = StringUtil.split(
+			properties.getProperty("urls.includes"));
+
+		if (urlsIncludes.length == 0) {
 			Class<?> authVerifierClass = authVerifier.getClass();
 
 			_log.error(
@@ -180,7 +190,7 @@ public class AuthVerifierPipeline {
 			return false;
 		}
 
-		return Wildcard.matchOne(requestURI, urls) > -1;
+		return Wildcard.matchOne(requestURI, urlsIncludes) > -1;
 	}
 
 	private AuthVerifierConfiguration _mergeAuthVerifierConfiguration(
@@ -232,7 +242,6 @@ public class AuthVerifierPipeline {
 					mergedProperties.setProperty(
 						propertiesKey, (String)settingsValue);
 				}
-
 			}
 		}
 

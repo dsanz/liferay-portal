@@ -15,8 +15,6 @@
 --%>
 
 <%
-String languageId = LanguageUtil.getLanguageId(request);
-
 if (Validator.isNull(script)) {
 	script = structure.getXsd();
 	scriptJSONArray = DDMXSDUtil.getJSONArray(script);
@@ -37,7 +35,7 @@ if (Validator.isNotNull(portletResourceNamespace)) {
 <aui:input name="scriptContent" type="hidden" />
 
 <aui:script>
-	window.<%= namespace %>getAvailableFields = function(A, FormBuilder) {
+	window["<%= HtmlUtil.escapeJS(namespace) %>getAvailableFields"] = function(A, FormBuilder) {
 		var availableFields = <%= scriptJSONArray.toString() %>;
 
 		A.Array.each(

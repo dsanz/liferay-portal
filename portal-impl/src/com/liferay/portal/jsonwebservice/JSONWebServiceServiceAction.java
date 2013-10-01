@@ -23,13 +23,11 @@ import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManagerUtil
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upload.UploadException;
-import com.liferay.portal.kernel.util.ContextPathUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.util.WebKeys;
 
 import java.lang.reflect.InvocationTargetException;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -41,25 +39,6 @@ import org.apache.struts.action.ActionMapping;
  * @author Raymond Augé
  */
 public class JSONWebServiceServiceAction extends JSONServiceAction {
-
-	public JSONWebServiceServiceAction(
-		ServletContext servletContext, ClassLoader classLoader) {
-
-		_contextPath = ContextPathUtil.getContextPath(servletContext);
-
-		if (_log.isInfoEnabled()) {
-			int count =
-				JSONWebServiceActionsManagerUtil.getJSONWebServiceActionsCount(
-					_contextPath);
-
-			_log.info("Configured " + count + " actions for " + _contextPath);
-		}
-	}
-
-	public void destroy() {
-		JSONWebServiceActionsManagerUtil.unregisterJSONWebServiceActions(
-			_contextPath);
-	}
 
 	@Override
 	public String getJSON(
@@ -134,7 +113,5 @@ public class JSONWebServiceServiceAction extends JSONServiceAction {
 
 	private static Log _log = LogFactoryUtil.getLog(
 		JSONWebServiceServiceAction.class);
-
-	private String _contextPath;
 
 }

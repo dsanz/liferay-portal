@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.dynamicdatamapping.model;
 
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -1001,6 +1003,22 @@ public class DDMTemplateWrapper implements DDMTemplate,
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _ddmTemplate.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _ddmTemplate.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_ddmTemplate.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -1055,11 +1073,6 @@ public class DDMTemplateWrapper implements DDMTemplate,
 	}
 
 	@Override
-	public java.lang.String getDefaultLanguageId() {
-		return _ddmTemplate.getDefaultLanguageId();
-	}
-
-	@Override
 	public java.lang.String getSmallImageType()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -1085,6 +1098,30 @@ public class DDMTemplateWrapper implements DDMTemplate,
 	@Override
 	public void setSmallImageType(java.lang.String smallImageType) {
 		_ddmTemplate.setSmallImageType(smallImageType);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DDMTemplateWrapper)) {
+			return false;
+		}
+
+		DDMTemplateWrapper ddmTemplateWrapper = (DDMTemplateWrapper)obj;
+
+		if (Validator.equals(_ddmTemplate, ddmTemplateWrapper._ddmTemplate)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _ddmTemplate.getStagedModelType();
 	}
 
 	/**

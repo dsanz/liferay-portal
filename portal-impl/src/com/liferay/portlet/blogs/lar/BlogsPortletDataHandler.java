@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
 import com.liferay.portal.kernel.lar.PortletDataHandlerControl;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.blogs.model.BlogsEntry;
@@ -43,7 +44,8 @@ public class BlogsPortletDataHandler extends BasePortletDataHandler {
 	public static final String NAMESPACE = "blogs";
 
 	public BlogsPortletDataHandler() {
-		setDeletionSystemEventClassNames(BlogsEntry.class.getName());
+		setDeletionSystemEventStagedModelTypes(
+			new StagedModelType(BlogsEntry.class));
 		setExportControls(
 			new PortletDataHandlerBoolean(
 				NAMESPACE, "entries", true, false,
@@ -88,9 +90,7 @@ public class BlogsPortletDataHandler extends BasePortletDataHandler {
 			return getExportDataRootElementString(rootElement);
 		}
 
-		portletDataContext.addPermissions(
-			BlogsPermission.RESOURCE_NAME,
-			portletDataContext.getScopeGroupId());
+		portletDataContext.addPortletPermissions(BlogsPermission.RESOURCE_NAME);
 
 		rootElement.addAttribute(
 			"group-id", String.valueOf(portletDataContext.getScopeGroupId()));
@@ -113,10 +113,8 @@ public class BlogsPortletDataHandler extends BasePortletDataHandler {
 			return null;
 		}
 
-		portletDataContext.importPermissions(
-			BlogsPermission.RESOURCE_NAME,
-			portletDataContext.getSourceGroupId(),
-			portletDataContext.getScopeGroupId());
+		portletDataContext.importPortletPermissions(
+			BlogsPermission.RESOURCE_NAME);
 
 		Element entriesElement = portletDataContext.getImportDataGroupElement(
 			BlogsEntry.class);
@@ -133,7 +131,8 @@ public class BlogsPortletDataHandler extends BasePortletDataHandler {
 
 	@Override
 	protected void doPrepareManifestSummary(
-			PortletDataContext portletDataContext)
+			PortletDataContext portletDataContext,
+			PortletPreferences portletPreferences)
 		throws Exception {
 
 		ActionableDynamicQuery actionableDynamicQuery =

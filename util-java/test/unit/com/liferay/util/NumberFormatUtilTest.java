@@ -14,9 +14,9 @@
 
 package com.liferay.util;
 
-import java.text.NumberFormat;
+import com.liferay.portal.kernel.util.LocaleUtil;
 
-import java.util.Locale;
+import java.text.NumberFormat;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,6 +39,6 @@ public class NumberFormatUtilTest {
 	}
 
 	private NumberFormat _numberFormat = NumberFormat.getNumberInstance(
-		Locale.ENGLISH);
+		LocaleUtil.ENGLISH);
 
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE resource-action-mapping PUBLIC "-//Liferay//DTD Resource Action Mapping 6.1.0//EN" "http://www.liferay.com/dtd/liferay-resource-action-mapping_6_1_0.dtd">
+<!DOCTYPE resource-action-mapping PUBLIC "-//Liferay//DTD Resource Action Mapping 6.2.0//EN" "http://www.liferay.com/dtd/liferay-resource-action-mapping_6_2_0.dtd">
 
 <resource-action-mapping>
 	<portlet-resource>
@@ -7,6 +7,7 @@
 		<permissions>
 			<supports>
 				<action-key>ACCESS_IN_CONTROL_PANEL</action-key>
+				<action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
 				<action-key>ADD_TO_PAGE</action-key>
 				<action-key>CONFIGURATION</action-key>
 				<action-key>VIEW</action-key>
@@ -19,6 +20,7 @@
 			</guest-defaults>
 			<guest-unsupported>
 				<action-key>ACCESS_IN_CONTROL_PANEL</action-key>
+				<action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
 				<action-key>CONFIGURATION</action-key>
 			</guest-unsupported>
 		</permissions>
@@ -30,12 +32,13 @@
 			<portlet-name>31</portlet-name>
 			<portlet-name>110</portlet-name>
 		</portlet-ref>
+		<root>true</root>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>ADD_DOCUMENT</action-key>
 				<action-key>ADD_DOCUMENT_TYPE</action-key>
 				<action-key>ADD_FOLDER</action-key>
-				<action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
 				<action-key>ADD_REPOSITORY</action-key>
 				<action-key>ADD_STRUCTURE</action-key>
 				<action-key>ADD_SHORTCUT</action-key>
@@ -45,6 +48,9 @@
 				<action-key>VIEW</action-key>
 			</supports>
 			<site-member-defaults>
+				<action-key>ADD_DOCUMENT</action-key>
+				<action-key>ADD_FOLDER</action-key>
+				<action-key>ADD_SHORTCUT</action-key>
 				<action-key>SUBSCRIBE</action-key>
 				<action-key>VIEW</action-key>
 			</site-member-defaults>
@@ -55,7 +61,6 @@
 				<action-key>ADD_DOCUMENT</action-key>
 				<action-key>ADD_DOCUMENT_TYPE</action-key>
 				<action-key>ADD_FOLDER</action-key>
-				<action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
 				<action-key>ADD_REPOSITORY</action-key>
 				<action-key>ADD_STRUCTURE</action-key>
 				<action-key>ADD_SHORTCUT</action-key>
@@ -69,7 +74,10 @@
 		<model-name>com.liferay.portlet.documentlibrary.model.DLFileEntry</model-name>
 		<portlet-ref>
 			<portlet-name>20</portlet-name>
+			<portlet-name>31</portlet-name>
+			<portlet-name>110</portlet-name>
 		</portlet-ref>
+		<weight>3</weight>
 		<permissions>
 			<supports>
 				<action-key>ADD_DISCUSSION</action-key>
@@ -103,7 +111,10 @@
 		<model-name>com.liferay.portlet.documentlibrary.model.DLFileEntryType</model-name>
 		<portlet-ref>
 			<portlet-name>20</portlet-name>
+			<portlet-name>31</portlet-name>
+			<portlet-name>110</portlet-name>
 		</portlet-ref>
+		<weight>5</weight>
 		<permissions>
 			<supports>
 				<action-key>DELETE</action-key>
@@ -128,7 +139,10 @@
 		<model-name>com.liferay.portlet.documentlibrary.model.DLFileShortcut</model-name>
 		<portlet-ref>
 			<portlet-name>20</portlet-name>
+			<portlet-name>31</portlet-name>
+			<portlet-name>110</portlet-name>
 		</portlet-ref>
+		<weight>4</weight>
 		<permissions>
 			<supports>
 				<action-key>ADD_DISCUSSION</action-key>
@@ -160,7 +174,10 @@
 		<model-name>com.liferay.portlet.documentlibrary.model.DLFolder</model-name>
 		<portlet-ref>
 			<portlet-name>20</portlet-name>
+			<portlet-name>31</portlet-name>
+			<portlet-name>110</portlet-name>
 		</portlet-ref>
+		<weight>2</weight>
 		<permissions>
 			<supports>
 				<action-key>ACCESS</action-key>

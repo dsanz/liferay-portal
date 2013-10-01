@@ -349,6 +349,10 @@ public class AnnouncementsDeliveryPersistenceImpl extends BasePersistenceImpl<An
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUserId(userId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AnnouncementsDelivery> list = findByUserId(userId, count - 1,
 				count, orderByComparator);
 
@@ -836,6 +840,10 @@ public class AnnouncementsDeliveryPersistenceImpl extends BasePersistenceImpl<An
 	private static final String _FINDER_COLUMN_U_T_TYPE_1 = "announcementsDelivery.type IS NULL";
 	private static final String _FINDER_COLUMN_U_T_TYPE_2 = "announcementsDelivery.type = ?";
 	private static final String _FINDER_COLUMN_U_T_TYPE_3 = "(announcementsDelivery.type IS NULL OR announcementsDelivery.type = '')";
+
+	public AnnouncementsDeliveryPersistenceImpl() {
+		setModelClass(AnnouncementsDelivery.class);
+	}
 
 	/**
 	 * Caches the announcements delivery in the entity cache if it is enabled.

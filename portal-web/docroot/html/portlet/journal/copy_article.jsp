@@ -46,19 +46,19 @@ double version = ParamUtil.getDouble(request, "version");
 
 	<aui:fieldset>
 		<aui:field-wrapper label="id">
-			<%= HtmlUtil.escape(oldArticleId) %>
+			<liferay-ui:input-resource url="<%= oldArticleId %>" />
 		</aui:field-wrapper>
 
 		<aui:field-wrapper label="new-id">
 			<c:choose>
 				<c:when test="<%= PropsValues.JOURNAL_ARTICLE_FORCE_AUTOGENERATE_ID %>">
-					<liferay-ui:message key="autogenerate-id" />
+					<liferay-ui:input-resource url='<%= LanguageUtil.get(pageContext, "autogenerate-id") %>' />
 
 					<aui:input name="newArticleId" type="hidden" />
 					<aui:input name="autoArticleId" type="hidden" value="<%= true %>" />
 				</c:when>
 				<c:otherwise>
-					<aui:input bean="<%= null %>" cssClass="lfr-input-text-container" field="articleId" fieldParam="newArticleId" label="" model="<%= JournalArticle.class %>" name="newArticleId" value="<%= newArticleId %>" />
+					<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" bean="<%= null %>" cssClass="lfr-input-text-container" field="articleId" fieldParam="newArticleId" label="" model="<%= JournalArticle.class %>" name="newArticleId" value="<%= newArticleId %>" />
 				</c:otherwise>
 			</c:choose>
 		</aui:field-wrapper>
@@ -70,9 +70,3 @@ double version = ParamUtil.getDouble(request, "version");
 		<aui:button href="<%= redirect %>" type="cancel" />
 	</aui:button-row>
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />newArticleId);
-	</aui:script>
-</c:if>

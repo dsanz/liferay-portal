@@ -51,11 +51,11 @@ boolean print = ParamUtil.getString(request, "viewMode").equals(Constants.PRINT)
 
 PortletURL viewPageURL = renderResponse.createRenderURL();
 
-if (portletName.equals(PortletKeys.WIKI)) {
-	viewPageURL.setParameter("struts_action", "/wiki/view");
+if (portletName.equals(PortletKeys.WIKI_DISPLAY)) {
+	viewPageURL.setParameter("struts_action", "/wiki/view_page");
 }
 else {
-	viewPageURL.setParameter("struts_action", "/wiki/view_page_activities");
+	viewPageURL.setParameter("struts_action", "/wiki/view");
 }
 
 viewPageURL.setParameter("nodeName", node.getName());
@@ -149,7 +149,7 @@ if (wikiPage != null) {
 <liferay-util:include page="/html/portlet/wiki/top_links.jsp" />
 
 <%
-long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayTemplateDDMTemplateId(themeDisplay, displayStyle);
+long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayTemplateDDMTemplateId(displayStyleGroupId, displayStyle);
 %>
 
 <c:choose>
@@ -371,7 +371,6 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 							formName="fm2"
 							ratingsEnabled="<%= enableCommentRatings %>"
 							redirect="<%= currentURL %>"
-							subject="<%= wikiPage.getTitle() %>"
 							userId="<%= wikiPage.getUserId() %>"
 						/>
 					</liferay-ui:panel>
@@ -397,26 +396,22 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 	}
 </aui:script>
 
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />searchFm.<portlet:namespace />keywords);
-	</aui:script>
-</c:if>
-
 <%
 if ((wikiPage != null) && !wikiPage.getTitle().equals(WikiPageConstants.FRONT_PAGE)) {
-	PortalUtil.setPageSubtitle(wikiPage.getTitle(), request);
+	if (!portletName.equals(PortletKeys.WIKI_DISPLAY)) {
+		PortalUtil.setPageSubtitle(wikiPage.getTitle(), request);
 
-	String description = wikiPage.getContent();
+		String description = wikiPage.getContent();
 
-	if (wikiPage.getFormat().equals("html")) {
-		description = HtmlUtil.stripHtml(description);
+		if (wikiPage.getFormat().equals("html")) {
+			description = HtmlUtil.stripHtml(description);
+		}
+
+		description = StringUtil.shorten(description, 200);
+
+		PortalUtil.setPageDescription(description, request);
+		PortalUtil.setPageKeywords(AssetUtil.getAssetKeywords(WikiPage.class.getName(), wikiPage.getResourcePrimKey()), request);
 	}
-
-	description = StringUtil.shorten(description, 200);
-
-	PortalUtil.setPageDescription(description, request);
-	PortalUtil.setPageKeywords(AssetUtil.getAssetKeywords(WikiPage.class.getName(), wikiPage.getResourcePrimKey()), request);
 
 	List<WikiPage> parentPages = wikiPage.getViewableParentPages();
 

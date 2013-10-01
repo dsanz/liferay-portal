@@ -344,6 +344,10 @@ public class UserTrackerPersistenceImpl extends BasePersistenceImpl<UserTracker>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<UserTracker> list = findByCompanyId(companyId, count - 1, count,
 				orderByComparator);
 
@@ -826,6 +830,10 @@ public class UserTrackerPersistenceImpl extends BasePersistenceImpl<UserTracker>
 	public UserTracker fetchByUserId_Last(long userId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUserId(userId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<UserTracker> list = findByUserId(userId, count - 1, count,
 				orderByComparator);
@@ -1329,6 +1337,10 @@ public class UserTrackerPersistenceImpl extends BasePersistenceImpl<UserTracker>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countBySessionId(sessionId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<UserTracker> list = findBySessionId(sessionId, count - 1, count,
 				orderByComparator);
 
@@ -1583,6 +1595,10 @@ public class UserTrackerPersistenceImpl extends BasePersistenceImpl<UserTracker>
 	private static final String _FINDER_COLUMN_SESSIONID_SESSIONID_1 = "userTracker.sessionId IS NULL";
 	private static final String _FINDER_COLUMN_SESSIONID_SESSIONID_2 = "userTracker.sessionId = ?";
 	private static final String _FINDER_COLUMN_SESSIONID_SESSIONID_3 = "(userTracker.sessionId IS NULL OR userTracker.sessionId = '')";
+
+	public UserTrackerPersistenceImpl() {
+		setModelClass(UserTracker.class);
+	}
 
 	/**
 	 * Caches the user tracker in the entity cache if it is enabled.

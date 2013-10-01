@@ -14,6 +14,9 @@
 
 package com.liferay.portal.model;
 
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -1345,6 +1348,12 @@ public class UserWrapper implements User, ModelWrapper<User> {
 	}
 
 	@Override
+	public void addRemotePreference(
+		com.liferay.portal.kernel.util.RemotePreference remotePreference) {
+		_user.addRemotePreference(remotePreference);
+	}
+
+	@Override
 	public java.util.List<com.liferay.portal.model.Address> getAddresses()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _user.getAddresses();
@@ -1478,12 +1487,58 @@ public class UserWrapper implements User, ModelWrapper<User> {
 	}
 
 	@Override
+	public java.util.List<com.liferay.portal.model.Group> getMySiteGroups()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _user.getMySiteGroups();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getMySiteGroups(
+		boolean includeControlPanel, int max)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _user.getMySiteGroups(includeControlPanel, max);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getMySiteGroups(
+		int max)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _user.getMySiteGroups(max);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getMySiteGroups(
+		java.lang.String[] classNames, boolean includeControlPanel, int max)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _user.getMySiteGroups(classNames, includeControlPanel, max);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getMySiteGroups(
+		java.lang.String[] classNames, int max)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _user.getMySiteGroups(classNames, max);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getMySiteGroups}
+	*/
+	@Override
 	public java.util.List<com.liferay.portal.model.Group> getMySites()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _user.getMySites();
 	}
 
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getMySiteGroups(boolean,
+	int)}
+	*/
 	@Override
 	public java.util.List<com.liferay.portal.model.Group> getMySites(
 		boolean includeControlPanel, int max)
@@ -1492,6 +1547,9 @@ public class UserWrapper implements User, ModelWrapper<User> {
 		return _user.getMySites(includeControlPanel, max);
 	}
 
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getMySiteGroups(int)}
+	*/
 	@Override
 	public java.util.List<com.liferay.portal.model.Group> getMySites(int max)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -1499,6 +1557,10 @@ public class UserWrapper implements User, ModelWrapper<User> {
 		return _user.getMySites(max);
 	}
 
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getMySiteGroups(String[],
+	boolean, int)}
+	*/
 	@Override
 	public java.util.List<com.liferay.portal.model.Group> getMySites(
 		java.lang.String[] classNames, boolean includeControlPanel, int max)
@@ -1507,6 +1569,10 @@ public class UserWrapper implements User, ModelWrapper<User> {
 		return _user.getMySites(classNames, includeControlPanel, max);
 	}
 
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getMySiteGroups(String[],
+	int)}
+	*/
 	@Override
 	public java.util.List<com.liferay.portal.model.Group> getMySites(
 		java.lang.String[] classNames, int max)
@@ -1597,6 +1663,17 @@ public class UserWrapper implements User, ModelWrapper<User> {
 	}
 
 	@Override
+	public com.liferay.portal.kernel.util.RemotePreference getRemotePreference(
+		java.lang.String name) {
+		return _user.getRemotePreference(name);
+	}
+
+	@Override
+	public java.lang.Iterable<com.liferay.portal.kernel.util.RemotePreference> getRemotePreferences() {
+		return _user.getRemotePreferences();
+	}
+
+	@Override
 	public long[] getRoleIds()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _user.getRoleIds();
@@ -1606,6 +1683,21 @@ public class UserWrapper implements User, ModelWrapper<User> {
 	public java.util.List<com.liferay.portal.model.Role> getRoles()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _user.getRoles();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getSiteGroups()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _user.getSiteGroups();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getSiteGroups(
+		boolean includeAdministrative)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _user.getSiteGroups(includeAdministrative);
 	}
 
 	@Override
@@ -1722,6 +1814,30 @@ public class UserWrapper implements User, ModelWrapper<User> {
 	@Override
 	public void setPasswordUnencrypted(java.lang.String passwordUnencrypted) {
 		_user.setPasswordUnencrypted(passwordUnencrypted);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof UserWrapper)) {
+			return false;
+		}
+
+		UserWrapper userWrapper = (UserWrapper)obj;
+
+		if (Validator.equals(_user, userWrapper._user)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _user.getStagedModelType();
 	}
 
 	/**

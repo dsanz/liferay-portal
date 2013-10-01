@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.theme.ThemeDisplay;
 
 import java.io.File;
 import java.io.InputStream;
@@ -49,23 +50,23 @@ public class PortletFileRepositoryUtil {
 	public static FileEntry addPortletFileEntry(
 			long groupId, long userId, String className, long classPK,
 			String portletId, long folderId, File file, String fileName,
-			String mimeType)
+			String mimeType, boolean indexingEnabled)
 		throws PortalException, SystemException {
 
 		return getPortletFileRepository().addPortletFileEntry(
 			groupId, userId, className, classPK, portletId, folderId, file,
-			fileName, mimeType);
+			fileName, mimeType, indexingEnabled);
 	}
 
 	public static FileEntry addPortletFileEntry(
 			long groupId, long userId, String className, long classPK,
 			String portletId, long folderId, InputStream inputStream,
-			String fileName, String mimeType)
+			String fileName, String mimeType, boolean indexingEnabled)
 		throws PortalException, SystemException {
 
 		return getPortletFileRepository().addPortletFileEntry(
 			groupId, userId, className, classPK, portletId, folderId,
-			inputStream, fileName, mimeType);
+			inputStream, fileName, mimeType, indexingEnabled);
 	}
 
 	public static Folder addPortletFolder(
@@ -187,6 +188,27 @@ public class PortletFileRepositoryUtil {
 			groupId, folderId, fileName);
 	}
 
+	public static FileEntry getPortletFileEntry(String uuid, long groupId)
+		throws PortalException, SystemException {
+
+		return getPortletFileRepository().getPortletFileEntry(uuid, groupId);
+	}
+
+	public static String getPortletFileEntryURL(
+		ThemeDisplay themeDisplay, FileEntry fileEntry, String queryString) {
+
+		return getPortletFileRepository().getPortletFileEntryURL(
+			themeDisplay, fileEntry, queryString);
+	}
+
+	public static String getPortletFileEntryURL(
+		ThemeDisplay themeDisplay, FileEntry fileEntry, String queryString,
+		boolean absoluteURL) {
+
+		return getPortletFileRepository().getPortletFileEntryURL(
+			themeDisplay, fileEntry, queryString, absoluteURL);
+	}
+
 	public static PortletFileRepository getPortletFileRepository() {
 		PortalRuntimePermission.checkGetBeanProperty(
 			PortletFileRepositoryUtil.class);
@@ -217,19 +239,19 @@ public class PortletFileRepositoryUtil {
 			groupId, portletId);
 	}
 
-	public static void movePortletFileEntryToTrash(
+	public static FileEntry movePortletFileEntryToTrash(
 			long userId, long fileEntryId)
 		throws PortalException, SystemException {
 
-		getPortletFileRepository().movePortletFileEntryToTrash(
+		return getPortletFileRepository().movePortletFileEntryToTrash(
 			userId, fileEntryId);
 	}
 
-	public static void movePortletFileEntryToTrash(
+	public static FileEntry movePortletFileEntryToTrash(
 			long groupId, long userId, long folderId, String fileName)
 		throws PortalException, SystemException {
 
-		getPortletFileRepository().movePortletFileEntryToTrash(
+		return getPortletFileRepository().movePortletFileEntryToTrash(
 			groupId, userId, folderId, fileName);
 	}
 

@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -741,6 +743,60 @@ public class MBThreadWrapper implements MBThread, ModelWrapper<MBThread> {
 	}
 
 	/**
+	* Returns the trash entry created when this message boards thread was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this message boards thread.
+	*
+	* @return the trash entry created when this message boards thread was moved to the Recycle Bin
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.trash.model.TrashEntry getTrashEntry()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _mbThread.getTrashEntry();
+	}
+
+	/**
+	* Returns the class primary key of the trash entry for this message boards thread.
+	*
+	* @return the class primary key of the trash entry for this message boards thread
+	*/
+	@Override
+	public long getTrashEntryClassPK() {
+		return _mbThread.getTrashEntryClassPK();
+	}
+
+	/**
+	* Returns the trash handler for this message boards thread.
+	*
+	* @return the trash handler for this message boards thread
+	*/
+	@Override
+	public com.liferay.portal.kernel.trash.TrashHandler getTrashHandler() {
+		return _mbThread.getTrashHandler();
+	}
+
+	/**
+	* Returns <code>true</code> if this message boards thread is in the Recycle Bin.
+	*
+	* @return <code>true</code> if this message boards thread is in the Recycle Bin; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isInTrash() {
+		return _mbThread.isInTrash();
+	}
+
+	/**
+	* Returns <code>true</code> if the parent of this message boards thread is in the Recycle Bin.
+	*
+	* @return <code>true</code> if the parent of this message boards thread is in the Recycle Bin; <code>false</code> otherwise
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public boolean isInTrashContainer() {
+		return _mbThread.isInTrashContainer();
+	}
+
+	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
 	@Override
@@ -809,16 +865,6 @@ public class MBThreadWrapper implements MBThread, ModelWrapper<MBThread> {
 	}
 
 	/**
-	* Returns <code>true</code> if this message boards thread is in the Recycle Bin.
-	*
-	* @return <code>true</code> if this message boards thread is in the Recycle Bin; <code>false</code> otherwise
-	*/
-	@Override
-	public boolean isInTrash() {
-		return _mbThread.isInTrash();
-	}
-
-	/**
 	* Returns <code>true</code> if this message boards thread is pending.
 	*
 	* @return <code>true</code> if this message boards thread is pending; <code>false</code> otherwise
@@ -851,7 +897,7 @@ public class MBThreadWrapper implements MBThread, ModelWrapper<MBThread> {
 	/**
 	* Sets the container model ID of this message boards thread.
 	*
-	* @param container model ID of this message boards thread
+	* @param containerModelId the container model ID of this message boards thread
 	*/
 	@Override
 	public void setContainerModelId(long containerModelId) {
@@ -881,7 +927,7 @@ public class MBThreadWrapper implements MBThread, ModelWrapper<MBThread> {
 	/**
 	* Sets the parent container model ID of this message boards thread.
 	*
-	* @param parent container model ID of this message boards thread
+	* @param parentContainerModelId the parent container model ID of this message boards thread
 	*/
 	@Override
 	public void setParentContainerModelId(long parentContainerModelId) {
@@ -1007,13 +1053,21 @@ public class MBThreadWrapper implements MBThread, ModelWrapper<MBThread> {
 	}
 
 	@Override
+	public com.liferay.portlet.messageboards.model.MBCategory getCategory()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _mbThread.getCategory();
+	}
+
+	@Override
 	public com.liferay.portal.model.Lock getLock() {
 		return _mbThread.getLock();
 	}
 
 	@Override
-	public com.liferay.portlet.messageboards.model.MBCategory getTrashContainer() {
-		return _mbThread.getTrashContainer();
+	public long[] getParticipantUserIds()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _mbThread.getParticipantUserIds();
 	}
 
 	@Override
@@ -1022,13 +1076,32 @@ public class MBThreadWrapper implements MBThread, ModelWrapper<MBThread> {
 	}
 
 	@Override
-	public boolean isInTrashContainer() {
-		return _mbThread.isInTrashContainer();
+	public boolean isLocked() {
+		return _mbThread.isLocked();
 	}
 
 	@Override
-	public boolean isLocked() {
-		return _mbThread.isLocked();
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof MBThreadWrapper)) {
+			return false;
+		}
+
+		MBThreadWrapper mbThreadWrapper = (MBThreadWrapper)obj;
+
+		if (Validator.equals(_mbThread, mbThreadWrapper._mbThread)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _mbThread.getStagedModelType();
 	}
 
 	/**

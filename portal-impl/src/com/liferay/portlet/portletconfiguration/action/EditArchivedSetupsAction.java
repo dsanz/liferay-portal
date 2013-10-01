@@ -16,7 +16,6 @@ package com.liferay.portlet.portletconfiguration.action;
 
 import com.liferay.portal.NoSuchPortletItemException;
 import com.liferay.portal.PortletItemNameException;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.Constants;
@@ -29,7 +28,6 @@ import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -54,6 +52,8 @@ public class EditArchivedSetupsAction extends PortletAction {
 			PortletConfig portletConfig, ActionRequest actionRequest,
 			ActionResponse actionResponse)
 		throws Exception {
+
+		actionRequest = ActionUtil.getWrappedActionRequest(actionRequest, null);
 
 		Portlet portlet = null;
 
@@ -103,21 +103,18 @@ public class EditArchivedSetupsAction extends PortletAction {
 			return;
 		}
 
-		LiferayPortletConfig liferayPortletConfig =
-			(LiferayPortletConfig)portletConfig;
-
 		String portletResource = ParamUtil.getString(
 			actionRequest, "portletResource");
 
 		SessionMessages.add(
 			actionRequest,
-			liferayPortletConfig.getPortletId() +
+			PortalUtil.getPortletId(actionRequest) +
 				SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
 			portletResource);
 
 		SessionMessages.add(
 			actionRequest,
-			liferayPortletConfig.getPortletId() +
+			PortalUtil.getPortletId(actionRequest) +
 				SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
 
 		String redirect = PortalUtil.escapeRedirect(
@@ -134,6 +131,8 @@ public class EditArchivedSetupsAction extends PortletAction {
 			PortletConfig portletConfig, RenderRequest renderRequest,
 			RenderResponse renderResponse)
 		throws Exception {
+
+		renderRequest = ActionUtil.getWrappedRenderRequest(renderRequest, null);
 
 		Portlet portlet = null;
 
@@ -170,13 +169,11 @@ public class EditArchivedSetupsAction extends PortletAction {
 
 		String name = ParamUtil.getString(actionRequest, "name");
 
-		PortletPreferences setup =
-			PortletPreferencesFactoryUtil.getPortletSetup(
-				actionRequest, portlet.getPortletId());
+		PortletPreferences portletPreferences = actionRequest.getPreferences();
 
 		PortletPreferencesServiceUtil.restoreArchivedPreferences(
 			themeDisplay.getScopeGroupId(), name, themeDisplay.getLayout(),
-			portlet.getRootPortletId(), setup);
+			portlet.getRootPortletId(), portletPreferences);
 	}
 
 	protected void updateSetup(ActionRequest actionRequest, Portlet portlet)
@@ -187,13 +184,11 @@ public class EditArchivedSetupsAction extends PortletAction {
 
 		String name = ParamUtil.getString(actionRequest, "name");
 
-		PortletPreferences setup =
-			PortletPreferencesFactoryUtil.getPortletSetup(
-				actionRequest, portlet.getPortletId());
+		PortletPreferences portletPreferences = actionRequest.getPreferences();
 
 		PortletPreferencesServiceUtil.updateArchivePreferences(
 			themeDisplay.getUserId(), themeDisplay.getScopeGroupId(), name,
-			portlet.getRootPortletId(), setup);
+			portlet.getRootPortletId(), portletPreferences);
 	}
 
 }

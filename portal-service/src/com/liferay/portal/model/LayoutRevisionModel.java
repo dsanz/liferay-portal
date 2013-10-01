@@ -1069,14 +1069,6 @@ public interface LayoutRevisionModel extends BaseModel<LayoutRevision>,
 	public boolean isIncomplete();
 
 	/**
-	 * Returns <code>true</code> if this layout revision is in the Recycle Bin.
-	 *
-	 * @return <code>true</code> if this layout revision is in the Recycle Bin; <code>false</code> otherwise
-	 */
-	@Override
-	public boolean isInTrash();
-
-	/**
 	 * Returns <code>true</code> if this layout revision is pending.
 	 *
 	 * @return <code>true</code> if this layout revision is pending; <code>false</code> otherwise
@@ -1124,6 +1116,12 @@ public interface LayoutRevisionModel extends BaseModel<LayoutRevision>,
 
 	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
+
+	public String[] getAvailableLanguageIds();
+
+	public String getDefaultLanguageId();
+
+	public void prepareLocalizedFieldsForImport() throws LocaleException;
 
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;

@@ -18,7 +18,6 @@
 
 <%
 String redirect = ParamUtil.getString(request, "redirect");
-String backURL = ParamUtil.getString(request, "backURL");
 
 DDLRecord record = (DDLRecord)request.getAttribute(WebKeys.DYNAMIC_DATA_LISTS_RECORD);
 
@@ -40,7 +39,7 @@ DDLRecordVersion latestRecordVersion = record.getLatestRecordVersion();
 %>
 
 <liferay-ui:header
-	backURL="<%= backURL %>"
+	backURL="<%= redirect %>"
 	title='<%= LanguageUtil.format(pageContext, "view-x", ddmStructure.getName(locale)) %>'
 />
 

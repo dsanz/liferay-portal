@@ -16,8 +16,10 @@ package com.liferay.portal.util;
 
 import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.webdav.methods.Method;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.Layout;
@@ -33,7 +35,6 @@ import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.webdav.methods.Method;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 
 import java.util.HashMap;
@@ -106,8 +107,9 @@ public class PortalImplActualURLTest {
 			TestPropsValues.getUserId(), GroupConstants.DEFAULT_PARENT_GROUP_ID,
 			StringPool.BLANK, 0, GroupConstants.DEFAULT_LIVE_GROUP_ID,
 			"Test " + ServiceTestUtil.nextInt(), StringPool.BLANK,
-			GroupConstants.TYPE_SITE_OPEN, StringPool.BLANK, true, true,
-			serviceContext);
+			GroupConstants.TYPE_SITE_OPEN, true,
+			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, StringPool.BLANK,
+			true, true, serviceContext);
 
 		LayoutLocalServiceUtil.addLayout(
 			TestPropsValues.getUserId(), group.getGroupId(), false,
@@ -139,7 +141,7 @@ public class PortalImplActualURLTest {
 
 		Map<Locale, String> titleMap = new HashMap<Locale, String>();
 
-		titleMap.put(Locale.US, "Test Journal Article");
+		titleMap.put(LocaleUtil.US, "Test Journal Article");
 
 		StringBundler sb = new StringBundler(6);
 

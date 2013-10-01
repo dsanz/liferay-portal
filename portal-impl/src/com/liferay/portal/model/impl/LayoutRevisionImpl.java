@@ -23,6 +23,7 @@ import com.liferay.portal.model.ColorScheme;
 import com.liferay.portal.model.LayoutBranch;
 import com.liferay.portal.model.LayoutRevision;
 import com.liferay.portal.model.LayoutSet;
+import com.liferay.portal.model.LayoutTypePortletConstants;
 import com.liferay.portal.model.Theme;
 import com.liferay.portal.service.LayoutBranchLocalServiceUtil;
 import com.liferay.portal.service.LayoutRevisionLocalServiceUtil;
@@ -114,6 +115,38 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 	}
 
 	@Override
+	public String getThemeSetting(String key, String device) {
+		UnicodeProperties typeSettingsProperties = getTypeSettingsProperties();
+
+		String value = typeSettingsProperties.getProperty(
+			ThemeSettingImpl.namespaceProperty(device, key));
+
+		if (value != null) {
+			return value;
+		}
+
+		if (!isInheritLookAndFeel()) {
+			try {
+				Theme theme = getTheme(device);
+
+				return theme.getSetting(key);
+			}
+			catch (Exception e) {
+			}
+		}
+
+		try {
+			LayoutSet layoutSet = getLayoutSet();
+
+			value = layoutSet.getThemeSetting(key, device);
+		}
+		catch (Exception e) {
+		}
+
+		return value;
+	}
+
+	@Override
 	public String getTypeSettings() {
 		if (_typeSettingsProperties == null) {
 			return super.getTypeSettings();
@@ -169,6 +202,22 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 	}
 
 	@Override
+	public boolean isContentDisplayPage() {
+		UnicodeProperties typeSettingsProperties = getTypeSettingsProperties();
+
+		String defaultAssetPublisherPortletId =
+			typeSettingsProperties.getProperty(
+				LayoutTypePortletConstants.DEFAULT_ASSET_PUBLISHER_PORTLET_ID);
+
+		if (Validator.isNotNull(defaultAssetPublisherPortletId)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	@Override
 	public boolean isInheritLookAndFeel() {
 		if (Validator.isNull(getThemeId()) ||
 			Validator.isNull(getColorSchemeId())) {
@@ -206,6 +255,17 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		_typeSettingsProperties = typeSettingsProperties;
 
 		super.setTypeSettings(_typeSettingsProperties.toString());
+	}
+
+	protected Theme getTheme(String device)
+		throws PortalException, SystemException {
+
+		if (device.equals("regular")) {
+			return getTheme();
+		}
+		else {
+			return getWapTheme();
+		}
 	}
 
 	private UnicodeProperties _typeSettingsProperties;

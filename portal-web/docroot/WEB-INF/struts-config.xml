@@ -63,6 +63,8 @@
 
 		<action path="/portal/progress_poller" forward="portal.progress_poller" />
 
+		<action path="/portal/protected" forward="/portal/protected.jsp" />
+
 		<action path="/portal/render_portlet" type="com.liferay.portal.action.RenderPortletAction">
 			<forward name="/portal/render_portlet" path="/portal/render_portlet.jsp" />
 		</action>
@@ -444,11 +446,25 @@
 
 		<action path="/dockbar/add_content_redirect" forward="portlet.dockbar.add_content_redirect" />
 
-		<action path="/dockbar/add_panel" forward="portlet.dockbar.add_panel" />
+		<action path="/dockbar/add_panel" type="com.liferay.portlet.layoutsadmin.action.EditLayoutsAction" >
+			<forward name="portlet.layouts_admin.edit_layouts" path="portlet.dockbar.add_panel" />
+		</action>
+
+		<action path="/dockbar/edit_layout_panel" type="com.liferay.portlet.layoutsadmin.action.EditLayoutsAction">
+			<forward name="portlet.layouts_admin.edit_layouts" path="portlet.dockbar.edit_layout_panel" />
+			<forward name="portlet.layouts_admin.error" path="portlet.dockbar.edit_layout_panel" />
+		</action>
 
 		<action path="/dockbar/edit_layouts" type="com.liferay.portlet.grouppages.action.EditLayoutsAction">
-			<forward name="portlet.layouts_admin.edit_layouts" path="portlet.dockbar.add_page" />
-			<forward name="portlet.layouts_admin.error" path="portlet.dockbar.add_page" />
+			<forward name="portlet.layouts_admin.edit_layouts" path="portlet.dockbar.add_layout" />
+			<forward name="portlet.layouts_admin.error" path="portlet.dockbar.add_layout" />
+		</action>
+
+		<action path="/dockbar/preview_panel" forward="portlet.dockbar.preview_panel" />
+
+		<action path="/dockbar/update_layout" type="com.liferay.portlet.grouppages.action.EditLayoutsAction">
+			<forward name="portlet.layouts_admin.edit_layouts" path="portlet.dockbar.edit_layout_panel" />
+			<forward name="portlet.layouts_admin.error" path="portlet.dockbar.edit_layout_panel" />
 		</action>
 
 		<action path="/dockbar/view" type="com.liferay.portlet.dockbar.action.ViewAction">
@@ -530,14 +546,14 @@
 			<forward name="portlet.document_library.view" path="portlet.document_library.select_file_entry" />
 		</action>
 
-		<action path="/document_library/select_file_entry_type" forward="portlet.document_library.select_file_entry_type" />
-
 		<action path="/document_library/select_folder" type="com.liferay.portlet.documentlibrary.action.EditFolderAction">
 			<forward name="portlet.document_library.edit_folder" path="portlet.document_library.select_folder" />
 			<forward name="portlet.document_library.error" path="portlet.document_library.error" />
 		</action>
 
 		<action path="/document_library/select_group" forward="portlet.document_library.select_group" />
+
+		<action path="/document_library/select_restricted_file_entry_type" forward="portlet.document_library.select_restricted_file_entry_type" />
 
 		<action path="/document_library/upload_multiple_file_entries" type="com.liferay.portlet.documentlibrary.action.EditFileEntryAction">
 			<forward name="portlet.document_library.edit_file_entry" path="portlet.document_library.upload_multiple_file_entries" />
@@ -560,7 +576,7 @@
 
 		<action path="/document_library_display/search" forward="portlet.document_library_display.search" />
 
-		<action path="/document_library_display/select_file_entry_type" forward="portlet.document_library_display.select_file_entry_type" />
+		<action path="/document_library_display/select_add_file_entry_type" forward="portlet.document_library_display.select_add_file_entry_type" />
 
 		<action path="/document_library_display/view" type="com.liferay.portlet.documentlibrary.action.ViewAction">
 			<forward name="portlet.document_library.error" path="portlet.document_library.error" />
@@ -694,6 +710,8 @@
 
 		<!-- Group Pages -->
 
+		<action path="/group_pages/delete_background_task" type="com.liferay.portlet.backgroundtask.action.DeleteBackgroundTaskAction" />
+
 		<action path="/group_pages/edit_layout_branch" type="com.liferay.portlet.stagingbar.action.EditLayoutBranchAction">
 			<forward name="portlet.staging_bar.edit_layout_branch" path="portlet.staging_bar.edit_layout_branch" />
 			<forward name="portlet.staging_bar.error" path="portlet.staging_bar.error" />
@@ -775,7 +793,7 @@
 
 		<action path="/image_gallery_display/search" forward="portlet.image_gallery_display.search" />
 
-		<action path="/image_gallery_display/select_file_entry_type" forward="portlet.document_library_display.select_file_entry_type" />
+		<action path="/image_gallery_display/select_add_file_entry_type" forward="portlet.document_library_display.select_add_file_entry_type" />
 
 		<action path="/image_gallery_display/select_folder" type="com.liferay.portlet.documentlibrary.action.EditFolderAction">
 			<forward name="portlet.document_library.edit_folder" path="portlet.document_library.select_folder" />
@@ -861,6 +879,10 @@
 			<forward name="portlet.journal.error" path="portlet.journal.error" />
 		</action>
 
+		<action path="/journal/preview_article_content" type="com.liferay.portlet.journal.action.PreviewArticleContentAction">
+			<forward name="portlet.journal.preview_article_content" path="portlet.journal.preview_article_content" />
+		</action>
+
 		<action path="/journal/rss" type="com.liferay.portlet.journal.action.RSSAction" />
 
 		<action path="/journal/search" type="com.liferay.portlet.journal.action.SearchAction">
@@ -885,8 +907,7 @@
 		</action>
 
 		<action path="/journal/view_article_content" type="com.liferay.portlet.journal.action.ViewArticleContentAction">
-			<forward name="portlet.journal.raw_article_content" path="/portlet/journal/raw_article_content.jsp" />
-			<forward name="portlet.journal.view_article_content" path="/portlet/journal/view_article_content.jsp" />
+			<forward name="portlet.journal.preview_article_content" path="portlet.journal.preview_article_content" />
 		</action>
 
 		<action path="/journal/view_article_history" type="com.liferay.portlet.journal.action.EditArticleAction">
@@ -905,7 +926,7 @@
 		</action>
 
 		<action path="/journal_articles/view_article_content" type="com.liferay.portlet.journal.action.ViewArticleContentAction">
-			<forward name="portlet.journal.view_article_content" path="/portlet/journal/view_article_content.jsp" />
+			<forward name="portlet.journal.preview_article_content" path="portlet.journal.preview_article_content" />
 		</action>
 
 		<!-- Journal Content -->
@@ -935,6 +956,8 @@
 		</action>
 
 		<!-- Layout Prototypes -->
+
+		<action path="/layout_prototypes/delete_background_task" type="com.liferay.portlet.backgroundtask.action.DeleteBackgroundTaskAction" />
 
 		<action path="/layout_prototypes/edit_layout_prototype" type="com.liferay.portlet.layoutprototypes.action.EditLayoutPrototypeAction">
 			<forward name="portlet.layout_prototypes.edit_layout_prototype" path="portlet.layout_prototypes.edit_layout_prototype" />
@@ -995,6 +1018,8 @@
 		<action path="/layout_set_prototypes/view" forward="portlet.layout_set_prototypes.view" />
 
 		<!-- Layouts Admin -->
+
+		<action path="/layouts_admin/delete_background_task" type="com.liferay.portlet.backgroundtask.action.DeleteBackgroundTaskAction" />
 
 		<action path="/layouts_admin/edit_layout_branch" type="com.liferay.portlet.stagingbar.action.EditLayoutBranchAction">
 			<forward name="portlet.staging_bar.edit_layout_branch" path="portlet.staging_bar.edit_layout_branch" />
@@ -1132,8 +1157,6 @@
 
 		<action path="/message_boards/find_thread" type="com.liferay.portlet.messageboards.action.FindThreadAction" />
 
-		<action path="/message_boards/get_message_attachment" type="com.liferay.portlet.messageboards.action.GetMessageAttachmentAction" />
-
 		<action path="/message_boards/move_category" type="com.liferay.portlet.messageboards.action.MoveCategoryAction">
 			<forward name="portlet.message_boards.error" path="portlet.message_boards.error" />
 			<forward name="portlet.message_boards.move_category" path="portlet.message_boards.move_category" />
@@ -1220,8 +1243,6 @@
 		<action path="/message_boards_admin/find_message" type="com.liferay.portlet.messageboards.action.FindMessageAction" />
 
 		<action path="/message_boards_admin/find_thread" type="com.liferay.portlet.messageboards.action.FindThreadAction" />
-
-		<action path="/message_boards_admin/get_message_attachment" type="com.liferay.portlet.messageboards.action.GetMessageAttachmentAction" />
 
 		<action path="/message_boards_admin/move_category" type="com.liferay.portlet.messageboards.action.MoveCategoryAction">
 			<forward name="portlet.message_boards.error" path="portlet.message_boards.error" />
@@ -1466,14 +1487,6 @@
 
 		<action path="/password_policies_admin/view" forward="portlet.password_policies_admin.view" />
 
-		<!-- Plugin Installer -->
-
-		<action path="/plugin_installer/install_plugin" type="com.liferay.portlet.plugininstaller.action.InstallPluginAction">
-			<forward name="portlet.plugin_installer.error" path="portlet.plugin_installer.error" />
-		</action>
-
-		<action path="/plugin_installer/view" forward="portlet.plugin_installer.view" />
-
 		<!-- Plugins Admin -->
 
 		<action path="/plugins_admin/edit_plugin" type="com.liferay.portlet.pluginsadmin.action.EditPluginAction">
@@ -1550,6 +1563,8 @@
 		<action path="/portlet_configuration/add_group_statistics_activity_counter" forward="portlet.group_statistics.add_activity_counter" />
 
 		<action path="/portlet_configuration/add_user_statistics_activity_counter" forward="portlet.user_statistics.add_activity_counter" />
+
+		<action path="/portlet_configuration/delete_background_task" type="com.liferay.portlet.backgroundtask.action.DeleteBackgroundTaskAction" />
 
 		<action path="/portlet_configuration/edit_archived_setups" type="com.liferay.portlet.portletconfiguration.action.EditArchivedSetupsAction">
 			<forward name="portlet.portlet_configuration.edit_archived_setups" path="portlet.portlet_configuration.edit_archived_setups" />
@@ -1950,14 +1965,6 @@
 
 		<action path="/trash/view_content" forward="portlet.trash.view_content" />
 
-		<!-- Update Manager -->
-
-		<action path="/update_manager/install_plugin" type="com.liferay.portlet.plugininstaller.action.InstallPluginAction">
-			<forward name="portlet.plugin_installer.error" path="portlet.plugin_installer.error" />
-		</action>
-
-		<action path="/update_manager/view" forward="portlet.update_manager.view" />
-
 		<!-- User Groups Admin -->
 
 		<action path="/user_groups_admin/edit_layout_set" type="com.liferay.portlet.layoutsadmin.action.EditLayoutSetAction">
@@ -2159,8 +2166,8 @@
 		</action>
 
 		<action path="/wiki/select_version" type="com.liferay.portlet.wiki.action.ViewPageAction">
-			<forward name="portlet.wiki.view_page" path="portlet.wiki.select_version" />
 			<forward name="portlet.wiki.error" path="portlet.wiki.error" />
+			<forward name="portlet.wiki.view_page" path="portlet.wiki.select_version" />
 		</action>
 
 		<action path="/wiki/view" type="com.liferay.portlet.wiki.action.ViewPageAction">
@@ -2308,6 +2315,11 @@
 		<action path="/wiki_admin/search" type="com.liferay.portlet.wiki.action.ViewNodeAction">
 			<forward name="portlet.wiki.error" path="portlet.wiki.error" />
 			<forward name="portlet.wiki.view_node" path="portlet.wiki.search" />
+		</action>
+
+		<action path="/wiki_admin/select_version" type="com.liferay.portlet.wiki.action.ViewPageAction">
+			<forward name="portlet.wiki.view_page" path="portlet.wiki.select_version" />
+			<forward name="portlet.wiki.error" path="portlet.wiki.error" />
 		</action>
 
 		<action path="/wiki_admin/view" type="com.liferay.portlet.wiki.action.ViewPageAction">

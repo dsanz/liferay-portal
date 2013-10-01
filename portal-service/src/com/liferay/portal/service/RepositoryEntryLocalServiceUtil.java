@@ -340,6 +340,12 @@ public class RepositoryEntryLocalServiceUtil {
 			serviceContext);
 	}
 
+	public static java.util.List<com.liferay.portal.model.RepositoryEntry> getRepositoryEntries(
+		long repositoryId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getRepositoryEntries(repositoryId);
+	}
+
 	public static com.liferay.portal.model.RepositoryEntry updateRepositoryEntry(
 		long repositoryEntryId, java.lang.String mappedId)
 		throws com.liferay.portal.kernel.exception.PortalException,

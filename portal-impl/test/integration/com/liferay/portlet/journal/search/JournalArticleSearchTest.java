@@ -14,13 +14,17 @@
 
 package com.liferay.portlet.journal.search;
 
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.search.BaseSearchTestCase;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
@@ -37,9 +41,12 @@ import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalFolder;
 import com.liferay.portlet.journal.model.JournalFolderConstants;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
+import com.liferay.portlet.journal.service.JournalArticleServiceUtil;
+import com.liferay.portlet.journal.service.JournalFolderServiceUtil;
 import com.liferay.portlet.journal.util.JournalTestUtil;
 
-import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -54,9 +61,10 @@ import org.junit.runner.RunWith;
 @Sync
 public class JournalArticleSearchTest extends BaseSearchTestCase {
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchAttachments() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
 	@Override
@@ -92,8 +100,14 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 
 		JournalFolder folder = (JournalFolder)parentBaseModel;
 
+		long folderId = JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID;
+
+		if (folder != null) {
+			folderId = folder.getFolderId();
+		}
+
 		return JournalTestUtil.addArticleWithWorkflow(
-			folder.getFolderId(), keywords, approved, serviceContext);
+			folderId, keywords, approved, serviceContext);
 	}
 
 	@Override
@@ -131,7 +145,18 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 	@Override
 	protected String getDDMStructureFieldName() {
 		return DDMIndexerUtil.encodeName(
-			_ddmStructure.getStructureId(), "name", LocaleUtil.getDefault());
+			_ddmStructure.getStructureId(), "name",
+			LocaleUtil.getSiteDefault());
+	}
+
+	@Override
+	protected BaseModel<?> getParentBaseModel(
+			BaseModel<?> parentBaseModel, ServiceContext serviceContext)
+		throws Exception {
+
+		return JournalTestUtil.addFolder(
+			(Long)parentBaseModel.getPrimaryKeyObj(),
+			ServiceTestUtil.randomString(), serviceContext);
 	}
 
 	@Override
@@ -140,8 +165,13 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 		throws Exception {
 
 		return JournalTestUtil.addFolder(
-			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, "Test Folder",
-			serviceContext);
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			ServiceTestUtil.randomString(), serviceContext);
+	}
+
+	@Override
+	protected String getParentBaseModelClassName() {
+		return JournalFolder.class.getName();
 	}
 
 	@Override
@@ -152,6 +182,24 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 	@Override
 	protected boolean isExpirableAllVersions() {
 		return PropsValues.JOURNAL_ARTICLE_EXPIRE_ALL_VERSIONS;
+	}
+
+	@Override
+	protected void moveParentBaseModelToTrash(long primaryKey)
+		throws Exception {
+
+		JournalFolderServiceUtil.moveFolderToTrash(primaryKey);
+	}
+
+	@Override
+	protected long searchGroupEntriesCount(long groupId, long creatorUserId)
+		throws Exception {
+
+		Hits hits =  JournalArticleServiceUtil.search(
+			groupId, creatorUserId, WorkflowConstants.STATUS_APPROVED,
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		return hits.getLength();
 	}
 
 	@Override

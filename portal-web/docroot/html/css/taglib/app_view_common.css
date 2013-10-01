@@ -45,7 +45,7 @@
 	}
 
 	.entry-metadata {
-		margin: 10px 0 20px 170px;
+		margin: 10px 0 20px;
 
 		.entry-title {
 			padding-bottom: 3px;
@@ -77,6 +77,14 @@
 
 		.entry-categories, .entry-tags {
 			display: block;
+		}
+
+		.taglib-workflow-status {
+			display: inline;
+
+			.workflow-status {
+				padding-left: .2em;
+			}
 		}
 
 		.entry-tags .tag {

@@ -72,7 +72,7 @@
 			row.addText(LanguageUtil.get(pageContext, "never"), rowURL);
 		}
 		else {
-			row.addText(dateFormatDateTime.format(question.getLastVoteDate()), rowURL);
+			row.addDate(question.getLastVoteDate(), rowURL);
 		}
 
 		// Expiration date
@@ -81,7 +81,7 @@
 			row.addText(LanguageUtil.get(pageContext, "never"), rowURL);
 		}
 		else {
-			row.addText(dateFormatDateTime.format(question.getExpirationDate()), rowURL);
+			row.addDate(question.getExpirationDate(), rowURL);
 		}
 
 		// Action
@@ -115,9 +115,10 @@
 						modelResourceDescription="<%= HtmlUtil.escape(themeDisplay.getScopeGroupName()) %>"
 						resourcePrimKey="<%= String.valueOf(scopeGroupId) %>"
 						var="permissionsURL"
+						windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 					/>
 
-					<aui:button href="<%= permissionsURL %>" value="permissions" />
+					<aui:button href="<%= permissionsURL %>" useDialog="<%= true %>" value="permissions" />
 				</c:if>
 			</aui:button-row>
 		</c:if>

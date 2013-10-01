@@ -19,7 +19,6 @@
 <%@ page import="com.liferay.portlet.dynamicdatalists.NoSuchRecordSetException" %><%@
 page import="com.liferay.portlet.dynamicdatalists.model.DDLRecordSet" %><%@
 page import="com.liferay.portlet.dynamicdatalists.model.DDLRecordSetConstants" %><%@
-page import="com.liferay.portlet.dynamicdatalists.search.RecordSetDisplayTerms" %><%@
 page import="com.liferay.portlet.dynamicdatalists.search.RecordSetSearch" %><%@
 page import="com.liferay.portlet.dynamicdatalists.search.RecordSetSearchTerms" %><%@
 page import="com.liferay.portlet.dynamicdatalists.service.DDLRecordSetLocalServiceUtil" %><%@
@@ -48,8 +47,6 @@ boolean editable = DDLUtil.isEditable(portletPreferences, portletDisplay.getId()
 boolean spreadsheet = GetterUtil.getBoolean(portletPreferences.getValue("spreadsheet", Boolean.FALSE.toString()));
 
 DDMDisplay ddmDisplay = DDMDisplayRegistryUtil.getDDMDisplay(PortletKeys.DYNAMIC_DATA_LISTS);
-
-Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
 %>
 
 <%@ include file="/html/portlet/dynamic_data_list_display/init-ext.jsp" %>

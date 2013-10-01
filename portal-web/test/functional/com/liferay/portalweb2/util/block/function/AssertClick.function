@@ -23,6 +23,12 @@
 		<execute selenium="clickAndWait" />
 	</command>
 
+	<command name="assertTextClickAtAddApplication">
+		<execute selenium="waitForElementNotPresent" argument1="//div[@id='_145_addPanelSidebar']/div[@class='loading-animation']" />
+
+		<execute function="AssertClick#assertTextClickAt" />
+	</command>
+
 	<command name="assertTextClickAt">
 		<execute function="AssertTextEquals#assertText" />
 
@@ -41,8 +47,22 @@
 		<execute function="AssertClick#assertTextClickAtAndWait" />
 	</command>
 
+	<command name="assertTextClickAtCKEditor">
+		<execute selenium="waitForVisible" argument1="//a[contains(@class,'cke_button cke_button__cut') and contains(@class,'cke_button_disabled')]" />
+
+		<execute function="AssertClick#assertTextClickAt" />
+	</command>
+
 	<command name="assertTextClickAtClickDockbar">
 		<execute selenium="clickAt" argument1="//div[@id='_145_dockbar']" argument2="" />
+
+		<execute selenium="waitForElementPresent" argument1="//script[contains(@src,'/aui/aui-editable-deprecated/aui-editable-deprecated-min.js')]" />
+
+		<execute function="AssertClick#assertTextClickAt" />
+	</command>
+
+	<command name="assertTextClickAtClickSidebar">
+		<execute selenium="clickAt" argument1="//ul[@class='nav nav-add-controls']" />
 
 		<execute selenium="waitForElementPresent" argument1="//script[contains(@src,'/aui/aui-editable-deprecated/aui-editable-deprecated-min.js')]" />
 
@@ -77,5 +97,13 @@
 		<execute selenium="pause" argument1="1000" />
 
 		<execute function="AssertClick#assertTextClickAtAndWait" />
+	</command>
+
+	<command name="pauseMakeVisibleAssertTextEqualsClickAt">
+		<execute selenium="pause" argument1="1000" />
+
+		<execute selenium="makeVisible" />
+
+		<execute function="AssertClick#assertTextClickAt" />
 	</command>
 </definition>

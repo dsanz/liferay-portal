@@ -1,265 +1,157 @@
 <definition>
 	<command name="addCP">
-		<execute macro="Page#cpGoto">
-			<var name="portletName" value="Roles" />
-		</execute>
-
-		<execute action="CPRoles#click" locator-key1="ADD" />
+		<execute action="CPRoles#assertClick" locator-key1="ADD" value1="Add" />
 
 		<if>
 			<equals arg1="${roleType}" arg2="Organization" />
 			<then>
-				<execute action="CPRoles#click" locator-key1="ADD_MENULIST_ORGANIZATION_ROLE" />
+				<execute action="CPRoles#assertClick" locator-key1="ADD_MENULIST_ORGANIZATION_ROLE" value1="Organization Role" />
 			</then>
-			<elseif>
-				<equals arg1="${roleType}" arg2="Regular" />
-				<then>
-					<execute action="CPRoles#click" locator-key1="ADD_MENULIST_REGULAR_ROLE" />
-				</then>
-			</elseif>
 			<elseif>
 				<equals arg1="${roleType}" arg2="Site" />
 				<then>
-					<execute action="CPRoles#click" locator-key1="ADD_MENULIST_SITE_ROLE" />
+					<execute action="CPRoles#assertClick" locator-key1="ADD_MENULIST_SITE_ROLE" value1="Site Role" />
 				</then>
 			</elseif>
 			<else>
-				<fail message="Invalid var roleType. Must be (Organization|Regular|Site)." />
+				<execute action="CPRoles#assertClick" locator-key1="ADD_MENULIST_REGULAR_ROLE" value1="Regular Role" />
 			</else>
 		</if>
 
 		<execute action="CPRolesAddrole#type" locator-key1="NAME_FIELD" value1="${roleName}" />
-		<execute action="CPRolesAddrole#click" locator-key1="SAVE_BUTTON" />
+		<execute action="CPRolesAddrole#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
 
-		<execute action="CPRoles#assertTextEquals" locator-key1="SUCCESS_MESSAGE" />
-
-		<execute macro="Page#cpGoto">
-			<var name="portletName" value="Roles" />
-		</execute>
-
-		<if>
-			<equals arg1="${roleType}" arg2="Organization" />
-			<then>
-				<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="Orgrole" />
-			</then>
-			<elseif>
-				<equals arg1="${roleType}" arg2="Regular" />
-				<then>
-					<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="Regrole" />
-				</then>
-			</elseif>
-			<elseif>
-				<equals arg1="${roleType}" arg2="Site" />
-				<then>
-					<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="Siterole" />
-				</then>
-			</elseif>
-		</if>
-
-		<execute action="CPRoles#click" locator-key1="SEARCH_BUTTON" />
-		<execute action="CPRoles#assertTextEquals" locator-key1="ROLE_TABLE_TITLE_1" value1="${roleName}" />
-		<execute action="CPRoles#assertTextEquals" locator-key1="ROLE_TABLE_TYPE_1" value1="${roleType}" />
-		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS_1" />
-		<execute action="CPRoles#click" locator-key1="ROLE_MENULIST_EDIT" />
-
-		<execute action="CPRolesEdit#assertTextEquals" locator-key1="HEADER" value1="${roleName}" />
-		<execute action="CPRolesEdit#assertTextEquals" locator-key1="NAME_FIELD" value1="${roleName}" />
-	</command>
-
-	<command name="addOrgRoleCP">
-		<execute macro="Role#addCP">
-			<var name="roleType" value="Organization" />
-		</execute>
-	</command>
-
-	<command name="addRegRoleCP">
-		<execute macro="Role#addCP">
-			<var name="roleType" value="Regular" />
-		</execute>
-	</command>
-
-	<command name="addSiteRoleCP">
-		<execute macro="Role#addCP">
-			<var name="roleType" value="Site" />
-		</execute>
+		<execute action="CPRoles#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
 	</command>
 
 	<command name="assignRegRoleCP">
-		<execute macro="Page#cpGoto">
-			<var name="portletName" value="Roles" />
-		</execute>
+		<var name="key_roleName" value="${roleName}" />
 
-		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="Regrole" />
-		<execute action="CPRoles#click" locator-key1="SEARCH_BUTTON" />
-		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS_1" />
-		<execute action="CPRoles#click" locator-key1="ROLE_MENULIST_ASSIGN_MEMBERS" />
+		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="${roleName}" />
+		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
+		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_ASSIGN_MEMBERS" value1="Assign Members" />
 
-		<execute action="CPRolesAssignmembersUsers#click" locator-key1="STATUS_AVAILABLE" />
+		<var name="key_userScreenName" value="${userScreenName}" />
+
+		<execute action="CPRolesAssignmembersUsers#assertClick" locator-key1="STATUS_AVAILABLE" value1="Available" />
 		<execute action="CPRolesAssignmembersUsers#type" locator-key1="BASIC_SEARCH_FIELD" value1="${userScreenName}" />
-		<execute action="CPRolesAssignmembersUsers#click" locator-key1="BASIC_SEARCH_BUTTON" />
-		<execute action="CPRolesAssignmembersUsers#assertTextEquals" locator-key1="USER_TABLE_SCREEN_NAME_1" value1="${userScreenName}" />
-		<execute action="CPRolesAssignmembersUsers#check" locator-key1="USER_TABLE_CHECKBOX_1" />
-		<execute action="CPRolesAssignmembersUsers#click" locator-key1="UPDATE_ASSOCIATIONS_BUTTON" />
-		<execute action="CPRolesAssignmembersUsers#assertTextEquals" locator-key1="SUCCESS_MESSAGE" />
-		<execute action="CPRolesAssignmembersUsers#assertChecked" locator-key1="USER_TABLE_CHECKBOX_1" />
+		<execute action="CPRolesAssignmembersUsers#assertClick" locator-key1="BASIC_SEARCH_BUTTON" value1="Search" />
+		<execute action="CPRolesAssignmembersUsers#assertTextEquals" locator-key1="USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
+		<execute action="CPRolesAssignmembersUsers#check" locator-key1="USER_TABLE_CHECKBOX" />
+		<execute action="CPRolesAssignmembersUsers#assertClick" locator-key1="UPDATE_ASSOCIATIONS_BUTTON" value1="Update Associations" />
+		<execute action="CPRolesAssignmembersUsers#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+		<execute action="CPRolesAssignmembersUsers#assertChecked" locator-key1="USER_TABLE_CHECKBOX" />
 	</command>
 
-	<command name="definePermissionBlogsEntryCmdCP">
-		<execute action="CPRoles#click" locator-key1="SEARCH_BUTTON" />
-		<execute action="CPRoles#assertTextEquals" locator-key1="ROLE_TABLE_TITLE_1" value1="${roleName}" />
-		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS_1" />
-		<execute action="CPRoles#click" locator-key1="ROLE_MENULIST_DEFINE_PERMISSIONS" />
+	<command name="definePermissionCP">
+		<var name="key_roleName" value="${roleName}" />
 
-		<execute action="CPRolesDefinepermissions#select" locator-key1="ADD_PERMISSIONS_SELECT" value1="Blogs" />
+		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
+		<execute action="CPRoles#assertTextEquals" locator-key1="ROLE_TABLE_TITLE" value1="${roleName}" />
+		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_DEFINE_PERMISSIONS" value1="Define Permissions" />
+
+		<execute action="CPRolesDefinepermissions#type" locator-key1="SEARCH_FIELD" value1="${permissionNavigationValue}" />
+		<execute action="CPRolesDefinepermissions#assertClick" locator-key1="${permissionNavigationKey}" value1="${permissionNavigationValue}" />
+
+		<execute action="CPRolesDefinepermissionsAllpermissions#assertTextEquals" locator-key1="PERMISSION_HEADER" value1="${permissionNavigationValue}" />
+		<execute action="CPRolesDefinepermissionsAllpermissions#check" locator-key1="${permissionDefinitionKey}" />
+		<execute action="CPRolesDefinepermissionsAllpermissions#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
 
 		<if>
-			<equals arg1="${rolePermission}" arg2="Add Entry" />
+			<equals arg1="${permissionNavigationValue}" arg2="General Permissions"/>
 			<then>
-				<var name="permissionResource" value="Blogs" />
-
-				<execute action="CPRolesPermissionsSitecontentBlogs#check" locator-key1="BLOGS_TABLE_ADD_ENTRY_CHECKBOX" />
-				<execute action="CPRolesPermissionsSitecontentBlogs#click" locator-key1="SAVE_BUTTON" />
+				<var name="permissionNavigationValue" value="Portal" />
 			</then>
 			<elseif>
-				<equals arg1="${rolePermission}" arg2="Delete" />
+				<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_PAGES_SITE_PAGES_SITE" />
 				<then>
-					<var name="permissionResource" value="Blogs Entry" />
-
-					<execute action="CPRolesPermissionsSitecontentBlogs#check" locator-key1="BLOGS_ENTRY_TABLE_DELETE_CHECKBOX" />
-					<execute action="CPRolesPermissionsSitecontentBlogs#click" locator-key1="SAVE_BUTTON" />
+					<var name="permissionNavigationValue" value="Sites" />
 				</then>
 			</elseif>
-			<else>
-				<fail message="Invalid var rolePermission." />
-			</else>
 		</if>
+
+		<var name="key_permissionNavigationValue" value="${permissionNavigationValue}" />
+		<var name="key_permissionDefinitionValue" value="${permissionDefinitionValue}" />
 
 		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="The role permissions were updated." />
-		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="${roleTypeKey}_PERMISSION_TABLE_RESOURCE_SET_1" value1="Blogs" />
-		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="${roleTypeKey}_PERMISSION_TABLE_RESOURCE_1" value1="${permissionResource}" />
-		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="${roleTypeKey}_PERMISSION_TABLE_ACTION_1" value1="${rolePermission}" />
-		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="${roleTypeKey}_PERMISSION_TABLE_DELETE_1" value1="Delete" />
+		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="PERMISSION_TABLE_PERMISSIONS" value1="${permissionNavigationValue}" />
+		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="PERMISSION_TABLE_PERMISSIONS" value1="${permissionDefinitionValue}" />
+		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="PERMISSION_TABLE_REMOVE" value1="Remove" />
 	</command>
 
-	<command name="definePermissionBlogsEntryOrgCP">
-		<execute macro="Page#cpGoto">
-			<var name="portletName" value="Roles" />
-		</execute>
+	<command name="definePermissionPG">
+ 		<var name="key_roleName" value="${roleName?replace(' ', '-')}" />
+		<var name="key_roleName" value="${key_roleName?lowercase()}" />
 
-		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="Orgrole" />
-
-		<execute macro="Role#definePermissionBlogsEntryCmdCP">
-			<var name="roleTypeKey" value="ORG" />
-		</execute>
+		<execute action="Permissions#check" locator-key1="${permissionDefinitionKey}" />
+		<execute action="Permissions#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
+		<execute action="Permissions#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+		<execute action="Permissions#assertChecked" locator-key1="${permissionDefinitionKey}" />
 	</command>
 
-	<command name="definePermissionBlogsEntryRegCP">
-		<execute macro="Page#cpGoto">
-			<var name="portletName" value="Roles" />
-		</execute>
+	<command name="removePermissionCP">
+		<var name="key_roleName" value="${roleName}" />
 
-		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="Regrole" />
+		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
+		<execute action="CPRoles#assertTextEquals" locator-key1="ROLE_TABLE_TITLE" value1="${roleName}" />
+		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_DEFINE_PERMISSIONS" value1="Define Permissions" />
 
-		<execute macro="Role#definePermissionBlogsEntryCmdCP">
-			<var name="roleTypeKey" value="REG" />
-		</execute>
+		<execute action="CPRolesDefinepermissions#type" locator-key1="SEARCH_FIELD" value1="${permissionNavigationValue}" />
+		<execute action="CPRolesDefinepermissions#assertClick" locator-key1="${permissionNavigationKey}" value1="${permissionNavigationValue}" />
+
+		<execute action="CPRolesDefinepermissionsAllpermissions#uncheck" locator-key1="${permissionDefinitionKey}" />
+		<execute action="CPRolesDefinepermissionsAllpermissions#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
+
+		<var name="key_permissionNavigationValue" value="${permissionNavigationValue}" />
+		<var name="key_permissionDefinitionValue" value="${permissionDefinitionValue}" />
+
+		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="The role permissions were updated." />
+		<execute action="CPRolesDefinepermissions#assertElementNotPresent" locator-key1="PERMISSION_TABLE_PERMISSIONS" value1="${permissionNavigationValue}" />
+		<execute action="CPRolesDefinepermissions#assertElementNotPresent" locator-key1="PERMISSION_TABLE_PERMISSIONS" value1="${permissionDefinitionValue}" />
+		<execute action="CPRolesDefinepermissions#assertElementNotPresent" locator-key1="PERMISSION_TABLE_REMOVE" value1="Remove" />
 	</command>
 
-	<command name="definePermissionBlogsEntrySiteCP">
-		<execute macro="Page#cpGoto">
-			<var name="portletName" value="Roles" />
-		</execute>
+	<command name="removePermissionPG">
+ 		<var name="key_roleName" value="${roleName?replace(' ', '-')}" />
+		<var name="key_roleName" value="${key_roleName?lowercase()}" />
 
-		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="Siterole" />
-
-		<execute macro="Role#definePermissionBlogsEntryCmdCP">
-			<var name="roleTypeKey" value="SITE" />
-		</execute>
-	</command>
-
-	<command name="removePermissionBlogsEntryCmdCP">
-		<if>
-			<equals arg1="${rolePermission}" arg2="Add Entry" />
-			<then>
-				<var name="permissionResource" value="Blogs" />
-			</then>
-			<elseif>
-				<equals arg1="${rolePermission}" arg2="Delete" />
-				<then>
-					<var name="permissionResource" value="Blogs Entry" />
-				</then>
-			</elseif>
-			<else>
-				<fail message="Invalid var rolePermission." />
-			</else>
-		</if>
-
-		<execute action="CPRoles#click" locator-key1="SEARCH_BUTTON" />
-		<execute action="CPRoles#assertTextEquals" locator-key1="ROLE_TABLE_TITLE_1" value1="${roleName}" />
-		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS_1" />
-		<execute action="CPRoles#click" locator-key1="ROLE_MENULIST_DEFINE_PERMISSIONS" />
-
-		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="${roleTypeKey}_PERMISSION_TABLE_RESOURCE_SET_1" value1="Blogs" />
-		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="${roleTypeKey}_PERMISSION_TABLE_RESOURCE_1" value1="${permissionResource}" />
-		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="${roleTypeKey}_PERMISSION_TABLE_ACTION_1" value1="${rolePermission}" />
-		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="${roleTypeKey}_PERMISSION_TABLE_DELETE_1" value1="Delete" />
-		<execute action="CPRolesDefinepermissions#click" locator-key1="${roleTypeKey}_PERMISSION_TABLE_DELETE_1" />
-		<execute action="CPRolesDefinepermissions#confirm" locator-key1="CONFIRMATION" value1="Are you sure you want to delete this? It will be deleted immediately." />
-		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="The permission was deleted." />
-		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="INFO_MESSAGE" />
-	</command>
-
-	<command name="removePermissionBlogsEntryOrgCP">
-		<execute macro="Page#cpGoto">
-			<var name="portletName" value="Roles" />
-		</execute>
-
-		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="Orgrole" />
-
-		<execute macro="Role#removePermissionBlogsEntryCmdCP">
-			<var name="roleTypeKey" value="ORG" />
-		</execute>
-	</command>
-
-	<command name="removePermissionBlogsEntryRegCP">
-		<execute macro="Page#cpGoto">
-			<var name="portletName" value="Roles" />
-		</execute>
-
-		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="Regrole" />
-
-		<execute macro="Role#removePermissionBlogsEntryCmdCP">
-			<var name="roleTypeKey" value="REG" />
-		</execute>
-	</command>
-
-	<command name="removePermissionBlogsEntrySiteCP">
-		<execute macro="Page#cpGoto">
-			<var name="portletName" value="Roles" />
-		</execute>
-
-		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="Siterole" />
-
-		<execute macro="Role#removePermissionBlogsEntryCmdCP">
-			<var name="roleTypeKey" value="SITE" />
-		</execute>
+		<execute action="Permissions#uncheck" locator-key1="${permissionDefinitionKey}" />
+		<execute action="Permissions#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
+		<execute action="Permissions#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+		<execute action="Permissions#assertNotChecked" locator-key1="${permissionDefinitionKey}" />
 	</command>
 
 	<command name="tearDownCP">
-		<execute macro="Page#cpGoto">
+		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Roles" />
 		</execute>
 
 		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="Name" />
-		<execute action="CPRoles#click" locator-key1="SEARCH_BUTTON" />
+		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
 
 		<while>
 			<condition action="CPRoles#isElementPresent" locator-key1="ROLE_TABLE_ACTIONS_1" />
 			<then>
-				<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS_1" />
-				<execute action="CPRoles#click" locator-key1="ROLE_MENULIST_DELETE" />
+				<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS_1" value1="Actions" />
+				<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_DELETE" value1="Delete" />
 				<execute action="CPRoles#confirm" locator-key1="CONFIRMATION" value1="Are you sure you want to delete this? It will be deleted immediately." />
 			</then>
 		</while>
+	</command>
+
+	<command name="viewCP">
+		<var name="key_roleName" value="${roleName}" />
+
+		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
+		<execute action="CPRoles#assertTextEquals" locator-key1="ROLE_TABLE_TITLE" value1="${roleName}" />
+		<execute action="CPRoles#assertTextEquals" locator-key1="ROLE_TABLE_TYPE" value1="${roleType}" />
+		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_EDIT" value1="Edit" />
+
+		<execute action="CPRolesEdit#assertTextEquals" locator-key1="HEADER" value1="${roleName}" />
+		<execute action="CPRolesEdit#assertTextEquals" locator-key1="NAME_FIELD" value1="${roleName}" />
 	</command>
 </definition>

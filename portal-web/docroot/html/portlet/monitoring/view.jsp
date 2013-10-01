@@ -20,8 +20,6 @@
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("struts_action", "/monitoring/view");
-
-String portletURLString = portletURL.toString();
 %>
 
 <c:choose>
@@ -30,22 +28,21 @@ String portletURLString = portletURL.toString();
 			title="live-sessions"
 		/>
 
+		<%
+		Map<String, UserTracker> sessionUsers = LiveUsers.getSessionUsers(company.getCompanyId());
+
+		List<UserTracker> userTrackers = new ArrayList<UserTracker>(sessionUsers.values());
+
+		userTrackers = ListUtil.sort(userTrackers, new UserTrackerModifiedDateComparator());
+		%>
+
 		<liferay-ui:search-container
 			emptyResultsMessage="there-are-no-live-sessions"
 			headerNames="session-id,user-id,name,screen-name,last-request,num-of-hits"
+			total="<%= userTrackers.size() %>"
 		>
-
-			<%
-			Map<String, UserTracker> sessionUsers = LiveUsers.getSessionUsers(company.getCompanyId());
-
-			List<UserTracker> userTrackers = new ArrayList<UserTracker>(sessionUsers.values());
-
-			userTrackers = ListUtil.sort(userTrackers, new UserTrackerModifiedDateComparator());
-			%>
-
 			<liferay-ui:search-container-results
 				results="<%= ListUtil.subList(userTrackers, searchContainer.getStart(), searchContainer.getEnd()) %>"
-				total="<%= userTrackers.size() %>"
 			/>
 
 			<liferay-ui:search-container-row
@@ -93,10 +90,10 @@ String portletURLString = portletURL.toString();
 					value='<%= ((user2 != null) ? user2.getScreenName() : LanguageUtil.get(pageContext, "not-available")) %>'
 				/>
 
-				<liferay-ui:search-container-column-text
+				<liferay-ui:search-container-column-date
 					href="<%= rowURL %>"
 					name="last-request"
-					value="<%= dateFormatDateTime.format(userTracker.getModifiedDate()) %>"
+					value="<%= userTracker.getModifiedDate() %>"
 				/>
 
 				<liferay-ui:search-container-column-text

@@ -24,11 +24,13 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.service.permission.PortletPermissionUtil;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.PortletConfigFactoryUtil;
 
 import java.util.HashMap;
@@ -50,6 +52,7 @@ import javax.servlet.ServletContext;
 /**
  * @author Brian Wing Shun Chan
  * @author Julio Camarero
+ * @author Raymond Augé
  */
 public class DefaultConfigurationAction
 	implements ConfigurationAction, ResourceServingConfigurationAction {
@@ -93,9 +96,11 @@ public class DefaultConfigurationAction
 		String portletResource = ParamUtil.getString(
 			actionRequest, "portletResource");
 
+		Layout layout = PortletConfigurationLayoutUtil.getLayout(themeDisplay);
+
 		PortletPermissionUtil.check(
-			themeDisplay.getPermissionChecker(), themeDisplay.getLayout(),
-			portletResource, ActionKeys.CONFIGURATION);
+			themeDisplay.getPermissionChecker(), themeDisplay.getScopeGroupId(),
+			layout, portletResource, ActionKeys.CONFIGURATION);
 
 		PortletPreferences portletPreferences = actionRequest.getPreferences();
 
@@ -132,18 +137,15 @@ public class DefaultConfigurationAction
 				return;
 			}
 
-			LiferayPortletConfig liferayPortletConfig =
-				(LiferayPortletConfig)portletConfig;
-
 			SessionMessages.add(
 				actionRequest,
-				liferayPortletConfig.getPortletId() +
+				PortalUtil.getPortletId(actionRequest) +
 					SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
 				portletResource);
 
 			SessionMessages.add(
 				actionRequest,
-				liferayPortletConfig.getPortletId() +
+				PortalUtil.getPortletId(actionRequest) +
 					SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
 		}
 	}

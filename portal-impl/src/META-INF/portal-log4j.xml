@@ -322,6 +322,10 @@
 		<priority value="INFO" />
 	</category>
 
+	<category name="com.liferay.portal.kernel.search.BaseSpellCheckIndexWriter">
+		<priority value="INFO" />
+	</category>
+
 	<category name="com.liferay.portal.kernel.search.HitsOpenSearchImpl">
 		<priority value="WARN" />
 	</category>
@@ -390,6 +394,10 @@
 		<priority value="INFO" />
 	</category>
 
+	<category name="com.liferay.portal.metadata.TikaRawMetadataProcessor">
+		<priority value="WARN" />
+	</category>
+
 	<category name="com.liferay.portal.model.Image">
 		<priority value="ERROR" />
 	</category>
@@ -427,7 +435,7 @@
 	</category>
 
 	<category name="com.liferay.portal.search.lucene">
-		<priority value="INFO" />
+		<priority value="ERROR" />
 	</category>
 
 	<category name="com.liferay.portal.search.lucene.LuceneFileExtractor">
@@ -531,7 +539,7 @@
 	</category>
 
 	<category name="com.liferay.portal.security.pacl.checker.FileChecker">
-		<priority value="WARN" />
+		<priority value="ERROR" />
 	</category>
 
 	<category name="com.liferay.portal.security.pacl.checker.MBeanChecker">
@@ -559,11 +567,11 @@
 	</category>
 
 	<category name="com.liferay.portal.security.pacl.checker.ReflectChecker">
-		<priority value="WARN" />
+		<priority value="ERROR" />
 	</category>
 
 	<category name="com.liferay.portal.security.pacl.checker.RuntimeChecker">
-		<priority value="WARN" />
+		<priority value="ERROR" />
 	</category>
 
 	<category name="com.liferay.portal.security.pacl.checker.SecurityChecker">
@@ -1203,10 +1211,6 @@
 	</category>
 
 	<category name="org.apache.jackrabbit">
-		<priority value="ERROR" />
-	</category>
-
-	<category name="org.apache.myfaces">
 		<priority value="ERROR" />
 	</category>
 

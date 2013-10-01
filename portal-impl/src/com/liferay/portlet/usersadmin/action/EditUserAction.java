@@ -36,6 +36,7 @@ import com.liferay.portal.RequiredUserException;
 import com.liferay.portal.ReservedUserEmailAddressException;
 import com.liferay.portal.ReservedUserScreenNameException;
 import com.liferay.portal.UserEmailAddressException;
+import com.liferay.portal.UserFieldException;
 import com.liferay.portal.UserIdException;
 import com.liferay.portal.UserPasswordException;
 import com.liferay.portal.UserReminderQueryException;
@@ -254,6 +255,7 @@ public class EditUserAction extends PortletAction {
 					 e instanceof ReservedUserEmailAddressException ||
 					 e instanceof ReservedUserScreenNameException ||
 					 e instanceof UserEmailAddressException ||
+					 e instanceof UserFieldException ||
 					 e instanceof UserIdException ||
 					 e instanceof UserPasswordException ||
 					 e instanceof UserReminderQueryException ||
@@ -669,7 +671,7 @@ public class EditUserAction extends PortletAction {
 
 			HttpServletRequest request = PortalUtil.getHttpServletRequest(
 				actionRequest);
-			HttpServletResponse response= PortalUtil.getHttpServletResponse(
+			HttpServletResponse response = PortalUtil.getHttpServletResponse(
 				actionResponse);
 			HttpSession session = request.getSession();
 
@@ -720,7 +722,7 @@ public class EditUserAction extends PortletAction {
 		Company company = PortalUtil.getCompany(actionRequest);
 
 		if (company.isStrangersVerify() &&
-			!oldEmailAddress.equalsIgnoreCase(emailAddress)) {
+			!StringUtil.equalsIgnoreCase(oldEmailAddress, emailAddress)) {
 
 			SessionMessages.add(actionRequest, "verificationEmailSent");
 		}

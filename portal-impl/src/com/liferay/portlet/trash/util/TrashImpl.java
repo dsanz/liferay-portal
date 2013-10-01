@@ -36,6 +36,7 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
@@ -233,14 +234,36 @@ public class TrashImpl implements Trash {
 	}
 
 	@Override
-	public String getNewName(ThemeDisplay themeDisplay, String oldName) {
-		Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(
-			themeDisplay.getLocale(), themeDisplay.getTimeZone());
-
-		StringBundler sb = new StringBundler(5);
+	public String getNewName(String oldName, String token) {
+		StringBundler sb = new StringBundler(3);
 
 		sb.append(oldName);
 		sb.append(StringPool.SPACE);
+		sb.append(token);
+
+		return sb.toString();
+	}
+
+	@Override
+	public String getNewName(
+			ThemeDisplay themeDisplay, String className, long classPK,
+			String oldName)
+		throws PortalException, SystemException {
+
+		TrashRenderer trashRenderer = null;
+
+		if (Validator.isNotNull(className) && (classPK > 0)) {
+			TrashHandler trashHandler =
+				TrashHandlerRegistryUtil.getTrashHandler(className);
+
+			trashRenderer = trashHandler.getTrashRenderer(classPK);
+		}
+
+		Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(
+			themeDisplay.getLocale(), themeDisplay.getTimeZone());
+
+		StringBundler sb = new StringBundler(3);
+
 		sb.append(StringPool.OPEN_PARENTHESIS);
 		sb.append(
 			StringUtil.replace(
@@ -248,7 +271,12 @@ public class TrashImpl implements Trash {
 				CharPool.PERIOD));
 		sb.append(StringPool.CLOSE_PARENTHESIS);
 
-		return sb.toString();
+		if (trashRenderer != null) {
+			return trashRenderer.getNewName(oldName, sb.toString());
+		}
+		else {
+			return getNewName(oldName, sb.toString());
+		}
 	}
 
 	@Override
@@ -293,11 +321,10 @@ public class TrashImpl implements Trash {
 			className);
 
 		if (trashHandler.isInTrashContainer(classPK)) {
-			ContainerModel containerModel = trashHandler.getTrashContainer(
-				classPK);
+			TrashEntry trashEntry = trashHandler.getTrashEntry(classPK);
 
-			className = containerModel.getModelClassName();
-			classPK = containerModel.getContainerModelId();
+			className = trashEntry.getClassName();
+			classPK = trashEntry.getClassPK();
 
 			trashHandler = TrashHandlerRegistryUtil.getTrashHandler(className);
 		}
@@ -393,18 +420,35 @@ public class TrashImpl implements Trash {
 
 		Collections.reverse(containerModels);
 
+		containerModelURL.setParameter("struts_action", "/trash/view");
+
+		PortalUtil.addPortletBreadcrumbEntry(
+			request, LanguageUtil.get(themeDisplay.getLocale(), "recycle-bin"),
+			containerModelURL.toString());
+
 		for (ContainerModel containerModel : containerModels) {
+			TrashHandler containerModelTrashHandler =
+				TrashHandlerRegistryUtil.getTrashHandler(
+					containerModel.getModelClassName());
+
+			if (!containerModelTrashHandler.isInTrash(
+					containerModel.getContainerModelId()) &&
+				!containerModelTrashHandler.isInTrashContainer(
+					containerModel.getContainerModelId())) {
+
+				continue;
+			}
+
+			containerModelURL.setParameter(
+				"struts_action", "/trash/view_content");
+
 			containerModelURL.setParameter(
 				paramName,
 				String.valueOf(containerModel.getContainerModelId()));
 
 			String name = containerModel.getContainerModelName();
 
-			TrashHandler containerTrashHandler =
-				TrashHandlerRegistryUtil.getTrashHandler(
-					containerModel.getModelClassName());
-
-			if (containerTrashHandler.isInTrash(
+			if (containerModelTrashHandler.isInTrash(
 					containerModel.getContainerModelId())) {
 
 				name = TrashUtil.getOriginalTitle(name);

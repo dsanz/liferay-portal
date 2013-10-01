@@ -16,10 +16,12 @@ package com.liferay.portlet.journal.action;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.upload.UploadServletRequest;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
@@ -37,7 +39,6 @@ import com.liferay.portlet.journal.service.JournalArticleImageLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleServiceUtil;
 import com.liferay.portlet.journal.util.JournalUtil;
-import com.liferay.util.PwdGenerator;
 
 import java.io.File;
 
@@ -54,8 +55,9 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 
 /**
- * @author Brian Wing Shun Chan
- * @author Raymond Augé
+ * @author     Brian Wing Shun Chan
+ * @author     Raymond Augé
+ * @deprecated As of 6.2.0, replaced by {@link PreviewArticleContentAction}
  */
 public class ViewArticleContentAction extends Action {
 
@@ -111,8 +113,7 @@ public class ViewArticleContentAction extends Action {
 				Element root = doc.getRootElement();
 
 				String previewArticleId =
-					"PREVIEW_" +
-						PwdGenerator.getPassword(PwdGenerator.KEY3, 10);
+					"PREVIEW_" + StringUtil.randomString(10);
 
 				format(
 					groupId, articleId, version, previewArticleId, root,
@@ -214,7 +215,7 @@ public class ViewArticleContentAction extends Action {
 					"structure_image_" + elName + elLanguage);
 				byte[] bytes = FileUtil.getBytes(file);
 
-				if ((bytes != null) && (bytes.length > 0)) {
+				if (ArrayUtil.isNotEmpty(bytes)) {
 					long imageId =
 						JournalArticleImageLocalServiceUtil.getArticleImageId(
 							groupId, previewArticleId, version, elInstanceId,

@@ -206,7 +206,7 @@ definePermissionsURL.setRefererPlid(plid);
 			}
 		}
 
-		List<Role> roles = ResourceActionsUtil.getRoles(company.getCompanyId(), group, modelResource, roleTypes);
+		List<Role> roles = ListUtil.copy(ResourceActionsUtil.getRoles(company.getCompanyId(), group, modelResource, roleTypes));
 
 		Role administratorRole = RoleLocalServiceUtil.getRole(company.getCompanyId(), RoleConstants.ADMINISTRATOR);
 
@@ -240,26 +240,7 @@ definePermissionsURL.setRefererPlid(plid);
 			roles.remove(role);
 		}
 
-		List<Team> teams = null;
-
-		if (group.isOrganization() || group.isRegularSite()) {
-			teams = TeamLocalServiceUtil.getGroupTeams(groupId);
-		}
-		else if (group.isLayout()) {
-			teams = TeamLocalServiceUtil.getGroupTeams(group.getParentGroupId());
-		}
-
-		if (teams != null) {
-			for (Team team : teams) {
-				Role role = RoleLocalServiceUtil.getTeamRole(team.getCompanyId(), team.getTeamId());
-
-				if (role.getRoleId() == modelResourceRoleId) {
-					continue;
-				}
-
-				roles.add(role);
-			}
-		}
+		roles.addAll(RoleLocalServiceUtil.getTeamRoles(groupId, new long[] {modelResourceRoleId}));
 
 		Iterator<Role> itr = roles.iterator();
 
@@ -350,6 +331,14 @@ definePermissionsURL.setRefererPlid(plid);
 
 				List<String> guestUnsupportedActions = ResourceActionsUtil.getResourceGuestUnsupportedActions(portletResource, modelResource);
 
+				// LPS-32515
+
+				if ((selLayout != null) && group.isGuest() && SitesUtil.isFirstLayout(selLayout.getGroupId(), selLayout.isPrivateLayout(), selLayout.getLayoutId())) {
+					guestUnsupportedActions = new ArrayList<String>(guestUnsupportedActions);
+
+					guestUnsupportedActions.add(ActionKeys.VIEW);
+				}
+
 				for (String action : actions) {
 					boolean checked = false;
 					boolean disabled = false;
@@ -402,23 +391,24 @@ definePermissionsURL.setRefererPlid(plid);
 						buffer.append(FriendlyURLNormalizerUtil.normalize(role.getName()));
 
 						if (Validator.isNotNull(preselectedMsg)) {
-							buffer.append("_PRESELECTED_");
+							buffer.append(ActionUtil.PRESELECTED);
 						}
 						else {
-							buffer.append("_ACTION_");
+							buffer.append(ActionUtil.ACTION);
 						}
 
 						buffer.append(action);
 						buffer.append("\" ");
 
 						buffer.append("name=\"");
+						buffer.append(renderResponse.getNamespace());
 						buffer.append(role.getRoleId());
 
 						if (Validator.isNotNull(preselectedMsg)) {
-							buffer.append("_PRESELECTED_");
+							buffer.append(ActionUtil.PRESELECTED);
 						}
 						else {
-							buffer.append("_ACTION_");
+							buffer.append(ActionUtil.ACTION);
 						}
 
 						buffer.append(action);

@@ -21,13 +21,13 @@ String currentURL = PortalUtil.getCurrentURL(request);
 
 String referer = ParamUtil.getString(request, WebKeys.REFERER, currentURL);
 
-if (referer.equals(themeDisplay.getPathMain() + "/portal/update_password")) {
-	referer = themeDisplay.getPathMain() + "?doAsUserId=" + themeDisplay.getDoAsUserId();
+String ticketKey = ParamUtil.getString(request, "ticketKey");
+
+if (referer.startsWith(themeDisplay.getPathMain() + "/portal/update_password") && Validator.isNotNull(ticketKey)) {
+	referer = themeDisplay.getPathMain();
 }
 
 PasswordPolicy passwordPolicy = user.getPasswordPolicy();
-
-String ticketKey = ParamUtil.getString(request, "ticketKey");
 %>
 
 <c:choose>
@@ -95,7 +95,7 @@ String ticketKey = ParamUtil.getString(request, "ticketKey");
 			</c:if>
 
 			<aui:fieldset label="new-password">
-				<aui:input class="lfr-input-text-container" label="password" name="password1" type="password" />
+				<aui:input autoFocus="<%= true %>" class="lfr-input-text-container" label="password" name="password1" type="password" />
 
 				<aui:input class="lfr-input-text-container" label="enter-again" name="password2" type="password" />
 			</aui:fieldset>
@@ -104,9 +104,5 @@ String ticketKey = ParamUtil.getString(request, "ticketKey");
 				<aui:button type="submit" />
 			</aui:button-row>
 		</aui:form>
-
-		<aui:script>
-			Liferay.Util.focusFormField(document.fm.password1);
-		</aui:script>
 	</c:otherwise>
 </c:choose>

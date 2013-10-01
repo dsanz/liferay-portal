@@ -27,6 +27,7 @@ page import="com.liferay.portlet.asset.model.AssetEntry" %><%@
 page import="com.liferay.portlet.asset.model.AssetRenderer" %><%@
 page import="com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil" %><%@
 page import="com.liferay.portlet.documentlibrary.model.DLFileEntry" %><%@
+page import="com.liferay.portlet.trash.DuplicateEntryException" %><%@
 page import="com.liferay.portlet.trash.model.TrashEntry" %><%@
 page import="com.liferay.portlet.trash.model.TrashEntryList" %><%@
 page import="com.liferay.portlet.trash.model.impl.TrashEntryImpl" %><%@
@@ -37,7 +38,3 @@ page import="com.liferay.portlet.trash.service.TrashEntryServiceUtil" %><%@
 page import="com.liferay.portlet.trash.util.TrashUtil" %>
 
 <%@ include file="/html/portlet/trash/init-ext.jsp" %>
-
-<%
-Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
-%>

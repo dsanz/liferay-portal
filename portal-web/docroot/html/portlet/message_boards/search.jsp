@@ -55,11 +55,9 @@ String keywords = ParamUtil.getString(request, "keywords");
 		title="search"
 	/>
 
-	<span class="form-search">
-		<aui:input inlineField="<%= true %>" label="" name="keywords" size="30" title="search-messages" type="text" value="<%= keywords %>" />
-
-		<aui:button type="submit" value="search" />
-	</span>
+	<div class="form-search">
+		<liferay-ui:input-search autoFocus="<%= (windowState.equals(WindowState.MAXIMIZED) && !themeDisplay.isFacebook()) %>" id="keywords" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' title='<%= LanguageUtil.get(locale, "search-messages") %>' />
+	</div>
 
 	<%
 	PortletURL portletURL = renderResponse.createRenderURL();
@@ -105,21 +103,13 @@ String keywords = ParamUtil.getString(request, "keywords");
 
 			hits = indexer.search(searchContext);
 
-			total = hits.getLength();
-
-			searchContainer.setTotal(total);
-
-			if (searchContainer.isRecalculateCur()) {
-				searchContext.setStart(searchContainer.getStart());
-				searchContext.setEnd(searchContainer.getEnd());
-
-				hits = indexer.search(searchContext);
-			}
+			searchContainer.setTotal(hits.getLength());
 
 			PortletURL hitURL = renderResponse.createRenderURL();
 
-			pageContext.setAttribute("results", SearchResultUtil.getSearchResults(hits, locale, hitURL));
-			pageContext.setAttribute("total", total);
+			results = SearchResultUtil.getSearchResults(hits, locale, hitURL);
+
+			searchContainer.setResults(results);
 			%>
 
 		</liferay-ui:search-container-results>
@@ -144,8 +134,8 @@ String keywords = ParamUtil.getString(request, "keywords");
 			<liferay-ui:app-view-search-entry
 				containerIcon="../common/conversation"
 				containerName="<%= MBUtil.getAbsolutePath(renderRequest, message.getCategoryId()) %>"
-				containerType='<%= LanguageUtil.get(locale, "category") %>'
-				cssClass='<%= MathUtil.isEven(index) ? "search alt" : "search" %>'
+				containerType='<%= LanguageUtil.get(locale, "category[message-board]") %>'
+				cssClass='<%= MathUtil.isEven(index) ? "search" : "search alt" %>'
 				description="<%= (summary != null) ? HtmlUtil.escape(summary.getContent()) : StringPool.BLANK %>"
 				fileEntryTuples="<%= searchResult.getFileEntryTuples() %>"
 				queryTerms="<%= hits.getQueryTerms() %>"
@@ -158,12 +148,6 @@ String keywords = ParamUtil.getString(request, "keywords");
 	</liferay-ui:search-container>
 
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) && !themeDisplay.isFacebook() %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />keywords);
-	</aui:script>
-</c:if>
 
 <%
 if (breadcrumbsCategoryId > 0) {

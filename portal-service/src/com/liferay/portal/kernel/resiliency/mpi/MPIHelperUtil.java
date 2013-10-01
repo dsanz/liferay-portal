@@ -16,8 +16,12 @@ package com.liferay.portal.kernel.resiliency.mpi;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.messaging.config.MessagingConfigurator;
+import com.liferay.portal.kernel.messaging.config.MessagingConfiguratorRegistry;
 import com.liferay.portal.kernel.nio.intraband.Intraband;
 import com.liferay.portal.kernel.nio.intraband.IntrabandFactoryUtil;
+import com.liferay.portal.kernel.nio.intraband.SystemDataType;
+import com.liferay.portal.kernel.nio.intraband.rpc.BootstrapRPCDatagramReceiveHandler;
 import com.liferay.portal.kernel.resiliency.spi.SPI;
 import com.liferay.portal.kernel.resiliency.spi.SPIConfiguration;
 import com.liferay.portal.kernel.resiliency.spi.SPIRegistryUtil;
@@ -154,15 +158,30 @@ public class MPIHelperUtil {
 
 				return false;
 			}
-			else {
-				SPIRegistryUtil.registerSPI(spi);
 
-				if (_log.isInfoEnabled()) {
-					_log.info("Registered SPI " + spi);
+			SPIRegistryUtil.registerSPI(spi);
+
+			for (String servletContextName :
+					spiConfiguration.getServletContextNames()) {
+
+				List<MessagingConfigurator> messagingConfigurators =
+					MessagingConfiguratorRegistry.getMessagingConfigurators(
+						servletContextName);
+
+				if (messagingConfigurators != null) {
+					for (MessagingConfigurator messagingConfigurator :
+							messagingConfigurators) {
+
+						messagingConfigurator.disconnect();
+					}
 				}
-
-				return true;
 			}
+
+			if (_log.isInfoEnabled()) {
+				_log.info("Registered SPI " + spi);
+			}
+
+			return true;
 		}
 		catch (RemoteException re) {
 			throw new RuntimeException(re);
@@ -196,13 +215,12 @@ public class MPIHelperUtil {
 
 			return false;
 		}
-		else {
-			if (_log.isInfoEnabled()) {
-				_log.info("Registered SPI provider " + spiProvider);
-			}
 
-			return true;
+		if (_log.isInfoEnabled()) {
+			_log.info("Registered SPI provider " + spiProvider);
 		}
+
+		return true;
 	}
 
 	public static void shutdown() {
@@ -255,19 +273,34 @@ public class MPIHelperUtil {
 			if (_spis.remove(spiKey, spi)) {
 				SPIRegistryUtil.unregisterSPI(spi);
 
+				for (String servletContextName :
+						spiConfiguration.getServletContextNames()) {
+
+					List<MessagingConfigurator> messagingConfigurators =
+						MessagingConfiguratorRegistry.getMessagingConfigurators(
+							servletContextName);
+
+					if (messagingConfigurators != null) {
+						for (MessagingConfigurator messagingConfigurator :
+								messagingConfigurators) {
+
+							messagingConfigurator.connect();
+						}
+					}
+				}
+
 				if (_log.isInfoEnabled()) {
 					_log.info("Unregistered SPI " + spi);
 				}
 
 				return true;
 			}
-			else {
-				if (_log.isWarnEnabled()) {
-					_log.warn("Not unregistering unregistered SPI " + spi);
-				}
 
-				return false;
+			if (_log.isWarnEnabled()) {
+				_log.warn("Not unregistering unregistered SPI " + spi);
 			}
+
+			return false;
 		}
 		catch (RemoteException re) {
 			throw new RuntimeException(re);
@@ -318,15 +351,14 @@ public class MPIHelperUtil {
 
 				return true;
 			}
-			else {
-				if (_log.isWarnEnabled()) {
-					_log.warn(
-						"Not unregistering unregistered SPI provider " +
-							spiProvider);
-				}
 
-				return false;
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Not unregistering unregistered SPI provider " +
+						spiProvider);
 			}
+
+			return false;
 		}
 		finally {
 			_lock.unlock();
@@ -428,6 +460,10 @@ public class MPIHelperUtil {
 			}
 
 			_intraband = IntrabandFactoryUtil.createIntraband();
+
+			_intraband.registerDatagramReceiveHandler(
+				SystemDataType.RPC.getValue(),
+				new BootstrapRPCDatagramReceiveHandler());
 
 			_mpi = (MPI)UnicastRemoteObject.exportObject(_mpiImpl, 0);
 		}

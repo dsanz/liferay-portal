@@ -256,7 +256,6 @@ List productScreenshots = SCProductScreenshotLocalServiceUtil.getProductScreensh
 			classPK="<%= productEntry.getProductEntryId() %>"
 			formAction="<%= discussionURL %>"
 			redirect="<%= currentURL %>"
-			subject="<%= productEntry.getName() %>"
 			userId="<%= productEntry.getUserId() %>"
 		/>
 	</c:when>
@@ -312,7 +311,7 @@ List productScreenshots = SCProductScreenshotLocalServiceUtil.getProductScreensh
 			row.addText(sb.toString());
 
 			row.addText(_getFrameworkVersions(curProductVersion.getFrameworkVersions()));
-			row.addText(dateFormatDateTime.format(curProductVersion.getModifiedDate()));
+			row.addDate(curProductVersion.getModifiedDate());
 
 			// Action
 

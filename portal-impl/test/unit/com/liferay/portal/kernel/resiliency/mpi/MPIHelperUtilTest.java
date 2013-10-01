@@ -14,9 +14,16 @@
 
 package com.liferay.portal.kernel.resiliency.mpi;
 
+import com.liferay.portal.kernel.messaging.MessageBus;
+import com.liferay.portal.kernel.messaging.config.AbstractMessagingConfigurator;
+import com.liferay.portal.kernel.messaging.config.MessagingConfigurator;
+import com.liferay.portal.kernel.messaging.config.MessagingConfiguratorRegistry;
+import com.liferay.portal.kernel.nio.intraband.DatagramReceiveHandler;
 import com.liferay.portal.kernel.nio.intraband.Intraband;
+import com.liferay.portal.kernel.nio.intraband.SystemDataType;
 import com.liferay.portal.kernel.nio.intraband.blocking.ExecutorIntraband;
 import com.liferay.portal.kernel.nio.intraband.nonblocking.SelectorIntraband;
+import com.liferay.portal.kernel.nio.intraband.rpc.BootstrapRPCDatagramReceiveHandler;
 import com.liferay.portal.kernel.nio.intraband.welder.socket.SocketWelder;
 import com.liferay.portal.kernel.resiliency.spi.MockSPI;
 import com.liferay.portal.kernel.resiliency.spi.SPI;
@@ -76,7 +83,19 @@ public class MPIHelperUtilTest {
 
 		SPIRegistryUtil spiRegistryUtil = new SPIRegistryUtil();
 
-		spiRegistryUtil.setSPIRegistry(new SPIRegistryImpl());
+		spiRegistryUtil.setSPIRegistry(
+			new SPIRegistryImpl() {
+
+				@Override
+				public void registerSPI(SPI spi) {
+				}
+
+				@Override
+				public void unregisterSPI(SPI spi) {
+				}
+
+			}
+		);
 	}
 
 	@After
@@ -139,6 +158,13 @@ public class MPIHelperUtilTest {
 		Intraband intraband = MPIHelperUtil.getIntraband();
 
 		Assert.assertSame(ExecutorIntraband.class, intraband.getClass());
+
+		DatagramReceiveHandler[] datagramReceiveHandlers =
+			intraband.getDatagramReceiveHandlers();
+
+		Assert.assertSame(
+			BootstrapRPCDatagramReceiveHandler.class,
+			datagramReceiveHandlers[SystemDataType.RPC.getValue()].getClass());
 	}
 
 	@AdviseWith(adviceClasses = {PropsUtilAdvice.class})
@@ -163,6 +189,13 @@ public class MPIHelperUtilTest {
 		Intraband intraband = MPIHelperUtil.getIntraband();
 
 		Assert.assertSame(SelectorIntraband.class, intraband.getClass());
+
+		DatagramReceiveHandler[] datagramReceiveHandlers =
+			intraband.getDatagramReceiveHandlers();
+
+		Assert.assertSame(
+			BootstrapRPCDatagramReceiveHandler.class,
+			datagramReceiveHandlers[SystemDataType.RPC.getValue()].getClass());
 	}
 
 	@AdviseWith(adviceClasses = {PropsUtilAdvice.class})
@@ -220,7 +253,6 @@ public class MPIHelperUtilTest {
 		Assert.assertFalse(spiKey1.equals(spiKey2));
 		Assert.assertEquals("name1#id1", spiKey1.toString());
 		Assert.assertEquals("name1#id2", spiKey2.toString());
-
 	}
 
 	@AdviseWith(adviceClasses = {PropsUtilAdvice.class})
@@ -571,7 +603,8 @@ public class MPIHelperUtilTest {
 
 		mockSPI1.mpi = MPIHelperUtil.getMPI();
 		mockSPI1.spiConfiguration = new SPIConfiguration(
-			"testId1", "", 8081, "", new String[0], new String[0]);
+			"testId1", "", 8081, "", new String[0],
+			new String[] {"servletContextName1"}, null);
 		mockSPI1.spiProviderName = name;
 
 		logRecords = JDKLoggerTestUtil.configureJDKLogger(
@@ -590,11 +623,37 @@ public class MPIHelperUtilTest {
 		logRecords = JDKLoggerTestUtil.configureJDKLogger(
 			MPIHelperUtil.class.getName(), Level.OFF);
 
+		MessagingConfigurator messagingConfigurator =
+			new AbstractMessagingConfigurator() {
+
+			@Override
+			public void connect() {
+			}
+
+			@Override
+			public void disconnect() {
+			}
+
+			@Override
+			protected MessageBus getMessageBus() {
+				return null;
+			}
+
+			@Override
+			protected ClassLoader getOperatingClassloader() {
+				return null;
+			}
+		};
+
+		MessagingConfiguratorRegistry.registerMessagingConfigurator(
+			"servletContextName2", messagingConfigurator);
+
 		MockSPI mockSPI2 = new MockSPI();
 
 		mockSPI2.mpi = MPIHelperUtil.getMPI();
 		mockSPI2.spiConfiguration = new SPIConfiguration(
-			"testId2", "", 8082, "", new String[0], new String[0]);
+			"testId2", "", 8082, "", new String[0],
+			new String[] {"servletContextName2"}, null);
 		mockSPI2.spiProviderName = name;
 
 		Assert.assertTrue(MPIHelperUtil.registerSPI(mockSPI2));
@@ -677,7 +736,7 @@ public class MPIHelperUtilTest {
 
 		mockSPI2.mpi = MPIHelperUtil.getMPI();
 		mockSPI2.spiConfiguration = new SPIConfiguration(
-			"testId2", "", 8082, "", new String[0], new String[0]);
+			"testId2", "", 8082, "", new String[0], new String[0], null);
 		mockSPI2.spiProviderName = name;
 
 		Assert.assertTrue(MPIHelperUtil.registerSPI(mockSPI2));
@@ -767,7 +826,7 @@ public class MPIHelperUtilTest {
 
 		mockSPI1.mpi = MPIHelperUtil.getMPI();
 		mockSPI1.spiConfiguration = new SPIConfiguration(
-			"testId3", "", 8083, "", new String[0], new String[0]);
+			"testId3", "", 8083, "", new String[0], new String[0], null);
 		mockSPI1.spiProviderName = name;
 
 		Assert.assertFalse(MPIHelperUtil.unregisterSPI(mockSPI1));
@@ -788,7 +847,7 @@ public class MPIHelperUtilTest {
 
 		mockSPI1.mpi = MPIHelperUtil.getMPI();
 		mockSPI1.spiConfiguration = new SPIConfiguration(
-			"testId3", "", 8083, "", new String[0], new String[0]);
+			"testId3", "", 8083, "", new String[0], new String[0], null);
 		mockSPI1.spiProviderName = name;
 
 		Assert.assertFalse(MPIHelperUtil.unregisterSPI(mockSPI1));

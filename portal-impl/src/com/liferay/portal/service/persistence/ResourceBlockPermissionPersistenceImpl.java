@@ -354,6 +354,10 @@ public class ResourceBlockPermissionPersistenceImpl extends BasePersistenceImpl<
 		throws SystemException {
 		int count = countByResourceBlockId(resourceBlockId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<ResourceBlockPermission> list = findByResourceBlockId(resourceBlockId,
 				count - 1, count, orderByComparator);
 
@@ -849,6 +853,10 @@ public class ResourceBlockPermissionPersistenceImpl extends BasePersistenceImpl<
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByRoleId(roleId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<ResourceBlockPermission> list = findByRoleId(roleId, count - 1,
 				count, orderByComparator);
 
@@ -1309,6 +1317,10 @@ public class ResourceBlockPermissionPersistenceImpl extends BasePersistenceImpl<
 
 	private static final String _FINDER_COLUMN_R_R_RESOURCEBLOCKID_2 = "resourceBlockPermission.resourceBlockId = ? AND ";
 	private static final String _FINDER_COLUMN_R_R_ROLEID_2 = "resourceBlockPermission.roleId = ?";
+
+	public ResourceBlockPermissionPersistenceImpl() {
+		setModelClass(ResourceBlockPermission.class);
+	}
 
 	/**
 	 * Caches the resource block permission in the entity cache if it is enabled.

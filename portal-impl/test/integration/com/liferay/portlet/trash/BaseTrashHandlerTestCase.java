@@ -14,7 +14,11 @@
 
 package com.liferay.portlet.trash;
 
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
+import com.liferay.portal.kernel.dao.orm.Property;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
@@ -31,11 +35,14 @@ import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.SystemEventActionableDynamicQuery;
 import com.liferay.portal.util.GroupTestUtil;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil;
@@ -95,6 +102,36 @@ public abstract class BaseTrashHandlerTestCase {
 	@Transactional
 	public void testTrashDuplicate() throws Exception {
 		trashDuplicateBaseModel();
+	}
+
+	@Test
+	@Transactional
+	public void testTrashIsRestorableBaseModel() throws Exception {
+		trashIsRestorableBaseModel();
+	}
+
+	@Test
+	@Transactional
+	public void testTrashIsRestorableBaseModelWithParent1() throws Exception {
+		trashIsRestorableBaseModelWithParent(false, false);
+	}
+
+	@Test
+	@Transactional
+	public void testTrashIsRestorableBaseModelWithParent2() throws Exception {
+		trashIsRestorableBaseModelWithParent(true, false);
+	}
+
+	@Test
+	@Transactional
+	public void testTrashIsRestorableBaseModelWithParent3() throws Exception {
+		trashIsRestorableBaseModelWithParent(false, true);
+	}
+
+	@Test
+	@Transactional
+	public void testTrashIsRestorableBaseModelWithParent4() throws Exception {
+		trashIsRestorableBaseModelWithParent(true, true);
 	}
 
 	@Test
@@ -176,6 +213,22 @@ public abstract class BaseTrashHandlerTestCase {
 			ServiceContext serviceContext)
 		throws Exception;
 
+	protected BaseModel<?> addBaseModelWithWorkflow(
+			boolean approved, ServiceContext serviceContext)
+		throws Exception {
+
+		BaseModel<?> parentBaseModel = getParentBaseModel(
+			group, serviceContext);
+
+		return addBaseModelWithWorkflow(
+			parentBaseModel, approved, serviceContext);
+	}
+
+	protected void deleteParentBaseModel(
+			BaseModel<?> parentBaseModel, boolean includeTrashedEntries)
+		throws Exception {
+	}
+
 	protected AssetEntry fetchAssetEntry(Class<?> clazz, long classPK)
 		throws Exception {
 
@@ -207,6 +260,49 @@ public abstract class BaseTrashHandlerTestCase {
 
 	protected String getBaseModelName(ClassedModel classedModel) {
 		return StringPool.BLANK;
+	}
+
+	protected long getDeletionSystemEventCount(
+			TrashHandler trashHandler, final long systemEventSetKey)
+		throws Exception {
+
+		final long systemEventClassNameId = PortalUtil.getClassNameId(
+			trashHandler.getSystemEventClassName());
+
+		ActionableDynamicQuery actionableDynamicQuery =
+			new SystemEventActionableDynamicQuery() {
+
+			@Override
+			protected void addCriteria(DynamicQuery dynamicQuery) {
+				Property classNameIdProperty = PropertyFactoryUtil.forName(
+					"classNameId");
+
+				dynamicQuery.add(
+					classNameIdProperty.eq(systemEventClassNameId));
+
+				if (systemEventSetKey > 0) {
+					Property systemEventSetKeyProperty =
+						PropertyFactoryUtil.forName("systemEventSetKey");
+
+					dynamicQuery.add(
+						systemEventSetKeyProperty.eq(systemEventSetKey));
+				}
+
+				Property typeProperty = PropertyFactoryUtil.forName("type");
+
+				dynamicQuery.add(
+					typeProperty.eq(SystemEventConstants.TYPE_DELETE));
+			}
+
+			@Override
+			protected void performAction(Object object) {
+			}
+
+		};
+
+		actionableDynamicQuery.setGroupId(group.getGroupId());
+
+		return actionableDynamicQuery.performCount();
 	}
 
 	protected int getMineBaseModelsCount(long groupId, long userId)
@@ -453,6 +549,11 @@ public abstract class BaseTrashHandlerTestCase {
 		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
 			getBaseModelClassName());
 
+		Assert.assertEquals(
+			1,
+			getDeletionSystemEventCount(
+				trashHandler, trashEntry.getSystemEventSetKey()));
+
 		if (delete) {
 			trashHandler.deleteTrashEntry(getTrashEntryClassPK(baseModel));
 
@@ -474,6 +575,9 @@ public abstract class BaseTrashHandlerTestCase {
 			if (isAssetableModel()) {
 				Assert.assertNull(fetchAssetEntry(baseModel));
 			}
+
+			Assert.assertEquals(
+				1, getDeletionSystemEventCount(trashHandler, -1));
 		}
 		else {
 			trashHandler.restoreTrashEntry(
@@ -516,6 +620,9 @@ public abstract class BaseTrashHandlerTestCase {
 			if (uniqueTitle != null) {
 				Assert.assertEquals(uniqueTitle, getUniqueTitle(baseModel));
 			}
+
+			Assert.assertEquals(
+				0, getDeletionSystemEventCount(trashHandler, -1));
 		}
 	}
 
@@ -561,6 +668,70 @@ public abstract class BaseTrashHandlerTestCase {
 			getTrashEntriesCount(group.getGroupId()));
 
 		Assert.assertTrue(isBaseModelTrashName(duplicateBaseModel));
+	}
+
+	protected void trashIsRestorableBaseModel() throws Exception {
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			group.getGroupId());
+
+		baseModel = addBaseModelWithWorkflow(true, serviceContext);
+
+		moveBaseModelToTrash((Long)baseModel.getPrimaryKeyObj());
+
+		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
+			getBaseModelClassName());
+
+		boolean restorable = trashHandler.isRestorable(
+			getAssetClassPK(baseModel));
+
+		Assert.assertTrue(restorable);
+	}
+
+	protected void trashIsRestorableBaseModelWithParent(
+			boolean deleteParent, boolean moveParentToTrash)
+		throws Exception {
+
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			group.getGroupId());
+
+		BaseModel<?> parentBaseModel = getParentBaseModel(
+			group, serviceContext);
+
+		baseModel = addBaseModel(parentBaseModel, true, serviceContext);
+
+		if (moveParentToTrash) {
+			moveParentBaseModelToTrash(
+				(Long)parentBaseModel.getPrimaryKeyObj());
+		}
+
+		moveBaseModelToTrash((Long)baseModel.getPrimaryKeyObj());
+
+		if (deleteParent) {
+			if (moveParentToTrash) {
+				TrashHandler parentTrashHandler =
+					TrashHandlerRegistryUtil.getTrashHandler(
+						getParentBaseModelClassName());
+
+				parentTrashHandler.deleteTrashEntry(
+					(Long)parentBaseModel.getPrimaryKeyObj());
+			}
+			else {
+				deleteParentBaseModel(parentBaseModel, false);
+			}
+		}
+
+		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
+			getBaseModelClassName());
+
+		boolean restorable = trashHandler.isRestorable(
+			getAssetClassPK(baseModel));
+
+		if (moveParentToTrash || deleteParent) {
+			Assert.assertFalse(restorable);
+		}
+		else {
+			Assert.assertTrue(restorable);
+		}
 	}
 
 	protected void trashMoveBaseModel() throws Exception {

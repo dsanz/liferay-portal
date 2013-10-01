@@ -30,7 +30,7 @@ import java.util.Map;
  *
  * @author Miguel Pastor
  * @author Raymond Augé
- * @see    {@link ModuleFrameworkClassloader}
+ * @see    ModuleFrameworkClassLoader
  */
 public class ModuleFrameworkUtilAdapter {
 
@@ -64,6 +64,14 @@ public class ModuleFrameworkUtilAdapter {
 		throws PortalException {
 
 		_moduleFramework.setBundleStartLevel(bundleId, startLevel);
+	}
+
+	public static void setModuleFramework(ModuleFramework moduleFramework) {
+		_moduleFramework = moduleFramework;
+
+		_moduleFrameworkAdapterHelper.exec(
+			"setModuleFramework", new Class[] {ModuleFramework.class},
+			_moduleFramework);
 	}
 
 	public static void startBundle(long bundleId) throws PortalException {

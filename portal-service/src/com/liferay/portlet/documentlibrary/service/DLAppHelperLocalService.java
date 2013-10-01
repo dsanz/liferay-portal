@@ -182,7 +182,8 @@ public interface DLAppHelperLocalService extends BaseLocalService {
 			com.liferay.portal.kernel.exception.SystemException;
 
 	public void moveFolder(
-		com.liferay.portal.kernel.repository.model.Folder folder);
+		com.liferay.portal.kernel.repository.model.Folder folder)
+		throws com.liferay.portal.kernel.exception.SystemException;
 
 	public com.liferay.portal.kernel.repository.model.Folder moveFolderFromTrash(
 		long userId, com.liferay.portal.kernel.repository.model.Folder folder,
@@ -204,6 +205,10 @@ public interface DLAppHelperLocalService extends BaseLocalService {
 		long userId, com.liferay.portal.kernel.repository.model.Folder folder)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
+
+	public void registerDLSyncEventCallback(java.lang.String event,
+		java.lang.String type, long typePK)
+		throws com.liferay.portal.kernel.exception.SystemException;
 
 	public void restoreFileEntryFromTrash(long userId,
 		com.liferay.portal.kernel.repository.model.FileEntry fileEntry)

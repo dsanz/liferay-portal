@@ -6,9 +6,11 @@ AUI.add(
 		var Util = Liferay.Util;
 		var Lang = A.Lang;
 
-		var STR_LAYOUT_ID = 'layoutId';
+		var STATUS_CODE = Liferay.STATUS_CODE;
 
 		var STR_EMPTY = '';
+
+		var STR_LAYOUT_ID = 'layoutId';
 
 		var TPL_EDITOR = '<div class="add-page-editor"><div class="input-append"></div></div>';
 
@@ -103,7 +105,11 @@ AUI.add(
 						if (navBlock) {
 							instance._updateURL = themeDisplay.getPathMain() + '/layouts_admin/update_page?p_auth=' + Liferay.authToken;
 
-							var navItemSelector = Liferay.Data.NAV_ITEM_SELECTOR || '> ul > li';
+							var navListSelector = Liferay.Data.NAV_LIST_SELECTOR || '> ul';
+
+							var navItemSelector = Liferay.Data.NAV_ITEM_SELECTOR || navListSelector + '> li';
+
+							var navList = navBlock.one(navListSelector);
 
 							var items = navBlock.all(navItemSelector);
 
@@ -140,6 +146,9 @@ AUI.add(
 							);
 
 							instance._navItemSelector = navItemSelector;
+							instance._navListSelector = navListSelector;
+
+							instance._navList = navList;
 
 							instance._makeDeletable();
 							instance._makeSortable();
@@ -230,6 +239,20 @@ AUI.add(
 								}
 							}
 						);
+					},
+
+					_displayNotice: function(message, type, timeout, useAnimation) {
+						new Liferay.Notice(
+							{
+								closeText: false,
+								content: message + '<button type="button" class="close">&times;</button>',
+								noticeClass: 'hide',
+								timeout: timeout || 10000,
+								toggleText: false,
+								type: type || 'warning',
+								useAnimation: Lang.isValue(useAnimation) ? useAnimation : true
+							}
+						).show();
 					},
 
 					_handleKeyDown: function(event) {
@@ -619,7 +642,7 @@ AUI.add(
 
 					var sortable = new A.Sortable(
 						{
-							container: navBlock,
+							container: instance._navList,
 							moveType: 'move',
 							nodes: '.lfr-nav-sortable',
 							opacity: '.5',
@@ -633,23 +656,19 @@ AUI.add(
 							var dragNode = event.target.get('node');
 
 							instance._saveSortables(dragNode);
-
-							Liferay.fire(
-								'navigation',
-								{
-									item: dragNode.getDOM(),
-									type: 'sort'
-								}
-							);
 						}
 					);
 
 					sortable.delegate.on(
 						'drag:start',
 						function(event) {
-							var dragNode = event.target.get('dragNode');
+							var target = event.target;
+
+							var dragNode = target.get('dragNode');
 
 							dragNode.addClass('lfr-navigation-proxy');
+
+							instance._nextPageNode = target.get('node').next();
 						}
 					);
 
@@ -671,6 +690,26 @@ AUI.add(
 				var tab = event.currentTarget.ancestor('li');
 
 				if (confirm(Liferay.Language.get('are-you-sure-you-want-to-delete-this-page'))) {
+					var processRemovePageFailure = function(result) {
+						instance._displayNotice(result.message);
+					};
+
+					var processRemovePageSuccess = function(result) {
+						Liferay.fire(
+							'navigation',
+							{
+								item: tab,
+								type: 'delete'
+							}
+						);
+
+						tab.remove(true);
+
+						if (!navBlock.one('ul li')) {
+							navBlock.hide();
+						}
+					};
+
 					var data = {
 						cmd: 'delete',
 						doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
@@ -685,28 +724,33 @@ AUI.add(
 						instance._updateURL,
 						{
 							data: data,
+							dataType: 'json',
 							on: {
-								success: function() {
-									Liferay.fire(
-										'navigation',
+								failure: function() {
+									processRemovePageFailure(
 										{
-											item: tab,
-											type: 'delete'
+											message: Liferay.Language.get('your-request-failed-to-complete'),
+											status: STATUS_CODE.BAD_REQUEST
 										}
 									);
+								},
+								success: function(event, id, obj) {
+									var result = this.get('responseData');
 
-									tab.remove(true);
+									var removePageFn = processRemovePageFailure;
 
-									if (!navBlock.one('ul li')) {
-										navBlock.hide();
+									if (result.status === STATUS_CODE.OK) {
+										removePageFn = processRemovePageSuccess;
 									}
+
+									removePageFn(result);
 								}
 							}
 						}
 					);
 				}
 			},
-			['aui-io-request'],
+			['aui-io-request', 'liferay-notice'],
 			true
 		);
 
@@ -794,34 +838,75 @@ AUI.add(
 			function(node) {
 				var instance = this;
 
-				var navItems = instance.get('navBlock').all('li');
+				var nextLayoutId = -1;
 
-				var priority = -1;
+				var nextNode = node.next();
 
-				navItems.some(
-					function(item, index, collection) {
-						if (!item.ancestor().hasClass('child-menu')) {
-							priority++;
-						}
+				if (nextNode) {
+					nextLayoutId = nextNode.getData(STR_LAYOUT_ID);
+				}
 
-						return item == node;
-					}
-				);
+				var previousLayoutId = -1;
+
+				var previousNode = node.previous();
+
+				if (previousNode) {
+					previousLayoutId = previousNode.getData(STR_LAYOUT_ID);
+				}
 
 				var data = {
 					cmd: 'priority',
 					doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
 					groupId: themeDisplay.getSiteGroupId(),
 					layoutId: node.getData(STR_LAYOUT_ID),
+					nextLayoutId: nextLayoutId,
 					p_auth: Liferay.authToken,
-					priority: priority,
+					previousLayoutId: previousLayoutId,
 					privateLayout: themeDisplay.isPrivateLayout()
+				};
+
+				var processMovePageFailure = function(result) {
+					instance._displayNotice(result.message);
+
+					node.ancestor().insertBefore(node, instance._nextPageNode);
+				};
+
+				var processMovePageSuccess = function(result) {
+					Liferay.fire(
+						'navigation',
+						{
+							item: node.getDOM(),
+							type: 'sort'
+						}
+					);
 				};
 
 				A.io.request(
 					instance._updateURL,
 					{
-						data: data
+						data: data,
+						dataType: 'json',
+						on: {
+							failure: function() {
+								processMovePageFailure(
+									{
+										message: Liferay.Language.get('your-request-failed-to-complete'),
+										status: STATUS_CODE.BAD_REQUEST
+									}
+								);
+							},
+							success: function(event, id, obj) {
+								var result = this.get('responseData');
+
+								var movePageFn = processMovePageFailure;
+
+								if (result.status === STATUS_CODE.OK) {
+									movePageFn = processMovePageSuccess;
+								}
+
+								movePageFn(result);
+							}
+						}
 					}
 				);
 			},

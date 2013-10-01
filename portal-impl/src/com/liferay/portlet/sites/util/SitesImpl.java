@@ -326,9 +326,8 @@ public class SitesImpl implements Sites {
 	public void copyPortletPermissions(Layout targetLayout, Layout sourceLayout)
 		throws Exception {
 
-		long companyId = targetLayout.getCompanyId();
-
-		List<Role> roles = RoleLocalServiceUtil.getRoles(companyId);
+		List<Role> roles = RoleLocalServiceUtil.getGroupRelatedRoles(
+			targetLayout.getGroupId());
 
 		LayoutTypePortlet sourceLayoutTypePortlet =
 			(LayoutTypePortlet)sourceLayout.getLayoutType();
@@ -361,13 +360,14 @@ public class SitesImpl implements Sites {
 				List<String> actions =
 					ResourcePermissionLocalServiceUtil.
 						getAvailableResourcePermissionActionIds(
-							companyId, resourceName,
+							targetLayout.getCompanyId(), resourceName,
 							ResourceConstants.SCOPE_INDIVIDUAL,
 							sourceResourcePrimKey, role.getRoleId(), actionIds);
 
 				ResourcePermissionLocalServiceUtil.setResourcePermissions(
-					companyId, resourceName, ResourceConstants.SCOPE_INDIVIDUAL,
-					targetResourcePrimKey, role.getRoleId(),
+					targetLayout.getCompanyId(), resourceName,
+					ResourceConstants.SCOPE_INDIVIDUAL, targetResourcePrimKey,
+					role.getRoleId(),
 					actions.toArray(new String[actions.size()]));
 			}
 		}
@@ -652,16 +652,19 @@ public class SitesImpl implements Sites {
 			PortletDataHandlerKeys.PERMISSIONS,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
+			PortletDataHandlerKeys.PORTLET_CONFIGURATION,
+			new String[] {Boolean.TRUE.toString()});
+		parameterMap.put(
+			PortletDataHandlerKeys.PORTLET_CONFIGURATION_ALL,
+			new String[] {Boolean.TRUE.toString()});
+		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_DATA,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_DATA_ALL,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
-			PortletDataHandlerKeys.PORTLET_SETUP,
-			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
-			PortletDataHandlerKeys.PORTLET_USER_PREFERENCES,
+			PortletDataHandlerKeys.PORTLET_SETUP_ALL,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.THEME,
@@ -817,6 +820,21 @@ public class SitesImpl implements Sites {
 			 (groupContentSharingEnabled ==
 				CONTENT_SHARING_WITH_CHILDREN_DEFAULT_VALUE))) {
 
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isFirstLayout(
+			long groupId, boolean privateLayout, long layoutId)
+		throws SystemException {
+
+		Layout firstLayout = LayoutLocalServiceUtil.fetchFirstLayout(
+			groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
+
+		if ((firstLayout != null) && (firstLayout.getLayoutId() == layoutId )) {
 			return true;
 		}
 
@@ -1208,7 +1226,7 @@ public class SitesImpl implements Sites {
 		try {
 			Lock lock = LockLocalServiceUtil.lock(
 				LayoutLocalServiceVirtualLayoutsAdvice.class.getName(),
-				String.valueOf(layoutSet.getLayoutSetId()), owner, false);
+				String.valueOf(layoutSet.getLayoutSetId()), owner);
 
 			// Double deep check
 
@@ -1223,7 +1241,7 @@ public class SitesImpl implements Sites {
 					lock = LockLocalServiceUtil.lock(
 						LayoutLocalServiceVirtualLayoutsAdvice.class.getName(),
 						String.valueOf(layoutSet.getLayoutSetId()),
-						lock.getOwner(), owner, false);
+						lock.getOwner(), owner);
 
 					// Check if acquiring the lock succeeded or if another
 					// process has the lock
@@ -1273,7 +1291,7 @@ public class SitesImpl implements Sites {
 		finally {
 			LockLocalServiceUtil.unlock(
 				LayoutLocalServiceVirtualLayoutsAdvice.class.getName(),
-				String.valueOf(layoutSet.getLayoutSetId()), owner, false);
+				String.valueOf(layoutSet.getLayoutSetId()), owner);
 		}
 	}
 
@@ -1435,8 +1453,9 @@ public class SitesImpl implements Sites {
 				userId, GroupConstants.DEFAULT_PARENT_GROUP_ID,
 				Layout.class.getName(), targetLayout.getPlid(),
 				GroupConstants.DEFAULT_LIVE_GROUP_ID,
-				targetLayout.getName(languageId), null, 0, null, false, true,
-				null);
+				targetLayout.getName(languageId), null, 0, true,
+				GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, null, false,
+				true, null);
 		}
 
 		String portletTitle = PortalUtil.getPortletTitle(
@@ -1567,7 +1586,7 @@ public class SitesImpl implements Sites {
 		try {
 			Lock lock = LockLocalServiceUtil.lock(
 				LayoutLocalServiceVirtualLayoutsAdvice.class.getName(),
-				String.valueOf(layout.getPlid()), owner, false);
+				String.valueOf(layout.getPlid()), owner);
 
 			if (!owner.equals(lock.getOwner())) {
 				Date createDate = lock.getCreateDate();
@@ -1580,7 +1599,7 @@ public class SitesImpl implements Sites {
 					lock = LockLocalServiceUtil.lock(
 						LayoutLocalServiceVirtualLayoutsAdvice.class.getName(),
 						String.valueOf(layout.getPlid()), lock.getOwner(),
-						owner, false);
+						owner);
 
 					// Check if acquiring the lock succeeded or if another
 					// process has the lock
@@ -1614,7 +1633,7 @@ public class SitesImpl implements Sites {
 		finally {
 			LockLocalServiceUtil.unlock(
 				LayoutLocalServiceVirtualLayoutsAdvice.class.getName(),
-				String.valueOf(layout.getPlid()), owner, false);
+				String.valueOf(layout.getPlid()), owner);
 		}
 	}
 
@@ -1708,10 +1727,10 @@ public class SitesImpl implements Sites {
 			PortletDataHandlerKeys.PERMISSIONS,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
-			PortletDataHandlerKeys.PORTLET_ARCHIVED_SETUPS,
+			PortletDataHandlerKeys.PORTLET_CONFIGURATION,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
-			PortletDataHandlerKeys.PORTLET_SETUP,
+			PortletDataHandlerKeys.PORTLET_CONFIGURATION_ALL,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_SETUP_ALL,

@@ -97,6 +97,10 @@
 		overflow: visible;
 		padding: 5px;
 		position: relative;
+
+		.lfr-tag-selector-input {
+			margin-bottom: 0;
+		}
 	}
 }
 
@@ -250,6 +254,24 @@
 	font-weight: bold;
 }
 
+.basecelleditor [class~="form-validator-message"] {
+	clip: rect(auto auto auto auto);
+	width: auto;
+}
+
+.document-library-file-entry-cell-editor-hidden {
+	display: none;
+}
+
+.previous-level {
+	display: inline-block;
+	font-size: 21px;
+	line-height: 21px;
+	margin-right: 5px;
+	text-decoration: none;
+	vertical-align: middle;
+}
+
 /* ---------- Menus ---------- */
 
 .lfr-menu-list {
@@ -343,7 +365,7 @@
 	text-shadow: -1px -1px #2C2F34;
 }
 
-/* ---------- Loading Mask ---------- */
+/* ---------- Loading mask ---------- */
 
 .loadingmask-content {
 	background: #CCC;
@@ -353,14 +375,30 @@
 	background: #D4D4D4 url(../images/portlet/header_bg.png) repeat-x 0 0;
 }
 
-/* ---------- Tree View ---------- */
+/* ---------- Tree view ---------- */
+
+.tree-node-content {
+	.tree-hitarea {
+		color: #999;
+		font-size: 10px;
+		padding-right: 6px;
+	}
+
+	.tree-label {
+		margin-left: 5px;
+	}
+
+	.tree-node-hidden-hitarea {
+		visibility: hidden;
+	}
+}
 
 .tree-node-selected .tree-label {
 	background-color: transparent;
 	font-weight: bold;
 }
 
-/* ---------- Page Customization ---------- */
+/* ---------- Page customization ---------- */
 
 .dragging .portlet-column.customizable {
 	background-color: #CFFCCF;
@@ -492,6 +530,11 @@
 	margin-left: 1em;
 }
 
+.lfr-page-layouts .lfr-layout-template .layout-template-entry {
+	height: 25px;
+	width: 25px;
+}
+
 .ie {
 	.proxy.not-intersecting .forbidden-action {
 		right: 2px;
@@ -523,5 +566,12 @@
 
 	.paginator-current-page {
 		color: #FFF;
+	}
+}
+
+.ios.mobile {
+	.modal-content .dialog-iframe-bd {
+		overflow: auto;
+		-webkit-overflow-scrolling: touch;
 	}
 }

@@ -17,6 +17,7 @@ package com.liferay.portal.kernel.lar;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Locale;
 
@@ -59,7 +60,17 @@ public class PortletDataHandlerControl {
 		String namespace, String controlName, boolean disabled,
 		String className, String referrerClassName) {
 
+		this(
+			namespace, controlName, controlName, disabled, className,
+			referrerClassName);
+	}
+
+	public PortletDataHandlerControl(
+		String namespace, String controlName, String controlLabel,
+		boolean disabled, String className, String referrerClassName) {
+
 		_namespace = namespace;
+		_controlLabel = controlLabel;
 		_controlName = controlName;
 		_disabled = disabled;
 		_className = className;
@@ -70,13 +81,25 @@ public class PortletDataHandlerControl {
 		return _className;
 	}
 
+	public String getControlLabel() {
+		return _controlLabel;
+	}
+
 	public String getControlName() {
 		return _controlName;
 	}
 
 	public String getHelpMessage(Locale locale, String action) {
-		return LanguageUtil.get(
-			locale, action + "-" + _controlName + "-help", StringPool.BLANK);
+		String helpMessage = LanguageUtil.get(
+			locale, action + "-" + _controlLabel + "-help", StringPool.BLANK);
+
+		if (Validator.isNull(helpMessage)) {
+			helpMessage = LanguageUtil.get(
+				locale, "export-import-publish-" + _controlLabel + "-help",
+				StringPool.BLANK);
+		}
+
+		return helpMessage;
 	}
 
 	public String getNamespace() {
@@ -100,6 +123,7 @@ public class PortletDataHandlerControl {
 	}
 
 	private String _className;
+	private String _controlLabel;
 	private String _controlName;
 	private boolean _disabled;
 	private String _namespace;

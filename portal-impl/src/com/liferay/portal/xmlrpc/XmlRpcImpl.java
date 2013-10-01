@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.xmlrpc.Fault;
 import com.liferay.portal.kernel.xmlrpc.Response;
 import com.liferay.portal.kernel.xmlrpc.Success;
@@ -66,7 +67,9 @@ public class XmlRpcImpl implements XmlRpc {
 		if (_log.isDebugEnabled()) {
 			StringBundler sb = new StringBundler();
 
-			sb.append("XML-RPC invoking " + methodName + " ");
+			sb.append("XML-RPC invoking ");
+			sb.append(methodName);
+			sb.append(" ");
 
 			if (arguments != null) {
 				for (int i = 0; i < arguments.length; i++) {
@@ -105,11 +108,12 @@ public class XmlRpcImpl implements XmlRpc {
 	}
 
 	private static final boolean _HTTP_HEADER_VERSION_VERBOSITY_DEFAULT =
-		PropsValues.HTTP_HEADER_VERSION_VERBOSITY.equalsIgnoreCase(
-			ReleaseInfo.getName());
+		StringUtil.equalsIgnoreCase(
+			PropsValues.HTTP_HEADER_VERSION_VERBOSITY, ReleaseInfo.getName());
 
 	private static final boolean _HTTP_HEADER_VERSION_VERBOSITY_PARTIAL =
-		PropsValues.HTTP_HEADER_VERSION_VERBOSITY.equalsIgnoreCase("partial");
+		StringUtil.equalsIgnoreCase(
+			PropsValues.HTTP_HEADER_VERSION_VERBOSITY, "partial");
 
 	private static Log _log = LogFactoryUtil.getLog(XmlRpcImpl.class);
 

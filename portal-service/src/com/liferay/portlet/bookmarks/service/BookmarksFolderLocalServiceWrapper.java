@@ -531,10 +531,18 @@ public class BookmarksFolderLocalServiceWrapper
 	}
 
 	@Override
-	public void moveFolderToTrash(long userId, long folderId)
+	public com.liferay.portlet.bookmarks.model.BookmarksFolder moveFolderToTrash(
+		long userId, long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_bookmarksFolderLocalService.moveFolderToTrash(userId, folderId);
+		return _bookmarksFolderLocalService.moveFolderToTrash(userId, folderId);
+	}
+
+	@Override
+	public void rebuildTree(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_bookmarksFolderLocalService.rebuildTree(companyId);
 	}
 
 	@Override

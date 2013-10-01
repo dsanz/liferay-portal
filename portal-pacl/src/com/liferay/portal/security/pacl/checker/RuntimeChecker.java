@@ -17,6 +17,7 @@ package com.liferay.portal.security.pacl.checker;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.security.pacl.Reflection;
 
 import java.security.Permission;
 
@@ -26,8 +27,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import sun.reflect.Reflection;
-
 /**
  * @author Raymond Augé
  * @author Brian Wing Shun Chan
@@ -36,7 +35,12 @@ public class RuntimeChecker extends BaseChecker {
 
 	@Override
 	public void afterPropertiesSet() {
+		initAccessDeclaredMembers();
+		initCreateClassLoader();
 		initEnvironmentVariables();
+		initGetProtectionDomain();
+		initModifyThread();
+		initSetContextClassLoader();
 	}
 
 	@Override
@@ -56,7 +60,17 @@ public class RuntimeChecker extends BaseChecker {
 		String key = null;
 		String value = null;
 
-		if (name.startsWith(RUNTIME_PERMISSION_GET_ENV)) {
+		if (name.startsWith(RUNTIME_PERMISSION_ACCESS_DECLARED_MEMBERS)) {
+			key = "security-manager-access-declared-members";
+
+			value = "true";
+		}
+		else if (name.startsWith(RUNTIME_PERMISSION_CREATE_CLASS_LOADER)) {
+			key = "security-manager-create-class-loader";
+
+			value = "true";
+		}
+		else if (name.startsWith(RUNTIME_PERMISSION_GET_ENV)) {
 			key = "security-manager-environment-variables";
 
 			value = name.substring(RUNTIME_PERMISSION_GET_ENV.length() + 1);
@@ -67,6 +81,21 @@ public class RuntimeChecker extends BaseChecker {
 			if (value.equals(StringPool.STAR)) {
 				value = StringPool.DOUBLE_BACK_SLASH + value;
 			}
+		}
+		else if (name.startsWith(RUNTIME_PERMISSION_GET_PROTECTION_DOMAIN)) {
+			key = "security-manager-get-protection-domain";
+
+			value = "true";
+		}
+		else if (name.equals(RUNTIME_PERMISSION_MODIFY_THREAD)) {
+			key = "security-manager-modify-thread";
+
+			value = "true";
+		}
+		else if (name.equals(RUNTIME_PERMISSION_SET_CONTEXT_CLASS_LOADER)) {
+			key = "security-manager-set-context-class-loader";
+
+			value = "true";
 		}
 		else {
 			return null;
@@ -98,7 +127,7 @@ public class RuntimeChecker extends BaseChecker {
 			}
 		}
 		else if (name.equals(RUNTIME_PERMISSION_ACCESS_DECLARED_MEMBERS)) {
-			if (!hasReflect(permission)) {
+			if (!hasAccessDeclaredMembers(permission)) {
 				logSecurityException(
 					_log, "Attempted to access declared members");
 
@@ -151,6 +180,13 @@ public class RuntimeChecker extends BaseChecker {
 		else if (name.startsWith(RUNTIME_PERMISSION_LOAD_LIBRARY)) {
 			if (!hasLoadLibrary(permission)) {
 				logSecurityException(_log, "Attempted to load library");
+
+				return false;
+			}
+		}
+		else if (name.equals(RUNTIME_PERMISSION_MODIFY_THREAD)) {
+			if (!hasModifyThread(permission)) {
+				logSecurityException(_log, "Attempted to modify a thread");
 
 				return false;
 			}
@@ -209,8 +245,28 @@ public class RuntimeChecker extends BaseChecker {
 		return true;
 	}
 
+	protected boolean hasAccessDeclaredMembers(Permission permission) {
+		if (_accessDeclaredMembers) {
+			return true;
+		}
+
+		int stackIndex = Reflection.getStackIndex(13, 12);
+
+		Class<?> callerClass = Reflection.getCallerClass(stackIndex);
+
+		if (isTrustedCaller(callerClass, permission)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	protected boolean hasCreateClassLoader(Permission permission) {
-		int stackIndex = getStackIndex(15, 11);
+		if (_createClassLoader) {
+			return true;
+		}
+
+		int stackIndex = Reflection.getStackIndex(15, 11);
 
 		Class<?> callerClass = Reflection.getCallerClass(stackIndex);
 
@@ -222,7 +278,7 @@ public class RuntimeChecker extends BaseChecker {
 	}
 
 	protected boolean hasCreateSecurityManager(Permission permission) {
-		int stackIndex = getStackIndex(11, 10);
+		int stackIndex = Reflection.getStackIndex(11, 10);
 
 		Class<?> callerClass = Reflection.getCallerClass(stackIndex);
 
@@ -234,7 +290,8 @@ public class RuntimeChecker extends BaseChecker {
 	}
 
 	protected boolean hasGetClassLoader(Permission permission) {
-		int stackIndex = getStackIndex(11, 10);
+		int stackIndex = Reflection.getStackIndex(
+			new int[] {11, 11, 12}, new int[] {10, 10, 10});
 
 		Class<?> callerClass = Reflection.getCallerClass(stackIndex);
 
@@ -256,7 +313,7 @@ public class RuntimeChecker extends BaseChecker {
 			}
 		}
 
-		int stackIndex = getStackIndex(11, 10);
+		int stackIndex = Reflection.getStackIndex(11, 10);
 
 		Class<?> callerClass = Reflection.getCallerClass(stackIndex);
 
@@ -268,7 +325,11 @@ public class RuntimeChecker extends BaseChecker {
 	}
 
 	protected boolean hasGetProtectionDomain(Permission permission) {
-		int stackIndex = getStackIndex(11, 10);
+		if (_getProtectionDomain) {
+			return true;
+		}
+
+		int stackIndex = Reflection.getStackIndex(11, 10);
 
 		Class<?> callerClass = Reflection.getCallerClass(stackIndex);
 
@@ -280,7 +341,23 @@ public class RuntimeChecker extends BaseChecker {
 	}
 
 	protected boolean hasLoadLibrary(Permission permission) {
-		int stackIndex = getStackIndex(13, 12);
+		int stackIndex = Reflection.getStackIndex(13, 12);
+
+		Class<?> callerClass = Reflection.getCallerClass(stackIndex);
+
+		if (isTrustedCaller(callerClass, permission)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	protected boolean hasModifyThread(Permission permission) {
+		if (_modifyThread) {
+			return true;
+		}
+
+		int stackIndex = Reflection.getStackIndex(13, 12);
 
 		Class<?> callerClass = Reflection.getCallerClass(stackIndex);
 
@@ -292,19 +369,7 @@ public class RuntimeChecker extends BaseChecker {
 	}
 
 	protected boolean hasReadFileDescriptor(Permission permission) {
-		int stackIndex = getStackIndex(12, 11);
-
-		Class<?> callerClass = Reflection.getCallerClass(stackIndex);
-
-		if (isTrustedCaller(callerClass, permission)) {
-			return true;
-		}
-
-		return false;
-	}
-
-	protected boolean hasReflect(Permission permission) {
-		int stackIndex = getStackIndex(13, 12);
+		int stackIndex = Reflection.getStackIndex(12, 11);
 
 		Class<?> callerClass = Reflection.getCallerClass(stackIndex);
 
@@ -316,7 +381,11 @@ public class RuntimeChecker extends BaseChecker {
 	}
 
 	protected boolean hasSetContextClassLoader(Permission permission) {
-		int stackIndex = getStackIndex(11, 10);
+		if (_setContextClassLoader) {
+			return true;
+		}
+
+		int stackIndex = Reflection.getStackIndex(11, 10);
 
 		Class<?> callerClass = Reflection.getCallerClass(stackIndex);
 
@@ -328,7 +397,7 @@ public class RuntimeChecker extends BaseChecker {
 	}
 
 	protected boolean hasWriteFileDescriptor(Permission permission) {
-		int stackIndex = getStackIndex(12, 11);
+		int stackIndex = Reflection.getStackIndex(12, 11);
 
 		Class<?> callerClass = Reflection.getCallerClass(stackIndex);
 
@@ -337,6 +406,16 @@ public class RuntimeChecker extends BaseChecker {
 		}
 
 		return false;
+	}
+
+	protected void initAccessDeclaredMembers() {
+		_accessDeclaredMembers = getPropertyBoolean(
+			"security-manager-access-declared-members");
+	}
+
+	protected void initCreateClassLoader() {
+		_createClassLoader = getPropertyBoolean(
+			"security-manager-create-class-loader");
 	}
 
 	protected void initEnvironmentVariables() {
@@ -360,8 +439,27 @@ public class RuntimeChecker extends BaseChecker {
 		}
 	}
 
+	protected void initGetProtectionDomain() {
+		_getProtectionDomain = getPropertyBoolean(
+			"security-manager-get-protection-domain");
+	}
+
+	protected void initModifyThread() {
+		_modifyThread = getPropertyBoolean("security-manager-modify-thread");
+	}
+
+	protected void initSetContextClassLoader() {
+		_setContextClassLoader = getPropertyBoolean(
+			"security-manager-set-context-class-loader");
+	}
+
 	private static Log _log = LogFactoryUtil.getLog(RuntimeChecker.class);
 
+	private boolean _accessDeclaredMembers;
+	private boolean _createClassLoader;
 	private List<Pattern> _environmentVariablePatterns;
+	private boolean _getProtectionDomain;
+	private boolean _modifyThread;
+	private boolean _setContextClassLoader;
 
 }

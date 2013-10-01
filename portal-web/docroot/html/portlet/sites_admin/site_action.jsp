@@ -48,7 +48,7 @@ if (row == null) {
 }
 %>
 
-<liferay-ui:icon-menu showExpanded="<%= view %>" showWhenSingleIcon="<%= view %>">
+<liferay-ui:icon-menu showExpanded="<%= view %>" showWhenSingleIcon="<%= true %>">
 
 	<%
 	ThemeDisplay siteThemeDisplay = (ThemeDisplay)themeDisplay.clone();
@@ -60,8 +60,8 @@ if (row == null) {
 
 	<c:if test="<%= siteAdministrationURL != null %>">
 		<liferay-ui:icon
-			image="edit"
-			message="manage"
+			image="configuration"
+			message="site-administration"
 			method="get"
 			url="<%= siteAdministrationURL.toString() %>"
 		/>
@@ -73,7 +73,7 @@ if (row == null) {
 		int childSitesCount = GroupLocalServiceUtil.getGroupsCount(company.getCompanyId(), group.getGroupId(), true);
 		%>
 
-		<c:if test="<%= childSitesCount > 0 %>">
+		<c:if test="<%= (childSitesCount > 0) && (row != null) %>">
 			<liferay-portlet:renderURL var="viewSubsitesURL">
 				<portlet:param name="struts_action" value="/sites_admin/view" />
 				<portlet:param name="backURL" value="<%= StringPool.SLASH + currentURL %>" />
@@ -83,48 +83,65 @@ if (row == null) {
 
 			<liferay-ui:icon
 				image="view"
-				message="view-subsites"
+				message="view-child-sites"
 				url="<%= viewSubsitesURL %>"
 			/>
 		</c:if>
 
-		<liferay-portlet:renderURL doAsGroupId="<%= group.getGroupId() %>" portletName="<%= PortletKeys.SITE_SETTINGS %>" var="editURL">
-			<portlet:param name="redirect" value="<%= currentURL %>" />
-		</liferay-portlet:renderURL>
+		<c:if test="<%= !group.isCompany() && (PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_COMMUNITY) || GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.ADD_COMMUNITY)) %>">
+			<liferay-portlet:renderURL varImpl="addSiteURL">
+				<portlet:param name="struts_action" value="/sites_admin/edit_site" />
+				<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.ADD %>" />
+				<portlet:param name="redirect" value="<%= currentURL %>" />
+				<portlet:param name="parentGroupSearchContainerPrimaryKeys" value="<%= String.valueOf(group.getGroupId()) %>" />
+				<portlet:param name="showPrototypes" value="<%= Boolean.TRUE.toString() %>" />
+			</liferay-portlet:renderURL>
 
-		<liferay-ui:icon
-			image="edit"
-			message="edit-settings"
-			url="<%= editURL %>"
-		/>
+			<liferay-ui:icon
+				image="site_icon"
+				message="add-child-site"
+				method="get"
+				url="<%= addSiteURL.toString() %>"
+			/>
+		</c:if>
 	</c:if>
 
 	<c:if test="<%= group.isCompany() && hasUpdatePermission %>">
+		<liferay-portlet:renderURL portletName="<%= PortletKeys.LAYOUTS_ADMIN %>" var="exportURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+			<portlet:param name="struts_action" value="/layouts_admin/export_layouts" />
+			<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.EXPORT %>" />
+			<portlet:param name="groupId" value="<%= String.valueOf(group.getGroupId()) %>" />
+			<portlet:param name="rootNodeName" value="<%= group.getDescriptiveName(locale) %>" />
+		</liferay-portlet:renderURL>
+
+		<%
+		String taglibExportURL = "javascript:Liferay.Util.openWindow({id: '" + renderResponse.getNamespace() + "exportDialog', title: '" + UnicodeLanguageUtil.get(pageContext, "export") + "', uri: '" + HtmlUtil.escapeURL(exportURL.toString()) + "'});";
+		%>
+
+		<liferay-ui:icon
+			image="export"
+			message="export"
+			url="<%= taglibExportURL %>"
+		/>
+
+		<liferay-portlet:renderURL portletName="<%= PortletKeys.LAYOUTS_ADMIN %>" var="importURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+			<portlet:param name="struts_action" value="/layouts_admin/import_layouts" />
+			<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.VALIDATE %>" />
+			<portlet:param name="groupId" value="<%= String.valueOf(group.getGroupId()) %>" />
+			<portlet:param name="rootNodeName" value="<%= group.getDescriptiveName(locale) %>" />
+		</liferay-portlet:renderURL>
+
+		<%
+		String taglibImportURL = "javascript:Liferay.Util.openWindow({id: '" + renderResponse.getNamespace() + "importDialog', title: '" + UnicodeLanguageUtil.get(pageContext, "import") + "', uri: '" + HtmlUtil.escapeURL(importURL.toString()) + "'});";
+		%>
+
+		<liferay-ui:icon
+			image="download"
+			message="import"
+			url="<%= taglibImportURL %>"
+		/>
+
 		<liferay-ui:staging extended="<%= true %>" groupId="<%= group.getGroupId() %>" onlyActions="<%= true %>" showManageBranches="<%= false %>" />
-	</c:if>
-
-	<c:if test="<%= !group.isCompany() && GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.MANAGE_LAYOUTS) %>">
-		<liferay-portlet:renderURL doAsGroupId="<%= group.getGroupId() %>" portletName="<%= PortletKeys.GROUP_PAGES %>" var="managePagesURL">
-			<portlet:param name="redirect" value="<%= currentURL %>" />
-		</liferay-portlet:renderURL>
-
-		<liferay-ui:icon
-			image="pages"
-			message="manage-pages"
-			url="<%= managePagesURL %>"
-		/>
-	</c:if>
-
-	<c:if test="<%= !group.isCompany() && GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.ASSIGN_MEMBERS) %>">
-		<liferay-portlet:renderURL doAsGroupId="<%= group.getGroupId() %>" portletName="<%= PortletKeys.SITE_MEMBERSHIPS_ADMIN %>" var="assignMembersURL">
-			<portlet:param name="redirect" value="<%= currentURL %>" />
-		</liferay-portlet:renderURL>
-
-		<liferay-ui:icon
-			image="assign"
-			message="manage-memberships"
-			url="<%= assignMembersURL %>"
-		/>
 	</c:if>
 
 	<c:if test="<%= group.getPublicLayoutsPageCount() > 0 %>">
@@ -204,49 +221,5 @@ if (row == null) {
 		</portlet:actionURL>
 
 		<liferay-ui:icon-delete url="<%= deleteURL %>" />
-	</c:if>
-
-	<c:if test="<%= !group.isCompany() && (PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_COMMUNITY) || GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.ADD_COMMUNITY)) %>">
-
-		<%
-		List<LayoutSetPrototype> layoutSetPrototypes = LayoutSetPrototypeServiceUtil.search(company.getCompanyId(), Boolean.TRUE, null);
-		%>
-
-		<liferay-portlet:renderURL varImpl="addSiteURL">
-			<portlet:param name="struts_action" value="/sites_admin/edit_site" />
-			<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.ADD %>" />
-			<portlet:param name="redirect" value="<%= currentURL %>" />
-			<portlet:param name="parentGroupSearchContainerPrimaryKeys" value="<%= String.valueOf(group.getGroupId()) %>" />
-		</liferay-portlet:renderURL>
-
-		<%
-		addSiteURL.setParameter("showPrototypes", "0");
-		%>
-
-		<liferay-ui:icon
-			image="site_icon"
-			message='<%= LanguageUtil.format(pageContext, "add-x", "blank-site") %>'
-			method="get"
-			url="<%= addSiteURL.toString() %>"
-		/>
-
-		<%
-		addSiteURL.setParameter("showPrototypes", "1");
-
-		for (LayoutSetPrototype layoutSetPrototype : layoutSetPrototypes) {
-			addSiteURL.setParameter("layoutSetPrototypeId", String.valueOf(layoutSetPrototype.getLayoutSetPrototypeId()));
-		%>
-
-			<liferay-ui:icon
-				image="site_icon"
-				message='<%= LanguageUtil.format(pageContext, "add-x", HtmlUtil.escape(layoutSetPrototype.getName(locale))) %>'
-				method="get"
-				url="<%= addSiteURL.toString() %>"
-			/>
-
-		<%
-		}
-		%>
-
 	</c:if>
 </liferay-ui:icon-menu>

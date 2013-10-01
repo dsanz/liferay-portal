@@ -36,7 +36,15 @@ if (folderId > 0) {
 	folder = DLAppLocalServiceUtil.getFolder(folderId);
 }
 
-List<DLFileEntryType> fileEntryTypes = DLFileEntryTypeServiceUtil.getFolderFileEntryTypes(PortalUtil.getSiteAndCompanyGroupIds(themeDisplay), folderId, true);
+boolean inherited = true;
+
+if ((folder != null) && (folder.getModel() instanceof DLFolder)) {
+	DLFolder dlFolder = (DLFolder)folder.getModel();
+
+	inherited = !dlFolder.isOverrideFileEntryTypes();
+}
+
+List<DLFileEntryType> fileEntryTypes = DLFileEntryTypeServiceUtil.getFolderFileEntryTypes(PortalUtil.getSiteAndCompanyGroupIds(themeDisplay), folderId, inherited);
 
 FileVersion fileVersion = null;
 
@@ -97,6 +105,7 @@ long assetClassPK = 0;
 			<c:if test="<%= !fileEntryTypes.isEmpty() %>">
 				<liferay-ui:panel collapsible="<%= true %>" cssClass="document-type" persistState="<%= true %>" title="document-type">
 					<aui:input name="fileEntryTypeId" type="hidden" value="<%= (fileEntryTypeId > 0) ? fileEntryTypeId : 0 %>" />
+					<aui:input name="defaultLanguageId" type="hidden" value="<%= themeDisplay.getLanguageId() %>" />
 
 					<div class="document-type-selector">
 
@@ -165,50 +174,52 @@ long assetClassPK = 0;
 					%>
 
 					<aui:script use="aui-base">
-						var groupSelectorMenu = A.one('#<portlet:namespace />groupSelector').get('parentNode');
+						var groupSelectorMenu = A.one('#<portlet:namespace />groupSelector').ancestor().one('.lfr-menu-list');
 
-						groupSelectorMenu.delegate(
-							'click',
-							function(event) {
-								event.preventDefault();
+						if (groupSelectorMenu) {
+							groupSelectorMenu.delegate(
+								'click',
+								function(event) {
+									event.preventDefault();
 
-								var documentTypeForm = A.one('#<portlet:namespace />fm2');
+									var documentTypeForm = A.one('#<portlet:namespace />fm2');
 
-								documentTypeForm.load(
-									event.currentTarget.attr('href'),
-									{
-										where: 'outer'
-									},
-									function() {
-										var selectedFilesCountContainer = A.one('.selected-files-count');
+									documentTypeForm.load(
+										event.currentTarget.attr('href'),
+										{
+											where: 'outer'
+										},
+										function() {
+											var selectedFilesCountContainer = A.one('.selected-files-count');
 
-										var totalFiles = A.all('input[name=<portlet:namespace />selectUploadedFileCheckbox]');
+											var totalFiles = A.all('input[name=<portlet:namespace />selectUploadedFileCheckbox]');
 
-										var totalFilesCount = totalFiles.size();
+											var totalFilesCount = totalFiles.size();
 
-										var selectedFiles = totalFiles.filter(':checked');
+											var selectedFiles = totalFiles.filter(':checked');
 
-										var selectedFilesCount = selectedFiles.size();
+											var selectedFilesCount = selectedFiles.size();
 
-										var selectedFilesText = selectedFiles.item(0).attr('data-fileName');
+											var selectedFilesText = selectedFiles.item(0).attr('data-fileName');
 
-										if (selectedFilesCount > 1) {
-											if (selectedFilesCount == totalFilesCount) {
-												selectedFilesText = '<%= UnicodeLanguageUtil.get(pageContext, "all-files-selected") %>';
+											if (selectedFilesCount > 1) {
+												if (selectedFilesCount == totalFilesCount) {
+													selectedFilesText = '<%= UnicodeLanguageUtil.get(pageContext, "all-files-selected") %>';
+												}
+												else {
+													selectedFilesText = A.Lang.sub('<%= UnicodeLanguageUtil.get(pageContext, "x-files-selected") %>', [selectedFilesCount]);
+												}
 											}
-											else {
-												selectedFilesText = A.Lang.sub('<%= UnicodeLanguageUtil.get(pageContext, "x-files-selected") %>', [selectedFilesCount]);
-											}
+
+											selectedFilesCountContainer.setContent(selectedFilesText);
+
+											selectedFilesCountContainer.attr('title', selectedFilesText);
 										}
-
-										selectedFilesCountContainer.setContent(selectedFilesText);
-
-										selectedFilesCountContainer.attr('title', selectedFilesText);
-									}
-								);
-							},
-							'li a'
-						);
+									);
+								},
+								'li a'
+							);
+						}
 					</aui:script>
 				</liferay-ui:panel>
 			</c:if>
@@ -234,7 +245,7 @@ long assetClassPK = 0;
 		</c:if>
 	</liferay-ui:panel-container>
 
-	<aui:field-wrapper label="permissions">
+	<aui:field-wrapper cssClass="upload-multiple-file-permissions" label="permissions">
 		<liferay-ui:input-permissions
 			modelName="<%= DLFileEntryConstants.getClassName() %>"
 		/>

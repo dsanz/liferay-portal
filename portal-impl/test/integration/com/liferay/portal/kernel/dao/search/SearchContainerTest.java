@@ -77,6 +77,46 @@ public class SearchContainerTest {
 	}
 
 	@Test
+	public void testCalculateStartAndEndWhenEmptyResultsPage() {
+		buildSearchContainer(2);
+
+		_searchContainer.setTotal(10);
+
+		Assert.assertEquals(0, _searchContainer.getStart());
+		Assert.assertEquals(20, _searchContainer.getEnd());
+	}
+
+	@Test
+	public void testCalculateStartAndEndWhenFullResultsPage() {
+		buildSearchContainer(2);
+
+		_searchContainer.setTotal(20);
+
+		Assert.assertEquals(0, _searchContainer.getStart());
+		Assert.assertEquals(20, _searchContainer.getEnd());
+	}
+
+	@Test
+	public void testCalculateStartAndEndWhenNoResults() {
+		buildSearchContainer(2);
+
+		_searchContainer.setTotal(0);
+
+		Assert.assertEquals(0, _searchContainer.getStart());
+		Assert.assertEquals(20, _searchContainer.getEnd());
+	}
+
+	@Test
+	public void testCalculateStartAndEndWhenResultsPage() {
+		buildSearchContainer(2);
+
+		_searchContainer.setTotal(80);
+
+		Assert.assertEquals(20, _searchContainer.getStart());
+		Assert.assertEquals(40, _searchContainer.getEnd());
+	}
+
+	@Test
 	public void testNotCalculateCurWhenNoResultsAndInitialPage() {
 		buildSearchContainer(1);
 
@@ -85,8 +125,18 @@ public class SearchContainerTest {
 		Assert.assertEquals(false, _searchContainer.isRecalculateCur());
 	}
 
+	@Test
+	public void testNotCalculateStartAndEndWhenNoResultsAndInitialPage() {
+		buildSearchContainer(1);
+
+		_searchContainer.setTotal(0);
+
+		Assert.assertEquals(0, _searchContainer.getStart());
+		Assert.assertEquals(20, _searchContainer.getEnd());
+	}
+
 	protected void buildSearchContainer(int cur) {
-		PortletRequest portletRequest= PowerMockito.mock(PortletRequest.class);
+		PortletRequest portletRequest = PowerMockito.mock(PortletRequest.class);
 
 		PortletURL portletURL = PowerMockito.mock(PortletURL.class);
 

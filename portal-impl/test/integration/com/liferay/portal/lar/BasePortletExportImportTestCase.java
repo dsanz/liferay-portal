@@ -14,89 +14,58 @@
 
 package com.liferay.portal.lar;
 
-import com.liferay.portal.RequiredGroupException;
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
+import com.liferay.portal.kernel.lar.PortletDataHandler;
 import com.liferay.portal.kernel.lar.PortletDataHandlerKeys;
-import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.template.TemplateHandler;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
-import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.util.GroupTestUtil;
 import com.liferay.portal.util.LayoutTestUtil;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetLink;
 import com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil;
 import com.liferay.portlet.asset.service.AssetLinkLocalServiceUtil;
+import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
+import com.liferay.portlet.dynamicdatamapping.util.DDMTemplateTestUtil;
+import com.liferay.portlet.portletdisplaytemplate.util.PortletDisplayTemplate;
 
-import java.io.File;
-
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import javax.portlet.PortletPreferences;
 
-import org.powermock.api.mockito.PowerMockito;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author Juan Fernández
  */
-public class BasePortletExportImportTestCase extends PowerMockito {
+public class BasePortletExportImportTestCase extends BaseExportImportTestCase {
 
 	public String getNamespace() {
 		return null;
 	}
 
-	public String getPortletId() {
+	public String getPortletId() throws Exception {
 		return null;
-	}
-
-	@Before
-	public void setUp() throws Exception {
-		group = GroupTestUtil.addGroup();
-		importedGroup = GroupTestUtil.addGroup();
-
-		layout = LayoutTestUtil.addLayout(
-			group.getGroupId(), ServiceTestUtil.randomString());
-
-		// Delete and readd to ensure a different layout ID (not ID or UUID).
-		// See LPS-32132.
-
-		LayoutLocalServiceUtil.deleteLayout(layout, true, new ServiceContext());
-
-		layout = LayoutTestUtil.addLayout(
-			group.getGroupId(), ServiceTestUtil.randomString());
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		try {
-			GroupLocalServiceUtil.deleteGroup(group);
-
-			if (importedGroup != null) {
-				GroupLocalServiceUtil.deleteGroup(importedGroup);
-			}
-		}
-		catch (RequiredGroupException rge) {
-		}
-
-		LayoutLocalServiceUtil.deleteLayout(layout);
-		LayoutLocalServiceUtil.deleteLayout(importedLayout);
-
-		if ((larFile != null) && larFile.exists()) {
-			FileUtil.delete(larFile);
-		}
 	}
 
 	@Test
@@ -113,7 +82,7 @@ public class BasePortletExportImportTestCase extends PowerMockito {
 			group.getGroupId(), getStagedModelUuid(stagedModel),
 			getStagedModelUuid(relatedStagedModel2), 2);
 
-		doExportImportPortlet(getPortletId());
+		exportImportPortlet(getPortletId());
 
 		StagedModel importedStagedModel = getStagedModel(
 			getStagedModelUuid(stagedModel), importedGroup.getGroupId());
@@ -121,6 +90,106 @@ public class BasePortletExportImportTestCase extends PowerMockito {
 		Assert.assertNotNull(importedStagedModel);
 
 		validateImportedLinks(getStagedModelUuid(stagedModel));
+	}
+
+	@Test
+	public void testExportImportDeletions() throws Exception {
+		StagedModel stagedModel = addStagedModel(group.getGroupId());
+
+		if (stagedModel == null) {
+			return;
+		}
+
+		String stagedModelUuid = getStagedModelUuid(stagedModel);
+
+		exportImportPortlet(getPortletId());
+
+		deleteStagedModel(stagedModel);
+
+		exportImportPortlet(getPortletId());
+
+		StagedModel importedStagedModel = getStagedModel(
+			stagedModelUuid, importedGroup.getGroupId());
+
+		Assert.assertNotNull(importedStagedModel);
+
+		Map<String, String[]> exportParameterMap =
+			new LinkedHashMap<String, String[]>();
+
+		exportParameterMap.put(
+			PortletDataHandlerKeys.DELETIONS,
+			new String[]{ String.valueOf(true)});
+
+		exportImportPortlet(
+			getPortletId(), exportParameterMap, getImportParameterMap());
+
+		importedStagedModel = getStagedModel(
+			stagedModelUuid, importedGroup.getGroupId());
+
+		Assert.assertNotNull(importedStagedModel);
+
+		Map<String, String[]> importParameterMap =
+			new LinkedHashMap<String, String[]>();
+
+		importParameterMap.put(
+			PortletDataHandlerKeys.DELETIONS,
+			new String[]{ String.valueOf(true)});
+
+		exportImportPortlet(
+			getPortletId(), exportParameterMap, importParameterMap);
+
+		try {
+			importedStagedModel = getStagedModel(
+				stagedModelUuid, importedGroup.getGroupId());
+
+			Assert.assertNull(importedStagedModel);
+		}
+		catch (Exception e) {
+		}
+	}
+
+	@Test
+	public void testExportImportDisplayStyleFromCurrentGroup()
+		throws Exception {
+
+		testExportImportDisplayStyle(group.getGroupId(), StringPool.BLANK);
+	}
+
+	@Test
+	public void testExportImportDisplayStyleFromDifferentGroup()
+		throws Exception {
+
+		Group group2 = GroupTestUtil.addGroup();
+
+		testExportImportDisplayStyle(group2.getGroupId(), StringPool.BLANK);
+	}
+
+	@Test
+	public void testExportImportDisplayStyleFromGlobalScope() throws Exception {
+		Group companyGroup = GroupLocalServiceUtil.getCompanyGroup(
+			group.getCompanyId());
+
+		testExportImportDisplayStyle(companyGroup.getGroupId(), "company");
+	}
+
+	@Test
+	public void testExportImportDisplayStyleFromLayoutScope() throws Exception {
+		testExportImportDisplayStyle(group.getGroupId(), "layout");
+	}
+
+	@Test
+	public void testExportImportInvalidAvailableLocales() throws Exception {
+		testExportImportAvailableLocales(
+			new Locale[] {LocaleUtil.US, LocaleUtil.SPAIN},
+			new Locale[] {LocaleUtil.US, LocaleUtil.GERMANY}, true);
+	}
+
+	@Test
+	public void testExportImportValidAvailableLocales() throws Exception {
+		testExportImportAvailableLocales(
+			new Locale[] {LocaleUtil.US, LocaleUtil.SPAIN},
+			new Locale[] {LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY},
+			false);
 	}
 
 	protected AssetLink addAssetLink(
@@ -144,86 +213,158 @@ public class BasePortletExportImportTestCase extends PowerMockito {
 		addParameter(parameterMap, getNamespace(), name, value);
 	}
 
-	protected void addParameter(
-		Map<String, String[]> parameterMap, String name, String value) {
-
-		parameterMap.put(name, new String[] {value});
+	protected void exportImportPortlet(String portletId) throws Exception {
+		exportImportPortlet(
+			portletId, new LinkedHashMap<String, String[]>(),
+			new LinkedHashMap<String, String[]>());
 	}
 
-	protected void addParameter(
-		Map<String, String[]> parameterMap, String namespace, String name,
-		boolean value) {
+	protected void exportImportPortlet(
+		String portletId, Map<String, String[]> exportParameterMap,
+		Map<String, String[]> importParameterMap) throws Exception {
 
-		PortletDataHandlerBoolean portletDataHandlerBoolean =
-			new PortletDataHandlerBoolean(namespace, name);
+		MapUtil.merge(getExportParameterMap(), exportParameterMap);
 
-		addParameter(
-			parameterMap, portletDataHandlerBoolean.getNamespacedControlName(),
-			String.valueOf(value));
-	}
-
-	protected StagedModel addStagedModel(long groupId) throws Exception {
-		return null;
-	}
-
-	protected void doExportImportPortlet(String portletId) throws Exception {
 		larFile = LayoutLocalServiceUtil.exportPortletInfoAsFile(
 			layout.getPlid(), layout.getGroupId(), portletId,
-			getExportParameterMap(), null, null);
+			exportParameterMap, null, null);
 
 		importedLayout = LayoutTestUtil.addLayout(
 			importedGroup.getGroupId(), ServiceTestUtil.randomString());
 
+		MapUtil.merge(getImportParameterMap(), importParameterMap);
+
 		LayoutLocalServiceUtil.importPortletInfo(
 			TestPropsValues.getUserId(), importedLayout.getPlid(),
-			importedGroup.getGroupId(), portletId, getImportParameterMap(),
-			larFile);
+			importedGroup.getGroupId(), portletId, importParameterMap, larFile);
 	}
 
-	protected Map<String, String[]> getExportParameterMap() throws Exception {
-		Map<String, String[]> parameterMap =
-			new LinkedHashMap<String, String[]>();
+	protected PortletPreferences getImportedPortletPreferences(
+			Map<String, String[]> preferenceMap)
+		throws Exception {
 
-		parameterMap.put(
-			PortletDataHandlerKeys.PORTLET_DATA,
-			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
-			PortletDataHandlerKeys.PORTLET_DATA_ALL,
-			new String[] {Boolean.TRUE.toString()});
+		String portletId = LayoutTestUtil.addPortletToLayout(
+			TestPropsValues.getUserId(), this.layout, getPortletId(),
+			"column-1", preferenceMap);
 
-		return parameterMap;
+		exportImportPortlet(portletId);
+
+		return LayoutTestUtil.getPortletPreferences(importedLayout, portletId);
 	}
 
-	protected Map<String, String[]> getImportParameterMap() throws Exception {
-		Map<String, String[]> parameterMap =
-			new LinkedHashMap<String, String[]>();
+	protected void testExportImportAvailableLocales(
+			Locale[] sourceAvailableLocales, Locale[] targetAvailableLocales,
+			boolean fail)
+		throws Exception {
 
-		parameterMap.put(
-			PortletDataHandlerKeys.DATA_STRATEGY,
-			new String[] {
-				PortletDataHandlerKeys.DATA_STRATEGY_MIRROR_OVERWRITE});
-		parameterMap.put(
-			PortletDataHandlerKeys.PORTLET_DATA,
-			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
-			PortletDataHandlerKeys.PORTLET_DATA_ALL,
-			new String[] {Boolean.TRUE.toString()});
+		Portlet portlet = PortletLocalServiceUtil.getPortletById(
+			group.getCompanyId(), getPortletId());
 
-		return parameterMap;
+		if (portlet == null) {
+			return;
+		}
+
+		PortletDataHandler portletDataHandler =
+			portlet.getPortletDataHandlerInstance();
+
+		if (!portletDataHandler.isDataLocalized()) {
+			Assert.assertTrue("This test does not apply", true);
+
+			return;
+		}
+
+		GroupTestUtil.updateDisplaySettings(
+			group.getGroupId(), sourceAvailableLocales, null);
+		GroupTestUtil.updateDisplaySettings(
+			importedGroup.getGroupId(), targetAvailableLocales, null);
+
+		try {
+			exportImportPortlet(getPortletId());
+
+			if (fail) {
+				Assert.fail();
+			}
+		}
+		catch (LocaleException le) {
+			if (!fail) {
+				Assert.fail();
+			}
+		}
 	}
 
-	@SuppressWarnings("unused")
-	protected StagedModel getStagedModel(String uuid, long groupId)
-		throws PortalException, SystemException {
+	protected void testExportImportDisplayStyle(
+			long displayStyleGroupId, String scopeType)
+		throws Exception {
 
-		return null;
-	}
+		Portlet portlet = PortletLocalServiceUtil.getPortletById(
+			group.getCompanyId(), getPortletId());
 
-	@SuppressWarnings("unused")
-	protected String getStagedModelUuid(StagedModel stagedModel)
-		throws PortalException, SystemException {
+		if (portlet == null) {
+			return;
+		}
 
-		return stagedModel.getUuid();
+		if (scopeType.equals("layout") && !portlet.isScopeable()) {
+			Assert.assertTrue("This test does not apply", true);
+
+			return;
+		}
+
+		TemplateHandler templateHandler = portlet.getTemplateHandlerInstance();
+
+		if (templateHandler == null) {
+			Assert.assertTrue("This test does not apply", true);
+
+			return;
+		}
+
+		String className = templateHandler.getClassName();
+
+		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
+			displayStyleGroupId, PortalUtil.getClassNameId(className), 0);
+
+		Map<String, String[]> preferenceMap = new HashMap<String, String[]>();
+
+		String displayStyle =
+			PortletDisplayTemplate.DISPLAY_STYLE_PREFIX + ddmTemplate.getUuid();
+
+		preferenceMap.put("displayStyle", new String[] {displayStyle});
+
+		preferenceMap.put(
+			"displayStyleGroupId",
+			new String[] {String.valueOf(ddmTemplate.getGroupId())});
+
+		if (scopeType.equals("layout")) {
+			preferenceMap.put(
+				"lfrScopeLayoutUuid", new String[] {this.layout.getUuid()});
+		}
+
+		preferenceMap.put("lfrScopeType", new String[] {scopeType});
+
+		PortletPreferences portletPreferences = getImportedPortletPreferences(
+			preferenceMap);
+
+		String importedDisplayStyle = portletPreferences.getValue(
+			"displayStyle", StringPool.BLANK);
+
+		Assert.assertEquals(displayStyle, importedDisplayStyle);
+
+		long importedDisplayStyleGroupId = GetterUtil.getLong(
+			portletPreferences.getValue("displayStyleGroupId", null));
+
+		long expectedDisplayStyleGroupId = importedGroup.getGroupId();
+
+		if (scopeType.equals("company")) {
+			Group companyGroup = GroupLocalServiceUtil.getCompanyGroup(
+				importedGroup.getCompanyId());
+
+			expectedDisplayStyleGroupId = companyGroup.getGroupId();
+		}
+		else if (displayStyleGroupId != group.getGroupId()) {
+			expectedDisplayStyleGroupId = displayStyleGroupId;
+		}
+
+		Assert.assertEquals(
+			expectedDisplayStyleGroupId, importedDisplayStyleGroupId);
 	}
 
 	protected void validateImportedLinks(String uuid)
@@ -288,11 +429,5 @@ public class BasePortletExportImportTestCase extends PowerMockito {
 
 		Assert.assertEquals(0, importedAssetLinks.size());
 	}
-
-	protected Group group;
-	protected Group importedGroup;
-	protected Layout importedLayout;
-	protected File larFile;
-	protected Layout layout;
 
 }

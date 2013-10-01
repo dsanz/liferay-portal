@@ -366,6 +366,10 @@ public class PortletItemPersistenceImpl extends BasePersistenceImpl<PortletItem>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByG_C(groupId, classNameId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PortletItem> list = findByG_C(groupId, classNameId, count - 1,
 				count, orderByComparator);
 
@@ -931,6 +935,10 @@ public class PortletItemPersistenceImpl extends BasePersistenceImpl<PortletItem>
 		long classNameId, OrderByComparator orderByComparator)
 		throws SystemException {
 		int count = countByG_P_C(groupId, portletId, classNameId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<PortletItem> list = findByG_P_C(groupId, portletId, classNameId,
 				count - 1, count, orderByComparator);
@@ -1565,6 +1573,10 @@ public class PortletItemPersistenceImpl extends BasePersistenceImpl<PortletItem>
 	private static final String _FINDER_COLUMN_G_N_P_C_PORTLETID_2 = "portletItem.portletId = ? AND ";
 	private static final String _FINDER_COLUMN_G_N_P_C_PORTLETID_3 = "(portletItem.portletId IS NULL OR portletItem.portletId = '') AND ";
 	private static final String _FINDER_COLUMN_G_N_P_C_CLASSNAMEID_2 = "portletItem.classNameId = ?";
+
+	public PortletItemPersistenceImpl() {
+		setModelClass(PortletItem.class);
+	}
 
 	/**
 	 * Caches the portlet item in the entity cache if it is enabled.

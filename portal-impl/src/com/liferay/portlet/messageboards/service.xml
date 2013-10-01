@@ -45,7 +45,7 @@
 
 		<reference package-path="com.liferay.portal" entity="SystemEvent" />
 	</entity>
-	<entity name="MBCategory" human-name="message boards category" uuid="true" local-service="true" remote-service="true">
+	<entity name="MBCategory" human-name="message boards category" uuid="true" local-service="true" remote-service="true" trash-enabled="true">
 
 		<!-- PK fields -->
 
@@ -117,8 +117,9 @@
 		<reference package-path="com.liferay.portal" entity="SystemEvent" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetTag" />
-		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
+		<reference package-path="com.liferay.portlet.expando" entity="ExpandoRow" />
 		<reference package-path="com.liferay.portlet.trash" entity="TrashEntry" />
+		<reference package-path="com.liferay.portlet.trash" entity="TrashVersion" />
 	</entity>
 	<entity name="MBDiscussion" human-name="message boards discussion" uuid="true" local-service="true" remote-service="false">
 
@@ -206,7 +207,7 @@
 			<finder-column name="categoryId" />
 		</finder>
 	</entity>
-	<entity name="MBMessage" human-name="message-boards message" uuid="true" local-service="true" remote-service="true">
+	<entity name="MBMessage" human-name="message-boards message" uuid="true" local-service="true" remote-service="true" trash-enabled="true">
 
 		<!-- PK fields -->
 
@@ -338,12 +339,6 @@
 			<finder-column name="classPK" />
 			<finder-column name="status" />
 		</finder>
-		<finder name="G_U_C_S" return-type="Collection">
-			<finder-column name="groupId" />
-			<finder-column name="userId" />
-			<finder-column name="categoryId" arrayable-operator="OR" />
-			<finder-column name="status" />
-		</finder>
 		<finder name="G_C_T_A" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="categoryId" />
@@ -376,7 +371,7 @@
 		<reference package-path="com.liferay.portlet.asset" entity="AssetLink" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetTag" />
 		<reference package-path="com.liferay.portlet.blogs" entity="BlogsEntry" />
-		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
+		<reference package-path="com.liferay.portlet.expando" entity="ExpandoRow" />
 		<reference package-path="com.liferay.portlet.ratings" entity="RatingsStats" />
 		<reference package-path="com.liferay.portlet.social" entity="SocialActivity" />
 		<reference package-path="com.liferay.portlet.wiki" entity="WikiPage" />
@@ -428,7 +423,7 @@
 
 		<reference package-path="com.liferay.portal" entity="Group" />
 	</entity>
-	<entity name="MBThread" human-name="message boards thread" uuid="true" local-service="true" remote-service="true">
+	<entity name="MBThread" human-name="message boards thread" uuid="true" local-service="true" remote-service="true" trash-enabled="true">
 
 		<!-- PK fields -->
 
@@ -525,14 +520,15 @@
 
 		<!-- References -->
 
+		<reference package-path="com.liferay.portal" entity="Group" />
 		<reference package-path="com.liferay.portal" entity="Lock" />
 		<reference package-path="com.liferay.portal" entity="Subscription" />
 		<reference package-path="com.liferay.portal" entity="WorkflowInstanceLink" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
 		<reference package-path="com.liferay.portlet.ratings" entity="RatingsStats" />
 		<reference package-path="com.liferay.portlet.social" entity="SocialActivity" />
-		<reference package-path="com.liferay.portlet.social" entity="SocialActivityCounter" />
 		<reference package-path="com.liferay.portlet.trash" entity="TrashEntry" />
+		<reference package-path="com.liferay.portlet.trash" entity="TrashVersion" />
 	</entity>
 	<entity name="MBThreadFlag" human-name="message boards thread flag" uuid="true" local-service="true" remote-service="false">
 

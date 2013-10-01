@@ -18,6 +18,7 @@ import com.liferay.portal.NoSuchRoleException;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Organization;
@@ -30,7 +31,6 @@ import com.liferay.portal.security.permission.ResourceActionsUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.service.RoleLocalServiceUtil;
-import com.liferay.portal.service.TeamLocalServiceUtil;
 import com.liferay.portal.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
 
@@ -134,21 +134,7 @@ public class LayoutCache {
 		return entityMap;
 	}
 
-	protected List<Role> getGroupRoles_1to4(long groupId)
-		throws SystemException {
-
-		List<Role> roles = groupRolesMap.get(groupId);
-
-		if (roles == null) {
-			roles = RoleLocalServiceUtil.getGroupRoles(groupId);
-
-			groupRolesMap.put(groupId, roles);
-		}
-
-		return roles;
-	}
-
-	protected List<Role> getGroupRoles_5(long groupId, String resourceName)
+	protected List<Role> getGroupRoles(long groupId, String resourceName)
 		throws PortalException, SystemException {
 
 		List<Role> roles = groupRolesMap.get(groupId);
@@ -159,14 +145,16 @@ public class LayoutCache {
 
 		Group group = GroupLocalServiceUtil.getGroup(groupId);
 
-		roles = ResourceActionsUtil.getRoles(
-			group.getCompanyId(), group, resourceName, null);
+		roles = ListUtil.copy(
+			ResourceActionsUtil.getRoles(
+				group.getCompanyId(), group, resourceName, null));
 
-		List<Team> teams = TeamLocalServiceUtil.getGroupTeams(groupId);
+		Map<Team, Role> teamRoleMap = RoleLocalServiceUtil.getTeamRoleMap(
+			groupId);
 
-		for (Team team : teams) {
-			Role teamRole = RoleLocalServiceUtil.getTeamRole(
-				group.getCompanyId(), team.getTeamId());
+		for (Map.Entry<Team, Role> entry : teamRoleMap.entrySet()) {
+			Team team = entry.getKey();
+			Role teamRole = entry.getValue();
 
 			teamRole.setName(
 				PermissionExporter.ROLE_TEAM_PREFIX + team.getName());

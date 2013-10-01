@@ -181,24 +181,28 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 		long layoutRevisionId = ParamUtil.getLong(
 			serviceContext, "layoutRevisionId");
 
-		if (layoutRevisionId <= 0) {
-			layoutRevisionId = StagingUtil.getRecentLayoutRevisionId(
-				user, layoutSetBranchId, layout.getPlid());
-		}
-
 		if (layoutRevisionId > 0) {
 			layoutRevision =
 				LayoutRevisionLocalServiceUtil.fetchLayoutRevision(
 					layoutRevisionId);
-
-			if (layoutRevision.getStatus() !=
-					WorkflowConstants.STATUS_INACTIVE) {
-
-				return layoutRevision;
-			}
-
-			layoutRevision = null;
 		}
+
+		if ((layoutRevisionId <= 0) ||
+			!_isBelongsToLayout(layoutRevision, layout)) {
+
+			layoutRevisionId = StagingUtil.getRecentLayoutRevisionId(
+				user, layoutSetBranchId, layout.getPlid());
+
+			layoutRevision =
+				LayoutRevisionLocalServiceUtil.fetchLayoutRevision(
+					layoutRevisionId);
+		}
+
+		if ((layoutRevision != null) && !layoutRevision.isInactive()) {
+			return layoutRevision;
+		}
+
+		layoutRevision = null;
 
 		List<LayoutRevision> layoutRevisions =
 			LayoutRevisionLocalServiceUtil.getLayoutRevisions(
@@ -235,7 +239,7 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 				WorkflowConstants.ACTION_SAVE_DRAFT);
 		}
 
-		return LayoutRevisionLocalServiceUtil.addLayoutRevision(
+		layoutRevision = LayoutRevisionLocalServiceUtil.addLayoutRevision(
 			serviceContext.getUserId(), layoutSetBranchId,
 			layoutBranch.getLayoutBranchId(),
 			LayoutRevisionConstants.DEFAULT_PARENT_LAYOUT_REVISION_ID, false,
@@ -246,6 +250,18 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 			layout.getIconImageId(), layout.getThemeId(),
 			layout.getColorSchemeId(), layout.getWapThemeId(),
 			layout.getWapColorSchemeId(), layout.getCss(), serviceContext);
+
+		boolean explicitCreation = ParamUtil.getBoolean(
+			serviceContext, "explicitCreation");
+
+		if (!explicitCreation) {
+			LayoutRevisionLocalServiceUtil.updateStatus(
+				serviceContext.getUserId(),
+				layoutRevision.getLayoutRevisionId(),
+				WorkflowConstants.STATUS_INCOMPLETE, serviceContext);
+		}
+
+		return layoutRevision;
 	}
 
 	private LayoutType _getLayoutType() {
@@ -254,6 +270,20 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 				PortalClassLoaderUtil.getClassLoader(),
 				new Class[] {Layout.class},
 				new LayoutStagingHandler(_layout, _layoutRevision)));
+	}
+
+	private boolean _isBelongsToLayout(
+		LayoutRevision layoutRevision, Layout layout) {
+
+		if (layoutRevision == null) {
+			return false;
+		}
+
+		if (layoutRevision.getPlid() == layout.getPlid()) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private Object _toEscapedModel() {
@@ -282,6 +312,7 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 		_layoutRevisionMethodNames.add("getRobots");
 		_layoutRevisionMethodNames.add("getTheme");
 		_layoutRevisionMethodNames.add("getThemeId");
+		_layoutRevisionMethodNames.add("getThemeSetting");
 		_layoutRevisionMethodNames.add("getTitle");
 		_layoutRevisionMethodNames.add("getTypeSettings");
 		_layoutRevisionMethodNames.add("getTypeSettingsProperties");
@@ -289,6 +320,7 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 		_layoutRevisionMethodNames.add("getWapColorSchemeId");
 		_layoutRevisionMethodNames.add("getWapTheme");
 		_layoutRevisionMethodNames.add("getWapThemeId");
+		_layoutRevisionMethodNames.add("isContentDisplayPage");
 		_layoutRevisionMethodNames.add("isEscapedModel");
 		_layoutRevisionMethodNames.add("isIconImage");
 		_layoutRevisionMethodNames.add("isInheritLookAndFeel");

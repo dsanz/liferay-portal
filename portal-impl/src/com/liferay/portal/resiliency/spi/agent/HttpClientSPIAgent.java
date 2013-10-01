@@ -28,10 +28,12 @@ import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.InetAddressUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.model.Portlet;
 import com.liferay.portal.util.PropsValues;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -137,8 +139,13 @@ public class HttpClientSPIAgent implements SPIAgent {
 				new ReadOnlyServletResponse(response));
 
 		request.setAttribute(WebKeys.SPI_AGENT_ORIGINAL_RESPONSE, response);
+
+		Portlet portlet = (Portlet)request.getAttribute(
+			WebKeys.SPI_AGENT_PORTLET);
+
 		request.setAttribute(
-			WebKeys.SPI_AGENT_RESPONSE, new SPIAgentResponse());
+			WebKeys.SPI_AGENT_RESPONSE,
+			new SPIAgentResponse(portlet.getContextName()));
 
 		return spiAgentHttpServletResponse;
 	}
@@ -199,7 +206,18 @@ public class HttpClientSPIAgent implements SPIAgent {
 			Exception exception)
 		throws IOException {
 
+		SPIAgentRequest spiAgentRequest = (SPIAgentRequest)request.getAttribute(
+			WebKeys.SPI_AGENT_REQUEST);
+
 		request.removeAttribute(WebKeys.SPI_AGENT_REQUEST);
+
+		File requestBodyFile = spiAgentRequest.requestBodyFile;
+
+		if (requestBodyFile != null) {
+			if (!requestBodyFile.delete()) {
+				requestBodyFile.deleteOnExit();
+			}
+		}
 
 		SPIAgentResponse spiAgentResponse =
 			(SPIAgentResponse)request.getAttribute(WebKeys.SPI_AGENT_RESPONSE);
@@ -277,12 +295,12 @@ public class HttpClientSPIAgent implements SPIAgent {
 
 			String headerName = headerKeyValuePair[0].trim();
 
-			headerName = headerName.toLowerCase();
+			headerName = StringUtil.toLowerCase(headerName);
 
 			if (headerName.equals("connection")) {
 				String headerValue = headerKeyValuePair[1].trim();
 
-				headerValue = headerValue.toLowerCase();
+				headerValue = StringUtil.toLowerCase(headerValue);
 
 				if (headerValue.equals("close")) {
 					forceCloseSocket = true;

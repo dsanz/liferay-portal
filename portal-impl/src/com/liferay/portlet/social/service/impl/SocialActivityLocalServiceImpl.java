@@ -351,14 +351,23 @@ public class SocialActivityLocalServiceImpl
 	/**
 	 * Removes stored activities for the asset.
 	 *
-	 * @param      assetEntry the asset from which to remove stored activities
-	 * @throws     PortalException if a portal exception occurred
-	 * @throws     SystemException if a system exception occurred
-	 * @deprecated As of 6.2.0, replaced by {@link #deleteActivities(long)}
+	 * @param  assetEntry the asset from which to remove stored activities
+	 * @throws PortalException if a portal exception occurred
+	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void deleteActivities(AssetEntry assetEntry)
 		throws PortalException, SystemException {
+
+		if (PropsValues.SOCIAL_ACTIVITY_SETS_ENABLED) {
+			socialActivitySetLocalService.decrementActivityCount(
+				assetEntry.getClassNameId(), assetEntry.getClassPK());
+		}
+
+		socialActivityPersistence.removeByC_C(
+			assetEntry.getClassNameId(), assetEntry.getClassPK());
+
+		socialActivityCounterLocalService.deleteActivityCounters(assetEntry);
 	}
 
 	@Override
@@ -380,41 +389,69 @@ public class SocialActivityLocalServiceImpl
 	 * Removes stored activities for the asset identified by the class name and
 	 * class primary key.
 	 *
-	 * @param      className the target asset's class name
-	 * @param      classPK the primary key of the target asset
-	 * @throws     SystemException if a system exception occurred
-	 * @deprecated As of 6.2.0, replaced by {@link #deleteActivities(long)}
+	 * @param  className the target asset's class name
+	 * @param  classPK the primary key of the target asset
+	 * @throws PortalException if the user's activity counters could not be
+	 *         deleted
+	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("unused")
 	public void deleteActivities(String className, long classPK)
 		throws PortalException, SystemException {
+
+		long classNameId = PortalUtil.getClassNameId(className);
+
+		if (PropsValues.SOCIAL_ACTIVITY_SETS_ENABLED) {
+			socialActivitySetLocalService.decrementActivityCount(
+				classNameId, classPK);
+		}
+
+		socialActivityPersistence.removeByC_C(classNameId, classPK);
 	}
 
 	/**
 	 * Removes the stored activity from the database.
 	 *
-	 * @param      activityId the primary key of the stored activity
-	 * @throws     PortalException if the activity could not be found
-	 * @throws     SystemException if a system exception occurred
-	 * @deprecated As of 6.2.0, replaced by {@link #deleteActivities(long)}
+	 * @param  activityId the primary key of the stored activity
+	 * @throws PortalException if the activity could not be found
+	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void deleteActivity(long activityId)
 		throws PortalException, SystemException {
+
+		SocialActivity activity = socialActivityPersistence.findByPrimaryKey(
+			activityId);
+
+		deleteActivity(activity);
 	}
 
 	/**
 	 * Removes the stored activity and its mirror activity from the database.
 	 *
-	 * @param      activity the activity to be removed
-	 * @throws     SystemException if a system exception occurred
-	 * @deprecated As of 6.2.0, replaced by {@link #deleteActivities(long)}
+	 * @param  activity the activity to be removed
+	 * @throws PortalException if the user's activity counters could not be
+	 *         deleted or if a portal exception occurred
+	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("unused")
 	public void deleteActivity(SocialActivity activity)
 		throws PortalException, SystemException {
+
+		if (PropsValues.SOCIAL_ACTIVITY_SETS_ENABLED) {
+			socialActivitySetLocalService.decrementActivityCount(
+				activity.getActivitySetId());
+		}
+
+		socialActivityPersistence.remove(activity);
+
+		SocialActivity mirrorActivity =
+			socialActivityPersistence.fetchByMirrorActivityId(
+				activity.getActivityId());
+
+		if (mirrorActivity != null) {
+			socialActivityPersistence.remove(mirrorActivity);
+		}
 	}
 
 	/**

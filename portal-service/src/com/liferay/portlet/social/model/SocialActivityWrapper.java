@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.social.model;
 
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -630,6 +631,13 @@ public class SocialActivityWrapper implements SocialActivity,
 	}
 
 	@Override
+	public java.lang.String getExtraDataValue(java.lang.String key,
+		java.util.Locale locale)
+		throws com.liferay.portal.kernel.json.JSONException {
+		return _socialActivity.getExtraDataValue(key, locale);
+	}
+
+	@Override
 	public boolean isClassName(java.lang.String className) {
 		return _socialActivity.isClassName(className);
 	}
@@ -638,6 +646,32 @@ public class SocialActivityWrapper implements SocialActivity,
 	public void setAssetEntry(
 		com.liferay.portlet.asset.model.AssetEntry assetEntry) {
 		_socialActivity.setAssetEntry(assetEntry);
+	}
+
+	@Override
+	public void setExtraDataValue(java.lang.String key, java.lang.String value)
+		throws com.liferay.portal.kernel.json.JSONException {
+		_socialActivity.setExtraDataValue(key, value);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialActivityWrapper)) {
+			return false;
+		}
+
+		SocialActivityWrapper socialActivityWrapper = (SocialActivityWrapper)obj;
+
+		if (Validator.equals(_socialActivity,
+					socialActivityWrapper._socialActivity)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

@@ -10,6 +10,11 @@
 	<component name="A" bodyContent="true" writeJSP="false">
 		<attributes>
 			<attribute>
+				<name>ariaRole</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+			</attribute>
+			<attribute>
 				<name>cssClass</name>
 				<inputType>java.lang.String</inputType>
 				<outputType>java.lang.String</outputType>
@@ -111,6 +116,12 @@
 				<inputType>java.lang.String</inputType>
 				<outputType>java.lang.String</outputType>
 				<defaultValue>button</defaultValue>
+			</attribute>
+			<attribute>
+				<name>useDialog</name>
+				<inputType>boolean</inputType>
+				<outputType>boolean</outputType>
+				<defaultValue>false</defaultValue>
 			</attribute>
 			<attribute>
 				<name>value</name>
@@ -410,8 +421,52 @@
 			</attribute>
 		</attributes>
 	</component>
+	<component name="Icon">
+		<attributes>
+			<attribute>
+				<name>cssClass</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+			</attribute>
+			<attribute>
+				<name>data</name>
+				<inputType><![CDATA[java.util.Map<java.lang.String, java.lang.Object>]]></inputType>
+				<outputType><![CDATA[java.util.Map<java.lang.String, java.lang.Object>]]></outputType>
+			</attribute>
+			<attribute>
+				<name>id</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+			</attribute>
+			<attribute>
+				<name>image</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+			</attribute>
+			<attribute>
+				<name>label</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+			</attribute>
+			<attribute>
+				<name>target</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+			</attribute>
+			<attribute>
+				<name>url</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+			</attribute>
+		</attributes>
+	</component>
 	<component name="Input">
 		<attributes>
+			<attribute>
+				<name>autoFocus</name>
+				<inputType>boolean</inputType>
+				<outputType>boolean</outputType>
+			</attribute>
 			<attribute>
 				<name>autoSize</name>
 				<inputType>boolean</inputType>
@@ -488,6 +543,12 @@
 				<outputType>java.lang.String</outputType>
 			</attribute>
 			<attribute>
+				<name>helpTextCssClass</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+				<defaultValue>add-on</defaultValue>
+			</attribute>
+			<attribute>
 				<name>id</name>
 				<inputType>java.lang.String</inputType>
 				<outputType>java.lang.String</outputType>
@@ -523,9 +584,21 @@
 				<outputType>boolean</outputType>
 			</attribute>
 			<attribute>
+				<name>max</name>
+				<inputType>java.lang.Object</inputType>
+				<outputType>java.lang.Number</outputType>
+				<defaultValue>null</defaultValue>
+			</attribute>
+			<attribute>
 				<name>model</name>
 				<inputType><![CDATA[java.lang.Class<?>]]></inputType>
 				<outputType><![CDATA[java.lang.Class<?>]]></outputType>
+			</attribute>
+			<attribute>
+				<name>min</name>
+				<inputType>java.lang.Object</inputType>
+				<outputType>java.lang.Number</outputType>
+				<defaultValue>null</defaultValue>
 			</attribute>
 			<attribute>
 				<name>multiple</name>
@@ -600,6 +673,12 @@
 				<inputType>java.lang.Object</inputType>
 				<outputType>java.lang.Object</outputType>
 			</attribute>
+			<attribute>
+				<name>wrapperCssClass</name>
+				<required>false</required>
+				<rtexprvalue>true</rtexprvalue>
+				<type>java.lang.String</type>
+			</attribute>
 		</attributes>
 	</component>
 	<component name="Layout" bodyContent="true">
@@ -633,7 +712,28 @@
 	<component name="Nav" bodyContent="true">
 		<attributes>
 			<attribute>
+				<name>ariaLabel</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+			</attribute>
+			<attribute>
+				<name>ariaRole</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+			</attribute>
+			<attribute>
+				<name>collapsible</name>
+				<inputType>boolean</inputType>
+				<outputType>boolean</outputType>
+				<defaultValue>true</defaultValue>
+			</attribute>
+			<attribute>
 				<name>cssClass</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+			</attribute>
+			<attribute>
+				<name>icon</name>
 				<inputType>java.lang.String</inputType>
 				<outputType>java.lang.String</outputType>
 			</attribute>
@@ -642,9 +742,15 @@
 				<inputType>java.lang.String</inputType>
 				<outputType>java.lang.String</outputType>
 			</attribute>
+			<attribute>
+				<name>useNamespace</name>
+				<inputType>boolean</inputType>
+				<outputType>boolean</outputType>
+				<defaultValue>true</defaultValue>
+			</attribute>
 		</attributes>
 	</component>
-	<component name="NavBar" bodyContent="true">
+	<component name="NavBar" bodyContent="false">
 		<attributes>
 			<attribute>
 				<name>cssClass</name>
@@ -700,6 +806,16 @@
 				<outputType>java.lang.String</outputType>
 			</attribute>
 			<attribute>
+				<name>ariaLabel</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+			</attribute>
+			<attribute>
+				<name>ariaRole</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+			</attribute>
+			<attribute>
 				<name>cssClass</name>
 				<inputType>java.lang.String</inputType>
 				<outputType>java.lang.String</outputType>
@@ -744,6 +860,12 @@
 				<name>title</name>
 				<inputType>java.lang.String</inputType>
 				<outputType>java.lang.String</outputType>
+			</attribute>
+			<attribute>
+				<name>useDialog</name>
+				<inputType>boolean</inputType>
+				<outputType>boolean</outputType>
+				<defaultValue>false</defaultValue>
 			</attribute>
 			<attribute>
 				<name>wrapDropDownMenu</name>
@@ -962,9 +1084,20 @@
 				<outputType>java.lang.String</outputType>
 			</attribute>
 			<attribute>
+				<name>required</name>
+				<inputType>boolean</inputType>
+				<outputType>boolean</outputType>
+			</attribute>
+			<attribute>
 				<name>showEmptyOption</name>
 				<inputType>boolean</inputType>
 				<outputType>boolean</outputType>
+			</attribute>
+			<attribute>
+				<name>showRequiredLabel</name>
+				<inputType>boolean</inputType>
+				<outputType>boolean</outputType>
+				<defaultValue>true</defaultValue>
 			</attribute>
 			<attribute>
 				<name>suffix</name>
@@ -1056,6 +1189,20 @@
 				<name>model</name>
 				<inputType><![CDATA[java.lang.Class<?>]]></inputType>
 				<outputType><![CDATA[java.lang.Class<?>]]></outputType>
+			</attribute>
+			<attribute>
+				<name>showIcon</name>
+				<required>false</required>
+				<rtexprvalue>true</rtexprvalue>
+				<type>boolean</type>
+				<defaultValue>true</defaultValue>
+			</attribute>
+			<attribute>
+				<name>showLabel</name>
+				<required>false</required>
+				<rtexprvalue>true</rtexprvalue>
+				<type>boolean</type>
+				<defaultValue>true</defaultValue>
 			</attribute>
 			<attribute>
 				<name>status</name>

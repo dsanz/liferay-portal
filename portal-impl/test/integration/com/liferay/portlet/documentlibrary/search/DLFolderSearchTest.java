@@ -29,7 +29,8 @@ import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
 
-import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -44,44 +45,64 @@ import org.junit.runner.RunWith;
 @Sync
 public class DLFolderSearchTest extends BaseSearchTestCase {
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchAttachments() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchByDDMStructureField() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchComments() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchExpireAllVersions() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchExpireLatestVersion() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
+	public void testSearchMyEntries() throws Exception {
+	}
+
+	@Ignore()
+	@Override
+	@Test
+	public void testSearchRecentEntries() throws Exception {
+	}
+
+	@Ignore()
+	@Override
+	@Test
 	public void testSearchStatus() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchVersions() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchWithinDDMStructure() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
 	@Override
@@ -92,8 +113,14 @@ public class DLFolderSearchTest extends BaseSearchTestCase {
 
 		DLFolder parentDLFolder = (DLFolder)parentBaseModel;
 
+		long folderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
+
+		if (parentDLFolder != null) {
+			folderId = parentDLFolder.getFolderId();
+		}
+
 		Folder folder = DLAppTestUtil.addFolder(
-			parentDLFolder.getFolderId(), keywords, serviceContext);
+			folderId, keywords, serviceContext);
 
 		return (DLFolder)folder.getModel();
 	}
@@ -101,6 +128,19 @@ public class DLFolderSearchTest extends BaseSearchTestCase {
 	@Override
 	protected Class<?> getBaseModelClass() {
 		return DLFolder.class;
+	}
+
+	@Override
+	protected BaseModel<?> getParentBaseModel(
+			BaseModel<?> parentBaseModel, ServiceContext serviceContext)
+		throws Exception {
+
+		Folder folder = DLAppTestUtil.addFolder(
+			(Long)parentBaseModel.getPrimaryKeyObj(),
+			ServiceTestUtil.randomString(_FOLDER_NAME_MAX_LENGTH),
+			serviceContext);
+
+		return (DLFolder)folder.getModel();
 	}
 
 	@Override

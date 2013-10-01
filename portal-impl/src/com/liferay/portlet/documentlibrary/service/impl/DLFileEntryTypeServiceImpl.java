@@ -64,11 +64,11 @@ public class DLFileEntryTypeServiceImpl extends DLFileEntryTypeServiceBaseImpl {
 
 		Map<Locale, String> nameMap = new HashMap<Locale, String>();
 
-		nameMap.put(LocaleUtil.getDefault(), name);
+		nameMap.put(LocaleUtil.getSiteDefault(), name);
 
 		Map<Locale, String> descriptionMap = new HashMap<Locale, String>();
 
-		descriptionMap.put(LocaleUtil.getDefault(), description);
+		descriptionMap.put(LocaleUtil.getSiteDefault(), description);
 
 		return addFileEntryType(
 			groupId, null, nameMap, descriptionMap, ddmStructureIds,
@@ -100,6 +100,15 @@ public class DLFileEntryTypeServiceImpl extends DLFileEntryTypeServiceBaseImpl {
 		throws SystemException {
 
 		return dlFileEntryTypePersistence.filterFindByGroupId(groupIds);
+	}
+
+	@Override
+	public List<DLFileEntryType> getFileEntryTypes(
+			long[] groupIds, int start, int end)
+		throws SystemException {
+
+		return dlFileEntryTypePersistence.filterFindByGroupId(
+			groupIds, start, end);
 	}
 
 	@Override
@@ -162,11 +171,11 @@ public class DLFileEntryTypeServiceImpl extends DLFileEntryTypeServiceBaseImpl {
 
 		Map<Locale, String> nameMap = new HashMap<Locale, String>();
 
-		nameMap.put(LocaleUtil.getDefault(), name);
+		nameMap.put(LocaleUtil.getSiteDefault(), name);
 
 		Map<Locale, String> descriptionMap = new HashMap<Locale, String>();
 
-		descriptionMap.put(LocaleUtil.getDefault(), description);
+		descriptionMap.put(LocaleUtil.getSiteDefault(), description);
 
 		updateFileEntryType(
 			fileEntryTypeId, nameMap, descriptionMap, ddmStructureIds,

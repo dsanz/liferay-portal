@@ -19,7 +19,7 @@ import com.liferay.portal.kernel.lar.PortletDataHandler;
 import com.liferay.portal.kernel.lar.StagedModelDataHandler;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.notifications.UserNotificationInterpreter;
+import com.liferay.portal.kernel.notifications.UserNotificationHandler;
 import com.liferay.portal.kernel.plugin.PluginPackage;
 import com.liferay.portal.kernel.poller.PollerProcessor;
 import com.liferay.portal.kernel.pop.MessageListener;
@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.servlet.URLEncoder;
 import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ContextPathUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -112,7 +113,7 @@ public class PortletImpl extends PortletBaseImpl {
 		_schedulerEntries = new ArrayList<SchedulerEntry>();
 		_stagedModelDataHandlerClasses = new ArrayList<String>();
 		_socialActivityInterpreterClasses = new ArrayList<String>();
-		_userNotificationInterpreterClasses = new ArrayList<String>();
+		_userNotificationHandlerClasses = new ArrayList<String>();
 		_assetRendererFactoryClasses = new ArrayList<String>();
 		_atomCollectionAdapterClasses = new ArrayList<String>();
 		_customAttributesDisplayClasses = new ArrayList<String>();
@@ -158,11 +159,11 @@ public class PortletImpl extends PortletBaseImpl {
 		String popMessageListenerClass,
 		List<String> socialActivityInterpreterClasses,
 		String socialRequestInterpreterClass,
-		List<String> userNotificationInterpreterClasses,
-		String webDAVStorageToken, String webDAVStorageClass,
-		String xmlRpcMethodClass, String controlPanelEntryCategory,
-		double controlPanelEntryWeight, String controlPanelClass,
-		List<String> assetRendererFactoryClasses,
+		String userNotificationDefinitions,
+		List<String> userNotificationHandlerClasses, String webDAVStorageToken,
+		String webDAVStorageClass, String xmlRpcMethodClass,
+		String controlPanelEntryCategory, double controlPanelEntryWeight,
+		String controlPanelClass, List<String> assetRendererFactoryClasses,
 		List<String> atomCollectionAdapterClasses,
 		List<String> customAttributesDisplayClasses, String ddmDisplayClass,
 		String permissionPropagatorClass, List<String> trashHandlerClasses,
@@ -175,7 +176,8 @@ public class PortletImpl extends PortletBaseImpl {
 		boolean popUpPrint, boolean layoutCacheable, boolean instanceable,
 		boolean remoteable, boolean scopeable, String userPrincipalStrategy,
 		boolean privateRequestAttributes, boolean privateSessionAttributes,
-		Set<String> autopropagatedParameters, int actionTimeout,
+		Set<String> autopropagatedParameters,
+		boolean requiresNamespacedParameters, int actionTimeout,
 		int renderTimeout, int renderWeight, boolean ajaxable,
 		List<String> headerPortalCss, List<String> headerPortletCss,
 		List<String> headerPortalJavaScript,
@@ -224,8 +226,8 @@ public class PortletImpl extends PortletBaseImpl {
 		_popMessageListenerClass = popMessageListenerClass;
 		_socialActivityInterpreterClasses = socialActivityInterpreterClasses;
 		_socialRequestInterpreterClass = socialRequestInterpreterClass;
-		_userNotificationInterpreterClasses =
-			userNotificationInterpreterClasses;
+		_userNotificationHandlerClasses = userNotificationHandlerClasses;
+		_userNotificationDefinitions = userNotificationDefinitions;
 		_webDAVStorageToken = webDAVStorageToken;
 		_webDAVStorageClass = webDAVStorageClass;
 		_xmlRpcMethodClass = xmlRpcMethodClass;
@@ -260,6 +262,7 @@ public class PortletImpl extends PortletBaseImpl {
 		_privateRequestAttributes = privateRequestAttributes;
 		_privateSessionAttributes = privateSessionAttributes;
 		_autopropagatedParameters = autopropagatedParameters;
+		_requiresNamespacedParameters = requiresNamespacedParameters;
 		_actionTimeout = actionTimeout;
 		_renderTimeout = renderTimeout;
 		_renderWeight = renderWeight;
@@ -371,7 +374,8 @@ public class PortletImpl extends PortletBaseImpl {
 			getPollerProcessorClass(), getPopMessageListenerClass(),
 			getSocialActivityInterpreterClasses(),
 			getSocialRequestInterpreterClass(),
-			getUserNotificationInterpreterClasses(), getWebDAVStorageToken(),
+			getUserNotificationDefinitions(),
+			getUserNotificationHandlerClasses(), getWebDAVStorageToken(),
 			getWebDAVStorageClass(), getXmlRpcMethodClass(),
 			getControlPanelEntryCategory(), getControlPanelEntryWeight(),
 			getControlPanelEntryClass(), getAssetRendererFactoryClasses(),
@@ -387,9 +391,9 @@ public class PortletImpl extends PortletBaseImpl {
 			isPopUpPrint(), isLayoutCacheable(), isInstanceable(),
 			isRemoteable(), isScopeable(), getUserPrincipalStrategy(),
 			isPrivateRequestAttributes(), isPrivateSessionAttributes(),
-			getAutopropagatedParameters(), getActionTimeout(),
-			getRenderTimeout(), getRenderWeight(), isAjaxable(),
-			getHeaderPortalCss(), getHeaderPortletCss(),
+			getAutopropagatedParameters(), isRequiresNamespacedParameters(),
+			getActionTimeout(), getRenderTimeout(), getRenderWeight(),
+			isAjaxable(), getHeaderPortalCss(), getHeaderPortletCss(),
 			getHeaderPortalJavaScript(), getHeaderPortletJavaScript(),
 			getFooterPortalCss(), getFooterPortletCss(),
 			getFooterPortalJavaScript(), getFooterPortletJavaScript(),
@@ -638,6 +642,20 @@ public class PortletImpl extends PortletBaseImpl {
 		PortletBag portletBag = PortletBagPool.get(getRootPortletId());
 
 		return portletBag.getConfigurationActionInstance();
+	}
+
+	/**
+	 * Returns the servlet context name of the portlet.
+	 *
+	 * @return the servlet context name of the portlet
+	 */
+	@Override
+	public String getContextName() {
+		if (!_portletApp.isWARFile()) {
+			return PortalUtil.getServletContextName();
+		}
+
+		return _portletApp.getServletContextName();
 	}
 
 	/**
@@ -1965,33 +1983,45 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
-	 * Returns the names of the classes that represent user notification
-	 * interpreters associated with the portlet.
+	 * Returns the class loader resource path to the use notification
+	 * definitions of the portlet.
 	 *
-	 * @return the names of the classes that represent user notification
-	 *         interpreters associated with the portlet
+	 * @return the class loader resource path to the use notification
+	 *         definitions of the portlet
 	 */
 	@Override
-	public List<String> getUserNotificationInterpreterClasses() {
-		return _userNotificationInterpreterClasses;
+	public String getUserNotificationDefinitions() {
+		return _userNotificationDefinitions;
 	}
 
 	/**
-	 * Returns the user notification interpreter instances of the portlet.
+	 * Returns the names of the classes that represent user notification
+	 * handlers associated with the portlet.
 	 *
-	 * @return the user notification interpreter instances of the portlet
+	 * @return the names of the classes that represent user notification
+	 *         handlers associated with the portlet
 	 */
 	@Override
-	public List<UserNotificationInterpreter>
-		getUserNotificationInterpreterInstances() {
+	public List<String> getUserNotificationHandlerClasses() {
+		return _userNotificationHandlerClasses;
+	}
 
-		if (_userNotificationInterpreterClasses.isEmpty()) {
+	/**
+	 * Returns the user notification handler instances of the portlet.
+	 *
+	 * @return the user notification handler instances of the portlet
+	 */
+	@Override
+	public List<UserNotificationHandler>
+		getUserNotificationHandlerInstances() {
+
+		if (_userNotificationHandlerClasses.isEmpty()) {
 			return null;
 		}
 
 		PortletBag portletBag = PortletBagPool.get(getRootPortletId());
 
-		return portletBag.getUserNotificationInterpreterInstances();
+		return portletBag.getUserNotificationHandlerInstances();
 	}
 
 	/**
@@ -2205,12 +2235,12 @@ public class PortletImpl extends PortletBaseImpl {
 	 */
 	@Override
 	public boolean hasRoleWithName(String roleName) {
-		if ((_rolesArray == null) || (_rolesArray.length == 0)) {
+		if (ArrayUtil.isEmpty(_rolesArray)) {
 			return false;
 		}
 
 		for (int i = 0; i < _rolesArray.length; i++) {
-			if (_rolesArray[i].equalsIgnoreCase(roleName)) {
+			if (StringUtil.equalsIgnoreCase(_rolesArray[i], roleName)) {
 				return true;
 			}
 		}
@@ -2437,6 +2467,18 @@ public class PortletImpl extends PortletBaseImpl {
 	@Override
 	public boolean isRemoteable() {
 		return _remoteable;
+	}
+
+	/**
+	 * Returns <code>true</code> if the portlet will only process namespaced
+	 * parameters.
+	 *
+	 * @return <code>true</code> if the portlet will only process namespaced
+	 *         parameters
+	 */
+	@Override
+	public boolean isRequiresNamespacedParameters() {
+		return _requiresNamespacedParameters;
 	}
 
 	/**
@@ -3378,6 +3420,20 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
+	 * Set to <code>true</code> if the portlet will only process namespaced
+	 * parameters.
+	 *
+	 * @param requiresNamespacedParameters boolean value for whether the portlet
+	 *        will only process namespaced parameters
+	 */
+	@Override
+	public void setRequiresNamespacedParameters(
+		boolean requiresNamespacedParameters) {
+
+		_requiresNamespacedParameters = requiresNamespacedParameters;
+	}
+
+	/**
 	 * Sets the resource bundle of the portlet.
 	 *
 	 * @param resourceBundle the resource bundle of the portlet
@@ -3658,19 +3714,31 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
-	 * Sets the names of the classes that represent user notification
-	 * interpreters associated with the portlet.
+	 * Sets the class loader resource path to the user notification definitions
+	 * of the portlet.
 	 *
-	 * @param userNotificationInterpreterClasses the names of the classes that
-	 *        represent user notification interpreters associated with the
-	 *        portlet
+	 * @param userNotificationDefinitions the class loader resource path to the
+	 *        user notification definitions of the portlet
 	 */
 	@Override
-	public void setUserNotificationInterpreterClasses(
-		List<String> userNotificationInterpreterClasses) {
+	public void setUserNotificationDefinitions(
+		String userNotificationDefinitions) {
 
-		_userNotificationInterpreterClasses =
-			userNotificationInterpreterClasses;
+		_userNotificationDefinitions = userNotificationDefinitions;
+	}
+
+	/**
+	 * Sets the names of the classes that represent user notification handlers
+	 * associated with the portlet.
+	 *
+	 * @param userNotificationHandlerClasses the names of the classes that
+	 *        represent user notification handlers associated with the portlet
+	 */
+	@Override
+	public void setUserNotificationHandlerClasses(
+		List<String> userNotificationHandlerClasses) {
+
+		_userNotificationHandlerClasses = userNotificationHandlerClasses;
 	}
 
 	/**
@@ -4148,6 +4216,11 @@ public class PortletImpl extends PortletBaseImpl {
 	private int _renderWeight = 1;
 
 	/**
+	 * <code>True</code> if the portlet will only process namespaced parameters.
+	 */
+	private boolean _requiresNamespacedParameters = true;
+
+	/**
 	 * The resource bundle of the portlet.
 	 */
 	private String _resourceBundle;
@@ -4260,7 +4333,7 @@ public class PortletImpl extends PortletBaseImpl {
 	/**
 	 * <code>True</code> if the portlet is an undeployed portlet.
 	 */
-	private boolean _undeployedPortlet = false;
+	private boolean _undeployedPortlet;
 
 	/**
 	 * The unlinked roles of the portlet.
@@ -4278,10 +4351,16 @@ public class PortletImpl extends PortletBaseImpl {
 	private boolean _useDefaultTemplate = true;
 
 	/**
-	 * The names of the classes that represents user notification interpreters
+	 * The the class loader resource path to the user notification definitions
+	 * of the portlet.
+	 */
+	private String _userNotificationDefinitions;
+
+	/**
+	 * The names of the classes that represents user notification handlers
 	 * associated with the portlet.
 	 */
-	private List<String> _userNotificationInterpreterClasses;
+	private List<String> _userNotificationHandlerClasses;
 
 	/**
 	 * The user principal strategy of the portlet.

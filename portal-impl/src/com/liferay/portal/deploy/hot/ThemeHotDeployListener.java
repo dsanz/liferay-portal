@@ -49,7 +49,10 @@ public class ThemeHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error registering themes for ", t);
+				hotDeployEvent,
+				"Error registering themes for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -62,7 +65,10 @@ public class ThemeHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error unregistering themes for ", t);
+				hotDeployEvent,
+				"Error unregistering themes for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -166,7 +172,7 @@ public class ThemeHotDeployListener extends BaseHotDeployListener {
 			else {
 				_log.info(
 					themes.size() + " themes for " + servletContextName +
-						" was unregistered");
+						" were unregistered");
 			}
 		}
 	}

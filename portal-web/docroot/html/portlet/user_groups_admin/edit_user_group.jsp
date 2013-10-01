@@ -36,25 +36,6 @@ long userGroupId = BeanParamUtil.getLong(userGroup, request, "userGroupId");
 		title='<%= (userGroup == null) ? "new-user-group" : userGroup.getName() %>'
 	/>
 
-	<aui:nav-bar>
-		<aui:nav>
-			<portlet:renderURL var="viewUserGroupsURL">
-				<portlet:param name="struts_action" value="/user_groups_admin/view" />
-			</portlet:renderURL>
-
-			<aui:nav-item href="<%= viewUserGroupsURL %>" label="view-all" />
-
-			<c:if test="<%= PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_USER_GROUP) %>">
-				<portlet:renderURL var="addUsergroupURL">
-					<portlet:param name="struts_action" value="/user_groups_admin/edit_user_group" />
-					<portlet:param name="redirect" value="<%= viewUserGroupsURL %>" />
-				</portlet:renderURL>
-
-				<aui:nav-item href="<%= addUsergroupURL %>" iconClass="icon-plus" label="add" selected="<%= (userGroup == null) %>" />
-			</c:if>
-		</aui:nav>
-	</aui:nav-bar>
-
 	<liferay-ui:error exception="<%= DuplicateUserGroupException.class %>" message="please-enter-a-unique-name" />
 	<liferay-ui:error exception="<%= RequiredUserGroupException.class %>" message="this-is-a-required-user-group" />
 	<liferay-ui:error exception="<%= UserGroupNameException.class %>" message="please-enter-a-valid-name" />
@@ -62,13 +43,7 @@ long userGroupId = BeanParamUtil.getLong(userGroup, request, "userGroupId");
 	<aui:model-context bean="<%= userGroup %>" model="<%= UserGroup.class %>" />
 
 	<aui:fieldset>
-		<c:if test="<%= userGroup != null %>">
-			<aui:field-wrapper label="old-name">
-				<%= HtmlUtil.escape(userGroup.getName()) %>
-			</aui:field-wrapper>
-		</c:if>
-
-		<aui:input label='<%= (userGroup != null) ? "new-name" : "name" %>' name="name" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" label='<%= (userGroup != null) ? "new-name" : "name" %>' name="name" />
 
 		<aui:input name="description" />
 
@@ -299,12 +274,9 @@ long userGroupId = BeanParamUtil.getLong(userGroup, request, "userGroupId");
 
 	function <portlet:namespace />saveUserGroup() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (userGroup == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/users_admin/edit_user_group" /></portlet:actionURL>");
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
 
 	Liferay.Util.toggleSelectBox('<portlet:namespace />publicLayoutSetPrototypeId', <portlet:namespace />isVisible, '<portlet:namespace />publicLayoutSetPrototypeIdOptions');
 	Liferay.Util.toggleSelectBox('<portlet:namespace />privateLayoutSetPrototypeId', <portlet:namespace />isVisible, '<portlet:namespace />privateLayoutSetPrototypeIdOptions');

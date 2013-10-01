@@ -36,6 +36,7 @@ import com.liferay.portlet.messageboards.service.MBCategoryLocalServiceUtil;
 import com.liferay.portlet.messageboards.service.MBThreadLocalServiceUtil;
 import com.liferay.portlet.messageboards.service.permission.MBCategoryPermission;
 import com.liferay.portlet.messageboards.util.MBUtil;
+import com.liferay.portlet.trash.model.TrashEntry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -141,32 +142,28 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 	}
 
 	@Override
-	public String getRestoreLink(PortletRequest portletRequest, long classPK)
+	public String getRestoreContainedModelLink(
+			PortletRequest portletRequest, long classPK)
 		throws PortalException, SystemException {
-
-		String portletId = PortletKeys.MESSAGE_BOARDS;
 
 		MBCategory category = MBCategoryLocalServiceUtil.getCategory(classPK);
 
-		long plid = PortalUtil.getPlidFromPortletId(
-			category.getGroupId(), PortletKeys.MESSAGE_BOARDS);
+		PortletURL portletURL = getRestoreURL(portletRequest, classPK);
 
-		if (plid == LayoutConstants.DEFAULT_PLID) {
-			portletId = PortletKeys.MESSAGE_BOARDS_ADMIN;
+		portletURL.setParameter(
+			"mbCategoryId", String.valueOf(category.getCategoryId()));
 
-			plid = PortalUtil.getControlPanelPlid(portletRequest);
-		}
+		return portletURL.toString();
+	}
 
-		PortletURL portletURL = PortletURLFactoryUtil.create(
-			portletRequest, portletId, plid, PortletRequest.RENDER_PHASE);
+	@Override
+	public String getRestoreContainerModelLink(
+			PortletRequest portletRequest, long classPK)
+		throws PortalException, SystemException {
 
-		if (portletId.equals(PortletKeys.MESSAGE_BOARDS)) {
-			portletURL.setParameter("struts_action", "/message_boards/view");
-		}
-		else {
-			portletURL.setParameter(
-				"struts_action", "/message_boards_admin/view");
-		}
+		MBCategory category = MBCategoryLocalServiceUtil.getCategory(classPK);
+
+		PortletURL portletURL = getRestoreURL(portletRequest, classPK);
 
 		portletURL.setParameter(
 			"mbCategoryId", String.valueOf(category.getParentCategoryId()));
@@ -201,7 +198,7 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 		MBCategory category = MBCategoryLocalServiceUtil.getCategory(classPK);
 
 		return MBThreadLocalServiceUtil.getThreadsCount(
-			category.getGroupId(), classPK, WorkflowConstants.STATUS_APPROVED);
+			category.getGroupId(), classPK, WorkflowConstants.STATUS_IN_TRASH);
 	}
 
 	@Override
@@ -214,7 +211,7 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 		MBCategory category = MBCategoryLocalServiceUtil.getCategory(classPK);
 
 		List<MBThread> threads = MBThreadLocalServiceUtil.getThreads(
-			category.getGroupId(), classPK, WorkflowConstants.STATUS_APPROVED,
+			category.getGroupId(), classPK, WorkflowConstants.STATUS_IN_TRASH,
 			start, end);
 
 		for (MBThread thread : threads) {
@@ -232,15 +229,6 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 	}
 
 	@Override
-	public ContainerModel getTrashContainer(long classPK)
-		throws PortalException, SystemException {
-
-		MBCategory category = MBCategoryLocalServiceUtil.getCategory(classPK);
-
-		return category.getTrashContainer();
-	}
-
-	@Override
 	public String getTrashContainerModelName() {
 		return "categories";
 	}
@@ -252,7 +240,7 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 		MBCategory category = MBCategoryLocalServiceUtil.getCategory(classPK);
 
 		return MBCategoryLocalServiceUtil.getCategoriesCount(
-			category.getGroupId(), classPK, WorkflowConstants.STATUS_APPROVED);
+			category.getGroupId(), classPK, WorkflowConstants.STATUS_IN_TRASH);
 	}
 
 	@Override
@@ -265,7 +253,7 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 		MBCategory category = MBCategoryLocalServiceUtil.getCategory(classPK);
 
 		List<MBCategory> categories = MBCategoryLocalServiceUtil.getCategories(
-			category.getGroupId(), classPK, WorkflowConstants.STATUS_APPROVED,
+			category.getGroupId(), classPK, WorkflowConstants.STATUS_IN_TRASH,
 			start, end);
 
 		for (MBCategory curCategory : categories) {
@@ -280,6 +268,15 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 		}
 
 		return trashRenderers;
+	}
+
+	@Override
+	public TrashEntry getTrashEntry(long classPK)
+		throws PortalException, SystemException {
+
+		MBCategory category = MBCategoryLocalServiceUtil.getCategory(classPK);
+
+		return category.getTrashEntry();
 	}
 
 	@Override
@@ -299,7 +296,7 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 
 		if (trashActionId.equals(TrashActionKeys.MOVE)) {
 			return MBCategoryPermission.contains(
-				permissionChecker, groupId, classPK, ActionKeys.ADD_FOLDER);
+				permissionChecker, groupId, classPK, ActionKeys.ADD_CATEGORY);
 		}
 
 		return super.hasTrashPermission(
@@ -340,6 +337,13 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 
 		MBCategory category = MBCategoryLocalServiceUtil.getCategory(classPK);
 
+		if ((category.getParentCategoryId() > 0) &&
+			(MBCategoryLocalServiceUtil.fetchMBCategory(
+				category.getParentCategoryId()) == null)) {
+
+			return false;
+		}
+
 		return !category.isInTrashContainer();
 	}
 
@@ -379,6 +383,37 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 		category.setName(name);
 
 		MBCategoryLocalServiceUtil.updateMBCategory(category);
+	}
+
+	protected PortletURL getRestoreURL(
+			PortletRequest portletRequest, long classPK)
+		throws PortalException, SystemException {
+
+		String portletId = PortletKeys.MESSAGE_BOARDS;
+
+		MBCategory category = MBCategoryLocalServiceUtil.getCategory(classPK);
+
+		long plid = PortalUtil.getPlidFromPortletId(
+			category.getGroupId(), PortletKeys.MESSAGE_BOARDS);
+
+		if (plid == LayoutConstants.DEFAULT_PLID) {
+			portletId = PortletKeys.MESSAGE_BOARDS_ADMIN;
+
+			plid = PortalUtil.getControlPanelPlid(portletRequest);
+		}
+
+		PortletURL portletURL = PortletURLFactoryUtil.create(
+			portletRequest, portletId, plid, PortletRequest.RENDER_PHASE);
+
+		if (portletId.equals(PortletKeys.MESSAGE_BOARDS)) {
+			portletURL.setParameter("struts_action", "/message_boards/view");
+		}
+		else {
+			portletURL.setParameter(
+				"struts_action", "/message_boards_admin/view");
+		}
+
+		return portletURL;
 	}
 
 	@Override

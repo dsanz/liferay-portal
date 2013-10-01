@@ -71,7 +71,7 @@ portletURL.setParameter("tabs1", tabs1);
 
 		<c:if test="<%= showToolbar %>">
 			<liferay-util:include page="/html/portlet/dynamic_data_mapping/toolbar.jsp">
-				<liferay-util:param name="toolbarItem" value="view-all" />
+				<liferay-util:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 			</liferay-util:include>
 		</c:if>
 
@@ -138,19 +138,13 @@ portletURL.setParameter("tabs1", tabs1);
 				</liferay-ui:search-container-column-text>
 			</c:if>
 
-			<liferay-ui:search-container-column-text
-				buffer="buffer"
+			<liferay-ui:search-container-column-date
 				href="<%= rowHREF %>"
 				name="modified-date"
 				orderable="<%= true %>"
 				orderableProperty="modified-date"
-			>
-
-				<%
-				buffer.append(dateFormatDateTime.format(structure.getModifiedDate()));
-				%>
-
-			</liferay-ui:search-container-column-text>
+				value="<%= structure.getModifiedDate() %>"
+			/>
 
 			<liferay-ui:search-container-column-jsp
 				align="right"
@@ -160,7 +154,7 @@ portletURL.setParameter("tabs1", tabs1);
 
 		<c:if test="<%= total > 0 %>">
 			<aui:button-row>
-				<aui:button cssClass="delete-structures-button" onClick='<%= renderResponse.getNamespace() + "deleteStructures();" %>' value="delete" />
+				<aui:button cssClass="delete-structures-button" disabled="<%= true %>" name="delete" onClick='<%= renderResponse.getNamespace() + "deleteStructures();" %>' value="delete" />
 			</aui:button-row>
 
 			<div class="separator"><!-- --></div>
@@ -171,15 +165,14 @@ portletURL.setParameter("tabs1", tabs1);
 </aui:form>
 
 <aui:script>
+	Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />delete', '#<portlet:namespace /><%= searchContainerReference.getId() %>SearchContainer', document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 	function <portlet:namespace />copyStructure(uri) {
 		Liferay.Util.openWindow(
 			{
-				dialog: {
-					zIndex: Liferay.zIndex.WINDOW + 2
-				},
 				id: '<portlet:namespace />copyStructure',
 				refreshWindow: window,
-				title: '<%= UnicodeLanguageUtil.get(pageContext, "copy-data-definition") %>',
+				title: '<%= UnicodeLanguageUtil.format(pageContext, "copy-x", ddmDisplay.getStructureName(locale)) %>',
 				uri: uri
 			}
 		);
@@ -192,46 +185,7 @@ portletURL.setParameter("tabs1", tabs1);
 			if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-delete-this") %>')) {
 				document.<portlet:namespace />fm.method = "post";
 				document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
-				document.<portlet:namespace />fm.<portlet:namespace />deleteStructureIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-
-				submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/dynamic_data_mapping/edit_structure" /></portlet:actionURL>");
-			}
-		},
-		['liferay-util-list-fields']
-	);
-</aui:script>
-
-<aui:script use="aui-base">
-	var buttons = A.all('.delete-structures-button');
-
-	if (buttons.size()) {
-		var toggleDisabled = A.bind('toggleDisabled', Liferay.Util, ':button');
-
-		var resultsGrid = A.one('.searchcontainer-content');
-
-		if (resultsGrid) {
-			resultsGrid.delegate(
-					'click',
-					function(event) {
-						var disabled = (resultsGrid.one(':checked') == null);
-
-						toggleDisabled(disabled);
-					},
-					':checkbox'
-			);
-		}
-
-		toggleDisabled(true);
-	}
-
-	Liferay.provide(
-		window,
-		'<portlet:namespace />deleteStructures',
-		function() {
-			if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-delete-this") %>')) {
-				document.<portlet:namespace />fm.method = "post";
-				document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
-				document.<portlet:namespace />fm.<portlet:namespace />deleteStructureIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
+				document.<portlet:namespace />fm.<portlet:namespace />deleteStructureIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
 
 				submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/dynamic_data_mapping/edit_structure" /></portlet:actionURL>");
 			}

@@ -16,10 +16,12 @@ package com.liferay.portlet.wiki.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.kernel.workflow.permission.WorkflowPermissionUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.wiki.NoSuchPageException;
 import com.liferay.portlet.wiki.NoSuchPageResourceException;
@@ -124,80 +126,72 @@ public class WikiPagePermission {
 	public static boolean contains(
 		PermissionChecker permissionChecker, WikiPage page, String actionId) {
 
+		Boolean hasPermission = StagingPermissionUtil.hasPermission(
+			permissionChecker, page.getGroupId(), WikiPage.class.getName(),
+			page.getPageId(), PortletKeys.WIKI, actionId);
+
+		if (hasPermission != null) {
+			return hasPermission.booleanValue();
+		}
+
 		if (actionId.equals(ActionKeys.VIEW)) {
 			WikiPage redirectPage = page.getRedirectPage();
 
 			if (redirectPage != null) {
 				page = redirectPage;
 			}
-		}
 
-		WikiNode node = page.getNode();
+			if (PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
+				WikiNode node = page.getNode();
 
-		if (PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
-			WikiPage originalPage = page;
-
-			if (!WikiNodePermission.contains(
-					permissionChecker, node, ActionKeys.VIEW)) {
-
-				return false;
-			}
-
-			while (page != null) {
-				if (!permissionChecker.hasOwnerPermission(
-						page.getCompanyId(), WikiPage.class.getName(),
-						page.getResourcePrimKey(), page.getUserId(),
-						ActionKeys.VIEW) &&
-					!permissionChecker.hasPermission(
-						page.getGroupId(), WikiPage.class.getName(),
-						page.getResourcePrimKey(), ActionKeys.VIEW)) {
+				if (!WikiNodePermission.contains(
+						permissionChecker, node, actionId)) {
 
 					return false;
 				}
 
-				page = page.getParentPage();
-			}
+				while (page != null) {
+					if (!_hasPermission(permissionChecker, page, actionId)) {
+						return false;
+					}
 
-			if (actionId.equals(ActionKeys.VIEW)) {
+					page = page.getParentPage();
+				}
+
 				return true;
 			}
-
-			page = originalPage;
 		}
 
-		if (WikiNodePermission.contains(permissionChecker, node, actionId)) {
+		if (page.isPending()) {
+			hasPermission = WorkflowPermissionUtil.hasPermission(
+				permissionChecker, page.getGroupId(), WikiPage.class.getName(),
+				page.getResourcePrimKey(), actionId);
+
+			if ((hasPermission != null) && hasPermission.booleanValue()) {
+				return true;
+			}
+		}
+
+		if (page.isDraft() && actionId.equals(ActionKeys.DELETE) &&
+			(page.getStatusByUserId() == permissionChecker.getUserId())) {
+
 			return true;
 		}
 
-		while (page != null) {
-			if (page.isPending()) {
-				Boolean hasPermission = WorkflowPermissionUtil.hasPermission(
-					permissionChecker, page.getGroupId(),
-					WikiPage.class.getName(), page.getResourcePrimKey(),
-					actionId);
+		return _hasPermission(permissionChecker, page, actionId);
+	}
 
-				if ((hasPermission != null) && hasPermission.booleanValue()) {
-					return true;
-				}
-			}
+	private static boolean _hasPermission(
+		PermissionChecker permissionChecker, WikiPage page, String actionId) {
 
-			if (page.isDraft() && actionId.equals(ActionKeys.DELETE) &&
-				(page.getStatusByUserId() == permissionChecker.getUserId())) {
+		if (permissionChecker.hasOwnerPermission(
+				page.getCompanyId(), WikiPage.class.getName(),
+				page.getResourcePrimKey(), page.getUserId(), actionId) ||
+			permissionChecker.hasPermission(
+				page.getGroupId(), WikiPage.class.getName(),
+				page.getResourcePrimKey(), actionId)) {
 
-				return true;
-			}
-
-			if (permissionChecker.hasOwnerPermission(
-					page.getCompanyId(), WikiPage.class.getName(),
-					page.getResourcePrimKey(), page.getUserId(), actionId) ||
-				permissionChecker.hasPermission(
-					page.getGroupId(), WikiPage.class.getName(),
-					page.getResourcePrimKey(), actionId)) {
-
-				return true;
-			}
-
-			page = page.getParentPage();
+			return true;
 		}
 
 		return false;

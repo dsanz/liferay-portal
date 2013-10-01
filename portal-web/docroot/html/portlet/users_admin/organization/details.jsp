@@ -35,8 +35,6 @@ String type = BeanParamUtil.getString(organization, request, "type", PropsValues
 long regionId = BeanParamUtil.getLong(organization, request, "regionId");
 long countryId = BeanParamUtil.getLong(organization, request, "countryId");
 
-boolean deleteLogo = ParamUtil.getBoolean(request, "deleteLogo");
-
 long groupId = 0;
 
 if (organization != null) {
@@ -66,7 +64,7 @@ User selUser = (User)request.getAttribute("user.selUser");
 	<liferay-ui:error exception="<%= DuplicateOrganizationException.class %>" message="the-organization-name-is-already-taken" />
 	<liferay-ui:error exception="<%= OrganizationNameException.class %>" message="please-enter-a-valid-name" />
 
-	<aui:input name="name" />
+	<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="name" />
 
 	<c:choose>
 		<c:when test="<%= PropsValues.FIELD_ENABLE_COM_LIFERAY_PORTAL_MODEL_ORGANIZATION_STATUS %>">
@@ -97,7 +95,7 @@ User selUser = (User)request.getAttribute("user.selUser");
 		</c:when>
 		<c:otherwise>
 			<aui:field-wrapper label="type">
-				<liferay-ui:message key="<%= organization.getType() %>" />
+				<liferay-ui:input-resource url="<%= LanguageUtil.get(pageContext, organization.getType()) %>" />
 			</aui:field-wrapper>
 
 			<aui:input name="type" type="hidden" value="<%= organization.getType() %>" />
@@ -114,7 +112,7 @@ User selUser = (User)request.getAttribute("user.selUser");
 
 	<c:if test="<%= organization != null %>">
 		<aui:field-wrapper label="site-id">
-			<%= groupId %>
+			<liferay-ui:input-resource url="<%= String.valueOf(groupId) %>" />
 		</aui:field-wrapper>
 	</c:if>
 </aui:fieldset>
@@ -237,9 +235,10 @@ if (parentOrganization != null) {
 
 <liferay-ui:icon
 	cssClass="modify-link"
+	iconClass="icon-search"
 	id="selectOrganizationLink"
-	image="add"
 	label="<%= true %>"
+	linkCssClass="btn"
 	message="select"
 	method="get"
 	url="javascript:;"
@@ -289,12 +288,10 @@ if (parentOrganization != null) {
 					{
 						dialog: {
 							constrain: true,
-							modal: true,
-							zIndex: Liferay.zIndex.WINDOW + 2,
-							width: 600
+							modal: true
 						},
 						id: '<portlet:namespace />selectOrganization',
-						title: '<%= UnicodeLanguageUtil.format(pageContext, "select-x", "organization") %>',
+						title: '<liferay-ui:message arguments="organization" key="select-x" />',
 						uri: '<portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="struts_action" value="/users_admin/select_organization" /><portlet:param name="p_u_i_d" value='<%= (selUser == null) ? "0" : String.valueOf(selUser.getUserId()) %>' /></portlet:renderURL>'
 					},
 					function(event) {

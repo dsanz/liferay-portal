@@ -32,6 +32,7 @@ AUI.add(
 		 * noticeClass {string}: A class to add to the notice toolbar.
 		 * timeout {Number}: The timeout in milliseconds, after it the notice will be automatically closed. Set it to -1, or do not add this property to disable this functionality.
 		 * toggleText {object}: The text to use for the "hide" and "show" button. Set to false to not have a hide button.
+		 * type {String}: One of 'warning' or 'notice'. If not set, default notice type will be 'notice'
 		 * useAnimation {boolean}: To animate show/hide of the notice, defaults to true. If useAnimation is set to true, but there is no timeout, 5000 will be used as timeout.
 		 *
 		 * Callbacks
@@ -46,11 +47,14 @@ AUI.add(
 			instance._closeText = options.closeText;
 			instance._node = options.node;
 			instance._noticeType = options.type || 'notice';
-			instance._noticeClass = 'alert-block popup-alert-notice';
+			instance._noticeClass = 'alert-block';
 			instance._onClose = options.onClose;
 			instance._useCloseButton = true;
 
-			if (options.useAnimation && !Lang.isNumber(options.timeout)) {
+			if (options.useAnimation) {
+				instance._noticeClass += ' popup-alert-notice';
+			}
+			else if (!Lang.isNumber(options.timeout)) {
 				options.timeout = 5000;
 			}
 
@@ -133,33 +137,48 @@ AUI.add(
 			_afterNoticeShow: function(event) {
 				var instance = this;
 
+				instance._preventHide();
+
+				var notice = instance._notice;
+
 				if (instance._useAnimation) {
-					var noticeLeft;
+					var animationConfig = instance._animationConfig;
 
-					var noticeRegion;
+					var left = animationConfig.left;
+					var top = animationConfig.top;
 
-					if (!instance._animationConfig.left) {
-						var viewportWidth = ADOM.winWidth();
+					if (!left) {
+						var noticeRegion = ADOM.region(ANode.getDOMNode(notice));
 
-						noticeRegion = ADOM.region(ANode.getDOMNode(instance._notice));
+						left = (ADOM.winWidth() / 2) - (noticeRegion.width / 2);
 
-						noticeLeft = (viewportWidth / 2) - (noticeRegion.width / 2);
+						top = -noticeRegion.height;
 
-						instance._animationConfig.left = noticeLeft + STR_PX;
+						animationConfig.left = left + STR_PX;
 					}
 
-					instance._notice.setXY([noticeLeft, -noticeRegion.height]);
+					notice.setXY([left, top]);
 
-					instance._notice.transition(
+					notice.transition(
 						instance._animationConfig,
 						function() {
-							A.later(instance._timeout, instance._notice, STR_HIDE);
+							instance._hideHandle = A.later(instance._timeout, notice, STR_HIDE);
 						}
 					);
 				}
 				else {
-					A.later(instance._timeout, instance._notice, STR_HIDE);
+					if (instance._timeout > -1) {
+						instance._hideHandle = A.later(instance._timeout, notice, STR_HIDE);
+					}
 				}
+
+				Liferay.fire(
+					'noticeShow',
+					{
+						notice: instance,
+						useAnimation: instance._useAnimation
+					}
+				);
 			},
 
 			_beforeNoticeHide: function(event) {
@@ -180,6 +199,14 @@ AUI.add(
 					returnVal = new Do.Halt(null);
 				}
 
+				Liferay.fire(
+					'noticeHide',
+					{
+						notice: instance,
+						useAnimation: instance._useAnimation
+					}
+				);
+
 				return returnVal;
 			},
 
@@ -195,7 +222,12 @@ AUI.add(
 					notice.html(content);
 				}
 
-				notice.addClass(instance._noticeClass);
+				A.Array.each(
+					instance._noticeClass.split(' '),
+					function(item, index, collection) {
+						notice.addClass(item);
+					}
+				)
 
 				instance._addCloseButton(notice);
 				instance._addToggleButton(notice);
@@ -206,11 +238,9 @@ AUI.add(
 
 				instance._body.addClass(CSS_ALERTS);
 
-				if (instance._timeout > 0) {
-					Do.before(instance._beforeNoticeHide, notice, STR_HIDE, instance);
+				Do.before(instance._beforeNoticeHide, notice, STR_HIDE, instance);
 
-					Do.after(instance._afterNoticeShow, notice, STR_SHOW, instance);
-				}
+				Do.after(instance._afterNoticeShow, notice, STR_SHOW, instance);
 
 				instance._notice = notice;
 			},
@@ -253,7 +283,6 @@ AUI.add(
 
 					var toggleButton = ANode.create('<a class="toggle-button" href="javascript:;"><span>' + instance._hideText + '</span></a>');
 					var toggleSpan = toggleButton.one('span');
-					var height = 0;
 
 					var visible = 0;
 
@@ -265,7 +294,7 @@ AUI.add(
 						function(event) {
 							var text = showText;
 
-							if (visible == 0) {
+							if (visible === 0) {
 								text = hideText;
 
 								visible = 1;
@@ -280,6 +309,16 @@ AUI.add(
 					);
 
 					notice.append(toggleButton);
+				}
+			},
+
+			_preventHide: function() {
+				var instance = this;
+
+				if (instance._hideHandle) {
+					instance._hideHandle.cancel();
+
+					instance._hideHandle = null;
 				}
 			}
 		};

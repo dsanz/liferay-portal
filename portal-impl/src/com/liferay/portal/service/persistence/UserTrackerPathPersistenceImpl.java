@@ -354,6 +354,10 @@ public class UserTrackerPathPersistenceImpl extends BasePersistenceImpl<UserTrac
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUserTrackerId(userTrackerId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<UserTrackerPath> list = findByUserTrackerId(userTrackerId,
 				count - 1, count, orderByComparator);
 
@@ -581,6 +585,10 @@ public class UserTrackerPathPersistenceImpl extends BasePersistenceImpl<UserTrac
 	}
 
 	private static final String _FINDER_COLUMN_USERTRACKERID_USERTRACKERID_2 = "userTrackerPath.userTrackerId = ?";
+
+	public UserTrackerPathPersistenceImpl() {
+		setModelClass(UserTrackerPath.class);
+	}
 
 	/**
 	 * Caches the user tracker path in the entity cache if it is enabled.

@@ -18,12 +18,18 @@
 
 <%
 PortletURL portletURL = renderResponse.createRenderURL();
+
+String tabs1Names = "portlet-configuration,text-styles,background-styles,border-styles,margin-and-padding,advanced-styling";
+
+if (PropsValues.MOBILE_DEVICE_STYLING_WAP_ENABLED) {
+	tabs1Names = tabs1Names + ",wap-styling";
+}
 %>
 
 <div id="lfr-look-and-feel">
 	<div class="tabbable-content" id="portlet-set-properties">
 		<liferay-ui:tabs
-			names="portlet-configuration,text-styles,background-styles,border-styles,margin-and-padding,advanced-styling,wap-styling"
+			names="<%= tabs1Names %>"
 			url="<%= portletURL.toString() %>"
 		/>
 
@@ -39,7 +45,7 @@ PortletURL portletURL = renderResponse.createRenderURL();
 						<aui:select inlineField="<%= true %>" label="portlet-title" name="lfr-portlet-language">
 
 							<%
-							Locale[] locales = LanguageUtil.getAvailableLocales();
+							Locale[] locales = LanguageUtil.getAvailableLocales(themeDisplay.getSiteGroupId());
 
 							for (int i = 0; i < locales.length; i++) {
 							%>
@@ -457,14 +463,16 @@ PortletURL portletURL = renderResponse.createRenderURL();
 					<aui:input cssClass="lfr-textarea-container" label="enter-your-custom-css" name="lfr-custom-css" type="textarea" />
 				</aui:fieldset>
 
-				<aui:fieldset id="wap-styling">
-					<aui:input label="title" name="lfr-wap-title" />
+				<c:if test="<%= PropsValues.MOBILE_DEVICE_STYLING_WAP_ENABLED %>">
+					<aui:fieldset id="wap-styling">
+						<aui:input label="title" name="lfr-wap-title" />
 
-					<aui:select label="initial-window-state" name="lfr-wap-initial-window-state">
-						<aui:option label="minimized" value="MINIMIZED" />
-						<aui:option label="normal" value="NORMAL" />
-					</aui:select>
-				</aui:fieldset>
+						<aui:select label="initial-window-state" name="lfr-wap-initial-window-state">
+							<aui:option label="minimized" value="MINIMIZED" />
+							<aui:option label="normal" value="NORMAL" />
+						</aui:select>
+					</aui:fieldset>
+				</c:if>
 
 				<aui:button-row>
 					<aui:button name="lfr-lookfeel-save" value="save" />

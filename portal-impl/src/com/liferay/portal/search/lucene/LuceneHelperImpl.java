@@ -102,6 +102,7 @@ import org.apache.lucene.util.Version;
  * @author Shuyang Zhou
  * @author Tina Tian
  * @author Hugo Huijser
+ * @author Andrea Di Giorgi
  */
 public class LuceneHelperImpl implements LuceneHelper {
 
@@ -123,14 +124,38 @@ public class LuceneHelperImpl implements LuceneHelper {
 
 	@Override
 	public void addNumericRangeTerm(
+		BooleanQuery booleanQuery, String field, Integer startValue,
+		Integer endValue) {
+
+		NumericRangeQuery<?> numericRangeQuery = NumericRangeQuery.newIntRange(
+			field, startValue, endValue, true, true);
+
+		booleanQuery.add(numericRangeQuery, BooleanClause.Occur.SHOULD);
+	}
+
+	@Override
+	public void addNumericRangeTerm(
+		BooleanQuery booleanQuery, String field, Long startValue,
+		Long endValue) {
+
+		NumericRangeQuery<?> numericRangeQuery = NumericRangeQuery.newLongRange(
+			field, startValue, endValue, true, true);
+
+		booleanQuery.add(numericRangeQuery, BooleanClause.Occur.SHOULD);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #addNumericRangeTerm(BooleanQuery, String, Long, Long)}
+	 */
+	@Override
+	public void addNumericRangeTerm(
 		BooleanQuery booleanQuery, String field, String startValue,
 		String endValue) {
 
-		NumericRangeQuery<?> numericRangeQuery = NumericRangeQuery.newLongRange(
-			field, GetterUtil.getLong(startValue), GetterUtil.getLong(endValue),
-			true, true);
-
-		booleanQuery.add(numericRangeQuery, BooleanClause.Occur.SHOULD);
+		addNumericRangeTerm(
+			booleanQuery, field, GetterUtil.getLong(startValue),
+			GetterUtil.getLong(endValue));
 	}
 
 	@Override
@@ -233,6 +258,8 @@ public class LuceneHelperImpl implements LuceneHelper {
 					value = value.toLowerCase(queryParser.getLocale());
 
 					query = new TermQuery(term.createTerm(value));
+
+					query.setBoost(termQuery.getBoost());
 				}
 			}
 			catch (Exception e) {
@@ -254,7 +281,9 @@ public class LuceneHelperImpl implements LuceneHelper {
 			_includeIfUnique(booleanQuery, query, occur, like);
 		}
 		catch (Exception e) {
-			_log.error(e, e);
+			if (_log.isWarnEnabled()) {
+				_log.warn(e, e);
+			}
 		}
 	}
 
@@ -372,6 +401,9 @@ public class LuceneHelperImpl implements LuceneHelper {
 				indexAccessor = new IndexAccessorImpl(companyId);
 
 				if (isLoadIndexFromClusterEnabled()) {
+					indexAccessor = new SynchronizedIndexAccessorImpl(
+						indexAccessor);
+
 					boolean clusterForwardMessage = GetterUtil.getBoolean(
 						MessageValuesThreadLocal.getValue(
 							ClusterLink.CLUSTER_FORWARD_MESSAGE));
@@ -384,9 +416,6 @@ public class LuceneHelperImpl implements LuceneHelper {
 						}
 					}
 					else {
-						indexAccessor = new SynchronizedIndexAccessorImpl(
-							indexAccessor);
-
 						try {
 							_loadIndexFromCluster(
 								indexAccessor,
@@ -747,7 +776,8 @@ public class LuceneHelperImpl implements LuceneHelper {
 
 		try {
 			ClusterNodeResponse clusterNodeResponse = clusterNodeResponses.poll(
-				_BOOTUP_CLUSTER_NODE_RESPONSE_TIMEOUT, TimeUnit.MILLISECONDS);
+				_CLUSTER_LINK_NODE_BOOTUP_RESPONSE_TIMEOUT,
+				TimeUnit.MILLISECONDS);
 
 			String transientToken = (String)clusterNodeResponse.getResult();
 
@@ -781,7 +811,11 @@ public class LuceneHelperImpl implements LuceneHelper {
 		if (query instanceof TermQuery) {
 			Set<Term> terms = new HashSet<Term>();
 
-			query.extractTerms(terms);
+			TermQuery termQuery = (TermQuery)query;
+
+			termQuery.extractTerms(terms);
+
+			float boost = termQuery.getBoost();
 
 			for (Term term : terms) {
 				String termValue = term.text();
@@ -796,6 +830,8 @@ public class LuceneHelperImpl implements LuceneHelper {
 				else {
 					query = new TermQuery(term);
 				}
+
+				query.setBoost(boost);
 
 				boolean included = false;
 
@@ -870,7 +906,8 @@ public class LuceneHelperImpl implements LuceneHelper {
 				indexAccessor, clusterNodeAddressesCount, localLastGeneration));
 	}
 
-	private static final long _BOOTUP_CLUSTER_NODE_RESPONSE_TIMEOUT = 10000;
+	private static final long _CLUSTER_LINK_NODE_BOOTUP_RESPONSE_TIMEOUT =
+		PropsValues.CLUSTER_LINK_NODE_BOOTUP_RESPONSE_TIMEOUT;
 
 	private static final int _LUCENE_BOOLEAN_QUERY_CLAUSE_MAX_SIZE =
 		GetterUtil.getInteger(
@@ -971,7 +1008,7 @@ public class LuceneHelperImpl implements LuceneHelper {
 
 				try {
 					clusterNodeResponse = blockingQueue.poll(
-						_BOOTUP_CLUSTER_NODE_RESPONSE_TIMEOUT,
+						_CLUSTER_LINK_NODE_BOOTUP_RESPONSE_TIMEOUT,
 						TimeUnit.MILLISECONDS);
 				}
 				catch (Exception e) {
@@ -982,7 +1019,7 @@ public class LuceneHelperImpl implements LuceneHelper {
 					if (_log.isDebugEnabled()) {
 						_log.debug(
 							"Unable to get cluster node response in " +
-								_BOOTUP_CLUSTER_NODE_RESPONSE_TIMEOUT +
+								_CLUSTER_LINK_NODE_BOOTUP_RESPONSE_TIMEOUT +
 									TimeUnit.MILLISECONDS);
 					}
 
@@ -1066,7 +1103,7 @@ public class LuceneHelperImpl implements LuceneHelper {
 		@Override
 		public void processTimeoutException(TimeoutException timeoutException) {
 			_log.error(
-				"Uanble to load index for company " + _companyId,
+				"Unable to load index for company " + _companyId,
 				timeoutException);
 		}
 

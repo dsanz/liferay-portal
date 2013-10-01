@@ -20,6 +20,8 @@ import com.liferay.portal.kernel.search.facet.collector.FacetCollector;
 import com.liferay.portal.kernel.search.facet.config.FacetConfiguration;
 import com.liferay.portal.kernel.search.facet.util.BaseFacetValueValidator;
 import com.liferay.portal.kernel.search.facet.util.FacetValueValidator;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 
 /**
  * @author Raymond Augé
@@ -52,6 +54,12 @@ public abstract class BaseFacet implements Facet {
 		}
 
 		return _facetValueValidator;
+	}
+
+	@Override
+	public String getFieldId() {
+		return StringUtil.replace(
+			getFieldName(), StringPool.SLASH, StringPool.UNDERLINE);
 	}
 
 	@Override

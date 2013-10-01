@@ -16,6 +16,7 @@ package com.liferay.portal.repository.proxy;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -187,6 +188,11 @@ public class FileVersionProxyBean
 	}
 
 	@Override
+	public StagedModelType getStagedModelType() {
+		return _fileVersion.getStagedModelType();
+	}
+
+	@Override
 	public int getStatus() {
 		return _fileVersion.getStatus();
 	}
@@ -264,16 +270,6 @@ public class FileVersionProxyBean
 	@Override
 	public boolean isExpired() {
 		return _fileVersion.isExpired();
-	}
-
-	@Override
-	public boolean isInTrash() {
-		return _fileVersion.isInTrash();
-	}
-
-	@Override
-	public boolean isInTrashContainer() {
-		return _fileVersion.isInTrashContainer();
 	}
 
 	@Override

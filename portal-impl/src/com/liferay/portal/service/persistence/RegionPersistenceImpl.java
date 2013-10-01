@@ -344,6 +344,10 @@ public class RegionPersistenceImpl extends BasePersistenceImpl<Region>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCountryId(countryId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Region> list = findByCountryId(countryId, count - 1, count,
 				orderByComparator);
 
@@ -825,6 +829,10 @@ public class RegionPersistenceImpl extends BasePersistenceImpl<Region>
 	public Region fetchByActive_Last(boolean active,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByActive(active);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<Region> list = findByActive(active, count - 1, count,
 				orderByComparator);
@@ -1595,6 +1603,10 @@ public class RegionPersistenceImpl extends BasePersistenceImpl<Region>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_A(countryId, active);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Region> list = findByC_A(countryId, active, count - 1, count,
 				orderByComparator);
 
@@ -1833,6 +1845,10 @@ public class RegionPersistenceImpl extends BasePersistenceImpl<Region>
 
 	private static final String _FINDER_COLUMN_C_A_COUNTRYID_2 = "region.countryId = ? AND ";
 	private static final String _FINDER_COLUMN_C_A_ACTIVE_2 = "region.active = ?";
+
+	public RegionPersistenceImpl() {
+		setModelClass(Region.class);
+	}
 
 	/**
 	 * Caches the region in the entity cache if it is enabled.

@@ -98,6 +98,24 @@ public class StringUtilTest {
 	}
 
 	@Test
+	public void testIsLowerCase() throws Exception {
+		Assert.assertTrue(StringUtil.isLowerCase("hello world"));
+		Assert.assertFalse(StringUtil.isLowerCase("Hello World"));
+		Assert.assertFalse(StringUtil.isLowerCase("HELLO WORLD"));
+		Assert.assertTrue(StringUtil.isLowerCase("hello-world-1"));
+		Assert.assertFalse(StringUtil.isLowerCase("HELLO-WORLD-1"));
+	}
+
+	@Test
+	public void testIsUpperCase() throws Exception {
+		Assert.assertFalse(StringUtil.isUpperCase("hello world"));
+		Assert.assertFalse(StringUtil.isUpperCase("Hello World"));
+		Assert.assertTrue(StringUtil.isUpperCase("HELLO WORLD"));
+		Assert.assertFalse(StringUtil.isUpperCase("hello-world-1"));
+		Assert.assertTrue(StringUtil.isUpperCase("HELLO-WORLD-1"));
+	}
+
+	@Test
 	public void testLastIndexOfAny() throws Exception {
 		char[] chars = {CharPool.COLON, CharPool.COMMA};
 
@@ -162,6 +180,10 @@ public class StringUtilTest {
 			"Aloha World HELLO WORLD Hello World",
 			StringUtil.replaceFirst(
 				"Hello World HELLO WORLD Hello World", "Hello", "Aloha"));
+		Assert.assertEquals(
+			"Hello World HELLO WORLD Aloha World",
+			StringUtil.replaceFirst(
+				"Hello World HELLO WORLD Hello World", "Hello", "Aloha", 10));
 	}
 
 	@Test
@@ -294,6 +316,423 @@ public class StringUtilTest {
 	@Test
 	public void testStripChar() {
 		Assert.assertEquals("abcd", StringUtil.strip(" a b  c   d", ' '));
+	}
+
+	@Test
+	public void testTrim() {
+
+		// Null string
+
+		Assert.assertNull(StringUtil.trim(null));
+
+		// Blank string
+
+		Assert.assertSame(StringPool.BLANK, StringUtil.trim(StringPool.BLANK));
+
+		// Spaces string
+
+		Assert.assertSame(StringPool.BLANK, StringUtil.trim(" \t\r\n"));
+
+		// Not trimmable
+
+		Assert.assertSame("a", StringUtil.trim("a"));
+		Assert.assertSame("ab", StringUtil.trim("ab"));
+
+		// Leading spaces
+
+		Assert.assertEquals("ab", StringUtil.trim(" \t\r\nab"));
+
+		// Trailing spaces
+
+		Assert.assertEquals("ab", StringUtil.trim("ab \t\r\n"));
+
+		// Surrounding spaces
+
+		Assert.assertEquals("ab", StringUtil.trim(" \t\r\nab \t\r\n"));
+	}
+
+	@Test
+	public void testTrimLeading() {
+
+		// Null string
+
+		Assert.assertNull(StringUtil.trimLeading(null));
+
+		// Blank string
+
+		Assert.assertSame(
+			StringPool.BLANK, StringUtil.trimLeading(StringPool.BLANK));
+
+		// Spaces string
+
+		Assert.assertSame(StringPool.BLANK, StringUtil.trimLeading(" \t\r\n"));
+
+		// Not trimmable
+
+		Assert.assertSame("a", StringUtil.trimLeading("a"));
+		Assert.assertSame("ab", StringUtil.trimLeading("ab"));
+
+		// Leading spaces
+
+		Assert.assertEquals("ab", StringUtil.trimLeading(" \t\r\nab"));
+
+		// Trailing spaces
+
+		Assert.assertSame("ab \t\r\n", StringUtil.trimLeading("ab \t\r\n"));
+
+		// Surrounding spaces
+
+		Assert.assertEquals(
+			"ab \t\r\n", StringUtil.trimLeading(" \t\r\nab \t\r\n"));
+	}
+
+	@Test
+	public void testTrimLeadingWithExceptions() {
+
+		// Null string
+
+		Assert.assertNull(StringUtil.trimLeading(null, null));
+
+		// Null exceptions
+
+		Assert.assertSame(StringPool.BLANK, StringUtil.trimLeading(" ", null));
+
+		// No exceptions
+
+		Assert.assertSame(
+			StringPool.BLANK, StringUtil.trimLeading(" ", new char[0]));
+
+		// Blank string
+
+		char[] exceptions = {'\r', '\t'};
+
+		Assert.assertSame(
+			StringPool.BLANK,
+			StringUtil.trimLeading(StringPool.BLANK, exceptions));
+
+		// Spaces string
+
+		Assert.assertEquals(
+			"\t\r\n", StringUtil.trimLeading(" \t\r\n", exceptions));
+
+		// Not trimmable
+
+		Assert.assertSame("\t", StringUtil.trimLeading("\t", exceptions));
+		Assert.assertSame("\t\r", StringUtil.trimLeading("\t\r", exceptions));
+
+		// All trimmable
+
+		Assert.assertSame(
+			StringPool.BLANK, StringUtil.trimLeading(" \n", exceptions));
+
+		// Leading spaces
+
+		Assert.assertEquals(
+			"\t\r\n\t\r",
+			StringUtil.trimLeading(" \t\r\n\t\r", exceptions));
+
+		// Trailing spaces
+
+		Assert.assertSame(
+			"\t\r \t\r\n",
+			StringUtil.trimLeading("\t\r \t\r\n", exceptions));
+
+		// Surrounding spaces
+
+		Assert.assertEquals(
+			"\t\r\n\t\r \t\r\n",
+			StringUtil.trimLeading(" \t\r\n\t\r \t\r\n", exceptions));
+	}
+
+	@Test
+	public void testTrimTrailing() {
+
+		// Null string
+
+		Assert.assertNull(StringUtil.trimTrailing(null));
+
+		// Blank string
+
+		Assert.assertSame(
+			StringPool.BLANK, StringUtil.trimTrailing(StringPool.BLANK));
+
+		// Spaces string
+
+		Assert.assertSame(StringPool.BLANK, StringUtil.trimTrailing(" \t\r\n"));
+
+		// Not trimmable
+
+		Assert.assertSame("a", StringUtil.trimTrailing("a"));
+		Assert.assertSame("ab", StringUtil.trimTrailing("ab"));
+
+		// Leading spaces
+
+		Assert.assertSame(" \t\r\nab", StringUtil.trimTrailing(" \t\r\nab"));
+
+		// Trailing spaces
+
+		Assert.assertEquals("ab", StringUtil.trimTrailing("ab \t\r\n"));
+
+		// Surrounding spaces
+
+		Assert.assertEquals(
+			" \t\r\nab", StringUtil.trimTrailing(" \t\r\nab \t\r\n"));
+	}
+
+	@Test
+	public void testTrimTrailingWithExceptions() {
+
+		// Null string
+
+		Assert.assertNull(StringUtil.trimTrailing(null, null));
+
+		// Null exceptions
+
+		Assert.assertSame(StringPool.BLANK, StringUtil.trimTrailing(" ", null));
+
+		// No exceptions
+
+		Assert.assertSame(
+			StringPool.BLANK, StringUtil.trimTrailing(" ", new char[0]));
+
+		char[] exceptions = {'\r', '\t'};
+
+		// Blank string
+
+		Assert.assertSame(
+			StringPool.BLANK,
+			StringUtil.trimTrailing(StringPool.BLANK, exceptions));
+
+		// Spaces string
+
+		Assert.assertEquals(
+			" \t\r", StringUtil.trimTrailing(" \t\r\n", exceptions));
+
+		// Not trimmable
+
+		Assert.assertSame("\t", StringUtil.trimTrailing("\t", exceptions));
+		Assert.assertSame("\t\r", StringUtil.trimTrailing("\t\r", exceptions));
+
+		// All trimmable
+
+		Assert.assertSame(
+			StringPool.BLANK, StringUtil.trimTrailing(" \n", exceptions));
+
+		// Leading spaces
+
+		Assert.assertSame(
+			" \t\r\n\t\r",
+			StringUtil.trimTrailing(" \t\r\n\t\r", exceptions));
+
+		// Trailing spaces
+
+		Assert.assertEquals(
+			"\t\r \t\r",
+			StringUtil.trimTrailing("\t\r \t\r\n", exceptions));
+
+		// Surrounding spaces
+
+		Assert.assertEquals(
+			" \t\r\n\t\r \t\r",
+			StringUtil.trimTrailing(" \t\r\n\t\r \t\r\n", exceptions));
+	}
+
+	@Test
+	public void testTrimWithExceptions() {
+
+		// Null string
+
+		Assert.assertNull(StringUtil.trim(null, null));
+
+		// Null exceptions
+
+		Assert.assertSame(StringPool.BLANK, StringUtil.trim(" ", null));
+
+		// No exceptions
+
+		Assert.assertSame(StringPool.BLANK, StringUtil.trim(" ", new char[0]));
+
+		char[] exceptions = {'\t', '\r'};
+
+		// Blank string
+
+		Assert.assertSame(
+			StringPool.BLANK, StringUtil.trim(StringPool.BLANK, exceptions));
+
+		// Spaces string
+
+		String spacesString = " \t\r\n";
+
+		Assert.assertEquals("\t\r", StringUtil.trim(spacesString, exceptions));
+
+		// Not trimmable
+
+		String testString = "\t";
+
+		Assert.assertSame(testString, StringUtil.trim(testString, exceptions));
+
+		testString = "\t\r";
+
+		Assert.assertSame(testString, StringUtil.trim(testString, exceptions));
+
+		// All trimmable
+
+		Assert.assertSame(StringPool.BLANK, StringUtil.trim(" \n", exceptions));
+
+		// Leading spaces
+
+		String leadingSpacesString = " \t\r\n" + testString;
+
+		Assert.assertEquals(
+			"\t\r\n" + testString,
+			StringUtil.trim(leadingSpacesString, exceptions));
+
+		// Trailing spaces
+
+		String trailingSpacesString = testString + " \t\r\n";
+
+		Assert.assertEquals(
+			testString + " \t\r",
+			StringUtil.trim(trailingSpacesString, exceptions));
+
+		// Surrounding spaces
+
+		String surroundingSpacesString = " \t\r\n" + testString + " \t\r\n";
+
+		Assert.assertEquals(
+			"\t\r\n" + testString + " \t\r",
+			StringUtil.trim(surroundingSpacesString, exceptions));
+	}
+
+	@Test
+	public void testWildcardMatches() {
+
+		// Exact match in a case sensitive manner
+
+		String s = "abc";
+		String wildcard = "abc";
+
+		Assert.assertTrue(
+			s,
+			StringUtil.wildcardMatches(
+				s, wildcard, CharPool.UNDERLINE, CharPool.PERCENT,
+				CharPool.BACK_SLASH, true));
+
+		// Exact match in a case insensitive manner
+
+		s = "aBc";
+		wildcard = "abc";
+
+		Assert.assertTrue(
+			s,
+			StringUtil.wildcardMatches(
+				s, wildcard, CharPool.UNDERLINE, CharPool.PERCENT,
+				CharPool.BACK_SLASH, false));
+
+		// Head match with a wildcard multiple character
+
+		s = "abc";
+		wildcard = "%c";
+
+		Assert.assertTrue(
+			s,
+			StringUtil.wildcardMatches(
+				s, wildcard, CharPool.UNDERLINE, CharPool.PERCENT,
+				CharPool.BACK_SLASH, true));
+
+		// Head match with a wildcard single character
+
+		s = "abc";
+		wildcard = "__c";
+
+		Assert.assertTrue(
+			s,
+			StringUtil.wildcardMatches(
+				s, wildcard, CharPool.UNDERLINE, CharPool.PERCENT,
+				CharPool.BACK_SLASH, true));
+
+		// Head mismatch with a single wildcard character
+
+		s = "abc";
+		wildcard = "a_Z";
+
+		Assert.assertFalse(
+			s,
+			StringUtil.wildcardMatches(
+				s, wildcard, CharPool.UNDERLINE, CharPool.PERCENT,
+				CharPool.BACK_SLASH, true));
+
+		// Head mismatch with a multiple wildcard character (this is not
+		// logically possible because a head mismatch with a multipe wildcard
+		// character is a tail mismatch)
+
+		// Body match with a multiple wildcard character
+
+		s = "abc";
+		wildcard = "a%";
+
+		Assert.assertTrue(
+			s,
+			StringUtil.wildcardMatches(
+				s, wildcard, CharPool.UNDERLINE, CharPool.PERCENT,
+				CharPool.BACK_SLASH, true));
+
+		// Body match with a single wildcard character
+
+		s = "abcd";
+		wildcard = "a%__d";
+
+		Assert.assertTrue(
+			s,
+			StringUtil.wildcardMatches(
+				s, wildcard, CharPool.UNDERLINE, CharPool.PERCENT,
+				CharPool.BACK_SLASH, true));
+
+		// Tail match
+
+		s = "abc";
+		wildcard = "abc%";
+
+		Assert.assertTrue(
+			s,
+			StringUtil.wildcardMatches(
+				s, wildcard, CharPool.UNDERLINE, CharPool.PERCENT,
+				CharPool.BACK_SLASH, true));
+
+		// Tail mismatch
+
+		s = "abc";
+		wildcard = "abc%z";
+
+		Assert.assertFalse(
+			s,
+			StringUtil.wildcardMatches(
+				s, wildcard, CharPool.UNDERLINE, CharPool.PERCENT,
+				CharPool.BACK_SLASH, true));
+
+		// Match without a conflicting escape wildcard character
+
+		s = "a_b%c";
+		wildcard = "a\\_b\\%c";
+
+		Assert.assertTrue(
+			s,
+			StringUtil.wildcardMatches(
+				s, wildcard, CharPool.UNDERLINE, CharPool.PERCENT,
+				CharPool.BACK_SLASH, true));
+
+		// Match with a conflicting escape wildcard character
+
+		s = new String(
+			new char[] {(char)0, '_', 'a', (char)2, '%', 'c', 'd', 'e'});
+		wildcard = new String(
+			new char[] {(char)0, '\\', '_', '_', (char)2, '\\', '%', 'c', '%'});
+
+		Assert.assertTrue(
+			s,
+			StringUtil.wildcardMatches(
+				s, wildcard, CharPool.UNDERLINE, CharPool.PERCENT,
+				CharPool.BACK_SLASH, true));
 	}
 
 }

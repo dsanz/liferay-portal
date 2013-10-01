@@ -35,9 +35,10 @@ if (Validator.isNull(title)) {
 	title = assetRenderer.getTitle(locale);
 }
 
-PortletURL viewFullContentURL = liferayPortletResponse.createLiferayPortletURL(plid, portletDisplay.getId(), PortletRequest.RENDER_PHASE, false);
+PortletURL viewFullContentURL = liferayPortletResponse.createLiferayPortletURL(plid, portletDisplay.getId(), PortletRequest.RENDER_PHASE, true);
 
 viewFullContentURL.setParameter("struts_action", "/asset_publisher/view_content");
+viewFullContentURL.setParameter("redirect", currentURL);
 viewFullContentURL.setParameter("assetEntryId", String.valueOf(assetEntry.getEntryId()));
 viewFullContentURL.setParameter("type", assetRendererFactory.getType());
 
@@ -120,8 +121,4 @@ viewURL = _checkViewURL(assetEntry, viewInContext, viewURL, currentURL, themeDis
 			<%@ include file="/html/portlet/asset_publisher/asset_metadata.jspf" %>
 		</div>
 	</div>
-
-	<c:if test="<%= (assetEntryIndex + 1) == results.size() %>">
-		<div class="final-separator"><!-- --></div>
-	</c:if>
 </c:if>

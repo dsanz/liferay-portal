@@ -3,7 +3,7 @@
 
 <service-builder package-path="com.liferay.portlet.wiki">
 	<namespace>Wiki</namespace>
-	<entity name="WikiNode" uuid="true" local-service="true" remote-service="true">
+	<entity name="WikiNode" uuid="true" local-service="true" remote-service="true" trash-enabled="true">
 
 		<!-- PK fields -->
 
@@ -65,10 +65,10 @@
 		<reference package-path="com.liferay.portal" entity="SystemEvent" />
 		<reference package-path="com.liferay.portal" entity="WorkflowInstanceLink" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
-		<reference package-path="com.liferay.portlet.social" entity="SocialActivityCounter" />
 		<reference package-path="com.liferay.portlet.trash" entity="TrashEntry" />
+		<reference package-path="com.liferay.portlet.trash" entity="TrashVersion" />
 	</entity>
-	<entity name="WikiPage" uuid="true" local-service="true" remote-service="true">
+	<entity name="WikiPage" uuid="true" local-service="true" remote-service="true" trash-enabled="true">
 
 		<!-- PK fields -->
 
@@ -117,6 +117,9 @@
 
 		<!-- Finder methods -->
 
+		<finder name="ResourcePrimKey" return-type="Collection">
+			<finder-column name="resourcePrimKey" />
+		</finder>
 		<finder name="NodeId" return-type="Collection">
 			<finder-column name="nodeId" />
 		</finder>
@@ -126,6 +129,10 @@
 		<finder name="R_N" return-type="Collection">
 			<finder-column name="resourcePrimKey" />
 			<finder-column name="nodeId" />
+		</finder>
+		<finder name="R_S" return-type="Collection">
+			<finder-column name="resourcePrimKey" />
+			<finder-column name="status" />
 		</finder>
 		<finder name="N_T" return-type="Collection">
 			<finder-column name="nodeId" />
@@ -241,16 +248,17 @@
 		<reference package-path="com.liferay.portal" entity="Layout" />
 		<reference package-path="com.liferay.portal" entity="PortletPreferences" />
 		<reference package-path="com.liferay.portal" entity="Subscription" />
+		<reference package-path="com.liferay.portal" entity="SystemEvent" />
 		<reference package-path="com.liferay.portal" entity="WorkflowInstanceLink" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetCategory" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetLink" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetTag" />
-		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
+		<reference package-path="com.liferay.portlet.expando" entity="ExpandoRow" />
 		<reference package-path="com.liferay.portlet.messageboards" entity="MBMessage" />
 		<reference package-path="com.liferay.portlet.social" entity="SocialActivity" />
-		<reference package-path="com.liferay.portlet.social" entity="SocialActivityCounter" />
 		<reference package-path="com.liferay.portlet.trash" entity="TrashEntry" />
+		<reference package-path="com.liferay.portlet.trash" entity="TrashVersion" />
 
 		<!-- Transactions -->
 

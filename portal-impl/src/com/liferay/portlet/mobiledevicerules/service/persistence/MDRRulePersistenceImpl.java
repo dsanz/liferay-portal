@@ -355,6 +355,10 @@ public class MDRRulePersistenceImpl extends BasePersistenceImpl<MDRRule>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MDRRule> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1169,6 +1173,10 @@ public class MDRRulePersistenceImpl extends BasePersistenceImpl<MDRRule>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MDRRule> list = findByUuid_C(uuid, companyId, count - 1, count,
 				orderByComparator);
 
@@ -1700,6 +1708,10 @@ public class MDRRulePersistenceImpl extends BasePersistenceImpl<MDRRule>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByRuleGroupId(ruleGroupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MDRRule> list = findByRuleGroupId(ruleGroupId, count - 1, count,
 				orderByComparator);
 
@@ -1924,6 +1936,10 @@ public class MDRRulePersistenceImpl extends BasePersistenceImpl<MDRRule>
 	}
 
 	private static final String _FINDER_COLUMN_RULEGROUPID_RULEGROUPID_2 = "mdrRule.ruleGroupId = ?";
+
+	public MDRRulePersistenceImpl() {
+		setModelClass(MDRRule.class);
+	}
 
 	/**
 	 * Caches the m d r rule in the entity cache if it is enabled.

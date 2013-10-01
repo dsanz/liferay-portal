@@ -833,6 +833,24 @@ public class DDMTemplateLocalServiceUtil {
 	}
 
 	/**
+	* Returns the number of templates matching the group and structure class
+	* name ID, including Generic Templates.
+	*
+	* @param groupId the primary key of the group
+	* @param structureClassNameId the primary key of the class name for the
+	template's related structure
+	* @return the number of matching templates
+	* @throws SystemException if a system exception occurred
+	*/
+	public static int getTemplatesByStructureClassNameIdCount(long groupId,
+		long structureClassNameId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getTemplatesByStructureClassNameIdCount(groupId,
+			structureClassNameId);
+	}
+
+	/**
 	* Returns the number of templates belonging to the group.
 	*
 	* @param groupId the primary key of the group
@@ -856,6 +874,23 @@ public class DDMTemplateLocalServiceUtil {
 	public static int getTemplatesCount(long groupId, long classNameId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getTemplatesCount(groupId, classNameId);
+	}
+
+	/**
+	* Returns the number of templates matching the group, class name ID and
+	* class PK.
+	*
+	* @param groupId the primary key of the group
+	* @param classNameId the primary key of the class name for the template's
+	related model
+	* @param classPK the primary key of the template's related entity
+	* @return the number of matching templates
+	* @throws SystemException if a system exception occurred
+	*/
+	public static int getTemplatesCount(long groupId, long classNameId,
+		long classPK)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getTemplatesCount(groupId, classNameId, classPK);
 	}
 
 	/**
@@ -1198,6 +1233,7 @@ public class DDMTemplateLocalServiceUtil {
 	* Updates the template matching the ID.
 	*
 	* @param templateId the primary key of the template
+	* @param classPK the primary key of the template's related entity
 	* @param nameMap the template's new locales and localized names
 	* @param descriptionMap the template's new locales and localized
 	description
@@ -1222,7 +1258,7 @@ public class DDMTemplateLocalServiceUtil {
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMTemplate updateTemplate(
-		long templateId,
+		long templateId, long classPK,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
 		java.lang.String type, java.lang.String mode,
@@ -1233,9 +1269,9 @@ public class DDMTemplateLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService()
-				   .updateTemplate(templateId, nameMap, descriptionMap, type,
-			mode, language, script, cacheable, smallImage, smallImageURL,
-			smallImageFile, serviceContext);
+				   .updateTemplate(templateId, classPK, nameMap,
+			descriptionMap, type, mode, language, script, cacheable,
+			smallImage, smallImageURL, smallImageFile, serviceContext);
 	}
 
 	public static DDMTemplateLocalService getService() {

@@ -6,7 +6,9 @@ package ${packagePath}.model;
 
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.AuditedModel;
 import com.liferay.portal.model.BaseModel;
@@ -14,6 +16,8 @@ import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.GroupedModel;
 import com.liferay.portal.model.ResourcedModel;
+import com.liferay.portal.model.TrashedModel;
+import com.liferay.portal.model.TypedModel;
 import com.liferay.portal.model.StagedAuditedModel;
 import com.liferay.portal.model.StagedGroupedModel;
 import com.liferay.portal.model.StagedModel;
@@ -21,6 +25,7 @@ import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
+import com.liferay.portlet.trash.model.TrashEntry;
 
 import java.io.Serializable;
 
@@ -79,19 +84,31 @@ public interface ${entity.name}Model extends
 	<#if entity.isStagedGroupedModel()>
 		, StagedGroupedModel
 
-		<#assign overrideColumnNames = overrideColumnNames + ["companyId", "createDate", "groupId", "modifiedDate", "userId", "userName", "userUuid", "uuid"]>
+		<#assign overrideColumnNames = overrideColumnNames + ["companyId", "createDate", "groupId", "modifiedDate", "stagedModelType", "userId", "userName", "userUuid", "uuid"]>
 	</#if>
 
 	<#if entity.isStagedAuditedModel() && !entity.isStagedGroupedModel()>
 		, StagedAuditedModel
 
-		<#assign overrideColumnNames = overrideColumnNames + ["companyId", "createDate", "modifiedDate", "userId", "userName", "userUuid", "uuid"]>
+		<#assign overrideColumnNames = overrideColumnNames + ["companyId", "createDate", "modifiedDate", "stagedModelType", "userId", "userName", "userUuid", "uuid"]>
 	</#if>
 
 	<#if !entity.isStagedAuditedModel() && !entity.isStagedGroupedModel() && entity.isStagedModel()>
 		, StagedModel
 
-		<#assign overrideColumnNames = overrideColumnNames + ["companyId", "createDate", "modifiedDate", "uuid"]>
+		<#assign overrideColumnNames = overrideColumnNames + ["companyId", "createDate", "modifiedDate", "stagedModelType", "uuid"]>
+	</#if>
+
+	<#if entity.isTrashEnabled()>
+		, TrashedModel
+
+		<#assign overrideColumnNames = overrideColumnNames + ["status"]>
+	</#if>
+
+	<#if entity.isTypedModel() && !entity.isAttachedModel()>
+		, TypedModel
+
+		<#assign overrideColumnNames = overrideColumnNames + ["className", "classNameId"]>
 	</#if>
 
 	<#if entity.isWorkflowEnabled()>
@@ -316,6 +333,60 @@ public interface ${entity.name}Model extends
 		</#if>
 	</#list>
 
+	<#if entity.isTrashEnabled()>
+		<#if !entity.isWorkflowEnabled()>
+			/**
+			 * Returns the status of this ${entity.humanName}.
+			 *
+			 * @return the status of this ${entity.humanName}
+			 */
+			@Override
+			public int getStatus();
+		</#if>
+
+		/**
+		 * Returns the trash entry created when this ${entity.humanName} was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this ${entity.humanName}.
+		 *
+		 * @return the trash entry created when this ${entity.humanName} was moved to the Recycle Bin
+		 * @throws SystemException if a system exception occurred
+		 */
+		@Override
+		public TrashEntry getTrashEntry() throws PortalException, SystemException;
+
+		/**
+		 * Returns the class primary key of the trash entry for this ${entity.humanName}.
+		 *
+		 * @return the class primary key of the trash entry for this ${entity.humanName}
+		 */
+		@Override
+		public long getTrashEntryClassPK();
+
+		/**
+		 * Returns the trash handler for this ${entity.humanName}.
+		 *
+		 * @return the trash handler for this ${entity.humanName}
+		 */
+		@Override
+		public TrashHandler getTrashHandler();
+
+		/**
+		 * Returns <code>true</code> if this ${entity.humanName} is in the Recycle Bin.
+		 *
+		 * @return <code>true</code> if this ${entity.humanName} is in the Recycle Bin; <code>false</code> otherwise
+		 */
+		@Override
+		public boolean isInTrash();
+
+		/**
+		 * Returns <code>true</code> if the parent of this ${entity.humanName} is in the Recycle Bin.
+		 *
+		 * @return <code>true</code> if the parent of this ${entity.humanName} is in the Recycle Bin; <code>false</code> otherwise
+		 * @throws SystemException if a system exception occurred
+		 */
+		@Override
+		public boolean isInTrashContainer();
+	</#if>
+
 	<#if entity.isWorkflowEnabled()>
 		/**
 		 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
@@ -372,14 +443,6 @@ public interface ${entity.name}Model extends
 		public boolean isIncomplete();
 
 		/**
-		 * Returns <code>true</code> if this ${entity.humanName} is in the Recycle Bin.
-		 *
-		 * @return <code>true</code> if this ${entity.humanName} is in the Recycle Bin; <code>false</code> otherwise
-		 */
-		@Override
-		public boolean isInTrash();
-
-		/**
 		 * Returns <code>true</code> if this ${entity.humanName} is pending.
 		 *
 		 * @return <code>true</code> if this ${entity.humanName} is pending; <code>false</code> otherwise
@@ -409,7 +472,7 @@ public interface ${entity.name}Model extends
 			/**
 			 * Sets the container model ID of this ${entity.humanName}.
 			 *
-			 * @param container model ID of this ${entity.humanName}
+			 * @param containerModelId the container model ID of this ${entity.humanName}
 			 */
 			@Override
 			public void setContainerModelId(long containerModelId);
@@ -435,7 +498,7 @@ public interface ${entity.name}Model extends
 			/**
 			 * Sets the parent container model ID of this ${entity.humanName}.
 			 *
-			 * @param parent container model ID of this ${entity.humanName}
+			 * @param parentContainerModelId the parent container model ID of this ${entity.humanName}
 			 */
 			@Override
 			public void setParentContainerModelId(long parentContainerModelId);
@@ -481,6 +544,12 @@ public interface ${entity.name}Model extends
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
 	<#if entity.hasLocalizedColumn()>
+		public String[] getAvailableLanguageIds();
+
+		public String getDefaultLanguageId();
+
+		public void prepareLocalizedFieldsForImport() throws LocaleException;
+
 		public void prepareLocalizedFieldsForImport(Locale defaultImportLocale) throws LocaleException;
 	</#if>
 

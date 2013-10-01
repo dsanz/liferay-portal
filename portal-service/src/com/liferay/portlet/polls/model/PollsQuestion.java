@@ -34,6 +34,13 @@ public interface PollsQuestion extends PollsQuestionModel, PersistedModel {
 	public java.util.List<com.liferay.portlet.polls.model.PollsChoice> getChoices()
 		throws com.liferay.portal.kernel.exception.SystemException;
 
+	public java.util.List<com.liferay.portlet.polls.model.PollsVote> getVotes()
+		throws com.liferay.portal.kernel.exception.SystemException;
+
+	public java.util.List<com.liferay.portlet.polls.model.PollsVote> getVotes(
+		int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
 	public int getVotesCount()
 		throws com.liferay.portal.kernel.exception.SystemException;
 

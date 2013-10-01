@@ -355,6 +355,10 @@ public class PollsVotePersistenceImpl extends BasePersistenceImpl<PollsVote>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PollsVote> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1172,6 +1176,10 @@ public class PollsVotePersistenceImpl extends BasePersistenceImpl<PollsVote>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PollsVote> list = findByUuid_C(uuid, companyId, count - 1, count,
 				orderByComparator);
 
@@ -1704,6 +1712,10 @@ public class PollsVotePersistenceImpl extends BasePersistenceImpl<PollsVote>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByQuestionId(questionId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PollsVote> list = findByQuestionId(questionId, count - 1, count,
 				orderByComparator);
 
@@ -2188,6 +2200,10 @@ public class PollsVotePersistenceImpl extends BasePersistenceImpl<PollsVote>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByChoiceId(choiceId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PollsVote> list = findByChoiceId(choiceId, count - 1, count,
 				orderByComparator);
 
@@ -2644,6 +2660,10 @@ public class PollsVotePersistenceImpl extends BasePersistenceImpl<PollsVote>
 
 	private static final String _FINDER_COLUMN_Q_U_QUESTIONID_2 = "pollsVote.questionId = ? AND ";
 	private static final String _FINDER_COLUMN_Q_U_USERID_2 = "pollsVote.userId = ?";
+
+	public PollsVotePersistenceImpl() {
+		setModelClass(PollsVote.class);
+	}
 
 	/**
 	 * Caches the polls vote in the entity cache if it is enabled.

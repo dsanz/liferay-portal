@@ -90,8 +90,9 @@ public class UpgradeProcessUtil {
 		UpgradeProcess upgradeProcess = null;
 
 		try {
-			upgradeProcess = (UpgradeProcess)classLoader.loadClass(
-				upgradeProcessClassName).newInstance();
+			Class<?> clazz = classLoader.loadClass(upgradeProcessClassName);
+
+			upgradeProcess = (UpgradeProcess)clazz.newInstance();
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -118,17 +119,16 @@ public class UpgradeProcessUtil {
 
 			return true;
 		}
-		else {
-			if (_log.isDebugEnabled()) {
-				_log.debug(
-					"Upgrade threshold " + upgradeProcess.getThreshold() +
-						" will not trigger upgrade");
 
-				_log.debug("Skipping upgrade " + upgradeProcessClassName);
-			}
+		if (_log.isDebugEnabled()) {
+			_log.debug(
+				"Upgrade threshold " + upgradeProcess.getThreshold() +
+					" will not trigger upgrade");
 
-			return false;
+			_log.debug("Skipping upgrade " + upgradeProcessClassName);
 		}
+
+		return false;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(UpgradeProcessUtil.class);

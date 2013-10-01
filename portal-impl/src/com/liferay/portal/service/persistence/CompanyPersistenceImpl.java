@@ -1045,6 +1045,10 @@ public class CompanyPersistenceImpl extends BasePersistenceImpl<Company>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countBySystem(system);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Company> list = findBySystem(system, count - 1, count,
 				orderByComparator);
 
@@ -1268,6 +1272,10 @@ public class CompanyPersistenceImpl extends BasePersistenceImpl<Company>
 	}
 
 	private static final String _FINDER_COLUMN_SYSTEM_SYSTEM_2 = "company.system = ?";
+
+	public CompanyPersistenceImpl() {
+		setModelClass(Company.class);
+	}
 
 	/**
 	 * Caches the company in the entity cache if it is enabled.

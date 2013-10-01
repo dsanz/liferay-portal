@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.layoutsadmin.action;
 
+import com.liferay.portal.LayoutTypeException;
 import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -64,34 +65,44 @@ public class UpdateLayoutAction extends JSONAction {
 
 		String cmd = ParamUtil.getString(request, Constants.CMD);
 
-		JSONObject jsonObj = JSONFactoryUtil.createJSONObject();
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
-		if (cmd.equals("add")) {
-			String[] array = addPage(themeDisplay, request, response);
+		try {
+			if (cmd.equals("add")) {
+				String[] array = addPage(themeDisplay, request, response);
 
-			jsonObj.put("deletable", Boolean.valueOf(array[2]));
-			jsonObj.put("layoutId", array[0]);
-			jsonObj.put("sortable", Boolean.valueOf(array[3]));
-			jsonObj.put("updateable", Boolean.valueOf(array[4]));
-			jsonObj.put("url", array[1]);
+				jsonObject.put("deletable", Boolean.valueOf(array[2]));
+				jsonObject.put("layoutId", array[0]);
+				jsonObject.put("sortable", Boolean.valueOf(array[3]));
+				jsonObject.put("updateable", Boolean.valueOf(array[4]));
+				jsonObject.put("url", array[1]);
+			}
+			else if (cmd.equals("delete")) {
+				SitesUtil.deleteLayout(request, response);
+			}
+			else if (cmd.equals("display_order")) {
+				updateDisplayOrder(request);
+			}
+			else if (cmd.equals("name")) {
+				updateName(request);
+			}
+			else if (cmd.equals("parent_layout_id")) {
+				updateParentLayoutId(request);
+			}
+			else if (cmd.equals("priority")) {
+				updatePriority(request);
+			}
+
+			jsonObject.put("status", HttpServletResponse.SC_OK);
 		}
-		else if (cmd.equals("delete")) {
-			SitesUtil.deleteLayout(request, response);
-		}
-		else if (cmd.equals("display_order")) {
-			updateDisplayOrder(request);
-		}
-		else if (cmd.equals("name")) {
-			updateName(request);
-		}
-		else if (cmd.equals("parent_layout_id")) {
-			updateParentLayoutId(request);
-		}
-		else if (cmd.equals("priority")) {
-			updatePriority(request);
+		catch (LayoutTypeException lte) {
+			jsonObject.put(
+				"message",
+				getLayoutTypeExceptionMessage(themeDisplay, lte, cmd));
+			jsonObject.put("status", HttpServletResponse.SC_BAD_REQUEST);
 		}
 
-		return jsonObj.toString();
+		return jsonObject.toString();
 	}
 
 	protected String[] addPage(
@@ -175,6 +186,53 @@ public class UpdateLayoutAction extends JSONAction {
 		};
 	}
 
+	protected String getLayoutTypeExceptionMessage(
+		ThemeDisplay themeDisplay, LayoutTypeException lte, String cmd) {
+
+		if (Validator.isNotNull(cmd)) {
+			if (cmd.equals("delete") &&
+				(lte.getType() == LayoutTypeException.FIRST_LAYOUT)) {
+
+				return themeDisplay.translate(
+					"you-cannot-delete-this-page-because-the-next-page-is-of-" +
+						"type-x-and-so-cannot-be-the-first-page",
+					"layout.types." + lte.getLayoutType());
+			}
+
+			if (cmd.equals("delete") &&
+				(lte.getType() ==
+					LayoutTypeException.FIRST_LAYOUT_PERMISSION)) {
+
+				return themeDisplay.translate(
+					"you-cannot-delete-this-page-because-the-next-page-is-" +
+						"not-vieweable-by-unathenticated-users-and-so-cannot-" +
+							"be-the-first-page");
+			}
+
+			if ((cmd.equals("display_order") || cmd.equals("priority")) &&
+				(lte.getType() == LayoutTypeException.FIRST_LAYOUT)) {
+
+				return themeDisplay.translate(
+					"you-cannot-move-this-page-because-the-resulting-order-" +
+						"would-place-a-page-of-type-x-as-the-first-page",
+					"layout.types." + lte.getLayoutType());
+			}
+		}
+
+		if (lte.getType() == LayoutTypeException.FIRST_LAYOUT ) {
+			return themeDisplay.translate(
+				"the-first-page-cannot-be-of-type-x",
+				"layout.types." + lte.getLayoutType());
+		}
+		else if (lte.getType() == LayoutTypeException.NOT_PARENTABLE) {
+			return themeDisplay.translate(
+				"a-page-cannot-become-a-child-of-a-page-that-is-not-" +
+					"parentable");
+		}
+
+		return StringPool.BLANK;
+	}
+
 	protected void updateDisplayOrder(HttpServletRequest request)
 		throws Exception {
 
@@ -240,11 +298,14 @@ public class UpdateLayoutAction extends JSONAction {
 		long groupId = ParamUtil.getLong(request, "groupId");
 		boolean privateLayout = ParamUtil.getBoolean(request, "privateLayout");
 		long layoutId = ParamUtil.getLong(request, "layoutId");
+		long nextLayoutId = ParamUtil.getLong(request, "nextLayoutId");
+		long previousLayoutId = ParamUtil.getLong(request, "previousLayoutId");
 		int priority = ParamUtil.getInteger(request, "priority");
 
 		if (plid <= 0) {
 			LayoutServiceUtil.updatePriority(
-				groupId, privateLayout, layoutId, priority);
+				groupId, privateLayout, layoutId, nextLayoutId,
+				previousLayoutId);
 		}
 		else {
 			LayoutServiceUtil.updatePriority(plid, priority);

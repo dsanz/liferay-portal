@@ -65,62 +65,58 @@ boolean mergeWithParentFolderDisabled = ParamUtil.getBoolean(request, "mergeWith
 				}
 				%>
 
-				<portlet:renderURL var="viewFolderURL">
-					<portlet:param name="struts_action" value="/journal/view" />
-					<portlet:param name="folderId" value="<%= String.valueOf(parentFolderId) %>" />
-				</portlet:renderURL>
+				<div class="input-append">
+					<liferay-ui:input-resource id="parentFolderName" url="<%= parentFolderName %>" />
 
-				<aui:a href="<%= viewFolderURL %>" id="parentFolderName"><%= parentFolderName %></aui:a>
+					<portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+						<portlet:param name="struts_action" value="/journal/select_folder" />
+						<portlet:param name="folderId" value="<%= String.valueOf(parentFolderId) %>" />
+					</portlet:renderURL>
 
-				<portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-					<portlet:param name="struts_action" value="/journal/select_folder" />
-					<portlet:param name="folderId" value="<%= String.valueOf(parentFolderId) %>" />
-				</portlet:renderURL>
+					<aui:button name="selecFolderButton" value="select" />
 
-				<aui:button name="selecFolderButton" value="select" />
-
-				<aui:script use="aui-base">
-					A.one('#<portlet:namespace />selecFolderButton').on(
-						'click',
-						function(event) {
-							Liferay.Util.selectEntity(
-								{
-									dialog: {
-										constrain: true,
-										modal: true,
-										zIndex: Liferay.zIndex.WINDOW + 2,
-										width: 680
+					<aui:script use="aui-base">
+						A.one('#<portlet:namespace />selecFolderButton').on(
+							'click',
+							function(event) {
+								Liferay.Util.selectEntity(
+									{
+										dialog: {
+											constrain: true,
+											modal: true,
+											width: 680
+										},
+										id: '<portlet:namespace />selectFolder',
+										title: '<liferay-ui:message arguments="folder" key="select-x" />',
+										uri: '<%= selectFolderURL.toString() %>'
 									},
-									id: '<portlet:namespace />selectFolder',
-									title: '<%= UnicodeLanguageUtil.format(pageContext, "select-x", "folder") %>',
-									uri: '<%= selectFolderURL.toString() %>'
-								},
-								function(event) {
-									var folderData = {
-										idString: 'parentFolderId',
-										idValue: event.folderid,
-										nameString: 'parentFolderName',
-										nameValue: event.foldername
-									};
+									function(event) {
+										var folderData = {
+											idString: 'parentFolderId',
+											idValue: event.folderid,
+											nameString: 'parentFolderName',
+											nameValue: event.foldername
+										};
 
-									Liferay.Util.selectFolder(folderData, '<portlet:renderURL><portlet:param name="struts_action" value="/journal/view" /></portlet:renderURL>', '<portlet:namespace />');
-								}
-							);
-						}
-					);
-				</aui:script>
+										Liferay.Util.selectFolder(folderData, '<portlet:namespace />');
+									}
+								);
+							}
+						);
+					</aui:script>
 
-				<%
-				String taglibRemoveFolder = "Liferay.Util.removeFolderSelection('parentFolderId', 'parentFolderName', '" + renderResponse.getNamespace() + "');";
-				%>
+					<%
+					String taglibRemoveFolder = "Liferay.Util.removeFolderSelection('parentFolderId', 'parentFolderName', '" + renderResponse.getNamespace() + "');";
+					%>
 
-				<aui:button name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
+					<aui:button disabled="<%= (parentFolderId <= 0) %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
+				</div>
 
 				<aui:input disabled="<%= mergeWithParentFolderDisabled %>" label="merge-with-parent-folder" name="mergeWithParentFolder" type="checkbox" />
 			</aui:field-wrapper>
 		</c:if>
 
-		<aui:input name="name" />
+		<aui:input autoFocus="<%= (windowState.equals(WindowState.MAXIMIZED) || windowState.equals(LiferayWindowState.POP_UP)) %>" name="name" />
 
 		<aui:input name="description" />
 
@@ -152,12 +148,9 @@ boolean mergeWithParentFolderDisabled = ParamUtil.getBoolean(request, "mergeWith
 <aui:script>
 	function <portlet:namespace />saveFolder() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (folder == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) || windowState.equals(LiferayWindowState.POP_UP) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
 </aui:script>
 
 <%

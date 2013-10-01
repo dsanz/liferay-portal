@@ -205,6 +205,8 @@ public interface Portal {
 	 */
 	public String addPreservedParameters(ThemeDisplay themeDisplay, String url);
 
+	public void addUserLocaleOptionsMessage(HttpServletRequest request);
+
 	/**
 	 * Clears the render parameters in the request if the portlet is in the
 	 * action phase.
@@ -242,6 +244,8 @@ public interface Portal {
 	 */
 	public String generateRandomKey(HttpServletRequest request, String input);
 
+	public String getAbsoluteURL(HttpServletRequest request, String url);
+
 	public LayoutQueryStringComposite getActualLayoutQueryStringComposite(
 			long groupId, boolean privateLayout, String friendlyURL,
 			Map<String, String[]> params, Map<String, Object> requestContext)
@@ -257,10 +261,12 @@ public interface Portal {
 	 * Returns an array with the alternate locales, considering if the page is
 	 * showing just a content and the translations of this content.
 	 *
-	 * @param  request the servlet request for the page
-	 * @return the array of alternate locales
-	 * @throws PortalException if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
+	 * @param      request the servlet request for the page
+	 * @return     the array of alternate locales
+	 * @throws     PortalException if a portal exception occurred
+	 * @throws     SystemException if a system exception occurred
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             com.liferay.portal.kernel.language.LanguageUtil#getAvailableLocales}
 	 */
 	public Locale[] getAlternateLocales(HttpServletRequest request)
 		throws PortalException, SystemException;
@@ -272,17 +278,24 @@ public interface Portal {
 	 * @param  canonicalURL the canonical URL previously obtained
 	 * @param  themeDisplay the theme display
 	 * @param  locale the locale of the translated page
+	 * @param  layout the layout
 	 * @return the alternate URL
+	 * @throws PortalException if a portal exception occurred
+	 * @throws SystemException if a system exception occurred
 	 */
 	public String getAlternateURL(
-		String canonicalURL, ThemeDisplay themeDisplay, Locale locale);
+			String canonicalURL, ThemeDisplay themeDisplay, Locale locale,
+			Layout layout)
+		throws PortalException, SystemException;
 
 	/**
 	 * Returns the set of struts actions that should not be checked for an
 	 * authentication token.
 	 *
-	 * @return the set of struts actions that should not be checked for an
-	 *         authentication token
+	 * @return     the set of struts actions that should not be checked for an
+	 *             authentication token
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletCSRFWhitelistActions}
 	 */
 	public Set<String> getAuthTokenIgnoreActions();
 
@@ -290,8 +303,10 @@ public interface Portal {
 	 * Returns the set of IDs of portlets that should not be checked for an
 	 * authentication token.
 	 *
-	 * @return the set of IDs of portlets that should not be checked for an
-	 *         authentication token
+	 * @return     the set of IDs of portlets that should not be checked for an
+	 *             authentication token
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletCSRFWhitelist}
 	 */
 	public Set<String> getAuthTokenIgnorePortlets();
 
@@ -682,6 +697,8 @@ public interface Portal {
 			Locale locale)
 		throws PortalException, SystemException;
 
+	public int[] getGroupFriendlyURLIndex(String requestURI);
+
 	public String[] getGroupPermissions(HttpServletRequest request);
 
 	public String[] getGroupPermissions(
@@ -810,7 +827,7 @@ public interface Portal {
 		HttpServletRequest request, HttpServletResponse response,
 		boolean initialize);
 
-	public Locale getLocale(RenderRequest renderRequest);
+	public Locale getLocale(PortletRequest portletRequest);
 
 	public String getLocalizedFriendlyURL(
 			HttpServletRequest request, Layout layout, Locale locale)
@@ -834,6 +851,12 @@ public interface Portal {
 		throws PortalException, SystemException;
 
 	public String getPathContext();
+
+	public String getPathContext(HttpServletRequest request);
+
+	public String getPathContext(PortletRequest portletRequest);
+
+	public String getPathContext(String contextPath);
 
 	public String getPathFriendlyURLPrivateGroup();
 
@@ -891,13 +914,13 @@ public interface Portal {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 * com.liferay.portal.kernel.portlet.PortletSecurityUtil#getWhitelist()}
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletInvocationWhitelist}
 	 */
 	public Set<String> getPortletAddDefaultResourceCheckWhitelist();
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 * com.liferay.portal.kernel.portlet.PortletSecurityUtil#getWhitelistActions()}
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletInvocationWhitelistActions}
 	 */
 	public Set<String> getPortletAddDefaultResourceCheckWhitelistActions();
 
@@ -1009,6 +1032,8 @@ public interface Portal {
 			PortletRequest portletRequest, boolean checkPermission)
 		throws PortalException, SystemException;
 
+	public String getServletContextName();
+
 	public Map<String, List<Portlet>> getSiteAdministrationCategoriesMap(
 			HttpServletRequest request)
 		throws SystemException;
@@ -1033,6 +1058,9 @@ public interface Portal {
 		throws PortalException, SystemException;
 
 	public long[] getSiteAndCompanyGroupIds(ThemeDisplay themeDisplay)
+		throws PortalException, SystemException;
+
+	public Locale getSiteDefaultLocale(long groupId)
 		throws PortalException, SystemException;
 
 	public long getSiteGroupId(long groupId)
@@ -1217,6 +1245,9 @@ public interface Portal {
 
 	public boolean isLayoutSitemapable(Layout layout);
 
+	public boolean isLoginRedirectRequired(HttpServletRequest request)
+		throws SystemException;
+
 	public boolean isMethodGet(PortletRequest portletRequest);
 
 	public boolean isMethodPost(PortletRequest portletRequest);
@@ -1246,13 +1277,13 @@ public interface Portal {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 * com.liferay.portal.kernel.portlet.PortletSecurityUtil#resetWhitelist()}
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#resetPortletInvocationWhitelist}
 	 */
 	public Set<String> resetPortletAddDefaultResourceCheckWhitelist();
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 * com.liferay.portal.kernel.portlet.PortletSecurityUtil#resetWhitelistActions()}
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#resetPortletInvocationWhitelistActions}
 	 */
 	public Set<String> resetPortletAddDefaultResourceCheckWhitelistActions();
 

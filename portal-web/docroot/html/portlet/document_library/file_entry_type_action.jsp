@@ -42,11 +42,14 @@ DLFileEntryType fileEntryType = (DLFileEntryType)row.getObject();
 			modelResourceDescription="<%= fileEntryType.getName(locale) %>"
 			resourcePrimKey="<%= String.valueOf(fileEntryType.getFileEntryTypeId()) %>"
 			var="permissionsURL"
+			windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 		/>
 
 		<liferay-ui:icon
 			image="permissions"
+			method="get"
 			url="<%= permissionsURL %>"
+			useDialog="<%= true %>"
 		/>
 	</c:if>
 

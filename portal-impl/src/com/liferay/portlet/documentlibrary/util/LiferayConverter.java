@@ -23,8 +23,8 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.xuggle.ferry.RefCounted;
 import com.xuggle.xuggler.Global;
 import com.xuggle.xuggler.IAudioResampler;
-import com.xuggle.xuggler.IAudioSamples.Format;
 import com.xuggle.xuggler.IAudioSamples;
+import com.xuggle.xuggler.IAudioSamples.Format;
 import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
 import com.xuggle.xuggler.IContainerFormat;
@@ -273,9 +273,8 @@ public abstract class LiferayConverter {
 				if (stopDecoding) {
 					return 1;
 				}
-				else {
-					continue;
-				}
+
+				continue;
 			}
 
 			if (thumbnailFile != null) {

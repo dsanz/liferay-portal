@@ -14,7 +14,6 @@
 
 package com.liferay.portlet.messageboards.util;
 
-import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.dao.shard.ShardCallable;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -27,6 +26,7 @@ import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackRegistryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -220,10 +220,11 @@ public class MBUtil {
 
 		Object partContent = part.getContent();
 
-		String contentType = part.getContentType().toLowerCase();
+		String contentType = StringUtil.toLowerCase(part.getContentType());
 
 		if ((part.getDisposition() != null) &&
-			part.getDisposition().equalsIgnoreCase(MimeMessage.ATTACHMENT)) {
+			StringUtil.equalsIgnoreCase(
+				part.getDisposition(), MimeMessage.ATTACHMENT)) {
 
 			if (_log.isDebugEnabled()) {
 				_log.debug("Processing attachment");
@@ -568,16 +569,11 @@ public class MBUtil {
 		String messageFormat = preferences.getValue(
 			"messageFormat", MBMessageConstants.DEFAULT_FORMAT);
 
-		String editorImpl = PropsUtil.get(BB_CODE_EDITOR_WYSIWYG_IMPL_KEY);
-
-		if (messageFormat.equals("bbcode") &&
-			!(editorImpl.equals("bbcode") ||
-			  editorImpl.equals("ckeditor_bbcode"))) {
-
-			messageFormat = "html";
+		if (isValidMessageFormat(messageFormat)) {
+			return messageFormat;
 		}
 
-		return messageFormat;
+		return "html";
 	}
 
 	public static long getMessageId(String mailId) {
@@ -631,7 +627,7 @@ public class MBUtil {
 
 		String[] references = message.getHeader("References");
 
-		if ((references != null) && (references.length > 0)) {
+		if (ArrayUtil.isNotEmpty(references)) {
 			String reference = references[0];
 
 			int x = reference.lastIndexOf("<mb.");
@@ -646,7 +642,7 @@ public class MBUtil {
 		if (parentHeader == null) {
 			String[] inReplyToHeaders = message.getHeader("In-Reply-To");
 
-			if ((inReplyToHeaders != null) && (inReplyToHeaders.length > 0)) {
+			if (ArrayUtil.isNotEmpty(inReplyToHeaders)) {
 				parentHeader = inReplyToHeaders[0];
 			}
 		}
@@ -713,7 +709,7 @@ public class MBUtil {
 
 		if (priorityPair == null) {
 			String defaultLanguageId = LocaleUtil.toLanguageId(
-				LocaleUtil.getDefault());
+				LocaleUtil.getSiteDefault());
 
 			priorities = LocalizationUtil.getPreferencesValues(
 				preferences, "priorities", defaultLanguageId);
@@ -812,7 +808,6 @@ public class MBUtil {
 					rank[0] = curRank;
 					maxPosts = posts;
 				}
-
 			}
 			else {
 				String entityType = curRankValueKvp[0];
@@ -862,6 +857,19 @@ public class MBUtil {
 		return GetterUtil.getBoolean(
 			preferences.getValue("allowAnonymousPosting", null),
 			PropsValues.MESSAGE_BOARDS_ANONYMOUS_POSTING_ENABLED);
+	}
+
+	public static boolean isValidMessageFormat(String messageFormat) {
+		String editorImpl = PropsUtil.get(BB_CODE_EDITOR_WYSIWYG_IMPL_KEY);
+
+		if (messageFormat.equals("bbcode") &&
+			!(editorImpl.equals("bbcode") ||
+			  editorImpl.equals("ckeditor_bbcode"))) {
+
+			return false;
+		}
+
+		return true;
 	}
 
 	public static boolean isViewableMessage(
@@ -1071,21 +1079,9 @@ public class MBUtil {
 	private static int _getMessageCount(MBCategory category)
 		throws SystemException {
 
-		int messageCount = MBMessageLocalServiceUtil.getCategoryMessagesCount(
+		return MBMessageLocalServiceUtil.getCategoryMessagesCount(
 			category.getGroupId(), category.getCategoryId(),
 			WorkflowConstants.STATUS_APPROVED);
-
-		QueryDefinition queryDefinition = new QueryDefinition(
-			WorkflowConstants.STATUS_IN_TRASH);
-
-		List<MBThread> threads = MBThreadLocalServiceUtil.getGroupThreads(
-			category.getGroupId(), queryDefinition);
-
-		for (MBThread thread : threads) {
-			messageCount = messageCount - thread.getMessageCount();
-		}
-
-		return messageCount;
 	}
 
 	private static String _getParentMessageIdFromSubject(Message message)

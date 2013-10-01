@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
@@ -255,7 +256,7 @@ public class JournalTemplateServiceTest extends BaseJournalServiceTestCase {
 
 		Map<Locale, String> nameMap = new HashMap<Locale, String>();
 
-		nameMap.put(Locale.US, "New Test Template");
+		nameMap.put(LocaleUtil.US, "New Test Template");
 
 		JournalTemplate template =
 			JournalTemplateLocalServiceUtil.updateTemplate(
@@ -263,7 +264,8 @@ public class JournalTemplateServiceTest extends BaseJournalServiceTestCase {
 				"New Template Content", false, TemplateConstants.LANG_TYPE_FTL,
 				true, false, null, null, getServiceContext());
 
-		Assert.assertEquals("New Test Template", template.getName(Locale.US));
+		Assert.assertEquals(
+			"New Test Template", template.getName(LocaleUtil.US));
 		Assert.assertEquals("New Template Content", template.getXsl());
 	}
 

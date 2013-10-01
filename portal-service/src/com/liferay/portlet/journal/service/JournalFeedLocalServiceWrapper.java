@@ -425,6 +425,13 @@ public class JournalFeedLocalServiceWrapper implements JournalFeedLocalService,
 	}
 
 	@Override
+	public com.liferay.portlet.journal.model.JournalFeed fetchFeed(
+		long groupId, java.lang.String feedId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFeedLocalService.fetchFeed(groupId, feedId);
+	}
+
+	@Override
 	public com.liferay.portlet.journal.model.JournalFeed getFeed(long feedId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {

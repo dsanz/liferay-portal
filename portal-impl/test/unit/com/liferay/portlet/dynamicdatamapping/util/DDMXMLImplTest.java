@@ -111,10 +111,7 @@ public class DDMXMLImplTest extends PowerMockito {
 			return false;
 		}
 
-		Attribute defaultLocaleAttribute = rootElement.attribute(
-			"default-locale");
-
-		if (!newLocaleId.equals(defaultLocaleAttribute.getValue())) {
+		if (!newLocaleId.equals(rootElement.attributeValue("default-locale"))) {
 			return false;
 		}
 
@@ -148,10 +145,8 @@ public class DDMXMLImplTest extends PowerMockito {
 			Element rootElement = (Element)structureDocument.selectSingleNode(
 				"/structure/root");
 
-			Attribute defaultLocale = rootElement.attribute("default-locale");
-
 			Locale contentDefaultLocale = LocaleUtil.fromLanguageId(
-				defaultLocale.getValue());
+				rootElement.attributeValue("default-locale"));
 
 			Locale availableDefaultLocale = LocaleUtil.fromLanguageId("es_ES");
 

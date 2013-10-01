@@ -43,7 +43,7 @@ Set<String> contextPaths = JSONWebServiceActionsManagerUtil.getContextPaths();
 	</aui:select>
 </c:if>
 
-<aui:input cssClass="lfr-api-service-search" label="" name="serviceSearch" placeholder="search" />
+<aui:input autoFocus="<%= true %>" cssClass="lfr-api-service-search" label="" name="serviceSearch" placeholder="search" />
 
 <div class="services" id="services">
 
@@ -74,9 +74,18 @@ Set<String> contextPaths = JSONWebServiceActionsManagerUtil.getContextPaths();
 
 	for (String jsonWebServiceClassName : jsonWebServiceClasses.keySet()) {
 		Set<JSONWebServiceActionMapping> jsonWebServiceMappings = jsonWebServiceClasses.get(jsonWebServiceClassName);
+
+		String panelTitle = jsonWebServiceClassName;
+
+		if (panelTitle.endsWith("Impl")) {
+			panelTitle = panelTitle.substring(0, panelTitle.length() - 4);
+		}
+		if (panelTitle.endsWith("Service")) {
+			panelTitle = panelTitle.substring(0, panelTitle.length() - 7);
+		}
 	%>
 
-		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id='<%= "apiService" + jsonWebServiceClassName + "Panel" %>' persistState="<%= true %>" title="<%= jsonWebServiceClassName %>">
+		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id='<%= "apiService" + jsonWebServiceClassName + "Panel" %>' persistState="<%= true %>" title="<%= panelTitle %>">
 			<ul class="unstyled">
 
 				<%
@@ -183,11 +192,9 @@ Set<String> contextPaths = JSONWebServiceActionsManagerUtil.getContextPaths();
 
 	var cache = {};
 
-	var serviceSearch = A.one('#serviceSearch');
-
 	var filter = new ServiceFilter(
 		{
-			inputNode: serviceSearch,
+			inputNode: A.one('#serviceSearch'),
 			minQueryLength: 0,
 			queryDelay: 0,
 			resultFilters: function(query, results) {
@@ -309,6 +316,4 @@ Set<String> contextPaths = JSONWebServiceActionsManagerUtil.getContextPaths();
 			50
 		)
 	);
-
-	Liferay.Util.focusFormField(serviceSearch);
 </aui:script>

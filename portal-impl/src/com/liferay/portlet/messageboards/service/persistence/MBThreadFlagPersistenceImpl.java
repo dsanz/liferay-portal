@@ -355,6 +355,10 @@ public class MBThreadFlagPersistenceImpl extends BasePersistenceImpl<MBThreadFla
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBThreadFlag> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1173,6 +1177,10 @@ public class MBThreadFlagPersistenceImpl extends BasePersistenceImpl<MBThreadFla
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBThreadFlag> list = findByUuid_C(uuid, companyId, count - 1,
 				count, orderByComparator);
 
@@ -1701,6 +1709,10 @@ public class MBThreadFlagPersistenceImpl extends BasePersistenceImpl<MBThreadFla
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUserId(userId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBThreadFlag> list = findByUserId(userId, count - 1, count,
 				orderByComparator);
 
@@ -2188,6 +2200,10 @@ public class MBThreadFlagPersistenceImpl extends BasePersistenceImpl<MBThreadFla
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByThreadId(threadId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBThreadFlag> list = findByThreadId(threadId, count - 1, count,
 				orderByComparator);
 
@@ -2643,6 +2659,10 @@ public class MBThreadFlagPersistenceImpl extends BasePersistenceImpl<MBThreadFla
 
 	private static final String _FINDER_COLUMN_U_T_USERID_2 = "mbThreadFlag.userId = ? AND ";
 	private static final String _FINDER_COLUMN_U_T_THREADID_2 = "mbThreadFlag.threadId = ?";
+
+	public MBThreadFlagPersistenceImpl() {
+		setModelClass(MBThreadFlag.class);
+	}
 
 	/**
 	 * Caches the message boards thread flag in the entity cache if it is enabled.

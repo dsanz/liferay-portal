@@ -81,15 +81,16 @@ public class JournalDDMDisplay extends BaseDDMDisplay {
 			long classPK, String portletResource)
 		throws Exception {
 
-		String backURL = ParamUtil.getString(liferayPortletRequest, "backURL");
+		String redirect = ParamUtil.getString(
+			liferayPortletRequest, "redirect");
 
-		if (Validator.isNull(backURL)) {
-			backURL = getViewTemplatesURL(
+		if (Validator.isNull(redirect)) {
+			return getViewTemplatesURL(
 				liferayPortletRequest, liferayPortletResponse, classNameId,
 				classPK);
 		}
 
-		return backURL;
+		return redirect;
 	}
 
 	@Override
@@ -135,7 +136,7 @@ public class JournalDDMDisplay extends BaseDDMDisplay {
 			LiferayPortletResponse liferayPortletResponse, long classPK)
 		throws Exception {
 
-		if (classPK < 0) {
+		if (classPK <= 0) {
 			return StringPool.BLANK;
 		}
 

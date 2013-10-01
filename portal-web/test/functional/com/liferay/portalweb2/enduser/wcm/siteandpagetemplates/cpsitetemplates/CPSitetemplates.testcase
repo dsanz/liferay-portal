@@ -1,0 +1,76 @@
+<definition>
+<var name="portletName" value="Site Templates" />
+<var name="siteName" value="Site Name" />
+<var name="siteTemplateName" value="Site Template Name" />
+
+	<set-up>
+		<execute macro="User#firstLoginPG" />
+	</set-up>
+
+	<tear-down>
+		<execute macro="Site#tearDownCP" />
+
+		<execute macro="SiteTemplates#tearDownCP" />
+	</tear-down>
+
+	<command name="AddSiteTemplate">
+		<var name="siteTemplateActive" value="Yes" />
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="${portletName}" />
+		</execute>
+
+		<execute macro="SiteTemplates#addCP">
+			<var name="siteTemplateActive" value="${siteTemplateActive}" />
+			<var name="siteTemplateName" value="${siteTemplateName}" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Sites" />
+		</execute>
+
+		<execute macro="Site#addSiteTemplateCP">
+			<var name="siteName" value="${siteName}" />
+		</execute>
+	</command>
+
+	<command name="EditSiteTemplate">
+		<var name="siteTemplateActive" value="Yes" />
+		<var name="siteTemplateActiveEdit" value="No" />
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="${portletName}" />
+		</execute>
+
+		<execute macro="SiteTemplates#addCP">
+			<var name="siteTemplateActive" value="${siteTemplateActive}" />
+			<var name="siteTemplateName" value="${siteTemplateName}" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Sites" />
+		</execute>
+
+		<execute macro="Site#addSiteTemplateCP">
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="${portletName}" />
+		</execute>
+
+		<execute macro="SiteTemplates#editCP">
+			<var name="siteTemplateActiveEdit" value="${siteTemplateActiveEdit}" />
+			<var name="siteTemplateName" value="${siteTemplateName}" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="${portletName}" />
+		</execute>
+
+		<execute macro="SiteTemplates#viewEditCP">
+			<var name="siteTemplateActiveEdit" value="${siteTemplateActiveEdit}" />
+			<var name="siteTemplateName" value="${siteTemplateName}" />
+		</execute>
+	</command>
+</definition>

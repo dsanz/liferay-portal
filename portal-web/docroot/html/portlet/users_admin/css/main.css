@@ -1,3 +1,5 @@
+@import "mixins";
+
 .portlet-users-admin {
 	.form {
 		fieldset {
@@ -6,13 +8,12 @@
 		}
 
 		.fieldset {
-			textarea {
-				width: 90%;
+			select {
+				width: auto;
 			}
 
-			table.org-labor-table td .field {
-				margin-bottom: 0;
-				padding: 3px 1px;
+			textarea {
+				width: 90%;
 			}
 
 			.field {
@@ -72,6 +73,25 @@
 		padding: 15px 0 5px;
 	}
 
+	.org-labor-entry {
+		float: left;
+		margin-right: 2%;
+		width: 12%;
+
+		@include respond-to(phone) {
+			float: none;
+			width: auto;
+		}
+
+		select {
+			width: 100%;
+		}
+
+		> .control-group {
+			margin-bottom: 0;
+		}
+	}
+
 	.organization-information {
 		overflow: hidden;
 	}
@@ -81,9 +101,9 @@
 		margin: 0 0 0.5em 0.5em;
 	}
 
-    .password-policy-options {
-        margin-left: 2em;
-    }
+	.password-policy-options {
+		margin-left: 2em;
+	}
 
 	.section {
 		float: left;
@@ -157,22 +177,26 @@
 		}
 	}
 
+	.membership-restriction-container {
+		margin-top: 1em;
+	}
+
 	.instant-messenger, .social-network {
 		clear: both;
+		margin-bottom: 2em;
 		overflow: hidden;
 
 		img {
 			margin-left: 1em;
-			margin-top: 1.8em;
+		}
+
+		.control-group {
+			margin: 0;
 		}
 
 		.field {
 			float: left;
 		}
-	}
-
-	table.org-labor-table {
-		margin-bottom: 30px;
 	}
 
 	.addresses .field {
@@ -181,7 +205,7 @@
 	}
 
 	.permission-scopes {
-		display: block;
+		margin-right: 10px;
 
 		&.empty {
 			display: none;
@@ -190,6 +214,64 @@
 
 	.permission-group {
 		margin: 10px 0 0 10px;
+	}
+
+	.lfr-permission-navigation-container {
+		width: 275px;
+
+		.search {
+			margin: 20px 0px;
+		}
+
+		.lfr-permission-navigation {
+			overflow: auto;
+			width: 100%;
+
+			.permission-navigation-item-header {
+				font-weight: bold;
+
+				.permission-navigation-item-header-icon {
+					background: url() no-repeat 50%;
+					display: inline-block;
+					height: 10px;
+					width: 9px;
+				}
+			}
+
+			.selected {
+				font-weight: bold;
+			}
+
+			.toggler-header-collapsed .permission-navigation-item-header-icon {
+				background-image: url(@theme_image_path@/arrows/05_right.png);
+			}
+
+			.toggler-header-expanded .permission-navigation-item-header-icon {
+				background-image: url(@theme_image_path@/arrows/05_down.png);
+				vertical-align: middle;
+			}
+
+			.permission-navigation-item-header {
+				cursor: pointer;
+				margin: 0.5em;
+			}
+
+			.permission-navigation-item-content .permission-navigation-item-container {
+				cursor: pointer;
+				line-height: 1.8em;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.permission-navigation-item-summary {
+				margin: 0.5em 0em 1.5em .5em;
+			}
+
+			.permission-navigation-section .permission-navigation-section {
+				margin-left: 1em;
+			}
+		}
 	}
 
 	.view-all-link {

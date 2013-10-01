@@ -21,9 +21,11 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.InstancePool;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -38,6 +40,7 @@ import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.trash.model.TrashEntry;
+import com.liferay.portlet.trash.model.TrashVersion;
 import com.liferay.portlet.trash.util.TrashUtil;
 import com.liferay.portlet.wiki.DuplicateNodeNameException;
 import com.liferay.portlet.wiki.NodeNameException;
@@ -190,10 +193,13 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
 		WikiNode node = wikiNodePersistence.findByPrimaryKey(nodeId);
 
-		deleteNode(node);
+		wikiNodeLocalService.deleteNode(node);
 	}
 
 	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE)
 	public void deleteNode(WikiNode node)
 		throws PortalException, SystemException {
 
@@ -210,12 +216,6 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 		resourceLocalService.deleteResource(
 			node.getCompanyId(), WikiNode.class.getName(),
 			ResourceConstants.SCOPE_INDIVIDUAL, node.getNodeId());
-
-		// System event
-
-		systemEventLocalService.addSystemEvent(
-			node.getGroupId(), WikiNode.class.getName(), node.getNodeId(),
-			node.getUuid(), SystemEventConstants.TYPE_DELETE);
 
 		// Attachments
 
@@ -261,7 +261,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 		List<WikiNode> nodes = wikiNodePersistence.findByGroupId(groupId);
 
 		for (WikiNode node : nodes) {
-			deleteNode(node);
+			wikiNodeLocalService.deleteNode(node);
 		}
 
 		PortletFileRepositoryUtil.deletePortletRepository(
@@ -269,10 +269,17 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 	}
 
 	@Override
-	public WikiNode fetchWikiNode(long groupId, String name)
+	public WikiNode fetchNode(long groupId, String name)
 		throws SystemException {
 
 		return wikiNodePersistence.fetchByG_N(groupId, name);
+	}
+
+	@Override
+	public WikiNode fetchNodeByUuidAndGroupId(String uuid, long groupId)
+		throws SystemException {
+
+		return wikiNodePersistence.fetchByUUID_G(uuid, groupId);
 	}
 
 	@Override
@@ -396,27 +403,43 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 	public WikiNode moveNodeToTrash(long userId, WikiNode node)
 		throws PortalException, SystemException {
 
+		// Node
+
+		int oldStatus = node.getStatus();
+
 		node = updateStatus(
 			userId, node, WorkflowConstants.STATUS_IN_TRASH,
 			new ServiceContext());
 
-		TrashEntry trashEntry = trashEntryLocalService.getEntry(
-			WikiNode.class.getName(), node.getNodeId());
+		// Trash
 
-		String trashTitle = TrashUtil.getTrashTitle(trashEntry.getEntryId());
+		UnicodeProperties typeSettingsProperties = new UnicodeProperties();
 
-		node.setName(trashTitle);
+		typeSettingsProperties.put("title", node.getName());
 
-		return wikiNodePersistence.update(node);
+		TrashEntry trashEntry = trashEntryLocalService.addTrashEntry(
+			userId, node.getGroupId(), WikiNode.class.getName(),
+			node.getNodeId(), node.getUuid(), null, oldStatus, null,
+			typeSettingsProperties);
+
+		node.setName(TrashUtil.getTrashTitle(trashEntry.getEntryId()));
+
+		wikiNodePersistence.update(node);
+
+		// Pages
+
+		moveDependentsToTrash(node.getNodeId(), trashEntry.getEntryId());
+
+		return node;
 	}
 
 	@Override
 	public void restoreNodeFromTrash(long userId, WikiNode node)
 		throws PortalException, SystemException {
 
-		String name = TrashUtil.getOriginalTitle(node.getName());
+		// Node
 
-		node.setName(name);
+		node.setName(TrashUtil.getOriginalTitle(node.getName()));
 
 		wikiNodePersistence.update(node);
 
@@ -425,6 +448,14 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
 		updateStatus(
 			userId, node, trashEntry.getStatus(), new ServiceContext());
+
+		// Pages
+
+		restoreDependentFromTrash(node.getNodeId(), trashEntry.getEntryId());
+
+		// Trash
+
+		trashEntryLocalService.deleteEntry(trashEntry);
 	}
 
 	@Override
@@ -472,8 +503,6 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
 		// Node
 
-		int oldStatus = node.getStatus();
-
 		User user = userPersistence.findByPrimaryKey(userId);
 
 		Date now = new Date();
@@ -485,37 +514,12 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
 		wikiNodePersistence.update(node);
 
-		// Pages
-
-		updateDependentStatus(node.getNodeId(), status);
-
-		// Trash
-
-		if (oldStatus == WorkflowConstants.STATUS_IN_TRASH) {
-			trashEntryLocalService.deleteEntry(
-				WikiNode.class.getName(), node.getNodeId());
-		}
-		else if (status == WorkflowConstants.STATUS_IN_TRASH) {
-			UnicodeProperties typeSettingsProperties = new UnicodeProperties();
-
-			typeSettingsProperties.put("title", node.getName());
-
-			trashEntryLocalService.addTrashEntry(
-				userId, node.getGroupId(), WikiNode.class.getName(),
-				node.getNodeId(), oldStatus, null, typeSettingsProperties);
-		}
-
 		// Indexer
 
 		Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
 			WikiNode.class);
 
-		if (status == WorkflowConstants.STATUS_IN_TRASH) {
-			indexer.reindex(node);
-		}
-		else {
-			indexer.delete(node);
-		}
+		indexer.reindex(node);
 
 		return node;
 	}
@@ -569,76 +573,160 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 		return wikiImporter;
 	}
 
-	protected void updateDependentStatus(long nodeId, int status)
+	protected void moveDependentsToTrash(long nodeId, long trashEntryId)
 		throws PortalException, SystemException {
 
 		List<WikiPage> pages = wikiPagePersistence.findByNodeId(nodeId);
 
 		for (WikiPage page : pages) {
-			if (status == WorkflowConstants.STATUS_IN_TRASH) {
-				if (page.getStatus() == WorkflowConstants.STATUS_APPROVED) {
-					assetEntryLocalService.updateVisible(
-						WikiPage.class.getName(), page.getResourcePrimKey(),
-						false);
+
+			// Page
+
+			int oldStatus = page.getStatus();
+
+			if (oldStatus == WorkflowConstants.STATUS_IN_TRASH) {
+				continue;
+			}
+
+			// Version pages
+
+			List<WikiPage> versionPages = wikiPagePersistence.findByR_N(
+				page.getResourcePrimKey(), page.getNodeId());
+
+			for (WikiPage versionPage : versionPages) {
+
+				// Version page
+
+				int versionPageOldStatus = versionPage.getStatus();
+
+				versionPage.setStatus(WorkflowConstants.STATUS_IN_TRASH);
+
+				wikiPagePersistence.update(versionPage);
+
+				// Trash
+
+				int status = versionPageOldStatus;
+
+				if (versionPageOldStatus ==
+						WorkflowConstants.STATUS_PENDING) {
+
+					status = WorkflowConstants.STATUS_DRAFT;
 				}
 
-				// Social
+				if (versionPageOldStatus !=
+						WorkflowConstants.STATUS_APPROVED) {
 
-				socialActivityCounterLocalService.disableActivityCounters(
-					WikiPage.class.getName(), page.getResourcePrimKey());
-
-				// Index
-
-				Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
-					WikiPage.class);
-
-				indexer.reindex(page);
-
-				// Cache
-
-				if (WikiCacheThreadLocal.isClearCache()) {
-					WikiCacheUtil.clearCache(page.getNodeId());
-				}
-
-				if (page.getStatus() == WorkflowConstants.STATUS_PENDING) {
-					page.setStatus(WorkflowConstants.STATUS_DRAFT);
-
-					wikiPagePersistence.update(page);
-
-					workflowInstanceLinkLocalService.deleteWorkflowInstanceLink(
-						page.getCompanyId(), page.getGroupId(),
-						WikiPage.class.getName(), page.getResourcePrimKey());
+					trashVersionLocalService.addTrashVersion(
+						trashEntryId, WikiPage.class.getName(),
+						versionPage.getPageId(), status);
 				}
 			}
-			else {
 
-				// Asset
+			// Asset
 
-				if (page.getStatus() == WorkflowConstants.STATUS_APPROVED) {
-					assetEntryLocalService.updateVisible(
-						WikiPage.class.getName(), page.getResourcePrimKey(),
-						true);
+			if (oldStatus == WorkflowConstants.STATUS_APPROVED) {
+				assetEntryLocalService.updateVisible(
+					WikiPage.class.getName(), page.getResourcePrimKey(), false);
+			}
+
+			// Index
+
+			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				WikiPage.class);
+
+			indexer.reindex(page);
+
+			// Cache
+
+			if (WikiCacheThreadLocal.isClearCache()) {
+				WikiCacheUtil.clearCache(page.getNodeId());
+			}
+
+			// Workflow
+
+			if (oldStatus == WorkflowConstants.STATUS_PENDING) {
+				workflowInstanceLinkLocalService.deleteWorkflowInstanceLink(
+					page.getCompanyId(), page.getGroupId(),
+					WikiPage.class.getName(), page.getResourcePrimKey());
+			}
+		}
+	}
+
+	protected void restoreDependentFromTrash(long nodeId, long trashEntryId)
+		throws PortalException, SystemException {
+
+		List<WikiPage> pages = wikiPagePersistence.findByNodeId(nodeId);
+
+		for (WikiPage page : pages) {
+
+			// Page
+
+			TrashEntry trashEntry = trashEntryLocalService.fetchEntry(
+				WikiPage.class.getName(), page.getResourcePrimKey());
+
+			if (trashEntry != null) {
+				continue;
+			}
+
+			TrashVersion trashVersion = trashVersionLocalService.fetchVersion(
+				trashEntryId, WikiPage.class.getName(), page.getPageId());
+
+			int oldStatus = WorkflowConstants.STATUS_APPROVED;
+
+			if (trashVersion != null) {
+				oldStatus = trashVersion.getStatus();
+			}
+
+			// Version pages
+
+			List<WikiPage> versionPages = wikiPagePersistence.findByR_N(
+				page.getResourcePrimKey(), page.getNodeId());
+
+			for (WikiPage versionPage : versionPages) {
+
+				// Version page
+
+				trashVersion = trashVersionLocalService.fetchVersion(
+					trashEntryId, WikiPage.class.getName(),
+					versionPage.getPageId());
+
+				int versionPageOldStatus = WorkflowConstants.STATUS_APPROVED;
+
+				if (trashVersion != null) {
+					versionPageOldStatus = trashVersion.getStatus();
 				}
 
-				// Social
+				versionPage.setStatus(versionPageOldStatus);
 
-				socialActivityCounterLocalService.enableActivityCounters(
-					WikiPage.class.getName(), page.getResourcePrimKey());
+				wikiPagePersistence.update(versionPage);
 
-				// Index
+				// Trash
 
-				Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
-					WikiPage.class);
-
-				indexer.reindex(page);
+				if (trashVersion != null) {
+					trashVersionLocalService.deleteTrashVersion(trashVersion);
+				}
 			}
+
+			// Asset
+
+			if (oldStatus == WorkflowConstants.STATUS_APPROVED) {
+				assetEntryLocalService.updateVisible(
+					WikiPage.class.getName(), page.getResourcePrimKey(), true);
+			}
+
+			// Index
+
+			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				WikiPage.class);
+
+			indexer.reindex(page);
 		}
 	}
 
 	protected void validate(long nodeId, long groupId, String name)
 		throws PortalException, SystemException {
 
-		if (name.equalsIgnoreCase("tag")) {
+		if (StringUtil.equalsIgnoreCase(name, "tag")) {
 			throw new NodeNameException(name + " is reserved");
 		}
 

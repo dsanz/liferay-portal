@@ -23,8 +23,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.ehcache.config.CacheConfiguration.CacheEventListenerFactoryConfiguration;
 import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.config.CacheConfiguration.CacheEventListenerFactoryConfiguration;
 import net.sf.ehcache.config.Configuration;
 import net.sf.ehcache.config.ConfigurationFactory;
 
@@ -95,8 +95,6 @@ public class EhcacheConfigurationUtil {
 
 	private static String _clearCacheEventListenerConfigurations(
 		CacheConfiguration cacheConfiguration) {
-
-		cacheConfiguration.addBootstrapCacheLoaderFactory(null);
 
 		List<?> cacheEventListenerConfigurations =
 			cacheConfiguration.getCacheEventListenerConfigurations();

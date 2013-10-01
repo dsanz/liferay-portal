@@ -17,12 +17,14 @@
 <liferay-ui:search-container
 	iteratorURL="<%= portletURL %>"
 >
-	<%@ include file="/html/portlet/workflow_instances/workflow_search_results.jspf" %>
 
-	<liferay-ui:search-container-results
-		results="<%= resultsInstances %>"
-		total="<%= totalInstances %>"
-	/>
+	<%
+	boolean allInstances = false;
+	%>
+
+	<liferay-ui:search-container-results>
+		<%@ include file="/html/portlet/workflow_instances/workflow_search_results.jspf" %>
+	</liferay-ui:search-container-results>
 
 	<liferay-ui:search-container-row
 		className="com.liferay.portal.kernel.workflow.WorkflowInstance"
@@ -37,8 +39,6 @@
 		<%
 		Map<String, Serializable> workflowContext = workflowInstance.getWorkflowContext();
 
-		long companyId = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_COMPANY_ID));
-		long groupId = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_GROUP_ID));
 		String className = (String)workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_NAME);
 		long classPK = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_PK));
 
@@ -137,7 +137,7 @@
 
 		</liferay-ui:search-container-column-text>
 
-		<c:if test="<%= !allInstances %>">
+		<c:if test='<%= !allInstances && !tabs2.equals("completed") %>'>
 			<liferay-ui:search-container-column-jsp
 				align="right"
 				path="/html/portlet/workflow_instances/workflow_instance_action.jsp"

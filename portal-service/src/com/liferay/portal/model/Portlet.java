@@ -184,6 +184,13 @@ public interface Portlet extends PortletModel, PersistedModel {
 	public com.liferay.portal.kernel.portlet.ConfigurationAction getConfigurationActionInstance();
 
 	/**
+	* Returns the servlet context name of the portlet.
+	*
+	* @return the servlet context name of the portlet
+	*/
+	public java.lang.String getContextName();
+
+	/**
 	* Returns the servlet context path of the portlet.
 	*
 	* @return the servlet context path of the portlet
@@ -1043,20 +1050,29 @@ public interface Portlet extends PortletModel, PersistedModel {
 	public long getUserId();
 
 	/**
-	* Returns the names of the classes that represent user notification
-	* interpreters associated with the portlet.
+	* Returns the class loader resource path to the use notification
+	* definitions of the portlet.
 	*
-	* @return the names of the classes that represent user notification
-	interpreters associated with the portlet
+	* @return the class loader resource path to the use notification
+	definitions of the portlet
 	*/
-	public java.util.List<java.lang.String> getUserNotificationInterpreterClasses();
+	public java.lang.String getUserNotificationDefinitions();
 
 	/**
-	* Returns the user notification interpreter instances of the portlet.
+	* Returns the names of the classes that represent user notification
+	* handlers associated with the portlet.
 	*
-	* @return the user notification interpreter instances of the portlet
+	* @return the names of the classes that represent user notification
+	handlers associated with the portlet
 	*/
-	public java.util.List<com.liferay.portal.kernel.notifications.UserNotificationInterpreter> getUserNotificationInterpreterInstances();
+	public java.util.List<java.lang.String> getUserNotificationHandlerClasses();
+
+	/**
+	* Returns the user notification handler instances of the portlet.
+	*
+	* @return the user notification handler instances of the portlet
+	*/
+	public java.util.List<com.liferay.portal.kernel.notifications.UserNotificationHandler> getUserNotificationHandlerInstances();
 
 	/**
 	* Returns the user principal strategy of the portlet.
@@ -1318,6 +1334,15 @@ public interface Portlet extends PortletModel, PersistedModel {
 	* @return <code>true</code> if the portlet supports remoting
 	*/
 	public boolean isRemoteable();
+
+	/**
+	* Returns <code>true</code> if the portlet will only process namespaced
+	* parameters.
+	*
+	* @return <code>true</code> if the portlet will only process namespaced
+	parameters
+	*/
+	public boolean isRequiresNamespacedParameters();
 
 	/**
 	* Returns <code>true</code> if the portlet restores to the current view
@@ -1988,6 +2013,16 @@ public interface Portlet extends PortletModel, PersistedModel {
 	public void setRenderWeight(int renderWeight);
 
 	/**
+	* Set to <code>true</code> if the portlet will only process namespaced
+	* parameters.
+	*
+	* @param requiresNamespacedParameters boolean value for whether the portlet
+	will only process namespaced parameters
+	*/
+	public void setRequiresNamespacedParameters(
+		boolean requiresNamespacedParameters);
+
+	/**
 	* Sets the resource bundle of the portlet.
 	*
 	* @param resourceBundle the resource bundle of the portlet
@@ -2178,15 +2213,24 @@ public interface Portlet extends PortletModel, PersistedModel {
 	public void setUseDefaultTemplate(boolean useDefaultTemplate);
 
 	/**
-	* Sets the names of the classes that represent user notification
-	* interpreters associated with the portlet.
+	* Sets the class loader resource path to the user notification definitions
+	* of the portlet.
 	*
-	* @param userNotificationInterpreterClasses the names of the classes that
-	represent user notification interpreters associated with the
-	portlet
+	* @param userNotificationDefinitions the class loader resource path to the
+	user notification definitions of the portlet
 	*/
-	public void setUserNotificationInterpreterClasses(
-		java.util.List<java.lang.String> userNotificationInterpreterClasses);
+	public void setUserNotificationDefinitions(
+		java.lang.String userNotificationDefinitions);
+
+	/**
+	* Sets the names of the classes that represent user notification handlers
+	* associated with the portlet.
+	*
+	* @param userNotificationHandlerClasses the names of the classes that
+	represent user notification handlers associated with the portlet
+	*/
+	public void setUserNotificationHandlerClasses(
+		java.util.List<java.lang.String> userNotificationHandlerClasses);
 
 	/**
 	* Sets the user principal strategy of the portlet.

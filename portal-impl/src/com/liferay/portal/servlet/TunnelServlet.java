@@ -83,9 +83,16 @@ public class TunnelServlet extends HttpServlet {
 			returnObj = ite.getCause();
 
 			if (!(returnObj instanceof PortalException)) {
-				ite.printStackTrace();
+				_log.error(ite, ite);
 
-				returnObj = new SystemException();
+				if (returnObj != null) {
+					Throwable throwable = (Throwable)returnObj;
+
+					returnObj = new SystemException(throwable.getMessage());
+				}
+				else {
+					returnObj = new SystemException();
+				}
 			}
 		}
 		catch (Exception e) {

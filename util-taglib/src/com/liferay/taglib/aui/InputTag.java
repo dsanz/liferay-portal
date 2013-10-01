@@ -18,12 +18,14 @@ import com.liferay.portal.kernel.servlet.taglib.aui.ValidatorTag;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.ModelHintsUtil;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.taglib.aui.base.BaseInputTag;
-import com.liferay.util.PwdGenerator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -153,6 +155,18 @@ public class InputTag extends BaseInputTag {
 		}
 
 		if (Validator.isNull(defaultLanguageId)) {
+			if ((model != null) &&
+				ModelHintsUtil.hasField(model.getName(), "groupId")) {
+
+				ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
+				defaultLanguageId = LocaleUtil.toLanguageId(
+					themeDisplay.getSiteDefaultLocale());
+			}
+		}
+
+		if (Validator.isNull(defaultLanguageId)) {
 			Locale defaultLocale = LocaleUtil.getDefault();
 
 			defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
@@ -200,7 +214,7 @@ public class InputTag extends BaseInputTag {
 				id = name;
 			}
 			else {
-				id = PwdGenerator.getPassword(PwdGenerator.KEY3, 4);
+				id = StringUtil.randomId();
 			}
 		}
 
@@ -236,6 +250,15 @@ public class InputTag extends BaseInputTag {
 			baseType = "text";
 		}
 
+		boolean wrappedField = false;
+
+		FieldWrapperTag fieldWrapper = (FieldWrapperTag)findAncestorWithClass(
+			this, FieldWrapperTag.class);
+
+		if (fieldWrapper != null) {
+			wrappedField = true;
+		}
+
 		setNamespacedAttribute(request, "baseType", baseType);
 		setNamespacedAttribute(request, "bean", bean);
 		setNamespacedAttribute(request, "defaultLanguageId", defaultLanguageId);
@@ -245,6 +268,7 @@ public class InputTag extends BaseInputTag {
 		setNamespacedAttribute(request, "id", id);
 		setNamespacedAttribute(request, "label", label);
 		setNamespacedAttribute(request, "model", model);
+		setNamespacedAttribute(request, "wrappedField", wrappedField);
 
 		request.setAttribute(getAttributeNamespace() + "value", getValue());
 
@@ -270,7 +294,13 @@ public class InputTag extends BaseInputTag {
 			List<ValidatorTag> validatorTags = ListUtil.fromMapValues(
 				_validators);
 
-			validatorTagsMap.put(_inputName, validatorTags);
+			String inputName = _inputName;
+
+			if (Validator.equals(getType(), "checkbox")) {
+				inputName = inputName.concat("Checkbox");
+			}
+
+			validatorTagsMap.put(inputName, validatorTags);
 		}
 	}
 

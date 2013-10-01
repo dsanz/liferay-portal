@@ -366,6 +366,10 @@ public class RatingsEntryPersistenceImpl extends BasePersistenceImpl<RatingsEntr
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_C(classNameId, classPK);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<RatingsEntry> list = findByC_C(classNameId, classPK, count - 1,
 				count, orderByComparator);
 
@@ -1174,6 +1178,10 @@ public class RatingsEntryPersistenceImpl extends BasePersistenceImpl<RatingsEntr
 		throws SystemException {
 		int count = countByC_C_S(classNameId, classPK, score);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<RatingsEntry> list = findByC_C_S(classNameId, classPK, score,
 				count - 1, count, orderByComparator);
 
@@ -1425,6 +1433,10 @@ public class RatingsEntryPersistenceImpl extends BasePersistenceImpl<RatingsEntr
 	private static final String _FINDER_COLUMN_C_C_S_CLASSNAMEID_2 = "ratingsEntry.classNameId = ? AND ";
 	private static final String _FINDER_COLUMN_C_C_S_CLASSPK_2 = "ratingsEntry.classPK = ? AND ";
 	private static final String _FINDER_COLUMN_C_C_S_SCORE_2 = "ratingsEntry.score = ?";
+
+	public RatingsEntryPersistenceImpl() {
+		setModelClass(RatingsEntry.class);
+	}
 
 	/**
 	 * Caches the ratings entry in the entity cache if it is enabled.

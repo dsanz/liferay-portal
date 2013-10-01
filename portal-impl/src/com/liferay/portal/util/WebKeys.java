@@ -17,7 +17,6 @@ package com.liferay.portal.util;
 import com.liferay.portal.kernel.resiliency.spi.agent.annotation.Direction;
 import com.liferay.portal.kernel.resiliency.spi.agent.annotation.Distributed;
 import com.liferay.portal.kernel.resiliency.spi.agent.annotation.MatchType;
-import com.liferay.util.bridges.jsf.sun.LiferayConfigureListener;
 
 /**
  * @author Brian Wing Shun Chan
@@ -42,8 +41,6 @@ public class WebKeys implements com.liferay.portal.kernel.util.WebKeys {
 	public static final String ASSET_VOCABULARIES = "ASSET_VOCABULARIES";
 
 	public static final String ASSET_VOCABULARY = "ASSET_VOCABULARY";
-
-	public static final String ASSOCIATE_KEY = LiferayConfigureListener.ASSOCIATE_KEY;
 
 	public static final String BASIC_AUTH_ENABLED = "BASIC_AUTH_ENABLED";
 
@@ -323,14 +320,6 @@ public class WebKeys implements com.liferay.portal.kernel.util.WebKeys {
 	public static final String PASSWORD_POLICY = "PASSWORD_POLICY";
 
 	public static final String PHONE = "PHONE";
-
-	public static final String PLUGIN_LAYOUT_TEMPLATES = "PLUGIN_LAYOUT_TEMPLATES";
-
-	public static final String PLUGIN_PORTLETS = "PLUGIN_PORTLETS";
-
-	public static final String PLUGIN_REPOSITORY_REPORT = "PLUGIN_REPOSITORY_REPORT";
-
-	public static final String PLUGIN_THEMES = "PLUGIN_THEMES";
 
 	public static final String POLLS_QUESTION = "POLLS_QUESTION";
 

@@ -61,15 +61,12 @@ boolean splitThread = false;
 	%>
 
 	<aui:fieldset>
-		<aui:field-wrapper label="category">
-			<portlet:renderURL var="viewCategoryURL">
-				<portlet:param name="struts_action" value="/message_boards/view" />
-				<portlet:param name="mbCategoryId" value="<%= String.valueOf(categoryId) %>" />
-			</portlet:renderURL>
+		<aui:field-wrapper label="category[message-board]">
+			<div class="input-append">
+				<liferay-ui:input-resource id="categoryName" url='<%= ((categoryId != MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) && (categoryId != MBCategoryConstants.DISCUSSION_CATEGORY_ID)) ? category.getName() : LanguageUtil.get(pageContext, "message-boards-home") %>' />
 
-			<aui:a href="<%= viewCategoryURL %>" id="categoryName"><%= ((categoryId != MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) && (categoryId != MBCategoryConstants.DISCUSSION_CATEGORY_ID)) ? category.getName() : LanguageUtil.get(pageContext, "message-boards-home") %></aui:a>
-
-			<aui:button name="selectCategoryButton" value="select" />
+				<aui:button name="selectCategoryButton" value="select" />
+			</div>
 		</aui:field-wrapper>
 
 		<aui:input disabled="<%= thread.isLocked() %>" helpMessage='<%= thread.isLocked() ? LanguageUtil.get(pageContext, "unlock-thread-to-add-an-explanation-post") : StringPool.BLANK %>' label="add-explanation-post" name="addExplanationPost" onClick='<%= renderResponse.getNamespace() + "toggleExplanationPost();" %>' type="checkbox" />
@@ -101,15 +98,16 @@ boolean splitThread = false;
 <aui:script>
 	function <portlet:namespace />moveThread() {
 		document.<portlet:namespace />fm.<portlet:namespace />body.value = <portlet:namespace />getHTML();
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />toggleExplanationPost() {
-		if (document.getElementById("<portlet:namespace />addExplanationPostCheckbox").checked) {
-			document.getElementById("<portlet:namespace />explanationPost").style.display = "";
+		if (document.getElementById('<portlet:namespace />addExplanationPostCheckbox').checked) {
+			document.getElementById('<portlet:namespace />explanationPost').style.display = "";
 		}
 		else {
-			document.getElementById("<portlet:namespace />explanationPost").style.display = "none";
+			document.getElementById('<portlet:namespace />explanationPost').style.display = "none";
 		}
 	}
 </aui:script>
@@ -129,21 +127,16 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "mov
 					dialog: {
 						constrain: true,
 						modal: true,
-						zIndex: Liferay.zIndex.WINDOW + 2,
 						width: 680
 					},
 					id: '<portlet:namespace />selectCategory',
-					title: '<%= UnicodeLanguageUtil.format(pageContext, "select-x", "category") %>',
+					title: '<liferay-ui:message arguments="category" key="select-x" />',
 					uri: '<portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="struts_action" value="/message_boards/select_category" /><portlet:param name="mbCategoryId" value="<%= String.valueOf(category.getParentCategoryId()) %>" /></portlet:renderURL>'
 				},
 				function(event) {
 					document.<portlet:namespace />fm.<portlet:namespace />mbCategoryId.value = event.categoryid;
 
-					var nameEl = document.getElementById("<portlet:namespace />categoryName");
-
-					nameEl.innerHTML = event.name + '&nbsp;';
-
-					nameEl.href = '<portlet:renderURL><portlet:param name="struts_action" value="/message_boards/view" /></portlet:renderURL>&<portlet:namespace />mbCategoryId=' + event.categoryid;
+					document.getElementById('<portlet:namespace />categoryName').value = event.name;
 				}
 			);
 		}

@@ -87,6 +87,7 @@ public class FriendlyURLNormalizerImplTest {
 			_friendlyURLNormalizerImpl.normalize(StringPool.SPACE));
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testNormalizeWordReplacingChars() {
 		Assert.assertEquals(

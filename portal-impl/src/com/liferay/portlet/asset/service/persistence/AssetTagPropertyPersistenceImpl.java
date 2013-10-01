@@ -352,6 +352,10 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AssetTagProperty> list = findByCompanyId(companyId, count - 1,
 				count, orderByComparator);
 
@@ -838,6 +842,10 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	public AssetTagProperty fetchByTagId_Last(long tagId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByTagId(tagId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<AssetTagProperty> list = findByTagId(tagId, count - 1, count,
 				orderByComparator);
@@ -1364,6 +1372,10 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	public AssetTagProperty fetchByC_K_Last(long companyId, String key,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_K(companyId, key);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<AssetTagProperty> list = findByC_K(companyId, key, count - 1,
 				count, orderByComparator);
@@ -1894,6 +1906,10 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	private static final String _FINDER_COLUMN_T_K_KEY_1 = "assetTagProperty.key IS NULL";
 	private static final String _FINDER_COLUMN_T_K_KEY_2 = "assetTagProperty.key = ?";
 	private static final String _FINDER_COLUMN_T_K_KEY_3 = "(assetTagProperty.key IS NULL OR assetTagProperty.key = '')";
+
+	public AssetTagPropertyPersistenceImpl() {
+		setModelClass(AssetTagProperty.class);
+	}
 
 	/**
 	 * Caches the asset tag property in the entity cache if it is enabled.

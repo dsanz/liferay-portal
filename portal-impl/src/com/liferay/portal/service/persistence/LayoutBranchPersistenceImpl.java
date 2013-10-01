@@ -349,6 +349,10 @@ public class LayoutBranchPersistenceImpl extends BasePersistenceImpl<LayoutBranc
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByLayoutSetBranchId(layoutSetBranchId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutBranch> list = findByLayoutSetBranchId(layoutSetBranchId,
 				count - 1, count, orderByComparator);
 
@@ -862,6 +866,10 @@ public class LayoutBranchPersistenceImpl extends BasePersistenceImpl<LayoutBranc
 	public LayoutBranch fetchByL_P_Last(long layoutSetBranchId, long plid,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByL_P(layoutSetBranchId, plid);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<LayoutBranch> list = findByL_P(layoutSetBranchId, plid, count - 1,
 				count, orderByComparator);
@@ -1704,6 +1712,10 @@ public class LayoutBranchPersistenceImpl extends BasePersistenceImpl<LayoutBranc
 		throws SystemException {
 		int count = countByL_P_M(layoutSetBranchId, plid, master);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutBranch> list = findByL_P_M(layoutSetBranchId, plid, master,
 				count - 1, count, orderByComparator);
 
@@ -1955,6 +1967,10 @@ public class LayoutBranchPersistenceImpl extends BasePersistenceImpl<LayoutBranc
 	private static final String _FINDER_COLUMN_L_P_M_LAYOUTSETBRANCHID_2 = "layoutBranch.layoutSetBranchId = ? AND ";
 	private static final String _FINDER_COLUMN_L_P_M_PLID_2 = "layoutBranch.plid = ? AND ";
 	private static final String _FINDER_COLUMN_L_P_M_MASTER_2 = "layoutBranch.master = ?";
+
+	public LayoutBranchPersistenceImpl() {
+		setModelClass(LayoutBranch.class);
+	}
 
 	/**
 	 * Caches the layout branch in the entity cache if it is enabled.

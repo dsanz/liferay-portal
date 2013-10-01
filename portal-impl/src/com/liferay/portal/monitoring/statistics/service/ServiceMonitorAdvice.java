@@ -14,7 +14,6 @@
 
 package com.liferay.portal.monitoring.statistics.service;
 
-import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.monitoring.MonitoringProcessor;
 import com.liferay.portal.kernel.monitoring.RequestStatus;
 import com.liferay.portal.kernel.monitoring.statistics.DataSampleThreadLocal;
@@ -39,6 +38,10 @@ public class ServiceMonitorAdvice extends ChainableMethodAdvice {
 	 */
 	public static ServiceMonitorAdvice getInstance() {
 		return new ServiceMonitorAdvice();
+	}
+
+	public static boolean isActive() {
+		return _active;
 	}
 
 	public void addMonitoredClass(String className) {
@@ -82,6 +85,9 @@ public class ServiceMonitorAdvice extends ChainableMethodAdvice {
 	@Override
 	public Object before(MethodInvocation methodInvocation) throws Throwable {
 		if (!_active) {
+			serviceBeanAopCacheManager.removeMethodInterceptor(
+				methodInvocation, this);
+
 			return null;
 		}
 
@@ -120,9 +126,6 @@ public class ServiceMonitorAdvice extends ChainableMethodAdvice {
 			_serviceRequestDataSampleThreadLocal.remove();
 
 			DataSampleThreadLocal.addDataSample(serviceRequestDataSample);
-
-			MessageBusUtil.sendMessage(
-				_monitoringDestinationName, serviceRequestDataSample);
 		}
 	}
 
@@ -134,19 +137,15 @@ public class ServiceMonitorAdvice extends ChainableMethodAdvice {
 		return _monitoredMethods;
 	}
 
-	public String getMonitoringDestinationName() {
-		return _monitoringDestinationName;
-	}
-
-	public boolean isActive() {
-		return _active;
-	}
-
 	public boolean isPermissiveMode() {
 		return _permissiveMode;
 	}
 
 	public void setActive(boolean active) {
+		if (active && !_active) {
+			serviceBeanAopCacheManager.reset();
+		}
+
 		_active = active;
 	}
 
@@ -158,8 +157,10 @@ public class ServiceMonitorAdvice extends ChainableMethodAdvice {
 		_monitoredMethods = monitoredMethods;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0
+	 */
 	public void setMonitoringDestinationName(String monitoringDestinationName) {
-		_monitoringDestinationName = monitoringDestinationName;
 	}
 
 	public void setPermissiveMode(boolean permissiveMode) {
@@ -190,7 +191,6 @@ public class ServiceMonitorAdvice extends ChainableMethodAdvice {
 	private static Set<String> _monitoredClasses = new HashSet<String>();
 	private static Set<MethodSignature> _monitoredMethods =
 		new HashSet<MethodSignature>();
-	private static String _monitoringDestinationName;
 	private static boolean _permissiveMode;
 	private static ThreadLocal<ServiceRequestDataSample>
 		_serviceRequestDataSampleThreadLocal =

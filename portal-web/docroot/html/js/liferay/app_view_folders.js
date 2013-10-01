@@ -1,13 +1,16 @@
 AUI.add(
 	'liferay-app-view-folders',
 	function(A) {
+		var ANode = A.Node;
 		var AObject = A.Object;
 		var History = Liferay.HistoryManager;
 		var Lang = A.Lang;
 
-		var formatSelectorNS = A.Node.formatSelectorNS;
+		var formatSelectorNS = ANode.formatSelectorNS;
 
 		var owns = AObject.owns;
+
+		var BROWSE_BY = 'browseBy';
 
 		var CSS_SELECTED = 'active';
 
@@ -139,7 +142,7 @@ AUI.add(
 
 						instance._displayStyleToolbar = instance.get('displayStyleToolbar');
 
-						instance._portletMessageContainer = A.Node.create(TPL_MESSAGE_RESPONSE);
+						instance._portletMessageContainer = ANode.create(TPL_MESSAGE_RESPONSE);
 
 						instance._entriesContainer = instance.byId('entriesContainer');
 
@@ -318,6 +321,7 @@ AUI.add(
 
 						var entryConfig = instance.get('entry');
 
+						var dataBrowseBy = item.attr('data-browse-by');
 						var dataExpandFolder = item.attr('data-expand-folder');
 						var dataStructureId = item.attr(entryConfig.typeId);
 						var dataFolderId = item.attr(DATA_FOLDER_ID);
@@ -336,6 +340,10 @@ AUI.add(
 						var requestParams = {};
 
 						requestParams[instance.ns(PARAM_STRUTS_ACTION)] = instance.get(STR_STRUTS_ACTION);
+
+						if (dataBrowseBy) {
+							requestParams[instance.ns(BROWSE_BY)] = dataBrowseBy;
+						}
 
 						if (dataExpandFolder) {
 							requestParams[instance.ns(EXPAND_FOLDER)] = dataExpandFolder;
@@ -437,7 +445,7 @@ AUI.add(
 					_parseContent: function(data) {
 						var instance = this;
 
-						var tmpNode = A.Node.create('<div></div>');
+						var tmpNode = ANode.create('<div></div>');
 
 						tmpNode.plug(A.Plugin.ParseContent);
 
@@ -520,22 +528,12 @@ AUI.add(
 						if (breadcrumb) {
 							var breadcrumbContainer;
 
-							var journalBreadcrumb = breadcrumb.one('.portlet-breadcrumb ul');
+							var portletBreadcrumb = breadcrumb.one('.portlet-breadcrumb');
 
-							if (journalBreadcrumb) {
+							if (portletBreadcrumb) {
 								breadcrumbContainer = instance.byId('breadcrumbContainer');
 
-								breadcrumbContainer.setContent(journalBreadcrumb);
-							}
-
-							var portalBreadcrumb = breadcrumb.one('.portal-breadcrumb ul');
-
-							if (portalBreadcrumb) {
-								breadcrumbContainer = A.one('#breadcrumbs ul');
-
-								if (breadcrumbContainer) {
-									breadcrumbContainer.setContent(portalBreadcrumb.html());
-								}
+								breadcrumbContainer.setContent(portletBreadcrumb.html());
 							}
 						}
 					},
@@ -546,9 +544,27 @@ AUI.add(
 						var addButton = instance.one('#addButton', content);
 
 						if (addButton) {
+							var toolbarContainer = instance.byId('toolbarContainer');
+
 							var addButtonContainer = instance.byId('addButtonContainer');
 
-							addButtonContainer.replace(addButton.html());
+							if (addButtonContainer) {
+								var refNode = addButtonContainer.next();
+
+								addButtonContainer.remove();
+
+								toolbarContainer.insertBefore(addButton.html(), refNode);
+							}
+							else {
+								var actionsButtonContainer = instance.one('#actionsButtonContainer', toolbarContainer);
+
+								if (actionsButtonContainer) {
+									toolbarContainer.insertBefore(addButton.html(), actionsButtonContainer.next());
+								}
+								else {
+									toolbarContainer.prepend(addButton.html());
+								}
+							}
 						}
 
 						var displayStyleButtons = instance.one('#displayStyleButtons', content);
@@ -587,7 +603,9 @@ AUI.add(
 
 						var addButtonContainer = instance.byId('addButtonContainer');
 
-						addButtonContainer.show();
+						if (addButtonContainer) {
+							addButtonContainer.show();
+						}
 
 						var sortButtonContainer = instance.byId('sortButtonContainer');
 
@@ -623,7 +641,7 @@ AUI.add(
 					},
 
 					_validateFolderContainer: function(value) {
-						return (Lang.isString(value) || value instanceof A.Node);
+						return (Lang.isString(value) || value instanceof ANode);
 					},
 
 					_valueFolderContainer: function() {

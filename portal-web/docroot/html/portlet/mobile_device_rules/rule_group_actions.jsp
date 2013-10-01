@@ -43,9 +43,15 @@ MDRRuleGroup ruleGroup = (MDRRuleGroup)row.getObject();
 			modelResourceDescription="<%= ruleGroup.getName(locale) %>"
 			resourcePrimKey="<%= String.valueOf(ruleGroup.getRuleGroupId()) %>"
 			var="permissionsURL"
+			windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 		/>
 
-		<liferay-ui:icon image="permissions" url="<%= permissionsURL %>" />
+		<liferay-ui:icon
+			image="permissions"
+			method="get"
+			url="<%= permissionsURL %>"
+			useDialog="<%= true %>"
+		/>
 	</c:if>
 
 	<c:if test="<%= MDRRuleGroupPermissionUtil.contains(permissionChecker, ruleGroup.getRuleGroupId(), ActionKeys.VIEW) && MDRPermissionUtil.contains(permissionChecker, groupId, ActionKeys.ADD_RULE_GROUP) %>">
@@ -56,7 +62,7 @@ MDRRuleGroup ruleGroup = (MDRRuleGroup)row.getObject();
 			<portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 		</portlet:renderURL>
 
-		<liferay-ui:icon image="manage_nodes" message="manage-rules" url="<%= editRulesURL.toString() %>" />
+		<liferay-ui:icon image="manage_nodes" message="manage-classification-rules" url="<%= editRulesURL.toString() %>" />
 
 		<portlet:actionURL var="copyURL">
 			<portlet:param name="struts_action" value="/mobile_device_rules/edit_rule_group" />

@@ -15,14 +15,21 @@
 package com.liferay.portlet.documentlibrary.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.ContainerModel;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
@@ -32,6 +39,8 @@ import com.liferay.portlet.documentlibrary.model.DLFolderModel;
 import com.liferay.portlet.documentlibrary.model.DLFolderSoap;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
+import com.liferay.portlet.trash.model.TrashEntry;
+import com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil;
 
 import java.io.Serializable;
 
@@ -77,6 +86,7 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 			{ "repositoryId", Types.BIGINT },
 			{ "mountPoint", Types.BOOLEAN },
 			{ "parentFolderId", Types.BIGINT },
+			{ "treePath", Types.VARCHAR },
 			{ "name", Types.VARCHAR },
 			{ "description", Types.VARCHAR },
 			{ "lastPostDate", Types.TIMESTAMP },
@@ -88,7 +98,7 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 			{ "statusByUserName", Types.VARCHAR },
 			{ "statusDate", Types.TIMESTAMP }
 		};
-	public static final String TABLE_SQL_CREATE = "create table DLFolder (uuid_ VARCHAR(75) null,folderId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,repositoryId LONG,mountPoint BOOLEAN,parentFolderId LONG,name VARCHAR(100) null,description STRING null,lastPostDate DATE null,defaultFileEntryTypeId LONG,hidden_ BOOLEAN,overrideFileEntryTypes BOOLEAN,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+	public static final String TABLE_SQL_CREATE = "create table DLFolder (uuid_ VARCHAR(75) null,folderId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,repositoryId LONG,mountPoint BOOLEAN,parentFolderId LONG,treePath STRING null,name VARCHAR(100) null,description STRING null,lastPostDate DATE null,defaultFileEntryTypeId LONG,hidden_ BOOLEAN,overrideFileEntryTypes BOOLEAN,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 	public static final String TABLE_SQL_DROP = "drop table DLFolder";
 	public static final String ORDER_BY_JPQL = " ORDER BY dlFolder.parentFolderId ASC, dlFolder.name ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY DLFolder.parentFolderId ASC, DLFolder.name ASC";
@@ -138,6 +148,7 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		model.setRepositoryId(soapModel.getRepositoryId());
 		model.setMountPoint(soapModel.getMountPoint());
 		model.setParentFolderId(soapModel.getParentFolderId());
+		model.setTreePath(soapModel.getTreePath());
 		model.setName(soapModel.getName());
 		model.setDescription(soapModel.getDescription());
 		model.setLastPostDate(soapModel.getLastPostDate());
@@ -234,6 +245,7 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		attributes.put("repositoryId", getRepositoryId());
 		attributes.put("mountPoint", getMountPoint());
 		attributes.put("parentFolderId", getParentFolderId());
+		attributes.put("treePath", getTreePath());
 		attributes.put("name", getName());
 		attributes.put("description", getDescription());
 		attributes.put("lastPostDate", getLastPostDate());
@@ -316,6 +328,12 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 			setParentFolderId(parentFolderId);
 		}
 
+		String treePath = (String)attributes.get("treePath");
+
+		if (treePath != null) {
+			setTreePath(treePath);
+		}
+
 		String name = (String)attributes.get("name");
 
 		if (name != null) {
@@ -379,8 +397,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -403,8 +421,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		return GetterUtil.getString(_originalUuid);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getFolderId() {
 		return _folderId;
 	}
@@ -414,8 +432,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		_folderId = folderId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
@@ -437,8 +455,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		return _originalGroupId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -460,8 +478,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		return _originalCompanyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -481,8 +499,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		_userUuid = userUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -497,8 +515,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		_userName = userName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -508,8 +526,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -519,8 +537,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		_modifiedDate = modifiedDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getRepositoryId() {
 		return _repositoryId;
 	}
@@ -542,8 +560,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		return _originalRepositoryId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getMountPoint() {
 		return _mountPoint;
 	}
@@ -570,8 +588,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		return _originalMountPoint;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getParentFolderId() {
 		return _parentFolderId;
 	}
@@ -593,8 +611,24 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		return _originalParentFolderId;
 	}
 
-	@Override
 	@JSON
+	@Override
+	public String getTreePath() {
+		if (_treePath == null) {
+			return StringPool.BLANK;
+		}
+		else {
+			return _treePath;
+		}
+	}
+
+	@Override
+	public void setTreePath(String treePath) {
+		_treePath = treePath;
+	}
+
+	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -619,8 +653,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		return GetterUtil.getString(_originalName);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getDescription() {
 		if (_description == null) {
 			return StringPool.BLANK;
@@ -635,8 +669,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		_description = description;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getLastPostDate() {
 		return _lastPostDate;
 	}
@@ -646,8 +680,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		_lastPostDate = lastPostDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getDefaultFileEntryTypeId() {
 		return _defaultFileEntryTypeId;
 	}
@@ -657,8 +691,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		_defaultFileEntryTypeId = defaultFileEntryTypeId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getHidden() {
 		return _hidden;
 	}
@@ -685,8 +719,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		return _originalHidden;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getOverrideFileEntryTypes() {
 		return _overrideFileEntryTypes;
 	}
@@ -701,8 +735,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		_overrideFileEntryTypes = overrideFileEntryTypes;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getStatus() {
 		return _status;
 	}
@@ -724,8 +758,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		return _originalStatus;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getStatusByUserId() {
 		return _statusByUserId;
 	}
@@ -746,8 +780,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		_statusByUserUuid = statusByUserUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getStatusByUserName() {
 		if (_statusByUserName == null) {
 			return StringPool.BLANK;
@@ -762,8 +796,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		_statusByUserName = statusByUserName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getStatusDate() {
 		return _statusDate;
 	}
@@ -796,6 +830,96 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 	@Override
 	public String getContainerModelName() {
 		return String.valueOf(getName());
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(PortalUtil.getClassNameId(
+				DLFolder.class.getName()));
+	}
+
+	@Override
+	public TrashEntry getTrashEntry() throws PortalException, SystemException {
+		if (!isInTrash() && !isInTrashContainer()) {
+			return null;
+		}
+
+		TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(),
+				getTrashEntryClassPK());
+
+		if (trashEntry != null) {
+			return trashEntry;
+		}
+
+		TrashHandler trashHandler = getTrashHandler();
+
+		if (!Validator.isNull(trashHandler.getContainerModelClassName())) {
+			ContainerModel containerModel = trashHandler.getParentContainerModel(this);
+
+			while (containerModel != null) {
+				if (containerModel instanceof TrashedModel) {
+					TrashedModel trashedModel = (TrashedModel)containerModel;
+
+					return trashedModel.getTrashEntry();
+				}
+
+				trashHandler = TrashHandlerRegistryUtil.getTrashHandler(trashHandler.getContainerModelClassName());
+
+				if (trashHandler == null) {
+					return null;
+				}
+
+				containerModel = trashHandler.getContainerModel(containerModel.getParentContainerModelId());
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public long getTrashEntryClassPK() {
+		return getPrimaryKey();
+	}
+
+	@Override
+	public TrashHandler getTrashHandler() {
+		return TrashHandlerRegistryUtil.getTrashHandler(getModelClassName());
+	}
+
+	@Override
+	public boolean isInTrash() {
+		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean isInTrashContainer() {
+		TrashHandler trashHandler = getTrashHandler();
+
+		if ((trashHandler == null) ||
+				Validator.isNull(trashHandler.getContainerModelClassName())) {
+			return false;
+		}
+
+		try {
+			ContainerModel containerModel = trashHandler.getParentContainerModel(this);
+
+			if (containerModel == null) {
+				return false;
+			}
+
+			if (containerModel instanceof TrashedModel) {
+				return ((TrashedModel)containerModel).isInTrash();
+			}
+		}
+		catch (Exception e) {
+		}
+
+		return false;
 	}
 
 	/**
@@ -867,16 +991,6 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 	}
 
 	@Override
-	public boolean isInTrash() {
-		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	@Override
 	public boolean isPending() {
 		if (getStatus() == WorkflowConstants.STATUS_PENDING) {
 			return true;
@@ -938,6 +1052,7 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		dlFolderImpl.setRepositoryId(getRepositoryId());
 		dlFolderImpl.setMountPoint(getMountPoint());
 		dlFolderImpl.setParentFolderId(getParentFolderId());
+		dlFolderImpl.setTreePath(getTreePath());
 		dlFolderImpl.setName(getName());
 		dlFolderImpl.setDescription(getDescription());
 		dlFolderImpl.setLastPostDate(getLastPostDate());
@@ -1099,6 +1214,14 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 
 		dlFolderCacheModel.parentFolderId = getParentFolderId();
 
+		dlFolderCacheModel.treePath = getTreePath();
+
+		String treePath = dlFolderCacheModel.treePath;
+
+		if ((treePath != null) && (treePath.length() == 0)) {
+			dlFolderCacheModel.treePath = null;
+		}
+
 		dlFolderCacheModel.name = getName();
 
 		String name = dlFolderCacheModel.name;
@@ -1156,7 +1279,7 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(43);
+		StringBundler sb = new StringBundler(45);
 
 		sb.append("{uuid=");
 		sb.append(getUuid());
@@ -1180,6 +1303,8 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		sb.append(getMountPoint());
 		sb.append(", parentFolderId=");
 		sb.append(getParentFolderId());
+		sb.append(", treePath=");
+		sb.append(getTreePath());
 		sb.append(", name=");
 		sb.append(getName());
 		sb.append(", description=");
@@ -1207,7 +1332,7 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(67);
+		StringBundler sb = new StringBundler(70);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portlet.documentlibrary.model.DLFolder");
@@ -1256,6 +1381,10 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 		sb.append(
 			"<column><column-name>parentFolderId</column-name><column-value><![CDATA[");
 		sb.append(getParentFolderId());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>treePath</column-name><column-value><![CDATA[");
+		sb.append(getTreePath());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>name</column-name><column-value><![CDATA[");
@@ -1330,6 +1459,7 @@ public class DLFolderModelImpl extends BaseModelImpl<DLFolder>
 	private long _parentFolderId;
 	private long _originalParentFolderId;
 	private boolean _setOriginalParentFolderId;
+	private String _treePath;
 	private String _name;
 	private String _originalName;
 	private String _description;

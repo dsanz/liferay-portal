@@ -341,6 +341,10 @@ public class LayoutSetPersistenceImpl extends BasePersistenceImpl<LayoutSet>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutSet> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -856,6 +860,10 @@ public class LayoutSetPersistenceImpl extends BasePersistenceImpl<LayoutSet>
 		throws SystemException {
 		int count = countByLayoutSetPrototypeUuid(layoutSetPrototypeUuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutSet> list = findByLayoutSetPrototypeUuid(layoutSetPrototypeUuid,
 				count - 1, count, orderByComparator);
 
@@ -1349,6 +1357,10 @@ public class LayoutSetPersistenceImpl extends BasePersistenceImpl<LayoutSet>
 
 	private static final String _FINDER_COLUMN_G_P_GROUPID_2 = "layoutSet.groupId = ? AND ";
 	private static final String _FINDER_COLUMN_G_P_PRIVATELAYOUT_2 = "layoutSet.privateLayout = ?";
+
+	public LayoutSetPersistenceImpl() {
+		setModelClass(LayoutSet.class);
+	}
 
 	/**
 	 * Caches the layout set in the entity cache if it is enabled.

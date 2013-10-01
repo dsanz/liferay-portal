@@ -17,8 +17,9 @@ package com.liferay.portal.security.pwd;
 import com.liferay.portal.UserPasswordException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.security.RandomUtil;
+import com.liferay.portal.kernel.security.SecureRandomUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.Randomizer;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.PasswordPolicy;
@@ -31,6 +32,7 @@ import com.liferay.util.PwdGenerator;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Random;
 
 /**
  * @author Scott Lee
@@ -219,19 +221,18 @@ public class PasswordPolicyToolkit extends BasicToolkit {
 				passwordMinLength -
 					(alphanumericMinLength + passwordPolicy.getMinSymbols());
 
-			sb.append(PwdGenerator.getSecurePassword(_completeCharset, count));
+			sb.append(PwdGenerator.getPassword(_completeCharset, count));
 		}
 
 		if (sb.index() == 0) {
 			sb.append(
-				PwdGenerator.getSecurePassword(
+				PwdGenerator.getPassword(
 					_completeCharset,
 					PropsValues.PASSWORDS_DEFAULT_POLICY_MIN_LENGTH));
 		}
 
-		Randomizer randomizer = Randomizer.getInstance();
-
-		return randomizer.randomize(sb.toString());
+		return RandomUtil.shuffle(
+			new Random(SecureRandomUtil.nextLong()), sb.toString());
 	}
 
 	protected String generateStatic(PasswordPolicy passwordPolicy) {
@@ -239,12 +240,12 @@ public class PasswordPolicyToolkit extends BasicToolkit {
 	}
 
 	protected String getRandomString(int count, char[] chars) {
+		Random random = new Random(SecureRandomUtil.nextInt());
+
 		StringBundler sb = new StringBundler(count);
 
-		Randomizer randomizer = Randomizer.getInstance();
-
 		for (int i = 0; i < count; i++) {
-			int index = randomizer.nextInt(chars.length);
+			int index = random.nextInt(chars.length);
 
 			sb.append(chars[index]);
 		}

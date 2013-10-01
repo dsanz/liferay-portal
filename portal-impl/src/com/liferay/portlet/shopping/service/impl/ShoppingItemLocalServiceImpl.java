@@ -92,7 +92,7 @@ public class ShoppingItemLocalServiceImpl
 		// Item
 
 		User user = userPersistence.findByPrimaryKey(userId);
-		sku = sku.trim().toUpperCase();
+		sku = StringUtil.toUpperCase(sku.trim());
 
 		byte[] smallImageBytes = null;
 		byte[] mediumImageBytes = null;
@@ -490,7 +490,7 @@ public class ShoppingItemLocalServiceImpl
 
 		User user = userPersistence.findByPrimaryKey(userId);
 		categoryId = getCategory(item, categoryId);
-		sku = sku.trim().toUpperCase();
+		sku = StringUtil.toUpperCase(sku.trim());
 
 		byte[] smallImageBytes = null;
 		byte[] mediumImageBytes = null;
@@ -665,8 +665,7 @@ public class ShoppingItemLocalServiceImpl
 			String smallImageURL = StringPool.BLANK;
 			File smallImageFile = new File(
 				tmpDir + File.separatorChar +
-				PwdGenerator.getPassword(
-					PwdGenerator.KEY1 + PwdGenerator.KEY2, 12) + ".jpg");
+					PwdGenerator.getPassword(8, PwdGenerator.KEY2) + ".jpg");
 
 			byte[] smallImageBytes = HttpUtil.URLtoByteArray(
 				amazonRankings.getSmallImageURL());
@@ -688,8 +687,7 @@ public class ShoppingItemLocalServiceImpl
 			String mediumImageURL = StringPool.BLANK;
 			File mediumImageFile = new File(
 				tmpDir + File.separatorChar +
-				PwdGenerator.getPassword(
-					PwdGenerator.KEY1 + PwdGenerator.KEY2, 12) + ".jpg");
+					PwdGenerator.getPassword(8, PwdGenerator.KEY2) + ".jpg");
 
 			byte[] mediumImageBytes = HttpUtil.URLtoByteArray(
 				amazonRankings.getMediumImageURL());
@@ -711,8 +709,7 @@ public class ShoppingItemLocalServiceImpl
 			String largeImageURL = StringPool.BLANK;
 			File largeImageFile = new File(
 				tmpDir + File.separatorChar +
-				PwdGenerator.getPassword(
-					PwdGenerator.KEY1 + PwdGenerator.KEY2, 12) + ".jpg");
+					PwdGenerator.getPassword(8, PwdGenerator.KEY2) + ".jpg");
 
 			byte[] largeImageBytes = HttpUtil.URLtoByteArray(
 				amazonRankings.getLargeImageURL());

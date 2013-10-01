@@ -21,6 +21,11 @@ import com.liferay.portal.CompanyWebIdException;
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.NoSuchShardException;
 import com.liferay.portal.NoSuchVirtualHostException;
+import com.liferay.portal.RequiredCompanyException;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.DynamicQuery;
+import com.liferay.portal.kernel.dao.orm.Property;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -44,19 +49,38 @@ import com.liferay.portal.kernel.util.TimeZoneUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.liveusers.LiveUsers;
 import com.liferay.portal.model.Account;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.CompanyConstants;
 import com.liferay.portal.model.Contact;
 import com.liferay.portal.model.ContactConstants;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.GroupConstants;
+import com.liferay.portal.model.LayoutPrototype;
+import com.liferay.portal.model.LayoutSetPrototype;
+import com.liferay.portal.model.Organization;
+import com.liferay.portal.model.OrganizationConstants;
+import com.liferay.portal.model.PasswordPolicy;
+import com.liferay.portal.model.PortalPreferences;
+import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
+import com.liferay.portal.model.Shard;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.VirtualHost;
+import com.liferay.portal.security.auth.CompanyThreadLocal;
 import com.liferay.portal.service.base.CompanyLocalServiceBaseImpl;
+import com.liferay.portal.service.persistence.GroupActionableDynamicQuery;
+import com.liferay.portal.service.persistence.LayoutPrototypeActionableDynamicQuery;
+import com.liferay.portal.service.persistence.LayoutSetPrototypeActionableDynamicQuery;
+import com.liferay.portal.service.persistence.OrganizationActionableDynamicQuery;
+import com.liferay.portal.service.persistence.RoleActionableDynamicQuery;
+import com.liferay.portal.service.persistence.UserActionableDynamicQuery;
 import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalInstances;
+import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
@@ -111,7 +135,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 		// Company
 
-		virtualHostname = virtualHostname.trim().toLowerCase();
+		virtualHostname = StringUtil.toLowerCase(virtualHostname.trim());
 
 		if (Validator.isNull(webId) ||
 			webId.equals(PropsValues.COMPANY_DEFAULT_WEB_ID) ||
@@ -433,6 +457,29 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		}
 	}
 
+	@Override
+	public Company deleteCompany(long companyId)
+		throws PortalException, SystemException {
+
+		if (companyId == PortalInstances.getDefaultCompanyId()) {
+			throw new RequiredCompanyException();
+		}
+
+		Long currentCompanyId = CompanyThreadLocal.getCompanyId();
+		boolean deleteInProcess = CompanyThreadLocal.isDeleteInProcess();
+
+		try {
+			CompanyThreadLocal.setCompanyId(companyId);
+			CompanyThreadLocal.setDeleteInProcess(true);
+
+			return doDeleteCompany(companyId);
+		}
+		finally {
+			CompanyThreadLocal.setCompanyId(currentCompanyId);
+			CompanyThreadLocal.setDeleteInProcess(deleteInProcess);
+		}
+	}
+
 	/**
 	 * Deletes the company's logo.
 	 *
@@ -483,7 +530,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 	public Company fetchCompanyByVirtualHost(String virtualHostname)
 		throws SystemException {
 
-		virtualHostname = virtualHostname.trim().toLowerCase();
+		virtualHostname = StringUtil.toLowerCase(virtualHostname.trim());
 
 		VirtualHost virtualHost = virtualHostPersistence.fetchByHostname(
 			virtualHostname);
@@ -594,7 +641,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		throws PortalException, SystemException {
 
 		try {
-			virtualHostname = virtualHostname.trim().toLowerCase();
+			virtualHostname = StringUtil.toLowerCase(virtualHostname.trim());
 
 			VirtualHost virtualHost = virtualHostPersistence.findByHostname(
 				virtualHostname);
@@ -817,7 +864,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 		// Company
 
-		virtualHostname = virtualHostname.trim().toLowerCase();
+		virtualHostname = StringUtil.toLowerCase(virtualHostname.trim());
 
 		if (!active) {
 			if (companyId == PortalInstances.getDefaultCompanyId()) {
@@ -882,7 +929,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 		// Company
 
-		virtualHostname = virtualHostname.trim().toLowerCase();
+		virtualHostname = StringUtil.toLowerCase(virtualHostname.trim());
 
 		Company company = companyPersistence.findByPrimaryKey(companyId);
 
@@ -1010,20 +1057,35 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 	public void updatePreferences(long companyId, UnicodeProperties properties)
 		throws PortalException, SystemException {
 
-		PortletPreferences preferences = PrefsPropsUtil.getPreferences(
+		PortletPreferences portletPreferences = PrefsPropsUtil.getPreferences(
 			companyId);
 
 		try {
-			String newLocales = properties.getProperty(PropsKeys.LOCALES);
+			String newLanguageIds = properties.getProperty(PropsKeys.LOCALES);
 
-			if (newLocales != null) {
-				String oldLocales = preferences.getValue(
+			if (newLanguageIds != null) {
+				String oldLanguageIds = portletPreferences.getValue(
 					PropsKeys.LOCALES, StringPool.BLANK);
 
-				if (!Validator.equals(oldLocales, newLocales)) {
-					validateLocales(newLocales);
+				if (!Validator.equals(oldLanguageIds, newLanguageIds)) {
+					validateLanguageIds(newLanguageIds);
 
 					LanguageUtil.resetAvailableLocales(companyId);
+
+					// Invalidate cache of all layout set prototypes that belong
+					// to this company. See LPS-36403.
+
+					Date now = new Date();
+
+					for (LayoutSetPrototype layoutSetPrototype :
+							layoutSetPrototypeLocalService.
+								getLayoutSetPrototypes(companyId)) {
+
+						layoutSetPrototype.setModifiedDate(now);
+
+						layoutSetPrototypeLocalService.updateLayoutSetPrototype(
+							layoutSetPrototype);
+					}
 				}
 			}
 
@@ -1040,22 +1102,23 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 				String propsUtilValue = PropsUtil.get(key);
 
 				if (!value.equals(propsUtilValue)) {
-					preferences.setValue(key, value);
+					portletPreferences.setValue(key, value);
 				}
 				else {
-					String preferencesValue = preferences.getValue(key, null);
+					String portletPreferencesValue =
+						portletPreferences.getValue(key, null);
 
-					if (preferencesValue != null) {
+					if (portletPreferencesValue != null) {
 						resetKeys.add(key);
 					}
 				}
 			}
 
 			for (String key : resetKeys) {
-				preferences.reset(key);
+				portletPreferences.reset(key);
 			}
 
-			preferences.store();
+			portletPreferences.store();
 		}
 		catch (LocaleException le) {
 			throw le;
@@ -1139,6 +1202,184 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 			company = companyPersistence.update(company);
 		}
+
+		return company;
+	}
+
+	protected Company doDeleteCompany(long companyId)
+		throws PortalException, SystemException {
+
+		// Company
+
+		Company company = companyPersistence.remove(companyId);
+
+		PortalInstances.removeCompany(companyId);
+
+		// Account
+
+		accountLocalService.deleteAccount(company.getAccountId());
+
+		// Groups
+
+		DeleteGroupActionableDynamicQuery deleteGroupActionableDynamicQuery =
+			new DeleteGroupActionableDynamicQuery();
+
+		deleteGroupActionableDynamicQuery.setCompanyId(companyId);
+
+		deleteGroupActionableDynamicQuery.performActions();
+
+		Group companyGroup = groupLocalService.getCompanyGroup(companyId);
+
+		deleteGroupActionableDynamicQuery.deleteGroup(companyGroup);
+
+		String[] systemGroups = PortalUtil.getSystemGroups();
+
+		for (String groupName : systemGroups) {
+			Group group = groupLocalService.getGroup(companyId, groupName);
+
+			deleteGroupActionableDynamicQuery.deleteGroup(group);
+		}
+
+		// Layout prototype
+
+		ActionableDynamicQuery layoutPrototypeActionableDynamicQuery =
+			new LayoutPrototypeActionableDynamicQuery() {
+
+			@Override
+			protected void performAction(Object object)
+				throws PortalException, SystemException {
+
+				LayoutPrototype layoutPrototype = (LayoutPrototype)object;
+
+				layoutPrototypeLocalService.deleteLayoutPrototype(
+					layoutPrototype);
+			}
+
+		};
+
+		layoutPrototypeActionableDynamicQuery.setCompanyId(companyId);
+
+		layoutPrototypeActionableDynamicQuery.performActions();
+
+		// Layout set prototype
+
+		ActionableDynamicQuery layoutSetPrototypeActionableDynamicQuery =
+			new LayoutSetPrototypeActionableDynamicQuery() {
+
+			@Override
+			protected void performAction(Object object)
+				throws PortalException, SystemException {
+
+				LayoutSetPrototype layoutSetPrototype =
+					(LayoutSetPrototype)object;
+
+				layoutSetPrototypeLocalService.deleteLayoutSetPrototype(
+					layoutSetPrototype);
+			}
+
+		};
+
+		layoutSetPrototypeActionableDynamicQuery.setCompanyId(companyId);
+
+		layoutSetPrototypeActionableDynamicQuery.performActions();
+
+		// Organizations
+
+		DeleteOrganizationActionableDynamicQuery
+			deleteOrganizationActionableDynamicQuery =
+				new DeleteOrganizationActionableDynamicQuery();
+
+		deleteOrganizationActionableDynamicQuery.setCompanyId(companyId);
+
+		deleteOrganizationActionableDynamicQuery.performActions();
+
+		// Roles
+
+		ActionableDynamicQuery roleActionableDynamicQuery =
+			new RoleActionableDynamicQuery() {
+
+			@Override
+			protected void performAction(Object object)
+				throws PortalException, SystemException {
+
+				Role role = (Role)object;
+
+				roleLocalService.deleteRole(role);
+			}
+
+		};
+
+		roleActionableDynamicQuery.setCompanyId(companyId);
+
+		roleActionableDynamicQuery.performActions();
+
+		// Password policy
+
+		passwordPolicyLocalService.deleteNondefaultPasswordPolicies(companyId);
+
+		PasswordPolicy defaultPasswordPolicy =
+			passwordPolicyLocalService.getDefaultPasswordPolicy(companyId);
+
+		passwordPolicyLocalService.deletePasswordPolicy(defaultPasswordPolicy);
+
+		// Portal preferences
+
+		PortalPreferences portalPreferences =
+			portalPreferencesPersistence.findByO_O(
+				companyId, PortletKeys.PREFS_OWNER_TYPE_COMPANY);
+
+		portalPreferencesLocalService.deletePortalPreferences(
+			portalPreferences);
+
+		// Portlets
+
+		List<Portlet> portlets = portletPersistence.findByCompanyId(companyId);
+
+		for (Portlet portlet : portlets) {
+			portletLocalService.deletePortlet(portlet.getId());
+		}
+
+		portletLocalService.removeCompanyPortletsPool(companyId);
+
+		// Shard
+
+		Shard shard = shardLocalService.getShard(
+			Company.class.getName(), company.getCompanyId());
+
+		shardLocalService.deleteShard(shard);
+
+		// Users
+
+		ActionableDynamicQuery userActionableDynamicQuery =
+			new UserActionableDynamicQuery() {
+
+			@Override
+			protected void performAction(Object object)
+				throws PortalException, SystemException {
+
+				User user = (User)object;
+
+				if (!user.isDefaultUser()) {
+					userLocalService.deleteUser(user.getUserId());
+				}
+			}
+
+		};
+
+		userActionableDynamicQuery.setCompanyId(companyId);
+
+		userActionableDynamicQuery.performActions();
+
+		User defaultUser = userLocalService.getDefaultUser(companyId);
+
+		userLocalService.deleteUser(defaultUser);
+
+		// Virtual host
+
+		VirtualHost companyVirtualHost =
+			virtualHostLocalService.fetchVirtualHost(companyId, 0);
+
+		virtualHostLocalService.deleteVirtualHost(companyVirtualHost);
 
 		return company;
 	}
@@ -1262,14 +1503,133 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		}
 	}
 
-	protected void validateLocales(String locales) throws PortalException {
-		String[] localesArray = StringUtil.split(locales, StringPool.COMMA);
+	protected void validateLanguageIds(String languageIds)
+		throws PortalException {
 
-		for (String locale : localesArray) {
-			if (!ArrayUtil.contains(PropsValues.LOCALES, locale)) {
-				throw new LocaleException();
+		String[] languageIdsArray = StringUtil.split(
+			languageIds, StringPool.COMMA);
+
+		for (String languageId : languageIdsArray) {
+			if (!ArrayUtil.contains(PropsValues.LOCALES, languageId)) {
+				LocaleException le = new LocaleException(
+					LocaleException.TYPE_DISPLAY_SETTINGS);
+
+				le.setSourceAvailableLocales(
+					LocaleUtil.fromLanguageIds(PropsValues.LOCALES));
+				le.setTargetAvailableLocales(
+					LocaleUtil.fromLanguageIds(languageIdsArray));
+
+				throw le;
 			}
 		}
+	}
+
+	protected class DeleteGroupActionableDynamicQuery
+		extends GroupActionableDynamicQuery {
+
+		public DeleteGroupActionableDynamicQuery() throws SystemException {
+		}
+
+		public void deleteGroup(Group group)
+			throws PortalException, SystemException {
+
+			DeleteGroupActionableDynamicQuery
+				deleteGroupActionableDynamicQuery =
+					new DeleteGroupActionableDynamicQuery();
+
+			deleteGroupActionableDynamicQuery.setCompanyId(
+				group.getCompanyId());
+			deleteGroupActionableDynamicQuery.setParentGroupId(
+				group.getGroupId());
+
+			deleteGroupActionableDynamicQuery.performActions();
+
+			groupLocalService.deleteGroup(group);
+
+			LiveUsers.deleteGroup(group.getCompanyId(), group.getGroupId());
+		}
+
+		public void setParentGroupId(long parentGroupId) {
+			_parentGroupId = parentGroupId;
+		}
+
+		@Override
+		protected void addCriteria(DynamicQuery dynamicQuery) {
+			Property parentGroupIdProperty = PropertyFactoryUtil.forName(
+				"parentGroupId");
+
+			dynamicQuery.add(parentGroupIdProperty.eq(_parentGroupId));
+
+			Property siteProperty = PropertyFactoryUtil.forName("site");
+
+			dynamicQuery.add(siteProperty.eq(Boolean.TRUE));
+		}
+
+		@Override
+		protected void performAction(Object object)
+			throws PortalException, SystemException {
+
+			Group group = (Group)object;
+
+			if (!PortalUtil.isSystemGroup(group.getName()) &&
+				!group.isCompany()) {
+
+				deleteGroup(group);
+			}
+		}
+
+		private long _parentGroupId = GroupConstants.DEFAULT_PARENT_GROUP_ID;
+
+	}
+
+	protected class DeleteOrganizationActionableDynamicQuery
+		extends OrganizationActionableDynamicQuery {
+
+		public DeleteOrganizationActionableDynamicQuery()
+			throws SystemException {
+		}
+
+		public void deleteOrganization(Organization organization)
+			throws PortalException, SystemException {
+
+			DeleteOrganizationActionableDynamicQuery
+				deleteOrganizationActionableDynamicQuery =
+				new DeleteOrganizationActionableDynamicQuery();
+
+			deleteOrganizationActionableDynamicQuery.setCompanyId(
+				organization.getCompanyId());
+			deleteOrganizationActionableDynamicQuery.setParentOrganizationId(
+				organization.getOrganizationId());
+
+			deleteOrganizationActionableDynamicQuery.performActions();
+
+			organizationLocalService.deleteOrganization(organization);
+		}
+
+		public void setParentOrganizationId(long parentOrganizationId) {
+			_parentOrganizationId = parentOrganizationId;
+		}
+
+		@Override
+		protected void addCriteria(DynamicQuery dynamicQuery) {
+			Property property = PropertyFactoryUtil.forName(
+				"parentOrganizationId");
+
+			dynamicQuery.add(property.eq(_parentOrganizationId));
+		}
+
+		@Override
+		protected void performAction(Object object)
+			throws PortalException, SystemException {
+
+			Organization organization = (Organization)object;
+
+			deleteOrganization(organization);
+		}
+
+		private long _parentOrganizationId =
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID;
+
 	}
 
 	private static final String _DEFAULT_VIRTUAL_HOST = "localhost";

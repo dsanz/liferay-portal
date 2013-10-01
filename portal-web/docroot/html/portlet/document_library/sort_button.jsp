@@ -21,6 +21,8 @@ String navigation = ParamUtil.getString(request, "navigation", "home");
 
 long folderId = GetterUtil.getLong((String)request.getAttribute("view.jsp-folderId"));
 
+long fileEntryTypeId = ParamUtil.getLong(request, "fileEntryTypeId", DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_ALL);
+
 String orderByType = ParamUtil.getString(request, "orderByType");
 
 String reverseOrderByType = "asc";
@@ -75,6 +77,7 @@ if (orderByType.equals("asc")) {
 						'<portlet:namespace />folderId': folderId,
 						'<portlet:namespace />navigation': '<%= HtmlUtil.escape(navigation) %>',
 						'<portlet:namespace />struts_action': '/document_library/view',
+						'<portlet:namespace />fileEntryTypeId': <%= fileEntryTypeId %>,
 						'<portlet:namespace />viewEntries': <%= Boolean.FALSE.toString() %>,
 						'<portlet:namespace />viewEntriesPage': <%= Boolean.TRUE.toString() %>,
 						'<portlet:namespace />viewFolders': <%= Boolean.FALSE.toString() %>,

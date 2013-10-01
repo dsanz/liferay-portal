@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Writer;
 
@@ -68,6 +69,10 @@ public class JSONObjectImpl implements JSONObject {
 
 	public JSONObjectImpl(String json) throws JSONException {
 		try {
+			if (Validator.isNull(json)) {
+				json = _NULL_JSON;
+			}
+
 			_jsonObject = new org.json.JSONObject(json);
 		}
 		catch (Exception e) {
@@ -334,6 +339,8 @@ public class JSONObjectImpl implements JSONObject {
 			throw new JSONException(e);
 		}
 	}
+
+	private static final String _NULL_JSON = "{}";
 
 	private static Log _log = LogFactoryUtil.getLog(JSONObjectImpl.class);
 

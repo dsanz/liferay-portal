@@ -26,25 +26,21 @@ JournalArticle article = (JournalArticle)row.getObject();
 
 <liferay-ui:icon-menu>
 	<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.VIEW) %>">
+		<liferay-portlet:renderURL plid="<%= JournalUtil.getPreviewPlid(article, themeDisplay) %>" var="previewArticleContentURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+			<portlet:param name="struts_action" value="/journal/preview_article_content" />
+			<portlet:param name="groupId" value="<%= String.valueOf(article.getGroupId()) %>" />
+			<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
+			<portlet:param name="version" value="<%= String.valueOf(article.getVersion()) %>" />
+		</liferay-portlet:renderURL>
 
 		<%
-		StringBundler sb = new StringBundler(9);
-
-		sb.append(themeDisplay.getPathMain());
-		sb.append("/journal/view_article_content?cmd=");
-		sb.append(Constants.VIEW);
-		sb.append("&groupId=");
-		sb.append(article.getGroupId());
-		sb.append("&articleId=");
-		sb.append(article.getArticleId());
-		sb.append("&version=");
-		sb.append(article.getVersion());
+		String taglibOnClick = "Liferay.fire('previewArticle', {title: '" + article.getTitle(locale) + "', uri: '" + previewArticleContentURL.toString() + "'});";
 		%>
 
 		<liferay-ui:icon
-			image="view"
-			target="_blank"
-			url="<%= sb.toString() %>"
+			image="preview"
+			onClick="<%= taglibOnClick %>"
+			url="javascript:;"
 		/>
 
 		<c:if test="<%= JournalPermission.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_ARTICLE) %>">

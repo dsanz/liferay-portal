@@ -1,3 +1,6 @@
+@import "compass";
+@import "mixins";
+
 .control-group-inline {
 	display: inline-block;
 	vertical-align: middle;
@@ -7,28 +10,56 @@
 	margin-top: 20px;
 }
 
-.lfr-ddm-container .field-wrapper {
-	position: relative;
-
-	.aui-field-wrapper {
-		margin-left: 20px;
+.lfr-ddm-container {
+	.control-group label {
+		margin-left: 0;
 	}
 
-	.lfr-ddm-repeatable-add-button, .lfr-ddm-repeatable-delete-button {
-		display: block;
-		height: 16px;
-		position: absolute;
-		top: 4px;
-		width: 16px;
+	.field-wrapper {
+		position: relative;
 
-		&.lfr-ddm-repeatable-add-button {
-			right: 4px;
+		.aui-field-wrapper {
+			margin-left: 20px;
 		}
 
-		&.lfr-ddm-repeatable-delete-button {
-			right: 24px;
+		.datepicker-display {
+			float: none;
+
+			.datepicker-button-wrapper, .datepicker-select-wrapper {
+				display: inline;
+				float: none;
+			}
+		}
+
+		.lfr-ddm-repeatable-add-button, .lfr-ddm-repeatable-delete-button {
+			display: block;
+			height: 16px;
+			position: absolute;
+			top: 4px;
+			width: 16px;
+
+			&.lfr-ddm-repeatable-add-button {
+				right: 4px;
+			}
+
+			&.lfr-ddm-repeatable-delete-button {
+				right: 24px;
+			}
 		}
 	}
+
+	.field-wrapper-content {
+		margin-bottom: 6px;
+
+		label {
+			font-weight: bold;
+			margin-left: 0;
+		}
+	}
+}
+
+.field-wrapper .btn {
+	margin-top: 6px;
 }
 
 .lfr-input-resource {
@@ -44,4 +75,31 @@
 	height: @model_hints_constants_textarea_display_height@px;
 	max-width: @model_hints_constants_textarea_display_width@px;
 	width: 100%;
+}
+
+@include respond-to(phone, tablet) {
+	.aui {
+		input[type="color"],
+		input[type="date"],
+		input[type="datetime"],
+		input[type="datetime-local"],
+		input[type="email"],
+		input[type="month"],
+		input[type="number"],
+		input[type="password"],
+		input[type="search"],
+		input[type="tel"],
+		input[type="text"],
+		input[type="time"],
+		input[type="url"],
+		input[type="week"],
+		select,
+		textarea,
+		.navbar-search .search-query,
+		.uneditable-input {
+			font-size: 18px;
+			height: auto;
+			line-height: 20px;
+		}
+	}
 }

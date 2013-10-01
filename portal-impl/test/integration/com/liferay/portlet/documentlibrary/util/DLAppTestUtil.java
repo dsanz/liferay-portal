@@ -17,6 +17,7 @@ package com.liferay.portlet.documentlibrary.util;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
@@ -33,12 +34,15 @@ import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
+import com.liferay.portlet.documentlibrary.model.DLFileEntryTypeConstants;
 import com.liferay.portlet.documentlibrary.model.DLFileRank;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
+import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryTypeLocalServiceUtil;
+import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
 
 /**
  * @author Alexander Chow
@@ -124,16 +128,17 @@ public abstract class DLAppTestUtil {
 	}
 
 	public static FileEntry addFileEntry(
-			long userId, long groupId, long folderId, String sourceFileName,
-			String mimeType, String title, byte[] bytes, int workflowAction)
+			long groupId, long repositoryId, long folderId,
+			String sourceFileName)
 		throws Exception {
 
 		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
 			groupId);
 
 		return addFileEntry(
-			userId, groupId, folderId, sourceFileName, mimeType, title, bytes,
-			workflowAction, serviceContext);
+			TestPropsValues.getUserId(), repositoryId, folderId, sourceFileName,
+			ContentTypes.TEXT_PLAIN, sourceFileName, null,
+			WorkflowConstants.ACTION_PUBLISH, serviceContext);
 	}
 
 	public static FileEntry addFileEntry(
@@ -156,10 +161,37 @@ public abstract class DLAppTestUtil {
 	}
 
 	public static FileEntry addFileEntry(
+			long userId, long groupId, long folderId, String sourceFileName,
+			String mimeType, String title, byte[] bytes, long fileEntryTypeId,
+			int workflowAction)
+		throws Exception {
+
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			groupId);
+
+		serviceContext.setAttribute("fileEntryTypeId", fileEntryTypeId);
+
+		return addFileEntry(
+			userId, groupId, folderId, sourceFileName, mimeType, title, bytes,
+			workflowAction, serviceContext);
+	}
+
+	public static FileEntry addFileEntry(
 			long groupId, long folderId, String sourceFileName)
 		throws Exception {
 
 		return addFileEntry(groupId, folderId, sourceFileName, sourceFileName);
+	}
+
+	public static FileEntry addFileEntry(
+			long groupId, long folderId, String sourceFileName,
+			long fileEntryTypeId)
+		throws Exception {
+
+		return addFileEntry(
+			TestPropsValues.getUserId(), groupId, folderId, sourceFileName,
+			ContentTypes.TEXT_PLAIN, sourceFileName, null, fileEntryTypeId,
+			WorkflowConstants.ACTION_PUBLISH);
 	}
 
 	public static FileEntry addFileEntry(
@@ -214,7 +246,6 @@ public abstract class DLAppTestUtil {
 		return addFileEntry(
 			groupId, folderId, sourceFileName, mimeType, title, null,
 			WorkflowConstants.ACTION_PUBLISH);
-
 	}
 
 	public static FileEntry addFileEntry(
@@ -222,9 +253,12 @@ public abstract class DLAppTestUtil {
 			String title, byte[] bytes, int workflowAction)
 		throws Exception {
 
+		long fileEntryTypeId =
+			DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT;
+
 		return addFileEntry(
 			TestPropsValues.getUserId(), groupId, folderId, sourceFileName,
-			mimeType, title, bytes, workflowAction);
+			mimeType, title, bytes, fileEntryTypeId, workflowAction);
 	}
 
 	public static FileEntry addFileEntry(
@@ -239,7 +273,7 @@ public abstract class DLAppTestUtil {
 		}
 
 		return addFileEntry(
-			TestPropsValues.getUserId(), serviceContext.getScopeGroupId(),
+			serviceContext.getUserId(), serviceContext.getScopeGroupId(),
 			folderId, sourceFileName, ContentTypes.TEXT_PLAIN, title, null,
 			workflowAction, serviceContext);
 	}
@@ -255,6 +289,17 @@ public abstract class DLAppTestUtil {
 		}
 
 		return addFolder(groupId, parentFolderId, name);
+	}
+
+	public static Folder addFolder(
+			long groupId, long repositoryId, long parentFolderId, String name)
+		throws Exception {
+
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			groupId);
+
+		return addFolder(
+			repositoryId, parentFolderId, name, false, serviceContext);
 	}
 
 	public static Folder addFolder(
@@ -276,8 +321,8 @@ public abstract class DLAppTestUtil {
 	}
 
 	public static Folder addFolder(
-			long parentFolderId, String name, boolean deleteExisting,
-			ServiceContext serviceContext)
+			long repositoryId, long parentFolderId, String name,
+			boolean deleteExisting, ServiceContext serviceContext)
 		throws Exception {
 
 		String description = StringPool.BLANK;
@@ -292,8 +337,17 @@ public abstract class DLAppTestUtil {
 		}
 
 		return DLAppServiceUtil.addFolder(
-			serviceContext.getScopeGroupId(), parentFolderId, name, description,
-			serviceContext);
+			repositoryId, parentFolderId, name, description, serviceContext);
+	}
+
+	public static Folder addFolder(
+			long parentFolderId, String name, boolean deleteExisting,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		return addFolder(
+			serviceContext.getScopeGroupId(), parentFolderId, name,
+			deleteExisting, serviceContext);
 	}
 
 	public static Folder addFolder(
@@ -411,6 +465,33 @@ public abstract class DLAppTestUtil {
 		return DLAppServiceUtil.updateFileEntry(
 			fileEntryId, sourceFileName, mimeType, title, description,
 			changeLog, majorVersion, bytes, serviceContext);
+	}
+
+	public static void updateFolderFileEntryType(
+			Folder folder, long fileEntryTypeId)
+		throws Exception {
+
+		updateFolderFileEntryTypes(
+			folder, fileEntryTypeId, new long[] {fileEntryTypeId});
+	}
+
+	public static void updateFolderFileEntryTypes(
+			Folder folder, long defaultFileEntryTypeId, long[] fileEntryTypeIds)
+		throws Exception {
+
+		DLFolder dlFolder = (DLFolder)folder.getModel();
+
+		dlFolder.setDefaultFileEntryTypeId(defaultFileEntryTypeId);
+		dlFolder.setOverrideFileEntryTypes(true);
+
+		DLFolderLocalServiceUtil.updateDLFolder(dlFolder);
+
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			folder.getGroupId());
+
+		DLFileEntryTypeLocalServiceUtil.updateFolderFileEntryTypes(
+			dlFolder, ListUtil.toList(fileEntryTypeIds), defaultFileEntryTypeId,
+			serviceContext);
 	}
 
 	private static final String _CONTENT =

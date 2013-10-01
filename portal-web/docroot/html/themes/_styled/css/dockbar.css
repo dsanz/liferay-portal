@@ -1,245 +1,523 @@
 @import "compass";
+@import "mixins";
 
-.dockbar {
-	left: 0;
-	right: 0;
-	top: 0;
+$addContentPanelWidth: 350px;
+$devicePreviewPanelWidth: 220px;
+$editLayoutPanelWidth: 460px;
 
-	.impersonating-user {
-		.alert-icon{
-			margin-right: 9px;
+.aui {
+	.dockbar {
+		left: 0;
+		right: 0;
+		top: 0;
+
+		.impersonating-user {
+			.alert-icon{
+				margin-right: 9px;
+			}
+
+			.alert-info {
+				border-width: 0;
+				margin-bottom: 6px;
+			}
 		}
 
-		.alert-info {
-			@include border-radius(0);
+		.navbar-inner {
+			padding-left: 20px;
+			padding-right: 20px;
 
-			border: none;
-			margin-bottom: 6px;
+			.brand {
+				h1 {
+					display: inline-block;
+					font-size: inherit;
+					line-height: 1;
+					margin-bottom: 0;
+					margin-top: 0;
+				}
+			}
+
+			.container {
+				margin-left: 0;
+				margin-right: 0;
+				width: 100%;
+
+				.nav-account-controls {
+					float: right;
+				}
+			}
+
+			.site-administration-menu li {
+				list-style: none;
+
+				a {
+					color: #000;
+					display: block;
+					padding: 3px 5px 3px 40px;
+
+					&:hover {
+						background: #0DB5E7;
+						color: #FFF;
+						text-decoration: none;
+					}
+
+					i {
+						font-size: 0.8em;
+					}
+				}
+			}
+		}
+
+		.nav.staging-nav-items {
+			margin: 0;
+			position: static;
+
+			li.dropdown.active > .dropdown-toggle {
+				background-color: transparent;
+				display: block;
+
+				&:hover {
+					color: #0077B3;
+				}
+			}
+
+			.staging-link {
+				position: static;
+			}
+		}
+
+		.user-avatar img {
+			margin-top: -2px;
+			text-decoration: none;
+			vertical-align: middle;
+			width: 27px;
 		}
 	}
 
-	.navbar-inner {
-		padding-left: 20px;
-		padding-right: 20px;
+	.dockbar-split {
+		.dockbar {
+			height: 0;
+			position: absolute;
 
-		.container {
-			margin-left: 0;
-			margin-right: 0;
-			width: 100%;
+			.divider-vertical {
+				display: none;
+			}
+
+			.navbar-inner {
+				background-color: transparent;
+				border-width: 0;
+				padding: 0;
+				width: 0;
+
+				.nav {
+					background-color: #333;
+					border-bottom-width: 0;
+
+					> li {
+						> a {
+							color: #FFF;
+							line-height: 31px;
+
+							&:focus, &:hover {
+								color: #FFF;
+							}
+
+							[class^="icon-"], [class*=" icon-"] {
+								margin-top: 3px;
+							}
+						}
+
+						&.active > a {
+							color: #FFF;
+						}
+					}
+
+					li {
+						&.dropdown {
+							&.active > .dropdown-toggle {
+								color: #FFF;
+							}
+
+							&.open > .dropdown-toggle {
+								background-color: #555;
+								color: #FFF;
+							}
+						}
+
+						&.staging-toggle {
+							background-color: #0ECD27;
+
+							> a {
+								&, &:hover {
+									background-color: transparent;
+								}
+							}
+
+							span.nav-item-label {
+								padding: 5px 10px;
+							}
+
+							&.active span.nav-item-label {
+								background-color: #080;
+							}
+						}
+					}
+				}
+
+				.nav-account-controls {
+					left: auto;
+					margin-right: 0;
+					padding: 0 5px;
+					position: fixed;
+					right: 5em;
+					z-index: 325;
+				}
+
+				.nav-add-controls {
+					background: transparent;
+					position: fixed;
+					top: 10%;
+					z-index: 350;
+
+					> li {
+						float: none;
+						margin: 10px;
+						position: relative;
+
+						&.toggle-controls a {
+							clip: rect(0 0 0 0);
+							position: absolute;
+
+							&:focus {
+								clip: rect(auto auto auto auto);
+								position: static;
+							}
+						}
+
+						&.page-preview-controls {
+							@include respond-to(phone) {
+								display: none;
+							}
+
+							@include respond-to(tablet) {
+								display: none;
+							}
+						}
+
+						> a {
+							background: #333;
+							color: #FFF;
+							padding: 6px 8px;
+							text-align: center;
+
+							&:hover {
+								background: #555;
+							}
+
+							[class^="icon-"], [class^="icon-"], [class*=" icon-"] {
+								font-size: 25px;
+								position: relative;
+								vertical-align: middle;
+							}
+
+							&.toggle-controls-link {
+								background: #92F545;
+
+								[class^="icon-"], [class^="icon-"], [class*=" icon-"] {
+									color: #000;
+								}
+							}
+
+							.nav-item-label {
+								background: #333;
+								display: none;
+								left: 100%;
+								margin-left: 0.5em;
+								margin-top: -1em;
+								padding: 0 20px;
+								position: absolute;
+								top: 50%;
+								white-space: nowrap;
+							}
+
+							&:hover .nav-item-label {
+								display: block;
+							}
+
+							.icon-caret-down {
+								display: none;
+							}
+						}
+					}
+
+					&:hover > li.toggle-controls a {
+						clip: rect(auto auto auto auto);
+						position: static;
+					}
+				}
+			}
+
+			.staging-nav-items {
+				li > span {
+					color: #FFF;
+					display: block;
+					padding: 10px 15px;
+					line-height: 31px;
+				}
+			}
+		}
+
+		.staging-controls {
+			select {
+				width: 100%;
+			}
+
+			.staging-bar {
+				margin-right: 0;
+
+				.dropdown-menu {
+					font-size: 13px;
+					width: 100%;
+
+					.btn-link {
+						float: left;
+						font-size: 11px;
+						margin: 0 5px 0 0;
+						padding: 0;
+						text-decoration: underline;
+
+						@include text-shadow(none);
+
+						&:hover {
+							text-decoration: none;
+						}
+
+						&.history {
+							float: right;
+						}
+					}
+				}
+			}
+		}
+
+		&.controls-hidden .dockbar .navbar-inner .nav-add-controls > li.toggle-controls > .toggle-controls-link {
+			background: #F5AF45;
+		}
+
+		&.lfr-has-add-content .nav-add-controls {
+			left: $addContentPanelWidth;
+		}
+
+		&.lfr-has-device-preview .nav-add-controls {
+			left: $devicePreviewPanelWidth;
+		}
+
+		&.lfr-has-edit-layout .nav-add-controls {
+			left: $editLayoutPanelWidth;
 		}
 	}
 
-	.user-avatar img {
-		margin-top: -2px;
-		text-decoration: none;
-		vertical-align: middle;
-		width: 18px;
+	.touch .dockbar-split, .controls-hidden.dockbar-split {
+		.dockbar .navbar-inner .nav-add-controls > li.toggle-controls > .toggle-controls-link {
+			clip: rect(auto auto auto auto);
+			position: static;
+		}
 	}
-}
 
-/* ---------- Staging Dockbar ---------- */
+	/* ---------- Staging dockbar ---------- */
 
-.variation-selector {
-	display: block;
-	font-size: 1.2em;
-	font-weight: bold;
-	margin: 1em;
-}
-
-.layout-revision-container {
-	margin: 1em 0 0 1em;
-	padding: 0;
-
-	.approximate-date {
-		color: #999;
+	.variation-selector {
+		display: block;
+		font-size: 1.2em;
 		font-weight: bold;
+		margin: 1em;
 	}
 
-	.current-version {
-		color: #41801d;
-		display: block;
-	}
+	.layout-revision-container {
+		margin: 1em 0 0 1em;
+		padding: 0;
 
-	.current-version-pointer {
-		display: inline-block;
-		width: 0;
-
-		img {
-			left: -25px;
-			position: relative;
-		}
-	}
-
-	.layout-variation-name {
-		color: #666;
-		font-size: 1.15em;
-		margin-bottom: 0.1em;
-		text-transform: uppercase;
-	}
-
-	.layout-revision-current {
-		color: #666;
-	}
-
-	.real-date {
-		color: #999;
-		display: block;
-		text-align: right;
-	}
-
-	.taglib-workflow-status .workflow-status {
-		background: none;
-		padding-left: 0;
-
-		.workflow-status-ready-for-publication {
-			color: #41801d;
+		.approximate-date {
+			color: #999;
 			font-weight: bold;
 		}
-	}
-}
 
-.layout-revision-container-root {
-	margin: 0;
-}
-
-.staging-details {
-	background: url() no-repeat 0 0;
-	min-height: 50px;
-	padding-left: 65px;
-}
-
-.staging {
-	.staging-details {
-		background-image: url(../images/staging_bar/staging.png);
-	}
-
-	.staging-tabview-list {
-		background-color: #FFDBA6;
-	}
-}
-
-.live-view {
-	.staging-details {
-		background-image: url(../images/staging_bar/live.png);
-	}
-
-	.staging-tabview-list {
-		background-color: #C4F0BC;
-	}
-}
-
-/* ---------- Add Content ---------- */
-
-.lfr-has-add-content {
-	padding-left: 340px;
-}
-
-/* ---------- Menus ---------- */
-
-.my-sites-menu {
-	min-width: 200px;
-
-	.site-type {
-		color: #FFF;
-		display: none;
-		float: right;
-		font-size: 0.8em;
-		font-weight: normal;
-		margin-right: 10px;
-		position: absolute;
-		right: 100%;
-	}
-
-	a:hover .site-type {
-		color: #FFFFFF;
-		display: inline-block;
-	}
-}
-
-.ie.rtl .dockbar .menu-button span {
-	background-position-x: -25px;
-}
-
-.ie7 {
-	.dockbar {
-		zoom: 1;
-	}
-
-	.my-sites-menu {
-		a {
-			overflow: visible;
-			text-align: left;
+		.current-version {
+			color: #41801d;
+			display: block;
 		}
 
-		.site-name {
-			float: none;
+		.current-version-pointer {
+			display: inline-block;
+			width: 0;
+
+			img {
+				left: -25px;
+				position: relative;
+			}
 		}
 
-		.site-type {
-			float: none;
+		.layout-variation-name {
+			color: #666;
+			font-size: 1.15em;
+			margin-bottom: 0.1em;
+			text-transform: uppercase;
+		}
+
+		.layout-revision-current {
+			color: #666;
+		}
+
+		.real-date {
+			color: #999;
+			display: block;
+			text-align: right;
+		}
+
+		.taglib-workflow-status .workflow-status {
+			background: none;
+			padding-left: 0;
+
+			.workflow-status-ready-for-publication {
+				color: #41801d;
+				font-weight: bold;
+			}
 		}
 	}
-}
 
-.ie6 {
-	.dockbar, .lfr-dockbar-pinned .dockbar {
-		height: 10px;
+	.layout-revision-container-root {
+		margin: 0;
+	}
+
+	/* ---------- Add content ---------- */
+
+	.lfr-admin-panel {
+		background-color: #FFF;
+		bottom: 0;
 		left: 0;
-		position: relative;
+		overflow: auto;
+		padding: 10px;
+		position: fixed;
 		top: 0;
+		z-index: 1100;
 	}
 
-	.dockbar .pin-dockbar {
-		display: none;
+	.lfr-has-add-content {
+		padding-left: $addContentPanelWidth;
 	}
+
+	.lfr-has-device-preview {
+		padding-left: $devicePreviewPanelWidth;
+	}
+
+	.lfr-has-edit-layout {
+		padding-left: $editLayoutPanelWidth;
+	}
+
+	/* ---------- Menus ---------- */
 
 	.my-sites-menu {
-		width: 200px;
+		.site-type {
+			color: #FFF;
+			display: none;
+			float: right;
+			font-size: 0.8em;
+			font-weight: normal;
+			margin-right: 10px;
+			position: absolute;
+			right: 100%;
+		}
 
-		a {
+		a:hover .site-type {
+			color: #FFFFFF;
+			display: inline-block;
+		}
+	}
+
+	.ie.rtl .dockbar .menu-button span {
+		background-position-x: -25px;
+	}
+
+	.ie7 {
+		.dockbar {
 			zoom: 1;
 		}
+
+		.my-sites-menu {
+			a {
+				overflow: visible;
+				text-align: left;
+			}
+
+			.site-name {
+				float: none;
+			}
+
+			.site-type {
+				float: none;
+			}
+		}
 	}
 
-	.menu-scroll {
-		height: 300px;
-		overflow-y: auto;
-	}
-}
+	.ie6 {
+		.dockbar, .lfr-dockbar-pinned .dockbar {
+			height: 10px;
+			left: 0;
+			position: relative;
+			top: 0;
+		}
 
-/* ---------- Customization Bar ---------- */
+		.dockbar .pin-dockbar {
+			display: none;
+		}
 
-.page-customization-bar {
-	background-color: #999;
-	color: #FFF;
-	font-size: 1.2em;
-	font-weight: bold;
-	min-height: 30px;
-	padding: 5px;
-}
+		.my-sites-menu {
+			width: 200px;
 
-.controls-hidden .page-customization-bar {
-	display: none;
-}
+			a {
+				zoom: 1;
+			}
+		}
 
-.page-customization-bar {
-	.customized-icon {
-		margin: 5px;
-		vertical-align: middle;
-	}
-
-	.page-customization-actions {
-		padding-left: 5em;
+		.menu-scroll {
+			height: 300px;
+			overflow-y: auto;
+		}
 	}
 
-	.page-customization-actions a {
-		color: #EEE;
-		font-size: 0.8em;
-		padding: 0 1em;
+	/* ---------- Customization bar ---------- */
+
+	.page-customization-bar {
+		background-color: #999;
+		color: #FFF;
+		font-size: 1.2em;
+		font-weight: bold;
+		min-height: 30px;
+		padding: 5px;
 	}
 
-	.reset-prototype {
-		display: inline;
-		padding-left: 1em;
+	.controls-hidden .page-customization-bar {
+		display: none;
+	}
+
+	.page-customization-bar {
+		.customized-icon {
+			margin: 5px;
+			vertical-align: middle;
+		}
+
+		.page-customization-actions {
+			padding-left: 5em;
+		}
+
+		.page-customization-actions a {
+			color: #EEE;
+			font-size: 0.8em;
+			padding: 0 1em;
+		}
+
+		.reset-prototype {
+			display: inline;
+			padding-left: 1em;
+		}
 	}
 }

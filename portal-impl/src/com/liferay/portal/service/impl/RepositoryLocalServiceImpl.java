@@ -27,12 +27,15 @@ import com.liferay.portal.kernel.repository.InvalidRepositoryIdException;
 import com.liferay.portal.kernel.repository.LocalRepository;
 import com.liferay.portal.kernel.repository.RepositoryException;
 import com.liferay.portal.kernel.repository.cmis.CMISRepositoryHandler;
+import com.liferay.portal.kernel.systemevent.SystemEventHierarchyEntryThreadLocal;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.model.RepositoryEntry;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.repository.cmis.CMISRepository;
 import com.liferay.portal.repository.liferayrepository.LiferayLocalRepository;
@@ -42,7 +45,6 @@ import com.liferay.portal.repository.util.RepositoryFactoryUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.RepositoryLocalServiceBaseImpl;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.RepositoryNameException;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 
@@ -162,18 +164,31 @@ public class RepositoryLocalServiceImpl extends RepositoryLocalServiceBaseImpl {
 			repositoryId);
 
 		if (repository != null) {
-			expandoValueLocalService.deleteValues(
-				Repository.class.getName(), repositoryId);
+			SystemEventHierarchyEntryThreadLocal.push(Repository.class);
 
 			try {
-				dlFolderLocalService.deleteFolder(repository.getDlFolderId());
-			}
-			catch (NoSuchFolderException nsfe) {
-			}
+				expandoValueLocalService.deleteValues(
+					Repository.class.getName(), repositoryId);
 
-			repositoryPersistence.remove(repository);
+				DLFolder dlFolder = dlFolderLocalService.fetchDLFolder(
+					repository.getDlFolderId());
 
-			repositoryEntryPersistence.removeByRepositoryId(repositoryId);
+				if (dlFolder != null) {
+					dlFolderLocalService.deleteDLFolder(dlFolder);
+				}
+
+				repositoryPersistence.remove(repository);
+
+				repositoryEntryPersistence.removeByRepositoryId(repositoryId);
+
+				systemEventLocalService.addSystemEvent(
+					0, repository.getGroupId(), Repository.class.getName(),
+					repositoryId, repository.getUuid(), null,
+					SystemEventConstants.TYPE_DELETE, StringPool.BLANK);
+			}
+			finally {
+				SystemEventHierarchyEntryThreadLocal.pop(Repository.class);
+			}
 		}
 
 		return repository;

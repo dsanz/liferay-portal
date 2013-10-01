@@ -78,7 +78,7 @@ int delta = ParamUtil.getInteger(request, "delta", deltaDefault);
 			redirectURL.setParameter("struts_action", "/dockbar/add_content_redirect");
 			redirectURL.setWindowState(LiferayWindowState.POP_UP);
 
-			Map<String, PortletURL> addPortletURLs = AssetUtil.getAddPortletURLs(liferayPortletRequest, liferayPortletResponse, AssetRendererFactoryRegistryUtil.getClassNameIds(), new long[0], new long[0], new String[0], redirectURL.toString());
+			Map<String, PortletURL> addPortletURLs = AssetUtil.getAddPortletURLs(liferayPortletRequest, liferayPortletResponse, AssetRendererFactoryRegistryUtil.getClassNameIds(company.getCompanyId()), new long[0], new long[0], new String[0], redirectURL.toString());
 			%>
 
 			<%@ include file="/html/portlet/asset_publisher/add_asset.jspf" %>
@@ -90,11 +90,35 @@ int delta = ParamUtil.getInteger(request, "delta", deltaDefault);
 	</div>
 </aui:form>
 
-<aui:script use="liferay-dockbar-add-content">
-	new Liferay.Dockbar.AddContent(
+<aui:script use="liferay-dockbar-add-content,liferay-dockbar-portlet-dd">
+	var searchContent = A.one('#<portlet:namespace />searchContent');
+
+	var addContent = new Liferay.Dockbar.AddContent(
 		{
-			inputNode: A.one('#<portlet:namespace />searchContent'),
-			namespace: '<portlet:namespace />'
+			focusItem: searchContent,
+			inputNode: searchContent,
+			namespace: '<portlet:namespace />',
+			plugins: [
+				{
+					cfg: {
+						srcNode: '#<portlet:namespace />entriesContainer'
+					},
+					fn: Liferay.Dockbar.PortletDragDrop
+				}
+			],
+			selected: !A.one('#<portlet:namespace />addContentForm').ancestor().hasClass('hide')
+		}
+	);
+
+	addContent.portletdd.on(
+		'dragEnd',
+		function(event) {
+			addContent.addPortlet(
+				event.portletNode,
+				{
+					item: event.appendNode
+				}
+			);
 		}
 	);
 </aui:script>

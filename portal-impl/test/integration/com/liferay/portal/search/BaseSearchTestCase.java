@@ -20,6 +20,8 @@ import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
@@ -27,6 +29,7 @@ import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.User;
+import com.liferay.portal.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
@@ -97,6 +100,12 @@ public abstract class BaseSearchTestCase {
 
 	@Test
 	@Transactional
+	public void testSearchByKeywordsInsideParentBaseModel() throws Exception {
+		searchByKeywordsInsideParentBaseModel();
+	}
+
+	@Test
+	@Transactional
 	public void testSearchComments() throws Exception {
 		searchComments();
 	}
@@ -111,6 +120,18 @@ public abstract class BaseSearchTestCase {
 	@Transactional
 	public void testSearchExpireLatestVersion() throws Exception {
 		searchExpireVersions(true);
+	}
+
+	@Test
+	@Transactional
+	public void testSearchMyEntries() throws Exception {
+		searchMyEntries();
+	}
+
+	@Test
+	@Transactional
+	public void testSearchRecentEntries() throws Exception {
+		searchRecentEntries();
 	}
 
 	@Test
@@ -210,16 +231,31 @@ public abstract class BaseSearchTestCase {
 	}
 
 	protected BaseModel<?> getParentBaseModel(
+			BaseModel<?> parentBaseModel, ServiceContext serviceContext)
+		throws Exception {
+
+		return parentBaseModel;
+	}
+
+	protected BaseModel<?> getParentBaseModel(
 			Group group, ServiceContext serviceContext)
 		throws Exception {
 
 		return group;
 	}
 
+	protected String getParentBaseModelClassName() {
+		return StringPool.BLANK;
+	}
+
 	protected abstract String getSearchKeywords();
 
 	protected boolean isExpirableAllVersions() {
 		return false;
+	}
+
+	protected void moveParentBaseModelToTrash(long primaryKey)
+		throws Exception {
 	}
 
 	protected void searchAttachments() throws Exception {
@@ -358,6 +394,46 @@ public abstract class BaseSearchTestCase {
 				getBaseModelClass(), group.getGroupId(), searchContext));
 	}
 
+	protected void searchByKeywordsInsideParentBaseModel() throws Exception {
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			group.getGroupId());
+
+		SearchContext searchContext = ServiceTestUtil.getSearchContext(
+			group.getGroupId());
+
+		baseModel = addBaseModel(
+			null, true, getSearchKeywords(), serviceContext);
+
+		BaseModel<?> parentBaseModel1 = getParentBaseModel(
+			group, serviceContext);
+
+		searchContext.setFolderIds(
+			new long[] {(Long)parentBaseModel1.getPrimaryKeyObj()});
+		searchContext.setKeywords(getSearchKeywords());
+
+		int initialBaseModelsSearchCount = searchBaseModelsCount(
+			getBaseModelClass(), group.getGroupId(), searchContext);
+
+		baseModel = addBaseModel(
+			parentBaseModel1, true, getSearchKeywords(), serviceContext);
+
+		Assert.assertEquals(
+			initialBaseModelsSearchCount + 1,
+			searchBaseModelsCount(
+				getBaseModelClass(), group.getGroupId(), searchContext));
+
+		BaseModel<?> parentBaseModel2 = getParentBaseModel(
+			parentBaseModel1, serviceContext);
+
+		baseModel = addBaseModel(
+			parentBaseModel2, true, getSearchKeywords(), serviceContext);
+
+		Assert.assertEquals(
+			initialBaseModelsSearchCount + 2,
+			searchBaseModelsCount(
+				getBaseModelClass(), group.getGroupId(), searchContext));
+	}
+
 	protected void searchComments() throws Exception {
 		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
 			group.getGroupId());
@@ -436,6 +512,165 @@ public abstract class BaseSearchTestCase {
 				searchBaseModelsCount(
 					getBaseModelClass(), group.getGroupId(), searchContext));
 		}
+	}
+
+	protected long searchGroupEntriesCount(long groupId, long userId)
+		throws Exception {
+
+		return -1;
+	}
+
+	protected void searchMyEntries() throws Exception {
+		User user1 = UserTestUtil.addUser(null, 0);
+
+		long initialUser1SearchGroupEntriesCount = searchGroupEntriesCount(
+			group.getGroupId(), user1.getUserId());
+
+		User user2 = UserTestUtil.addUser(null, 0);
+
+		long initialUser2SearchGroupEntriesCount = searchGroupEntriesCount(
+			group.getGroupId(), user2.getUserId());
+
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			group.getGroupId());
+
+		BaseModel<?> parentBaseModel1 = getParentBaseModel(
+			group, serviceContext);
+		BaseModel<?> parentBaseModel2 = getParentBaseModel(
+			group, serviceContext);
+
+		String name = PrincipalThreadLocal.getName();
+
+		long userId = serviceContext.getUserId();
+
+		try {
+			PrincipalThreadLocal.setName(user1.getUserId());
+
+			serviceContext.setUserId(user1.getUserId());
+
+			baseModel = addBaseModel(
+				parentBaseModel1, true, ServiceTestUtil.randomString(),
+				serviceContext);
+			baseModel = addBaseModel(
+				parentBaseModel1, true, ServiceTestUtil.randomString(),
+				serviceContext);
+			baseModel = addBaseModel(
+				parentBaseModel2, true, ServiceTestUtil.randomString(),
+				serviceContext);
+
+			PrincipalThreadLocal.setName(user2.getUserId());
+
+			serviceContext.setUserId(user2.getUserId());
+
+			baseModel = addBaseModel(
+				parentBaseModel1, true, ServiceTestUtil.randomString(),
+				serviceContext);
+			baseModel = addBaseModel(
+				parentBaseModel2, true, ServiceTestUtil.randomString(),
+				serviceContext);
+		}
+		finally {
+			PrincipalThreadLocal.setName(name);
+
+			serviceContext.setUserId(userId);
+		}
+
+		Assert.assertEquals(
+			initialUser1SearchGroupEntriesCount + 3,
+			searchGroupEntriesCount(group.getGroupId(), user1.getUserId()));
+		Assert.assertEquals(
+			initialUser2SearchGroupEntriesCount + 2,
+			searchGroupEntriesCount(group.getGroupId(), user2.getUserId()));
+
+		moveParentBaseModelToTrash((Long)parentBaseModel2.getPrimaryKeyObj());
+
+		Assert.assertEquals(
+			initialUser1SearchGroupEntriesCount + 2,
+			searchGroupEntriesCount(group.getGroupId(), user1.getUserId()));
+		Assert.assertEquals(
+			initialUser2SearchGroupEntriesCount + 1,
+			searchGroupEntriesCount(group.getGroupId(), user2.getUserId()));
+
+		TrashHandler parentTrashHandler =
+			TrashHandlerRegistryUtil.getTrashHandler(
+				getParentBaseModelClassName());
+
+		parentTrashHandler.restoreTrashEntry(
+			user1.getUserId(), (Long)parentBaseModel2.getPrimaryKeyObj());
+
+		Assert.assertEquals(
+			initialUser1SearchGroupEntriesCount + 3,
+			searchGroupEntriesCount(group.getGroupId(), user1.getUserId()));
+		Assert.assertEquals(
+			initialUser2SearchGroupEntriesCount + 2,
+			searchGroupEntriesCount(group.getGroupId(), user2.getUserId()));
+	}
+
+	protected void searchRecentEntries() throws Exception {
+		long initialSearchGroupEntriesCount = searchGroupEntriesCount(
+			group.getGroupId(), 0);
+
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			group.getGroupId());
+
+		BaseModel<?> parentBaseModel1 = getParentBaseModel(
+			group, serviceContext);
+		BaseModel<?> parentBaseModel2 = getParentBaseModel(
+			group, serviceContext);
+
+		String name = PrincipalThreadLocal.getName();
+
+		try {
+			User user1 = UserTestUtil.addUser(null, 0);
+
+			PrincipalThreadLocal.setName(user1.getUserId());
+
+			baseModel = addBaseModel(
+				parentBaseModel1, true, ServiceTestUtil.randomString(),
+				serviceContext);
+			baseModel = addBaseModel(
+				parentBaseModel1, true, ServiceTestUtil.randomString(),
+				serviceContext);
+			baseModel = addBaseModel(
+				parentBaseModel2, true, ServiceTestUtil.randomString(),
+				serviceContext);
+
+			User user2 = UserTestUtil.addUser(null, 0);
+
+			PrincipalThreadLocal.setName(user2.getUserId());
+
+			baseModel = addBaseModel(
+				parentBaseModel1, true, ServiceTestUtil.randomString(),
+				serviceContext);
+			baseModel = addBaseModel(
+				parentBaseModel2, true, ServiceTestUtil.randomString(),
+				serviceContext);
+		}
+		finally {
+			PrincipalThreadLocal.setName(name);
+		}
+
+		Assert.assertEquals(
+			initialSearchGroupEntriesCount + 5,
+			searchGroupEntriesCount(group.getGroupId(), 0));
+
+		moveParentBaseModelToTrash((Long)parentBaseModel2.getPrimaryKeyObj());
+
+		Assert.assertEquals(
+			initialSearchGroupEntriesCount + 3,
+			searchGroupEntriesCount(group.getGroupId(), 0));
+
+		TrashHandler parentTrashHandler =
+			TrashHandlerRegistryUtil.getTrashHandler(
+				getParentBaseModelClassName());
+
+		parentTrashHandler.restoreTrashEntry(
+			TestPropsValues.getUserId(),
+			(Long)parentBaseModel2.getPrimaryKeyObj());
+
+		Assert.assertEquals(
+			initialSearchGroupEntriesCount + 5,
+			searchGroupEntriesCount(group.getGroupId(), 0));
 	}
 
 	protected void searchStatus() throws Exception {

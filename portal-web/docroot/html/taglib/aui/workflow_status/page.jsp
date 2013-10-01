@@ -16,22 +16,28 @@
 
 <%@ include file="/html/taglib/aui/workflow_status/init.jsp" %>
 
-<div class="taglib-workflow-status">
+<span class="taglib-workflow-status">
 	<c:if test="<%= Validator.isNotNull(id) %>">
-		<span class="workflow-id"><liferay-ui:message key="id" />: <%= HtmlUtil.escape(id) %></span>
+		<span class="workflow-id">
+			<span class="workflow-label"><liferay-ui:message key="id" />:</span>
+			<span class="workflow-value"><%= HtmlUtil.escape(id) %></span>
+		</span>
 	</c:if>
 
 	<c:if test="<%= Validator.isNotNull(version) %>">
-		<span class="workflow-version"><liferay-ui:message key="version" />: <strong><%= version %></strong></span>
+		<span class="workflow-version">
+			<span class="workflow-label"><liferay-ui:message key="version" />:</span>
+			<strong class="workflow-value"><%= version %></strong>
+		</span>
 	</c:if>
 
 	<%
 	String additionalText = StringPool.BLANK;
 
 	if (Validator.isNull(statusMessage)) {
-		statusMessage = WorkflowConstants.toLabel(status);
+		statusMessage = WorkflowConstants.getStatusLabel(status);
 
-		if (status == WorkflowConstants.STATUS_PENDING) {
+		if ((status == WorkflowConstants.STATUS_PENDING) && (bean != null) && (model != null)) {
 			long companyId = BeanPropertiesUtil.getLong(bean, "companyId");
 			long groupId = BeanPropertiesUtil.getLong(bean, "groupId");
 			long classPK = BeanPropertiesUtil.getLong(bean, "primaryKey");
@@ -54,9 +60,17 @@
 	}
 	%>
 
-	<span class="workflow-status"><liferay-ui:message key="status" />: <strong class="workflow-status-<%= statusMessage %>"><liferay-ui:message key="<%= statusMessage %>" /><%= additionalText %></strong></span>
+	<span class="<%= showIcon ? "workflow-status workflow-status-icon" : "workflow-status" %>">
+		<c:if test="<%= showLabel %>">
+			<span class="workflow-label"><liferay-ui:message key="status" />:</span>
+		</c:if>
+
+		<strong class="label workflow-status-<%= WorkflowConstants.getStatusLabel(status) %> <%= WorkflowConstants.getStatusCssClass(status) %> workflow-value">
+			<liferay-ui:message key="<%= statusMessage %>" /><%= additionalText %>
+		</strong>
+	</span>
 
 	<c:if test="<%= Validator.isNotNull(helpMessage) %>">
 		<liferay-ui:icon-help message="<%= helpMessage %>" />
 	</c:if>
-</div>
+</span>

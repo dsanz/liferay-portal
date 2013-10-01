@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PortalUtil;
 
@@ -354,7 +355,9 @@ public class PortletResponseUtil {
 
 		if (Validator.isNull(contentDispositionType)) {
 			String extension = GetterUtil.getString(
-				FileUtil.getExtension(fileName)).toLowerCase();
+				FileUtil.getExtension(fileName));
+
+			extension = StringUtil.toLowerCase(extension);
 
 			String[] mimeTypesContentDispositionInline = null;
 

@@ -23,7 +23,7 @@
 				<aui:nav-item id="addTagButton" label="add-tag" />
 			</c:if>
 
-			<c:if test="<%= AssetPermission.contains(permissionChecker, themeDisplay.getSiteGroupId(), ActionKeys.PERMISSIONS) && GroupPermissionUtil.contains(permissionChecker, themeDisplay.getSiteGroupId(), ActionKeys.PERMISSIONS) %>">
+			<c:if test="<%= PropsValues.ASSET_TAG_PERMISSIONS_ENABLED && AssetPermission.contains(permissionChecker, themeDisplay.getSiteGroupId(), ActionKeys.PERMISSIONS) && GroupPermissionUtil.contains(permissionChecker, themeDisplay.getSiteGroupId(), ActionKeys.PERMISSIONS) %>">
 				<liferay-security:permissionsURL
 					modelResource="com.liferay.portlet.asset"
 					modelResourceDescription="<%= themeDisplay.getScopeGroupName() %>"
@@ -35,30 +35,35 @@
 				<aui:nav-item data-url="<%= permissionsURL %>" id="tagsPermissionsButton" label="permissions" />
 			</c:if>
 
-
-			<aui:nav-item dropdown="<%= true %>" label="actions">
+			<aui:nav-item cssClass="hide" dropdown="<%= true %>" id="tagsActionsButton" label="actions">
 				<aui:nav-item iconClass="icon-remove" id="deleteSelectedTags" label="delete" />
 
 				<aui:nav-item iconClass="icon-random" id="mergeSelectedTags" label="merge" />
 			</aui:nav-item>
 		</aui:nav>
 
-		<div class="navbar-search pull-right">
-			<div class="form-search">
-				<input class="search-query span9" id="<portlet:namespace/>tagsAdminSearchInput" name="<portlet:namespace/>tagsAdminSearchInput" type="text" />
-			</div>
-		</div>
+		<aui:nav-bar-search cssClass="pull-right">
+			<liferay-ui:input-search cssClass="form-search" id="tagsAdminSearchInput" name="tagsAdminSearchInput" showButton="<%= false %>" />
+		</aui:nav-bar-search>
 	</aui:nav-bar>
 
 	<div class="tags-admin-container lfr-app-column-view">
 		<div class="tags-admin-content-wrapper">
 			<aui:row cssClass="tags-admin-content">
 				<aui:col cssClass="tags-admin-list-container" width="<%= 35 %>">
-					<span>
-						<aui:input cssClass="select-tags" inline="<%= true %>" label="" name="checkAllTags" title='<%= LanguageUtil.get(pageContext, "check-all-tags") %>' type="checkbox" />
-					</span>
+					<div class="hide selected-tags-wrapper">
+						<h3 class="tags-header"><%= LanguageUtil.get(pageContext, "selected") %></h3>
 
-					<h3 class="tags-header"><%= LanguageUtil.get(pageContext, "tags") %></h3>
+						<div class="tag-staging-area">
+							<div class="token-container"></div>
+						</div>
+					</div>
+
+					<div class="available-tags-wrapper">
+						<aui:input cssClass="select-tags" inline="<%= true %>" label="" name="checkAllTags" title='<%= LanguageUtil.get(pageContext, "check-all-tags") %>' type="checkbox" />
+
+						<h3 class="tags-header"><%= LanguageUtil.get(pageContext, "available") %></h3>
+					</div>
 
 					<div class="tags-admin-list unstyled"></div>
 

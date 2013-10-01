@@ -14,6 +14,7 @@
 
 package com.liferay.portalweb.portal;
 
+import com.liferay.portal.kernel.util.OSDetector;
 import com.liferay.portal.util.InitUtil;
 import com.liferay.portalweb.portal.util.LiferaySeleneseTestCase;
 import com.liferay.portalweb.portal.util.SeleniumUtil;
@@ -29,35 +30,72 @@ public class BaseTestCase extends LiferaySeleneseTestCase {
 
 	public BaseTestCase() {
 		InitUtil.initWithSpring();
-
-		String chromeDriverPath =
-			TestPropsValues.SELENIUM_EXECUTABLE_DIR + "\\chromedriver.exe";
-
-		System.setProperty("webdriver.chrome.driver", chromeDriverPath);
-
-		String ieDriverPath =
-			TestPropsValues.SELENIUM_EXECUTABLE_DIR + "\\IEDriverServer.exe";
-
-		System.setProperty("webdriver.ie.driver", ieDriverPath);
 	}
 
 	@Override
 	public void setUp() throws Exception {
-		Class<?> clazz = getClass();
+		try {
+			Class<?> clazz = getClass();
 
-		String className = clazz.getName();
+			String className = clazz.getName();
 
-		if (className.contains("evaluatelog")) {
-			return;
+			if (className.contains("evaluatelog")) {
+				return;
+			}
+
+			selenium = SeleniumUtil.getSelenium();
+
+			selenium.startLogger();
 		}
+		catch (Exception e) {
+			killBrowser();
 
-		selenium = SeleniumUtil.getSelenium();
-
-		selenium.startLogger();
+			throw e;
+		}
 	}
 
 	@Override
 	public void tearDown() throws Exception {
+		String primaryTestSuiteName = selenium.getPrimaryTestSuiteName();
+
+		if (!primaryTestSuiteName.endsWith("TestSuite")) {
+			testCaseCount--;
+		}
+
+		if (!primaryTestSuiteName.endsWith("TestSuite") &&
+			(testCaseCount < 1)) {
+
+			try {
+				SeleniumUtil.stopSelenium();
+			}
+			catch (Exception e) {
+				killBrowser();
+
+				throw e;
+			}
+		}
+
+		if (TestPropsValues.TESTING_CLASS_METHOD) {
+			try {
+				SeleniumUtil.stopSelenium();
+			}
+			catch (Exception e) {
+				killBrowser();
+
+				throw e;
+			}
+		}
+	}
+
+	protected void killBrowser() throws Exception {
+		Runtime runtime = Runtime.getRuntime();
+
+		if (OSDetector.isWindows()) {
+			runtime.exec(new String[] {"tskill", "firefox"});
+		}
+		else {
+			runtime.exec(new String[] {"killall", "firefox"});
+		}
 	}
 
 	protected void loadRequiredJavaScriptModules() {
@@ -109,8 +147,9 @@ public class BaseTestCase extends LiferaySeleneseTestCase {
 
 			selenium.getEval("window.Liferay.fire(\'initDockbar\');");
 		}
-
 	}
+
+	protected static int testCaseCount;
 
 	protected Map<String, String> commandScopeVariables;
 	protected Map<String, String> definitionScopeVariables =

@@ -457,7 +457,7 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 
 	/**
 	 * Returns an ordered range of all the templates matching the group and
-	 * structure class name ID.
+	 * structure class name ID and all the generic templates matching the group.
 	 *
 	 * <p>
 	 * Useful when paginating results. Returns a maximum of <code>end -
@@ -471,7 +471,8 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 *
 	 * @param  groupId the primary key of the group
 	 * @param  structureClassNameId the primary key of the class name for the
-	 *         template's related structure
+	 *         template's related structure (optionally <code>0</code>). Specify
+	 *         <code>0</code> to return generic templates only.
 	 * @param  start the lower bound of the range of templates to return
 	 * @param  end the upper bound of the range of templates to return (not
 	 *         inclusive)
@@ -488,6 +489,27 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 
 		return ddmTemplateFinder.filterFindByG_SC(
 			groupId, structureClassNameId, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns the number of templates matching the group and structure class
+	 * name ID plus the number of generic templates matching the group.
+	 *
+	 * @param  groupId the primary key of the group
+	 * @param  structureClassNameId the primary key of the class name for the
+	 *         template's related structure (optionally <code>0</code>). Specify
+	 *         <code>0</code> to count generic templates only.
+	 * @return the number of matching templates plus the number of matching
+	 *         generic templates
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public int getTemplatesByStructureClassNameIdCount(
+			long groupId, long structureClassNameId)
+		throws SystemException {
+
+		return ddmTemplateFinder.filterCountByG_SC(
+			groupId, structureClassNameId);
 	}
 
 	/**
@@ -838,6 +860,7 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * Updates the template matching the ID.
 	 *
 	 * @param  templateId the primary key of the template
+	 * @param  classPK the primary key of the template's related entity
 	 * @param  nameMap the template's new locales and localized names
 	 * @param  descriptionMap the template's new locales and localized
 	 *         description
@@ -864,7 +887,7 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 */
 	@Override
 	public DDMTemplate updateTemplate(
-			long templateId, Map<Locale, String> nameMap,
+			long templateId, long classPK, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, String type, String mode,
 			String language, String script, boolean cacheable,
 			boolean smallImage, String smallImageURL, File smallImageFile,
@@ -875,8 +898,8 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 			getPermissionChecker(), templateId, ActionKeys.UPDATE);
 
 		return ddmTemplateLocalService.updateTemplate(
-			templateId, nameMap, descriptionMap, type, mode, language, script,
-			cacheable, smallImage, smallImageURL, smallImageFile,
+			templateId, classPK, nameMap, descriptionMap, type, mode, language,
+			script, cacheable, smallImage, smallImageURL, smallImageFile,
 			serviceContext);
 	}
 

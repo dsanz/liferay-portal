@@ -37,7 +37,10 @@ public class MessagingHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error sending deploy message for ", t);
+				hotDeployEvent,
+				"Error sending deploy message for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -50,7 +53,10 @@ public class MessagingHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error sending undeploy message for ", t);
+				hotDeployEvent,
+				"Error sending undeploy message for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 

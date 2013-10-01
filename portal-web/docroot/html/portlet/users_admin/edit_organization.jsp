@@ -85,6 +85,7 @@ else {
 
 <portlet:renderURL var="editOrganizationRenderURL">
 	<portlet:param name="struts_action" value="/users_admin/edit_organization" />
+	<portlet:param name="backURL" value="<%= backURL %>" />
 </portlet:renderURL>
 
 <aui:form action="<%= editOrganizationActionURL %>" method="post" name="fm">
@@ -134,10 +135,6 @@ else {
 	function <portlet:namespace />createURL(href, value, onclick) {
 		return '<a href="' + href + '"' + (onclick ? ' onclick="' + onclick + '" ' : '') + '>' + value + '</a>';
 	};
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
 </aui:script>
 
 <%!

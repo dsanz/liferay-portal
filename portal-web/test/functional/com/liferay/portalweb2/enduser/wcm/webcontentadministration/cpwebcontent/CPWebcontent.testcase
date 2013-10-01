@@ -1,0 +1,369 @@
+<definition>
+	<set-up>
+		<execute macro="User#firstLoginPG" />
+	</set-up>
+
+	<tear-down>
+		<execute macro="WebContent#tearDownCP" />
+
+		<execute macro="WebContentTemplates#tearDownCP" />
+
+		<execute macro="WebContentStructures#tearDownCP" />
+	</tear-down>
+
+	<command name="AddFolder">
+		<var name="folderDescription" value="WC Folder Description" />
+		<var name="folderName" value="WC Folder Name" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentFolder#addCP">
+			<var name="folderDescription" value="${folderDescription}" />
+			<var name="folderName" value="${folderName}" />
+		</execute>
+	</command>
+
+	<command name="AddStructure">
+		<var name="structureDescription" value="WC Structure Description" />
+		<var name="structureFieldName" value="Text" />
+		<var name="structureFormFieldKey" value="DIAGRAM_BUILDER_TEXT_FIELD_1" />
+		<var name="structureName" value="WC Structure Name" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentStructures#addCP">
+			<var name="structureDescription" value="${structureDescription}" />
+			<var name="structureFieldName" value="${structureFieldName}" />
+			<var name="structureFormFieldKey" value="${structureFormFieldKey}" />
+			<var name="structureName" value="${structureName}" />
+		</execute>
+	</command>
+
+	<command name="AddTemplate">
+		<var name="templateDescription" value="WC Template Description" />
+		<var name="templateName" value="WC Template Name" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentTemplates#addCP">
+			<var name="templateDescription" value="${templateDescription}" />
+			<var name="templateName" value="${templateName}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentTemplates#viewCP">
+			<var name="templateDescription" value="${templateDescription}" />
+			<var name="templateName" value="${templateName}" />
+		</execute>
+	</command>
+
+	<command name="AddTemplateXSL">
+		<var name="templateDescription" value="WC Template Description" />
+		<var name="templateFile" value="xsl_template.xsl" />
+		<var name="templateLanguage" value="xsl" />
+		<var name="templateName" value="WC Template Name" />
+		<var name="templateScript"><![CDATA[/root/dynamic-element[@name='name']]]></var>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentTemplates#addCP">
+			<var name="templateDescription" value="${templateDescription}" />
+			<var name="templateFile" value="${templateFile}" />
+			<var name="templateLanguage" value="${templateLanguage}" />
+			<var name="templateName" value="${templateName}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentTemplates#viewCP">
+			<var name="templateDescription" value="${templateDescription}" />
+			<var name="templateFile" value="${templateFile}" />
+			<var name="templateLanguage" value="${templateLanguage}" />
+			<var name="templateName" value="${templateName}" />
+			<var name="templateScript" value="${templateScript}" />
+		</execute>
+	</command>
+
+	<command name="AddTemplateWithStructure">
+		<var name="structureDescription" value="WC Structure Description" />
+		<var name="structureFieldName" value="Text" />
+		<var name="structureFormFieldKey" value="DIAGRAM_BUILDER_TEXT_FIELD_1" />
+		<var name="structureName" value="WC Structure Name" />
+		<var name="templateDescription" value="WC Template Description" />
+		<var name="templateName" value="WC Template Name" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentStructures#addCP">
+			<var name="structureDescription" value="${structureDescription}" />
+			<var name="structureFieldName" value="${structureFieldName}" />
+			<var name="structureFormFieldKey" value="${structureFormFieldKey}" />
+			<var name="structureName" value="${structureName}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentTemplates#addCP">
+			<var name="structureName" value="${structureName}" />
+			<var name="templateDescription" value="${templateDescription}" />
+			<var name="templateName" value="${templateName}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentTemplates#viewCP">
+			<var name="structureName" value="WC Structure Name" />
+			<var name="templateDescription" value="${templateDescription}" />
+			<var name="templateName" value="${templateName}" />
+		</execute>
+	</command>
+
+	<command name="AddWebContent">
+		<var name="webContentContent" value="WC WebContent Content" />
+		<var name="webContentTitle" value="WC WebContent Title" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="${webContentContent}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+	</command>
+
+	<command name="AddWebContentDraft">
+		<var name="webContentContent" value="WC WebContent Content" />
+		<var name="webContentTitle" value="WC WebContent Title" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#addDraftCP">
+			<var name="webContentContent" value="${webContentContent}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#viewCPDraft">
+			<var name="webContentContent" value="${webContentContent}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+	</command>
+
+	<command name="AddWebContentTitleEscapeCharacter">
+		<var name="webContentContent" value="WC WebContent Content" />
+		<var name="webContentTitle"><![CDATA[<!-- -->]]></var>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="${webContentContent}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#viewCP">
+			<var name="webContentContent" value="${webContentContent}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+	</command>
+
+	<command name="AddWebContentWithStructure">
+		<var name="structureDescription" value="WC Structure Description" />
+		<var name="structureFieldName" value="Text" />
+		<var name="structureFormFieldKey" value="DIAGRAM_BUILDER_TEXT_FIELD_1" />
+		<var name="structureName" value="WC Structure Name" />
+		<var name="templateDescription" value="WC Template Description" />
+		<var name="templateName" value="WC Template Name" />
+		<var name="webContentText" value="WC WebContent Text" />
+		<var name="webContentTitle" value="WC WebContent Title" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentStructures#addCP">
+			<var name="structureDescription" value="${structureDescription}" />
+			<var name="structureFieldName" value="${structureFieldName}" />
+			<var name="structureFormFieldKey" value="${structureFormFieldKey}" />
+			<var name="structureName" value="${structureName}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentTemplates#addCP">
+			<var name="structureName" value="${structureName}" />
+			<var name="templateDescription" value="${templateDescription}" />
+			<var name="templateName" value="${templateName}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#addCPwithStructure">
+			<var name="structureName" value="${structureName}" />
+			<var name="templateName" value="${templateName}" />
+			<var name="webContentText" value="${webContentText}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+	</command>
+
+	<command name="AddWebContentWithTemplateXSL">
+		<var name="structureDescription" value="WC Structure Description" />
+		<var name="structureFieldName" value="Text" />
+		<var name="structureFormFieldKey" value="DIAGRAM_BUILDER_TEXT_FIELD_1" />
+		<var name="structureName" value="WC Structure Name" />
+		<var name="templateDescription" value="WC Template Description" />
+		<var name="templateFile" value="xsl_template.xsl" />
+		<var name="templateLanguage" value="xsl" />
+		<var name="templateName" value="WC Template Name" />
+		<var name="templateScript"><![CDATA[/root/dynamic-element[@name='name']]]></var>
+		<var name="webContentText" value="WC WebContent Text" />
+		<var name="webContentTitle" value="WC WebContent Title" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentStructures#addCP">
+			<var name="structureDescription" value="${structureDescription}" />
+			<var name="structureFieldName" value="${structureFieldName}" />
+			<var name="structureFormFieldKey" value="${structureFormFieldKey}" />
+			<var name="structureName" value="${structureName}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentTemplates#addCP">
+			<var name="templateDescription" value="${templateDescription}" />
+			<var name="templateFile" value="${templateFile}" />
+			<var name="templateLanguage" value="${templateLanguage}" />
+			<var name="templateName" value="${templateName}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#addCPwithStructure">
+			<var name="structureName" value="${structureName}" />
+			<var name="templateName" value="${templateName}" />
+			<var name="webContentText" value="${webContentText}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+
+		<execute macro="WebContent#previewCPwithStructureTemplateXSL">
+			<var name="webContentText" value="${webContentText}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+	</command>
+
+	<command name="DeleteWebContent">
+		<var name="webContentContent" value="WC WebContent Content" />
+		<var name="webContentTitle" value="WC WebContent Title" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="${webContentContent}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#deleteCP">
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+	</command>
+
+	<command name="DeleteWebContentTitleEscapeCharacter">
+		<var name="webContentContent" value="WC WebContent Content" />
+		<var name="webContentTitle"><![CDATA[<!-- -->]]></var>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="${webContentContent}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#deleteCP">
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+	</command>
+
+	<command name="EditWebContent">
+		<var name="webContentContent" value="WC WebContent Content" />
+		<var name="webContentContentEdit" value="WC WebContent Content Edit" />
+		<var name="webContentTitle" value="WC WebContent Title" />
+		<var name="webContentTitleEdit" value="WC WebContent Title Edit" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="${webContentContent}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContent#editCP">
+			<var name="webContentContentEdit" value="${webContentContentEdit}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+			<var name="webContentTitleEdit" value="${webContentTitleEdit}" />
+		</execute>
+
+		<execute macro="WebContent#viewCP">
+			<var name="webContentContent" value="${webContentContentEdit}" />
+			<var name="webContentTitle" value="${webContentTitleEdit}" />
+		</execute>
+	</command>
+</definition>

@@ -341,6 +341,10 @@ public class ShoppingCartPersistenceImpl extends BasePersistenceImpl<ShoppingCar
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<ShoppingCart> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -825,6 +829,10 @@ public class ShoppingCartPersistenceImpl extends BasePersistenceImpl<ShoppingCar
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUserId(userId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<ShoppingCart> list = findByUserId(userId, count - 1, count,
 				orderByComparator);
 
@@ -1280,6 +1288,10 @@ public class ShoppingCartPersistenceImpl extends BasePersistenceImpl<ShoppingCar
 
 	private static final String _FINDER_COLUMN_G_U_GROUPID_2 = "shoppingCart.groupId = ? AND ";
 	private static final String _FINDER_COLUMN_G_U_USERID_2 = "shoppingCart.userId = ?";
+
+	public ShoppingCartPersistenceImpl() {
+		setModelClass(ShoppingCart.class);
+	}
 
 	/**
 	 * Caches the shopping cart in the entity cache if it is enabled.

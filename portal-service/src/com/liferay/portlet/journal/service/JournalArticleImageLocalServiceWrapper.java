@@ -356,6 +356,14 @@ public class JournalArticleImageLocalServiceWrapper
 		return _journalArticleImageLocalService.getArticleImages(groupId);
 	}
 
+	@Override
+	public java.util.List<com.liferay.portlet.journal.model.JournalArticleImage> getArticleImages(
+		long groupId, java.lang.String articleId, double version)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleImageLocalService.getArticleImages(groupId,
+			articleId, version);
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */

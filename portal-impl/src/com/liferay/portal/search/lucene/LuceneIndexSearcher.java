@@ -22,15 +22,16 @@ import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
-import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.facets.FacetHandler.TermCountSize;
+import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.FacetHandler.TermCountSize;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.dao.search.SearchPaginationUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
@@ -183,8 +184,18 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 				for (int i = 0; i < sorts.length; i++) {
 					Sort sort = sorts[i];
 
-					sortFields[i] = new SortField(
-						sort.getFieldName(), sort.getType(), sort.isReverse());
+					if ((sort.getType() == Sort.STRING_TYPE) &&
+						(searchContext.getLocale() != null)) {
+
+						sortFields[i] = new SortField(
+							sort.getFieldName(), searchContext.getLocale(),
+							sort.isReverse());
+					}
+					else {
+						sortFields[i] = new SortField(
+							sort.getFieldName(), sort.getType(),
+							sort.isReverse());
+					}
 				}
 			}
 
@@ -514,20 +525,18 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 			TermCollectingFormatter termCollectingFormatter =
 				new TermCollectingFormatter();
 
-			if ((values != null) && (values.length > 0)) {
+			if (ArrayUtil.isNotEmpty(values)) {
 				snippet = LuceneHelperUtil.getSnippet(
 					luceneQuery, snippetField, StringUtil.merge(values),
 					termCollectingFormatter);
 			}
 
-			if ((values == null) || (values.length == 0) ||
-				Validator.isNull(snippet)) {
-
+			if (ArrayUtil.isEmpty(values) || Validator.isNull(snippet)) {
 				snippetField = field;
 
 				values = doc.getValues(snippetField);
 
-				if (Validator.isNull(values)) {
+				if (ArrayUtil.isEmpty(values)) {
 					return StringPool.BLANK;
 				}
 
@@ -558,12 +567,18 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 			long startTime, float searchTime, int start, int end)
 		throws IOException, ParseException {
 
-		int length = hitDocs.getTotalHits();
+		int total = hitDocs.getTotalHits();
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS)) {
 			start = 0;
-			end = length;
+			end = total;
 		}
+
+		int[] startAndEnd = SearchPaginationUtil.calculateStartAndEnd(
+			start, end, total);
+
+		start = startAndEnd[0];
+		end = startAndEnd[1];
 
 		Set<String> queryTerms = new HashSet<String>();
 
@@ -583,14 +598,6 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 
 		if ((start < 0) || (start > end)) {
 			return hits;
-		}
-
-		if (end > length) {
-			end = length;
-		}
-
-		if (start > end) {
-			start = end;
 		}
 
 		int subsetTotal = end - start;
@@ -653,7 +660,7 @@ public class LuceneIndexSearcher extends BaseIndexSearcher {
 		}
 
 		hits.setDocs(subsetDocs.toArray(new Document[subsetDocs.size()]));
-		hits.setLength(length);
+		hits.setLength(total);
 		hits.setQuery(query);
 		hits.setQueryTerms(queryTerms.toArray(new String[queryTerms.size()]));
 		hits.setScores(subsetScores.toArray(new Float[subsetScores.size()]));

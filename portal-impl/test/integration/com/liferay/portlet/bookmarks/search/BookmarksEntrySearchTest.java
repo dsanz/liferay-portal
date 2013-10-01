@@ -14,8 +14,11 @@
 
 package com.liferay.portlet.bookmarks.search;
 
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.search.BaseSearchTestCase;
@@ -28,9 +31,13 @@ import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
 import com.liferay.portal.test.TransactionalExecutionTestListener;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
+import com.liferay.portlet.bookmarks.model.BookmarksFolderConstants;
+import com.liferay.portlet.bookmarks.service.BookmarksEntryServiceUtil;
+import com.liferay.portlet.bookmarks.service.BookmarksFolderServiceUtil;
 import com.liferay.portlet.bookmarks.util.BookmarksTestUtil;
 
-import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -47,44 +54,52 @@ import org.junit.runner.RunWith;
 @Transactional
 public class BookmarksEntrySearchTest extends BaseSearchTestCase {
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchAttachments() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchByDDMStructureField() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchComments() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchExpireAllVersions() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchExpireLatestVersion() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchStatus() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchVersions() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchWithinDDMStructure() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
 	@Override
@@ -95,13 +110,28 @@ public class BookmarksEntrySearchTest extends BaseSearchTestCase {
 
 		BookmarksFolder folder = (BookmarksFolder)parentBaseModel;
 
-		return BookmarksTestUtil.addEntry(
-			folder.getFolderId(), true, serviceContext);
+		long folderId = BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID;
+
+		if (folder != null) {
+			folderId = folder.getFolderId();
+		}
+
+		return BookmarksTestUtil.addEntry(folderId, true, serviceContext);
 	}
 
 	@Override
 	protected Class<?> getBaseModelClass() {
 		return BookmarksEntry.class;
+	}
+
+	@Override
+	protected BaseModel<?> getParentBaseModel(
+			BaseModel<?> parentBaseModel, ServiceContext serviceContext)
+		throws Exception {
+
+		return BookmarksTestUtil.addFolder(
+			(Long)parentBaseModel.getPrimaryKeyObj(),
+			ServiceTestUtil.randomString(), serviceContext);
 	}
 
 	@Override
@@ -114,8 +144,31 @@ public class BookmarksEntrySearchTest extends BaseSearchTestCase {
 	}
 
 	@Override
+	protected String getParentBaseModelClassName() {
+		return BookmarksFolder.class.getName();
+	}
+
+	@Override
 	protected String getSearchKeywords() {
 		return "Test";
+	}
+
+	@Override
+	protected void moveParentBaseModelToTrash(long primaryKey)
+		throws Exception {
+
+		BookmarksFolderServiceUtil.moveFolderToTrash(primaryKey);
+	}
+
+	@Override
+	protected long searchGroupEntriesCount(long groupId, long creatorUserId)
+		throws Exception {
+
+		Hits hits =  BookmarksEntryServiceUtil.search(
+			groupId, creatorUserId, WorkflowConstants.STATUS_APPROVED,
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		return hits.getLength();
 	}
 
 }

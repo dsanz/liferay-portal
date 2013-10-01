@@ -1,25 +1,98 @@
 <definition>
 	<command name="addCP">
-		<execute macro="Page#cpGotoSites">
-			<var name="portletName" value="Sites" />
-		</execute>
+		<var name="key_teamName" value="${teamName}" />
 
-		<execute action="CPSites#type" locator-key1="BASIC_SEARCH_FIELD" value1="${siteName}" />
-		<execute action="CPSites#click" locator-key1="BASIC_SEARCH_BUTTON" value1="${siteName}" />
-		<execute action="CPSites#assertTextEquals" locator-key1="SITE_TABLE_NAME" value1="${siteName}" />
-		<execute action="CPSites#click" locator-key1="SITE_TABLE_ACTIONS" />
-		<execute action="CPSites#click" locator-key1="SITE_MENULIST_MANAGE_MEMBERSHIPS" />
+		<execute action="CPSiteteams#assertClick" locator-key1="ADD_TEAM_BUTTON" value1="Add Team" />
 
-		<execute action="CPSitememberships#click" locator-key1="TOOLBAR_VIEW_TEAMS" />
+		<execute action="CPSiteteamsAddteam#type" locator-key1="NAME_FIELD" value1="${teamName}" />
+		<execute action="CPSiteteamsAddteam#type" locator-key1="DESCRIPTION_FIELD" value1="${teamDescription}" />
+		<execute action="CPSiteteamsAddteam#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
 
-		<execute action="CPSitemembershipsViewteams#click" locator-key1="ADD_TEAM_BUTTON" />
+		<execute action="CPSiteteams#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+	</command>
 
-		<execute action="CPSitemembershipsViewteamsAddteam#type" locator-key1="NAME_FIELD" value1="${teamName}" />
-		<execute action="CPSitemembershipsViewteamsAddteam#type" locator-key1="DESCRIPTION_FIELD" value1="${teamDescription}" />
-		<execute action="CPSitemembershipsViewteamsAddteam#click" locator-key1="SAVE_BUTTON" />
+	<command name="assignMembersCP">
+		<var name="key_teamName" value="${teamName}" />
+		<var name="key_userScreenName" value="${userScreenName}" />
 
-		<execute action="CPSitemembershipsViewteams#assertTextEquals" locator-key1="SUCCESS_MESSAGE" />
-		<execute action="CPSitemembershipsViewteams#assertTextEquals" locator-key1="TEAM_TABLE_NAME_1" value1="${teamName}" />
-		<execute action="CPSitemembershipsViewteams#assertTextEquals" locator-key1="TEAM_TABLE_DESCRIPTION_1" value1="${teamDescription}" />
+		<execute action="CPSiteteams#type" locator-key1="SEARCH_FIELD" value1="${teamName}" />
+		<execute action="CPSiteteams#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
+		<execute action="CPSiteteams#assertTextEquals" locator-key1="TEAM_TABLE_NAME" value1="${teamName}" />
+		<execute action="CPSiteteams#assertClick" locator-key1="TEAM_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPSiteteams#assertClick" locator-key1="TEAM_MENULIST_ASSIGN_MEMBERS" value1="Assign Members" />
+
+		<execute action="CPSiteteamsAssignmembers#assertClick" locator-key1="AVAILABLE" value1="Available" />
+		<execute action="CPSiteteamsAssignmembers#type" locator-key1="BASIC_SEARCH_FIELD" value1="${userScreenName}" />
+		<execute action="CPSiteteamsAssignmembers#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
+		<execute action="CPSiteteamsAssignmembers#assertTextEquals" locator-key1="USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
+		<execute action="CPSiteteamsAssignmembers#check" locator-key1="USER_TABLE_CHECKBOX" />
+		<execute action="CPSiteteamsAssignmembers#assertClick" locator-key1="UPDATE_ASSOCIATIONS_BUTTON" value1="Update Associations" />
+
+		<execute action="CPSiteteamsAssignmembers#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+		<execute action="CPSiteteamsAssignmembers#assertChecked" locator-key1="USER_TABLE_CHECKBOX" />
+	</command>
+
+	<command name="definePermissionPG">
+		<execute action="Permissions#check" locator1="//tr[contains(.,'${teamName}')]/td/input[contains(@id,'${permissionDefinitionKey}')]" />
+		<execute action="Permissions#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
+		<execute action="Permissions#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+		<execute action="Permissions#assertChecked" locator1="//tr[contains(.,'${teamName}')]/td/input[contains(@id,'${permissionDefinitionKey}')]" />
+	</command>
+
+	<command name="deleteCP">
+		<var name="key_teamName" value="${teamName}" />
+
+		<execute action="CPSiteteams#assertTextEquals" locator-key1="TEAM_TABLE_NAME" value1="${teamName}" />
+		<execute action="CPSiteteams#assertClick" locator-key1="TEAM_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPSiteteams#assertClick" locator-key1="TEAM_MENULIST_DELETE" value1="Delete" />
+		<execute action="CPSiteteams#confirm" locator-key1="CONFIRMATION" value1="Are you sure you want to delete this? It will be deleted immediately." />
+
+		<execute action="CPSiteteams#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+	</command>
+
+	<command name="editCP">
+		<var name="key_teamName" value="${teamName}" />
+
+		<execute action="CPSiteteams#assertTextEquals" locator-key1="TEAM_TABLE_NAME" value1="${teamName}" />
+		<execute action="CPSiteteams#assertClick" locator-key1="TEAM_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPSiteteams#assertClick" locator-key1="TEAM_MENULIST_EDIT" value1="Edit" />
+
+		<execute action="CPSiteteamsEditteam#type" locator-key1="NAME_FIELD" value1="${teamNameEdit}" />
+		<execute action="CPSiteteamsEditteam#type" locator-key1="DESCRIPTION_FIELD" value1="${teamDescriptionEdit}" />
+		<execute action="CPSiteteamsEditteam#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
+
+		<execute action="CPSiteteams#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+	</command>
+
+	<command name="removePermissionPG">
+		<execute action="Permissions#uncheck" locator1="//tr[contains(.,'${teamName}')]/td/input[contains(@id,'${permissionDefinitionKey}')]" />
+		<execute action="Permissions#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
+		<execute action="Permissions#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+		<execute action="Permissions#assertNotChecked" locator1="//tr[contains(.,'${teamName}')]/td/input[contains(@id,'${permissionDefinitionKey}')]" />
+	</command>
+
+	<command name="viewCP">
+		<var name="key_teamName" value="${teamName}" />
+
+		<execute action="CPSiteteams#assertTextEquals" locator-key1="TEAM_TABLE_NAME" value1="${teamName}" />
+		<execute action="CPSiteteams#assertTextEquals" locator-key1="TEAM_TABLE_DESCRIPTION" value1="${teamDescription}" />
+		<execute action="CPSiteteams#assertTextEquals" locator-key1="TEAM_TABLE_ACTIONS" value1="Actions" />
+	</command>
+
+	<command name="viewMemberCP">
+		<var name="key_teamName" value="${teamName}" />
+		<var name="key_userScreenName" value="${userScreenName}" />
+
+		<execute action="CPSitememberships#assertTextEquals" locator-key1="USER_TABLE_NAME" value1="${userFirstName} ${userLastName}" />
+		<execute action="CPSitememberships#assertTextEquals" locator-key1="USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
+		<execute action="CPSitememberships#assertTextEquals" locator-key1="USER_TABLE_SITE_ROLES_AND_TEAMS" value1="${teamName}" />
+		<execute action="CPSitememberships#assertTextEquals" locator-key1="USER_TABLE_ACTIONS" value1="Actions" />
+	</command>
+
+	<command name="viewDeleteCP">
+		<var name="key_teamName" value="${teamName}" />
+
+		<execute action="CPSiteteams#assertTextEquals" locator-key1="INFO_MESSAGE" value1="No teams were found." />
+		<execute action="CPSiteteams#assertTextNotPresent" locator-key1="TEAM_TABLE_NAME" value1="${teamName}" />
 	</command>
 </definition>

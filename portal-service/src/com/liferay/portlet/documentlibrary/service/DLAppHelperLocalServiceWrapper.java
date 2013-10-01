@@ -233,7 +233,8 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 
 	@Override
 	public void moveFolder(
-		com.liferay.portal.kernel.repository.model.Folder folder) {
+		com.liferay.portal.kernel.repository.model.Folder folder)
+		throws com.liferay.portal.kernel.exception.SystemException {
 		_dlAppHelperLocalService.moveFolder(folder);
 	}
 
@@ -263,6 +264,13 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _dlAppHelperLocalService.moveFolderToTrash(userId, folder);
+	}
+
+	@Override
+	public void registerDLSyncEventCallback(java.lang.String event,
+		java.lang.String type, long typePK)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_dlAppHelperLocalService.registerDLSyncEventCallback(event, type, typePK);
 	}
 
 	@Override

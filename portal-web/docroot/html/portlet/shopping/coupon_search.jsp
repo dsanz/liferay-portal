@@ -24,7 +24,7 @@ CouponDisplayTerms displayTerms = (CouponDisplayTerms)searchContainer.getDisplay
 
 <aui:fieldset column="<%= true %>">
 	<aui:col width="<%= 33 %>">
-		<aui:input name="<%= displayTerms.CODE %>" size="20" type="text" value="<%= displayTerms.getCode() %>" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="<%= displayTerms.CODE %>" size="20" type="text" value="<%= displayTerms.getCode() %>" />
 
 		<aui:select label="" name="<%= displayTerms.AND_OPERATOR %>">
 			<aui:option label="and" selected="<%= displayTerms.isAndOperator() %>" value="1" />
@@ -65,10 +65,7 @@ CouponDisplayTerms displayTerms = (CouponDisplayTerms)searchContainer.getDisplay
 <aui:script>
 	function <portlet:namespace />addCoupon() {
 		document.<portlet:namespace />fm.method = 'post';
+
 		submitForm(document.<portlet:namespace />fm, '<portlet:renderURL><portlet:param name="struts_action" value="/shopping/edit_coupon" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:renderURL>');
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= displayTerms.CODE %>);
-	</c:if>
 </aui:script>

@@ -6,26 +6,13 @@
 
 	.category-subscriptions {
 		clear: both;
+		margin-bottom: 1em;
 		overflow: hidden;
 	}
 
 	.category-subscription-types {
 		float: right;
-	}
-
-	.code {
-		background: #FFF;
-		border: 1px solid #777;
-		font-family: monospace;
-		overflow-x: auto;
-		white-space: pre;
-	}
-
-	.code-lines {
-		border-right: 1px solid #CCC;
-		color: #000;
-		margin-right: 5px;
-		padding: 0px 5px 0px 5px;
+		margin-bottom: 0;
 	}
 
 	.quote {
@@ -91,6 +78,10 @@
 		table {
 			border-collapse: collapse;
 			table-layout: fixed;
+		}
+
+		.lfr-code table {
+			table-layout: auto;
 		}
 
 		td {
@@ -304,7 +295,7 @@
 	}
 
 	.threads-panel {
-		margin-top: 2em;
+		margin-top: 1em;
 	}
 
 	.displayStyle-question {

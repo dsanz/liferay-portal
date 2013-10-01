@@ -38,10 +38,10 @@ import com.liferay.portlet.journal.model.JournalTemplate;
 import com.liferay.portlet.journal.util.JournalConverterUtil;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,10 +58,10 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 
 	protected void addDDMStructure(
 			String uuid_, long ddmStructureId, long groupId, long companyId,
-			long userId, String userName, Date createDate, Date modifiedDate,
-			long parentDDMStructureId, long classNameId, String ddmStructureKey,
-			String name, String description, String xsd, String storageType,
-			int type)
+			long userId, String userName, Timestamp createDate,
+			Timestamp modifiedDate, long parentDDMStructureId, long classNameId,
+			String ddmStructureKey, String name, String description, String xsd,
+			String storageType, int type)
 		throws Exception {
 
 		Connection con = null;
@@ -89,8 +89,8 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 			ps.setLong(4, companyId);
 			ps.setLong(5, userId);
 			ps.setString(6, userName);
-			ps.setDate(7, createDate);
-			ps.setDate(8, modifiedDate);
+			ps.setTimestamp(7, createDate);
+			ps.setTimestamp(8, modifiedDate);
 			ps.setLong(9, parentDDMStructureId);
 			ps.setLong(10, classNameId);
 			ps.setString(11, ddmStructureKey);
@@ -109,9 +109,9 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 
 	protected void addDDMStructure(
 			String uuid_, long ddmStructureId, long groupId, long companyId,
-			long userId, String userName, Date createDate, Date modifiedDate,
-			String parentStructureId, String ddmStructureKey, String name,
-			String description, String xsd)
+			long userId, String userName, Timestamp createDate,
+			Timestamp modifiedDate, String parentStructureId,
+			String ddmStructureKey, String name, String description, String xsd)
 		throws Exception {
 
 		long parentDDMStructureId = 0;
@@ -131,11 +131,11 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 
 	protected void addDDMTemplate(
 			String uuid_, long ddmTemplateId, long groupId, long companyId,
-			long userId, String userName, Date createDate, Date modifiedDate,
-			long classNameId, long classPK, String templateKey, String name,
-			String description, String type, String mode, String language,
-			String script, boolean cacheable, boolean smallImage,
-			long smallImageId, String smallImageURL)
+			long userId, String userName, Timestamp createDate,
+			Timestamp modifiedDate, long classNameId, long classPK,
+			String templateKey, String name, String description, String type,
+			String mode, String language, String script, boolean cacheable,
+			boolean smallImage, long smallImageId, String smallImageURL)
 		throws Exception {
 
 		Connection con = null;
@@ -163,8 +163,8 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 			ps.setLong(4, companyId);
 			ps.setLong(5, userId);
 			ps.setString(6, userName);
-			ps.setDate(7, createDate);
-			ps.setDate(8, modifiedDate);
+			ps.setTimestamp(7, createDate);
+			ps.setTimestamp(8, modifiedDate);
 			ps.setLong(9, classNameId);
 			ps.setLong(10, classPK);
 			ps.setString(11, templateKey);
@@ -315,8 +315,8 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 				long companyId = rs.getLong("companyId");
 				long userId = rs.getLong("userId");
 				String userName = rs.getString("userName");
-				Date createDate = rs.getDate("createDate");
-				Date modifiedDate = rs.getDate("modifiedDate");
+				Timestamp createDate = rs.getTimestamp("createDate");
+				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
 				String parentStructureId = rs.getString("parentStructureId");
 				String name = rs.getString("name");
 				String description = rs.getString("description");
@@ -370,8 +370,8 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 				long companyId = rs.getLong("companyId");
 				long userId = rs.getLong("userId");
 				String userName = rs.getString("userName");
-				Date createDate = rs.getDate("createDate");
-				Date modifiedDate = rs.getDate("modifiedDate");
+				Timestamp createDate = rs.getTimestamp("createDate");
+				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
 				String structureId = rs.getString("structureId");
 				String parentStructureId = rs.getString("parentStructureId");
 				String name = rs.getString("name");
@@ -420,8 +420,8 @@ public class UpgradeJournal extends BaseUpgradePortletPreferences {
 				long companyId = rs.getLong("companyId");
 				long userId = rs.getLong("userId");
 				String userName = rs.getString("userName");
-				Date createDate = rs.getDate("createDate");
-				Date modifiedDate = rs.getDate("modifiedDate");
+				Timestamp createDate = rs.getTimestamp("createDate");
+				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
 				String templateId = rs.getString("templateId");
 				String structureId = rs.getString("structureId");
 				String name = rs.getString("name");

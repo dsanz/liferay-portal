@@ -17,6 +17,8 @@
 <%@ include file="/html/portlet/journal/init.jsp" %>
 
 <%
+String navigation = ParamUtil.getString(request, "navigation", "home");
+
 JournalFolder folder = (JournalFolder)request.getAttribute(WebKeys.JOURNAL_FOLDER);
 
 long folderId = ParamUtil.getLong(request, "folderId", JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
@@ -30,6 +32,7 @@ if ((folder == null) && (folderId != JournalFolderConstants.DEFAULT_PARENT_FOLDE
 	}
 }
 
+String browseBy = ParamUtil.getString(request, "browseBy");
 boolean viewEntries = ParamUtil.getBoolean(request, "viewEntries");
 boolean viewEntriesPage = ParamUtil.getBoolean(request, "viewEntriesPage");
 boolean viewFolders = ParamUtil.getBoolean(request, "viewFolders");
@@ -59,16 +62,16 @@ request.setAttribute("view.jsp-folderId", String.valueOf(folderId));
 			<liferay-util:include page="/html/portlet/journal/display_style_buttons.jsp" />
 		</span>
 
+		<span id="<portlet:namespace />sortButton">
+			<liferay-util:include page="/html/portlet/journal/sort_button.jsp" />
+		</span>
+
 		<span id="<portlet:namespace />breadcrumb">
 			<div class="portlet-breadcrumb">
-				<liferay-util:include page="/html/portlet/journal/breadcrumb.jsp" />
+				<c:if test='<%= !navigation.equals("recent") && !navigation.equals("mine") && Validator.isNull(browseBy) %>'>
+					<liferay-util:include page="/html/portlet/journal/breadcrumb.jsp" />
+				</c:if>
 			</div>
-
-			<c:if test="<%= layout.isTypeControlPanel() %>">
-				<div class="portal-breadcrumb">
-					<liferay-ui:breadcrumb showCurrentGroup="<%= true %>" showCurrentPortlet="<%= layout.isTypeControlPanel() %>" showGuestGroup="<%= !layout.isTypeControlPanel() %>" showLayout="<%= true %>" showParentGroups="<%= false %>" showPortletBreadcrumb="<%= true %>" />
-				</div>
-			</c:if>
 		</span>
 	</c:if>
 
@@ -76,6 +79,10 @@ request.setAttribute("view.jsp-folderId", String.valueOf(folderId));
 		<div id="<portlet:namespace />entries">
 			<liferay-util:include page="/html/portlet/journal/view_entries.jsp" />
 		</div>
+
+		<span id="<portlet:namespace />sortButton">
+			<liferay-util:include page="/html/portlet/journal/sort_button.jsp" />
+		</span>
 	</c:if>
 
 	<c:if test="<%= viewFolders %>">

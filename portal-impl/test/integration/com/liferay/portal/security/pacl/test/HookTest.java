@@ -17,6 +17,7 @@ package com.liferay.portal.security.pacl.test;
 import com.liferay.portal.kernel.format.PhoneNumberFormatUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.security.pacl.PACLExecutionTestListener;
 import com.liferay.portal.security.pacl.PACLIntegrationJUnitTestRunner;
 import com.liferay.portal.security.pacl.test.hook.action.FailureStrutsAction;
@@ -25,8 +26,6 @@ import com.liferay.portal.security.pacl.test.hook.indexer.OrganizationIndexerPos
 import com.liferay.portal.security.pacl.test.hook.indexer.UserIndexerPostProcessor;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
 import com.liferay.portlet.blogs.service.BlogsStatsUserLocalServiceUtil;
-
-import java.util.Locale;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -52,41 +51,42 @@ public class HookTest {
 	@Test
 	public void testLanguage1() throws Exception {
 		Assert.assertEquals(
-			LanguageUtil.get(new Locale("es"), "stars"), "Estrellas");
+			LanguageUtil.get(LocaleUtil.SPAIN, "stars"), "Estrellas");
 	}
 
 	@Test
 	public void testLanguage2() throws Exception {
-		Assert.assertEquals(LanguageUtil.get(Locale.GERMAN, "stars"), "Sterne");
+		Assert.assertEquals(
+			LanguageUtil.get(LocaleUtil.GERMAN, "stars"), "Sterne");
 	}
 
 	@Test
 	public void testLanguage3() throws Exception {
 		Assert.assertEquals(
-			LanguageUtil.get(new Locale("pt", "BR"), "stars"), "Ricardo Kaka");
+			LanguageUtil.get(LocaleUtil.BRAZIL, "stars"), "Ricardo Kaka");
 	}
 
 	@Test
 	public void testLanguage4() throws Exception {
 		Assert.assertEquals(
-			LanguageUtil.get(new Locale("pt", "PT"), "stars"),
+			LanguageUtil.get(LocaleUtil.PORTUGAL, "stars"),
 			"Cristiano Ronaldo");
 	}
 
 	@Test
 	public void testLanguage5() throws Exception {
 		Assert.assertEquals(
-			LanguageUtil.get(Locale.UK, "stars"), "David Beckham");
+			LanguageUtil.get(LocaleUtil.UK, "stars"), "David Beckham");
 	}
 
 	@Test
 	public void testLanguage6() throws Exception {
-		Assert.assertEquals(LanguageUtil.get(Locale.US, "stars"), "Stars");
+		Assert.assertEquals(LanguageUtil.get(LocaleUtil.US, "stars"), "Stars");
 	}
 
 	@Test
 	public void testPortalProperties1() throws Exception {
-		Assert.assertFalse(LanguageUtil.isBetaLocale(Locale.US));
+		Assert.assertFalse(LanguageUtil.isBetaLocale(LocaleUtil.US));
 	}
 
 	@Test

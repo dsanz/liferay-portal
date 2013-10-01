@@ -25,6 +25,8 @@ import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.Sync;
+import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
 import com.liferay.portal.test.TransactionalExecutionTestListener;
 import com.liferay.portal.util.CompanyTestUtil;
 import com.liferay.portal.util.GroupTestUtil;
@@ -38,7 +40,6 @@ import com.liferay.portlet.dynamicdatamapping.util.DDMTemplateTestUtil;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalFolder;
 
-import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -52,9 +53,11 @@ import org.junit.runner.RunWith;
 @ExecutionTestListeners(
 	listeners = {
 		EnvironmentExecutionTestListener.class,
+		SynchronousDestinationExecutionTestListener.class,
 		TransactionalExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
+@Sync
 @Transactional
 public class JournalTestUtilTest {
 
@@ -120,7 +123,7 @@ public class JournalTestUtilTest {
 	public void testAddDDMStructureWithLocale() throws Exception {
 		Assert.assertNotNull(
 			DDMStructureTestUtil.addStructure(
-				JournalArticle.class.getName(), LocaleUtil.getDefault()));
+				JournalArticle.class.getName(), LocaleUtil.getSiteDefault()));
 	}
 
 	@Test
@@ -130,7 +133,7 @@ public class JournalTestUtilTest {
 				PortalUtil.getDefaultCompanyId(), "en_US");
 
 			DDMStructureTestUtil.addStructure(
-				JournalArticle.class.getName(), Locale.CANADA);
+				JournalArticle.class.getName(), LocaleUtil.CANADA);
 
 			Assert.fail();
 		}
@@ -148,7 +151,7 @@ public class JournalTestUtilTest {
 	public void testAddDDMStructureWithXSDAndLocale() throws Exception {
 		Assert.assertNotNull(
 			DDMStructureTestUtil.addStructure(
-				JournalArticle.class.getName(), LocaleUtil.getDefault()));
+				JournalArticle.class.getName(), LocaleUtil.getSiteDefault()));
 	}
 
 	@Test
@@ -226,7 +229,7 @@ public class JournalTestUtilTest {
 	public void testCreateLocalizedContent() {
 		Assert.assertNotNull(
 			JournalTestUtil.createLocalizedContent(
-				"This is localized content.", LocaleUtil.getDefault()));
+				"This is localized content.", LocaleUtil.getSiteDefault()));
 	}
 
 	@Test
@@ -259,7 +262,7 @@ public class JournalTestUtilTest {
 			_group.getGroupId(), "Test Article", "This is a test article.");
 
 		String localizedContent = JournalTestUtil.createLocalizedContent(
-			"This is an updated test article.", LocaleUtil.getDefault());
+			"This is an updated test article.", LocaleUtil.getSiteDefault());
 
 		Assert.assertNotNull(
 			JournalTestUtil.updateArticle(

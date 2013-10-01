@@ -45,11 +45,13 @@ if (organizationId > 0) {
 
 		<div id="<portlet:namespace />usersSelectionOptions">
 			<aui:field-wrapper label="organization">
-				<span id="<portlet:namespace />organizationName"><%= HtmlUtil.escape(organizationName) %></span>
+				<div class="input-append">
+					<liferay-ui:input-resource id="organizationName" url="<%= HtmlUtil.escape(organizationName) %>" />
 
-				<aui:button name="selectOrganizationButton" value="select" />
+					<aui:button name="selectOrganizationButton" value="select" />
 
-				<aui:button disabled="<%= organizationId <= 0 %>" name="removeOrganizationButton" onClick='<%= renderResponse.getNamespace() + "removeOrganization();" %>' value="remove" />
+					<aui:button disabled="<%= organizationId <= 0 %>" name="removeOrganizationButton" onClick='<%= renderResponse.getNamespace() + "removeOrganization();" %>' value="remove" />
+				</div>
 			</aui:field-wrapper>
 		</div>
 
@@ -104,11 +106,9 @@ if (organizationId > 0) {
 	function <portlet:namespace />removeOrganization() {
 		document.<portlet:namespace />fm.<portlet:namespace />organizationId.value = "";
 
-		var nameEl = document.getElementById("<portlet:namespace />organizationName");
+		document.getElementById('<portlet:namespace />organizationName').value = "";
 
-		nameEl.innerHTML = "";
-
-		document.getElementById("<portlet:namespace />removeOrganizationButton").disabled = true;
+		Liferay.Util.toggleDisabled('#<portlet:namespace />removeOrganizationButton', true);
 	}
 </aui:script>
 
@@ -120,22 +120,18 @@ if (organizationId > 0) {
 				{
 					dialog: {
 						constrain: true,
-						modal: true,
-						zIndex: Liferay.zIndex.WINDOW + 2,
-						width: 600
+						modal: true
 					},
 					id: '<portlet:namespace />selectOrganization',
-					title: '<%= UnicodeLanguageUtil.format(pageContext, "select-x", "organization") %>',
+					title: '<liferay-ui:message arguments="organization" key="select-x" />',
 					uri: '<portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="struts_action" value="/portlet_configuration/select_organization" /><portlet:param name="tabs1" value="organizations" /></portlet:renderURL>'
 				},
 				function(event) {
 					document.<portlet:namespace />fm.<portlet:namespace />organizationId.value = event.organizationid;
 
-					var nameEl = document.getElementById('<portlet:namespace />organizationName');
+					document.getElementById('<portlet:namespace />organizationName').value = event.name;
 
-					nameEl.innerHTML = event.name + '&nbsp;';
-
-					document.getElementById('<portlet:namespace />removeOrganizationButton').disabled = false;
+					Liferay.Util.toggleDisabled('#<portlet:namespace />removeOrganizationButton', false);
 				}
 			);
 		}

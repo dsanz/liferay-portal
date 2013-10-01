@@ -14,7 +14,8 @@
 
 package com.liferay.portal.spring.aop;
 
-import com.liferay.portal.kernel.spring.aop.Skip;
+import java.util.List;
+import java.util.Map;
 
 import org.aopalliance.intercept.MethodInterceptor;
 
@@ -25,6 +26,7 @@ import org.springframework.aop.framework.AopProxy;
 import org.springframework.aop.framework.AopProxyFactory;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.framework.autoproxy.AbstractAdvisorAutoProxyCreator;
+import org.springframework.beans.factory.ListableBeanFactory;
 
 /**
  * @author Shuyang Zhou
@@ -34,9 +36,6 @@ public class ServiceBeanAutoProxyCreator
 
 	public ServiceBeanAutoProxyCreator() {
 		_serviceBeanAopCacheManager = new ServiceBeanAopCacheManager();
-
-		_serviceBeanAopCacheManager.registerAnnotationChainableMethodAdvice(
-			Skip.class, null);
 	}
 
 	public void afterPropertiesSet() {
@@ -47,6 +46,46 @@ public class ServiceBeanAutoProxyCreator
 
 		if (_beanMatcher == null) {
 			_beanMatcher = new ServiceBeanMatcher();
+		}
+
+		ListableBeanFactory listableBeanFactory =
+			(ListableBeanFactory)getBeanFactory();
+
+		Map<String, ChainableMethodAdviceInjector>
+			chainableMethodAdviceInjectors =
+				listableBeanFactory.getBeansOfType(
+					ChainableMethodAdviceInjector.class);
+
+		for (ChainableMethodAdviceInjector chainableMethodAdviceInjector :
+				chainableMethodAdviceInjectors.values()) {
+
+			chainableMethodAdviceInjector.inject();
+		}
+
+		if (!listableBeanFactory.containsBean(
+				ChainableMethodAdviceInjectorCollector.BEAN_NAME)) {
+
+			return;
+		}
+
+		ChainableMethodAdviceInjectorCollector
+			chainableMethodAdviceInjectorCollector =
+				(ChainableMethodAdviceInjectorCollector)
+					listableBeanFactory.getBean(
+						ChainableMethodAdviceInjectorCollector.BEAN_NAME);
+
+		List<String> beanNames =
+			chainableMethodAdviceInjectorCollector.getBeanNames();
+
+		for (String beanName : beanNames) {
+			Object bean = listableBeanFactory.getBean(beanName);
+
+			if (bean instanceof ChainableMethodAdviceInjector) {
+				ChainableMethodAdviceInjector chainableMethodAdviceInjector =
+					(ChainableMethodAdviceInjector)bean;
+
+				chainableMethodAdviceInjector.inject();
+			}
 		}
 	}
 

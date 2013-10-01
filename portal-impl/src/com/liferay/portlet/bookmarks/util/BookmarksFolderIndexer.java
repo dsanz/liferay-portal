@@ -29,12 +29,12 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portlet.bookmarks.asset.BookmarksFolderAssetRendererFactory;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
 import com.liferay.portlet.bookmarks.service.BookmarksFolderLocalServiceUtil;
 import com.liferay.portlet.bookmarks.service.permission.BookmarksFolderPermission;
@@ -91,13 +91,7 @@ public class BookmarksFolderIndexer extends BaseIndexer {
 			BooleanQuery contextQuery, SearchContext searchContext)
 		throws Exception {
 
-		int status = GetterUtil.getInteger(
-			searchContext.getAttribute(Field.STATUS),
-			WorkflowConstants.STATUS_APPROVED);
-
-		if (status != WorkflowConstants.STATUS_ANY) {
-			contextQuery.addRequiredTerm(Field.STATUS, status);
-		}
+		addStatus(contextQuery, searchContext);
 	}
 
 	@Override
@@ -126,25 +120,9 @@ public class BookmarksFolderIndexer extends BaseIndexer {
 		document.addText(Field.DESCRIPTION, folder.getDescription());
 		document.addKeyword(Field.FOLDER_ID, folder.getParentFolderId());
 		document.addText(Field.TITLE, folder.getName());
-
-		if (!folder.isInTrash() && folder.isInTrashContainer()) {
-			BookmarksFolder trashedFolder = folder.getTrashContainer();
-
-			if (trashedFolder != null) {
-				addTrashFields(
-					document, BookmarksFolder.class.getName(),
-					trashedFolder.getFolderId(), null, null,
-					BookmarksFolderAssetRendererFactory.TYPE);
-
-				document.addKeyword(
-					Field.ROOT_ENTRY_CLASS_NAME,
-					BookmarksFolder.class.getName());
-				document.addKeyword(
-					Field.ROOT_ENTRY_CLASS_PK, trashedFolder.getFolderId());
-				document.addKeyword(
-					Field.STATUS, WorkflowConstants.STATUS_IN_TRASH);
-			}
-		}
+		document.addKeyword(
+			Field.TREE_PATH,
+			StringUtil.split(folder.getTreePath(), CharPool.SLASH));
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Document " + folder + " indexed successfully");

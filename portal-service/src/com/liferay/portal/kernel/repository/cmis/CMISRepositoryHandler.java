@@ -28,7 +28,9 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.Company;
 import com.liferay.portal.model.CompanyConstants;
 import com.liferay.portal.model.Lock;
 import com.liferay.portal.model.User;
@@ -302,8 +304,9 @@ public abstract class CMISRepositoryHandler extends BaseRepositoryImpl {
 		}
 
 		try {
-			String authType = companyLocalService.getCompany(
-				getCompanyId()).getAuthType();
+			Company company = companyLocalService.getCompany(getCompanyId());
+
+			String authType = company.getAuthType();
 
 			if (!authType.equals(CompanyConstants.AUTH_TYPE_ID)) {
 				User user = userLocalService.getUser(GetterUtil.getLong(login));
@@ -403,7 +406,7 @@ public abstract class CMISRepositoryHandler extends BaseRepositoryImpl {
 
 		// LPS-20509
 
-		productName = productName.toLowerCase();
+		productName = StringUtil.toLowerCase(productName);
 
 		if (productName.contains("filenet") && productName.contains("p8")) {
 			return false;
@@ -474,6 +477,23 @@ public abstract class CMISRepositoryHandler extends BaseRepositoryImpl {
 
 		_baseCmisRepository.revertFileEntry(
 			fileEntryId, version, serviceContext);
+	}
+
+	@Override
+	public Hits search(long creatorUserId, int status, int start, int end)
+		throws PortalException, SystemException {
+
+		return _baseCmisRepository.search(creatorUserId, status, start, end);
+	}
+
+	@Override
+	public Hits search(
+			long creatorUserId, long folderId, String[] mimeTypes, int status,
+			int start, int end)
+		throws PortalException, SystemException {
+
+		return _baseCmisRepository.search(
+			creatorUserId, folderId, mimeTypes, status, start, end);
 	}
 
 	@Override

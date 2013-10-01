@@ -16,6 +16,7 @@ package com.liferay.portal.repository.cmis.model;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.RepositoryException;
@@ -407,6 +408,11 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 	}
 
 	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(FileEntry.class);
+	}
+
+	@Override
 	public String getTitle() {
 		return _document.getName();
 	}
@@ -458,19 +464,63 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 		return GetterUtil.getString(_document.getVersionLabel(), null);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link CMISFileVersion#getUserId()}
+	 */
 	@Override
 	public long getVersionUserId() {
-		return 0;
+		long versionUserId = 0;
+
+		try {
+			FileVersion fileVersion = getFileVersion();
+
+			versionUserId = fileVersion.getUserId();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return versionUserId;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             CMISFileVersion#getUserName()}
+	 */
 	@Override
 	public String getVersionUserName() {
-		return _document.getLastModifiedBy();
+		String versionUserName = StringPool.BLANK;
+
+		try {
+			FileVersion fileVersion = getFileVersion();
+
+			versionUserName = fileVersion.getUserName();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return versionUserName;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             CMISFileVersion#getUserUuid()}
+	 */
 	@Override
 	public String getVersionUserUuid() {
-		return StringPool.BLANK;
+		String versionUserUuid = StringPool.BLANK;
+
+		try {
+			FileVersion fileVersion = getFileVersion();
+
+			versionUserUuid = fileVersion.getUserUuid();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return versionUserUuid;
 	}
 
 	@Override
@@ -516,6 +566,16 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 
 	@Override
 	public boolean isEscapedModel() {
+		return false;
+	}
+
+	@Override
+	public boolean isInTrash() {
+		return false;
+	}
+
+	@Override
+	public boolean isInTrashContainer() {
 		return false;
 	}
 

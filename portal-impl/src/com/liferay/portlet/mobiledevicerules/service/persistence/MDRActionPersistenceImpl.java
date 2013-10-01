@@ -355,6 +355,10 @@ public class MDRActionPersistenceImpl extends BasePersistenceImpl<MDRAction>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MDRAction> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1172,6 +1176,10 @@ public class MDRActionPersistenceImpl extends BasePersistenceImpl<MDRAction>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MDRAction> list = findByUuid_C(uuid, companyId, count - 1, count,
 				orderByComparator);
 
@@ -1711,6 +1719,10 @@ public class MDRActionPersistenceImpl extends BasePersistenceImpl<MDRAction>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByRuleGroupInstanceId(ruleGroupInstanceId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MDRAction> list = findByRuleGroupInstanceId(ruleGroupInstanceId,
 				count - 1, count, orderByComparator);
 
@@ -1938,6 +1950,10 @@ public class MDRActionPersistenceImpl extends BasePersistenceImpl<MDRAction>
 
 	private static final String _FINDER_COLUMN_RULEGROUPINSTANCEID_RULEGROUPINSTANCEID_2 =
 		"mdrAction.ruleGroupInstanceId = ?";
+
+	public MDRActionPersistenceImpl() {
+		setModelClass(MDRAction.class);
+	}
 
 	/**
 	 * Caches the m d r action in the entity cache if it is enabled.

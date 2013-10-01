@@ -1,6 +1,10 @@
 <#assign elements = blockElement.elements()>
 
+<#assign void = macroElementsStack.push(elements)>
+
 <#list elements as element>
+	<#assign elements = macroElementsStack.peek()>
+
 	<#assign name = element.getName()>
 
 	<#assign lineNumber = element.attributeValue("line-number")>
@@ -30,6 +34,12 @@
 			</#if>
 
 			<#assign actionElement = element>
+
+			<#if element_has_next>
+				<#assign actionNextElement = elements[element_index + 1]>
+			<#else>
+				<#assign actionNextElement = element>
+			</#if>
 
 			<#include "action_element.ftl">
 
@@ -107,21 +117,11 @@
 
 		liferaySelenium.sendLogger("${macroName?uncap_first}Macro${lineNumber}", "pass");
 	<#elseif name == "var">
-		<#assign varName = element.attributeValue("name")>
+		<#assign varElement = element>
 
-		<#if element.attributeValue("value")??>
-			<#assign varValue = element.attributeValue("value")>
-		<#elseif element.getText()??>
-			<#assign varValue = element.getText()>
-		</#if>
+		<#assign context = "commandScopeVariables">
 
-		<#if varValue?contains("${") && varValue?contains("}")>
-			<#assign varValue = varValue?replace("${", "\" + commandScopeVariables.get(\"")>
-
-			<#assign varValue = varValue?replace("}", "\") + \"")>
-		</#if>
-
-		commandScopeVariables.put("${varName}", "${varValue}");
+		<#include "var_element.ftl">
 
 		<#assign lineNumber = element.attributeValue("line-number")>
 
@@ -140,3 +140,5 @@
 		liferaySelenium.sendLogger("${macroName?uncap_first}Macro${lineNumber}", "pass");
 	</#if>
 </#list>
+
+<#assign void = macroElementsStack.pop()>

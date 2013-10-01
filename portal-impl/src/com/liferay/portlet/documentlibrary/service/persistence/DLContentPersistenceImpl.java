@@ -370,6 +370,10 @@ public class DLContentPersistenceImpl extends BasePersistenceImpl<DLContent>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_R(companyId, repositoryId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DLContent> list = findByC_R(companyId, repositoryId, count - 1,
 				count, orderByComparator);
 
@@ -936,6 +940,10 @@ public class DLContentPersistenceImpl extends BasePersistenceImpl<DLContent>
 		String path, OrderByComparator orderByComparator)
 		throws SystemException {
 		int count = countByC_R_P(companyId, repositoryId, path);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<DLContent> list = findByC_R_P(companyId, repositoryId, path,
 				count - 1, count, orderByComparator);
@@ -1528,6 +1536,10 @@ public class DLContentPersistenceImpl extends BasePersistenceImpl<DLContent>
 		String path, OrderByComparator orderByComparator)
 		throws SystemException {
 		int count = countByC_R_LikeP(companyId, repositoryId, path);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<DLContent> list = findByC_R_LikeP(companyId, repositoryId, path,
 				count - 1, count, orderByComparator);
@@ -2159,6 +2171,10 @@ public class DLContentPersistenceImpl extends BasePersistenceImpl<DLContent>
 	private static final String _FINDER_COLUMN_C_R_P_V_VERSION_1 = "dlContent.version IS NULL";
 	private static final String _FINDER_COLUMN_C_R_P_V_VERSION_2 = "dlContent.version = ?";
 	private static final String _FINDER_COLUMN_C_R_P_V_VERSION_3 = "(dlContent.version IS NULL OR dlContent.version = '')";
+
+	public DLContentPersistenceImpl() {
+		setModelClass(DLContent.class);
+	}
 
 	/**
 	 * Caches the document library content in the entity cache if it is enabled.

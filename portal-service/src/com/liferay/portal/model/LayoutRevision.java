@@ -56,6 +56,9 @@ public interface LayoutRevision extends LayoutRevisionModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	public java.lang.String getThemeSetting(java.lang.String key,
+		java.lang.String device);
+
 	public com.liferay.portal.kernel.util.UnicodeProperties getTypeSettingsProperties();
 
 	public com.liferay.portal.model.ColorScheme getWapColorScheme()
@@ -68,6 +71,8 @@ public interface LayoutRevision extends LayoutRevisionModel, PersistedModel {
 
 	public boolean hasChildren()
 		throws com.liferay.portal.kernel.exception.SystemException;
+
+	public boolean isContentDisplayPage();
 
 	public boolean isInheritLookAndFeel();
 

@@ -375,6 +375,12 @@ public class JournalFolderLocalServiceUtil {
 	}
 
 	public static com.liferay.portlet.journal.model.JournalFolder fetchFolder(
+		long folderId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchFolder(folderId);
+	}
+
+	public static com.liferay.portlet.journal.model.JournalFolder fetchFolder(
 		long groupId, long parentFolderId, java.lang.String name)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchFolder(groupId, parentFolderId, name);
@@ -442,6 +448,12 @@ public class JournalFolderLocalServiceUtil {
 	}
 
 	public static java.util.List<java.lang.Object> getFoldersAndArticles(
+		long groupId, long folderId, int status)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getFoldersAndArticles(groupId, folderId, status);
+	}
+
+	public static java.util.List<java.lang.Object> getFoldersAndArticles(
 		long groupId, long folderId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -459,6 +471,11 @@ public class JournalFolderLocalServiceUtil {
 	public static int getFoldersAndArticlesCount(long groupId, long folderId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getFoldersAndArticlesCount(groupId, folderId);
+	}
+
+	public static int getFoldersAndArticlesCount(long groupId, long folderId,
+		int status) throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getFoldersAndArticlesCount(groupId, folderId, status);
 	}
 
 	public static int getFoldersCount(long groupId, long parentFolderId)
@@ -500,10 +517,17 @@ public class JournalFolderLocalServiceUtil {
 			serviceContext);
 	}
 
-	public static void moveFolderToTrash(long userId, long folderId)
+	public static com.liferay.portlet.journal.model.JournalFolder moveFolderToTrash(
+		long userId, long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		getService().moveFolderToTrash(userId, folderId);
+		return getService().moveFolderToTrash(userId, folderId);
+	}
+
+	public static void rebuildTree(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().rebuildTree(companyId);
 	}
 
 	public static void restoreFolderFromTrash(long userId, long folderId)

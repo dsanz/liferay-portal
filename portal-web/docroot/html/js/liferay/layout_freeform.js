@@ -42,6 +42,8 @@ AUI.add(
 			dragConfig.startCentered = false;
 
 			Layout.layoutHandler = new Layout.FreeFormLayout(freeformLayoutDefaults);
+
+			Layout.syncDraggableClassUI();
 		};
 
 		var FreeFormLayout = A.Component.create(
@@ -143,7 +145,7 @@ AUI.add(
 					_setupNodeResize: function(node) {
 						var instance = this;
 
-						var resizable = node.hasClass('resize');
+						var resizable = node.hasClass('yui3-resize');
 
 						if (!resizable) {
 							var resize = new A.Resize(
@@ -180,10 +182,9 @@ AUI.add(
 										}
 									},
 									handles: 'r,br,b',
-									node: node,
-									proxy: true
+									node: node
 								}
-							);
+							).plug(A.Plugin.ResizeProxy);
 						}
 					},
 
@@ -215,6 +216,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-resize-deprecated', 'liferay-layout-column']
+		requires: ['liferay-layout-column', 'resize']
 	}
 );

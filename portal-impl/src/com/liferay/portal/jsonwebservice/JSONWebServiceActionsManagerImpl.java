@@ -14,6 +14,9 @@
 
 package com.liferay.portal.jsonwebservice;
 
+import com.liferay.portal.kernel.bean.BeanLocator;
+import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.bean.PortletBeanLocatorUtil;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceAction;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionMapping;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManager;
@@ -30,6 +33,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MethodParameter;
 import com.liferay.portal.kernel.util.SortedArrayList;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.spring.context.PortalContextLoaderListener;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 
@@ -257,6 +261,101 @@ public class JSONWebServiceActionsManagerImpl
 	}
 
 	@Override
+	public void registerJSONWebServiceAction(
+		String contextPath, Object actionObject, Class<?> actionClass,
+		Method actionMethod, String path, String method) {
+
+		JSONWebServiceActionConfig jsonWebServiceActionConfig =
+			new JSONWebServiceActionConfig(
+				contextPath, actionObject, actionClass, actionMethod, path,
+				method);
+
+		if (_jsonWebServiceActionConfigs.contains(jsonWebServiceActionConfig)) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					"A JSON web service action is already registered at " +
+						path);
+			}
+
+			return;
+		}
+
+		_jsonWebServiceActionConfigs.add(jsonWebServiceActionConfig);
+	}
+
+	@Override
+	public int registerServletContext(ServletContext servletContext) {
+		String contextPath = ContextPathUtil.getContextPath(servletContext);
+
+		return registerServletContext(contextPath);
+	}
+
+	@Override
+	public int registerServletContext(String contextPath) {
+		BeanLocator beanLocator = null;
+
+		if (contextPath.equals(
+				PortalContextLoaderListener.getPortalServletContextPath()) ||
+			contextPath.isEmpty()) {
+
+			beanLocator = PortalBeanLocatorUtil.getBeanLocator();
+		}
+		else {
+			String contextName = contextPath;
+
+			if (contextName.startsWith(StringPool.SLASH)) {
+				contextName = contextName.substring(1);
+			}
+
+			beanLocator = PortletBeanLocatorUtil.getBeanLocator(contextName);
+		}
+
+		if (beanLocator == null) {
+			if (_log.isInfoEnabled()) {
+				_log.info("Bean locator not available for " + contextPath);
+			}
+
+			return -1;
+		}
+
+		JSONWebServiceRegistrator jsonWebServiceRegistrator =
+			new JSONWebServiceRegistrator();
+
+		jsonWebServiceRegistrator.processAllBeans(contextPath, beanLocator);
+
+		int count = getJSONWebServiceActionsCount(contextPath);
+
+		if (_log.isInfoEnabled()) {
+			_log.info("Configured " + count + " actions for " + contextPath);
+		}
+
+		return count;
+	}
+
+	@Override
+	public int unregisterJSONWebServiceActions(Object actionObject) {
+		int count = 0;
+
+		Iterator<JSONWebServiceActionConfig> iterator =
+			_jsonWebServiceActionConfigs.iterator();
+
+		while (iterator.hasNext()) {
+			JSONWebServiceActionConfig jsonWebServiceActionConfig =
+				iterator.next();
+
+			if (actionObject.equals(
+					jsonWebServiceActionConfig.getActionObject())) {
+
+				iterator.remove();
+
+				count++;
+			}
+		}
+
+		return count;
+	}
+
+	@Override
 	public int unregisterJSONWebServiceActions(String contextPath) {
 		int count = 0;
 
@@ -277,6 +376,13 @@ public class JSONWebServiceActionsManagerImpl
 		}
 
 		return count;
+	}
+
+	@Override
+	public int unregisterServletContext(ServletContext servletContext) {
+		String contextPath = ContextPathUtil.getContextPath(servletContext);
+
+		return unregisterJSONWebServiceActions(contextPath);
 	}
 
 	private int _countMatchedElements(

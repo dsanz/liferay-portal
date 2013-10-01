@@ -97,7 +97,7 @@
 		<if>
 			<not>
 				<uptodate targetfile="${jar.file}.jar">
-					<srcfiles dir="classes" includes="**/*.*"/>
+					<srcfiles dir="classes" includes="**/*.*" />
 				</uptodate>
 			</not>
 			<then>
@@ -157,7 +157,8 @@
 			breakiterator="yes"
 			classpathref="project.classpath"
 			destdir="${doc.dir}/${ant.project.name}/javadocs"
-			maxmemory="768m"
+			encoding="UTF-8"
+			maxmemory="2048m"
 			packagenames="*.*"
 			sourcepath="src"
 			stylesheetfile="${project.dir}/tools/javadoc.css"

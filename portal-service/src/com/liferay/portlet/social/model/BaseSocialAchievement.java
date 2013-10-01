@@ -134,13 +134,13 @@ public class BaseSocialAchievement implements SocialAchievement {
 	public void setCounterOwner(String counterOwner) {
 		_counterOwner = counterOwner;
 
-		if (counterOwner.equalsIgnoreCase("actor")) {
+		if (StringUtil.equalsIgnoreCase(counterOwner, "actor")) {
 			_ownerType = SocialActivityCounterConstants.TYPE_ACTOR;
 		}
-		else if (counterOwner.equalsIgnoreCase("asset")) {
+		else if (StringUtil.equalsIgnoreCase(counterOwner, "asset")) {
 			_ownerType = SocialActivityCounterConstants.TYPE_ASSET;
 		}
-		else if (counterOwner.equalsIgnoreCase("creator")) {
+		else if (StringUtil.equalsIgnoreCase(counterOwner, "creator")) {
 			_ownerType = SocialActivityCounterConstants.TYPE_CREATOR;
 		}
 	}
@@ -161,7 +161,7 @@ public class BaseSocialAchievement implements SocialAchievement {
 	@Override
 	public void setName(String name) {
 		name = StringUtil.replace(name, StringPool.SPACE, StringPool.UNDERLINE);
-		name = name.toLowerCase();
+		name = StringUtil.toLowerCase(name);
 
 		_name = StringUtil.extract(name, _NAME_SUPPORTED_CHARS);
 	}

@@ -91,7 +91,7 @@ public class LayoutServiceWrapper implements LayoutService,
 	portal exception occurred
 	* @throws SystemException if a system exception occurred
 	* @deprecated As of 6.2.0, replaced by {@link #addLayout(long, boolean,
-	long, Map, Map, Map, Map, Map, String, boolean, Map,
+	long, Map, Map, Map, Map, Map, String, String, boolean, Map,
 	ServiceContext)}
 	*/
 	@Override
@@ -379,11 +379,13 @@ public class LayoutServiceWrapper implements LayoutService,
 	public long exportLayoutsAsFileInBackground(java.lang.String taskName,
 		long groupId, boolean privateLayout, long[] layoutIds,
 		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
-		java.util.Date startDate, java.util.Date endDate)
+		java.util.Date startDate, java.util.Date endDate,
+		java.lang.String fileName)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _layoutService.exportLayoutsAsFileInBackground(taskName,
-			groupId, privateLayout, layoutIds, parameterMap, startDate, endDate);
+			groupId, privateLayout, layoutIds, parameterMap, startDate,
+			endDate, fileName);
 	}
 
 	/**
@@ -414,6 +416,16 @@ public class LayoutServiceWrapper implements LayoutService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _layoutService.exportPortletInfo(plid, groupId, portletId,
+			parameterMap, startDate, endDate);
+	}
+
+	@Override
+	public byte[] exportPortletInfo(long companyId, java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.util.Date startDate, java.util.Date endDate)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _layoutService.exportPortletInfo(companyId, portletId,
 			parameterMap, startDate, endDate);
 	}
 
@@ -449,14 +461,38 @@ public class LayoutServiceWrapper implements LayoutService,
 	}
 
 	@Override
-	public long exportPortletInfoAsFileInBackground(java.lang.String taskName,
-		long plid, long groupId, java.lang.String portletId,
+	public java.io.File exportPortletInfoAsFile(long companyId,
+		java.lang.String portletId,
 		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
 		java.util.Date startDate, java.util.Date endDate)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
+		return _layoutService.exportPortletInfoAsFile(companyId, portletId,
+			parameterMap, startDate, endDate);
+	}
+
+	@Override
+	public long exportPortletInfoAsFileInBackground(long userId,
+		java.lang.String taskName, java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.util.Date startDate, java.util.Date endDate,
+		java.lang.String fileName)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _layoutService.exportPortletInfoAsFileInBackground(userId,
+			taskName, portletId, parameterMap, startDate, endDate, fileName);
+	}
+
+	@Override
+	public long exportPortletInfoAsFileInBackground(java.lang.String taskName,
+		long plid, long groupId, java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.util.Date startDate, java.util.Date endDate,
+		java.lang.String fileName)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _layoutService.exportPortletInfoAsFileInBackground(taskName,
-			plid, groupId, portletId, parameterMap, startDate, endDate);
+			plid, groupId, portletId, parameterMap, startDate, endDate, fileName);
 	}
 
 	/**
@@ -685,6 +721,17 @@ public class LayoutServiceWrapper implements LayoutService,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _layoutService.importLayoutsInBackground(taskName, groupId,
 			privateLayout, parameterMap, file);
+	}
+
+	@Override
+	public long importLayoutsInBackground(java.lang.String taskName,
+		long groupId, boolean privateLayout,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.InputStream inputStream)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _layoutService.importLayoutsInBackground(taskName, groupId,
+			privateLayout, parameterMap, inputStream);
 	}
 
 	/**
@@ -932,35 +979,32 @@ public class LayoutServiceWrapper implements LayoutService,
 	* @param groupId the primary key of the group
 	* @param privateLayout whether the layout is private to the group
 	* @param layoutId the primary key of the layout
-	* @param parentLayoutId the primary key of the layout's new parent
-	layout
+	* @param parentLayoutId the primary key of the layout's new parent layout
 	* @param localeNamesMap the layout's locales and localized names
 	* @param localeTitlesMap the layout's locales and localized titles
-	* @param descriptionMap the locales and localized descriptions to
-	merge (optionally <code>null</code>)
+	* @param descriptionMap the locales and localized descriptions to merge
+	(optionally <code>null</code>)
 	* @param keywordsMap the locales and localized keywords to merge
 	(optionally <code>null</code>)
-	* @param robotsMap the locales and localized robots to merge
-	(optionally <code>null</code>)
+	* @param robotsMap the locales and localized robots to merge (optionally
+	<code>null</code>)
 	* @param type the layout's new type (optionally {@link
 	com.liferay.portal.model.LayoutConstants#TYPE_PORTLET})
 	* @param hidden whether the layout is hidden
-	* @param friendlyURLMap the layout's locales and localized friendly
-	URLs. To see how the URL is normalized when accessed see
-	{@link
+	* @param friendlyURLMap the layout's locales and localized friendly URLs.
+	To see how the URL is normalized when accessed see {@link
 	com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
 	String)}.
 	* @param iconImage whether the icon image will be updated
 	* @param iconBytes the byte array of the layout's new icon image
 	* @param serviceContext the service context to be applied. Can set the
-	modification date and expando bridge attributes for the
-	layout.
+	modification date and expando bridge attributes for the layout.
 	* @return the updated layout
-	* @throws PortalException if a group or layout with the primary key
-	could not be found, if the user did not have permission to
-	update the layout, if a unique friendly URL could not be
-	generated, if a valid parent layout ID to use could not be
-	found, or if the layout parameters were invalid
+	* @throws PortalException if a group or layout with the primary key could
+	not be found, if the user did not have permission to update the
+	layout, if a unique friendly URL could not be generated, if a
+	valid parent layout ID to use could not be found, or if the
+	layout parameters were invalid
 	* @throws SystemException if a system exception occurred
 	*/
 	@Override
@@ -1207,6 +1251,31 @@ public class LayoutServiceWrapper implements LayoutService,
 	}
 
 	/**
+	* Updates the priority of the layout matching the group, layout ID, and
+	* privacy, setting the layout's priority based on the priorities of the
+	* next and previous layouts.
+	*
+	* @param groupId the primary key of the group
+	* @param privateLayout whether the layout is private to the group
+	* @param layoutId the primary key of the layout
+	* @param nextLayoutId the primary key of the next layout
+	* @param previousLayoutId the primary key of the previous layout
+	* @return the updated layout
+	* @throws PortalException if a matching layout could not be found or if the
+	user did not have permission to update the layout
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.Layout updatePriority(long groupId,
+		boolean privateLayout, long layoutId, long nextLayoutId,
+		long previousLayoutId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _layoutService.updatePriority(groupId, privateLayout, layoutId,
+			nextLayoutId, previousLayoutId);
+	}
+
+	/**
 	* Updates the priority of the layout matching the primary key.
 	*
 	* @param plid the primary key of the layout
@@ -1236,6 +1305,17 @@ public class LayoutServiceWrapper implements LayoutService,
 	}
 
 	@Override
+	public com.liferay.portal.kernel.lar.MissingReferences validateImportLayoutsFile(
+		long groupId, boolean privateLayout,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.InputStream inputStream)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _layoutService.validateImportLayoutsFile(groupId, privateLayout,
+			parameterMap, inputStream);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.lar.MissingReferences validateImportPortletInfo(
 		long plid, long groupId, java.lang.String portletId,
 		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
@@ -1244,6 +1324,17 @@ public class LayoutServiceWrapper implements LayoutService,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _layoutService.validateImportPortletInfo(plid, groupId,
 			portletId, parameterMap, file);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.lar.MissingReferences validateImportPortletInfo(
+		long plid, long groupId, java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.InputStream inputStream)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _layoutService.validateImportPortletInfo(plid, groupId,
+			portletId, parameterMap, inputStream);
 	}
 
 	/**

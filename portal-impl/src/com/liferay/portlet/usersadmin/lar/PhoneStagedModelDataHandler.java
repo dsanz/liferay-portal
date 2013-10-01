@@ -14,11 +14,15 @@
 
 package com.liferay.portlet.usersadmin.lar;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.BaseStagedModelDataHandler;
 import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.xml.Element;
+import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Phone;
+import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.PhoneLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 
@@ -29,6 +33,21 @@ public class PhoneStagedModelDataHandler
 	extends BaseStagedModelDataHandler<Phone> {
 
 	public static final String[] CLASS_NAMES = {Phone.class.getName()};
+
+	@Override
+	public void deleteStagedModel(
+			String uuid, long groupId, String className, String extraData)
+		throws PortalException, SystemException {
+
+		Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+		Phone phone = PhoneLocalServiceUtil.fetchPhoneByUuidAndCompanyId(
+			uuid, group.getCompanyId());
+
+		if (phone != null) {
+			PhoneLocalServiceUtil.deletePhone(phone);
+		}
+	}
 
 	@Override
 	public String[] getClassNames() {
@@ -43,8 +62,7 @@ public class PhoneStagedModelDataHandler
 		Element phoneElement = portletDataContext.getExportDataElement(phone);
 
 		portletDataContext.addClassedModel(
-			phoneElement, ExportImportPathUtil.getModelPath(phone), phone,
-			UsersAdminPortletDataHandler.NAMESPACE);
+			phoneElement, ExportImportPathUtil.getModelPath(phone), phone);
 	}
 
 	@Override
@@ -55,7 +73,7 @@ public class PhoneStagedModelDataHandler
 		long userId = portletDataContext.getUserId(phone.getUserUuid());
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
-			phone, UsersAdminPortletDataHandler.NAMESPACE);
+			phone);
 
 		Phone existingPhone =
 			PhoneLocalServiceUtil.fetchPhoneByUuidAndCompanyId(
@@ -77,8 +95,7 @@ public class PhoneStagedModelDataHandler
 				phone.getExtension(), phone.getTypeId(), phone.isPrimary());
 		}
 
-		portletDataContext.importClassedModel(
-			phone, importedPhone, UsersAdminPortletDataHandler.NAMESPACE);
+		portletDataContext.importClassedModel(phone, importedPhone);
 	}
 
 }

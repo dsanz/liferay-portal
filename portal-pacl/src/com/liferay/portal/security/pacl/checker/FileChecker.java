@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.security.pacl.Reflection;
 import com.liferay.portal.spring.context.PortalContextLoaderListener;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
@@ -52,8 +53,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.ServletContext;
-
-import sun.reflect.Reflection;
 
 /**
  * @author Brian Wing Shun Chan
@@ -208,20 +207,22 @@ public class FileChecker extends BaseChecker {
 			return true;
 		}
 
-		int stackIndex = getStackIndex(10, 9);
+		int stackIndex = Reflection.getStackIndex(10, 9);
 
 		Class<?> callerClass1 = Reflection.getCallerClass(stackIndex);
 		Class<?> callerClass2 = Reflection.getCallerClass(stackIndex + 1);
 
 		Package callerClass1Package = callerClass1.getPackage();
 
-		String callerClass1PackageName = callerClass1Package.getName();
+		if (callerClass1Package != null) {
+			String callerClass1PackageName = callerClass1Package.getName();
 
-		if (callerClass1PackageName.startsWith("java.") &&
-			!callerClass1.equals(ProcessBuilder.class) &&
-			isTrustedCaller(callerClass2, permission)) {
+			if (callerClass1PackageName.startsWith("java.") &&
+				!callerClass1.equals(ProcessBuilder.class) &&
+				isTrustedCaller(callerClass2, permission)) {
 
-			return true;
+				return true;
+			}
 		}
 
 		logSecurityException(
@@ -266,7 +267,7 @@ public class FileChecker extends BaseChecker {
 
 		File[] files = directory.listFiles();
 
-		if ((files == null) || (files.length == 0)) {
+		if (ArrayUtil.isEmpty(files)) {
 			return;
 		}
 
@@ -431,6 +432,15 @@ public class FileChecker extends BaseChecker {
 
 					if (pos != -1) {
 						fileName = fileName.substring(0, pos + 1);
+					}
+
+					if (ServerDetector.isJBoss7()) {
+						String jBossHomeDir = System.getProperty(
+							"jboss.home.dir");
+
+						if (fileName.startsWith(jBossHomeDir)) {
+							continue;
+						}
 					}
 
 					addCanonicalPath(paths, fileName);

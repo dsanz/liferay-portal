@@ -20,26 +20,34 @@
 	<div class="control-panel-tools">
 		<div class="search-panels">
 			<div class="search-panels-bar">
-				<aui:input cssClass="search-query span12 search-panels-input" label="" name="searchPanel" />
+				<i class="icon-reorder search-panel-icon"></i>
+
+				<aui:input cssClass="search-panels-input search-query span12" label="" name="searchPanel" />
 			</div>
 		</div>
 	</div>
 
-	<liferay-ui:panel-container extended="<%= true %>" id="controlPanelMenuAddContentPanelContainer" persistState="<%= true %>">
+	<liferay-ui:panel-container accordion="<%= true %>" extended="<%= true %>" id="controlPanelMenuAddContentPanelContainer" persistState="<%= true %>">
 
 		<%
 		String ppid = GetterUtil.getString((String)request.getAttribute("control_panel.jsp-ppid"), layoutTypePortlet.getStateMaxPortletId());
 
-		Map<String, List<Portlet>> categoriesMap = PortalUtil.getSiteAdministrationCategoriesMap(request);
+		String portletCategory = null;
 
-		for (String curCategory : categoriesMap.keySet()) {
-			String title = LanguageUtil.get(pageContext, "category." + curCategory);
+		if (Validator.isNotNull(ppid)) {
+			Portlet portlet = PortletLocalServiceUtil.getPortletById(themeDisplay.getCompanyId(), ppid);
 
-			List<Portlet> portlets = categoriesMap.get(curCategory);
+			portletCategory = portlet.getControlPanelEntryCategory();
+		}
+
+		Map<String, List<Portlet>> siteAdministrationCategoriesMap = PortalUtil.getSiteAdministrationCategoriesMap(request);
+
+		for (String siteAdministrationCategory : siteAdministrationCategoriesMap.keySet()) {
+			String panelPageCategoryId = "panel-manage-" + siteAdministrationCategory;
 		%>
 
-			<liferay-ui:panel collapsible="<%= true %>" cssClass="panel-page-category unstyled" extended="<%= true %>" id='<%= "panel-manage-" + curCategory %>' persistState="<%= true %>" title="<%= title %>">
-				<c:if test="<%= curCategory.equals(PortletCategoryKeys.SITE_ADMINISTRATION_CONTENT) %>">
+			<liferay-ui:panel collapsible="<%= true %>" cssClass="panel-page-category unstyled" extended="<%= true %>" id="<%= panelPageCategoryId %>" persistState="<%= true %>" state='<%= siteAdministrationCategory.equals(portletCategory) ? "open" : "closed" %>' title='<%= LanguageUtil.get(pageContext, "category." + siteAdministrationCategory) %>'>
+				<c:if test="<%= siteAdministrationCategory.equals(PortletCategoryKeys.SITE_ADMINISTRATION_CONTENT) %>">
 
 					<%
 					List<Layout> scopeLayouts = new ArrayList<Layout>();
@@ -63,7 +71,7 @@
 					}
 					%>
 
-					<c:if test="<%= !scopeLayouts.isEmpty() && curCategory.equals(PortletCategoryKeys.SITE_ADMINISTRATION_CONTENT) %>">
+					<c:if test="<%= !scopeLayouts.isEmpty() && siteAdministrationCategory.equals(PortletCategoryKeys.SITE_ADMINISTRATION_CONTENT) %>">
 						<div class="nobr lfr-title-scope-selector">
 							<liferay-ui:message key="scope" />:
 							<liferay-ui:icon-menu direction="down" icon="" message="<%= scopeLabel %>">
@@ -93,14 +101,16 @@
 					</c:if>
 				</c:if>
 
-				<ul class="category-portlets">
+				<ul aria-labelledby="<%= panelPageCategoryId %>" class="category-portlets" role="menu">
 
 					<%
+					List<Portlet> portlets = siteAdministrationCategoriesMap.get(siteAdministrationCategory);
+
 					for (Portlet portlet : portlets) {
 						String portletId = portlet.getPortletId();
 					%>
 
-						<li class="<%= ppid.equals(portletId) ? "selected-portlet" : "" %>">
+						<li class="<%= ppid.equals(portletId) ? "selected-portlet" : "" %>" role="presentation">
 							<liferay-portlet:renderURL
 								doAsGroupId="<%= themeDisplay.getScopeGroupId() %>"
 								portletName="<%= portlet.getRootPortletId() %>"
@@ -108,7 +118,7 @@
 								windowState="<%= WindowState.MAXIMIZED.toString() %>"
 								/>
 
-							<a href="<%= portletURL %>" id="<portlet:namespace />portlet_<%= portletId %>">
+							<a href="<%= portletURL %>" id="<portlet:namespace />portlet_<%= portletId %>" role="menuitem">
 								<c:choose>
 									<c:when test="<%= Validator.isNull(portlet.getIcon()) %>">
 										<liferay-ui:icon src='<%= themeDisplay.getPathContext() + "/html/icons/default.png" %>' />

@@ -30,15 +30,15 @@ row.addSearchEntry(articleTitleTextSearchEntry);
 
 // Status
 
-row.addText(LanguageUtil.get(pageContext, WorkflowConstants.toLabel(curArticle.getStatus())));
+row.addStatus(curArticle.getStatus(), curArticle.getStatusByUserId(), curArticle.getStatusDate());
 
 // Modified date
 
-row.addText(dateFormatDateTime.format(curArticle.getModifiedDate()));
+row.addDate(curArticle.getModifiedDate());
 
 // Display date
 
-row.addText(dateFormatDateTime.format(curArticle.getDisplayDate()));
+row.addDate(curArticle.getDisplayDate());
 
 // Author
 

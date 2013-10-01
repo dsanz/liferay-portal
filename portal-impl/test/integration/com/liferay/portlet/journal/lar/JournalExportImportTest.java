@@ -23,10 +23,15 @@ import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.lar.BasePortletExportImportTestCase;
+import com.liferay.portal.model.Company;
+import com.liferay.portal.model.Group;
 import com.liferay.portal.model.StagedModel;
+import com.liferay.portal.service.CompanyLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.test.Sync;
+import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
 import com.liferay.portal.test.TransactionalCallbackAwareExecutionTestListener;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
@@ -55,9 +60,11 @@ import org.junit.runner.RunWith;
 @ExecutionTestListeners(
 	listeners = {
 		MainServletExecutionTestListener.class,
+		SynchronousDestinationExecutionTestListener.class,
 		TransactionalCallbackAwareExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
+@Sync
 @Transactional
 public class JournalExportImportTest extends BasePortletExportImportTestCase {
 
@@ -73,12 +80,19 @@ public class JournalExportImportTest extends BasePortletExportImportTestCase {
 
 	@Test
 	public void testExportImportBasicJournalArticle() throws Exception {
-		exportImportJournalArticle(false);
+		exportImportJournalArticle(false, false);
+	}
+
+	@Test
+	public void testExportImportCompanyScopeStructuredJournalArticle()
+		throws Exception {
+
+		exportImportJournalArticle(true, true);
 	}
 
 	@Test
 	public void testExportImportStructuredJournalArticle() throws Exception {
-		exportImportJournalArticle(true);
+		exportImportJournalArticle(true, false);
 	}
 
 	@Override
@@ -88,19 +102,37 @@ public class JournalExportImportTest extends BasePortletExportImportTestCase {
 			ServiceTestUtil.randomString());
 	}
 
-	protected void exportImportJournalArticle(boolean structuredContent)
+	@Override
+	protected void deleteStagedModel(StagedModel stagedModel) throws Exception {
+		JournalArticleLocalServiceUtil.deleteArticle(
+			(JournalArticle)stagedModel);
+	}
+
+	protected void exportImportJournalArticle(
+			boolean structuredContent, boolean companyScopeDependencies)
 		throws Exception {
 
 		JournalArticle article = null;
 		DDMStructure ddmStructure = null;
 		DDMTemplate ddmTemplate = null;
 
+		long groupId = group.getGroupId();
+
+		Company company = CompanyLocalServiceUtil.fetchCompany(
+			group.getCompanyId());
+
+		Group companyGroup = company.getGroup();
+
+		if (companyScopeDependencies) {
+			groupId = companyGroup.getGroupId();
+		}
+
 		if (structuredContent) {
 			ddmStructure = DDMStructureTestUtil.addStructure(
-				group.getGroupId(), JournalArticle.class.getName());
+				groupId, JournalArticle.class.getName());
 
 			ddmTemplate = DDMTemplateTestUtil.addTemplate(
-				group.getGroupId(), ddmStructure.getStructureId());
+				groupId, ddmStructure.getStructureId());
 
 			String content = DDMStructureTestUtil.getSampleStructuredContent();
 
@@ -116,7 +148,7 @@ public class JournalExportImportTest extends BasePortletExportImportTestCase {
 
 		String exportedResourceUuid = article.getArticleResourceUuid();
 
-		doExportImportPortlet(PortletKeys.JOURNAL);
+		exportImportPortlet(PortletKeys.JOURNAL);
 
 		int articlesCount = JournalArticleLocalServiceUtil.getArticlesCount(
 			importedGroup.getGroupId());
@@ -133,24 +165,42 @@ public class JournalExportImportTest extends BasePortletExportImportTestCase {
 			return;
 		}
 
-		DDMStructure importedDDMStructure =
+		groupId = importedGroup.getGroupId();
+
+		if (companyScopeDependencies) {
+			DDMStructure importedDDMStructure =
+				DDMStructureLocalServiceUtil.fetchDDMStructureByUuidAndGroupId(
+					ddmStructure.getUuid(), groupId);
+
+			Assert.assertNull(importedDDMStructure);
+
+			DDMTemplate importedDDMTemplate =
+				DDMTemplateLocalServiceUtil.fetchDDMTemplateByUuidAndGroupId(
+					ddmTemplate.getUuid(), groupId);
+
+			Assert.assertNull(importedDDMTemplate);
+
+			groupId = companyGroup.getGroupId();
+		}
+
+		DDMStructure dependentDDMStructure =
 			DDMStructureLocalServiceUtil.fetchDDMStructureByUuidAndGroupId(
-				ddmStructure.getUuid(), importedGroup.getGroupId());
+				ddmStructure.getUuid(), groupId);
 
-		Assert.assertNotNull(importedDDMStructure);
+		Assert.assertNotNull(dependentDDMStructure);
 
-		DDMTemplate importedDDMTemplate =
+		DDMTemplate dependentDDMTemplate =
 			DDMTemplateLocalServiceUtil.fetchDDMTemplateByUuidAndGroupId(
-				ddmTemplate.getUuid(), importedGroup.getGroupId());
+				ddmTemplate.getUuid(), groupId);
 
-		Assert.assertNotNull(importedDDMTemplate);
+		Assert.assertNotNull(dependentDDMTemplate);
 		Assert.assertEquals(
-			article.getStructureId(), importedDDMStructure.getStructureKey());
+			article.getStructureId(), dependentDDMStructure.getStructureKey());
 		Assert.assertEquals(
-			article.getTemplateId(), importedDDMTemplate.getTemplateKey());
+			article.getTemplateId(), dependentDDMTemplate.getTemplateKey());
 		Assert.assertEquals(
-			importedDDMTemplate.getClassPK(),
-			importedDDMStructure.getStructureId());
+			dependentDDMTemplate.getClassPK(),
+			dependentDDMStructure.getStructureId());
 	}
 
 	protected Map<String, String[]> getBaseParameterMap(long groupId, long plid)
@@ -238,6 +288,11 @@ public class JournalExportImportTest extends BasePortletExportImportTestCase {
 		JournalArticle article = (JournalArticle)stagedModel;
 
 		return article.getArticleResourceUuid();
+	}
+
+	@Override
+	protected void testExportImportDisplayStyle(long groupId, String scopeType)
+		throws Exception {
 	}
 
 }

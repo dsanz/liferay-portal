@@ -15,18 +15,20 @@
 package com.liferay.portal.test;
 
 import com.liferay.portal.kernel.annotation.AnnotationLocator;
-import com.liferay.portal.kernel.messaging.BaseDestination;
+import com.liferay.portal.kernel.messaging.BaseAsyncDestination;
 import com.liferay.portal.kernel.messaging.Destination;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
+import com.liferay.portal.kernel.messaging.SynchronousDestination;
 import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocal;
 import com.liferay.portal.kernel.test.AbstractExecutionTestListener;
 import com.liferay.portal.kernel.test.TestContext;
 
 import java.lang.reflect.Method;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Miguel Pastor
@@ -69,6 +71,8 @@ public class SynchronousDestinationExecutionTestListener
 		_methodSyncHandler.enableSync();
 	}
 
+	private List<Destination> _asyncServiceDestinations =
+		new ArrayList<Destination>();
 	private SyncHandler _classSyncHandler = new SyncHandler();
 	private SyncHandler _methodSyncHandler = new SyncHandler();
 
@@ -81,32 +85,27 @@ public class SynchronousDestinationExecutionTestListener
 
 			ProxyModeThreadLocal.setForceSync(true);
 
+			replaceDestination(DestinationNames.ASYNC_SERVICE);
+			replaceDestination(DestinationNames.BACKGROUND_TASK);
+			replaceDestination(DestinationNames.SUBSCRIPTION_SENDER);
+		}
+
+		protected void replaceDestination(String destinationName) {
 			MessageBus messageBus = MessageBusUtil.getMessageBus();
 
-			if (messageBus.hasDestination(
-					_ASYNC_SERVICE_TEMP_DESTINATION_NAME)) {
+			Destination destination = messageBus.getDestination(
+				destinationName);
 
-				return;
+			if (destination instanceof BaseAsyncDestination) {
+				_asyncServiceDestinations.add(destination);
+
+				SynchronousDestination synchronousDestination =
+					new SynchronousDestination();
+
+				synchronousDestination.setName(destinationName);
+
+				messageBus.replace(synchronousDestination);
 			}
-
-			_asyncServiceDestination =
-				(BaseDestination)messageBus.getDestination(
-					DestinationNames.ASYNC_SERVICE);
-
-			SynchronizedAsyncServiceDestination
-				synchronizedAsyncServiceDestination =
-					new SynchronizedAsyncServiceDestination(
-						_ASYNC_SERVICE_TEMP_DESTINATION_NAME);
-
-			synchronizedAsyncServiceDestination.setName(
-				DestinationNames.ASYNC_SERVICE);
-
-			MessageBusUtil.addDestination(synchronizedAsyncServiceDestination);
-
-			_asyncServiceDestination.setName(
-				_ASYNC_SERVICE_TEMP_DESTINATION_NAME);
-
-			MessageBusUtil.addDestination(_asyncServiceDestination);
 		}
 
 		public void restorePreviousSync() {
@@ -116,24 +115,15 @@ public class SynchronousDestinationExecutionTestListener
 
 			ProxyModeThreadLocal.setForceSync(_forceSync);
 
-			MessageBus messageBus = MessageBusUtil.getMessageBus();
+			if (!_asyncServiceDestinations.isEmpty()) {
+				MessageBus messageBus = MessageBusUtil.getMessageBus();
 
-			if ((_asyncServiceDestination == null) ||
-				!messageBus.hasDestination(
-					_ASYNC_SERVICE_TEMP_DESTINATION_NAME)) {
+				for (Destination destination : _asyncServiceDestinations) {
+					messageBus.replace(destination);
+				}
 
-				return;
+				_asyncServiceDestinations.clear();
 			}
-
-			Collection<Destination> destinations = messageBus.getDestinations();
-
-			destinations.remove(_asyncServiceDestination);
-
-			MessageBusUtil.removeDestination(DestinationNames.ASYNC_SERVICE);
-
-			_asyncServiceDestination.setName(DestinationNames.ASYNC_SERVICE);
-
-			MessageBusUtil.addDestination(_asyncServiceDestination);
 		}
 
 		public void setForceSync(boolean forceSync) {
@@ -144,10 +134,6 @@ public class SynchronousDestinationExecutionTestListener
 			_sync = sync;
 		}
 
-		private String _ASYNC_SERVICE_TEMP_DESTINATION_NAME =
-			DestinationNames.ASYNC_SERVICE + "_temp";
-
-		private BaseDestination _asyncServiceDestination;
 		private boolean _forceSync;
 		private Sync _sync;
 

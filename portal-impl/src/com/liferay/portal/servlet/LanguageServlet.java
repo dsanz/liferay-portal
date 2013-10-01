@@ -14,17 +14,21 @@
 
 package com.liferay.portal.servlet;
 
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.security.auth.AuthTokenUtil;
+import com.liferay.portal.util.PropsValues;
 
 import java.io.IOException;
 
@@ -48,6 +52,17 @@ public class LanguageServlet extends HttpServlet {
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Path " + path);
+		}
+
+		try {
+			if (PropsValues.AUTH_TOKEN_CHECK_ENABLED) {
+				AuthTokenUtil.check(request);
+			}
+		}
+		catch (PortalException pe) {
+			_log.error("Invalid authentication token received");
+
+			return;
 		}
 
 		if (Validator.isNotNull(path) && path.startsWith(StringPool.SLASH)) {
@@ -82,7 +97,7 @@ public class LanguageServlet extends HttpServlet {
 		String value = key;
 
 		try {
-			if ((arguments == null) || (arguments.length == 0)) {
+			if (ArrayUtil.isEmpty(arguments)) {
 				value = LanguageUtil.get(locale, key);
 			}
 			else {
@@ -93,6 +108,15 @@ public class LanguageServlet extends HttpServlet {
 			if (_log.isWarnEnabled()) {
 				_log.warn(e, e);
 			}
+		}
+
+		if (!LanguageUtil.isValidLanguageKey(locale, key)) {
+			response.setDateHeader(HttpHeaders.EXPIRES, 0);
+			response.setHeader(
+				HttpHeaders.CACHE_CONTROL,
+				HttpHeaders.CACHE_CONTROL_NO_CACHE_VALUE);
+			response.setHeader(
+				HttpHeaders.PRAGMA, HttpHeaders.PRAGMA_NO_CACHE_VALUE);
 		}
 
 		response.setContentType(ContentTypes.TEXT_PLAIN_UTF8);

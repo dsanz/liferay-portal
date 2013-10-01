@@ -37,6 +37,10 @@ public class AsyncAdvice extends AnnotationChainableMethodAdvice<Async> {
 	public Object before(final MethodInvocation methodInvocation)
 		throws Throwable {
 
+		if (AsyncInvokeThreadLocal.isEnabled()) {
+			return null;
+		}
+
 		Async async = findAnnotation(methodInvocation);
 
 		if (async == _nullAsync) {
@@ -68,25 +72,7 @@ public class AsyncAdvice extends AnnotationChainableMethodAdvice<Async> {
 		}
 
 		MessageBusUtil.sendMessage(
-			destinationName,
-			new Runnable() {
-
-				@Override
-				public void run() {
-					try {
-						methodInvocation.proceed();
-					}
-					catch (Throwable t) {
-						throw new RuntimeException(t);
-					}
-				}
-
-				@Override
-				public String toString() {
-					return methodInvocation.toString();
-				}
-
-			});
+			destinationName, new AsyncRunnable(methodInvocation));
 
 		return nullResult;
 	}

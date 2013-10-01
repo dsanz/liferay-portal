@@ -14,11 +14,15 @@
 
 package com.liferay.portlet.usergroupsadmin.lar;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.BaseStagedModelDataHandler;
 import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.xml.Element;
+import com.liferay.portal.model.Group;
 import com.liferay.portal.model.UserGroup;
+import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.UserGroupLocalServiceUtil;
 
@@ -29,6 +33,22 @@ public class UserGroupStagedModelDataHandler
 	extends BaseStagedModelDataHandler<UserGroup> {
 
 	public static final String[] CLASS_NAMES = {UserGroup.class.getName()};
+
+	@Override
+	public void deleteStagedModel(
+			String uuid, long groupId, String className, String extraData)
+		throws PortalException, SystemException {
+
+		Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+		UserGroup userGroup =
+			UserGroupLocalServiceUtil.fetchUserGroupByUuidAndCompanyId(
+				uuid, group.getCompanyId());
+
+		if (userGroup != null) {
+			UserGroupLocalServiceUtil.deleteUserGroup(userGroup);
+		}
+	}
 
 	@Override
 	public String[] getClassNames() {
@@ -50,7 +70,7 @@ public class UserGroupStagedModelDataHandler
 
 		portletDataContext.addClassedModel(
 			userGroupElement, ExportImportPathUtil.getModelPath(userGroup),
-			userGroup, UserGroupsAdminPortletDataHandler.NAMESPACE);
+			userGroup);
 	}
 
 	@Override
@@ -61,7 +81,7 @@ public class UserGroupStagedModelDataHandler
 		long userId = portletDataContext.getUserId(userGroup.getUserUuid());
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
-			userGroup, UserGroupsAdminPortletDataHandler.NAMESPACE);
+			userGroup);
 
 		UserGroup existingUserGroup =
 			UserGroupLocalServiceUtil.fetchUserGroupByUuidAndCompanyId(
@@ -88,9 +108,7 @@ public class UserGroupStagedModelDataHandler
 				userGroup.getDescription(), serviceContext);
 		}
 
-		portletDataContext.importClassedModel(
-			userGroup, importedUserGroup,
-			UserGroupsAdminPortletDataHandler.NAMESPACE);
+		portletDataContext.importClassedModel(userGroup, importedUserGroup);
 	}
 
 }

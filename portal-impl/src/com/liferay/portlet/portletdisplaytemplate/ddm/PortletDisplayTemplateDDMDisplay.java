@@ -24,11 +24,14 @@ import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplateConstants;
 import com.liferay.portlet.dynamicdatamapping.util.BaseDDMDisplay;
+import com.liferay.portlet.portletdisplaytemplate.util.PortletDisplayTemplateUtil;
 
 import java.util.Locale;
 import java.util.Set;
@@ -50,15 +53,16 @@ public class PortletDisplayTemplateDDMDisplay extends BaseDDMDisplay {
 			long classPK, String portletResource)
 		throws Exception {
 
-		String backURL = ParamUtil.getString(liferayPortletRequest, "backURL");
+		String redirect = ParamUtil.getString(
+			liferayPortletRequest, "redirect");
 
-		if (Validator.isNull(backURL)) {
-			backURL = getViewTemplatesURL(
+		if (Validator.isNull(redirect)) {
+			return getViewTemplatesURL(
 				liferayPortletRequest, liferayPortletResponse, classNameId,
 				classPK);
 		}
 
-		return backURL;
+		return redirect;
 	}
 
 	@Override
@@ -69,6 +73,29 @@ public class PortletDisplayTemplateDDMDisplay extends BaseDDMDisplay {
 	@Override
 	public String getResourceName() {
 		return StringPool.BLANK;
+	}
+
+	@Override
+	public long[] getTemplateClassPKs(
+			long companyId, long classNameId, long classPK)
+		throws Exception {
+
+		return null;
+	}
+
+	@Override
+	public long[] getTemplateGroupIds(
+			ThemeDisplay themeDisplay, boolean showGlobalScope)
+		throws Exception {
+
+		if (showGlobalScope) {
+			return PortalUtil.getSiteAndCompanyGroupIds(themeDisplay);
+		}
+
+		return new long[] {
+			PortletDisplayTemplateUtil.getDDMTemplateGroupId(
+				themeDisplay.getScopeGroupId())
+			};
 	}
 
 	@Override

@@ -42,11 +42,14 @@ ShoppingItem item = (ShoppingItem)row.getObject();
 			modelResourceDescription="<%= item.getSku() %>"
 			resourcePrimKey="<%= String.valueOf(item.getItemId()) %>"
 			var="permissionsURL"
+			windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 		/>
 
 		<liferay-ui:icon
 			image="permissions"
+			method="get"
 			url="<%= permissionsURL %>"
+			useDialog="<%= true %>"
 		/>
 	</c:if>
 

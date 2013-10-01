@@ -50,12 +50,19 @@
 
 	PortletURL containerModelURL = renderResponse.createRenderURL();
 
-	containerModelURL.setParameter("struts_action", "/trash/view_content");
 	containerModelURL.setParameter("redirect", redirect);
 	containerModelURL.setParameter("className", trashHandler.getContainerModelClassName());
 
 	TrashUtil.addBaseModelBreadcrumbEntries(request, className, classPK, containerModelURL);
 	%>
+
+	<liferay-ui:breadcrumb
+		showCurrentGroup="<%= false %>"
+		showCurrentPortlet="<%= true %>"
+		showGuestGroup="<%= false %>"
+		showLayout="<%= false %>"
+		showParentGroups="<%= false %>"
+	/>
 
 	<liferay-ui:header
 		backURL="<%= redirect %>"
@@ -91,15 +98,15 @@
 
 			<liferay-ui:panel-container extended="<%= false %>" id="containerDisplayInfoPanelContainer" persistState="<%= true %>">
 				<c:if test="<%= containerModelsCount > 0 %>">
-					<liferay-ui:panel collapsible="<%= true %>" cssClass="view-folders" extended="<%= true %>" id="containerModelsListingPanel" persistState="<%= true %>" title="<%= trashHandler.getTrashContainerModelName() %>">
+					<liferay-ui:panel collapsible="<%= true %>" cssClass="view-folders" extended="<%= false %>" id="containerModelsListingPanel" persistState="<%= true %>" title="<%= trashHandler.getTrashContainerModelName() %>">
 						<liferay-ui:search-container
 							curParam="cur1"
 							deltaConfigurable="<%= false %>"
 							iteratorURL="<%= iteratorURL %>"
+							total="<%= containerModelsCount %>"
 						>
 							<liferay-ui:search-container-results
 								results="<%= trashHandler.getTrashContainerModelTrashRenderers(classPK, searchContainer.getStart(), searchContainer.getEnd()) %>"
-								total="<%= containerModelsCount %>"
 							/>
 
 							<liferay-ui:search-container-row
@@ -149,15 +156,15 @@
 				</c:if>
 
 				<c:if test="<%= baseModelsCount > 0 %>">
-					<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="baseModelsListingPanel" persistState="<%= true %>" title="<%= trashHandler.getTrashContainedModelName() %>">
+					<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" id="baseModelsListingPanel" persistState="<%= true %>" title="<%= trashHandler.getTrashContainedModelName() %>">
 						<liferay-ui:search-container
 							curParam="cur2"
 							deltaConfigurable="<%= false %>"
 							iteratorURL="<%= iteratorURL %>"
+							total="<%= baseModelsCount %>"
 						>
 							<liferay-ui:search-container-results
 								results="<%= trashHandler.getTrashContainedModelTrashRenderers(classPK, searchContainer.getStart(), searchContainer.getEnd()) %>"
-								total="<%= baseModelsCount %>"
 							/>
 
 							<liferay-ui:search-container-row
@@ -249,7 +256,6 @@
 						formAction="<%= discussionURL %>"
 						formName='<%= "fm" + classPK %>'
 						redirect="<%= currentURL %>"
-						subject="<%= trashRenderer.getTitle(locale) %>"
 						userId="<%= assetEntry.getUserId() %>"
 					/>
 				</div>

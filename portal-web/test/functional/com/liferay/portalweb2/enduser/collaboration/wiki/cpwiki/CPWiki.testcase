@@ -1,0 +1,162 @@
+<definition>
+	<set-up>
+		<execute macro="User#firstLoginPG" />
+	</set-up>
+
+	<tear-down>
+		<execute macro="WikiNode#tearDownCP" />
+
+		<execute macro="WikiPage#tearDownCP" />
+	</tear-down>
+
+	<command name="AddWikiFrontPage">
+		<var name="wikiNodeName" value="Main" />
+		<var name="wikiFrontPageContent" value="Wiki FrontPage Content" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Wiki" />
+		</execute>
+
+		<execute macro="WikiPage#addFrontPageCP">
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+			<var name="wikiFrontPageContent" value="${wikiFrontPageContent}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Wiki" />
+		</execute>
+
+		<execute macro="WikiPage#viewFrontPageCP">
+			<var name="portletName" value="Wiki" />
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+			<var name="wikiFrontPageContent" value="${wikiFrontPageContent}" />
+		</execute>
+	</command>
+
+	<command name="AddWikiNode">
+		<var name="wikiNodeDescription" value="Wiki Node Description" />
+		<var name="wikiNodeName" value="Wiki Node Name" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Wiki" />
+		</execute>
+
+		<execute macro="WikiNode#addCP">
+			<var name="wikiNodeDescription" value="${wikiNodeDescription}" />
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+		</execute>
+	</command>
+
+	<command name="CompareVersionsWikiPage">
+		<var name="wikiNodeName" value="Main" />
+		<var name="wikiPageContent" value="Wiki Page Content" />
+		<var name="wikiPageContentEdit" value="Wiki Page Content Edit" />
+		<var name="wikiPageTitle" value="Wiki Page Title" />
+		<var name="wikiPageVersionDiff" value="Edit" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Wiki" />
+		</execute>
+
+		<execute macro="WikiPage#addPageCP">
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+			<var name="wikiPageContent" value="${wikiPageContent}" />
+			<var name="wikiPageTitle" value="${wikiPageTitle}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Wiki" />
+		</execute>
+
+		<execute macro="WikiPage#editPageCP">
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+			<var name="wikiPageContentEdit" value="${wikiPageContentEdit}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Wiki" />
+		</execute>
+
+		<execute macro="WikiPage#compareVersionsCP">
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+			<var name="wikiPageVersionDiff" value="${wikiPageVersionDiff}" />
+			<var name="wikiPageVersionNew" value="1.1" />
+			<var name="wikiPageVersionOld" value="1.0" />
+		</execute>
+	</command>
+
+	<command name="DeleteWikiNode">
+		<var name="wikiNodeDescription" value="Wiki Node Description" />
+		<var name="wikiNodeName" value="Wiki Node Name" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Wiki" />
+		</execute>
+
+		<execute macro="WikiNode#addCP">
+			<var name="wikiNodeDescription" value="${wikiNodeDescription}" />
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+		</execute>
+
+		<execute macro="WikiNode#deleteCP">
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+		</execute>
+	</command>
+
+	<command name="EditWikiNode">
+		<var name="wikiNodeDescription" value="Wiki Node Description" />
+		<var name="wikiNodeDescriptionEdit" value="Wiki Node Description Edit" />
+		<var name="wikiNodeName" value="Wiki Node Name" />
+		<var name="wikiNodeNameEdit" value="Wiki Node Name Edit" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Wiki" />
+		</execute>
+
+		<execute macro="WikiNode#addCP">
+			<var name="wikiNodeDescription" value="${wikiNodeDescription}" />
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+		</execute>
+
+		<execute macro="WikiNode#editCP">
+			<var name="wikiNodeDescription" value="${wikiNodeDescription}" />
+			<var name="wikiNodeDescriptionEdit" value="${wikiNodeDescriptionEdit}" />
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+			<var name="wikiNodeNameEdit" value="${wikiNodeNameEdit}" />
+		</execute>
+	</command>
+
+	<command name="MoveToRecycleBinFrontPage">
+		<var name="wikiNodeName" value="Main" />
+		<var name="wikiFrontPageContent" value="Wiki FrontPage Content" />
+		<var name="wikiPageTitle" value="FrontPage" />
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Wiki" />
+		</execute>
+
+		<execute macro="WikiPage#addFrontPageCP">
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+			<var name="wikiFrontPageContent" value="${wikiFrontPageContent}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Wiki" />
+		</execute>
+
+		<execute macro="WikiPage#moveToRecycleBinCP">
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+			<var name="wikiFrontPageContent" value="${wikiFrontPageContent}" />
+			<var name="wikiPageTitle" value="${wikiPageTitle}" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Wiki" />
+		</execute>
+
+		<execute macro="WikiPage#viewFrontPageDefaultCP">
+			<var name="wikiNodeName" value="${wikiNodeName}" />
+			<var name="wikiFrontPageContent" value="${wikiFrontPageContent}" />
+		</execute>
+	</command>
+</definition>

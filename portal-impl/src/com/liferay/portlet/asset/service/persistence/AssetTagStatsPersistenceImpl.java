@@ -343,6 +343,10 @@ public class AssetTagStatsPersistenceImpl extends BasePersistenceImpl<AssetTagSt
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByTagId(tagId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AssetTagStats> list = findByTagId(tagId, count - 1, count,
 				orderByComparator);
 
@@ -833,6 +837,10 @@ public class AssetTagStatsPersistenceImpl extends BasePersistenceImpl<AssetTagSt
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByClassNameId(classNameId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AssetTagStats> list = findByClassNameId(classNameId, count - 1,
 				count, orderByComparator);
 
@@ -1289,6 +1297,10 @@ public class AssetTagStatsPersistenceImpl extends BasePersistenceImpl<AssetTagSt
 
 	private static final String _FINDER_COLUMN_T_C_TAGID_2 = "assetTagStats.tagId = ? AND ";
 	private static final String _FINDER_COLUMN_T_C_CLASSNAMEID_2 = "assetTagStats.classNameId = ?";
+
+	public AssetTagStatsPersistenceImpl() {
+		setModelClass(AssetTagStats.class);
+	}
 
 	/**
 	 * Caches the asset tag stats in the entity cache if it is enabled.

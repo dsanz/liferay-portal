@@ -16,8 +16,10 @@ package com.liferay.portlet.portletconfiguration.action;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.portlet.PortletConfigurationLayoutUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Layout;
@@ -33,6 +35,9 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portlet.portletconfiguration.util.ConfigurationActionRequest;
+import com.liferay.portlet.portletconfiguration.util.ConfigurationRenderRequest;
+import com.liferay.portlet.portletconfiguration.util.ConfigurationResourceRequest;
 import com.liferay.portlet.portletconfiguration.util.PortletConfigurationUtil;
 import com.liferay.portlet.portletconfiguration.util.PublicRenderParameterConfiguration;
 import com.liferay.portlet.portletconfiguration.util.PublicRenderParameterIdentifierComparator;
@@ -45,17 +50,37 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.portlet.ActionRequest;
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
 import javax.portlet.RenderRequest;
+import javax.portlet.ResourceRequest;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Jorge Ferrer
+ * @author Raymond Augé
  */
 public class ActionUtil {
+
+	public static final String ACTION = "_ACTION_";
+
+	public static final String PRESELECTED = "_PRESELECTED_";
+
+	public static PortletPreferences getLayoutPortletSetup(
+			PortletRequest portletRequest, Portlet portlet)
+		throws SystemException {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		Layout layout = themeDisplay.getLayout();
+
+		return PortletPreferencesFactoryUtil.getLayoutPortletSetup(
+			layout, portlet.getPortletId());
+	}
 
 	public static void getLayoutPublicRenderParameters(
 			PortletRequest portletRequest)
@@ -73,9 +98,7 @@ public class ActionUtil {
 		LayoutTypePortlet layoutTypePortlet =
 			themeDisplay.getLayoutTypePortlet();
 
-		List<Portlet> portlets = layoutTypePortlet.getAllPortlets();
-
-		for (Portlet portlet : portlets) {
+		for (Portlet portlet : layoutTypePortlet.getAllPortlets()) {
 			for (PublicRenderParameter publicRenderParameter :
 					portlet.getPublicRenderParameters()) {
 
@@ -147,6 +170,54 @@ public class ActionUtil {
 			publicRenderParameterConfigurations);
 	}
 
+	public static ActionRequest getWrappedActionRequest(
+			ActionRequest actionRequest, PortletPreferences portletPreferences)
+		throws PortalException, SystemException {
+
+		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+			actionRequest);
+
+		portletPreferences = getPortletPreferences(
+			request, actionRequest.getPreferences(), portletPreferences);
+
+		return new ConfigurationActionRequest(
+			actionRequest, portletPreferences);
+	}
+
+	public static RenderRequest getWrappedRenderRequest(
+			RenderRequest renderRequest, PortletPreferences portletPreferences)
+		throws PortalException, SystemException {
+
+		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+			renderRequest);
+
+		portletPreferences = getPortletPreferences(
+			request, renderRequest.getPreferences(), portletPreferences);
+
+		renderRequest = new ConfigurationRenderRequest(
+			renderRequest, portletPreferences);
+
+		request.setAttribute(
+			JavaConstants.JAVAX_PORTLET_REQUEST, renderRequest);
+
+		return renderRequest;
+	}
+
+	public static ResourceRequest getWrappedResourceRequest(
+			ResourceRequest resourceRequest,
+			PortletPreferences portletPreferences)
+		throws PortalException, SystemException {
+
+		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+			resourceRequest);
+
+		portletPreferences = getPortletPreferences(
+			request, resourceRequest.getPreferences(), portletPreferences);
+
+		return new ConfigurationResourceRequest(
+			resourceRequest, portletPreferences);
+	}
+
 	protected static Portlet getPortlet(PortletRequest portletRequest)
 		throws Exception {
 
@@ -161,9 +232,11 @@ public class ActionUtil {
 		String portletId = ParamUtil.getString(
 			portletRequest, "portletResource");
 
+		Layout layout = PortletConfigurationLayoutUtil.getLayout(themeDisplay);
+
 		if (!PortletPermissionUtil.contains(
-				permissionChecker, themeDisplay.getLayout(), portletId,
-				ActionKeys.CONFIGURATION)) {
+				permissionChecker, themeDisplay.getScopeGroupId(), layout,
+				portletId, ActionKeys.CONFIGURATION)) {
 
 			throw new PrincipalException();
 		}
@@ -172,13 +245,19 @@ public class ActionUtil {
 	}
 
 	protected static PortletPreferences getPortletPreferences(
-			HttpServletRequest request, PortletPreferences portletPreferences)
+			HttpServletRequest request,
+			PortletPreferences portletConfigPortletPreferences,
+			PortletPreferences portletPreferences)
 		throws PortalException, SystemException {
 
 		String portletResource = ParamUtil.getString(
 			request, "portletResource");
 
 		if (Validator.isNull(portletResource)) {
+			return portletConfigPortletPreferences;
+		}
+
+		if (portletPreferences != null) {
 			return portletPreferences;
 		}
 
@@ -199,8 +278,11 @@ public class ActionUtil {
 		HttpServletRequest request = PortalUtil.getHttpServletRequest(
 			renderRequest);
 
-		PortletPreferences portletPreferences = getPortletPreferences(
-			request, renderRequest.getPreferences());
+		PortletPreferences portletPreferences = getLayoutPortletSetup(
+			renderRequest, portlet);
+
+		portletPreferences = getPortletPreferences(
+			request, renderRequest.getPreferences(), portletPreferences);
 
 		String title = PortletConfigurationUtil.getPortletTitle(
 			portletPreferences, themeDisplay.getLanguageId());

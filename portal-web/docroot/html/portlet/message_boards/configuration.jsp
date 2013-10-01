@@ -54,12 +54,12 @@ String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBo
 String emailSignature = PrefsParamUtil.getString(portletPreferences, request, emailSignatureParam, defaultEmailSignature);
 %>
 
-<liferay-portlet:renderURL portletConfiguration="true" var="portletURL">
+<liferay-portlet:renderURL portletConfiguration="<%= true %>" var="portletURL">
 	<portlet:param name="tabs2" value="<%= tabs2 %>" />
 	<portlet:param name="redirect" value="<%= redirect %>" />
 </liferay-portlet:renderURL>
 
-<liferay-portlet:actionURL portletConfiguration="true" var="configurationURL" />
+<liferay-portlet:actionURL portletConfiguration="<%= true %>" var="configurationURL" />
 
 <aui:form action="<%= configurationURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
@@ -103,7 +103,9 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 					for (int i = 0; i < MBMessageConstants.FORMATS.length; i++) {
 					%>
 
-						<aui:option label='<%= LanguageUtil.get(pageContext, "message-boards.message-formats." + MBMessageConstants.FORMATS[i]) %>' selected="<%= messageFormat.equals(MBMessageConstants.FORMATS[i]) %>" value="<%= MBMessageConstants.FORMATS[i] %>" />
+						<c:if test="<%= MBUtil.isValidMessageFormat(MBMessageConstants.FORMATS[i]) %>">
+							<aui:option label='<%= LanguageUtil.get(pageContext,"message-boards.message-formats." + MBMessageConstants.FORMATS[i]) %>' selected="<%= messageFormat.equals(MBMessageConstants.FORMATS[i]) %>" value="<%= MBMessageConstants.FORMATS[i] %>" />
+						</c:if>
 
 					<%
 					}
@@ -344,7 +346,7 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 			<tr>
 				<td>
 					<aui:field-wrapper label="default-language">
-						<%= defaultLocale.getDisplayName(defaultLocale) %>
+						<liferay-ui:input-resource url="<%= defaultLocale.getDisplayName(defaultLocale) %>" />
 					</aui:field-wrapper>
 				</td>
 				<td>
@@ -600,7 +602,7 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 				<tr>
 					<td class="lfr-label">
 						<aui:field-wrapper label="default-language">
-							<%= defaultLocale.getDisplayName(defaultLocale) %>
+							<liferay-ui:input-resource url="<%= defaultLocale.getDisplayName(defaultLocale) %>" />
 						</aui:field-wrapper>
 					</td>
 					<td class="lfr-label">
@@ -738,7 +740,3 @@ String emailSignature = PrefsParamUtil.getString(portletPreferences, request, em
 		submitForm(document.<portlet:namespace />fm);
 	}
 </aui:script>
-
-<%!
-public static final String EDITOR_WYSIWYG_IMPL_KEY = "editor.wysiwyg.portal-web.docroot.html.portlet.message_boards.configuration.jsp";
-%>

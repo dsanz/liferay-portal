@@ -58,7 +58,7 @@ public class ExpandoValueImpl extends ExpandoValueBaseImpl {
 		List<Locale> locales = new ArrayList<Locale>();
 
 		for (String languageId :
-				LocalizationUtil.getAvailableLocales(getData())) {
+				LocalizationUtil.getAvailableLanguageIds(getData())) {
 
 			locales.add(LocaleUtil.fromLanguageId(languageId));
 		}
@@ -123,7 +123,8 @@ public class ExpandoValueImpl extends ExpandoValueBaseImpl {
 			return null;
 		}
 
-		String defaultLanguageId = LocalizationUtil.getDefaultLocale(getData());
+		String defaultLanguageId = LocalizationUtil.getDefaultLanguageId(
+			getData());
 
 		return LocaleUtil.fromLanguageId(defaultLanguageId);
 	}
@@ -384,7 +385,21 @@ public class ExpandoValueImpl extends ExpandoValueBaseImpl {
 
 		validate(ExpandoColumnConstants.DATE_ARRAY);
 
-		setData(StringUtil.merge(data));
+		if (data.length > 0) {
+			StringBundler sb = new StringBundler(data.length * 2);
+
+			for (Date date : data) {
+				sb.append(date.getTime());
+				sb.append(StringPool.COMMA);
+			}
+
+			sb.setIndex(sb.index() - 1);
+
+			setData(sb.toString());
+		}
+		else {
+			setData(StringPool.BLANK);
+		}
 	}
 
 	@Override

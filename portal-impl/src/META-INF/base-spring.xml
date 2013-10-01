@@ -8,8 +8,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
 >
-	<bean class="com.liferay.portal.jsonwebservice.spring.JSONWebServiceDetectorBeanPostProcessor" />
 	<bean class="com.liferay.portal.security.lang.DoPrivilegedFactory" />
+	<bean class="com.liferay.portal.spring.aop.DynamicProxyCreator" factory-method="getDynamicProxyCreator" />
 	<bean class="com.liferay.portal.spring.aop.ServiceBeanAutoProxyCreator">
 		<property name="beanMatcher">
 			<bean class="com.liferay.portal.spring.aop.ServiceBeanMatcher">
@@ -29,7 +29,10 @@
 		<property name="dataSource" ref="liferayDataSource" />
 		<property name="sessionFactory" ref="liferaySessionFactory" />
 	</bean>
-	<bean id="serviceAdvice" class="com.liferay.portal.security.ac.AccessControlAdvice">
+	<bean id="serviceAdvice" class="com.liferay.portal.spring.aop.SkipAdvice">
+		<property name="nextMethodInterceptor" ref="accessControlAdvice" />
+	</bean>
+	<bean id="accessControlAdvice" class="com.liferay.portal.security.ac.AccessControlAdvice">
 		<property name="accessControlAdvisor">
 			<bean class="com.liferay.portal.security.ac.AccessControlAdvisorImpl" />
 		</property>
@@ -49,15 +52,30 @@
 		<property name="nextMethodInterceptor" ref="indexableAdvice" />
 	</bean>
 	<bean id="indexableAdvice" class="com.liferay.portal.search.IndexableAdvice">
+		<property name="nextMethodInterceptor" ref="systemEventAdvice" />
+	</bean>
+	<bean id="systemEventAdvice" class="com.liferay.portal.systemevent.SystemEventAdvice">
 		<property name="nextMethodInterceptor" ref="transactionAdvice" />
 	</bean>
 	<bean id="counterTransactionAdvice" class="com.liferay.portal.spring.transaction.TransactionInterceptor">
 		<property name="platformTransactionManager" ref="counterTransactionManager" />
 		<property name="transactionAttributeSource" ref="transactionAttributeSource" />
+		<property name="transactionExecutor">
+			<bean class="com.liferay.portal.spring.transaction.TransactionExecutorFactory" factory-method="createTransactionExecutor">
+				<constructor-arg ref="counterTransactionManager" />
+				<constructor-arg value="true" />
+			</bean>
+		</property>
 	</bean>
 	<bean id="transactionAdvice" class="com.liferay.portal.spring.transaction.TransactionInterceptor">
 		<property name="platformTransactionManager" ref="liferayTransactionManager" />
 		<property name="transactionAttributeSource" ref="transactionAttributeSource" />
+		<property name="transactionExecutor">
+			<bean class="com.liferay.portal.spring.transaction.TransactionExecutorFactory" factory-method="createTransactionExecutor">
+				<constructor-arg ref="counterTransactionManager" />
+				<constructor-arg value="false" />
+			</bean>
+		</property>
 	</bean>
 	<bean id="transactionAttributeSource" class="com.liferay.portal.spring.transaction.AnnotationTransactionAttributeSource" />
 </beans>

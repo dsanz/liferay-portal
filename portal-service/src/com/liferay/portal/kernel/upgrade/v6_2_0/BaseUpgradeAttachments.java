@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -58,15 +59,14 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 			StringBundler sb = new StringBundler(10);
 
 			sb.append("insert into DLFileEntry (uuid_, fileEntryId, groupId, ");
-			sb.append("companyId, userId, userName, versionUserId, ");
-			sb.append("versionUserName, createDate, modifiedDate, ");
-			sb.append("classNameId, classPK, repositoryId, folderId, name, ");
-			sb.append("extension, mimeType, title, description, ");
-			sb.append("extraSettings, fileEntryTypeId, version, size_, ");
-			sb.append("readCount, smallImageId, largeImageId, ");
+			sb.append("companyId, userId, userName, createDate, ");
+			sb.append("modifiedDate, classNameId, classPK, repositoryId, ");
+			sb.append("folderId, name, extension, mimeType, title, ");
+			sb.append("description, extraSettings, fileEntryTypeId, version, ");
+			sb.append("size_, readCount, smallImageId, largeImageId, ");
 			sb.append("custom1ImageId, custom2ImageId) values (?, ?, ?, ?, ");
 			sb.append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ");
-			sb.append("?, ?, ?, ?, ?, ?)");
+			sb.append("?, ?, ?, ?)");
 
 			String sql = sb.toString();
 
@@ -78,32 +78,37 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 			ps.setLong(4, companyId);
 			ps.setLong(5, userId);
 			ps.setString(6, userName);
-			ps.setLong(7, userId);
-			ps.setString(8, userName);
-			ps.setTimestamp(9, createDate);
-			ps.setTimestamp(10, createDate);
-			ps.setLong(11, PortalUtil.getClassNameId(className));
-			ps.setLong(12, classPK);
-			ps.setLong(13, repositoryId);
-			ps.setLong(14, folderId);
-			ps.setString(15, name);
-			ps.setString(16, extension);
-			ps.setString(17, mimeType);
-			ps.setString(18, title);
-			ps.setString(19, StringPool.BLANK);
-			ps.setString(20, StringPool.BLANK);
-			ps.setLong(21, 0);
-			ps.setString(22, "1.0");
-			ps.setLong(23, size);
-			ps.setInt(24, 0);
+			ps.setTimestamp(7, createDate);
+			ps.setTimestamp(8, createDate);
+			ps.setLong(9, PortalUtil.getClassNameId(className));
+			ps.setLong(10, classPK);
+			ps.setLong(11, repositoryId);
+			ps.setLong(12, folderId);
+			ps.setString(13, name);
+			ps.setString(14, extension);
+			ps.setString(15, mimeType);
+			ps.setString(16, title);
+			ps.setString(17, StringPool.BLANK);
+			ps.setString(18, StringPool.BLANK);
+			ps.setLong(19, 0);
+			ps.setString(20, "1.0");
+			ps.setLong(21, size);
+			ps.setInt(22, 0);
+			ps.setLong(23, 0);
+			ps.setLong(24, 0);
 			ps.setLong(25, 0);
 			ps.setLong(26, 0);
-			ps.setLong(27, 0);
-			ps.setLong(28, 0);
 
 			ps.executeUpdate();
 
 			return fileEntryId;
+		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn("Unable to add file entry " + name, e);
+			}
+
+			return -1;
 		}
 		finally {
 			DataAccess.cleanUp(con, ps);
@@ -164,6 +169,13 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 
 			ps.executeUpdate();
 		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to add file version 1.0 for file entry " + title,
+					e);
+			}
+		}
 		finally {
 			DataAccess.cleanUp(con, ps);
 		}
@@ -223,6 +235,13 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 
 			return folderId;
 		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn("Unable to add folder " + name, e);
+			}
+
+			return -1;
+		}
 		finally {
 			DataAccess.cleanUp(con, ps);
 		}
@@ -239,6 +258,10 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 			increment(), groupId, companyId, userId, userName, createDate,
 			repositoryId, true, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			portletId, true);
+
+		if (folderId < 0) {
+			return -1;
+		}
 
 		Connection con = null;
 		PreparedStatement ps = null;
@@ -274,6 +297,14 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 			ps.executeUpdate();
 
 			return repositoryId;
+		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to add repository for portlet " + portletId, e);
+			}
+
+			return -1;
 		}
 		finally {
 			DataAccess.cleanUp(con, ps);
@@ -326,6 +357,10 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 			Timestamp createDate, long repositoryId, long parentFolderId,
 			String name, boolean hidden)
 		throws Exception {
+
+		if ((repositoryId < 0) || (parentFolderId < 0)) {
+			return -1;
+		}
 
 		Connection con = null;
 		PreparedStatement ps = null;
@@ -408,7 +443,7 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 		String[] attachments = getAttachments(
 			companyId, containerModelId, resourcePrimKey);
 
-		if ((attachments == null) || (attachments.length == 0)) {
+		if (ArrayUtil.isEmpty(attachments)) {
 			return;
 		}
 
@@ -418,9 +453,18 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 			groupId, companyId, userId, userName, createDate,
 			PortalUtil.getClassNameId(_LIFERAY_REPOSITORY_CLASS_NAME),
 			getPortletId());
+
+		if (repositoryId < 0) {
+			return;
+		}
+
 		long containerModelFolderId = getContainerModelFolderId(
 			groupId, companyId, resourcePrimKey, containerModelId, userId,
 			userName, createDate);
+
+		if (containerModelFolderId < 0) {
+			return;
+		}
 
 		for (String attachment : attachments) {
 			String name = String.valueOf(
@@ -439,6 +483,10 @@ public abstract class BaseUpgradeAttachments extends UpgradeProcess {
 				groupId, companyId, userId, getClassName(), resourcePrimKey,
 				userName, createDate, repositoryId, containerModelFolderId,
 				name, extension, mimeType, title, size);
+
+			if (fileEntryId < 0) {
+				continue;
+			}
 
 			addDLFileVersion(
 				increment(), groupId, companyId, userId, userName, createDate,

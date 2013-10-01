@@ -22,6 +22,7 @@ import com.liferay.portal.LayoutSetVirtualHostException;
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.NoSuchGroupException;
 import com.liferay.portal.NoSuchLayoutException;
+import com.liferay.portal.PendingBackgroundTaskException;
 import com.liferay.portal.RemoteExportException;
 import com.liferay.portal.RemoteOptionsException;
 import com.liferay.portal.RequiredGroupException;
@@ -29,6 +30,7 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.staging.StagingConstants;
 import com.liferay.portal.kernel.staging.StagingUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -54,7 +56,9 @@ import com.liferay.portal.model.MembershipRequest;
 import com.liferay.portal.model.MembershipRequestConstants;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.Team;
+import com.liferay.portal.security.auth.AuthException;
 import com.liferay.portal.security.auth.PrincipalException;
+import com.liferay.portal.security.auth.RemoteAuthException;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.GroupServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
@@ -134,6 +138,8 @@ public class EditGroupAction extends PortletAction {
 							PortletKeys.SITE_SETTINGS);
 
 					redirect = siteAdministrationURL.toString();
+
+					hideDefaultSuccessMessage(actionRequest);
 				}
 				else {
 					String oldFriendlyURL = (String)returnValue[1];
@@ -176,18 +182,35 @@ public class EditGroupAction extends PortletAction {
 			}
 			else if (e instanceof AssetCategoryException ||
 					 e instanceof AssetTagException ||
+					 e instanceof AuthException ||
 					 e instanceof DuplicateGroupException ||
 					 e instanceof GroupFriendlyURLException ||
 					 e instanceof GroupNameException ||
 					 e instanceof GroupParentException ||
 					 e instanceof LayoutSetVirtualHostException ||
 					 e instanceof LocaleException ||
+					 e instanceof PendingBackgroundTaskException ||
+					 e instanceof RemoteAuthException ||
 					 e instanceof RemoteExportException ||
 					 e instanceof RemoteOptionsException ||
 					 e instanceof RequiredGroupException ||
 					 e instanceof SystemException) {
 
-				SessionErrors.add(actionRequest, e.getClass(), e);
+				if (e instanceof RemoteAuthException) {
+					SessionErrors.add(actionRequest, AuthException.class, e);
+				}
+				else {
+					SessionErrors.add(actionRequest, e.getClass(), e);
+				}
+
+				int stagingType = ParamUtil.getInteger(
+					actionRequest, "stagingType");
+
+				if (stagingType != StagingConstants.TYPE_NOT_STAGED) {
+					redirect = HttpUtil.setParameter(
+						redirect, actionResponse.getNamespace() + "stagingType",
+						stagingType);
+				}
 
 				sendRedirect(
 					portletConfig, actionRequest, actionResponse, redirect,
@@ -292,7 +315,7 @@ public class EditGroupAction extends PortletAction {
 
 		List<Team> teams = new UniqueList<Team>();
 
-		long[] teamsTeamIds= StringUtil.split(
+		long[] teamsTeamIds = StringUtil.split(
 			ParamUtil.getString(portletRequest, "teamsTeamIds"), 0L);
 
 		for (long teamsTeamId : teamsTeamIds) {
@@ -385,8 +408,9 @@ public class EditGroupAction extends PortletAction {
 
 		GroupServiceUtil.updateGroup(
 			groupId, group.getParentGroupId(), group.getName(),
-			group.getDescription(), group.getType(), group.getFriendlyURL(),
-			active, serviceContext);
+			group.getDescription(), group.getType(), group.isManualMembership(),
+			group.getMembershipRestriction(), group.getFriendlyURL(), active,
+			serviceContext);
 	}
 
 	protected String updateCloseRedirect(
@@ -460,6 +484,20 @@ public class EditGroupAction extends PortletAction {
 		int type = 0;
 		String friendlyURL = null;
 		boolean active = false;
+		boolean manualMembership = true;
+
+		int membershipRestriction =
+			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION;
+
+		boolean actionRequestMembershipRestriction = ParamUtil.getBoolean(
+			actionRequest, "membershipRestriction");
+
+		if (actionRequestMembershipRestriction &&
+			(parentGroupId != GroupConstants.DEFAULT_PARENT_GROUP_ID)) {
+
+			membershipRestriction =
+				GroupConstants.MEMBERSHIP_RESTRICTION_TO_PARENT_SITE_MEMBERS;
+		}
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			Group.class.getName(), actionRequest);
@@ -477,10 +515,13 @@ public class EditGroupAction extends PortletAction {
 			type = ParamUtil.getInteger(actionRequest, "type");
 			friendlyURL = ParamUtil.getString(actionRequest, "friendlyURL");
 			active = ParamUtil.getBoolean(actionRequest, "active");
+			manualMembership = ParamUtil.getBoolean(
+				actionRequest, "manualMembership");
 
 			liveGroup = GroupServiceUtil.addGroup(
 				parentGroupId, GroupConstants.DEFAULT_LIVE_GROUP_ID, name,
-				description, type, friendlyURL, true, active, serviceContext);
+				description, type, manualMembership, membershipRestriction,
+				friendlyURL, true, active, serviceContext);
 
 			LiveUsers.joinGroup(
 				themeDisplay.getCompanyId(), liveGroup.getGroupId(), userId);
@@ -503,10 +544,14 @@ public class EditGroupAction extends PortletAction {
 				actionRequest, "friendlyURL", liveGroup.getFriendlyURL());
 			active = ParamUtil.getBoolean(
 				actionRequest, "active", liveGroup.getActive());
+			manualMembership = ParamUtil.getBoolean(
+				actionRequest, "manualMembership",
+				liveGroup.isManualMembership());
 
 			liveGroup = GroupServiceUtil.updateGroup(
 				liveGroupId, parentGroupId, name, description, type,
-				friendlyURL, active, serviceContext);
+				manualMembership, membershipRestriction, friendlyURL, active,
+				serviceContext);
 
 			if (type == GroupConstants.TYPE_SITE_OPEN) {
 				List<MembershipRequest> membershipRequests =
@@ -558,7 +603,7 @@ public class EditGroupAction extends PortletAction {
 			StringPool.NEW_LINE);
 
 		for (String analyticsType : analyticsTypes) {
-			if (analyticsType.equalsIgnoreCase("google")) {
+			if (StringUtil.equalsIgnoreCase(analyticsType, "google")) {
 				String googleAnalyticsId = ParamUtil.getString(
 					actionRequest, "googleAnalyticsId",
 					typeSettingsProperties.getProperty("googleAnalyticsId"));

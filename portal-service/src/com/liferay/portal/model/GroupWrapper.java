@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,8 +60,11 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 		attributes.put("description", getDescription());
 		attributes.put("type", getType());
 		attributes.put("typeSettings", getTypeSettings());
+		attributes.put("manualMembership", getManualMembership());
+		attributes.put("membershipRestriction", getMembershipRestriction());
 		attributes.put("friendlyURL", getFriendlyURL());
 		attributes.put("site", getSite());
+		attributes.put("remoteStagingGroupCount", getRemoteStagingGroupCount());
 		attributes.put("active", getActive());
 
 		return attributes;
@@ -145,6 +150,19 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 			setTypeSettings(typeSettings);
 		}
 
+		Boolean manualMembership = (Boolean)attributes.get("manualMembership");
+
+		if (manualMembership != null) {
+			setManualMembership(manualMembership);
+		}
+
+		Integer membershipRestriction = (Integer)attributes.get(
+				"membershipRestriction");
+
+		if (membershipRestriction != null) {
+			setMembershipRestriction(membershipRestriction);
+		}
+
 		String friendlyURL = (String)attributes.get("friendlyURL");
 
 		if (friendlyURL != null) {
@@ -155,6 +173,13 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 
 		if (site != null) {
 			setSite(site);
+		}
+
+		Integer remoteStagingGroupCount = (Integer)attributes.get(
+				"remoteStagingGroupCount");
+
+		if (remoteStagingGroupCount != null) {
+			setRemoteStagingGroupCount(remoteStagingGroupCount);
 		}
 
 		Boolean active = (Boolean)attributes.get("active");
@@ -482,6 +507,56 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	}
 
 	/**
+	* Returns the manual membership of this group.
+	*
+	* @return the manual membership of this group
+	*/
+	@Override
+	public boolean getManualMembership() {
+		return _group.getManualMembership();
+	}
+
+	/**
+	* Returns <code>true</code> if this group is manual membership.
+	*
+	* @return <code>true</code> if this group is manual membership; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isManualMembership() {
+		return _group.isManualMembership();
+	}
+
+	/**
+	* Sets whether this group is manual membership.
+	*
+	* @param manualMembership the manual membership of this group
+	*/
+	@Override
+	public void setManualMembership(boolean manualMembership) {
+		_group.setManualMembership(manualMembership);
+	}
+
+	/**
+	* Returns the membership restriction of this group.
+	*
+	* @return the membership restriction of this group
+	*/
+	@Override
+	public int getMembershipRestriction() {
+		return _group.getMembershipRestriction();
+	}
+
+	/**
+	* Sets the membership restriction of this group.
+	*
+	* @param membershipRestriction the membership restriction of this group
+	*/
+	@Override
+	public void setMembershipRestriction(int membershipRestriction) {
+		_group.setMembershipRestriction(membershipRestriction);
+	}
+
+	/**
 	* Returns the friendly u r l of this group.
 	*
 	* @return the friendly u r l of this group
@@ -529,6 +604,26 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	@Override
 	public void setSite(boolean site) {
 		_group.setSite(site);
+	}
+
+	/**
+	* Returns the remote staging group count of this group.
+	*
+	* @return the remote staging group count of this group
+	*/
+	@Override
+	public int getRemoteStagingGroupCount() {
+		return _group.getRemoteStagingGroupCount();
+	}
+
+	/**
+	* Sets the remote staging group count of this group.
+	*
+	* @param remoteStagingGroupCount the remote staging group count of this group
+	*/
+	@Override
+	public void setRemoteStagingGroupCount(int remoteStagingGroupCount) {
+		_group.setRemoteStagingGroupCount(remoteStagingGroupCount);
 	}
 
 	/**
@@ -730,6 +825,12 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	}
 
 	@Override
+	public java.lang.String getLayoutRootNodeName(boolean privateLayout,
+		java.util.Locale locale) {
+		return _group.getLayoutRootNodeName(privateLayout, locale);
+	}
+
+	@Override
 	public com.liferay.portal.model.Group getLiveGroup() {
 		return _group.getLiveGroup();
 	}
@@ -823,6 +924,11 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	}
 
 	@Override
+	public boolean hasLocalOrRemoteStagingGroup() {
+		return _group.hasLocalOrRemoteStagingGroup();
+	}
+
+	@Override
 	public boolean hasPrivateLayouts() {
 		return _group.hasPrivateLayouts();
 	}
@@ -837,6 +943,11 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 		return _group.hasStagingGroup();
 	}
 
+	@Override
+	public boolean isChild(long groupId) {
+		return _group.isChild(groupId);
+	}
+
 	/**
 	* @deprecated As of 6.1.0, renamed to {@link #isRegularSite}
 	*/
@@ -848,6 +959,11 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	@Override
 	public boolean isCompany() {
 		return _group.isCompany();
+	}
+
+	@Override
+	public boolean isCompanyStagingGroup() {
+		return _group.isCompanyStagingGroup();
 	}
 
 	@Override
@@ -948,6 +1064,25 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	public void setTypeSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties typeSettingsProperties) {
 		_group.setTypeSettingsProperties(typeSettingsProperties);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof GroupWrapper)) {
+			return false;
+		}
+
+		GroupWrapper groupWrapper = (GroupWrapper)obj;
+
+		if (Validator.equals(_group, groupWrapper._group)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

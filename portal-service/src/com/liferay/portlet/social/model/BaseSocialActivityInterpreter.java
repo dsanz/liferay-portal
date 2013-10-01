@@ -58,6 +58,16 @@ public abstract class BaseSocialActivityInterpreter
 	}
 
 	@Override
+	public boolean hasPermission(
+			PermissionChecker permissionChecker, SocialActivity activity,
+			String actionId, ServiceContext serviceContext)
+		throws Exception {
+
+		return hasPermissions(
+			permissionChecker, activity, actionId, serviceContext);
+	}
+
+	@Override
 	public SocialActivityFeedEntry interpret(
 		SocialActivity activity, ServiceContext serviceContext) {
 
@@ -205,7 +215,7 @@ public abstract class BaseSocialActivityInterpreter
 			SocialActivity activity, ServiceContext serviceContext)
 		throws Exception {
 
-		return StringPool.BLANK;
+		return activity.getExtraDataValue("title", serviceContext.getLocale());
 	}
 
 	protected String getGroupName(long groupId, ServiceContext serviceContext) {

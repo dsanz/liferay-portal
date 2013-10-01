@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringPool;
@@ -50,7 +49,6 @@ import java.io.Serializable;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -197,11 +195,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		Fields fields = StorageEngineUtil.getFields(record.getDDMStorageId());
 
-		Iterator<Field> itr = fields.iterator();
-
-		while (itr.hasNext()) {
-			Field field = itr.next();
-
+		for (Field field : fields) {
 			Map<Locale, List<Serializable>> valuesMap = field.getValuesMap();
 
 			valuesMap.remove(locale);
@@ -652,20 +646,8 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		recordVersion.setGroupId(record.getGroupId());
 		recordVersion.setCompanyId(record.getCompanyId());
-
-		long versionUserId = record.getVersionUserId();
-
-		if (versionUserId <= 0) {
-			versionUserId = record.getUserId();
-		}
-
-		recordVersion.setUserId(versionUserId);
-
-		String versionUserName = GetterUtil.getString(
-			record.getVersionUserName(), record.getUserName());
-
-		recordVersion.setUserName(versionUserName);
-
+		recordVersion.setUserId(user.getUserId());
+		recordVersion.setUserName(user.getFullName());
 		recordVersion.setCreateDate(record.getModifiedDate());
 		recordVersion.setDDMStorageId(ddmStorageId);
 		recordVersion.setRecordSetId(record.getRecordSetId());
@@ -723,6 +705,8 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 			int displayIndex, int status, ServiceContext serviceContext)
 		throws SystemException {
 
+		recordVersion.setUserId(user.getUserId());
+		recordVersion.setUserName(user.getFullName());
 		recordVersion.setVersion(version);
 		recordVersion.setDisplayIndex(displayIndex);
 		recordVersion.setStatus(status);

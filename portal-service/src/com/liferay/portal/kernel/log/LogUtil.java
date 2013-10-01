@@ -15,15 +15,12 @@
 package com.liferay.portal.kernel.log;
 
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
-import com.liferay.portal.kernel.util.StackTraceUtil;
 import com.liferay.portal.kernel.util.UnsyncPrintWriterPool;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
-import javax.servlet.ServletException;
-import javax.servlet.jsp.JspException;
 
 /**
  * @author Brian Wing Shun Chan
@@ -45,89 +42,62 @@ public class LogUtil {
 		}
 	}
 
-	public static void log(Log log, JspException jspe) {
-		Throwable cause = jspe.getCause();
-
-		if (cause == null) {
-			cause = jspe;
-		}
-
-		if ((cause != jspe) && (cause instanceof JspException)) {
-			log(log, (JspException)cause);
-		}
-		else if (cause instanceof ServletException) {
-			log(log, (ServletException)cause);
-		}
-		else {
-			_log(log, cause);
-		}
+	public static void log(Log log, Throwable throwable) {
+		log(log, throwable, null);
 	}
 
-	public static void log(Log log, ServletException se) {
-		Throwable cause = se.getRootCause();
+	public static void log(Log log, Throwable throwable, String message) {
+		if (throwable == null) {
+			if (Validator.isNotNull(message)) {
+				log.error(message);
 
-		if (cause == null) {
-			cause = se;
-		}
-
-		if (cause instanceof JspException) {
-			log(log, (JspException)cause);
-		}
-		else if ((cause != se) && (cause instanceof ServletException)) {
-			log(log, (ServletException)cause);
-		}
-		else {
-			_log(log, cause);
-		}
-	}
-
-	public static void log(Log log, Throwable t) {
-		if (t instanceof JspException) {
-			log(log, (JspException)t);
-		}
-		else if (t instanceof ServletException) {
-			log(log, (ServletException)t);
-		}
-		else {
-			Throwable cause = t.getCause();
-
-			if (cause != null) {
-				log(log, cause);
+				return;
 			}
-			else {
-				_log(log, t);
-			}
-		}
-	}
 
-	private static void _log(Log log, Throwable cause) {
-		StackTraceElement[] steArray = cause.getStackTrace();
+			throw new IllegalArgumentException(
+				"Throwable or message must be set");
+		}
+
+		Throwable causeThrowable = throwable;
+
+		while (causeThrowable.getCause() != null) {
+			causeThrowable = causeThrowable.getCause();
+		}
+
+		StackTraceElement[] stackTraceElements = causeThrowable.getStackTrace();
 
 		// Make the stack trace more readable by limiting the number of
 		// elements.
 
-		if (steArray.length <= STACK_TRACE_LENGTH) {
-			log.error(StackTraceUtil.getStackTrace(cause));
+		if (stackTraceElements.length <= STACK_TRACE_LENGTH) {
+			if (Validator.isNotNull(message)) {
+				log.error(message, causeThrowable);
+			}
+			else {
+				log.error(causeThrowable);
+			}
 
 			return;
 		}
 
 		int count = 0;
 
-		List<StackTraceElement> steList = new ArrayList<StackTraceElement>();
+		List<StackTraceElement> stackTraceElementsList =
+			new ArrayList<StackTraceElement>();
 
-		for (int i = 0; i < steArray.length; i++) {
-			StackTraceElement ste = steArray[i];
+		for (StackTraceElement stackTraceElement : stackTraceElements) {
 
 			// Make the stack trace more readable by removing elements that
 			// refer to classes with no packages, or starts with a $, or are
 			// Spring classes, or are standard reflection classes.
 
-			String className = ste.getClassName();
+			String className = stackTraceElement.getClassName();
 
 			boolean addElement = true;
 
-			if (REMOVE_UNKNOWN_SOURCE && (ste.getLineNumber() < 0)) {
+			if (REMOVE_UNKNOWN_SOURCE &&
+				(stackTraceElement.getLineNumber() < 0)) {
+
 				addElement = false;
 			}
 
@@ -140,7 +110,7 @@ public class LogUtil {
 			}
 
 			if (addElement) {
-				steList.add(ste);
+				stackTraceElementsList.add(stackTraceElement);
 
 				count++;
 			}
@@ -150,11 +120,17 @@ public class LogUtil {
 			}
 		}
 
-		steArray = steList.toArray(new StackTraceElement[steList.size()]);
+		stackTraceElements = stackTraceElementsList.toArray(
+			new StackTraceElement[stackTraceElementsList.size()]);
 
-		cause.setStackTrace(steArray);
+		causeThrowable.setStackTrace(stackTraceElements);
 
-		log.error(StackTraceUtil.getStackTrace(cause));
+		if (Validator.isNotNull(message)) {
+			log.error(message, causeThrowable);
+		}
+		else {
+			log.error(causeThrowable);
+		}
 	}
 
 }

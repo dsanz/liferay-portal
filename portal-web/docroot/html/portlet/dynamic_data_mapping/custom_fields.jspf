@@ -14,6 +14,12 @@
  */
 --%>
 
+<%
+Calendar localeCal = CalendarFactoryUtil.getCalendar(timeZone, locale);
+
+int firstDayOfWeek = localeCal.getFirstDayOfWeek() - 1;
+%>
+
 <aui:script>
 	AUI.add(
 		'liferay-portlet-dynamic-data-mapping-custom-fields',
@@ -42,6 +48,26 @@
 			var TPL_TEXT_HTML = '<textarea class="form-builder-field-node lfr-ddm-text-html"></textarea>';
 
 			var TPL_WCM_IMAGE = '<div class="lfr-wcm-image"></div>';
+
+			var applyStyles = function(node, styleContent) {
+				var styles = styleContent.replace(/\n/g, STR_BLANK).split(';');
+
+				node.setStyle(STR_BLANK);
+
+				A.Array.each(
+					styles,
+					function(item, index, collection) {
+						var rule = item.split(':');
+
+						if (rule.length == 2) {
+							var key = camelize(rule[0]);
+							var value = trim(rule[1]);
+
+							node.setStyle(key, value);
+						}
+					}
+				);
+			};
 
 			var LiferayFormBuilderField = function() {
 			};
@@ -89,7 +115,7 @@
 					'keyword': '<liferay-ui:message key="yes" />'
 				};
 
-				if ((type == 'text') || (type == 'textarea')) {
+				if ((type == 'ddm-text-html') || (type == 'text') || (type == 'textarea')) {
 					indexTypeOptions = {
 						'': '<liferay-ui:message key="not-indexable" />',
 						'keyword': '<liferay-ui:message key="indexable-keyword" />',
@@ -162,7 +188,11 @@
 									if (attributeName === 'predefinedValue') {
 										collection[index] = {
 											attributeName: attributeName,
-											editor: new A.DateCellEditor(),
+											editor: new A.DateCellEditor(
+												{
+													dateFormat: '%m/%d/%Y'
+												}
+											),
 											name: '<%= UnicodeLanguageUtil.get(pageContext, "predefined-value") %>'
 										};
 									}
@@ -181,6 +211,8 @@
 								{
 									trigger: instance.get('templateNode'),
 									calendar: {
+										firstDayOfWeek: <%= firstDayOfWeek %>,
+										locale: '<%= locale %>',
 										strings: {
 											next: '<liferay-ui:message key="next" />',
 											none: '<liferay-ui:message key="none" />',
@@ -391,25 +423,9 @@
 						_uiSetStyle: function(val) {
 							var instance = this;
 
-							var styles = val.replace(/\n/g, STR_BLANK).split(';');
-
 							var templateNode = instance.get('templateNode');
 
-							templateNode.setStyle(STR_BLANK);
-
-							A.Array.each(
-								styles,
-								function(item, index, collection) {
-									var rule = item.split(':');
-
-									if (rule.length == 2) {
-										var key = camelize(rule[0]);
-										var value = trim(rule[1]);
-
-										templateNode.setStyle(key, value);
-									}
-								}
-							);
+							applyStyles(templateNode, val);
 						}
 					}
 				}
@@ -429,12 +445,18 @@
 						showLabel: {
 							readOnly: true,
 							value: false
+						},
+
+						style: {
+							value: STR_BLANK
 						}
 					},
 
 					EXTENDS: A.FormBuilderField,
 
 					NAME: 'ddm-separator',
+
+					UI_ATTRS: ['style'],
 
 					prototype: {
 						getHTML: function() {
@@ -447,8 +469,21 @@
 									attributeName: 'type',
 									editor: false,
 									name: '<%= UnicodeLanguageUtil.get(pageContext, "type") %>'
+								},
+								{
+									attributeName: 'style',
+									editor: new A.TextAreaCellEditor(),
+									name: '<%= UnicodeLanguageUtil.get(pageContext, "style") %>'
 								}
 							];
+						},
+
+						_uiSetStyle: function(val) {
+							var instance = this;
+
+							var templateNode = instance.get('templateNode');
+
+							applyStyles(templateNode, val);
 						}
 					}
 				}

@@ -25,17 +25,19 @@ JournalArticleResource articleResource = JournalArticleResourceLocalServiceUtil.
 String templateId = (String)request.getAttribute(WebKeys.JOURNAL_TEMPLATE_ID);
 String languageId = LanguageUtil.getLanguageId(request);
 int articlePage = ParamUtil.getInteger(request, "page", 1);
-String xmlRequest = PortletRequestUtil.toXML(renderRequest, renderResponse);
+String viewMode = ParamUtil.getString(request, "viewMode", Constants.VIEW);
 
 boolean workflowAssetPreview = ParamUtil.getBoolean(request, "workflowAssetPreview");
 
 JournalArticleDisplay articleDisplay = null;
 
 if (!workflowAssetPreview && article.isApproved()) {
-	articleDisplay = JournalContentUtil.getDisplay(articleResource.getGroupId(), articleResource.getArticleId(), article.getVersion(), templateId, null, languageId, themeDisplay, articlePage, xmlRequest);
+	String xmlRequest = PortletRequestUtil.toXML(renderRequest, renderResponse);
+
+	articleDisplay = JournalContentUtil.getDisplay(articleResource.getGroupId(), articleResource.getArticleId(), article.getVersion(), templateId, viewMode, languageId, themeDisplay, articlePage, xmlRequest);
 }
 else {
-	articleDisplay = JournalArticleLocalServiceUtil.getArticleDisplay(article, null, null, languageId, 1, null, themeDisplay);
+	articleDisplay = JournalArticleLocalServiceUtil.getArticleDisplay(article, null, viewMode, languageId, 1, null, themeDisplay);
 }
 %>
 

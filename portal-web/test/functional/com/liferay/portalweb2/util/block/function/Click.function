@@ -17,8 +17,10 @@
 		<execute selenium="clickAtAndWait" />
 	</command>
 
-	<command name="clickAtApplicationSearch">
-		<execute selenium="waitForElementPresent" argument1="//script[contains(@src,'/autocomplete-filters/autocomplete-filters-min.js')]" />
+	<command name="clickAtSidebarClickAt">
+		<execute selenium="clickAt" argument1="//ul[@class='nav nav-add-controls']" />
+
+		<execute selenium="waitForElementPresent" argument1="//script[contains(@src,'/aui/aui-editable-deprecated/aui-editable-deprecated-min.js')]" />
 
 		<execute function="Click#clickAt" />
 	</command>
@@ -39,6 +41,12 @@
 		<execute function="AssertTextEquals#assertPartialText" />
 
 		<execute selenium="clickAtAndWait" />
+	</command>
+
+	<command name="pauseMakeVisibleClickAt">
+		<execute selenium="pause" argument1="1000" />
+
+		<execute function="Click#makeVisibleClickAt" />
 	</command>
 
 	<command name="pauseTextClickAt">

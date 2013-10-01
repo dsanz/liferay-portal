@@ -82,6 +82,10 @@ boolean refresh = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui
 // onClick
 
 String onClick = GetterUtil.getString((String)request.getAttribute("liferay-ui:tabs:onClick"));
+
+// Type
+
+String type = GetterUtil.getString((String)request.getAttribute("liferay-ui:tabs:type"), "tabs");
 %>
 
 <c:if test="<%= names.length > 0 %>">
@@ -101,7 +105,7 @@ String onClick = GetterUtil.getString((String)request.getAttribute("liferay-ui:t
 		<c:otherwise>
 			<input name="<%= namespace %><%= param %>TabsScroll" type="hidden" />
 
-			<ul class="nav nav-tabs">
+			<ul class="nav nav-<%= type %>">
 		</c:otherwise>
 	</c:choose>
 
@@ -124,10 +128,10 @@ String onClick = GetterUtil.getString((String)request.getAttribute("liferay-ui:t
 					}
 					else {
 						if (values[i].equals("&raquo;")) {
-							curURL = url + separator + param + "=" + values[0] + anchor;
+							curURL = url + separator + namespace + param + "=" + values[0] + anchor;
 						}
 						else {
-							curURL = url + separator + param + "=" + values[i] + anchor;
+							curURL = url + separator + namespace + param + "=" + values[i] + anchor;
 						}
 					}
 				}
@@ -193,12 +197,12 @@ String onClick = GetterUtil.getString((String)request.getAttribute("liferay-ui:t
 					align="left"
 					href="<%= backURL %>"
 					selected="<%= false %>"
-					title='<%= Validator.isNotNull(backLabel) ? backLabel : "&laquo;" + LanguageUtil.get(pageContext, "back") %>'
+					title='<%= Validator.isNotNull(backLabel) ? HtmlUtil.escapeAttribute(backLabel) : "&laquo;" + LanguageUtil.get(pageContext, "back") %>'
 				/>
 			</c:when>
 			<c:otherwise>
 				<li>
-					<a class="tab" href="<%= backURL %>" id="<%= namespace %><%= param %>TabsBack"><%= Validator.isNotNull(backLabel) ? backLabel : "&laquo;" + LanguageUtil.get(pageContext, "back") %></a>
+					<a class="tab" href="<%= backURL %>" id="<%= namespace %><%= param %>TabsBack"><%= Validator.isNotNull(backLabel) ? HtmlUtil.escape(backLabel) : "&laquo;" + LanguageUtil.get(pageContext, "back") %></a>
 				</li>
 			</c:otherwise>
 		</c:choose>

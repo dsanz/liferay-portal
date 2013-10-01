@@ -25,6 +25,10 @@
 			<param name="database" value="mysql" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -69,6 +73,10 @@
 			<param name="database" value="mysql" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -110,6 +118,10 @@
 			<param name="database" value="mysql" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -149,6 +161,10 @@
 	<target name="test-${test.ant.script.command}-bundled-tomcat-sql-server-2008-firefox">
 		<antcall target="generate-test-properties">
 			<param name="database" value="sql-server-2008" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
 		</antcall>
 
 		<antcall target="print-scm-revision" />
@@ -203,6 +219,10 @@
 			<param name="database" value="mysql" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -235,6 +255,10 @@
 			<param name="database" value="mysql" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -262,9 +286,54 @@
 		</ant>
 	</target>
 
+	<target name="test-${test.ant.script.command}-jboss-eap-mysql-firefox">
+		<antcall target="generate-test-properties">
+			<param name="database" value="mysql" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
+		<antcall target="prepare-common">
+			<param name="database" value="mysql" />
+			<param name="setup.wizard.enabled" value="${test.ant.script.setup.wizard.enabled}" />
+			${test.ant.script.file.properties}
+		</antcall>
+
+		<echo file="app.server.${user.name}.properties">app.server.type=jboss
+app.server.jboss.version=6.0.1
+app.server.jboss.dir=$${app.server.parent.dir}/jboss-eap-6.0
+app.server.jboss.zip.name=jboss-eap-$$$${app.server.jboss.version}.zip</echo>
+
+		<ant antfile="build-test-jboss-eap.xml" target="run-selenium-jboss-eap" inheritAll="false">
+			${test.ant.script.file.database.collate}
+			${test.ant.script.file.database.minimal}
+			${test.ant.script.file.evaluate.logs}
+			${test.ant.script.file.plugin.hooks}
+			${test.ant.script.file.plugin.layouttpls}
+			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.plugin.portlets.properties}
+			${test.ant.script.file.plugin.themes}
+			${test.ant.script.file.plugin.webs}
+			${test.ant.script.file.selenium.implementation}
+			${test.ant.script.file.selenium.logger.enabled}
+			<property name="test.name" value="${test.ant.script.suite}" />
+			<property name="test.pacl" value="$${test.pacl}" />
+		</ant>
+	</target>
+
 	<target name="test-${test.ant.script.command}-jboss-mysql-firefox">
 		<antcall target="generate-test-properties">
 			<param name="database" value="mysql" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
 		</antcall>
 
 		<antcall target="print-scm-revision" />
@@ -299,6 +368,10 @@
 			<param name="database" value="mysql" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -331,6 +404,10 @@
 			<param name="database" value="mysql" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -358,9 +435,13 @@
 		</ant>
 	</target>
 
-	<target name="test-${test.ant.script.command}-tomcat-db2-firefox">
+	<target name="test-${test.ant.script.command}-tomcat-db2-9.7-firefox">
 		<antcall target="generate-test-properties">
-			<param name="database" value="db2" />
+			<param name="database" value="db2-9.7" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
 		</antcall>
 
 		<antcall target="print-scm-revision" />
@@ -375,7 +456,54 @@
 		</antcall>
 
 		<antcall target="prepare-common">
-			<param name="database" value="db2" />
+			<param name="database" value="db2-9.7" />
+			<param name="setup.wizard.enabled" value="${test.ant.script.setup.wizard.enabled}" />
+			${test.ant.script.file.properties}
+		</antcall>
+
+		<ant antfile="build-test-tomcat.xml" target="run-selenium-tomcat">
+			${test.ant.script.file.database.collate}
+			${test.ant.script.file.database.minimal}
+			${test.ant.script.file.evaluate.logs}
+			${test.ant.script.file.plugin.hooks}
+			${test.ant.script.file.plugin.layouttpls}
+			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.plugin.portlets.properties}
+			${test.ant.script.file.plugin.themes}
+			${test.ant.script.file.plugin.webs}
+			${test.ant.script.file.selenium.implementation}
+			${test.ant.script.file.selenium.logger.enabled}
+			<property name="test.name" value="${test.ant.script.suite}" />
+			<property name="test.pacl" value="$${test.pacl}" />
+		</ant>
+
+		<antcall target="stop-vm">
+			<param name="vm.host" value="${vm.db.host}" />
+		</antcall>
+	</target>
+
+	<target name="test-${test.ant.script.command}-tomcat-db2-10.1-firefox">
+		<antcall target="generate-test-properties">
+			<param name="database" value="db2-10.1" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
+		<antcall target="prepare-vm-server">
+			<param name="build.war" value="false" />
+			<param name="skip.prepare-bundle" value="true" />
+			<param name="vm.vmdk.suffix" value="db2-10.1" />
+			<param name="vm.host" value="${vm.db.host}" />
+		</antcall>
+
+		<antcall target="prepare-common">
+			<param name="database" value="db2-10.1" />
 			<param name="setup.wizard.enabled" value="${test.ant.script.setup.wizard.enabled}" />
 			${test.ant.script.file.properties}
 		</antcall>
@@ -404,6 +532,10 @@
 	<target name="test-${test.ant.script.command}-tomcat-hsql-firefox">
 		<antcall target="generate-test-properties">
 			<param name="database" value="hsql" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
 		</antcall>
 
 		<antcall target="print-scm-revision" />
@@ -438,6 +570,10 @@
 			<param name="database" value="mysql" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -468,6 +604,10 @@
 	<target name="test-${test.ant.script.command}-tomcat-mysql-google-chrome">
 		<antcall target="generate-test-properties">
 			<param name="database" value="mysql" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
 		</antcall>
 
 		<antcall target="print-scm-revision" />
@@ -503,6 +643,10 @@
 			<param name="database" value="mysql" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -531,9 +675,50 @@
 		</ant>
 	</target>
 
+	<target name="test-${test.ant.script.command}-tomcat-mysql-safari">
+		<antcall target="generate-test-properties">
+			<param name="database" value="mysql" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
+		<antcall target="prepare-common">
+			<param name="database" value="mysql" />
+			<param name="setup.wizard.enabled" value="${test.ant.script.setup.wizard.enabled}" />
+			${test.ant.script.file.properties}
+		</antcall>
+
+		<ant antfile="build-test-tomcat.xml" target="run-selenium-tomcat">
+			${test.ant.script.file.database.collate}
+			${test.ant.script.file.database.minimal}
+			${test.ant.script.file.evaluate.logs}
+			${test.ant.script.file.plugin.hooks}
+			${test.ant.script.file.plugin.layouttpls}
+			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.plugin.portlets.properties}
+			${test.ant.script.file.plugin.themes}
+			${test.ant.script.file.plugin.webs}
+			${test.ant.script.file.selenium.implementation}
+			${test.ant.script.file.selenium.logger.enabled}
+			<property name="test.browser" value="safari" />
+			<property name="test.name" value="${test.ant.script.suite}" />
+			<property name="test.pacl" value="$${test.pacl}" />
+		</ant>
+	</target>
+
 	<target name="test-${test.ant.script.command}-tomcat-oracle-10-firefox">
 		<antcall target="generate-test-properties">
 			<param name="database" value="oracle-10" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
 		</antcall>
 
 		<antcall target="print-scm-revision" />
@@ -579,6 +764,10 @@
 			<param name="database" value="oracle-11" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -620,6 +809,10 @@
 	<target name="test-${test.ant.script.command}-tomcat-postgresql-8.4-firefox">
 		<antcall target="generate-test-properties">
 			<param name="database" value="postgresql-8.4" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
 		</antcall>
 
 		<antcall target="print-scm-revision" />
@@ -665,6 +858,10 @@
 			<param name="database" value="postgresql-9.0" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -703,9 +900,60 @@
 		</antcall>
 	</target>
 
+	<target name="test-${test.ant.script.command}-tomcat-postgresql-9.2-firefox">
+		<antcall target="generate-test-properties">
+			<param name="database" value="postgresql-9.2" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
+		<antcall target="prepare-vm-server">
+			<param name="build.war" value="false" />
+			<param name="skip.prepare-bundle" value="true" />
+			<param name="vm.vmdk.suffix" value="postgresql-9.2.4-1" />
+			<param name="vm.host" value="${vm.db.host}" />
+		</antcall>
+
+		<antcall target="prepare-common">
+			<param name="database" value="postgresql-9.2" />
+			<param name="setup.wizard.enabled" value="${test.ant.script.setup.wizard.enabled}" />
+			${test.ant.script.file.properties}
+		</antcall>
+
+		<ant antfile="build-test-tomcat.xml" target="run-selenium-tomcat">
+			${test.ant.script.file.database.collate}
+			${test.ant.script.file.database.minimal}
+			${test.ant.script.file.evaluate.logs}
+			${test.ant.script.file.plugin.hooks}
+			${test.ant.script.file.plugin.layouttpls}
+			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.plugin.portlets.properties}
+			${test.ant.script.file.plugin.themes}
+			${test.ant.script.file.plugin.webs}
+			${test.ant.script.file.selenium.implementation}
+			${test.ant.script.file.selenium.logger.enabled}
+			<property name="test.name" value="${test.ant.script.suite}" />
+			<property name="test.pacl" value="$${test.pacl}" />
+		</ant>
+
+		<antcall target="stop-vm">
+			<param name="vm.host" value="${vm.db.host}" />
+		</antcall>
+	</target>
+
 	<target name="test-${test.ant.script.command}-tomcat-sql-server-2005-firefox">
 		<antcall target="generate-test-properties">
 			<param name="database" value="sql-server-2005" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
 		</antcall>
 
 		<antcall target="print-scm-revision" />
@@ -751,6 +999,10 @@
 			<param name="database" value="sql-server-2008" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -794,6 +1046,10 @@
 			<param name="database" value="sybase" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -801,7 +1057,7 @@
 		<antcall target="prepare-vm-server">
 			<param name="build.war" value="false" />
 			<param name="skip.prepare-bundle" value="true" />
-			<param name="vm.vmdk.suffix" value="sybase-15.0.2" />
+			<param name="vm.vmdk.suffix" value="sybase-15.7" />
 			<param name="vm.host" value="${vm.db.host}" />
 		</antcall>
 
@@ -837,6 +1093,10 @@
 			<param name="database" value="mysql" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -847,7 +1107,49 @@
 			${test.ant.script.file.properties}
 		</antcall>
 
-		<ant antfile="build-test-weblogic-10.3.xml" target="run-selenium-weblogic-10.3">
+		<echo file="app.server.${user.name}.properties">app.server.type=weblogic</echo>
+
+		<ant antfile="build-test-weblogic.xml" target="run-selenium-weblogic" inheritAll="false">
+			${test.ant.script.file.database.collate}
+			${test.ant.script.file.database.minimal}
+			${test.ant.script.file.evaluate.logs}
+			${test.ant.script.file.plugin.hooks}
+			${test.ant.script.file.plugin.layouttpls}
+			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.plugin.portlets.properties}
+			${test.ant.script.file.plugin.themes}
+			${test.ant.script.file.plugin.webs}
+			${test.ant.script.file.selenium.implementation}
+			${test.ant.script.file.selenium.logger.enabled}
+			<property name="test.name" value="${test.ant.script.suite}" />
+			<property name="test.pacl" value="$${test.pacl}" />
+		</ant>
+	</target>
+
+	<target name="test-${test.ant.script.command}-weblogic-12.1-mysql-firefox">
+		<antcall target="generate-test-properties">
+			<param name="database" value="mysql" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
+		<antcall target="prepare-common">
+			<param name="database" value="mysql" />
+			<param name="setup.wizard.enabled" value="${test.ant.script.setup.wizard.enabled}" />
+			${test.ant.script.file.properties}
+		</antcall>
+
+		<echo file="app.server.${user.name}.properties">app.server.type=weblogic
+app.server.weblogic.version=12.1.1
+app.server.weblogic.version.build=1211</echo>
+
+		<ant antfile="build-test-weblogic.xml" target="run-selenium-weblogic" inheritAll="false">
 			${test.ant.script.file.database.collate}
 			${test.ant.script.file.database.minimal}
 			${test.ant.script.file.evaluate.logs}
@@ -867,6 +1169,10 @@
 	<target name="test-${test.ant.script.command}-websphere-6.1-mysql-firefox">
 		<antcall target="generate-test-properties">
 			<param name="database" value="mysql" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
 		</antcall>
 
 		<antcall target="print-scm-revision" />
@@ -902,6 +1208,10 @@
 			<param name="database" value="mysql" />
 		</antcall>
 
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
+		</antcall>
+
 		<antcall target="print-scm-revision" />
 
 		<antcall target="clean-up-test-properties" />
@@ -932,6 +1242,10 @@
 	<target name="test-${test.ant.script.command}-websphere-8.0-mysql-firefox">
 		<antcall target="generate-test-properties">
 			<param name="database" value="mysql" />
+		</antcall>
+
+		<antcall target="generate-tests" inheritAll="false">
+			<param name="test.class" value="${test.ant.script.suite}" />
 		</antcall>
 
 		<antcall target="print-scm-revision" />

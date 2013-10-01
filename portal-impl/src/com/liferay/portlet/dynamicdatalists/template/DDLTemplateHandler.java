@@ -62,7 +62,7 @@ public class DDLTemplateHandler extends BaseDDMTemplateHandler {
 
 	@Override
 	public String getResourceName() {
-		return "com.liferay.portlet.dynamicdatalists";
+		return "com.liferay.portlet.dynamicdatalists.template";
 	}
 
 	@Override
@@ -124,7 +124,7 @@ public class DDLTemplateHandler extends BaseDDMTemplateHandler {
 			DDLConstants.RESERVED_RECORD_SET_NAME);
 		templateVariableGroup.addCollectionVariable(
 			"data-list-records", List.class, "records", "record",
-			DDLRecord.class, "cur_record");
+			DDLRecord.class, "cur_record", null);
 		templateVariableGroup.addVariable(
 			"template-id", null, DDLConstants.RESERVED_DDM_TEMPLATE_ID);
 

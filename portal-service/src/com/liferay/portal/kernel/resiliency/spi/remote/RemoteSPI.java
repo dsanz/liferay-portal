@@ -14,6 +14,7 @@
 
 package com.liferay.portal.kernel.resiliency.spi.remote;
 
+import com.liferay.portal.kernel.deploy.hot.DependencyManagementThreadLocal;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.nio.intraband.RegistrationReference;
@@ -31,10 +32,13 @@ import com.liferay.portal.kernel.resiliency.spi.agent.SPIAgent;
 import com.liferay.portal.kernel.resiliency.spi.agent.SPIAgentFactoryUtil;
 import com.liferay.portal.kernel.resiliency.spi.provider.SPISynchronousQueueUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.ReflectionUtil;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+
+import java.lang.reflect.Field;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -208,6 +212,27 @@ public abstract class RemoteSPI implements ProcessCallable<SPI>, Remote, SPI {
 		// Disable cluster link
 
 		System.setProperty("portal:" + PropsKeys.CLUSTER_LINK_ENABLED, "false");
+
+		// Disable dependency management
+
+		try {
+			Field enabledField = ReflectionUtil.getDeclaredField(
+				DependencyManagementThreadLocal.class, "_enabled");
+
+			enabledField.set(
+				null,
+				new ThreadLocal<Boolean>() {
+
+					@Override
+					public Boolean get() {
+						return Boolean.FALSE;
+					}
+
+				});
+		}
+		catch (Exception e) {
+			throw new IOException("Unable to disable dependency management", e);
+		}
 
 		// Log4j log file postfix
 

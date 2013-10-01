@@ -81,7 +81,7 @@ if (!categories.isEmpty() || !portlets.isEmpty()) {
 	<div class="lfr-add-content">
 		<liferay-ui:panel collapsible="<%= layout.isTypePortlet() %>" cssClass="lfr-content-category panel-page-category unstyled" defaultState="closed" extended="<%= true %>" id="<%= panelId %>" parentId="<%= panelContainerId %>" persistState="<%= true %>" title="<%= title %>">
 
-			<aui:nav cssClass="nav-list">
+			<aui:nav collapsible="<%= false %>" cssClass="nav-list">
 
 				<%
 				for (PortletCategory category : categories) {
@@ -137,19 +137,24 @@ if (!categories.isEmpty() || !portlets.isEmpty()) {
 							data.put("search", divId.toString().replace(':', '-'));
 							data.put("title", PortalUtil.getPortletTitle(portlet, application, locale));
 
-							String cssClass = "lfr-content-item";
+							String cssClass = "drag-content-item";
 
 							if (portletLocked) {
 								cssClass += " lfr-portlet-used";
 							}
 							%>
 
-							<aui:nav-item cssClass="<%= cssClass %>"
-								data="<%= data %>"
-								href=""
-								iconClass='<%= portletInstanceable ? "icon-th-large" : "icon-stop" %>'
-								label="<%= PortalUtil.getPortletTitle(portlet, application, locale) %>"
-							>
+							<aui:nav-item cssClass="lfr-content-item" href="">
+								<span <%= AUIUtil.buildData(data) %> class="<%= cssClass %>">
+									<icon class="<%= portletInstanceable ? "icon-th-large" : "icon-stop" %>"></icon>
+
+									<liferay-ui:message key="<%= PortalUtil.getPortletTitle(portlet, application, locale) %>" />
+								</span>
+
+								<%
+								data.remove("draggable");
+								%>
+
 								<span <%= AUIUtil.buildData(data) %> class='add-content-item <%= portletLocked ? "lfr-portlet-used" : StringPool.BLANK %>'>
 									<liferay-ui:message key="add" />
 								</span>
@@ -207,7 +212,7 @@ if (!categories.isEmpty() || !portlets.isEmpty()) {
 				%>
 
 			</aui:nav>
-		 </liferay-ui:panel>
+		</liferay-ui:panel>
 	</div>
 
 	<input id="<portlet:namespace />portletCategory<%= portletCategoryIndex %>CategoryPath" type="hidden" value="<%= newCategoryPath.replace(':', '-') %>" />

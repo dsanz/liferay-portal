@@ -135,11 +135,11 @@ public class StreamUtil {
 		throws IOException {
 
 		if (inputStream == null) {
-			throw new IllegalArgumentException("Input stream cannot be null");
+			throw new IllegalArgumentException("Input stream is null");
 		}
 
 		if (outputStream == null) {
-			throw new IllegalArgumentException("Output stream cannot be null");
+			throw new IllegalArgumentException("Output stream is null");
 		}
 
 		if (bufferSize <= 0) {
@@ -214,20 +214,15 @@ public class StreamUtil {
 			long length)
 		throws IOException {
 
-		long size = 0;
-
-		if (length > 0) {
-			size = length;
-		}
-		else {
-			size = inputFileChannel.size();
+		if (length <= 0) {
+			length = inputFileChannel.size() - inputFileChannel.position();
 		}
 
-		long position = 0;
+		long count = 0;
 
-		while (position < size) {
-			position += inputFileChannel.transferTo(
-				position, size - position, outputFileChannel);
+		while (count < length) {
+			count += inputFileChannel.transferTo(
+				inputFileChannel.position(), length - count, outputFileChannel);
 		}
 	}
 

@@ -395,7 +395,7 @@ public class DDMTemplateServiceWrapper implements DDMTemplateService,
 
 	/**
 	* Returns an ordered range of all the templates matching the group and
-	* structure class name ID.
+	* structure class name ID and all the generic templates matching the group.
 	*
 	* <p>
 	* Useful when paginating results. Returns a maximum of <code>end -
@@ -409,7 +409,8 @@ public class DDMTemplateServiceWrapper implements DDMTemplateService,
 	*
 	* @param groupId the primary key of the group
 	* @param structureClassNameId the primary key of the class name for the
-	template's related structure
+	template's related structure (optionally <code>0</code>). Specify
+	<code>0</code> to return generic templates only.
 	* @param start the lower bound of the range of templates to return
 	* @param end the upper bound of the range of templates to return (not
 	inclusive)
@@ -425,6 +426,26 @@ public class DDMTemplateServiceWrapper implements DDMTemplateService,
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _ddmTemplateService.getTemplatesByStructureClassNameId(groupId,
 			structureClassNameId, start, end, orderByComparator);
+	}
+
+	/**
+	* Returns the number of templates matching the group and structure class
+	* name ID plus the number of generic templates matching the group.
+	*
+	* @param groupId the primary key of the group
+	* @param structureClassNameId the primary key of the class name for the
+	template's related structure (optionally <code>0</code>). Specify
+	<code>0</code> to count generic templates only.
+	* @return the number of matching templates plus the number of matching
+	generic templates
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public int getTemplatesByStructureClassNameIdCount(long groupId,
+		long structureClassNameId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ddmTemplateService.getTemplatesByStructureClassNameIdCount(groupId,
+			structureClassNameId);
 	}
 
 	/**
@@ -768,6 +789,7 @@ public class DDMTemplateServiceWrapper implements DDMTemplateService,
 	* Updates the template matching the ID.
 	*
 	* @param templateId the primary key of the template
+	* @param classPK the primary key of the template's related entity
 	* @param nameMap the template's new locales and localized names
 	* @param descriptionMap the template's new locales and localized
 	description
@@ -794,7 +816,7 @@ public class DDMTemplateServiceWrapper implements DDMTemplateService,
 	*/
 	@Override
 	public com.liferay.portlet.dynamicdatamapping.model.DDMTemplate updateTemplate(
-		long templateId,
+		long templateId, long classPK,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
 		java.lang.String type, java.lang.String mode,
@@ -804,7 +826,7 @@ public class DDMTemplateServiceWrapper implements DDMTemplateService,
 		com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		return _ddmTemplateService.updateTemplate(templateId, nameMap,
+		return _ddmTemplateService.updateTemplate(templateId, classPK, nameMap,
 			descriptionMap, type, mode, language, script, cacheable,
 			smallImage, smallImageURL, smallImageFile, serviceContext);
 	}

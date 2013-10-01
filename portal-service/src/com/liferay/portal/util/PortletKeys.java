@@ -35,7 +35,11 @@ public class PortletKeys {
 
 	public static final String ASSET_BROWSER = "172";
 
+	public static final String ASSET_CATEGORIES_NAVIGATION = "122";
+
 	public static final String ASSET_PUBLISHER = "101";
+
+	public static final String ASSET_TAGS_NAVIGATION = "141";
 
 	public static final String BACKGROUND_TASK = "189";
 
@@ -87,6 +91,8 @@ public class PortletKeys {
 
 	public static final String GROUP_STATISTICS = "181";
 
+	public static final String HIGHEST_RATED_ASSETS = "194";
+
 	public static final String IFRAME = "48";
 
 	public static final String INVITATION = "100";
@@ -98,9 +104,6 @@ public class PortletKeys {
 	public static final String JOURNAL_CONTENT_LIST = "62";
 
 	public static final String JOURNAL_CONTENT_SEARCH = "77";
-
-	public static final String KNOWLEDGE_BASE_ADMIN =
-		"1_WAR_knowledgebaseportlet";
 
 	public static final String LANGUAGE = "82";
 
@@ -116,6 +119,9 @@ public class PortletKeys {
 
 	public static final String MAIL = "1_WAR_mailportlet";
 
+	public static final String MARKETPLACE_APP_MANAGER =
+		"3_WAR_marketplaceportlet";
+
 	public static final String MARKETPLACE_STORE = "1_WAR_marketplaceportlet";
 
 	public static final String MEDIA_GALLERY_DISPLAY = "31";
@@ -127,6 +133,8 @@ public class PortletKeys {
 	public static final String MOBILE_DEVICE_SITE_ADMIN = "178";
 
 	public static final String MONITORING = "131";
+
+	public static final String MOST_VIEWED_ASSETS = "193";
 
 	public static final String MY_ACCOUNT = "2";
 
@@ -140,6 +148,8 @@ public class PortletKeys {
 
 	public static final String MY_WORKFLOW_TASKS = "153";
 
+	public static final String NAVIGATION = "71";
+
 	public static final String NESTED_PORTLETS = "118";
 
 	public static final String PAGE_COMMENTS = "107";
@@ -147,8 +157,6 @@ public class PortletKeys {
 	public static final String PAGE_RATINGS = "108";
 
 	public static final String PASSWORD_POLICIES_ADMIN = "129";
-
-	public static final String PLUGIN_INSTALLER = "111";
 
 	public static final String PLUGINS_ADMIN = "132";
 
@@ -214,6 +222,8 @@ public class PortletKeys {
 
 	public static final String SITE_SETTINGS = "165";
 
+	public static final String SITE_TEMPLATE_SETTINGS = "192";
+
 	public static final String SITES_ADMIN = "134";
 
 	public static final String SITES_DIRECTORY = "184";
@@ -228,21 +238,26 @@ public class PortletKeys {
 
 	public static final String TAGS_ADMIN = "99";
 
-	public static final String TAGS_CATEGORIES_NAVIGATION = "122";
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #ASSET_CATEGORIES_NAVIGATION}
+	 */
+	public static final String TAGS_CATEGORIES_NAVIGATION =
+		ASSET_CATEGORIES_NAVIGATION;
 
 	public static final String TAGS_CLOUD = "148";
 
 	public static final String TAGS_COMPILER = "103";
 
-	public static final String TAGS_ENTRIES_NAVIGATION = "141";
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #ASSET_TAGS_NAVIGATION}
+	 */
+	public static final String TAGS_ENTRIES_NAVIGATION = ASSET_TAGS_NAVIGATION;
 
 	public static final String TRANSLATOR = "26";
 
 	public static final String TRASH = "182";
 
 	public static final String UNIT_CONVERTER = "27";
-
-	public static final String UPDATE_MANAGER = "104";
 
 	public static final String USER_GROUPS_ADMIN = "127";
 

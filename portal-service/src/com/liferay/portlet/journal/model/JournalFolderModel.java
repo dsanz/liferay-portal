@@ -15,15 +15,19 @@
 package com.liferay.portlet.journal.model;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.StagedGroupedModel;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
+import com.liferay.portlet.trash.model.TrashEntry;
 
 import java.io.Serializable;
 
@@ -43,7 +47,7 @@ import java.util.Date;
  * @generated
  */
 public interface JournalFolderModel extends BaseModel<JournalFolder>,
-	ContainerModel, StagedGroupedModel, WorkflowedModel {
+	ContainerModel, StagedGroupedModel, TrashedModel, WorkflowedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -224,6 +228,21 @@ public interface JournalFolderModel extends BaseModel<JournalFolder>,
 	public void setParentFolderId(long parentFolderId);
 
 	/**
+	 * Returns the tree path of this journal folder.
+	 *
+	 * @return the tree path of this journal folder
+	 */
+	@AutoEscape
+	public String getTreePath();
+
+	/**
+	 * Sets the tree path of this journal folder.
+	 *
+	 * @param treePath the tree path of this journal folder
+	 */
+	public void setTreePath(String treePath);
+
+	/**
 	 * Returns the name of this journal folder.
 	 *
 	 * @return the name of this journal folder
@@ -336,6 +355,48 @@ public interface JournalFolderModel extends BaseModel<JournalFolder>,
 	public void setStatusDate(Date statusDate);
 
 	/**
+	 * Returns the trash entry created when this journal folder was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this journal folder.
+	 *
+	 * @return the trash entry created when this journal folder was moved to the Recycle Bin
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public TrashEntry getTrashEntry() throws PortalException, SystemException;
+
+	/**
+	 * Returns the class primary key of the trash entry for this journal folder.
+	 *
+	 * @return the class primary key of the trash entry for this journal folder
+	 */
+	@Override
+	public long getTrashEntryClassPK();
+
+	/**
+	 * Returns the trash handler for this journal folder.
+	 *
+	 * @return the trash handler for this journal folder
+	 */
+	@Override
+	public TrashHandler getTrashHandler();
+
+	/**
+	 * Returns <code>true</code> if this journal folder is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if this journal folder is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInTrash();
+
+	/**
+	 * Returns <code>true</code> if the parent of this journal folder is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if the parent of this journal folder is in the Recycle Bin; <code>false</code> otherwise
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public boolean isInTrashContainer();
+
+	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	 */
 	@Override
@@ -390,14 +451,6 @@ public interface JournalFolderModel extends BaseModel<JournalFolder>,
 	public boolean isIncomplete();
 
 	/**
-	 * Returns <code>true</code> if this journal folder is in the Recycle Bin.
-	 *
-	 * @return <code>true</code> if this journal folder is in the Recycle Bin; <code>false</code> otherwise
-	 */
-	@Override
-	public boolean isInTrash();
-
-	/**
 	 * Returns <code>true</code> if this journal folder is pending.
 	 *
 	 * @return <code>true</code> if this journal folder is pending; <code>false</code> otherwise
@@ -424,7 +477,7 @@ public interface JournalFolderModel extends BaseModel<JournalFolder>,
 	/**
 	 * Sets the container model ID of this journal folder.
 	 *
-	 * @param container model ID of this journal folder
+	 * @param containerModelId the container model ID of this journal folder
 	 */
 	@Override
 	public void setContainerModelId(long containerModelId);
@@ -448,7 +501,7 @@ public interface JournalFolderModel extends BaseModel<JournalFolder>,
 	/**
 	 * Sets the parent container model ID of this journal folder.
 	 *
-	 * @param parent container model ID of this journal folder
+	 * @param parentContainerModelId the parent container model ID of this journal folder
 	 */
 	@Override
 	public void setParentContainerModelId(long parentContainerModelId);

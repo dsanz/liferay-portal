@@ -18,7 +18,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
@@ -107,12 +106,10 @@ public class EditEntryAction extends PortletAction {
 				oldUrlTitle = ((String)returnValue[1]);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteEntries(
-					(LiferayPortletConfig)portletConfig, actionRequest, false);
+				deleteEntries(actionRequest, false);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteEntries(
-					(LiferayPortletConfig)portletConfig, actionRequest, true);
+				deleteEntries(actionRequest, true);
 			}
 			else if (cmd.equals(Constants.SUBSCRIBE)) {
 				subscribe(actionRequest);
@@ -132,10 +129,9 @@ public class EditEntryAction extends PortletAction {
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
 			boolean updateRedirect = false;
 
-			if (Validator.isNotNull(oldUrlTitle)) {
-				String portletId = HttpUtil.getParameter(
-					redirect, "p_p_id", false);
+			String portletId = HttpUtil.getParameter(redirect, "p_p_id", false);
 
+			if (Validator.isNotNull(oldUrlTitle)) {
 				String oldRedirectParam =
 					PortalUtil.getPortletNamespace(portletId) + "redirect";
 
@@ -201,11 +197,15 @@ public class EditEntryAction extends PortletAction {
 
 					if (Validator.isNotNull(redirect)) {
 						if (cmd.equals(Constants.ADD) && (entry != null)) {
+							String namespace = PortalUtil.getPortletNamespace(
+								portletId);
+
 							redirect = HttpUtil.addParameter(
-								redirect, "className",
+								redirect, namespace + "className",
 								BlogsEntry.class.getName());
 							redirect = HttpUtil.addParameter(
-								redirect, "classPK", entry.getEntryId());
+								redirect, namespace + "classPK",
+								entry.getEntryId());
 						}
 
 						actionResponse.sendRedirect(redirect);
@@ -291,7 +291,6 @@ public class EditEntryAction extends PortletAction {
 	}
 
 	protected void deleteEntries(
-			LiferayPortletConfig liferayPortletConfig,
 			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
@@ -307,9 +306,18 @@ public class EditEntryAction extends PortletAction {
 				ParamUtil.getString(actionRequest, "deleteEntryIds"), 0L);
 		}
 
-		for (long deleteEntryId : deleteEntryIds) {
+		String deleteEntryTitle = null;
+
+		for (int i = 0; i < deleteEntryIds.length; i++) {
+			long deleteEntryId = deleteEntryIds[i];
+
 			if (moveToTrash) {
-				BlogsEntryServiceUtil.moveEntryToTrash(deleteEntryId);
+				BlogsEntry entry = BlogsEntryServiceUtil.moveEntryToTrash(
+					deleteEntryId);
+
+				if (i == 0) {
+					deleteEntryTitle = entry.getTitle();
+				}
 			}
 			else {
 				BlogsEntryServiceUtil.deleteEntry(deleteEntryId);
@@ -320,17 +328,22 @@ public class EditEntryAction extends PortletAction {
 			Map<String, String[]> data = new HashMap<String, String[]>();
 
 			data.put(
+				"deleteEntryClassName",
+				new String[] {BlogsEntry.class.getName()});
+
+			if (Validator.isNotNull(deleteEntryTitle)) {
+				data.put("deleteEntryTitle", new String[] {deleteEntryTitle});
+			}
+
+			data.put(
 				"restoreEntryIds", ArrayUtil.toStringArray(deleteEntryIds));
 
 			SessionMessages.add(
 				actionRequest,
-				liferayPortletConfig.getPortletId() +
+				PortalUtil.getPortletId(actionRequest) +
 					SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
 
-			SessionMessages.add(
-				actionRequest,
-				liferayPortletConfig.getPortletId() +
-					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 
@@ -403,28 +416,30 @@ public class EditEntryAction extends PortletAction {
 
 		long entryId = ParamUtil.getLong(actionRequest, "entryId");
 
+		BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(entryId);
+
 		String content = ParamUtil.getString(actionRequest, "content");
 
-		BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(entryId);
+		Calendar displayDateCal = CalendarFactoryUtil.getCalendar();
+
+		displayDateCal.setTime(entry.getDisplayDate());
+
+		int displayDateMonth = displayDateCal.get(Calendar.MONTH);
+		int displayDateDay = displayDateCal.get(Calendar.DATE);
+		int displayDateYear = displayDateCal.get(Calendar.YEAR);
+		int displayDateHour = displayDateCal.get(Calendar.HOUR);
+		int displayDateMinute = displayDateCal.get(Calendar.MINUTE);
+
+		if (displayDateCal.get(Calendar.AM_PM) == Calendar.PM) {
+			displayDateHour += 12;
+		}
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			actionRequest);
 
+		serviceContext.setCommand(Constants.UPDATE);
+
 		try {
-			Calendar displayDateCal = CalendarFactoryUtil.getCalendar();
-
-			displayDateCal.setTime(entry.getDisplayDate());
-
-			int displayDateMonth = displayDateCal.get(Calendar.MONTH);
-			int displayDateDay = displayDateCal.get(Calendar.DATE);
-			int displayDateYear = displayDateCal.get(Calendar.YEAR);
-			int displayDateHour = displayDateCal.get(Calendar.HOUR);
-			int displayDateMinute = displayDateCal.get(Calendar.MINUTE);
-
-			if (displayDateCal.get(Calendar.AM_PM) == Calendar.PM) {
-				displayDateHour += 12;
-			}
-
 			BlogsEntryServiceUtil.updateEntry(
 				entryId, entry.getTitle(), entry.getDescription(), content,
 				displayDateMonth, displayDateDay, displayDateYear,
@@ -499,18 +514,13 @@ public class EditEntryAction extends PortletAction {
 					actionRequest, "smallImageURL");
 
 				if (smallImage && Validator.isNull(smallImageURL)) {
-					boolean attachments = ParamUtil.getBoolean(
-						actionRequest, "attachments");
+					UploadPortletRequest uploadPortletRequest =
+						PortalUtil.getUploadPortletRequest(actionRequest);
 
-					if (attachments) {
-						UploadPortletRequest uploadPortletRequest =
-							PortalUtil.getUploadPortletRequest(actionRequest);
-
-						smallImageFileName = uploadPortletRequest.getFileName(
-							"smallFile");
-						smallImageInputStream =
-							uploadPortletRequest.getFileAsStream("smallFile");
-					}
+					smallImageFileName = uploadPortletRequest.getFileName(
+						"smallFile");
+					smallImageInputStream =
+						uploadPortletRequest.getFileAsStream("smallFile");
 				}
 			}
 

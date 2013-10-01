@@ -24,10 +24,11 @@ import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.ReflectionUtil;
-import com.liferay.portal.kernel.util.SocketUtil.ServerSocketConfigurator;
 import com.liferay.portal.kernel.util.SocketUtil;
+import com.liferay.portal.kernel.util.SocketUtil.ServerSocketConfigurator;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.ByteArrayOutputStream;
@@ -876,7 +877,7 @@ public class ProcessExecutorTest {
 		signalFile.delete();
 
 		try {
-			String logMessage= "Log Message";
+			String logMessage = "Log Message";
 
 			final LoggingProcessCallable loggingProcessCallable =
 				new LoggingProcessCallable(logMessage, signalFile);
@@ -1052,6 +1053,9 @@ public class ProcessExecutorTest {
 
 	private static List<String> _createArguments(String jpdaOptions) {
 		List<String> arguments = new ArrayList<String>();
+
+		arguments.add(
+			"-D" + SystemProperties.SYSTEM_PROPERTIES_QUIET + "=true");
 
 		boolean coberturaParentDynamicallyInstrumented = Boolean.getBoolean(
 			"cobertura.parent.dynamically.instrumented");

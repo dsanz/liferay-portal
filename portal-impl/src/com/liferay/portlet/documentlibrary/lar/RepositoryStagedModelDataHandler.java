@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.lar;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.BaseStagedModelDataHandler;
 import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
@@ -26,10 +28,9 @@ import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.model.RepositoryEntry;
 import com.liferay.portal.repository.liferayrepository.LiferayRepository;
+import com.liferay.portal.service.RepositoryEntryLocalServiceUtil;
 import com.liferay.portal.service.RepositoryLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.persistence.RepositoryEntryUtil;
-import com.liferay.portal.service.persistence.RepositoryUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
@@ -44,6 +45,21 @@ public class RepositoryStagedModelDataHandler
 	extends BaseStagedModelDataHandler<Repository> {
 
 	public static final String[] CLASS_NAMES = {Repository.class.getName()};
+
+	@Override
+	public void deleteStagedModel(
+			String uuid, long groupId, String className, String extraData)
+		throws PortalException, SystemException {
+
+		Repository repository =
+			RepositoryLocalServiceUtil.fetchRepositoryByUuidAndGroupId(
+				uuid, groupId);
+
+		if (repository != null) {
+			RepositoryLocalServiceUtil.deleteRepository(
+				repository.getRepositoryId());
+		}
+	}
 
 	@Override
 	public String[] getClassNames() {
@@ -75,19 +91,16 @@ public class RepositoryStagedModelDataHandler
 
 		portletDataContext.addClassedModel(
 			repositoryElement, ExportImportPathUtil.getModelPath(repository),
-			repository, DLPortletDataHandler.NAMESPACE);
+			repository);
 
 		List<RepositoryEntry> repositoryEntries =
-			RepositoryEntryUtil.findByRepositoryId(
+			RepositoryEntryLocalServiceUtil.getRepositoryEntries(
 				repository.getRepositoryId());
 
 		for (RepositoryEntry repositoryEntry : repositoryEntries) {
-			StagedModelDataHandlerUtil.exportStagedModel(
-				portletDataContext, repositoryEntry);
-
-			portletDataContext.addReferenceElement(
-				repository, repositoryElement, repositoryEntry,
-				PortletDataContext.REFERENCE_TYPE_CHILD, false);
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, repository, repositoryEntry,
+				PortletDataContext.REFERENCE_TYPE_CHILD);
 		}
 	}
 
@@ -99,7 +112,7 @@ public class RepositoryStagedModelDataHandler
 		long userId = portletDataContext.getUserId(repository.getUserUuid());
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
-			repository, DLPortletDataHandler.NAMESPACE);
+			repository);
 
 		Repository importedRepository = null;
 
@@ -111,8 +124,10 @@ public class RepositoryStagedModelDataHandler
 				repositoryElement.attributeValue("hidden"));
 
 			if (portletDataContext.isDataStrategyMirror()) {
-				Repository existingRepository = RepositoryUtil.fetchByUUID_G(
-					repository.getUuid(), portletDataContext.getScopeGroupId());
+				Repository existingRepository =
+					RepositoryLocalServiceUtil.fetchRepositoryByUuidAndGroupId(
+						repository.getUuid(),
+						portletDataContext.getScopeGroupId());
 
 				if (existingRepository == null) {
 					existingRepository =
@@ -172,15 +187,14 @@ public class RepositoryStagedModelDataHandler
 			}
 		}
 
-		portletDataContext.importClassedModel(
-			repository, importedRepository, DLPortletDataHandler.NAMESPACE);
+		portletDataContext.importClassedModel(repository, importedRepository);
 
 		List<Element> repositoryEntryElements =
 			portletDataContext.getReferenceDataElements(
 				repository, RepositoryEntry.class);
 
 		for (Element repositoryEntryElement : repositoryEntryElements) {
-			StagedModelDataHandlerUtil.importStagedModel(
+			StagedModelDataHandlerUtil.importReferenceStagedModel(
 				portletDataContext, repositoryEntryElement);
 		}
 	}

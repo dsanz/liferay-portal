@@ -759,6 +759,12 @@ public class JournalArticleServiceWrapper implements JournalArticleService,
 		return _journalArticleService.getArticlesCount(groupId, folderId);
 	}
 
+	@Override
+	public int getArticlesCount(long groupId, long folderId, int status)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleService.getArticlesCount(groupId, folderId, status);
+	}
+
 	/**
 	* Returns the number of web content articles matching the group and article
 	* ID.
@@ -860,6 +866,17 @@ public class JournalArticleServiceWrapper implements JournalArticleService,
 			folderIds);
 	}
 
+	@Override
+	public java.util.List<com.liferay.portlet.journal.model.JournalArticle> getGroupArticles(
+		long groupId, long userId, long rootFolderId, int status, int start,
+		int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleService.getGroupArticles(groupId, userId,
+			rootFolderId, status, start, end, orderByComparator);
+	}
+
 	/**
 	* Returns an ordered range of all the web content articles matching the
 	* group, user, the root folder or any of its subfolders.
@@ -912,6 +929,15 @@ public class JournalArticleServiceWrapper implements JournalArticleService,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _journalArticleService.getGroupArticlesCount(groupId, userId,
 			rootFolderId);
+	}
+
+	@Override
+	public int getGroupArticlesCount(long groupId, long userId,
+		long rootFolderId, int status)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleService.getGroupArticlesCount(groupId, userId,
+			rootFolderId, status);
 	}
 
 	/**
@@ -1168,6 +1194,15 @@ public class JournalArticleServiceWrapper implements JournalArticleService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_journalArticleService.restoreArticleFromTrash(groupId, articleId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.Hits search(long groupId,
+		long creatorUserId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleService.search(groupId, creatorUserId, status,
+			start, end);
 	}
 
 	/**

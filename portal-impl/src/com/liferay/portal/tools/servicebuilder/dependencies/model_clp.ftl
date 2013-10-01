@@ -12,8 +12,12 @@ import ${packagePath}.service.ClpSerializer;
 
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -25,8 +29,12 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.BaseModel;
+import com.liferay.portal.model.ContainerModel;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portlet.trash.model.TrashEntry;
+import com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil;
 
 import java.io.Serializable;
 
@@ -38,6 +46,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements ${entity.name} {
 
@@ -449,6 +459,108 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 		</#if>
 	</#if>
 
+	<#if entity.isStagedModel()>
+		@Override
+		public StagedModelType getStagedModelType() {
+			<#if entity.isTypedModel()>
+				return new StagedModelType(PortalUtil.getClassNameId(${entity.name}.class.getName()), getClassNameId());
+			<#else>
+				return new StagedModelType(PortalUtil.getClassNameId(${entity.name}.class.getName()));
+			</#if>
+		}
+	</#if>
+
+	<#if entity.isTrashEnabled()>
+		<#if !entity.isWorkflowEnabled()>
+			@Override
+			public int getStatus() {
+				return 0;
+			}
+		</#if>
+
+		@Override
+		public TrashEntry getTrashEntry() throws PortalException, SystemException {
+			if (!isInTrash() && !isInTrashContainer()) {
+				return null;
+			}
+
+			TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(), getTrashEntryClassPK());
+
+			if (trashEntry != null) {
+				return trashEntry;
+			}
+
+			TrashHandler trashHandler = getTrashHandler();
+
+			if (!Validator.isNull(trashHandler.getContainerModelClassName())) {
+				ContainerModel containerModel = trashHandler.getParentContainerModel(this);
+
+				while (containerModel != null) {
+					if (containerModel instanceof TrashedModel) {
+						TrashedModel trashedModel = (TrashedModel)containerModel;
+
+						return trashedModel.getTrashEntry();
+					}
+
+					trashHandler = TrashHandlerRegistryUtil.getTrashHandler(trashHandler.getContainerModelClassName());
+
+					if (trashHandler == null) {
+						return null;
+					}
+
+					containerModel = trashHandler.getContainerModel(containerModel.getParentContainerModelId());
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		public long getTrashEntryClassPK() {
+			return getPrimaryKey();
+		}
+
+		@Override
+		public TrashHandler getTrashHandler() {
+			return TrashHandlerRegistryUtil.getTrashHandler(getModelClassName());
+		}
+
+		@Override
+		public boolean isInTrash() {
+			if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		@Override
+		public boolean isInTrashContainer() {
+			TrashHandler trashHandler = getTrashHandler();
+
+			if ((trashHandler == null) || Validator.isNull(trashHandler.getContainerModelClassName())) {
+				return false;
+			}
+
+			try {
+				ContainerModel containerModel = trashHandler.getParentContainerModel(this);
+
+				if (containerModel == null) {
+					return false;
+				}
+
+				if (containerModel instanceof TrashedModel) {
+					return ((TrashedModel)containerModel).isInTrash();
+				}
+			}
+			catch (Exception e) {
+			}
+
+			return false;
+		}
+	</#if>
+
 	<#if entity.isWorkflowEnabled()>
 		/**
 		 * @deprecated As of 6.1.0, replaced by {@link #isApproved}
@@ -511,16 +623,6 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 		@Override
 		public boolean isIncomplete() {
 			if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
-
-		@Override
-		public boolean isInTrash() {
-			if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
 				return true;
 			}
 			else {
@@ -608,11 +710,65 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 
 	<#if entity.hasLocalizedColumn()>
 		@Override
-		@SuppressWarnings("unused")
-		public void prepareLocalizedFieldsForImport(Locale defaultImportLocale) throws LocaleException {
+		public String[] getAvailableLanguageIds() {
+			Set<String> availableLanguageIds = new TreeSet<String>();
+
 			<#list entity.regularColList as column>
 				<#if column.localized>
-					set${column.methodName}(get${column.methodName}(defaultImportLocale), defaultImportLocale, defaultImportLocale);
+					Map<Locale, String> ${column.name}Map = get${column.methodName}Map();
+
+					for (Map.Entry<Locale, String> entry : ${column.name}Map.entrySet()) {
+						Locale locale = entry.getKey();
+						String value = entry.getValue();
+
+						if (Validator.isNotNull(value)) {
+							availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+						}
+					}
+				</#if>
+			</#list>
+
+			return availableLanguageIds.toArray(new String[availableLanguageIds.size()]);
+		}
+
+		@Override
+		public String getDefaultLanguageId() {
+			<#list entity.regularColList as column>
+				<#if column.localized>
+					String xml = get${column.methodName}();
+
+					if (xml == null) {
+						return StringPool.BLANK;
+					}
+
+					return LocalizationUtil.getDefaultLanguageId(xml);
+					<#break>
+				</#if>
+			</#list>
+		}
+
+		@Override
+		public void prepareLocalizedFieldsForImport() throws LocaleException {
+			prepareLocalizedFieldsForImport (null);
+		}
+
+		@Override
+		@SuppressWarnings("unused")
+		public void prepareLocalizedFieldsForImport(Locale defaultImportLocale) throws LocaleException {
+			Locale defaultLocale = LocaleUtil.getDefault();
+
+			String modelDefaultLanguageId = getDefaultLanguageId();
+
+			<#list entity.regularColList as column>
+				<#if column.localized>
+					String ${column.name} = get${column.methodName}(defaultLocale);
+
+					if (Validator.isNull(${column.name})) {
+						set${column.methodName}(get${column.methodName}(modelDefaultLanguageId), defaultLocale);
+					}
+					else {
+					  set${column.methodName}(get${column.methodName}(defaultLocale), defaultLocale, defaultLocale);
+					}
 				</#if>
 			</#list>
 		}

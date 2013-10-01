@@ -148,13 +148,12 @@ public class ShardAdvice {
 
 			return _setShardNameByCompanyId(companyId);
 		}
-		else {
-			String shardName = companyServiceStack.peek();
 
-			_setShardName(shardName);
+		String shardName = companyServiceStack.peek();
 
-			return shardName;
-		}
+		_setShardName(shardName);
+
+		return shardName;
 	}
 
 	public void setShardSessionFactoryTargetSource(
@@ -211,8 +210,9 @@ public class ShardAdvice {
 
 	static {
 		try {
-			_shardSelector = (ShardSelector)Class.forName(
-				PropsValues.SHARD_SELECTOR).newInstance();
+			Class<?> clazz = Class.forName(PropsValues.SHARD_SELECTOR);
+
+			_shardSelector = (ShardSelector)clazz.newInstance();
 		}
 		catch (Exception e) {
 			_log.error(e, e);

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -84,9 +85,37 @@ public class JSONWebServiceActionsManagerUtil {
 			contextPath, actionClass, actionMethod, path, method);
 	}
 
+	public static void registerJSONWebServiceAction(
+		String contextPath, Object actionObject, Class<?> actionClass,
+		Method actionMethod, String path, String method) {
+
+		getJSONWebServiceActionsManager().registerJSONWebServiceAction(
+			contextPath, actionObject, actionClass, actionMethod, path, method);
+	}
+
+	public static int registerServletContext(ServletContext servletContext) {
+		return getJSONWebServiceActionsManager().registerServletContext(
+			servletContext);
+	}
+
+	public static int registerServletContext(String contextPath) {
+		return getJSONWebServiceActionsManager().registerServletContext(
+			contextPath);
+	}
+
+	public static int unregisterJSONWebServiceActions(Object actionObject) {
+		return getJSONWebServiceActionsManager().
+			unregisterJSONWebServiceActions(actionObject);
+	}
+
 	public static int unregisterJSONWebServiceActions(String contextPath) {
 		return getJSONWebServiceActionsManager().
 			unregisterJSONWebServiceActions(contextPath);
+	}
+
+	public static int unregisterServletContext(ServletContext servletContext) {
+		return getJSONWebServiceActionsManager().unregisterServletContext(
+			servletContext);
 	}
 
 	public void setJSONWebServiceActionsManager(

@@ -60,13 +60,34 @@ JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_AR
 			<%
 			ArticleSearch searchContainer = new ArticleSearch(renderRequest, portletURL);
 
-			List headerNames = searchContainer.getHeaderNames();
+			List<String> headerNames = new ArrayList<String>();
 
-			headerNames.add(2, "version");
+			headerNames.add("id");
+			headerNames.add("title");
+			headerNames.add("version");
+			headerNames.add("status");
+			headerNames.add("modified-date");
 
-			Map<String, String> orderableHeaders = searchContainer.getOrderableHeaders();
+			if (article.getDisplayDate() != null) {
+				headerNames.add("display-date");
+			}
+
+			headerNames.add("author");
+			headerNames.add(StringPool.BLANK);
+
+			searchContainer.setHeaderNames(headerNames);
+
+			Map<String, String> orderableHeaders = new HashMap<String, String>();
+
+			orderableHeaders.put("modified-date", "modified-date");
+
+			if (article.getDisplayDate() != null) {
+				orderableHeaders.put("display-date", "display-date");
+			}
 
 			orderableHeaders.put("version", "version");
+
+			searchContainer.setOrderableHeaders(orderableHeaders);
 
 			if (Validator.isNull(orderByCol)) {
 				searchContainer.setOrderByCol("version");
@@ -91,11 +112,11 @@ JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_AR
 			<c:if test="<%= !results.isEmpty() %>">
 				<aui:button-row>
 					<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.EXPIRE) %>">
-						<aui:button onClick='<%= renderResponse.getNamespace() + "expireArticles();" %>' value="expire" />
+						<aui:button disabled="<%= true %>" name="expire" onClick='<%= renderResponse.getNamespace() + "expireArticles();" %>' value="expire" />
 					</c:if>
 
 					<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.DELETE) %>">
-						<aui:button onClick='<%= renderResponse.getNamespace() + "deleteArticles();" %>' value="delete" />
+						<aui:button disabled="<%= true %>" name="delete" onClick='<%= renderResponse.getNamespace() + "deleteArticles();" %>' value="delete" />
 					</c:if>
 				</aui:button-row>
 			</c:if>
@@ -110,37 +131,35 @@ JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_AR
 
 				ResultRow row = new ResultRow(articleVersion, articleVersion.getArticleId() + EditArticleAction.VERSION_SEPARATOR + articleVersion.getVersion(), i);
 
-				PortletURL rowURL = null;
-
 				// Article id
 
-				row.addText(articleVersion.getArticleId(), rowURL);
+				row.addText(articleVersion.getArticleId());
 
 				// Title
 
-				row.addText(articleVersion.getTitle(locale), rowURL);
+				row.addText(articleVersion.getTitle(locale));
 
 				// Version
 
-				row.addText(String.valueOf(articleVersion.getVersion()), rowURL);
+				row.addText(String.valueOf(articleVersion.getVersion()));
 
 				// Status
 
-				String status = WorkflowConstants.toLabel(articleVersion.getStatus());
-
-				row.addText(LanguageUtil.get(pageContext, status), rowURL);
+				row.addStatus(articleVersion.getStatus(), articleVersion.getStatusByUserId(), articleVersion.getStatusDate());
 
 				// Modified date
 
-				row.addText(dateFormatDateTime.format(articleVersion.getModifiedDate()), rowURL);
+				row.addDate(articleVersion.getModifiedDate());
 
 				// Display date
 
-				row.addText(dateFormatDateTime.format(articleVersion.getDisplayDate()), rowURL);
+				if (articleVersion.getDisplayDate() != null) {
+					row.addDate(articleVersion.getDisplayDate());
+				}
 
 				// Author
 
-				row.addText(PortalUtil.getUserName(articleVersion), rowURL);
+				row.addText(PortalUtil.getUserName(articleVersion));
 
 				// Action
 
@@ -156,6 +175,9 @@ JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_AR
 		</aui:form>
 
 		<aui:script>
+			Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />delete', '#<portlet:namespace /><%= searchContainerReference.getId() %>SearchContainer', document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+			Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />expire', '#<portlet:namespace /><%= searchContainerReference.getId() %>SearchContainer', document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 			<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.DELETE) %>">
 				Liferay.provide(
 					window,
@@ -165,7 +187,8 @@ JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_AR
 							document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
 							document.<portlet:namespace />fm.<portlet:namespace />groupId.value = "<%= scopeGroupId %>";
 							document.<portlet:namespace />fm.<portlet:namespace />articleId.value = "";
-							document.<portlet:namespace />fm.<portlet:namespace />articleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
+							document.<portlet:namespace />fm.<portlet:namespace />articleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 							submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/journal/edit_article" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:actionURL>");
 						}
 					},
@@ -182,7 +205,8 @@ JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_AR
 							document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.EXPIRE %>";
 							document.<portlet:namespace />fm.<portlet:namespace />groupId.value = "<%= scopeGroupId %>";
 							document.<portlet:namespace />fm.<portlet:namespace />articleId.value = "";
-							document.<portlet:namespace />fm.<portlet:namespace />expireArticleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
+							document.<portlet:namespace />fm.<portlet:namespace />expireArticleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 							submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/journal/edit_article" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:actionURL>");
 						}
 					},

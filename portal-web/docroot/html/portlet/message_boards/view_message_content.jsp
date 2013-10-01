@@ -185,11 +185,14 @@ MBThreadFlag threadFlag = MBThreadFlagLocalServiceUtil.getThreadFlag(themeDispla
 					modelResourceDescription="<%= rootMessage.getSubject() %>"
 					resourcePrimKey="<%= String.valueOf(thread.getRootMessageId()) %>"
 					var="permissionsURL"
+					windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 				/>
 
 				<liferay-ui:icon
 					image="permissions"
+					method="get"
 					url="<%= permissionsURL %>"
+					useDialog="<%= true %>"
 				/>
 			</c:if>
 

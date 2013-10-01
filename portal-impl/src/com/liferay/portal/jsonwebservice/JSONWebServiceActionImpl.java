@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -142,7 +143,7 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 
 			return calendar;
 		}
-		else if (parameterType.equals(List.class)) {
+		else if (Collection.class.isAssignableFrom(parameterType)) {
 			List<?> list = null;
 
 			if (value instanceof List) {
@@ -306,13 +307,15 @@ public class JSONWebServiceActionImpl implements JSONWebServiceAction {
 	}
 
 	private Object _invokeActionMethod() throws Exception {
+		Object actionObject = _jsonWebServiceActionConfig.getActionObject();
+
 		Method actionMethod = _jsonWebServiceActionConfig.getActionMethod();
 
 		Class<?> actionClass = _jsonWebServiceActionConfig.getActionClass();
 
 		Object[] parameters = _prepareParameters(actionClass);
 
-		return actionMethod.invoke(actionClass, parameters);
+		return actionMethod.invoke(actionObject, parameters);
 	}
 
 	private Object[] _prepareParameters(Class<?> actionClass) throws Exception {

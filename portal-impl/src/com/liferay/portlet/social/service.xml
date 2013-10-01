@@ -3,7 +3,7 @@
 
 <service-builder package-path="com.liferay.portlet.social">
 	<namespace>Social</namespace>
-	<entity name="SocialActivity" local-service="true" remote-service="false">
+	<entity name="SocialActivity" local-service="true" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -300,6 +300,9 @@
 
 		<finder name="GroupId" return-type="Collection">
 			<finder-column name="groupId" />
+		</finder>
+		<finder name="UserId" return-type="Collection">
+			<finder-column name="userId" />
 		</finder>
 		<finder name="G_U_T" return-type="Collection">
 			<finder-column name="groupId" />

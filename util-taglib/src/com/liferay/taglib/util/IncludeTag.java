@@ -75,14 +75,14 @@ public class IncludeTag extends AttributesTagSupport {
 
 				return EVAL_PAGE;
 			}
-			else if (!FileAvailabilityUtil.isAvailable(servletContext, page)) {
+
+			if (!FileAvailabilityUtil.isAvailable(servletContext, page)) {
 				return processEndTag();
 			}
-			else {
-				doInclude(page);
 
-				return EVAL_PAGE;
-			}
+			doInclude(page);
+
+			return EVAL_PAGE;
 		}
 		catch (Exception e) {
 			throw new JspException(e);
@@ -115,14 +115,14 @@ public class IncludeTag extends AttributesTagSupport {
 
 				return EVAL_BODY_INCLUDE;
 			}
-			else if (!FileAvailabilityUtil.isAvailable(servletContext, page)) {
+
+			if (!FileAvailabilityUtil.isAvailable(servletContext, page)) {
 				return processStartTag();
 			}
-			else {
-				doInclude(page);
 
-				return EVAL_BODY_INCLUDE;
-			}
+			doInclude(page);
+
+			return EVAL_BODY_INCLUDE;
 		}
 		catch (Exception e) {
 			throw new JspException(e);
@@ -195,11 +195,11 @@ public class IncludeTag extends AttributesTagSupport {
 			String currentURL = (String)request.getAttribute(
 				WebKeys.CURRENT_URL);
 
-			_log.error(
+			String message =
 				"Current URL " + currentURL + " generates exception: " +
-					e.getMessage());
+					e.getMessage();
 
-			LogUtil.log(_log, e);
+			LogUtil.log(_log, e, message);
 
 			if (e instanceof JspException) {
 				throw (JspException)e;

@@ -17,9 +17,7 @@ package com.liferay.portlet.wiki.action;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.servlet.ServletResponseConstants;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.upload.UploadException;
@@ -38,11 +36,10 @@ import com.liferay.portal.struts.ActionConstants;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.documentlibrary.DuplicateFileException;
-import com.liferay.portlet.documentlibrary.FileExtensionException;
-import com.liferay.portlet.documentlibrary.FileNameException;
 import com.liferay.portlet.documentlibrary.FileSizeException;
 import com.liferay.portlet.documentlibrary.action.EditFileEntryAction;
+import com.liferay.portlet.documentlibrary.model.DLFileEntry;
+import com.liferay.portlet.trash.util.TrashUtil;
 import com.liferay.portlet.wiki.NoSuchNodeException;
 import com.liferay.portlet.wiki.NoSuchPageException;
 import com.liferay.portlet.wiki.model.WikiPage;
@@ -61,8 +58,6 @@ import javax.portlet.ActionResponse;
 import javax.portlet.PortletConfig;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -100,14 +95,14 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 				addAttachment(actionRequest);
 			}
 			else if (cmd.equals(Constants.ADD_MULTIPLE)) {
-				addMultipleFileEntries(actionRequest, actionResponse);
+				addMultipleFileEntries(
+					portletConfig, actionRequest, actionResponse);
 			}
 			else if (cmd.equals(Constants.ADD_TEMP)) {
 				addTempAttachment(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteAttachment(
-					(LiferayPortletConfig)portletConfig, actionRequest, false);
+				deleteAttachment(actionRequest, false);
 			}
 			else if (cmd.equals(Constants.DELETE_TEMP)) {
 				deleteTempAttachment(actionRequest, actionResponse);
@@ -119,8 +114,7 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 				restoreAttachmentFromTrash(actionRequest, actionResponse);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteAttachment(
-					(LiferayPortletConfig)portletConfig, actionRequest, true);
+				deleteAttachment(actionRequest, true);
 			}
 			else if (cmd.equals(Constants.RESTORE)) {
 				restoreAttachment(actionRequest);
@@ -144,30 +138,9 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 
 				setForward(actionRequest, "portlet.wiki.error");
 			}
-			else if (e instanceof DuplicateFileException ||
-					 e instanceof FileNameException) {
-
-				SessionErrors.add(actionRequest, e.getClass());
-
-				HttpServletResponse response =
-					PortalUtil.getHttpServletResponse(actionResponse);
-
-				if (e instanceof DuplicateFileException) {
-					response.setStatus(
-						ServletResponseConstants.SC_DUPLICATE_FILE_EXCEPTION);
-				}
-				else {
-					response.setStatus(
-						ServletResponseConstants.SC_FILE_NAME_EXCEPTION);
-				}
-			}
-			else if (e instanceof FileExtensionException ||
-					 e instanceof FileSizeException) {
-
-				SessionErrors.add(actionRequest, e.getClass());
-			}
 			else {
-				throw e;
+				handleUploadException(
+					portletConfig, actionRequest, actionResponse, cmd, e);
 			}
 		}
 	}
@@ -262,9 +235,9 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 
 	@Override
 	protected void addMultipleFileEntries(
-			ActionRequest actionRequest, ActionResponse actionResponse,
-			String selectedFileName, List<String> validFileNames,
-			List<KeyValuePair> invalidFileNameKVPs)
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse, String selectedFileName,
+			List<String> validFileNames, List<KeyValuePair> invalidFileNameKVPs)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -290,7 +263,7 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 		}
 		catch (Exception e) {
 			String errorMessage = getAddMultipleFileEntriesErrorMessage(
-				themeDisplay, e);
+				portletConfig, actionRequest, actionResponse, e);
 
 			KeyValuePair invalidFileNameKVP = new KeyValuePair(
 				selectedFileName, errorMessage);
@@ -330,7 +303,6 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 	}
 
 	protected void deleteAttachment(
-			LiferayPortletConfig liferayPortletConfig,
 			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
@@ -338,32 +310,42 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 		String title = ParamUtil.getString(actionRequest, "title");
 		String attachment = ParamUtil.getString(actionRequest, "fileName");
 
-		long dlFileEntryId = 0;
+		FileEntry fileEntry = null;
 
 		if (moveToTrash) {
-			dlFileEntryId = WikiPageServiceUtil.movePageAttachmentToTrash(
+			fileEntry = WikiPageServiceUtil.movePageAttachmentToTrash(
 				nodeId, title, attachment);
 		}
 		else {
 			WikiPageServiceUtil.deletePageAttachment(nodeId, title, attachment);
 		}
 
-		if (moveToTrash && (dlFileEntryId > 0)) {
+		if (moveToTrash && (fileEntry != null)) {
 			Map<String, String[]> data = new HashMap<String, String[]>();
+
+			data.put(Constants.CMD, new String[] {Constants.REMOVE});
+
+			data.put(
+				"deleteEntryClassName",
+				new String[] {DLFileEntry.class.getName()});
+
+			if (Validator.isNotNull(fileEntry.getTitle())) {
+				data.put(
+					"deleteEntryTitle",
+					new String[] {
+						TrashUtil.getOriginalTitle(fileEntry.getTitle())});
+			}
 
 			data.put(
 				"restoreEntryIds",
-				new String[] {String.valueOf(dlFileEntryId)});
+				new String[] {String.valueOf(fileEntry.getFileEntryId())});
 
 			SessionMessages.add(
 				actionRequest,
-				liferayPortletConfig.getPortletId() +
+				PortalUtil.getPortletId(actionRequest) +
 					SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
 
-			SessionMessages.add(
-				actionRequest,
-				liferayPortletConfig.getPortletId() +
-					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 

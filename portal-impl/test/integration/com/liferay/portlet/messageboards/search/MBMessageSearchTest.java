@@ -14,9 +14,12 @@
 
 package com.liferay.portlet.messageboards.search;
 
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.ObjectValuePair;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.model.Group;
@@ -30,7 +33,9 @@ import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
 import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.MBMessage;
+import com.liferay.portlet.messageboards.service.MBCategoryServiceUtil;
 import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
+import com.liferay.portlet.messageboards.service.MBThreadServiceUtil;
 import com.liferay.portlet.messageboards.util.MBTestUtil;
 
 import java.io.InputStream;
@@ -38,7 +43,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -53,39 +59,52 @@ import org.junit.runner.RunWith;
 @Sync
 public class MBMessageSearchTest extends BaseSearchTestCase {
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchByDDMStructureField() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
+	public void testSearchByKeywordsInsideParentBaseModel() throws Exception {
+	}
+
+	@Ignore()
+	@Override
+	@Test
 	public void testSearchComments() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchExpireAllVersions() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchExpireLatestVersion() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchStatus() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchVersions() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchWithinDDMStructure() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
 	@Override
@@ -139,8 +158,31 @@ public class MBMessageSearchTest extends BaseSearchTestCase {
 	}
 
 	@Override
+	protected String getParentBaseModelClassName() {
+		return MBCategory.class.getName();
+	}
+
+	@Override
 	protected String getSearchKeywords() {
 		return "Title";
+	}
+
+	@Override
+	protected void moveParentBaseModelToTrash(long primaryKey)
+		throws Exception {
+
+		MBCategoryServiceUtil.moveCategoryToTrash(primaryKey);
+	}
+
+	@Override
+	protected long searchGroupEntriesCount(long groupId, long creatorUserId)
+		throws Exception {
+
+		Hits hits =  MBThreadServiceUtil.search(
+			groupId, creatorUserId, WorkflowConstants.STATUS_APPROVED,
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		return hits.getLength();
 	}
 
 }

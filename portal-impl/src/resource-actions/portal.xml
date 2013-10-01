@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE resource-action-mapping PUBLIC "-//Liferay//DTD Resource Action Mapping 6.1.0//EN" "http://www.liferay.com/dtd/liferay-resource-action-mapping_6_1_0.dtd">
+<!DOCTYPE resource-action-mapping PUBLIC "-//Liferay//DTD Resource Action Mapping 6.2.0//EN" "http://www.liferay.com/dtd/liferay-resource-action-mapping_6_2_0.dtd">
 
 <resource-action-mapping>
 	<portlet-resource>
@@ -366,9 +366,12 @@
 	<model-resource>
 		<model-name>com.liferay.portal.model.Group</model-name>
 		<portlet-ref>
-			<portlet-name>125</portlet-name>
 			<portlet-name>134</portlet-name>
+			<portlet-name>156</portlet-name>
+			<portlet-name>165</portlet-name>
+			<portlet-name>174</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>ADD_COMMUNITY</action-key>
@@ -388,6 +391,7 @@
 				<action-key>MANAGE_SUBGROUPS</action-key>
 				<action-key>MANAGE_TEAMS</action-key>
 				<action-key>PERMISSIONS</action-key>
+				<action-key>PREVIEW_IN_DEVICE</action-key>
 				<action-key>PUBLISH_STAGING</action-key>
 				<action-key>PUBLISH_TO_REMOTE</action-key>
 				<action-key>UPDATE</action-key>
@@ -415,6 +419,7 @@
 				<action-key>MANAGE_SUBGROUPS</action-key>
 				<action-key>MANAGE_TEAMS</action-key>
 				<action-key>PERMISSIONS</action-key>
+				<action-key>PREVIEW_IN_DEVICE</action-key>
 				<action-key>PUBLISH_STAGING</action-key>
 				<action-key>PUBLISH_TO_REMOTE</action-key>
 				<action-key>UPDATE</action-key>
@@ -427,9 +432,9 @@
 	<model-resource>
 		<model-name>com.liferay.portal.model.LayoutBranch</model-name>
 		<portlet-ref>
-			<portlet-name>125</portlet-name>
-			<portlet-name>134</portlet-name>
+			<portlet-name>156</portlet-name>
 		</portlet-ref>
+		<weight>3</weight>
 		<permissions>
 			<supports>
 				<action-key>DELETE</action-key>
@@ -448,9 +453,9 @@
 	<model-resource>
 		<model-name>com.liferay.portal.model.LayoutSetBranch</model-name>
 		<portlet-ref>
-			<portlet-name>125</portlet-name>
-			<portlet-name>134</portlet-name>
+			<portlet-name>156</portlet-name>
 		</portlet-ref>
+		<weight>4</weight>
 		<permissions>
 			<supports>
 				<action-key>DELETE</action-key>
@@ -473,6 +478,7 @@
 		<portlet-ref>
 			<portlet-name>146</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>DELETE</action-key>
@@ -496,6 +502,7 @@
 		<portlet-ref>
 			<portlet-name>149</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>DELETE</action-key>
@@ -519,8 +526,10 @@
 		<portlet-ref>
 			<portlet-name>125</portlet-name>
 		</portlet-ref>
+		<weight>2</weight>
 		<permissions>
 			<supports>
+				<action-key>ADD_ORGANIZATION</action-key>
 				<action-key>ASSIGN_MEMBERS</action-key>
 				<action-key>ASSIGN_USER_ROLES</action-key>
 				<action-key>DELETE</action-key>
@@ -535,6 +544,7 @@
 			<site-member-defaults />
 			<guest-defaults />
 			<guest-unsupported>
+				<action-key>ADD_ORGANIZATION</action-key>
 				<action-key>ASSIGN_MEMBERS</action-key>
 				<action-key>ASSIGN_USER_ROLES</action-key>
 				<action-key>DELETE</action-key>
@@ -553,6 +563,7 @@
 		<portlet-ref>
 			<portlet-name>129</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>ASSIGN_MEMBERS</action-key>
@@ -577,6 +588,7 @@
 		<portlet-ref>
 			<portlet-name>128</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>ASSIGN_MEMBERS</action-key>
@@ -605,6 +617,7 @@
 		<portlet-ref>
 			<portlet-name>125</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>DELETE</action-key>
@@ -627,8 +640,9 @@
 	<model-resource>
 		<model-name>com.liferay.portal.model.UserGroup</model-name>
 		<portlet-ref>
-			<portlet-name>125</portlet-name>
+			<portlet-name>127</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>ASSIGN_MEMBERS</action-key>

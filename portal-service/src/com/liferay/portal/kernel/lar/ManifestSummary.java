@@ -14,6 +14,7 @@
 
 package com.liferay.portal.kernel.lar;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LongWrapper;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -48,24 +49,34 @@ public class ManifestSummary implements Serializable {
 			return modelName;
 		}
 
-		return referrerModelName.concat(StringPool.POUND).concat(modelName);
+		return modelName.concat(StringPool.POUND).concat(referrerModelName);
+	}
+
+	public void addConfigurationPortlet(
+		Portlet portlet, String[] configurationPortletOptions) {
+
+		String rootPortletId = portlet.getRootPortletId();
+
+		if (!_configurationPortletOptions.containsKey(rootPortletId)) {
+			_configurationPortlets.add(portlet);
+			_configurationPortletOptions.put(
+				rootPortletId, configurationPortletOptions);
+		}
 	}
 
 	public void addDataPortlet(Portlet portlet) {
-		_dataPortlets.add(portlet);
+		String rootPortletId = portlet.getRootPortletId();
+
+		if (!_dataRootPortletIds.contains(rootPortletId)) {
+			_dataPortlets.add(portlet);
+			_dataRootPortletIds.add(rootPortletId);
+		}
 	}
 
 	public void addModelAdditionCount(
-		Class<? extends ClassedModel> clazz,
-		Class<? extends ClassedModel> referrerClass, long count) {
+		StagedModelType stagedModelType, long count) {
 
-		addModelAdditionCount(clazz.getName(), referrerClass.getName(), count);
-	}
-
-	public void addModelAdditionCount(
-		Class<? extends ClassedModel> clazz, long modelCount) {
-
-		addModelAdditionCount(clazz, clazz, modelCount);
+		addModelAdditionCount(stagedModelType.toString(), count);
 	}
 
 	public void addModelAdditionCount(String manifestSummaryKey, long count) {
@@ -84,21 +95,6 @@ public class ManifestSummary implements Serializable {
 		_manifestSummaryKeys.add(manifestSummaryKey);
 	}
 
-	public void addModelAdditionCount(
-		String className, String referrerClassName, long count) {
-
-		String manifestSummaryKey = getManifestSummaryKey(
-			className, referrerClassName);
-
-		addModelAdditionCount(manifestSummaryKey, count);
-	}
-
-	public void addModelDeletionCount(
-		Class<? extends ClassedModel> clazz, long count) {
-
-		addModelDeletionCount(clazz.getName(), count);
-	}
-
 	public void addModelDeletionCount(String manifestSummaryKey, long count) {
 		LongWrapper modelDeletionCounter = _modelDeletionCounters.get(
 			manifestSummaryKey);
@@ -115,8 +111,12 @@ public class ManifestSummary implements Serializable {
 		_manifestSummaryKeys.add(manifestSummaryKey);
 	}
 
-	public void addSetupPortlet(Portlet portlet) {
-		_setupPortlets.add(portlet);
+	public String[] getConfigurationPortletOptions(String rootPortletId) {
+		return _configurationPortletOptions.get(rootPortletId);
+	}
+
+	public List<Portlet> getConfigurationPortlets() {
+		return _configurationPortlets;
 	}
 
 	public List<Portlet> getDataPortlets() {
@@ -166,8 +166,56 @@ public class ManifestSummary implements Serializable {
 		return _modelAdditionCounters;
 	}
 
+	public long getModelDeletionCount() {
+		long modelDeletionCount = -1;
+
+		for (String manifestSummaryKey : _manifestSummaryKeys) {
+			long manifestSummaryKeyModelDeletionCount = getModelDeletionCount(
+				manifestSummaryKey);
+
+			if (manifestSummaryKeyModelDeletionCount == -1) {
+				continue;
+			}
+
+			if (modelDeletionCount == -1) {
+				modelDeletionCount = manifestSummaryKeyModelDeletionCount;
+			}
+			else {
+				modelDeletionCount += manifestSummaryKeyModelDeletionCount;
+			}
+		}
+
+		return modelDeletionCount;
+	}
+
 	public long getModelDeletionCount(Class<? extends ClassedModel> clazz) {
 		return getModelDeletionCount(clazz.getName());
+	}
+
+	public long getModelDeletionCount(StagedModelType[] stagedModelTypes) {
+		if (ArrayUtil.isEmpty(stagedModelTypes)) {
+			return 0;
+		}
+
+		long modelDeletionCount = -1;
+
+		for (StagedModelType stagedModelType : stagedModelTypes) {
+			long stagedModelTypeModelDeletionCount = getModelDeletionCount(
+				stagedModelType.toString());
+
+			if (stagedModelTypeModelDeletionCount == -1) {
+				continue;
+			}
+
+			if (modelDeletionCount == -1) {
+				modelDeletionCount = stagedModelTypeModelDeletionCount;
+			}
+			else {
+				modelDeletionCount += stagedModelTypeModelDeletionCount;
+			}
+		}
+
+		return modelDeletionCount;
 	}
 
 	public long getModelDeletionCount(String modelName) {
@@ -185,27 +233,9 @@ public class ManifestSummary implements Serializable {
 		return _modelDeletionCounters;
 	}
 
-	public List<Portlet> getSetupPortlets() {
-		return _setupPortlets;
-	}
+	public void incrementModelAdditionCount(StagedModelType stagedModelType) {
+		String manifestSummaryKey = stagedModelType.toString();
 
-	public void incrementModelAdditionCount(
-		Class<? extends ClassedModel> clazz) {
-
-		incrementModelAdditionCount(clazz, clazz);
-	}
-
-	public void incrementModelAdditionCount(
-		Class<? extends ClassedModel> clazz,
-		Class<? extends ClassedModel> referrerClass) {
-
-		String manifestSummaryKey = getManifestSummaryKey(
-			clazz.getName(), referrerClass.getName());
-
-		incrementModelAdditionCount(manifestSummaryKey);
-	}
-
-	public void incrementModelAdditionCount(String manifestSummaryKey) {
 		if (!_modelAdditionCounters.containsKey(manifestSummaryKey)) {
 			_modelAdditionCounters.put(manifestSummaryKey, new LongWrapper(1));
 
@@ -220,13 +250,9 @@ public class ManifestSummary implements Serializable {
 		modelAdditionCounter.increment();
 	}
 
-	public void incrementModelDeletionCount(
-		Class<? extends ClassedModel> clazz) {
+	public void incrementModelDeletionCount(StagedModelType stagedModelType) {
+		String manifestSummaryKey = stagedModelType.toString();
 
-		incrementModelDeletionCount(clazz.getName());
-	}
-
-	public void incrementModelDeletionCount(String manifestSummaryKey) {
 		if (!_modelDeletionCounters.containsKey(manifestSummaryKey)) {
 			_modelDeletionCounters.put(manifestSummaryKey, new LongWrapper(1));
 
@@ -258,13 +284,16 @@ public class ManifestSummary implements Serializable {
 		return sb.toString();
 	}
 
+	private Map<String, String[]> _configurationPortletOptions =
+		new HashMap<String, String[]>();
+	private List<Portlet> _configurationPortlets = new ArrayList<Portlet>();
 	private List<Portlet> _dataPortlets = new ArrayList<Portlet>();
+	private Set<String> _dataRootPortletIds = new HashSet<String>();
 	private Date _exportDate;
 	private Set<String> _manifestSummaryKeys = new HashSet<String>();
 	private Map<String, LongWrapper> _modelAdditionCounters =
 		new HashMap<String, LongWrapper>();
 	private Map<String, LongWrapper> _modelDeletionCounters =
 		new HashMap<String, LongWrapper>();
-	private List<Portlet> _setupPortlets = new ArrayList<Portlet>();
 
 }

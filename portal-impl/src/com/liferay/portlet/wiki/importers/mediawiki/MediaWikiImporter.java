@@ -140,7 +140,7 @@ public class MediaWikiImporter implements WikiImporter {
 		}
 		else {
 			user = UserLocalServiceUtil.fetchUserByScreenName(
-				node.getCompanyId(), author.toLowerCase());
+				node.getCompanyId(), StringUtil.toLowerCase(author));
 		}
 
 		if (user != null) {
@@ -258,7 +258,6 @@ public class MediaWikiImporter implements WikiImporter {
 					WikiPageLocalServiceUtil.movePage(
 						userId, node.getNodeId(), frontPageTitle,
 						WikiPageConstants.FRONT_PAGE, false, serviceContext);
-
 				}
 			}
 			catch (Exception e) {
@@ -273,9 +272,7 @@ public class MediaWikiImporter implements WikiImporter {
 					_log.warn(sb.toString(), e);
 				}
 			}
-
 		}
-
 	}
 
 	protected String normalize(String categoryName, int length) {
@@ -359,7 +356,8 @@ public class MediaWikiImporter implements WikiImporter {
 					continue;
 				}
 
-				String fileName = paths[paths.length - 1].toLowerCase();
+				String fileName = StringUtil.toLowerCase(
+					paths[paths.length - 1]);
 
 				ObjectValuePair<String, InputStream> inputStreamOVP =
 					new ObjectValuePair<String, InputStream>(

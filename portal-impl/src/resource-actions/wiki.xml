@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
-<!DOCTYPE resource-action-mapping PUBLIC "-//Liferay//DTD Resource Action Mapping 6.1.0//EN" "http://www.liferay.com/dtd/liferay-resource-action-mapping_6_1_0.dtd">
+<!DOCTYPE resource-action-mapping PUBLIC "-//Liferay//DTD Resource Action Mapping 6.2.0//EN" "http://www.liferay.com/dtd/liferay-resource-action-mapping_6_2_0.dtd">
 
 <resource-action-mapping>
 	<portlet-resource>
 		<portlet-name>36</portlet-name>
 		<permissions>
 			<supports>
+				<action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
 				<action-key>ADD_TO_PAGE</action-key>
 				<action-key>CONFIGURATION</action-key>
 				<action-key>VIEW</action-key>
@@ -17,6 +18,7 @@
 				<action-key>VIEW</action-key>
 			</guest-defaults>
 			<guest-unsupported>
+				<action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
 				<action-key>CONFIGURATION</action-key>
 			</guest-unsupported>
 		</permissions>
@@ -42,18 +44,19 @@
 		<model-name>com.liferay.portlet.wiki</model-name>
 		<portlet-ref>
 			<portlet-name>36</portlet-name>
+			<portlet-name>154</portlet-name>
 		</portlet-ref>
+		<root>true</root>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>ADD_NODE</action-key>
-				<action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
 				<action-key>PERMISSIONS</action-key>
 			</supports>
 			<site-member-defaults />
 			<guest-defaults />
 			<guest-unsupported>
 				<action-key>ADD_NODE</action-key>
-				<action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
 				<action-key>PERMISSIONS</action-key>
 			</guest-unsupported>
 		</permissions>
@@ -62,7 +65,9 @@
 		<model-name>com.liferay.portlet.wiki.model.WikiNode</model-name>
 		<portlet-ref>
 			<portlet-name>36</portlet-name>
+			<portlet-name>154</portlet-name>
 		</portlet-ref>
+		<weight>2</weight>
 		<permissions>
 			<supports>
 				<action-key>ADD_ATTACHMENT</action-key>
@@ -94,7 +99,9 @@
 		<model-name>com.liferay.portlet.wiki.model.WikiPage</model-name>
 		<portlet-ref>
 			<portlet-name>36</portlet-name>
+			<portlet-name>154</portlet-name>
 		</portlet-ref>
+		<weight>3</weight>
 		<permissions>
 			<supports>
 				<action-key>ADD_DISCUSSION</action-key>

@@ -50,8 +50,6 @@ if (threadId > 0) {
 }
 
 String body = BeanParamUtil.getString(replyMessage, request, "body");
-boolean attachments = BeanParamUtil.getBoolean(replyMessage, request, "attachments");
-boolean preview = ParamUtil.getBoolean(request, "preview");
 boolean quote = ParamUtil.getBoolean(request, "quote");
 boolean splitThread = ParamUtil.getBoolean(request, "splitThread");
 %>
@@ -125,6 +123,7 @@ boolean splitThread = ParamUtil.getBoolean(request, "splitThread");
 	function <portlet:namespace />saveMessage() {
 		document.<portlet:namespace />addQuickReplyFm.<portlet:namespace /><%= Constants.CMD %>.value;
 		document.<portlet:namespace />addQuickReplyFm.<portlet:namespace />body.value = <portlet:namespace />getHTML();
+
 		submitForm(document.<portlet:namespace />addQuickReplyFm);
 	}
 </aui:script>

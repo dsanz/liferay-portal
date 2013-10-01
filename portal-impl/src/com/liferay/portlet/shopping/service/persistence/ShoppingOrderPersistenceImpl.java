@@ -351,6 +351,10 @@ public class ShoppingOrderPersistenceImpl extends BasePersistenceImpl<ShoppingOr
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<ShoppingOrder> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -1761,6 +1765,10 @@ public class ShoppingOrderPersistenceImpl extends BasePersistenceImpl<ShoppingOr
 		throws SystemException {
 		int count = countByG_U_PPPS(groupId, userId, ppPaymentStatus);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<ShoppingOrder> list = findByG_U_PPPS(groupId, userId,
 				ppPaymentStatus, count - 1, count, orderByComparator);
 
@@ -2489,6 +2497,10 @@ public class ShoppingOrderPersistenceImpl extends BasePersistenceImpl<ShoppingOr
 	private static final String _FINDER_COLUMN_G_U_PPPS_PPPAYMENTSTATUS_1 = "shoppingOrder.ppPaymentStatus IS NULL";
 	private static final String _FINDER_COLUMN_G_U_PPPS_PPPAYMENTSTATUS_2 = "shoppingOrder.ppPaymentStatus = ?";
 	private static final String _FINDER_COLUMN_G_U_PPPS_PPPAYMENTSTATUS_3 = "(shoppingOrder.ppPaymentStatus IS NULL OR shoppingOrder.ppPaymentStatus = '')";
+
+	public ShoppingOrderPersistenceImpl() {
+		setModelClass(ShoppingOrder.class);
+	}
 
 	/**
 	 * Caches the shopping order in the entity cache if it is enabled.

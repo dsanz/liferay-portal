@@ -278,14 +278,8 @@ public class WikiPageImpl extends WikiPageBaseImpl {
 	}
 
 	@Override
-	public WikiNode getTrashContainer() {
-		WikiNode node = getNode();
-
-		if (node.isInTrash()) {
-			return node;
-		}
-
-		return null;
+	public long getTrashEntryClassPK() {
+		return getResourcePrimKey();
 	}
 
 	@Override
@@ -330,17 +324,6 @@ public class WikiPageImpl extends WikiPageBaseImpl {
 		}
 
 		return pages;
-	}
-
-	@Override
-	public boolean isInTrashContainer() {
-		WikiNode node = getNode();
-
-		if (node != null) {
-			return node.isInTrash();
-		}
-
-		return false;
 	}
 
 	@Override

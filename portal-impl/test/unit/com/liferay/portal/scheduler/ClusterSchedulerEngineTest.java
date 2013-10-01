@@ -15,13 +15,14 @@
 package com.liferay.portal.scheduler;
 
 import com.liferay.portal.cluster.AddressImpl;
-import com.liferay.portal.cluster.ClusterInvokeThreadLocal;
 import com.liferay.portal.cluster.ClusterableContextThreadLocal;
 import com.liferay.portal.kernel.cluster.Address;
+import com.liferay.portal.kernel.cluster.AddressSerializerUtil;
 import com.liferay.portal.kernel.cluster.ClusterEventListener;
 import com.liferay.portal.kernel.cluster.ClusterExecutor;
 import com.liferay.portal.kernel.cluster.ClusterExecutorUtil;
 import com.liferay.portal.kernel.cluster.ClusterInvokeAcceptor;
+import com.liferay.portal.kernel.cluster.ClusterInvokeThreadLocal;
 import com.liferay.portal.kernel.cluster.ClusterMessageType;
 import com.liferay.portal.kernel.cluster.ClusterNode;
 import com.liferay.portal.kernel.cluster.ClusterNodeResponse;
@@ -286,7 +287,7 @@ public class ClusterSchedulerEngineTest {
 
 		Assert.assertTrue(schedulerResponseMap.isEmpty());
 
-		String newMaster = _clusterSchedulerEngine.getSerializedString(
+		String newMaster = AddressSerializerUtil.serialize(
 			MockClusterExecutor._anotherAddress);
 
 		MockLockLocalService.setLock(newMaster);
@@ -311,7 +312,7 @@ public class ClusterSchedulerEngineTest {
 
 		Assert.assertTrue(schedulerResponseMap.isEmpty());
 
-		String newMaster = _clusterSchedulerEngine.getSerializedString(
+		String newMaster = AddressSerializerUtil.serialize(
 			MockClusterExecutor._anotherAddress);
 
 		MockLockLocalService.setLock(newMaster);
@@ -625,7 +626,7 @@ public class ClusterSchedulerEngineTest {
 
 		Assert.assertEquals(2, schedulerResponseMap.size());
 
-		String newMaster = _clusterSchedulerEngine.getSerializedString(
+		String newMaster = AddressSerializerUtil.serialize(
 			ClusterExecutorUtil.getLocalClusterNodeAddress());
 
 		MockLockLocalService.setLock(newMaster);
@@ -940,7 +941,7 @@ public class ClusterSchedulerEngineTest {
 		}
 
 		MockLockLocalService.setLock(
-			clusterSchedulerEngine.getSerializedString(masterAddress));
+			AddressSerializerUtil.serialize(masterAddress));
 
 		SchedulerEngineHelperImpl schedulerEngineHelperImpl =
 			new SchedulerEngineHelperImpl();
@@ -1174,7 +1175,8 @@ public class ClusterSchedulerEngineTest {
 			long timestamp = System.currentTimeMillis();
 
 			_localAddress = new AddressImpl(new MockAddress(timestamp));
-			_anotherAddress= new AddressImpl(new MockAddress(timestamp + 1000));
+			_anotherAddress = new AddressImpl(
+				new MockAddress(timestamp + 1000));
 
 			_addresses.add(_localAddress);
 			_addresses.add(_anotherAddress);
@@ -1392,10 +1394,7 @@ public class ClusterSchedulerEngineTest {
 		}
 
 		@Override
-		public Lock lock(
-			String className, String key, String owner,
-			boolean retrieveFromCache) {
-
+		public Lock lock(String className, String key, String owner) {
 			if (_lock == null) {
 				Lock lock = new LockImpl();
 
@@ -1411,7 +1410,7 @@ public class ClusterSchedulerEngineTest {
 		@Override
 		public Lock lock(
 			String className, String key, String expectedOwner,
-			String updatedOwner, boolean retrieveFromCache) {
+			String updatedOwner) {
 
 			Lock lock = new LockImpl();
 
@@ -1424,10 +1423,7 @@ public class ClusterSchedulerEngineTest {
 		}
 
 		@Override
-		public void unlock(
-			String className, String key, String owner,
-			boolean retrieveFromCache) {
-
+		public void unlock(String className, String key, String owner) {
 			_lock = null;
 		}
 

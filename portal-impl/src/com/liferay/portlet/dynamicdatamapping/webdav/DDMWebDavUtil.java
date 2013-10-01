@@ -67,11 +67,12 @@ public class DDMWebDavUtil {
 
 			String xsd = StringUtil.read(request.getInputStream());
 
-			String defaultLocale = LocalizationUtil.getDefaultLocale(xsd);
+			String defaultLanguageId = LocalizationUtil.getDefaultLanguageId(
+				xsd);
 
 			Map<Locale, String> nameMap = new HashMap<Locale, String>();
 
-			nameMap.put(LocaleUtil.fromLanguageId(defaultLocale), typeId);
+			nameMap.put(LocaleUtil.fromLanguageId(defaultLanguageId), typeId);
 
 			ServiceContext serviceContext = new ServiceContext();
 
@@ -252,11 +253,12 @@ public class DDMWebDavUtil {
 				String script = StringUtil.read(request.getInputStream());
 
 				DDMTemplateServiceUtil.updateTemplate(
-					template.getTemplateId(), template.getNameMap(),
-					template.getDescriptionMap(), template.getType(),
-					template.getMode(), template.getLanguage(), script,
-					template.isCacheable(), template.isSmallImage(),
-					template.getSmallImageURL(), null, new ServiceContext());
+					template.getTemplateId(), template.getClassPK(),
+					template.getNameMap(), template.getDescriptionMap(),
+					template.getType(), template.getMode(),
+					template.getLanguage(), script, template.isCacheable(),
+					template.isSmallImage(), template.getSmallImageURL(), null,
+					new ServiceContext());
 
 				return HttpServletResponse.SC_CREATED;
 			}

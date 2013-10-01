@@ -160,7 +160,7 @@ public class Validator {
 	 *         instance, or both <code>null</code>; <code>false</code> otherwise
 	 */
 	public static boolean equals(Object obj1, Object obj2) {
-		if ((obj1 == null) && (obj2 == null)) {
+		if (obj1 == obj2) {
 			return true;
 		}
 		else if ((obj1 == null) || (obj2 == null)) {
@@ -578,15 +578,7 @@ public class Validator {
 			return false;
 		}
 
-		if (domainName.startsWith(StringPool.PERIOD) ||
-			domainName.endsWith(StringPool.PERIOD)) {
-
-			return false;
-		}
-
-		if (!domainName.contains(StringPool.PERIOD) &&
-			!domainName.equals(_LOCALHOST)) {
-
+		if (domainName.startsWith(StringPool.PERIOD)) {
 			return false;
 		}
 
@@ -609,7 +601,7 @@ public class Validator {
 					return false;
 				}
 
-				if (!isChar(c) && !isDigit(c) && (c != CharPool.DASH)) {
+				if (!Character.isLetterOrDigit(c) && (c != CharPool.DASH)) {
 					return false;
 				}
 			}
@@ -1016,15 +1008,11 @@ public class Validator {
 	}
 
 	/**
-	 * Returns <code>true</code> if the array is not <code>null</code>, meaning
-	 * it is neither a <code>null</code> reference or empty.
-	 *
-	 * @param  array the array to check
-	 * @return <code>true</code> if the array is not <code>null</code>;
-	 *         <code>false</code> otherwise
+	 * @deprecated As of 6.2.0, replaced by {@link ArrayUtil#isNotEmpty(
+	 *             Object[])}
 	 */
 	public static boolean isNotNull(Object[] array) {
-		return !isNull(array);
+		return ArrayUtil.isNotEmpty(array);
 	}
 
 	/**
@@ -1082,20 +1070,10 @@ public class Validator {
 	}
 
 	/**
-	 * Returns <code>true</code> if the array is <code>null</code>, meaning it
-	 * is either a <code>null</code> reference or empty.
-	 *
-	 * @param  array the array to check
-	 * @return <code>true</code> if the array is <code>null</code>;
-	 *         <code>false</code> otherwise
+	 * @deprecated As of 6.2.0, replaced by {@link ArrayUtil#isEmpty(Object[])}
 	 */
 	public static boolean isNull(Object[] array) {
-		if ((array == null) || (array.length == 0)) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return ArrayUtil.isEmpty(array);
 	}
 
 	/**
@@ -1347,8 +1325,6 @@ public class Validator {
 		'.', '!', '#', '$', '%', '&', '\'', '*', '+', '-', '/', '=', '?', '^',
 		'_', '`', '{', '|', '}', '~'
 	};
-
-	private static final String _LOCALHOST = "localhost";
 
 	private static final String _VARIABLE_TERM_BEGIN = "[$";
 

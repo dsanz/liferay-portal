@@ -43,7 +43,6 @@ import com.liferay.portlet.dynamicdatamapping.util.DDMFieldsCounter;
 import com.liferay.portlet.dynamicdatamapping.util.DDMImpl;
 import com.liferay.portlet.dynamicdatamapping.util.DDMUtil;
 import com.liferay.portlet.dynamicdatamapping.util.DDMXMLUtil;
-import com.liferay.util.PwdGenerator;
 
 import java.io.Serializable;
 
@@ -177,7 +176,7 @@ public class JournalConverterImpl implements JournalConverter {
 
 		Element rootElement = document.getRootElement();
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		rootElement.addAttribute("available-locales", defaultLocale.toString());
 		rootElement.addAttribute("default-locale", defaultLocale.toString());
@@ -441,6 +440,10 @@ public class JournalConverterImpl implements JournalConverter {
 
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
+			if (values.length > 2) {
+				jsonObject.put("groupId", values[2]);
+			}
+
 			jsonObject.put("layoutId", values[0]);
 
 			if (values[1].equals("public")) {
@@ -689,18 +692,30 @@ public class JournalConverterImpl implements JournalConverter {
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
 				fieldValue);
 
+			long groupId = jsonObject.getLong("groupId");
+
 			String layoutId = jsonObject.getString("layoutId");
 
 			boolean privateLayout = jsonObject.getBoolean("privateLayout");
 
+			StringBundler sb = new StringBundler((groupId > 0) ? 5 : 3);
+
+			sb.append(layoutId);
+			sb.append(StringPool.AT);
+
 			if (privateLayout) {
-				fieldValue = layoutId.concat(StringPool.AT).concat("private");
+				sb.append("private");
 			}
 			else {
-				fieldValue = layoutId.concat(StringPool.AT).concat("public");
+				sb.append("public");
 			}
 
-			dynamicContentElement.addCDATA(fieldValue);
+			if (groupId > 0) {
+				sb.append(StringPool.AT);
+				sb.append(groupId);
+			}
+
+			dynamicContentElement.addCDATA(sb.toString());
 		}
 		else if (DDMImpl.TYPE_SELECT.equals(fieldType) &&
 				 Validator.isNotNull(fieldValue)) {
@@ -727,7 +742,7 @@ public class JournalConverterImpl implements JournalConverter {
 	protected void updateFieldsDisplay(Fields ddmFields, String fieldName) {
 		String fieldsDisplayValue =
 			fieldName.concat(DDMImpl.INSTANCE_SEPARATOR).concat(
-				PwdGenerator.getPassword());
+				StringUtil.randomString());
 
 		Field fieldsDisplayField = ddmFields.get(DDMImpl.FIELDS_DISPLAY_NAME);
 
@@ -741,7 +756,7 @@ public class JournalConverterImpl implements JournalConverter {
 	}
 
 	protected void updateJournalXSDDynamicElement(Element element) {
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String name = element.attributeValue("name");
 		String type = element.attributeValue("type");
@@ -773,8 +788,7 @@ public class JournalConverterImpl implements JournalConverter {
 
 				addMetadataEntry(metadataElement, "label", name);
 
-				element.addAttribute(
-					"name", "option" + PwdGenerator.getPassword(4));
+				element.addAttribute("name", "option" + StringUtil.randomId());
 				element.addAttribute("type", "option");
 				element.addAttribute("value", name);
 

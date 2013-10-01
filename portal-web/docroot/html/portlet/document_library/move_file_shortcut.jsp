@@ -77,26 +77,18 @@ long folderId = BeanParamUtil.getLong(fileShortcut, request, "folderId");
 		}
 		%>
 
-		<portlet:renderURL var="viewFolderURL">
-			<portlet:param name="struts_action" value="/document_library/view" />
-			<portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" />
-		</portlet:renderURL>
-
 		<c:if test="<%= !cmd.equals(Constants.MOVE_FROM_TRASH) %>">
 			<aui:field-wrapper label="current-folder">
-				<liferay-ui:icon
-					image="folder"
-					label="true"
-					message="<%= folderName %>"
-					url="<%= viewFolderURL %>"
-				/>
+				<liferay-ui:input-resource url="<%= folderName %>" />
 			</aui:field-wrapper>
 		</c:if>
 
 		<aui:field-wrapper label="new-folder">
-			<aui:a href="<%= viewFolderURL %>" id="folderName"><%= folderName %></aui:a>
+			<div class="input-append">
+				<liferay-ui:input-resource id="folderName" url="<%= folderName %>" />
 
-			<aui:button name="selectFolderButton" value="select" />
+				<aui:button name="selectFolderButton" value="select" />
+			</div>
 		</aui:field-wrapper>
 
 		<aui:button-row>
@@ -121,11 +113,10 @@ long folderId = BeanParamUtil.getLong(fileShortcut, request, "folderId");
 					dialog: {
 						constrain: true,
 						modal: true,
-						zIndex: Liferay.zIndex.WINDOW + 2,
 						width: 680
 					},
 					id: '<portlet:namespace />selectFolder',
-					title: '<%= UnicodeLanguageUtil.format(pageContext, "select-x", "folder") %>',
+					title: '<liferay-ui:message arguments="folder" key="select-x" />',
 					uri: '<%= selectFolderURL.toString() %>'
 				},
 				function(event) {
@@ -136,7 +127,7 @@ long folderId = BeanParamUtil.getLong(fileShortcut, request, "folderId");
 						nameValue: event.foldername
 					};
 
-					Liferay.Util.selectFolder(folderData, '<portlet:renderURL><portlet:param name="struts_action" value="/document_library/view" /></portlet:renderURL>', '<portlet:namespace />');
+					Liferay.Util.selectFolder(folderData, '<portlet:namespace />');
 				}
 			);
 		}
@@ -147,10 +138,6 @@ long folderId = BeanParamUtil.getLong(fileShortcut, request, "folderId");
 	function <portlet:namespace />saveFileShortcut() {
 		submitForm(document.<portlet:namespace />fm);
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />file);
-	</c:if>
 </aui:script>
 
 <%

@@ -56,7 +56,9 @@ public class ExtHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error registering extension environment for ",
+				hotDeployEvent,
+				"Error registering extension environment for " +
+					hotDeployEvent.getServletContextName(),
 				t);
 		}
 	}
@@ -71,7 +73,9 @@ public class ExtHotDeployListener extends BaseHotDeployListener {
 		catch (Throwable t) {
 			throwHotDeployException(
 				hotDeployEvent,
-				"Error unregistering extension environment for ", t);
+				"Error unregistering extension environment for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 

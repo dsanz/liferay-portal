@@ -29,6 +29,40 @@ import java.nio.channels.ScatteringByteChannel;
 import java.util.EnumSet;
 
 /**
+ * Represents the communication unit of Intraband.
+ *
+ * <p>
+ * Encodes/decodes data to/from big-endian byte order data format:
+ * </p>
+ *
+ * <p>
+ * <table border="1">
+ *
+ * <tr>
+ * <td>Name</td><td>Type</td><td>Size(byte)</td><td>Offset</td>
+ * </tr>
+ * <tr>
+ * <td>Status Flag</td><td>byte</td><td>1</td><td>0</td>
+ * </tr>
+ * <tr>
+ * <td>Sequence ID</td><td>long</td><td>8</td><td>1</td>
+ * </tr>
+ * <tr>
+ * <td>Data Type</td><td>byte</td><td>1</td><td>9</td>
+ * </tr>
+ * <tr>
+ * <td>Data Size</td><td>int</td><td>4</td><td>10</td>
+ * </tr>
+ * <tr>
+ * <td>Data Chunk</td>
+ * <td>byte[]</td>
+ * <td>
+ * <pre>${Data Size}</pre>
+ * </td> <td>14</td> </tr>
+ *
+ * </table>
+ * </p>
+ *
  * @author Shuyang Zhou
  */
 public class Datagram {
@@ -226,19 +260,17 @@ public class Datagram {
 			if (_headerByteBuffer.hasRemaining()) {
 				return false;
 			}
-			else {
-				int dataSize = BigEndianCodec.getInt(
-					_headerBufferArray, _INDEX_DATA_SIZE);
 
-				if (dataSize == 0) {
-					_dataByteBuffer = _EMPTY_BUFFER;
+			int dataSize = BigEndianCodec.getInt(
+				_headerBufferArray, _INDEX_DATA_SIZE);
 
-					return true;
-				}
-				else {
-					_dataByteBuffer = ByteBuffer.allocate(dataSize);
-				}
+			if (dataSize == 0) {
+				_dataByteBuffer = _EMPTY_BUFFER;
+
+				return true;
 			}
+
+			_dataByteBuffer = ByteBuffer.allocate(dataSize);
 		}
 
 		if (scatteringByteChannel.read(_dataByteBuffer) == -1) {
@@ -248,11 +280,10 @@ public class Datagram {
 		if (_dataByteBuffer.hasRemaining()) {
 			return false;
 		}
-		else {
-			_dataByteBuffer.flip();
 
-			return true;
-		}
+		_dataByteBuffer.flip();
+
+		return true;
 	}
 
 	protected void setAckRequest(boolean ackRequest) {
@@ -291,11 +322,10 @@ public class Datagram {
 		if (_dataByteBuffer.hasRemaining()) {
 			return false;
 		}
-		else {
-			_dataByteBuffer = null;
 
-			return true;
-		}
+		_dataByteBuffer = null;
+
+		return true;
 	}
 
 	protected Object attachment;

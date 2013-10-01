@@ -171,8 +171,8 @@ public class JournalTemplateLocalServiceImpl
 		// Template
 
 		User user = userPersistence.findByPrimaryKey(userId);
-		oldTemplateId = oldTemplateId.trim().toUpperCase();
-		newTemplateId = newTemplateId.trim().toUpperCase();
+		oldTemplateId = StringUtil.toUpperCase(oldTemplateId.trim());
+		newTemplateId = StringUtil.toUpperCase(newTemplateId.trim());
 		Date now = new Date();
 
 		JournalTemplate oldTemplate = doGetTemplate(groupId, oldTemplateId);
@@ -333,7 +333,7 @@ public class JournalTemplateLocalServiceImpl
 			long groupId, String templateId, boolean includeGlobalTemplates)
 		throws PortalException, SystemException {
 
-		templateId = GetterUtil.getString(templateId).toUpperCase();
+		templateId = StringUtil.toUpperCase(GetterUtil.getString(templateId));
 
 		JournalTemplate template = fetchTemplate(groupId, templateId);
 
@@ -366,10 +366,9 @@ public class JournalTemplateLocalServiceImpl
 
 	@Override
 	public List<JournalTemplate> getTemplates() throws SystemException {
-		List<DDMTemplate> ddmTemplates = ddmTemplateFinder.findByG_C_C_SC(
-			null, PortalUtil.getClassNameId(DDMStructure.class), 0,
-			PortalUtil.getClassNameId(JournalArticle.class), QueryUtil.ALL_POS,
-			QueryUtil.ALL_POS, null);
+		List<DDMTemplate> ddmTemplates = ddmTemplateFinder.findByG_SC(
+			null, PortalUtil.getClassNameId(JournalArticle.class),
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 
 		return JournalUtil.toJournalTemplates(ddmTemplates);
 	}
@@ -493,28 +492,21 @@ public class JournalTemplateLocalServiceImpl
 
 		JournalTemplate template = doGetTemplate(groupId, templateId);
 
-		DDMTemplate ddmTemplate = ddmTemplateLocalService.updateTemplate(
-			template.getPrimaryKey(), nameMap, descriptionMap,
-			DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY,
-			DDMTemplateConstants.TEMPLATE_MODE_CREATE, langType, xsl, cacheable,
-			smallImage, smallImageURL, smallImageFile, serviceContext);
+		long classPK = 0;
 
-		if (Validator.isNull(template.getTemplateId()) &&
-			Validator.isNotNull(structureId)) {
-
-			// Allow users to set the structure if and only if it currently does
-			// not have one. Otherwise, you can have bad data because there may
-			// be an existing article that has chosen to use a structure and
-			// template combination that no longer exists.
-
+		if (Validator.isNotNull(structureId)) {
 			JournalStructure structure =
 				journalStructureLocalService.getStructure(
 					groupId, structureId, true);
 
-			ddmTemplate.setClassPK(structure.getPrimaryKey());
-
-			ddmTemplatePersistence.update(ddmTemplate);
+			classPK = structure.getPrimaryKey();
 		}
+
+		DDMTemplate ddmTemplate = ddmTemplateLocalService.updateTemplate(
+			template.getPrimaryKey(), classPK, nameMap, descriptionMap,
+			DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY,
+			DDMTemplateConstants.TEMPLATE_MODE_CREATE, langType, xsl, cacheable,
+			smallImage, smallImageURL, smallImageFile, serviceContext);
 
 		return new JournalTemplateAdapter(ddmTemplate);
 	}
@@ -537,17 +529,16 @@ public class JournalTemplateLocalServiceImpl
 			long groupId, int start, int end)
 		throws SystemException {
 
-		List<DDMTemplate> ddmTemplates = ddmTemplateFinder.findByG_C_C_SC(
-			groupId, PortalUtil.getClassNameId(DDMStructure.class), 0,
-			PortalUtil.getClassNameId(JournalArticle.class), start, end, null);
+		List<DDMTemplate> ddmTemplates = ddmTemplateFinder.findByG_SC(
+			groupId, PortalUtil.getClassNameId(JournalArticle.class), start,
+			end, null);
 
 		return JournalUtil.toJournalTemplates(ddmTemplates);
 	}
 
 	protected int doGetTemplatesCount(long groupId) throws SystemException {
-		return ddmTemplateFinder.countByG_C_C_SC(
-			groupId, PortalUtil.getClassNameId(DDMStructure.class), 0,
-			PortalUtil.getClassNameId(JournalArticle.class));
+		return ddmTemplateFinder.countByG_SC(
+			groupId, PortalUtil.getClassNameId(JournalArticle.class));
 	}
 
 	protected DDMTemplate fetchDDMTemplate(long groupId, String templateId)
@@ -635,6 +626,7 @@ public class JournalTemplateLocalServiceImpl
 
 		if (Validator.isNull(templateId) ||
 			Validator.isNumber(templateId) ||
+			(templateId.indexOf(CharPool.COMMA) != -1) ||
 			(templateId.indexOf(CharPool.SPACE) != -1)) {
 
 			throw new TemplateIdException();

@@ -55,7 +55,7 @@ AUI.add(
 
 				var portlet = event.currentTarget;
 
-				instance._addPortlet(portlet);
+				instance.addPortlet(portlet);
 			},
 
 			_afterPreviewFailure: function(event) {
@@ -87,7 +87,7 @@ AUI.add(
 			_bindUIACPreview: function() {
 				var instance = this;
 
-				Liferay.Dockbar.getPanelNode().delegate(
+				Liferay.Dockbar.getPanelNode(Liferay.Dockbar.ADD_PANEL).delegate(
 					STR_MOUSEENTER,
 					instance._showTooltip,
 					'.has-preview',
@@ -109,10 +109,12 @@ AUI.add(
 								success: A.bind('_afterPreviewSuccess', instance)
 							},
 							autoLoad: false,
-							data: {
-								viewEntries: false,
-								viewPreview: true
-							}
+							data: instance.ns(
+								{
+									viewEntries: false,
+									viewPreview: true
+								}
+							)
 						}
 					);
 
@@ -136,7 +138,7 @@ AUI.add(
 							constrain: true,
 							position: STR_RIGHT,
 							visible: false,
-							zIndex: 500
+							zIndex: Liferay.zIndex.TOOLTIP
 						}
 					);
 
@@ -161,8 +163,8 @@ AUI.add(
 
 				ioPreview.stop();
 
-				ioPreview.set('data.classPK', classPK);
-				ioPreview.set('data.className', className);
+				ioPreview.set('data.' + instance.ns('classPK'), classPK);
+				ioPreview.set('data.' + instance.ns('className'), className);
 
 				ioPreview.start();
 			},

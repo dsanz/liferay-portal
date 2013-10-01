@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.zip.ZipReader;
 import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.security.auth.CompanyThreadLocal;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 
@@ -36,6 +37,35 @@ import java.util.Map;
  */
 public class PortletDataContextFactoryImpl
 	implements PortletDataContextFactory {
+
+	@Override
+	public PortletDataContext clonePortletDataContext(
+		PortletDataContext portletDataContext) {
+
+		PortletDataContext clonePortletDataContext =
+			new PortletDataContextImpl();
+
+		clonePortletDataContext.setCompanyId(portletDataContext.getCompanyId());
+		clonePortletDataContext.setCompanyGroupId(
+			portletDataContext.getCompanyGroupId());
+		clonePortletDataContext.setDataStrategy(
+			portletDataContext.getDataStrategy());
+		clonePortletDataContext.setEndDate(portletDataContext.getEndDate());
+		clonePortletDataContext.setGroupId(portletDataContext.getGroupId());
+		clonePortletDataContext.setNewLayouts(
+			portletDataContext.getNewLayouts());
+		clonePortletDataContext.setParameterMap(
+			portletDataContext.getParameterMap());
+		clonePortletDataContext.setScopeGroupId(
+			portletDataContext.getScopeGroupId());
+		clonePortletDataContext.setStartDate(portletDataContext.getStartDate());
+		clonePortletDataContext.setUserIdStrategy(
+			portletDataContext.getUserIdStrategy());
+		clonePortletDataContext.setUserPersonalSiteGroupId(
+			portletDataContext.getUserPersonalSiteGroupId());
+
+		return clonePortletDataContext;
+	}
 
 	@Override
 	public PortletDataContext createExportPortletDataContext(
@@ -88,7 +118,6 @@ public class PortletDataContextFactoryImpl
 		PortletDataContext portletDataContext = createPortletDataContext(
 			themeDisplay.getCompanyId(), themeDisplay.getScopeGroupId());
 
-		portletDataContext.setCompanyId(themeDisplay.getCompanyId());
 		portletDataContext.setEndDate(endDate);
 		portletDataContext.setStartDate(startDate);
 
@@ -107,7 +136,9 @@ public class PortletDataContextFactoryImpl
 			portletDataContext.setCompanyGroupId(companyGroup.getGroupId());
 		}
 		catch (Exception e) {
-			throw new IllegalStateException(e);
+			if (!CompanyThreadLocal.isDeleteInProcess()) {
+				throw new IllegalStateException(e);
+			}
 		}
 
 		portletDataContext.setCompanyId(companyId);
@@ -122,7 +153,9 @@ public class PortletDataContextFactoryImpl
 				userPersonalSiteGroup.getGroupId());
 		}
 		catch (Exception e) {
-			throw new IllegalStateException(e);
+			if (!CompanyThreadLocal.isDeleteInProcess()) {
+				throw new IllegalStateException(e);
+			}
 		}
 
 		return portletDataContext;

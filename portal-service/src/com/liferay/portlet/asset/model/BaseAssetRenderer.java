@@ -35,6 +35,7 @@ import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
 import com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil;
 import com.liferay.portlet.assetpublisher.util.AssetPublisherUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
 
 import java.util.Date;
 import java.util.Locale;
@@ -77,8 +78,16 @@ public abstract class BaseAssetRenderer implements AssetRenderer {
 	}
 
 	@Override
+	public String[] getAvailableLanguageIds() {
+		return _AVAILABLE_LANGUAGE_IDS;
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getAvailableLanguageIds}
+	 */
+	@Override
 	public String[] getAvailableLocales() {
-		return _AVAILABLE_LOCALES;
+		return getAvailableLanguageIds();
 	}
 
 	@Override
@@ -97,6 +106,11 @@ public abstract class BaseAssetRenderer implements AssetRenderer {
 			WebKeys.THEME_DISPLAY);
 
 		return getIconPath(themeDisplay);
+	}
+
+	@Override
+	public String getNewName(String oldName, String token) {
+		return TrashUtil.getNewName(oldName, token);
 	}
 
 	@Override
@@ -353,7 +367,7 @@ public abstract class BaseAssetRenderer implements AssetRenderer {
 		return sb.toString();
 	}
 
-	private static final String[] _AVAILABLE_LOCALES = new String[0];
+	private static final String[] _AVAILABLE_LANGUAGE_IDS = new String[0];
 
 	private AssetRendererFactory _assetRendererFactory;
 	private int _assetRendererType = AssetRendererFactory.TYPE_LATEST_APPROVED;

@@ -39,8 +39,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>ADD_DROPDOWN</td>
-	<td>//div[contains(@class,'add-asset-selector')]/div/div/div/ul/li/a[contains(@class,'dropdown-toggle')]</td>
+	<td>ADD_NEW_DROPDOWN</td>
+	<td>//div[contains(@class,'lfr-meta-actions add-asset-selector')]//ul/li/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -74,50 +74,50 @@
 	<td></td>
 	<td></td>
 </tr>
-<!--ADD_MENULIST-->
+<!--ADD_NEW_MENULIST-->
 <tr>
-	<td>ADD_MENULIST_BLOGS_ENTRY</td>
-	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Blogs Entry')]</td>
+	<td>ADD_NEW_MENULIST_BLOGS_ENTRY</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(@href,'asset_publisher')]/span[contains(.,'Blogs Entry')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ADD_MENULIST_BOOKMARKS_ENTRY</td>
-	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Bookmarks Entry')]</td>
+	<td>ADD_NEW_MENULIST_BOOKMARKS_ENTRY</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(@href,'asset_publisher')]/span[contains(.,'Bookmarks Entry')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ADD_MENULIST_CALENDAR_EVENT</td>
-	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Calendar Event')]</td>
+	<td>ADD_NEW_MENULIST_CALENDAR_EVENT</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(@href,'asset_publisher')]/span[contains(.,'Calendar Event')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ADD_MENULIST_BASIC_DOCUMENT</td>
-	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Basic Document')]</td>
+	<td>ADD_NEW_MENULIST_BASIC_DOCUMENT</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(@href,'asset_publisher')]/span[contains(.,'Basic Document')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ADD_MENULIST_WEB_CONTENT</td>
-	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Web Content')]</td>
+	<td>ADD_NEW_MENULIST_WEB_CONTENT</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(@href,'asset_publisher')]/span[contains(.,'Web Content Article')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ADD_MENULIST_CONTRACT</td>
-	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Contract')]</td>
+	<td>ADD_NEW_MENULIST_CONTRACT</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(@href,'asset_publisher')]/span[contains(.,'Contract')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ADD_MENULIST_MARKETING_BANNER</td>
-	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Marketing Banner')]</td>
+	<td>ADD_NEW_MENULIST_MARKETING_BANNER</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(@href,'asset_publisher')]/span[contains(.,'Marketing Banner')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ADD_MENULIST_ONLINE_TRAINING</td>
-	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Online Training')]</td>
+	<td>ADD_NEW_MENULIST_ONLINE_TRAINING</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(@href,'asset_publisher')]/span[contains(.,'Online Training')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>ADD_MENULIST_SALES_PRESENTATION</td>
-	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Sales Presentation')]</td>
+	<td>ADD_NEW_MENULIST_SALES_PRESENTATION</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(@href,'asset_publisher')]/span[contains(.,'Sales Presentation')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -126,6 +126,36 @@
 	<td></td>
 </tr>
 <!--ASSET_1-->
+<tr>
+	<td>ASSET_TITLE</td>
+	<td>//div[@class='asset-abstract ' and contains(.,'${key_assetTitle}')]//h3[@class='asset-title']/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_EDIT</td>
+	<td>//div[@class='asset-abstract ' and contains(.,'${key_assetTitle}')]//span[@class='taglib-text' and contains(.,'Edit')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_THUMBNAIL</td>
+	<td>//div[@class='asset-abstract ' and contains(.,'${key_assetTitle}')]//div[@class='asset-resource-info']/div/img</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_DESCRIPTION</td>
+	<td>//div[@class='asset-abstract ' and contains(.,'${key_assetTitle}')]//p[@class='asset-description']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_SUMMARY</td>
+	<td>//div[@class='asset-abstract ' and contains(.,'${key_assetTitle}')]//div[@class='asset-summary']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ASSET_READ_MORE</td>
+	<td>//div[@class='asset-abstract ' and contains(.,'${key_assetTitle}')]//div[@class='asset-more']/a</td>
+	<td></td>
+</tr>
 <tr>
 	<td>ASSET_TITLE_1</td>
 	<td>xpath=(//h3[@class='asset-title']/a)[1]</td>

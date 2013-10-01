@@ -357,6 +357,10 @@ public class PollsChoicePersistenceImpl extends BasePersistenceImpl<PollsChoice>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PollsChoice> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1177,6 +1181,10 @@ public class PollsChoicePersistenceImpl extends BasePersistenceImpl<PollsChoice>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PollsChoice> list = findByUuid_C(uuid, companyId, count - 1,
 				count, orderByComparator);
 
@@ -1710,6 +1718,10 @@ public class PollsChoicePersistenceImpl extends BasePersistenceImpl<PollsChoice>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByQuestionId(questionId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PollsChoice> list = findByQuestionId(questionId, count - 1, count,
 				orderByComparator);
 
@@ -2197,6 +2209,10 @@ public class PollsChoicePersistenceImpl extends BasePersistenceImpl<PollsChoice>
 	private static final String _FINDER_COLUMN_Q_N_NAME_1 = "pollsChoice.name IS NULL";
 	private static final String _FINDER_COLUMN_Q_N_NAME_2 = "pollsChoice.name = ?";
 	private static final String _FINDER_COLUMN_Q_N_NAME_3 = "(pollsChoice.name IS NULL OR pollsChoice.name = '')";
+
+	public PollsChoicePersistenceImpl() {
+		setModelClass(PollsChoice.class);
+	}
 
 	/**
 	 * Caches the polls choice in the entity cache if it is enabled.

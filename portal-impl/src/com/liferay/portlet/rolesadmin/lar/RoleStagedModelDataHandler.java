@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.xml.Element;
+import com.liferay.portal.model.Group;
 import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.Permission;
 import com.liferay.portal.model.ResourceConstants;
@@ -37,6 +38,7 @@ import com.liferay.portal.model.ResourceTypePermission;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.security.permission.PermissionConversionFilter;
 import com.liferay.portal.security.permission.PermissionConverterUtil;
+import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ResourceBlockLocalServiceUtil;
 import com.liferay.portal.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.service.ResourcePermissionServiceUtil;
@@ -54,6 +56,21 @@ public class RoleStagedModelDataHandler
 	extends BaseStagedModelDataHandler<Role> {
 
 	public static final String[] CLASS_NAMES = {Role.class.getName()};
+
+	@Override
+	public void deleteStagedModel(
+			String uuid, long groupId, String className, String extraData)
+		throws PortalException, SystemException {
+
+		Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+		Role role = RoleLocalServiceUtil.fetchRoleByUuidAndCompanyId(
+			uuid, group.getCompanyId());
+
+		if (role != null) {
+			RoleLocalServiceUtil.deleteRole(role);
+		}
+	}
 
 	@Override
 	public String[] getClassNames() {
@@ -133,8 +150,7 @@ public class RoleStagedModelDataHandler
 		Element roleElement = portletDataContext.getExportDataElement(role);
 
 		portletDataContext.addClassedModel(
-			roleElement, ExportImportPathUtil.getModelPath(role), role,
-			RolesAdminPortletDataHandler.NAMESPACE);
+			roleElement, ExportImportPathUtil.getModelPath(role), role);
 	}
 
 	@Override
@@ -145,7 +161,7 @@ public class RoleStagedModelDataHandler
 		long userId = portletDataContext.getUserId(role.getUserUuid());
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
-			role, RolesAdminPortletDataHandler.NAMESPACE);
+			role);
 
 		Role existingRole = RoleLocalServiceUtil.fetchRoleByUuidAndCompanyId(
 			role.getUuid(), portletDataContext.getCompanyId());
@@ -193,8 +209,7 @@ public class RoleStagedModelDataHandler
 			}
 		}
 
-		portletDataContext.importClassedModel(
-			role, importedRole, RolesAdminPortletDataHandler.NAMESPACE);
+		portletDataContext.importClassedModel(role, importedRole);
 	}
 
 	protected List<ResourceTypePermission> getResourceTypePermissions(

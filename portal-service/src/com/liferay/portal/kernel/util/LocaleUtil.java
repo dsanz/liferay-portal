@@ -29,8 +29,63 @@ import java.util.TreeMap;
 /**
  * @author Brian Wing Shun Chan
  * @author Raymond Augé
+ * @author Eduardo Lundgren
  */
 public class LocaleUtil {
+
+	public static final Locale BRAZIL = new Locale("pt", "BR");
+
+	public static final Locale CANADA = Locale.CANADA;
+
+	public static final Locale CANADA_FRENCH = Locale.CANADA_FRENCH;
+
+	public static final Locale CHINA = Locale.CHINA;
+
+	public static final Locale CHINESE = Locale.CHINESE;
+
+	public static final Locale ENGLISH = Locale.ENGLISH;
+
+	public static final Locale FRANCE = Locale.FRANCE;
+
+	public static final Locale FRENCH = Locale.FRENCH;
+
+	public static final Locale GERMAN = Locale.GERMAN;
+
+	public static final Locale GERMANY = Locale.GERMANY;
+
+	public static final Locale HUNGARY = new Locale("hu", "HU");
+
+	public static final Locale ITALIAN = Locale.ITALIAN;
+
+	public static final Locale ITALY = Locale.ITALY;
+
+	public static final Locale JAPAN = Locale.JAPAN;
+
+	public static final Locale JAPANESE = Locale.JAPANESE;
+
+	public static final Locale KOREA = Locale.KOREA;
+
+	public static final Locale KOREAN = Locale.KOREAN;
+
+	public static final Locale NETHERLANDS = new Locale("nl", "NL");
+
+	public static final Locale PORTUGAL = new Locale("pt", "PT");
+
+	public static final Locale PRC = Locale.PRC;
+
+	public static final Locale ROOT = Locale.ROOT;
+
+	public static final Locale SIMPLIFIED_CHINESE = Locale.SIMPLIFIED_CHINESE;
+
+	public static final Locale SPAIN = new Locale("es", "ES");
+
+	public static final Locale TAIWAN = Locale.TAIWAN;
+
+	public static final Locale TRADITIONAL_CHINESE = Locale.TRADITIONAL_CHINESE;
+
+	public static final Locale UK = Locale.UK;
+
+	public static final Locale US = Locale.US;
 
 	public static boolean equals(Locale locale1, Locale locale2) {
 		return getInstance()._equals(locale1, locale2);
@@ -42,6 +97,12 @@ public class LocaleUtil {
 
 	public static Locale fromLanguageId(String languageId, boolean validate) {
 		return getInstance()._fromLanguageId(languageId, validate);
+	}
+
+	public static Locale fromLanguageId(
+		String languageId, boolean validate, boolean useDefault) {
+
+		return getInstance()._fromLanguageId(languageId, validate, useDefault);
 	}
 
 	public static Locale[] fromLanguageIds(List<String> languageIds) {
@@ -82,10 +143,34 @@ public class LocaleUtil {
 		return getInstance()._getShortDisplayName(locale, duplicateLanguages);
 	}
 
+	public static Locale getSiteDefault() {
+		return getInstance()._getSiteDefault();
+	}
+
 	public static void setDefault(
 		String userLanguage, String userCountry, String userVariant) {
 
 		getInstance()._setDefault(userLanguage, userCountry, userVariant);
+	}
+
+	public static String toBCP47LanguageId(Locale locale) {
+		return getInstance()._toBCP47LanguageId(locale);
+	}
+
+	public static String toBCP47LanguageId(String languageId) {
+		return getInstance()._toBCP47LanguageId(languageId);
+	}
+
+	public static String[] toBCP47LanguageIds(Locale[] locales) {
+		return getInstance()._toBCP47LanguageIds(locales);
+	}
+
+	public static String[] toBCP47LanguageIds(String[] languageIds) {
+		return getInstance()._toBCP47LanguageIds(languageIds);
+	}
+
+	public static String[] toDisplayNames(Locale[] locales, Locale locale) {
+		return getInstance()._toDisplayNames(locales, locale);
 	}
 
 	public static String toLanguageId(Locale locale) {
@@ -120,12 +205,23 @@ public class LocaleUtil {
 		String languageId1 = _toLanguageId(locale1);
 		String languageId2 = _toLanguageId(locale2);
 
-		return languageId1.equalsIgnoreCase(languageId2);
+		return StringUtil.equalsIgnoreCase(languageId1, languageId2);
 	}
 
 	private Locale _fromLanguageId(String languageId, boolean validate) {
+		return _fromLanguageId(languageId, validate, true);
+	}
+
+	private Locale _fromLanguageId(
+		String languageId, boolean validate, boolean useDefault) {
+
 		if (languageId == null) {
-			return _locale;
+			if (useDefault) {
+				return _locale;
+			}
+			else {
+				return null;
+			}
 		}
 
 		Locale locale = _locales.get(languageId);
@@ -175,7 +271,7 @@ public class LocaleUtil {
 			}
 		}
 
-		if (locale == null) {
+		if ((locale == null) && useDefault) {
 			locale = _locale;
 		}
 
@@ -273,13 +369,24 @@ public class LocaleUtil {
 
 		if (language.length() > 3) {
 			language = locale.getLanguage();
-			language = language.toUpperCase();
+			language = StringUtil.toUpperCase(language);
 		}
 
 		String country = locale.getCountry();
 
 		return _getDisplayName(
-			language, country.toUpperCase(), locale, duplicateLanguages);
+			language, StringUtil.toUpperCase(country), locale,
+			duplicateLanguages);
+	}
+
+	private Locale _getSiteDefault() {
+		Locale locale = LocaleThreadLocal.getSiteDefaultLocale();
+
+		if (locale != null) {
+			return locale;
+		}
+
+		return _getDefault();
 	}
 
 	private void _setDefault(
@@ -304,6 +411,47 @@ public class LocaleUtil {
 
 			_locale = new Locale(userLanguage, userCountry, userVariant);
 		}
+	}
+
+	private String _toBCP47LanguageId(Locale locale) {
+		return _toBCP47LanguageId(_toLanguageId(locale));
+	}
+
+	private String _toBCP47LanguageId(String languageId) {
+		if (languageId.equals("zh_CN")) {
+			return "zh-Hans-CN";
+		}
+		else if (languageId.equals("zh_TW")) {
+			return "zh-Hant-TW";
+		}
+		else {
+			return StringUtil.replace(
+				languageId, CharPool.UNDERLINE, CharPool.MINUS);
+		}
+	}
+
+	private String[] _toBCP47LanguageIds(Locale[] locales) {
+		return _toBCP47LanguageIds(_toLanguageIds(locales));
+	}
+
+	private String[] _toBCP47LanguageIds(String[] languageIds) {
+		String[] bcp47LanguageIds = new String[languageIds.length];
+
+		for (int i = 0; i < languageIds.length; i++) {
+			bcp47LanguageIds[i] = _toBCP47LanguageId(languageIds[i]);
+		}
+
+		return bcp47LanguageIds;
+	}
+
+	private String[] _toDisplayNames(Locale[] locales, Locale locale) {
+		String[] displayNames = new String[locales.length];
+
+		for (int i = 0; i < locales.length; i++) {
+			displayNames[i] = locales[i].getDisplayName(locale);
+		}
+
+		return displayNames;
 	}
 
 	private String _toLanguageId(Locale locale) {

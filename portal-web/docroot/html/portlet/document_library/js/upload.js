@@ -67,9 +67,11 @@ AUI.add(
 
 		var SELECTOR_SEARCH_CONTAINER = '.searchcontainer';
 
-		var SELECTOR_ENTRY_DISPLAY_STYLE = '.' + CSS_ENTRY_DISPLAY_STYLE;
+		var STR_DOT = '.';
 
-		var SELECTOR_TAGLIB_ICON = '.' + CSS_TAGLIB_ICON;
+		var SELECTOR_ENTRY_DISPLAY_STYLE = STR_DOT + CSS_ENTRY_DISPLAY_STYLE;
+
+		var SELECTOR_TAGLIB_ICON = STR_DOT + CSS_TAGLIB_ICON;
 
 		var SIZE_DENOMINATOR = 1024;
 
@@ -91,6 +93,8 @@ AUI.add(
 
 		var STR_SIZE_SUFFIX_GB = 'GB';
 
+		var STR_SPACE = ' ';
+
 		var STR_THUMBNAIL_EXTENSION = '.png';
 
 		var STR_THUMBNAIL_DEFAULT = 'default' + STR_THUMBNAIL_EXTENSION;
@@ -107,7 +111,7 @@ AUI.add(
 
 		var UPLOADER_TYPE = A.Uploader.TYPE || 'none';
 
-		var TPL_ENTRY_ROW_TITLE = '<span class="' + CSS_APP_VIEW_ENTRY + ' ' + CSS_ENTRY_DISPLAY_STYLE + '">' +
+		var TPL_ENTRY_ROW_TITLE = '<span class="' + CSS_APP_VIEW_ENTRY + STR_SPACE + CSS_ENTRY_DISPLAY_STYLE + '">' +
 			'<a class="' + CSS_TAGLIB_ICON + '">' +
 				'<img alt="" class="' + CSS_ICON + '" src="' + PATH_THEME_IMAGES + '/file_system/small/page.png" />' +
 				'<span class="' + CSS_TAGLIB_TEXT + '">{0}</span>' +
@@ -135,7 +139,7 @@ AUI.add(
 			initializer: function() {
 				var instance = this;
 
-				if (themeDisplay.isSignedIn()) {
+				if (themeDisplay.isSignedIn() && (UPLOADER_TYPE === 'html5') && !UA.touch && instance.one('#addButtonContainer')) {
 					instance._initDLUpload();
 				}
 			},
@@ -210,26 +214,34 @@ AUI.add(
 					500
 				);
 
+				if (instance._appViewMove.get('updateable')) {
+					var dd = instance._appViewMove._ddHandler.dd;
+
+					dd.addInvalid(STR_DOT + CSS_UPLOAD_ERROR);
+				}
+
 				docElement.on(
 					'dragover',
 					function(event) {
-						var originalEvent = event._event;
+						var dataTransfer = event._event.dataTransfer;
 
-						var dataTransfer = originalEvent.dataTransfer;
+						if (dataTransfer && dataTransfer.types) {
+							var dataTransferTypes = dataTransfer.types || [];
 
-						if (dataTransfer && AArray.indexOf(dataTransfer.types, 'Files') > -1) {
-							event.halt();
+							if ((AArray.indexOf(dataTransferTypes, 'Files') > -1) && (AArray.indexOf(dataTransferTypes, 'text/html') === -1)) {
+								event.halt();
 
-							docElement.addClass('upload-drop-intent');
+								dataTransfer.dropEffect = 'copy';
 
-							var target = event.target;
+								docElement.addClass('upload-drop-intent');
 
-							docElement.toggleClass('upload-drop-active', (target.compareTo(entriesContainer) || entriesContainer.contains(target)));
+								var target = event.target;
 
-							dataTransfer.dropEffect = 'copy';
+								docElement.toggleClass('upload-drop-active', (target.compareTo(entriesContainer) || entriesContainer.contains(target)));
+
+								removeCssClassTask();
+							}
 						}
-
-						removeCssClassTask();
 					}
 				);
 
@@ -238,21 +250,25 @@ AUI.add(
 					function(event) {
 						var dataTransfer = event._event.dataTransfer;
 
-						var dragDropFiles = dataTransfer && AArray(dataTransfer.files);
+						if (dataTransfer) {
+							var dataTransferTypes = dataTransfer.types || [];
 
-						if (AArray.indexOf(dataTransfer.types, 'Files') > -1) {
-							event.halt();
+							if ((AArray.indexOf(dataTransferTypes, 'Files') > -1) && (AArray.indexOf(dataTransferTypes, 'text/html') === -1)) {
+								event.halt();
 
-							event.fileList = AArray.map(
-								dragDropFiles,
-								function(item, index, collection) {
-									return new A.FileHTML5(item);
-								}
-							);
+								var dragDropFiles = AArray(dataTransfer.files);
 
-							var uploader = instance._getUploader();
+								event.fileList = AArray.map(
+									dragDropFiles,
+									function(item, index, collection) {
+										return new A.FileHTML5(item);
+									}
+								);
 
-							uploader.fire('fileselect', event);
+								var uploader = instance._getUploader();
+
+								uploader.fire('fileselect', event);
+							}
 						}
 					},
 					'body, .document-container, .overlaymask, .progressbar, [data-folder="true"]'
@@ -261,11 +277,25 @@ AUI.add(
 				entriesContainer.delegate(
 					['dragleave', 'dragover'],
 					function(event) {
-						var parentElement = event.target.ancestor(SELECTOR_ENTRY_DISPLAY_STYLE);
+						var dataTransfer = event._event.dataTransfer;
 
-						parentElement.toggleClass(CSS_ACTIVE_AREA, event.type == 'dragover');
+						var dataTransferTypes = dataTransfer.types;
+
+						if ((AArray.indexOf(dataTransferTypes, 'Files') > -1) && (AArray.indexOf(dataTransferTypes, 'text/html') === -1)) {
+							var parentElement = event.target.ancestor(SELECTOR_ENTRY_DISPLAY_STYLE);
+
+							parentElement.toggleClass(CSS_ACTIVE_AREA, event.type == 'dragover');
+						}
 					},
 					SELECTOR_DATA_FOLDER
+				);
+
+				entriesContainer.delegate(
+					'click',
+					function(event) {
+						event.preventDefault();
+					},
+					STR_DOT + CSS_UPLOAD_ERROR + STR_SPACE + SELECTOR_ENTRY_LINK
 				);
 			},
 
@@ -308,7 +338,9 @@ AUI.add(
 			_confirmUnload: function() {
 				var instance = this;
 
-				return instance._isUploading() ? Liferay.Language.get('uploads-are-in-progress-confirmation') : null;
+				if (instance._isUploading()) {
+					return Liferay.Language.get('uploads-are-in-progress-confirmation');
+				}
 			},
 
 			_createEntryNode: function(name, size, displayStyle) {
@@ -855,41 +887,40 @@ AUI.add(
 			_initDLUpload: function() {
 				var instance = this;
 
-				if (UPLOADER_TYPE == 'html5' && !UA.touch) {
-					var config = instance._config;
+				var config = instance._config;
 
-					var maxFileSize = config.maxFileSize;
+				var maxFileSize = config.maxFileSize;
 
-					var foldersConfig = config.folders;
+				var foldersConfig = config.folders;
 
-					instance._folderId = foldersConfig.defaultParentFolderId;
+				instance._folderId = foldersConfig.defaultParentFolderId;
 
-					instance._attachEventHandlers();
+				instance._attachEventHandlers();
 
-					var columnNames = config.columnNames;
+				var columnNames = config.columnNames;
 
-					columnNames.push('');
-					columnNames.unshift('');
+				columnNames.push('');
+				columnNames.unshift('');
 
-					instance._columnNames = columnNames;
+				instance._columnNames = columnNames;
 
-					instance._dimensions = foldersConfig.dimensions;
+				instance._dimensions = foldersConfig.dimensions;
 
-					instance._handles = [];
-					instance._tooltipDelegates = [];
+				instance._handles = [];
+				instance._tooltipDelegates = [];
 
-					var appViewEntryTemplates = instance.byId('appViewEntryTemplates');
+				var appViewEntryTemplates = instance.byId('appViewEntryTemplates');
 
-					instance._invisibleDescriptiveEntry = appViewEntryTemplates.one(SELECTOR_ENTRY_DISPLAY_STYLE + SELECTOR_DISPLAY_DESCRIPTIVE);
-					instance._invisibleIconEntry = appViewEntryTemplates.one(SELECTOR_ENTRY_DISPLAY_STYLE + SELECTOR_DISPLAY_ICON);
+				instance._invisibleDescriptiveEntry = appViewEntryTemplates.one(SELECTOR_ENTRY_DISPLAY_STYLE + SELECTOR_DISPLAY_DESCRIPTIVE);
+				instance._invisibleIconEntry = appViewEntryTemplates.one(SELECTOR_ENTRY_DISPLAY_STYLE + SELECTOR_DISPLAY_ICON);
 
-					instance._maxFileSize = maxFileSize;
+				instance._maxFileSize = maxFileSize;
 
-					instance._viewFileEntryURL = config.viewFileEntryURL;
+				instance._viewFileEntryURL = config.viewFileEntryURL;
 
-					instance._invalidFileSizeText = Liferay.Language.get('please-enter-a-file-with-a-valid-file-size-no-larger-than-x');
-					instance._zeroByteFileText = Liferay.Language.get('the-file-contains-no-data-and-cannot-be-uploaded.-please-use-the-classic-uploader');
-				}
+				instance._invalidFileSizeText = Liferay.Language.get('please-enter-a-file-with-a-valid-file-size-no-larger-than-x');
+				instance._invalidFileType = Liferay.Language.get('please-enter-a-file-with-a-valid-file-type');
+				instance._zeroByteFileText = Liferay.Language.get('the-file-contains-no-data-and-cannot-be-uploaded.-please-use-the-classic-uploader');
 			},
 
 			_isUploading: function() {
@@ -1131,7 +1162,7 @@ AUI.add(
 				var selector = SELECTOR_ENTRY_LINK;
 
 				if (displayStyleList) {
-					selector = SELECTOR_ENTRY_DISPLAY_STYLE + ' ' + SELECTOR_TAGLIB_ICON;
+					selector = SELECTOR_ENTRY_DISPLAY_STYLE + STR_SPACE + SELECTOR_TAGLIB_ICON;
 				}
 
 				var link = node.one(selector);
@@ -1216,9 +1247,13 @@ AUI.add(
 						var errorMessage;
 
 						var size = item.get('size') || 0;
+						var type = item.get('type') || '';
 
 						if ((maxFileSize !== 0) && (size > maxFileSize)) {
 							errorMessage = invalidSizeText;
+						}
+						else if (!type) {
+							errorMessage = instance._invalidFileType;
 						}
 						else if (size === 0) {
 							errorMessage = instance._zeroByteFileText;

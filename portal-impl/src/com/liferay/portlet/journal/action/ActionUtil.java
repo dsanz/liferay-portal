@@ -14,10 +14,14 @@
 
 package com.liferay.portlet.journal.action;
 
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeFormatter;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.security.permission.ActionKeys;
@@ -31,6 +35,10 @@ import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
 import com.liferay.portlet.dynamicdatamapping.service.DDMStructureServiceUtil;
 import com.liferay.portlet.dynamicdatamapping.service.DDMTemplateServiceUtil;
+import com.liferay.portlet.dynamicdatamapping.storage.Field;
+import com.liferay.portlet.dynamicdatamapping.storage.FieldConstants;
+import com.liferay.portlet.dynamicdatamapping.storage.Fields;
+import com.liferay.portlet.dynamicdatamapping.util.DDMUtil;
 import com.liferay.portlet.journal.NoSuchArticleException;
 import com.liferay.portlet.journal.NoSuchFolderException;
 import com.liferay.portlet.journal.model.JournalArticle;
@@ -43,10 +51,16 @@ import com.liferay.portlet.journal.service.JournalArticleServiceUtil;
 import com.liferay.portlet.journal.service.JournalFeedServiceUtil;
 import com.liferay.portlet.journal.service.JournalFolderServiceUtil;
 import com.liferay.portlet.journal.service.permission.JournalPermission;
+import com.liferay.portlet.journal.util.JournalConverterUtil;
 import com.liferay.portlet.journal.util.JournalUtil;
 
+import java.io.Serializable;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.PortletRequest;
@@ -156,18 +170,25 @@ public class ActionUtil {
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
+		long resourcePrimKey = ParamUtil.getLong(request, "resourcePrimKey");
 		long groupId = ParamUtil.getLong(
 			request, "groupId", themeDisplay.getScopeGroupId());
 		long classNameId = ParamUtil.getLong(request, "classNameId");
 		long classPK = ParamUtil.getLong(request, "classPK");
 		String articleId = ParamUtil.getString(request, "articleId");
 		String structureId = ParamUtil.getString(request, "structureId");
+		int status = ParamUtil.getInteger(
+			request, "status", WorkflowConstants.STATUS_ANY);
 
 		JournalArticle article = null;
 
-		if (!cmd.equals(Constants.ADD) && Validator.isNotNull(articleId)) {
+		if (cmd.equals(Constants.ADD) && (resourcePrimKey != 0)) {
+			article = JournalArticleLocalServiceUtil.getLatestArticle(
+				resourcePrimKey, status, false);
+		}
+		else if (!cmd.equals(Constants.ADD) && Validator.isNotNull(articleId)) {
 			article = JournalArticleServiceUtil.getLatestArticle(
-				groupId, articleId, WorkflowConstants.STATUS_ANY);
+				groupId, articleId, status);
 		}
 		else if ((classNameId > 0) &&
 				 (classPK > JournalArticleConstants.CLASSNAME_ID_DEFAULT)) {
@@ -208,6 +229,7 @@ public class ActionUtil {
 			article.setNew(true);
 
 			article.setId(0);
+			article.setGroupId(groupId);
 			article.setClassNameId(
 				JournalArticleConstants.CLASSNAME_ID_DEFAULT);
 			article.setClassPK(0);
@@ -264,6 +286,21 @@ public class ActionUtil {
 			portletRequest);
 
 		getArticles(request);
+	}
+
+	public static Object[] getContentAndImages(
+			DDMStructure ddmStructure, Locale locale,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		Fields fields = DDMUtil.getFields(
+			ddmStructure.getStructureId(), serviceContext);
+
+		Map<String, byte[]> images = getImages(fields, locale);
+
+		return new Object[] {
+			JournalConverterUtil.getContent(ddmStructure, fields), images
+		};
 	}
 
 	public static void getFeed(HttpServletRequest request) throws Exception {
@@ -406,6 +443,43 @@ public class ActionUtil {
 			WebKeys.JOURNAL_TEMPLATE);
 
 		JournalUtil.addRecentDDMTemplate(portletRequest, ddmTemplate);
+	}
+
+	protected static Map<String, byte[]> getImages(Fields fields, Locale locale)
+		throws Exception {
+
+		Map<String, byte[]> images = new HashMap<String, byte[]>();
+
+		for (Field field : fields) {
+			String dataType = field.getDataType();
+
+			if (!dataType.equals(FieldConstants.IMAGE)) {
+				continue;
+			}
+
+			List<Serializable> values = field.getValues(locale);
+
+			for (int i = 0; i < values.size(); i++) {
+				String content = (String)values.get(i);
+
+				if (content.equals("update")) {
+					continue;
+				}
+
+				StringBundler sb = new StringBundler(6);
+
+				sb.append(StringPool.UNDERLINE);
+				sb.append(field.getName());
+				sb.append(StringPool.UNDERLINE);
+				sb.append(i);
+				sb.append(StringPool.UNDERLINE);
+				sb.append(LanguageUtil.getLanguageId(locale));
+
+				images.put(sb.toString(), UnicodeFormatter.hexToBytes(content));
+			}
+		}
+
+		return images;
 	}
 
 	protected static boolean hasArticle(ActionRequest actionRequest)

@@ -79,7 +79,6 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 
 	</c:when>
 	<c:when test='<%= topLink.equals("message-boards-home") %>'>
-		<%@ include file="/html/portlet/message_boards/category_subscriptions.jspf" %>
 
 		<%
 		boolean showAddCategoryButton = MBCategoryPermission.contains(permissionChecker, scopeGroupId, categoryId, ActionKeys.ADD_CATEGORY);
@@ -102,7 +101,7 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 						<portlet:param name="parentCategoryId" value="<%= String.valueOf(categoryId) %>" />
 					</portlet:renderURL>
 
-					<aui:button href="<%= editCategoryURL %>" value='<%= (category == null) ? "add-category" : "add-subcategory" %>' />
+					<aui:button href="<%= editCategoryURL %>" value='<%= (category == null) ? "add-category[message-board]" : "add-subcategory[message-board]" %>' />
 				</c:if>
 
 				<c:if test="<%= showAddMessageButton %>">
@@ -134,14 +133,70 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 						modelResourceDescription="<%= HtmlUtil.escape(modelResourceDescription) %>"
 						resourcePrimKey="<%= resourcePrimKey %>"
 						var="permissionsURL"
+						windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 					/>
 
-					<aui:button href="<%= permissionsURL %>" value="permissions" />
+					<aui:button href="<%= permissionsURL %>" useDialog="<%= true %>" value="permissions" />
 				</c:if>
 			</div>
+
+			<%@ include file="/html/portlet/message_boards/category_subscriptions.jspf" %>
 		</c:if>
 
 		<c:if test="<%= category != null %>">
+			<div class="category-subscription category-subscription-types">
+				<c:if test="<%= enableRSS %>">
+
+					<%
+					if (category.getCategoryId() > 0) {
+						rssURL.setParameter("mbCategoryId", String.valueOf(category.getCategoryId()));
+					}
+					else {
+						rssURL.setParameter("groupId", String.valueOf(scopeGroupId));
+					}
+					%>
+
+					<liferay-ui:rss
+						delta="<%= rssDelta %>"
+						displayStyle="<%= rssDisplayStyle %>"
+						feedType="<%= rssFeedType %>"
+						resourceURL="<%= rssURL %>"
+					/>
+				</c:if>
+
+				<c:if test="<%= MBCategoryPermission.contains(permissionChecker, category, ActionKeys.SUBSCRIBE) && (MBUtil.getEmailMessageAddedEnabled(portletPreferences) || MBUtil.getEmailMessageUpdatedEnabled(portletPreferences)) %>">
+					<c:choose>
+						<c:when test="<%= (categorySubscriptionClassPKs != null) && categorySubscriptionClassPKs.contains(category.getCategoryId()) %>">
+							<portlet:actionURL var="unsubscribeURL">
+								<portlet:param name="struts_action" value="/message_boards/edit_category" />
+								<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.UNSUBSCRIBE %>" />
+								<portlet:param name="redirect" value="<%= currentURL %>" />
+								<portlet:param name="mbCategoryId" value="<%= String.valueOf(category.getCategoryId()) %>" />
+							</portlet:actionURL>
+
+							<liferay-ui:icon
+								image="unsubscribe"
+								label="<%= true %>"
+								url="<%= unsubscribeURL %>"
+							/>
+						</c:when>
+						<c:otherwise>
+							<portlet:actionURL var="subscribeURL">
+								<portlet:param name="struts_action" value="/message_boards/edit_category" />
+								<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.SUBSCRIBE %>" />
+								<portlet:param name="redirect" value="<%= currentURL %>" />
+								<portlet:param name="mbCategoryId" value="<%= String.valueOf(category.getCategoryId()) %>" />
+							</portlet:actionURL>
+
+							<liferay-ui:icon
+								image="subscribe"
+								label="<%= true %>"
+								url="<%= subscribeURL %>"
+							/>
+						</c:otherwise>
+					</c:choose>
+				</c:if>
+			</div>
 
 			<%
 			long parentCategoryId = category.getParentCategoryId();
@@ -166,62 +221,6 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 				localizeTitle="<%= false %>"
 				title="<%= category.getName() %>"
 			/>
-
-			<div class="thread-actions">
-				<liferay-ui:icon-list>
-					<c:if test="<%= enableRSS %>">
-
-						<%
-						if (category.getCategoryId() > 0) {
-							rssURL.setParameter("mbCategoryId", String.valueOf(category.getCategoryId()));
-						}
-						else {
-							rssURL.setParameter("groupId", String.valueOf(scopeGroupId));
-						}
-						%>
-
-						<liferay-ui:rss
-							delta="<%= rssDelta %>"
-							displayStyle="<%= rssDisplayStyle %>"
-							feedType="<%= rssFeedType %>"
-							resourceURL="<%= rssURL %>"
-						/>
-					</c:if>
-
-					<c:if test="<%= MBCategoryPermission.contains(permissionChecker, category, ActionKeys.SUBSCRIBE) && (MBUtil.getEmailMessageAddedEnabled(portletPreferences) || MBUtil.getEmailMessageUpdatedEnabled(portletPreferences)) %>">
-						<c:choose>
-							<c:when test="<%= (categorySubscriptionClassPKs != null) && categorySubscriptionClassPKs.contains(category.getCategoryId()) %>">
-								<portlet:actionURL var="unsubscribeURL">
-									<portlet:param name="struts_action" value="/message_boards/edit_category" />
-									<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.UNSUBSCRIBE %>" />
-									<portlet:param name="redirect" value="<%= currentURL %>" />
-									<portlet:param name="mbCategoryId" value="<%= String.valueOf(category.getCategoryId()) %>" />
-								</portlet:actionURL>
-
-								<liferay-ui:icon
-									image="unsubscribe"
-									label="<%= true %>"
-									url="<%= unsubscribeURL %>"
-								/>
-							</c:when>
-							<c:otherwise>
-								<portlet:actionURL var="subscribeURL">
-									<portlet:param name="struts_action" value="/message_boards/edit_category" />
-									<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.SUBSCRIBE %>" />
-									<portlet:param name="redirect" value="<%= currentURL %>" />
-									<portlet:param name="mbCategoryId" value="<%= String.valueOf(category.getCategoryId()) %>" />
-								</portlet:actionURL>
-
-								<liferay-ui:icon
-									image="subscribe"
-									label="<%= true %>"
-									url="<%= subscribeURL %>"
-								/>
-							</c:otherwise>
-						</c:choose>
-					</c:if>
-				</liferay-ui:icon-list>
-			</div>
 		</c:if>
 
 		<div class="displayStyle-<%= displayStyle %>">
@@ -429,15 +428,15 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 					value="<%= HtmlUtil.escape(PortalUtil.getUserName(ban.getUserId(), StringPool.BLANK)) %>"
 				/>
 
-				<liferay-ui:search-container-column-text
+				<liferay-ui:search-container-column-date
 					name="ban-date"
-					value="<%= dateFormatDateTime.format(ban.getCreateDate()) %>"
+					value="<%= ban.getCreateDate() %>"
 				/>
 
 				<c:if test="<%= PropsValues.MESSAGE_BOARDS_EXPIRE_BAN_INTERVAL > 0 %>">
-					<liferay-ui:search-container-column-text
+					<liferay-ui:search-container-column-date
 						name="unban-date"
-						value="<%= dateFormatDateTime.format(MBUtil.getUnbanDate(ban, PropsValues.MESSAGE_BOARDS_EXPIRE_BAN_INTERVAL)) %>"
+						value="<%= MBUtil.getUnbanDate(ban, PropsValues.MESSAGE_BOARDS_EXPIRE_BAN_INTERVAL) %>"
 					/>
 				</c:if>
 

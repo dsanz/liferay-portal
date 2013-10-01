@@ -52,6 +52,7 @@ import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.XPath;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.ModelHintsUtil;
 import com.liferay.portal.model.User;
@@ -101,6 +102,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.regex.Pattern;
 
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
@@ -886,6 +888,35 @@ public class JournalUtil {
 		return portletURL.toString();
 	}
 
+	public static long getPreviewPlid(
+			JournalArticle article, ThemeDisplay themeDisplay)
+		throws Exception {
+
+		if ((article != null) && Validator.isNotNull(article.getLayoutUuid())) {
+			Layout layout =
+				LayoutLocalServiceUtil.getLayoutByUuidAndCompanyId(
+					article.getLayoutUuid(), themeDisplay.getCompanyId());
+
+			return layout.getPlid();
+		}
+
+		Layout layout = LayoutLocalServiceUtil.fetchFirstLayout(
+			themeDisplay.getScopeGroupId(), false,
+			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
+
+		if (layout == null) {
+			layout = LayoutLocalServiceUtil.fetchFirstLayout(
+				themeDisplay.getScopeGroupId(), true,
+				LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
+		}
+
+		if (layout != null) {
+			return layout.getPlid();
+		}
+
+		return themeDisplay.getPlid();
+	}
+
 	public static Stack<JournalArticle> getRecentArticles(
 		PortletRequest portletRequest) {
 
@@ -1061,7 +1092,7 @@ public class JournalUtil {
 			return String.valueOf(id);
 		}
 
-		title = title.trim().toLowerCase();
+		title = StringUtil.toLowerCase(title.trim());
 
 		if (Validator.isNull(title) || Validator.isNumber(title) ||
 			title.equals("rss")) {
@@ -1070,7 +1101,7 @@ public class JournalUtil {
 		}
 		else {
 			title = FriendlyURLNormalizerUtil.normalize(
-				title, _URL_TITLE_REPLACE_CHARS);
+				title, _friendlyURLPattern);
 		}
 
 		return ModelHintsUtil.trimString(
@@ -1096,7 +1127,7 @@ public class JournalUtil {
 
 			_mergeArticleContentUpdate(
 				curDocument, newRootElement,
-				LocaleUtil.toLanguageId(LocaleUtil.getDefault()));
+				LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault()));
 
 			if (removeNullElements) {
 				_mergeArticleContentDelete(curRootElement, newDocument);
@@ -1428,8 +1459,9 @@ public class JournalUtil {
 			}
 		}
 
-		Element newContentElement = newElement.elements(
-			"dynamic-content").get(0);
+		List<Element> elements = newElement.elements("dynamic-content");
+
+		Element newContentElement = elements.get(0);
 
 		String newLanguageId = newContentElement.attributeValue("language-id");
 		String newValue = newContentElement.getText();
@@ -1761,13 +1793,10 @@ public class JournalUtil {
 		path.pop();
 	}
 
-	private static final char[] _URL_TITLE_REPLACE_CHARS = new char[] {
-		'.', '/'
-	};
-
 	private static Log _log = LogFactoryUtil.getLog(JournalUtil.class);
 
 	private static Map<String, String> _customTokens;
+	private static Pattern _friendlyURLPattern = Pattern.compile("[^a-z0-9_-]");
 	private static Transformer _transformer = new Transformer(
 		PropsKeys.JOURNAL_TRANSFORMER_LISTENER,
 		PropsKeys.JOURNAL_ERROR_TEMPLATE, true);

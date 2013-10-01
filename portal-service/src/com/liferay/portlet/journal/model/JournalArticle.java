@@ -39,6 +39,10 @@ public interface JournalArticle extends JournalArticleModel, PersistedModel {
 			}
 		};
 
+	public java.lang.String buildTreePath()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
 	public java.lang.String getArticleImageURL(
 		com.liferay.portal.theme.ThemeDisplay themeDisplay);
 
@@ -50,21 +54,28 @@ public interface JournalArticle extends JournalArticleModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getAvailableLanguageIds}
+	*/
 	public java.lang.String[] getAvailableLocales();
 
 	public java.lang.String getContentByLocale(java.lang.String languageId);
 
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getDefaultLanguageId}
+	*/
 	public java.lang.String getDefaultLocale();
 
-	public com.liferay.portlet.journal.model.JournalFolder getFolder();
+	public com.liferay.portlet.journal.model.JournalFolder getFolder()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
 
 	public java.lang.String getSmallImageType()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
-	public com.liferay.portlet.journal.model.JournalFolder getTrashContainer();
-
-	public boolean isInTrashContainer();
+	public boolean hasApprovedVersion()
+		throws com.liferay.portal.kernel.exception.SystemException;
 
 	public boolean isTemplateDriven();
 

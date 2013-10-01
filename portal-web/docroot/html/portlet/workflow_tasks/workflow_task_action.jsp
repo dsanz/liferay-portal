@@ -26,9 +26,7 @@ ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_
 WorkflowTask workflowTask = null;
 
 if (row != null) {
-	randomId = PwdGenerator.getPassword(PwdGenerator.KEY3, 4);
-
-	Object result = row.getObject();
+	randomId = StringUtil.randomId();
 
 	workflowTask = (WorkflowTask)row.getParameter("workflowTask");
 }
@@ -69,7 +67,7 @@ long[] pooledActorsIds = WorkflowTaskManagerUtil.getPooledActorsIds(company.getC
 			<liferay-ui:icon
 				cssClass='<%= "workflow-task-" + randomId + " task-change-status-link" %>'
 				id='<%= randomId + transitionName + "taskChangeStatusLink" %>'
-				image="../aui/shuffle"
+				image="../aui/random"
 				message="<%= message %>"
 				method="get"
 				url="<%= editURL %>"

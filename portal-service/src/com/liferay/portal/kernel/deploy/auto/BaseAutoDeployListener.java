@@ -16,6 +16,7 @@ package com.liferay.portal.kernel.deploy.auto;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,6 +47,18 @@ public abstract class BaseAutoDeployListener implements AutoDeployListener {
 			!isMatchingFile(file, "WEB-INF/liferay-portlet.xml") &&
 			!fileName.contains("-theme") && !fileName.contains("-web") &&
 			!isJarFile(file)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public boolean isLayoutTemplatePlugin(File file)
+		throws AutoDeployException {
+
+		if (isMatchingFile(file, "WEB-INF/liferay-layout-templates.xml") &&
+			!isThemePlugin(file)) {
 
 			return true;
 		}
@@ -108,7 +121,7 @@ public abstract class BaseAutoDeployListener implements AutoDeployListener {
 	public boolean isMatchingFileExtension(File file, String ... extensions) {
 		String fileName = file.getName();
 
-		fileName = fileName.toLowerCase();
+		fileName = StringUtil.toLowerCase(fileName);
 
 		for (String extension : extensions) {
 			if (fileName.endsWith(extension)) {

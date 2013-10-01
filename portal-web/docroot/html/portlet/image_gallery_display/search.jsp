@@ -78,50 +78,43 @@ boolean useAssetEntryQuery = false;
 	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, null, LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>"));
 
 	try {
-		Indexer indexer = IndexerRegistryUtil.getIndexer(DLFileEntryConstants.getClassName());
-
 		SearchContext searchContext = SearchContextFactory.getInstance(request);
 
+		searchContext.setAttribute("mimeTypes", mediaGalleryMimeTypes);
 		searchContext.setAttribute("paginationType", "more");
 		searchContext.setEnd(searchContainer.getEnd());
 		searchContext.setFolderIds(folderIdsArray);
 		searchContext.setKeywords(keywords);
 		searchContext.setStart(searchContainer.getStart());
 
-		Hits hits = indexer.search(searchContext);
+		Hits hits = DLAppServiceUtil.search(repositoryId, searchContext);
+
+		searchContainer.setTotal(hits.getLength());
 
 		List results = new ArrayList(hits.getDocs().length);
 
 		for (int i = 0; i < hits.getDocs().length; i++) {
 			Document doc = hits.doc(i);
 
-			long fileEntryId = GetterUtil.getLong(doc.get(Field.ENTRY_CLASS_PK));
+			String entryClassName = GetterUtil.getString(doc.get(Field.ENTRY_CLASS_NAME));
 
-			try {
-				FileEntry fileEntry = DLAppLocalServiceUtil.getFileEntry(fileEntryId);
+			long entryClassPK = GetterUtil.getLong(doc.get(Field.ENTRY_CLASS_PK));
 
-				if (ArrayUtil.contains(mediaGalleryMimeTypes, fileEntry.getMimeType())) {
-					results.add(fileEntry);
-				}
+			if (entryClassName.equals(DLFileEntry.class.getName())) {
+				results.add(DLAppLocalServiceUtil.getFileEntry(entryClassPK));
 			}
-			catch (Exception e) {
-				if (_log.isWarnEnabled()) {
-					_log.warn("Documents and Media search index is stale and contains document " + fileEntryId);
-				}
+			else if (entryClassName.equals(DLFolder.class.getName())) {
+				results.add(DLAppLocalServiceUtil.getFolder(entryClassPK));
 			}
 		}
 
-		int total = results.size();
-
-		searchContainer.setTotal(total);
+		searchContainer.setResults(results);
 	%>
 
 	<div id="<portlet:namespace />imageGalleryAssetInfo">
-			<span class="form-search">
-				<aui:input inlineField="<%= true %>" label="" name="keywords" size="30" title="search-images" type="text" value="<%= keywords %>" />
-
-				<aui:button type="submit" value="search" />
-			</span>
+			<div class="form-search">
+				<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" id="keywords" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' title='<%= LanguageUtil.get(locale, "search-images") %>' />
+			</div>
 
 		<br /><br />
 
@@ -134,7 +127,6 @@ boolean useAssetEntryQuery = false;
 
 		request.setAttribute("view.jsp-folderId", String.valueOf(folderId));
 		request.setAttribute("view.jsp-mediaGalleryMimeTypes", mediaGalleryMimeTypes);
-		request.setAttribute("view.jsp-results", results);
 		request.setAttribute("view.jsp-searchContainer", searchContainer);
 		%>
 
@@ -149,12 +141,6 @@ boolean useAssetEntryQuery = false;
 	%>
 
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />keywords);
-	</aui:script>
-</c:if>
 
 <%
 if (searchFolderId > 0) {

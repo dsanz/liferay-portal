@@ -165,7 +165,7 @@ String[] socialBookmarksTypesArray = StringUtil.split(portletPreferences.getValu
 				<aui:select label="language" name="languageId" onChange='<%= renderResponse.getNamespace() + "updateLanguage(this);" %>'>
 
 					<%
-					Locale[] locales = LanguageUtil.getAvailableLocales();
+					Locale[] locales = LanguageUtil.getAvailableLocales(themeDisplay.getSiteGroupId());
 
 					for (int i = 0; i < locales.length; i++) {
 						String style = StringPool.BLANK;
@@ -305,6 +305,7 @@ String[] socialBookmarksTypesArray = StringUtil.split(portletPreferences.getValu
 
 	function <portlet:namespace />updateLanguage() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '';
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 

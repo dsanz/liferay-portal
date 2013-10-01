@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.template.StringTemplateResource;
 import com.liferay.portal.kernel.template.Template;
+import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.template.TemplateResource;
 import com.liferay.portal.kernel.template.TemplateVariableDefinition;
@@ -38,6 +39,7 @@ import com.liferay.portlet.dynamicdatamapping.service.DDMStructureServiceUtil;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -102,6 +104,17 @@ public class DDMTemplateHelperImpl implements DDMTemplateHelper {
 		return jsonObject.toString();
 	}
 
+	@Override
+	public boolean isAutocompleteEnabled(String language) {
+		if (language.equals(TemplateConstants.LANG_TYPE_FTL) ||
+			language.equals(TemplateConstants.LANG_TYPE_VM)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	protected JSONObject getAutocompleteClassJSONObject(Class<?> clazz) {
 		JSONObject typeJSONObject = JSONFactoryUtil.createJSONObject();
 
@@ -141,6 +154,10 @@ public class DDMTemplateHelperImpl implements DDMTemplateHelper {
 			getAutocompleteTemplateVariableDefinitions(
 				HttpServletRequest request, String language)
 		throws Exception {
+
+		if (!isAutocompleteEnabled(language)) {
+			return Collections.emptyList();
+		}
 
 		List<TemplateVariableDefinition> templateVariableDefinitions =
 			new UniqueList<TemplateVariableDefinition>();
@@ -198,7 +215,8 @@ public class DDMTemplateHelperImpl implements DDMTemplateHelper {
 			}
 
 			TemplateVariableDefinition variableDefinition =
-				new TemplateVariableDefinition(key, value.getClass(), key);
+				new TemplateVariableDefinition(
+					key, value.getClass(), key, (String)null);
 
 			templateVariableDefinitions.add(variableDefinition);
 		}

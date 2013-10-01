@@ -55,11 +55,14 @@ long userId = user2.getUserId();
 			modelResourceDescription="<%= user2.getFullName() %>"
 			resourcePrimKey="<%= String.valueOf(userId) %>"
 			var="permissionsUserURL"
+			windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 		/>
 
 		<liferay-ui:icon
 			image="permissions"
+			method="get"
 			url="<%= permissionsUserURL %>"
+			useDialog="<%= true %>"
 		/>
 	</c:if>
 

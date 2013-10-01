@@ -16,10 +16,12 @@ package com.liferay.portlet.dynamicdatalists.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ResourceConstants;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
@@ -135,6 +137,9 @@ public class DDLRecordSetLocalServiceImpl
 	}
 
 	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE)
 	public void deleteRecordSet(DDLRecordSet recordSet)
 		throws PortalException, SystemException {
 
@@ -194,6 +199,13 @@ public class DDLRecordSetLocalServiceImpl
 		for (DDLRecordSet recordSet : recordSets) {
 			deleteRecordSet(recordSet);
 		}
+	}
+
+	@Override
+	public DDLRecordSet fetchRecordSet(long recordSetId)
+		throws SystemException {
+
+		return ddlRecordSetPersistence.fetchByPrimaryKey(recordSetId);
 	}
 
 	@Override
@@ -374,7 +386,7 @@ public class DDLRecordSetLocalServiceImpl
 	protected void validateName(Map<Locale, String> nameMap)
 		throws PortalException {
 
-		String name = nameMap.get(LocaleUtil.getDefault());
+		String name = nameMap.get(LocaleUtil.getSiteDefault());
 
 		if (Validator.isNull(name)) {
 			throw new RecordSetNameException();

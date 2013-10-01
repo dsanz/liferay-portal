@@ -63,7 +63,6 @@ import com.liferay.portlet.dynamicdatamapping.util.DDMUtil;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -112,11 +111,7 @@ public class DDLImpl implements DDL {
 		Fields fields = StorageEngineUtil.getFields(
 			recordVersion.getDDMStorageId());
 
-		Iterator<Field> itr = fields.iterator();
-
-		while (itr.hasNext()) {
-			Field field = itr.next();
-
+		for (Field field : fields) {
 			String fieldName = field.getName();
 			String fieldType = field.getType();
 			Object fieldValue = field.getValue();
@@ -207,6 +202,12 @@ public class DDLImpl implements DDL {
 			ddmStructure.getFieldsMap();
 
 		for (Map<String, String> fields : fieldsMap.values()) {
+			String name = fields.get(FieldConstants.NAME);
+
+			if (ddmStructure.isFieldPrivate(name)) {
+				continue;
+			}
+
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
 			String dataType = fields.get(FieldConstants.DATA_TYPE);
@@ -221,8 +222,6 @@ public class DDLImpl implements DDL {
 			String label = fields.get(FieldConstants.LABEL);
 
 			jsonObject.put("label", label);
-
-			String name = fields.get(FieldConstants.NAME);
 
 			jsonObject.put("name", name);
 
@@ -404,7 +403,6 @@ public class DDLImpl implements DDL {
 					DDLRecordConstants.DISPLAY_INDEX_DEFAULT, fields,
 					serviceContext);
 			}
-
 		}
 
 		return record;
@@ -430,7 +428,7 @@ public class DDLImpl implements DDL {
 		}
 		catch (Exception e) {
 			return LanguageUtil.format(
-				LocaleUtil.getDefault(), "is-temporarily-unavailable",
+				LocaleUtil.getSiteDefault(), "is-temporarily-unavailable",
 				"content");
 		}
 	}

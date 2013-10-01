@@ -15,6 +15,7 @@
 package com.liferay.portlet.wiki.translators;
 
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portlet.wiki.importers.mediawiki.MediaWikiImporter;
 
 import java.util.regex.Matcher;
@@ -154,8 +155,9 @@ public class MediaWikiToCreoleTranslator extends BaseTranslator {
 
 		// LEP-6118
 
-		Matcher matcher = Pattern.compile(
-			"^=([^=]+)=", Pattern.MULTILINE).matcher(content);
+		Pattern pattern = Pattern.compile("^=([^=]+)=", Pattern.MULTILINE);
+
+		Matcher matcher = pattern.matcher(content);
 
 		if (matcher.find()) {
 			content = runRegexp(content, "^===([^=]+)===", "====$1====");
@@ -171,8 +173,9 @@ public class MediaWikiToCreoleTranslator extends BaseTranslator {
 
 		// Images
 
-		matcher = Pattern.compile(
-			"(\\[{2})(Image|File)(:)", Pattern.DOTALL).matcher(content);
+		pattern = Pattern.compile("(\\[{2})(Image|File)(:)", Pattern.DOTALL);
+
+		matcher = pattern.matcher(content);
 
 		StringBuffer sb = new StringBuffer(content);
 
@@ -205,8 +208,9 @@ public class MediaWikiToCreoleTranslator extends BaseTranslator {
 
 			String image =
 				"{{" + MediaWikiImporter.SHARED_IMAGES_TITLE + "/" +
-					sb.substring(imageStartPos, imageEndPos).toLowerCase() +
-						"}}";
+					StringUtil.toLowerCase(
+						sb.substring(imageStartPos, imageEndPos)) +
+							"}}";
 
 			int imageLength = image.length();
 
@@ -226,8 +230,9 @@ public class MediaWikiToCreoleTranslator extends BaseTranslator {
 
 		// Tables
 
-		matcher = Pattern.compile(
-			"\\{\\|(.*?)\\|\\}", Pattern.DOTALL).matcher(content);
+		pattern = Pattern.compile("\\{\\|(.*?)\\|\\}", Pattern.DOTALL);
+
+		matcher = pattern.matcher(content);
 
 		sb = new StringBuffer(content);
 
@@ -269,8 +274,9 @@ public class MediaWikiToCreoleTranslator extends BaseTranslator {
 
 		// Remove underscores from links
 
-		matcher = Pattern.compile(
-			"\\[{2}([^\\]]*)\\]{2}", Pattern.DOTALL).matcher(content);
+		pattern = Pattern.compile("\\[{2}([^\\]]*)\\]{2}", Pattern.DOTALL);
+
+		matcher = pattern.matcher(content);
 
 		sb = new StringBuffer(content);
 

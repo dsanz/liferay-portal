@@ -14,7 +14,6 @@
 
 package com.liferay.portlet.documentlibrary.asset;
 
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -81,7 +80,12 @@ public class DLFileEntryAssetRendererFactory extends BaseAssetRendererFactory {
 			fileVersion = fileEntry.getFileVersion();
 		}
 
-		return new DLFileEntryAssetRenderer(fileEntry, fileVersion, type);
+		DLFileEntryAssetRenderer dlFileEntryAssetRenderer =
+			new DLFileEntryAssetRenderer(fileEntry, fileVersion);
+
+		dlFileEntryAssetRenderer.setAssetRendererType(type);
+
+		return dlFileEntryAssetRenderer;
 	}
 
 	@Override
@@ -106,12 +110,7 @@ public class DLFileEntryAssetRendererFactory extends BaseAssetRendererFactory {
 				getDDMStructureFieldNames(ddmStructure, locale));
 		}
 
-		if ((start != QueryUtil.ALL_POS) || (end != QueryUtil.ALL_POS)) {
-			classTypeFieldNames = ListUtil.subList(
-				classTypeFieldNames, start, end);
-		}
-
-		return classTypeFieldNames;
+		return ListUtil.subList(classTypeFieldNames, start, end);
 	}
 
 	@Override

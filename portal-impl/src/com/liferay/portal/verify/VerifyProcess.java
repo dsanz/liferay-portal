@@ -72,7 +72,8 @@ public abstract class VerifyProcess extends BaseDBProcess {
 	/**
 	 * @return the portal build number before {@link
 	 *         com.liferay.portal.tools.DBUpgrader} has a chance to update it to
-	 *         the value in {@link ReleaseInfo#getBuildNumber}
+	 *         the value in {@link
+	 *         com.liferay.portal.kernel.util.ReleaseInfo#getBuildNumber}
 	 */
 	protected int getBuildNumber() throws Exception {
 		Connection con = null;
@@ -119,7 +120,7 @@ public abstract class VerifyProcess extends BaseDBProcess {
 		while (matcher.find()) {
 			String match = matcher.group(1);
 
-			tableNames.add(match.toLowerCase());
+			tableNames.add(StringUtil.toLowerCase(match));
 		}
 
 		_portalTableNames = tableNames;
@@ -130,7 +131,7 @@ public abstract class VerifyProcess extends BaseDBProcess {
 	protected boolean isPortalTableName(String tableName) throws Exception {
 		Set<String> portalTableNames = getPortalTableNames();
 
-		return portalTableNames.contains(tableName.toLowerCase());
+		return portalTableNames.contains(StringUtil.toLowerCase(tableName));
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(VerifyProcess.class);

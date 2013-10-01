@@ -23,7 +23,13 @@ long defaultFolderId = GetterUtil.getLong(portletPreferences.getValue("rootFolde
 
 long folderId = BeanParamUtil.getLong(folder, request, "folderId", defaultFolderId);
 
+boolean defaultFolderView = false;
+
 if ((folder == null) && (defaultFolderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
+	defaultFolderView = true;
+}
+
+if (defaultFolderView) {
 	try {
 		folder = DLAppLocalServiceUtil.getFolder(folderId);
 	}
@@ -44,7 +50,7 @@ if (permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGr
 	status = WorkflowConstants.STATUS_ANY;
 }
 
-long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayTemplateDDMTemplateId(themeDisplay, displayTemplate);
+long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayTemplateDDMTemplateId(displayStyleGroupId, displayStyle);
 %>
 
 <c:choose>
@@ -125,7 +131,6 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 				String[] mediaGalleryMimeTypes = null;
 
 				request.setAttribute("view.jsp-mediaGalleryMimeTypes", mediaGalleryMimeTypes);
-				request.setAttribute("view.jsp-results", results);
 				request.setAttribute("view.jsp-searchContainer", searchContainer);
 				%>
 
@@ -158,7 +163,6 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 					searchContainer.setResults(results);
 
 					request.setAttribute("view.jsp-mediaGalleryMimeTypes", mediaGalleryMimeTypes);
-					request.setAttribute("view.jsp-results", results);
 					request.setAttribute("view.jsp-searchContainer", searchContainer);
 					%>
 
@@ -202,7 +206,7 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 							<div class="lfr-asset-summary">
 								<liferay-ui:icon
 									cssClass="lfr-asset-avatar"
-									image='<%= "../file_system/large/" + ((total > 0) ? "folder_full_image" : "folder_empty_image") %>'
+									image='<%= "../file_system/large/" + ((total > 0) ? "folder_full_image" : "folder_empty") %>'
 									message='<%= (folder != null) ? folder.getName() : LanguageUtil.get(pageContext, "home") %>'
 								/>
 
@@ -224,7 +228,7 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 				if (folder != null) {
 					IGUtil.addPortletBreadcrumbEntries(folder, request, renderResponse);
 
-					if (portletName.equals(PortletKeys.MEDIA_GALLERY_DISPLAY)) {
+					if (!defaultFolderView && portletName.equals(PortletKeys.MEDIA_GALLERY_DISPLAY)) {
 						PortalUtil.setPageSubtitle(folder.getName(), request);
 						PortalUtil.setPageDescription(folder.getDescription(), request);
 					}
@@ -254,7 +258,6 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 				searchContainer.setResults(results);
 
 				request.setAttribute("view.jsp-mediaGalleryMimeTypes", mediaGalleryMimeTypes);
-				request.setAttribute("view.jsp-results", results);
 				request.setAttribute("view.jsp-searchContainer", searchContainer);
 				%>
 

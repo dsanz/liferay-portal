@@ -25,6 +25,18 @@
 		<property name="service" ref="com.liferay.portal.service.AddressService" />
 		<property name="serviceInterface" value="com.liferay.portal.service.AddressService" />
 	</bean>
+	<bean name="/com_liferay_portal_service_spring_BackgroundTaskService-burlap" class="org.springframework.remoting.caucho.BurlapServiceExporter">
+		<property name="service" ref="com.liferay.portal.service.BackgroundTaskService" />
+		<property name="serviceInterface" value="com.liferay.portal.service.BackgroundTaskService" />
+	</bean>
+	<bean name="/com_liferay_portal_service_spring_BackgroundTaskService-hessian" class="org.springframework.remoting.caucho.HessianServiceExporter">
+		<property name="service" ref="com.liferay.portal.service.BackgroundTaskService" />
+		<property name="serviceInterface" value="com.liferay.portal.service.BackgroundTaskService" />
+	</bean>
+	<bean name="/com_liferay_portal_service_spring_BackgroundTaskService-http" class="org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter">
+		<property name="service" ref="com.liferay.portal.service.BackgroundTaskService" />
+		<property name="serviceInterface" value="com.liferay.portal.service.BackgroundTaskService" />
+	</bean>
 	<bean name="/com_liferay_portal_service_spring_ClassNameService-burlap" class="org.springframework.remoting.caucho.BurlapServiceExporter">
 		<property name="service" ref="com.liferay.portal.service.ClassNameService" />
 		<property name="serviceInterface" value="com.liferay.portal.service.ClassNameService" />
@@ -384,6 +396,18 @@
 	<bean name="/com_liferay_portal_service_spring_RoleService-http" class="org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter">
 		<property name="service" ref="com.liferay.portal.service.RoleService" />
 		<property name="serviceInterface" value="com.liferay.portal.service.RoleService" />
+	</bean>
+	<bean name="/com_liferay_portal_service_spring_StagingService-burlap" class="org.springframework.remoting.caucho.BurlapServiceExporter">
+		<property name="service" ref="com.liferay.portal.service.StagingService" />
+		<property name="serviceInterface" value="com.liferay.portal.service.StagingService" />
+	</bean>
+	<bean name="/com_liferay_portal_service_spring_StagingService-hessian" class="org.springframework.remoting.caucho.HessianServiceExporter">
+		<property name="service" ref="com.liferay.portal.service.StagingService" />
+		<property name="serviceInterface" value="com.liferay.portal.service.StagingService" />
+	</bean>
+	<bean name="/com_liferay_portal_service_spring_StagingService-http" class="org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter">
+		<property name="service" ref="com.liferay.portal.service.StagingService" />
+		<property name="serviceInterface" value="com.liferay.portal.service.StagingService" />
 	</bean>
 	<bean name="/com_liferay_portal_service_spring_TeamService-burlap" class="org.springframework.remoting.caucho.BurlapServiceExporter">
 		<property name="service" ref="com.liferay.portal.service.TeamService" />
@@ -1020,6 +1044,18 @@
 	<bean name="/com_liferay_portlet_shopping_service_spring_ShoppingOrderService-http" class="org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter">
 		<property name="service" ref="com.liferay.portlet.shopping.service.ShoppingOrderService" />
 		<property name="serviceInterface" value="com.liferay.portlet.shopping.service.ShoppingOrderService" />
+	</bean>
+	<bean name="/com_liferay_portlet_social_service_spring_SocialActivityService-burlap" class="org.springframework.remoting.caucho.BurlapServiceExporter">
+		<property name="service" ref="com.liferay.portlet.social.service.SocialActivityService" />
+		<property name="serviceInterface" value="com.liferay.portlet.social.service.SocialActivityService" />
+	</bean>
+	<bean name="/com_liferay_portlet_social_service_spring_SocialActivityService-hessian" class="org.springframework.remoting.caucho.HessianServiceExporter">
+		<property name="service" ref="com.liferay.portlet.social.service.SocialActivityService" />
+		<property name="serviceInterface" value="com.liferay.portlet.social.service.SocialActivityService" />
+	</bean>
+	<bean name="/com_liferay_portlet_social_service_spring_SocialActivityService-http" class="org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter">
+		<property name="service" ref="com.liferay.portlet.social.service.SocialActivityService" />
+		<property name="serviceInterface" value="com.liferay.portlet.social.service.SocialActivityService" />
 	</bean>
 	<bean name="/com_liferay_portlet_social_service_spring_SocialActivitySettingService-burlap" class="org.springframework.remoting.caucho.BurlapServiceExporter">
 		<property name="service" ref="com.liferay.portlet.social.service.SocialActivitySettingService" />

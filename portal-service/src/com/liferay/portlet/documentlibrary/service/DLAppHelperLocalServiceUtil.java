@@ -217,7 +217,8 @@ public class DLAppHelperLocalServiceUtil {
 	}
 
 	public static void moveFolder(
-		com.liferay.portal.kernel.repository.model.Folder folder) {
+		com.liferay.portal.kernel.repository.model.Folder folder)
+		throws com.liferay.portal.kernel.exception.SystemException {
 		getService().moveFolder(folder);
 	}
 
@@ -246,6 +247,12 @@ public class DLAppHelperLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().moveFolderToTrash(userId, folder);
+	}
+
+	public static void registerDLSyncEventCallback(java.lang.String event,
+		java.lang.String type, long typePK)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().registerDLSyncEventCallback(event, type, typePK);
 	}
 
 	public static void restoreFileEntryFromTrash(long userId,

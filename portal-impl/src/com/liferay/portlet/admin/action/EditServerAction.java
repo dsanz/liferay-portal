@@ -47,6 +47,7 @@ import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.messaging.proxy.MessageValuesThreadLocal;
 import com.liferay.portal.kernel.scripting.ScriptingException;
+import com.liferay.portal.kernel.scripting.ScriptingHelperUtil;
 import com.liferay.portal.kernel.scripting.ScriptingUtil;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
@@ -76,6 +77,7 @@ import com.liferay.portal.search.lucene.LuceneHelperUtil;
 import com.liferay.portal.search.lucene.LuceneIndexer;
 import com.liferay.portal.search.lucene.cluster.LuceneClusterUtil;
 import com.liferay.portal.security.auth.PrincipalException;
+import com.liferay.portal.security.lang.DoPrivilegedBean;
 import com.liferay.portal.security.membershippolicy.OrganizationMembershipPolicy;
 import com.liferay.portal.security.membershippolicy.OrganizationMembershipPolicyFactoryUtil;
 import com.liferay.portal.security.membershippolicy.RoleMembershipPolicy;
@@ -305,14 +307,12 @@ public class EditServerAction extends PortletAction {
 
 			return portletURL.toString();
 		}
-		else {
-			MaintenanceUtil.maintain(portletSession.getId(), className);
 
-			MessageBusUtil.sendMessage(
-				DestinationNames.CONVERT_PROCESS, className);
+		MaintenanceUtil.maintain(portletSession.getId(), className);
 
-			return null;
-		}
+		MessageBusUtil.sendMessage(DestinationNames.CONVERT_PROCESS, className);
+
+		return null;
 	}
 
 	protected void gc() throws Exception {
@@ -332,14 +332,14 @@ public class EditServerAction extends PortletAction {
 		throws Exception {
 
 		ProgressTracker progressTracker = new ProgressTracker(
-			actionRequest, WebKeys.XUGGLER_INSTALL_STATUS);
+			WebKeys.XUGGLER_INSTALL_STATUS);
 
 		progressTracker.addProgress(
 			ProgressStatusConstants.DOWNLOADING, 15, "downloading-xuggler");
 		progressTracker.addProgress(
 			ProgressStatusConstants.COPYING, 70, "copying-xuggler-files");
 
-		progressTracker.initialize();
+		progressTracker.initialize(actionRequest);
 
 		String jarName = ParamUtil.getString(actionRequest, "jarName");
 
@@ -361,7 +361,7 @@ public class EditServerAction extends PortletAction {
 			writeJSON(actionRequest, actionResponse, jsonObject);
 		}
 
-		progressTracker.finish();
+		progressTracker.finish(actionRequest);
 	}
 
 	protected void reindex(ActionRequest actionRequest) throws Exception {
@@ -472,7 +472,8 @@ public class EditServerAction extends PortletAction {
 		long[] companyIds = PortalInstances.getCompanyIds();
 
 		for (long companyId : companyIds) {
-			SearchEngineUtil.indexDictionaries(companyId);
+			SearchEngineUtil.indexQuerySuggestionDictionaries(companyId);
+			SearchEngineUtil.indexSpellCheckerDictionaries(companyId);
 		}
 	}
 
@@ -486,8 +487,9 @@ public class EditServerAction extends PortletAction {
 
 		PortletContext portletContext = portletConfig.getPortletContext();
 
-		Map<String, Object> portletObjects = ScriptingUtil.getPortletObjects(
-			portletConfig, portletContext, actionRequest, actionResponse);
+		Map<String, Object> portletObjects =
+			ScriptingHelperUtil.getPortletObjects(
+				portletConfig, portletContext, actionRequest, actionResponse);
 
 		UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 			new UnsyncByteArrayOutputStream();
@@ -647,7 +649,19 @@ public class EditServerAction extends PortletAction {
 
 			portletPreferences.store();
 
-			CaptchaImpl captchaImpl = (CaptchaImpl)CaptchaUtil.getCaptcha();
+			CaptchaImpl captchaImpl = null;
+
+			Captcha currentCaptcha = CaptchaUtil.getCaptcha();
+
+			if (currentCaptcha instanceof DoPrivilegedBean) {
+				DoPrivilegedBean doPrivilegedBean =
+					(DoPrivilegedBean)currentCaptcha;
+
+				captchaImpl = (CaptchaImpl)doPrivilegedBean.getActualBean();
+			}
+			else {
+				captchaImpl = (CaptchaImpl)currentCaptcha;
+			}
 
 			captchaImpl.setCaptcha(captcha);
 		}
@@ -686,7 +700,8 @@ public class EditServerAction extends PortletAction {
 			String name = enu.nextElement();
 
 			if (name.startsWith("imageMagickLimit")) {
-				String key = name.substring(16, name.length()).toLowerCase();
+				String key = StringUtil.toLowerCase(
+					name.substring(16, name.length()));
 				String value = ParamUtil.getString(actionRequest, name);
 
 				portletPreferences.setValue(
@@ -704,6 +719,8 @@ public class EditServerAction extends PortletAction {
 			ActionRequest actionRequest, PortletPreferences portletPreferences)
 		throws Exception {
 
+		long dlFileEntryPreviewableProcessorMaxSize = ParamUtil.getLong(
+			actionRequest, "dlFileEntryPreviewableProcessorMaxSize");
 		long dlFileEntryThumbnailMaxHeight = ParamUtil.getLong(
 			actionRequest, "dlFileEntryThumbnailMaxHeight");
 		long dlFileEntryThumbnailMaxWidth = ParamUtil.getLong(
@@ -736,6 +753,9 @@ public class EditServerAction extends PortletAction {
 		long usersImageMaxSize = ParamUtil.getLong(
 			actionRequest, "usersImageMaxSize");
 
+		portletPreferences.setValue(
+			PropsKeys.DL_FILE_ENTRY_PREVIEWABLE_PROCESSOR_MAX_SIZE,
+			String.valueOf(dlFileEntryPreviewableProcessorMaxSize));
 		portletPreferences.setValue(
 			PropsKeys.DL_FILE_ENTRY_THUMBNAIL_MAX_HEIGHT,
 			String.valueOf(dlFileEntryThumbnailMaxHeight));

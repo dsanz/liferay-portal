@@ -26,7 +26,6 @@ page import="com.liferay.portlet.journal.search.ArticleSearch" %><%@
 page import="com.liferay.portlet.journal.search.ArticleSearchTerms" %><%@
 page import="com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil" %><%@
 page import="com.liferay.portlet.journal.service.JournalArticleServiceUtil" %><%@
-page import="com.liferay.portlet.journal.util.JournalUtil" %><%@
 page import="com.liferay.portlet.rss.util.RSSUtil" %>
 
 <%@ page import="com.sun.syndication.feed.synd.SyndContent" %><%@
@@ -60,7 +59,6 @@ long footerArticleGroupId = GetterUtil.getLong(footerArticleValues[0]);
 String footerArticleId = footerArticleValues[1];
 
 Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
-Format dateFormatDate = FastDateFormatFactoryUtil.getDate(locale, timeZone);
 %>
 
 <%@ include file="/html/portlet/rss/init-ext.jsp" %>

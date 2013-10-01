@@ -14,6 +14,9 @@
 
 package com.liferay.portal.model;
 
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -789,6 +792,22 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _role.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _role.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_role.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -856,6 +875,30 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 	@Override
 	public boolean isTeam() {
 		return _role.isTeam();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof RoleWrapper)) {
+			return false;
+		}
+
+		RoleWrapper roleWrapper = (RoleWrapper)obj;
+
+		if (Validator.equals(_role, roleWrapper._role)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _role.getStagedModelType();
 	}
 
 	/**

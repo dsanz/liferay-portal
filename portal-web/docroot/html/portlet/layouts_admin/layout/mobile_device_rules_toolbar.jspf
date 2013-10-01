@@ -14,21 +14,15 @@
  */
 --%>
 
-<%
-String toolbarItem = ParamUtil.getString(request, "toolbarItem", "add");
-%>
+<c:if test="<%= MDRPermissionUtil.contains(permissionChecker, groupId, ActionKeys.ADD_RULE_GROUP_INSTANCE) %>">
+	<div class="btn-toolbar">
+		<aui:button name="saveInstance" value="select-device-family" />
 
-<aui:nav-bar>
-	<aui:nav>
-		<c:if test="<%= MDRPermissionUtil.contains(permissionChecker, groupId, ActionKeys.ADD_RULE_GROUP_INSTANCE) %>">
-			<aui:nav-item anchorId="saveInstance" label="select-rule-group" />
-
-			<c:if test="<%= MDRRuleGroupInstanceServiceUtil.getRuleGroupInstancesCount(className, classPK) > 1 %>">
-				<aui:nav-item anchorId="managePriorities" label="manage-rule-group-priorities" />
-			</c:if>
+		<c:if test="<%= MDRRuleGroupInstanceServiceUtil.getRuleGroupInstancesCount(className, classPK) > 1 %>">
+			<aui:button name="managePriorities" value="manage-rule-priorities" />
 		</c:if>
-	</aui:nav>
-</aui:nav-bar>
+	</div>
+</c:if>
 
 <liferay-portlet:renderURL portletName="<%= PortletKeys.MOBILE_DEVICE_SITE_ADMIN %>" varImpl="selectRuleGroupURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
 	<portlet:param name="struts_action" value="/mobile_device_rules/view" />
@@ -90,6 +84,9 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "add");
 							userId: themeDisplay.getUserId()
 						}
 					)
+				},
+				function(response, xhr) {
+					window.location.reload();
 				}
 			);
 		},
@@ -100,8 +97,7 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "add");
 <aui:script use="aui-base">
 	var config = {
 		dialog: {
-			width: 820,
-			zIndex: Liferay.zIndex.WINDOW + 2
+			width: 820
 		}
 	};
 
@@ -111,7 +107,7 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "add");
 		saveInstance.on(
 			'click',
 			function(event) {
-				config.dialog.title = '<%= UnicodeLanguageUtil.get(pageContext, "rule-groups") %>';
+				config.title = '<%= UnicodeLanguageUtil.get(pageContext, "device-families") %>';
 
 				config.id = '<portlet:namespace />ruleGroups';
 				config.uri = '<%= selectRuleGroupURL %>';
@@ -127,7 +123,7 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "add");
 		managePriorities.on(
 			'click',
 			function(event) {
-				config.dialog.title = '<%= UnicodeLanguageUtil.get(pageContext, "rule-group-priorities") %>';
+				config.title = '<%= UnicodeLanguageUtil.get(pageContext, "rule-priorities") %>';
 
 				config.id = '<portlet:namespace />ruleGroupsPriorities';
 				config.uri = '<%= managePrioritiesURL %>';

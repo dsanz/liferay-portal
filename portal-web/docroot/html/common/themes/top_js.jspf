@@ -90,6 +90,8 @@
 			},
 
 			Data: {
+				NAV_SELECTOR: '#navigation',
+
 				isCustomizationView: function() {
 					return <%= (layoutTypePortlet.isCustomizable() && LayoutPermissionUtil.contains(permissionChecker, layout, ActionKeys.CUSTOMIZE)) %>;
 				},
@@ -132,6 +134,9 @@
 					},
 				</c:if>
 
+				getBCP47LanguageId: function() {
+					return "<%= LanguageUtil.getBCP47LanguageId(request) %>";
+				},
 				getCDNBaseURL: function() {
 					return "<%= themeDisplay.getCDNBaseURL() %>";
 				},
@@ -148,7 +153,7 @@
 					return "<%= themeDisplay.getCompanyGroupId() %>";
 				},
 				getDefaultLanguageId: function() {
-					return "<%= LocaleUtil.toLanguageId(LocaleUtil.getDefault()) %>";
+					return "<%= LocaleUtil.toLanguageId(themeDisplay.getSiteDefaultLocale()) %>";
 				},
 				getDoAsUserIdEncoded: function() {
 					return "<%= UnicodeFormatter.toString(themeDisplay.getDoAsUserId()) %>";
@@ -245,7 +250,7 @@
 			},
 
 			PropsValues: {
-				NTLM_AUTH_ENABLED: <%= PropsValues.NTLM_AUTH_ENABLED %>
+				NTLM_AUTH_ENABLED: <%= PrefsPropsUtil.getBoolean(themeDisplay.getCompanyId(), PropsKeys.NTLM_AUTH_ENABLED, PropsValues.NTLM_AUTH_ENABLED) %>
 			}
 		};
 
@@ -315,6 +320,8 @@
 	<c:otherwise>
 
 		<%
+		String path = themeDisplay.getCDNHost().concat(themeDisplay.getPathJavaScript());
+
 		String[] javaScriptFiles = null;
 
 		if (themeDisplay.isThemeJsBarebone()) {
@@ -327,7 +334,7 @@
 		for (String javaScriptFile : javaScriptFiles) {
 		%>
 
-			<script src="<%= themeDisplay.getCDNHost() + themeDisplay.getPathJavaScript() %>/<%= javaScriptFile %>?t=<%= javaScriptLastModified %>" type="text/javascript"></script>
+			<script src="<%= path %>/<%= javaScriptFile %>?t=<%= javaScriptLastModified %>" type="text/javascript"></script>
 
 		<%
 		}
@@ -341,21 +348,24 @@
 		<c:if test="<%= (layoutTypePortlet != null) %>">
 
 			<%
-			List<Portlet> allPortlets = layoutTypePortlet.getAllPortlets();
+			List<Portlet> allPortlets = layoutTypePortlet.getAllPortlets(false);
 
-			Iterator<Portlet> itr = allPortlets.iterator();
+			StringBundler sb = new StringBundler(allPortlets.size() * 2);
 
-			while (itr.hasNext()) {
-				Portlet portlet = itr.next();
-
-				if (portlet.isUndeployedPortlet()) {
-					itr.remove();
+			for (Portlet portlet : allPortlets) {
+				if (portlet.isActive() && portlet.isReady() && !portlet.isUndeployedPortlet()) {
+					sb.append(HtmlUtil.escapeJS(portlet.getPortletId()));
+					sb.append("', '");
 				}
+			}
+
+			if (sb.index() > 0) {
+				sb.setIndex(sb.index() - 1);
 			}
 			%>
 
-			<c:if test="<%= !allPortlets.isEmpty() && !layoutTypePortlet.hasStateMax() %>">
-				Liferay.Portlet.list = ['<%= ListUtil.toString(allPortlets, Portlet.PORTLET_ID_ACCESSOR, "','") %>'];
+			<c:if test="<%= (sb.index() > 0) && !layoutTypePortlet.hasStateMax() %>">
+				Liferay.Portlet.list = ['<%= sb.toString() %>'];
 			</c:if>
 		</c:if>
 
@@ -391,7 +401,7 @@ for (String analyticsType : analyticsTypes) {
 %>
 
 	<c:choose>
-		<c:when test='<%= analyticsType.equalsIgnoreCase("google") %>'>
+		<c:when test='<%= StringUtil.equalsIgnoreCase(analyticsType, "google") %>'>
 
 			<%
 			String googleAnalyticsId = groupTypeSettings.getProperty("googleAnalyticsId");

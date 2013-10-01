@@ -62,7 +62,10 @@ public class PluginPackageHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error registering plugins for ", t);
+				hotDeployEvent,
+				"Error registering plugins for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -75,7 +78,10 @@ public class PluginPackageHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error unregistering plugins for ", t);
+				hotDeployEvent,
+				"Error unregistering plugins for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 

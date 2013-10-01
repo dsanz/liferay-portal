@@ -134,13 +134,12 @@ public class HtmlImpl implements Html {
 		if (sb == null) {
 			return text;
 		}
-		else {
-			if (lastReplacementIndex < text.length()) {
-				sb.append(text.substring(lastReplacementIndex));
-			}
 
-			return sb.toString();
+		if (lastReplacementIndex < text.length()) {
+			sb.append(text.substring(lastReplacementIndex));
 		}
+
+		return sb.toString();
 	}
 
 	@Override
@@ -178,7 +177,7 @@ public class HtmlImpl implements Html {
 		for (int i = 0; i < text.length(); i++) {
 			char c = text.charAt(i);
 
-			if (Character.isLetterOrDigit(c) ||
+			if ((c > 255) || Character.isLetterOrDigit(c) ||
 				(c == CharPool.DASH) || (c == CharPool.UNDERLINE)) {
 
 				sb.append(c);
@@ -226,7 +225,7 @@ public class HtmlImpl implements Html {
 		}
 
 		if (href.indexOf(StringPool.COLON) == 10) {
-			String protocol = href.substring(0, 10).toLowerCase();
+			String protocol = StringUtil.toLowerCase(href.substring(0, 10));
 
 			if (protocol.equals("javascript")) {
 				href = StringUtil.replaceFirst(href, StringPool.COLON, "%3a");
@@ -332,6 +331,15 @@ public class HtmlImpl implements Html {
 	@Override
 	public String replaceMsWordCharacters(String text) {
 		return StringUtil.replace(text, _MS_WORD_UNICODE, _MS_WORD_HTML);
+	}
+
+	@Override
+	public String replaceNewLine(String text) {
+		if (text == null) {
+			return null;
+		}
+
+		return text.replaceAll("\r?\n", "<br />");
 	}
 
 	@Override
@@ -556,7 +564,7 @@ public class HtmlImpl implements Html {
 
 		// Search for the ending </abc> tag
 
-		for (;;) {
+		while (true) {
 			x = text.indexOf("</", x);
 
 			if (x >= 0) {

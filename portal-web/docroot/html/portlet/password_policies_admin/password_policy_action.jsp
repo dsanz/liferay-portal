@@ -46,11 +46,14 @@ PasswordPolicy passwordPolicy = (PasswordPolicy)row.getObject();
 			modelResourceDescription="<%= HtmlUtil.escape(passwordPolicy.getName()) %>"
 			resourcePrimKey="<%= String.valueOf(passwordPolicy.getPasswordPolicyId()) %>"
 			var="permissionsURL"
+			windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 		/>
 
 		<liferay-ui:icon
 			image="permissions"
+			method="get"
 			url="<%= permissionsURL %>"
+			useDialog="<%= true %>"
 		/>
 	</c:if>
 

@@ -17,67 +17,47 @@
 <%@ include file="/html/portal/layout/edit/init.jsp" %>
 
 <%
-String portletId = portletDisplay.getId();
+Boolean showCopyPortlets = ParamUtil.getBoolean(request, "showCopyPortlets");
+Boolean showLayoutTemplates = ParamUtil.getBoolean(request, "showLayoutTemplates", true);
 %>
 
-<div class='<%= portletId.equals(PortletKeys.DOCKBAR) ? StringPool.BLANK : "hide" %>' id="<portlet:namespace />copyPortletsFromPage">
+<div class="<%= showCopyPortlets ? StringPool.BLANK : "hide" %>" id="<portlet:namespace />copyPortletsFromPage">
 	<p>
 		<c:if test="<%= selLayout != null %>">
 			<liferay-ui:message arguments="<%= HtmlUtil.escape(selLayout.getName(locale)) %>" key="the-applications-in-page-x-will-be-replaced-with-the-ones-in-the-page-you-select-below" />
 		</c:if>
 	</p>
 
-	<aui:select label="copy-from-page" name="copyLayoutId" showEmptyOption="<%= true %>">
+	<liferay-util:include page="/html/portal/layout/edit/portlet_applications.jsp" />
 
-		<%
-		List layoutList = (List)request.getAttribute(WebKeys.LAYOUT_LISTER_LIST);
+	<aui:button-row>
+		<aui:button name="copySubmitButton" value="copy" />
+	</aui:button-row>
+</div>
 
-		for (int i = 0; i < layoutList.size(); i++) {
+<div class="<%= showLayoutTemplates ? StringPool.BLANK : "hide" %>" id="<portlet:namespace />layoutTemplates">
 
-			// id | parentId | ls | obj id | name | img | depth
+	<%
+	LayoutTypePortlet selLayoutTypePortlet = null;
 
-			String layoutDesc = (String)layoutList.get(i);
+	Theme selTheme = layout.getTheme();
 
-			String[] nodeValues = StringUtil.split(layoutDesc, '|');
+	if (selLayout != null) {
+		selLayoutTypePortlet = (LayoutTypePortlet)selLayout.getLayoutType();
 
-			long objId = GetterUtil.getLong(nodeValues[3]);
-			String name = nodeValues[4];
+		selTheme = selLayout.getTheme();
+	}
 
-			int depth = 0;
+	String layoutTemplateId = StringPool.BLANK;
 
-			if (i != 0) {
-				depth = GetterUtil.getInteger(nodeValues[6]);
-			}
+	if (selLayoutTypePortlet != null) {
+		layoutTemplateId = selLayoutTypePortlet.getLayoutTemplateId();
+	}
 
-			name = HtmlUtil.escape(name);
+	String layoutTemplateIdPrefix = StringPool.BLANK;
 
-			for (int j = 0; j < depth; j++) {
-				name = "-&nbsp;" + name;
-			}
+	List<LayoutTemplate> layoutTemplates = LayoutTemplateLocalServiceUtil.getLayoutTemplates(selTheme.getThemeId());
+	%>
 
-			Layout copiableLayout = null;
-
-			try {
-				copiableLayout = LayoutLocalServiceUtil.getLayout(objId);
-			}
-			catch (Exception e) {
-			}
-
-			if (copiableLayout != null) {
-		%>
-
-				<aui:option disabled="<%= Validator.isNotNull(selLayout) && selLayout.getPlid() == copiableLayout.getPlid() %>" label="<%= name %>" value="<%= copiableLayout.getLayoutId() %>" />
-
-		<%
-			}
-		}
-		%>
-
-	</aui:select>
-
-	<c:if test="<%= !portletId.equals(PortletKeys.DOCKBAR) %>">
-		<aui:button-row>
-			<aui:button name="copySubmitButton" value="copy" />
-		</aui:button-row>
-	</c:if>
+	<%@ include file="/html/portlet/layouts_admin/layout/layout_templates_list.jspf" %>
 </div>

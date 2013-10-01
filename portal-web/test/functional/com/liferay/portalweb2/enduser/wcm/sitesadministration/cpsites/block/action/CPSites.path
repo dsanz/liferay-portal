@@ -24,6 +24,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ERROR_MESSAGE_1</td>
+	<td>xpath=(//div[@class='alert alert-error'])[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_MESSAGE_2</td>
+	<td>xpath=(//div[@class='alert alert-error'])[2]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADD</td>
 	<td>//div[@class='navbar ']//li/a[contains(.,'Add')]</td>
 	<td></td>
@@ -57,6 +67,11 @@
 <tr>
 	<td>ADD_INTRANET_SITE</td>
 	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Intranet Site')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_SITE_TEMPLATE_SITE</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'${key_siteTemplateName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -99,47 +114,62 @@
 </tr>
 <tr>
 	<td>SITE_TABLE_CHECKBOX</td>
-	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr/td[1]/input</td>
+	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr[contains(.,'${key_siteName}')]/td[1]/input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_TABLE_CHECKBOX_DISABLED</td>
+	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr[contains(.,'${key_siteName}')]/td[1]/input[@disabled='']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_TABLE_NAME</td>
-	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr/td[2]/a</td>
+	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr[contains(.,'${key_siteName}')]/td[2]/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_TABLE_TYPE</td>
-	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr/td[3]/a</td>
+	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr[contains(.,'${key_siteName}')]/td[3]/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_TABLE_MEMBERS_USERS</td>
-	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr/td[4]/div[@class='user-count']</td>
+	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr[contains(.,'${key_siteName}')]/td[4]/div[@class='user-count']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_TABLE_MEMBERS_ORGS</td>
-	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr/td[4]/div[@class='organization-count']</td>
+	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr[contains(.,'${key_siteName}')]/td[4]/div[@class='organization-count']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_TABLE_ACTIVE</td>
-	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr/td[5]</td>
+	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr[contains(.,'${key_siteName}')]/td[5]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_TABLE_PENDING_REQUESTS</td>
-	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr/td[6]</td>
+	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr[contains(.,'${key_siteName}')]/td[6]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_TABLE_TAGS</td>
-	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr/td[7]</td>
+	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr[contains(.,'${key_siteName}')]/td[7]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_TABLE_ACTIONS</td>
-	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr/td/div/a[@title='Actions']</td>
+	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr[contains(.,'${key_siteName}')]/td/div/a[@title='Actions']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_TABLE_ACTIONS_GENERIC</td>
+	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr/td[8]/div/a[@title='Actions']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_TABLE_CHILD_SITE</td>
+	<td>//table[@data-searchcontainerid='_134_groupsSearchContainer']//tr[contains(.,'${key_siteName}')]/td[2]/div/a[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -149,18 +179,13 @@
 </tr>
 <!--SITE_MENULIST-->
 <tr>
-	<td>SITE_MENULIST_EDIT_SETTINGS</td>
-	<td>//a[@role='menuitem' and contains(.,'Edit Settings')]</td>
+	<td>SITE_MENULIST_SITE_ADMINISTRATION</td>
+	<td>//a[@role='menuitem' and contains(.,'Site Administration')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SITE_MENULIST_MANAGE_PAGES</td>
-	<td>//a[@role='menuitem' and contains(.,'Manage Pages')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SITE_MENULIST_MANAGE_MEMBERSHIPS</td>
-	<td>//a[@role='menuitem' and contains(.,'Manage Memberships')]</td>
+	<td>SITE_MENULIST_ADD_CHILD_SITE</td>
+	<td>//a[@role='menuitem' and contains(.,'Add Child Site')]</td>
 	<td></td>
 </tr>
 <tr>

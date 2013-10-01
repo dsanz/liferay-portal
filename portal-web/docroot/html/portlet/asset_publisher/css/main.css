@@ -1,5 +1,7 @@
 .portlet-asset-publisher {
 	.asset-abstract {
+		margin-bottom: 2em;
+
 		.asset-content p {
 			margin-bottom: 0;
 		}
@@ -82,9 +84,7 @@
 
 	.asset-title {
 		border-bottom: 1px solid #DDD;
-		margin-bottom: 0.7em;
 		margin-right: 8px;
-		margin-top: 2em;
 		padding-bottom: 1px;
 
 		.asset-actions img {
@@ -121,14 +121,13 @@
 		margin-bottom: 20px;
 	}
 
-	.final-separator {
-		border: 0;
-		margin-bottom: 30px;
-	}
-
 	.lfr-meta-actions {
 		margin-right: 1em;
 		padding-top: 0;
+	}
+
+	.add-asset-selector {
+		margin-right: 0;
 	}
 
 	.metadata-author {
@@ -161,11 +160,12 @@
 	}
 
 	.subscribe-action {
-		float: right;
-		margin-right: 10px;
-		margin-top: -30px;
-		text-align: right
-    }
+		text-align: right;
+
+		.taglib-rss {
+			margin-left: 10px;
+		}
+	}
 
 	.taglib-asset-categories-summary {
 		float: left;

@@ -23,6 +23,7 @@ ServiceContext#deriveDefaultPermissions(long, String).
 
 <%@ include file="/html/taglib/init.jsp" %>
 
+<%@ page import="com.liferay.portal.service.permission.RolePermissionUtil" %>
 <%@ page import="com.liferay.taglib.ui.InputPermissionsParamsTag" %>
 
 <%
@@ -46,10 +47,16 @@ String modelName = (String)request.getAttribute("liferay-ui:input-permissions:mo
 		Group siteGroup = GroupLocalServiceUtil.getGroup(themeDisplay.getSiteGroupId());
 
 		Role defaultGroupRole = RoleLocalServiceUtil.getDefaultGroupRole(siteGroup.getGroupId());
-		Role guestRole = RoleLocalServiceUtil.getRole(themeDisplay.getCompanyId(), RoleConstants.GUEST);
-		Role ownerRole = RoleLocalServiceUtil.getRole(themeDisplay.getCompanyId(), RoleConstants.OWNER);
 
-		String[] roleNames = new String[] {RoleConstants.GUEST, defaultGroupRole.getName()};
+		boolean hasViewDefaultGroupRolePermission = RolePermissionUtil.contains(themeDisplay.getPermissionChecker(), siteGroup.getGroupId(), defaultGroupRole.getRoleId(), ActionKeys.VIEW);
+
+		Role guestRole = RoleLocalServiceUtil.getRole(themeDisplay.getCompanyId(), RoleConstants.GUEST);
+
+		String[] roleNames = new String[] {RoleConstants.GUEST};
+
+		if (hasViewDefaultGroupRolePermission) {
+			roleNames = ArrayUtil.append(roleNames, defaultGroupRole.getName());
+		}
 
 		String guestPermissionsName = "guestPermissions";
 		String groupPermissionsName = "groupPermissions";
@@ -79,18 +86,21 @@ String modelName = (String)request.getAttribute("liferay-ui:input-permissions:mo
 		<p>
 			<label class="inline-label" for="<%= namespace %>inputPermissionsViewRole">
 				<liferay-ui:message key="viewable-by" />
+			</label>
 
-				<select id="<%= uniqueNamespace %>inputPermissionsViewRole" name="<%= namespace %>inputPermissionsViewRole" onChange="<%= uniqueNamespace + "updatePermissionsView();" %>">
+			<select id="<%= uniqueNamespace %>inputPermissionsViewRole" name="<%= namespace %>inputPermissionsViewRole" onChange="<%= uniqueNamespace + "updatePermissionsView();" %>">
 
-					<%
-					String guestRoleLabel = LanguageUtil.format(pageContext, "x-role", guestRole.getTitle(themeDisplay.getLocale()));
+				<%
+				String guestRoleLabel = LanguageUtil.format(pageContext, "x-role", guestRole.getTitle(themeDisplay.getLocale()));
 
-					if (PropsValues.PERMISSIONS_CHECK_GUEST_ENABLED) {
-						guestRoleLabel = LanguageUtil.get(pageContext, "anyone") + StringPool.SPACE + StringPool.OPEN_PARENTHESIS + guestRoleLabel + StringPool.CLOSE_PARENTHESIS;
-					}
-					%>
+				if (PropsValues.PERMISSIONS_CHECK_GUEST_ENABLED) {
+					guestRoleLabel = LanguageUtil.get(pageContext, "anyone") + StringPool.SPACE + StringPool.OPEN_PARENTHESIS + guestRoleLabel + StringPool.CLOSE_PARENTHESIS;
+				}
+				%>
 
-					<option <%= (inputPermissionsViewRole.equals(RoleConstants.GUEST)) ? "selected=\"selected\"" : "" %> value="<%= RoleConstants.GUEST %>"><%= guestRoleLabel %></option>
+				<option <%= (inputPermissionsViewRole.equals(RoleConstants.GUEST)) ? "selected=\"selected\"" : "" %> value="<%= RoleConstants.GUEST %>"><%= guestRoleLabel %></option>
+
+				<c:if test="<%= hasViewDefaultGroupRolePermission %>">
 					<option <%= (inputPermissionsViewRole.equals(defaultGroupRole.getName())) ? "selected=\"selected\"" : "" %> value="<%= defaultGroupRole.getName() %>">
 						<c:choose>
 							<c:when test="<%= defaultGroupRole.getName().equals(RoleConstants.ORGANIZATION_USER) %>">
@@ -107,9 +117,10 @@ String modelName = (String)request.getAttribute("liferay-ui:input-permissions:mo
 							</c:otherwise>
 						</c:choose>
 					</option>
-					<option <%= (inputPermissionsViewRole.equals(RoleConstants.OWNER)) ? "selected=\"selected\"" : "" %> value="<%= RoleConstants.OWNER %>"><liferay-ui:message key="owner" /></option>
-				</select>
-			</label>
+				</c:if>
+
+				<option <%= (inputPermissionsViewRole.equals(RoleConstants.OWNER)) ? "selected=\"selected\"" : "" %> value="<%= RoleConstants.OWNER %>"><liferay-ui:message key="owner" /></option>
+			</select>
 
 			<span <%= inputPermissionsShowOptions ? "class=\"hide\"" : "" %> id="<%= uniqueNamespace %>inputPermissionsShowOptionsLink">
 				<a href="javascript:<%= uniqueNamespace %>inputPermissionsShowOptions();" style="margin-left: 10px;"><liferay-ui:message key="more-options" /> &raquo;</a> <liferay-ui:icon-help message="input-permissions-more-options-help" />
@@ -291,7 +302,7 @@ String modelName = (String)request.getAttribute("liferay-ui:input-permissions:mo
 					document.<%= formName %>.<%= namespace %>addUserPermissionsBox.checked = false;
 				}
 				else if (!document.<%= formName %>.<%= namespace %>addGroupPermissionsBox.checked &&
-						 !document.<%= formName %>.<%= namespace %>addGuestPermissionsBox.checked) {
+						!document.<%= formName %>.<%= namespace %>addGuestPermissionsBox.checked) {
 
 					document.<%= formName %>.<%= namespace %>addUserPermissionsBox.checked = true;
 				}

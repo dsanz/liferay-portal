@@ -16,22 +16,19 @@ package com.liferay.portal.service.impl;
 
 import com.liferay.portal.LayoutSetVirtualHostException;
 import com.liferay.portal.NoSuchImageException;
-import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.NoSuchVirtualHostException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ColorSchemeFactoryUtil;
-import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.ThemeFactoryUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Image;
-import com.liferay.portal.model.Layout;
-import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.VirtualHost;
 import com.liferay.portal.service.ServiceContext;
@@ -140,18 +137,10 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 
 		// Layouts
 
-		List<Layout> layouts = layoutPersistence.findByG_P_P(
-			groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
+		serviceContext.setAttribute("updatePageCount", Boolean.FALSE);
 
-		for (int i = layouts.size() - 1; i >= 0; i--) {
-			Layout layout = layouts.get(i);
-
-			try {
-				layoutLocalService.deleteLayout(layout, false, serviceContext);
-			}
-			catch (NoSuchLayoutException nsle) {
-			}
-		}
+		layoutLocalService.deleteLayouts(
+			groupId, privateLayout, serviceContext);
 
 		// Logo
 
@@ -184,11 +173,6 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 			layoutSetPersistence.update(newLayoutSet);
 		}
 
-		// Counter
-
-		counterLocalService.reset(
-			LayoutLocalServiceImpl.getCounterName(groupId, privateLayout));
-
 		// Virtual host
 
 		try {
@@ -203,7 +187,7 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 	public LayoutSet fetchLayoutSet(String virtualHostname)
 		throws SystemException {
 
-		virtualHostname = virtualHostname.trim().toLowerCase();
+		virtualHostname = StringUtil.toLowerCase(virtualHostname.trim());
 
 		VirtualHost virtualHost = virtualHostPersistence.fetchByHostname(
 			virtualHostname);
@@ -227,7 +211,7 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 	public LayoutSet getLayoutSet(String virtualHostname)
 		throws PortalException, SystemException {
 
-		virtualHostname = virtualHostname.trim().toLowerCase();
+		virtualHostname = StringUtil.toLowerCase(virtualHostname.trim());
 
 		VirtualHost virtualHost = virtualHostPersistence.findByHostname(
 			virtualHostname);
@@ -502,10 +486,10 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 			long groupId, boolean privateLayout, String virtualHostname)
 		throws PortalException, SystemException {
 
-		virtualHostname = virtualHostname.trim().toLowerCase();
+		virtualHostname = StringUtil.toLowerCase(virtualHostname.trim());
 
-		if (virtualHostname.startsWith(Http.HTTP_WITH_SLASH) ||
-			virtualHostname.startsWith(Http.HTTPS_WITH_SLASH)) {
+		if (Validator.isNotNull(virtualHostname) &&
+			!Validator.isDomain(virtualHostname)) {
 
 			throw new LayoutSetVirtualHostException();
 		}

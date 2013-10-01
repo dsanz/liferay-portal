@@ -101,6 +101,8 @@ public interface ResourceActions {
 
 	public List<String> getModelResourceOwnerDefaultActions(String name);
 
+	public Double getModelResourceWeight(String name);
+
 	public String[] getOrganizationModelResources();
 
 	public String[] getPortalModelResources();
@@ -122,6 +124,8 @@ public interface ResourceActions {
 	public List<String> getPortletResourceGuestUnsupportedActions(String name);
 
 	public List<String> getPortletResourceLayoutManagerActions(String name);
+
+	public String getPortletRootModelResource(String portletName);
 
 	public List<String> getResourceActions(String name);
 

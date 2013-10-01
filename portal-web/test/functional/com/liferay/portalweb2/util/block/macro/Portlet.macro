@@ -1,73 +1,107 @@
 <definition>
-	<command name="pgAdd">
+	<command name="addDuplicatePG">
+		<execute action="Dockbar#click" locator-key1="ADD" value1="Add" />
+		<execute action="Dockbar#assertClick" locator-key1="ADD_APPLICATION_LINK" value1="Applications" />
+		<execute action="Dockbar#type" locator-key1="ADD_APPLICATION_SEARCH_FIELD" value1="${portletName}" />
+
+		<var name="portletLocator" value="//span[@data-title='${portletName}' and contains(@class,'add-content-item')]" />
+
 		<if>
-			<equals arg1="${pageType}" arg2="Organization" />
+			<equals arg1="${portletName}" arg2="Asset Publisher" />
 			<then>
-				<execute macro="Page#pgGotoOrganization">
-					<var name="pageName" value="${pageName}" />
-				</execute>
+				<var name="portletLocator" value="xpath=(${portletLocator})[2]" />
 			</then>
 			<elseif>
-				<equals arg1="${pageType}" arg2="Private" />
+				<equals arg1="${portletName}" arg2="Documents and Media Display" />
 				<then>
-					<execute macro="Page#pgGotoSitePrivate">
-						<var name="pageName" value="${pageName}" />
-					</execute>
+					<var name="portletLocator" value="xpath=(${portletLocator})[2]" />
 				</then>
 			</elseif>
 			<elseif>
-				<equals arg1="${pageType}" arg2="Public" />
+				<equals arg1="${portletName}" arg2="Navigation" />
 				<then>
-					<execute macro="Page#pgGotoSitePublic">
-						<var name="pageName" value="${pageName}" />
-					</execute>
+					<var name="portletLocator" value="xpath=(${portletLocator})[2]" />
 				</then>
 			</elseif>
-			<else>
-				<execute macro="Page#pgGoto">
-					<var name="pageName" value="${pageName}" />
-				</execute>
-			</else>
+			<elseif>
+				<equals arg1="${portletName}" arg2="Web Content Display" />
+				<then>
+					<var name="portletLocator" value="xpath=(${portletLocator})[2]" />
+				</then>
+			</elseif>
 		</if>
 
-		<execute action="Dockbar#click" locator-key1="ADD" />
-		<execute action="Dockbar#click" locator-key1="ADD_CONTENT_AND_APPLICATIONS" />
-		<execute action="Dockbar#click" locator-key1="ADD_APPLICATION_LINK" />
+		<execute action="Dockbar#assertElementNotPresent" locator1="${portletLocator}" value1="Add" />
+	</command>
 
-		<while>
-			<condition action="Dockbar#isElementPresent" locator-key1="ADD_APPLICATION_COLLAPSED_CATEGORY" />
-			<then>
-				<execute action="Dockbar#click" locator-key1="ADD_APPLICATION_COLLAPSED_CATEGORY" />
-			</then>
-		</while>
-
+	<command name="addPG">
+		<execute action="Dockbar#click" locator-key1="ADD" value1="Add" />
+		<execute action="Dockbar#assertClick" locator-key1="ADD_APPLICATION_LINK" value1="Applications" />
 		<execute action="Dockbar#type" locator-key1="ADD_APPLICATION_SEARCH_FIELD" value1="${portletName}" />
-		<execute action="Dockbar#click" locator1="//span[@data-title='${portletName}']" value1="Add" />
+
+		<var name="portletLocator" value="//span[@data-title='${portletName}' and contains(@class,'add-content-item')]" />
+
+		<if>
+			<equals arg1="${portletName}" arg2="Asset Publisher" />
+			<then>
+				<var name="portletLocator" value="xpath=(${portletLocator})[2]" />
+			</then>
+			<elseif>
+				<equals arg1="${portletName}" arg2="Documents and Media Display" />
+				<then>
+					<var name="portletLocator" value="xpath=(${portletLocator})[2]" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${portletName}" arg2="Navigation" />
+				<then>
+					<var name="portletLocator" value="xpath=(${portletLocator})[2]" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${portletName}" arg2="Web Content Display" />
+				<then>
+					<var name="portletLocator" value="xpath=(${portletLocator})[2]" />
+				</then>
+			</elseif>
+		</if>
+
+		<execute action="Dockbar#assertClick" locator1="${portletLocator}" value1="Add" />
 
 		<execute action="Home#assertElementPresent" locator-key1="PORTLET_1" />
 	</command>
 
-	<command name="pgAddOrganization">
-		<execute macro="Portlet#pgAdd">
-			<var name="pageName" value="${pageName}" />
-			<var name="pageType" value="Organization" />
-			<var name="portletName" value="${portletName}" />
-		</execute>
+	<command name="deletePG">
+		<var name="portletLocator" value="//h1[@class='portlet-title']/span[contains(.,'${portletName}')]/../../menu//a[@title='Options']" />
+
+		<execute action="BasePortlet#assertClick" locator1="${portletLocator}" value1="Options" />
+		<execute action="BasePortlet#assertClick" locator-key1="REMOVE" value1="Remove" />
+		<execute action="BasePortlet#confirm" locator-key1="PORTLET_CONFIRM" value1="Are you sure you want to remove this component?" />
 	</command>
 
-	<command name="pgAddSitePrivate">
-		<execute macro="Portlet#pgAdd">
-			<var name="pageName" value="${pageName}" />
-			<var name="pageType" value="Private" />
-			<var name="portletName" value="${portletName}" />
-		</execute>
-	</command>
+	<command name="gotoPortletOptions">
+		<execute action="BasePortlet#click" locator-key1="OPTIONS_ICON" />
 
-	<command name="pgAddSitePublic">
-		<execute macro="Portlet#pgAdd">
-			<var name="pageName" value="${pageName}" />
-			<var name="pageType" value="Public" />
-			<var name="portletName" value="${portletName}" />
-		</execute>
+		<if>
+			<equals arg1="${portletOption}" arg2="Look and Feel" />
+			<then>
+				<execute action="BasePortlet#assertClick" locator-key1="OPTIONS_MENULIST_LOOK_AND_FEEL" value1="Look and Feel" />
+			</then>
+			<elseif>
+				<equals arg1="${portletOption}" arg2="Configuration" />
+				<then>
+					<execute action="BasePortlet#assertClick" locator-key1="OPTIONS_MENULIST_CONFIGURATION" value1="Configuration" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${portletOption}" arg2="Export / Import" />
+				<then>
+					<execute action="BasePortlet#assertClick" locator-key1="OPTIONS_MENULIST_EXPORT_IMPORT" value1="Export / Import" />
+				</then>
+			</elseif>
+			<else>
+				<fail message="Invalid var portletOption. Must be (Look and Feel|Configuration|Export / Import)." />
+			</else>
+		</if>
 	</command>
 </definition>

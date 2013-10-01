@@ -14,17 +14,23 @@
 
 package com.liferay.portalweb.portal.util.liferayselenium;
 
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.OSDetector;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portalweb.portal.util.TestPropsValues;
 
+import java.io.File;
+
 import java.util.Calendar;
 
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.internal.WrapsDriver;
@@ -46,7 +52,7 @@ public abstract class BaseWebDriverImpl
 
 		WebDriver.Window window = options.window();
 
-		window.setSize(new Dimension(1000, 1025));
+		window.setSize(new Dimension(1050, 1250));
 
 		webDriver.get(browserURL);
 	}
@@ -74,6 +80,20 @@ public abstract class BaseWebDriverImpl
 	@Override
 	public void assertElementPresent(String locator) throws Exception {
 		LiferaySeleniumHelper.assertElementPresent(this, locator);
+	}
+
+	@Override
+	public void assertEmailContent(String index, String content)
+		throws Exception {
+
+		LiferaySeleniumHelper.assertEmailContent(this, index, content);
+	}
+
+	@Override
+	public void assertEmailSubject(String index, String subject)
+		throws Exception {
+
+		LiferaySeleniumHelper.assertEmailSubject(this, index, subject);
 	}
 
 	@Override
@@ -180,6 +200,14 @@ public abstract class BaseWebDriverImpl
 	}
 
 	@Override
+	public void connectToEmailAccount(String emailAddress, String emailPassword)
+		throws Exception {
+
+		LiferaySeleniumHelper.connectToEmailAccount(
+			emailAddress, emailPassword);
+	}
+
+	@Override
 	public void copyText(String locator) {
 		_clipBoard = super.getText(locator);
 	}
@@ -187,6 +215,11 @@ public abstract class BaseWebDriverImpl
 	@Override
 	public void copyValue(String locator) {
 		_clipBoard = super.getValue(locator);
+	}
+
+	@Override
+	public void deleteAllEmails() throws Exception {
+		LiferaySeleniumHelper.deleteAllEmails();
 	}
 
 	@Override
@@ -218,6 +251,16 @@ public abstract class BaseWebDriverImpl
 		Calendar calendar = Calendar.getInstance();
 
 		return StringUtil.valueOf(calendar.get(Calendar.YEAR));
+	}
+
+	@Override
+	public String getEmailContent(String index) throws Exception {
+		return LiferaySeleniumHelper.getEmailContent(index);
+	}
+
+	@Override
+	public String getEmailSubject(String index) throws Exception {
+		return LiferaySeleniumHelper.getEmailSubject(index);
 	}
 
 	@Override
@@ -383,9 +426,9 @@ public abstract class BaseWebDriverImpl
 
 	@Override
 	public void makeVisible(String locator) {
-		WebElement bodyElement = getWebElement("//body");
+		WebElement bodyWebElement = getWebElement("//body");
 
-		WrapsDriver wrapsDriver = (WrapsDriver)bodyElement;
+		WrapsDriver wrapsDriver = (WrapsDriver)bodyWebElement;
 
 		WebDriver webDriver = wrapsDriver.getWrappedDriver();
 
@@ -401,9 +444,9 @@ public abstract class BaseWebDriverImpl
 		sb.append("element.style.opacity = '1';");
 		sb.append("element.style.visibility = 'visible';");
 
-		WebElement webElement = getWebElement(locator);
+		WebElement locatorWebElement = getWebElement(locator);
 
-		javascriptExecutor.executeScript(sb.toString(), webElement);
+		javascriptExecutor.executeScript(sb.toString(), locatorWebElement);
 	}
 
 	@Override
@@ -423,13 +466,58 @@ public abstract class BaseWebDriverImpl
 	}
 
 	@Override
-	public void saveScreenShotAndSource() throws Exception {
+	public void replyToEmail(String to, String content) throws Exception {
+		LiferaySeleniumHelper.replyToEmail(this, to, content);
+	}
+
+	@Override
+	public void saveScreenshot(String fileName) throws Exception {
+		if (!TestPropsValues.SAVE_SCREENSHOT) {
+			return;
+		}
+
+		if (_screenshotFileName.equals(fileName)) {
+			_screenshotCount++;
+		}
+		else {
+			_screenshotCount = 0;
+
+			_screenshotFileName = fileName;
+		}
+
+		WebElement webElement = getWebElement("//body");
+
+		WrapsDriver wrapsDriver = (WrapsDriver)webElement;
+
+		WebDriver webDriver = wrapsDriver.getWrappedDriver();
+
+		TakesScreenshot takesScreenshot = (TakesScreenshot)webDriver;
+
+		File file = takesScreenshot.getScreenshotAs(OutputType.FILE);
+
+		FileUtil.copyFile(
+			file,
+			new File(
+				getProjectDir() + "portal-web\\test-results\\functional\\" +
+					_screenshotFileName + "/" + _screenshotFileName +
+					_screenshotCount + ".jpg"));
+	}
+
+	@Override
+	public void saveScreenshotAndSource() throws Exception {
 	}
 
 	@Override
 	public void selectAndWait(String selectLocator, String optionLocator) {
 		super.select(selectLocator, optionLocator);
 		super.waitForPageToLoad("30000");
+	}
+
+	@Override
+	public void sendEmail(String to, String subject, String content)
+		throws Exception {
+
+		LiferaySeleniumHelper.sendEmail(this, to, subject, content);
 	}
 
 	@Override
@@ -465,10 +553,15 @@ public abstract class BaseWebDriverImpl
 
 	@Override
 	public void uploadCommonFile(String location, String value) {
-		uploadFile(
-			location,
-			_projectDir + "portal-web//test//functional//com//liferay//" +
-				"portalweb//dependencies//" + value);
+		String dependenciesDir =
+			"portal-web//test//functional//com//liferay//portalweb//" +
+				"dependencies//";
+
+		if (OSDetector.isWindows()) {
+			dependenciesDir = StringUtil.replace(dependenciesDir, "//", "\\");
+		}
+
+		uploadFile(location, _projectDir + dependenciesDir + value);
 	}
 
 	@Override
@@ -595,5 +688,7 @@ public abstract class BaseWebDriverImpl
 	private String _clipBoard = "";
 	private String _primaryTestSuiteName;
 	private String _projectDir;
+	private int _screenshotCount = 0;
+	private String _screenshotFileName = "";
 
 }

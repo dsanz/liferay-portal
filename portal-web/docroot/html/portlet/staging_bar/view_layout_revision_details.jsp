@@ -58,7 +58,7 @@ else {
 		<c:otherwise>
 			<aui:model-context bean="<%= layoutRevision %>" model="<%= LayoutRevision.class %>" />
 
-			<aui:workflow-status helpMessage="<%= taglibHelpMessage %>" status="<%= layoutRevision.getStatus() %>" statusMessage='<%= layoutRevision.isHead() ? "ready-for-publication" : null %>' version="<%= String.valueOf(layoutRevision.getLayoutRevisionId()) %>" />
+			<aui:workflow-status helpMessage="<%= taglibHelpMessage %>" showIcon="<%= false %>" status="<%= layoutRevision.getStatus() %>" statusMessage='<%= layoutRevision.isHead() ? "ready-for-publication" : null %>' version="<%= String.valueOf(layoutRevision.getLayoutRevisionId()) %>" />
 		</c:otherwise>
 	</c:choose>
 </div>
@@ -89,40 +89,41 @@ else {
 
 			stagingBar.layoutRevisionToolbar.add(
 				{
-					handler: function(event) {
+					label: '<%= UnicodeLanguageUtil.get(pageContext, "workflow") %>',
+					on: {
+						click: function(event) {
 
-						<%
-						long controlPanelPlid = PortalUtil.getControlPanelPlid(company.getCompanyId());
+							<%
+							long controlPanelPlid = PortalUtil.getControlPanelPlid(company.getCompanyId());
 
-						PortletURL portletURL = liferayPortletResponse.createLiferayPortletURL(controlPanelPlid, PortletKeys.MY_WORKFLOW_TASKS, PortletRequest.RENDER_PHASE);
+							PortletURL portletURL = liferayPortletResponse.createLiferayPortletURL(controlPanelPlid, PortletKeys.MY_WORKFLOW_TASKS, PortletRequest.RENDER_PHASE);
 
-						portletURL.setParameter("struts_action", "/my_workflow_tasks/edit_workflow_task");
+							portletURL.setParameter("struts_action", "/my_workflow_tasks/edit_workflow_task");
 
-						WorkflowTask workflowTask = StagingUtil.getWorkflowTask(user.getUserId(), layoutRevision);
+							WorkflowTask workflowTask = StagingUtil.getWorkflowTask(user.getUserId(), layoutRevision);
 
-						portletURL.setParameter("workflowTaskId", String.valueOf(workflowTask.getWorkflowTaskId()));
+							portletURL.setParameter("workflowTaskId", String.valueOf(workflowTask.getWorkflowTaskId()));
 
-						portletURL.setPortletMode(PortletMode.VIEW);
-						portletURL.setWindowState(LiferayWindowState.POP_UP);
+							portletURL.setPortletMode(PortletMode.VIEW);
+							portletURL.setWindowState(LiferayWindowState.POP_UP);
 
-						String layoutURL = PortalUtil.getLayoutFriendlyURL(layout, themeDisplay);
+							String layoutURL = PortalUtil.getLayoutFriendlyURL(layout, themeDisplay);
 
-						layoutURL = HttpUtil.addParameter(layoutURL, "layoutSetBranchId", layoutRevision.getLayoutSetBranchId());
-						layoutURL = HttpUtil.addParameter(layoutURL, "layoutRevisionId", layoutRevision.getLayoutRevisionId());
+							layoutURL = HttpUtil.addParameter(layoutURL, "layoutSetBranchId", layoutRevision.getLayoutSetBranchId());
+							layoutURL = HttpUtil.addParameter(layoutURL, "layoutRevisionId", layoutRevision.getLayoutRevisionId());
 
-						portletURL.setParameter("closeRedirect", layoutURL);
-						%>
+							portletURL.setParameter("closeRedirect", layoutURL);
+							%>
 
-						Liferay.Util.openWindow(
-							{
-								id: '<portlet:namespace />workflowTasks',
-								title: '<%= UnicodeLanguageUtil.get(pageContext, "workflow") %>',
-								uri: '<%= portletURL.toString() %>'
-							}
-						);
-					},
-					icon: 'shuffle',
-					label: '<%= UnicodeLanguageUtil.get(pageContext, "workflow") %>'
+							Liferay.Util.openWindow(
+								{
+									id: '<portlet:namespace />workflowTasks',
+									title: '<%= UnicodeLanguageUtil.get(pageContext, "workflow") %>',
+									uri: '<%= portletURL.toString() %>'
+								}
+							);
+						}
+					}
 				}
 			);
 		</c:when>
@@ -140,6 +141,8 @@ else {
 					var redoButton = stagingBar.redoButton;
 
 					stagingBar.layoutRevisionToolbar.add(redoButton, 0);
+
+					redoButton.render();
 
 					redoButton.get('contentBox').attr(
 						{
@@ -159,6 +162,8 @@ else {
 
 				stagingBar.layoutRevisionToolbar.add(undoButton, 0);
 
+				undoButton.render();
+
 				undoButton.get('contentBox').attr(
 					{
 						'data-layoutRevisionId': '<%= layoutRevision.getLayoutRevisionId() %>',
@@ -168,12 +173,6 @@ else {
 			</c:if>
 
 			<c:if test="<%= !layoutRevision.isHead() && LayoutPermissionUtil.contains(permissionChecker, layoutRevision.getPlid(), ActionKeys.UPDATE) %>">
-				stagingBar.layoutRevisionToolbar.add(
-					{
-						type: 'ToolbarSpacer'
-					}
-				);
-
 				stagingBar.layoutRevisionToolbar.add(
 					{
 
@@ -193,24 +192,34 @@ else {
 									<portlet:param name="workflowAction" value="<%= String.valueOf((layoutRevision.getStatus() == WorkflowConstants.STATUS_INCOMPLETE) ? WorkflowConstants.ACTION_SAVE_DRAFT : WorkflowConstants.ACTION_PUBLISH) %>" />
 								</portlet:actionURL>
 
-								handler: function(event) {
-									A.io.request(
-										'<%= publishURL %>',
-										{
-											after: {
-												success: function() {
-													<c:choose>
-														<c:when test="<%= layoutRevision.getStatus() == WorkflowConstants.STATUS_INCOMPLETE %>">
-															location.href = '<%= currentURL %>';
-														</c:when>
-														<c:otherwise>
-															Liferay.fire('updatedLayout');
-														</c:otherwise>
-													</c:choose>
+								on: {
+									click: function(event) {
+										event.currentTarget.setAttrs(
+											{
+												disabled: true,
+												icon: 'icon-loading',
+												label: '<liferay-ui:message key="loading" />...'
+											}
+										);
+
+										A.io.request(
+											'<%= publishURL %>',
+											{
+												after: {
+													success: function() {
+														<c:choose>
+															<c:when test="<%= layoutRevision.getStatus() == WorkflowConstants.STATUS_INCOMPLETE %>">
+																location.href = '<%= currentURL %>';
+															</c:when>
+															<c:otherwise>
+																Liferay.fire('updatedLayout');
+															</c:otherwise>
+														</c:choose>
+													}
 												}
 											}
-										}
-									);
+										);
+									}
 								},
 							</c:when>
 							<c:when test="<%= workflowEnabled %>">
@@ -231,7 +240,6 @@ else {
 						</c:choose>
 
 						<%
-						String icon = "circle-check";
 						String label = null;
 
 						if (layoutRevision.getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
@@ -239,7 +247,6 @@ else {
 						}
 						else {
 							if (workflowEnabled) {
-								icon = "shuffle";
 								label = "submit-for-publication";
 							}
 							else {
@@ -248,7 +255,7 @@ else {
 						}
 						%>
 
-						icon: '<%= icon %>',
+						cssClass: 'btn-link',
 						label: '<%= UnicodeLanguageUtil.get(pageContext, label) %>'
 					}
 				);

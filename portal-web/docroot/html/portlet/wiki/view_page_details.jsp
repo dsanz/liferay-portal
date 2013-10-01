@@ -52,10 +52,6 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "det
 	<liferay-util:param name="tabs1" value="details" />
 </liferay-util:include>
 
-<%
-int count = 0;
-%>
-
 <table class="table table-bordered table-hover table-striped page-info">
 <tr>
 	<th class="table-header">
@@ -140,7 +136,7 @@ int count = 0;
 				<liferay-ui:icon
 					image='<%= "../file_system/small/" + conversion %>'
 					label="<%= true %>"
-					message="<%= conversion.toUpperCase() %>"
+					message="<%= StringUtil.toUpperCase(conversion) %>"
 					method="get"
 					url="<%= exportPageURL.toString() %>"
 				/>
@@ -288,12 +284,15 @@ int count = 0;
 						modelResourceDescription="<%= wikiPage.getTitle() %>"
 						resourcePrimKey="<%= String.valueOf(wikiPage.getResourcePrimKey()) %>"
 						var="permissionsURL"
+						windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 					/>
 
 					<liferay-ui:icon
 						image="permissions"
 						label="<%= true %>"
+						method="get"
 						url="<%= permissionsURL %>"
+						useDialog="<%= true %>"
 					/>
 				</c:if>
 

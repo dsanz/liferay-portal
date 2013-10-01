@@ -15,7 +15,6 @@
 package com.liferay.portlet.portletconfiguration.action;
 
 import com.liferay.portal.NoSuchLayoutException;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.Constants;
@@ -36,7 +35,6 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortletConfigFactoryUtil;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.portletconfiguration.util.PortletConfigurationUtil;
 
 import java.util.ResourceBundle;
@@ -81,6 +79,12 @@ public class EditScopeAction extends PortletAction {
 			setForward(actionRequest, "portlet.portlet_configuration.error");
 		}
 
+		PortletPreferences portletPreferences =
+			ActionUtil.getLayoutPortletSetup(actionRequest, portlet);
+
+		actionRequest = ActionUtil.getWrappedActionRequest(
+			actionRequest, portletPreferences);
+
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
 		if (cmd.equals(Constants.SAVE)) {
@@ -88,21 +92,18 @@ public class EditScopeAction extends PortletAction {
 		}
 
 		if (SessionErrors.isEmpty(actionRequest)) {
-			LiferayPortletConfig liferayPortletConfig =
-				(LiferayPortletConfig)portletConfig;
-
 			String portletResource = ParamUtil.getString(
 				actionRequest, "portletResource");
 
 			SessionMessages.add(
 				actionRequest,
-				liferayPortletConfig.getPortletId() +
+				PortalUtil.getPortletId(actionRequest) +
 					SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
 				portletResource);
 
 			SessionMessages.add(
 				actionRequest,
-				liferayPortletConfig.getPortletId() +
+				PortalUtil.getPortletId(actionRequest) +
 					SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
 
 			String redirect = PortalUtil.escapeRedirect(
@@ -133,6 +134,12 @@ public class EditScopeAction extends PortletAction {
 			return actionMapping.findForward(
 				"portlet.portlet_configuration.error");
 		}
+
+		PortletPreferences portletPreferences =
+			ActionUtil.getLayoutPortletSetup(renderRequest, portlet);
+
+		renderRequest = ActionUtil.getWrappedRenderRequest(
+			renderRequest, portletPreferences);
 
 		renderResponse.setTitle(ActionUtil.getTitle(portlet, renderRequest));
 
@@ -175,8 +182,9 @@ public class EditScopeAction extends PortletAction {
 					themeDisplay.getUserId(),
 					GroupConstants.DEFAULT_PARENT_GROUP_ID,
 					Layout.class.getName(), scopeLayout.getPlid(),
-					GroupConstants.DEFAULT_LIVE_GROUP_ID, name, null, 0, null,
-					false, true, null);
+					GroupConstants.DEFAULT_LIVE_GROUP_ID, name, null, 0, true,
+					GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, null, false,
+					true, null);
 			}
 
 			scopeGroupId = scopeLayout.getGroupId();
@@ -199,9 +207,7 @@ public class EditScopeAction extends PortletAction {
 
 		Layout layout = themeDisplay.getLayout();
 
-		PortletPreferences portletPreferences =
-			PortletPreferencesFactoryUtil.getLayoutPortletSetup(
-				layout, portlet.getPortletId());
+		PortletPreferences portletPreferences = actionRequest.getPreferences();
 
 		String scopeType = GetterUtil.getString(
 			portletPreferences.getValue("lfrScopeType", null));
@@ -271,11 +277,9 @@ public class EditScopeAction extends PortletAction {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		Layout layout = themeDisplay.getLayout();
+		String oldScopeName = getOldScopeName(actionRequest, portlet);
 
-		PortletPreferences portletPreferences =
-			PortletPreferencesFactoryUtil.getLayoutPortletSetup(
-				layout, portlet.getPortletId());
+		PortletPreferences portletPreferences = actionRequest.getPreferences();
 
 		String scopeType = ParamUtil.getString(actionRequest, "scopeType");
 
@@ -299,7 +303,6 @@ public class EditScopeAction extends PortletAction {
 
 		portletPreferences.setValue("groupId", String.valueOf(newScopeGroupId));
 
-		String oldScopeName = getOldScopeName(actionRequest, portlet);
 		String newScopeName = (String)newScopeTuple.getObject(1);
 
 		String newPortletTitle = PortalUtil.getNewPortletTitle(

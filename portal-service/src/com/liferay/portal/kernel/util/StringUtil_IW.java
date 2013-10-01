@@ -71,6 +71,10 @@ public class StringUtil_IW {
 		return StringUtil.endsWith(s, end);
 	}
 
+	public boolean equalsIgnoreCase(java.lang.String s1, java.lang.String s2) {
+		return StringUtil.equalsIgnoreCase(s1, s2);
+	}
+
 	public java.lang.String extract(java.lang.String s, char[] chars) {
 		return StringUtil.extract(s, chars);
 	}
@@ -163,6 +167,14 @@ public class StringUtil_IW {
 	public java.lang.String insert(java.lang.String s, java.lang.String insert,
 		int offset) {
 		return StringUtil.insert(s, insert, offset);
+	}
+
+	public boolean isLowerCase(java.lang.String s) {
+		return StringUtil.isLowerCase(s);
+	}
+
+	public boolean isUpperCase(java.lang.String s) {
+		return StringUtil.isUpperCase(s);
 	}
 
 	public int lastIndexOfAny(java.lang.String s, char[] chars) {
@@ -299,8 +311,20 @@ public class StringUtil_IW {
 		return StringUtil.quote(s, quote);
 	}
 
+	public java.lang.String randomId() {
+		return StringUtil.randomId();
+	}
+
 	public java.lang.String randomize(java.lang.String s) {
 		return StringUtil.randomize(s);
+	}
+
+	public java.lang.String randomString() {
+		return StringUtil.randomString();
+	}
+
+	public java.lang.String randomString(int length) {
+		return StringUtil.randomString(length);
 	}
 
 	public java.lang.String read(java.lang.ClassLoader classLoader,
@@ -382,6 +406,11 @@ public class StringUtil_IW {
 	public java.lang.String replaceFirst(java.lang.String s,
 		java.lang.String oldSub, java.lang.String newSub) {
 		return StringUtil.replaceFirst(s, oldSub, newSub);
+	}
+
+	public java.lang.String replaceFirst(java.lang.String s,
+		java.lang.String oldSub, java.lang.String newSub, int fromIndex) {
+		return StringUtil.replaceFirst(s, oldSub, newSub, fromIndex);
 	}
 
 	public java.lang.String replaceFirst(java.lang.String s,
@@ -550,6 +579,24 @@ public class StringUtil_IW {
 		return StringUtil.toHexString(obj);
 	}
 
+	public java.lang.String toLowerCase(java.lang.String s) {
+		return StringUtil.toLowerCase(s);
+	}
+
+	public java.lang.String toLowerCase(java.lang.String s,
+		java.util.Locale locale) {
+		return StringUtil.toLowerCase(s, locale);
+	}
+
+	public java.lang.String toUpperCase(java.lang.String s) {
+		return StringUtil.toUpperCase(s);
+	}
+
+	public java.lang.String toUpperCase(java.lang.String s,
+		java.util.Locale locale) {
+		return StringUtil.toUpperCase(s, locale);
+	}
+
 	public java.lang.String trim(java.lang.String s) {
 		return StringUtil.trim(s);
 	}
@@ -600,6 +647,14 @@ public class StringUtil_IW {
 
 	public java.lang.String valueOf(java.lang.Object obj) {
 		return StringUtil.valueOf(obj);
+	}
+
+	public boolean wildcardMatches(java.lang.String s,
+		java.lang.String wildcard, char singleWildcardCharacter,
+		char multipleWildcardCharacter, char escapeWildcardCharacter,
+		boolean caseSensitive) {
+		return StringUtil.wildcardMatches(s, wildcard, singleWildcardCharacter,
+			multipleWildcardCharacter, escapeWildcardCharacter, caseSensitive);
 	}
 
 	public java.lang.String wrap(java.lang.String text) {

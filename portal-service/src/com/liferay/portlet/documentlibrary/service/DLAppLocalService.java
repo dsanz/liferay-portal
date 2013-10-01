@@ -142,8 +142,8 @@ public interface DLAppLocalService extends BaseLocalService {
 			com.liferay.portal.kernel.exception.SystemException;
 
 	/**
-	* Adds a file entry and associated metadata based on an {@link
-	* java.io.InputStream} object.
+	* Adds a file entry and associated metadata based on an {@link InputStream}
+	* object.
 	*
 	* <p>
 	* This method takes two file names, the <code>sourceFileName</code> and the
@@ -497,11 +497,18 @@ public interface DLAppLocalService extends BaseLocalService {
 	*
 	* @param userId the primary key of the user
 	* @param fileEntryId the primary key of the file entry
+	* @return the file entry
 	* @throws PortalException if the file entry could not be found
 	* @throws SystemException if a system exception occurred
 	*/
 	public com.liferay.portal.kernel.repository.model.FileEntry moveFileEntryToTrash(
 		long userId, long fileEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	public com.liferay.portal.kernel.repository.model.Folder moveFolder(
+		long userId, long folderId, long parentFolderId,
+		com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
@@ -667,7 +674,7 @@ public interface DLAppLocalService extends BaseLocalService {
 	* @param changeLog the file's version change log (optionally
 	<code>null</code>)
 	* @param majorVersion whether the new file version is a major version
-	* @param file EntryId the primary key of the file entry
+	* @param file the file's data (optionally <code>null</code>)
 	* @param serviceContext the service context to be applied. Can set the
 	asset category IDs, asset tag names, and expando bridge
 	attributes for the file entry. In a Liferay repository, it may
@@ -688,7 +695,7 @@ public interface DLAppLocalService extends BaseLocalService {
 			com.liferay.portal.kernel.exception.SystemException;
 
 	/**
-	* Updates a file entry and associated metadata based on an {@link java.io.
+	* Updates a file entry and associated metadata based on an {@link
 	* InputStream} object. If the file data is <code>null</code>, then only the
 	* associated metadata (i.e., <code>title</code>, <code>description</code>,
 	* and parameters in the <code>serviceContext</code>) will be updated.

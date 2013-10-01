@@ -23,6 +23,7 @@ import com.liferay.portalweb.portal.util.liferayselenium.FirefoxWebDriverImpl;
 import com.liferay.portalweb.portal.util.liferayselenium.InternetExplorerWebDriverImpl;
 import com.liferay.portalweb.portal.util.liferayselenium.LiferaySelenium;
 import com.liferay.portalweb.portal.util.liferayselenium.LoggerHandler;
+import com.liferay.portalweb.portal.util.liferayselenium.SafariWebDriverImpl;
 
 import com.thoughtworks.selenium.Selenium;
 
@@ -104,6 +105,11 @@ public class SeleniumUtil extends TestPropsValues {
 				}
 			}
 			else if (BROWSER_TYPE.equals("*googlechrome")) {
+				System.setProperty(
+					"webdriver.chrome.driver",
+					TestPropsValues.SELENIUM_EXECUTABLE_DIR +
+						"\\chromedriver.exe");
+
 				if (SELENIUM_LOGGER_ENABLED) {
 					_selenium = _wrapWithLoggerHandler(
 						new ChromeWebDriverImpl(projectDir, PORTAL_URL));
@@ -115,6 +121,11 @@ public class SeleniumUtil extends TestPropsValues {
 			else if (BROWSER_TYPE.equals("*iehta") ||
 					 BROWSER_TYPE.equals("*iexplore")) {
 
+				System.setProperty(
+					"webdriver.ie.driver",
+					TestPropsValues.SELENIUM_EXECUTABLE_DIR +
+						"\\IEDriverServer.exe");
+
 				if (SELENIUM_LOGGER_ENABLED) {
 					_selenium = _wrapWithLoggerHandler(
 						new InternetExplorerWebDriverImpl(
@@ -123,6 +134,15 @@ public class SeleniumUtil extends TestPropsValues {
 				else {
 					_selenium = new InternetExplorerWebDriverImpl(
 						projectDir, PORTAL_URL);
+				}
+			}
+			else if (BROWSER_TYPE.equals("*safari")) {
+				if (SELENIUM_LOGGER_ENABLED) {
+					_selenium = _wrapWithLoggerHandler(
+						new SafariWebDriverImpl(projectDir, PORTAL_URL));
+				}
+				else {
+					_selenium = new SafariWebDriverImpl(projectDir, PORTAL_URL);
 				}
 			}
 			else {

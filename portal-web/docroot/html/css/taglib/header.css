@@ -7,8 +7,9 @@
 	}
 
 	.header-back-to a {
-		float: right;
-		padding: 1em 0.2em;
+		float: left;
+		padding: 0.5em;
+		padding-left: 0;
 	}
 }
 
@@ -19,6 +20,7 @@
 	color: #555;
 
 	.header-back-to a {
+		font-size: 1.5em;
 		font-weight: bold;
 		text-decoration: none;
 	}

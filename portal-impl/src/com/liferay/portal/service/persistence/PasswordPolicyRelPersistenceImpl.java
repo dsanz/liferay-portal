@@ -354,6 +354,10 @@ public class PasswordPolicyRelPersistenceImpl extends BasePersistenceImpl<Passwo
 		throws SystemException {
 		int count = countByPasswordPolicyId(passwordPolicyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PasswordPolicyRel> list = findByPasswordPolicyId(passwordPolicyId,
 				count - 1, count, orderByComparator);
 
@@ -817,6 +821,10 @@ public class PasswordPolicyRelPersistenceImpl extends BasePersistenceImpl<Passwo
 
 	private static final String _FINDER_COLUMN_C_C_CLASSNAMEID_2 = "passwordPolicyRel.classNameId = ? AND ";
 	private static final String _FINDER_COLUMN_C_C_CLASSPK_2 = "passwordPolicyRel.classPK = ?";
+
+	public PasswordPolicyRelPersistenceImpl() {
+		setModelClass(PasswordPolicyRel.class);
+	}
 
 	/**
 	 * Caches the password policy rel in the entity cache if it is enabled.

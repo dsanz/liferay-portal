@@ -14,36 +14,76 @@
 
 package com.liferay.portal.spring.aop;
 
+import org.aopalliance.intercept.MethodInterceptor;
+
 /**
  * @author Shuyang Zhou
  */
 public class ChainableMethodAdviceInjector {
 
-	public void afterPropertiesSet() {
-		if (!isInjectCondition()) {
+	public void inject() {
+		if (!_injectCondition) {
 			return;
 		}
 
-		ChainableMethodAdvice newChainableMethodAdvice =
-			getNewChainableMethodAdvice();
+		_injectCondition = false;
 
-		if (newChainableMethodAdvice == null) {
+		if (_newChainableMethodAdvice == null) {
 			throw new IllegalArgumentException(
 				"New Chainable method advice is null");
 		}
 
-		ChainableMethodAdvice parentChainableMethodAdvice =
-			getParentChainableMethodAdvice();
-
-		if (parentChainableMethodAdvice == null) {
+		if (_parentChainableMethodAdvice == null) {
 			throw new IllegalArgumentException(
 				"Parent chainable method advice is null");
 		}
 
-		newChainableMethodAdvice.nextMethodInterceptor =
+		if (_childMethodInterceptor == null) {
+			_newChainableMethodAdvice.nextMethodInterceptor =
+				_parentChainableMethodAdvice.nextMethodInterceptor;
+			_parentChainableMethodAdvice.nextMethodInterceptor =
+				_newChainableMethodAdvice;
+
+			return;
+		}
+
+		ChainableMethodAdvice parentChainableMethodAdvice =
+			_parentChainableMethodAdvice;
+
+		while ((parentChainableMethodAdvice != null) &&
+			   (parentChainableMethodAdvice.nextMethodInterceptor !=
+					_childMethodInterceptor)) {
+
+			MethodInterceptor methodInterceptor =
+				parentChainableMethodAdvice.nextMethodInterceptor;
+
+			if (!(methodInterceptor instanceof ChainableMethodAdvice)) {
+				break;
+			}
+
+			parentChainableMethodAdvice =
+				(ChainableMethodAdvice)methodInterceptor;
+		}
+
+		if (parentChainableMethodAdvice.nextMethodInterceptor !=
+				_childMethodInterceptor) {
+
+			throw new IllegalArgumentException(
+				"Unable to find " + _childMethodInterceptor + " from " +
+					_parentChainableMethodAdvice);
+		}
+
+		_newChainableMethodAdvice.nextMethodInterceptor =
 			parentChainableMethodAdvice.nextMethodInterceptor;
+
 		parentChainableMethodAdvice.nextMethodInterceptor =
-			newChainableMethodAdvice;
+			_newChainableMethodAdvice;
+	}
+
+	public void setChildMethodInterceptor(
+		MethodInterceptor childMethodInterceptor) {
+
+		_childMethodInterceptor = childMethodInterceptor;
 	}
 
 	public void setInjectCondition(boolean injectCondition) {
@@ -62,18 +102,7 @@ public class ChainableMethodAdviceInjector {
 		_parentChainableMethodAdvice = parentChainableMethodAdvice;
 	}
 
-	protected ChainableMethodAdvice getNewChainableMethodAdvice() {
-		return _newChainableMethodAdvice;
-	}
-
-	protected ChainableMethodAdvice getParentChainableMethodAdvice() {
-		return _parentChainableMethodAdvice;
-	}
-
-	protected boolean isInjectCondition() {
-		return _injectCondition;
-	}
-
+	private MethodInterceptor _childMethodInterceptor;
 	private boolean _injectCondition;
 	private ChainableMethodAdvice _newChainableMethodAdvice;
 	private ChainableMethodAdvice _parentChainableMethodAdvice;

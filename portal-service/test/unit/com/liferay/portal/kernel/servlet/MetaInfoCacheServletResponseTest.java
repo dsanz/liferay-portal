@@ -16,6 +16,7 @@ package com.liferay.portal.kernel.servlet;
 
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -549,7 +550,7 @@ public class MetaInfoCacheServletResponseTest {
 		fromMetaInfoCacheServletResponse.setContentLength(2048);
 		fromMetaInfoCacheServletResponse.setContentType(
 			ContentTypes.TEXT_HTML_UTF8);
-		fromMetaInfoCacheServletResponse.setLocale(Locale.ENGLISH);
+		fromMetaInfoCacheServletResponse.setLocale(LocaleUtil.US);
 		fromMetaInfoCacheServletResponse.setStatus(302, "moved");
 
 		toMetaInfoCacheServletResponse = new MetaInfoCacheServletResponse(
@@ -571,7 +572,7 @@ public class MetaInfoCacheServletResponseTest {
 			ContentTypes.TEXT_HTML,
 			toMetaInfoCacheServletResponse.getContentType());
 		Assert.assertEquals(
-			Locale.ENGLISH, toMetaInfoCacheServletResponse.getLocale());
+			LocaleUtil.US, toMetaInfoCacheServletResponse.getLocale());
 		Assert.assertEquals(2048, contentLengthReference.get());
 		Assert.assertEquals("moved", messageReference.get());
 		Assert.assertEquals(302, statusReference.get());
@@ -917,11 +918,11 @@ public class MetaInfoCacheServletResponseTest {
 
 		// Normal set
 
-		metaInfoCacheServletResponse.setLocale(Locale.ENGLISH);
+		metaInfoCacheServletResponse.setLocale(LocaleUtil.US);
 
 		Assert.assertEquals(
-			Locale.ENGLISH, metaInfoCacheServletResponse.getLocale());
-		Assert.assertEquals(Locale.ENGLISH, localeReference.get());
+			LocaleUtil.US, metaInfoCacheServletResponse.getLocale());
+		Assert.assertEquals(LocaleUtil.US, localeReference.get());
 
 		localeReference.set(null);
 
@@ -929,10 +930,10 @@ public class MetaInfoCacheServletResponseTest {
 
 		metaInfoCacheServletResponse.flushBuffer();
 
-		metaInfoCacheServletResponse.setLocale(Locale.FRENCH);
+		metaInfoCacheServletResponse.setLocale(LocaleUtil.FRENCH);
 
 		Assert.assertEquals(
-			Locale.ENGLISH, metaInfoCacheServletResponse.getLocale());
+			LocaleUtil.US, metaInfoCacheServletResponse.getLocale());
 		Assert.assertNull(localeReference.get());
 	}
 

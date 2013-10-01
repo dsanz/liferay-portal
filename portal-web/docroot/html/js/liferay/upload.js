@@ -7,6 +7,8 @@ AUI.add(
 
 		var formatSelectorNS = A.Node.formatSelectorNS;
 
+		var STATUS_CODE = Liferay.STATUS_CODE;
+
 		var STR_BLANK = '';
 
 		var STR_PARAM_FALLBACK = 'uploader=fallback';
@@ -32,7 +34,7 @@ AUI.add(
 					'<li class="upload-file upload-error" data-fileId="{id}" id="{id}">',
 						'<span class="file-title" title="{name}">{name}</span>',
 						'<span class="error-message" title="{error}">{error}</span>',
-						'<tpl if="messageListItems && (messageListItems.length > 0)">',
+						'<tpl if="values.messageListItems && (values.messageListItems.length > 0)">',
 							'<ul class="error-list-items">',
 								'<tpl for="messageListItems">',
 									'<li>{type}: <strong>{name}</strong>',
@@ -49,7 +51,7 @@ AUI.add(
 					'<li class="alert alert-error upload-error" data-fileId="{id}" id="{id}">',
 						'<h4 class="upload-error-message">{[ Lang.sub(this.strings.fileCannotBeSavedText, [values.name]) ]}</h4>',
 						'<span class="error-message" title="{error}">{error}</span>',
-						'<tpl if="messageListItems && (messageListItems.length > 0)">',
+						'<tpl if="values.messageListItems && (values.messageListItems.length > 0)">',
 							'<ul class="error-list-items">',
 								'<tpl for="messageListItems">',
 									'<li>{type}: <strong>{name}</strong>',
@@ -655,9 +657,11 @@ AUI.add(
 							A.io.request(
 								deleteFile,
 								{
-									data: {
-										fileName : li.attr('data-fileName')
-									},
+									data: instance.ns(
+										{
+											fileName: li.attr('data-fileName')
+										}
+									),
 									dataType: 'json',
 									on: {
 										success: function(event, id, obj) {
@@ -751,7 +755,7 @@ AUI.add(
 						catch (err) {
 						}
 
-						if (data.status && (data.status >= 490 && data.status < 500)) {
+						if (data.status && (data.status >= STATUS_CODE.SC_DUPLICATE_FILE_EXCEPTION && data.status < STATUS_CODE.INTERNAL_SERVER_ERROR)) {
 							file.error = data.message || strings.unexpectedErrorOnUploadText;
 
 							file.messageListItems = data.messageListItems;

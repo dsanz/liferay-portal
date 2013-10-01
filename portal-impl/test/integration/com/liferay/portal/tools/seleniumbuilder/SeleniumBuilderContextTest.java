@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -30,14 +31,14 @@ import org.junit.runner.RunWith;
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class SeleniumBuilderContextTest {
 
-	public SeleniumBuilderContextTest() {
-		if (_seleniumBuilderContext == null) {
-			try {
-				_seleniumBuilderContext = new SeleniumBuilderContext(_BASE_DIR);
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+		try {
+			_seleniumBuilderContext = new SeleniumBuilderContext(
+				_BASE_DIR, _LIFERAY_SELENIUM_DIR);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
 		}
 	}
 
@@ -425,6 +426,38 @@ public class SeleniumBuilderContextTest {
 	}
 
 	@Test
+	public void testMacroNotElement1006() throws Exception {
+		test(
+			"MacroNotElement1006.macro",
+			"Error 1006: Invalid action attribute value in " +
+				_DIR_NAME + "/MacroNotElement1006.macro:5");
+	}
+
+	@Test
+	public void testMacroNotElement1010() throws Exception {
+		test(
+			"MacroNotElement1010.macro",
+			"Error 1010: Invalid locator-key PAGE_NAME_X at " + _DIR_NAME +
+				"/MacroNotElement1010.macro:5");
+	}
+
+	@Test
+	public void testMacroVarElement1010() throws Exception {
+		test(
+			"MacroVarElement1010.macro",
+			"Error 1010: Invalid locator-key FAIL at " + _DIR_NAME +
+				"/MacroVarElement1010.macro:2");
+	}
+
+	@Test
+	public void testMacroVarElement1014() throws Exception {
+		test(
+			"MacroVarElement1014.macro",
+			"Error 1014: Invalid path Fail at " + _DIR_NAME +
+				"/MacroVarElement1014.macro:2");
+	}
+
+	@Test
 	public void testTestCase() throws Exception {
 		test("TestCase.testcase");
 	}
@@ -595,11 +628,15 @@ public class SeleniumBuilderContextTest {
 		}
 	}
 
-	private static final String _BASE_DIR = "./portal-web/test/functional/";
+	private static final String _BASE_DIR =
+		"./portal-impl/test/integration/com/liferay/portal/tools" +
+			"/seleniumbuilder/dependencies/context";
 
-	private static final String _DIR_NAME =
-		"/../../../portal-impl/test/integration/com/liferay/portal/tools/" +
-			"seleniumbuilder/dependencies";
+	private static final String _DIR_NAME = "/..";
+
+	private static final String _LIFERAY_SELENIUM_DIR =
+		"../../../../../../../../../../portal-web/test/functional/com/liferay" +
+			"/portalweb/portal/util/liferayselenium/";
 
 	private static Log _log = LogFactoryUtil.getLog(
 		SeleniumBuilderContextTest.class);

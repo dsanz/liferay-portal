@@ -16,6 +16,7 @@ package com.liferay.portlet.bookmarks.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -85,8 +86,22 @@ public class BookmarksEntryServiceImpl extends BookmarksEntryServiceBaseImpl {
 	public int getEntriesCount(long groupId, long folderId)
 		throws SystemException {
 
-		return bookmarksEntryPersistence.filterCountByG_F_S(
+		return getEntriesCount(
 			groupId, folderId, WorkflowConstants.STATUS_APPROVED);
+	}
+
+	@Override
+	public int getEntriesCount(long groupId, long folderId, int status)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return bookmarksEntryPersistence.filterCountByG_F_NotS(
+				groupId, folderId, WorkflowConstants.STATUS_IN_TRASH);
+		}
+		else {
+			return bookmarksEntryPersistence.filterCountByG_F_S(
+				groupId, folderId, status);
+		}
 	}
 
 	@Override
@@ -133,6 +148,19 @@ public class BookmarksEntryServiceImpl extends BookmarksEntryServiceBaseImpl {
 			long groupId, long userId, long rootFolderId, int start, int end)
 		throws PortalException, SystemException {
 
+		if (rootFolderId == BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			if (userId <= 0) {
+				return bookmarksEntryPersistence.filterFindByG_NotS(
+					groupId, WorkflowConstants.STATUS_IN_TRASH, start, end,
+					new EntryModifiedDateComparator());
+			}
+			else {
+				return bookmarksEntryPersistence.filterFindByG_U_NotS(
+					groupId, userId, WorkflowConstants.STATUS_IN_TRASH, start,
+					end, new EntryModifiedDateComparator());
+			}
+		}
+
 		List<Long> folderIds = bookmarksFolderService.getFolderIds(
 			groupId, rootFolderId);
 
@@ -172,6 +200,17 @@ public class BookmarksEntryServiceImpl extends BookmarksEntryServiceBaseImpl {
 	public int getGroupEntriesCount(
 			long groupId, long userId, long rootFolderId)
 		throws PortalException, SystemException {
+
+		if (rootFolderId == BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			if (userId <= 0) {
+				return bookmarksEntryPersistence.filterCountByG_NotS(
+					groupId, WorkflowConstants.STATUS_IN_TRASH);
+			}
+			else {
+				return bookmarksEntryPersistence.filterCountByG_U_NotS(
+					groupId, userId, WorkflowConstants.STATUS_IN_TRASH);
+			}
+		}
 
 		List<Long> folderIds = bookmarksFolderService.getFolderIds(
 			groupId, rootFolderId);
@@ -213,13 +252,14 @@ public class BookmarksEntryServiceImpl extends BookmarksEntryServiceBaseImpl {
 	}
 
 	@Override
-	public void moveEntryToTrash(long entryId)
+	public BookmarksEntry moveEntryToTrash(long entryId)
 		throws PortalException, SystemException {
 
 		BookmarksEntryPermission.check(
 			getPermissionChecker(), entryId, ActionKeys.DELETE);
 
-		bookmarksEntryLocalService.moveEntryToTrash(getUserId(), entryId);
+		return bookmarksEntryLocalService.moveEntryToTrash(
+			getUserId(), entryId);
 	}
 
 	@Override
@@ -251,6 +291,15 @@ public class BookmarksEntryServiceImpl extends BookmarksEntryServiceBaseImpl {
 			getPermissionChecker(), entryId, ActionKeys.UPDATE);
 
 		bookmarksEntryLocalService.restoreEntryFromTrash(getUserId(), entryId);
+	}
+
+	@Override
+	public Hits search(
+			long groupId, long creatorUserId, int status, int start, int end)
+		throws PortalException, SystemException {
+
+		return bookmarksEntryLocalService.search(
+			groupId, getUserId(), creatorUserId, status, start, end);
 	}
 
 	@Override

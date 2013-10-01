@@ -48,7 +48,7 @@ public class SimpleFacet extends BaseFacet {
 		}
 
 		String valueParam = GetterUtil.getString(
-			searchContext.getAttribute(getFieldName()));
+			searchContext.getAttribute(getFieldId()));
 
 		if (!isStatic() && Validator.isNotNull(valueParam)) {
 			value = valueParam;

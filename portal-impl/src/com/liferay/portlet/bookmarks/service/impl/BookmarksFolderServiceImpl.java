@@ -203,8 +203,8 @@ public class BookmarksFolderServiceImpl extends BookmarksFolderServiceBaseImpl {
 		throws SystemException {
 
 		if (status == WorkflowConstants.STATUS_ANY) {
-			return bookmarksFolderPersistence.filterCountByG_P(
-				groupId, parentFolderId);
+			return bookmarksFolderPersistence.filterCountByG_P_NotS(
+				groupId, parentFolderId, WorkflowConstants.STATUS_IN_TRASH);
 		}
 		else {
 			return bookmarksFolderPersistence.filterCountByG_P_S(
@@ -222,10 +222,6 @@ public class BookmarksFolderServiceImpl extends BookmarksFolderServiceBaseImpl {
 				groupId, folderId, WorkflowConstants.STATUS_APPROVED);
 
 		for (BookmarksFolder folder : folders) {
-			if (folder.isInTrashContainer()) {
-				continue;
-			}
-
 			folderIds.add(folder.getFolderId());
 
 			getSubfolderIds(
@@ -274,7 +270,7 @@ public class BookmarksFolderServiceImpl extends BookmarksFolderServiceBaseImpl {
 	}
 
 	@Override
-	public void moveFolderToTrash(long folderId)
+	public BookmarksFolder moveFolderToTrash(long folderId)
 		throws PortalException, SystemException {
 
 		BookmarksFolder folder = bookmarksFolderLocalService.getFolder(
@@ -283,7 +279,8 @@ public class BookmarksFolderServiceImpl extends BookmarksFolderServiceBaseImpl {
 		BookmarksFolderPermission.check(
 			getPermissionChecker(), folder, ActionKeys.DELETE);
 
-		bookmarksFolderLocalService.moveFolderToTrash(getUserId(), folderId);
+		return bookmarksFolderLocalService.moveFolderToTrash(
+			getUserId(), folderId);
 	}
 
 	@Override

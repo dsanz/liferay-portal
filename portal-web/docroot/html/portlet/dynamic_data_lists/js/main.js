@@ -25,7 +25,7 @@ AUI.add(
 					initializer: function() {
 						var instance = this;
 
-						window[Liferay.Util.getPortletNamespace('15') + 'selectDocumentLibrary'] = A.bind('_selectFileEntry', instance);
+						window[Liferay.Util.getPortletNamespace('166') + 'selectDocumentLibrary'] = A.bind('_selectFileEntry', instance);
 					},
 
 					getElementsValue: function() {
@@ -41,31 +41,32 @@ AUI.add(
 
 						instance.toolbar.add(
 							{
-								handler: A.bind('_handleChooseEvent', instance),
+								on: {
+									click: A.bind('_onClickChoose', instance)
+								},
 								label: Liferay.Language.get('choose')
 							},
 							1
 						);
 					},
 
-					_handleChooseEvent: function() {
+					_onClickChoose: function() {
 						var instance = this;
 
-						var uri = Liferay.Util.addParams(
-							{
-								groupId: themeDisplay.getScopeGroupId(),
-								p_p_id: '166',
-								p_p_state: 'pop_up',
-								struts_action: '/dynamic_data_mapping/select_document_library'
-							},
-							themeDisplay.getURLControlPanel()
-						);
+						var portletURL = Liferay.PortletURL.createURL(themeDisplay.getURLControlPanel());
+
+						portletURL.setParameter('groupId', themeDisplay.getScopeGroupId());
+						portletURL.setParameter('struts_action', '/dynamic_data_mapping/select_document_library');
+
+						portletURL.setPortletId('166');
+
+						portletURL.setWindowState('pop_up');
 
 						Liferay.Util.openWindow(
 							{
 								id: 'selectDocumentLibrary',
 								title: Liferay.Language.get('javax.portlet.title.20'),
-								uri: uri
+								uri: portletURL.toString()
 							}
 						);
 					},
@@ -158,7 +159,7 @@ AUI.add(
 					}
 				},
 
-				CSS_PREFIX: '',
+				CSS_PREFIX: 'table',
 
 				DATATYPE_VALIDATOR: {
 					'date': 'date',
@@ -299,7 +300,8 @@ AUI.add(
 									data: data,
 									record: record,
 									recordsetId: recordsetId,
-									structure: structure
+									structure: structure,
+									zIndex: Liferay.zIndex.OVERLAY
 								}
 							);
 						}
@@ -330,7 +332,13 @@ AUI.add(
 									fieldsMap,
 									function(json) {
 										if (json.recordId > 0) {
-											record.set('recordId', json.recordId);
+											record.set(
+												'recordId',
+												json.recordId,
+												{
+													silent: true
+												}
+											);
 										}
 									}
 								);
@@ -448,16 +456,26 @@ AUI.add(
 								};
 							}
 							else if (type === 'ddm-date') {
-								config.inputFormatter = function(value) {
-									var date = A.DataType.Date.parse(value);
+								config.inputFormatter = function(val) {
+									return AArray.map(
+										val,
+										function(item, index, collection) {
+											return item.getTime();
+										}
+									);
+								};
 
-									var dateValue = STR_EMPTY;
+								config.outputFormatter = function(val) {
+									return AArray.map(
+										val,
+										function(item, index, collection) {
+											var date = new Date(Lang.toInt(item));
 
-									if (date) {
-										dateValue = date.getTime();
-									}
+											date = DateMath.add(date, DateMath.MINUTES, date.getTimezoneOffset());
 
-									return dateValue;
+											return date;
+										}
+									);
 								};
 
 								item.formatter = function(obj) {
@@ -468,9 +486,34 @@ AUI.add(
 									if (value !== STR_EMPTY) {
 										var date = new Date(Lang.toInt(value));
 
-										date = DateMath.add(value, DateMath.MINUTES, value.getTimezoneOffset());
+										date = DateMath.add(date, DateMath.MINUTES, date.getTimezoneOffset());
 
 										value = A.DataType.Date.format(date);
+									}
+
+									return value;
+								};
+							}
+							else if ((type === 'ddm-decimal') || (type === 'ddm-integer') || (type === 'ddm-number')) {
+								config.outputFormatter = function(value) {
+									var number = A.DataType.Number.parse(value);
+
+									var numberValue = STR_EMPTY;
+
+									if (Lang.isNumber(number)) {
+										numberValue = number;
+									}
+
+									return numberValue;
+								};
+
+								item.formatter = function(obj) {
+									var data = obj.data;
+
+									var value = A.DataType.Number.parse(data[name]);
+
+									if (!Lang.isNumber(value)) {
+										value = STR_EMPTY;
 									}
 
 									return value;
@@ -700,8 +743,6 @@ AUI.add(
 
 					previewDialog.set('bodyContent', content);
 				}
-
-				return previewDialog;
 			}
 		};
 

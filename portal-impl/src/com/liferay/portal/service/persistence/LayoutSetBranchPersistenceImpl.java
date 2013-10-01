@@ -351,6 +351,10 @@ public class LayoutSetBranchPersistenceImpl extends BasePersistenceImpl<LayoutSe
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutSetBranch> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -1229,6 +1233,10 @@ public class LayoutSetBranchPersistenceImpl extends BasePersistenceImpl<LayoutSe
 	public LayoutSetBranch fetchByG_P_Last(long groupId, boolean privateLayout,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByG_P(groupId, privateLayout);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<LayoutSetBranch> list = findByG_P(groupId, privateLayout,
 				count - 1, count, orderByComparator);
@@ -2465,6 +2473,10 @@ public class LayoutSetBranchPersistenceImpl extends BasePersistenceImpl<LayoutSe
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByG_P_M(groupId, privateLayout, master);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutSetBranch> list = findByG_P_M(groupId, privateLayout,
 				master, count - 1, count, orderByComparator);
 
@@ -3121,6 +3133,10 @@ public class LayoutSetBranchPersistenceImpl extends BasePersistenceImpl<LayoutSe
 	private static final String _FINDER_COLUMN_G_P_M_GROUPID_2 = "layoutSetBranch.groupId = ? AND ";
 	private static final String _FINDER_COLUMN_G_P_M_PRIVATELAYOUT_2 = "layoutSetBranch.privateLayout = ? AND ";
 	private static final String _FINDER_COLUMN_G_P_M_MASTER_2 = "layoutSetBranch.master = ?";
+
+	public LayoutSetBranchPersistenceImpl() {
+		setModelClass(LayoutSetBranch.class);
+	}
 
 	/**
 	 * Caches the layout set branch in the entity cache if it is enabled.

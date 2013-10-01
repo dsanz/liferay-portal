@@ -15,12 +15,12 @@
 package com.liferay.portal.util;
 
 import com.liferay.portal.kernel.util.DateUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.TimeZoneUtil;
 
 import java.text.DateFormat;
 
 import java.util.Calendar;
-import java.util.Locale;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,7 +33,7 @@ public class PortalSimpleDateFormatTest {
 	@Test
 	public void testFormat_HHmmss() {
 		DateFormat dateFormat = new PortalSimpleDateFormat(
-			"HHmmss", Locale.getDefault());
+			"HHmmss", LocaleUtil.getDefault());
 
 		dateFormat.setTimeZone(TimeZoneUtil.getDefault());
 
@@ -43,7 +43,7 @@ public class PortalSimpleDateFormatTest {
 	@Test
 	public void testFormat_ISO8601() {
 		DateFormat dateFormat = new PortalSimpleDateFormat(
-			DateUtil.ISO_8601_PATTERN, Locale.getDefault());
+			DateUtil.ISO_8601_PATTERN, LocaleUtil.getDefault());
 
 		dateFormat.setTimeZone(TimeZoneUtil.getDefault());
 
@@ -54,7 +54,7 @@ public class PortalSimpleDateFormatTest {
 	@Test
 	public void testFormat_yyyyMMdd() {
 		DateFormat dateFormat = new PortalSimpleDateFormat(
-			"yyyyMMdd", Locale.getDefault());
+			"yyyyMMdd", LocaleUtil.getDefault());
 
 		dateFormat.setTimeZone(TimeZoneUtil.getDefault());
 

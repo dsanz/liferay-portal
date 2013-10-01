@@ -35,7 +35,6 @@ page import="com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil"
 page import="com.liferay.portlet.journal.service.JournalArticleServiceUtil" %><%@
 page import="com.liferay.portlet.journal.service.permission.JournalArticlePermission" %><%@
 page import="com.liferay.portlet.journal.service.permission.JournalPermission" %><%@
-page import="com.liferay.portlet.journal.util.JournalUtil" %><%@
 page import="com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil" %>
 
 <%
@@ -44,7 +43,7 @@ String portletResource = ParamUtil.getString(request, "portletResource");
 long groupId = ParamUtil.getLong(renderRequest, "groupId");
 
 if (groupId <= 0) {
-	groupId = GetterUtil.getLong(portletPreferences.getValue("groupId", scopeGroupId.toString()));
+	groupId = GetterUtil.getLong(portletPreferences.getValue("groupId", String.valueOf(scopeGroupId)));
 }
 
 String articleId = ParamUtil.getString(renderRequest, "articleId");
@@ -68,8 +67,6 @@ String[] conversions = DocumentConversionUtil.getConversions("html");
 
 boolean openOfficeServerEnabled = PrefsPropsUtil.getBoolean(PropsKeys.OPENOFFICE_SERVER_ENABLED, PropsValues.OPENOFFICE_SERVER_ENABLED);
 boolean enableConversions = openOfficeServerEnabled && (extensions != null) && (extensions.length > 0);
-
-Format dateFormatDate = FastDateFormatFactoryUtil.getDate(locale, timeZone);
 %>
 
 <%@ include file="/html/portlet/journal_content/init-ext.jsp" %>

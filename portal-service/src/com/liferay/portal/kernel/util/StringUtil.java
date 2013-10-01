@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.RandomUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +30,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,6 +44,7 @@ import java.util.regex.Pattern;
  * @author Sandeep Soni
  * @author Ganesh Ram
  * @author Shuyang Zhou
+ * @author Hugo Huijser
  */
 public class StringUtil {
 
@@ -226,8 +230,9 @@ public class StringUtil {
 		StringBundler sb = new StringBundler(bytes.length * 2);
 
 		for (byte b : bytes) {
-			String hex = Integer.toHexString(
-				0x0100 + (b & 0x00FF)).substring(1);
+			String hex = Integer.toHexString(0x0100 + (b & 0x00FF));
+
+			hex = hex.substring(1);
 
 			if (hex.length() < 2) {
 				sb.append("0");
@@ -374,12 +379,57 @@ public class StringUtil {
 
 		String temp = s.substring(s.length() - end.length());
 
-		if (temp.equalsIgnoreCase(end)) {
+		if (equalsIgnoreCase(temp, end)) {
 			return true;
 		}
 		else {
 			return false;
 		}
+	}
+
+	public static boolean equalsIgnoreCase(String s1, String s2) {
+		if (s1 == s2) {
+			return true;
+		}
+
+		if ((s1 == null) || (s2 == null)) {
+			return false;
+		}
+
+		if (s1.length() != s2.length()) {
+			return false;
+		}
+
+		for (int i = 0; i < s1.length(); i++) {
+			char c1 = s1.charAt(i);
+
+			char c2 = s2.charAt(i);
+
+			if (c1 == c2) {
+				continue;
+			}
+
+			if ((c1 > 127) || (c2 > 127)) {
+
+				// Georgian alphabet needs to check both upper and lower case
+
+				if ((Character.toLowerCase(c1) == Character.toLowerCase(c2)) ||
+					(Character.toUpperCase(c1) == Character.toUpperCase(c2))) {
+
+					continue;
+				}
+
+				return false;
+			}
+
+			int delta = c1 - c2;
+
+			if ((delta != 32) && (delta != -32)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -479,15 +529,14 @@ public class StringUtil {
 		if (s == null) {
 			return null;
 		}
-		else {
-			int index = s.indexOf(delimiter);
 
-			if (index < 0) {
-				return null;
-			}
-			else {
-				return s.substring(0, index);
-			}
+		int index = s.indexOf(delimiter);
+
+		if (index < 0) {
+			return null;
+		}
+		else {
+			return s.substring(0, index);
 		}
 	}
 
@@ -506,15 +555,14 @@ public class StringUtil {
 		if (s == null) {
 			return null;
 		}
-		else {
-			int index = s.indexOf(delimiter);
 
-			if (index < 0) {
-				return null;
-			}
-			else {
-				return s.substring(0, index);
-			}
+		int index = s.indexOf(delimiter);
+
+		if (index < 0) {
+			return null;
+		}
+		else {
+			return s.substring(0, index);
 		}
 	}
 
@@ -533,15 +581,14 @@ public class StringUtil {
 		if (s == null) {
 			return null;
 		}
-		else {
-			int index = s.lastIndexOf(delimiter);
 
-			if (index < 0) {
-				return null;
-			}
-			else {
-				return s.substring(index + 1);
-			}
+		int index = s.lastIndexOf(delimiter);
+
+		if (index < 0) {
+			return null;
+		}
+		else {
+			return s.substring(index + 1);
 		}
 	}
 
@@ -560,15 +607,14 @@ public class StringUtil {
 		if (s == null) {
 			return null;
 		}
-		else {
-			int index = s.lastIndexOf(delimiter);
 
-			if (index < 0) {
-				return null;
-			}
-			else {
-				return s.substring(index + delimiter.length());
-			}
+		int index = s.lastIndexOf(delimiter);
+
+		if (index < 0) {
+			return null;
+		}
+		else {
+			return s.substring(index + delimiter.length());
 		}
 	}
 
@@ -624,7 +670,7 @@ public class StringUtil {
 	public static String highlight(
 		String s, String[] queryTerms, String highlight1, String highlight2) {
 
-		if (Validator.isNull(s) || Validator.isNull(queryTerms)) {
+		if (Validator.isNull(s) || ArrayUtil.isEmpty(queryTerms)) {
 			return s;
 		}
 
@@ -773,7 +819,7 @@ public class StringUtil {
 			return -1;
 		}
 
-		if ((chars == null) || (chars.length == 0)) {
+		if (ArrayUtil.isEmpty(chars)) {
 			return -1;
 		}
 
@@ -943,7 +989,7 @@ public class StringUtil {
 			return -1;
 		}
 
-		if ((texts == null) || (texts.length == 0)) {
+		if (ArrayUtil.isEmpty(texts)) {
 			return -1;
 		}
 
@@ -999,12 +1045,67 @@ public class StringUtil {
 		if (offset > s.length()) {
 			return s.concat(insert);
 		}
-		else {
-			String prefix = s.substring(0, offset);
-			String postfix = s.substring(offset);
 
-			return prefix.concat(insert).concat(postfix);
+		String prefix = s.substring(0, offset);
+		String postfix = s.substring(offset);
+
+		return prefix.concat(insert).concat(postfix);
+	}
+
+	public static boolean isLowerCase(String s) {
+		if (s == null) {
+			return false;
 		}
+
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+
+			// Fast path for ascii code, fallback to the slow unicode detection
+
+			if (c <= 127) {
+				if ((c >= CharPool.UPPER_CASE_A) &&
+					(c <= CharPool.UPPER_CASE_Z)) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Character.isLetter(c) && Character.isUpperCase(c)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	public static boolean isUpperCase(String s) {
+		if (s == null) {
+			return false;
+		}
+
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+
+			// Fast path for ascii code, fallback to the slow unicode detection
+
+			if (c <= 127) {
+				if ((c >= CharPool.LOWER_CASE_A) &&
+					(c <= CharPool.LOWER_CASE_Z)) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Character.isLetter(c) && Character.isLowerCase(c)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -1133,7 +1234,7 @@ public class StringUtil {
 			return -1;
 		}
 
-		if ((chars == null) || (chars.length == 0)) {
+		if (ArrayUtil.isEmpty(chars)) {
 			return -1;
 		}
 
@@ -1302,7 +1403,7 @@ public class StringUtil {
 			return -1;
 		}
 
-		if ((texts == null) || (texts.length == 0)) {
+		if (ArrayUtil.isEmpty(texts)) {
 			return -1;
 		}
 
@@ -1348,14 +1449,14 @@ public class StringUtil {
 			return null;
 		}
 		else {
-			return s.toLowerCase();
+			return toLowerCase(s);
 		}
 	}
 
 	public static void lowerCase(String... array) {
 		if (array != null) {
 			for (int i = 0; i < array.length; i++) {
-				array[i] = array[i].toLowerCase();
+				array[i] = toLowerCase(array[i]);
 			}
 		}
 	}
@@ -1868,6 +1969,18 @@ public class StringUtil {
 		return quote.concat(s).concat(quote);
 	}
 
+	public static String randomId() {
+		Random random = new Random();
+
+		char[] chars = new char[4];
+
+		for (int i = 0; i < 4; i++) {
+			chars[i] = (char)(CharPool.LOWER_CASE_A + random.nextInt(26));
+		}
+
+		return new String(chars);
+	}
+
 	/**
 	 * Pseudorandomly permutes the characters of the string.
 	 *
@@ -1877,7 +1990,25 @@ public class StringUtil {
 	 *         string
 	 */
 	public static String randomize(String s) {
-		return Randomizer.getInstance().randomize(s);
+		return RandomUtil.shuffle(s);
+	}
+
+	public static String randomString() {
+		return randomString(8);
+	}
+
+	public static String randomString(int length) {
+		Random random = new Random();
+
+		char[] chars = new char[length];
+
+		for (int i = 0; i < length; i++) {
+			int index = random.nextInt(_RANDOM_STRING_CHAR_TABLE.length);
+
+			chars[i] = _RANDOM_STRING_CHAR_TABLE[index];
+		}
+
+		return new String(chars);
 	}
 
 	public static String read(ClassLoader classLoader, String name)
@@ -1904,27 +2035,36 @@ public class StringUtil {
 						"Unable to open resource at " + url.toString());
 				}
 
-				String s = read(is);
+				try {
+					String s = read(is);
 
-				if (s != null) {
-					sb.append(s);
-					sb.append(StringPool.NEW_LINE);
+					if (s != null) {
+						sb.append(s);
+						sb.append(StringPool.NEW_LINE);
+					}
+				}
+				finally {
+					StreamUtil.cleanUp(is);
 				}
 			}
 
 			return sb.toString().trim();
 		}
-		else {
-			InputStream is = classLoader.getResourceAsStream(name);
 
-			if (is == null) {
-				throw new IOException(
-					"Unable to open resource in class loader " + name);
-			}
+		InputStream is = classLoader.getResourceAsStream(name);
 
+		if (is == null) {
+			throw new IOException(
+				"Unable to open resource in class loader " + name);
+		}
+
+		try {
 			String s = read(is);
 
 			return s;
+		}
+		finally {
+			StreamUtil.cleanUp(is);
 		}
 	}
 
@@ -2351,6 +2491,12 @@ public class StringUtil {
 	 *         string <code>newSub</code>
 	 */
 	public static String replaceFirst(String s, String oldSub, String newSub) {
+		return replaceFirst(s, oldSub, newSub, 0);
+	}
+
+	public static String replaceFirst(
+		String s, String oldSub, String newSub, int fromIndex) {
+
 		if ((s == null) || (oldSub == null) || (newSub == null)) {
 			return null;
 		}
@@ -2359,7 +2505,7 @@ public class StringUtil {
 			return s;
 		}
 
-		int y = s.indexOf(oldSub);
+		int y = s.indexOf(oldSub, fromIndex);
 
 		if (y >= 0) {
 			return s.substring(0, y).concat(newSub).concat(
@@ -3341,7 +3487,7 @@ public class StringUtil {
 
 		String temp = s.substring(0, start.length());
 
-		if (temp.equalsIgnoreCase(start)) {
+		if (equalsIgnoreCase(temp, start)) {
 			return true;
 		}
 		else {
@@ -3559,6 +3705,80 @@ public class StringUtil {
 		}
 	}
 
+	public static String toLowerCase(String s) {
+		return toLowerCase(s, null);
+	}
+
+	public static String toLowerCase(String s, Locale locale) {
+		StringBuilder sb = null;
+
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+
+			if (c > 127) {
+
+				// Found non-ascii char, fallback to the slow unicode detection
+
+				if (locale == null) {
+					locale = LocaleUtil.getDefault();
+				}
+
+				return s.toLowerCase(locale);
+			}
+
+			if ((c >= 'A') && (c <= 'Z')) {
+				if (sb == null) {
+					sb = new StringBuilder(s);
+				}
+
+				sb.setCharAt(i, (char)(c + 32));
+			}
+		}
+
+		if (sb == null) {
+			return s;
+		}
+
+		return sb.toString();
+	}
+
+	public static String toUpperCase(String s) {
+		return toUpperCase(s, null);
+	}
+
+	public static String toUpperCase(String s, Locale locale) {
+		StringBuilder sb = null;
+
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+
+			if (c > 127) {
+
+				// Found non-ascii char, fallback to the slow unicode detection
+
+				if (locale == null) {
+					locale = LocaleUtil.getDefault();
+				}
+
+				return s.toLowerCase(locale);
+			}
+
+			if ((c >= 'a') && (c <= 'z')) {
+				if (sb == null) {
+					sb = new StringBuilder(s);
+				}
+
+				sb.setCharAt(i, (char)(c - 32));
+			}
+		}
+
+		if (sb == null) {
+			return s;
+		}
+
+		return sb.toString();
+	}
+
 	/**
 	 * Trims all leading and trailing whitespace from the string.
 	 *
@@ -3658,7 +3878,7 @@ public class StringUtil {
 			return s;
 		}
 
-		if ((exceptions == null) || (exceptions.length == 0)) {
+		if (ArrayUtil.isEmpty(exceptions)) {
 			return trim(s);
 		}
 
@@ -3772,7 +3992,7 @@ public class StringUtil {
 			return s;
 		}
 
-		if ((exceptions == null) || (exceptions.length == 0)) {
+		if (ArrayUtil.isEmpty(exceptions)) {
 			return trimLeading(s);
 		}
 
@@ -3873,7 +4093,7 @@ public class StringUtil {
 			return s;
 		}
 
-		if ((exceptions == null) || (exceptions.length == 0)) {
+		if (ArrayUtil.isEmpty(exceptions)) {
 			return trimTrailing(s);
 		}
 
@@ -3943,7 +4163,7 @@ public class StringUtil {
 			return null;
 		}
 		else {
-			return s.toUpperCase();
+			return toUpperCase(s);
 		}
 	}
 
@@ -3972,6 +4192,126 @@ public class StringUtil {
 	 */
 	public static String valueOf(Object obj) {
 		return String.valueOf(obj);
+	}
+
+	public static boolean wildcardMatches(
+		String s, String wildcard, char singleWildcardCharacter,
+		char multipleWildcardCharacter, char escapeWildcardCharacter,
+		boolean caseSensitive) {
+
+		if (!caseSensitive) {
+			s = toLowerCase(s);
+			wildcard = toLowerCase(wildcard);
+		}
+
+		// Update the wildcard, single whildcard character, and multiple
+		// wildcard character so that they no longer have escaped wildcard
+		// characters
+
+		int index = wildcard.indexOf(escapeWildcardCharacter);
+
+		if (index != -1) {
+
+			// Search for safe wildcard replacement
+
+			char newSingleWildcardCharacter = 0;
+
+			while (wildcard.indexOf(newSingleWildcardCharacter) != -1) {
+				newSingleWildcardCharacter++;
+			}
+
+			char newMultipleWildcardCharacter =
+				(char)(newSingleWildcardCharacter + 1);
+
+			while (wildcard.indexOf(newMultipleWildcardCharacter) != -1) {
+				newMultipleWildcardCharacter++;
+			}
+
+			// Purify
+
+			StringBuilder sb = new StringBuilder(wildcard);
+
+			for (int i = 0; i < sb.length(); i++) {
+				char c = sb.charAt(i);
+
+				if (c == escapeWildcardCharacter) {
+					sb.deleteCharAt(i);
+				}
+				else if (c == singleWildcardCharacter) {
+					sb.setCharAt(i, newSingleWildcardCharacter);
+				}
+				else if (c == multipleWildcardCharacter) {
+					sb.setCharAt(i, newMultipleWildcardCharacter);
+				}
+			}
+
+			wildcard = sb.toString();
+
+			singleWildcardCharacter = newSingleWildcardCharacter;
+			multipleWildcardCharacter = newMultipleWildcardCharacter;
+		}
+
+		// Align head
+
+		for (index = 0; index < s.length(); index++) {
+			char c = wildcard.charAt(index);
+
+			if (c == multipleWildcardCharacter) {
+				break;
+			}
+
+			if ((s.charAt(index) != c) && (c != singleWildcardCharacter)) {
+				return false;
+			}
+		}
+
+		// Match body
+
+		int sIndex = index;
+		int wildcardIndex = index;
+
+		int matchPoint = 0;
+		int comparePoint = 0;
+
+		while (sIndex < s.length()) {
+			char c = wildcard.charAt(wildcardIndex);
+
+			if (c == multipleWildcardCharacter) {
+				if (++wildcardIndex == wildcard.length()) {
+					return true;
+				}
+
+				matchPoint = wildcardIndex;
+				comparePoint = sIndex + 1;
+			}
+			else if ((c == s.charAt(sIndex)) ||
+					 (c == singleWildcardCharacter)) {
+
+				sIndex++;
+				wildcardIndex++;
+			}
+			else {
+				wildcardIndex = matchPoint;
+				sIndex = comparePoint++;
+			}
+		}
+
+		// Match tail
+
+		while (wildcardIndex < wildcard.length()) {
+			if (wildcard.charAt(wildcardIndex) != multipleWildcardCharacter) {
+				break;
+			}
+
+			wildcardIndex++;
+		}
+
+		if (wildcardIndex == wildcard.length()) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
 	public static String wrap(String text) {
@@ -4128,6 +4468,14 @@ public class StringUtil {
 	private static final char[] _HEX_DIGITS = {
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
 		'e', 'f'
+	};
+
+	private static final char[] _RANDOM_STRING_CHAR_TABLE = {
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
+		'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+		'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+		'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+		'u', 'v', 'w', 'x', 'y', 'z'
 	};
 
 	private static Log _log = LogFactoryUtil.getLog(StringUtil.class);

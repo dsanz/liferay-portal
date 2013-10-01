@@ -697,11 +697,11 @@ public class JournalArticleLocalServiceWrapper
 	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	public void deleteArticle(
+	public com.liferay.portlet.journal.model.JournalArticle deleteArticle(
 		com.liferay.portlet.journal.model.JournalArticle article)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_journalArticleLocalService.deleteArticle(article);
+		return _journalArticleLocalService.deleteArticle(article);
 	}
 
 	/**
@@ -719,13 +719,13 @@ public class JournalArticleLocalServiceWrapper
 	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	public void deleteArticle(
+	public com.liferay.portlet.journal.model.JournalArticle deleteArticle(
 		com.liferay.portlet.journal.model.JournalArticle article,
 		java.lang.String articleURL,
 		com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_journalArticleLocalService.deleteArticle(article, articleURL,
+		return _journalArticleLocalService.deleteArticle(article, articleURL,
 			serviceContext);
 	}
 
@@ -746,13 +746,14 @@ public class JournalArticleLocalServiceWrapper
 	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	public void deleteArticle(long groupId, java.lang.String articleId,
-		double version, java.lang.String articleURL,
+	public com.liferay.portlet.journal.model.JournalArticle deleteArticle(
+		long groupId, java.lang.String articleId, double version,
+		java.lang.String articleURL,
 		com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_journalArticleLocalService.deleteArticle(groupId, articleId, version,
-			articleURL, serviceContext);
+		return _journalArticleLocalService.deleteArticle(groupId, articleId,
+			version, articleURL, serviceContext);
 	}
 
 	/**
@@ -909,6 +910,37 @@ public class JournalArticleLocalServiceWrapper
 			com.liferay.portal.kernel.exception.SystemException {
 		_journalArticleLocalService.expireArticle(userId, groupId, articleId,
 			articleURL, serviceContext);
+	}
+
+	@Override
+	public com.liferay.portlet.journal.model.JournalArticle fetchArticle(
+		long groupId, java.lang.String articleId, double version)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleLocalService.fetchArticle(groupId, articleId,
+			version);
+	}
+
+	@Override
+	public com.liferay.portlet.journal.model.JournalArticle fetchLatestArticle(
+		long resourcePrimKey, int status, boolean preferApproved)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleLocalService.fetchLatestArticle(resourcePrimKey,
+			status, preferApproved);
+	}
+
+	@Override
+	public com.liferay.portlet.journal.model.JournalArticle fetchLatestArticle(
+		long groupId, java.lang.String articleId, int status)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleLocalService.fetchLatestArticle(groupId,
+			articleId, status);
+	}
+
+	@Override
+	public com.liferay.portlet.journal.model.JournalArticle fetchLatestIndexableArticle(
+		long resourcePrimKey)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleLocalService.fetchLatestIndexableArticle(resourcePrimKey);
 	}
 
 	/**
@@ -1581,6 +1613,13 @@ public class JournalArticleLocalServiceWrapper
 		return _journalArticleLocalService.getArticles(groupId, articleId);
 	}
 
+	@Override
+	public java.util.List<com.liferay.portlet.journal.model.JournalArticle> getArticlesByResourcePrimKey(
+		long resourcePrimKey)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleLocalService.getArticlesByResourcePrimKey(resourcePrimKey);
+	}
+
 	/**
 	* Returns all the web content articles matching the small image ID.
 	*
@@ -2153,6 +2192,15 @@ public class JournalArticleLocalServiceWrapper
 			ddmTemplateKey);
 	}
 
+	@Override
+	public java.lang.String getUniqueUrlTitle(long groupId,
+		java.lang.String articleId, java.lang.String urlTitle)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleLocalService.getUniqueUrlTitle(groupId,
+			articleId, urlTitle);
+	}
+
 	/**
 	* Returns <code>true</code> if the specified web content article exists.
 	*
@@ -2316,6 +2364,13 @@ public class JournalArticleLocalServiceWrapper
 			articleId);
 	}
 
+	@Override
+	public void rebuildTree(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_journalArticleLocalService.rebuildTree(companyId);
+	}
+
 	/**
 	* Removes the web content of the web content article matching the group,
 	* article ID, and version, and language.
@@ -2352,11 +2407,12 @@ public class JournalArticleLocalServiceWrapper
 	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	public void restoreArticleFromTrash(long userId,
-		com.liferay.portlet.journal.model.JournalArticle article)
+	public com.liferay.portlet.journal.model.JournalArticle restoreArticleFromTrash(
+		long userId, com.liferay.portlet.journal.model.JournalArticle article)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_journalArticleLocalService.restoreArticleFromTrash(userId, article);
+		return _journalArticleLocalService.restoreArticleFromTrash(userId,
+			article);
 	}
 
 	/**
@@ -2742,6 +2798,15 @@ public class JournalArticleLocalServiceWrapper
 			folderIds, classNameId, articleId, title, description, content,
 			type, status, ddmStructureKey, ddmTemplateKey, params, andSearch,
 			start, end, sort);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.Hits search(long groupId,
+		long userId, long creatorUserId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleLocalService.search(groupId, userId,
+			creatorUserId, status, start, end);
 	}
 
 	/**

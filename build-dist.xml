@@ -65,6 +65,27 @@
 		</if>
 	</target>
 
+	<target name="build-dist-jboss-eap">
+		<echo file="app.server.${user.name}.properties">app.server.type=jboss
+app.server.jboss.version=6.0.1
+app.server.jboss.dir=${app.server.parent.dir}/jboss-eap-6.0
+app.server.jboss.zip.name=jboss-eap-$${app.server.jboss.version}.zip</echo>
+
+		<antcall target="unzip-jboss-eap" inheritAll="false" />
+
+		<delete dir="${project.dir}/portal-web/classes" />
+
+		<ant target="deploy" inheritAll="false" />
+
+		<delete file="app.server.${user.name}.properties" />
+
+		<antcall target="deploy-plugins">
+			<param name="deployer.dest.dir" value="${app.server.jboss.deploy.dir}" />
+			<param name="deployer.app.server.type" value="jboss" />
+			<param name="deployer.app.server.lib.portal.dir" value="${app.server.jboss.portal.dir}/WEB-INF/lib" />
+		</antcall>
+	</target>
+
 	<target name="build-dist-jetty">
 		<antcall target="unzip-jetty" />
 
@@ -208,15 +229,11 @@
 	</target>
 
 	<target name="build-dist-tcat">
-		<property name="tcat.dir" value="${app.server.parent.dir}/tcat-6.4.5" />
-		<property name="tcat.zip.name" value="TcatServer-6.4.5.zip" />
-		<property name="tcat.zip.url" value="http://files.liferay.com/public/bundles/trunk/${tcat.zip.name}" />
-
 		<echo file="app.server.${user.name}.properties">
 			app.server.type=tomcat
 
-			app.server.tomcat.version=6.0.35
-			app.server.tomcat.zip.url=http://archive.apache.org/dist/tomcat/tomcat-6/v6.0.35/bin/apache-tomcat-6.0.35.zip
+			app.server.tomcat.version=7.0.39
+			app.server.tomcat.zip.url=http://archive.apache.org/dist/tomcat/tomcat-7/v7.0.39/bin/apache-tomcat-7.0.39.zip
 		</echo>
 
 		<antcall target="build-dist-tomcat" inheritAll="false">
@@ -235,50 +252,50 @@
 			lp.version.tcat=${lp.version.tcat}
 		</echo>
 
-		<delete dir="${tcat.dir}" />
+		<delete dir="${app.server.tcat.dir}" />
 
 		<antcall target="build-dist-tcat-profile" inheritAll="false">
-			<param name="tcat.dir" value="${tcat.dir}" />
+			<param name="app.server.tcat.dir" value="${app.server.tcat.dir}" />
 		</antcall>
 
 		<antcall target="build-dist-tcat-tomcat" inheritAll="false">
-			<param name="tcat.dir" value="${tcat.dir}" />
+			<param name="app.server.tcat.dir" value="${app.server.tcat.dir}" />
 		</antcall>
 
 		<if>
 			<not>
-				<available file="${app.server.parent.dir}/${tcat.zip.name}" />
+				<available file="${app.server.parent.dir}/${app.server.tcat.zip.name}" />
 			</not>
 			<then>
 				<mkdir dir="${app.server.parent.dir}" />
 
 				<get
-					dest="${app.server.parent.dir}/${tcat.zip.name}"
-					src="${tcat.zip.url}"
+					dest="${app.server.parent.dir}/${app.server.tcat.zip.name}"
+					src="${app.server.tcat.zip.url}"
 					verbose="true"
 				/>
 			</then>
 		</if>
 
 		<antcall target="build-dist-tcat-admin" inheritAll="false">
-			<param name="tcat.dir" value="${tcat.dir}" />
-			<param name="tcat.zip.name" value="${tcat.zip.name}" />
+			<param name="app.server.tcat.dir" value="${app.server.tcat.dir}" />
+			<param name="app.server.tcat.zip.name" value="${app.server.tcat.zip.name}" />
 		</antcall>
 
 		<antcall target="build-dist-tcat-agent" inheritAll="false">
-			<param name="tcat.dir" value="${tcat.dir}" />
-			<param name="tcat.zip.name" value="${tcat.zip.name}" />
+			<param name="app.server.tcat.dir" value="${app.server.tcat.dir}" />
+			<param name="app.server.tcat.zip.name" value="${app.server.tcat.zip.name}" />
 		</antcall>
 
 		<delete file="app.server.${user.name}.properties" />
 	</target>
 
 	<target name="build-dist-tcat-admin">
-		<copy file="tools/servers/tcat/tcat-init.groovy" todir="${tcat.dir}/admin" />
+		<copy file="tools/servers/tcat/tcat-init.groovy" todir="${app.server.tcat.dir}/admin" />
 
 		<unzip
-			dest="${tcat.dir}/admin/webapps"
-			src="${app.server.parent.dir}/${tcat.zip.name}"
+			dest="${app.server.tcat.dir}/admin/webapps"
+			src="${app.server.parent.dir}/${app.server.tcat.zip.name}"
 		>
 			<patternset
 				includes="**/console.war"
@@ -286,20 +303,27 @@
 			<flattenmapper />
 		</unzip>
 
-		<mkdir dir="${tcat.dir}/admin/tcat_init/profiles" />
+		<replace file="${app.server.tcat.dir}/admin/conf/server.xml">
+			<replacefilter token="8005" value="8105" />
+			<replacefilter token="8009" value="8109" />
+			<replacefilter token="8080" value="8180" />
+			<replacefilter token="8443" value="81443" />
+		</replace>
 
-		<copy file="dist/liferay-portal-tcat-profile-${lp.version}.zip" todir="${tcat.dir}/admin/tcat_init/profiles" />
+		<mkdir dir="${app.server.tcat.dir}/admin/tcat_init/profiles" />
 
-		<mkdir dir="${tcat.dir}/admin/tcat_init/scripts" />
+		<copy file="dist/liferay-portal-tcat-profile-${lp.version}.zip" todir="${app.server.tcat.dir}/admin/tcat_init/profiles" />
 
-		<copy file="tools/servers/tcat/LiferayDeployerFactory.groovy" todir="${tcat.dir}/admin/tcat_init/scripts" />
+		<mkdir dir="${app.server.tcat.dir}/admin/tcat_init/scripts" />
+
+		<copy file="tools/servers/tcat/LiferayDeployerFactory.groovy" todir="${app.server.tcat.dir}/admin/tcat_init/scripts" />
 
 		<antcall target="build-dist-tcat-admin-webapps-plugins">
-			<param name="tcat.dir" value="${tcat.dir}" />
+			<param name="app.server.tcat.dir" value="${app.server.tcat.dir}" />
 		</antcall>
 
 		<antcall target="build-dist-tcat-admin-webapps-portal">
-			<param name="tcat.dir" value="${tcat.dir}" />
+			<param name="app.server.tcat.dir" value="${app.server.tcat.dir}" />
 		</antcall>
 	</target>
 
@@ -310,7 +334,7 @@
 
 		<ant dir="${lp.plugins.dir}" target="all" inheritAll="false" />
 
-		<copy todir="${tcat.dir}/admin/tcat_init/webapps/${lp.version.tcat}">
+		<copy todir="${app.server.tcat.dir}/admin/tcat_init/webapps/${lp.version.tcat}">
 			<fileset dir="${lp.plugins.dir}/dist" includes="*.war" />
 		</copy>
 
@@ -337,13 +361,13 @@
 			</Context>]]>
 		</echo>
 
-		<mkdir dir="${tcat.dir}/admin/tcat_init/webapps/${lp.version.tcat}" />
+		<mkdir dir="${app.server.tcat.dir}/admin/tcat_init/webapps/${lp.version.tcat}" />
 
-		<copy file="dist/liferay-portal-${lp.version}.war" tofile="${tcat.dir}/admin/tcat_init/webapps/${lp.version.tcat}/ROOT.war" />
+		<copy file="dist/liferay-portal-${lp.version}.war" tofile="${app.server.tcat.dir}/admin/tcat_init/webapps/${lp.version.tcat}/ROOT.war" />
 
 		<zip
 			basedir="${tstamp.value}"
-			destfile="${tcat.dir}/admin/tcat_init/webapps/${lp.version.tcat}/ROOT.war"
+			destfile="${app.server.tcat.dir}/admin/tcat_init/webapps/${lp.version.tcat}/ROOT.war"
 			update="yes"
 		/>
 
@@ -351,13 +375,13 @@
 	</target>
 
 	<target name="build-dist-tcat-agent">
-		<echo file="${tcat.dir}/agent/conf/Catalina/localhost/agent.xml"><![CDATA[<?xml version="1.0"?>
+		<echo file="${app.server.tcat.dir}/agent/conf/Catalina/localhost/agent.xml"><![CDATA[<?xml version="1.0"?>
 			<Context privileged="true" />]]>
 		</echo>
 
 		<unzip
-			dest="${tcat.dir}/agent/webapps"
-			src="${app.server.parent.dir}/${tcat.zip.name}"
+			dest="${app.server.tcat.dir}/agent/webapps"
+			src="${app.server.parent.dir}/${app.server.tcat.zip.name}"
 		>
 			<patternset
 				includes="**/agent.war"
@@ -367,52 +391,52 @@
 	</target>
 
 	<target name="build-dist-tcat-profile">
-		<mkdir dir="${tcat.dir}/profile/files/lib/ext" />
+		<mkdir dir="${app.server.tcat.dir}/profile/files/lib/ext" />
 
-		<copy file="tools/servers/tcat/profile.xml" todir="${tcat.dir}/profile">
+		<copy file="tools/servers/tcat/profile.xml" todir="${app.server.tcat.dir}/profile">
 			<filterset>
 				<filter token="lp.version" value="${lp.version}" />
 			</filterset>
 		</copy>
 
-		<copy todir="${tcat.dir}/profile/files/lib/ext">
+		<copy todir="${app.server.tcat.dir}/profile/files/lib/ext">
 			<fileset dir="${app.server.tomcat.dir}/lib/ext" />
 		</copy>
 
-		<echo file="${tcat.dir}/profile/files/lib/ext/portal-bundle.properties">auto.deploy.deploy.dir=${catalina.base}/deploy</echo>
+		<echo file="${app.server.tcat.dir}/profile/files/lib/ext/portal-bundle.properties">auto.deploy.deploy.dir=${catalina.base}/deploy</echo>
 
 		<delete file="dist/liferay-portal-tcat-profile-${lp.version}.zip" failonerror="false" />
 
 		<zip destfile="dist/liferay-portal-tcat-profile-${lp.version}.zip">
 			<zipfileset
-				dir="${tcat.dir}/profile"
+				dir="${app.server.tcat.dir}/profile"
 			/>
 		</zip>
 	</target>
 
 	<target name="build-dist-tcat-tomcat">
-		<mkdir dir="${tcat.dir}/tomcat" />
+		<mkdir dir="${app.server.tcat.dir}/tomcat" />
 
-		<copy todir="${tcat.dir}/tomcat">
+		<copy todir="${app.server.tcat.dir}/tomcat">
 			<fileset
 				dir="${app.server.tomcat.dir}"
 				excludes="**/ROOT.xml,logs/**,temp/**,webapps/**,work/**"
 			/>
 		</copy>
 
-		<mkdir dir="${tcat.dir}/tomcat/temp" />
+		<mkdir dir="${app.server.tcat.dir}/tomcat/temp" />
 
-		<replace file="${tcat.dir}/tomcat/conf/server.xml">
+		<replace file="${app.server.tcat.dir}/tomcat/conf/server.xml">
 			<replacetoken><![CDATA[xmlValidation="false" xmlNamespaceAware="false" deployXML="false">]]></replacetoken>
 			<replacevalue><![CDATA[xmlValidation="false" xmlNamespaceAware="false">]]></replacevalue>
 		</replace>
 
-		<move file="${tcat.dir}/tomcat" tofile="${tcat.dir}/admin" />
+		<move file="${app.server.tcat.dir}/tomcat" tofile="${app.server.tcat.dir}/admin" />
 
-		<mkdir dir="${tcat.dir}/agent" />
+		<mkdir dir="${app.server.tcat.dir}/agent" />
 
-		<copy todir="${tcat.dir}/agent">
-			<fileset dir="${tcat.dir}/admin" />
+		<copy todir="${app.server.tcat.dir}/agent">
+			<fileset dir="${app.server.tcat.dir}/admin" />
 		</copy>
 	</target>
 
@@ -762,11 +786,11 @@ release was successful.</echo>
 			<fileset dir="${lp.plugins.dir}" includes="**/javadocs-all.xml,**/javadocs-rt.xml" />
 		</delete>
 
+		<antcall target="deploy" />
+
 		<ant dir="${lp.plugins.dir}" inheritall="false" target="clean" />
 		<ant dir="${lp.plugins.dir}" inheritall="false" target="compile" />
 		<ant dir="${lp.plugins.dir}" inheritall="false" target="format-javadoc" />
-
-		<antcall target="all" />
 
 		<parallel>
 			<if>
@@ -785,7 +809,7 @@ release was successful.</echo>
 
 			<sequential>
 				<waitfor>
-					<socket server="localhost" port="8080" />
+					<http url="http://localhost:8080" />
 				</waitfor>
 
 				<ant dir="portal-client" target="build-client" inheritAll="false" />
@@ -1001,6 +1025,39 @@ release was successful.</echo>
 					/>
 				</unzip>
 
+				<zip
+					basedir="tools/servers/jboss/patches/JBPAPP-9353/classes"
+					destfile="${app.server.jboss.dir}/modules/org/jboss/as/server/main/jboss-as-server-${app.server.jboss.version}.Final.jar"
+					update="yes"
+				/>
+
+				<echo file="${app.server.jboss.dir}/modules/ibm/jdk/main/module.xml"><![CDATA[<?xml version="1.0"?>
+
+					<module xmlns="urn:jboss:module:1.1" name="ibm.jdk">
+						<dependencies>
+							<system export="true">
+								<paths>
+									<path name="com/ibm" />
+									<path name="com/ibm/crypto/provider" />
+									<path name="com/ibm/jvm" />
+									<path name="com/ibm/jvm/io" />
+									<path name="com/ibm/jvm/util" />
+									<path name="com/ibm/match" />
+									<path name="com/ibm/misc" />
+									<path name="com/ibm/net" />
+									<path name="com/ibm/nio" />
+									<path name="com/ibm/nio/ch" />
+									<path name="com/ibm/security/auth" />
+									<path name="com/ibm/security/bootstrap" />
+									<path name="com/ibm/security/auth/module" />
+									<path name="com/ibm/security/util" />
+									<path name="META-INF/services" />
+								</paths>
+							</system>
+						</dependencies>
+					</module>]]>
+				</echo>
+
 				<replace file="${app.server.jboss.dir}/modules/sun/jdk/main/module.xml">
 					<replacetoken><![CDATA[<paths>]]></replacetoken>
 					<replacevalue>
@@ -1096,6 +1153,118 @@ release was successful.</echo>
 				<include name="*.sh" />
 			</fileset>
 		</chmod>
+	</target>
+
+	<target name="unzip-jboss-eap">
+		<if>
+			<not>
+				<available file="${app.server.parent.dir}/${app.server.jboss.zip.name}" />
+			</not>
+			<then>
+				<mkdir dir="${app.server.parent.dir}" />
+
+				<get
+					dest="${app.server.parent.dir}/${app.server.jboss.zip.name}"
+					src="${app.server.jboss.zip.url}"
+					verbose="true"
+				/>
+			</then>
+		</if>
+
+		<unzip dest="${app.server.parent.dir}" src="${app.server.parent.dir}/${app.server.jboss.zip.name}" />
+
+		<mkdir dir="${app.server.jboss.dir}/modules/com/liferay/portal/main" />
+
+		<echo file="${app.server.jboss.dir}/modules/com/liferay/portal/main/module.xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+			<module xmlns="urn:jboss:module:1.1" name="com.liferay.portal">
+				<resources>
+					<resource-root path="mysql.jar" />
+					<resource-root path="portal-service.jar" />
+					<resource-root path="portlet.jar" />
+					<resource-root path="hsql.jar" />
+				</resources>
+				<dependencies>
+					<module name="javax.api" />
+					<module name="javax.mail.api" />
+					<module name="javax.servlet.api" />
+					<module name="javax.servlet.jsp.api" />
+					<module name="javax.transaction.api" />
+				</dependencies>
+			</module>]]>
+		</echo>
+
+		<copy file="lib/development/hsql.jar" tofile="${app.server.jboss.dir}/modules/com/liferay/portal/main/hsql.jar" />
+
+		<copy file="lib/global/portlet.jar" tofile="${app.server.jboss.dir}/modules/com/liferay/portal/main/portlet.jar" />
+
+		<copy file="portal-service/portal-service.jar" tofile="${app.server.jboss.dir}/modules/com/liferay/portal/main/portal-service.jar" />
+
+		<copy file="lib/development/mysql.jar" tofile="${app.server.jboss.dir}/modules/com/liferay/portal/main/mysql.jar" />
+
+		<replace file="${app.server.jboss.dir}/standalone/configuration/standalone.xml">
+			<replacetoken><![CDATA[<connector name="http" protocol="HTTP/1.1" scheme="http" socket-binding="http"/>]]></replacetoken>
+			<replacevalue><![CDATA[
+				<configuration>
+					<jsp-configuration development="true" />
+				</configuration>
+				<connector name="http" protocol="HTTP/1.1" scheme="http" socket-binding="http"/>]]>
+			</replacevalue>
+		</replace>
+
+		<replace file="${app.server.jboss.dir}/standalone/configuration/standalone.xml">
+			<replacetoken><![CDATA[<deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000"/>]]></replacetoken>
+			<replacevalue><![CDATA[<deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-enabled="true" scan-interval="5000" deployment-timeout="120"/>]]></replacevalue>
+		</replace>
+
+		<replace file="${app.server.jboss.dir}/standalone/configuration/standalone.xml">
+			<replacetoken><![CDATA[<security-domain name="jboss-ejb-policy" cache-type="default">]]></replacetoken>
+			<replacevalue><![CDATA[
+				<security-domain name="PortalRealm">
+					<authentication>
+						<login-module code="com.liferay.portal.security.jaas.PortalLoginModule" flag="required" />
+					</authentication>
+				</security-domain>
+				<security-domain name="jboss-ejb-policy" cache-type="default">]]>
+			</replacevalue>
+		</replace>
+
+		<replace file="${app.server.jboss.dir}/standalone/configuration/standalone.xml">
+			<replacetoken><![CDATA[enable-welcome-root="true"]]></replacetoken>
+			<replacevalue><![CDATA[enable-welcome-root="false"]]></replacevalue>
+		</replace>
+
+		<replace file="${app.server.jboss.dir}/domain/configuration/domain.xml">
+			<replacetoken><![CDATA[<subsystem xmlns="urn:jboss:domain:web:1.2" default-virtual-server="default-host" native="false">]]></replacetoken>
+			<replacevalue><![CDATA[
+				<subsystem xmlns="urn:jboss:domain:web:1.2" default-virtual-server="default-host" native="false">
+				<configuration>
+					<jsp-configuration development="true" />
+				</configuration>]]>
+			</replacevalue>
+		</replace>
+
+		<replace file="${app.server.jboss.dir}/domain/configuration/domain.xml">
+			<replacetoken><![CDATA[<security-domain name="jboss-ejb-policy" cache-type="default">]]></replacetoken>
+			<replacevalue><![CDATA[
+				<security-domain name="PortalRealm">
+					<authentication>
+						<login-module code="com.liferay.portal.security.jaas.PortalLoginModule" flag="required" />
+					</authentication>
+				</security-domain>
+				<security-domain name="jboss-ejb-policy" cache-type="default">]]>
+			</replacevalue>
+		</replace>
+
+		<replace file="${app.server.jboss.dir}/modules/sun/jdk/main/module.xml">
+			<replacetoken><![CDATA[<paths>]]></replacetoken>
+			<replacevalue><![CDATA[
+				<paths>
+					<path name="sun/text" />
+					<path name="META-INF/services" />
+					<path name="com/sun/crypto" />
+					<path name="com/sun/crypto/provider"/>]]>
+			</replacevalue>
+		</replace>
 	</target>
 
 	<target name="unzip-jetty">
@@ -1554,6 +1723,20 @@ rerun this task.
 			src="${app.server.parent.dir}/${app.server.weblogic.zip.name}"
 		/>
 
+		<if>
+			<equals arg1="${app.server.weblogic.version.build}" arg2="1212" />
+			<then>
+				<move todir="${app.server.weblogic.dir}">
+					<fileset dir="${app.server.weblogic.dir}/wls12120" />
+				</move>
+
+				<property name="app.server.weblogic.template.dir" value="${app.server.weblogic.wlserver.dir}/common/templates/wls" />
+			</then>
+			<else>
+				<property name="app.server.weblogic.template.dir" value="${app.server.weblogic.wlserver.dir}/common/templates/domains" />
+			</else>
+		</if>
+
 		<tstamp>
 			<format property="tstamp.value" pattern="yyyyMMddkkmmssSSS" />
 		</tstamp>
@@ -1561,7 +1744,7 @@ rerun this task.
 		<mkdir dir="${tstamp.value}" />
 
 		<echo file="${tstamp.value}/create-weblogic-domain.py">
-readTemplate('${app.server.weblogic.wlserver.dir}/common/templates/domains/wls.jar')
+readTemplate('${app.server.weblogic.template.dir}/wls.jar')
 
 set('Name', '${app.server.weblogic.instance.name}')
 
@@ -1912,12 +2095,14 @@ plugins.includes=</echo>
 		<xmltask source="${lp.plugins.dir}/summary.xml">
 			<call path="plugins-summary/plugin">
 				<param name="plugins.includes.plugin.bundle" path="releng/bundle/text()" />
+				<param name="plugins.includes.plugin.dependent-apps" path="releng/dependent-apps/text()" />
 				<param name="plugins.includes.plugin.marketplace" path="releng/marketplace/text()" />
 				<param name="plugins.includes.plugin.name" path="artifact-id/text()" />
 				<param name="plugins.includes.plugin.public" path="releng/public/text()" />
 				<actions>
 					<antcall target="update-plugins-includes-plugin">
 						<param name="plugins.includes.plugin.bundle" value="@{plugins.includes.plugin.bundle}" />
+						<param name="plugins.includes.plugin.dependent-apps" value="@{plugins.includes.plugin.dependent-apps}" />
 						<param name="plugins.includes.plugin.marketplace" value="@{plugins.includes.plugin.marketplace}" />
 						<param name="plugins.includes.plugin.name" value="@{plugins.includes.plugin.name}" />
 						<param name="plugins.includes.plugin.public" value="@{plugins.includes.plugin.public}" />
@@ -1949,7 +2134,7 @@ plugins.includes=</echo>
 				</or>
 			</and>
 			<then>
-				<echo append="true" file="${lp.plugins.dir}/build.${user.name}.properties">${plugins.includes.plugin.name},</echo>
+				<echo append="true" file="${lp.plugins.dir}/build.${user.name}.properties">${plugins.includes.plugin.dependent-apps},${plugins.includes.plugin.name},</echo>
 			</then>
 		</if>
 	</target>
@@ -2075,35 +2260,33 @@ plugins.includes=</echo>
 				<delete dir="${zip.executable.dir}/../patching-tool" />
 
 				<if>
-					<available file="${patching.tool.source.dir}" type="dir" />
+					<available file="${patching.tool.zip}" />
 					<then>
-						<mkdir dir="${zip.executable.dir}/../patching-tool" />
+						<unzip dest="${zip.executable.dir}/.." src="${patching.tool.zip}" />
 
-						<copy todir="${zip.executable.dir}/../patching-tool">
-							<fileset
-								dir="${patching.tool.source.dir}/scripts"
-							/>
-						</copy>
+						<if>
+							<contains string="${zip.executable.dir}" substring="glassfish" />
+							<then>
+								<echo file="${zip.executable.dir}/../patching-tool/default.properties">
+									global.lib.path=${zip.executable.dir}/domains/domain1/autodeploy/liferay-portal.war/WEB-INF/lib/ext/
+									jdk.version=jdk6
+									patching.mode=binary
+									war.path=${zip.executable.dir}/domains/domain1/autodeploy/liferay-portal.war/
+								</echo>
+							</then>
+							<else>
+								<antcall target="exec-patching-tool">
+									<param name="patching.tool.arg.line" value="auto-discovery ${zip.executable.dir}" />
+									<param name="patching.tool.dir" value="${zip.executable.dir}/../patching-tool" />
+								</antcall>
+							</else>
+						</if>
 
-						<mkdir dir="${zip.executable.dir}/../patching-tool/lib" />
-
-						<copy todir="${zip.executable.dir}/../patching-tool/lib">
-							<fileset
-								dir="${patching.tool.source.dir}"
-								includes="patching-tool.jar"
-							/>
-							<fileset
-								dir="${patching.tool.source.dir}/lib"
-							/>
-						</copy>
-
-						<mkdir dir="${zip.executable.dir}/../patching-tool/logs" />
-						<mkdir dir="${zip.executable.dir}/../patching-tool/patches" />
-
-						<antcall target="exec-patching-tool">
-							<param name="patching.tool.dir" value="${zip.executable.dir}/../patching-tool" />
-							<param name="patching.tool.arg.line" value="auto-discovery" />
-						</antcall>
+						<replace
+							file="${zip.executable.dir}/../patching-tool/default.properties"
+							token="${zip.executable.dir}"
+							value="../${zip.executable.dir.name}"
+						/>
 
 						<zip
 							destfile="dist/${zip.executable.file}-${lp.version}.zip"
@@ -2428,16 +2611,14 @@ plugins.includes=</echo>
 	</target>
 
 	<target name="zip-tcat">
-		<property name="tcat.dir" value="${app.server.parent.dir}/tcat-6.4.5" />
-
 		<antcall target="zip-executable">
 			<param name="zip.executable.file" value="liferay-portal-tcat-admin" />
-			<param name="zip.executable.dir" value="${tcat.dir}/admin" />
+			<param name="zip.executable.dir" value="${app.server.tcat.dir}/admin" />
 		</antcall>
 
 		<antcall target="zip-executable">
 			<param name="zip.executable.file" value="liferay-portal-tcat-agent" />
-			<param name="zip.executable.dir" value="${tcat.dir}/agent" />
+			<param name="zip.executable.dir" value="${app.server.tcat.dir}/agent" />
 		</antcall>
 	</target>
 

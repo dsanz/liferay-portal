@@ -16,8 +16,10 @@
 
 <%@ include file="/html/portlet/trash/init.jsp" %>
 
-<span class="form-search">
-	<aui:input inlineField="<%= true %>" label="" name="keywords" size="30" title="search-entries" type="text" />
-
-	<aui:button type="submit" value="search" />
-</span>
+<aui:nav-bar>
+	<aui:nav-bar-search cssClass="pull-right">
+		<div class="form-search">
+			<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" id="keywords" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' />
+		</div>
+	</aui:nav-bar-search>
+</aui:nav-bar>

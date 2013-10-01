@@ -16,6 +16,9 @@ package com.liferay.portlet.journal.model.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portlet.journal.NoSuchFolderException;
 import com.liferay.portlet.journal.model.JournalFolder;
 import com.liferay.portlet.journal.model.JournalFolderConstants;
 import com.liferay.portlet.journal.service.JournalFolderLocalServiceUtil;
@@ -29,6 +32,41 @@ import java.util.List;
 public class JournalFolderImpl extends JournalFolderBaseImpl {
 
 	public JournalFolderImpl() {
+	}
+
+	@Override
+	public String buildTreePath() throws PortalException, SystemException {
+		StringBundler sb = new StringBundler();
+
+		buildTreePath(sb, this);
+
+		return sb.toString();
+	}
+
+	@Override
+	public List<Long> getAncestorFolderIds()
+		throws PortalException, SystemException {
+
+		List<Long> ancestorFolderIds = new ArrayList<Long>();
+
+		JournalFolder folder = this;
+
+		while (!folder.isRoot()) {
+			try {
+				folder = folder.getParentFolder();
+
+				ancestorFolderIds.add(folder.getFolderId());
+			}
+			catch (NoSuchFolderException nsfe) {
+				if (folder.isInTrash()) {
+					break;
+				}
+
+				throw nsfe;
+			}
+		}
+
+		return ancestorFolderIds;
 	}
 
 	@Override
@@ -62,43 +100,6 @@ public class JournalFolderImpl extends JournalFolderBaseImpl {
 	}
 
 	@Override
-	public JournalFolder getTrashContainer() {
-		JournalFolder folder = null;
-
-		try {
-			folder = getParentFolder();
-		}
-		catch (Exception e) {
-			return null;
-		}
-
-		while (folder != null) {
-			if (folder.isInTrash()) {
-				return folder;
-			}
-
-			try {
-				folder = folder.getParentFolder();
-			}
-			catch (Exception e) {
-				return null;
-			}
-		}
-
-		return null;
-	}
-
-	@Override
-	public boolean isInTrashContainer() {
-		if (getTrashContainer() != null) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	@Override
 	public boolean isRoot() {
 		if (getParentFolderId() ==
 				JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
@@ -107,6 +108,20 @@ public class JournalFolderImpl extends JournalFolderBaseImpl {
 		}
 
 		return false;
+	}
+
+	protected void buildTreePath(StringBundler sb, JournalFolder folder)
+		throws PortalException, SystemException {
+
+		if (folder == null) {
+			sb.append(StringPool.SLASH);
+		}
+		else {
+			buildTreePath(sb, folder.getParentFolder());
+
+			sb.append(folder.getFolderId());
+			sb.append(StringPool.SLASH);
+		}
 	}
 
 }

@@ -17,6 +17,7 @@ package com.liferay.portal.service.impl;
 import com.liferay.portal.DuplicateLockException;
 import com.liferay.portal.ExpiredLockException;
 import com.liferay.portal.NoSuchLockException;
+import com.liferay.portal.kernel.dao.jdbc.aop.MasterDataSource;
 import com.liferay.portal.kernel.dao.orm.LockMode;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -180,6 +181,20 @@ public class LockLocalServiceImpl extends LockLocalServiceBaseImpl {
 		return lock;
 	}
 
+	@MasterDataSource
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public Lock lock(String className, String key, String owner)
+		throws SystemException {
+
+		return lock(className, key, null, owner);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #lock(String, String,
+	 *             String)}
+	 */
+	@MasterDataSource
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public Lock lock(
@@ -187,14 +202,15 @@ public class LockLocalServiceImpl extends LockLocalServiceBaseImpl {
 			boolean retrieveFromCache)
 		throws SystemException {
 
-		return lock(className, key, null, owner, retrieveFromCache);
+		return lock(className, key, null, owner);
 	}
 
+	@MasterDataSource
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public Lock lock(
 			String className, String key, String expectedOwner,
-			String updatedOwner, boolean retrieveFromCache)
+			String updatedOwner)
 		throws SystemException {
 
 		Lock lock = lockFinder.fetchByC_K(className, key, LockMode.UPGRADE);
@@ -229,6 +245,21 @@ public class LockLocalServiceImpl extends LockLocalServiceBaseImpl {
 		}
 
 		return lock;
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #lock(String, String, String,
+	 *             String)}
+	 */
+	@MasterDataSource
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public Lock lock(
+			String className, String key, String expectedOwner,
+			String updatedOwner, boolean retrieveFromCache)
+		throws SystemException {
+
+		return lock(className, key, expectedOwner, updatedOwner);
 	}
 
 	@Override
@@ -290,11 +321,10 @@ public class LockLocalServiceImpl extends LockLocalServiceBaseImpl {
 		}
 	}
 
+	@MasterDataSource
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public void unlock(
-			String className, String key, String owner,
-			boolean retrieveFromCache)
+	public void unlock(String className, String key, String owner)
 		throws SystemException {
 
 		Lock lock = lockFinder.fetchByC_K(className, key, LockMode.UPGRADE);
@@ -307,6 +337,21 @@ public class LockLocalServiceImpl extends LockLocalServiceBaseImpl {
 			lockPersistence.remove(lock);
 			lockPersistence.flush();
 		}
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #unlock(String, String,
+	 *             String)}
+	 */
+	@MasterDataSource
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void unlock(
+			String className, String key, String owner,
+			boolean retrieveFromCache)
+		throws SystemException {
+
+		unlock(className, key, owner);
 	}
 
 	protected void expireLock(Lock lock) throws SystemException {

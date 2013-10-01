@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -633,6 +635,60 @@ public class MBCategoryWrapper implements MBCategory, ModelWrapper<MBCategory> {
 	}
 
 	/**
+	* Returns the trash entry created when this message boards category was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this message boards category.
+	*
+	* @return the trash entry created when this message boards category was moved to the Recycle Bin
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.trash.model.TrashEntry getTrashEntry()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _mbCategory.getTrashEntry();
+	}
+
+	/**
+	* Returns the class primary key of the trash entry for this message boards category.
+	*
+	* @return the class primary key of the trash entry for this message boards category
+	*/
+	@Override
+	public long getTrashEntryClassPK() {
+		return _mbCategory.getTrashEntryClassPK();
+	}
+
+	/**
+	* Returns the trash handler for this message boards category.
+	*
+	* @return the trash handler for this message boards category
+	*/
+	@Override
+	public com.liferay.portal.kernel.trash.TrashHandler getTrashHandler() {
+		return _mbCategory.getTrashHandler();
+	}
+
+	/**
+	* Returns <code>true</code> if this message boards category is in the Recycle Bin.
+	*
+	* @return <code>true</code> if this message boards category is in the Recycle Bin; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isInTrash() {
+		return _mbCategory.isInTrash();
+	}
+
+	/**
+	* Returns <code>true</code> if the parent of this message boards category is in the Recycle Bin.
+	*
+	* @return <code>true</code> if the parent of this message boards category is in the Recycle Bin; <code>false</code> otherwise
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public boolean isInTrashContainer() {
+		return _mbCategory.isInTrashContainer();
+	}
+
+	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
 	@Override
@@ -701,16 +757,6 @@ public class MBCategoryWrapper implements MBCategory, ModelWrapper<MBCategory> {
 	}
 
 	/**
-	* Returns <code>true</code> if this message boards category is in the Recycle Bin.
-	*
-	* @return <code>true</code> if this message boards category is in the Recycle Bin; <code>false</code> otherwise
-	*/
-	@Override
-	public boolean isInTrash() {
-		return _mbCategory.isInTrash();
-	}
-
-	/**
 	* Returns <code>true</code> if this message boards category is pending.
 	*
 	* @return <code>true</code> if this message boards category is pending; <code>false</code> otherwise
@@ -743,7 +789,7 @@ public class MBCategoryWrapper implements MBCategory, ModelWrapper<MBCategory> {
 	/**
 	* Sets the container model ID of this message boards category.
 	*
-	* @param container model ID of this message boards category
+	* @param containerModelId the container model ID of this message boards category
 	*/
 	@Override
 	public void setContainerModelId(long containerModelId) {
@@ -773,7 +819,7 @@ public class MBCategoryWrapper implements MBCategory, ModelWrapper<MBCategory> {
 	/**
 	* Sets the parent container model ID of this message boards category.
 	*
-	* @param parent container model ID of this message boards category
+	* @param parentContainerModelId the parent container model ID of this message boards category
 	*/
 	@Override
 	public void setParentContainerModelId(long parentContainerModelId) {
@@ -907,18 +953,32 @@ public class MBCategoryWrapper implements MBCategory, ModelWrapper<MBCategory> {
 	}
 
 	@Override
-	public com.liferay.portlet.messageboards.model.MBCategory getTrashContainer() {
-		return _mbCategory.getTrashContainer();
-	}
-
-	@Override
-	public boolean isInTrashContainer() {
-		return _mbCategory.isInTrashContainer();
-	}
-
-	@Override
 	public boolean isRoot() {
 		return _mbCategory.isRoot();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof MBCategoryWrapper)) {
+			return false;
+		}
+
+		MBCategoryWrapper mbCategoryWrapper = (MBCategoryWrapper)obj;
+
+		if (Validator.equals(_mbCategory, mbCategoryWrapper._mbCategory)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _mbCategory.getStagedModelType();
 	}
 
 	/**

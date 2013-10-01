@@ -28,7 +28,8 @@ import com.liferay.portlet.journal.model.JournalFolder;
 import com.liferay.portlet.journal.model.JournalFolderConstants;
 import com.liferay.portlet.journal.util.JournalTestUtil;
 
-import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -43,44 +44,64 @@ import org.junit.runner.RunWith;
 @Sync
 public class JournalFolderSearchTest extends BaseSearchTestCase {
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchAttachments() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchByDDMStructureField() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchComments() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchExpireAllVersions() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchExpireLatestVersion() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
+	public void testSearchMyEntries() throws Exception {
+	}
+
+	@Ignore()
+	@Override
+	@Test
+	public void testSearchRecentEntries() throws Exception {
+	}
+
+	@Ignore()
+	@Override
+	@Test
 	public void testSearchStatus() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchVersions() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testSearchWithinDDMStructure() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
 	@Override
@@ -91,13 +112,28 @@ public class JournalFolderSearchTest extends BaseSearchTestCase {
 
 		JournalFolder parentFolder = (JournalFolder)parentBaseModel;
 
-		return JournalTestUtil.addFolder(
-			parentFolder.getFolderId(), keywords, serviceContext);
+		long folderId = JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID;
+
+		if (parentFolder != null) {
+			folderId = parentFolder.getFolderId();
+		}
+
+		return JournalTestUtil.addFolder(folderId, keywords, serviceContext);
 	}
 
 	@Override
 	protected Class<?> getBaseModelClass() {
 		return JournalFolder.class;
+	}
+
+	@Override
+	protected BaseModel<?> getParentBaseModel(
+			BaseModel<?> parentBaseModel, ServiceContext serviceContext)
+		throws Exception {
+
+		return JournalTestUtil.addFolder(
+			(Long)parentBaseModel.getPrimaryKeyObj(),
+			ServiceTestUtil.randomString(), serviceContext);
 	}
 
 	@Override

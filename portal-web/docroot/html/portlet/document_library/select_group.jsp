@@ -29,19 +29,10 @@ String eventName = ParamUtil.getString(request, "eventName", liferayPortletRespo
 	PortletURL portletURL = renderResponse.createRenderURL();
 
 	portletURL.setParameter("struts_action", "/document_library/select_group");
-
-	List<Group> mySites = user.getMySites();
-
-	if (PortalUtil.isCompanyControlPanelPortlet(portletId, themeDisplay)) {
-		mySites = ListUtil.copy(mySites);
-
-		mySites.add(0, GroupLocalServiceUtil.getGroup(themeDisplay.getCompanyGroupId()));
-	}
 	%>
 
 	<liferay-ui:search-container
 		searchContainer="<%= new GroupSearch(renderRequest, portletURL) %>"
-		total="<%= mySites.size() %>"
 	>
 		<liferay-ui:search-form
 			page="/html/portlet/users_admin/group_search.jsp"
@@ -50,9 +41,70 @@ String eventName = ParamUtil.getString(request, "eventName", liferayPortletRespo
 
 		<div class="separator"><!-- --></div>
 
-		<liferay-ui:search-container-results
-			results="<%= mySites %>"
-		/>
+		<%
+		GroupSearchTerms searchTerms = (GroupSearchTerms)searchContainer.getSearchTerms();
+
+		LinkedHashMap<String, Object> groupParams = new LinkedHashMap<String, Object>();
+
+		groupParams.put("active", true);
+		groupParams.put("usersGroups", user.getUserId());
+		%>
+
+		<liferay-ui:search-container-results>
+
+			<%
+			int additionalSites = 0;
+
+			if (!searchTerms.hasSearchTerms() && PortalUtil.isCompanyControlPanelPortlet(PortletKeys.DOCUMENT_LIBRARY, themeDisplay)) {
+				if (searchContainer.getStart() == 0) {
+					results.add(company.getGroup());
+				}
+
+				additionalSites++;
+
+				if (searchContainer.getStart() == 0) {
+					Group userPersonalSite = GroupLocalServiceUtil.getGroup(company.getCompanyId(), GroupConstants.USER_PERSONAL_SITE);
+
+					results.add(userPersonalSite);
+				}
+
+				additionalSites++;
+			}
+
+			if (searchTerms.isAdvancedSearch()) {
+				total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), null, searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator());
+			}
+			else {
+				total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), null, searchTerms.getKeywords(), groupParams);
+			}
+
+			total += additionalSites;
+
+			searchContainer.setTotal(total);
+
+			int start = searchContainer.getStart();
+
+			if (searchContainer.getStart() > additionalSites) {
+				start = searchContainer.getStart() - additionalSites;
+			}
+
+			int end = searchContainer.getEnd() - additionalSites;
+
+			List<Group> sites = null;
+
+			if (searchTerms.isAdvancedSearch()) {
+				sites = GroupLocalServiceUtil.search(company.getCompanyId(), null, searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator(), start, end, searchContainer.getOrderByComparator());
+			}
+			else {
+				sites = GroupLocalServiceUtil.search(company.getCompanyId(), null, searchTerms.getKeywords(), groupParams, start, end, searchContainer.getOrderByComparator());
+			}
+
+			results.addAll(sites);
+
+			searchContainer.setResults(results);
+			%>
+
+		</liferay-ui:search-container-results>
 
 		<liferay-ui:search-container-row
 			className="com.liferay.portal.model.Group"
@@ -63,16 +115,16 @@ String eventName = ParamUtil.getString(request, "eventName", liferayPortletRespo
 		>
 
 			<%
-			String groupName = HtmlUtil.escape(group.getDescriptiveName(locale));
+			String groupDescriptiveName = HtmlUtil.escape(group.getDescriptiveName(locale));
 
 			if (group.isUser()) {
-				groupName = LanguageUtil.get(pageContext, "my-site");
+				groupDescriptiveName = LanguageUtil.get(pageContext, "my-site");
 			}
 			%>
 
 			<liferay-ui:search-container-column-text
 				name="name"
-				value="<%= groupName %>"
+				value="<%= groupDescriptiveName %>"
 			/>
 
 			<liferay-ui:search-container-column-text
@@ -85,8 +137,8 @@ String eventName = ParamUtil.getString(request, "eventName", liferayPortletRespo
 				<%
 				Map<String, Object> data = new HashMap<String, Object>();
 
+				data.put("groupdescriptivename", HtmlUtil.escape(groupDescriptiveName));
 				data.put("groupid", group.getGroupId());
-				data.put("groupname", HtmlUtil.escape(groupName));
 				%>
 
 				<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />

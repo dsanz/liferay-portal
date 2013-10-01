@@ -363,6 +363,10 @@ public class LayoutPrototypePersistenceImpl extends BasePersistenceImpl<LayoutPr
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutPrototype> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1328,6 +1332,10 @@ public class LayoutPrototypePersistenceImpl extends BasePersistenceImpl<LayoutPr
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutPrototype> list = findByUuid_C(uuid, companyId, count - 1,
 				count, orderByComparator);
 
@@ -2291,6 +2299,10 @@ public class LayoutPrototypePersistenceImpl extends BasePersistenceImpl<LayoutPr
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutPrototype> list = findByCompanyId(companyId, count - 1,
 				count, orderByComparator);
 
@@ -3170,6 +3182,10 @@ public class LayoutPrototypePersistenceImpl extends BasePersistenceImpl<LayoutPr
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_A(companyId, active);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutPrototype> list = findByC_A(companyId, active, count - 1,
 				count, orderByComparator);
 
@@ -3793,6 +3809,10 @@ public class LayoutPrototypePersistenceImpl extends BasePersistenceImpl<LayoutPr
 	private static final String _FINDER_COLUMN_C_A_COMPANYID_2 = "layoutPrototype.companyId = ? AND ";
 	private static final String _FINDER_COLUMN_C_A_ACTIVE_2 = "layoutPrototype.active = ?";
 	private static final String _FINDER_COLUMN_C_A_ACTIVE_2_SQL = "layoutPrototype.active_ = ?";
+
+	public LayoutPrototypePersistenceImpl() {
+		setModelClass(LayoutPrototype.class);
+	}
 
 	/**
 	 * Caches the layout prototype in the entity cache if it is enabled.

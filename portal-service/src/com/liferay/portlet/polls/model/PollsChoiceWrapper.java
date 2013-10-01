@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.polls.model;
 
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -576,6 +578,22 @@ public class PollsChoiceWrapper implements PollsChoice,
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _pollsChoice.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _pollsChoice.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_pollsChoice.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -633,6 +651,30 @@ public class PollsChoiceWrapper implements PollsChoice,
 	public int getVotesCount()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _pollsChoice.getVotesCount();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof PollsChoiceWrapper)) {
+			return false;
+		}
+
+		PollsChoiceWrapper pollsChoiceWrapper = (PollsChoiceWrapper)obj;
+
+		if (Validator.equals(_pollsChoice, pollsChoiceWrapper._pollsChoice)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _pollsChoice.getStagedModelType();
 	}
 
 	/**

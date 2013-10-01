@@ -355,6 +355,10 @@ public class MBBanPersistenceImpl extends BasePersistenceImpl<MBBan>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBBan> list = findByUuid(uuid, count - 1, count, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -1167,6 +1171,10 @@ public class MBBanPersistenceImpl extends BasePersistenceImpl<MBBan>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBBan> list = findByUuid_C(uuid, companyId, count - 1, count,
 				orderByComparator);
 
@@ -1693,6 +1701,10 @@ public class MBBanPersistenceImpl extends BasePersistenceImpl<MBBan>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBBan> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -2173,6 +2185,10 @@ public class MBBanPersistenceImpl extends BasePersistenceImpl<MBBan>
 	public MBBan fetchByUserId_Last(long userId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUserId(userId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<MBBan> list = findByUserId(userId, count - 1, count,
 				orderByComparator);
@@ -2658,6 +2674,10 @@ public class MBBanPersistenceImpl extends BasePersistenceImpl<MBBan>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByBanUserId(banUserId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBBan> list = findByBanUserId(banUserId, count - 1, count,
 				orderByComparator);
 
@@ -3113,6 +3133,10 @@ public class MBBanPersistenceImpl extends BasePersistenceImpl<MBBan>
 
 	private static final String _FINDER_COLUMN_G_B_GROUPID_2 = "mbBan.groupId = ? AND ";
 	private static final String _FINDER_COLUMN_G_B_BANUSERID_2 = "mbBan.banUserId = ?";
+
+	public MBBanPersistenceImpl() {
+		setModelClass(MBBan.class);
+	}
 
 	/**
 	 * Caches the message boards ban in the entity cache if it is enabled.

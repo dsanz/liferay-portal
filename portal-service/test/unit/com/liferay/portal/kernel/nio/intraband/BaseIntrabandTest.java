@@ -25,9 +25,9 @@ import java.io.IOException;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.GatheringByteChannel;
+import java.nio.channels.Pipe;
 import java.nio.channels.Pipe.SinkChannel;
 import java.nio.channels.Pipe.SourceChannel;
-import java.nio.channels.Pipe;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
 
@@ -179,7 +179,6 @@ public class BaseIntrabandTest {
 
 			private final int _end;
 			private final int _start;
-
 		}
 
 		List<RegisterJob> registerJobs = new ArrayList<RegisterJob>(

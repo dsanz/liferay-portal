@@ -572,6 +572,13 @@ public class MBThreadLocalServiceUtil {
 		return getService().incrementViewCounter(threadId, increment);
 	}
 
+	public static void moveDependentsToTrash(long groupId, long threadId,
+		long trashEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().moveDependentsToTrash(groupId, threadId, trashEntryId);
+	}
+
 	public static com.liferay.portlet.messageboards.model.MBThread moveThread(
 		long groupId, long categoryId, long threadId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -593,10 +600,10 @@ public class MBThreadLocalServiceUtil {
 	}
 
 	public static com.liferay.portlet.messageboards.model.MBThread moveThreadToTrash(
-		long userId, long entryId)
+		long userId, long threadId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		return getService().moveThreadToTrash(userId, entryId);
+		return getService().moveThreadToTrash(userId, threadId);
 	}
 
 	public static com.liferay.portlet.messageboards.model.MBThread moveThreadToTrash(
@@ -606,10 +613,35 @@ public class MBThreadLocalServiceUtil {
 		return getService().moveThreadToTrash(userId, thread);
 	}
 
+	public static void restoreDependentsFromTrash(long groupId, long threadId,
+		long trashEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().restoreDependentsFromTrash(groupId, threadId, trashEntryId);
+	}
+
 	public static void restoreThreadFromTrash(long userId, long threadId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		getService().restoreThreadFromTrash(userId, threadId);
+	}
+
+	public static com.liferay.portal.kernel.search.Hits search(long groupId,
+		long userId, long creatorUserId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .search(groupId, userId, creatorUserId, status, start, end);
+	}
+
+	public static com.liferay.portal.kernel.search.Hits search(long groupId,
+		long userId, long creatorUserId, long startDate, long endDate,
+		int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .search(groupId, userId, creatorUserId, startDate, endDate,
+			status, start, end);
 	}
 
 	public static com.liferay.portlet.messageboards.model.MBThread splitThread(
@@ -627,11 +659,10 @@ public class MBThreadLocalServiceUtil {
 	}
 
 	public static com.liferay.portlet.messageboards.model.MBThread updateStatus(
-		long userId, long threadId, int status, int categoryStatus)
+		long userId, long threadId, int status)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .updateStatus(userId, threadId, status, categoryStatus);
+		return getService().updateStatus(userId, threadId, status);
 	}
 
 	/**

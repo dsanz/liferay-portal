@@ -354,6 +354,30 @@ public class PortletPreferencesLocalServiceUtil {
 				   .getPortletPreferencesCount(ownerType, plid, portletId);
 	}
 
+	public static long getPortletPreferencesCount(int ownerType,
+		java.lang.String portletId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getPortletPreferencesCount(ownerType, portletId);
+	}
+
+	public static long getPortletPreferencesCount(long ownerId, int ownerType,
+		java.lang.String portletId, boolean excludeDefaultPreferences)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getPortletPreferencesCount(ownerId, ownerType, portletId,
+			excludeDefaultPreferences);
+	}
+
+	public static long getPortletPreferencesCount(long companyId, long groupId,
+		long ownerId, int ownerType, long plid,
+		com.liferay.portal.model.Portlet portlet, boolean privateLayout,
+		boolean excludeDefaultPreferences)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getPortletPreferencesCount(companyId, groupId, ownerId,
+			ownerType, plid, portlet, privateLayout, excludeDefaultPreferences);
+	}
+
 	public static javax.portlet.PortletPreferences getPreferences(
 		long companyId, long ownerId, int ownerType, long plid,
 		java.lang.String portletId)

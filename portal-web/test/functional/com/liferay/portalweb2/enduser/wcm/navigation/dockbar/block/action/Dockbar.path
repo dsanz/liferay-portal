@@ -21,21 +21,11 @@
 <!--ADD-->
 <tr>
 	<td>ADD</td>
-	<td>//li[@id='_145_addContent']/a</td>
+	<td>//a[@id='_145_addPanel']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ADD_STAGING</td>
-	<td>//li[@id='_145_addContent']/a</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ADD_PAGE</td>
-	<td>//a[@id='_145_addPage']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ADD_CONTENT_AND_APPLICATIONS</td>
 	<td>//a[@id='_145_addPanel']</td>
 	<td></td>
 </tr>
@@ -52,7 +42,38 @@
 </tr>
 <tr>
 	<td>ADD_CONTENT_SEARCH_FIELD</td>
-	<td>//input[@id='_145_searchContentInput']</td>
+	<td>//input[@id='_145_searchContent']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_CONTENT_ADD_NEW</td>
+	<td>//a[contains(.,'Add New')]/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_CONTENT_POPOVER_ADD_BUTTON</td>
+	<td>//button[contains(.,'Add')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_CONTENT_POPOVER_CONTENT_TITLE</td>
+	<td>//div[contains(@class,'popover-content')]/div/div/div[contains(.,'${key_assetTitle}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_CONTENT_CONTENT_TITLE</td>
+	<td>//div[@class='add-content-details span8']/div[contains(.,'${key_assetTitle}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--ADD_CONTENT_ADD_NEW_MENULIST-->
+<tr>
+	<td>ADD_CONTENT_ADD_NEW_MENULIST</td>
+	<td>//ul[@class='dropdown-menu ']/li/a[contains(.,'${key_assetType}')]/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -81,25 +102,147 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--ADD_PAGE-->
+<tr>
+	<td>ADD_PAGE_LINK</td>
+	<td>//div[@id='_145_addPanelContainer']/ul/li/a[contains(.,'Page')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_PAGE_NAME_FIELD</td>
+	<td>//input[@id='_145_addLayoutName']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_PAGE_BUTTON</td>
+	<td>//button[contains(.,'Add Page')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
 <!--EDIT-->
 <tr>
 	<td>EDIT</td>
-	<td>//li[@id='_145_manageContent']/a</td>
+	<td>//a[@id='_145_editLayoutPanel']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>EDIT_PAGE</td>
-	<td>//a[@title='Manage Page']</td>
+	<td>EDIT_NAVBAR_PERMISSIONS</td>
+	<td>//div[@class='navbar-inner']//span[@class='nav-item-label' and contains(.,'Permissions')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>EDIT_PAGE_LAYOUT</td>
-	<td>//li[contains(@class,'page-layout')]/a[@title='Manage Page']</td>
+	<td>EDIT_PERMISSIONS</td>
+	<td>//li[@data-value='permissions']/a</td>
 	<td></td>
 </tr>
 <tr>
-	<td>EDIT_PAGE_CUSTOMIZATIONS</td>
-	<td>//a[@id='_145_manageCustomization']</td>
+	<td>EDIT_DELETE</td>
+	<td>//li[@data-value='delete']/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_COPY_APPLICATIONS</td>
+	<td>//li[@data-value='copy-applications']/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_DETAILS</td>
+	<td>//div[@id='_145_details']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_SEO</td>
+	<td>//div[@id='_145_seo']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_LOOK_AND_FEEL</td>
+	<td>//div[@id='_145_lookAndFeel']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_JAVASCRIPT</td>
+	<td>//div[@id='_145_javascript']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_CUSTOM_FIELDS</td>
+	<td>//div[@id='_145_customFields']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_ADVANCED</td>
+	<td>//div[@id='_145_advanced']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_MOBILE_DEVICE_RULES</td>
+	<td>//div[@id='_145_mobileDeviceRules']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_EMBEDDED_PORTLETS</td>
+	<td>//div[@id='_145_embeddedPortlets']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_CUSTOMIZATION_SETTINGS</td>
+	<td>//div[@id='_145_customizationSettings']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SAVE_BUTTON</td>
+	<td>//button[contains(.,'Save')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--EMBEDDED_PORTLETS-->
+<tr>
+	<td>EMBEDDED_PORTLETS_CHECKBOX_1</td>
+	<td>//div[@id='_145_embeddedPortlets']//tbody/tr[1]/td[1]/input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EMBEDDED_PORTLETS_CHECKBOX_2</td>
+	<td>//div[@id='_145_embeddedPortlets']//tbody/tr[2]/td[1]/input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EMBEDDED_PORTLETS_PORTLET_ID_1</td>
+	<td>//div[@id='_145_embeddedPortlets']//tbody/tr[1]/td[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EMBEDDED_PORTLETS_PORTLET_ID_2</td>
+	<td>//div[@id='_145_embeddedPortlets']//tbody/tr[2]/td[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EMBEDDED_PORTLETS_TITLE_1</td>
+	<td>//div[@id='_145_embeddedPortlets']//tbody/tr[1]/td[3]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EMBEDDED_PORTLETS_TITLE_2</td>
+	<td>//div[@id='_145_embeddedPortlets']//tbody/tr[2]/td[3]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EMBEDDED_PORTLETS_STATUS_1</td>
+	<td>//div[@id='_145_embeddedPortlets']//tbody/tr[1]/td[4]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EMBEDDED_PORTLETS_STATUS_2</td>
+	<td>//div[@id='_145_embeddedPortlets']//tbody/tr[2]/td[4]</td>
 	<td></td>
 </tr>
 <tr>
@@ -116,6 +259,26 @@
 <tr>
 	<td>ADMIN_SITE_ADMINISTRATION</td>
 	<td>//li[@id='_145_adminLinks']/ul/li/a[contains(.,'Site Administration')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADMIN_SITE_ADMINISTRATION_PAGES</td>
+	<td>//li[@id='_145_adminLinks']/ul/li/ul/li/a[contains(.,'Pages')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADMIN_SITE_ADMINISTRATION_CONTENT</td>
+	<td>//li[@id='_145_adminLinks']/ul/li/ul/li/a[contains(.,'Content')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADMIN_SITE_ADMINISTRATION_USERS</td>
+	<td>//li[@id='_145_adminLinks']/ul/li/ul/li/a[contains(.,'Users')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADMIN_SITE_ADMINISTRATION_CONFIGURATION</td>
+	<td>//li[@id='_145_adminLinks']/ul/li/ul/li/a[contains(.,'Configuration')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -184,6 +347,16 @@
 <tr>
 	<td>USER_NAME</td>
 	<td>//span[@class='user-full-name']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>USER_MY_DASHBOARD</td>
+	<td>//span[contains(.,'My Dashboard')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>USER_MY_ACCOUNT</td>
+	<td>//a[@title='My Account']</td>
 	<td></td>
 </tr>
 <tr>

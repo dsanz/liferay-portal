@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.wiki.util;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -114,7 +115,7 @@ public class WikiTestUtil {
 
 		File file = null;
 
-		if ((fileBytes != null) && (fileBytes.length > 0)) {
+		if (ArrayUtil.isNotEmpty(fileBytes)) {
 			file = FileUtil.createTempFile(fileBytes);
 		}
 
@@ -124,6 +125,21 @@ public class WikiTestUtil {
 			userId, nodeId, title, fileName, file, mimeType);
 
 		return file;
+	}
+
+	public static WikiPage copyPage(
+			WikiPage page, boolean approved, ServiceContext serviceContext)
+		throws Exception {
+
+		WikiPage copyPage = addPage(
+			page.getUserId(), page.getNodeId(), ServiceTestUtil.randomString(),
+			page.getContent(), approved, serviceContext);
+
+		WikiPageLocalServiceUtil.copyPageAttachments(
+			page.getUserId(), page.getNodeId(), page.getTitle(),
+			copyPage.getNodeId(), copyPage.getTitle());
+
+		return copyPage;
 	}
 
 	public static WikiPage updatePage(

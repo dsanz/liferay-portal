@@ -79,11 +79,11 @@ portletURL.setParameter("modelResource", modelResource);
 				<aui:field-wrapper helpMessage="custom-field-key-help" label="key">
 					<aui:input name="name" type="hidden" value="<%= column.getName() %>" />
 
-					<%= HtmlUtil.escape(column.getName()) %>
+					<liferay-ui:input-resource url="<%= column.getName() %>" />
 				</aui:field-wrapper>
 			</c:when>
 			<c:otherwise>
-				<aui:input helpMessage="custom-field-key-help" label="key" name="name" />
+				<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" helpMessage="custom-field-key-help" label="key" name="name" />
 			</c:otherwise>
 		</c:choose>
 
@@ -92,7 +92,7 @@ portletURL.setParameter("modelResource", modelResource);
 				<aui:field-wrapper label="type">
 					<aui:input name="type" type="hidden" value="<%= type %>" />
 
-					<liferay-ui:message key="<%= ExpandoColumnConstants.getTypeLabel(type) %>" />
+					<liferay-ui:input-resource url="<%= LanguageUtil.get(pageContext, ExpandoColumnConstants.getTypeLabel(type)) %>" />
 				</aui:field-wrapper>
 			</c:when>
 			<c:otherwise>
@@ -160,8 +160,6 @@ portletURL.setParameter("modelResource", modelResource);
 							monthParam="defaultValueMonth"
 							monthValue="<%= defaultValueDate.get(Calendar.MONTH) %>"
 							yearParam="defaultValueYear"
-							yearRangeEnd="<%= defaultValueDate.get(Calendar.YEAR) + 100 %>"
-							yearRangeStart="<%= defaultValueDate.get(Calendar.YEAR) - 100 %>"
 							yearValue="<%= defaultValueDate.get(Calendar.YEAR) %>"
 						/>
 
@@ -171,7 +169,6 @@ portletURL.setParameter("modelResource", modelResource);
 							disabled="<%= false %>"
 							hourParam="defaultValueHour"
 							hourValue="<%= defaultValueDate.get(Calendar.HOUR) %>"
-							minuteInterval="<%= 1 %>"
 							minuteParam="defaultValueMinute"
 							minuteValue="<%= defaultValueDate.get(Calendar.MINUTE) %>"
 						/>
@@ -275,12 +272,9 @@ portletURL.setParameter("modelResource", modelResource);
 <aui:script>
 	function <portlet:namespace />saveExpando(options) {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (column == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) && (column == null) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
 </aui:script>
 
 <%

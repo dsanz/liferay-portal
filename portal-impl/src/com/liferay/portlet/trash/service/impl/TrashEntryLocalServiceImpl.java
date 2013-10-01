@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.SystemEvent;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.persistence.GroupActionableDynamicQuery;
 import com.liferay.portal.util.PortalUtil;
@@ -69,12 +70,19 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	@Override
 	public TrashEntry addTrashEntry(
 			long userId, long groupId, String className, long classPK,
-			int status, List<ObjectValuePair<Long, Integer>> statusOVPs,
+			String classUuid, String referrerClassName, int status,
+			List<ObjectValuePair<Long, Integer>> statusOVPs,
 			UnicodeProperties typeSettingsProperties)
 		throws PortalException, SystemException {
 
 		User user = userPersistence.findByPrimaryKey(userId);
 		long classNameId = PortalUtil.getClassNameId(className);
+
+		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
+			className);
+
+		SystemEvent systemEvent = trashHandler.addDeletionSystemEvent(
+			userId, groupId, classPK, classUuid, referrerClassName);
 
 		long entryId = counterLocalService.increment();
 
@@ -87,6 +95,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 		trashEntry.setCreateDate(new Date());
 		trashEntry.setClassNameId(classNameId);
 		trashEntry.setClassPK(classPK);
+		trashEntry.setSystemEventSetKey(systemEvent.getSystemEventSetKey());
 
 		if (typeSettingsProperties != null) {
 			trashEntry.setTypeSettingsProperties(typeSettingsProperties);
@@ -149,6 +158,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 * Deletes the trash entry with the primary key.
 	 *
 	 * @param  entryId the primary key of the trash entry
+	 * @return the trash entry with the primary key
 	 * @throws PortalException if a trash entry with the primary key could not
 	 *         be found
 	 * @throws SystemException if a system exception occurred
@@ -167,6 +177,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 *
 	 * @param  className the class name of entity
 	 * @param  classPK the primary key of the entry
+	 * @return the trash entry with the entity class name and primary key
 	 * @throws PortalException if a trash entry with the primary key could not
 	 *         be found
 	 * @throws SystemException if a system exception occurred
@@ -192,6 +203,9 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 			trashVersionPersistence.removeByEntryId(trashEntry.getEntryId());
 
 			trashEntry = trashEntryPersistence.remove(trashEntry);
+
+			systemEventLocalService.deleteSystemEvents(
+				trashEntry.getGroupId(), trashEntry.getSystemEventSetKey());
 		}
 
 		return trashEntry;
@@ -276,6 +290,15 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 		return trashEntryPersistence.findByGroupId(groupId, start, end, obc);
 	}
 
+	@Override
+	public List<TrashEntry> getEntries(long groupId, String className)
+		throws SystemException {
+
+		long classNameId = PortalUtil.getClassNameId(className);
+
+		return trashEntryPersistence.findByG_C(groupId, classNameId);
+	}
+
 	/**
 	 * Returns the number of trash entries with the group ID.
 	 *
@@ -323,35 +346,6 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 		return trashEntryPersistence.findByC_C(classNameId, classPK);
 	}
 
-	/**
-	 * Returns all the trash versions associated with the trash entry.
-	 *
-	 * @param  entryId the primary key of the trash entry
-	 * @return all the trash versions associated with the trash entry
-	 * @throws SystemException if a system exception occurred
-	 */
-	@Override
-	public List<TrashVersion> getVersions(long entryId) throws SystemException {
-		return trashVersionPersistence.findByEntryId(entryId);
-	}
-
-	/**
-	 * Returns all the trash versions associated with the trash entry.
-	 *
-	 * @param  className the class name of the trash entity
-	 * @param  classPK the primary key of the trash entity
-	 * @return all the trash versions associated with the trash entry
-	 * @throws SystemException if a system exception occurred
-	 */
-	@Override
-	public List<TrashVersion> getVersions(String className, long classPK)
-		throws SystemException {
-
-		long classNameId = PortalUtil.getClassNameId(className);
-
-		return trashVersionPersistence.findByC_C(classNameId, classPK);
-	}
-
 	@Override
 	public Hits search(
 			long companyId, long groupId, long userId, String keywords,
@@ -367,7 +361,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 			searchContext.setGroupIds(new long[] {groupId});
 
 			if (sort != null) {
-				searchContext.setSorts(new Sort[] {sort});
+				searchContext.setSorts(sort);
 			}
 
 			searchContext.setStart(start);

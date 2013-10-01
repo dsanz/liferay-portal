@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Organization;
+import com.liferay.portal.model.impl.OrganizationImpl;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.util.dao.orm.CustomSQLUtil;
 
@@ -56,6 +57,9 @@ public class OrganizationFinderImpl
 
 	public static final String COUNT_BY_C_PO_N_L_S_C_Z_R_C =
 		OrganizationFinder.class.getName() + ".countByC_PO_N_L_S_C_Z_R_C";
+
+	public static final String FIND_BY_NO_ASSETS =
+	OrganizationFinder.class.getName() + ".findByNoAssets";
 
 	public static final String FIND_BY_COMPANY_ID =
 		OrganizationFinder.class.getName() + ".findByCompanyId";
@@ -296,6 +300,59 @@ public class OrganizationFinderImpl
 	}
 
 	@Override
+	public List<Organization> findByKeywords(
+			long companyId, long parentOrganizationId,
+			String parentOrganizationIdComparator, String keywords, String type,
+			Long regionId, Long countryId, LinkedHashMap<String, Object> params,
+			int start, int end, OrderByComparator obc)
+		throws SystemException {
+
+		String[] names = null;
+		String[] streets = null;
+		String[] cities = null;
+		String[] zips = null;
+		boolean andOperator = false;
+
+		if (Validator.isNotNull(keywords)) {
+			names = CustomSQLUtil.keywords(keywords);
+			streets = CustomSQLUtil.keywords(keywords);
+			cities = CustomSQLUtil.keywords(keywords);
+			zips = CustomSQLUtil.keywords(keywords);
+		}
+		else {
+			andOperator = true;
+		}
+
+		return findByC_PO_N_T_S_C_Z_R_C(
+			companyId, parentOrganizationId, parentOrganizationIdComparator,
+			names, type, streets, cities, zips, regionId, countryId, params,
+			andOperator, start, end, obc);
+	}
+
+	@Override
+	public List<Organization> findByNoAssets() throws SystemException {
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			String sql = CustomSQLUtil.get(FIND_BY_NO_ASSETS);
+
+			SQLQuery q = session.createSQLQuery(sql);
+
+			q.addEntity("Organization_", OrganizationImpl.class);
+
+			return q.list(true);
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	@Override
 	public List<Organization> findByCompanyId(
 			long companyId, LinkedHashMap<String, Object> params, int start,
 			int end, OrderByComparator obc)
@@ -359,36 +416,6 @@ public class OrganizationFinderImpl
 		finally {
 			closeSession(session);
 		}
-	}
-
-	@Override
-	public List<Organization> findByKeywords(
-			long companyId, long parentOrganizationId,
-			String parentOrganizationIdComparator, String keywords, String type,
-			Long regionId, Long countryId, LinkedHashMap<String, Object> params,
-			int start, int end, OrderByComparator obc)
-		throws SystemException {
-
-		String[] names = null;
-		String[] streets = null;
-		String[] cities = null;
-		String[] zips = null;
-		boolean andOperator = false;
-
-		if (Validator.isNotNull(keywords)) {
-			names = CustomSQLUtil.keywords(keywords);
-			streets = CustomSQLUtil.keywords(keywords);
-			cities = CustomSQLUtil.keywords(keywords);
-			zips = CustomSQLUtil.keywords(keywords);
-		}
-		else {
-			andOperator = true;
-		}
-
-		return findByC_PO_N_T_S_C_Z_R_C(
-			companyId, parentOrganizationId, parentOrganizationIdComparator,
-			names, type, streets, cities, zips, regionId, countryId, params,
-			andOperator, start, end, obc);
 	}
 
 	@Override

@@ -133,7 +133,6 @@ request.setAttribute("record_set_action.jsp-selRecordSet", selRecordSet);
 		>
 
 			<%
-			RecordSetDisplayTerms displayTerms = (RecordSetDisplayTerms)searchContainer.getDisplayTerms();
 			RecordSetSearchTerms searchTerms = (RecordSetSearchTerms)searchContainer.getSearchTerms();
 			%>
 
@@ -192,9 +191,9 @@ request.setAttribute("record_set_action.jsp-selRecordSet", selRecordSet);
 	<aui:input name="preferences--editable--" type="hidden" value="<%= editable %>" />
 	<aui:input name="preferences--spreadsheet--" type="hidden" value="<%= spreadsheet %>" />
 
-	<aui:fieldset cssClass="hide">
+	<aui:fieldset>
 		<aui:field-wrapper label="portlet-id">
-			<%= HtmlUtil.escape(portletResource) %>
+			<liferay-ui:input-resource url="<%= portletResource %>" />
 		</aui:field-wrapper>
 	</aui:fieldset>
 

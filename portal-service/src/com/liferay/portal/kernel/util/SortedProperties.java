@@ -18,7 +18,9 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
@@ -29,24 +31,37 @@ import java.util.TreeSet;
 public class SortedProperties extends Properties {
 
 	public SortedProperties() {
-		super();
+		this(null, null);
+	}
 
-		_names = new TreeSet<String>();
+	public SortedProperties(Comparator<String> comparator) {
+		this(comparator, null);
+	}
+
+	public SortedProperties(
+		Comparator<String> comparator, Properties properties) {
+
+		_comparator = comparator;
+
+		if (comparator != null) {
+			_names = new TreeSet<String>(comparator);
+		}
+		else {
+			_names = new TreeSet<String>();
+		}
+
+		if (properties != null) {
+			for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+				String key = (String)entry.getKey();
+				String value = (String)entry.getValue();
+
+				setProperty(key, value);
+			}
+		}
 	}
 
 	public SortedProperties(Properties properties) {
-		this();
-
-		Enumeration<String> enu =
-			(Enumeration<String>)properties.propertyNames();
-
-		while (enu.hasMoreElements()) {
-			String key = enu.nextElement();
-
-			String value = properties.getProperty(key);
-
-			setProperty(key, value);
-		}
+		this(null, properties);
 	}
 
 	@Override
@@ -54,6 +69,34 @@ public class SortedProperties extends Properties {
 		super.clear();
 
 		_names.clear();
+	}
+
+	@Override
+	public Set<Map.Entry<Object, Object>> entrySet() {
+		Set<Map.Entry<Object, Object>> set =
+			new TreeSet<Map.Entry<Object, Object>>(
+				new Comparator<Map.Entry<Object, Object>>() {
+
+					@Override
+					public int compare(
+						Map.Entry<Object, Object> object1,
+						Map.Entry<Object, Object> object2) {
+
+						String key1 = String.valueOf(object1.getKey());
+						String key2 = String.valueOf(object2.getKey());
+
+						if (_comparator == null) {
+							return key1.compareTo(key2);
+						}
+
+						return _comparator.compare(key1, key2);
+					}
+
+				});
+
+		set.addAll(super.entrySet());
+
+		return set;
 	}
 
 	@Override
@@ -109,6 +152,7 @@ public class SortedProperties extends Properties {
 		return put(key, value);
 	}
 
+	private Comparator<String> _comparator;
 	private Set<String> _names;
 
 }

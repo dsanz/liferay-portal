@@ -341,6 +341,10 @@ public class DLFileRankPersistenceImpl extends BasePersistenceImpl<DLFileRank>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUserId(userId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DLFileRank> list = findByUserId(userId, count - 1, count,
 				orderByComparator);
 
@@ -829,6 +833,10 @@ public class DLFileRankPersistenceImpl extends BasePersistenceImpl<DLFileRank>
 	public DLFileRank fetchByFileEntryId_Last(long fileEntryId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByFileEntryId(fileEntryId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<DLFileRank> list = findByFileEntryId(fileEntryId, count - 1,
 				count, orderByComparator);
@@ -1339,6 +1347,10 @@ public class DLFileRankPersistenceImpl extends BasePersistenceImpl<DLFileRank>
 	public DLFileRank fetchByG_U_Last(long groupId, long userId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByG_U(groupId, userId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<DLFileRank> list = findByG_U(groupId, userId, count - 1, count,
 				orderByComparator);
@@ -1892,6 +1904,10 @@ public class DLFileRankPersistenceImpl extends BasePersistenceImpl<DLFileRank>
 		throws SystemException {
 		int count = countByG_U_A(groupId, userId, active);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DLFileRank> list = findByG_U_A(groupId, userId, active, count - 1,
 				count, orderByComparator);
 
@@ -2398,6 +2414,10 @@ public class DLFileRankPersistenceImpl extends BasePersistenceImpl<DLFileRank>
 	private static final String _FINDER_COLUMN_C_U_F_COMPANYID_2 = "dlFileRank.companyId = ? AND ";
 	private static final String _FINDER_COLUMN_C_U_F_USERID_2 = "dlFileRank.userId = ? AND ";
 	private static final String _FINDER_COLUMN_C_U_F_FILEENTRYID_2 = "dlFileRank.fileEntryId = ?";
+
+	public DLFileRankPersistenceImpl() {
+		setModelClass(DLFileRank.class);
+	}
 
 	/**
 	 * Caches the document library file rank in the entity cache if it is enabled.

@@ -14,8 +14,6 @@
 
 package com.liferay.portal.security.auth;
 
-import com.liferay.portal.NoSuchGroupException;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -42,8 +40,9 @@ public class DefaultScreenNameGenerator implements ScreenNameGenerator {
 		String screenName = null;
 
 		if (Validator.isNotNull(emailAddress)) {
-			screenName = StringUtil.extractFirst(
-				emailAddress, CharPool.AT).toLowerCase();
+			screenName = StringUtil.extractFirst(emailAddress, CharPool.AT);
+
+			screenName = StringUtil.toLowerCase(screenName);
 
 			for (char c : screenName.toCharArray()) {
 				if (!Validator.isChar(c) && !Validator.isDigit(c) &&
@@ -75,7 +74,7 @@ public class DefaultScreenNameGenerator implements ScreenNameGenerator {
 			StringPool.NEW_LINE, _ADMIN_RESERVED_SCREEN_NAMES);
 
 		for (String reservedScreenName : reservedScreenNames) {
-			if (screenName.equalsIgnoreCase(reservedScreenName)) {
+			if (StringUtil.equalsIgnoreCase(screenName, reservedScreenName)) {
 				return getUnusedScreenName(companyId, screenName);
 			}
 		}
@@ -86,11 +85,9 @@ public class DefaultScreenNameGenerator implements ScreenNameGenerator {
 			return getUnusedScreenName(companyId, screenName);
 		}
 
-		try {
-			GroupLocalServiceUtil.getFriendlyURLGroup(
-				companyId, StringPool.SLASH + screenName);
-		}
-		catch (NoSuchGroupException nsge) {
+		if (GroupLocalServiceUtil.fetchFriendlyURLGroup(
+				companyId, StringPool.SLASH + screenName) == null) {
+
 			return screenName;
 		}
 
@@ -98,7 +95,7 @@ public class DefaultScreenNameGenerator implements ScreenNameGenerator {
 	}
 
 	protected String getUnusedScreenName(long companyId, String screenName)
-		throws PortalException, SystemException {
+		throws SystemException {
 
 		for (int i = 1;; i++) {
 			String tempScreenName = screenName + StringPool.PERIOD + i;
@@ -109,18 +106,12 @@ public class DefaultScreenNameGenerator implements ScreenNameGenerator {
 				continue;
 			}
 
-			try {
-				GroupLocalServiceUtil.getFriendlyURLGroup(
-					companyId, StringPool.SLASH + tempScreenName);
-			}
-			catch (NoSuchGroupException nsge) {
-				screenName = tempScreenName;
+			if (GroupLocalServiceUtil.fetchFriendlyURLGroup(
+					companyId, StringPool.SLASH + tempScreenName) == null) {
 
-				break;
+				return tempScreenName;
 			}
 		}
-
-		return screenName;
 	}
 
 	private static final String[] _ADMIN_RESERVED_SCREEN_NAMES =

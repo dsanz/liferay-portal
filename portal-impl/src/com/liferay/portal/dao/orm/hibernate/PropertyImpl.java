@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Order;
 import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.dao.orm.Property;
+import com.liferay.portal.kernel.util.ListUtil;
 
 import java.util.Collection;
 
@@ -191,8 +192,18 @@ public class PropertyImpl extends ProjectionImpl implements Property {
 	}
 
 	@Override
-	public Criterion in(Collection<Object> values) {
+	public Criterion in(char[] values) {
+		return in(ListUtil.toList(values));
+	}
+
+	@Override
+	public Criterion in(Collection<?> values) {
 		return new CriterionImpl(_property.in(values));
+	}
+
+	@Override
+	public Criterion in(double[] values) {
+		return in(ListUtil.toList(values));
 	}
 
 	@Override
@@ -204,8 +215,28 @@ public class PropertyImpl extends ProjectionImpl implements Property {
 	}
 
 	@Override
+	public Criterion in(float[] values) {
+		return in(ListUtil.toList(values));
+	}
+
+	@Override
+	public Criterion in(int[] values) {
+		return in(ListUtil.toList(values));
+	}
+
+	@Override
+	public Criterion in(long[] values) {
+		return in(ListUtil.toList(values));
+	}
+
+	@Override
 	public Criterion in(Object[] values) {
 		return new CriterionImpl(_property.in(values));
+	}
+
+	@Override
+	public Criterion in(short[] values) {
+		return in(ListUtil.toList(values));
 	}
 
 	@Override

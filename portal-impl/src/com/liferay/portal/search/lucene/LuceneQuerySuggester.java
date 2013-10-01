@@ -14,17 +14,17 @@
 
 package com.liferay.portal.search.lucene;
 
-import com.liferay.portal.kernel.search.CollatorUtil;
+import com.liferay.portal.kernel.search.BaseQuerySuggester;
 import com.liferay.portal.kernel.search.DocumentImpl;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.NGramHolder;
 import com.liferay.portal.kernel.search.NGramHolderBuilderUtil;
-import com.liferay.portal.kernel.search.QueryIndexingHitsProcessor;
-import com.liferay.portal.kernel.search.QuerySuggester;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.TokenizerUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.util.PortletKeys;
+import com.liferay.util.lucene.KeywordsUtil;
 
 import java.io.IOException;
 
@@ -40,6 +40,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -56,7 +57,7 @@ import org.apache.lucene.util.ReaderUtil;
 /**
  * @author Michael C. Han
  */
-public class LuceneQuerySuggester implements QuerySuggester {
+public class LuceneQuerySuggester extends BaseQuerySuggester {
 
 	public void setBoostEnd(float boostEnd) {
 		_boostEnd = boostEnd;
@@ -74,24 +75,6 @@ public class LuceneQuerySuggester implements QuerySuggester {
 		Comparator<SuggestWord> suggestWordComparator) {
 
 		_suggestWordComparator = suggestWordComparator;
-	}
-
-	@Override
-	public String spellCheckKeywords(SearchContext searchContext)
-		throws SearchException {
-
-		String languageId = searchContext.getLanguageId();
-
-		String localizedFieldName = DocumentImpl.getLocalizedName(
-			languageId, Field.SPELL_CHECK_WORD);
-
-		List<String> keywords = TokenizerUtil.tokenize(
-			localizedFieldName, searchContext.getKeywords(), languageId);
-
-		Map<String, List<String>> suggestions = spellCheckKeywords(
-			keywords, localizedFieldName, searchContext, languageId, 1);
-
-		return CollatorUtil.collate(suggestions, keywords);
 	}
 
 	@Override
@@ -135,7 +118,15 @@ public class LuceneQuerySuggester implements QuerySuggester {
 				LuceneHelperUtil.getVersion(), localizedKeywordFieldName,
 				LuceneHelperUtil.getAnalyzer());
 
-			Query query = queryParser.parse(searchContext.getKeywords());
+			Query query = null;
+
+			try {
+				query = queryParser.parse(searchContext.getKeywords());
+			}
+			catch (ParseException e) {
+				query = queryParser.parse(
+					KeywordsUtil.escape(searchContext.getKeywords()));
+			}
 
 			BooleanClause keywordTermQuery = new BooleanClause(
 				query, BooleanClause.Occur.MUST);
@@ -190,6 +181,24 @@ public class LuceneQuerySuggester implements QuerySuggester {
 		booleanQuery.add(booleanClause);
 	}
 
+	protected BooleanQuery buildGroupIdQuery(long[] groupIds) {
+		BooleanQuery booleanQuery = new BooleanQuery();
+
+		addTermQuery(
+			booleanQuery, Field.GROUP_ID, String.valueOf(0), null,
+			BooleanClause.Occur.SHOULD);
+
+		if (ArrayUtil.isNotEmpty(groupIds)) {
+			for (long groupId : groupIds) {
+				addTermQuery(
+					booleanQuery, Field.GROUP_ID, String.valueOf(groupId), null,
+					BooleanClause.Occur.SHOULD);
+			}
+		}
+
+		return booleanQuery;
+	}
+
 	protected BooleanQuery buildNGramQuery(String word) throws SearchException {
 		NGramHolder nGramHolder = NGramHolderBuilderUtil.buildNGramHolder(word);
 
@@ -225,7 +234,8 @@ public class LuceneQuerySuggester implements QuerySuggester {
 		return booleanQuery;
 	}
 
-	protected BooleanQuery buildSpellCheckQuery(String word, String languageId)
+	protected BooleanQuery buildSpellCheckQuery(
+			long groupIds[], String word, String languageId)
 		throws SearchException {
 
 		BooleanQuery suggestWordQuery = new BooleanQuery();
@@ -236,6 +246,13 @@ public class LuceneQuerySuggester implements QuerySuggester {
 			nGramQuery, BooleanClause.Occur.MUST);
 
 		suggestWordQuery.add(booleanNGramQueryClause);
+
+		BooleanQuery groupIdQuery = buildGroupIdQuery(groupIds);
+
+		BooleanClause groupIdQueryClause = new BooleanClause(
+			groupIdQuery, BooleanClause.Occur.MUST);
+
+		suggestWordQuery.add(groupIdQueryClause);
 
 		addTermQuery(
 			suggestWordQuery, Field.LANGUAGE_ID, languageId, null,
@@ -304,8 +321,7 @@ public class LuceneQuerySuggester implements QuerySuggester {
 			float scoresThreshold = searchContext.getScoresThreshold();
 
 			if (scoresThreshold == 0) {
-				scoresThreshold =
-					QueryIndexingHitsProcessor.SCORES_THRESHOLD_DEFAULT;
+				scoresThreshold = _SCORES_THRESHOLD_DEFAULT;
 			}
 
 			indexSearcher = LuceneHelperUtil.getSearcher(
@@ -334,7 +350,7 @@ public class LuceneQuerySuggester implements QuerySuggester {
 					}
 					else {
 						BooleanQuery suggestWordQuery = buildSpellCheckQuery(
-							keyword, languageId);
+							searchContext.getGroupIds(), keyword, languageId);
 
 						RelevancyChecker relevancyChecker =
 							new StringDistanceRelevancyChecker(
@@ -360,6 +376,8 @@ public class LuceneQuerySuggester implements QuerySuggester {
 			LuceneHelperUtil.cleanUp(indexSearcher);
 		}
 	}
+
+	private static final float _SCORES_THRESHOLD_DEFAULT = 0.5f;
 
 	private float _boostEnd = 1.0f;
 	private float _boostStart = 2.0f;

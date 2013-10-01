@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.search;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
+
 import java.io.Serializable;
 
 import java.util.Locale;
@@ -131,6 +133,8 @@ public class Field implements Serializable {
 
 	public static final String TITLE = "title";
 
+	public static final String TREE_PATH = "treePath";
+
 	public static final String TYPE = "type";
 
 	public static final String UID = "uid";
@@ -213,7 +217,7 @@ public class Field implements Serializable {
 	}
 
 	public String getValue() {
-		if ((_values != null) && (_values.length > 0)) {
+		if (ArrayUtil.isNotEmpty(_values)) {
 			return _values[0];
 		}
 		else {

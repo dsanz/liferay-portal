@@ -17,7 +17,7 @@
 <%@ include file="/html/taglib/init.jsp" %>
 
 <%
-String randomNamespace = PortalUtil.generateRandomKey(request, "taglib_ui_flags_page") + StringPool.UNDERLINE;
+String randomNamespace = StringUtil.randomId() + StringPool.UNDERLINE;
 
 String className = (String)request.getAttribute("liferay-ui:flags:className");
 long classPK = GetterUtil.getLong((String)request.getAttribute("liferay-ui:flags:classPK"));
@@ -51,21 +51,28 @@ long reportedUserId = GetterUtil.getLong((String)request.getAttribute("liferay-u
 							var popup = Liferay.Util.Window.getWindow(
 								{
 									dialog: {
-										destroyOnHide: true
+										destroyOnHide: true,
+										height: 300,
+										width: 400
 									},
 									title: '<%= UnicodeLanguageUtil.get(pageContext, "report-inappropriate-content") %>'
 								}
 							);
 
+							var data = Liferay.Util.ns(
+								'<%= PortalUtil.getPortletNamespace(PortletKeys.FLAGS) %>',
+								{
+									className: '<%= className %>',
+									classPK: '<%= classPK %>',
+									contentTitle: '<%= HtmlUtil.escapeJS(contentTitle) %>',
+									contentURL: '<%= HtmlUtil.escapeJS(PortalUtil.getPortalURL(request) + currentURL) %>',
+									reportedUserId: '<%= reportedUserId %>'
+								}
+							);
+
 							popup.plug(
 								A.Plugin.IO, {
-									data: {
-										className: '<%= className %>',
-										classPK: '<%= classPK %>',
-										contentTitle: '<%= HtmlUtil.escapeJS(contentTitle) %>',
-										contentURL: '<%= HtmlUtil.escapeJS(PortalUtil.getPortalURL(request) + currentURL) %>',
-										reportedUserId: '<%= reportedUserId %>'
-									},
+									data: data,
 									uri: '<liferay-portlet:renderURL portletName="<%= PortletKeys.FLAGS %>" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="struts_action" value="/flags/edit_entry" /></liferay-portlet:renderURL>'
 								}
 							);
@@ -90,7 +97,9 @@ long reportedUserId = GetterUtil.getLong((String)request.getAttribute("liferay-u
 								{
 									dialog: {
 										bodyContent: A.one('#<%= randomNamespace %>signIn').html(),
-										destroyOnHide: true
+										destroyOnHide: true,
+										height: 300,
+										width: 400
 									},
 									title: '<%= UnicodeLanguageUtil.get(pageContext, "report-inappropriate-content") %>'
 								}

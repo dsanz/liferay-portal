@@ -220,22 +220,20 @@ public class ExportUsersAction extends PortletAction {
 
 			return (List<User>)tuple.getObject(0);
 		}
+
+		if (searchTerms.isAdvancedSearch()) {
+			return UserLocalServiceUtil.search(
+				themeDisplay.getCompanyId(), searchTerms.getFirstName(),
+				searchTerms.getMiddleName(), searchTerms.getLastName(),
+				searchTerms.getScreenName(), searchTerms.getEmailAddress(),
+				searchTerms.getStatus(), params, searchTerms.isAndOperator(),
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS, (OrderByComparator)null);
+		}
 		else {
-			if (searchTerms.isAdvancedSearch()) {
-				return UserLocalServiceUtil.search(
-					themeDisplay.getCompanyId(), searchTerms.getFirstName(),
-					searchTerms.getMiddleName(), searchTerms.getLastName(),
-					searchTerms.getScreenName(), searchTerms.getEmailAddress(),
-					searchTerms.getStatus(), params,
-					searchTerms.isAndOperator(), QueryUtil.ALL_POS,
-					QueryUtil.ALL_POS, (OrderByComparator)null);
-			}
-			else {
-				return UserLocalServiceUtil.search(
-					themeDisplay.getCompanyId(), searchTerms.getKeywords(),
-					searchTerms.getStatus(), params, QueryUtil.ALL_POS,
-					QueryUtil.ALL_POS, (OrderByComparator)null);
-			}
+			return UserLocalServiceUtil.search(
+				themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+				searchTerms.getStatus(), params, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, (OrderByComparator)null);
 		}
 	}
 
@@ -252,10 +250,9 @@ public class ExportUsersAction extends PortletAction {
 		String exportProgressId = ParamUtil.getString(
 			actionRequest, "exportProgressId");
 
-		ProgressTracker progressTracker = new ProgressTracker(
-			actionRequest, exportProgressId);
+		ProgressTracker progressTracker = new ProgressTracker(exportProgressId);
 
-		progressTracker.start();
+		progressTracker.start(actionRequest);
 
 		int percentage = 10;
 		int total = users.size();
@@ -274,7 +271,7 @@ public class ExportUsersAction extends PortletAction {
 			progressTracker.setPercent(percentage);
 		}
 
-		progressTracker.finish();
+		progressTracker.finish(actionRequest);
 
 		return sb.toString();
 	}

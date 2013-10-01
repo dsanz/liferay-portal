@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.asset.NoSuchTagException;
 import com.liferay.portlet.asset.model.AssetTag;
 import com.liferay.portlet.asset.model.impl.AssetTagImpl;
@@ -216,7 +217,8 @@ public class AssetTagFinderImpl
 
 			if (inlineSQLHelper) {
 				sql = InlineSQLHelperUtil.replacePermissionCheck(
-					sql, AssetTag.class.getName(), "AssetTag.tagId", groupId);
+					sql, AssetTag.class.getName(), "AssetTag.tagId",
+					PortalUtil.getSiteGroupId(groupId));
 			}
 
 			SQLQuery q = session.createSQLQuery(sql);
@@ -262,7 +264,8 @@ public class AssetTagFinderImpl
 
 			if (inlineSQLHelper) {
 				sql = InlineSQLHelperUtil.replacePermissionCheck(
-					sql, AssetTag.class.getName(), "AssetTag.tagId", groupId);
+					sql, AssetTag.class.getName(), "AssetTag.tagId",
+					PortalUtil.getSiteGroupId(groupId));
 			}
 
 			SQLQuery q = session.createSQLQuery(sql);
@@ -351,7 +354,7 @@ public class AssetTagFinderImpl
 			long groupId, String name, boolean inlineSQLHelper)
 		throws NoSuchTagException, SystemException {
 
-		name = name.trim().toLowerCase();
+		name = StringUtil.toLowerCase(name.trim());
 
 		Session session = null;
 
@@ -415,7 +418,8 @@ public class AssetTagFinderImpl
 
 			if (inlineSQLHelper) {
 				sql = InlineSQLHelperUtil.replacePermissionCheck(
-					sql, AssetTag.class.getName(), "AssetTag.tagId", groupId);
+					sql, AssetTag.class.getName(), "AssetTag.tagId",
+					PortalUtil.getSiteGroupId(groupId));
 			}
 
 			SQLQuery q = session.createSQLQuery(sql);
@@ -509,23 +513,22 @@ public class AssetTagFinderImpl
 		if (tagProperties.length == 0) {
 			return StringPool.BLANK;
 		}
-		else {
-			StringBundler sb = new StringBundler(tagProperties.length * 3 + 1);
 
-			sb.append(" INNER JOIN AssetTagProperty ON ");
-			sb.append(" (AssetTagProperty.tagId = AssetTag.tagId) AND ");
+		StringBundler sb = new StringBundler(tagProperties.length * 3 + 1);
 
-			for (int i = 0; i < tagProperties.length; i++) {
-				sb.append("(AssetTagProperty.key_ = ? AND ");
-				sb.append("AssetTagProperty.value = ?) ");
+		sb.append(" INNER JOIN AssetTagProperty ON ");
+		sb.append(" (AssetTagProperty.tagId = AssetTag.tagId) AND ");
 
-				if ((i + 1) < tagProperties.length) {
-					sb.append(" AND ");
-				}
+		for (int i = 0; i < tagProperties.length; i++) {
+			sb.append("(AssetTagProperty.key_ = ? AND ");
+			sb.append("AssetTagProperty.value = ?) ");
+
+			if ((i + 1) < tagProperties.length) {
+				sb.append(" AND ");
 			}
-
-			return sb.toString();
 		}
+
+		return sb.toString();
 	}
 
 	protected void setJoin(QueryPos qPos, String[] tagProperties) {

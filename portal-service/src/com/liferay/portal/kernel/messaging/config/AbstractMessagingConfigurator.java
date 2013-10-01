@@ -20,7 +20,15 @@ import com.liferay.portal.kernel.messaging.Destination;
 import com.liferay.portal.kernel.messaging.DestinationEventListener;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.messaging.MessageListener;
+import com.liferay.portal.kernel.nio.intraband.RegistrationReference;
+import com.liferay.portal.kernel.nio.intraband.messaging.DestinationConfigurationProcessCallable;
+import com.liferay.portal.kernel.nio.intraband.messaging.IntrabandBridgeDestination;
+import com.liferay.portal.kernel.nio.intraband.rpc.IntrabandRPCUtil;
+import com.liferay.portal.kernel.resiliency.spi.SPI;
+import com.liferay.portal.kernel.resiliency.spi.SPIUtil;
 import com.liferay.portal.kernel.security.pacl.permission.PortalMessageBusPermission;
+import com.liferay.portal.kernel.util.ClassLoaderPool;
+import com.liferay.portal.kernel.util.StringBundler;
 
 import java.lang.reflect.Method;
 
@@ -36,6 +44,16 @@ public abstract class AbstractMessagingConfigurator
 	implements MessagingConfigurator {
 
 	public void afterPropertiesSet() {
+		Thread currentThread = Thread.currentThread();
+
+		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+
+		ClassLoader operatingClassLoader = getOperatingClassloader();
+
+		if (contextClassLoader == operatingClassLoader) {
+			_portalMessagingConfigurator = true;
+		}
+
 		MessageBus messageBus = getMessageBus();
 
 		for (DestinationEventListener destinationEventListener :
@@ -45,6 +63,10 @@ public abstract class AbstractMessagingConfigurator
 		}
 
 		for (Destination destination : _destinations) {
+			if (SPIUtil.isSPI()) {
+				destination = new IntrabandBridgeDestination(destination);
+			}
+
 			messageBus.addDestination(destination);
 		}
 
@@ -66,6 +88,23 @@ public abstract class AbstractMessagingConfigurator
 			messageBus.replace(destination);
 		}
 
+		connect();
+
+		String servletContextName = ClassLoaderPool.getContextName(
+			operatingClassLoader);
+
+		MessagingConfiguratorRegistry.registerMessagingConfigurator(
+			servletContextName, this);
+	}
+
+	@Override
+	public void connect() {
+		if (SPIUtil.isSPI() && _portalMessagingConfigurator) {
+			return;
+		}
+
+		MessageBus messageBus = getMessageBus();
+
 		Thread currentThread = Thread.currentThread();
 
 		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
@@ -79,6 +118,32 @@ public abstract class AbstractMessagingConfigurator
 					_messageListeners.entrySet()) {
 
 				String destinationName = messageListeners.getKey();
+
+				if (SPIUtil.isSPI()) {
+					SPI spi = SPIUtil.getSPI();
+
+					try {
+						RegistrationReference registrationReference =
+							spi.getRegistrationReference();
+
+						IntrabandRPCUtil.execute(
+							registrationReference,
+							new DestinationConfigurationProcessCallable(
+								destinationName));
+					}
+					catch (Exception e) {
+						StringBundler sb = new StringBundler();
+
+						sb.append("Unable to install ");
+						sb.append(
+							DestinationConfigurationProcessCallable.class.
+								getName());
+						sb.append(" on MPI for ");
+						sb.append(destinationName);
+
+						_log.error(sb.toString(), e);
+					}
+				}
 
 				for (MessageListener messageListener :
 						messageListeners.getValue()) {
@@ -95,20 +160,9 @@ public abstract class AbstractMessagingConfigurator
 
 	@Override
 	public void destroy() {
+		disconnect();
+
 		MessageBus messageBus = getMessageBus();
-
-		for (Map.Entry<String, List<MessageListener>> messageListeners :
-				_messageListeners.entrySet()) {
-
-			String destinationName = messageListeners.getKey();
-
-			for (MessageListener messageListener :
-					messageListeners.getValue()) {
-
-				messageBus.unregisterMessageListener(
-					destinationName, messageListener);
-			}
-		}
 
 		for (Destination destination : _destinations) {
 			messageBus.removeDestination(destination.getName());
@@ -135,14 +189,36 @@ public abstract class AbstractMessagingConfigurator
 
 			messageBus.removeDestinationEventListener(destinationEventListener);
 		}
+
+		ClassLoader operatingClassLoader = getOperatingClassloader();
+
+		String servletContextName = ClassLoaderPool.getContextName(
+			operatingClassLoader);
+
+		MessagingConfiguratorRegistry.unregisterMessagingConfigurator(
+			servletContextName, this);
 	}
 
-	/**
-	 * @deprecated As of 6.1.0, replaced by {@link #afterPropertiesSet}
-	 */
 	@Override
-	public void init() {
-		afterPropertiesSet();
+	public void disconnect() {
+		if (SPIUtil.isSPI() && _portalMessagingConfigurator) {
+			return;
+		}
+
+		MessageBus messageBus = getMessageBus();
+
+		for (Map.Entry<String, List<MessageListener>> messageListeners :
+				_messageListeners.entrySet()) {
+
+			String destinationName = messageListeners.getKey();
+
+			for (MessageListener messageListener :
+					messageListeners.getValue()) {
+
+				messageBus.unregisterMessageListener(
+					destinationName, messageListener);
+			}
+		}
 	}
 
 	@Override
@@ -239,6 +315,7 @@ public abstract class AbstractMessagingConfigurator
 		new ArrayList<DestinationEventListener>();
 	private Map<String, List<MessageListener>> _messageListeners =
 		new HashMap<String, List<MessageListener>>();
+	private boolean _portalMessagingConfigurator;
 	private List<Destination> _replacementDestinations =
 		new ArrayList<Destination>();
 	private Map<String, List<DestinationEventListener>>

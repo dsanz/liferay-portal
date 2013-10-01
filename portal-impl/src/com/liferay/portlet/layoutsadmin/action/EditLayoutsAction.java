@@ -31,7 +31,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.staging.StagingUtil;
@@ -170,12 +169,10 @@ public class EditLayoutsAction extends PortletAction {
 				closeRedirect = updateCloseRedirect(
 					themeDisplay, closeRedirect, null, layout, oldFriendlyURL);
 
-				LiferayPortletConfig liferayPortletConfig =
-					(LiferayPortletConfig)portletConfig;
-
 				SessionMessages.add(
 					actionRequest,
-					liferayPortletConfig.getPortletId() + "pageAdded", layout);
+					PortalUtil.getPortletId(actionRequest) + "pageAdded",
+					layout);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
 				long plid = ParamUtil.getLong(actionRequest, "plid");
@@ -208,10 +205,16 @@ public class EditLayoutsAction extends PortletAction {
 				if (plid == refererPlid) {
 					redirect = HttpUtil.setParameter(
 						redirect, "refererPlid", newRefererPlid);
+					redirect = HttpUtil.setParameter(
+						redirect, actionResponse.getNamespace() + "selPlid", 0);
 				}
 
 				closeRedirect = updateCloseRedirect(
 					themeDisplay, closeRedirect, group, null, oldFriendlyURL);
+
+				redirect = HttpUtil.addParameter(
+					redirect, actionResponse.getNamespace() + "closeRedirect",
+					closeRedirect);
 			}
 			else if (cmd.equals("display_order")) {
 				updateDisplayOrder(actionRequest);
@@ -281,10 +284,6 @@ public class EditLayoutsAction extends PortletAction {
 				else {
 					SessionErrors.add(actionRequest, e.getClass(), e);
 				}
-
-				sendRedirect(
-					portletConfig, actionRequest, actionResponse, redirect,
-					closeRedirect);
 			}
 			else if (e instanceof SystemException) {
 				SessionErrors.add(actionRequest, e.getClass(), e);
@@ -923,7 +922,7 @@ public class EditLayoutsAction extends PortletAction {
 					LayoutPrototypeServiceUtil.getLayoutPrototype(
 						layoutPrototypeId);
 
-				String layoutPrototypeLinkEnabled= ParamUtil.getString(
+				String layoutPrototypeLinkEnabled = ParamUtil.getString(
 					uploadPortletRequest, "layoutPrototypeLinkEnabled");
 
 				if (Validator.isNotNull(layoutPrototypeLinkEnabled)) {

@@ -63,6 +63,9 @@ public interface Group extends GroupModel, PersistedModel {
 	public java.lang.String getIconURL(
 		com.liferay.portal.theme.ThemeDisplay themeDisplay);
 
+	public java.lang.String getLayoutRootNodeName(boolean privateLayout,
+		java.util.Locale locale);
+
 	public com.liferay.portal.model.Group getLiveGroup();
 
 	public java.lang.String getLiveParentTypeSettingsProperty(
@@ -105,11 +108,15 @@ public interface Group extends GroupModel, PersistedModel {
 
 	public boolean hasAncestor(long groupId);
 
+	public boolean hasLocalOrRemoteStagingGroup();
+
 	public boolean hasPrivateLayouts();
 
 	public boolean hasPublicLayouts();
 
 	public boolean hasStagingGroup();
+
+	public boolean isChild(long groupId);
 
 	/**
 	* @deprecated As of 6.1.0, renamed to {@link #isRegularSite}
@@ -117,6 +124,8 @@ public interface Group extends GroupModel, PersistedModel {
 	public boolean isCommunity();
 
 	public boolean isCompany();
+
+	public boolean isCompanyStagingGroup();
 
 	public boolean isControlPanel();
 

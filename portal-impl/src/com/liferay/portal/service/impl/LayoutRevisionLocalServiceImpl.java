@@ -123,16 +123,6 @@ public class LayoutRevisionLocalServiceImpl
 			layoutRevision.getLayoutRevisionId(), layoutRevision,
 			serviceContext);
 
-		boolean explicitCreation = ParamUtil.getBoolean(
-			serviceContext, "explicitCreation");
-
-		if (!explicitCreation) {
-			layoutRevisionLocalService.updateStatus(
-				serviceContext.getUserId(),
-				layoutRevision.getLayoutRevisionId(),
-				WorkflowConstants.STATUS_INCOMPLETE, serviceContext);
-		}
-
 		StagingUtil.setRecentLayoutRevisionId(
 			user, layoutSetBranchId, plid,
 			layoutRevision.getLayoutRevisionId());
@@ -176,6 +166,13 @@ public class LayoutRevisionLocalServiceImpl
 			catch (NoSuchPortletPreferencesException nsppe) {
 			}
 		}
+
+		User user = userPersistence.findByPrimaryKey(
+			layoutRevision.getUserId());
+
+		StagingUtil.deleteRecentLayoutRevisionId(
+			user, layoutRevision.getLayoutSetBranchId(),
+			layoutRevision.getPlid());
 
 		return layoutRevisionPersistence.remove(layoutRevision);
 	}
@@ -239,6 +236,15 @@ public class LayoutRevisionLocalServiceImpl
 		catch (NoSuchLayoutRevisionException nslre) {
 			return null;
 		}
+	}
+
+	@Override
+	public LayoutRevision fetchLayoutRevision(
+			long layoutSetBranchId, boolean head, long plid)
+		throws SystemException {
+
+		return layoutRevisionPersistence.fetchByL_H_P(
+			layoutSetBranchId, head, plid);
 	}
 
 	@Override
@@ -449,7 +455,13 @@ public class LayoutRevisionLocalServiceImpl
 				layoutRevision.getPlid(), layoutRevision.getLayoutBranchId());
 		}
 		else {
-			layoutRevision = oldLayoutRevision;
+			if (_layoutRevisionId.get() > 0) {
+				layoutRevision = layoutRevisionPersistence.findByPrimaryKey(
+					_layoutRevisionId.get());
+			}
+			else {
+				layoutRevision = oldLayoutRevision;
+			}
 
 			layoutRevision.setName(name);
 			layoutRevision.setTitle(title);

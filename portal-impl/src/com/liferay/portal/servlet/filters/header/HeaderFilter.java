@@ -15,10 +15,13 @@
 package com.liferay.portal.servlet.filters.header;
 
 import com.liferay.portal.kernel.servlet.HttpHeaders;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.SetUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TimeZoneUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
@@ -30,7 +33,6 @@ import java.text.Format;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -53,7 +55,7 @@ public class HeaderFilter extends BasePortalFilter {
 
 		_filterConfig = filterConfig;
 		_dateFormat = FastDateFormatFactoryUtil.getSimpleDateFormat(
-			_DATE_FORMAT, Locale.US, TimeZoneUtil.getTimeZone(_TIME_ZONE));
+			_DATE_FORMAT, LocaleUtil.US, TimeZoneUtil.GMT);
 	}
 
 	protected long getLastModified(HttpServletRequest request) {
@@ -64,7 +66,7 @@ public class HeaderFilter extends BasePortalFilter {
 
 		String[] value = parameterMap.get("t");
 
-		if ((value != null) && (value.length > 0)) {
+		if (ArrayUtil.isNotEmpty(value)) {
 			lasModified = GetterUtil.getLong(value[0]);
 		}
 
@@ -102,8 +104,8 @@ public class HeaderFilter extends BasePortalFilter {
 
 			boolean addHeader = true;
 
-			if (name.equalsIgnoreCase(HttpHeaders.CACHE_CONTROL) ||
-				name.equalsIgnoreCase(HttpHeaders.EXPIRES)) {
+			if (StringUtil.equalsIgnoreCase(name, HttpHeaders.CACHE_CONTROL) ||
+				StringUtil.equalsIgnoreCase(name, HttpHeaders.EXPIRES)) {
 
 				boolean newSession = false;
 
@@ -115,7 +117,9 @@ public class HeaderFilter extends BasePortalFilter {
 
 				String contextPath = request.getContextPath();
 
-				if (name.equalsIgnoreCase(HttpHeaders.EXPIRES) && newSession) {
+				if (StringUtil.equalsIgnoreCase(name, HttpHeaders.EXPIRES) &&
+					newSession) {
+
 					addHeader = false;
 				}
 				else if (PropsValues.WEB_SERVER_PROXY_LEGACY_MODE &&
@@ -153,8 +157,6 @@ public class HeaderFilter extends BasePortalFilter {
 	private static final String _DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss z";
 
 	private static final String _EXPIRES = "Expires";
-
-	private static final String _TIME_ZONE = "GMT";
 
 	private static Set<String> _requestHeaderIgnoreInitParams =
 		SetUtil.fromArray(PropsValues.REQUEST_HEADER_IGNORE_INIT_PARAMS);

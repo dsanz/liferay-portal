@@ -141,6 +141,10 @@ public class ResourceActionsUtil {
 		return getResourceActions().getModelResourceOwnerDefaultActions(name);
 	}
 
+	public static Double getModelResourceWeight(String name) {
+		return getResourceActions().getModelResourceWeight(name);
+	}
+
 	public static String[] getOrganizationModelResources() {
 		return getResourceActions().getOrganizationModelResources();
 	}
@@ -193,6 +197,10 @@ public class ResourceActionsUtil {
 
 		return getResourceActions().getPortletResourceLayoutManagerActions(
 			name);
+	}
+
+	public static String getPortletRootModelResource(String portletName) {
+		return getResourceActions().getPortletRootModelResource(portletName);
 	}
 
 	public static ResourceActions getResourceActions() {

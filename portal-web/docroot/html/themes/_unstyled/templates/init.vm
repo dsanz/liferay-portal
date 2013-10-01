@@ -84,6 +84,7 @@
 #set ($user_login_ip = $user.getLoginIP())
 #set ($user_last_login_ip = $user.getLastLoginIP())
 
+#set ($is_login_redirect_required = $portalUtil.isLoginRedirectRequired($request))
 #set ($is_signed_in = $theme_display.isSignedIn())
 
 #set ($group_id = $theme_display.getScopeGroupId())
@@ -314,7 +315,7 @@
 #end
 
 #if ($is_guest_group)
-	#set ($show_site_name = false)
+	#set ($show_site_name = true)
 #else
 	#set ($show_site_name_supported = $getterUtil.getBoolean($theme_settings.getProperty("show-site-name-supported"), true))
 

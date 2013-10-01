@@ -1,16 +1,42 @@
 @import "compass";
+@import "mixins";
 
 .lfr-add-panel {
-	bottom: 0;
-	left: 0;
-	overflow: auto;
-	padding: 10px;
-	position: fixed;
-	top: 0;
 	width: 330px;
-	z-index: 450;
 
+	.add-content-menu .lfr-add-page-toolbar {
+		bottom: 0;
+		margin-left: -10px;
+		padding: 10px;
+		position: fixed;
+		width: 330px;
+	}
+
+	.lfr-page-template-description {
+		line-height: normal;
+		padding: 0 10px 10px 3px;
+	}
+}
+
+.lfr-add-dialog, .lfr-add-panel {
 	.add-content-menu {
+		.accordion {
+			margin-bottom: 20px;
+
+			.accordion-group .accordion-inner {
+				padding: 6px 0;
+			}
+
+			.nav-list {
+				padding-left: 0;
+				padding-right: 0;
+
+				.lfr-content-item {
+					padding-left: 15px;
+				}
+			}
+		}
+
 		.btn-toolbar {
 			.control-group-inline {
 				display: inline;
@@ -25,25 +51,36 @@
 			}
 		}
 
-		.lfr-add-page-toolbar {
-			background-color: #FFFFFF;
-			bottom: 0;
-			margin-left: -10px;
-			padding: 10px;
-			position: fixed;
-			width: 330px;
+		.lfr-page-template .toggler-header {
+			&.active {
+				&.lfr-page-template-title label {
+					padding: 2px;
+				}
+			}
 		}
 
-	    .template-selector {
+		ul.nav-list {
+			padding-left: 0;
+			padding-right: 0;
+		}
+
+		.template-selector {
 			margin-top: 1.5em;
 
 			legend {
-				border-bottom: solid 1px #009ec3;
-				color: #0DB5E7;
-				font-size: 1em;
-				line-height: 1.5em;
+				margin-bottom: 5px;
 			}
-	    }
+
+			.lfr-page-layouts {
+				.layout-template-entry {
+					margin-left: 10px;
+				}
+			}
+		}
+
+		.fieldset {
+			margin-top: 30px;
+		}
 
 		.accordion-inner {
 			padding-left: 0;
@@ -62,9 +99,18 @@
 			}
 		}
 
+		.lfr-add-apps-legend {
+			margin-bottom: 25px;
+		}
+
 		.lfr-content-item {
-			cursor: move;
 			position: relative;
+
+			.drag-content-item {
+				cursor: move;
+				display: inline-block;
+				width: 100%;
+			}
 
 			&:hover .add-content-item {
 				display: inline;
@@ -79,10 +125,13 @@
 				top: 0;
 			}
 
-			&.lfr-portlet-used {
-				cursor: default;
+			.lfr-portlet-used {
+				&.drag-content-item {
+					color: #BBB;
+					cursor: default;
+				}
 
-				.add-content-item {
+				&.add-content-item {
 					display: none;
 				}
 			}
@@ -94,16 +143,41 @@
 
 		.lfr-page-template {
 			cursor: pointer;
-			margin-bottom: 20px;
+			margin-bottom: 15px;
 
-			.lfr-page-template-title label {
-				font-weight: bold;
-				margin-bottom: 5px;
-				padding: 2px;
+			.lfr-page-template-title {
+				position: relative;
+
+				label {
+					margin-left: 0;
+					margin-bottom: 5px;
+					padding: 2px;
+				}
+
+				.radio input {
+					margin-left: 6px;
+					margin-right: 6px;
+				}
+
+				&.toggler-header-collapsed .lfr-page-template-description {
+					height: 1.6em;
+					overflow: hidden;
+					padding-left: 26px;
+					text-overflow: ellipsis;
+					white-space: nowrap;
+					width: 285px;
+				}
+
+				&.toggler-header-expanded .lfr-page-template-description {
+					padding-left: 26px;
+					padding-right: 20px;
+				}
 			}
 
 			.lfr-page-template-options {
-				padding: 10px;
+				border-bottom: 1px solid transparent;
+				margin: 10px 10px 0 25px;
+				padding-bottom: 20px;
 			}
 		}
 
@@ -157,6 +231,12 @@
 				line-height: 128px;
 			}
 		}
+
+		@include respond-to(phone) {
+			.lfr-drag-portlet-message {
+				display: none;
+			}
+		}
 	}
 }
 
@@ -199,10 +279,32 @@
 /*Skin*/
 
 .lfr-add-panel {
-	background-color: #FFF;
-
 	.add-content-menu {
-		.lfr-content-item {
+		.lfr-add-apps-legend {
+			color: #999;
+		}
+
+		.control-label {
+			color: #555;
+			font-weight: 400;
+		}
+
+		.template-selector {
+			legend {
+				border-style: none;
+				color: #555;
+				font-size: 15px;
+				font-weight: 400;
+				line-height: 1.5em;
+			}
+		}
+
+		.lfr-add-page-toolbar {
+			background-color: #FFF;
+		}
+
+
+		lfr-content-item {
 			color: #3EA9DB;
 
 			&:hover {
@@ -215,13 +317,21 @@
 			}
 		}
 
+		.lfr-install-more {
+			text-align: center;
+		}
+
 		.lfr-page-template {
+			.lfr-page-template-title .lfr-page-template-description {
+				color: #8D8D8D;
+				line-height: 15px;
+			}
+
 			.toggler-header {
 				&.active {
-					&.lfr-page-template-title label{
+					&.lfr-page-template-title label {
 						background-color: #0DB5E7;
-						color: #FFFFFF;
-						padding: 2px;
+						color: #FFF;
 					}
 				}
 			}
@@ -229,19 +339,14 @@
 			&:hover {
 				background-color: #F0F0F0;
 			}
+
+			.lfr-page-template-options {
+				border-bottom-color: #EEE;
+			}
 		}
 
 		.portal-add-content .portlet-msg-info {
 			color: #333;
-		}
-
-		.lfr-install-more {
-			border-top-color: #CCC;
-
-			a {
-				background: url(@theme_image_path@/common/install_more.png) no-repeat 0 50%;
-				font-weight: bold;
-			}
 		}
 	}
 }

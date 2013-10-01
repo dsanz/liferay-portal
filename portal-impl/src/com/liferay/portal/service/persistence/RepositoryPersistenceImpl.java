@@ -354,6 +354,10 @@ public class RepositoryPersistenceImpl extends BasePersistenceImpl<Repository>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Repository> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1172,6 +1176,10 @@ public class RepositoryPersistenceImpl extends BasePersistenceImpl<Repository>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Repository> list = findByUuid_C(uuid, companyId, count - 1, count,
 				orderByComparator);
 
@@ -1698,6 +1706,10 @@ public class RepositoryPersistenceImpl extends BasePersistenceImpl<Repository>
 	public Repository fetchByGroupId_Last(long groupId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<Repository> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
@@ -2243,6 +2255,10 @@ public class RepositoryPersistenceImpl extends BasePersistenceImpl<Repository>
 	private static final String _FINDER_COLUMN_G_N_P_PORTLETID_1 = "repository.portletId IS NULL";
 	private static final String _FINDER_COLUMN_G_N_P_PORTLETID_2 = "repository.portletId = ?";
 	private static final String _FINDER_COLUMN_G_N_P_PORTLETID_3 = "(repository.portletId IS NULL OR repository.portletId = '')";
+
+	public RepositoryPersistenceImpl() {
+		setModelClass(Repository.class);
+	}
 
 	/**
 	 * Caches the repository in the entity cache if it is enabled.

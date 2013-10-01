@@ -348,6 +348,10 @@ public class DDLRecordVersionPersistenceImpl extends BasePersistenceImpl<DDLReco
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByRecordId(recordId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DDLRecordVersion> list = findByRecordId(recordId, count - 1,
 				count, orderByComparator);
 
@@ -1123,6 +1127,10 @@ public class DDLRecordVersionPersistenceImpl extends BasePersistenceImpl<DDLReco
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByR_S(recordId, status);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DDLRecordVersion> list = findByR_S(recordId, status, count - 1,
 				count, orderByComparator);
 
@@ -1360,6 +1368,10 @@ public class DDLRecordVersionPersistenceImpl extends BasePersistenceImpl<DDLReco
 
 	private static final String _FINDER_COLUMN_R_S_RECORDID_2 = "ddlRecordVersion.recordId = ? AND ";
 	private static final String _FINDER_COLUMN_R_S_STATUS_2 = "ddlRecordVersion.status = ?";
+
+	public DDLRecordVersionPersistenceImpl() {
+		setModelClass(DDLRecordVersion.class);
+	}
 
 	/**
 	 * Caches the d d l record version in the entity cache if it is enabled.

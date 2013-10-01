@@ -27,7 +27,9 @@ import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.Query;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchPermissionChecker;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
@@ -36,7 +38,6 @@ import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
-import com.liferay.portal.model.Team;
 import com.liferay.portal.model.UserGroupRole;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.AdvancedPermissionChecker;
@@ -50,7 +51,6 @@ import com.liferay.portal.service.ResourceBlockLocalServiceUtil;
 import com.liferay.portal.service.ResourceBlockPermissionLocalServiceUtil;
 import com.liferay.portal.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.service.RoleLocalServiceUtil;
-import com.liferay.portal.service.TeamLocalServiceUtil;
 import com.liferay.portal.service.UserGroupRoleLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 
@@ -182,18 +182,13 @@ public class SearchPermissionCheckerImpl implements SearchPermissionChecker {
 			group = GroupLocalServiceUtil.getGroup(groupId);
 		}
 
-		List<Role> roles = ResourceActionsUtil.getRoles(
-			companyId, group, className, null);
+		List<Role> roles = ListUtil.copy(
+			ResourceActionsUtil.getRoles(companyId, group, className, null));
 
 		if (groupId > 0) {
-			List<Team> teams = TeamLocalServiceUtil.getGroupTeams(groupId);
+			List<Role> teamRoles = RoleLocalServiceUtil.getTeamRoles(groupId);
 
-			for (Team team : teams) {
-				Role role = RoleLocalServiceUtil.getTeamRole(
-					team.getCompanyId(), team.getTeamId());
-
-				roles.add(role);
-			}
+			roles.addAll(teamRoles);
 		}
 
 		long[] roleIdsArray = new long[roles.size()];
@@ -305,7 +300,7 @@ public class SearchPermissionCheckerImpl implements SearchPermissionChecker {
 
 		roles.addAll(permissionCheckerBag.getRoles());
 
-		if ((groupIds == null) || (groupIds.length == 0)) {
+		if (ArrayUtil.isEmpty(groupIds)) {
 			groups.addAll(GroupLocalServiceUtil.getUserGroups(userId, true));
 			groups.addAll(permissionCheckerBag.getGroups());
 

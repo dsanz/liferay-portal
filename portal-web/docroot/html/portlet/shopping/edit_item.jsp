@@ -127,20 +127,22 @@ int priceId = ParamUtil.getInteger(request, "priceId", -1);
 					<portlet:param name="categoryId" value="<%= String.valueOf(categoryId) %>" />
 				</portlet:renderURL>
 
-				<aui:a href="<%= viewCategoryURL %>" id="categoryName" label="<%= categoryName %>" />
+				<div class="input-append">
+					<liferay-ui:input-resource id="categoryName" url="<%= categoryName %>" />
 
-				<portlet:renderURL var="selectCateforyURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-					<portlet:param name="struts_action" value="/shopping/select_category" />
-					<portlet:param name="categoryId" value="<%= String.valueOf(categoryId) %>" />
-				</portlet:renderURL>
+					<portlet:renderURL var="selectCateforyURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+						<portlet:param name="struts_action" value="/shopping/select_category" />
+						<portlet:param name="categoryId" value="<%= String.valueOf(categoryId) %>" />
+					</portlet:renderURL>
 
-				<%
-				String taglibOpenCategoryWindow = "var categoryWindow = window.open('" + selectCateforyURL + "', 'category', 'directories=no,height=640,location=no,menubar=no,resizable=yes,scrollbars=yes,status=no,toolbar=no,width=680'); void(''); categoryWindow.focus();";
-				%>
+					<%
+					String taglibOpenCategoryWindow = "var categoryWindow = window.open('" + selectCateforyURL + "', 'category', 'directories=no,height=640,location=no,menubar=no,resizable=yes,scrollbars=yes,status=no,toolbar=no,width=680'); void(''); categoryWindow.focus();";
+					%>
 
-				<aui:button onClick="<%= taglibOpenCategoryWindow %>" value="select" />
+					<aui:button onClick="<%= taglibOpenCategoryWindow %>" value="select" />
 
-				<aui:button onClick='<%= renderResponse.getNamespace() + "removeCategory();" %>' value="remove" />
+					<aui:button onClick='<%= renderResponse.getNamespace() + "removeCategory();" %>' value="remove" />
+				</div>
 			</aui:field-wrapper>
 		</c:if>
 
@@ -484,7 +486,7 @@ int priceId = ParamUtil.getInteger(request, "priceId", -1);
 			<aui:fieldset>
 				<aui:input label="small-image-url" name="smallImageURL" />
 
-				<span style="font-size: xx-small;">-- <%= LanguageUtil.get(pageContext, "or").toUpperCase() %> --</span> <liferay-ui:message key="small-image" />
+				<span style="font-size: xx-small;">-- <%= StringUtil.toUpperCase(LanguageUtil.get(pageContext, "or")) %> --</span> <liferay-ui:message key="small-image" />
 
 				<aui:input label="" name="smallFile" type="file" />
 
@@ -492,7 +494,7 @@ int priceId = ParamUtil.getInteger(request, "priceId", -1);
 
 				<aui:input label="medium-image-url" name="mediumImageURL" />
 
-				<span style="font-size: xx-small;">-- <%= LanguageUtil.get(pageContext, "or").toUpperCase() %> --</span> <liferay-ui:message key="medium-image" />
+				<span style="font-size: xx-small;">-- <%= StringUtil.toUpperCase(LanguageUtil.get(pageContext, "or")) %> --</span> <liferay-ui:message key="medium-image" />
 
 				<aui:input label="" name="mediumFile" type="file" />
 
@@ -500,7 +502,7 @@ int priceId = ParamUtil.getInteger(request, "priceId", -1);
 
 				<aui:input label="large-image-url" name="largeImageURL" />
 
-				<span style="font-size: xx-small;">-- <%= LanguageUtil.get(pageContext, "or").toUpperCase() %> --</span> <liferay-ui:message key="large-image" />
+				<span style="font-size: xx-small;">-- <%= StringUtil.toUpperCase(LanguageUtil.get(pageContext, "or")) %> --</span> <liferay-ui:message key="large-image" />
 
 				<aui:input label="" name="largeFile" type="file" />
 
@@ -514,12 +516,14 @@ int priceId = ParamUtil.getInteger(request, "priceId", -1);
 	function <portlet:namespace />addField() {
 		document.<portlet:namespace />fm.scroll.value = "<portlet:namespace />fields";
 		document.<portlet:namespace />fm.<portlet:namespace />fieldsCount.value = <%= fieldsCount + 1 %>;
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />addPrice() {
 		document.<portlet:namespace />fm.scroll.value = "<portlet:namespace />prices";
 		document.<portlet:namespace />fm.<portlet:namespace />pricesCount.value = <%= pricesCount + 1 %>;
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
@@ -527,6 +531,7 @@ int priceId = ParamUtil.getInteger(request, "priceId", -1);
 		document.<portlet:namespace />fm.scroll.value = "<portlet:namespace />fields";
 		document.<portlet:namespace />fm.<portlet:namespace />fieldsCount.value = <%= fieldsCount - 1 %>;
 		document.<portlet:namespace />fm.<portlet:namespace />fieldId.value = i;
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
@@ -538,6 +543,7 @@ int priceId = ParamUtil.getInteger(request, "priceId", -1);
 			document.<portlet:namespace />fm.scroll.value = "<portlet:namespace />prices";
 			document.<portlet:namespace />fm.<portlet:namespace />pricesCount.value = <%= pricesCount - 1 %>;
 			document.<portlet:namespace />fm.<portlet:namespace />priceId.value = i;
+
 			submitForm(document.<portlet:namespace />fm);
 		}
 	}
@@ -566,23 +572,18 @@ int priceId = ParamUtil.getInteger(request, "priceId", -1);
 	function <portlet:namespace />removeCategory() {
 		document.<portlet:namespace />fm.<portlet:namespace />categoryId.value = "<%= ShoppingCategoryConstants.DEFAULT_PARENT_CATEGORY_ID %>";
 
-		var nameEl = document.getElementById("<portlet:namespace />categoryName");
-
-		nameEl.href = "";
-		nameEl.innerHTML = "";
+		document.getElementById('<portlet:namespace />categoryName').value = '';
 	}
 
 	function <portlet:namespace />saveItem() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (item == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />selectCategory(categoryId, categoryName) {
 		document.<portlet:namespace />fm.<portlet:namespace />categoryId.value = categoryId;
 
-		var nameEl = document.getElementById("<portlet:namespace />categoryName");
-
-		nameEl.href = "<portlet:renderURL><portlet:param name="struts_action" value="/shopping/view" /></portlet:renderURL>&<portlet:namespace />categoryId=" + categoryId;
-		nameEl.innerHTML = categoryName + "&nbsp;";
+		document.getElementById('<portlet:namespace />categoryName').value = categoryName;
 	}
 </aui:script>

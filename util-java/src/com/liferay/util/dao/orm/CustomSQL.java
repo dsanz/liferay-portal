@@ -20,10 +20,13 @@ import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -232,8 +235,12 @@ public class CustomSQL {
 			return new String[] {null};
 		}
 
+		if (_CUSTOM_SQL_AUTO_ESCAPE_WILDCARDS_ENABLED) {
+			keywords = escapeWildCards(keywords);
+		}
+
 		if (lowerCase) {
-			keywords = keywords.toLowerCase();
+			keywords = StringUtil.toLowerCase(keywords);
 		}
 
 		keywords = keywords.trim();
@@ -292,7 +299,7 @@ public class CustomSQL {
 	}
 
 	public String[] keywords(String[] keywordsArray, boolean lowerCase) {
-		if ((keywordsArray == null) || (keywordsArray.length == 0)) {
+		if (ArrayUtil.isEmpty(keywordsArray)) {
 			return new String[] {null};
 		}
 
@@ -576,7 +583,7 @@ public class CustomSQL {
 			oldSql.append(" [$AND_OR_CONNECTOR$]");
 		}
 
-		if ((values == null) || (values.length == 0)) {
+		if (ArrayUtil.isEmpty(values)) {
 			return StringUtil.replace(sql, oldSql.toString(), StringPool.BLANK);
 		}
 
@@ -620,7 +627,7 @@ public class CustomSQL {
 			oldSql.append(" [$AND_OR_CONNECTOR$]");
 		}
 
-		if ((values == null) || (values.length == 0)) {
+		if (ArrayUtil.isEmpty(values)) {
 			return StringUtil.replace(sql, oldSql.toString(), StringPool.BLANK);
 		}
 
@@ -784,6 +791,38 @@ public class CustomSQL {
 
 		return sb.toString();
 	}
+
+	private String escapeWildCards(String keywords) {
+		if (!isVendorMySQL() && !isVendorOracle()) {
+			return keywords;
+		}
+
+		StringBuilder sb = new StringBuilder(keywords);
+
+		for (int i = 0; i < sb.length(); ++i) {
+			char c = sb.charAt(i);
+
+			if (c == CharPool.BACK_SLASH) {
+				i++;
+
+				continue;
+			}
+
+			if ((c == CharPool.UNDERLINE) || (c == CharPool.PERCENT)) {
+				sb.insert(i, CharPool.BACK_SLASH);
+
+				i++;
+
+				continue;
+			}
+		}
+
+		return sb.toString();
+	}
+
+	private static final boolean _CUSTOM_SQL_AUTO_ESCAPE_WILDCARDS_ENABLED =
+		GetterUtil.getBoolean(
+			PropsUtil.get(PropsKeys.CUSTOM_SQL_AUTO_ESCAPE_WILDCARDS_ENABLED));
 
 	private static final String _GROUP_BY_CLAUSE = " GROUP BY ";
 

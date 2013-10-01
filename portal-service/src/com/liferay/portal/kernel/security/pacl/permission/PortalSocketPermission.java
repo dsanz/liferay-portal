@@ -14,9 +14,11 @@
 
 package com.liferay.portal.kernel.security.pacl.permission;
 
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.net.URL;
@@ -27,18 +29,22 @@ import java.net.URL;
 public class PortalSocketPermission {
 
 	public static void checkConnect(Http.Options options) {
-		String location = options.getLocation();
-
-		String domain = HttpUtil.getDomain(location);
-		int port = -1;
-		String protocol = HttpUtil.getProtocol(location);
-
-		checkConnect(domain, port, protocol);
+		checkConnect(options.getLocation());
 	}
 
 	public static void checkConnect(String location) {
-		String domain = HttpUtil.getDomain(location);
+		String domainAndPort = HttpUtil.getDomain(location);
+
+		String[] domainAndPortArray = domainAndPort.split(StringPool.COLON);
+
+		String domain = domainAndPortArray[0];
+
 		int port = -1;
+
+		if (domainAndPortArray.length > 1) {
+			port = GetterUtil.getInteger(domainAndPortArray[1]);
+		}
+
 		String protocol = HttpUtil.getProtocol(location);
 
 		checkConnect(domain, port, protocol);
@@ -56,6 +62,12 @@ public class PortalSocketPermission {
 		checkConnect(domain, port, protocol);
 	}
 
+	public static interface PACL {
+
+		public void checkPermission(String host, String action);
+
+	}
+
 	private static void checkConnect(String domain, int port, String protocol) {
 		if (Validator.isNull(domain) ||
 			(!protocol.startsWith(Http.HTTPS) &&
@@ -65,7 +77,7 @@ public class PortalSocketPermission {
 		}
 
 		if (port == -1) {
-			protocol = protocol.toLowerCase();
+			protocol = StringUtil.toLowerCase(protocol);
 
 			if (protocol.startsWith(Http.HTTPS)) {
 				port = Http.HTTPS_PORT;
@@ -88,12 +100,6 @@ public class PortalSocketPermission {
 		@Override
 		public void checkPermission(String host, String action) {
 		}
-
-	}
-
-	public static interface PACL {
-
-		public void checkPermission(String host, String action);
 
 	}
 

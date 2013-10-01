@@ -79,7 +79,9 @@ List<Group> groups = (List<Group>)request.getAttribute("user.groups");
 
 		<c:if test="<%= !portletName.equals(PortletKeys.MY_ACCOUNT) && !SiteMembershipPolicyUtil.isMembershipRequired(selUser.getUserId(), group.getGroupId()) && !SiteMembershipPolicyUtil.isMembershipProtected(permissionChecker, selUser.getUserId(), group.getGroupId()) %>">
 			<liferay-ui:search-container-column-text>
-				<a class="modify-link" data-rowId="<%= group.getGroupId() %>" href="javascript:;"><%= removeGroupIcon %></a>
+				<c:if test="<%= group.isManualMembership() %>">
+					<a class="modify-link" data-rowId="<%= group.getGroupId() %>" href="javascript:;"><%= removeGroupIcon %></a>
+				</c:if>
 			</liferay-ui:search-container-column-text>
 		</c:if>
 	</liferay-ui:search-container-row>
@@ -92,9 +94,10 @@ List<Group> groups = (List<Group>)request.getAttribute("user.groups");
 
 	<liferay-ui:icon
 		cssClass="modify-link"
+		iconClass="icon-search"
 		id="selectSiteLink"
-		image="add"
 		label="<%= true %>"
+		linkCssClass="btn"
 		message="select"
 		url="javascript:;"
 	/>
@@ -113,11 +116,10 @@ List<Group> groups = (List<Group>)request.getAttribute("user.groups");
 						dialog: {
 							constrain: true,
 							modal: true,
-							zIndex: Liferay.zIndex.WINDOW + 2,
 							width: 600
 						},
 						id: '<portlet:namespace />selectGroup',
-						title: '<%= UnicodeLanguageUtil.format(pageContext, "select-x", "site") %>',
+						title: '<liferay-ui:message arguments="site" key="select-x" />',
 						uri: '<%= groupSelectorURL.toString() %>'
 					},
 					function(event) {
@@ -125,7 +127,7 @@ List<Group> groups = (List<Group>)request.getAttribute("user.groups");
 
 						var rowColumns = [];
 
-						rowColumns.push(A.Escape.html(event.groupname));
+						rowColumns.push(A.Escape.html(event.groupdescriptivename));
 						rowColumns.push('');
 						rowColumns.push('<a class="modify-link" data-rowId="' + event.groupid + '" href="javascript:;"><%= UnicodeFormatter.toString(removeGroupIcon) %></a>');
 

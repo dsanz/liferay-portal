@@ -19,8 +19,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PORTLET_TITLE</td>
+	<td>//h2[@id='cpPortletTitle']/span[@class='portlet-title-text']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADD_WIKI_BUTTON</td>
 	<td>//button[@id='_154_addNodeButton']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PERMISSIONS_BUTTON</td>
+	<td>//button[@id='_154_permissionsButton']</td>
 	<td></td>
 </tr>
 <tr>
@@ -40,33 +50,23 @@
 </tr>
 <!--WIKI_NODE_TABLE-->
 <tr>
-	<td>WIKI_NODE_TABLE_WIKI_1</td>
-	<td>xpath=(//tr/td[1]/a)[1]</td>
+	<td>WIKI_NODE_TABLE</td>
+	<td>//div[@id='_154_ocerSearchContainer']//table</td>
 	<td></td>
 </tr>
 <tr>
-	<td>WIKI_NODE_TABLE_WIKI_2</td>
-	<td>xpath=(//tr/td[1]/a)[2]</td>
+	<td>WIKI_NODE_TABLE_WIKI</td>
+	<td>//tr[contains(.,'${key_wikiNodeName}')]/td[1]/a</td>
 	<td></td>
 </tr>
 <tr>
-	<td>WIKI_NODE_TABLE_NUMBER_OF_PAGES_1</td>
-	<td>xpath=(//tr/td[2]/a)[1]</td>
+	<td>WIKI_NODE_TABLE_NUMBER_OF_PAGES</td>
+	<td>//tr[contains(.,'${key_wikiNodeName}')]/td[2]/a</td>
 	<td></td>
 </tr>
 <tr>
-	<td>WIKI_NODE_TABLE_NUMBER_OF_PAGES_2</td>
-	<td>xpath=(//tr/td[2]/a)[2]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>WIKI_NODE_TABLE_ACTIONS_1</td>
-	<td>xpath=(//tr/td[4]/div/a[@title='Actions'])[1]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>WIKI_NODE_TABLE_ACTIONS_2</td>
-	<td>xpath=(//tr/td[4]/div/a[@title='Actions'])[2]</td>
+	<td>WIKI_NODE_TABLE_ACTIONS</td>
+	<td>//tr[contains(.,'${key_wikiNodeName}')]/td[4]/div/a[@title='Actions']</td>
 	<td></td>
 </tr>
 <tr>

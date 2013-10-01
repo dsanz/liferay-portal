@@ -15,6 +15,7 @@
 package com.liferay.portlet.calendar.util.comparator;
 
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portlet.calendar.model.CalEvent;
 import com.liferay.portlet.calendar.util.CalUtil;
@@ -75,8 +76,10 @@ public class EventTimeComparator implements Comparator<CalEvent> {
 	}
 
 	protected int compareTitle(CalEvent event1, CalEvent event2) {
-		return event1.getTitle().toLowerCase().compareTo(
-			event2.getTitle().toLowerCase());
+		String title1 = StringUtil.toLowerCase(event1.getTitle());
+		String title2 = StringUtil.toLowerCase(event2.getTitle());
+
+		return title1.compareTo(title2);
 	}
 
 	protected Long getDuration(CalEvent event) {
@@ -109,13 +112,12 @@ public class EventTimeComparator implements Comparator<CalEvent> {
 
 			return Time.getDate(calendar);
 		}
+
+		if (event.isTimeZoneSensitive()) {
+			return Time.getDate(event.getStartDate(), timeZone);
+		}
 		else {
-			if (event.isTimeZoneSensitive()) {
-				return Time.getDate(event.getStartDate(), timeZone);
-			}
-			else {
-				return event.getStartDate();
-			}
+			return event.getStartDate();
 		}
 	}
 

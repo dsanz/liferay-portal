@@ -24,8 +24,16 @@ import com.liferay.portalweb.portal.BaseTestCase;
  */
 public class EvaluateLogTest extends BaseTestCase {
 
+	@Override
+	public void setUp() throws Exception {
+	}
+
 	public void testEvaluateLog() throws Exception {
 		assertTrue(evaluateLog());
+	}
+
+	@Override
+	public void tearDown() throws Exception {
 	}
 
 	private boolean evaluateLog() throws Exception {
@@ -57,6 +65,10 @@ public class EvaluateLogTest extends BaseTestCase {
 				continue;
 			}
 
+			if (line.contains("INFO:")) {
+				continue;
+			}
+
 			if (line.matches(
 					".*The web application \\[.*\\] appears to have started " +
 						"a thread.*")) {
@@ -84,11 +96,15 @@ public class EvaluateLogTest extends BaseTestCase {
 				if (line.matches(".*\\[Thread-[0-9]+\\].*")) {
 					continue;
 				}
+
+				if (line.matches(".*[TrueZIP InputStream Reader].*")) {
+					continue;
+				}
 			}
 
 			// LPS-17639
 
-			if (line.contains("Table 'lportal.lock_' doesn't exist")) {
+			if (line.contains("Table 'lportal.Lock_' doesn't exist")) {
 				continue;
 			}
 
@@ -119,6 +135,39 @@ public class EvaluateLogTest extends BaseTestCase {
 			// LPS-28734
 
 			if (line.contains("java.nio.channels.ClosedChannelException")) {
+				continue;
+			}
+
+			// LPS-28954
+
+			if (line.matches(
+					".*The web application \\[/wsrp-portlet\\] created a " +
+						"ThreadLocal with key of type.*")) {
+
+				if (line.contains(
+						"[org.apache.axis.utils.XMLUtils." +
+							"ThreadLocalDocumentBuilder]")) {
+
+					continue;
+				}
+
+				if (line.contains(
+						"[org.apache.xml.security.utils." +
+							"UnsyncByteArrayOutputStream$1]")) {
+
+					continue;
+				}
+			}
+
+			// LPS-37574
+
+			if (line.contains("java.util.zip.ZipException: ZipFile closed")) {
+				continue;
+			}
+
+			// LPS-39742
+
+			if (line.contains("java.lang.IllegalStateException")) {
 				continue;
 			}
 

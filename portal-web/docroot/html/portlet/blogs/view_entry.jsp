@@ -45,7 +45,7 @@ BlogsEntry entry = (BlogsEntry)request.getAttribute(WebKeys.BLOGS_ENTRY);
 
 long entryId = BeanParamUtil.getLong(entry, request, "entryId");
 
-pageDisplayStyle = BlogsUtil.DISPLAY_STYLE_FULL_CONTENT;
+displayStyle = BlogsUtil.DISPLAY_STYLE_FULL_CONTENT;
 
 AssetEntry assetEntry = AssetEntryLocalServiceUtil.getEntry(BlogsEntry.class.getName(), entry.getEntryId());
 
@@ -143,7 +143,6 @@ request.setAttribute("view_entry_content.jsp-assetEntry", assetEntry);
 				formName="fm2"
 				ratingsEnabled="<%= enableCommentRatings %>"
 				redirect="<%= currentURL %>"
-				subject="<%= entry.getTitle() %>"
 				userId="<%= entry.getUserId() %>"
 			/>
 		</liferay-ui:panel>

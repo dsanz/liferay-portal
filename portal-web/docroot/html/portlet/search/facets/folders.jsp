@@ -30,8 +30,8 @@ Indexer indexer = FolderSearcher.getInstance();
 SearchContext searchContext = SearchContextFactory.getInstance(request);
 %>
 
-<div class="<%= cssClass %>" data-facetFieldName="<%= facet.getFieldName() %>" id="<%= randomNamespace %>facet">
-	<aui:input name="<%= facet.getFieldName() %>" type="hidden" value="<%= fieldParam %>" />
+<div class="<%= cssClass %>" data-facetFieldName="<%= facet.getFieldId() %>" id="<%= randomNamespace %>facet">
+	<aui:input name="<%= facet.getFieldId() %>" type="hidden" value="<%= fieldParam %>" />
 
 	<ul class="folders unstyled">
 		<li class="facet-value default <%= Validator.isNull(fieldParam) ? "current-term" : StringPool.BLANK %>">
@@ -68,7 +68,7 @@ SearchContext searchContext = SearchContextFactory.getInstance(request);
 				<aui:script use="liferay-token-list">
 					Liferay.Search.tokenList.add(
 						{
-							clearFields: '<%= renderResponse.getNamespace() + facet.getFieldName() %>',
+							clearFields: '<%= renderResponse.getNamespace() + facet.getFieldId() %>',
 							fieldValues: '<%= curFolderId %>',
 							text: '<%= HtmlUtil.escapeJS(title.getValue()) %>'
 						}

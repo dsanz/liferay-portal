@@ -248,6 +248,14 @@
 		<put name="portlet_content" value="/portlet/asset_tags_navigation/view.jsp" />
 	</definition>
 
+	<!-- Background Task-->
+
+	<definition name="portlet.background_task" extends="portlet" />
+
+	<definition name="portlet.background_task.error" extends="portlet.background_task">
+		<put name="portlet_content" value="/portlet/background_task/error.jsp" />
+	</definition>
+
 	<!-- Blogs -->
 
 	<definition name="portlet.blogs" extends="portlet" />
@@ -410,12 +418,20 @@
 		<put name="portlet_content" value="/portlet/dockbar/add_content_redirect.jsp" />
 	</definition>
 
-	<definition name="portlet.dockbar.add_page" extends="portlet.dockbar">
-		<put name="portlet_content" value="/portlet/dockbar/add_page.jsp" />
+	<definition name="portlet.dockbar.add_layout" extends="portlet.dockbar">
+		<put name="portlet_content" value="/portlet/layouts_admin/add_layout.jsp" />
 	</definition>
 
 	<definition name="portlet.dockbar.add_panel" extends="portlet.dockbar">
 		<put name="portlet_content" value="/portlet/dockbar/add_panel.jsp" />
+	</definition>
+
+	<definition name="portlet.dockbar.edit_layout_panel" extends="portlet.dockbar">
+		<put name="portlet_content" value="/portlet/dockbar/edit_layout_panel.jsp" />
+	</definition>
+
+	<definition name="portlet.dockbar.preview_panel" extends="portlet.dockbar">
+		<put name="portlet_content" value="/portlet/dockbar/preview_panel.jsp" />
 	</definition>
 
 	<definition name="portlet.dockbar.view" path="/portlet/dockbar/view.jsp" />
@@ -480,16 +496,16 @@
 		<put name="portlet_content" value="/portlet/document_library/select_file_entry.jsp" />
 	</definition>
 
-	<definition name="portlet.document_library.select_file_entry_type" extends="portlet.document_library">
-		<put name="portlet_content" value="/portlet/document_library/select_file_entry_type.jsp" />
-	</definition>
-
 	<definition name="portlet.document_library.select_folder" extends="portlet.document_library">
 		<put name="portlet_content" value="/portlet/document_library/select_folder.jsp" />
 	</definition>
 
 	<definition name="portlet.document_library.select_group" extends="portlet.document_library">
 		<put name="portlet_content" value="/portlet/document_library/select_group.jsp" />
+	</definition>
+
+	<definition name="portlet.document_library.select_restricted_file_entry_type" extends="portlet.document_library">
+		<put name="portlet_content" value="/portlet/document_library/select_restricted_file_entry_type.jsp" />
 	</definition>
 
 	<definition name="portlet.document_library.upload_multiple_file_entries" extends="portlet.document_library">
@@ -516,8 +532,8 @@
 		<put name="portlet_content" value="/portlet/document_library_display/search.jsp" />
 	</definition>
 
-	<definition name="portlet.document_library_display.select_file_entry_type" extends="portlet.document_library_display">
-		<put name="portlet_content" value="/portlet/document_library_display/select_file_entry_type.jsp" />
+	<definition name="portlet.document_library_display.select_add_file_entry_type" extends="portlet.document_library_display">
+		<put name="portlet_content" value="/portlet/document_library_display/select_add_file_entry_type.jsp" />
 	</definition>
 
 	<definition name="portlet.document_library_display.view" extends="portlet.document_library_display">
@@ -722,6 +738,10 @@
 
 	<definition name="portlet.journal.move_folder" extends="portlet.journal">
 		<put name="portlet_content" value="/portlet/journal/move_folder.jsp" />
+	</definition>
+
+	<definition name="portlet.journal.preview_article_content" extends="portlet.journal">
+		<put name="portlet_content" value="/portlet/journal/preview_article_content.jsp" />
 	</definition>
 
 	<definition name="portlet.journal.raw_article_content" extends="portlet.journal">
@@ -1112,18 +1132,6 @@
 
 	<definition name="portlet.password_policies_admin.view" extends="portlet.password_policies_admin">
 		<put name="portlet_content" value="/portlet/password_policies_admin/view.jsp" />
-	</definition>
-
-	<!-- Plugin Installer -->
-
-	<definition name="portlet.plugin_installer" extends="portlet" />
-
-	<definition name="portlet.plugin_installer.error" extends="portlet.plugin_installer">
-		<put name="portlet_content" value="/portlet/plugin_installer/error.jsp" />
-	</definition>
-
-	<definition name="portlet.plugin_installer.view" extends="portlet.plugin_installer">
-		<put name="portlet_content" value="/portlet/plugin_installer/view.jsp" />
 	</definition>
 
 	<!-- Plugins Admin -->
@@ -1617,14 +1625,6 @@
 
 	<definition name="portlet.trash.view_content" extends="portlet.trash">
 		<put name="portlet_content" value="/portlet/trash/view_content.jsp" />
-	</definition>
-
-	<!-- Update Manager -->
-
-	<definition name="portlet.update_manager" extends="portlet" />
-
-	<definition name="portlet.update_manager.view" extends="portlet.update_manager">
-		<put name="portlet_content" value="/portlet/update_manager/view.jsp" />
 	</definition>
 
 	<!-- User Groups Admin -->

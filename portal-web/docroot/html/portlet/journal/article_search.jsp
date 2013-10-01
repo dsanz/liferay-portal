@@ -31,6 +31,7 @@ ArticleDisplayTerms displayTerms = (ArticleDisplayTerms)searchContainer.getDispl
 
 <aui:form action="<%= portletURL.toString() %>" method="post" name="fm1" onSubmit="event.preventDefault();">
 	<liferay-ui:search-toggle
+		autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>"
 		buttonLabel="search"
 		displayTerms="<%= displayTerms %>"
 		id="<%= renderResponse.getNamespace() %>"
@@ -62,7 +63,7 @@ ArticleDisplayTerms displayTerms = (ArticleDisplayTerms)searchContainer.getDispl
 			<c:if test="<%= !portletName.equals(PortletKeys.JOURNAL) || ((themeDisplay.getScopeGroupId() == themeDisplay.getCompanyGroupId()) && (Validator.isNotNull(displayTerms.getStructureId()) || Validator.isNotNull(displayTerms.getTemplateId()))) %>">
 
 				<%
-				List<Group> mySites = user.getMySites();
+				List<Group> mySiteGroups = user.getMySiteGroups();
 
 				List<Layout> scopeLayouts = new ArrayList<Layout>();
 
@@ -74,13 +75,13 @@ ArticleDisplayTerms displayTerms = (ArticleDisplayTerms)searchContainer.getDispl
 					<aui:option label="global" selected="<%= displayTerms.getGroupId() == themeDisplay.getCompanyGroupId() %>" value="<%= themeDisplay.getCompanyGroupId() %>" />
 
 					<%
-					for (Group mySite : mySites) {
-						if (mySite.hasStagingGroup() && !mySite.isStagedRemotely() && mySite.isStagedPortlet(PortletKeys.JOURNAL)) {
-							mySite = mySite.getStagingGroup();
+					for (Group mySiteGroup : mySiteGroups) {
+						if (mySiteGroup.hasStagingGroup() && !mySiteGroup.isStagedRemotely() && mySiteGroup.isStagedPortlet(PortletKeys.JOURNAL)) {
+							mySiteGroup = mySiteGroup.getStagingGroup();
 						}
 					%>
 
-						<aui:option label='<%= mySite.isUser() ? "my-site" : HtmlUtil.escape(mySite.getDescriptiveName(locale)) %>' selected="<%= displayTerms.getGroupId() == mySite.getGroupId() %>" value="<%= mySite.getGroupId() %>" />
+						<aui:option label='<%= mySiteGroup.isUser() ? "my-site" : HtmlUtil.escape(mySiteGroup.getDescriptiveName(locale)) %>' selected="<%= displayTerms.getGroupId() == mySiteGroup.getGroupId() %>" value="<%= mySiteGroup.getGroupId() %>" />
 
 					<%
 					}
@@ -118,9 +119,3 @@ ArticleDisplayTerms displayTerms = (ArticleDisplayTerms)searchContainer.getDispl
 		</aui:fieldset>
 	</liferay-ui:search-toggle>
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm1.<portlet:namespace /><%= displayTerms.KEYWORDS %>);
-	</aui:script>
-</c:if>

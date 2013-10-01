@@ -33,9 +33,10 @@ import com.liferay.portal.util.PropsImpl;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.EventImpl;
 
+import java.io.IOException;
+
 import javax.portlet.Event;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
@@ -64,7 +65,7 @@ public class PortalResiliencyActionTest {
 		new CodeCoverageAssertor();
 
 	@Before
-	public void setUp() {
+	public void setUp() throws IOException {
 		PropsUtil.setProps(new PropsImpl());
 
 		PortletContainerUtil portletContainerUtil = new PortletContainerUtil();
@@ -73,39 +74,62 @@ public class PortalResiliencyActionTest {
 
 		portletContainerUtil.setPortletContainer(_mockPortletContainer);
 
-		_request = new MockHttpServletRequest();
+		_mockHttpServletRequest = new MockHttpServletRequest();
 
 		_layout = new LayoutImpl();
 
 		_layout.setTypeSettings(_DEFAULT_LAYOUT_TYPE_SETTINGS);
 
-		_request.setAttribute(WebKeys.LAYOUT, _layout);
+		_mockHttpServletRequest.setAttribute(WebKeys.LAYOUT, _layout);
 
-		_portlet = new PortletImpl();
+		_portlet = new PortletImpl() {
 
-		_request.setAttribute(WebKeys.SPI_AGENT_PORTLET, _portlet);
+			@Override
+			public String getContextName() {
+				return _SERVLET_CONTEXT_NAME;
+			}
 
-		_request.setAttribute(
+		};
+
+		_portlet.setPortletId(_PORTLET_ID);
+
+		_mockHttpServletRequest.setAttribute(
+			WebKeys.SPI_AGENT_PORTLET, _portlet);
+
+		MockHttpServletRequest originalMockHttpServletRequest =
+			new MockHttpServletRequest();
+
+		originalMockHttpServletRequest.setAttribute(
+			WebKeys.SPI_AGENT_PORTLET, _portlet);
+
+		_mockHttpServletRequest.setAttribute(
 			WebKeys.SPI_AGENT_REQUEST,
-			new SPIAgentRequest(new MockHttpServletRequest()));
-		_request.setAttribute(
-			WebKeys.SPI_AGENT_RESPONSE, new SPIAgentResponse());
+			new SPIAgentRequest(originalMockHttpServletRequest));
+		_mockHttpServletRequest.setAttribute(
+			WebKeys.SPI_AGENT_RESPONSE,
+			new SPIAgentResponse(_SERVLET_CONTEXT_NAME));
 
 		_response = new MockHttpServletResponse();
 
-		HttpSession session = _request.getSession();
+		HttpSession session = _mockHttpServletRequest.getSession();
 
 		session.setAttribute(WebKeys.USER_PASSWORD, "password");
-
 	}
 
 	@After
 	public void tearDown() {
-		Assert.assertTrue(_mockPortletContainer.prepared);
+		if (_mockHttpServletRequest.getParameter("p_p_id") == null) {
+			Assert.assertFalse(_mockPortletContainer.prepared);
+		}
+		else {
+			Assert.assertTrue(_mockPortletContainer.prepared);
+		}
+
 		Assert.assertEquals("password", PrincipalThreadLocal.getPassword());
 		Assert.assertSame(
 			Boolean.TRUE,
-			_request.getAttribute(WebKeys.PORTAL_RESILIENCY_ACTION));
+			_mockHttpServletRequest.getAttribute(
+				WebKeys.PORTAL_RESILIENCY_ACTION));
 
 		CentralizedThreadLocal.clearShortLivedThreadLocals();
 	}
@@ -115,35 +139,45 @@ public class PortalResiliencyActionTest {
 
 		// No change to layout type settings
 
-		_request.setAttribute(
+		_mockHttpServletRequest.setAttribute(
 			WebKeys.SPI_AGENT_LIFECYCLE, SPIAgent.Lifecycle.ACTION);
 
-		_portalResiliencyAction.execute(null, null, _request, _response);
+		_portalResiliencyAction.execute(
+			null, null, _mockHttpServletRequest, _response);
 
-		Assert.assertSame(_request, _mockPortletContainer.request);
+		Assert.assertSame(
+			_mockHttpServletRequest, _mockPortletContainer.request);
 		Assert.assertSame(_response, _mockPortletContainer.response);
 		Assert.assertSame(_portlet, _mockPortletContainer.portlet);
 		Assert.assertSame(
 			_mockPortletContainer.actionResult,
-			_request.getAttribute(WebKeys.SPI_AGENT_ACTION_RESULT));
+			_mockHttpServletRequest.getAttribute(
+				WebKeys.SPI_AGENT_ACTION_RESULT));
 		Assert.assertNull(
-			_request.getAttribute(WebKeys.SPI_AGENT_LAYOUT_TYPE_SETTINGS));
+			_mockHttpServletRequest.getAttribute(
+				WebKeys.SPI_AGENT_LAYOUT_TYPE_SETTINGS));
 
 		// Update layout type settings
 
 		_mockPortletContainer.modifyLayoutTypeSettings = true;
 
-		_portalResiliencyAction.execute(null, null, _request, _response);
+		_mockHttpServletRequest.setParameter("p_p_id", _PORTLET_ID);
 
-		Assert.assertSame(_request, _mockPortletContainer.request);
+		_portalResiliencyAction.execute(
+			null, null, _mockHttpServletRequest, _response);
+
+		Assert.assertSame(
+			_mockHttpServletRequest, _mockPortletContainer.request);
 		Assert.assertSame(_response, _mockPortletContainer.response);
 		Assert.assertSame(_portlet, _mockPortletContainer.portlet);
 		Assert.assertSame(
 			_mockPortletContainer.actionResult,
-			_request.getAttribute(WebKeys.SPI_AGENT_ACTION_RESULT));
+			_mockHttpServletRequest.getAttribute(
+				WebKeys.SPI_AGENT_ACTION_RESULT));
 		Assert.assertEquals(
 			MockPortletContainer.MOCK_LAYOUT_TYPE_SETTINGS,
-			_request.getAttribute(WebKeys.SPI_AGENT_LAYOUT_TYPE_SETTINGS));
+			_mockHttpServletRequest.getAttribute(
+				WebKeys.SPI_AGENT_LAYOUT_TYPE_SETTINGS));
 	}
 
 	@Test
@@ -151,69 +185,83 @@ public class PortalResiliencyActionTest {
 
 		// No change to layout type settings
 
-		_request.setAttribute(
+		_mockHttpServletRequest.setAttribute(
 			WebKeys.SPI_AGENT_LIFECYCLE, SPIAgent.Lifecycle.EVENT);
 
 		Event event = new EventImpl(null, null, null);
 
-		_request.setAttribute(WebKeys.SPI_AGENT_EVENT, event);
+		_mockHttpServletRequest.setAttribute(WebKeys.SPI_AGENT_EVENT, event);
 
 		Layout layout = new LayoutImpl();
 
-		_request.setAttribute(WebKeys.SPI_AGENT_LAYOUT, layout);
+		_mockHttpServletRequest.setAttribute(WebKeys.SPI_AGENT_LAYOUT, layout);
 
-		_portalResiliencyAction.execute(null, null, _request, _response);
+		_portalResiliencyAction.execute(
+			null, null, _mockHttpServletRequest, _response);
 
-		Assert.assertSame(_request, _mockPortletContainer.request);
+		Assert.assertSame(
+			_mockHttpServletRequest, _mockPortletContainer.request);
 		Assert.assertSame(_response, _mockPortletContainer.response);
 		Assert.assertSame(_portlet, _mockPortletContainer.portlet);
 		Assert.assertSame(layout, _mockPortletContainer.layout);
 		Assert.assertSame(event, _mockPortletContainer.event);
 		Assert.assertSame(
 			_mockPortletContainer.events,
-			_request.getAttribute(WebKeys.SPI_AGENT_EVENT_RESULT));
+			_mockHttpServletRequest.getAttribute(
+				WebKeys.SPI_AGENT_EVENT_RESULT));
 		Assert.assertNull(
-			_request.getAttribute(WebKeys.SPI_AGENT_LAYOUT_TYPE_SETTINGS));
+			_mockHttpServletRequest.getAttribute(
+				WebKeys.SPI_AGENT_LAYOUT_TYPE_SETTINGS));
 
 		// Update layout type settings
 
 		_mockPortletContainer.modifyLayoutTypeSettings = true;
 
-		_portalResiliencyAction.execute(null, null, _request, _response);
+		_mockHttpServletRequest.setParameter("p_p_id", _PORTLET_ID);
 
-		Assert.assertSame(_request, _mockPortletContainer.request);
+		_portalResiliencyAction.execute(
+			null, null, _mockHttpServletRequest, _response);
+
+		Assert.assertSame(
+			_mockHttpServletRequest, _mockPortletContainer.request);
 		Assert.assertSame(_response, _mockPortletContainer.response);
 		Assert.assertSame(_portlet, _mockPortletContainer.portlet);
 		Assert.assertSame(layout, _mockPortletContainer.layout);
 		Assert.assertSame(event, _mockPortletContainer.event);
 		Assert.assertSame(
 			_mockPortletContainer.events,
-			_request.getAttribute(WebKeys.SPI_AGENT_EVENT_RESULT));
+			_mockHttpServletRequest.getAttribute(
+				WebKeys.SPI_AGENT_EVENT_RESULT));
 		Assert.assertEquals(
 			MockPortletContainer.MOCK_LAYOUT_TYPE_SETTINGS,
-			_request.getAttribute(WebKeys.SPI_AGENT_LAYOUT_TYPE_SETTINGS));
+			_mockHttpServletRequest.getAttribute(
+				WebKeys.SPI_AGENT_LAYOUT_TYPE_SETTINGS));
 	}
 
 	@Test
 	public void testRenderPhase() throws Exception {
-		_request.setAttribute(
+		_mockHttpServletRequest.setAttribute(
 			WebKeys.SPI_AGENT_LIFECYCLE, SPIAgent.Lifecycle.RENDER);
 
-		_portalResiliencyAction.execute(null, null, _request, _response);
+		_portalResiliencyAction.execute(
+			null, null, _mockHttpServletRequest, _response);
 
-		Assert.assertSame(_request, _mockPortletContainer.request);
+		Assert.assertSame(
+			_mockHttpServletRequest, _mockPortletContainer.request);
 		Assert.assertSame(_response, _mockPortletContainer.response);
 		Assert.assertSame(_portlet, _mockPortletContainer.portlet);
 	}
 
 	@Test
 	public void testResourcePhase() throws Exception {
-		_request.setAttribute(
+		_mockHttpServletRequest.setAttribute(
 			WebKeys.SPI_AGENT_LIFECYCLE, SPIAgent.Lifecycle.RESOURCE);
 
-		_portalResiliencyAction.execute(null, null, _request, _response);
+		_portalResiliencyAction.execute(
+			null, null, _mockHttpServletRequest, _response);
 
-		Assert.assertSame(_request, _mockPortletContainer.request);
+		Assert.assertSame(
+			_mockHttpServletRequest, _mockPortletContainer.request);
 		Assert.assertSame(_response, _mockPortletContainer.response);
 		Assert.assertSame(_portlet, _mockPortletContainer.portlet);
 	}
@@ -221,11 +269,12 @@ public class PortalResiliencyActionTest {
 	@AdviseWith(adviceClasses = {LifecycleAdvice.class})
 	@Test
 	public void testUnknownPhase() throws Exception {
-		_request.setAttribute(
+		_mockHttpServletRequest.setAttribute(
 			WebKeys.SPI_AGENT_LIFECYCLE, SPIAgent.Lifecycle.values()[4]);
 
 		try {
-			_portalResiliencyAction.execute(null, null, _request, _response);
+			_portalResiliencyAction.execute(
+				null, null, _mockHttpServletRequest, _response);
 
 			Assert.fail();
 		}
@@ -267,12 +316,16 @@ public class PortalResiliencyActionTest {
 	private static final String _DEFAULT_LAYOUT_TYPE_SETTINGS =
 		"_DEFAULT_LAYOUT_TYPE_SETTINGS";
 
+	private static final String _PORTLET_ID = "PORTLET_ID";
+
+	private static final String _SERVLET_CONTEXT_NAME = "SERVLET_CONTEXT_NAME";
+
 	private Layout _layout;
+	private MockHttpServletRequest _mockHttpServletRequest;
 	private MockPortletContainer _mockPortletContainer;
 	private PortalResiliencyAction _portalResiliencyAction =
 		new PortalResiliencyAction();
 	private Portlet _portlet;
-	private HttpServletRequest _request;
 	private HttpServletResponse _response;
 
 }

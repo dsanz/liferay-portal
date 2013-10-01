@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 
-<project name="portal-impl" basedir="." default="compile" xmlns:antelope="antlib:ise.antelope.tasks">
+<project name="portal-impl" basedir="." default="compile"
+	xmlns:antelope="antlib:ise.antelope.tasks"
+	xmlns:artifact="antlib:org.apache.maven.artifact.ant"
+>
 	<property name="test.properties" value="portal-test.properties" />
 
 	<import file="../build-common-java.xml" />
@@ -132,6 +135,42 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 		</java>
 	</target>-->
 
+	<target name="build-bobo-browse-jar">
+		<get dest="release-3.2.0.zip" src="https://codeload.github.com/senseidb/bobo/zip/release-3.2.0" />
+
+		<tstamp>
+			<format property="tstamp.value" pattern="yyyyMMddkkmmssSSS" />
+		</tstamp>
+
+		<unzip
+			dest="${tstamp.value}"
+			src="release-3.2.0.zip"
+		/>
+
+		<delete file="release-3.2.0.zip" />
+
+		<patch patchfile="${project.dir}/lib/portal/bobo-browse/LPS-28980.patch"
+			dir="${tstamp.value}/bobo-release-3.2.0"
+			strip="1"
+		/>
+
+		<patch patchfile="${project.dir}/lib/portal/bobo-browse/LPS-38192.patch"
+			dir="${tstamp.value}/bobo-release-3.2.0"
+			strip="1"
+		/>
+
+		<artifact:mvn pom="${tstamp.value}/bobo-release-3.2.0/bobo-browse/pom.xml">
+			<arg value="package" />
+		</artifact:mvn>
+
+		<move
+			file="${tstamp.value}/bobo-release-3.2.0/bobo-browse/target/bobo-browse-3.2.0.jar"
+			tofile="${project.dir}/lib/portal/bobo-browse.jar.new"
+		/>
+
+		<delete dir="${tstamp.value}" />
+	</target>
+
 	<target name="build-creole-parser">
 		<delete>
 			<fileset
@@ -242,7 +281,13 @@ public class Creole10Parser]]></replacevalue>
 			<format property="tstamp.value" pattern="yyyyMMddkkmmssSSS" />
 		</tstamp>
 
-		<unzip dest="${tstamp.value}" src="${project.dir}/tools/icu4j-4_0_1-src.jar" />
+		<unzip dest="${tstamp.value}" src="${project.dir}/tools/icu4j/icu4j-4_0_1-src.jar" />
+
+		<patch
+			dir="${tstamp.value}"
+			patchfile="${project.dir}/tools/icu4j/LPS-36663.patch"
+			strip="1"
+		/>
 
 		<move file="${tstamp.value}/src/com/ibm" todir="${tstamp.value}/src/com/liferay" />
 
@@ -263,6 +308,10 @@ public class Creole10Parser]]></replacevalue>
 
 		<ant dir="${tstamp.value}" target="core" inheritAll="false" />
 		<ant dir="${tstamp.value}" target="jar" inheritAll="false" />-->
+
+		<exec dir="${tstamp.value}" executable="/bin/sh" os="${os.unix}">
+			<arg line="-c 'ant core jar'" />
+		</exec>
 
 		<exec dir="${tstamp.value}" executable="cmd.exe" os="${os.windows}">
 			<arg line="/c ant core jar" />
@@ -475,6 +524,16 @@ public class Creole10Parser]]></replacevalue>
 		>
 			<arg line="-S gem install -i ./${tstamp.value}/output ${tstamp.value}/compass/compass-0.12.2.gem --no-rdoc --no-ri" />
 		</java>
+
+		<if>
+			<os family="windows" />
+			<then>
+				<replace dir="${tstamp.value}/output/bin/">
+					<replacetoken><![CDATA[#! jruby]]></replacetoken>
+					<replacevalue><![CDATA[#!/usr/bin/env jruby]]></replacevalue>
+				</replace>
+			</then>
+		</if>
 
 		<jar
 			basedir="${tstamp.value}/output"
@@ -718,6 +777,7 @@ public class Creole10Parser]]></replacevalue>
 			classpathref="project.classpath"
 			fork="true"
 			newenvironment="true"
+			outputproperty="build-service.output"
 		>
 			<jvmarg value="-Xms512m" />
 			<jvmarg value="-Xmx1024m" />
@@ -745,6 +805,15 @@ public class Creole10Parser]]></replacevalue>
 		</java>
 
 		<delete file="ServiceBuilder.temp" />
+
+		<echo>${build-service.output}</echo>
+
+		<if>
+			<contains string="${build-service.output}" substring="Error" />
+			<then>
+				<fail>Service Builder generated exceptions.</fail>
+			</then>
+		</if>
 
 		<ant dir="../portal-service" target="compile" inheritAll="false" />
 	</target>
@@ -1038,6 +1107,7 @@ public class Creole10Parser]]></replacevalue>
 			fork="true"
 			maxmemory="512m"
 			newenvironment="true"
+			outputproperty="build-wsdd.output"
 		>
 			<jvmarg value="-Dexternal-properties=com/liferay/portal/tools/dependencies/portal-tools.properties" />
 			<jvmarg value="-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.Log4JLogger" />
@@ -1046,6 +1116,15 @@ public class Creole10Parser]]></replacevalue>
 			<arg value="wsdd.service.namespace=Portlet" />
 			<arg value="wsdd.input.file=${service.file}" />
 		</java>
+
+		<echo>${build-wsdd.output}</echo>
+
+		<if>
+			<contains string="${build-wsdd.output}" substring="IOException" />
+			<then>
+				<fail>WSDD Builder generated exceptions.</fail>
+			</then>
+		</if>
 	</target>
 
 	<target name="build-wsdd-portal">
@@ -1455,6 +1534,25 @@ public class Creole10Parser]]></replacevalue>
 
 		<echo file="${portal-impl.classes.dir}/com/liferay/portal/deploy/dependencies/osgi/portal/jars.txt">${osgi.portal.jars.list}</echo>
 
+		<for list="1,2,3,4,5,6,7,8,9" param="index">
+			<sequential>
+				<if>
+					<available file="${portal-impl.classes.dir}/com/liferay/portal/deploy/dependencies/plugins@{index}" />
+					<then>
+						<fileset dir="${portal-impl.classes.dir}/com/liferay/portal/deploy/dependencies/plugins@{index}" id="plugins@{index}.wars">
+							<include name="*.war" />
+						</fileset>
+
+						<pathconvert property="plugins@{index}.wars.list" pathsep="," refid="plugins@{index}.wars">
+							<flattenmapper />
+						</pathconvert>
+
+						<echo file="${portal-impl.classes.dir}/com/liferay/portal/deploy/dependencies/plugins@{index}/wars.txt">${plugins@{index}.wars.list}</echo>
+					</then>
+				</if>
+			</sequential>
+		</for>
+
 		<if>
 			<not>
 				<and>
@@ -1467,7 +1565,7 @@ public class Creole10Parser]]></replacevalue>
 
 				<jar
 					basedir="classes"
-					excludes="log4j.properties,logging.properties,portal-*.properties,system-*.properties,**/samplesqlbuilder/dependencies/*.txt"
+					excludes="log4j.properties,logging.properties,portal-*.properties,system-*.properties"
 					jarfile="${jar.file}.jar"
 					manifest="classes/META-INF/MANIFEST.MF"
 				/>

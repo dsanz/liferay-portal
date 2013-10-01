@@ -157,7 +157,7 @@ public class Time {
 			}
 		}
 
-		if (x > 1) {
+		if ((x == 0) || (x > 1)) {
 			s += "s";
 		}
 
@@ -166,6 +166,12 @@ public class Time {
 
 	public static String getDuration(long milliseconds) {
 		return getSimpleDate(new Date(milliseconds), DURATION_FORMAT);
+	}
+
+	public static String getRelativeTimeDescription(
+		Date date, Locale locale, TimeZone timeZone) {
+
+		return getRelativeTimeDescription(date.getTime(), locale, timeZone);
 	}
 
 	public static String getRelativeTimeDescription(

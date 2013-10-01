@@ -14,33 +14,44 @@
 
 package com.liferay.portal.lar;
 
+import com.liferay.portal.LayoutParentLayoutIdException;
+import com.liferay.portal.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.LayoutSetPrototype;
+import com.liferay.portal.model.Portlet;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.LayoutSetPrototypeLocalServiceUtil;
 import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.test.Sync;
+import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
 import com.liferay.portal.test.TransactionalCallbackAwareExecutionTestListener;
 import com.liferay.portal.util.LayoutTestUtil;
+import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portlet.journal.util.JournalTestUtil;
 import com.liferay.portlet.sites.util.Sites;
 import com.liferay.portlet.sites.util.SitesUtil;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.portlet.PortletPreferences;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import org.powermock.core.classloader.annotations.PrepareForTest;
 
 /**
  * @author Julio Camarero
@@ -49,13 +60,24 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 @ExecutionTestListeners(
 	listeners = {
 		MainServletExecutionTestListener.class,
+		SynchronousDestinationExecutionTestListener.class,
 		TransactionalCallbackAwareExecutionTestListener.class
 	})
-@PrepareForTest({PortletLocalServiceUtil.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
+@Sync
 @Transactional
 public class LayoutSetPrototypePropagationTest
 	extends BasePrototypePropagationTestCase {
+
+	@Test
+	public void testAddChildLayoutWithLinkDisabled() throws Exception {
+		testAddChildLayout(false);
+	}
+
+	@Test
+	public void testAddChildLayoutWithLinkEnabled() throws Exception {
+		testAddChildLayout(true);
+	}
 
 	@Test
 	public void testAddGroup() throws Exception {
@@ -131,6 +153,67 @@ public class LayoutSetPrototypePropagationTest
 		throws Exception {
 
 		doTestPortletPreferencesPropagation(true, true);
+	}
+
+	@Test
+	public void testPortletPreferencesPropagationWithPreferencesUniquePerLayoutEnabled()
+		throws Exception {
+
+		Portlet portlet = PortletLocalServiceUtil.getPortletById(
+			TestPropsValues.getCompanyId(), PortletKeys.NAVIGATION);
+
+		portlet.setPreferencesUniquePerLayout(false);
+
+		Layout layoutSetPrototypeLayout = LayoutTestUtil.addLayout(
+			_layoutSetPrototypeGroup.getGroupId(),
+			ServiceTestUtil.randomString(), true, layoutPrototype, true);
+
+		Map<String, String[]> preferenceMap = new HashMap<String, String[]>();
+
+		preferenceMap.put("bulletStyle", new String[] {"Dots"});
+
+		String navigationPortletId1 = LayoutTestUtil.addPortletToLayout(
+			TestPropsValues.getUserId(), layoutSetPrototypeLayout,
+			PortletKeys.NAVIGATION, "column-1", preferenceMap);
+
+		preferenceMap.put("bulletStyle", new String[] {"Arrows"});
+
+		String navigationPortletId2 = LayoutTestUtil.addPortletToLayout(
+			TestPropsValues.getUserId(), layoutSetPrototypeLayout,
+			PortletKeys.NAVIGATION, "column-2", preferenceMap);
+
+		propagateChanges(group);
+
+		Layout layout = LayoutLocalServiceUtil.getFriendlyURLLayout(
+			group.getGroupId(), false,
+			layoutSetPrototypeLayout.getFriendlyURL());
+
+		PortletPreferences navigationPortletIdPortletPreferences =
+			PortletPreferencesFactoryUtil.getPortletSetup(
+				group.getGroupId(), layout, PortletKeys.NAVIGATION, null);
+
+		Assert.assertEquals(
+			"Arrows",
+			navigationPortletIdPortletPreferences.getValue(
+				"bulletStyle", StringPool.BLANK));
+
+		PortletPreferences navigationPortletId1PortletPreferences =
+			PortletPreferencesFactoryUtil.getPortletSetup(
+				layout, navigationPortletId1, null);
+
+		Assert.assertEquals(
+			"Arrows",
+			navigationPortletId1PortletPreferences.getValue(
+				"bulletStyle", StringPool.BLANK));
+
+		PortletPreferences navigationPortletId2PortletPreferences =
+			PortletPreferencesFactoryUtil.getPortletSetup(
+				layout, navigationPortletId2, null);
+
+		Assert.assertEquals(
+			"Arrows",
+			navigationPortletId2PortletPreferences.getValue(
+				"bulletStyle", StringPool.BLANK));
 	}
 
 	@Test
@@ -275,12 +358,14 @@ public class LayoutSetPrototypePropagationTest
 		propagateChanges(group);
 
 		Assert.assertEquals(
-				_initialPrototypeLayoutCount, getGroupLayoutCount());
+			_initialPrototypeLayoutCount, getGroupLayoutCount());
 	}
 
 	protected void doTestLayoutPropagationWithLayoutPrototype(
 			boolean layoutSetLayoutLinkEnabled)
 		throws Exception {
+
+		MergeLayoutPrototypesThreadLocal.clearMergeComplete();
 
 		Layout layoutSetPrototypeLayout = LayoutTestUtil.addLayout(
 			_layoutSetPrototypeGroup.getGroupId(),
@@ -296,7 +381,7 @@ public class LayoutSetPrototypePropagationTest
 			layoutSetPrototypeLayout.getFriendlyURL());
 
 		LayoutTestUtil.updateLayoutTemplateId(
-				layoutPrototypeLayout, "1_column");
+			layoutPrototypeLayout, "1_column");
 
 		if (layoutSetLayoutLinkEnabled) {
 			Assert.assertEquals(
@@ -351,6 +436,8 @@ public class LayoutSetPrototypePropagationTest
 	}
 
 	protected void propagateChanges(Group group) throws Exception {
+		MergeLayoutPrototypesThreadLocal.clearMergeComplete();
+
 		LayoutLocalServiceUtil.getLayouts(
 			group.getGroupId(), false,
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
@@ -394,6 +481,31 @@ public class LayoutSetPrototypePropagationTest
 		if ((layout != null) && (_layout != null)) {
 			layout = LayoutLocalServiceUtil.getLayout(layout.getPlid());
 			_layout = LayoutLocalServiceUtil.getLayout(_layout.getPlid());
+		}
+	}
+
+	protected void testAddChildLayout(boolean layoutSetPrototypeLinkEnabled)
+		throws Exception {
+
+		setLinkEnabled(layoutSetPrototypeLinkEnabled);
+
+		try {
+			LayoutTestUtil.addLayout(
+				group.getGroupId(), ServiceTestUtil.randomString(),
+				layout.getPlid());
+
+			if (layoutSetPrototypeLinkEnabled) {
+				Assert.fail(
+					"Able to add a child page to a page associated to a site " +
+						"template with link enabled");
+			}
+		}
+		catch (LayoutParentLayoutIdException lplie) {
+			if (!layoutSetPrototypeLinkEnabled) {
+				Assert.fail(
+					"Unable to add a child page to a page associated to a " +
+						"template with link disabled");
+			}
 		}
 	}
 

@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.messaging.MessageBusException;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
@@ -160,6 +159,10 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 	@Override
 	public boolean isSupported(FileVersion fileVersion) {
 		if (fileVersion == null) {
+			return false;
+		}
+
+		if (!DLProcessorRegistryUtil.isPreviewableSize(fileVersion)) {
 			return false;
 		}
 
@@ -523,6 +526,18 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 			return;
 		}
 
+		FileVersion fileVersion = fileEntry.getFileVersion();
+
+		if (!hasPreview(fileVersion, previewType)) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"No preview found for file entry " +
+						fileEntry.getFileEntryId());
+			}
+
+			return;
+		}
+
 		String binPathSegment = null;
 
 		if (fileIndex < 0) {
@@ -545,8 +560,6 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 		String binPathName = sb.toString();
 
 		fileEntryElement.addAttribute(binPathName, binPath);
-
-		FileVersion fileVersion = fileEntry.getFileVersion();
 
 		InputStream is = null;
 
@@ -576,6 +589,12 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 		FileVersion fileVersion = fileEntry.getFileVersion();
 
 		if (!hasThumbnail(fileVersion, index)) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"No thumbnail found for file entry " +
+						fileEntry.getFileEntryId());
+			}
+
 			return;
 		}
 
@@ -1178,24 +1197,12 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 	}
 
 	protected void sendGenerationMessage(
-		String destinationName, boolean synchronous,
-		FileVersion sourceFileVersion, FileVersion destinationFileVersion) {
+		String destinationName, FileVersion sourceFileVersion,
+		FileVersion destinationFileVersion) {
 
 		Object[] payload = {sourceFileVersion, destinationFileVersion};
 
-		if (synchronous) {
-			try {
-				MessageBusUtil.sendSynchronousMessage(destinationName, payload);
-			}
-			catch (MessageBusException mbe) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(mbe, mbe);
-				}
-			}
-		}
-		else {
-			MessageBusUtil.sendMessage(destinationName, payload);
-		}
+		MessageBusUtil.sendMessage(destinationName, payload);
 	}
 
 	protected void storeThumbnailImages(FileVersion fileVersion, File file)

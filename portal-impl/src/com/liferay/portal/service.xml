@@ -95,7 +95,7 @@
 			<finder-column name="primary" />
 		</finder>
 	</entity>
-	<entity name="BackgroundTask" local-service="true" remote-service="false">
+	<entity name="BackgroundTask" local-service="true" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -122,6 +122,7 @@
 		<column name="completed" type="boolean" />
 		<column name="completionDate" type="Date" />
 		<column name="status" type="int" />
+		<column name="statusMessage" type="String" />
 
 		<!-- Order -->
 
@@ -131,18 +132,47 @@
 
 		<!-- Finder methods -->
 
+		<finder name="GroupId" return-type="Collection">
+			<finder-column name="groupId" />
+		</finder>
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
+		<finder name="Status" return-type="Collection">
+			<finder-column name="status" />
+		</finder>
 		<finder name="G_T" return-type="Collection">
 			<finder-column name="groupId" />
-			<finder-column name="taskExecutorClassName" />
+			<finder-column name="taskExecutorClassName" arrayable-operator="OR" />
+		</finder>
+		<finder name="G_S" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="status" />
 		</finder>
 		<finder name="T_S" return-type="Collection">
-			<finder-column name="taskExecutorClassName" />
+			<finder-column name="taskExecutorClassName" arrayable-operator="OR" />
 			<finder-column name="status" />
+		</finder>
+		<finder name="G_N_T" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="name" />
+			<finder-column name="taskExecutorClassName" />
+		</finder>
+		<finder name="G_T_C" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="taskExecutorClassName" arrayable-operator="OR" />
+			<finder-column name="completed" />
 		</finder>
 		<finder name="G_T_S" return-type="Collection">
 			<finder-column name="groupId" />
-			<finder-column name="taskExecutorClassName" />
+			<finder-column name="taskExecutorClassName" arrayable-operator="OR" />
 			<finder-column name="status" />
+		</finder>
+		<finder name="G_N_T_C" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="name" />
+			<finder-column name="taskExecutorClassName" />
+			<finder-column name="completed" />
 		</finder>
 	</entity>
 	<entity name="BrowserTracker" local-service="true" remote-service="false">
@@ -395,8 +425,11 @@
 		<column name="description" type="String" />
 		<column name="type" type="int" />
 		<column name="typeSettings" type="String" />
+		<column name="manualMembership" type="boolean" />
+		<column name="membershipRestriction" type="int" />
 		<column name="friendlyURL" type="String" />
 		<column name="site" type="boolean" />
+		<column name="remoteStagingGroupCount" type="int" />
 		<column name="active" type="boolean" />
 
 		<!-- Relationships -->
@@ -419,6 +452,10 @@
 		</finder>
 		<finder name="LiveGroupId" return-type="Group">
 			<finder-column name="liveGroupId" />
+		</finder>
+		<finder name="C_C" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="classNameId" />
 		</finder>
 		<finder name="C_P" return-type="Collection">
 			<finder-column name="companyId" />
@@ -478,6 +515,7 @@
 		<reference package-path="com.liferay.portlet.bookmarks" entity="BookmarksFolder" />
 		<reference package-path="com.liferay.portlet.documentlibrary" entity="DLApp" />
 		<reference package-path="com.liferay.portlet.documentlibrary" entity="DLFileEntryType" />
+		<reference package-path="com.liferay.portlet.expando" entity="ExpandoRow" />
 		<reference package-path="com.liferay.portlet.journal" entity="JournalArticle" />
 		<reference package-path="com.liferay.portlet.journal" entity="JournalStructure" />
 		<reference package-path="com.liferay.portlet.journal" entity="JournalTemplate" />
@@ -629,7 +667,7 @@
 
 		<!-- References -->
 
-		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
+		<reference package-path="com.liferay.portlet.expando" entity="ExpandoRow" />
 		<reference package-path="com.liferay.portlet.journal" entity="JournalArticle" />
 		<reference package-path="com.liferay.portlet.journal" entity="JournalContentSearch" />
 		<reference package-path="com.liferay.portlet.messageboards" entity="MBMessage" />
@@ -1169,7 +1207,7 @@
 		<reference package-path="com.liferay.portlet.asset" entity="AssetCategory" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetTag" />
-		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
+		<reference package-path="com.liferay.portlet.expando" entity="ExpandoRow" />
 	</entity>
 	<entity name="OrgGroupRole" local-service="false" remote-service="false">
 
@@ -1526,6 +1564,10 @@
 		<finder name="PortletId" return-type="Collection">
 			<finder-column name="portletId" />
 		</finder>
+		<finder name="O_P" return-type="Collection">
+			<finder-column name="ownerType" />
+			<finder-column name="portletId" />
+		</finder>
 		<finder name="P_P" return-type="Collection">
 			<finder-column name="plid" />
 			<finder-column name="portletId" />
@@ -1534,6 +1576,11 @@
 			<finder-column name="ownerId" />
 			<finder-column name="ownerType" />
 			<finder-column name="plid" />
+		</finder>
+		<finder name="O_O_PI" return-type="Collection">
+			<finder-column name="ownerId" />
+			<finder-column name="ownerType" />
+			<finder-column name="portletId" />
 		</finder>
 		<finder name="O_P_P" return-type="Collection">
 			<finder-column name="ownerType" />
@@ -1916,6 +1963,10 @@
 			<finder-column name="companyId" />
 			<finder-column name="name" case-sensitive="false" />
 		</finder>
+		<finder name="C_T" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="type" arrayable-operator="OR" />
+		</finder>
 		<finder name="T_S" return-type="Collection">
 			<finder-column name="type" />
 			<finder-column name="subtype" />
@@ -1928,7 +1979,7 @@
 
 		<!-- References -->
 
-		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
+		<reference package-path="com.liferay.portlet.expando" entity="ExpandoRow" />
 	</entity>
 	<entity name="ServiceComponent" local-service="true" remote-service="false">
 
@@ -1982,6 +2033,7 @@
 			<finder-column name="classPK" />
 		</finder>
 	</entity>
+	<entity name="Staging" local-service="true" remote-service="true" />
 	<entity name="Subscription" local-service="true" remote-service="false">
 
 		<!-- PK fields -->
@@ -2051,6 +2103,9 @@
 		<column name="classNameId" type="long" />
 		<column name="classPK" type="long" />
 		<column name="classUuid" type="String" />
+		<column name="referrerClassNameId" type="long" />
+		<column name="parentSystemEventId" type="long" />
+		<column name="systemEventSetKey" type="long" />
 		<column name="type" type="int" />
 		<column name="extraData" type="String" />
 
@@ -2064,6 +2119,10 @@
 
 		<finder name="GroupId" return-type="Collection">
 			<finder-column name="groupId" />
+		</finder>
+		<finder name="G_S" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="systemEventSetKey" />
 		</finder>
 		<finder name="G_C_C" return-type="Collection">
 			<finder-column name="groupId" />
@@ -2272,7 +2331,7 @@
 		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
 		<reference package-path="com.liferay.portlet.blogs" entity="BlogsStatsUser" />
 		<reference package-path="com.liferay.portlet.documentlibrary" entity="DLFileRank" />
-		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
+		<reference package-path="com.liferay.portlet.expando" entity="ExpandoRow" />
 		<reference package-path="com.liferay.portlet.messageboards" entity="MBBan" />
 		<reference package-path="com.liferay.portlet.messageboards" entity="MBMessage" />
 		<reference package-path="com.liferay.portlet.messageboards" entity="MBStatsUser" />
@@ -2330,7 +2389,7 @@
 
 		<!-- References -->
 
-		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
+		<reference package-path="com.liferay.portlet.expando" entity="ExpandoRow" />
 	</entity>
 	<entity name="UserGroupGroupRole" local-service="true" remote-service="true">
 
@@ -2418,6 +2477,38 @@
 			<finder-column name="externalUserId" />
 		</finder>
 	</entity>
+	<entity name="UserNotificationDelivery" local-service="true" remote-service="false">
+
+		<!-- PK fields -->
+
+		<column name="userNotificationDeliveryId" type="long" primary="true" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+
+		<!-- Other fields -->
+
+		<column name="portletId" type="String" />
+		<column name="classNameId" type="long" />
+		<column name="notificationType" type="int" />
+		<column name="deliveryType" type="int" />
+		<column name="deliver" type="boolean" />
+
+		<!-- Finder methods -->
+
+		<finder name="UserId" return-type="Collection">
+			<finder-column name="userId" />
+		</finder>
+		<finder name="U_P_C_N_D" return-type="UserNotificationDelivery" unique="true">
+			<finder-column name="userId" />
+			<finder-column name="portletId" />
+			<finder-column name="classNameId" />
+			<finder-column name="notificationType" />
+			<finder-column name="deliveryType" />
+		</finder>
+	</entity>
 	<entity name="UserNotificationEvent" uuid="true" local-service="true" remote-service="false">
 
 		<!-- PK fields -->
@@ -2458,7 +2549,6 @@
 			<finder-column name="archived" />
 		</finder>
 	</entity>
-	<entity name="UserNotificationInterpreter" local-service="true" remote-service="false" tx-manager="none" />
 	<entity name="UserTracker" local-service="true" remote-service="false">
 
 		<!-- PK fields -->
@@ -2760,6 +2850,7 @@
 		<exception>OrganizationType</exception>
 		<exception>PasswordExpired</exception>
 		<exception>PasswordPolicyName</exception>
+		<exception>PendingBackgroundTask</exception>
 		<exception>PhoneNumber</exception>
 		<exception>PortletActive</exception>
 		<exception>PortletDefaultPreferences</exception>
@@ -2795,6 +2886,7 @@
 		<exception>TeamName</exception>
 		<exception>UserActive</exception>
 		<exception>UserEmailAddress</exception>
+		<exception>UserField</exception>
 		<exception>UserGroupName</exception>
 		<exception>UserId</exception>
 		<exception>UserLockout</exception>

@@ -21,6 +21,10 @@
 		<execute function="Type#sendKeys" />
 	</command>
 
+	<command name="sendKeysNoWait">
+		<execute selenium="sendKeys" />
+	</command>
+
 	<command name="type">
 		<execute selenium="waitForVisible" />
 
@@ -36,8 +40,10 @@
 	<command name="typeFrameWaitForCKEditor">
 		<execute selenium="waitForVisible" />
 
-		<execute selenium="waitForVisible" argument1="//a[contains(@class,'cke_button cke_button__cut') and contains(@class,'cke_button_disabled')]" />
+		<execute selenium="waitForVisible" argument1="//a[contains(@class,'cke_button__unlink') and contains(@class,'cke_button_disabled')]" />
 
 		<execute selenium="typeFrame" />
+
+		<execute selenium="pause" argument1="1000" />
 	</command>
 </definition>

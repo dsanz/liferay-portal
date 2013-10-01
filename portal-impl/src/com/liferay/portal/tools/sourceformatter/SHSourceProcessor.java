@@ -25,19 +25,20 @@ import java.io.IOException;
 public class SHSourceProcessor extends BaseSourceProcessor {
 
 	@Override
-	protected void doFormat() throws Exception {
-		_formatSH("ext/create.sh");
-		_formatSH("hooks/create.sh");
-		_formatSH("layouttpl/create.sh");
-		_formatSH("portlets/create.sh");
-		_formatSH("themes/create.sh");
+	protected void format() throws Exception {
+		format("ext/create.sh");
+		format("hooks/create.sh");
+		format("layouttpl/create.sh");
+		format("portlets/create.sh");
+		format("themes/create.sh");
 	}
 
-	private void _formatSH(String fileName) throws IOException {
+	@Override
+	protected String format(String fileName) throws IOException {
 		File file = new File(fileName);
 
 		if (!file.exists()) {
-			return;
+			return null;
 		}
 
 		String content = fileUtil.read(new File(fileName), true);
@@ -45,10 +46,14 @@ public class SHSourceProcessor extends BaseSourceProcessor {
 		if (content.contains("\r")) {
 			processErrorMessage(fileName, "Invalid new line character");
 
-			content = StringUtil.replace(content, "\r", "");
+			if (isAutoFix()) {
+				content = StringUtil.replace(content, "\r", "");
 
-			fileUtil.write(fileName, content);
+				fileUtil.write(fileName, content);
+			}
 		}
+
+		return content;
 	}
 
 }

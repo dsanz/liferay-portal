@@ -20,9 +20,9 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
@@ -63,7 +63,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DDMStructureImpl extends DDMStructureBaseImpl {
 
 	@Override
-	public List<String> getAvailableLanguageIds() {
+	public String[] getAvailableLanguageIds() {
 		Document document = getDocument();
 
 		Element rootElement = document.getRootElement();
@@ -71,7 +71,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 		String availableLocales = rootElement.attributeValue(
 			"available-locales");
 
-		return ListUtil.fromArray(StringUtil.split(availableLocales));
+		return StringUtil.split(availableLocales);
 	}
 
 	@Override
@@ -112,7 +112,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 		Document document = getDocument();
 
 		if (document == null) {
-			Locale locale = LocaleUtil.getDefault();
+			Locale locale = LocaleUtil.getSiteDefault();
 
 			return locale.toString();
 		}
@@ -440,7 +440,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 					getXsd(), ddmStructureDefaultLocale, defaultImportLocale));
 		}
 		catch (Exception e) {
-			throw new LocaleException(e);
+			throw new LocaleException(LocaleException.TYPE_EXPORT_IMPORT, e);
 		}
 	}
 
@@ -476,9 +476,11 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 	private Map<String, String> _getField(Element element, String locale) {
 		Map<String, String> field = new HashMap<String, String>();
 
-		List<String> availableLocales = getAvailableLanguageIds();
+		String[] availableLanguageIds = getAvailableLanguageIds();
 
-		if ((locale != null) && !availableLocales.contains(locale)) {
+		if ((locale != null) &&
+			!ArrayUtil.contains(availableLanguageIds, locale)) {
+
 			locale = getDefaultLanguageId();
 		}
 
@@ -535,6 +537,7 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 
 		privateField.put("dataType", dataType);
 
+		privateField.put("name", privateFieldName);
 		privateField.put("private", Boolean.TRUE.toString());
 
 		String repeatable = PropsUtil.get(

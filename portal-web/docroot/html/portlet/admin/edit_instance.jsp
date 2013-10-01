@@ -55,19 +55,20 @@ catch (Exception e) {
 	<aui:model-context bean="<%= selCompany %>" model="<%= Company.class %>" />
 
 	<aui:fieldset>
-		<c:if test="<%= selCompany != null %>">
-			<aui:field-wrapper label="id">
-				<%= companyId %>
-			</aui:field-wrapper>
+		<c:choose>
+			<c:when test="<%= selCompany != null %>">
+				<aui:field-wrapper label="id">
+					<liferay-ui:input-resource url="<%= String.valueOf(companyId) %>" />
+				</aui:field-wrapper>
 
-			<aui:field-wrapper label="web-id">
-				<%= HtmlUtil.escape(selCompany.getWebId()) %>
-			</aui:field-wrapper>
-		</c:if>
-
-		<c:if test="<%= selCompany == null %>">
-			<aui:input name="webId" />
-		</c:if>
+				<aui:field-wrapper label="web-id">
+					<liferay-ui:input-resource url="<%= selCompany.getWebId() %>" />
+				</aui:field-wrapper>
+			</c:when>
+			<c:otherwise>
+				<aui:input name="webId" />
+			</c:otherwise>
+		</c:choose>
 
 		<aui:input bean="<%= virtualHost %>" fieldParam="virtualHostname" label="virtual-host" model="<%= VirtualHost.class %>" name="hostname" />
 
@@ -111,6 +112,7 @@ catch (Exception e) {
 <aui:script>
 	function <portlet:namespace />saveCompany() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (selCompany == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 </aui:script>

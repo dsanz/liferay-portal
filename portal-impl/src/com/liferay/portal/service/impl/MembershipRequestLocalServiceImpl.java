@@ -18,6 +18,7 @@ import com.liferay.portal.MembershipRequestCommentsException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
@@ -28,7 +29,6 @@ import com.liferay.portal.model.Resource;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
-import com.liferay.portal.model.Team;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserGroupRole;
 import com.liferay.portal.security.permission.ActionKeys;
@@ -205,19 +205,13 @@ public class MembershipRequestLocalServiceImpl
 		Group group = groupLocalService.getGroup(groupId);
 		String modelResource = Group.class.getName();
 
-		List<Role> roles = ResourceActionsUtil.getRoles(
-			group.getCompanyId(), group, modelResource, null);
+		List<Role> roles = ListUtil.copy(
+			ResourceActionsUtil.getRoles(
+				group.getCompanyId(), group, modelResource, null));
 
-		List<Team> teams = teamLocalService.getGroupTeams(groupId);
+		List<Role> teamRoles = roleLocalService.getTeamRoles(groupId);
 
-		if (teams != null) {
-			for (Team team : teams) {
-				Role role = roleLocalService.getTeamRole(
-					team.getCompanyId(), team.getTeamId());
-
-				roles.add(role);
-			}
-		}
+		roles.addAll(teamRoles);
 
 		Resource resource = resourceLocalService.getResource(
 			group.getCompanyId(), modelResource,

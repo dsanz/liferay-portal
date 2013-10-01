@@ -398,6 +398,12 @@ public class JournalFeedLocalServiceUtil {
 		getService().deleteFeed(groupId, feedId);
 	}
 
+	public static com.liferay.portlet.journal.model.JournalFeed fetchFeed(
+		long groupId, java.lang.String feedId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchFeed(groupId, feedId);
+	}
+
 	public static com.liferay.portlet.journal.model.JournalFeed getFeed(
 		long feedId)
 		throws com.liferay.portal.kernel.exception.PortalException,

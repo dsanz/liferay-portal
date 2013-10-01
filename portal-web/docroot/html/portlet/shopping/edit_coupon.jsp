@@ -69,18 +69,18 @@ String discountType = BeanParamUtil.getString(coupon, request, "discountType");
 	<aui:fieldset>
 		<c:choose>
 			<c:when test="<%= coupon == null %>">
-				<aui:input name="code" />
+				<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="code" />
 
 				<aui:input label="autogenerate-code" name="autoCode" type="checkbox" />
 			</c:when>
 			<c:otherwise>
 				<aui:field-wrapper label="code">
-					<%= HtmlUtil.escape(code) %>
+					<liferay-ui:input-resource url="<%= code %>" />
 				</aui:field-wrapper>
 			</c:otherwise>
 		</c:choose>
 
-		<aui:input name="name" />
+		<aui:input autoFocus="<%= (windowState.equals(WindowState.MAXIMIZED) && Validator.isNotNull(coupon)) %>" name="name" />
 
 		<aui:input name="description" />
 
@@ -161,12 +161,9 @@ String discountType = BeanParamUtil.getString(coupon, request, "discountType");
 <aui:script>
 	function <portlet:namespace />saveCoupon() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (coupon == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	Liferay.Util.disableToggleBoxes('<portlet:namespace />autoCodeCheckbox', '<portlet:namespace />code', true);
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= (coupon == null) ? "code" : "name" %>);
-	</c:if>
 </aui:script>

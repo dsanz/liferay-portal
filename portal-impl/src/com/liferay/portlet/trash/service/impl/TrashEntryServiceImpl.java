@@ -16,6 +16,7 @@ package com.liferay.portlet.trash.service.impl;
 
 import com.liferay.portal.TrashPermissionException;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.dao.search.SearchPaginationUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
@@ -255,22 +256,23 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 			}
 		}
 
-		int filteredEntriesCount = filteredEntries.size();
+		int total = filteredEntries.size();
 
-		if ((end != QueryUtil.ALL_POS) && (start != QueryUtil.ALL_POS)) {
-			if (end > filteredEntriesCount) {
-				end = filteredEntriesCount;
-			}
-
-			if (start > filteredEntriesCount) {
-				start = filteredEntriesCount;
-			}
-
-			filteredEntries = filteredEntries.subList(start, end);
+		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS)) {
+			start = 0;
+			end = total;
 		}
 
+		int[] startAndEnd = SearchPaginationUtil.calculateStartAndEnd(
+			start, end, total);
+
+		start = startAndEnd[0];
+		end = startAndEnd[1];
+
+		filteredEntries = filteredEntries.subList(start, end);
+
 		trashEntriesList.setArray(TrashEntrySoap.toSoapModels(filteredEntries));
-		trashEntriesList.setCount(filteredEntriesCount);
+		trashEntriesList.setCount(total);
 
 		return trashEntriesList;
 	}
@@ -318,13 +320,11 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 
 		PermissionChecker permissionChecker = getPermissionChecker();
 
-		TrashEntry entry = trashEntryLocalService.getEntry(className, classPK);
-
 		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
 			className);
 
 		if (!trashHandler.hasTrashPermission(
-				permissionChecker, entry.getGroupId(),
+				permissionChecker, serviceContext.getScopeGroupId(),
 				destinationContainerModelId, TrashActionKeys.MOVE)) {
 
 			throw new TrashPermissionException(TrashPermissionException.MOVE);
@@ -335,18 +335,24 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 				permissionChecker, 0, classPK, TrashActionKeys.RESTORE)) {
 
 			throw new TrashPermissionException(
-					TrashPermissionException.RESTORE);
+				TrashPermissionException.RESTORE);
 		}
 
-		trashHandler.checkDuplicateTrashEntry(
-			entry, destinationContainerModelId, StringPool.BLANK);
-
 		if (trashHandler.isInTrash(classPK)) {
+			TrashEntry entry = trashEntryLocalService.getEntry(
+				className, classPK);
+
+			trashHandler.checkDuplicateTrashEntry(
+				entry, destinationContainerModelId, StringPool.BLANK);
+
 			trashHandler.moveTrashEntry(
 				getUserId(), classPK, destinationContainerModelId,
 				serviceContext);
 		}
 		else {
+			trashHandler.checkDuplicateEntry(
+				classPK, destinationContainerModelId, StringPool.BLANK);
+
 			trashHandler.moveEntry(
 				getUserId(), classPK, destinationContainerModelId,
 				serviceContext);

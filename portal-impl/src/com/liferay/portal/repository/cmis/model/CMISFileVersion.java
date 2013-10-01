@@ -16,6 +16,7 @@ package com.liferay.portal.repository.cmis.model;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -241,6 +242,11 @@ public class CMISFileVersion extends CMISModel implements FileVersion {
 	}
 
 	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(FileVersion.class);
+	}
+
+	@Override
 	public int getStatus() {
 		return 0;
 	}
@@ -329,16 +335,6 @@ public class CMISFileVersion extends CMISModel implements FileVersion {
 
 	@Override
 	public boolean isExpired() {
-		return false;
-	}
-
-	@Override
-	public boolean isInTrash() {
-		return false;
-	}
-
-	@Override
-	public boolean isInTrashContainer() {
 		return false;
 	}
 

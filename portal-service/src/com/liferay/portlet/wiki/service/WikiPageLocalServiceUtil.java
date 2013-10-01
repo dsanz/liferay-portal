@@ -431,6 +431,15 @@ public class WikiPageLocalServiceUtil {
 			.changeParent(userId, nodeId, title, newParentTitle, serviceContext);
 	}
 
+	public static void copyPageAttachments(long userId, long templateNodeId,
+		java.lang.String templateTitle, long nodeId, java.lang.String title)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService()
+			.copyPageAttachments(userId, templateNodeId, templateTitle, nodeId,
+			title);
+	}
+
 	public static void deletePage(long nodeId, java.lang.String title)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -495,6 +504,28 @@ public class WikiPageLocalServiceUtil {
 		getService().discardDraft(nodeId, title, version);
 	}
 
+	public static com.liferay.portlet.wiki.model.WikiPage fetchLatestPage(
+		long resourcePrimKey, int status, boolean preferApproved)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .fetchLatestPage(resourcePrimKey, status, preferApproved);
+	}
+
+	public static com.liferay.portlet.wiki.model.WikiPage fetchLatestPage(
+		long resourcePrimKey, long nodeId, int status, boolean preferApproved)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .fetchLatestPage(resourcePrimKey, nodeId, status,
+			preferApproved);
+	}
+
+	public static com.liferay.portlet.wiki.model.WikiPage fetchLatestPage(
+		long nodeId, java.lang.String title, int status, boolean preferApproved)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .fetchLatestPage(nodeId, title, status, preferApproved);
+	}
+
 	public static com.liferay.portlet.wiki.model.WikiPage fetchPage(
 		long nodeId, java.lang.String title, double version)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -519,6 +550,30 @@ public class WikiPageLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getIncomingLinks(nodeId, title);
+	}
+
+	public static com.liferay.portlet.wiki.model.WikiPage getLatestPage(
+		long resourcePrimKey, int status, boolean preferApproved)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getLatestPage(resourcePrimKey, status, preferApproved);
+	}
+
+	public static com.liferay.portlet.wiki.model.WikiPage getLatestPage(
+		long resourcePrimKey, long nodeId, int status, boolean preferApproved)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getLatestPage(resourcePrimKey, nodeId, status,
+			preferApproved);
+	}
+
+	public static com.liferay.portlet.wiki.model.WikiPage getLatestPage(
+		long nodeId, java.lang.String title, int status, boolean preferApproved)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getLatestPage(nodeId, title, status, preferApproved);
 	}
 
 	public static java.util.List<com.liferay.portlet.wiki.model.WikiPage> getNoAssetPages()
@@ -779,8 +834,9 @@ public class WikiPageLocalServiceUtil {
 		getService().movePage(userId, nodeId, title, newTitle, serviceContext);
 	}
 
-	public static long movePageAttachmentToTrash(long userId, long nodeId,
-		java.lang.String title, java.lang.String fileName)
+	public static com.liferay.portal.kernel.repository.model.FileEntry movePageAttachmentToTrash(
+		long userId, long nodeId, java.lang.String title,
+		java.lang.String fileName)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService()

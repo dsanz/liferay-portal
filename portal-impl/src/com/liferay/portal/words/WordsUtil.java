@@ -17,8 +17,8 @@ package com.liferay.portal.words;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.SecureRandomUtil;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.Randomizer;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnmodifiableList;
 import com.liferay.util.ContentUtil;
@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -121,7 +122,9 @@ public class WordsUtil {
 	}
 
 	private String _getRandomWord() {
-		int pos = Randomizer.getInstance().nextInt(_dictionaryList.size());
+		Random random = new Random(SecureRandomUtil.nextInt());
+
+		int pos = random.nextInt(_dictionaryList.size());
 
 		return _dictionaryList.get(pos);
 	}

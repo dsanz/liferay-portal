@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
@@ -210,7 +211,7 @@ public class JournalStructureServiceTest extends BaseJournalServiceTestCase {
 
 		Map<Locale, String> nameMap = new HashMap<Locale, String>();
 
-		nameMap.put(Locale.US, "New Test Structure");
+		nameMap.put(LocaleUtil.US, "New Test Structure");
 
 		StringBundler sb = new StringBundler(5);
 
@@ -227,7 +228,8 @@ public class JournalStructureServiceTest extends BaseJournalServiceTestCase {
 				groupId, structureId, null, nameMap, null, xsd,
 				getServiceContext());
 
-		Assert.assertEquals("New Test Structure", structure.getName(Locale.US));
+		Assert.assertEquals(
+			"New Test Structure", structure.getName(LocaleUtil.US));
 		Assert.assertEquals(
 			JournalTestUtil.getXsdMap(xsd),
 			JournalTestUtil.getXsdMap(structure.getXsd()));

@@ -1,27 +1,25 @@
-<#assign groupIds = dataFactory.getNewUserGroupIds(group.groupId)>
-<#assign roleIds = [dataFactory.administratorRole.roleId, dataFactory.powerUserRole.roleId, dataFactory.userRole.roleId]>
+<#assign groupIds = dataFactory.getNewUserGroupIds(groupModel.groupId)>
+<#assign roleIds = [dataFactory.administratorRoleModel.roleId, dataFactory.powerUserRoleModel.roleId, dataFactory.userRoleModel.roleId]>
 
-<#if (maxUserCount > 0)>
-	<#list 1..maxUserCount as userCount>
-		<#assign user = dataFactory.newUser(userCount)>
+<#assign userModels = dataFactory.newUserModels()>
 
-		<#assign userGroup = dataFactory.newGroup(user)>
+<#list userModels as userModel>
+	<#assign userGroupModel = dataFactory.newGroupModel(userModel)>
 
-		<#assign layout = dataFactory.newLayout(userGroup.groupId, "home", "", "33,")>
+	<#assign layoutModel = dataFactory.newLayoutModel(userGroupModel.groupId, "home", "", "33,")>
 
-		<@insertLayout
-			_layout = layout
-		/>
+	<@insertLayout
+		_layoutModel = layoutModel
+	/>
 
-		<@insertGroup
-			_group = userGroup
-			_publicPageCount = 1
-		/>
+	<@insertGroup
+		_groupModel = userGroupModel
+		_publicPageCount = 1
+	/>
 
-		<@insertUser
-			_groupIds = groupIds
-			_roleIds = roleIds
-			_user = user
-		/>
-	</#list>
-</#if>
+	<@insertUser
+		_groupIds = groupIds
+		_roleIds = roleIds
+		_userModel = userModel
+	/>
+</#list>

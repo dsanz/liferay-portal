@@ -229,7 +229,7 @@ AUI.add(
 					instance._backgroundColorPicker = new A.ColorPickerPopover(
 						{
 							trigger: backgroundColor,
-							zIndex: 1000
+							plugins: [Liferay.WidgetZIndex]
 						}
 					).render(instance._currentPopup.get(BOUNDING_BOX));
 				}
@@ -908,9 +908,12 @@ AUI.add(
 
 					// WAP styling
 
-					instance._wapTitleInput = instance._getNodeById('lfr-wap-title');
-					instance._wapInitialWindowStateSelect = instance._getNodeById('lfr-wap-initial-window-state');
+					instance._wapStyling = instance._getNodeById('wap-styling');
 
+					if (instance._wapStyling) {
+						instance._wapTitleInput = instance._getNodeById('lfr-wap-title');
+						instance._wapInitialWindowStateSelect = instance._getNodeById('lfr-wap-initial-window-state');
+					}
 				}
 
 				instance._tabs = new A.TabView(
@@ -993,8 +996,10 @@ AUI.add(
 					},
 
 					portletData: {
+						customTitle: EMPTY,
 						language: 'en_US',
 						portletLinksTarget: EMPTY,
+						showBorders: EMPTY,
 						title: EMPTY,
 						titles: {},
 						useCustomTitle: false
@@ -1180,8 +1185,10 @@ AUI.add(
 
 							updatePortletCSSClassName(previousCSSClass, newCSSClass);
 
-							instance._objData.wapData.title = instance._wapTitleInput.val();
-							instance._objData.wapData.initialWindowState = instance._wapInitialWindowStateSelect.val();
+							if (instance._wapStyling) {
+								instance._objData.wapData.title = instance._wapTitleInput.val();
+								instance._objData.wapData.initialWindowState = instance._wapInitialWindowStateSelect.val();
+							}
 
 							A.io.request(
 								themeDisplay.getPathMain() + '/portlet_configuration/update_look_and_feel',
@@ -1341,6 +1348,7 @@ AUI.add(
 							}
 
 							portletData.title = value;
+
 							instance._portletTitles(portletLanguage, value);
 						}
 					}
@@ -1462,10 +1470,13 @@ AUI.add(
 				instance._setSelect(instance._portletLinksTarget, portletData.portletLinksTarget);
 
 				var portletTitles = portletData.titles;
+
 				var portletTitle = instance._portletTitles(portletData.language);
 
 				if (!portletTitle) {
-					portletTitle = instance._defaultPortletTitle;
+					instance._portletTitles(EMPTY);
+
+					portletData.title = EMPTY;
 				}
 
 				instance._setInput(instance._customTitleInput, portletTitle);
@@ -1574,8 +1585,10 @@ AUI.add(
 
 				// WAP styling
 
-				instance._setInput(instance._wapTitleInput, wapData.title);
-				instance._setSelect(instance._wapInitialWindowStateSelect, wapData.initialWindowState);
+				if (instance._wapStyling) {
+					instance._setInput(instance._wapTitleInput, wapData.title);
+					instance._setSelect(instance._wapInitialWindowStateSelect, wapData.initialWindowState);
+				}
 			},
 
 			_setInput: function(obj, value) {
@@ -1904,7 +1917,7 @@ AUI.add(
 					instance._fontColorPicker = new A.ColorPickerPopover(
 						{
 							trigger: fontColor,
-							zIndex: 1000
+							plugins: [Liferay.WidgetZIndex]
 						}
 					).render(instance._currentPopup.get(BOUNDING_BOX));
 				}
@@ -2008,6 +2021,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-color-picker-popover', 'aui-io-plugin-deprecated', 'aui-io-request', 'aui-tabview', 'liferay-util-window']
+		requires: ['aui-color-picker-popover', 'aui-io-plugin-deprecated', 'aui-io-request', 'aui-tabview',  'liferay-util-window', 'liferay-widget-zindex']
 	}
 );

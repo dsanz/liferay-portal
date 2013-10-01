@@ -28,7 +28,8 @@ import com.liferay.portal.kernel.lar.StagedModelDataHandler;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerRegistryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.notifications.UserNotificationInterpreter;
+import com.liferay.portal.kernel.notifications.UserNotificationHandler;
+import com.liferay.portal.kernel.notifications.UserNotificationManagerUtil;
 import com.liferay.portal.kernel.portlet.PortletBag;
 import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.scheduler.SchedulerEntry;
@@ -63,7 +64,6 @@ import com.liferay.portal.pop.POPServerUtil;
 import com.liferay.portal.security.permission.ResourceActionsUtil;
 import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.service.ResourceActionLocalServiceUtil;
-import com.liferay.portal.service.UserNotificationInterpreterLocalServiceUtil;
 import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PropsValues;
@@ -125,7 +125,10 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error registering portlets for ", t);
+				hotDeployEvent,
+				"Error registering portlets for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -138,7 +141,10 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error unregistering portlets for ", t);
+				hotDeployEvent,
+				"Error unregistering portlets for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -254,16 +260,18 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		SocialRequestInterpreterLocalServiceUtil.deleteRequestInterpreter(
 			portlet.getSocialRequestInterpreterInstance());
 
-		List<UserNotificationInterpreter> userNotificationInterpreters =
-			portlet.getUserNotificationInterpreterInstances();
+		UserNotificationManagerUtil.deleteUserNotificationDefinitions(
+			portlet.getPortletId());
 
-		if (userNotificationInterpreters != null) {
-			for (UserNotificationInterpreter userNotificationInterpreter :
-					userNotificationInterpreters) {
+		List<UserNotificationHandler> userNotificationHandlers =
+			portlet.getUserNotificationHandlerInstances();
 
-				UserNotificationInterpreterLocalServiceUtil.
-					deleteUserNotificationInterpreter(
-						userNotificationInterpreter);
+		if (userNotificationHandlers != null) {
+			for (UserNotificationHandler userNotificationHandler :
+					userNotificationHandlers) {
+
+				UserNotificationManagerUtil.deleteUserNotificationHandler(
+					userNotificationHandler);
 			}
 		}
 
@@ -358,7 +366,7 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		while (itr.hasNext()) {
 			Portlet portlet = itr.next();
 
-			PortletBag portletBag = initPortlet(portlet, portletBagFactory);
+			PortletBag portletBag = portletBagFactory.create(portlet);
 
 			if (portletBag == null) {
 				itr.remove();
@@ -380,7 +388,6 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 						PHPPortlet.class.getName())) {
 
 					phpPortlet = true;
-
 				}
 
 				if (ClassUtil.isSubclass(
@@ -555,16 +562,9 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 			else {
 				_log.info(
 					portlets.size() + " portlets for " + servletContextName +
-						" was unregistered");
+						" were unregistered");
 			}
 		}
-	}
-
-	protected PortletBag initPortlet(
-			Portlet portlet, PortletBagFactory portletBagFactory)
-		throws Exception {
-
-		return portletBagFactory.create(portlet);
 	}
 
 	protected void initPortletApp(
@@ -589,9 +589,10 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 
 			String attrCustomClass = entry.getValue();
 
+			Class<?> clazz = classLoader.loadClass(attrCustomClass);
+
 			CustomUserAttributes customUserAttributesInstance =
-				(CustomUserAttributes)classLoader.loadClass(
-					attrCustomClass).newInstance();
+				(CustomUserAttributes)clazz.newInstance();
 
 			portletContextBag.getCustomUserAttributes().put(
 				attrCustomClass, customUserAttributesInstance);

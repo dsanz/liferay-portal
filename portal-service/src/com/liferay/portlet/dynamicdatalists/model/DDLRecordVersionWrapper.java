@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.dynamicdatalists.model;
 
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -594,16 +595,6 @@ public class DDLRecordVersionWrapper implements DDLRecordVersion,
 	}
 
 	/**
-	* Returns <code>true</code> if this d d l record version is in the Recycle Bin.
-	*
-	* @return <code>true</code> if this d d l record version is in the Recycle Bin; <code>false</code> otherwise
-	*/
-	@Override
-	public boolean isInTrash() {
-		return _ddlRecordVersion.isInTrash();
-	}
-
-	/**
 	* Returns <code>true</code> if this d d l record version is pending.
 	*
 	* @return <code>true</code> if this d d l record version is pending; <code>false</code> otherwise
@@ -734,6 +725,26 @@ public class DDLRecordVersionWrapper implements DDLRecordVersion,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _ddlRecordVersion.getRecordSet();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DDLRecordVersionWrapper)) {
+			return false;
+		}
+
+		DDLRecordVersionWrapper ddlRecordVersionWrapper = (DDLRecordVersionWrapper)obj;
+
+		if (Validator.equals(_ddlRecordVersion,
+					ddlRecordVersionWrapper._ddlRecordVersion)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

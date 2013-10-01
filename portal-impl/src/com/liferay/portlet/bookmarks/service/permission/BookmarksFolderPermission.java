@@ -16,9 +16,11 @@ package com.liferay.portlet.bookmarks.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.bookmarks.NoSuchFolderException;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
@@ -60,28 +62,28 @@ public class BookmarksFolderPermission {
 			actionId = ActionKeys.ADD_SUBFOLDER;
 		}
 
-		long folderId = folder.getFolderId();
+		Boolean hasPermission = StagingPermissionUtil.hasPermission(
+			permissionChecker, folder.getGroupId(),
+			BookmarksFolder.class.getName(), folder.getFolderId(),
+			PortletKeys.BOOKMARKS, actionId);
 
-		if (PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
-			long originalFolderId = folderId;
+		if (hasPermission != null) {
+			return hasPermission.booleanValue();
+		}
+
+		if (actionId.equals(ActionKeys.VIEW) &&
+			PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
 
 			try {
+				long folderId = folder.getFolderId();
+
 				while (folderId !=
 							BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 
 					folder = BookmarksFolderLocalServiceUtil.getFolder(
 						folderId);
 
-					if (!permissionChecker.hasOwnerPermission(
-							folder.getCompanyId(),
-							BookmarksFolder.class.getName(),
-							folder.getFolderId(), folder.getUserId(),
-							actionId) &&
-						!permissionChecker.hasPermission(
-							folder.getGroupId(),
-							BookmarksFolder.class.getName(),
-							folder.getFolderId(), actionId)) {
-
+					if (!_hasPermission(permissionChecker, folder, actionId)) {
 						return false;
 					}
 
@@ -94,39 +96,10 @@ public class BookmarksFolderPermission {
 				}
 			}
 
-			if (actionId.equals(ActionKeys.VIEW)) {
-				return true;
-			}
-
-			folderId = originalFolderId;
+			return true;
 		}
 
-		try {
-			while (folderId !=
-						BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-
-				folder = BookmarksFolderLocalServiceUtil.getFolder(folderId);
-
-				if (permissionChecker.hasOwnerPermission(
-						folder.getCompanyId(), BookmarksFolder.class.getName(),
-						folder.getFolderId(), folder.getUserId(), actionId) ||
-					permissionChecker.hasPermission(
-						folder.getGroupId(), BookmarksFolder.class.getName(),
-						folder.getFolderId(), actionId)) {
-
-					return true;
-				}
-
-				folderId = folder.getParentFolderId();
-			}
-		}
-		catch (NoSuchFolderException nsfe) {
-			if (!folder.isInTrash()) {
-				throw nsfe;
-			}
-		}
-
-		return false;
+		return _hasPermission(permissionChecker, folder, actionId);
 	}
 
 	public static boolean contains(
@@ -144,6 +117,23 @@ public class BookmarksFolderPermission {
 
 			return contains(permissionChecker, folder, actionId);
 		}
+	}
+
+	private static boolean _hasPermission(
+		PermissionChecker permissionChecker, BookmarksFolder folder,
+		String actionId) {
+
+		if (permissionChecker.hasOwnerPermission(
+				folder.getCompanyId(), BookmarksFolder.class.getName(),
+				folder.getFolderId(), folder.getUserId(), actionId) ||
+			permissionChecker.hasPermission(
+				folder.getGroupId(), BookmarksFolder.class.getName(),
+				folder.getFolderId(), actionId)) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 }

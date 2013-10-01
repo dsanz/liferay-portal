@@ -33,6 +33,19 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class ValidatorTest extends PowerMockito {
 
 	@Test
+	public void testIsDomain() throws Exception {
+
+		// 来锐.com, живот.рс
+
+		String[] validDomains = new String[] {
+			"localhost", "liferay.com", "\u6765\u9510.com",
+			"\u0436\u0438\u0432\u043E\u0442.\u0440\u0441"
+		};
+
+		testIsValidByMethodName("isDomain", validDomains, true);
+	}
+
+	@Test
 	public void testIsFileExtension() throws Exception {
 		String[] validFileExtensions = {
 			"abc", ".abc", "."
@@ -127,7 +140,7 @@ public class ValidatorTest extends PowerMockito {
 	public void testIsInvalidHostName() throws Exception {
 		String[] invalidHostNames = {
 			"(999.999.999)", "123_456_789_012", "www.$dollar$.com",
-			"{abcd:1234:ef01:2345:6789:0123:4567}"
+			"{abcd:1234:ef01:2345:6789:0123:4567}", ".liferay.com"
 		};
 
 		testValidHostNames(invalidHostNames, false);
@@ -380,9 +393,9 @@ public class ValidatorTest extends PowerMockito {
 	@Test
 	public void testIsValidHostName() throws Exception {
 		String[] validHostNames = {
-			"localhost", "127.0.0.1", "10.10.10.1", "abc.com", "9to5.net",
-			"liferay.com", "www.liferay.com", "www.liferay.co.uk", "::1",
-			"[abcd:1234:ef01:2345:6789:0123:4567]"
+			"localhost", "127.0.0.1", "10.10.10.1", "abc", "abc.com",
+			"abc.com.", "9to5.net", "liferay.com", "www.liferay.com",
+			"www.liferay.co.uk", "::1", "[abcd:1234:ef01:2345:6789:0123:4567]"
 		};
 
 		testValidHostNames(validHostNames, true);

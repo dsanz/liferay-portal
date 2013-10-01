@@ -340,6 +340,10 @@ public class OrgGroupRolePersistenceImpl extends BasePersistenceImpl<OrgGroupRol
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<OrgGroupRole> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -825,6 +829,10 @@ public class OrgGroupRolePersistenceImpl extends BasePersistenceImpl<OrgGroupRol
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByRoleId(roleId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<OrgGroupRole> list = findByRoleId(roleId, count - 1, count,
 				orderByComparator);
 
@@ -1050,6 +1058,10 @@ public class OrgGroupRolePersistenceImpl extends BasePersistenceImpl<OrgGroupRol
 	}
 
 	private static final String _FINDER_COLUMN_ROLEID_ROLEID_2 = "orgGroupRole.id.roleId = ?";
+
+	public OrgGroupRolePersistenceImpl() {
+		setModelClass(OrgGroupRole.class);
+	}
 
 	/**
 	 * Caches the org group role in the entity cache if it is enabled.

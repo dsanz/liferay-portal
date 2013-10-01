@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateManager;
 import com.liferay.portal.kernel.template.TemplateResource;
 
+import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
@@ -43,24 +44,73 @@ public abstract class BaseTemplateManager implements TemplateManager {
 		TemplateResource templateResource,
 		TemplateResource errorTemplateResource, boolean restricted) {
 
-		TemplateContextHelper templateContextHelper =
-			getTemplateContextHelper();
+		TemplateControlContext templateControlContext =
+			templateContextHelper.getTemplateControlContext();
 
-		Map<String, Object> helperUtilities =
-			templateContextHelper.getHelperUtilities(restricted);
+		AccessControlContext accessControlContext =
+			templateControlContext.getAccessControlContext();
 
-		return AccessController.doPrivileged(
+		ClassLoader classLoader = templateControlContext.getClassLoader();
+
+		if (accessControlContext == null) {
+			Map<String, Object> helperUtilities =
+				templateContextHelper.getHelperUtilities(
+					classLoader, restricted);
+
+			return doGetTemplate(
+				templateResource, errorTemplateResource, restricted,
+				helperUtilities, false);
+		}
+
+		Map<String, Object> helperUtilities = AccessController.doPrivileged(
+			new DoGetHelperUtilitiesPrivilegedAction(
+				templateContextHelper, classLoader, restricted),
+			accessControlContext);
+
+		Template template = AccessController.doPrivileged(
 			new DoGetTemplatePrivilegedAction(
 				templateResource, errorTemplateResource, restricted,
 				helperUtilities));
+
+		return new PrivilegedTemplateWrapper(accessControlContext, template);
+	}
+
+	public void setTemplateContextHelper(
+		TemplateContextHelper templateContextHelper) {
+
+		this.templateContextHelper = templateContextHelper;
 	}
 
 	protected abstract Template doGetTemplate(
 		TemplateResource templateResource,
 		TemplateResource errorTemplateResource, boolean restricted,
-		Map<String, Object> helperUtilities);
+		Map<String, Object> helperUtilities, boolean privileged);
 
-	protected abstract TemplateContextHelper getTemplateContextHelper();
+	protected TemplateContextHelper templateContextHelper;
+
+	private class DoGetHelperUtilitiesPrivilegedAction
+		implements PrivilegedAction<Map<String, Object>> {
+
+		public DoGetHelperUtilitiesPrivilegedAction(
+			TemplateContextHelper templateContextHelper,
+			ClassLoader classLoader, boolean restricted) {
+
+			_templateContextHelper = templateContextHelper;
+			_classLoader = classLoader;
+			_restricted = restricted;
+		}
+
+		@Override
+		public Map<String, Object> run() {
+			return _templateContextHelper.getHelperUtilities(
+				_classLoader, _restricted);
+		}
+
+		private ClassLoader _classLoader;
+		private boolean _restricted;
+		private TemplateContextHelper _templateContextHelper;
+
+	}
 
 	private class DoGetTemplatePrivilegedAction
 		implements PrivilegedAction<Template> {
@@ -80,7 +130,7 @@ public abstract class BaseTemplateManager implements TemplateManager {
 		public Template run() {
 			return doGetTemplate(
 				_templateResource, _errorTemplateResource, _restricted,
-				_helperUtilities);
+				_helperUtilities, true);
 		}
 
 		private TemplateResource _errorTemplateResource;

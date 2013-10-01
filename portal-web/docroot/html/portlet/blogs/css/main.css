@@ -58,7 +58,6 @@
 
 	.entry-title {
 		display: block;
-		font-size: 1.5em;
 		font-weight: bold;
 		margin-bottom: 0.5em;
 	}
@@ -143,6 +142,14 @@
 
 	.taglib-ratings.stars {
 		margin-top: 0.5em;
+	}
+
+	.form-search:after {
+		clear: both;
+		content: ".";
+		display: block;
+		height: 0;
+		visibility: hidden;
 	}
 
 	#blogsCommentsPanelContainer {

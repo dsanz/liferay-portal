@@ -38,8 +38,6 @@
 				monthParam="schedulerStartDateMonth"
 				monthValue="<%= cal.get(Calendar.MONTH) %>"
 				yearParam="schedulerStartDateYear"
-				yearRangeEnd="<%= cal.get(Calendar.YEAR) + 5 %>"
-				yearRangeStart="<%= cal.get(Calendar.YEAR) %>"
 				yearValue="<%= cal.get(Calendar.YEAR) %>"
 			/>
 
@@ -50,7 +48,6 @@
 				amPmValue="<%= cal.get(Calendar.AM_PM) %>"
 				hourParam="schedulerStartDateHour"
 				hourValue="<%= hour %>"
-				minuteInterval="<%= 1 %>"
 				minuteParam="schedulerStartDateMinute"
 				minuteValue="<%= cal.get(Calendar.MINUTE) %>"
 			/>
@@ -58,13 +55,10 @@
 	</aui:field-wrapper>
 
 	<aui:field-wrapper label="end-date">
-		<div class="field-row">
-			<aui:input checked="<%= true %>" label="no-end-date" name="endDateType" type="radio" value="0" />
-		</div>
+		<aui:input checked="<%= true %>" id="schedulerNoEndDate" label="no-end-date" name="endDateType" type="radio" value="0" />
+		<aui:input first="<%= true %>" id="schedulerEndBy" label="end-by" name="endDateType" type="radio" value="1" />
 
-		<div class="field-row">
-			<aui:input first="<%= true %>" inlineField="<%= true %>" label="end-by" name="endDateType" type="radio" value="1" />
-
+		<div class="field-row hide" id="<portlet:namespace />schedulerEndDateType">
 			<liferay-ui:input-date
 				dayParam="schedulerEndDateDay"
 				dayValue="<%= cal.get(Calendar.DATE) %>"
@@ -73,8 +67,6 @@
 				monthParam="schedulerEndDateMonth"
 				monthValue="<%= cal.get(Calendar.MONTH) %>"
 				yearParam="schedulerEndDateYear"
-				yearRangeEnd="<%= cal.get(Calendar.YEAR) + 5 %>"
-				yearRangeStart="<%= cal.get(Calendar.YEAR) %>"
 				yearValue="<%= cal.get(Calendar.YEAR) %>"
 			/>
 
@@ -85,12 +77,10 @@
 				amPmValue="<%= cal.get(Calendar.AM_PM) %>"
 				hourParam="schedulerEndDateHour"
 				hourValue="<%= hour %>"
-				minuteInterval="<%= 1 %>"
 				minuteParam="schedulerEndDateMinute"
 				minuteValue="<%= cal.get(Calendar.MINUTE) %>"
 			/>
 		</div>
-
 	</aui:field-wrapper>
 </aui:fieldset>
 
@@ -106,4 +96,7 @@
 
 		document.getElementById(id).style.display = "block";
 	}
+
+	Liferay.Util.toggleRadio('<portlet:namespace />schedulerEndBy', '<portlet:namespace />schedulerEndDateType');
+	Liferay.Util.toggleRadio('<portlet:namespace />schedulerNoEndDate', '', ['<portlet:namespace />schedulerEndDateType']);
 </aui:script>

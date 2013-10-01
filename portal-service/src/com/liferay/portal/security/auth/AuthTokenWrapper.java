@@ -45,6 +45,15 @@ public class AuthTokenWrapper implements AuthToken {
 		return _authToken.getToken(request, plid, portletId);
 	}
 
+	@Override
+	public boolean isValidPortletInvocationToken(
+		HttpServletRequest request, long plid, String portletId,
+		String strutsAction, String tokenValue) {
+
+		return _authToken.isValidPortletInvocationToken(
+			request, plid, portletId, strutsAction, tokenValue);
+	}
+
 	public void setAuthToken(AuthToken authToken) {
 		if (authToken == null) {
 			_authToken = _originalAuthToken;

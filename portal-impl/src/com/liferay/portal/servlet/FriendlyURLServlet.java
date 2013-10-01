@@ -99,8 +99,13 @@ public class FriendlyURLServlet extends HttpServlet {
 
 		String pathInfo = request.getPathInfo();
 
-		request.setAttribute(
-			WebKeys.FRIENDLY_URL, _friendlyURLPathPrefix.concat(pathInfo));
+		String friendlyURL = _friendlyURLPathPrefix;
+
+		if (Validator.isNotNull(pathInfo)) {
+			friendlyURL = friendlyURL.concat(pathInfo);
+		}
+
+		request.setAttribute(WebKeys.FRIENDLY_URL, friendlyURL);
 
 		Object[] redirectArray = null;
 
@@ -284,17 +289,20 @@ public class FriendlyURLServlet extends HttpServlet {
 
 			pos = friendlyURL.indexOf(Portal.FRIENDLY_URL_SEPARATOR);
 
-			if (pos != -1) {
-				friendlyURL = friendlyURL.substring(0, pos);
-			}
+			if (pos != 0) {
+				if (pos != -1) {
+					friendlyURL = friendlyURL.substring(0, pos);
+				}
 
-			if (!friendlyURL.startsWith(layout.getFriendlyURL(locale))) {
-				setAlternativeLayoutFriendlyURL(request, layout, friendlyURL);
+				if (!friendlyURL.equals(layout.getFriendlyURL(locale))) {
+					setAlternativeLayoutFriendlyURL(
+						request, layout, friendlyURL);
 
-				String redirect = PortalUtil.getLocalizedFriendlyURL(
-					request, layout, locale);
+					String redirect = PortalUtil.getLocalizedFriendlyURL(
+						request, layout, locale);
 
-				return new Object[] {redirect, Boolean.TRUE};
+					return new Object[] {redirect, Boolean.TRUE};
+				}
 			}
 		}
 

@@ -14,7 +14,7 @@
  */
 --%>
 
-<c:if test="<%= !themeDisplay.isFacebook() && !themeDisplay.isStateExclusive() && !themeDisplay.isStatePopUp() && !themeDisplay.isWidget() %>">
+<c:if test="<%= !themeDisplay.isFacebook() && !themeDisplay.isStateExclusive() && !themeDisplay.isStatePopUp() && !themeDisplay.isWidget() && !(PropsValues.DOCKBAR_ADMINISTRATIVE_LINKS_SHOW_IN_POP_UP && Validator.equals(themeDisplay.getControlPanelCategory(), PortletCategoryKeys.MY)) %>">
 
 	<%
 	for (String portletId : PropsValues.LAYOUT_STATIC_PORTLETS_ALL) {
@@ -32,7 +32,7 @@
 
 <c:if test="<%= PropsValues.WEB_SERVER_DISPLAY_NODE %>">
 	<div class="alert alert-info">
-		<liferay-ui:message key="node" />: <%= PortalUtil.getComputerName().toLowerCase() %>
+		<liferay-ui:message key="node" />: <%= StringUtil.toLowerCase(PortalUtil.getComputerName()) %>
 	</div>
 </c:if>
 

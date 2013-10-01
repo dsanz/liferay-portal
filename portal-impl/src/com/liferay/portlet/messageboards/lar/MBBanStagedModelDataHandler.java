@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.messageboards.lar;
 
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.BaseStagedModelDataHandler;
 import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
@@ -23,7 +24,6 @@ import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.UserLocalServiceUtil;
-import com.liferay.portal.service.persistence.UserUtil;
 import com.liferay.portlet.messageboards.model.MBBan;
 import com.liferay.portlet.messageboards.service.MBBanLocalServiceUtil;
 
@@ -34,6 +34,19 @@ public class MBBanStagedModelDataHandler
 	extends BaseStagedModelDataHandler<MBBan> {
 
 	public static final String[] CLASS_NAMES = {MBBan.class.getName()};
+
+	@Override
+	public void deleteStagedModel(
+			String uuid, long groupId, String className, String extraData)
+		throws SystemException {
+
+		MBBan ban = MBBanLocalServiceUtil.fetchMBBanByUuidAndGroupId(
+			uuid, groupId);
+
+		if (ban != null) {
+			MBBanLocalServiceUtil.deleteBan(ban);
+		}
+	}
 
 	@Override
 	public String[] getClassNames() {
@@ -56,8 +69,7 @@ public class MBBanStagedModelDataHandler
 			PortletDataContext.REFERENCE_TYPE_DEPENDENCY_DISPOSABLE, true);
 
 		portletDataContext.addClassedModel(
-			userBanElement, ExportImportPathUtil.getModelPath(ban), ban,
-			MBPortletDataHandler.NAMESPACE);
+			userBanElement, ExportImportPathUtil.getModelPath(ban), ban);
 	}
 
 	@Override
@@ -65,8 +77,8 @@ public class MBBanStagedModelDataHandler
 			PortletDataContext portletDataContext, MBBan ban)
 		throws Exception {
 
-		User user = UserUtil.fetchByUuid_C_First(
-			ban.getBanUserUuid(), portletDataContext.getCompanyId(), null);
+		User user = UserLocalServiceUtil.fetchUserByUuidAndCompanyId(
+			ban.getBanUserUuid(), portletDataContext.getCompanyId());
 
 		if (user == null) {
 			if (_log.isWarnEnabled()) {
@@ -81,7 +93,9 @@ public class MBBanStagedModelDataHandler
 		long userId = portletDataContext.getUserId(ban.getUserUuid());
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
-			ban, MBPortletDataHandler.NAMESPACE);
+			ban);
+
+		serviceContext.setUuid(ban.getUuid());
 
 		MBBanLocalServiceUtil.addBan(userId, user.getUserId(), serviceContext);
 	}

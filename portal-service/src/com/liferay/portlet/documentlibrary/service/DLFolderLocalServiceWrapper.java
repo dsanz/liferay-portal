@@ -596,6 +596,13 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 
 	@Override
 	public com.liferay.portlet.documentlibrary.model.DLFolder fetchFolder(
+		long folderId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFolderLocalService.fetchFolder(folderId);
+	}
+
+	@Override
+	public com.liferay.portlet.documentlibrary.model.DLFolder fetchFolder(
 		long groupId, long parentFolderId, java.lang.String name)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderLocalService.fetchFolder(groupId, parentFolderId, name);
@@ -867,6 +874,13 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderLocalService.moveFolder(userId, folderId,
 			parentFolderId, serviceContext);
+	}
+
+	@Override
+	public void rebuildTree(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_dlFolderLocalService.rebuildTree(companyId);
 	}
 
 	@Override

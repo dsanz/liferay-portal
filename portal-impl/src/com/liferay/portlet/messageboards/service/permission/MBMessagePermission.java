@@ -16,10 +16,12 @@ package com.liferay.portlet.messageboards.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.kernel.workflow.permission.WorkflowPermissionUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.messageboards.NoSuchCategoryException;
 import com.liferay.portlet.messageboards.model.MBCategory;
@@ -69,10 +71,16 @@ public class MBMessagePermission {
 			String actionId)
 		throws PortalException, SystemException {
 
-		long groupId = message.getGroupId();
+		Boolean hasPermission = StagingPermissionUtil.hasPermission(
+			permissionChecker, message.getGroupId(), MBMessage.class.getName(),
+			message.getMessageId(), PortletKeys.MESSAGE_BOARDS, actionId);
+
+		if (hasPermission != null) {
+			return hasPermission.booleanValue();
+		}
 
 		if (message.isPending()) {
-			Boolean hasPermission = WorkflowPermissionUtil.hasPermission(
+			hasPermission = WorkflowPermissionUtil.hasPermission(
 				permissionChecker, message.getGroupId(),
 				message.getWorkflowClassName(), message.getMessageId(),
 				actionId);
@@ -83,41 +91,34 @@ public class MBMessagePermission {
 		}
 
 		if (MBBanLocalServiceUtil.hasBan(
-				groupId, permissionChecker.getUserId())) {
+				message.getGroupId(), permissionChecker.getUserId())) {
 
 			return false;
 		}
 
-		long categoryId = message.getCategoryId();
+		if (actionId.equals(ActionKeys.VIEW) &&
+			PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
 
-		if ((categoryId != MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) &&
-			(categoryId != MBCategoryConstants.DISCUSSION_CATEGORY_ID)) {
+			long categoryId = message.getCategoryId();
 
-			try {
-				MBCategory category = MBCategoryLocalServiceUtil.getCategory(
-					categoryId);
+			if ((categoryId !=
+					MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) &&
+				(categoryId != MBCategoryConstants.DISCUSSION_CATEGORY_ID)) {
 
-				if (PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
+				try {
+					MBCategory category =
+						MBCategoryLocalServiceUtil.getCategory(categoryId);
+
 					if (!MBCategoryPermission.contains(
-							permissionChecker, category, ActionKeys.VIEW)) {
+							permissionChecker, category, actionId)) {
 
 						return false;
 					}
-
-					if (actionId.equals(ActionKeys.VIEW)) {
-						return true;
+				}
+				catch (NoSuchCategoryException nsce) {
+					if (!message.isInTrash()) {
+						throw nsce;
 					}
-				}
-
-				if (MBCategoryPermission.contains(
-						permissionChecker, category, actionId)) {
-
-					return true;
-				}
-			}
-			catch (NoSuchCategoryException nsce) {
-				if (!message.isInTrashThread()) {
-					throw nsce;
 				}
 			}
 		}
@@ -130,8 +131,8 @@ public class MBMessagePermission {
 		}
 
 		return permissionChecker.hasPermission(
-			groupId, MBMessage.class.getName(), message.getMessageId(),
-			actionId);
+			message.getGroupId(), MBMessage.class.getName(),
+			message.getMessageId(), actionId);
 	}
 
 }

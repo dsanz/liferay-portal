@@ -15,15 +15,22 @@
 package com.liferay.portlet.messageboards.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.ContainerModel;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
@@ -33,6 +40,8 @@ import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
 import com.liferay.portlet.messageboards.model.MBThread;
 import com.liferay.portlet.messageboards.model.MBThreadModel;
 import com.liferay.portlet.messageboards.model.MBThreadSoap;
+import com.liferay.portlet.trash.model.TrashEntry;
+import com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil;
 
 import java.io.Serializable;
 
@@ -366,8 +375,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -390,8 +399,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		return GetterUtil.getString(_originalUuid);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getThreadId() {
 		return _threadId;
 	}
@@ -401,8 +410,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		_threadId = threadId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
@@ -424,8 +433,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		return _originalGroupId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -447,8 +456,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		return _originalCompanyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -468,8 +477,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		_userUuid = userUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -484,8 +493,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		_userName = userName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -495,8 +504,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -506,8 +515,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		_modifiedDate = modifiedDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCategoryId() {
 		return _categoryId;
 	}
@@ -529,8 +538,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		return _originalCategoryId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getRootMessageId() {
 		return _rootMessageId;
 	}
@@ -552,8 +561,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		return _originalRootMessageId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getRootMessageUserId() {
 		return _rootMessageUserId;
 	}
@@ -574,8 +583,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		_rootMessageUserUuid = rootMessageUserUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getMessageCount() {
 		return _messageCount;
 	}
@@ -585,8 +594,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		_messageCount = messageCount;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getViewCount() {
 		return _viewCount;
 	}
@@ -596,8 +605,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		_viewCount = viewCount;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getLastPostByUserId() {
 		return _lastPostByUserId;
 	}
@@ -618,8 +627,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		_lastPostByUserUuid = lastPostByUserUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getLastPostDate() {
 		return _lastPostDate;
 	}
@@ -639,8 +648,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		return _originalLastPostDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public double getPriority() {
 		return _priority;
 	}
@@ -662,8 +671,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		return _originalPriority;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getQuestion() {
 		return _question;
 	}
@@ -678,8 +687,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		_question = question;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getStatus() {
 		return _status;
 	}
@@ -701,8 +710,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		return _originalStatus;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getStatusByUserId() {
 		return _statusByUserId;
 	}
@@ -723,8 +732,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		_statusByUserUuid = statusByUserUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getStatusByUserName() {
 		if (_statusByUserName == null) {
 			return StringPool.BLANK;
@@ -739,8 +748,8 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		_statusByUserName = statusByUserName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getStatusDate() {
 		return _statusDate;
 	}
@@ -773,6 +782,96 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 	@Override
 	public String getContainerModelName() {
 		return String.valueOf(getContainerModelId());
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(PortalUtil.getClassNameId(
+				MBThread.class.getName()));
+	}
+
+	@Override
+	public TrashEntry getTrashEntry() throws PortalException, SystemException {
+		if (!isInTrash() && !isInTrashContainer()) {
+			return null;
+		}
+
+		TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(),
+				getTrashEntryClassPK());
+
+		if (trashEntry != null) {
+			return trashEntry;
+		}
+
+		TrashHandler trashHandler = getTrashHandler();
+
+		if (!Validator.isNull(trashHandler.getContainerModelClassName())) {
+			ContainerModel containerModel = trashHandler.getParentContainerModel(this);
+
+			while (containerModel != null) {
+				if (containerModel instanceof TrashedModel) {
+					TrashedModel trashedModel = (TrashedModel)containerModel;
+
+					return trashedModel.getTrashEntry();
+				}
+
+				trashHandler = TrashHandlerRegistryUtil.getTrashHandler(trashHandler.getContainerModelClassName());
+
+				if (trashHandler == null) {
+					return null;
+				}
+
+				containerModel = trashHandler.getContainerModel(containerModel.getParentContainerModelId());
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public long getTrashEntryClassPK() {
+		return getPrimaryKey();
+	}
+
+	@Override
+	public TrashHandler getTrashHandler() {
+		return TrashHandlerRegistryUtil.getTrashHandler(getModelClassName());
+	}
+
+	@Override
+	public boolean isInTrash() {
+		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean isInTrashContainer() {
+		TrashHandler trashHandler = getTrashHandler();
+
+		if ((trashHandler == null) ||
+				Validator.isNull(trashHandler.getContainerModelClassName())) {
+			return false;
+		}
+
+		try {
+			ContainerModel containerModel = trashHandler.getParentContainerModel(this);
+
+			if (containerModel == null) {
+				return false;
+			}
+
+			if (containerModel instanceof TrashedModel) {
+				return ((TrashedModel)containerModel).isInTrash();
+			}
+		}
+		catch (Exception e) {
+		}
+
+		return false;
 	}
 
 	/**
@@ -836,16 +935,6 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 	@Override
 	public boolean isIncomplete() {
 		if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	@Override
-	public boolean isInTrash() {
-		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
 			return true;
 		}
 		else {

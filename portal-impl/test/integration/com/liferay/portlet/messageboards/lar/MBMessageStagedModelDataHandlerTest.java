@@ -17,7 +17,7 @@ package com.liferay.portlet.messageboards.lar;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.lar.BaseStagedModelDataHandlerTestCase;
+import com.liferay.portal.lar.BaseWorkflowedStagedModelDataHandlerTestCase;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
@@ -31,6 +31,7 @@ import com.liferay.portlet.messageboards.util.MBTestUtil;
 
 import java.io.InputStream;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +49,7 @@ import org.junit.runner.RunWith;
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class MBMessageStagedModelDataHandlerTest
-	extends BaseStagedModelDataHandlerTestCase {
+	extends BaseWorkflowedStagedModelDataHandlerTestCase {
 
 	@Override
 	protected Map<String, List<StagedModel>> addDependentStagedModelsMap(
@@ -87,6 +88,21 @@ public class MBMessageStagedModelDataHandlerTest
 	}
 
 	@Override
+	protected List<StagedModel> addWorkflowedStagedModels(Group group)
+		throws Exception {
+
+		List<StagedModel> stagedModels = new ArrayList<StagedModel>();
+
+		stagedModels.add(
+			MBTestUtil.addMessageWithWorkflow(group.getGroupId(), true));
+
+		stagedModels.add(
+			MBTestUtil.addMessageWithWorkflow(group.getGroupId(), false));
+
+		return stagedModels;
+	}
+
+	@Override
 	protected StagedModel getStagedModel(String uuid, Group group) {
 		try {
 			return MBMessageLocalServiceUtil.getMBMessageByUuidAndGroupId(
@@ -121,12 +137,13 @@ public class MBMessageStagedModelDataHandlerTest
 
 	@Override
 	protected void validateImport(
-			StagedModel stagedModel,
+			StagedModel stagedModel, StagedModelAssets stagedModelAssets,
 			Map<String, List<StagedModel>> dependentStagedModelsMap,
 			Group group)
 		throws Exception {
 
-		super.validateImport(stagedModel, dependentStagedModelsMap, group);
+		super.validateImport(
+			stagedModel, stagedModelAssets, dependentStagedModelsMap, group);
 
 		MBMessage importedMessage = (MBMessage)getStagedModel(
 			stagedModel.getUuid(), group);

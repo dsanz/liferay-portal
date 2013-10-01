@@ -33,27 +33,36 @@ import java.util.List;
 public class SQLSourceProcessor extends BaseSourceProcessor {
 
 	@Override
-	protected void doFormat() throws Exception {
+	protected void format() throws Exception {
 		String[] includes = new String[] {"**\\sql\\*.sql"};
 
 		List<String> fileNames = getFileNames(new String[0], includes);
 
 		for (String fileName : fileNames) {
-			File file = new File(BASEDIR + fileName);
-
-			String content = fileUtil.read(file);
-
-			String newContent = formatSQL(content);
-
-			if ((newContent != null) && !content.equals(newContent)) {
-				fileUtil.write(file, newContent);
-
-				fileName = StringUtil.replace(
-					fileName, StringPool.BACK_SLASH, StringPool.SLASH);
-
-				sourceFormatterHelper.printError(fileName, file);
-			}
+			format(fileName);
 		}
+	}
+
+	@Override
+	protected String format(String fileName) throws Exception {
+		File file = new File(BASEDIR + fileName);
+
+		String content = fileUtil.read(file);
+
+		String newContent = formatSQL(content);
+
+		if (isAutoFix() && (newContent != null) &&
+			!content.equals(newContent)) {
+
+			fileUtil.write(file, newContent);
+
+			fileName = StringUtil.replace(
+				fileName, StringPool.BACK_SLASH, StringPool.SLASH);
+
+			sourceFormatterHelper.printError(fileName, file);
+		}
+
+		return newContent;
 	}
 
 	protected String formatSQL(String content) throws IOException {
@@ -82,6 +91,13 @@ public class SQLSourceProcessor extends BaseSourceProcessor {
 			}
 			else {
 				previousLineSqlCommand = StringPool.BLANK;
+			}
+
+			String strippedQuotesLine = stripQuotes(line, CharPool.APOSTROPHE);
+
+			if (strippedQuotesLine.contains(StringPool.QUOTE)) {
+				line = StringUtil.replace(
+					line, StringPool.QUOTE, StringPool.APOSTROPHE);
 			}
 
 			sb.append(line);

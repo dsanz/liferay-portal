@@ -47,7 +47,6 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
-import com.liferay.portlet.asset.NoSuchCategoryException;
 import com.liferay.portlet.asset.NoSuchTagException;
 import com.liferay.portlet.asset.model.AssetCategory;
 import com.liferay.portlet.asset.model.AssetCategoryProperty;
@@ -296,6 +295,7 @@ public class AssetUtil {
 
 			redirectURL.setParameter(
 				"struts_action", "/asset_publisher/add_asset_redirect");
+			redirectURL.setParameter("redirect", themeDisplay.getURLCurrent());
 			redirectURL.setWindowState(LiferayWindowState.POP_UP);
 
 			redirect = redirectURL.toString();
@@ -432,20 +432,19 @@ public class AssetUtil {
 		if (Validator.isNull(word)) {
 			return false;
 		}
-		else {
-			char[] wordCharArray = word.toCharArray();
 
-			for (char c : wordCharArray) {
-				for (char invalidChar : INVALID_CHARACTERS) {
-					if (c == invalidChar) {
-						if (_log.isDebugEnabled()) {
-							_log.debug(
-								"Word " + word + " is not valid because " + c +
-									" is not allowed");
-						}
+		char[] wordCharArray = word.toCharArray();
 
-						return false;
+		for (char c : wordCharArray) {
+			for (char invalidChar : INVALID_CHARACTERS) {
+				if (c == invalidChar) {
+					if (_log.isDebugEnabled()) {
+						_log.debug(
+							"Word " + word + " is not valid because " + c +
+								" is not allowed");
 					}
+
+					return false;
 				}
 			}
 		}
@@ -520,19 +519,14 @@ public class AssetUtil {
 
 	public static String substituteCategoryPropertyVariables(
 			long groupId, long categoryId, String s)
-		throws PortalException, SystemException {
+		throws SystemException {
 
 		String result = s;
 
 		AssetCategory category = null;
 
 		if (categoryId > 0) {
-			try {
-				category = AssetCategoryLocalServiceUtil.getCategory(
-					categoryId);
-			}
-			catch (NoSuchCategoryException nsce) {
-			}
+			category = AssetCategoryLocalServiceUtil.fetchCategory(categoryId);
 		}
 
 		if (category != null) {
@@ -585,23 +579,22 @@ public class AssetUtil {
 		if (Validator.isNull(text)) {
 			return text;
 		}
-		else {
-			char[] textCharArray = text.toCharArray();
 
-			for (int i = 0; i < textCharArray.length; i++) {
-				char c = textCharArray[i];
+		char[] textCharArray = text.toCharArray();
 
-				for (char invalidChar : INVALID_CHARACTERS) {
-					if (c == invalidChar) {
-						textCharArray[i] = CharPool.SPACE;
+		for (int i = 0; i < textCharArray.length; i++) {
+			char c = textCharArray[i];
 
-						break;
-					}
+			for (char invalidChar : INVALID_CHARACTERS) {
+				if (c == invalidChar) {
+					textCharArray[i] = CharPool.SPACE;
+
+					break;
 				}
 			}
-
-			return new String(textCharArray);
 		}
+
+		return new String(textCharArray);
 	}
 
 	protected static Sort getSort(
@@ -642,7 +635,8 @@ public class AssetUtil {
 		}
 
 		return new Sort(
-			sortField, sortType, !orderByType.equalsIgnoreCase("asc"));
+			sortField, sortType,
+			!StringUtil.equalsIgnoreCase(orderByType, "asc"));
 	}
 
 	protected static Sort[] getSorts(

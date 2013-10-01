@@ -26,12 +26,6 @@ portletURL.setParameter("struts_action", "/document_library/view_file_entry_type
 
 <liferay-ui:error exception="<%= RequiredStructureException.class %>" message="cannot-delete-a-document-type-that-is-presently-used-by-one-or-more-documents" />
 
-<aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
-	<liferay-ui:search-form
-		page="/html/portlet/document_library/file_entry_type_search.jsp"
-	/>
-</aui:form>
-
 <div class="separator"></div>
 
 <liferay-ui:search-container
@@ -61,16 +55,10 @@ portletURL.setParameter("struts_action", "/document_library/view_file_entry_type
 			value="<%= LanguageUtil.get(pageContext, group.getScopeLabel(themeDisplay)) %>"
 		/>
 
-		<liferay-ui:search-container-column-text
-			buffer="buffer"
+		<liferay-ui:search-container-column-date
 			name="modified-date"
-		>
-
-			<%
-			buffer.append(dateFormatDateTime.format(fileEntryType.getModifiedDate()));
-			%>
-
-		</liferay-ui:search-container-column-text>
+			value="<%= fileEntryType.getModifiedDate() %>"
+		/>
 
 		<liferay-ui:search-container-column-jsp
 			align="right"

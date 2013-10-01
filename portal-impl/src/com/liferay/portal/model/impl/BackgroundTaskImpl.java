@@ -14,6 +14,7 @@
 
 package com.liferay.portal.model.impl;
 
+import com.liferay.portal.kernel.backgroundtask.BackgroundTaskConstants;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -144,6 +145,11 @@ public class BackgroundTaskImpl extends BackgroundTaskBaseImpl {
 	}
 
 	@Override
+	public String getStatusLabel() {
+		return BackgroundTaskConstants.getStatusLabel(getStatus());
+	}
+
+	@Override
 	public Map<String, Serializable> getTaskContextMap() {
 		if (_taskContextMap != null) {
 			return _taskContextMap;
@@ -155,6 +161,15 @@ public class BackgroundTaskImpl extends BackgroundTaskBaseImpl {
 			(Map<String, Serializable>)JSONFactoryUtil.deserialize(taskContext);
 
 		return _taskContextMap;
+	}
+
+	@Override
+	public boolean isInProgress() {
+		if (getStatus() == BackgroundTaskConstants.STATUS_IN_PROGRESS) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private long _attachmentsFolderId;

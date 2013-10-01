@@ -1062,6 +1062,10 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByActive(active);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Country> list = findByActive(active, count - 1, count,
 				orderByComparator);
 
@@ -1285,6 +1289,10 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	}
 
 	private static final String _FINDER_COLUMN_ACTIVE_ACTIVE_2 = "country.active = ?";
+
+	public CountryPersistenceImpl() {
+		setModelClass(Country.class);
+	}
 
 	/**
 	 * Caches the country in the entity cache if it is enabled.

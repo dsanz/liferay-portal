@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DiffHtmlUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -136,6 +137,8 @@ public class WikiUtil {
 		for (WikiPage page : pages) {
 			for (Map<String, Boolean> pageTitle : pageTitles) {
 				String pageTitleLowerCase = page.getTitle();
+
+				pageTitleLowerCase = StringUtil.toLowerCase(pageTitleLowerCase);
 
 				if (pageTitle.get(pageTitleLowerCase) != null) {
 					notOrphans.add(page);
@@ -511,7 +514,7 @@ public class WikiUtil {
 	public static List<WikiNode> orderNodes(
 		List<WikiNode> nodes, String[] visibleNodeNames) {
 
-		if ((visibleNodeNames == null) || (visibleNodeNames.length == 0)) {
+		if (ArrayUtil.isEmpty(visibleNodeNames)) {
 			return nodes;
 		}
 

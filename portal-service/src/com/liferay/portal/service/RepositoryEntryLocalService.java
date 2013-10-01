@@ -304,6 +304,11 @@ public interface RepositoryEntryLocalService extends BaseLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.RepositoryEntry> getRepositoryEntries(
+		long repositoryId)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
 	public com.liferay.portal.model.RepositoryEntry updateRepositoryEntry(
 		long repositoryEntryId, java.lang.String mappedId)
 		throws com.liferay.portal.kernel.exception.PortalException,

@@ -196,7 +196,7 @@ if (selUser != null) {
 
 <portlet:renderURL var="editUserRenderURL">
 	<portlet:param name="struts_action" value="/users_admin/edit_user" />
-	<portlet:param name="backURL" value="<%= backURL %>"></portlet:param>
+	<portlet:param name="backURL" value="<%= backURL %>" />
 </portlet:renderURL>
 
 <aui:form action="<%= editUserActionURL %>" method="post" name="fm">
@@ -283,9 +283,11 @@ if (selUser != null) {
 		return '<a href="' + href + '"' + (onclick ? ' onclick="' + onclick + '" ' : '') + '>' + value + '</a>';
 	};
 
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />screenName);
-	</c:if>
+	function <portlet:namespace />saveUser(cmd) {
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = cmd;
+
+		submitForm(document.<portlet:namespace />fm);
+	}
 </aui:script>
 
 <%!

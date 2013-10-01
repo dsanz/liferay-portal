@@ -18,6 +18,7 @@
 
 <%@ page import="com.liferay.portal.kernel.language.LanguageUtil" %>
 <%@ page import="com.liferay.portal.kernel.parsers.bbcode.BBCodeTranslatorUtil" %>
+<%@ page import="com.liferay.portal.kernel.util.ContentTypes" %>
 <%@ page import="com.liferay.portal.kernel.util.HtmlUtil" %>
 <%@ page import="com.liferay.portal.kernel.util.LocaleUtil" %>
 <%@ page import="com.liferay.portal.kernel.util.ParamUtil" %>
@@ -34,6 +35,8 @@ String imagesPath = ParamUtil.getString(request, "imagesPath");
 String languageId = ParamUtil.getString(request, "languageId");
 String emoticonsPath = ParamUtil.getString(request, "emoticonsPath");
 boolean resizable = ParamUtil.getBoolean(request, "resizable");
+
+response.setContentType(ContentTypes.TEXT_JAVASCRIPT);
 %>
 
 CKEDITOR.config.height = 265;
@@ -54,7 +57,8 @@ CKEDITOR.config.removePlugins = [
 	'print',
 	'save',
 	'showblocks',
-	'templates'
+	'templates',
+	'video'
 ].join(',');
 
 CKEDITOR.config.toolbar_bbcode = [
@@ -63,6 +67,20 @@ CKEDITOR.config.toolbar_bbcode = [
 	['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'Blockquote', '-', 'Code'],
 	'/',
 	['Font', 'FontSize', '-', 'Format', '-', 'Undo', 'Redo', '-', 'Source']
+];
+
+CKEDITOR.config.toolbar_phone = [
+	['Bold', 'Italic', 'Underline'],
+	['NumberedList', 'BulletedList'],
+	['Image', 'Link', 'Unlink']
+];
+
+CKEDITOR.config.toolbar_tablet = [
+	['Bold', 'Italic', 'Underline', 'Strike'],
+	['NumberedList', 'BulletedList'],
+	['Image', 'Link', 'Unlink'],
+	['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+	['Styles', 'FontSize']
 ];
 
 CKEDITOR.config.bodyClass = 'html-editor <%= HtmlUtil.escapeJS(cssClasses) %>';

@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 
-<project name="build-common" xmlns:antelope="antlib:ise.antelope.tasks">
+<project name="build-common"
+	xmlns:antelope="antlib:ise.antelope.tasks"
+	xmlns:artifact="antlib:org.apache.maven.artifact.ant"
+>
 	<dirname file="${ant.file.build-common}" property="project.dir" />
 
 	<property name="test.properties" value="com/liferay/portal/tools/dependencies/portal-tools.properties" />
@@ -55,7 +58,7 @@
 	<path id="test.classpath">
 		<pathelement path="test-classes/${test.type}" />
 		<pathelement path="${classpath}" />
-		<fileset dir="${project.dir}/lib/development" includes="*.jar" excludes="jetty*.jar,tomcat*.jar" />
+		<fileset dir="${project.dir}/lib/development" includes="*.jar" excludes="jalopy.jar,jetty*.jar,tomcat*.jar" />
 		<fileset dir="${project.dir}/lib/global" includes="*.jar" />
 		<fileset dir="${project.dir}/lib/portal" includes="*.jar" excludes="ant.jar" />
 		<fileset dir="${project.dir}/osgi/lib/common/core" includes="*.jar" />
@@ -68,11 +71,12 @@
 		<path refid="web-lib.classpath" />
 	</path>
 
-	<taskdef classpathref="lib.classpath" resource="net/sf/antcontrib/antlib.xml" />
-	<taskdef classpathref="lib.classpath" resource="axis-tasks.properties" />
-	<taskdef classpathref="lib.classpath" resource="ise/antelope/tasks/antlib.xml" uri="antlib:ise.antelope.tasks" />
 	<taskdef classpathref="lib.classpath" resource="aQute/bnd/ant/taskdef.properties" />
+	<taskdef classpathref="lib.classpath" resource="axis-tasks.properties" />
 	<taskdef classpathref="lib.classpath" resource="com/orangevolt/tools/ant/taskdefs.properties" />
+	<taskdef classpathref="lib.classpath" resource="ise/antelope/tasks/antlib.xml" uri="antlib:ise.antelope.tasks" />
+	<taskdef classpathref="lib.classpath" resource="net/sf/antcontrib/antlib.xml" />
+	<typedef classpathref="lib.classpath" resource="org/apache/maven/artifact/ant/antlib.xml" uri="antlib:org.apache.maven.artifact.ant" />
 	<taskdef classpathref="lib.classpath" resource="tasks.properties" />
 
 	<taskdef classname="com.tonicsystems.jarjar.JarJarTask" classpath="${project.dir}/lib/development/jarjar.jar" name="jarjar" />
@@ -519,31 +523,21 @@ Please set the environment variable ANT_OPTS to the recommended value of
 	</target>
 
 	<target name="format-javadoc">
-		<if>
-			<not>
-				<contains string="${java.version}" substring="1.6" casesensitive="false" />
-			</not>
-			<then>
-				<fail>Use JDK 6 to compile and run this target.</fail>
-			</then>
-			<else>
-				<echo>Run "ant compile compile-test" before using format-javadoc to generate @Override tags.</echo>
+		<echo>Run "ant compile compile-test" before using format-javadoc to generate @Override tags.</echo>
 
-				<java
-					classname="com.liferay.portal.tools.JavadocFormatter"
-					classpathref="project.classpath"
-					fork="true"
-					newenvironment="true"
-				>
-					<jvmarg value="-Xmx1024m" />
-					<arg value="javadoc.init=${init}" />
-					<arg value="javadoc.input.dir=${input.dir}" />
-					<arg value="javadoc.limit=${limit}" />
-					<arg value="javadoc.output.file.prefix=${output.file.prefix}" />
-					<arg value="javadoc.update=${update}" />
-				</java>
-			</else>
-		</if>
+		<java
+			classname="com.liferay.portal.tools.JavadocFormatter"
+			classpathref="project.classpath"
+			fork="true"
+			newenvironment="true"
+		>
+			<jvmarg value="-Xmx1024m" />
+			<arg value="javadoc.init=${init}" />
+			<arg value="javadoc.input.dir=${input.dir}" />
+			<arg value="javadoc.limit=${limit}" />
+			<arg value="javadoc.output.file.prefix=${output.file.prefix}" />
+			<arg value="javadoc.update=${update}" />
+		</java>
 	</target>
 
 	<target name="print-current-time">
@@ -552,6 +546,10 @@ Please set the environment variable ANT_OPTS to the recommended value of
 		</tstamp>
 
 		<echo message="${current.time}" />
+	</target>
+
+	<target name="print-properties">
+		<echoproperties />
 	</target>
 
 	<target name="report-test-coverage">
@@ -719,44 +717,56 @@ Please set the environment variable ANT_OPTS to the recommended value of
 
 	<target name="test-class" depends="compile,compile-test">
 		<if>
-			<available file="test/functional" type="dir" />
+			<not>
+				<isset property="test.type" />
+			</not>
 			<then>
-				<resourcecount property="test.functional.count">
-					<fileset dir="test-classes/functional" includes="**/${class}.class" />
-				</resourcecount>
-			</then>
-		</if>
+				<if>
+					<available file="test/functional" type="dir" />
+					<then>
+						<resourcecount property="test.functional.count">
+							<fileset dir="test-classes/functional" includes="**/${test.class}.class" />
+						</resourcecount>
+					</then>
+				</if>
 
-		<if>
-			<available file="test/functional-generated" type="dir" />
-			<then>
-				<resourcecount property="test.functional-generated.count">
-					<fileset dir="test-classes/functional-generated" includes="**/${class}.class" />
-				</resourcecount>
-			</then>
-		</if>
+				<if>
+					<available file="test/functional-generated" type="dir" />
+					<then>
+						<resourcecount property="test.functional-generated.count">
+							<fileset dir="test-classes/functional-generated" includes="**/${test.class}.class" />
+						</resourcecount>
+					</then>
+				</if>
 
-		<if>
-			<available file="test/integration" type="dir" />
-			<then>
-				<resourcecount property="test.integration.count">
-					<fileset dir="test-classes/integration" includes="**/${class}.class" />
-				</resourcecount>
-			</then>
-		</if>
+				<if>
+					<available file="test/integration" type="dir" />
+					<then>
+						<resourcecount property="test.integration.count">
+							<fileset dir="test-classes/integration" includes="**/${test.class}.class" />
+						</resourcecount>
+					</then>
+				</if>
 
-		<if>
-			<available file="test/unit" type="dir" />
-			<then>
-				<resourcecount property="test.unit.count">
-					<fileset dir="test-classes/unit" includes="**/${class}.class" />
-				</resourcecount>
+				<if>
+					<available file="test/unit" type="dir" />
+					<then>
+						<resourcecount property="test.unit.count">
+							<fileset dir="test-classes/unit" includes="**/${test.class}.class" />
+						</resourcecount>
+					</then>
+				</if>
 			</then>
+			<else>
+				<resourcecount property="test.${test.type}.count">
+					<fileset dir="test-classes/${test.type}" includes="**/${test.class}.class" />
+				</resourcecount>
+			</else>
 		</if>
 
 		<if>
 			<and>
-				<isset property="test.functional.count"/>
+				<isset property="test.functional.count" />
 				<not>
 					<equals arg1="${test.functional.count}" arg2="0" />
 				</not>
@@ -766,7 +776,7 @@ Please set the environment variable ANT_OPTS to the recommended value of
 			</then>
 			<elseif>
 				<and>
-					<isset property="test.functional-generated.count"/>
+					<isset property="test.functional-generated.count" />
 					<not>
 						<equals arg1="${test.functional-generated.count}" arg2="0" />
 					</not>
@@ -778,7 +788,7 @@ Please set the environment variable ANT_OPTS to the recommended value of
 			</elseif>
 			<elseif>
 				<and>
-					<isset property="test.integration.count"/>
+					<isset property="test.integration.count" />
 					<not>
 						<equals arg1="${test.integration.count}" arg2="0" />
 					</not>
@@ -789,7 +799,7 @@ Please set the environment variable ANT_OPTS to the recommended value of
 			</elseif>
 			<elseif>
 				<and>
-					<isset property="test.unit.count"/>
+					<isset property="test.unit.count" />
 					<not>
 						<equals arg1="${test.unit.count}" arg2="0" />
 					</not>
@@ -801,17 +811,17 @@ Please set the environment variable ANT_OPTS to the recommended value of
 			<else>
 				<if>
 					<not>
-						<isset property="class" />
+						<isset property="test.class" />
 					</not>
 					<then>
-						<fail>Missing class argument. Use "ant test-class -Dclass=TestClassName".</fail>
+						<fail>Use "ant test-class -Dtest.class=StringUtilTest".</fail>
 					</then>
 					<elseif>
 						<not>
 							<isset property="test.type" />
 						</not>
 						<then>
-							<fail>Class ${class} cannot be found.</fail>
+							<fail>Test class ${test.class} cannot be found.</fail>
 						</then>
 					</elseif>
 				</if>
@@ -860,7 +870,7 @@ Please set the environment variable ANT_OPTS to the recommended value of
 					<formatter type="brief" usefile="false" />
 					<formatter type="xml" />
 					<batchtest todir="test-results/${test.type}">
-						<fileset dir="test-classes/${test.dir}" includes="**/${class}.class">
+						<fileset dir="test-classes/${test.dir}" includes="**/${test.class}.class">
 							<exclude name="**/DLAppServiceHttpTest.class" />
 							<exclude name="**/DLAppServiceJsonTest.class" />
 							<exclude name="**/DLAppServiceSoapTest.class" />
@@ -876,7 +886,7 @@ Please set the environment variable ANT_OPTS to the recommended value of
 	</target>
 
 	<target name="test-integration" depends="compile,compile-test-integration">
-		<var name="class" value="*Test" />
+		<var name="test.class" value="*Test" />
 
 		<ant target="test-cmd">
 			<property name="junit.forkmode" value="once" />
@@ -884,7 +894,7 @@ Please set the environment variable ANT_OPTS to the recommended value of
 			<property name="test.type" value="integration" />
 		</ant>
 
-		<var name="class" value="*PersistenceTest" />
+		<var name="test.class" value="*PersistenceTest" />
 
 		<ant target="test-cmd">
 			<property name="junit.forkmode" value="once" />
@@ -897,6 +907,15 @@ Please set the environment variable ANT_OPTS to the recommended value of
 	</target>
 
 	<target name="test-method" depends="compile,compile-test">
+		<if>
+			<not>
+				<isset property="test.type" />
+			</not>
+			<then>
+				<var name="test.type" value="" />
+			</then>
+		</if>
+
 		<junit dir="${project.dir}" fork="on" forkmode="once" haltonfailure="${junit.halt.on.failure}" outputtoformatters="false" printsummary="on" showoutput="true">
 			<sysproperty key="junit.aspectj.dump" file="woven-classes" />
 			<sysproperty key="junit.cobertura.agent" value="${junit.cobertura.agent}" />
@@ -913,12 +932,31 @@ Please set the environment variable ANT_OPTS to the recommended value of
 			<jvmarg value="-Duser.timezone=GMT" />
 			<classpath location="test-coverage" />
 			<classpath refid="test.classpath" />
-			<test name="${class}" methods="${methods}"/>
+			<formatter type="brief" usefile="false" />
+			<formatter type="xml" />
+			<test name="${test.class}" methods="${test.methods}" todir="test-results/${test.type}" />
 		</junit>
 	</target>
 
+	<target name="test-package">
+		<if>
+			<not>
+				<isset property="test.package" />
+			</not>
+			<then>
+				<fail>Use "ant test-package -Dtest.package=com.liferay.portal.kernel.util".</fail>
+			</then>
+		</if>
+
+		<propertyregex property="test.class" input="${test.package}." regexp="\." replace="/" global="true" />
+
+		<ant target="test-class">
+			<property name="test.class" value="${test.class}**/*Test" />
+		</ant>
+	</target>
+
 	<target name="test-unit" depends="compile,compile-test-unit">
-		<property name="class" value="*Test" />
+		<property name="test.class" value="*Test" />
 
 		<ant target="test-cmd">
 			<property name="junit.forkmode" value="perTest" />

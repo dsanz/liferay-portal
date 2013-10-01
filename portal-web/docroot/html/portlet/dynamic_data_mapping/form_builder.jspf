@@ -17,7 +17,7 @@
 <%@ include file="/html/portlet/dynamic_data_mapping/custom_fields.jspf" %>
 
 <%
-String[] availableLanguageIds = LocalizationUtil.getAvailableLocales(script);
+String[] availableLanguageIds = LocalizationUtil.getAvailableLanguageIds(script);
 
 Locale[] availableLocales = new Locale[availableLanguageIds.length];
 
@@ -25,7 +25,7 @@ for (int i = 0; i < availableLanguageIds.length; i++) {
 	availableLocales[i] = LocaleUtil.fromLanguageId(availableLanguageIds[i]);
 }
 
-String defaultLanguageId = LocalizationUtil.getDefaultLocale(script);
+String defaultLanguageId = LocalizationUtil.getDefaultLanguageId(script);
 %>
 
 <div class="separator"><!-- --></div>
@@ -57,7 +57,7 @@ String defaultLanguageId = LocalizationUtil.getDefaultLocale(script);
 										<liferay-ui:message key="fields" />
 									</a>
 								</li>
-								<li>
+								<li class="disabled">
 									<a href="javascript:;">
 										<liferay-ui:message key="settings" />
 									</a>
@@ -95,7 +95,7 @@ for (int i = 0; i < availableLocales.length; i++) {
 
 JSONObject localesMapJSONObject = JSONFactoryUtil.createJSONObject();
 
-for (Locale availableLocale : LanguageUtil.getAvailableLocales()) {
+for (Locale availableLocale : LanguageUtil.getAvailableLocales(themeDisplay.getSiteGroupId())) {
 	localesMapJSONObject.put(LocaleUtil.toLanguageId(availableLocale), availableLocale.getDisplayName(locale));
 }
 %>

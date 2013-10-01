@@ -214,6 +214,28 @@ public class MailEngine {
 		}
 
 		try {
+			InternetAddressUtil.validateAddress(from);
+
+			if (to != null) {
+				InternetAddressUtil.validateAddresses(to);
+			}
+
+			if (cc != null) {
+				InternetAddressUtil.validateAddresses(cc);
+			}
+
+			if (bcc != null) {
+				InternetAddressUtil.validateAddresses(bcc);
+			}
+
+			if (replyTo != null) {
+				InternetAddressUtil.validateAddresses(replyTo);
+			}
+
+			if (bulkAddresses != null) {
+				InternetAddressUtil.validateAddresses(bulkAddresses);
+			}
+
 			Session session = null;
 
 			if (smtpAccount == null) {
@@ -229,7 +251,10 @@ public class MailEngine {
 				"X-Auto-Response-Suppress", "AutoReply, DR, NDR, NRN, OOF, RN");
 
 			message.setFrom(from);
-			message.setRecipients(Message.RecipientType.TO, to);
+
+			if (to != null) {
+				message.setRecipients(Message.RecipientType.TO, to);
+			}
 
 			if (cc != null) {
 				message.setRecipients(Message.RecipientType.CC, cc);
@@ -514,7 +539,7 @@ public class MailEngine {
 
 				Address[] addresses = null;
 
-				if (Validator.isNotNull(bulkAddresses)) {
+				if (ArrayUtil.isNotEmpty(bulkAddresses)) {
 					addresses = bulkAddresses;
 				}
 				else {
@@ -525,9 +550,7 @@ public class MailEngine {
 					Address[] batchAddresses = _getBatchAddresses(
 						addresses, i, batchSize);
 
-					if ((batchAddresses == null) ||
-						(batchAddresses.length == 0)) {
-
+					if (ArrayUtil.isEmpty(batchAddresses)) {
 						break;
 					}
 
@@ -537,13 +560,13 @@ public class MailEngine {
 				transport.close();
 			}
 			else {
-				if (Validator.isNotNull(bulkAddresses)) {
+				if (ArrayUtil.isNotEmpty(bulkAddresses)) {
 					int curBatch = 0;
 
 					Address[] portion = _getBatchAddresses(
 						bulkAddresses, curBatch, batchSize);
 
-					while (Validator.isNotNull(portion)) {
+					while (ArrayUtil.isNotEmpty(portion)) {
 						Transport.send(message, portion);
 
 						curBatch++;
@@ -567,8 +590,6 @@ public class MailEngine {
 				}
 			}
 			else {
-				_log.error(me.getMessage());
-
 				LogUtil.log(_log, me);
 			}
 		}

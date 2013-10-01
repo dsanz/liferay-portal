@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.model;
 
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -696,6 +698,22 @@ public class DLFileEntryTypeWrapper implements DLFileEntryType,
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _dlFileEntryType.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _dlFileEntryType.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_dlFileEntryType.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -758,6 +776,31 @@ public class DLFileEntryTypeWrapper implements DLFileEntryType,
 	@Override
 	public boolean isExportable() {
 		return _dlFileEntryType.isExportable();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DLFileEntryTypeWrapper)) {
+			return false;
+		}
+
+		DLFileEntryTypeWrapper dlFileEntryTypeWrapper = (DLFileEntryTypeWrapper)obj;
+
+		if (Validator.equals(_dlFileEntryType,
+					dlFileEntryTypeWrapper._dlFileEntryType)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _dlFileEntryType.getStagedModelType();
 	}
 
 	/**

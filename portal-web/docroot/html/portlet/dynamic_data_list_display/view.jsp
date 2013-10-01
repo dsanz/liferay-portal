@@ -31,17 +31,31 @@ try {
 
 	<c:choose>
 		<c:when test="<%= (recordSet != null) %>">
+			<c:choose>
+				<c:when test="<%= DDLRecordSetPermission.contains(permissionChecker, recordSetId, ActionKeys.VIEW) %>">
 
-			<%
-			renderRequest.setAttribute(WebKeys.DYNAMIC_DATA_LISTS_RECORD_SET, recordSet);
-			%>
+					<%
+					renderRequest.setAttribute(WebKeys.DYNAMIC_DATA_LISTS_RECORD_SET, recordSet);
+					%>
 
-			<liferay-util:include page="/html/portlet/dynamic_data_lists/view_record_set.jsp">
-				<liferay-util:param name="displayDDMTemplateId" value="<%= String.valueOf(displayDDMTemplateId) %>" />
-				<liferay-util:param name="formDDMTemplateId" value="<%= String.valueOf(formDDMTemplateId) %>" />
-				<liferay-util:param name="editable" value="<%= String.valueOf(editable) %>" />
-				<liferay-util:param name="spreadsheet" value="<%= String.valueOf(spreadsheet) %>" />
-			</liferay-util:include>
+					<liferay-util:include page="/html/portlet/dynamic_data_lists/view_record_set.jsp">
+						<liferay-util:param name="displayDDMTemplateId" value="<%= String.valueOf(displayDDMTemplateId) %>" />
+						<liferay-util:param name="formDDMTemplateId" value="<%= String.valueOf(formDDMTemplateId) %>" />
+						<liferay-util:param name="editable" value="<%= String.valueOf(editable) %>" />
+						<liferay-util:param name="spreadsheet" value="<%= String.valueOf(spreadsheet) %>" />
+					</liferay-util:include>
+				</c:when>
+				<c:otherwise>
+
+					<%
+					renderRequest.setAttribute(WebKeys.PORTLET_CONFIGURATOR_VISIBILITY, Boolean.TRUE);
+					%>
+
+					<div class="alert alert-error">
+						<liferay-ui:message key="you-do-not-have-the-roles-required-to-access-this-dynamic-data-list-record-set" />
+					</div>
+				</c:otherwise>
+			</c:choose>
 		</c:when>
 		<c:otherwise>
 
@@ -73,8 +87,8 @@ boolean hasConfigurationPermission = PortletPermissionUtil.contains(permissionCh
 
 boolean showAddListIcon = hasConfigurationPermission && DDLPermission.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_RECORD_SET);
 boolean showAddTemplateIcon = (recordSet != null) && DDMPermission.contains(permissionChecker, scopeGroupId, ddmDisplay.getResourceName(), ddmDisplay.getAddTemplateActionId());
-boolean showEditDisplayTemplateIcon = (displayDDMTemplateId != 0) && DDMTemplatePermission.contains(permissionChecker, displayDDMTemplateId, ActionKeys.UPDATE);
-boolean showEditFormTemplateIcon = (formDDMTemplateId != 0) && DDMTemplatePermission.contains(permissionChecker, formDDMTemplateId, ActionKeys.UPDATE);
+boolean showEditDisplayTemplateIcon = (displayDDMTemplateId != 0) && DDMTemplatePermission.contains(permissionChecker, displayDDMTemplateId, PortletKeys.DYNAMIC_DATA_LISTS, ActionKeys.UPDATE);
+boolean showEditFormTemplateIcon = (formDDMTemplateId != 0) && DDMTemplatePermission.contains(permissionChecker, formDDMTemplateId, PortletKeys.DYNAMIC_DATA_LISTS, ActionKeys.UPDATE);
 %>
 
 <c:if test="<%= themeDisplay.isSignedIn() && !layout.isLayoutPrototypeLinkActive() && (showAddListIcon || showAddTemplateIcon || showEditDisplayTemplateIcon || showEditFormTemplateIcon || hasConfigurationPermission ) %>">
@@ -129,7 +143,7 @@ boolean showEditFormTemplateIcon = (formDDMTemplateId != 0) && DDMTemplatePermis
 					<portlet:param name="portletResourceNamespace" value="<%= renderResponse.getNamespace() %>" />
 					<portlet:param name="refererPortletName" value="<%= PortletKeys.DYNAMIC_DATA_LISTS %>" />
 					<portlet:param name="templateId" value="<%= String.valueOf(formDDMTemplateId) %>" />
-					<portlet:param name="structureAvailableFields" value='<%= renderResponse.getNamespace() + "structureAvailableFields" %>' />
+					<portlet:param name="structureAvailableFields" value='<%= renderResponse.getNamespace() + "getAvailableFields" %>' />
 				</liferay-portlet:renderURL>
 
 				<liferay-ui:icon

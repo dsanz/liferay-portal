@@ -365,6 +365,10 @@ public class AssetVocabularyPersistenceImpl extends BasePersistenceImpl<AssetVoc
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AssetVocabulary> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1187,6 +1191,10 @@ public class AssetVocabularyPersistenceImpl extends BasePersistenceImpl<AssetVoc
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AssetVocabulary> list = findByUuid_C(uuid, companyId, count - 1,
 				count, orderByComparator);
 
@@ -1719,6 +1727,10 @@ public class AssetVocabularyPersistenceImpl extends BasePersistenceImpl<AssetVoc
 	public AssetVocabulary fetchByGroupId_Last(long groupId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<AssetVocabulary> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
@@ -2575,6 +2587,10 @@ public class AssetVocabularyPersistenceImpl extends BasePersistenceImpl<AssetVoc
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<AssetVocabulary> list = findByCompanyId(companyId, count - 1,
 				count, orderByComparator);
 
@@ -3061,6 +3077,10 @@ public class AssetVocabularyPersistenceImpl extends BasePersistenceImpl<AssetVoc
 	private static final String _FINDER_COLUMN_G_N_NAME_1 = "assetVocabulary.name IS NULL";
 	private static final String _FINDER_COLUMN_G_N_NAME_2 = "assetVocabulary.name = ?";
 	private static final String _FINDER_COLUMN_G_N_NAME_3 = "(assetVocabulary.name IS NULL OR assetVocabulary.name = '')";
+
+	public AssetVocabularyPersistenceImpl() {
+		setModelClass(AssetVocabulary.class);
+	}
 
 	/**
 	 * Caches the asset vocabulary in the entity cache if it is enabled.

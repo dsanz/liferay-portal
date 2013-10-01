@@ -17,8 +17,10 @@ package com.liferay.portal.servlet.filters.sso.ntlm;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.SingleVMPoolUtil;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.io.BigEndianCodec;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.SecureRandomUtil;
 import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -33,8 +35,6 @@ import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
-
-import java.security.SecureRandom;
 
 import java.util.Map;
 import java.util.Properties;
@@ -152,6 +152,16 @@ public class NtlmFilter extends BasePortalFilter {
 		return ntlmManager;
 	}
 
+	protected String getPortalCacheKey(HttpServletRequest request) {
+		HttpSession session = request.getSession(false);
+
+		if (session == null) {
+			return request.getRemoteAddr();
+		}
+
+		return session.getId();
+	}
+
 	@Override
 	protected void processFilter(
 			HttpServletRequest request, HttpServletResponse response,
@@ -172,12 +182,15 @@ public class NtlmFilter extends BasePortalFilter {
 		if (authorization.startsWith("NTLM")) {
 			NtlmManager ntlmManager = getNtlmManager(companyId);
 
+			String portalCacheKey = getPortalCacheKey(request);
+
 			byte[] src = Base64.decode(authorization.substring(5));
 
 			if (src[8] == 1) {
 				byte[] serverChallenge = new byte[8];
 
-				_secureRandom.nextBytes(serverChallenge);
+				BigEndianCodec.putLong(
+					serverChallenge, 0, SecureRandomUtil.nextLong());
 
 				byte[] challengeMessage = ntlmManager.negotiate(
 					src, serverChallenge);
@@ -191,7 +204,7 @@ public class NtlmFilter extends BasePortalFilter {
 
 				response.flushBuffer();
 
-				_portalCache.put(request.getRemoteAddr(), serverChallenge);
+				_portalCache.put(portalCacheKey, serverChallenge);
 
 				// Interrupt filter chain, send response. Browser will
 				// immediately post a new request.
@@ -199,7 +212,7 @@ public class NtlmFilter extends BasePortalFilter {
 				return;
 			}
 
-			byte[] serverChallenge = _portalCache.get(request.getRemoteAddr());
+			byte[] serverChallenge = _portalCache.get(portalCacheKey);
 
 			if (serverChallenge == null) {
 				response.setContentLength(0);
@@ -223,7 +236,7 @@ public class NtlmFilter extends BasePortalFilter {
 				}
 			}
 			finally {
-				_portalCache.remove(request.getRemoteAddr());
+				_portalCache.remove(portalCacheKey);
 			}
 
 			if (ntlmUserAccount == null) {
@@ -268,6 +281,10 @@ public class NtlmFilter extends BasePortalFilter {
 
 				return;
 			}
+			else {
+				request.setAttribute(
+					WebKeys.NTLM_REMOTE_USER, ntlmUserAccount.getUserName());
+			}
 		}
 
 		processFilter(NtlmPostFilter.class, request, response, filterChain);
@@ -279,6 +296,5 @@ public class NtlmFilter extends BasePortalFilter {
 		new ConcurrentHashMap<Long, NtlmManager>();
 	private PortalCache<String, byte[]> _portalCache =
 		SingleVMPoolUtil.getCache(NtlmFilter.class.getName());
-	private SecureRandom _secureRandom = new SecureRandom();
 
 }

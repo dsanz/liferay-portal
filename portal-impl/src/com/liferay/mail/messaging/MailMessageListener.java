@@ -15,15 +15,11 @@
 package com.liferay.mail.messaging;
 
 import com.liferay.mail.util.HookFactory;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.mail.MailMessage;
 import com.liferay.portal.kernel.messaging.BaseMessageListener;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.MethodHandler;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.security.auth.EmailAddressGenerator;
 import com.liferay.portal.security.auth.EmailAddressGeneratorFactory;
 import com.liferay.portal.util.PropsValues;
@@ -87,10 +83,8 @@ public class MailMessageListener extends BaseMessageListener {
 
 		mailMessage.setBulkAddresses(bulkAddresses);
 
-		if (((to != null) && (to.length > 0)) ||
-			((cc != null) && (cc.length > 0)) ||
-			((bcc != null) && (bcc.length > 0)) ||
-			((bulkAddresses != null) && (bulkAddresses.length > 0))) {
+		if (ArrayUtil.isNotEmpty(to) || ArrayUtil.isNotEmpty(cc) ||
+			ArrayUtil.isNotEmpty(bcc) || ArrayUtil.isNotEmpty(bulkAddresses)) {
 
 			MailEngine.send(mailMessage);
 		}
@@ -124,25 +118,6 @@ public class MailMessageListener extends BaseMessageListener {
 			return null;
 		}
 
-		String address = internetAddress.toString();
-
-		for (char c : address.toCharArray()) {
-			if ((c == CharPool.NEW_LINE) || (c == CharPool.RETURN)) {
-				if (_log.isWarnEnabled()) {
-					StringBundler sb = new StringBundler(4);
-
-					sb.append("Email address ");
-					sb.append(address);
-					sb.append(" contains line break characters and will be ");
-					sb.append("excluded from the email");
-
-					_log.warn(sb.toString());
-				}
-
-				return null;
-			}
-		}
-
 		return internetAddress;
 	}
 
@@ -168,7 +143,5 @@ public class MailMessageListener extends BaseMessageListener {
 		return filteredInternetAddresses.toArray(
 			new InternetAddress[filteredInternetAddresses.size()]);
 	}
-
-	private static Log _log = LogFactoryUtil.getLog(MailMessageListener.class);
 
 }

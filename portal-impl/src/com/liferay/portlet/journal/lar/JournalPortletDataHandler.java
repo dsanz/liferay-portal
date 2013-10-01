@@ -16,8 +16,6 @@ package com.liferay.portlet.journal.lar;
 
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
-import com.liferay.portal.kernel.dao.orm.Projection;
-import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -28,6 +26,7 @@ import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
 import com.liferay.portal.kernel.lar.PortletDataHandlerControl;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.util.PortalUtil;
@@ -42,6 +41,7 @@ import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalFeed;
 import com.liferay.portlet.journal.model.JournalFolder;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
+import com.liferay.portlet.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.portlet.journal.service.permission.JournalPermission;
 import com.liferay.portlet.journal.service.persistence.JournalArticleExportActionableDynamicQuery;
 import com.liferay.portlet.journal.service.persistence.JournalFeedExportActionableDynamicQuery;
@@ -88,17 +88,22 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 	public static final String NAMESPACE = "journal";
 
 	public JournalPortletDataHandler() {
-		setDeletionSystemEventClassNames(
-			DDMStructure.class.getName(), DDMTemplate.class.getName(),
-			JournalArticle.class.getName(), JournalFeed.class.getName(),
-			JournalFolder.class.getName());
 		setDataLocalized(true);
+		setDeletionSystemEventStagedModelTypes(
+			new StagedModelType(DDMStructure.class, JournalArticle.class),
+			new StagedModelType(DDMTemplate.class, DDMStructure.class),
+			new StagedModelType(JournalArticle.class),
+			new StagedModelType(JournalFeed.class),
+			new StagedModelType(JournalFolder.class));
 		setExportControls(
 			new PortletDataHandlerBoolean(
 				NAMESPACE, "web-content", true, false,
 				new PortletDataHandlerControl[] {
 					new PortletDataHandlerBoolean(
-						NAMESPACE, "referenced-content")
+						NAMESPACE, "referenced-content"),
+					new PortletDataHandlerBoolean(
+						NAMESPACE, "version-history",
+						PropsValues.JOURNAL_PUBLISH_VERSION_HISTORY_BY_DEFAULT)
 				},
 				JournalArticle.class.getName()),
 			new PortletDataHandlerBoolean(
@@ -106,10 +111,7 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 				DDMStructure.class.getName(), JournalArticle.class.getName()),
 			new PortletDataHandlerBoolean(
 				NAMESPACE, "feeds", true, false, null,
-				JournalFeed.class.getName()),
-			new PortletDataHandlerBoolean(
-				NAMESPACE, "version-history",
-				PropsValues.JOURNAL_PUBLISH_VERSION_HISTORY_BY_DEFAULT));
+				JournalFeed.class.getName()));
 		setPublishToLiveByDefault(
 			PropsValues.JOURNAL_PUBLISH_TO_LIVE_BY_DEFAULT);
 	}
@@ -129,6 +131,9 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 		JournalArticleLocalServiceUtil.deleteArticles(
 			portletDataContext.getScopeGroupId());
 
+		JournalFolderLocalServiceUtil.deleteFolders(
+			portletDataContext.getGroupId());
+
 		DDMTemplateLocalServiceUtil.deleteTemplates(
 			portletDataContext.getScopeGroupId());
 
@@ -144,9 +149,8 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 			PortletPreferences portletPreferences)
 		throws Exception {
 
-		portletDataContext.addPermissions(
-			JournalPermission.RESOURCE_NAME,
-			portletDataContext.getScopeGroupId());
+		portletDataContext.addPortletPermissions(
+			JournalPermission.RESOURCE_NAME);
 
 		Element rootElement = addExportDataRootElement(portletDataContext);
 
@@ -186,7 +190,8 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 
 		if (portletDataContext.getBooleanParameter(NAMESPACE, "web-content")) {
 			ActionableDynamicQuery folderActionableDynamicQuery =
-				getFolderActionableDynamicQuery(portletDataContext);
+				new JournalFolderExportActionableDynamicQuery(
+					portletDataContext);
 
 			folderActionableDynamicQuery.performActions();
 
@@ -205,10 +210,8 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 			PortletPreferences portletPreferences, String data)
 		throws Exception {
 
-		portletDataContext.importPermissions(
-			JournalPermission.RESOURCE_NAME,
-			portletDataContext.getSourceGroupId(),
-			portletDataContext.getScopeGroupId());
+		portletDataContext.importPortletPermissions(
+			JournalPermission.RESOURCE_NAME);
 
 		if (portletDataContext.getBooleanParameter(NAMESPACE, "feeds")) {
 			Element feedsElement = portletDataContext.getImportDataGroupElement(
@@ -275,7 +278,8 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 
 	@Override
 	protected void doPrepareManifestSummary(
-			PortletDataContext portletDataContext)
+			PortletDataContext portletDataContext,
+			PortletPreferences portletPreferences)
 		throws Exception {
 
 		ActionableDynamicQuery articleActionableDynamicQuery =
@@ -300,7 +304,7 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 			getDDMTemplateActionableDynamicQuery(portletDataContext);
 
 		manifestSummary.addModelAdditionCount(
-			DDMTemplate.class, DDMStructure.class,
+			new StagedModelType(DDMTemplate.class, DDMStructure.class),
 			ddmTemplateActionableDynamicQuery.performCount() +
 				ddmTemplates.size());
 
@@ -310,7 +314,7 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 		feedActionableDynamicQuery.performCount();
 
 		ActionableDynamicQuery folderActionableDynamicQuery =
-			getFolderActionableDynamicQuery(portletDataContext);
+			new JournalFolderExportActionableDynamicQuery(portletDataContext);
 
 		folderActionableDynamicQuery.performCount();
 	}
@@ -321,25 +325,6 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 
 		return new JournalArticleExportActionableDynamicQuery(
 			portletDataContext) {
-
-			@Override
-			protected void addCriteria(DynamicQuery dynamicQuery) {
-				super.addCriteria(dynamicQuery);
-
-				Property statusProperty = PropertyFactoryUtil.forName("status");
-
-				dynamicQuery.add(
-					statusProperty.in(
-						new Integer[] {
-							WorkflowConstants.STATUS_APPROVED,
-							WorkflowConstants.STATUS_EXPIRED
-						}));
-			}
-
-			@Override
-			protected Projection getCountProjection() {
-				return ProjectionFactoryUtil.countDistinct("articleId");
-			}
 
 			@Override
 			protected void performAction(Object object) throws PortalException {
@@ -390,8 +375,8 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 			}
 
 			@Override
-			protected String getManifestSummaryKey() {
-				return ManifestSummary.getManifestSummaryKey(
+			protected StagedModelType getStagedModelType() {
+				return new StagedModelType(
 					DDMStructure.class.getName(),
 					JournalArticle.class.getName());
 			}
@@ -441,29 +426,9 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 			}
 
 			@Override
-			protected String getManifestSummaryKey() {
-				return ManifestSummary.getManifestSummaryKey(
+			protected StagedModelType getStagedModelType() {
+				return new StagedModelType(
 					DDMTemplate.class.getName(), DDMStructure.class.getName());
-			}
-
-		};
-	}
-
-	protected ActionableDynamicQuery getFolderActionableDynamicQuery(
-			final PortletDataContext portletDataContext)
-		throws SystemException {
-
-		return new JournalFolderExportActionableDynamicQuery(
-			portletDataContext) {
-
-			@Override
-			protected void addCriteria(DynamicQuery dynamicQuery) {
-				super.addCriteria(dynamicQuery);
-
-				Property statusProperty = PropertyFactoryUtil.forName("status");
-
-				dynamicQuery.add(
-					statusProperty.ne(WorkflowConstants.STATUS_IN_TRASH));
 			}
 
 		};

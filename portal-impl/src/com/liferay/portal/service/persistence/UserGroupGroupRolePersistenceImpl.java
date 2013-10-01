@@ -348,6 +348,10 @@ public class UserGroupGroupRolePersistenceImpl extends BasePersistenceImpl<UserG
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUserGroupId(userGroupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<UserGroupGroupRole> list = findByUserGroupId(userGroupId,
 				count - 1, count, orderByComparator);
 
@@ -837,6 +841,10 @@ public class UserGroupGroupRolePersistenceImpl extends BasePersistenceImpl<UserG
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<UserGroupGroupRole> list = findByGroupId(groupId, count - 1,
 				count, orderByComparator);
 
@@ -1325,6 +1333,10 @@ public class UserGroupGroupRolePersistenceImpl extends BasePersistenceImpl<UserG
 	public UserGroupGroupRole fetchByRoleId_Last(long roleId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByRoleId(roleId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<UserGroupGroupRole> list = findByRoleId(roleId, count - 1, count,
 				orderByComparator);
@@ -1838,6 +1850,10 @@ public class UserGroupGroupRolePersistenceImpl extends BasePersistenceImpl<UserG
 	public UserGroupGroupRole fetchByU_G_Last(long userGroupId, long groupId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByU_G(userGroupId, groupId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<UserGroupGroupRole> list = findByU_G(userGroupId, groupId,
 				count - 1, count, orderByComparator);
@@ -2366,6 +2382,10 @@ public class UserGroupGroupRolePersistenceImpl extends BasePersistenceImpl<UserG
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByG_R(groupId, roleId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<UserGroupGroupRole> list = findByG_R(groupId, roleId, count - 1,
 				count, orderByComparator);
 
@@ -2604,6 +2624,10 @@ public class UserGroupGroupRolePersistenceImpl extends BasePersistenceImpl<UserG
 
 	private static final String _FINDER_COLUMN_G_R_GROUPID_2 = "userGroupGroupRole.id.groupId = ? AND ";
 	private static final String _FINDER_COLUMN_G_R_ROLEID_2 = "userGroupGroupRole.id.roleId = ?";
+
+	public UserGroupGroupRolePersistenceImpl() {
+		setModelClass(UserGroupGroupRole.class);
+	}
 
 	/**
 	 * Caches the user group group role in the entity cache if it is enabled.

@@ -104,7 +104,7 @@ NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
 				}
 				else {
 					sb.append("<a class='journal-article-page-number' href='");
-					sb.append(_getHREF(formName, curParam, i, jsCall, url, urlAnchor));
+					sb.append(_getHREF(formName, namespace + curParam, i, jsCall, url, urlAnchor));
 					sb.append("'>");
 					sb.append(i);
 					sb.append("</a>");
@@ -232,37 +232,35 @@ NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
 
 		<ul class="pager lfr-pagination-buttons">
 			<c:if test='<%= type.equals("approximate") || type.equals("more") || type.equals("regular") %>'>
-				<li class="<%= (cur != 1) ? "" : "disabled" %>">
-					<a href="<%= (cur != 1) ? _getHREF(formName, curParam, 1, jsCall, url, urlAnchor) : "javascript:;" %>" target="<%= target %>">
+				<li class="<%= (cur != 1) ? "" : "disabled" %> first">
+					<a href="<%= (cur != 1) ? _getHREF(formName, namespace + curParam, 1, jsCall, url, urlAnchor) : "javascript:;" %>" target="<%= target %>">
 						&larr; <liferay-ui:message key="first" />
 					</a>
 				</li>
 			</c:if>
 
 			<li class="<%= (cur != 1) ? "" : "disabled" %>">
-				<a href="<%= (cur != 1) ? _getHREF(formName, curParam, cur - 1, jsCall, url, urlAnchor) : "javascript:;" %>" target="<%= target %>">
+				<a href="<%= (cur != 1) ? _getHREF(formName, namespace + curParam, cur - 1, jsCall, url, urlAnchor) : "javascript:;" %>" target="<%= target %>">
 					<liferay-ui:message key="previous" />
 				</a>
 			</li>
 
 			<li class="<%= (cur != pages) ? "" : "disabled" %>">
-				<a href="<%= (cur != pages) ? _getHREF(formName, curParam, cur + 1, jsCall, url, urlAnchor) : "javascript:;" %>" target="<%= target %>">
-					<c:if test='<%= (type.equals("approximate") || type.equals("more") || type.equals("regular")) %>'>
-						<c:choose>
-							<c:when test='<%= type.equals("approximate") || type.equals("more") %>'>
-								<liferay-ui:message key="more" />
-							</c:when>
-							<c:otherwise>
-								<liferay-ui:message key="next" />
-							</c:otherwise>
-						</c:choose>
-					</c:if>
+				<a href="<%= (cur != pages) ? _getHREF(formName, namespace + curParam, cur + 1, jsCall, url, urlAnchor) : "javascript:;" %>" target="<%= target %>">
+					<c:choose>
+						<c:when test='<%= type.equals("approximate") || type.equals("more") %>'>
+							<liferay-ui:message key="more" />
+						</c:when>
+						<c:otherwise>
+							<liferay-ui:message key="next" />
+						</c:otherwise>
+					</c:choose>
 				</a>
 			</li>
 
 			<c:if test='<%= type.equals("regular") %>'>
-				<li class="<%= (cur != pages) ? "" : "disabled" %>">
-					<a href="<%= (cur != pages) ? _getHREF(formName, curParam, pages, jsCall, url, urlAnchor) : "javascript:;" %>" target="<%= target %>">
+				<li class="<%= (cur != pages) ? "" : "disabled" %> last">
+					<a href="<%= (cur != pages) ? _getHREF(formName, namespace + curParam, pages, jsCall, url, urlAnchor) : "javascript:;" %>" target="<%= target %>">
 						<liferay-ui:message key="last" /> &rarr;
 					</a>
 				</li>

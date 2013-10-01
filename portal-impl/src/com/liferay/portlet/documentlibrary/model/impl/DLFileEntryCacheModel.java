@@ -38,7 +38,7 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 	Externalizable {
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(59);
+		StringBundler sb = new StringBundler(57);
 
 		sb.append("{uuid=");
 		sb.append(uuid);
@@ -52,10 +52,6 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 		sb.append(userId);
 		sb.append(", userName=");
 		sb.append(userName);
-		sb.append(", versionUserId=");
-		sb.append(versionUserId);
-		sb.append(", versionUserName=");
-		sb.append(versionUserName);
 		sb.append(", createDate=");
 		sb.append(createDate);
 		sb.append(", modifiedDate=");
@@ -68,6 +64,8 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 		sb.append(repositoryId);
 		sb.append(", folderId=");
 		sb.append(folderId);
+		sb.append(", treePath=");
+		sb.append(treePath);
 		sb.append(", name=");
 		sb.append(name);
 		sb.append(", extension=");
@@ -126,15 +124,6 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 			dlFileEntryImpl.setUserName(userName);
 		}
 
-		dlFileEntryImpl.setVersionUserId(versionUserId);
-
-		if (versionUserName == null) {
-			dlFileEntryImpl.setVersionUserName(StringPool.BLANK);
-		}
-		else {
-			dlFileEntryImpl.setVersionUserName(versionUserName);
-		}
-
 		if (createDate == Long.MIN_VALUE) {
 			dlFileEntryImpl.setCreateDate(null);
 		}
@@ -153,6 +142,13 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 		dlFileEntryImpl.setClassPK(classPK);
 		dlFileEntryImpl.setRepositoryId(repositoryId);
 		dlFileEntryImpl.setFolderId(folderId);
+
+		if (treePath == null) {
+			dlFileEntryImpl.setTreePath(StringPool.BLANK);
+		}
+		else {
+			dlFileEntryImpl.setTreePath(treePath);
+		}
 
 		if (name == null) {
 			dlFileEntryImpl.setName(StringPool.BLANK);
@@ -226,14 +222,13 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 		companyId = objectInput.readLong();
 		userId = objectInput.readLong();
 		userName = objectInput.readUTF();
-		versionUserId = objectInput.readLong();
-		versionUserName = objectInput.readUTF();
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
 		classNameId = objectInput.readLong();
 		classPK = objectInput.readLong();
 		repositoryId = objectInput.readLong();
 		folderId = objectInput.readLong();
+		treePath = objectInput.readUTF();
 		name = objectInput.readUTF();
 		extension = objectInput.readUTF();
 		mimeType = objectInput.readUTF();
@@ -273,21 +268,19 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 			objectOutput.writeUTF(userName);
 		}
 
-		objectOutput.writeLong(versionUserId);
-
-		if (versionUserName == null) {
-			objectOutput.writeUTF(StringPool.BLANK);
-		}
-		else {
-			objectOutput.writeUTF(versionUserName);
-		}
-
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
 		objectOutput.writeLong(classNameId);
 		objectOutput.writeLong(classPK);
 		objectOutput.writeLong(repositoryId);
 		objectOutput.writeLong(folderId);
+
+		if (treePath == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(treePath);
+		}
 
 		if (name == null) {
 			objectOutput.writeUTF(StringPool.BLANK);
@@ -355,14 +348,13 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 	public long companyId;
 	public long userId;
 	public String userName;
-	public long versionUserId;
-	public String versionUserName;
 	public long createDate;
 	public long modifiedDate;
 	public long classNameId;
 	public long classPK;
 	public long repositoryId;
 	public long folderId;
+	public String treePath;
 	public String name;
 	public String extension;
 	public String mimeType;

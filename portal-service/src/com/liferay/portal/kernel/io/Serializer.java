@@ -267,10 +267,10 @@ public class Serializer {
 			}
 		}
 
-		BigEndianCodec.putBoolean(buffer, index++, asciiCode);
-
 		if (asciiCode) {
-			byte[] buffer = getBuffer(length + 4);
+			byte[] buffer = getBuffer(length + 5);
+
+			BigEndianCodec.putBoolean(buffer, index++, asciiCode);
 
 			BigEndianCodec.putInt(buffer, index, length);
 
@@ -283,7 +283,9 @@ public class Serializer {
 			}
 		}
 		else {
-			byte[] buffer = getBuffer(length * 2 + 4);
+			byte[] buffer = getBuffer(length * 2 + 5);
+
+			BigEndianCodec.putBoolean(buffer, index++, asciiCode);
 
 			BigEndianCodec.putInt(buffer, index, length);
 
@@ -347,33 +349,6 @@ public class Serializer {
 		return buffer;
 	}
 
-	/**
-	 * Softens the local thread's pooled buffer memory.
-	 *
-	 * <p>
-	 * Technically, we should soften each pooled buffer individually to achieve
-	 * the best garbage collection (GC) interaction. However, that increases
-	 * complexity of pooled buffer access and also burdens the GC's {@link
-	 * java.lang.ref.SoftReference} process, hurting performance.
-	 * </p>
-	 *
-	 * <p>
-	 * Here, the entire ThreadLocal BufferQueue is softened. For threads that do
-	 * serializing often, its BufferQueue will most likely stay valid. For
-	 * threads that do serializing only occasionally, its BufferQueue will most
-	 * likely be released by GC.
-	 * </p>
-	 */
-	protected static final ThreadLocal<BufferQueue> bufferQueueThreadLocal =
-		new SoftReferenceThreadLocal<BufferQueue>() {
-
-		@Override
-		protected BufferQueue initialValue() {
-			return new BufferQueue();
-		}
-
-	};
-
 	protected static final int THREADLOCAL_BUFFER_COUNT_LIMIT;
 
 	protected static final int THREADLOCAL_BUFFER_COUNT_MIN = 8;
@@ -405,6 +380,33 @@ public class Serializer {
 
 		THREADLOCAL_BUFFER_SIZE_LIMIT = threadLocalBufferSizeLimit;
 	}
+
+	/**
+	 * Softens the local thread's pooled buffer memory.
+	 *
+	 * <p>
+	 * Technically, we should soften each pooled buffer individually to achieve
+	 * the best garbage collection (GC) interaction. However, that increases
+	 * complexity of pooled buffer access and also burdens the GC's {@link
+	 * java.lang.ref.SoftReference} process, hurting performance.
+	 * </p>
+	 *
+	 * <p>
+	 * Here, the entire ThreadLocal BufferQueue is softened. For threads that do
+	 * serializing often, its BufferQueue will most likely stay valid. For
+	 * threads that do serializing only occasionally, its BufferQueue will most
+	 * likely be released by GC.
+	 * </p>
+	 */
+	protected static final ThreadLocal<BufferQueue> bufferQueueThreadLocal =
+		new SoftReferenceThreadLocal<BufferQueue>() {
+
+		@Override
+		protected BufferQueue initialValue() {
+			return new BufferQueue();
+		}
+
+	};
 
 	protected byte[] buffer;
 	protected int index;

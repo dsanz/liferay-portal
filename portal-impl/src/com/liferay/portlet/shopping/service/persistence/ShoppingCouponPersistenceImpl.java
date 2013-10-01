@@ -350,6 +350,10 @@ public class ShoppingCouponPersistenceImpl extends BasePersistenceImpl<ShoppingC
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<ShoppingCoupon> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -815,6 +819,10 @@ public class ShoppingCouponPersistenceImpl extends BasePersistenceImpl<ShoppingC
 	private static final String _FINDER_COLUMN_CODE_CODE_1 = "shoppingCoupon.code IS NULL";
 	private static final String _FINDER_COLUMN_CODE_CODE_2 = "shoppingCoupon.code = ?";
 	private static final String _FINDER_COLUMN_CODE_CODE_3 = "(shoppingCoupon.code IS NULL OR shoppingCoupon.code = '')";
+
+	public ShoppingCouponPersistenceImpl() {
+		setModelClass(ShoppingCoupon.class);
+	}
 
 	/**
 	 * Caches the shopping coupon in the entity cache if it is enabled.

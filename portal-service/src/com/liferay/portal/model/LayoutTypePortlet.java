@@ -79,6 +79,9 @@ public interface LayoutTypePortlet extends LayoutType {
 	public List<Portlet> getAllPortlets()
 		throws PortalException, SystemException;
 
+	public List<Portlet> getAllPortlets(boolean includeSystem)
+		throws PortalException, SystemException;
+
 	public List<Portlet> getAllPortlets(String columnId)
 		throws PortalException, SystemException;
 
@@ -155,6 +158,8 @@ public interface LayoutTypePortlet extends LayoutType {
 	public boolean hasStateNormalPortletId(String portletId);
 
 	public boolean hasUpdatePermission();
+
+	public boolean isCacheable() throws PortalException, SystemException;
 
 	public boolean isColumnCustomizable(String columnId);
 

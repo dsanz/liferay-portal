@@ -51,7 +51,7 @@ public class SiteMapPortletDisplayTemplateHandler
 
 	@Override
 	public String getResourceName() {
-		return "com.liferay.portlet.sitemap";
+		return PortletKeys.SITE_MAP;
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class SiteMapPortletDisplayTemplateHandler
 
 		templateVariableGroup.addCollectionVariable(
 			"pages", List.class, PortletDisplayTemplateConstants.ENTRIES,
-			"page", Layout.class, "curPage");
+			"page", Layout.class, "curPage", "getName(locale)");
 
 		return templateVariableGroups;
 	}

@@ -63,7 +63,7 @@ Group parentGroup = themeDisplay.getSiteGroup();
 			<span>
 				<span id="<portlet:namespace />displayPageNameInput"><%= layoutBreadcrumb %></span>
 
-				<span class="display-page-item-remove icon icon-close" id="<portlet:namespace />displayPageItemRemove" tabindex="0"></span>
+				<span class="display-page-item-remove icon icon-remove" id="<portlet:namespace />displayPageItemRemove" tabindex="0"></span>
 			</span>
 		</span>
 	</div>
@@ -259,7 +259,7 @@ Group parentGroup = themeDisplay.getSiteGroup();
 					<c:if test="<%= parentGroup.getPrivateLayoutsPageCount() > 0 %>">
 						tabs.push(
 							{
-								label: '<%= UnicodeLanguageUtil.get(pageContext, "private-pages") %>sssssss',
+								label: '<%= UnicodeLanguageUtil.get(pageContext, "private-pages") %>',
 								content: Lang.sub(
 									TPL_TAB_CONTENT,
 									{

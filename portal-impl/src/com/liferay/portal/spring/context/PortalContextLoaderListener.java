@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.servlet.DirectServletRegistryUtil;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.template.TemplateResourceLoaderUtil;
 import com.liferay.portal.kernel.util.CharBufferPool;
+import com.liferay.portal.kernel.util.ClassLoaderPool;
 import com.liferay.portal.kernel.util.ClearThreadLocalUtil;
 import com.liferay.portal.kernel.util.ClearTimerThreadUtil;
 import com.liferay.portal.kernel.util.InstancePool;
@@ -42,7 +43,10 @@ import com.liferay.portal.kernel.util.MethodCache;
 import com.liferay.portal.kernel.util.PortalLifecycleUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 import com.liferay.portal.kernel.util.ReflectionUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.webcache.WebCachePoolUtil;
+import com.liferay.portal.module.framework.DummyModuleFramework;
 import com.liferay.portal.module.framework.ModuleFrameworkUtilAdapter;
 import com.liferay.portal.security.lang.SecurityManagerUtil;
 import com.liferay.portal.security.permission.PermissionCacheUtil;
@@ -79,6 +83,10 @@ import org.springframework.web.context.ContextLoaderListener;
  * @author Raymond Augé
  */
 public class PortalContextLoaderListener extends ContextLoaderListener {
+
+	public static String getPortalServlerContextName() {
+		return _portalServlerContextName;
+	}
 
 	public static String getPortalServletContextPath() {
 		return _portalServletContextPath;
@@ -156,6 +164,8 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent servletContextEvent) {
+		SystemProperties.reload();
+
 		DBFactoryUtil.reset();
 		DeployManagerUtil.reset();
 		InstancePool.reset();
@@ -168,6 +178,12 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 		InitUtil.init();
 
 		ServletContext servletContext = servletContextEvent.getServletContext();
+
+		_portalServlerContextName = servletContext.getServletContextName();
+
+		if (_portalServlerContextName == null) {
+			_portalServlerContextName = StringPool.BLANK;
+		}
 
 		_portalServletContextPath = servletContext.getContextPath();
 
@@ -188,7 +204,13 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 			ModuleFrameworkUtilAdapter.startFramework();
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			_log.error(
+				"Unable to load the module framework because of a bug in the " +
+					"application server. Support for OSGi plugins is disabled.",
+				e);
+
+			ModuleFrameworkUtilAdapter.setModuleFramework(
+				new DummyModuleFramework());
 		}
 
 		SecurityManagerUtil.applySmartStrategy();
@@ -229,6 +251,10 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 		WebCachePoolUtil.clear();
 
 		ClassLoader portalClassLoader = ClassLoaderUtil.getPortalClassLoader();
+
+		ClassLoaderPool.register(_portalServlerContextName, portalClassLoader);
+
+		ServletContextPool.put(_portalServlerContextName, servletContext);
 
 		BeanLocatorImpl beanLocatorImpl = new BeanLocatorImpl(
 			portalClassLoader, applicationContext);
@@ -280,7 +306,8 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 		PortalContextLoaderListener.class);
 
 	private static Field _filteredPropertyDescriptorsCacheField;
-	private static String _portalServletContextPath = "/";
+	private static String _portalServlerContextName = StringPool.BLANK;
+	private static String _portalServletContextPath = StringPool.SLASH;
 
 	static {
 		try {

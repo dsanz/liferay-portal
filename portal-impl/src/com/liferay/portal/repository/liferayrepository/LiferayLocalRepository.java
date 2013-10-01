@@ -194,7 +194,11 @@ public class LiferayLocalRepository
 	public void deleteFolder(long folderId)
 		throws PortalException, SystemException {
 
-		dlFolderLocalService.deleteFolder(folderId);
+		DLFolder dlFolder = dlFolderLocalService.fetchFolder(folderId);
+
+		if (dlFolder != null) {
+			dlFolderLocalService.deleteFolder(folderId);
+		}
 	}
 
 	@Override
@@ -267,6 +271,18 @@ public class LiferayLocalRepository
 			userId, fileEntryId, toFolderId(newFolderId), serviceContext);
 
 		return new LiferayFileEntry(dlFileEntry);
+	}
+
+	@Override
+	public Folder moveFolder(
+			long userId, long folderId, long parentFolderId,
+			ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		DLFolder dlFolder = dlFolderLocalService.moveFolder(
+			userId, folderId, parentFolderId, serviceContext);
+
+		return new LiferayFolder(dlFolder);
 	}
 
 	@Override

@@ -20,10 +20,21 @@ import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermissio
 import com.liferay.portal.security.permission.PermissionChecker;
 
 /**
+ * Provides the utility for SubscriptionPermission, checking permissions with
+ * respect to subscriptions. This utility wraps {@link
+ * com.liferay.portal.service.permission.SubscriptionPermissionImpl} and is the
+ * primary access point for subscription permission operations.
+ *
  * @author Mate Thurzo
+ * @author Raymond Augé
+ * @see    SubscriptionPermission
  */
 public class SubscriptionPermissionUtil {
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #check(PermissionChecker,
+	 *             String, long, String, long)}
+	 */
 	public static void check(
 			PermissionChecker permissionChecker, String className, long classPK)
 		throws PortalException, SystemException {
@@ -32,12 +43,46 @@ public class SubscriptionPermissionUtil {
 			permissionChecker, className, classPK);
 	}
 
+	/**
+	 * @see SubscriptionPermission#check(PermissionChecker, String, long,
+	 *      String, long)
+	 */
+	public static void check(
+			PermissionChecker permissionChecker, String subscriptionClassName,
+			long subscriptionClassPK, String inferredClassName,
+			long inferredClassPK)
+		throws PortalException, SystemException {
+
+		getSubscriptionPermission().check(
+			permissionChecker, subscriptionClassName, subscriptionClassPK,
+			inferredClassName, inferredClassPK);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #contains(PermissionChecker,
+	 *             String, long, String, long)}
+	 */
 	public static boolean contains(
 			PermissionChecker permissionChecker, String className, long classPK)
 		throws PortalException, SystemException {
 
 		return getSubscriptionPermission().contains(
 			permissionChecker, className, classPK);
+	}
+
+	/**
+	 * @see SubscriptionPermission#contains(PermissionChecker, String, long,
+	 *      String, long)
+	 */
+	public static boolean contains(
+			PermissionChecker permissionChecker, String subscriptionClassName,
+			long subscriptionClassPK, String inferredClassName,
+			long inferredClassPK)
+		throws PortalException, SystemException {
+
+		return getSubscriptionPermission().contains(
+			permissionChecker, subscriptionClassName, subscriptionClassPK,
+			inferredClassName, inferredClassPK);
 	}
 
 	public static SubscriptionPermission getSubscriptionPermission() {

@@ -14,6 +14,7 @@
 
 package com.liferay.portal.kernel.template;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.util.UniqueList;
 
@@ -28,12 +29,24 @@ public class TemplateVariableGroup {
 		_label = label;
 	}
 
+	public TemplateVariableGroup(String label, String[] restrictedVariables) {
+		this(label);
+
+		_restrictedVariables = restrictedVariables;
+	}
+
 	public TemplateVariableDefinition addCollectionVariable(
 		String collectionLabel, Class<?> collectionClazz, String collectionName,
-		String itemLabel, Class<?> itemClazz, String itemName) {
+		String itemLabel, Class<?> itemClazz, String itemName,
+		String itemAccessor) {
+
+		if (isRestrictedVariable(collectionName)) {
+			return null;
+		}
 
 		TemplateVariableDefinition itemTemplateVariableDefinition =
-			new TemplateVariableDefinition(itemLabel, itemClazz, itemName);
+			new TemplateVariableDefinition(
+				itemLabel, itemClazz, itemName, itemAccessor);
 
 		TemplateVariableDefinition collectionTemplateVariableDefinition =
 			new TemplateVariableDefinition(
@@ -50,9 +63,13 @@ public class TemplateVariableGroup {
 		String dataType, boolean repeatable,
 		TemplateVariableCodeHandler templateVariableCodeHandler) {
 
+		if (isRestrictedVariable(variableName)) {
+			return null;
+		}
+
 		TemplateVariableDefinition templateVariableDefinition =
 			new TemplateVariableDefinition(
-				label, clazz, dataType, variableName, help, repeatable,
+				label, clazz, dataType, variableName, null, help, repeatable,
 				templateVariableCodeHandler);
 
 		_templateVariableDefinitions.add(templateVariableDefinition);
@@ -61,6 +78,10 @@ public class TemplateVariableGroup {
 	}
 
 	public void addServiceLocatorVariables(Class<?>... serviceClasses) {
+		if (isRestrictedVariable("serviceLocator")) {
+			return;
+		}
+
 		for (Class<?> serviceClass : serviceClasses) {
 			String label = TextFormatter.format(
 				serviceClass.getSimpleName(), TextFormatter.I);
@@ -70,18 +91,28 @@ public class TemplateVariableGroup {
 			TemplateVariableDefinition templateVariableDefinition =
 				new TemplateVariableDefinition(
 					label, serviceClass, "service-locator",
-					serviceClass.getCanonicalName(), label + "-help", false,
-					null);
+					serviceClass.getCanonicalName(), null, label + "-help",
+					false, null);
 
 			_templateVariableDefinitions.add(templateVariableDefinition);
 		}
 	}
 
 	public TemplateVariableDefinition addVariable(
-		String label, Class<?> clazz, String variableName) {
+		String label, Class<?> clazz, String name) {
+
+		return addVariable(label, clazz, name, null);
+	}
+
+	public TemplateVariableDefinition addVariable(
+		String label, Class<?> clazz, String name, String accessor) {
+
+		if (isRestrictedVariable(name)) {
+			return null;
+		}
 
 		TemplateVariableDefinition templateVariableDefinition =
-			new TemplateVariableDefinition(label, clazz, variableName);
+			new TemplateVariableDefinition(label, clazz, name, accessor);
 
 		_templateVariableDefinitions.add(templateVariableDefinition);
 
@@ -106,6 +137,10 @@ public class TemplateVariableGroup {
 		return _autocompleteEnabled;
 	}
 
+	public boolean isEmpty() {
+		return _templateVariableDefinitions.isEmpty();
+	}
+
 	public void setAutocompleteEnabled(boolean autocompleteEnabled) {
 		_autocompleteEnabled = autocompleteEnabled;
 	}
@@ -114,8 +149,13 @@ public class TemplateVariableGroup {
 		_label = label;
 	}
 
+	protected boolean isRestrictedVariable(String variableName) {
+		return ArrayUtil.contains(_restrictedVariables, variableName);
+	}
+
 	private boolean _autocompleteEnabled = true;
 	private String _label;
+	private String[] _restrictedVariables;
 	private Collection<TemplateVariableDefinition>
 		_templateVariableDefinitions =
 			new UniqueList<TemplateVariableDefinition>();

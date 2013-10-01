@@ -99,7 +99,9 @@ public class HotDeployImpl implements HotDeploy {
 
 	@Override
 	public synchronized void fireUndeployEvent(HotDeployEvent hotDeployEvent) {
-		for (HotDeployListener hotDeployListener : _hotDeployListeners) {
+		for (int i = _hotDeployListeners.size() - 1; i >= 0; i--) {
+			HotDeployListener hotDeployListener = _hotDeployListeners.get(i);
+
 			try {
 				PortletClassLoaderUtil.setClassLoader(
 					hotDeployEvent.getContextClassLoader());
@@ -155,6 +157,16 @@ public class HotDeployImpl implements HotDeploy {
 	@Override
 	public void unregisterListeners() {
 		_hotDeployListeners.clear();
+	}
+
+	public static interface PACL {
+
+		public void initPolicy(
+			String servletContextName, ClassLoader classLoader,
+			Properties properties);
+
+		public void unregister(ClassLoader classLoader);
+
 	}
 
 	protected void doFireDeployEvent(HotDeployEvent hotDeployEvent) {
@@ -307,16 +319,6 @@ public class HotDeployImpl implements HotDeploy {
 		@Override
 		public void unregister(ClassLoader classLoader) {
 		}
-
-	}
-
-	public static interface PACL {
-
-		public void initPolicy(
-			String servletContextName, ClassLoader classLoader,
-			Properties properties);
-
-		public void unregister(ClassLoader classLoader);
 
 	}
 

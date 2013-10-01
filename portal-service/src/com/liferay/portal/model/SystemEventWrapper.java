@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +58,9 @@ public class SystemEventWrapper implements SystemEvent,
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
 		attributes.put("classUuid", getClassUuid());
+		attributes.put("referrerClassNameId", getReferrerClassNameId());
+		attributes.put("parentSystemEventId", getParentSystemEventId());
+		attributes.put("systemEventSetKey", getSystemEventSetKey());
 		attributes.put("type", getType());
 		attributes.put("extraData", getExtraData());
 
@@ -116,6 +121,24 @@ public class SystemEventWrapper implements SystemEvent,
 
 		if (classUuid != null) {
 			setClassUuid(classUuid);
+		}
+
+		Long referrerClassNameId = (Long)attributes.get("referrerClassNameId");
+
+		if (referrerClassNameId != null) {
+			setReferrerClassNameId(referrerClassNameId);
+		}
+
+		Long parentSystemEventId = (Long)attributes.get("parentSystemEventId");
+
+		if (parentSystemEventId != null) {
+			setParentSystemEventId(parentSystemEventId);
+		}
+
+		Long systemEventSetKey = (Long)attributes.get("systemEventSetKey");
+
+		if (systemEventSetKey != null) {
+			setSystemEventSetKey(systemEventSetKey);
 		}
 
 		Integer type = (Integer)attributes.get("type");
@@ -369,6 +392,66 @@ public class SystemEventWrapper implements SystemEvent,
 	}
 
 	/**
+	* Returns the referrer class name ID of this system event.
+	*
+	* @return the referrer class name ID of this system event
+	*/
+	@Override
+	public long getReferrerClassNameId() {
+		return _systemEvent.getReferrerClassNameId();
+	}
+
+	/**
+	* Sets the referrer class name ID of this system event.
+	*
+	* @param referrerClassNameId the referrer class name ID of this system event
+	*/
+	@Override
+	public void setReferrerClassNameId(long referrerClassNameId) {
+		_systemEvent.setReferrerClassNameId(referrerClassNameId);
+	}
+
+	/**
+	* Returns the parent system event ID of this system event.
+	*
+	* @return the parent system event ID of this system event
+	*/
+	@Override
+	public long getParentSystemEventId() {
+		return _systemEvent.getParentSystemEventId();
+	}
+
+	/**
+	* Sets the parent system event ID of this system event.
+	*
+	* @param parentSystemEventId the parent system event ID of this system event
+	*/
+	@Override
+	public void setParentSystemEventId(long parentSystemEventId) {
+		_systemEvent.setParentSystemEventId(parentSystemEventId);
+	}
+
+	/**
+	* Returns the system event set key of this system event.
+	*
+	* @return the system event set key of this system event
+	*/
+	@Override
+	public long getSystemEventSetKey() {
+		return _systemEvent.getSystemEventSetKey();
+	}
+
+	/**
+	* Sets the system event set key of this system event.
+	*
+	* @param systemEventSetKey the system event set key of this system event
+	*/
+	@Override
+	public void setSystemEventSetKey(long systemEventSetKey) {
+		_systemEvent.setSystemEventSetKey(systemEventSetKey);
+	}
+
+	/**
 	* Returns the type of this system event.
 	*
 	* @return the type of this system event
@@ -510,6 +593,35 @@ public class SystemEventWrapper implements SystemEvent,
 	public void persist()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_systemEvent.persist();
+	}
+
+	@Override
+	public java.lang.String getReferrerClassName() {
+		return _systemEvent.getReferrerClassName();
+	}
+
+	@Override
+	public void setReferrerClassName(java.lang.String referrerClassName) {
+		_systemEvent.setReferrerClassName(referrerClassName);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SystemEventWrapper)) {
+			return false;
+		}
+
+		SystemEventWrapper systemEventWrapper = (SystemEventWrapper)obj;
+
+		if (Validator.equals(_systemEvent, systemEventWrapper._systemEvent)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
