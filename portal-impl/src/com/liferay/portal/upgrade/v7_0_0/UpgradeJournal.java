@@ -554,6 +554,34 @@ public class UpgradeJournal extends UpgradeProcess {
 		}
 	}
 
+	protected String getShardName(long companyId) throws Exception {
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection(true);
+
+			ps = con.prepareStatement(
+				"select name from Shard where classNameId = ? and classPK = ?");
+
+			ps.setLong(1, PortalUtil.getClassNameId(Company.class.getName()));
+			ps.setLong(2, companyId);
+
+			rs = ps.executeQuery();
+
+			if (rs.next()) {
+				String shardName = rs.getString(1);
+
+				return shardName;
+			}
+			return null;
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
+		}
+	}
+
 	protected int hasDDMStructure(long groupId, String ddmStructureKey)
 		throws Exception {
 
@@ -610,16 +638,24 @@ public class UpgradeJournal extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getUpgradeOptimizedConnection();
+			con = DataAccess.getUpgradeOptimizedConnection(true);
 
 			ps = con.prepareStatement("select companyId from Company");
 
 			rs = ps.executeQuery();
 
+			String currentShardName = ShardUtil.getCurrentShardName();
+
 			while (rs.next()) {
 				long companyId = rs.getLong("companyId");
 
-				updateJournalArticles(companyId);
+				String shardName = getShardName(companyId);
+
+				if (!ShardUtil.isEnabled() ||
+					shardName.equals(currentShardName)) {
+
+					updateJournalArticles(companyId);
+				}
 			}
 		}
 		finally {
