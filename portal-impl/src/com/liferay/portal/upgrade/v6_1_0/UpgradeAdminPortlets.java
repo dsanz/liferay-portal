@@ -78,7 +78,7 @@ public class UpgradeAdminPortlets extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getUpgradeOptimizedConnection();
+			con = DataAccess.getUpgradeOptimizedConnection(true);
 
 			ps = con.prepareStatement(
 				"select bitwiseValue from ResourceAction where name = ? and " +
