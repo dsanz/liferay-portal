@@ -30,6 +30,12 @@ public interface DBProcess {
 
 	public void runSQL(String[] templates) throws IOException, SQLException;
 
+	public void runSQLOnDefaultShard(String sql)
+		throws IOException, SQLException;
+
+	public void runSQLOnDefaultShard(String[] sqls)
+		throws IOException, SQLException;
+
 	public void runSQLTemplate(String path)
 		throws IOException, NamingException, SQLException;
 

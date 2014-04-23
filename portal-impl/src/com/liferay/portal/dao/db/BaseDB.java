@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.dao.db.Index;
 import com.liferay.portal.kernel.dao.db.IndexMetadata;
 import com.liferay.portal.kernel.dao.db.IndexMetadataFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
+import com.liferay.portal.kernel.dao.shard.ShardUtil;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
@@ -311,6 +312,37 @@ public abstract class BaseDB implements DB {
 			runSQL(con, sqls);
 		}
 		finally {
+			DataAccess.cleanUp(con);
+		}
+	}
+
+	@Override
+	public void runSQLOnDefaultShard(String sql)
+		throws IOException, SQLException {
+
+		runSQLOnDefaultShard(new String[]{sql});
+	}
+
+	@Override
+	public void runSQLOnDefaultShard(String[] sqls)
+		throws IOException, SQLException {
+
+		Connection con = DataAccess.getConnection();
+
+		String currentShardName = ShardUtil.getCurrentShardName();
+
+		if (ShardUtil.isEnabled()) {
+			ShardUtil.setTargetSource(ShardUtil.getDefaultShardName());
+
+			con = ShardUtil.getDataSource().getConnection();
+		}
+
+		try {
+			runSQL(con, sqls);
+		}
+		finally {
+			ShardUtil.setTargetSource(currentShardName);
+
 			DataAccess.cleanUp(con);
 		}
 	}

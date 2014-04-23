@@ -129,6 +129,12 @@ public interface DB {
 
 	public void runSQL(String[] sqls) throws IOException, SQLException;
 
+	public void runSQLOnDefaultShard(String sql)
+		throws IOException, SQLException;
+
+	public void runSQLOnDefaultShard(String[] sqls)
+		throws IOException, SQLException;
+
 	public void runSQLTemplate(String path)
 		throws IOException, NamingException, SQLException;
 

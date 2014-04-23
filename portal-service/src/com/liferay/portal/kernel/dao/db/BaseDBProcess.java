@@ -44,6 +44,24 @@ public abstract class BaseDBProcess implements DBProcess {
 	}
 
 	@Override
+	public void runSQLOnDefaultShard(String template)
+		throws IOException, SQLException {
+
+		DB db = DBFactoryUtil.getDB();
+
+		db.runSQLOnDefaultShard(template);
+	}
+
+	@Override
+	public void runSQLOnDefaultShard(String[] templates)
+		throws IOException, SQLException {
+
+		DB db = DBFactoryUtil.getDB();
+
+		db.runSQLOnDefaultShard(templates);
+	}
+
+	@Override
 	public void runSQLTemplate(String path)
 		throws IOException, NamingException, SQLException {
 

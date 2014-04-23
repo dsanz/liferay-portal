@@ -14,6 +14,7 @@
 
 package com.liferay.portal.kernel.dao.jdbc;
 
+import com.liferay.portal.kernel.dao.shard.ShardUtil;
 import com.liferay.portal.kernel.jndi.JNDIUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -107,10 +108,20 @@ public class DataAccess {
 		return dataSource.getConnection();
 	}
 
-	public static Connection getUpgradeOptimizedConnection()
+	public static Connection getUpgradeOptimizedConnection(boolean defaultShard)
 		throws SQLException {
 
 		Connection con = getConnection();
+
+		if (defaultShard && ShardUtil.isEnabled()) {
+			String currentShardName = ShardUtil.getCurrentShardName();
+
+			ShardUtil.setTargetSource(ShardUtil.getDefaultShardName());
+
+			con = ShardUtil.getDataSource().getConnection();
+
+			ShardUtil.setTargetSource(currentShardName);
+		}
 
 		Thread currentThread = Thread.currentThread();
 
@@ -119,6 +130,12 @@ public class DataAccess {
 		return (Connection)ProxyUtil.newProxyInstance(
 			classLoader, new Class[] {Connection.class},
 			new UpgradeOptimizedConnectionHandler(con));
+	}
+
+	public static Connection getUpgradeOptimizedConnection()
+		throws SQLException {
+
+		return getUpgradeOptimizedConnection(false);
 	}
 
 	public interface PACL {
