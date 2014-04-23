@@ -38,7 +38,7 @@ public class UpgradePortletPreferences
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getUpgradeOptimizedConnection();
+			con = DataAccess.getUpgradeOptimizedConnection(true);
 
 			ps = con.prepareStatement(
 				"insert into PortalPreferences (portalPreferencesId, " +
