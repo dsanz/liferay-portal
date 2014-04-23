@@ -1492,7 +1492,7 @@ public class PortalImpl implements Portal {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getUpgradeOptimizedConnection();
+			con = DataAccess.getUpgradeOptimizedConnection(true);
 
 			ps = con.prepareStatement(
 				"select classNameId from ClassName_ where value = ?");

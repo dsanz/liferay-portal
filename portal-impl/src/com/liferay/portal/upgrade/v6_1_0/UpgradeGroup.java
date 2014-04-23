@@ -61,7 +61,7 @@ public class UpgradeGroup extends UpgradeProcess {
 			currentShardName = ShardUtil.setTargetSource(
 				PropsValues.SHARD_DEFAULT_NAME);
 
-			con = DataAccess.getUpgradeOptimizedConnection();
+			con = DataAccess.getUpgradeOptimizedConnection(true);
 
 			ps = con.prepareStatement(
 				"select classNameId from ClassName_ where value = ?");
