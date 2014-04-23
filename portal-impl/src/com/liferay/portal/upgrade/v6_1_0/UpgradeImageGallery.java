@@ -429,10 +429,7 @@ public class UpgradeImageGallery extends UpgradeProcess {
 		String currentShardName = null;
 
 		try {
-			currentShardName = ShardUtil.setTargetSource(
-				PropsValues.SHARD_DEFAULT_NAME);
-
-			con = DataAccess.getUpgradeOptimizedConnection();
+			con = DataAccess.getUpgradeOptimizedConnection(true);
 
 			ps = con.prepareStatement(
 				"select actionId, bitwiseValue from ResourceAction " +
@@ -454,10 +451,6 @@ public class UpgradeImageGallery extends UpgradeProcess {
 			return bitwiseValues;
 		}
 		finally {
-			if (Validator.isNotNull(currentShardName)) {
-				ShardUtil.setTargetSource(currentShardName);
-			}
-
 			DataAccess.cleanUp(con, ps, rs);
 		}
 	}
