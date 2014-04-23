@@ -35,7 +35,7 @@ public class UpgradeVirtualHost extends UpgradeProcess {
 			return;
 		}
 
-		runSQL(
+		runSQLOnDefaultShard(
 			"insert into VirtualHost (virtualHostId, companyId, layoutSetId, " +
 				"hostname) values (" + virtualHostId + ", " + companyId +
 					", " + layoutSetId + ", '" + hostname + "')");
