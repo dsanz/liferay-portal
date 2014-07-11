@@ -17,6 +17,10 @@
 <%@ include file="/html/portlet/document_library_display/init.jsp" %>
 
 <%
+DLEntryListDisplayContext dlEntriesListDisplayContext = new DLEntryListDisplayContext(request, dlPortletInstanceSettings);
+
+DLActionsDisplayContext dlActionsDisplayContext = dlEntriesListDisplayContext.getDLActionsDisplayContext();
+
 String topLink = ParamUtil.getString(request, "topLink", "home");
 
 String redirect = ParamUtil.getString(request, "redirect");
@@ -53,6 +57,9 @@ int status = WorkflowConstants.STATUS_APPROVED;
 if (permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId)) {
 	status = WorkflowConstants.STATUS_ANY;
 }
+
+String[] folderColumns = dlEntriesListDisplayContext.getFolderColumns();
+String[] fileEntryColumns = dlEntriesListDisplayContext.getFileEntryColumns();
 
 int foldersCount = DLAppServiceUtil.getFoldersCount(repositoryId, folderId);
 int fileEntriesCount = DLAppServiceUtil.getFileEntriesAndFileShortcutsCount(repositoryId, folderId, status);
@@ -105,7 +112,7 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 		</c:if>
 
 		<aui:row>
-			<aui:col cssClass="lfr-asset-column lfr-asset-column-details" width="<%= showFolderMenu ? 75 : 100 %>">
+			<aui:col cssClass="lfr-asset-column lfr-asset-column-details" width="<%= dlActionsDisplayContext.isFolderMenuVisible() ? 75 : 100 %>">
 				<liferay-ui:panel-container extended="<%= false %>" id='<%= renderResponse.getNamespace() + "documentLibraryDisplayInfoPanelContainer" %>' persistState="<%= true %>">
 					<c:if test="<%= folder != null %>">
 						<c:if test="<%= Validator.isNotNull(folder.getDescription()) %>">
@@ -115,15 +122,23 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 						</c:if>
 
 						<div class="lfr-asset-metadata">
-							<div class="lfr-asset-icon lfr-asset-date">
-								<%= LanguageUtil.format(pageContext, "last-updated-x", dateFormatDateTime.format(folder.getModifiedDate()), false) %>
+							<div class="icon-calendar lfr-asset-icon">
+								<%= LanguageUtil.format(request, "last-updated-x", dateFormatDateTime.format(folder.getModifiedDate()), false) %>
 							</div>
 
-							<div class="lfr-asset-icon lfr-asset-subfolders">
+							<%
+							AssetRendererFactory dlFileEntryAssetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(DLFileEntry.class.getName());
+							%>
+
+							<div class="<%= dlFileEntryAssetRendererFactory.getIconCssClass() %> lfr-asset-icon">
 								<%= foldersCount %> <liferay-ui:message key='<%= (foldersCount == 1) ? "subfolder" : "subfolders" %>' />
 							</div>
 
-							<div class="lfr-asset-icon lfr-asset-items last">
+							<%
+							AssetRendererFactory dlFolderAssetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(DLFolder.class.getName());
+							%>
+
+							<div class="<%= dlFolderAssetRendererFactory.getIconCssClass() %> last lfr-asset-icon">
 								<%= fileEntriesCount %> <liferay-ui:message key='<%= (fileEntriesCount == 1) ? "document" : "documents" %>' />
 							</div>
 						</div>
@@ -142,7 +157,7 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 						<liferay-ui:panel collapsible="<%= true %>" cssClass="view-folders" extended="<%= true %>" id='<%= renderResponse.getNamespace() + "documentLibraryDisplayFoldersListingPanel" %>' persistState="<%= true %>" title='<%= (folder != null) ? "subfolders" : "folders" %>'>
 							<liferay-ui:search-container
 								curParam="cur1"
-								delta="<%= foldersPerPage %>"
+								delta="<%= dlPortletInstanceSettings.getFoldersPerPage() %>"
 								deltaConfigurable="<%= false %>"
 								headerNames="<%= StringUtil.merge(folderColumns) %>"
 								iteratorURL="<%= portletURL %>"
@@ -178,7 +193,7 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 				</liferay-ui:panel-container>
 			</aui:col>
 
-			<c:if test="<%= showFolderMenu %>">
+			<c:if test="<%= dlActionsDisplayContext.isFolderMenuVisible() %>">
 				<aui:col cssClass="lfr-asset-column lfr-asset-column-actions" last="<%= true %>" width="<%= 25 %>">
 					<div class="lfr-asset-summary">
 						<liferay-ui:icon
@@ -188,7 +203,7 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 						/>
 
 						<div class="lfr-asset-name">
-							<h4><%= (folder != null) ? HtmlUtil.escape(folder.getName()) : LanguageUtil.get(pageContext, "home") %></h4>
+							<h4><%= (folder != null) ? HtmlUtil.escape(folder.getName()) : LanguageUtil.get(request, "home") %></h4>
 						</div>
 					</div>
 
@@ -231,7 +246,7 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 			%>
 
 			<liferay-ui:search-container
-				delta="<%= fileEntriesPerPage %>"
+				delta="<%= dlPortletInstanceSettings.getFileEntriesPerPage() %>"
 				deltaConfigurable="<%= false %>"
 				emptyResultsMessage="there-are-no-documents"
 				iteratorURL="<%= portletURL %>"
@@ -273,9 +288,9 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 		</aui:row>
 
 		<%
-		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, topLink), currentURL);
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, topLink), currentURL);
 
-		PortalUtil.setPageSubtitle(LanguageUtil.get(pageContext, topLink), request);
+		PortalUtil.setPageSubtitle(LanguageUtil.get(request, topLink), request);
 		%>
 
 	</c:when>

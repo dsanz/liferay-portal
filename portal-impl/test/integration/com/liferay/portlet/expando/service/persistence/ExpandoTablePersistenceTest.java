@@ -30,12 +30,12 @@ import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.expando.NoSuchTableException;
 import com.liferay.portlet.expando.model.ExpandoTable;
@@ -51,6 +51,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,7 +101,7 @@ public class ExpandoTablePersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ExpandoTable expandoTable = _persistence.create(pk);
 
@@ -127,15 +128,15 @@ public class ExpandoTablePersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ExpandoTable newExpandoTable = _persistence.create(pk);
 
-		newExpandoTable.setCompanyId(ServiceTestUtil.nextLong());
+		newExpandoTable.setCompanyId(RandomTestUtil.nextLong());
 
-		newExpandoTable.setClassNameId(ServiceTestUtil.nextLong());
+		newExpandoTable.setClassNameId(RandomTestUtil.nextLong());
 
-		newExpandoTable.setName(ServiceTestUtil.randomString());
+		newExpandoTable.setName(RandomTestUtil.randomString());
 
 		_persistence.update(newExpandoTable);
 
@@ -154,8 +155,8 @@ public class ExpandoTablePersistenceTest {
 	@Test
 	public void testCountByC_C() {
 		try {
-			_persistence.countByC_C(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong());
+			_persistence.countByC_C(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
 
 			_persistence.countByC_C(0L, 0L);
 		}
@@ -167,8 +168,8 @@ public class ExpandoTablePersistenceTest {
 	@Test
 	public void testCountByC_C_N() {
 		try {
-			_persistence.countByC_C_N(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), StringPool.BLANK);
+			_persistence.countByC_C_N(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), StringPool.BLANK);
 
 			_persistence.countByC_C_N(0L, 0L, StringPool.NULL);
 
@@ -190,7 +191,7 @@ public class ExpandoTablePersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -212,7 +213,7 @@ public class ExpandoTablePersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<ExpandoTable> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("ExpandoTable", "tableId",
 			true, "companyId", true, "classNameId", true, "name", true);
 	}
@@ -228,11 +229,93 @@ public class ExpandoTablePersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ExpandoTable missingExpandoTable = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingExpandoTable);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		ExpandoTable newExpandoTable1 = addExpandoTable();
+		ExpandoTable newExpandoTable2 = addExpandoTable();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newExpandoTable1.getPrimaryKey());
+		primaryKeys.add(newExpandoTable2.getPrimaryKey());
+
+		Map<Serializable, ExpandoTable> expandoTables = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, expandoTables.size());
+		Assert.assertEquals(newExpandoTable1,
+			expandoTables.get(newExpandoTable1.getPrimaryKey()));
+		Assert.assertEquals(newExpandoTable2,
+			expandoTables.get(newExpandoTable2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, ExpandoTable> expandoTables = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(expandoTables.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		ExpandoTable newExpandoTable = addExpandoTable();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newExpandoTable.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, ExpandoTable> expandoTables = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, expandoTables.size());
+		Assert.assertEquals(newExpandoTable,
+			expandoTables.get(newExpandoTable.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, ExpandoTable> expandoTables = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(expandoTables.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		ExpandoTable newExpandoTable = addExpandoTable();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newExpandoTable.getPrimaryKey());
+
+		Map<Serializable, ExpandoTable> expandoTables = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, expandoTables.size());
+		Assert.assertEquals(newExpandoTable,
+			expandoTables.get(newExpandoTable.getPrimaryKey()));
 	}
 
 	@Test
@@ -283,7 +366,7 @@ public class ExpandoTablePersistenceTest {
 				ExpandoTable.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("tableId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<ExpandoTable> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -322,7 +405,7 @@ public class ExpandoTablePersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("tableId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("tableId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -351,15 +434,15 @@ public class ExpandoTablePersistenceTest {
 	}
 
 	protected ExpandoTable addExpandoTable() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ExpandoTable expandoTable = _persistence.create(pk);
 
-		expandoTable.setCompanyId(ServiceTestUtil.nextLong());
+		expandoTable.setCompanyId(RandomTestUtil.nextLong());
 
-		expandoTable.setClassNameId(ServiceTestUtil.nextLong());
+		expandoTable.setClassNameId(RandomTestUtil.nextLong());
 
-		expandoTable.setName(ServiceTestUtil.randomString());
+		expandoTable.setName(RandomTestUtil.randomString());
 
 		_persistence.update(expandoTable);
 

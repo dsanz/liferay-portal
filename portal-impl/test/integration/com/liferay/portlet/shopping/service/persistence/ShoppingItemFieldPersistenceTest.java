@@ -28,11 +28,11 @@ import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.shopping.NoSuchItemFieldException;
 import com.liferay.portlet.shopping.model.ShoppingItemField;
@@ -47,6 +47,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,7 +97,7 @@ public class ShoppingItemFieldPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ShoppingItemField shoppingItemField = _persistence.create(pk);
 
@@ -123,17 +124,17 @@ public class ShoppingItemFieldPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ShoppingItemField newShoppingItemField = _persistence.create(pk);
 
-		newShoppingItemField.setItemId(ServiceTestUtil.nextLong());
+		newShoppingItemField.setItemId(RandomTestUtil.nextLong());
 
-		newShoppingItemField.setName(ServiceTestUtil.randomString());
+		newShoppingItemField.setName(RandomTestUtil.randomString());
 
-		newShoppingItemField.setValues(ServiceTestUtil.randomString());
+		newShoppingItemField.setValues(RandomTestUtil.randomString());
 
-		newShoppingItemField.setDescription(ServiceTestUtil.randomString());
+		newShoppingItemField.setDescription(RandomTestUtil.randomString());
 
 		_persistence.update(newShoppingItemField);
 
@@ -154,7 +155,7 @@ public class ShoppingItemFieldPersistenceTest {
 	@Test
 	public void testCountByItemId() {
 		try {
-			_persistence.countByItemId(ServiceTestUtil.nextLong());
+			_persistence.countByItemId(RandomTestUtil.nextLong());
 
 			_persistence.countByItemId(0L);
 		}
@@ -174,7 +175,7 @@ public class ShoppingItemFieldPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -196,7 +197,7 @@ public class ShoppingItemFieldPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<ShoppingItemField> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("ShoppingItemField",
 			"itemFieldId", true, "itemId", true, "name", true, "values", true,
 			"description", true);
@@ -213,11 +214,93 @@ public class ShoppingItemFieldPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ShoppingItemField missingShoppingItemField = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingShoppingItemField);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		ShoppingItemField newShoppingItemField1 = addShoppingItemField();
+		ShoppingItemField newShoppingItemField2 = addShoppingItemField();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newShoppingItemField1.getPrimaryKey());
+		primaryKeys.add(newShoppingItemField2.getPrimaryKey());
+
+		Map<Serializable, ShoppingItemField> shoppingItemFields = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, shoppingItemFields.size());
+		Assert.assertEquals(newShoppingItemField1,
+			shoppingItemFields.get(newShoppingItemField1.getPrimaryKey()));
+		Assert.assertEquals(newShoppingItemField2,
+			shoppingItemFields.get(newShoppingItemField2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, ShoppingItemField> shoppingItemFields = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(shoppingItemFields.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		ShoppingItemField newShoppingItemField = addShoppingItemField();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newShoppingItemField.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, ShoppingItemField> shoppingItemFields = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, shoppingItemFields.size());
+		Assert.assertEquals(newShoppingItemField,
+			shoppingItemFields.get(newShoppingItemField.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, ShoppingItemField> shoppingItemFields = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(shoppingItemFields.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		ShoppingItemField newShoppingItemField = addShoppingItemField();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newShoppingItemField.getPrimaryKey());
+
+		Map<Serializable, ShoppingItemField> shoppingItemFields = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, shoppingItemFields.size());
+		Assert.assertEquals(newShoppingItemField,
+			shoppingItemFields.get(newShoppingItemField.getPrimaryKey()));
 	}
 
 	@Test
@@ -268,7 +351,7 @@ public class ShoppingItemFieldPersistenceTest {
 				ShoppingItemField.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("itemFieldId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<ShoppingItemField> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -307,7 +390,7 @@ public class ShoppingItemFieldPersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("itemFieldId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("itemFieldId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -316,17 +399,17 @@ public class ShoppingItemFieldPersistenceTest {
 
 	protected ShoppingItemField addShoppingItemField()
 		throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ShoppingItemField shoppingItemField = _persistence.create(pk);
 
-		shoppingItemField.setItemId(ServiceTestUtil.nextLong());
+		shoppingItemField.setItemId(RandomTestUtil.nextLong());
 
-		shoppingItemField.setName(ServiceTestUtil.randomString());
+		shoppingItemField.setName(RandomTestUtil.randomString());
 
-		shoppingItemField.setValues(ServiceTestUtil.randomString());
+		shoppingItemField.setValues(RandomTestUtil.randomString());
 
-		shoppingItemField.setDescription(ServiceTestUtil.randomString());
+		shoppingItemField.setDescription(RandomTestUtil.randomString());
 
 		_persistence.update(shoppingItemField);
 

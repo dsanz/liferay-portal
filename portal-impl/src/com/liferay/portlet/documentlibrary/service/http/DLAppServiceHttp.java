@@ -58,8 +58,7 @@ public class DLAppServiceHttp {
 		java.lang.String title, java.lang.String description,
 		java.lang.String changeLog, byte[] bytes,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"addFileEntry", _addFileEntryParameterTypes0);
@@ -76,10 +75,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -100,8 +95,7 @@ public class DLAppServiceHttp {
 		java.lang.String title, java.lang.String description,
 		java.lang.String changeLog, java.io.File file,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"addFileEntry", _addFileEntryParameterTypes1);
@@ -118,10 +112,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -142,8 +132,7 @@ public class DLAppServiceHttp {
 		java.lang.String title, java.lang.String description,
 		java.lang.String changeLog, java.io.InputStream is, long size,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"addFileEntry", _addFileEntryParameterTypes2);
@@ -162,10 +151,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -182,8 +167,7 @@ public class DLAppServiceHttp {
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		long toFileEntryId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"addFileShortcut", _addFileShortcutParameterTypes3);
@@ -199,10 +183,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -221,8 +201,7 @@ public class DLAppServiceHttp {
 		HttpPrincipal httpPrincipal, long repositoryId, long parentFolderId,
 		java.lang.String name, java.lang.String description,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"addFolder", _addFolderParameterTypes4);
@@ -241,10 +220,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -261,8 +236,7 @@ public class DLAppServiceHttp {
 		HttpPrincipal httpPrincipal, long groupId, long folderId,
 		java.lang.String fileName, java.lang.String tempFolderName,
 		java.io.File file, java.lang.String mimeType)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"addTempFileEntry", _addTempFileEntryParameterTypes5);
@@ -278,10 +252,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -300,8 +270,7 @@ public class DLAppServiceHttp {
 		HttpPrincipal httpPrincipal, long groupId, long folderId,
 		java.lang.String fileName, java.lang.String tempFolderName,
 		java.io.InputStream inputStream, java.lang.String mimeType)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"addTempFileEntry", _addTempFileEntryParameterTypes6);
@@ -319,10 +288,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -337,8 +302,7 @@ public class DLAppServiceHttp {
 
 	public static void cancelCheckOut(HttpPrincipal httpPrincipal,
 		long fileEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"cancelCheckOut", _cancelCheckOutParameterTypes7);
@@ -354,10 +318,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -371,8 +331,7 @@ public class DLAppServiceHttp {
 	public static void checkInFileEntry(HttpPrincipal httpPrincipal,
 		long fileEntryId, boolean majorVersion, java.lang.String changeLog,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"checkInFileEntry", _checkInFileEntryParameterTypes8);
@@ -388,10 +347,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -404,8 +359,7 @@ public class DLAppServiceHttp {
 
 	public static void checkInFileEntry(HttpPrincipal httpPrincipal,
 		long fileEntryId, java.lang.String lockUuid)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"checkInFileEntry", _checkInFileEntryParameterTypes9);
@@ -421,10 +375,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -438,8 +388,7 @@ public class DLAppServiceHttp {
 	public static void checkInFileEntry(HttpPrincipal httpPrincipal,
 		long fileEntryId, java.lang.String lockUuid,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"checkInFileEntry", _checkInFileEntryParameterTypes10);
@@ -455,10 +404,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -472,8 +417,7 @@ public class DLAppServiceHttp {
 	public static void checkOutFileEntry(HttpPrincipal httpPrincipal,
 		long fileEntryId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"checkOutFileEntry", _checkOutFileEntryParameterTypes11);
@@ -487,10 +431,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -507,8 +447,7 @@ public class DLAppServiceHttp {
 		HttpPrincipal httpPrincipal, long fileEntryId, java.lang.String owner,
 		long expirationTime,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"checkOutFileEntry", _checkOutFileEntryParameterTypes12);
@@ -524,10 +463,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -547,8 +482,7 @@ public class DLAppServiceHttp {
 		long parentFolderId, java.lang.String name,
 		java.lang.String description,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"copyFolder", _copyFolderParameterTypes13);
@@ -567,10 +501,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -585,8 +515,7 @@ public class DLAppServiceHttp {
 
 	public static void deleteFileEntry(HttpPrincipal httpPrincipal,
 		long fileEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"deleteFileEntry", _deleteFileEntryParameterTypes14);
@@ -602,10 +531,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -618,8 +543,7 @@ public class DLAppServiceHttp {
 
 	public static void deleteFileEntryByTitle(HttpPrincipal httpPrincipal,
 		long repositoryId, long folderId, java.lang.String title)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"deleteFileEntryByTitle",
@@ -636,10 +560,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -652,8 +572,7 @@ public class DLAppServiceHttp {
 
 	public static void deleteFileShortcut(HttpPrincipal httpPrincipal,
 		long fileShortcutId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"deleteFileShortcut", _deleteFileShortcutParameterTypes16);
@@ -669,10 +588,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -685,8 +600,7 @@ public class DLAppServiceHttp {
 
 	public static void deleteFileVersion(HttpPrincipal httpPrincipal,
 		long fileEntryId, java.lang.String version)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"deleteFileVersion", _deleteFileVersionParameterTypes17);
@@ -702,10 +616,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -717,8 +627,7 @@ public class DLAppServiceHttp {
 	}
 
 	public static void deleteFolder(HttpPrincipal httpPrincipal, long folderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"deleteFolder", _deleteFolderParameterTypes18);
@@ -733,10 +642,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -749,8 +654,7 @@ public class DLAppServiceHttp {
 
 	public static void deleteFolder(HttpPrincipal httpPrincipal,
 		long repositoryId, long parentFolderId, java.lang.String name)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"deleteFolder", _deleteFolderParameterTypes19);
@@ -766,10 +670,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -783,8 +683,7 @@ public class DLAppServiceHttp {
 	public static void deleteTempFileEntry(HttpPrincipal httpPrincipal,
 		long groupId, long folderId, java.lang.String fileName,
 		java.lang.String tempFolderName)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"deleteTempFileEntry", _deleteTempFileEntryParameterTypes20);
@@ -800,10 +699,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -816,8 +711,7 @@ public class DLAppServiceHttp {
 
 	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getFileEntries(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntries", _getFileEntriesParameterTypes21);
@@ -835,10 +729,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -854,8 +744,7 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getFileEntries(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntries", _getFileEntriesParameterTypes22);
@@ -873,10 +762,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -891,9 +776,9 @@ public class DLAppServiceHttp {
 
 	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getFileEntries(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
-		int start, int end, com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.kernel.repository.model.FileEntry> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntries", _getFileEntriesParameterTypes23);
@@ -911,10 +796,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -930,8 +811,7 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getFileEntries(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		long fileEntryTypeId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntries", _getFileEntriesParameterTypes24);
@@ -949,10 +829,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -968,8 +844,7 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getFileEntries(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		long fileEntryTypeId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntries", _getFileEntriesParameterTypes25);
@@ -987,10 +862,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1006,9 +877,8 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getFileEntries(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		long fileEntryTypeId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.kernel.repository.model.FileEntry> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntries", _getFileEntriesParameterTypes26);
@@ -1026,10 +896,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1045,8 +911,7 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getFileEntries(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		java.lang.String[] mimeTypes)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntries", _getFileEntriesParameterTypes27);
@@ -1064,10 +929,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1083,8 +944,7 @@ public class DLAppServiceHttp {
 	public static java.util.List<java.lang.Object> getFileEntriesAndFileShortcuts(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntriesAndFileShortcuts",
@@ -1103,10 +963,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1121,9 +977,7 @@ public class DLAppServiceHttp {
 
 	public static int getFileEntriesAndFileShortcutsCount(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
-		int status)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		int status) throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntriesAndFileShortcutsCount",
@@ -1142,10 +996,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1161,8 +1011,7 @@ public class DLAppServiceHttp {
 	public static int getFileEntriesAndFileShortcutsCount(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		int status, java.lang.String[] mimeTypes)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntriesAndFileShortcutsCount",
@@ -1181,10 +1030,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1199,8 +1044,7 @@ public class DLAppServiceHttp {
 
 	public static int getFileEntriesCount(HttpPrincipal httpPrincipal,
 		long repositoryId, long folderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntriesCount", _getFileEntriesCountParameterTypes31);
@@ -1218,10 +1062,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1236,8 +1076,7 @@ public class DLAppServiceHttp {
 
 	public static int getFileEntriesCount(HttpPrincipal httpPrincipal,
 		long repositoryId, long folderId, long fileEntryTypeId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntriesCount", _getFileEntriesCountParameterTypes32);
@@ -1255,10 +1094,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1273,8 +1108,7 @@ public class DLAppServiceHttp {
 
 	public static com.liferay.portal.kernel.repository.model.FileEntry getFileEntry(
 		HttpPrincipal httpPrincipal, long fileEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntry", _getFileEntryParameterTypes33);
@@ -1292,10 +1126,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1311,8 +1141,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.kernel.repository.model.FileEntry getFileEntry(
 		HttpPrincipal httpPrincipal, long groupId, long folderId,
 		java.lang.String title)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntry", _getFileEntryParameterTypes34);
@@ -1330,10 +1159,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1348,8 +1173,7 @@ public class DLAppServiceHttp {
 
 	public static com.liferay.portal.kernel.repository.model.FileEntry getFileEntryByUuidAndGroupId(
 		HttpPrincipal httpPrincipal, java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileEntryByUuidAndGroupId",
@@ -1368,10 +1192,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1386,8 +1206,7 @@ public class DLAppServiceHttp {
 
 	public static com.liferay.portlet.documentlibrary.model.DLFileShortcut getFileShortcut(
 		HttpPrincipal httpPrincipal, long fileShortcutId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFileShortcut", _getFileShortcutParameterTypes36);
@@ -1405,10 +1224,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1423,8 +1238,7 @@ public class DLAppServiceHttp {
 
 	public static com.liferay.portal.kernel.repository.model.Folder getFolder(
 		HttpPrincipal httpPrincipal, long folderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFolder", _getFolderParameterTypes37);
@@ -1439,10 +1253,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -1460,8 +1270,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.kernel.repository.model.Folder getFolder(
 		HttpPrincipal httpPrincipal, long repositoryId, long parentFolderId,
 		java.lang.String name)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFolder", _getFolderParameterTypes38);
@@ -1479,10 +1288,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1497,8 +1302,7 @@ public class DLAppServiceHttp {
 
 	public static java.util.List<com.liferay.portal.kernel.repository.model.Folder> getFolders(
 		HttpPrincipal httpPrincipal, long repositoryId, long parentFolderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFolders", _getFoldersParameterTypes39);
@@ -1516,10 +1320,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1535,8 +1335,7 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.Folder> getFolders(
 		HttpPrincipal httpPrincipal, long repositoryId, long parentFolderId,
 		boolean includeMountFolders)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFolders", _getFoldersParameterTypes40);
@@ -1554,10 +1353,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1573,8 +1368,7 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.Folder> getFolders(
 		HttpPrincipal httpPrincipal, long repositoryId, long parentFolderId,
 		boolean includeMountFolders, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFolders", _getFoldersParameterTypes41);
@@ -1593,10 +1387,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1612,9 +1402,8 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.Folder> getFolders(
 		HttpPrincipal httpPrincipal, long repositoryId, long parentFolderId,
 		boolean includeMountFolders, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.kernel.repository.model.Folder> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFolders", _getFoldersParameterTypes42);
@@ -1633,10 +1422,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1652,9 +1437,8 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.Folder> getFolders(
 		HttpPrincipal httpPrincipal, long repositoryId, long parentFolderId,
 		int status, boolean includeMountFolders, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.kernel.repository.model.Folder> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFolders", _getFoldersParameterTypes43);
@@ -1673,10 +1457,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1692,8 +1472,7 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.Folder> getFolders(
 		HttpPrincipal httpPrincipal, long repositoryId, long parentFolderId,
 		int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFolders", _getFoldersParameterTypes44);
@@ -1711,10 +1490,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1729,9 +1504,9 @@ public class DLAppServiceHttp {
 
 	public static java.util.List<com.liferay.portal.kernel.repository.model.Folder> getFolders(
 		HttpPrincipal httpPrincipal, long repositoryId, long parentFolderId,
-		int start, int end, com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.kernel.repository.model.Folder> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFolders", _getFoldersParameterTypes45);
@@ -1749,10 +1524,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1768,8 +1539,7 @@ public class DLAppServiceHttp {
 	public static java.util.List<java.lang.Object> getFoldersAndFileEntriesAndFileShortcuts(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		int status, boolean includeMountFolders, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFoldersAndFileEntriesAndFileShortcuts",
@@ -1789,10 +1559,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1808,9 +1574,8 @@ public class DLAppServiceHttp {
 	public static java.util.List<java.lang.Object> getFoldersAndFileEntriesAndFileShortcuts(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		int status, boolean includeMountFolders, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<?> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFoldersAndFileEntriesAndFileShortcuts",
@@ -1830,10 +1595,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1849,9 +1610,9 @@ public class DLAppServiceHttp {
 	public static java.util.List<java.lang.Object> getFoldersAndFileEntriesAndFileShortcuts(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		int status, java.lang.String[] mimeTypes, boolean includeMountFolders,
-		int start, int end, com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<?> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFoldersAndFileEntriesAndFileShortcuts",
@@ -1871,10 +1632,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1890,8 +1647,7 @@ public class DLAppServiceHttp {
 	public static int getFoldersAndFileEntriesAndFileShortcutsCount(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		int status, boolean includeMountFolders)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFoldersAndFileEntriesAndFileShortcutsCount",
@@ -1910,10 +1666,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1929,8 +1681,7 @@ public class DLAppServiceHttp {
 	public static int getFoldersAndFileEntriesAndFileShortcutsCount(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		int status, java.lang.String[] mimeTypes, boolean includeMountFolders)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFoldersAndFileEntriesAndFileShortcutsCount",
@@ -1950,10 +1701,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -1968,8 +1715,7 @@ public class DLAppServiceHttp {
 
 	public static int getFoldersCount(HttpPrincipal httpPrincipal,
 		long repositoryId, long parentFolderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFoldersCount", _getFoldersCountParameterTypes51);
@@ -1987,10 +1733,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2005,8 +1747,7 @@ public class DLAppServiceHttp {
 
 	public static int getFoldersCount(HttpPrincipal httpPrincipal,
 		long repositoryId, long parentFolderId, boolean includeMountFolders)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFoldersCount", _getFoldersCountParameterTypes52);
@@ -2024,10 +1765,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2043,8 +1780,7 @@ public class DLAppServiceHttp {
 	public static int getFoldersCount(HttpPrincipal httpPrincipal,
 		long repositoryId, long parentFolderId, int status,
 		boolean includeMountFolders)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFoldersCount", _getFoldersCountParameterTypes53);
@@ -2062,10 +1798,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2080,8 +1812,7 @@ public class DLAppServiceHttp {
 
 	public static int getFoldersFileEntriesCount(HttpPrincipal httpPrincipal,
 		long repositoryId, java.util.List<java.lang.Long> folderIds, int status)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getFoldersFileEntriesCount",
@@ -2100,10 +1831,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2118,9 +1845,7 @@ public class DLAppServiceHttp {
 
 	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getGroupFileEntries(
 		HttpPrincipal httpPrincipal, long groupId, long userId, int start,
-		int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		int end) throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getGroupFileEntries", _getGroupFileEntriesParameterTypes55);
@@ -2138,10 +1863,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2156,9 +1877,9 @@ public class DLAppServiceHttp {
 
 	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getGroupFileEntries(
 		HttpPrincipal httpPrincipal, long groupId, long userId, int start,
-		int end, com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.kernel.repository.model.FileEntry> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getGroupFileEntries", _getGroupFileEntriesParameterTypes56);
@@ -2176,10 +1897,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2195,8 +1912,7 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getGroupFileEntries(
 		HttpPrincipal httpPrincipal, long groupId, long userId,
 		long rootFolderId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getGroupFileEntries", _getGroupFileEntriesParameterTypes57);
@@ -2214,10 +1930,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2233,9 +1945,8 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getGroupFileEntries(
 		HttpPrincipal httpPrincipal, long groupId, long userId,
 		long rootFolderId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.kernel.repository.model.FileEntry> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getGroupFileEntries", _getGroupFileEntriesParameterTypes58);
@@ -2253,10 +1964,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2272,9 +1979,9 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getGroupFileEntries(
 		HttpPrincipal httpPrincipal, long groupId, long userId,
 		long rootFolderId, java.lang.String[] mimeTypes, int status, int start,
-		int end, com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.kernel.repository.model.FileEntry> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getGroupFileEntries", _getGroupFileEntriesParameterTypes59);
@@ -2292,10 +1999,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2310,8 +2013,7 @@ public class DLAppServiceHttp {
 
 	public static int getGroupFileEntriesCount(HttpPrincipal httpPrincipal,
 		long groupId, long userId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getGroupFileEntriesCount",
@@ -2330,10 +2032,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2348,8 +2046,7 @@ public class DLAppServiceHttp {
 
 	public static int getGroupFileEntriesCount(HttpPrincipal httpPrincipal,
 		long groupId, long userId, long rootFolderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getGroupFileEntriesCount",
@@ -2368,10 +2065,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2387,8 +2080,7 @@ public class DLAppServiceHttp {
 	public static int getGroupFileEntriesCount(HttpPrincipal httpPrincipal,
 		long groupId, long userId, long rootFolderId,
 		java.lang.String[] mimeTypes, int status)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getGroupFileEntriesCount",
@@ -2407,10 +2099,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2425,8 +2113,7 @@ public class DLAppServiceHttp {
 
 	public static java.util.List<com.liferay.portal.kernel.repository.model.Folder> getMountFolders(
 		HttpPrincipal httpPrincipal, long repositoryId, long parentFolderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getMountFolders", _getMountFoldersParameterTypes63);
@@ -2444,10 +2131,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2463,8 +2146,7 @@ public class DLAppServiceHttp {
 	public static java.util.List<com.liferay.portal.kernel.repository.model.Folder> getMountFolders(
 		HttpPrincipal httpPrincipal, long repositoryId, long parentFolderId,
 		int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getMountFolders", _getMountFoldersParameterTypes64);
@@ -2482,10 +2164,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2500,9 +2178,9 @@ public class DLAppServiceHttp {
 
 	public static java.util.List<com.liferay.portal.kernel.repository.model.Folder> getMountFolders(
 		HttpPrincipal httpPrincipal, long repositoryId, long parentFolderId,
-		int start, int end, com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.kernel.repository.model.Folder> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getMountFolders", _getMountFoldersParameterTypes65);
@@ -2520,10 +2198,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2538,8 +2212,7 @@ public class DLAppServiceHttp {
 
 	public static int getMountFoldersCount(HttpPrincipal httpPrincipal,
 		long repositoryId, long parentFolderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getMountFoldersCount",
@@ -2558,10 +2231,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2577,8 +2246,7 @@ public class DLAppServiceHttp {
 	public static void getSubfolderIds(HttpPrincipal httpPrincipal,
 		long repositoryId, java.util.List<java.lang.Long> folderIds,
 		long folderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getSubfolderIds", _getSubfolderIdsParameterTypes67);
@@ -2594,10 +2262,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -2610,8 +2274,7 @@ public class DLAppServiceHttp {
 
 	public static java.util.List<java.lang.Long> getSubfolderIds(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getSubfolderIds", _getSubfolderIdsParameterTypes68);
@@ -2629,10 +2292,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2648,8 +2307,7 @@ public class DLAppServiceHttp {
 	public static java.util.List<java.lang.Long> getSubfolderIds(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		boolean recurse)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getSubfolderIds", _getSubfolderIdsParameterTypes69);
@@ -2667,10 +2325,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2686,8 +2340,7 @@ public class DLAppServiceHttp {
 	public static java.lang.String[] getTempFileEntryNames(
 		HttpPrincipal httpPrincipal, long groupId, long folderId,
 		java.lang.String tempFolderName)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"getTempFileEntryNames",
@@ -2706,10 +2359,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2724,8 +2373,7 @@ public class DLAppServiceHttp {
 
 	public static com.liferay.portal.model.Lock lockFileEntry(
 		HttpPrincipal httpPrincipal, long fileEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"lockFileEntry", _lockFileEntryParameterTypes71);
@@ -2743,10 +2391,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2762,8 +2406,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.model.Lock lockFileEntry(
 		HttpPrincipal httpPrincipal, long fileEntryId, java.lang.String owner,
 		long expirationTime)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"lockFileEntry", _lockFileEntryParameterTypes72);
@@ -2781,10 +2424,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2799,8 +2438,7 @@ public class DLAppServiceHttp {
 
 	public static com.liferay.portal.model.Lock lockFolder(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"lockFolder", _lockFolderParameterTypes73);
@@ -2818,10 +2456,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2837,8 +2471,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.model.Lock lockFolder(
 		HttpPrincipal httpPrincipal, long repositoryId, long folderId,
 		java.lang.String owner, boolean inheritable, long expirationTime)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"lockFolder", _lockFolderParameterTypes74);
@@ -2856,10 +2489,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2875,8 +2504,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.kernel.repository.model.FileEntry moveFileEntry(
 		HttpPrincipal httpPrincipal, long fileEntryId, long newFolderId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"moveFileEntry", _moveFileEntryParameterTypes75);
@@ -2894,10 +2522,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2913,8 +2537,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.kernel.repository.model.FileEntry moveFileEntryFromTrash(
 		HttpPrincipal httpPrincipal, long fileEntryId, long newFolderId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"moveFileEntryFromTrash",
@@ -2933,10 +2556,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2951,8 +2570,7 @@ public class DLAppServiceHttp {
 
 	public static com.liferay.portal.kernel.repository.model.FileEntry moveFileEntryToTrash(
 		HttpPrincipal httpPrincipal, long fileEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"moveFileEntryToTrash",
@@ -2971,10 +2589,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -2990,8 +2604,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portlet.documentlibrary.model.DLFileShortcut moveFileShortcutFromTrash(
 		HttpPrincipal httpPrincipal, long fileShortcutId, long newFolderId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"moveFileShortcutFromTrash",
@@ -3010,10 +2623,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -3028,8 +2637,7 @@ public class DLAppServiceHttp {
 
 	public static com.liferay.portlet.documentlibrary.model.DLFileShortcut moveFileShortcutToTrash(
 		HttpPrincipal httpPrincipal, long fileShortcutId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"moveFileShortcutToTrash",
@@ -3048,10 +2656,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -3067,8 +2671,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.kernel.repository.model.Folder moveFolder(
 		HttpPrincipal httpPrincipal, long folderId, long parentFolderId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"moveFolder", _moveFolderParameterTypes80);
@@ -3086,10 +2689,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -3105,8 +2704,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.kernel.repository.model.Folder moveFolderFromTrash(
 		HttpPrincipal httpPrincipal, long folderId, long parentFolderId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"moveFolderFromTrash", _moveFolderFromTrashParameterTypes81);
@@ -3124,10 +2722,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -3142,8 +2736,7 @@ public class DLAppServiceHttp {
 
 	public static com.liferay.portal.kernel.repository.model.Folder moveFolderToTrash(
 		HttpPrincipal httpPrincipal, long folderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"moveFolderToTrash", _moveFolderToTrashParameterTypes82);
@@ -3158,10 +2751,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -3179,8 +2768,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.model.Lock refreshFileEntryLock(
 		HttpPrincipal httpPrincipal, java.lang.String lockUuid, long companyId,
 		long expirationTime)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"refreshFileEntryLock",
@@ -3199,10 +2787,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -3218,8 +2802,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.model.Lock refreshFolderLock(
 		HttpPrincipal httpPrincipal, java.lang.String lockUuid, long companyId,
 		long expirationTime)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"refreshFolderLock", _refreshFolderLockParameterTypes84);
@@ -3237,10 +2820,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -3255,8 +2834,7 @@ public class DLAppServiceHttp {
 
 	public static void restoreFileEntryFromTrash(HttpPrincipal httpPrincipal,
 		long fileEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"restoreFileEntryFromTrash",
@@ -3273,10 +2851,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -3289,8 +2863,7 @@ public class DLAppServiceHttp {
 
 	public static void restoreFileShortcutFromTrash(
 		HttpPrincipal httpPrincipal, long fileShortcutId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"restoreFileShortcutFromTrash",
@@ -3307,10 +2880,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -3323,8 +2892,7 @@ public class DLAppServiceHttp {
 
 	public static void restoreFolderFromTrash(HttpPrincipal httpPrincipal,
 		long folderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"restoreFolderFromTrash",
@@ -3340,10 +2908,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -3357,8 +2921,7 @@ public class DLAppServiceHttp {
 	public static void revertFileEntry(HttpPrincipal httpPrincipal,
 		long fileEntryId, java.lang.String version,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"revertFileEntry", _revertFileEntryParameterTypes88);
@@ -3374,10 +2937,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -3391,8 +2950,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.kernel.search.Hits search(
 		HttpPrincipal httpPrincipal, long repositoryId, long creatorUserId,
 		int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"search", _searchParameterTypes89);
@@ -3410,10 +2968,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -3429,9 +2983,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.kernel.search.Hits search(
 		HttpPrincipal httpPrincipal, long repositoryId, long creatorUserId,
 		long folderId, java.lang.String[] mimeTypes, int status, int start,
-		int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		int end) throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"search", _searchParameterTypes90);
@@ -3450,10 +3002,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -3469,8 +3017,7 @@ public class DLAppServiceHttp {
 	public static com.liferay.portal.kernel.search.Hits search(
 		HttpPrincipal httpPrincipal, long repositoryId,
 		com.liferay.portal.kernel.search.SearchContext searchContext)
-		throws com.liferay.portal.kernel.exception.SystemException,
-			com.liferay.portal.kernel.search.SearchException {
+		throws com.liferay.portal.kernel.search.SearchException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"search", _searchParameterTypes91);
@@ -3504,8 +3051,7 @@ public class DLAppServiceHttp {
 		HttpPrincipal httpPrincipal, long repositoryId,
 		com.liferay.portal.kernel.search.SearchContext searchContext,
 		com.liferay.portal.kernel.search.Query query)
-		throws com.liferay.portal.kernel.exception.SystemException,
-			com.liferay.portal.kernel.search.SearchException {
+		throws com.liferay.portal.kernel.search.SearchException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"search", _searchParameterTypes92);
@@ -3537,8 +3083,7 @@ public class DLAppServiceHttp {
 
 	public static void subscribeFileEntryType(HttpPrincipal httpPrincipal,
 		long groupId, long fileEntryTypeId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"subscribeFileEntryType",
@@ -3555,10 +3100,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -3571,8 +3112,7 @@ public class DLAppServiceHttp {
 
 	public static void subscribeFolder(HttpPrincipal httpPrincipal,
 		long groupId, long folderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"subscribeFolder", _subscribeFolderParameterTypes94);
@@ -3588,10 +3128,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -3604,8 +3140,7 @@ public class DLAppServiceHttp {
 
 	public static void unlockFileEntry(HttpPrincipal httpPrincipal,
 		long fileEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"unlockFileEntry", _unlockFileEntryParameterTypes95);
@@ -3621,10 +3156,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -3637,8 +3168,7 @@ public class DLAppServiceHttp {
 
 	public static void unlockFileEntry(HttpPrincipal httpPrincipal,
 		long fileEntryId, java.lang.String lockUuid)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"unlockFileEntry", _unlockFileEntryParameterTypes96);
@@ -3654,10 +3184,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -3670,8 +3196,7 @@ public class DLAppServiceHttp {
 
 	public static void unlockFolder(HttpPrincipal httpPrincipal,
 		long repositoryId, long folderId, java.lang.String lockUuid)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"unlockFolder", _unlockFolderParameterTypes97);
@@ -3687,10 +3212,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -3704,8 +3225,7 @@ public class DLAppServiceHttp {
 	public static void unlockFolder(HttpPrincipal httpPrincipal,
 		long repositoryId, long parentFolderId, java.lang.String name,
 		java.lang.String lockUuid)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"unlockFolder", _unlockFolderParameterTypes98);
@@ -3721,10 +3241,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -3737,8 +3253,7 @@ public class DLAppServiceHttp {
 
 	public static void unsubscribeFileEntryType(HttpPrincipal httpPrincipal,
 		long groupId, long fileEntryTypeId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"unsubscribeFileEntryType",
@@ -3755,10 +3270,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -3771,8 +3282,7 @@ public class DLAppServiceHttp {
 
 	public static void unsubscribeFolder(HttpPrincipal httpPrincipal,
 		long groupId, long folderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"unsubscribeFolder", _unsubscribeFolderParameterTypes100);
@@ -3786,10 +3296,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -3808,8 +3314,7 @@ public class DLAppServiceHttp {
 		java.lang.String title, java.lang.String description,
 		java.lang.String changeLog, boolean majorVersion, byte[] bytes,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"updateFileEntry", _updateFileEntryParameterTypes101);
@@ -3826,10 +3331,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -3850,8 +3351,7 @@ public class DLAppServiceHttp {
 		java.lang.String title, java.lang.String description,
 		java.lang.String changeLog, boolean majorVersion, java.io.File file,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"updateFileEntry", _updateFileEntryParameterTypes102);
@@ -3868,10 +3368,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -3893,8 +3389,7 @@ public class DLAppServiceHttp {
 		java.lang.String changeLog, boolean majorVersion,
 		java.io.InputStream is, long size,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"updateFileEntry", _updateFileEntryParameterTypes103);
@@ -3911,10 +3406,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -3935,8 +3426,7 @@ public class DLAppServiceHttp {
 		java.lang.String title, java.lang.String description,
 		java.lang.String changeLog, boolean majorVersion, java.io.File file,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"updateFileEntryAndCheckIn",
@@ -3956,10 +3446,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -3979,8 +3465,7 @@ public class DLAppServiceHttp {
 		java.lang.String changeLog, boolean majorVersion,
 		java.io.InputStream is, long size,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"updateFileEntryAndCheckIn",
@@ -4000,10 +3485,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -4020,8 +3501,7 @@ public class DLAppServiceHttp {
 		HttpPrincipal httpPrincipal, long fileShortcutId, long folderId,
 		long toFileEntryId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"updateFileShortcut", _updateFileShortcutParameterTypes106);
@@ -4037,10 +3517,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -4059,8 +3535,7 @@ public class DLAppServiceHttp {
 		HttpPrincipal httpPrincipal, long folderId, java.lang.String name,
 		java.lang.String description,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"updateFolder", _updateFolderParameterTypes107);
@@ -4078,10 +3553,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -4096,8 +3567,7 @@ public class DLAppServiceHttp {
 
 	public static boolean verifyFileEntryCheckOut(HttpPrincipal httpPrincipal,
 		long repositoryId, long fileEntryId, java.lang.String lockUuid)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"verifyFileEntryCheckOut",
@@ -4116,10 +3586,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -4134,8 +3600,7 @@ public class DLAppServiceHttp {
 
 	public static boolean verifyFileEntryLock(HttpPrincipal httpPrincipal,
 		long repositoryId, long fileEntryId, java.lang.String lockUuid)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"verifyFileEntryLock", _verifyFileEntryLockParameterTypes109);
@@ -4153,10 +3618,6 @@ public class DLAppServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -4171,8 +3632,7 @@ public class DLAppServiceHttp {
 
 	public static boolean verifyInheritableLock(HttpPrincipal httpPrincipal,
 		long repositoryId, long folderId, java.lang.String lockUuid)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(DLAppServiceUtil.class,
 					"verifyInheritableLock",
@@ -4189,10 +3649,6 @@ public class DLAppServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);

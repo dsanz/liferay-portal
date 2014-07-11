@@ -29,6 +29,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SUCCESS_MESSAGE</td>
+	<td>//div[contains(@class,'alert-success')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SUCCESS_MESSAGE_RECYCLE_BIN</td>
 	<td>//form[@id='_182_undoForm']</td>
 	<td></td>
@@ -40,17 +45,17 @@
 </tr>
 <tr>
 	<td>ADD_CATEGORY_BUTTON</td>
-	<td>//button[contains(.,'Add Category')]</td>
+	<td>//div[@class='category-buttons']/a[contains(.,'Add Category')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PERMISSIONS_BUTTON</td>
-	<td>//button[contains(.,'Permissions')]</td>
+	<td>//div[@class='category-buttons']/a[contains(.,'Permissions')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>POST_NEW_THREAD_BUTTON</td>
-	<td>//button[contains(.,'Post New Thread')]</td>
+	<td>//div[@class='category-buttons']/a[contains(.,'Post New Thread')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -61,6 +66,11 @@
 <tr>
 	<td>SUBSCRIBE_LINK</td>
 	<td>//div[contains(@class,'category-subscription-types')]/span/a/span[contains(.,'Subscribe')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>UNSUBSCRIBE_LINK</td>
+	<td>//div[contains(@class,'category-subscription-types')]/span/a/span[contains(.,'Unsubscribe')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -162,12 +172,12 @@
 </tr>
 <tr>
 	<td>CATEGORY_TABLE_ACTIONS</td>
-	<td>//div[contains(@id,'mbCategoriesSearchContainer')]//tr[contains(.,'${key_categoryName}')]/td/div/a[@title='Actions']</td>
+	<td>//div[contains(@id,'mbCategoriesSearchContainer')]//tr[contains(.,'${key_categoryName}')]/td/div/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CATEGORY_TABLE_ACTIONS_GENERIC</td>
-	<td>//div[contains(@id,'mbCategoriesSearchContainer')]//tr[1]//a[@title='Actions']</td>
+	<td>//div[contains(@id,'mbCategoriesSearchContainer')]//tr[1]//div/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -223,6 +233,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>THREAD_TABLE_THREAD_LOCKED_ICON</td>
+	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]/td[1]/a/img[@title='Thread Locked']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>THREAD_TABLE_THREAD</td>
 	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]/td[1]/a</td>
 	<td></td>
@@ -244,17 +259,17 @@
 </tr>
 <tr>
 	<td>THREAD_TABLE_LAST_POST</td>
-	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]/td[6]/a</td>
+	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]/td[6]//span</td>
 	<td></td>
 </tr>
 <tr>
 	<td>THREAD_TABLE_ACTIONS</td>
-	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]//a[@title='Actions']</td>
+	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]//a[contains(@class,'btn')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>THREAD_TABLE_ACTIONS_GENERIC</td>
-	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[1]//a[@title='Actions']</td>
+	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[1]//a[contains(@class,'btn')]</td>
 	<td></td>
 </tr>
 <tr>

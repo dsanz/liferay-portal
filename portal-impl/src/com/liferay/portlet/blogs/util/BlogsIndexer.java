@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.BaseIndexer;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Document;
@@ -114,6 +113,7 @@ public class BlogsIndexer extends BaseIndexer {
 
 		document.addText(
 			Field.CONTENT, HtmlUtil.extractText(entry.getContent()));
+		document.addText(Field.DECK_TITLE, entry.getDeckTitle());
 		document.addText(Field.DESCRIPTION, entry.getDescription());
 		document.addDate(Field.MODIFIED_DATE, entry.getModifiedDate());
 		document.addText(Field.TITLE, entry.getTitle());
@@ -168,9 +168,7 @@ public class BlogsIndexer extends BaseIndexer {
 		return PORTLET_ID;
 	}
 
-	protected void reindexEntries(long companyId)
-		throws PortalException, SystemException {
-
+	protected void reindexEntries(long companyId) throws PortalException {
 		final ActionableDynamicQuery actionableDynamicQuery =
 			BlogsEntryLocalServiceUtil.getActionableDynamicQuery();
 

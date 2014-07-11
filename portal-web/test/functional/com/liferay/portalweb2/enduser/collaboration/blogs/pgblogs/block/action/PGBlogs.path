@@ -191,6 +191,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ENTRY_CONTENT_CKE_EDIT_INLINE_SENDKEYS</td><!--This path is here so that sendKeys can be used on this locator-->
+	<td>//div[@class='entry-body']/div[contains(@class,'cke_editable') and contains(.,'${key_entryContent}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ENTRY_CONTENT_READ_MORE</td>
 	<td>//div[contains(@class,'entry') and contains(@class,'approved') and contains(.,'${key_entryTitle}')]//div[@class='entry-body']/a</td>
 	<td></td>
@@ -317,7 +322,7 @@
 </tr>
 <tr>
 	<td>ENTRY_RELATED_ASSETS_LINK_IMAGE</td>
-	<td>//div[contains(@class,'entry') and contains(@class,'approved') and contains(.,'${key_entryTitle}')]//div/div[contains(@class,'asset-links')]/ul//a/img</td>
+	<td>//div[contains(@class,'entry') and contains(@class,'approved') and contains(.,'${key_entryTitle}')]//div/div[contains(@class,'asset-links')]/ul//a/i</td>
 	<td></td>
 </tr>
 <tr>
@@ -385,6 +390,47 @@
 <tr>
 	<td>SCHEDULED_ENTRY_EDIT</td>
 	<td>//div[contains(@class,'entry') and contains(@class,'scheduled') and contains(.,'${key_entryTitle}')]//ul[contains(@class,'edit-actions')]//span/a/span[.='Edit']</td>
+	<td></td>
+</tr>
+<!--REPORT_INAPPROPRIATE_CONTENT-->
+<tr>
+	<td>REPORT_INAPPROPRIATE_CONTENT_HEADER</td>
+	<td>//h3[contains(.,'Report')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REPORT_INAPPROPRIATE_CONTENT_WARNING</td>
+	<td>//p[contains(.,'You are about to report a violation')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REPORT_INAPPROPRIATE_CONTENT_WARNING_TERMS_OF_USE_LINK</td>
+	<td>//a[@href='/c/portal/terms_of_use']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REPORT_INAPPROPRIATE_CONTENT_REASON_SELECT</td>
+	<td>//div[contains(.,'Reason for the Report')]/select[@id='_142_reason']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REPORT_INAPPROPRIATE_CONTENT_SAVE_BUTTON</td>
+	<td>//button[@id='_142_flagsSubmit']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REPORT_INAPPROPRIATE_CONTENT_SUCCESS_MESSAGE</td>
+	<td>//div[contains(.,'Thank you for your report')]/p[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REPORT_INAPPROPRIATE_CONTENT_CLOSE_BUTTON</td>
+	<td>//button[contains(@class,'btn close')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
 	<td></td>
 </tr>
 </tbody>

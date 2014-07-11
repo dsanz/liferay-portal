@@ -14,7 +14,6 @@
 
 package com.liferay.portlet.trash.service.impl;
 
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portlet.trash.model.TrashVersion;
@@ -29,10 +28,9 @@ public class TrashVersionLocalServiceImpl
 	extends TrashVersionLocalServiceBaseImpl {
 
 	@Override
-	public void addTrashVersion(
-			long trashEntryId, String className, long classPK, int status,
-			UnicodeProperties typeSettingsProperties)
-		throws SystemException {
+	public TrashVersion addTrashVersion(
+		long trashEntryId, String className, long classPK, int status,
+		UnicodeProperties typeSettingsProperties) {
 
 		long versionId = counterLocalService.increment();
 
@@ -48,13 +46,11 @@ public class TrashVersionLocalServiceImpl
 
 		trashVersion.setStatus(status);
 
-		trashVersionPersistence.update(trashVersion);
+		return trashVersionPersistence.update(trashVersion);
 	}
 
 	@Override
-	public TrashVersion deleteTrashVersion(String className, long classPK)
-		throws SystemException {
-
+	public TrashVersion deleteTrashVersion(String className, long classPK) {
 		long classNameId = classNameLocalService.getClassNameId(className);
 
 		TrashVersion trashVersion = trashVersionPersistence.fetchByC_C(
@@ -69,8 +65,7 @@ public class TrashVersionLocalServiceImpl
 
 	@Override
 	public TrashVersion fetchVersion(
-			long entryId, String className, long classPK)
-		throws SystemException {
+		long entryId, String className, long classPK) {
 
 		long classNameId = classNameLocalService.getClassNameId(className);
 
@@ -79,14 +74,12 @@ public class TrashVersionLocalServiceImpl
 	}
 
 	@Override
-	public List<TrashVersion> getVersions(long entryId) throws SystemException {
+	public List<TrashVersion> getVersions(long entryId) {
 		return trashVersionPersistence.findByEntryId(entryId);
 	}
 
 	@Override
-	public List<TrashVersion> getVersions(long entryId, String className)
-		throws SystemException {
-
+	public List<TrashVersion> getVersions(long entryId, String className) {
 		if (Validator.isNull(className)) {
 			return trashVersionPersistence.findByEntryId(entryId);
 		}

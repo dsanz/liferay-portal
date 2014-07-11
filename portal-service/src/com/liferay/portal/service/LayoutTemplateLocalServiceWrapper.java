@@ -42,20 +42,9 @@ public class LayoutTemplateLocalServiceWrapper
 		return _layoutTemplateLocalService.getBeanIdentifier();
 	}
 
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_layoutTemplateLocalService.setBeanIdentifier(beanIdentifier);
-	}
-
 	@Override
 	public java.lang.String getContent(java.lang.String layoutTemplateId,
-		boolean standard, java.lang.String themeId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		boolean standard, java.lang.String themeId) {
 		return _layoutTemplateLocalService.getContent(layoutTemplateId,
 			standard, themeId);
 	}
@@ -81,8 +70,7 @@ public class LayoutTemplateLocalServiceWrapper
 
 	@Override
 	public java.lang.String getWapContent(java.lang.String layoutTemplateId,
-		boolean standard, java.lang.String themeId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		boolean standard, java.lang.String themeId) {
 		return _layoutTemplateLocalService.getWapContent(layoutTemplateId,
 			standard, themeId);
 	}
@@ -114,6 +102,16 @@ public class LayoutTemplateLocalServiceWrapper
 		_layoutTemplateLocalService.readLayoutTemplate(servletContextName,
 			servletContext, layoutTemplates, element, standard, themeId,
 			pluginPackage);
+	}
+
+	/**
+	* Sets the Spring bean ID for this bean.
+	*
+	* @param beanIdentifier the Spring bean ID for this bean
+	*/
+	@Override
+	public void setBeanIdentifier(java.lang.String beanIdentifier) {
+		_layoutTemplateLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	@Override

@@ -16,17 +16,16 @@ package com.liferay.portal.servlet.filters.i18n;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.User;
-import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.UserTestUtil;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.UserTestUtil;
 
 import java.util.Locale;
 
@@ -46,13 +45,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
  * @author Manuel de la Peña
  * @author Sergio González
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class I18nFilterTest {
 
 	@Before
@@ -195,8 +189,8 @@ public class I18nFilterTest {
 
 		if (userLocale != null) {
 			User user = UserTestUtil.addUser(
-				ServiceTestUtil.randomString(), true, userLocale,
-				ServiceTestUtil.randomString(), ServiceTestUtil.randomString(),
+				RandomTestUtil.randomString(), true, userLocale,
+				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				new long[] {_group.getGroupId()});
 
 			_mockHttpServletRequest.setAttribute(WebKeys.USER, user);
@@ -218,7 +212,9 @@ public class I18nFilterTest {
 			_mockHttpServletRequest, localePrependFriendlyURLStyle);
 	}
 
+	@DeleteAfterTestRun
 	private Group _group;
+
 	private I18nFilter _i18nFilter;
 	private MockHttpServletRequest _mockHttpServletRequest;
 	private MockHttpServletResponse _mockHttpServletResponse;

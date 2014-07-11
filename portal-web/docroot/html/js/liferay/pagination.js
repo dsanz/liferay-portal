@@ -55,9 +55,11 @@ AUI.add(
 								value,
 								{
 									items: Liferay.Language.get('items'),
+									next: Liferay.Language.get('next'),
 									of: Liferay.Language.get('of'),
 									page: Liferay.Language.get('page'),
 									per: Liferay.Language.get('per'),
+									prev: Liferay.Language.get('previous'),
 									results: Liferay.Language.get('results'),
 									showing: Liferay.Language.get('showing')
 								}
@@ -81,7 +83,7 @@ AUI.add(
 
 					TPL_DELTA_SELECTOR: '<div class="lfr-pagination-delta-selector">' +
 						'<div class="btn-group lfr-icon-menu">' +
-							'<a class="btn direction-down dropdown-toggle max-display-items-15" href="javascript:;" id="{id}" title="{title}">' +
+							'<a class="btn btn-default direction-down dropdown-toggle max-display-items-15" href="javascript:;" id="{id}" title="{title}">' +
 								'<span class="lfr-pagination-delta-selector-amount">{amount}</span>' +
 								'<span class="lfr-icon-menu-text">{title}</span>' +
 								'<i class="icon-caret-down"></i>' +
@@ -89,13 +91,13 @@ AUI.add(
 						'</div>' +
 					'</div>',
 
-					TPL_ITEM_CONTAINER: '<ul class="direction-down dropdown-menu lfr-menu-list" id="{id}" role="menu" />',
-
 					TPL_ITEM: '<li id="{idLi}" role="presentation">' +
 						'<a href="javascript:;" class="lfr-pagination-link taglib-icon" id="{idLink}" role="menuitem">' +
 							'<span class="taglib-text-icon" data-index="{index}" data-value="{value}">{value}</span>' +
 						'</a>' +
 					'</li>',
+
+					TPL_ITEM_CONTAINER: '<ul class="direction-down dropdown-menu lfr-menu-list" id="{id}" role="menu" />',
 
 					TPL_LABEL: ' {items} {per} {page}',
 
@@ -161,7 +163,7 @@ AUI.add(
 
 						var buffer = AArray.map(
 							instance.get(ITEMS_PER_PAGE_LIST),
-							function(item, index, collection) {
+							function(item, index) {
 								return Lang.sub(
 									instance.TPL_ITEM,
 									{

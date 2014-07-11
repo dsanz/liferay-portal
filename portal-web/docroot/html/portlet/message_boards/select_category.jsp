@@ -34,7 +34,7 @@ if (category != null) {
 	categoryName = category.getName();
 }
 else {
-	categoryName = LanguageUtil.get(pageContext, "message-boards-home");
+	categoryName = LanguageUtil.get(request, "message-boards-home");
 }
 %>
 
@@ -74,20 +74,16 @@ else {
 			</portlet:renderURL>
 
 			<liferay-ui:search-container-column-text
-				buffer="buffer"
 				href="<%= rowURL %>"
 				name="category[message-board]"
 			>
+				<%= curCategory.getName() %>
 
-				<%
-				buffer.append(curCategory.getName());
+				<c:if test="<%= Validator.isNotNull(curCategory.getDescription()) %>">
+					<br />
 
-				if (Validator.isNotNull(curCategory.getDescription())) {
-					buffer.append("<br />");
-					buffer.append(curCategory.getDescription());
-				}
-				%>
-
+					<%= curCategory.getDescription() %>
+				</c:if>
 			</liferay-ui:search-container-column-text>
 
 			<liferay-ui:search-container-column-text

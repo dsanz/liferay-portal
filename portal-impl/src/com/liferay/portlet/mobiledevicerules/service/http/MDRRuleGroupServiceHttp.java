@@ -57,8 +57,7 @@ public class MDRRuleGroupServiceHttp {
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MDRRuleGroupServiceUtil.class,
 					"addRuleGroup", _addRuleGroupParameterTypes0);
@@ -76,10 +75,6 @@ public class MDRRuleGroupServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -95,8 +90,7 @@ public class MDRRuleGroupServiceHttp {
 	public static com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup copyRuleGroup(
 		HttpPrincipal httpPrincipal, long ruleGroupId, long groupId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MDRRuleGroupServiceUtil.class,
 					"copyRuleGroup", _copyRuleGroupParameterTypes1);
@@ -114,10 +108,6 @@ public class MDRRuleGroupServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -132,8 +122,7 @@ public class MDRRuleGroupServiceHttp {
 
 	public static void deleteRuleGroup(HttpPrincipal httpPrincipal,
 		long ruleGroupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MDRRuleGroupServiceUtil.class,
 					"deleteRuleGroup", _deleteRuleGroupParameterTypes2);
@@ -149,10 +138,6 @@ public class MDRRuleGroupServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -165,8 +150,7 @@ public class MDRRuleGroupServiceHttp {
 
 	public static com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup fetchRuleGroup(
 		HttpPrincipal httpPrincipal, long ruleGroupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MDRRuleGroupServiceUtil.class,
 					"fetchRuleGroup", _fetchRuleGroupParameterTypes3);
@@ -184,10 +168,6 @@ public class MDRRuleGroupServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -202,8 +182,7 @@ public class MDRRuleGroupServiceHttp {
 
 	public static com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup getRuleGroup(
 		HttpPrincipal httpPrincipal, long ruleGroupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MDRRuleGroupServiceUtil.class,
 					"getRuleGroup", _getRuleGroupParameterTypes4);
@@ -219,10 +198,6 @@ public class MDRRuleGroupServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -242,8 +217,7 @@ public class MDRRuleGroupServiceHttp {
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MDRRuleGroupServiceUtil.class,
 					"updateRuleGroup", _updateRuleGroupParameterTypes5);
@@ -259,10 +233,6 @@ public class MDRRuleGroupServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);

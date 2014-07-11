@@ -6,10 +6,6 @@
 	</command>
 
 	<command name="assertClick">
-		<case locator-key1="ADD">
-			<execute function="AssertClick#assertTextClickAtClickSidebar" />
-		</case>
-
 		<case locator-key1="ADD_APPLICATION_LINK">
 			<execute function="AssertClick#assertTextClickAtAddApplication" />
 		</case>
@@ -30,26 +26,6 @@
 			<execute function="AssertClick#assertTextClickAtClickDockbar" />
 		</case>
 
-		<case comparator="startsWith" locator-key1="EDIT_">
-			<execute function="AssertClick#assertTextClickAtAndWait" />
-		</case>
-
-		<case locator-key1="USER_MY_DASHBOARD">
-			<execute function="AssertClick#assertTextClickAtAndWait" />
-		</case>
-
-		<case locator-key1="USER_MY_ACCOUNT">
-			<execute function="AssertClick#assertTextClickAtAndWait" />
-		</case>
-
-		<case locator-key1="USER_NAME">
-			<execute function="AssertClick#assertTextClickAtAndWait" />
-		</case>
-
-		<case comparator="startsWith" locator-key1="ADMIN_SITE_ADMINISTRATION">
-			<execute function="AssertClick#assertTextClickAtAndWait" />
-		</case>
-
 		<case comparator="contains" locator1="//span[@data-title=">
 			<execute function="AssertClick#pauseMakeVisibleAssertTextEqualsClickAt" />
 		</case>
@@ -67,15 +43,27 @@
 		</case>
 	</command>
 
+	<command name="assertNotVisible">
+		<case comparator="startsWith" locator1="//span[@data-title='">
+			<execute function="AssertVisible#pauseAssertVisible" />
+		</case>
+	</command>
+
 	<command name="assertTextEquals">
 		<case locator-key1="PAGE_INFO_MESSAGE">
 			<execute function="AssertTextEquals#assertPartialText" />
 		</case>
 	</command>
 
+	<command name="assertVisible">
+		<case comparator="startsWith" locator1="//span[@data-title='">
+			<execute function="AssertVisible#pauseAssertVisible" />
+		</case>
+	</command>
+
 	<command name="click">
 		<case locator-key1="ADD">
-			<execute function="Click#clickAtSidebarClickAt" />
+			<execute function="Click#clickAtSidebarClickAtWaitForScript" />
 		</case>
 
 		<case locator-key1="ADMIN">
@@ -90,12 +78,8 @@
 			<execute function="Click#textClickAtClickDockbar" />
 		</case>
 
-		<case locator-key1="USER_NAME">
-			<execute function="Click#clickAt" />
-		</case>
-
-		<case locator-key1="USER_SIGN_OUT">
-			<execute function="Click#clickAtAndWait" />
+		<case locator-key1="PREVIEW">
+			<execute function="Click#clickAtSidebarClickAt" />
 		</case>
 
 		<case comparator="startsWith" locator1="//span[@data-title='">

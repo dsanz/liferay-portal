@@ -15,7 +15,6 @@
 package com.liferay.portlet.trash.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 import com.liferay.portlet.trash.model.TrashVersion;
@@ -23,13 +22,13 @@ import com.liferay.portlet.trash.service.TrashVersionLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link TrashVersionLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link TrashVersionLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class TrashVersionActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public TrashVersionActionableDynamicQuery() throws SystemException {
+	public TrashVersionActionableDynamicQuery() {
 		setBaseLocalService(TrashVersionLocalServiceUtil.getService());
 		setClass(TrashVersion.class);
 

@@ -51,22 +51,22 @@
 <!--TOOLBAR-->
 <tr>
 	<td>TOOLBAR_VIEW_ALL</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'View All')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'View All')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_ADD_FORM_TEMPLATE</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Add Form Template')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'Add Form Template')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_ADD_DISPLAY_TEMPLATE</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Add Display Template')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'Add Display Template')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_SEARCH_FIELD</td>
-	<td>//div[@class='navbar ']//input[@name='_166_keywords']</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//input[@name='_166_keywords']</td>
 	<td></td>
 </tr>
 <tr>
@@ -127,7 +127,7 @@
 </tr>
 <tr>
 	<td>TEMPLATE_TABLE_ACTIONS</td>
-	<td>xpath=(//div[@id='_166_ddmTemplatesSearchContainer']//tr[contains(.,'${key_dataDefinitionTemplateName}')]/td[8]/div/a[@title='Actions'])[1]</td>
+	<td>xpath=(//div[@id='_166_ddmTemplatesSearchContainer']//tr[contains(.,'${key_dataDefinitionTemplateName}')]/td[8]/div/a)[1]</td>
 	<td></td>
 </tr>
 <tr>
@@ -137,7 +137,7 @@
 </tr>
 <tr>
 	<td>TEMPLATE_TABLE_ACTIONS_1</td>
-	<td>xpath=(//div[@id='_166_ddmTemplatesSearchContainer']//tr/td[8]/div/a[@title='Actions'])[1]</td>
+	<td>xpath=(//div[@id='_166_ddmTemplatesSearchContainer']//tr/td[8]/div/a)[1]</td>
 	<td></td>
 </tr>
 <tr>

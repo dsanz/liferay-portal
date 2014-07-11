@@ -18,7 +18,6 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 import com.liferay.portal.model.Group;
@@ -63,16 +62,14 @@ public class GroupUtil {
 	/**
 	 * @see com.liferay.portal.service.persistence.BasePersistence#countWithDynamicQuery(DynamicQuery)
 	 */
-	public static long countWithDynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public static long countWithDynamicQuery(DynamicQuery dynamicQuery) {
 		return getPersistence().countWithDynamicQuery(dynamicQuery);
 	}
 
 	/**
 	 * @see com.liferay.portal.service.persistence.BasePersistence#findWithDynamicQuery(DynamicQuery)
 	 */
-	public static List<Group> findWithDynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public static List<Group> findWithDynamicQuery(DynamicQuery dynamicQuery) {
 		return getPersistence().findWithDynamicQuery(dynamicQuery);
 	}
 
@@ -80,7 +77,7 @@ public class GroupUtil {
 	 * @see com.liferay.portal.service.persistence.BasePersistence#findWithDynamicQuery(DynamicQuery, int, int)
 	 */
 	public static List<Group> findWithDynamicQuery(DynamicQuery dynamicQuery,
-		int start, int end) throws SystemException {
+		int start, int end) {
 		return getPersistence().findWithDynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -88,8 +85,7 @@ public class GroupUtil {
 	 * @see com.liferay.portal.service.persistence.BasePersistence#findWithDynamicQuery(DynamicQuery, int, int, OrderByComparator)
 	 */
 	public static List<Group> findWithDynamicQuery(DynamicQuery dynamicQuery,
-		int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		int start, int end, OrderByComparator<Group> orderByComparator) {
 		return getPersistence()
 				   .findWithDynamicQuery(dynamicQuery, start, end,
 			orderByComparator);
@@ -98,15 +94,14 @@ public class GroupUtil {
 	/**
 	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel)
 	 */
-	public static Group update(Group group) throws SystemException {
+	public static Group update(Group group) {
 		return getPersistence().update(group);
 	}
 
 	/**
 	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, ServiceContext)
 	 */
-	public static Group update(Group group, ServiceContext serviceContext)
-		throws SystemException {
+	public static Group update(Group group, ServiceContext serviceContext) {
 		return getPersistence().update(group, serviceContext);
 	}
 
@@ -115,11 +110,9 @@ public class GroupUtil {
 	*
 	* @param uuid the uuid
 	* @return the matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByUuid(
-		java.lang.String uuid)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid) {
 		return getPersistence().findByUuid(uuid);
 	}
 
@@ -134,11 +127,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByUuid(
-		java.lang.String uuid, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, int start, int end) {
 		return getPersistence().findByUuid(uuid, start, end);
 	}
 
@@ -154,12 +145,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByUuid(
 		java.lang.String uuid, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence().findByUuid(uuid, start, end, orderByComparator);
 	}
 
@@ -170,13 +159,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByUuid_First(
 		java.lang.String uuid,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().findByUuid_First(uuid, orderByComparator);
 	}
 
@@ -186,12 +173,10 @@ public class GroupUtil {
 	* @param uuid the uuid
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByUuid_First(
 		java.lang.String uuid,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence().fetchByUuid_First(uuid, orderByComparator);
 	}
 
@@ -202,13 +187,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByUuid_Last(
 		java.lang.String uuid,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().findByUuid_Last(uuid, orderByComparator);
 	}
 
@@ -218,12 +201,10 @@ public class GroupUtil {
 	* @param uuid the uuid
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByUuid_Last(
 		java.lang.String uuid,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence().fetchByUuid_Last(uuid, orderByComparator);
 	}
 
@@ -235,13 +216,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next group
 	* @throws com.liferay.portal.NoSuchGroupException if a group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group[] findByUuid_PrevAndNext(
 		long groupId, java.lang.String uuid,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByUuid_PrevAndNext(groupId, uuid, orderByComparator);
 	}
@@ -250,10 +229,8 @@ public class GroupUtil {
 	* Removes all the groups where uuid = &#63; from the database.
 	*
 	* @param uuid the uuid
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeByUuid(java.lang.String uuid)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeByUuid(java.lang.String uuid) {
 		getPersistence().removeByUuid(uuid);
 	}
 
@@ -262,10 +239,8 @@ public class GroupUtil {
 	*
 	* @param uuid the uuid
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countByUuid(java.lang.String uuid)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByUuid(java.lang.String uuid) {
 		return getPersistence().countByUuid(uuid);
 	}
 
@@ -276,12 +251,10 @@ public class GroupUtil {
 	* @param groupId the group ID
 	* @return the matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByUUID_G(
 		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().findByUUID_G(uuid, groupId);
 	}
 
@@ -291,11 +264,9 @@ public class GroupUtil {
 	* @param uuid the uuid
 	* @param groupId the group ID
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByUUID_G(
-		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long groupId) {
 		return getPersistence().fetchByUUID_G(uuid, groupId);
 	}
 
@@ -306,11 +277,9 @@ public class GroupUtil {
 	* @param groupId the group ID
 	* @param retrieveFromCache whether to use the finder cache
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByUUID_G(
-		java.lang.String uuid, long groupId, boolean retrieveFromCache)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long groupId, boolean retrieveFromCache) {
 		return getPersistence().fetchByUUID_G(uuid, groupId, retrieveFromCache);
 	}
 
@@ -320,12 +289,10 @@ public class GroupUtil {
 	* @param uuid the uuid
 	* @param groupId the group ID
 	* @return the group that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group removeByUUID_G(
 		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().removeByUUID_G(uuid, groupId);
 	}
 
@@ -335,10 +302,8 @@ public class GroupUtil {
 	* @param uuid the uuid
 	* @param groupId the group ID
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countByUUID_G(java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByUUID_G(java.lang.String uuid, long groupId) {
 		return getPersistence().countByUUID_G(uuid, groupId);
 	}
 
@@ -348,11 +313,9 @@ public class GroupUtil {
 	* @param uuid the uuid
 	* @param companyId the company ID
 	* @return the matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByUuid_C(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long companyId) {
 		return getPersistence().findByUuid_C(uuid, companyId);
 	}
 
@@ -368,11 +331,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByUuid_C(
-		java.lang.String uuid, long companyId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long companyId, int start, int end) {
 		return getPersistence().findByUuid_C(uuid, companyId, start, end);
 	}
 
@@ -389,12 +350,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByUuid_C(
 		java.lang.String uuid, long companyId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .findByUuid_C(uuid, companyId, start, end, orderByComparator);
 	}
@@ -407,13 +366,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByUuid_C_First(
 		java.lang.String uuid, long companyId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByUuid_C_First(uuid, companyId, orderByComparator);
 	}
@@ -425,12 +382,10 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByUuid_C_First(
 		java.lang.String uuid, long companyId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByUuid_C_First(uuid, companyId, orderByComparator);
 	}
@@ -443,13 +398,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByUuid_C_Last(
 		java.lang.String uuid, long companyId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByUuid_C_Last(uuid, companyId, orderByComparator);
 	}
@@ -461,12 +414,10 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByUuid_C_Last(
 		java.lang.String uuid, long companyId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByUuid_C_Last(uuid, companyId, orderByComparator);
 	}
@@ -480,13 +431,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next group
 	* @throws com.liferay.portal.NoSuchGroupException if a group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group[] findByUuid_C_PrevAndNext(
 		long groupId, java.lang.String uuid, long companyId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByUuid_C_PrevAndNext(groupId, uuid, companyId,
 			orderByComparator);
@@ -497,10 +446,8 @@ public class GroupUtil {
 	*
 	* @param uuid the uuid
 	* @param companyId the company ID
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeByUuid_C(java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeByUuid_C(java.lang.String uuid, long companyId) {
 		getPersistence().removeByUuid_C(uuid, companyId);
 	}
 
@@ -510,10 +457,8 @@ public class GroupUtil {
 	* @param uuid the uuid
 	* @param companyId the company ID
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countByUuid_C(java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByUuid_C(java.lang.String uuid, long companyId) {
 		return getPersistence().countByUuid_C(uuid, companyId);
 	}
 
@@ -522,11 +467,9 @@ public class GroupUtil {
 	*
 	* @param companyId the company ID
 	* @return the matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByCompanyId(
-		long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId) {
 		return getPersistence().findByCompanyId(companyId);
 	}
 
@@ -541,11 +484,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByCompanyId(
-		long companyId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, int start, int end) {
 		return getPersistence().findByCompanyId(companyId, start, end);
 	}
 
@@ -561,12 +502,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByCompanyId(
 		long companyId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .findByCompanyId(companyId, start, end, orderByComparator);
 	}
@@ -578,13 +517,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByCompanyId_First(
 		long companyId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByCompanyId_First(companyId, orderByComparator);
 	}
@@ -595,12 +532,10 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByCompanyId_First(
 		long companyId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByCompanyId_First(companyId, orderByComparator);
 	}
@@ -612,13 +547,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByCompanyId_Last(
 		long companyId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByCompanyId_Last(companyId, orderByComparator);
 	}
@@ -629,12 +562,10 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByCompanyId_Last(
 		long companyId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByCompanyId_Last(companyId, orderByComparator);
 	}
@@ -647,13 +578,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next group
 	* @throws com.liferay.portal.NoSuchGroupException if a group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group[] findByCompanyId_PrevAndNext(
 		long groupId, long companyId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByCompanyId_PrevAndNext(groupId, companyId,
 			orderByComparator);
@@ -663,10 +592,8 @@ public class GroupUtil {
 	* Removes all the groups where companyId = &#63; from the database.
 	*
 	* @param companyId the company ID
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeByCompanyId(long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeByCompanyId(long companyId) {
 		getPersistence().removeByCompanyId(companyId);
 	}
 
@@ -675,10 +602,8 @@ public class GroupUtil {
 	*
 	* @param companyId the company ID
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countByCompanyId(long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByCompanyId(long companyId) {
 		return getPersistence().countByCompanyId(companyId);
 	}
 
@@ -688,12 +613,9 @@ public class GroupUtil {
 	* @param liveGroupId the live group ID
 	* @return the matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByLiveGroupId(
-		long liveGroupId)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		long liveGroupId) throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().findByLiveGroupId(liveGroupId);
 	}
 
@@ -702,11 +624,9 @@ public class GroupUtil {
 	*
 	* @param liveGroupId the live group ID
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByLiveGroupId(
-		long liveGroupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long liveGroupId) {
 		return getPersistence().fetchByLiveGroupId(liveGroupId);
 	}
 
@@ -716,11 +636,9 @@ public class GroupUtil {
 	* @param liveGroupId the live group ID
 	* @param retrieveFromCache whether to use the finder cache
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByLiveGroupId(
-		long liveGroupId, boolean retrieveFromCache)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long liveGroupId, boolean retrieveFromCache) {
 		return getPersistence()
 				   .fetchByLiveGroupId(liveGroupId, retrieveFromCache);
 	}
@@ -730,12 +648,9 @@ public class GroupUtil {
 	*
 	* @param liveGroupId the live group ID
 	* @return the group that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group removeByLiveGroupId(
-		long liveGroupId)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		long liveGroupId) throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().removeByLiveGroupId(liveGroupId);
 	}
 
@@ -744,10 +659,8 @@ public class GroupUtil {
 	*
 	* @param liveGroupId the live group ID
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countByLiveGroupId(long liveGroupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByLiveGroupId(long liveGroupId) {
 		return getPersistence().countByLiveGroupId(liveGroupId);
 	}
 
@@ -757,11 +670,9 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param classNameId the class name ID
 	* @return the matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_C(
-		long companyId, long classNameId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, long classNameId) {
 		return getPersistence().findByC_C(companyId, classNameId);
 	}
 
@@ -777,11 +688,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_C(
-		long companyId, long classNameId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, long classNameId, int start, int end) {
 		return getPersistence().findByC_C(companyId, classNameId, start, end);
 	}
 
@@ -798,12 +707,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_C(
 		long companyId, long classNameId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .findByC_C(companyId, classNameId, start, end,
 			orderByComparator);
@@ -817,13 +724,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_C_First(
 		long companyId, long classNameId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_C_First(companyId, classNameId, orderByComparator);
 	}
@@ -835,12 +740,10 @@ public class GroupUtil {
 	* @param classNameId the class name ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_C_First(
 		long companyId, long classNameId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByC_C_First(companyId, classNameId, orderByComparator);
 	}
@@ -853,13 +756,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_C_Last(
 		long companyId, long classNameId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_C_Last(companyId, classNameId, orderByComparator);
 	}
@@ -871,12 +772,10 @@ public class GroupUtil {
 	* @param classNameId the class name ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_C_Last(
 		long companyId, long classNameId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByC_C_Last(companyId, classNameId, orderByComparator);
 	}
@@ -890,13 +789,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next group
 	* @throws com.liferay.portal.NoSuchGroupException if a group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group[] findByC_C_PrevAndNext(
 		long groupId, long companyId, long classNameId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_C_PrevAndNext(groupId, companyId, classNameId,
 			orderByComparator);
@@ -907,10 +804,8 @@ public class GroupUtil {
 	*
 	* @param companyId the company ID
 	* @param classNameId the class name ID
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeByC_C(long companyId, long classNameId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeByC_C(long companyId, long classNameId) {
 		getPersistence().removeByC_C(companyId, classNameId);
 	}
 
@@ -920,10 +815,8 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param classNameId the class name ID
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countByC_C(long companyId, long classNameId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByC_C(long companyId, long classNameId) {
 		return getPersistence().countByC_C(companyId, classNameId);
 	}
 
@@ -933,11 +826,9 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param parentGroupId the parent group ID
 	* @return the matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_P(
-		long companyId, long parentGroupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, long parentGroupId) {
 		return getPersistence().findByC_P(companyId, parentGroupId);
 	}
 
@@ -953,11 +844,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_P(
-		long companyId, long parentGroupId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, long parentGroupId, int start, int end) {
 		return getPersistence().findByC_P(companyId, parentGroupId, start, end);
 	}
 
@@ -974,12 +863,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_P(
 		long companyId, long parentGroupId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .findByC_P(companyId, parentGroupId, start, end,
 			orderByComparator);
@@ -993,13 +880,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_P_First(
 		long companyId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_P_First(companyId, parentGroupId, orderByComparator);
 	}
@@ -1011,12 +896,10 @@ public class GroupUtil {
 	* @param parentGroupId the parent group ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_P_First(
 		long companyId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByC_P_First(companyId, parentGroupId, orderByComparator);
 	}
@@ -1029,13 +912,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_P_Last(
 		long companyId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_P_Last(companyId, parentGroupId, orderByComparator);
 	}
@@ -1047,12 +928,10 @@ public class GroupUtil {
 	* @param parentGroupId the parent group ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_P_Last(
 		long companyId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByC_P_Last(companyId, parentGroupId, orderByComparator);
 	}
@@ -1066,13 +945,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next group
 	* @throws com.liferay.portal.NoSuchGroupException if a group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group[] findByC_P_PrevAndNext(
 		long groupId, long companyId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_P_PrevAndNext(groupId, companyId, parentGroupId,
 			orderByComparator);
@@ -1083,10 +960,8 @@ public class GroupUtil {
 	*
 	* @param companyId the company ID
 	* @param parentGroupId the parent group ID
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeByC_P(long companyId, long parentGroupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeByC_P(long companyId, long parentGroupId) {
 		getPersistence().removeByC_P(companyId, parentGroupId);
 	}
 
@@ -1096,10 +971,8 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param parentGroupId the parent group ID
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countByC_P(long companyId, long parentGroupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByC_P(long companyId, long parentGroupId) {
 		return getPersistence().countByC_P(companyId, parentGroupId);
 	}
 
@@ -1110,12 +983,9 @@ public class GroupUtil {
 	* @param name the name
 	* @return the matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_N(long companyId,
-		java.lang.String name)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String name) throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().findByC_N(companyId, name);
 	}
 
@@ -1125,11 +995,9 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param name the name
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_N(long companyId,
-		java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String name) {
 		return getPersistence().fetchByC_N(companyId, name);
 	}
 
@@ -1140,11 +1008,9 @@ public class GroupUtil {
 	* @param name the name
 	* @param retrieveFromCache whether to use the finder cache
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_N(long companyId,
-		java.lang.String name, boolean retrieveFromCache)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String name, boolean retrieveFromCache) {
 		return getPersistence().fetchByC_N(companyId, name, retrieveFromCache);
 	}
 
@@ -1154,12 +1020,9 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param name the name
 	* @return the group that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group removeByC_N(long companyId,
-		java.lang.String name)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String name) throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().removeByC_N(companyId, name);
 	}
 
@@ -1169,10 +1032,8 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param name the name
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countByC_N(long companyId, java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByC_N(long companyId, java.lang.String name) {
 		return getPersistence().countByC_N(companyId, name);
 	}
 
@@ -1183,12 +1044,10 @@ public class GroupUtil {
 	* @param friendlyURL the friendly u r l
 	* @return the matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_F(long companyId,
 		java.lang.String friendlyURL)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().findByC_F(companyId, friendlyURL);
 	}
 
@@ -1198,11 +1057,9 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param friendlyURL the friendly u r l
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_F(long companyId,
-		java.lang.String friendlyURL)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String friendlyURL) {
 		return getPersistence().fetchByC_F(companyId, friendlyURL);
 	}
 
@@ -1213,11 +1070,9 @@ public class GroupUtil {
 	* @param friendlyURL the friendly u r l
 	* @param retrieveFromCache whether to use the finder cache
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_F(long companyId,
-		java.lang.String friendlyURL, boolean retrieveFromCache)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String friendlyURL, boolean retrieveFromCache) {
 		return getPersistence()
 				   .fetchByC_F(companyId, friendlyURL, retrieveFromCache);
 	}
@@ -1228,12 +1083,10 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param friendlyURL the friendly u r l
 	* @return the group that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group removeByC_F(long companyId,
 		java.lang.String friendlyURL)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().removeByC_F(companyId, friendlyURL);
 	}
 
@@ -1243,10 +1096,8 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param friendlyURL the friendly u r l
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countByC_F(long companyId, java.lang.String friendlyURL)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByC_F(long companyId, java.lang.String friendlyURL) {
 		return getPersistence().countByC_F(companyId, friendlyURL);
 	}
 
@@ -1256,11 +1107,9 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param site the site
 	* @return the matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_S(
-		long companyId, boolean site)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, boolean site) {
 		return getPersistence().findByC_S(companyId, site);
 	}
 
@@ -1276,11 +1125,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_S(
-		long companyId, boolean site, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, boolean site, int start, int end) {
 		return getPersistence().findByC_S(companyId, site, start, end);
 	}
 
@@ -1297,12 +1144,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_S(
 		long companyId, boolean site, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .findByC_S(companyId, site, start, end, orderByComparator);
 	}
@@ -1315,13 +1160,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_S_First(
 		long companyId, boolean site,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_S_First(companyId, site, orderByComparator);
 	}
@@ -1333,12 +1176,10 @@ public class GroupUtil {
 	* @param site the site
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_S_First(
 		long companyId, boolean site,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByC_S_First(companyId, site, orderByComparator);
 	}
@@ -1351,13 +1192,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_S_Last(
 		long companyId, boolean site,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_S_Last(companyId, site, orderByComparator);
 	}
@@ -1369,12 +1208,10 @@ public class GroupUtil {
 	* @param site the site
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_S_Last(
 		long companyId, boolean site,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByC_S_Last(companyId, site, orderByComparator);
 	}
@@ -1388,13 +1225,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next group
 	* @throws com.liferay.portal.NoSuchGroupException if a group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group[] findByC_S_PrevAndNext(
 		long groupId, long companyId, boolean site,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_S_PrevAndNext(groupId, companyId, site,
 			orderByComparator);
@@ -1405,10 +1240,8 @@ public class GroupUtil {
 	*
 	* @param companyId the company ID
 	* @param site the site
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeByC_S(long companyId, boolean site)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeByC_S(long companyId, boolean site) {
 		getPersistence().removeByC_S(companyId, site);
 	}
 
@@ -1418,10 +1251,8 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param site the site
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countByC_S(long companyId, boolean site)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByC_S(long companyId, boolean site) {
 		return getPersistence().countByC_S(companyId, site);
 	}
 
@@ -1431,11 +1262,9 @@ public class GroupUtil {
 	* @param type the type
 	* @param active the active
 	* @return the matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByT_A(
-		int type, boolean active)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int type, boolean active) {
 		return getPersistence().findByT_A(type, active);
 	}
 
@@ -1451,11 +1280,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByT_A(
-		int type, boolean active, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int type, boolean active, int start, int end) {
 		return getPersistence().findByT_A(type, active, start, end);
 	}
 
@@ -1472,12 +1299,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByT_A(
 		int type, boolean active, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .findByT_A(type, active, start, end, orderByComparator);
 	}
@@ -1490,13 +1315,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByT_A_First(int type,
 		boolean active,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().findByT_A_First(type, active, orderByComparator);
 	}
 
@@ -1507,12 +1330,10 @@ public class GroupUtil {
 	* @param active the active
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByT_A_First(int type,
 		boolean active,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence().fetchByT_A_First(type, active, orderByComparator);
 	}
 
@@ -1524,13 +1345,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByT_A_Last(int type,
 		boolean active,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().findByT_A_Last(type, active, orderByComparator);
 	}
 
@@ -1541,12 +1360,10 @@ public class GroupUtil {
 	* @param active the active
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByT_A_Last(int type,
 		boolean active,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence().fetchByT_A_Last(type, active, orderByComparator);
 	}
 
@@ -1559,13 +1376,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next group
 	* @throws com.liferay.portal.NoSuchGroupException if a group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group[] findByT_A_PrevAndNext(
 		long groupId, int type, boolean active,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByT_A_PrevAndNext(groupId, type, active,
 			orderByComparator);
@@ -1576,10 +1391,8 @@ public class GroupUtil {
 	*
 	* @param type the type
 	* @param active the active
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeByT_A(int type, boolean active)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeByT_A(int type, boolean active) {
 		getPersistence().removeByT_A(type, active);
 	}
 
@@ -1589,10 +1402,8 @@ public class GroupUtil {
 	* @param type the type
 	* @param active the active
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countByT_A(int type, boolean active)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByT_A(int type, boolean active) {
 		return getPersistence().countByT_A(type, active);
 	}
 
@@ -1603,11 +1414,9 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param parentGroupId the parent group ID
 	* @return the matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByG_C_P(
-		long groupId, long companyId, long parentGroupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, long companyId, long parentGroupId) {
 		return getPersistence().findByG_C_P(groupId, companyId, parentGroupId);
 	}
 
@@ -1624,11 +1433,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByG_C_P(
-		long groupId, long companyId, long parentGroupId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, long companyId, long parentGroupId, int start, int end) {
 		return getPersistence()
 				   .findByG_C_P(groupId, companyId, parentGroupId, start, end);
 	}
@@ -1647,12 +1454,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByG_C_P(
 		long groupId, long companyId, long parentGroupId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .findByG_C_P(groupId, companyId, parentGroupId, start, end,
 			orderByComparator);
@@ -1667,13 +1472,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByG_C_P_First(
 		long groupId, long companyId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByG_C_P_First(groupId, companyId, parentGroupId,
 			orderByComparator);
@@ -1687,12 +1490,10 @@ public class GroupUtil {
 	* @param parentGroupId the parent group ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByG_C_P_First(
 		long groupId, long companyId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByG_C_P_First(groupId, companyId, parentGroupId,
 			orderByComparator);
@@ -1707,13 +1508,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByG_C_P_Last(
 		long groupId, long companyId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByG_C_P_Last(groupId, companyId, parentGroupId,
 			orderByComparator);
@@ -1727,12 +1526,10 @@ public class GroupUtil {
 	* @param parentGroupId the parent group ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByG_C_P_Last(
 		long groupId, long companyId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByG_C_P_Last(groupId, companyId, parentGroupId,
 			orderByComparator);
@@ -1744,11 +1541,9 @@ public class GroupUtil {
 	* @param groupId the group ID
 	* @param companyId the company ID
 	* @param parentGroupId the parent group ID
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void removeByG_C_P(long groupId, long companyId,
-		long parentGroupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long parentGroupId) {
 		getPersistence().removeByG_C_P(groupId, companyId, parentGroupId);
 	}
 
@@ -1759,11 +1554,9 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param parentGroupId the parent group ID
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static int countByG_C_P(long groupId, long companyId,
-		long parentGroupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long parentGroupId) {
 		return getPersistence().countByG_C_P(groupId, companyId, parentGroupId);
 	}
 
@@ -1775,12 +1568,10 @@ public class GroupUtil {
 	* @param classPK the class p k
 	* @return the matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_C_C(long companyId,
 		long classNameId, long classPK)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().findByC_C_C(companyId, classNameId, classPK);
 	}
 
@@ -1791,11 +1582,9 @@ public class GroupUtil {
 	* @param classNameId the class name ID
 	* @param classPK the class p k
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_C_C(long companyId,
-		long classNameId, long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long classNameId, long classPK) {
 		return getPersistence().fetchByC_C_C(companyId, classNameId, classPK);
 	}
 
@@ -1807,11 +1596,9 @@ public class GroupUtil {
 	* @param classPK the class p k
 	* @param retrieveFromCache whether to use the finder cache
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_C_C(long companyId,
-		long classNameId, long classPK, boolean retrieveFromCache)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long classNameId, long classPK, boolean retrieveFromCache) {
 		return getPersistence()
 				   .fetchByC_C_C(companyId, classNameId, classPK,
 			retrieveFromCache);
@@ -1824,12 +1611,10 @@ public class GroupUtil {
 	* @param classNameId the class name ID
 	* @param classPK the class p k
 	* @return the group that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group removeByC_C_C(long companyId,
 		long classNameId, long classPK)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().removeByC_C_C(companyId, classNameId, classPK);
 	}
 
@@ -1840,11 +1625,9 @@ public class GroupUtil {
 	* @param classNameId the class name ID
 	* @param classPK the class p k
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static int countByC_C_C(long companyId, long classNameId,
-		long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long classPK) {
 		return getPersistence().countByC_C_C(companyId, classNameId, classPK);
 	}
 
@@ -1855,11 +1638,9 @@ public class GroupUtil {
 	* @param classNameId the class name ID
 	* @param parentGroupId the parent group ID
 	* @return the matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_C_P(
-		long companyId, long classNameId, long parentGroupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, long classNameId, long parentGroupId) {
 		return getPersistence()
 				   .findByC_C_P(companyId, classNameId, parentGroupId);
 	}
@@ -1877,11 +1658,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_C_P(
-		long companyId, long classNameId, long parentGroupId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, long classNameId, long parentGroupId, int start, int end) {
 		return getPersistence()
 				   .findByC_C_P(companyId, classNameId, parentGroupId, start,
 			end);
@@ -1901,13 +1680,11 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_C_P(
 		long companyId, long classNameId, long parentGroupId, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .findByC_C_P(companyId, classNameId, parentGroupId, start,
 			end, orderByComparator);
@@ -1922,13 +1699,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_C_P_First(
 		long companyId, long classNameId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_C_P_First(companyId, classNameId, parentGroupId,
 			orderByComparator);
@@ -1942,12 +1717,10 @@ public class GroupUtil {
 	* @param parentGroupId the parent group ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_C_P_First(
 		long companyId, long classNameId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByC_C_P_First(companyId, classNameId, parentGroupId,
 			orderByComparator);
@@ -1962,13 +1735,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_C_P_Last(
 		long companyId, long classNameId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_C_P_Last(companyId, classNameId, parentGroupId,
 			orderByComparator);
@@ -1982,12 +1753,10 @@ public class GroupUtil {
 	* @param parentGroupId the parent group ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_C_P_Last(
 		long companyId, long classNameId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByC_C_P_Last(companyId, classNameId, parentGroupId,
 			orderByComparator);
@@ -2003,13 +1772,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next group
 	* @throws com.liferay.portal.NoSuchGroupException if a group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group[] findByC_C_P_PrevAndNext(
 		long groupId, long companyId, long classNameId, long parentGroupId,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_C_P_PrevAndNext(groupId, companyId, classNameId,
 			parentGroupId, orderByComparator);
@@ -2021,11 +1788,9 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param classNameId the class name ID
 	* @param parentGroupId the parent group ID
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void removeByC_C_P(long companyId, long classNameId,
-		long parentGroupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long parentGroupId) {
 		getPersistence().removeByC_C_P(companyId, classNameId, parentGroupId);
 	}
 
@@ -2036,11 +1801,9 @@ public class GroupUtil {
 	* @param classNameId the class name ID
 	* @param parentGroupId the parent group ID
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static int countByC_C_P(long companyId, long classNameId,
-		long parentGroupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long parentGroupId) {
 		return getPersistence()
 				   .countByC_C_P(companyId, classNameId, parentGroupId);
 	}
@@ -2052,11 +1815,9 @@ public class GroupUtil {
 	* @param parentGroupId the parent group ID
 	* @param site the site
 	* @return the matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_P_S(
-		long companyId, long parentGroupId, boolean site)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, long parentGroupId, boolean site) {
 		return getPersistence().findByC_P_S(companyId, parentGroupId, site);
 	}
 
@@ -2073,11 +1834,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_P_S(
-		long companyId, long parentGroupId, boolean site, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, long parentGroupId, boolean site, int start, int end) {
 		return getPersistence()
 				   .findByC_P_S(companyId, parentGroupId, site, start, end);
 	}
@@ -2096,12 +1855,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findByC_P_S(
 		long companyId, long parentGroupId, boolean site, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .findByC_P_S(companyId, parentGroupId, site, start, end,
 			orderByComparator);
@@ -2116,13 +1873,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_P_S_First(
 		long companyId, long parentGroupId, boolean site,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_P_S_First(companyId, parentGroupId, site,
 			orderByComparator);
@@ -2136,12 +1891,10 @@ public class GroupUtil {
 	* @param site the site
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_P_S_First(
 		long companyId, long parentGroupId, boolean site,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByC_P_S_First(companyId, parentGroupId, site,
 			orderByComparator);
@@ -2156,13 +1909,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_P_S_Last(
 		long companyId, long parentGroupId, boolean site,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_P_S_Last(companyId, parentGroupId, site,
 			orderByComparator);
@@ -2176,12 +1927,10 @@ public class GroupUtil {
 	* @param site the site
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_P_S_Last(
 		long companyId, long parentGroupId, boolean site,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence()
 				   .fetchByC_P_S_Last(companyId, parentGroupId, site,
 			orderByComparator);
@@ -2197,13 +1946,11 @@ public class GroupUtil {
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next group
 	* @throws com.liferay.portal.NoSuchGroupException if a group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group[] findByC_P_S_PrevAndNext(
 		long groupId, long companyId, long parentGroupId, boolean site,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator)
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_P_S_PrevAndNext(groupId, companyId, parentGroupId,
 			site, orderByComparator);
@@ -2215,11 +1962,9 @@ public class GroupUtil {
 	* @param companyId the company ID
 	* @param parentGroupId the parent group ID
 	* @param site the site
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void removeByC_P_S(long companyId, long parentGroupId,
-		boolean site)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		boolean site) {
 		getPersistence().removeByC_P_S(companyId, parentGroupId, site);
 	}
 
@@ -2230,11 +1975,9 @@ public class GroupUtil {
 	* @param parentGroupId the parent group ID
 	* @param site the site
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static int countByC_P_S(long companyId, long parentGroupId,
-		boolean site)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		boolean site) {
 		return getPersistence().countByC_P_S(companyId, parentGroupId, site);
 	}
 
@@ -2246,12 +1989,10 @@ public class GroupUtil {
 	* @param name the name
 	* @return the matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_L_N(long companyId,
 		long liveGroupId, java.lang.String name)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().findByC_L_N(companyId, liveGroupId, name);
 	}
 
@@ -2262,11 +2003,9 @@ public class GroupUtil {
 	* @param liveGroupId the live group ID
 	* @param name the name
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_L_N(long companyId,
-		long liveGroupId, java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long liveGroupId, java.lang.String name) {
 		return getPersistence().fetchByC_L_N(companyId, liveGroupId, name);
 	}
 
@@ -2278,11 +2017,9 @@ public class GroupUtil {
 	* @param name the name
 	* @param retrieveFromCache whether to use the finder cache
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_L_N(long companyId,
-		long liveGroupId, java.lang.String name, boolean retrieveFromCache)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long liveGroupId, java.lang.String name, boolean retrieveFromCache) {
 		return getPersistence()
 				   .fetchByC_L_N(companyId, liveGroupId, name, retrieveFromCache);
 	}
@@ -2294,12 +2031,10 @@ public class GroupUtil {
 	* @param liveGroupId the live group ID
 	* @param name the name
 	* @return the group that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group removeByC_L_N(long companyId,
 		long liveGroupId, java.lang.String name)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().removeByC_L_N(companyId, liveGroupId, name);
 	}
 
@@ -2310,11 +2045,9 @@ public class GroupUtil {
 	* @param liveGroupId the live group ID
 	* @param name the name
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static int countByC_L_N(long companyId, long liveGroupId,
-		java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String name) {
 		return getPersistence().countByC_L_N(companyId, liveGroupId, name);
 	}
 
@@ -2327,12 +2060,10 @@ public class GroupUtil {
 	* @param name the name
 	* @return the matching group
 	* @throws com.liferay.portal.NoSuchGroupException if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByC_C_L_N(long companyId,
 		long classNameId, long liveGroupId, java.lang.String name)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .findByC_C_L_N(companyId, classNameId, liveGroupId, name);
 	}
@@ -2345,12 +2076,10 @@ public class GroupUtil {
 	* @param liveGroupId the live group ID
 	* @param name the name
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_C_L_N(
 		long companyId, long classNameId, long liveGroupId,
-		java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String name) {
 		return getPersistence()
 				   .fetchByC_C_L_N(companyId, classNameId, liveGroupId, name);
 	}
@@ -2364,12 +2093,10 @@ public class GroupUtil {
 	* @param name the name
 	* @param retrieveFromCache whether to use the finder cache
 	* @return the matching group, or <code>null</code> if a matching group could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group fetchByC_C_L_N(
 		long companyId, long classNameId, long liveGroupId,
-		java.lang.String name, boolean retrieveFromCache)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String name, boolean retrieveFromCache) {
 		return getPersistence()
 				   .fetchByC_C_L_N(companyId, classNameId, liveGroupId, name,
 			retrieveFromCache);
@@ -2383,13 +2110,10 @@ public class GroupUtil {
 	* @param liveGroupId the live group ID
 	* @param name the name
 	* @return the group that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group removeByC_C_L_N(
 		long companyId, long classNameId, long liveGroupId,
-		java.lang.String name)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String name) throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence()
 				   .removeByC_C_L_N(companyId, classNameId, liveGroupId, name);
 	}
@@ -2402,11 +2126,9 @@ public class GroupUtil {
 	* @param liveGroupId the live group ID
 	* @param name the name
 	* @return the number of matching groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static int countByC_C_L_N(long companyId, long classNameId,
-		long liveGroupId, java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long liveGroupId, java.lang.String name) {
 		return getPersistence()
 				   .countByC_C_L_N(companyId, classNameId, liveGroupId, name);
 	}
@@ -2446,17 +2168,14 @@ public class GroupUtil {
 	* @param groupId the primary key of the group
 	* @return the group that was removed
 	* @throws com.liferay.portal.NoSuchGroupException if a group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group remove(long groupId)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().remove(groupId);
 	}
 
 	public static com.liferay.portal.model.Group updateImpl(
-		com.liferay.portal.model.Group group)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.model.Group group) {
 		return getPersistence().updateImpl(group);
 	}
 
@@ -2466,11 +2185,9 @@ public class GroupUtil {
 	* @param groupId the primary key of the group
 	* @return the group
 	* @throws com.liferay.portal.NoSuchGroupException if a group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Group findByPrimaryKey(long groupId)
-		throws com.liferay.portal.NoSuchGroupException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchGroupException {
 		return getPersistence().findByPrimaryKey(groupId);
 	}
 
@@ -2479,21 +2196,22 @@ public class GroupUtil {
 	*
 	* @param groupId the primary key of the group
 	* @return the group, or <code>null</code> if a group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
-	public static com.liferay.portal.model.Group fetchByPrimaryKey(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static com.liferay.portal.model.Group fetchByPrimaryKey(long groupId) {
 		return getPersistence().fetchByPrimaryKey(groupId);
+	}
+
+	public static java.util.Map<java.io.Serializable, com.liferay.portal.model.Group> fetchByPrimaryKeys(
+		java.util.Set<java.io.Serializable> primaryKeys) {
+		return getPersistence().fetchByPrimaryKeys(primaryKeys);
 	}
 
 	/**
 	* Returns all the groups.
 	*
 	* @return the groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static java.util.List<com.liferay.portal.model.Group> findAll()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static java.util.List<com.liferay.portal.model.Group> findAll() {
 		return getPersistence().findAll();
 	}
 
@@ -2507,11 +2225,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findAll(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int start, int end) {
 		return getPersistence().findAll(start, end);
 	}
 
@@ -2526,22 +2242,17 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Group> findAll(
 		int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Group> orderByComparator) {
 		return getPersistence().findAll(start, end, orderByComparator);
 	}
 
 	/**
 	* Removes all the groups from the database.
-	*
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeAll()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeAll() {
 		getPersistence().removeAll();
 	}
 
@@ -2549,11 +2260,19 @@ public class GroupUtil {
 	* Returns the number of groups.
 	*
 	* @return the number of groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countAll()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countAll() {
 		return getPersistence().countAll();
+	}
+
+	/**
+	* Returns the primaryKeys of organizations associated with the group.
+	*
+	* @param pk the primary key of the group
+	* @return long[] of the primaryKeys of organizations associated with the group
+	*/
+	public static long[] getOrganizationPrimaryKeys(long pk) {
+		return getPersistence().getOrganizationPrimaryKeys(pk);
 	}
 
 	/**
@@ -2561,10 +2280,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @return the organizations associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Organization> getOrganizations(
-		long pk) throws com.liferay.portal.kernel.exception.SystemException {
+		long pk) {
 		return getPersistence().getOrganizations(pk);
 	}
 
@@ -2579,11 +2297,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of organizations associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Organization> getOrganizations(
-		long pk, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long pk, int start, int end) {
 		return getPersistence().getOrganizations(pk, start, end);
 	}
 
@@ -2599,12 +2315,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of organizations associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Organization> getOrganizations(
 		long pk, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Organization> orderByComparator) {
 		return getPersistence()
 				   .getOrganizations(pk, start, end, orderByComparator);
 	}
@@ -2614,10 +2328,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @return the number of organizations associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getOrganizationsSize(long pk)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getOrganizationsSize(long pk) {
 		return getPersistence().getOrganizationsSize(pk);
 	}
 
@@ -2627,10 +2339,8 @@ public class GroupUtil {
 	* @param pk the primary key of the group
 	* @param organizationPK the primary key of the organization
 	* @return <code>true</code> if the organization is associated with the group; <code>false</code> otherwise
-	* @throws SystemException if a system exception occurred
 	*/
-	public static boolean containsOrganization(long pk, long organizationPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static boolean containsOrganization(long pk, long organizationPK) {
 		return getPersistence().containsOrganization(pk, organizationPK);
 	}
 
@@ -2639,10 +2349,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group to check for associations with organizations
 	* @return <code>true</code> if the group has any organizations associated with it; <code>false</code> otherwise
-	* @throws SystemException if a system exception occurred
 	*/
-	public static boolean containsOrganizations(long pk)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static boolean containsOrganizations(long pk) {
 		return getPersistence().containsOrganizations(pk);
 	}
 
@@ -2651,10 +2359,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param organizationPK the primary key of the organization
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void addOrganization(long pk, long organizationPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void addOrganization(long pk, long organizationPK) {
 		getPersistence().addOrganization(pk, organizationPK);
 	}
 
@@ -2663,11 +2369,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param organization the organization
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void addOrganization(long pk,
-		com.liferay.portal.model.Organization organization)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.model.Organization organization) {
 		getPersistence().addOrganization(pk, organization);
 	}
 
@@ -2676,10 +2380,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param organizationPKs the primary keys of the organizations
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void addOrganizations(long pk, long[] organizationPKs)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void addOrganizations(long pk, long[] organizationPKs) {
 		getPersistence().addOrganizations(pk, organizationPKs);
 	}
 
@@ -2688,11 +2390,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param organizations the organizations
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void addOrganizations(long pk,
-		java.util.List<com.liferay.portal.model.Organization> organizations)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<com.liferay.portal.model.Organization> organizations) {
 		getPersistence().addOrganizations(pk, organizations);
 	}
 
@@ -2700,10 +2400,8 @@ public class GroupUtil {
 	* Clears all associations between the group and its organizations. Also notifies the appropriate model listeners and clears the mapping table finder cache.
 	*
 	* @param pk the primary key of the group to clear the associated organizations from
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void clearOrganizations(long pk)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void clearOrganizations(long pk) {
 		getPersistence().clearOrganizations(pk);
 	}
 
@@ -2712,10 +2410,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param organizationPK the primary key of the organization
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeOrganization(long pk, long organizationPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeOrganization(long pk, long organizationPK) {
 		getPersistence().removeOrganization(pk, organizationPK);
 	}
 
@@ -2724,11 +2420,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param organization the organization
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void removeOrganization(long pk,
-		com.liferay.portal.model.Organization organization)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.model.Organization organization) {
 		getPersistence().removeOrganization(pk, organization);
 	}
 
@@ -2737,10 +2431,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param organizationPKs the primary keys of the organizations
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeOrganizations(long pk, long[] organizationPKs)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeOrganizations(long pk, long[] organizationPKs) {
 		getPersistence().removeOrganizations(pk, organizationPKs);
 	}
 
@@ -2749,11 +2441,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param organizations the organizations
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void removeOrganizations(long pk,
-		java.util.List<com.liferay.portal.model.Organization> organizations)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<com.liferay.portal.model.Organization> organizations) {
 		getPersistence().removeOrganizations(pk, organizations);
 	}
 
@@ -2762,10 +2452,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param organizationPKs the primary keys of the organizations to be associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void setOrganizations(long pk, long[] organizationPKs)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void setOrganizations(long pk, long[] organizationPKs) {
 		getPersistence().setOrganizations(pk, organizationPKs);
 	}
 
@@ -2774,12 +2462,20 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param organizations the organizations to be associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void setOrganizations(long pk,
-		java.util.List<com.liferay.portal.model.Organization> organizations)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<com.liferay.portal.model.Organization> organizations) {
 		getPersistence().setOrganizations(pk, organizations);
+	}
+
+	/**
+	* Returns the primaryKeys of roles associated with the group.
+	*
+	* @param pk the primary key of the group
+	* @return long[] of the primaryKeys of roles associated with the group
+	*/
+	public static long[] getRolePrimaryKeys(long pk) {
+		return getPersistence().getRolePrimaryKeys(pk);
 	}
 
 	/**
@@ -2787,10 +2483,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @return the roles associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Role> getRoles(
-		long pk) throws com.liferay.portal.kernel.exception.SystemException {
+		long pk) {
 		return getPersistence().getRoles(pk);
 	}
 
@@ -2805,11 +2500,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of roles associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Role> getRoles(
-		long pk, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long pk, int start, int end) {
 		return getPersistence().getRoles(pk, start, end);
 	}
 
@@ -2825,12 +2518,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of roles associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Role> getRoles(
 		long pk, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.Role> orderByComparator) {
 		return getPersistence().getRoles(pk, start, end, orderByComparator);
 	}
 
@@ -2839,10 +2530,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @return the number of roles associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getRolesSize(long pk)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getRolesSize(long pk) {
 		return getPersistence().getRolesSize(pk);
 	}
 
@@ -2852,10 +2541,8 @@ public class GroupUtil {
 	* @param pk the primary key of the group
 	* @param rolePK the primary key of the role
 	* @return <code>true</code> if the role is associated with the group; <code>false</code> otherwise
-	* @throws SystemException if a system exception occurred
 	*/
-	public static boolean containsRole(long pk, long rolePK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static boolean containsRole(long pk, long rolePK) {
 		return getPersistence().containsRole(pk, rolePK);
 	}
 
@@ -2864,10 +2551,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group to check for associations with roles
 	* @return <code>true</code> if the group has any roles associated with it; <code>false</code> otherwise
-	* @throws SystemException if a system exception occurred
 	*/
-	public static boolean containsRoles(long pk)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static boolean containsRoles(long pk) {
 		return getPersistence().containsRoles(pk);
 	}
 
@@ -2876,10 +2561,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param rolePK the primary key of the role
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void addRole(long pk, long rolePK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void addRole(long pk, long rolePK) {
 		getPersistence().addRole(pk, rolePK);
 	}
 
@@ -2888,10 +2571,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param role the role
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void addRole(long pk, com.liferay.portal.model.Role role)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void addRole(long pk, com.liferay.portal.model.Role role) {
 		getPersistence().addRole(pk, role);
 	}
 
@@ -2900,10 +2581,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param rolePKs the primary keys of the roles
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void addRoles(long pk, long[] rolePKs)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void addRoles(long pk, long[] rolePKs) {
 		getPersistence().addRoles(pk, rolePKs);
 	}
 
@@ -2912,11 +2591,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param roles the roles
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void addRoles(long pk,
-		java.util.List<com.liferay.portal.model.Role> roles)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<com.liferay.portal.model.Role> roles) {
 		getPersistence().addRoles(pk, roles);
 	}
 
@@ -2924,10 +2601,8 @@ public class GroupUtil {
 	* Clears all associations between the group and its roles. Also notifies the appropriate model listeners and clears the mapping table finder cache.
 	*
 	* @param pk the primary key of the group to clear the associated roles from
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void clearRoles(long pk)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void clearRoles(long pk) {
 		getPersistence().clearRoles(pk);
 	}
 
@@ -2936,10 +2611,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param rolePK the primary key of the role
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeRole(long pk, long rolePK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeRole(long pk, long rolePK) {
 		getPersistence().removeRole(pk, rolePK);
 	}
 
@@ -2948,10 +2621,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param role the role
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeRole(long pk, com.liferay.portal.model.Role role)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeRole(long pk, com.liferay.portal.model.Role role) {
 		getPersistence().removeRole(pk, role);
 	}
 
@@ -2960,10 +2631,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param rolePKs the primary keys of the roles
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeRoles(long pk, long[] rolePKs)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeRoles(long pk, long[] rolePKs) {
 		getPersistence().removeRoles(pk, rolePKs);
 	}
 
@@ -2972,11 +2641,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param roles the roles
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void removeRoles(long pk,
-		java.util.List<com.liferay.portal.model.Role> roles)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<com.liferay.portal.model.Role> roles) {
 		getPersistence().removeRoles(pk, roles);
 	}
 
@@ -2985,10 +2652,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param rolePKs the primary keys of the roles to be associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void setRoles(long pk, long[] rolePKs)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void setRoles(long pk, long[] rolePKs) {
 		getPersistence().setRoles(pk, rolePKs);
 	}
 
@@ -2997,12 +2662,20 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param roles the roles to be associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void setRoles(long pk,
-		java.util.List<com.liferay.portal.model.Role> roles)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<com.liferay.portal.model.Role> roles) {
 		getPersistence().setRoles(pk, roles);
+	}
+
+	/**
+	* Returns the primaryKeys of user groups associated with the group.
+	*
+	* @param pk the primary key of the group
+	* @return long[] of the primaryKeys of user groups associated with the group
+	*/
+	public static long[] getUserGroupPrimaryKeys(long pk) {
+		return getPersistence().getUserGroupPrimaryKeys(pk);
 	}
 
 	/**
@@ -3010,10 +2683,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @return the user groups associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.UserGroup> getUserGroups(
-		long pk) throws com.liferay.portal.kernel.exception.SystemException {
+		long pk) {
 		return getPersistence().getUserGroups(pk);
 	}
 
@@ -3028,11 +2700,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of user groups associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.UserGroup> getUserGroups(
-		long pk, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long pk, int start, int end) {
 		return getPersistence().getUserGroups(pk, start, end);
 	}
 
@@ -3048,12 +2718,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of user groups associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.UserGroup> getUserGroups(
 		long pk, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.UserGroup> orderByComparator) {
 		return getPersistence().getUserGroups(pk, start, end, orderByComparator);
 	}
 
@@ -3062,10 +2730,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @return the number of user groups associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getUserGroupsSize(long pk)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getUserGroupsSize(long pk) {
 		return getPersistence().getUserGroupsSize(pk);
 	}
 
@@ -3075,10 +2741,8 @@ public class GroupUtil {
 	* @param pk the primary key of the group
 	* @param userGroupPK the primary key of the user group
 	* @return <code>true</code> if the user group is associated with the group; <code>false</code> otherwise
-	* @throws SystemException if a system exception occurred
 	*/
-	public static boolean containsUserGroup(long pk, long userGroupPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static boolean containsUserGroup(long pk, long userGroupPK) {
 		return getPersistence().containsUserGroup(pk, userGroupPK);
 	}
 
@@ -3087,10 +2751,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group to check for associations with user groups
 	* @return <code>true</code> if the group has any user groups associated with it; <code>false</code> otherwise
-	* @throws SystemException if a system exception occurred
 	*/
-	public static boolean containsUserGroups(long pk)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static boolean containsUserGroups(long pk) {
 		return getPersistence().containsUserGroups(pk);
 	}
 
@@ -3099,10 +2761,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userGroupPK the primary key of the user group
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void addUserGroup(long pk, long userGroupPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void addUserGroup(long pk, long userGroupPK) {
 		getPersistence().addUserGroup(pk, userGroupPK);
 	}
 
@@ -3111,11 +2771,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userGroup the user group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void addUserGroup(long pk,
-		com.liferay.portal.model.UserGroup userGroup)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.model.UserGroup userGroup) {
 		getPersistence().addUserGroup(pk, userGroup);
 	}
 
@@ -3124,10 +2782,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userGroupPKs the primary keys of the user groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void addUserGroups(long pk, long[] userGroupPKs)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void addUserGroups(long pk, long[] userGroupPKs) {
 		getPersistence().addUserGroups(pk, userGroupPKs);
 	}
 
@@ -3136,11 +2792,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userGroups the user groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void addUserGroups(long pk,
-		java.util.List<com.liferay.portal.model.UserGroup> userGroups)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<com.liferay.portal.model.UserGroup> userGroups) {
 		getPersistence().addUserGroups(pk, userGroups);
 	}
 
@@ -3148,10 +2802,8 @@ public class GroupUtil {
 	* Clears all associations between the group and its user groups. Also notifies the appropriate model listeners and clears the mapping table finder cache.
 	*
 	* @param pk the primary key of the group to clear the associated user groups from
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void clearUserGroups(long pk)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void clearUserGroups(long pk) {
 		getPersistence().clearUserGroups(pk);
 	}
 
@@ -3160,10 +2812,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userGroupPK the primary key of the user group
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeUserGroup(long pk, long userGroupPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeUserGroup(long pk, long userGroupPK) {
 		getPersistence().removeUserGroup(pk, userGroupPK);
 	}
 
@@ -3172,11 +2822,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userGroup the user group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void removeUserGroup(long pk,
-		com.liferay.portal.model.UserGroup userGroup)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.model.UserGroup userGroup) {
 		getPersistence().removeUserGroup(pk, userGroup);
 	}
 
@@ -3185,10 +2833,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userGroupPKs the primary keys of the user groups
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeUserGroups(long pk, long[] userGroupPKs)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeUserGroups(long pk, long[] userGroupPKs) {
 		getPersistence().removeUserGroups(pk, userGroupPKs);
 	}
 
@@ -3197,11 +2843,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userGroups the user groups
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void removeUserGroups(long pk,
-		java.util.List<com.liferay.portal.model.UserGroup> userGroups)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<com.liferay.portal.model.UserGroup> userGroups) {
 		getPersistence().removeUserGroups(pk, userGroups);
 	}
 
@@ -3210,10 +2854,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userGroupPKs the primary keys of the user groups to be associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void setUserGroups(long pk, long[] userGroupPKs)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void setUserGroups(long pk, long[] userGroupPKs) {
 		getPersistence().setUserGroups(pk, userGroupPKs);
 	}
 
@@ -3222,12 +2864,20 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userGroups the user groups to be associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void setUserGroups(long pk,
-		java.util.List<com.liferay.portal.model.UserGroup> userGroups)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<com.liferay.portal.model.UserGroup> userGroups) {
 		getPersistence().setUserGroups(pk, userGroups);
+	}
+
+	/**
+	* Returns the primaryKeys of users associated with the group.
+	*
+	* @param pk the primary key of the group
+	* @return long[] of the primaryKeys of users associated with the group
+	*/
+	public static long[] getUserPrimaryKeys(long pk) {
+		return getPersistence().getUserPrimaryKeys(pk);
 	}
 
 	/**
@@ -3235,10 +2885,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @return the users associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.User> getUsers(
-		long pk) throws com.liferay.portal.kernel.exception.SystemException {
+		long pk) {
 		return getPersistence().getUsers(pk);
 	}
 
@@ -3253,11 +2902,9 @@ public class GroupUtil {
 	* @param start the lower bound of the range of groups
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @return the range of users associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.User> getUsers(
-		long pk, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long pk, int start, int end) {
 		return getPersistence().getUsers(pk, start, end);
 	}
 
@@ -3273,12 +2920,10 @@ public class GroupUtil {
 	* @param end the upper bound of the range of groups (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of users associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.User> getUsers(
 		long pk, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.User> orderByComparator) {
 		return getPersistence().getUsers(pk, start, end, orderByComparator);
 	}
 
@@ -3287,10 +2932,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @return the number of users associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getUsersSize(long pk)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getUsersSize(long pk) {
 		return getPersistence().getUsersSize(pk);
 	}
 
@@ -3300,10 +2943,8 @@ public class GroupUtil {
 	* @param pk the primary key of the group
 	* @param userPK the primary key of the user
 	* @return <code>true</code> if the user is associated with the group; <code>false</code> otherwise
-	* @throws SystemException if a system exception occurred
 	*/
-	public static boolean containsUser(long pk, long userPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static boolean containsUser(long pk, long userPK) {
 		return getPersistence().containsUser(pk, userPK);
 	}
 
@@ -3312,10 +2953,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group to check for associations with users
 	* @return <code>true</code> if the group has any users associated with it; <code>false</code> otherwise
-	* @throws SystemException if a system exception occurred
 	*/
-	public static boolean containsUsers(long pk)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static boolean containsUsers(long pk) {
 		return getPersistence().containsUsers(pk);
 	}
 
@@ -3324,10 +2963,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userPK the primary key of the user
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void addUser(long pk, long userPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void addUser(long pk, long userPK) {
 		getPersistence().addUser(pk, userPK);
 	}
 
@@ -3336,10 +2973,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param user the user
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void addUser(long pk, com.liferay.portal.model.User user)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void addUser(long pk, com.liferay.portal.model.User user) {
 		getPersistence().addUser(pk, user);
 	}
 
@@ -3348,10 +2983,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userPKs the primary keys of the users
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void addUsers(long pk, long[] userPKs)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void addUsers(long pk, long[] userPKs) {
 		getPersistence().addUsers(pk, userPKs);
 	}
 
@@ -3360,11 +2993,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param users the users
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void addUsers(long pk,
-		java.util.List<com.liferay.portal.model.User> users)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<com.liferay.portal.model.User> users) {
 		getPersistence().addUsers(pk, users);
 	}
 
@@ -3372,10 +3003,8 @@ public class GroupUtil {
 	* Clears all associations between the group and its users. Also notifies the appropriate model listeners and clears the mapping table finder cache.
 	*
 	* @param pk the primary key of the group to clear the associated users from
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void clearUsers(long pk)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void clearUsers(long pk) {
 		getPersistence().clearUsers(pk);
 	}
 
@@ -3384,10 +3013,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userPK the primary key of the user
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeUser(long pk, long userPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeUser(long pk, long userPK) {
 		getPersistence().removeUser(pk, userPK);
 	}
 
@@ -3396,10 +3023,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param user the user
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeUser(long pk, com.liferay.portal.model.User user)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeUser(long pk, com.liferay.portal.model.User user) {
 		getPersistence().removeUser(pk, user);
 	}
 
@@ -3408,10 +3033,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userPKs the primary keys of the users
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeUsers(long pk, long[] userPKs)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeUsers(long pk, long[] userPKs) {
 		getPersistence().removeUsers(pk, userPKs);
 	}
 
@@ -3420,11 +3043,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param users the users
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void removeUsers(long pk,
-		java.util.List<com.liferay.portal.model.User> users)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<com.liferay.portal.model.User> users) {
 		getPersistence().removeUsers(pk, users);
 	}
 
@@ -3433,10 +3054,8 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param userPKs the primary keys of the users to be associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void setUsers(long pk, long[] userPKs)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void setUsers(long pk, long[] userPKs) {
 		getPersistence().setUsers(pk, userPKs);
 	}
 
@@ -3445,11 +3064,9 @@ public class GroupUtil {
 	*
 	* @param pk the primary key of the group
 	* @param users the users to be associated with the group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void setUsers(long pk,
-		java.util.List<com.liferay.portal.model.User> users)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<com.liferay.portal.model.User> users) {
 		getPersistence().setUsers(pk, users);
 	}
 

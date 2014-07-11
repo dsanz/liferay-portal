@@ -34,6 +34,32 @@ public class MDRRuleGroupInstanceServiceWrapper
 		_mdrRuleGroupInstanceService = mdrRuleGroupInstanceService;
 	}
 
+	@Override
+	public com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance addRuleGroupInstance(
+		long groupId, java.lang.String className, long classPK,
+		long ruleGroupId, int priority,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _mdrRuleGroupInstanceService.addRuleGroupInstance(groupId,
+			className, classPK, ruleGroupId, priority, serviceContext);
+	}
+
+	@Override
+	public com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance addRuleGroupInstance(
+		long groupId, java.lang.String className, long classPK,
+		long ruleGroupId,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _mdrRuleGroupInstanceService.addRuleGroupInstance(groupId,
+			className, classPK, ruleGroupId, serviceContext);
+	}
+
+	@Override
+	public void deleteRuleGroupInstance(long ruleGroupInstanceId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_mdrRuleGroupInstanceService.deleteRuleGroupInstance(ruleGroupInstanceId);
+	}
+
 	/**
 	* Returns the Spring bean ID for this bean.
 	*
@@ -42,6 +68,21 @@ public class MDRRuleGroupInstanceServiceWrapper
 	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _mdrRuleGroupInstanceService.getBeanIdentifier();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance> getRuleGroupInstances(
+		java.lang.String className, long classPK, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance> orderByComparator) {
+		return _mdrRuleGroupInstanceService.getRuleGroupInstances(className,
+			classPK, start, end, orderByComparator);
+	}
+
+	@Override
+	public int getRuleGroupInstancesCount(java.lang.String className,
+		long classPK) {
+		return _mdrRuleGroupInstanceService.getRuleGroupInstancesCount(className,
+			classPK);
 	}
 
 	/**
@@ -55,56 +96,9 @@ public class MDRRuleGroupInstanceServiceWrapper
 	}
 
 	@Override
-	public com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance addRuleGroupInstance(
-		long groupId, java.lang.String className, long classPK,
-		long ruleGroupId, int priority,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _mdrRuleGroupInstanceService.addRuleGroupInstance(groupId,
-			className, classPK, ruleGroupId, priority, serviceContext);
-	}
-
-	@Override
-	public com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance addRuleGroupInstance(
-		long groupId, java.lang.String className, long classPK,
-		long ruleGroupId,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _mdrRuleGroupInstanceService.addRuleGroupInstance(groupId,
-			className, classPK, ruleGroupId, serviceContext);
-	}
-
-	@Override
-	public void deleteRuleGroupInstance(long ruleGroupInstanceId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_mdrRuleGroupInstanceService.deleteRuleGroupInstance(ruleGroupInstanceId);
-	}
-
-	@Override
-	public java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance> getRuleGroupInstances(
-		java.lang.String className, long classPK, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mdrRuleGroupInstanceService.getRuleGroupInstances(className,
-			classPK, start, end, orderByComparator);
-	}
-
-	@Override
-	public int getRuleGroupInstancesCount(java.lang.String className,
-		long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mdrRuleGroupInstanceService.getRuleGroupInstancesCount(className,
-			classPK);
-	}
-
-	@Override
 	public com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance updateRuleGroupInstance(
 		long ruleGroupInstanceId, int priority)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _mdrRuleGroupInstanceService.updateRuleGroupInstance(ruleGroupInstanceId,
 			priority);
 	}

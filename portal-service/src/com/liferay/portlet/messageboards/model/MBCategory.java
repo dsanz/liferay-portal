@@ -35,16 +35,13 @@ public interface MBCategory extends MBCategoryModel, PersistedModel {
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portlet.messageboards.model.impl.MBCategoryImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public java.util.List<java.lang.Long> getAncestorCategoryIds()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getAncestors()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public com.liferay.portlet.messageboards.model.MBCategory getParentCategory()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public boolean isRoot();
 }

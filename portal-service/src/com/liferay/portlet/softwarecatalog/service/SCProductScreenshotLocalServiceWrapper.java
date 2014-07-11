@@ -39,12 +39,10 @@ public class SCProductScreenshotLocalServiceWrapper
 	*
 	* @param scProductScreenshot the s c product screenshot
 	* @return the s c product screenshot that was added
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot addSCProductScreenshot(
-		com.liferay.portlet.softwarecatalog.model.SCProductScreenshot scProductScreenshot)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.softwarecatalog.model.SCProductScreenshot scProductScreenshot) {
 		return _scProductScreenshotLocalService.addSCProductScreenshot(scProductScreenshot);
 	}
 
@@ -61,18 +59,39 @@ public class SCProductScreenshotLocalServiceWrapper
 	}
 
 	/**
+	* @throws PortalException
+	*/
+	@Override
+	public com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _scProductScreenshotLocalService.deletePersistedModel(persistedModel);
+	}
+
+	@Override
+	public void deleteProductScreenshot(
+		com.liferay.portlet.softwarecatalog.model.SCProductScreenshot productScreenshot)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_scProductScreenshotLocalService.deleteProductScreenshot(productScreenshot);
+	}
+
+	@Override
+	public void deleteProductScreenshots(long productEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_scProductScreenshotLocalService.deleteProductScreenshots(productEntryId);
+	}
+
+	/**
 	* Deletes the s c product screenshot with the primary key from the database. Also notifies the appropriate model listeners.
 	*
 	* @param productScreenshotId the primary key of the s c product screenshot
 	* @return the s c product screenshot that was removed
 	* @throws PortalException if a s c product screenshot with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot deleteSCProductScreenshot(
 		long productScreenshotId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _scProductScreenshotLocalService.deleteSCProductScreenshot(productScreenshotId);
 	}
 
@@ -81,12 +100,10 @@ public class SCProductScreenshotLocalServiceWrapper
 	*
 	* @param scProductScreenshot the s c product screenshot
 	* @return the s c product screenshot that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot deleteSCProductScreenshot(
-		com.liferay.portlet.softwarecatalog.model.SCProductScreenshot scProductScreenshot)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.softwarecatalog.model.SCProductScreenshot scProductScreenshot) {
 		return _scProductScreenshotLocalService.deleteSCProductScreenshot(scProductScreenshot);
 	}
 
@@ -100,13 +117,10 @@ public class SCProductScreenshotLocalServiceWrapper
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _scProductScreenshotLocalService.dynamicQuery(dynamicQuery);
 	}
 
@@ -121,13 +135,11 @@ public class SCProductScreenshotLocalServiceWrapper
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return _scProductScreenshotLocalService.dynamicQuery(dynamicQuery,
 			start, end);
 	}
@@ -144,15 +156,12 @@ public class SCProductScreenshotLocalServiceWrapper
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator) {
 		return _scProductScreenshotLocalService.dynamicQuery(dynamicQuery,
 			start, end, orderByComparator);
 	}
@@ -162,12 +171,10 @@ public class SCProductScreenshotLocalServiceWrapper
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _scProductScreenshotLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
@@ -177,98 +184,24 @@ public class SCProductScreenshotLocalServiceWrapper
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
 		return _scProductScreenshotLocalService.dynamicQueryCount(dynamicQuery,
 			projection);
 	}
 
 	@Override
 	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot fetchSCProductScreenshot(
-		long productScreenshotId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long productScreenshotId) {
 		return _scProductScreenshotLocalService.fetchSCProductScreenshot(productScreenshotId);
 	}
 
-	/**
-	* Returns the s c product screenshot with the primary key.
-	*
-	* @param productScreenshotId the primary key of the s c product screenshot
-	* @return the s c product screenshot
-	* @throws PortalException if a s c product screenshot with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
 	@Override
-	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot getSCProductScreenshot(
-		long productScreenshotId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _scProductScreenshotLocalService.getSCProductScreenshot(productScreenshotId);
-	}
-
-	@Override
-	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
 		return _scProductScreenshotLocalService.getActionableDynamicQuery();
-	}
-
-	@Override
-	public com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _scProductScreenshotLocalService.getPersistedModel(primaryKeyObj);
-	}
-
-	/**
-	* Returns a range of all the s c product screenshots.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.softwarecatalog.model.impl.SCProductScreenshotModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
-	* </p>
-	*
-	* @param start the lower bound of the range of s c product screenshots
-	* @param end the upper bound of the range of s c product screenshots (not inclusive)
-	* @return the range of s c product screenshots
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public java.util.List<com.liferay.portlet.softwarecatalog.model.SCProductScreenshot> getSCProductScreenshots(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _scProductScreenshotLocalService.getSCProductScreenshots(start,
-			end);
-	}
-
-	/**
-	* Returns the number of s c product screenshots.
-	*
-	* @return the number of s c product screenshots
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public int getSCProductScreenshotsCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _scProductScreenshotLocalService.getSCProductScreenshotsCount();
-	}
-
-	/**
-	* Updates the s c product screenshot in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param scProductScreenshot the s c product screenshot
-	* @return the s c product screenshot that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot updateSCProductScreenshot(
-		com.liferay.portlet.softwarecatalog.model.SCProductScreenshot scProductScreenshot)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _scProductScreenshotLocalService.updateSCProductScreenshot(scProductScreenshot);
 	}
 
 	/**
@@ -281,6 +214,83 @@ public class SCProductScreenshotLocalServiceWrapper
 		return _scProductScreenshotLocalService.getBeanIdentifier();
 	}
 
+	@Override
+	public com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _scProductScreenshotLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	@Override
+	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot getProductScreenshot(
+		long productEntryId, int priority)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _scProductScreenshotLocalService.getProductScreenshot(productEntryId,
+			priority);
+	}
+
+	@Override
+	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot getProductScreenshotByFullImageId(
+		long fullImageId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _scProductScreenshotLocalService.getProductScreenshotByFullImageId(fullImageId);
+	}
+
+	@Override
+	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot getProductScreenshotByThumbnailId(
+		long thumbnailId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _scProductScreenshotLocalService.getProductScreenshotByThumbnailId(thumbnailId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.softwarecatalog.model.SCProductScreenshot> getProductScreenshots(
+		long productEntryId) {
+		return _scProductScreenshotLocalService.getProductScreenshots(productEntryId);
+	}
+
+	/**
+	* Returns the s c product screenshot with the primary key.
+	*
+	* @param productScreenshotId the primary key of the s c product screenshot
+	* @return the s c product screenshot
+	* @throws PortalException if a s c product screenshot with the primary key could not be found
+	*/
+	@Override
+	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot getSCProductScreenshot(
+		long productScreenshotId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _scProductScreenshotLocalService.getSCProductScreenshot(productScreenshotId);
+	}
+
+	/**
+	* Returns a range of all the s c product screenshots.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.softwarecatalog.model.impl.SCProductScreenshotModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param start the lower bound of the range of s c product screenshots
+	* @param end the upper bound of the range of s c product screenshots (not inclusive)
+	* @return the range of s c product screenshots
+	*/
+	@Override
+	public java.util.List<com.liferay.portlet.softwarecatalog.model.SCProductScreenshot> getSCProductScreenshots(
+		int start, int end) {
+		return _scProductScreenshotLocalService.getSCProductScreenshots(start,
+			end);
+	}
+
+	/**
+	* Returns the number of s c product screenshots.
+	*
+	* @return the number of s c product screenshots
+	*/
+	@Override
+	public int getSCProductScreenshotsCount() {
+		return _scProductScreenshotLocalService.getSCProductScreenshotsCount();
+	}
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -291,51 +301,16 @@ public class SCProductScreenshotLocalServiceWrapper
 		_scProductScreenshotLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
+	/**
+	* Updates the s c product screenshot in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param scProductScreenshot the s c product screenshot
+	* @return the s c product screenshot that was updated
+	*/
 	@Override
-	public void deleteProductScreenshot(
-		com.liferay.portlet.softwarecatalog.model.SCProductScreenshot productScreenshot)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_scProductScreenshotLocalService.deleteProductScreenshot(productScreenshot);
-	}
-
-	@Override
-	public void deleteProductScreenshots(long productEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_scProductScreenshotLocalService.deleteProductScreenshots(productEntryId);
-	}
-
-	@Override
-	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot getProductScreenshot(
-		long productEntryId, int priority)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _scProductScreenshotLocalService.getProductScreenshot(productEntryId,
-			priority);
-	}
-
-	@Override
-	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot getProductScreenshotByFullImageId(
-		long fullImageId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _scProductScreenshotLocalService.getProductScreenshotByFullImageId(fullImageId);
-	}
-
-	@Override
-	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot getProductScreenshotByThumbnailId(
-		long thumbnailId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _scProductScreenshotLocalService.getProductScreenshotByThumbnailId(thumbnailId);
-	}
-
-	@Override
-	public java.util.List<com.liferay.portlet.softwarecatalog.model.SCProductScreenshot> getProductScreenshots(
-		long productEntryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _scProductScreenshotLocalService.getProductScreenshots(productEntryId);
+	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot updateSCProductScreenshot(
+		com.liferay.portlet.softwarecatalog.model.SCProductScreenshot scProductScreenshot) {
+		return _scProductScreenshotLocalService.updateSCProductScreenshot(scProductScreenshot);
 	}
 
 	/**

@@ -24,20 +24,17 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  */
 @ProviderType
 public class AssetCategoryPropertyFinderUtil {
-	public static int countByG_K(long groupId, java.lang.String key)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByG_K(long groupId, java.lang.String key) {
 		return getFinder().countByG_K(groupId, key);
 	}
 
 	public static java.util.List<com.liferay.portlet.asset.model.AssetCategoryProperty> findByG_K(
-		long groupId, java.lang.String key)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, java.lang.String key) {
 		return getFinder().findByG_K(groupId, key);
 	}
 
 	public static java.util.List<com.liferay.portlet.asset.model.AssetCategoryProperty> findByG_K(
-		long groupId, java.lang.String key, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, java.lang.String key, int start, int end) {
 		return getFinder().findByG_K(groupId, key, start, end);
 	}
 

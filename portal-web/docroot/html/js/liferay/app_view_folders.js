@@ -180,7 +180,7 @@ AUI.add(
 
 						var output = instance._portletMessageContainer;
 
-						output.removeClass('alert-error').removeClass('alert-success');
+						output.removeClass('alert-danger').removeClass('alert-success');
 
 						output.addClass('alert alert-' + type);
 
@@ -217,7 +217,7 @@ AUI.add(
 
 						AObject.each(
 							currentHistoryState,
-							function(index, item, collection) {
+							function(index, item) {
 								if (!owns(historyState, item) && !owns(defaultParams, item)) {
 									historyState[item] = null;
 								}
@@ -262,7 +262,7 @@ AUI.add(
 							instance.get('mainUrl'),
 							{
 								autoLoad: false,
-								method: 'get'
+								method: 'GET'
 							}
 						);
 
@@ -452,7 +452,7 @@ AUI.add(
 
 						AObject.each(
 							instance.get('defaultParams'),
-							function(item, index, collection) {
+							function(item, index) {
 								if (!Lang.isValue(History.get(index))) {
 									requestParams[index] = item;
 								}
@@ -473,7 +473,7 @@ AUI.add(
 
 								AObject.each(
 									initialState,
-									function(item, index, collection) {
+									function(item, index) {
 										if (index.indexOf(namespace) === 0) {
 											requestParams[index] = item;
 										}

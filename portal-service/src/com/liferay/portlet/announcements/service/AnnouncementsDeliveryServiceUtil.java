@@ -62,8 +62,7 @@ public class AnnouncementsDeliveryServiceUtil {
 	public static com.liferay.portlet.announcements.model.AnnouncementsDelivery updateDelivery(
 		long userId, java.lang.String type, boolean email, boolean sms,
 		boolean website)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().updateDelivery(userId, type, email, sms, website);
 	}
 

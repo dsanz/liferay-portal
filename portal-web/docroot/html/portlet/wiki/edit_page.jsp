@@ -174,7 +174,7 @@ if (Validator.isNull(redirect)) {
 	<aui:model-context bean="<%= !newPage ? wikiPage : templatePage %>" model="<%= WikiPage.class %>" />
 
 	<c:if test="<%= (wikiPage != null) && (!wikiPage.isNew()) %>">
-		<aui:workflow-status status="<%= wikiPage.getStatus() %>" version="<%= String.valueOf(wikiPage.getVersion()) %>" />
+		<aui:workflow-status showIcon="<%= false %>" showLabel="<%= false %>" status="<%= wikiPage.getStatus() %>" version="<%= String.valueOf(wikiPage.getVersion()) %>" />
 	</c:if>
 
 	<c:if test="<%= !editTitle %>">
@@ -220,7 +220,7 @@ if (Validator.isNull(redirect)) {
 				</div>
 			</c:when>
 			<c:otherwise>
-				<div class="alert alert-error">
+				<div class="alert alert-danger">
 					<liferay-ui:message key="this-page-does-not-exist-yet-and-the-title-is-not-valid" />
 				</div>
 
@@ -237,9 +237,7 @@ if (Validator.isNull(redirect)) {
 				</c:if>
 
 				<c:if test="<%= Validator.isNotNull(parentTitle) %>">
-					<aui:field-wrapper label="parent">
-						<liferay-ui:input-resource url="<%= parentTitle %>" />
-					</aui:field-wrapper>
+					<aui:input name="parent" type="resource" value="<%= parentTitle %>" />
 				</c:if>
 
 				<c:choose>
@@ -250,7 +248,7 @@ if (Validator.isNull(redirect)) {
 							for (int i = 0; i < WikiPageConstants.FORMATS.length; i++) {
 							%>
 
-								<aui:option label='<%= LanguageUtil.get(pageContext, "wiki.formats." + WikiPageConstants.FORMATS[i]) %>' selected="<%= format.equals(WikiPageConstants.FORMATS[i]) %>" value="<%= WikiPageConstants.FORMATS[i] %>" />
+								<aui:option label='<%= LanguageUtil.get(request, "wiki.formats." + WikiPageConstants.FORMATS[i]) %>' selected="<%= format.equals(WikiPageConstants.FORMATS[i]) %>" value="<%= WikiPageConstants.FORMATS[i] %>" />
 
 							<%
 							}
@@ -318,7 +316,7 @@ if (Validator.isNull(redirect)) {
 								FileEntry attachmentsFileEntry = attachmentsFileEntries.get(i);
 							%>
 
-								<aui:a href="<%= (templatePage != null) && (templatePage.getAttachmentsFileEntriesCount() > 0) ? PortletFileRepositoryUtil.getPortletFileEntryURL(themeDisplay, attachmentsFileEntry, StringPool.BLANK) : null %>"><%= attachmentsFileEntry.getTitle() %></aui:a> (<%= TextFormatter.formatStorageSize(attachmentsFileEntry.getSize(), locale) %>)<%= (i < (attachmentsFileEntries.size() - 1)) ? ", " : "" %>
+								<aui:a href="<%= (templatePage != null) && (templatePage.getAttachmentsFileEntriesCount() > 0) ? PortletFileRepositoryUtil.getDownloadPortletFileEntryURL(themeDisplay, attachmentsFileEntry, StringPool.BLANK) : null %>"><%= attachmentsFileEntry.getTitle() %></aui:a> (<%= TextFormatter.formatStorageSize(attachmentsFileEntry.getSize(), locale) %>)<%= (i < (attachmentsFileEntries.size() - 1)) ? ", " : "" %>
 
 							<%
 							}
@@ -454,7 +452,7 @@ if (Validator.isNull(redirect)) {
 					Format dateFormatDate = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
 					%>
 
-					<%= LanguageUtil.format(pageContext, "this-page-cannot-be-edited-because-user-x-is-modifying-it-and-the-results-have-not-been-published-yet", new Object[] {HtmlUtil.escape(wikiPage.getUserName()), dateFormatDate.format(wikiPage.getModifiedDate())}, false) %>
+					<%= LanguageUtil.format(request, "this-page-cannot-be-edited-because-user-x-is-modifying-it-and-the-results-have-not-been-published-yet", new Object[] {HtmlUtil.escape(wikiPage.getUserName()), dateFormatDate.format(wikiPage.getModifiedDate())}, false) %>
 				</div>
 			</c:if>
 		</c:otherwise>
@@ -467,7 +465,7 @@ if (Validator.isNull(redirect)) {
 
 		var newFormat = formatSelect.options[formatSelect.selectedIndex].text;
 
-		var confirmMessage = '<%= UnicodeLanguageUtil.get(pageContext, "you-may-lose-formatting-when-switching-from-x-to-x") %>';
+		var confirmMessage = '<%= UnicodeLanguageUtil.get(request, "you-may-lose-formatting-when-switching-from-x-to-x") %>';
 
 		confirmMessage = AUI().Lang.sub(confirmMessage, [currentFormat, newFormat]);
 
@@ -485,7 +483,7 @@ if (Validator.isNull(redirect)) {
 	}
 
 	function <portlet:namespace />discardDraftPage() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.DELETE %>';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
@@ -495,7 +493,7 @@ if (Validator.isNull(redirect)) {
 	}
 
 	function <portlet:namespace />moveToTrashPage() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.MOVE_TO_TRASH %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.MOVE_TO_TRASH %>';
 
 		<portlet:renderURL var="nodeURL">
 			<portlet:param name="struts_action" value="/wiki/view" />
@@ -503,14 +501,14 @@ if (Validator.isNull(redirect)) {
 			<portlet:param name="tag" value="<%= StringPool.BLANK %>" />
 		</portlet:renderURL>
 
-		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = "<%= nodeURL.toString() %>";
+		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = '<%= nodeURL.toString() %>';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />previewPage() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "";
-		document.<portlet:namespace />fm.<portlet:namespace />preview.value = "true";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '';
+		document.<portlet:namespace />fm.<portlet:namespace />preview.value = 'true';
 
 		if (window.<portlet:namespace />editor) {
 			document.<portlet:namespace />fm.<portlet:namespace />content.value = window.<portlet:namespace />editor.getHTML();
@@ -520,13 +518,13 @@ if (Validator.isNull(redirect)) {
 	}
 
 	function <portlet:namespace />publishPage() {
-		document.<portlet:namespace />fm.<portlet:namespace />workflowAction.value = "<%= WorkflowConstants.ACTION_PUBLISH %>";
+		document.<portlet:namespace />fm.<portlet:namespace />workflowAction.value = '<%= WorkflowConstants.ACTION_PUBLISH %>';
 
 		<portlet:namespace />savePage();
 	}
 
 	function <portlet:namespace />savePage() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= newPage ? Constants.ADD : Constants.UPDATE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= newPage ? Constants.ADD : Constants.UPDATE %>';
 
 		if (window.<portlet:namespace />editor) {
 			document.<portlet:namespace />fm.<portlet:namespace />content.value = window.<portlet:namespace />editor.getHTML();
@@ -541,9 +539,9 @@ if (Validator.isNull(redirect)) {
 <%
 if (!newPage) {
 	PortalUtil.addPortletBreadcrumbEntry(request, wikiPage.getTitle(), viewPageURL.toString());
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "edit"), currentURL);
 }
 else {
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-page"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "add-page"), currentURL);
 }
 %>

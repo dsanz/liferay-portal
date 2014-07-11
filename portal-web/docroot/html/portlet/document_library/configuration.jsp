@@ -17,19 +17,9 @@
 <%@ include file="/html/portlet/document_library/init.jsp" %>
 
 <%
-try {
-	Folder rootFolder = DLAppLocalServiceUtil.getFolder(rootFolderId);
+dlPortletInstanceSettings = DLPortletInstanceSettings.getInstance(layout, portletId, request.getParameterMap());
 
-	rootFolderName = rootFolder.getName();
-
-	if (rootFolder.getGroupId() != scopeGroupId) {
-		rootFolderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
-		rootFolderName = StringPool.BLANK;
-	}
-}
-catch (NoSuchFolderException nsfe) {
-	rootFolderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
-}
+DLConfigurationDisplayContext dlConfigurationDisplayContext = new DLConfigurationDisplayContext(request, dlPortletInstanceSettings);
 %>
 
 <liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL">
@@ -57,21 +47,19 @@ catch (NoSuchFolderException nsfe) {
 			<liferay-ui:panel-container extended="<%= true %>" id="documentLibrarySettingsPanelContainer" persistState="<%= true %>">
 				<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryItemsListingPanel" persistState="<%= true %>" title="display-settings">
 					<aui:fieldset>
-						<aui:field-wrapper label="root-folder">
-							<div class="input-append">
-								<liferay-ui:input-resource id="rootFolderName" url="<%= rootFolderName %>" />
+						<div class="form-group">
+							<aui:input label="root-folder" name="rootFolderName" type="resource" value="<%= rootFolderName %>" />
 
-								<aui:button name="selectFolderButton" value="select" />
+							<aui:button name="selectFolderButton" value="select" />
 
-								<%
-								String taglibRemoveFolder = "Liferay.Util.removeFolderSelection('rootFolderId', 'rootFolderName', '" + renderResponse.getNamespace() + "');";
-								%>
+							<%
+							String taglibRemoveFolder = "Liferay.Util.removeFolderSelection('rootFolderId', 'rootFolderName', '" + renderResponse.getNamespace() + "');";
+							%>
 
-								<aui:button disabled="<%= rootFolderId <= 0 %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
-							</div>
-						</aui:field-wrapper>
+							<aui:button disabled="<%= rootFolderId <= 0 %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
+						</div>
 
-						<aui:input label="show-search" name="preferences--showFoldersSearch--" type="checkbox" value="<%= showFoldersSearch %>" />
+						<aui:input label="show-search" name="preferences--showFoldersSearch--" type="checkbox" value="<%= dlPortletInstanceSettings.isShowFoldersSearch() %>" />
 
 						<aui:select label="maximum-entries-to-display" name="preferences--entriesPerPage--">
 
@@ -79,7 +67,7 @@ catch (NoSuchFolderException nsfe) {
 							for (int pageDeltaValue : PropsValues.SEARCH_CONTAINER_PAGE_DELTA_VALUES) {
 							%>
 
-								<aui:option label="<%= pageDeltaValue %>" selected="<%= entriesPerPage == pageDeltaValue %>" />
+								<aui:option label="<%= pageDeltaValue %>" selected="<%= dlPortletInstanceSettings.getEntriesPerPage() == pageDeltaValue %>" />
 
 							<%
 							}
@@ -87,43 +75,16 @@ catch (NoSuchFolderException nsfe) {
 
 						</aui:select>
 
-						<aui:input name="preferences--enableRelatedAssets--" type="checkbox" value="<%= enableRelatedAssets %>" />
+						<aui:input name="preferences--enableRelatedAssets--" type="checkbox" value="<%= dlPortletInstanceSettings.isEnableRelatedAssets() %>" />
 
 						<aui:field-wrapper label="display-style-views">
-
-							<%
-							Set<String> availableDisplayViews = SetUtil.fromArray(PropsValues.DL_DISPLAY_VIEWS);
-
-							// Left list
-
-							List leftList = new ArrayList();
-
-							for (String displayView : displayViews) {
-								leftList.add(new KeyValuePair(displayView, LanguageUtil.get(pageContext, displayView)));
-							}
-
-							// Right list
-
-							List rightList = new ArrayList();
-
-							Arrays.sort(displayViews);
-
-							for (String displayView : availableDisplayViews) {
-								if (Arrays.binarySearch(displayViews, displayView) < 0) {
-									rightList.add(new KeyValuePair(displayView, LanguageUtil.get(pageContext, displayView)));
-								}
-							}
-
-							rightList = ListUtil.sort(rightList, new KeyValuePairComparator(false, true));
-							%>
-
 							<liferay-ui:input-move-boxes
 								leftBoxName="currentDisplayViews"
-								leftList="<%= leftList %>"
+								leftList="<%= dlConfigurationDisplayContext.getCurrentDisplayViews() %>"
 								leftReorder="true"
 								leftTitle="current"
 								rightBoxName="availableDisplayViews"
-								rightList="<%= rightList %>"
+								rightList="<%= dlConfigurationDisplayContext.getAvailableDisplayViews() %>"
 								rightTitle="available"
 							/>
 						</aui:field-wrapper>
@@ -133,40 +94,13 @@ catch (NoSuchFolderException nsfe) {
 				<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryEntriesListingPanel" persistState="<%= true %>" title="entries-listing-for-list-display-style">
 					<aui:fieldset>
 						<aui:field-wrapper label="show-columns">
-
-							<%
-							Set<String> availableEntryColumns = SetUtil.fromArray(StringUtil.split(allEntryColumns));
-
-							// Left list
-
-							List leftList = new ArrayList();
-
-							for (String entryColumn : entryColumns) {
-								leftList.add(new KeyValuePair(entryColumn, LanguageUtil.get(pageContext, entryColumn)));
-							}
-
-							// Right list
-
-							List rightList = new ArrayList();
-
-							Arrays.sort(entryColumns);
-
-							for (String entryColumn : availableEntryColumns) {
-								if (Arrays.binarySearch(entryColumns, entryColumn) < 0) {
-									rightList.add(new KeyValuePair(entryColumn, LanguageUtil.get(pageContext, entryColumn)));
-								}
-							}
-
-							rightList = ListUtil.sort(rightList, new KeyValuePairComparator(false, true));
-							%>
-
 							<liferay-ui:input-move-boxes
 								leftBoxName="currentEntryColumns"
-								leftList="<%= leftList %>"
+								leftList="<%= dlConfigurationDisplayContext.getCurrentEntryColumns() %>"
 								leftReorder="true"
 								leftTitle="current"
 								rightBoxName="availableEntryColumns"
-								rightList="<%= rightList %>"
+								rightList="<%= dlConfigurationDisplayContext.getAvailableEntryColumns() %>"
 								rightTitle="available"
 							/>
 						</aui:field-wrapper>
@@ -174,14 +108,10 @@ catch (NoSuchFolderException nsfe) {
 				</liferay-ui:panel>
 
 				<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryDocumentsRatingsPanel" persistState="<%= true %>" title="ratings">
-					<aui:input name="preferences--enableRatings--" type="checkbox" value="<%= enableRatings %>" />
-					<aui:input name="preferences--enableCommentRatings--" type="checkbox" value="<%= enableCommentRatings %>" />
+					<aui:input name="preferences--enableRatings--" type="checkbox" value="<%= dlPortletInstanceSettings.isEnableRatings() %>" />
+					<aui:input name="preferences--enableCommentRatings--" type="checkbox" value="<%= dlPortletInstanceSettings.isEnableCommentRatings() %>" />
 				</liferay-ui:panel>
 			</liferay-ui:panel-container>
-
-			<liferay-portlet:renderURL portletName="<%= portletResource %>" var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-				<portlet:param name="struts_action" value="/document_library/select_folder" />
-			</liferay-portlet:renderURL>
 
 			<aui:script use="aui-base">
 				A.one('#<portlet:namespace />selectFolderButton').on(
@@ -196,6 +126,11 @@ catch (NoSuchFolderException nsfe) {
 								},
 								id: '_<%= HtmlUtil.escapeJS(portletResource) %>_selectFolder',
 								title: '<liferay-ui:message arguments="folder" key="select-x" />',
+
+								<liferay-portlet:renderURL portletName="<%= portletResource %>" var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+									<portlet:param name="struts_action" value="/document_library/select_folder" />
+								</liferay-portlet:renderURL>
+
 								uri: '<%= selectFolderURL.toString() %>'
 							},
 							function(event) {

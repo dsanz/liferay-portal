@@ -16,7 +16,6 @@ package com.liferay.portlet.layoutsadmin.action;
 
 import com.liferay.portal.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.exportimportconfiguration.ExportImportConfigurationConstants;
 import com.liferay.portal.kernel.lar.exportimportconfiguration.ExportImportConfigurationHelper;
 import com.liferay.portal.kernel.lar.exportimportconfiguration.ExportImportConfigurationSettingsMapFactory;
@@ -35,6 +34,7 @@ import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.BackgroundTaskLocalServiceUtil;
 import com.liferay.portal.service.ExportImportConfigurationServiceUtil;
+import com.liferay.portal.service.LayoutServiceUtil;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.sites.action.ActionUtil;
@@ -84,8 +84,11 @@ public class EditExportConfigurationAction extends PortletAction {
 				deleteExportImportConfiguration(actionRequest, false);
 			}
 			else if (cmd.equals(Constants.EXPORT)) {
-				ExportImportConfigurationHelper.
-					exportLayoutsByExportImportConfiguration(actionRequest);
+				long exportImportConfigurationId = ParamUtil.getLong(
+					actionRequest, "exportImportConfigurationId");
+
+				LayoutServiceUtil.exportLayoutsAsFileInBackground(
+					exportImportConfigurationId);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
 				deleteExportImportConfiguration(actionRequest, true);
@@ -159,14 +162,20 @@ public class EditExportConfigurationAction extends PortletAction {
 	protected void addSessionMessages(ActionRequest actionRequest)
 		throws Exception {
 
+		String portletId = PortalUtil.getPortletId(actionRequest);
 		long exportImportConfigurationId = ParamUtil.getLong(
 			actionRequest, "exportImportConfigurationId");
 
 		SessionMessages.add(
-			actionRequest,
-			PortalUtil.getPortletId(actionRequest) +
-				"exportImportConfigurationId",
+			actionRequest, portletId + "exportImportConfigurationId",
 			exportImportConfigurationId);
+
+		String name = ParamUtil.getString(actionRequest, "name");
+		String description = ParamUtil.getString(actionRequest, "description");
+
+		SessionMessages.add(actionRequest, portletId + "name", name);
+		SessionMessages.add(
+			actionRequest, portletId + "description", description);
 
 		long groupId = ParamUtil.getLong(actionRequest, "groupId");
 
@@ -176,14 +185,12 @@ public class EditExportConfigurationAction extends PortletAction {
 				ExportImportConfigurationConstants.TYPE_EXPORT_LAYOUT);
 
 		SessionMessages.add(
-			actionRequest,
-			PortalUtil.getPortletId(actionRequest) + "settingsMap",
-			settingsMap);
+			actionRequest, portletId + "settingsMap", settingsMap);
 	}
 
 	protected void deleteExportImportConfiguration(
 			ActionRequest actionRequest, boolean moveToTrash)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		long[] deleteExportImportConfigurationIds = null;
 
@@ -240,9 +247,11 @@ public class EditExportConfigurationAction extends PortletAction {
 		Map<String, Serializable> taskContextMap =
 			backgroundTask.getTaskContextMap();
 
-		ExportImportConfigurationHelper.
-			exportLayoutsByExportImportConfiguration(
-				MapUtil.getLong(taskContextMap, "exportImportConfigurationId"));
+		long exportImportConfigurationId = MapUtil.getLong(
+			taskContextMap, "exportImportConfigurationId");
+
+		LayoutServiceUtil.exportLayoutsAsFileInBackground(
+			exportImportConfigurationId);
 	}
 
 	protected ExportImportConfiguration updateExportConfiguration(

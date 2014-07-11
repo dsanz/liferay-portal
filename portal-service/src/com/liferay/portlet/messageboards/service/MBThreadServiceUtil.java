@@ -40,6 +40,10 @@ public class MBThreadServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portlet.messageboards.service.impl.MBThreadServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static void deleteThread(long threadId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteThread(threadId);
+	}
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -48,6 +52,113 @@ public class MBThreadServiceUtil {
 	*/
 	public static java.lang.String getBeanIdentifier() {
 		return getService().getBeanIdentifier();
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> getGroupThreads(
+		long groupId, long userId, java.util.Date modifiedDate, int status,
+		int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .getGroupThreads(groupId, userId, modifiedDate, status,
+			start, end);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> getGroupThreads(
+		long groupId, long userId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getGroupThreads(groupId, userId, status, start, end);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> getGroupThreads(
+		long groupId, long userId, int status, boolean subscribed,
+		boolean includeAnonymous, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .getGroupThreads(groupId, userId, status, subscribed,
+			includeAnonymous, start, end);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> getGroupThreads(
+		long groupId, long userId, int status, boolean subscribed, int start,
+		int end) throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .getGroupThreads(groupId, userId, status, subscribed, start,
+			end);
+	}
+
+	public static int getGroupThreadsCount(long groupId, long userId,
+		java.util.Date modifiedDate, int status) {
+		return getService()
+				   .getGroupThreadsCount(groupId, userId, modifiedDate, status);
+	}
+
+	public static int getGroupThreadsCount(long groupId, long userId, int status) {
+		return getService().getGroupThreadsCount(groupId, userId, status);
+	}
+
+	public static int getGroupThreadsCount(long groupId, long userId,
+		int status, boolean subscribed) {
+		return getService()
+				   .getGroupThreadsCount(groupId, userId, status, subscribed);
+	}
+
+	public static int getGroupThreadsCount(long groupId, long userId,
+		int status, boolean subscribed, boolean includeAnonymous) {
+		return getService()
+				   .getGroupThreadsCount(groupId, userId, status, subscribed,
+			includeAnonymous);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> getThreads(
+		long groupId, long categoryId, int status, int start, int end) {
+		return getService().getThreads(groupId, categoryId, status, start, end);
+	}
+
+	public static int getThreadsCount(long groupId, long categoryId, int status) {
+		return getService().getThreadsCount(groupId, categoryId, status);
+	}
+
+	public static com.liferay.portal.model.Lock lockThread(long threadId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().lockThread(threadId);
+	}
+
+	public static com.liferay.portlet.messageboards.model.MBThread moveThread(
+		long categoryId, long threadId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().moveThread(categoryId, threadId);
+	}
+
+	public static com.liferay.portlet.messageboards.model.MBThread moveThreadFromTrash(
+		long categoryId, long threadId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().moveThreadFromTrash(categoryId, threadId);
+	}
+
+	public static com.liferay.portlet.messageboards.model.MBThread moveThreadToTrash(
+		long threadId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().moveThreadToTrash(threadId);
+	}
+
+	public static void restoreThreadFromTrash(long threadId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().restoreThreadFromTrash(threadId);
+	}
+
+	public static com.liferay.portal.kernel.search.Hits search(long groupId,
+		long creatorUserId, long startDate, long endDate, int status,
+		int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .search(groupId, creatorUserId, startDate, endDate, status,
+			start, end);
+	}
+
+	public static com.liferay.portal.kernel.search.Hits search(long groupId,
+		long creatorUserId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().search(groupId, creatorUserId, status, start, end);
 	}
 
 	/**
@@ -59,148 +170,15 @@ public class MBThreadServiceUtil {
 		getService().setBeanIdentifier(beanIdentifier);
 	}
 
-	public static void deleteThread(long threadId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteThread(threadId);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> getGroupThreads(
-		long groupId, long userId, java.util.Date modifiedDate, int status,
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getGroupThreads(groupId, userId, modifiedDate, status,
-			start, end);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> getGroupThreads(
-		long groupId, long userId, int status, boolean subscribed,
-		boolean includeAnonymous, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getGroupThreads(groupId, userId, status, subscribed,
-			includeAnonymous, start, end);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> getGroupThreads(
-		long groupId, long userId, int status, boolean subscribed, int start,
-		int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getGroupThreads(groupId, userId, status, subscribed, start,
-			end);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> getGroupThreads(
-		long groupId, long userId, int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getGroupThreads(groupId, userId, status, start, end);
-	}
-
-	public static int getGroupThreadsCount(long groupId, long userId,
-		java.util.Date modifiedDate, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getGroupThreadsCount(groupId, userId, modifiedDate, status);
-	}
-
-	public static int getGroupThreadsCount(long groupId, long userId, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getGroupThreadsCount(groupId, userId, status);
-	}
-
-	public static int getGroupThreadsCount(long groupId, long userId,
-		int status, boolean subscribed)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getGroupThreadsCount(groupId, userId, status, subscribed);
-	}
-
-	public static int getGroupThreadsCount(long groupId, long userId,
-		int status, boolean subscribed, boolean includeAnonymous)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getGroupThreadsCount(groupId, userId, status, subscribed,
-			includeAnonymous);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> getThreads(
-		long groupId, long categoryId, int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getThreads(groupId, categoryId, status, start, end);
-	}
-
-	public static int getThreadsCount(long groupId, long categoryId, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getThreadsCount(groupId, categoryId, status);
-	}
-
-	public static com.liferay.portal.model.Lock lockThread(long threadId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().lockThread(threadId);
-	}
-
-	public static com.liferay.portlet.messageboards.model.MBThread moveThread(
-		long categoryId, long threadId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().moveThread(categoryId, threadId);
-	}
-
-	public static com.liferay.portlet.messageboards.model.MBThread moveThreadFromTrash(
-		long categoryId, long threadId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().moveThreadFromTrash(categoryId, threadId);
-	}
-
-	public static com.liferay.portlet.messageboards.model.MBThread moveThreadToTrash(
-		long threadId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().moveThreadToTrash(threadId);
-	}
-
-	public static void restoreThreadFromTrash(long threadId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().restoreThreadFromTrash(threadId);
-	}
-
-	public static com.liferay.portal.kernel.search.Hits search(long groupId,
-		long creatorUserId, int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().search(groupId, creatorUserId, status, start, end);
-	}
-
-	public static com.liferay.portal.kernel.search.Hits search(long groupId,
-		long creatorUserId, long startDate, long endDate, int status,
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .search(groupId, creatorUserId, startDate, endDate, status,
-			start, end);
-	}
-
 	public static com.liferay.portlet.messageboards.model.MBThread splitThread(
 		long messageId, java.lang.String subject,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().splitThread(messageId, subject, serviceContext);
 	}
 
 	public static void unlockThread(long threadId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().unlockThread(threadId);
 	}
 

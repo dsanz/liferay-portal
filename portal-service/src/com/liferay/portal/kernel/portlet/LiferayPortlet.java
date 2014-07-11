@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
@@ -51,6 +52,7 @@ import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 import javax.portlet.WindowState;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -293,6 +295,17 @@ public class LiferayPortlet extends GenericPortlet {
 		return method;
 	}
 
+	protected String getJSONContentType(PortletRequest portletRequest) {
+		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+			portletRequest);
+
+		if (BrowserSnifferUtil.isIe(request)) {
+			return ContentTypes.TEXT_HTML;
+		}
+
+		return ContentTypes.APPLICATION_JSON;
+	}
+
 	protected String getRedirect(
 		ActionRequest actionRequest, ActionResponse actionResponse) {
 
@@ -386,7 +399,7 @@ public class LiferayPortlet extends GenericPortlet {
 		HttpServletResponse response = PortalUtil.getHttpServletResponse(
 			actionResponse);
 
-		response.setContentType(ContentTypes.APPLICATION_JSON);
+		response.setContentType(getJSONContentType(portletRequest));
 
 		ServletResponseUtil.write(response, json.toString());
 
@@ -398,7 +411,7 @@ public class LiferayPortlet extends GenericPortlet {
 			Object json)
 		throws IOException {
 
-		mimeResponse.setContentType(ContentTypes.APPLICATION_JSON);
+		mimeResponse.setContentType(getJSONContentType(portletRequest));
 
 		PortletResponseUtil.write(mimeResponse, json.toString());
 

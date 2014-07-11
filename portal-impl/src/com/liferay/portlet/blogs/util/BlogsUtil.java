@@ -14,10 +14,11 @@
 
 package com.liferay.portlet.blogs.util;
 
+import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.comment.CommentManager;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.dao.search.SearchContainerResults;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -25,16 +26,12 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.ModelHintsUtil;
-import com.liferay.portal.settings.ParameterMapSettings;
-import com.liferay.portal.settings.Settings;
-import com.liferay.portal.settings.SettingsFactoryUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.service.AssetEntryServiceUtil;
 import com.liferay.portlet.asset.service.persistence.AssetEntryQuery;
-import com.liferay.portlet.blogs.BlogsSettings;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 
 import java.util.LinkedHashMap;
@@ -43,8 +40,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.portlet.PortletRequest;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Brian Wing Shun Chan
@@ -58,26 +53,9 @@ public class BlogsUtil {
 
 	public static final String DISPLAY_STYLE_TITLE = "title";
 
-	public static BlogsSettings getBlogsSettings(long groupId)
-		throws PortalException, SystemException {
-
-		Settings settings = SettingsFactoryUtil.getGroupServiceSettings(
-			groupId, BlogsConstants.SERVICE_NAME);
-
-		return new BlogsSettings(settings);
-	}
-
-	public static BlogsSettings getBlogsSettings(
-			long groupId, HttpServletRequest request)
-		throws PortalException, SystemException {
-
-		Settings settings = SettingsFactoryUtil.getGroupServiceSettings(
-			groupId, BlogsConstants.SERVICE_NAME);
-
-		ParameterMapSettings parameterMapSettings = new ParameterMapSettings(
-			request.getParameterMap(), settings);
-
-		return new BlogsSettings(parameterMapSettings);
+	public static CommentManager getCommentManager() {
+		return (CommentManager)PortalBeanLocatorUtil.locate(
+			CommentManager.class.getName());
 	}
 
 	public static Map<String, String> getEmailDefinitionTerms(
@@ -95,9 +73,19 @@ public class BlogsUtil {
 			LanguageUtil.get(
 				themeDisplay.getLocale(), "the-blog-entry-content"));
 		definitionTerms.put(
+			"[$BLOGS_ENTRY_CREATE_DATE$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-date-the-blog-entry-was-created"));
+		definitionTerms.put(
 			"[$BLOGS_ENTRY_DESCRIPTION$]",
 			LanguageUtil.get(
 				themeDisplay.getLocale(), "the-blog-entry-description"));
+		definitionTerms.put(
+			"[$BLOGS_ENTRY_SITE_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-name-of-the-site-where-the-blog-entry-was-created"));
 		definitionTerms.put(
 			"[$BLOGS_ENTRY_STATUS_BY_USER_NAME$]",
 			LanguageUtil.get(
@@ -112,9 +100,19 @@ public class BlogsUtil {
 				themeDisplay.getLocale(),
 				"the-email-address-of-the-user-who-added-the-blog-entry"));
 		definitionTerms.put(
+			"[$BLOGS_ENTRY_USER_PORTRAIT_URL$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-portrait-url-of-the-user-who-added-the-blog-entry"));
+		definitionTerms.put(
 			"[$BLOGS_ENTRY_USER_NAME$]",
 			LanguageUtil.get(
 				themeDisplay.getLocale(), "the-user-who-added-the-blog-entry"));
+		definitionTerms.put(
+			"[$BLOGS_ENTRY_USER_URL$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-public-site-url-of-the-user-who-added-the-blog-entry"));
 		definitionTerms.put(
 			"[$BLOGS_ENTRY_URL$]",
 			LanguageUtil.get(themeDisplay.getLocale(), "the-blog-entry-url"));
@@ -208,7 +206,7 @@ public class BlogsUtil {
 
 	public static SearchContainerResults<AssetEntry> getSearchContainerResults(
 			SearchContainer<?> searchContainer)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		AssetEntryQuery assetEntryQuery = new AssetEntryQuery(
 			BlogsEntry.class.getName(), searchContainer);

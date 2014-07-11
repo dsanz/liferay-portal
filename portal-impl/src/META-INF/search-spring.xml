@@ -129,7 +129,7 @@
 	<bean id="com.liferay.portal.search.lucene.LuceneIndexWriter" class="com.liferay.portal.search.lucene.LuceneIndexWriter">
 		<property name="spellCheckIndexWriter" ref="com.liferay.portal.search.lucene.LuceneSpellCheckIndexWriter" />
 	</bean>
-	<bean id="com.liferay.portal.search.lucene.LuceneSearchEngineImpl" class="com.liferay.portal.kernel.search.BaseSearchEngine">
+	<bean id="com.liferay.portal.search.lucene.LuceneSearchEngineImpl" class="com.liferay.portal.search.lucene.LuceneSearchEngine">
 		<property name="booleanClauseFactory" >
 			<bean class="com.liferay.portal.search.generic.BooleanClauseFactoryImpl" />
 		</property>
@@ -173,7 +173,7 @@
 		</constructor-arg>
 		<constructor-arg>
 			<util:map map-class="java.util.LinkedHashMap">
-				<entry key="assetCategoryTitles(_.+)?" value-ref="com.liferay.portal.search.lucene.LikeKeywordAnalyzer" />
+				<entry key="assetCategoryTitles?(_.+)?" value-ref="com.liferay.portal.search.lucene.LikeKeywordAnalyzer" />
 				<entry key="assetTagNames" value-ref="com.liferay.portal.search.lucene.LikeKeywordAnalyzer" />
 				<entry key="ddm/.*" value-ref="org.apache.lucene.analysis.KeywordAnalyzer" />
 				<entry key="emailAddress" value-ref="com.liferay.portal.search.lucene.LikeKeywordAnalyzer" />

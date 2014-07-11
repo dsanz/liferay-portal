@@ -85,17 +85,17 @@ if (ddmStructureId > 0) {
 
 		<aui:input name="description" />
 
-		<aui:field-wrapper label="data-definition" required="<%= true %>">
-			<liferay-ui:input-resource id="ddmStructureNameDisplay" label="structure-name" url="<%= ddmStructureName %>" />
+		<div class="form-group">
+			<aui:input label="data-definition" name="ddmStructureNameDisplay" required="<%= true %>" type="resource"  value="<%= ddmStructureName %>" />
 
 			<liferay-ui:icon
 				iconCssClass="icon-search"
 				label="<%= true %>"
-				linkCssClass="btn"
+				linkCssClass="btn btn-default"
 				message="select"
 				url='<%= "javascript:" + renderResponse.getNamespace() + "openDDMStructureSelector();" %>'
 			/>
-		</aui:field-wrapper>
+		</div>
 
 		<c:if test="<%= WorkflowEngineManagerUtil.isDeployed() && (WorkflowHandlerRegistryUtil.getWorkflowHandler(DDLRecord.class.getName()) != null) %>">
 			<aui:select label="workflow" name="workflowDefinition">
@@ -110,7 +110,7 @@ if (ddmStructureId > 0) {
 				}
 				%>
 
-				<aui:option><%= LanguageUtil.get(pageContext, "no-workflow") %></aui:option>
+				<aui:option><%= LanguageUtil.get(request, "no-workflow") %></aui:option>
 
 				<%
 				List<WorkflowDefinition> workflowDefinitions = WorkflowDefinitionManagerUtil.getActiveWorkflowDefinitions(company.getCompanyId(), 0, 100, null);
@@ -166,9 +166,9 @@ if (ddmStructureId > 0) {
 
 				refererPortletName: '<%= portlet.getPortletName() %>',
 				refererWebDAVToken: '<%= portlet.getWebDAVStorageToken() %>',
-				showGlobalScope: true,
+				showAncestorScopes: true,
 				struts_action: '/dynamic_data_mapping/select_structure',
-				title: '<%= UnicodeLanguageUtil.get(pageContext, "data-definitions") %>'
+				title: '<%= UnicodeLanguageUtil.get(request, "data-definitions") %>'
 			},
 			function(event) {
 				var A = AUI();
@@ -183,7 +183,7 @@ if (ddmStructureId > 0) {
 	}
 
 	function <portlet:namespace />saveRecordSet() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (recordSet == null) ? Constants.ADD : Constants.UPDATE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= (recordSet == null) ? Constants.ADD : Constants.UPDATE %>';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
@@ -197,9 +197,9 @@ if (recordSet != null) {
 	portletURL.setParameter("recordSetId", String.valueOf(recordSet.getRecordSetId()));
 
 	PortalUtil.addPortletBreadcrumbEntry(request, recordSet.getName(locale), portletURL.toString());
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "edit"), currentURL);
 }
 else {
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-list"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "add-list"), currentURL);
 }
 %>

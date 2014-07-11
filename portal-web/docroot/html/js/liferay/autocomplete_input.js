@@ -2,376 +2,273 @@ AUI.add(
 	'liferay-autocomplete-input',
 	function(A) {
 		var AArray = A.Array;
-		var KeyMap = A.Event.KeyMap;
 		var Lang = A.Lang;
 
-		var KEY_DOWN = KeyMap.DOWN;
+		var AC_ATTRS_WHITELIST = [''];
 
-		var KEY_LIST = [KEY_DOWN, KeyMap.LEFT, KeyMap.RIGHT, KeyMap.UP].join();
-
-		var REGEX_TERM = /term/g;
-
-		var STR_INPUT_NODE = 'inputNode';
+		var REGEX_TRIGGER = /trigger/g;
 
 		var STR_PHRASE_MATCH = 'phraseMatch';
 
-		var STR_REG_EXP = 'regExp';
-
-		var STR_SOURCE = 'source';
-
-		var STR_SPACE = ' ';
-
-		var STR_TERM = 'term';
-
-		var STR_TPL_RESULTS = 'tplResults';
+		var STR_TRIGGER = 'trigger';
 
 		var STR_VISIBLE = 'visible';
 
-		var AutoCompleteInput = A.Component.create(
-			{
-				ATTRS: {
-					acConfig: {
-						validator: Lang.isObject,
-						value: {
-							activateFirstItem: true,
-							resultFilters: STR_PHRASE_MATCH,
-							resultHighlighter: STR_PHRASE_MATCH
-						}
-					},
+		var TRIGGER_CONFIG_DEFAULTS = {
+			activateFirstItem: true,
+			resultFilters: STR_PHRASE_MATCH,
+			resultHighlighter: STR_PHRASE_MATCH
+		};
 
-					caretAtTerm: {
-						validator: Lang.isBoolean,
-						value: true
-					},
+		var AutoCompleteInputBase = function() {};
 
-					inputNode: {
-						setter: A.one,
-						writeOnce: true
-					},
+		AutoCompleteInputBase.ATTRS = {
+			caretAtTerm: {
+				validator: Lang.isBoolean,
+				value: true
+			},
 
-					offset: {
-						validator: '_validateOffset',
-						value: 10
-					},
+			inputNode: {
+				setter: A.one,
+				writeOnce: true
+			},
 
-					regExp: {
-						setter: '_setRegExp',
-						value: '(?:\\sterm|^term)([^\\s]+)'
-					},
+			offset: {
+				validator: '_validateOffset',
+				value: 10
+			},
 
-					source: {
-					},
+			regExp: {
+				validator: Lang.isRegExp || Lang.isString,
+				value: '(?:\\strigger|^trigger)([^\\s]+)'
+			},
 
-					term: {
-						validator: Lang.isString,
-						value: '@'
-					},
+			source: {
+			},
 
-					tplResults: {
-						validator: Lang.isString
+			tplReplace: {
+				validator: Lang.isString
+			},
+
+			tplResults: {
+				validator: Lang.isString
+			},
+
+			trigger: {
+				setter: AArray,
+				value: '@'
+			}
+		};
+
+		AutoCompleteInputBase.prototype = {
+			initializer: function() {
+				var instance = this;
+
+				instance.get('boundingBox').addClass('lfr-autocomplete-input-list');
+
+				instance.set('resultFormatter', A.bind('_acResultFormatter', instance));
+
+				instance._bindUIACIBase();
+
+				var autocompleteAttrs = AArray.filter(
+					A.Object.keys(A.AutoComplete.ATTRS),
+					function(item) {
+						return item !== 'value';
 					}
-				},
+				);
 
-				EXTENDS: A.Base,
+				instance._triggerConfigDefaults = A.merge(TRIGGER_CONFIG_DEFAULTS);
 
-				NAME: 'liferay-autocomplete-input',
+				A.mix(instance._triggerConfigDefaults, instance.getAttrs(), false, autocompleteAttrs);
+			},
 
-				prototype: {
-					initializer: function() {
-						var instance = this;
+			destructor: function() {
+				var instance = this;
 
-						var ac = new A.AutoComplete(instance._getACConfig()).render();
+				(new A.EventHandle(instance._eventHandles)).detach();
+			},
 
-						ac.get('boundingBox').addClass('lfr-autocomplete-input-list');
+			_acResultFormatter: function(query, results) {
+				var instance = this;
 
-						instance._ac = ac;
+				var tplResults = instance.get('tplResults');
 
-						instance._bindUI();
-					},
+				return AArray.map(
+					results,
+					function(result) {
+						return Lang.sub(tplResults, result.raw);
+					}
+				);
+			},
 
-					destructor: function() {
-						var instance = this;
+			_adjustACPosition: function() {
+				var instance = this;
 
-						instance._ac.destroy();
+				var xy = instance._getACPositionBase();
 
-						if (instance._inputMirror) {
-							instance._inputMirror.remove();
+				var caretXY = instance._getCaretOffset();
+
+				var offset = instance.get('offset');
+
+				var offsetX = 0;
+				var offsetY = 0;
+
+				if (Lang.isArray(offset)) {
+					offsetX = offset[0];
+					offsetY = offset[1];
+				}
+				else if (Lang.isNumber(offset)) {
+					offsetY = offset;
+				}
+
+				var acOffset = instance._getACPositionOffset();
+
+				xy[0] += caretXY.x + offsetX + acOffset[0];
+				xy[1] += caretXY.y + offsetY + acOffset[1];
+
+				instance.get('boundingBox').setXY(xy);
+			},
+
+			_afterACVisibleChange: function(event) {
+				var instance = this;
+
+				if (event.newVal) {
+					instance._adjustACPosition();
+				}
+
+				instance._uiSetVisible(event.newVal);
+			},
+
+			_bindUIACIBase: function() {
+				var instance = this;
+
+				instance.on('query', instance._onACQuery, instance);
+
+				instance.after('visibleChange', instance._afterACVisibleChange, instance);
+			},
+
+			_defSelectFn: function(event) {
+				var instance = this;
+
+				var text = event.result.text;
+
+				var tplReplace = instance.get('tplReplace');
+
+				if (tplReplace) {
+					text = Lang.sub(tplReplace, event.result.raw);
+				}
+
+				instance._inputNode.focus();
+
+				instance._updateValue(text);
+
+				instance._ariaSay(
+					'item_selected',
+					{
+						item: event.result.text
+					}
+				);
+
+				instance.hide();
+			},
+
+			_getRegExp: function() {
+				var instance = this;
+
+				var regExp = instance.get('regExp');
+
+				if (Lang.isString(regExp)) {
+					var triggersExpr = '[' + instance._getTriggers().join('|') + ']';
+
+					regExp = new RegExp(regExp.replace(REGEX_TRIGGER, triggersExpr));
+				}
+
+				return regExp;
+			},
+
+			_getTriggers: function() {
+				var instance = this;
+
+				if (!instance._triggers) {
+					var triggers = [];
+
+					AArray.each(
+						instance.get(STR_TRIGGER),
+						function(item, index, collection) {
+							triggers.push(Lang.isString(item) ? item : item.term);
 						}
+					);
 
-						(new A.EventHandle(instance._eventHandles)).detach();
-					},
+					instance._triggers = triggers;
+				}
 
-					_acResultFormatter: function(query, results) {
-						var instance = this;
+				return instance._triggers;
+			},
 
-						var tplResults = instance.get(STR_TPL_RESULTS);
+			_keyDown: function() {
+				var instance = this;
 
-						return AArray.map(
-							results,
-							function(result) {
-								return Lang.sub(tplResults, result.raw);
-							}
-						);
-					},
+				if (instance.get(STR_VISIBLE)) {
+					instance._activateNextItem();
+				}
+			},
 
-					_acUpdateValue: function(text) {
-						var instance = this;
+			_onACQuery: function(event) {
+				var instance = this;
 
-						var caretIndex = instance._getCaretIndex();
+				var input = instance._getQuery(event.query);
 
-						if (caretIndex) {
-							var inputNode = instance.get(STR_INPUT_NODE);
+				if (input) {
+					instance._setTriggerConfig(input[0]);
 
-							var val = inputNode.val();
+					event.query = input.substring(1);
+				}
+				else {
+					event.preventDefault();
 
-							if (val) {
-								var lastTermIndex = instance._getPrevTermIndex(val, caretIndex.start);
-
-								if (lastTermIndex >= 0) {
-									var prefix = val.substring(0, lastTermIndex);
-
-									val = val.substring(lastTermIndex);
-
-									var regExp = instance.get(STR_REG_EXP);
-
-									var res = regExp.exec(val);
-
-									if (res) {
-										var restText = val.substring(res[1].length + 1);
-
-										var spaceAdded = 1;
-
-										if (restText.length === 0 || restText.charAt(0) !== STR_SPACE) {
-											text += STR_SPACE;
-
-											spaceAdded = 0;
-										}
-
-										var resultText = prefix + instance.get(STR_TERM) + text;
-
-										var resultEndPos = resultText.length + spaceAdded;
-
-										inputNode.val(resultText + restText);
-
-										instance._setCaretIndex(inputNode, resultEndPos);
-									}
-								}
-							}
-						}
-					},
-
-					_adjustACPosition: function() {
-						var instance = this;
-
-						var inputNode = instance.get(STR_INPUT_NODE);
-
-						var xy = inputNode.getXY();
-
-						var caretXY = instance._getCaretOffset();
-
-						var offset = instance.get('offset');
-
-						var offsetX = 0;
-						var offsetY = 0;
-
-						if (Lang.isArray(offset)) {
-							offsetX = offset[0];
-							offsetY = offset[1];
-						}
-						else if (Lang.isNumber(offset)) {
-							offsetY = offset;
-						}
-
-						xy[0] += caretXY.x + offsetX;
-						xy[1] += caretXY.y + Lang.toInt(inputNode.getStyle('fontSize')) + offsetY;
-
-						instance._ac.get('boundingBox').setXY(xy);
-					},
-
-					_afterACVisibleChange: function(event) {
-						var instance = this;
-
-						if (event.newVal) {
-							instance._adjustACPosition();
-						}
-					},
-
-					_bindUI: function() {
-						var instance = this;
-
-						var ac = instance._ac;
-
-						ac.on('query', instance._onACQuery, instance);
-
-						ac.after('visibleChange', instance._afterACVisibleChange, instance);
-
-						ac._keys[KEY_DOWN] = A.bind('_onACKeyDown', instance);
-
-						A.Do.before(instance._syncACPosition, ac, '_syncUIPosAlign', instance);
-
-						ac._updateValue = A.bind('_acUpdateValue', instance);
-
-						var inputNode = instance.get(STR_INPUT_NODE);
-
-						instance._eventHandles = [
-							inputNode.on('key', A.bind('_onKeyUp', instance), 'up:' + KEY_LIST)
-						];
-					},
-
-					_getACConfig: function() {
-						var instance = this;
-
-						var acConfig = instance.get('acConfig');
-
-						var tplResults = instance.get(STR_TPL_RESULTS);
-
-						if (tplResults) {
-							acConfig.resultFormatter = A.bind('_acResultFormatter', instance);
-						}
-
-						var input = instance.get(STR_INPUT_NODE);
-
-						if (input) {
-							acConfig.inputNode = input;
-						}
-
-						var source = instance.get(STR_SOURCE);
-
-						if (source) {
-							acConfig.source = source;
-						}
-
-						return acConfig;
-					},
-
-					_getPrevTermIndex: function(content, position) {
-						var instance = this;
-
-						var result = -1;
-
-						var term = instance.get(STR_TERM);
-
-						for (var i = position; i >= 0; --i) {
-							if (content.charAt(i) === term) {
-								result = i;
-
-								break;
-							}
-						}
-
-						return result;
-					},
-
-					_getQuery: function(val) {
-						var instance = this;
-
-						var result = null;
-
-						var caretIndex = instance._getCaretIndex();
-
-						if (caretIndex) {
-							val = val.substring(0, caretIndex.start);
-
-							var term = instance.get(STR_TERM);
-
-							var lastTermIndex = val.lastIndexOf(term);
-
-							if (lastTermIndex >= 0) {
-								val = val.substring(lastTermIndex);
-
-								var regExp = instance.get(STR_REG_EXP);
-
-								var res = regExp.exec(val);
-
-								if (res && ((res.index + res[1].length + term.length) === val.length)) {
-									result = val;
-								}
-							}
-						}
-
-						return result;
-					},
-
-					_onACKeyDown: function() {
-						var instance = this;
-
-						var ac = instance._ac;
-
-						var acVisible = ac.get(STR_VISIBLE);
-
-						if (acVisible) {
-							ac._activateNextItem();
-						}
-
-						return acVisible;
-					},
-
-					_onACQuery: function(event) {
-						var instance = this;
-
-						var input = instance._getQuery(event.query);
-
-						if (input) {
-							event.query = input.substring(1);
-						}
-						else {
-							event.preventDefault();
-
-							var ac = instance._ac;
-
-							if (ac.get(STR_VISIBLE)) {
-								ac.hide();
-							}
-						}
-					},
-
-					_onKeyUp: function(event) {
-						var instance = this;
-
-						var acVisible = instance._ac.get(STR_VISIBLE);
-
-						if (!acVisible || event.isKeyInSet('left', 'right')) {
-							instance._processKeyUp(event);
-						}
-					},
-
-					_processKeyUp: function(event) {
-						var instance = this;
-
-						var inputNode = instance.get(STR_INPUT_NODE);
-
-						var input = instance._getQuery(inputNode.val());
-
-						var ac = instance._ac;
-
-						if (input) {
-							input = input.substring(1);
-
-							ac.sendRequest(input);
-						}
-						else if (ac.get(STR_VISIBLE)) {
-							ac.hide();
-						}
-					},
-
-					_setRegExp: function(value) {
-						var instance = this;
-
-						return new RegExp(value.replace(REGEX_TERM, instance.get(STR_TERM)));
-					},
-
-					_syncACPosition: function() {
-						return new A.Do.Halt(null, -1);
-					},
-
-					_validateOffset: function(value) {
-						return (Lang.isArray(value) || Lang.isNumber(value));
+					if (instance.get(STR_VISIBLE)) {
+						instance.hide();
 					}
 				}
-			}
-		);
+			},
 
-		Liferay.AutoCompleteInput = AutoCompleteInput;
+			_processKeyUp: function(query) {
+				var instance = this;
+
+				if (query) {
+					instance._setTriggerConfig(query[0]);
+
+					query = query.substring(1);
+
+					instance.sendRequest(query);
+				}
+				else if (instance.get(STR_VISIBLE)) {
+					instance.hide();
+				}
+			},
+
+			_setTriggerConfig: function(trigger) {
+				var instance = this;
+
+				if (trigger !== instance._trigger) {
+					var triggers = instance._getTriggers();
+
+					var triggerConfig = instance.get(STR_TRIGGER)[AArray.indexOf(triggers, trigger)];
+
+					instance.setAttrs(A.merge(instance._triggerConfigDefaults, triggerConfig));
+
+					instance._trigger = trigger;
+				}
+			},
+
+			_syncUIPosAlign: Lang.emptyFn,
+
+			_validateOffset: function(value) {
+				return (Lang.isArray(value) || Lang.isNumber(value));
+			}
+		};
+
+		Liferay.AutoCompleteInputBase = AutoCompleteInputBase;
 	},
 	'',
 	{

@@ -15,11 +15,7 @@
 package com.liferay.portlet.journal.util;
 
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
-import com.liferay.portal.kernel.dao.orm.DynamicQuery;
-import com.liferay.portal.kernel.dao.orm.Property;
-import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletRequestModel;
@@ -43,6 +39,7 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.theme.ThemeDisplay;
@@ -320,7 +317,23 @@ public class JournalArticleIndexer extends BaseIndexer {
 
 		deleteDocument(article.getCompanyId(), article.getId());
 
-		reindexArticleVersions(article);
+		if (!article.isApproved()) {
+			return;
+		}
+
+		JournalArticle latestIndexableArticle =
+			JournalArticleLocalServiceUtil.fetchLatestIndexableArticle(
+				article.getResourcePrimKey());
+
+		if ((latestIndexableArticle == null) ||
+			(latestIndexableArticle.getVersion() > article.getVersion())) {
+
+			return;
+		}
+
+		SearchEngineUtil.updateDocument(
+			getSearchEngineId(), article.getCompanyId(),
+			getDocument(latestIndexableArticle));
 	}
 
 	@Override
@@ -388,12 +401,18 @@ public class JournalArticleIndexer extends BaseIndexer {
 		document.addKeyword("ddmTemplateKey", article.getTemplateId());
 		document.addDate("displayDate", article.getDisplayDate());
 
-		JournalArticle latestIndexableArticle =
-			JournalArticleLocalServiceUtil.fetchLatestIndexableArticle(
-				article.getResourcePrimKey());
+		JournalArticle latestArticle =
+			JournalArticleLocalServiceUtil.fetchLatestArticle(
+				article.getResourcePrimKey(),
+				new int[] {
+					WorkflowConstants.STATUS_IN_TRASH,
+					WorkflowConstants.STATUS_APPROVED});
 
-		if ((latestIndexableArticle != null) &&
-			(article.getId() == latestIndexableArticle.getId())) {
+		if ((latestArticle != null) && !latestArticle.isIndexable()) {
+			document.addKeyword("head", false);
+		}
+		else if ((latestArticle != null) &&
+				 (article.getId() == latestArticle.getId())) {
 
 			document.addKeyword("head", true);
 		}
@@ -461,9 +480,8 @@ public class JournalArticleIndexer extends BaseIndexer {
 	protected void doReindex(Object obj) throws Exception {
 		JournalArticle article = (JournalArticle)obj;
 
-		if (!article.isIndexable() ||
-			(PortalUtil.getClassNameId(DDMStructure.class) ==
-				article.getClassNameId())) {
+		if (PortalUtil.getClassNameId(DDMStructure.class) ==
+				article.getClassNameId()) {
 
 			Document document = getDocument(article);
 
@@ -479,10 +497,18 @@ public class JournalArticleIndexer extends BaseIndexer {
 
 	@Override
 	protected void doReindex(String className, long classPK) throws Exception {
-		JournalArticle article = JournalArticleLocalServiceUtil.getArticle(
-			classPK);
+		JournalArticle article =
+			JournalArticleLocalServiceUtil.fetchJournalArticle(classPK);
 
-		doReindex(article);
+		if (article == null) {
+			article =
+				JournalArticleLocalServiceUtil.fetchLatestIndexableArticle(
+					classPK);
+		}
+
+		if (article != null) {
+			doReindex(article);
+		}
 	}
 
 	@Override
@@ -548,7 +574,7 @@ public class JournalArticleIndexer extends BaseIndexer {
 	}
 
 	protected Collection<Document> getArticleVersions(JournalArticle article)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Collection<Document> documents = new ArrayList<Document>();
 
@@ -627,24 +653,10 @@ public class JournalArticleIndexer extends BaseIndexer {
 		return PORTLET_ID;
 	}
 
-	protected void reindexArticles(long companyId)
-		throws PortalException, SystemException {
-
+	protected void reindexArticles(long companyId) throws PortalException {
 		final ActionableDynamicQuery actionableDynamicQuery =
 			JournalArticleLocalServiceUtil.getActionableDynamicQuery();
 
-		actionableDynamicQuery.setAddCriteriaMethod(
-			new ActionableDynamicQuery.AddCriteriaMethod() {
-
-				@Override
-				public void addCriteria(DynamicQuery dynamicQuery) {
-					Property indexableProperty = PropertyFactoryUtil.forName(
-						"indexable");
-
-					dynamicQuery.add(indexableProperty.eq(true));
-				}
-
-			});
 		actionableDynamicQuery.setCompanyId(companyId);
 		actionableDynamicQuery.setPerformActionMethod(
 			new ActionableDynamicQuery.PerformActionMethod() {
@@ -667,7 +679,7 @@ public class JournalArticleIndexer extends BaseIndexer {
 	}
 
 	protected void reindexArticleVersions(JournalArticle article)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		SearchEngineUtil.updateDocuments(
 			getSearchEngineId(), article.getCompanyId(),

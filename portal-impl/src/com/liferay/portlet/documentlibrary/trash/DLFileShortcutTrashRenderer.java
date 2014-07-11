@@ -15,7 +15,6 @@
 package com.liferay.portlet.documentlibrary.trash;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.trash.BaseTrashRenderer;
@@ -26,6 +25,7 @@ import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.asset.model.AssetRenderer;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
+import com.liferay.portlet.documentlibrary.util.DLUtil;
 
 import java.util.Locale;
 
@@ -42,7 +42,7 @@ public class DLFileShortcutTrashRenderer extends BaseTrashRenderer {
 	public static final String TYPE = "shortcut";
 
 	public DLFileShortcutTrashRenderer(DLFileShortcut fileShortcut)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		_fileShortcut = fileShortcut;
 
@@ -58,6 +58,11 @@ public class DLFileShortcutTrashRenderer extends BaseTrashRenderer {
 	@Override
 	public long getClassPK() {
 		return _fileShortcut.getPrimaryKey();
+	}
+
+	@Override
+	public String getIconCssClass() {
+		return DLUtil.getFileIconCssClass(_fileEntry.getExtension());
 	}
 
 	@Override

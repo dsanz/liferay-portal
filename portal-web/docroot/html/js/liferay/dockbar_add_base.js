@@ -26,10 +26,6 @@ AUI.add(
 
 		var AddBase = A.Component.create(
 			{
-				EXTENDS: A.Base,
-
-				NAME: 'addbase',
-
 				ATTRS: {
 					focusItem: {
 						setter: A.one
@@ -43,10 +39,6 @@ AUI.add(
 						setter: A.one
 					},
 
-					nodeSelector: {
-						validator: Lang.isString
-					},
-
 					nodeList: {
 						setter: A.one
 					},
@@ -54,6 +46,10 @@ AUI.add(
 					nodes: {
 						getter: '_getNodes',
 						readOnly: true
+					},
+
+					nodeSelector: {
+						validator: Lang.isString
 					},
 
 					searchData: {
@@ -69,6 +65,10 @@ AUI.add(
 						validator: Lang.isBoolean
 					}
 				},
+
+				EXTENDS: A.Base,
+
+				NAME: 'addbase',
 
 				prototype: {
 					initializer: function(config) {
@@ -86,7 +86,7 @@ AUI.add(
 							var searchData = [];
 
 							nodes.each(
-								function(item, index, collection) {
+								function(item, index) {
 									searchData.push(
 										{
 											node: item,
@@ -141,8 +141,9 @@ AUI.add(
 							if (!portletMetaData.instanceable) {
 								instance._disablePortletEntry(portletId);
 							}
-							else if (Util.isPhone() || Util.isTablet()) {
-								instance._instanceablePortletFeedback(portletId);
+
+							if (Util.isPhone() || Util.isTablet()) {
+								instance._portletFeedback(portletId, portlet);
 							}
 
 							var beforePortletLoaded = null;
@@ -166,10 +167,8 @@ AUI.add(
 									if (referencePortlet) {
 										referencePortlet.placeBefore(placeHolder);
 									}
-									else {
-										if (dropColumn) {
-											dropColumn.append(placeHolder);
-										}
+									else if (dropColumn) {
+										dropColumn.append(placeHolder);
 									}
 								}
 							}
@@ -272,23 +271,25 @@ AUI.add(
 						return instance._searchData;
 					},
 
-					_instanceablePortletFeedback: function(portletId) {
+					_portletFeedback: function(portletId, portlet) {
 						var instance = this;
 
 						var addedMessagePortlet = instance.byId('portletName');
 
-						var portletNameNode = A.one('[data-portlet-id=' + portletId + ']');
+						var portletNameNode = portlet.ancestor('[data-portlet-id=' + portletId + ']', true);
 
-						var portletName = portletNameNode.attr('data-title');
+						if (portletNameNode) {
+							var portletName = portletNameNode.attr('data-title');
 
-						addedMessagePortlet.setHTML(portletName);
+							addedMessagePortlet.setHTML(portletName);
 
-						instance._addedMessage.show(
-							true,
-							function() {
-								instance._hideAddedMessageTask();
-							}
-						);
+							instance._addedMessage.show(
+								true,
+								function() {
+									instance._hideAddedMessageTask();
+								}
+							);
+						}
 					},
 
 					_showTab: function(event) {

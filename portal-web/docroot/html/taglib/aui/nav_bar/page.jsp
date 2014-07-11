@@ -17,13 +17,15 @@
 <%@ include file="/html/taglib/aui/nav_bar/init.jsp" %>
 
 <c:if test="<%= Validator.isContent(bodyContentString) %>">
-	<div class="navbar <%= cssClass %>" id="<%= id %>" <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>>
-		<div class="navbar-inner">
-			<div class="container">
-				<%= responsiveButtons %>
+	<div class="navbar navbar-default <%= cssClass %>" id="<%= id %>" <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>>
+		<div class="container-fluid">
+			<c:if test="<%= Validator.isNotNull(responsiveButtons) %>">
+				<div class="navbar-header">
+					<%= responsiveButtons %>
+				</div>
+			</c:if>
 
-				<%= bodyContentString %>
-			</div>
+			<%= bodyContentString %>
 		</div>
 	</div>
 </c:if>

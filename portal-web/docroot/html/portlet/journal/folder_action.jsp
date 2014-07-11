@@ -45,7 +45,7 @@ if (folder != null) {
 }
 else {
 	modelResource= "com.liferay.portlet.journal";
-	modelResourceDescription = HtmlUtil.escape(themeDisplay.getScopeGroupName());
+	modelResourceDescription = themeDisplay.getScopeGroupName();
 	resourcePrimKey= String.valueOf(scopeGroupId);
 
 	hasPermissionsPermission = JournalPermission.contains(permissionChecker, scopeGroupId, ActionKeys.PERMISSIONS);
@@ -53,7 +53,7 @@ else {
 %>
 
 <span class="entry-action overlay">
-	<liferay-ui:icon-menu direction="down" extended="<%= false %>" icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>" triggerCssClass="btn">
+	<liferay-ui:icon-menu direction="down" extended="<%= false %>" icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>" triggerCssClass="btn btn-default">
 		<c:choose>
 			<c:when test="<%= folder != null %>">
 				<c:if test="<%= JournalFolderPermission.contains(permissionChecker, folder, ActionKeys.UPDATE) %>">
@@ -66,7 +66,8 @@ else {
 					</portlet:renderURL>
 
 					<liferay-ui:icon
-						image="edit"
+						iconCssClass="icon-edit"
+						message="edit"
 						url="<%= editURL %>"
 					/>
 
@@ -77,23 +78,11 @@ else {
 					</portlet:renderURL>
 
 					<liferay-ui:icon
-						image="submit"
+						iconCssClass="icon-move"
 						message="move"
 						url="<%= moveURL %>"
 					/>
 				</c:if>
-				<c:if test="<%= JournalFolderPermission.contains(permissionChecker, folder, ActionKeys.DELETE) %>">
-					<portlet:actionURL var="deleteURL">
-						<portlet:param name="struts_action" value="/journal/edit_folder" />
-						<portlet:param name="<%= Constants.CMD %>" value="<%= TrashUtil.isTrashEnabled(scopeGroupId) ? Constants.MOVE_TO_TRASH : Constants.DELETE %>" />
-						<portlet:param name="redirect" value="<%= currentURL %>" />
-						<portlet:param name="groupId" value="<%= String.valueOf(folder.getGroupId()) %>" />
-						<portlet:param name="folderId" value="<%= String.valueOf(folder.getFolderId()) %>" />
-					</portlet:actionURL>
-
-					<liferay-ui:icon-delete trash="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>" url="<%= deleteURL %>" />
-				</c:if>
-
 				<c:if test="<%= JournalFolderPermission.contains(permissionChecker, folder, ActionKeys.ADD_FOLDER) %>">
 					<portlet:renderURL var="addFolderURL">
 						<portlet:param name="struts_action" value="/journal/edit_folder" />
@@ -103,13 +92,38 @@ else {
 					</portlet:renderURL>
 
 					<liferay-ui:icon
-						image="add_folder"
+						iconCssClass="icon-plus"
 						message='<%= (folder != null) ? "add-subfolder" : "add-folder" %>'
 						url="<%= addFolderURL %>"
 					/>
 				</c:if>
 			</c:when>
 			<c:otherwise>
+
+				<%
+				boolean workflowEnabled = false;
+
+				if (WorkflowEngineManagerUtil.isDeployed() && (WorkflowHandlerRegistryUtil.getWorkflowHandler(DLFileEntry.class.getName()) != null)) {
+					workflowEnabled = true;
+				}
+				%>
+
+				<c:if test="<%= workflowEnabled && JournalFolderPermission.contains(permissionChecker, scopeGroupId, JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, ActionKeys.UPDATE) %>">
+					<portlet:renderURL var="editURL">
+						<portlet:param name="struts_action" value="/journal/edit_folder" />
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="groupId" value="<%= String.valueOf(scopeGroupId) %>" />
+						<portlet:param name="folderId" value="<%= String.valueOf(JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) %>" />
+						<portlet:param name="mergeWithParentFolderDisabled" value="<%= String.valueOf(folderSelected) %>" />
+						<portlet:param name="rootFolder" value="true" />
+					</portlet:renderURL>
+
+					<liferay-ui:icon
+						iconCssClass="icon-edit"
+						message="edit"
+						url="<%= editURL %>"
+					/>
+				</c:if>
 				<c:if test="<%= JournalPermission.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_FOLDER) %>">
 					<portlet:renderURL var="addFolderURL">
 						<portlet:param name="struts_action" value="/journal/edit_folder" />
@@ -119,7 +133,7 @@ else {
 					</portlet:renderURL>
 
 					<liferay-ui:icon
-						image="add_folder"
+						iconCssClass="icon-plus"
 						message='<%= (folder != null) ? "add-subfolder" : "add-folder" %>'
 						url="<%= addFolderURL %>"
 					/>
@@ -131,18 +145,31 @@ else {
 		<c:if test="<%= hasPermissionsPermission %>">
 			<liferay-security:permissionsURL
 				modelResource="<%= modelResource %>"
-				modelResourceDescription="<%= modelResourceDescription %>"
+				modelResourceDescription="<%= HtmlUtil.escape(modelResourceDescription) %>"
 				resourcePrimKey="<%= resourcePrimKey %>"
 				var="permissionsURL"
 				windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 			/>
 
 			<liferay-ui:icon
-				image="permissions"
+				iconCssClass="icon-lock"
+				message="permissions"
 				method="get"
 				url="<%= permissionsURL %>"
 				useDialog="<%= true %>"
 			/>
+		</c:if>
+
+		<c:if test="<%= (folder != null) && JournalFolderPermission.contains(permissionChecker, folder, ActionKeys.DELETE) %>">
+			<portlet:actionURL var="deleteURL">
+				<portlet:param name="struts_action" value="/journal/edit_folder" />
+				<portlet:param name="<%= Constants.CMD %>" value="<%= TrashUtil.isTrashEnabled(scopeGroupId) ? Constants.MOVE_TO_TRASH : Constants.DELETE %>" />
+				<portlet:param name="redirect" value="<%= currentURL %>" />
+				<portlet:param name="groupId" value="<%= String.valueOf(folder.getGroupId()) %>" />
+				<portlet:param name="folderId" value="<%= String.valueOf(folder.getFolderId()) %>" />
+			</portlet:actionURL>
+
+			<liferay-ui:icon-delete trash="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>" url="<%= deleteURL %>" />
 		</c:if>
 	</liferay-ui:icon-menu>
 </span>

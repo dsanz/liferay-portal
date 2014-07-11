@@ -77,7 +77,7 @@
 </tr>
 <tr>
 	<td>ADD_CONTENT_CONTENT_TITLE</td>
-	<td>//div[@class='add-content-details span8']/div[contains(.,'${key_assetTitle}')]</td>
+	<td>//div[contains(@class,'add-content-details')]/div[contains(.,'${key_assetTitle}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -129,6 +129,11 @@
 	<td>New Page Name Field</td>
 </tr>
 <tr>
+	<td>ADD_PAGE_NAME_LOCALIZED</td>
+	<td>//li[@role='menuitem' and @data-value='${key_localizationName}']/a</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADD_PAGE_BUTTON</td>
 	<td>//button[contains(.,'Add Page')]</td>
 	<td>Add Page Button</td>
@@ -157,7 +162,7 @@
 </tr>
 <tr>
 	<td>ADD_PAGE_PANEL_COMPONENT_TREE_ARROW</td>
-	<td>//span[contains(.,'${key_componentName}')]/../i[contains(@class,'tree-hitarea icon-plus')]</td>
+	<td>//div[contains(.,'${key_componentName}')]/span[contains(@class,'tree-hitarea')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -175,6 +180,57 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--PREVIEW-->
+<tr>
+	<td>PREVIEW</td>
+	<td>//a[@id='_145_previewPanel']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREVIEW_AUTOSIZE</td>
+	<td>//li[@data-device='autosize']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREVIEW_SMARTPHONE</td>
+	<td>//li[@data-device='smartphone']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREVIEW_TABLET</td>
+	<td>//li[@data-device='tablet']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREVIEW_DESKTOP</td>
+	<td>//li[@data-device='desktop']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREVIEW_CUSTOM</td>
+	<td>//li[@data-device='custom']/div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREVIEW_CUSTOM_WIDTH_FIELD</td>
+	<td>//input[@id='_145_width']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREVIEW_CUSTOM_HEIGHT_FIELD</td>
+	<td>//input[@id='_145_height']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREVIEW_MESSAGE</td>
+	<td>//div[@id='_145_devicePreviewContainer']/div[contains(@class,'alert-warning')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
 <!--EDIT-->
 <tr>
 	<td>EDIT</td>
@@ -184,6 +240,11 @@
 <tr>
 	<td>EDIT_NAME_FIELD</td>
 	<td>//input[@id='_145_name']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_NAME_FIELD_LOCALIZED</td>
+	<td>//li[@role='menuitem' and @data-value='${key_localizationName}']/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -270,12 +331,12 @@
 <!--EDIT_DETAILS-->
 <tr>
 	<td>EDIT_DETAILS_AUTOMATICALLY_APPLY_CHANGES_TO_PAGE_TEMPLATE_LABEL</td>
-	<td>//label[contains(@for,'layoutPrototypeLinkEnabledCheckbox')]</td>
+	<td>//label[contains(@for,'layoutPrototypeLinkEnabled')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>EDIT_DETAILS_AUTOMATICALLY_APPLY_CHANGES_TO_PAGE_TEMPLATE_CHECKBOX</td>
-	<td>//label[contains(@for,'layoutPrototypeLinkEnabledCheckbox')]/input[contains(@id,'layoutPrototypeLinkEnabledCheckbox')]</td>
+	<td>//label[contains(@for,'layoutPrototypeLinkEnabled')]/input[contains(@id,'layoutPrototypeLinkEnabled')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -343,12 +404,27 @@
 <!--EDIT_SEO-->
 <tr>
 	<td>EDIT_SEO_HTML_TITLE</td>
-	<td>//div[@id='_145_titleContentBox']//td[contains(@class,'lfr-input-localized-default') and contains(@data-value,'${key_defaultSiteLanguageKey}')]</td>
+	<td>//div[@id='_145_titleContentBox']//li[contains(@class,'lfr-input-localized-default') and contains(@data-value,'${key_defaultSiteLanguageKey}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>EDIT_SEO_META_TAGS_DESCRIPTION</td>
-	<td>//div[@id='_145_descriptionSEOContentBox']//td[contains(@class,'lfr-input-localized-default') and contains(@data-value,'${key_defaultSiteLanguageKey}')]</td>
+	<td>//div[@id='_145_descriptionSEOContentBox']//li[contains(@class,'lfr-input-localized-default') and contains(@data-value,'${key_defaultSiteLanguageKey}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MY_SITES_SITE_NAME_1</td>
+	<td>xpath=(//span[@class='site-name'])[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MY_SITES_SITE_NAME_2</td>
+	<td>xpath=(//span[@class='site-name'])[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MY_SITES_SITE_NAME_2</td>
+	<td>xpath=(//span[@class='site-name'])[3]</td>
 	<td></td>
 </tr>
 <tr>
@@ -449,6 +525,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>MY_SITES_SITE_NAME_2</td>
+	<td>//span[@class='site-name' and contains(.,'${key_siteName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -511,6 +592,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>USER_MY_ACCOUNT_LOCALIZED</td>
+	<td>//a[@title='${key_myAccount}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>USER_SIGN_OUT</td>
 	<td>//li[contains(@class,'sign-out')]/a</td>
 	<td></td>
@@ -518,6 +604,11 @@
 <tr>
 	<td>USER_SIGN_IN</td>
 	<td>//li[contains(@class,'sign-in')]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MY_SITES_SITE_NAME_1</td>
+	<td>//span[@class='site-name']</td>
 	<td></td>
 </tr>
 </tbody>

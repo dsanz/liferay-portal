@@ -18,10 +18,11 @@ import com.liferay.portal.kernel.io.BigEndianCodec;
 import com.liferay.portal.kernel.io.Serializer;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.nio.intraband.Datagram;
-import com.liferay.portal.kernel.nio.intraband.MockIntraband;
-import com.liferay.portal.kernel.nio.intraband.MockRegistrationReference;
 import com.liferay.portal.kernel.nio.intraband.RegistrationReference;
+import com.liferay.portal.kernel.nio.intraband.mailbox.MailboxException;
 import com.liferay.portal.kernel.nio.intraband.mailbox.MailboxUtil;
+import com.liferay.portal.kernel.nio.intraband.test.MockIntraband;
+import com.liferay.portal.kernel.nio.intraband.test.MockRegistrationReference;
 import com.liferay.portal.kernel.resiliency.PortalResiliencyException;
 import com.liferay.portal.kernel.resiliency.spi.MockSPI;
 import com.liferay.portal.kernel.resiliency.spi.SPI;
@@ -32,11 +33,11 @@ import com.liferay.portal.kernel.servlet.ReadOnlyServletResponse;
 import com.liferay.portal.kernel.test.CaptureHandler;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.InetAddressUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.PropsUtilAdvice;
-import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.SocketUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -52,9 +53,6 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.OutputStream;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -561,11 +559,9 @@ public class HttpClientSPIAgentTest {
 		serializer.writeString(_SERVLET_CONTEXT_NAME);
 		serializer.writeObject(new SPIAgentRequest(_mockHttpServletRequest));
 
-		Method depositMailMethod = ReflectionUtil.getDeclaredMethod(
-			MailboxUtil.class, "depositMail", ByteBuffer.class);
-
-		long receipt = (Long)depositMailMethod.invoke(
-			null, serializer.toByteBuffer());
+		long receipt = (Long)ReflectionTestUtil.invoke(
+			MailboxUtil.class, "depositMail", new Class<?>[] {ByteBuffer.class},
+			serializer.toByteBuffer());
 
 		byte[] data = new byte[8];
 
@@ -797,10 +793,14 @@ public class HttpClientSPIAgentTest {
 
 		// Unable to send, successfully close
 
+		MockIntraband mockIntraband = new MockIntraband();
+
+		IOException ioException = new IOException();
+
+		mockIntraband.setIOException(ioException);
+
 		httpClientSPIAgent = new HttpClientSPIAgent(
-			_spiConfiguration,
-			new MockRegistrationReference(
-				new DirectMailboxIntraBand(new IOException())));
+			_spiConfiguration, new MockRegistrationReference(mockIntraband));
 
 		ServerSocketChannel serverSocketChannel =
 			SocketUtil.createServerSocketChannel(
@@ -834,6 +834,11 @@ public class HttpClientSPIAgentTest {
 			Throwable throwable = pre.getCause();
 
 			Assert.assertSame(IOException.class, throwable.getClass());
+
+			throwable = throwable.getCause();
+
+			Assert.assertSame(MailboxException.class, throwable.getClass());
+			Assert.assertSame(ioException, throwable.getCause());
 		}
 
 		ServerSocket serverSocket = serverSocketChannel.socket();
@@ -857,12 +862,9 @@ public class HttpClientSPIAgentTest {
 
 			SocketImpl socketImpl = swapSocketImpl(socket, null);
 
-			DirectMailboxIntraBand directMailboxIntraBand =
-				new DirectMailboxIntraBand(new IOException());
-
 			httpClientSPIAgent = new HttpClientSPIAgent(
 				_spiConfiguration,
-				new MockRegistrationReference(directMailboxIntraBand));
+				new MockRegistrationReference(mockIntraband));
 
 			socketBlockingQueue = httpClientSPIAgent.socketBlockingQueue;
 
@@ -895,12 +897,9 @@ public class HttpClientSPIAgentTest {
 
 			socketImpl = swapSocketImpl(socket, null);
 
-			directMailboxIntraBand = new DirectMailboxIntraBand(
-				new IOException());
-
 			httpClientSPIAgent = new HttpClientSPIAgent(
 				_spiConfiguration,
-				new MockRegistrationReference(directMailboxIntraBand));
+				new MockRegistrationReference(mockIntraband));
 
 			socketBlockingQueue = httpClientSPIAgent.socketBlockingQueue;
 
@@ -941,9 +940,32 @@ public class HttpClientSPIAgentTest {
 
 		socketChannel.configureBlocking(true);
 
+		mockIntraband = new MockIntraband() {
+
+			@Override
+			protected Datagram processDatagram(Datagram datagram) {
+				try {
+					long receipt = (Long)ReflectionTestUtil.invoke(
+						MailboxUtil.class, "depositMail",
+						new Class<?>[] {ByteBuffer.class},
+						datagram.getDataByteBuffer());
+
+					byte[] receiptData = new byte[8];
+
+					BigEndianCodec.putLong(receiptData, 0, receipt);
+
+					return Datagram.createResponseDatagram(
+						datagram, ByteBuffer.wrap(receiptData));
+				}
+				catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+		};
+
 		httpClientSPIAgent = new HttpClientSPIAgent(
-			_spiConfiguration,
-			new MockRegistrationReference(new DirectMailboxIntraBand(null)));
+			_spiConfiguration, new MockRegistrationReference(mockIntraband));
 
 		socketBlockingQueue = httpClientSPIAgent.socketBlockingQueue;
 
@@ -956,11 +978,9 @@ public class HttpClientSPIAgentTest {
 		serializer.writeString(_SERVLET_CONTEXT_NAME);
 		serializer.writeObject(new SPIAgentResponse(_SERVLET_CONTEXT_NAME));
 
-		Method depositMailMethod = ReflectionUtil.getDeclaredMethod(
-			MailboxUtil.class, "depositMail", ByteBuffer.class);
-
-		long receipt = (Long)depositMailMethod.invoke(
-			null, serializer.toByteBuffer());
+		long receipt = (Long)ReflectionTestUtil.invoke(
+			MailboxUtil.class, "depositMail", new Class<?>[] {ByteBuffer.class},
+			serializer.toByteBuffer());
 
 		Socket remoteSocket = serverSocket.accept();
 
@@ -1124,11 +1144,8 @@ public class HttpClientSPIAgentTest {
 		httpClientSPIAgent.transferResponse(
 			mockHttpServletRequest, bufferCacheServletResponse, null);
 
-		Class<?> clazz = Class.forName("java.io.DeleteOnExitHook");
-
-		Field filesField = ReflectionUtil.getDeclaredField(clazz, "files");
-
-		Set<String> files = (Set<String>)filesField.get(null);
+		Set<String> files = (Set<String>)ReflectionTestUtil.getFieldValue(
+			Class.forName("java.io.DeleteOnExitHook"), "files");
 
 		Assert.assertTrue(files.contains(tempFile.getPath()));
 	}
@@ -1147,10 +1164,7 @@ public class HttpClientSPIAgentTest {
 			SocketChannel socketChannel, FileDescriptor fileDescriptor)
 		throws Exception {
 
-		Field fileDescriptorField = ReflectionUtil.getDeclaredField(
-			socketChannel.getClass(), "fd");
-
-		fileDescriptorField.set(socketChannel, fileDescriptor);
+		ReflectionTestUtil.setFieldValue(socketChannel, "fd", fileDescriptor);
 
 		socketChannel.close();
 	}
@@ -1158,29 +1172,28 @@ public class HttpClientSPIAgentTest {
 	protected SocketImpl swapSocketImpl(Socket socket, SocketImpl socketImpl)
 		throws Exception {
 
-		Field implField = ReflectionUtil.getDeclaredField(Socket.class, "impl");
-
-		SocketImpl oldSocketImpl = (SocketImpl)implField.get(socket);
+		SocketImpl oldSocketImpl = (SocketImpl)ReflectionTestUtil.getFieldValue(
+			socket, "impl");
 
 		if (socketImpl == null) {
 			Socket unbindSocket = new Socket();
 
-			socketImpl = (SocketImpl)implField.get(unbindSocket);
+			socketImpl = (SocketImpl)ReflectionTestUtil.getFieldValue(
+				unbindSocket, "impl");
 
-			Field cmdsockField = ReflectionUtil.getDeclaredField(
-				socketImpl.getClass(), "cmdsock");
+			ReflectionTestUtil.setFieldValue(
+				socketImpl, "cmdsock",
+				new Socket() {
 
-			cmdsockField.set(socketImpl, new Socket() {
+					@Override
+					public synchronized void close() throws IOException {
+						throw new IOException();
+					}
 
-				@Override
-				public synchronized void close() throws IOException {
-					throw new IOException();
-				}
-
-			});
+				});
 		}
 
-		implField.set(socket, socketImpl);
+		ReflectionTestUtil.setFieldValue(socket, "impl", socketImpl);
 
 		return oldSocketImpl;
 	}
@@ -1192,45 +1205,6 @@ public class HttpClientSPIAgentTest {
 	private Portlet _portlet;
 	private SPIConfiguration _spiConfiguration = new SPIConfiguration(
 		null, null, 1234, "baseDir", null, null, null);
-
-	private static class DirectMailboxIntraBand extends MockIntraband {
-
-		public DirectMailboxIntraBand(IOException ioException) {
-			_ioException = ioException;
-		}
-
-		@Override
-		public Datagram sendSyncDatagram(
-				RegistrationReference registrationReference, Datagram datagram)
-			throws IOException {
-
-			if (_ioException != null) {
-				throw _ioException;
-			}
-
-			try {
-				Method depositMailMethod = ReflectionUtil.getDeclaredMethod(
-					MailboxUtil.class, "depositMail", ByteBuffer.class);
-
-				long receipt = (Long)depositMailMethod.invoke(
-					null, datagram.getDataByteBuffer());
-
-				_receiptData = new byte[8];
-
-				BigEndianCodec.putLong(_receiptData, 0, receipt);
-
-				return Datagram.createResponseDatagram(
-					datagram, ByteBuffer.wrap(_receiptData));
-			}
-			catch (Exception e) {
-				throw new IOException(e);
-			}
-		}
-
-		private IOException _ioException;
-		private byte[] _receiptData;
-
-	}
 
 	private static class RecordSPIAgentResponse extends SPIAgentResponse {
 

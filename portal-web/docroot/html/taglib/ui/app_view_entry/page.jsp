@@ -33,6 +33,7 @@ Date displayDate = GetterUtil.getDate(request.getAttribute("liferay-ui:app-view-
 String displayStyle = (String)request.getAttribute("liferay-ui:app-view-entry:displayStyle");
 boolean folder = GetterUtil.getBoolean(request.getAttribute("liferay-ui:app-view-entry:folder"));
 long groupId = GetterUtil.getLong(request.getAttribute("liferay-ui:app-view-entry:groupId"));
+String iconCssClass = (String)request.getAttribute("liferay-ui:app-view-entry:iconCssClass");
 String latestApprovedVersion = GetterUtil.getString(request.getAttribute("liferay-ui:app-view-entry:latestApprovedVersion"));
 String latestApprovedVersionAuthor = GetterUtil.getString(request.getAttribute("liferay-ui:app-view-entry:latestApprovedVersionAuthor"));
 boolean locked = GetterUtil.getBoolean(request.getAttribute("liferay-ui:app-view-entry:locked"));
@@ -64,7 +65,7 @@ if (showLinkTitle) {
 	<c:when test='<%= displayStyle.equals("icon") %>'>
 		<div class="app-view-entry app-view-entry-taglib display-<%= displayStyle %> entry-display-style <%= showCheckbox ? "selectable" : StringPool.BLANK %> <%= cssClass %>" <%= AUIUtil.buildData(data) %> data-draggable="<%= showCheckbox ? Boolean.TRUE.toString() : Boolean.FALSE.toString() %>" data-title="<%= HtmlUtil.escapeAttribute(shortTitle) %>">
 			<c:if test="<%= showCheckbox %>">
-				<aui:input cssClass="entry-selector overlay" hideLabel="<%= true %>" id="<%= rowCheckerId %>" label="select" name="<%= RowChecker.ROW_IDS + rowCheckerName %>" type="checkbox" value="<%= rowCheckerId %>" />
+				<aui:input cssClass="entry-selector overlay" id="<%= rowCheckerId %>" label="" name="<%= RowChecker.ROW_IDS + rowCheckerName %>" title='<%= LanguageUtil.format(request, "select-x", HtmlUtil.escape(shortTitle)) %>' type="checkbox" value="<%= rowCheckerId %>" />
 			</c:if>
 
 			<%
@@ -84,21 +85,30 @@ if (showLinkTitle) {
 				</c:otherwise>
 			</c:choose>
 
-			<div class="entry-thumbnail" style="<%= thumbnailDivStyle %>">
-				<img alt="" border="no" src="<%= HtmlUtil.escapeAttribute(thumbnailSrc) %>" style="<%= thumbnailStyle %>" />
+			<c:if test="<%= Validator.isNotNull(iconCssClass) || Validator.isNotNull(thumbnailSrc) %>">
+				<div class="entry-thumbnail" style="<%= thumbnailDivStyle %>">
+					<c:choose>
+						<c:when test="<%= Validator.isNotNull(thumbnailSrc) %>">
+							<img alt="" src="<%= HtmlUtil.escapeAttribute(thumbnailSrc) %>" style="<%= thumbnailStyle %>" />
+						</c:when>
+						<c:when test="<%= Validator.isNotNull(iconCssClass) %>">
+							<i class="<%= iconCssClass %>" style="<%= thumbnailStyle %>"></i>
+						</c:when>
+					</c:choose>
 
-				<c:if test="<%= shortcut %>">
-					<img alt="<liferay-ui:message key="shortcut" />" class="shortcut-icon" src="<%= themeDisplay.getPathThemeImages() %>/file_system/large/overlay_link.png" />
-				</c:if>
+					<c:if test="<%= shortcut %>">
+						<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="shortcut" />" class="shortcut-icon" src="<%= themeDisplay.getPathThemeImages() %>/file_system/large/overlay_link.png" />
+					</c:if>
 
-				<c:if test="<%= locked %>">
-					<img alt="<liferay-ui:message key="locked" />" class="locked-icon" src="<%= themeDisplay.getPathThemeImages() %>/file_system/large/overlay_lock.png" />
-				</c:if>
+					<c:if test="<%= locked %>">
+						<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="locked" />" class="locked-icon" src="<%= themeDisplay.getPathThemeImages() %>/file_system/large/overlay_lock.png" />
+					</c:if>
 
-				<c:if test="<%= !folder && ((status != WorkflowConstants.STATUS_ANY) && (status != WorkflowConstants.STATUS_APPROVED)) %>">
-					<aui:workflow-status showIcon="<%= false %>" showLabel="<%= false %>" status="<%= status %>" />
-				</c:if>
-			</div>
+					<c:if test="<%= !folder && ((status != WorkflowConstants.STATUS_ANY) && (status != WorkflowConstants.STATUS_APPROVED)) %>">
+						<aui:workflow-status showIcon="<%= false %>" showLabel="<%= false %>" status="<%= status %>" />
+					</c:if>
+				</div>
+			</c:if>
 
 			<span class="entry-title">
 				<span class="entry-title-text">
@@ -129,21 +139,30 @@ if (showLinkTitle) {
 				</c:otherwise>
 			</c:choose>
 
-			<div class="entry-thumbnail" style="<%= thumbnailDivStyle %>">
-				<img alt="" border="no" class="img-polaroid" src="<%= HtmlUtil.escapeAttribute(thumbnailSrc) %>" style="<%= thumbnailStyle %>" />
+			<c:if test="<%= Validator.isNotNull(iconCssClass) || Validator.isNotNull(thumbnailSrc) %>">
+				<div class="entry-thumbnail" style="<%= thumbnailDivStyle %>">
+					<c:choose>
+						<c:when test="<%= Validator.isNotNull(thumbnailSrc) %>">
+							<img alt="" class="img-thumbnail" src="<%= HtmlUtil.escapeAttribute(thumbnailSrc) %>" style="<%= thumbnailStyle %>" />
+						</c:when>
+						<c:when test="<%= Validator.isNotNull(iconCssClass) %>">
+							<i class="<%= iconCssClass %>" style="<%= thumbnailStyle %>"></i>
+						</c:when>
+					</c:choose>
 
-				<c:if test="<%= shortcut %>">
-					<img alt="<liferay-ui:message key="shortcut" />" class="shortcut-icon" src="<%= themeDisplay.getPathThemeImages() %>/file_system/large/overlay_link.png" />
-				</c:if>
+					<c:if test="<%= shortcut %>">
+						<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="shortcut" />" class="shortcut-icon" src="<%= themeDisplay.getPathThemeImages() %>/file_system/large/overlay_link.png" />
+					</c:if>
 
-				<c:if test="<%= locked %>">
-					<img alt="<liferay-ui:message key="locked" />" class="locked-icon" src="<%= themeDisplay.getPathThemeImages() %>/file_system/large/overlay_lock.png" />
-				</c:if>
+					<c:if test="<%= locked %>">
+						<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="locked" />" class="locked-icon" src="<%= themeDisplay.getPathThemeImages() %>/file_system/large/overlay_lock.png" />
+					</c:if>
 
-				<c:if test="<%= !folder && (status != WorkflowConstants.STATUS_ANY) && (status != WorkflowConstants.STATUS_APPROVED) %>">
-					<aui:workflow-status showIcon="<%= false %>" showLabel="<%= false %>" status="<%= status %>" />
-				</c:if>
-			</div>
+					<c:if test="<%= !folder && (status != WorkflowConstants.STATUS_ANY) && (status != WorkflowConstants.STATUS_APPROVED) %>">
+						<aui:workflow-status showIcon="<%= false %>" showLabel="<%= false %>" status="<%= status %>" />
+					</c:if>
+				</div>
+			</c:if>
 
 			<div class="entry-metadata">
 				<span class="entry-title">
@@ -341,15 +360,16 @@ if (showLinkTitle) {
 			<liferay-util:include page="<%= actionJsp %>" />
 
 			<c:if test="<%= showCheckbox %>">
-				<aui:input cssClass="entry-selector overlay" hideLabel="<%= true %>" id="<%= rowCheckerId %>" label="select" name="<%= RowChecker.ROW_IDS + rowCheckerName %>" type="checkbox" value="<%= rowCheckerId %>" />
+				<aui:input cssClass="entry-selector overlay" id="<%= rowCheckerId %>" label="" name="<%= RowChecker.ROW_IDS + rowCheckerName %>" title='<%= LanguageUtil.format(request, "select-x", HtmlUtil.escape(shortTitle)) %>' type="checkbox" value="<%= rowCheckerId %>" />
 			</c:if>
 		</div>
 	</c:when>
 	<c:when test='<%= displayStyle.equals("list") %>'>
-		<div class="app-view-entry app-view-entry-taglib display-<%= displayStyle %> entry-display-style <%= locked ? "locked" : StringPool.BLANK %> <%= cssClass %>" <%= AUIUtil.buildData(data) %>>
+		<div class="app-view-entry app-view-entry-taglib display-<%= displayStyle %> entry-display-style <%= cssClass %>" <%= AUIUtil.buildData(data) %>>
 			<liferay-ui:icon
-				cssClass='<%= showCheckbox ? "app-view-entry app-view-entry-taglib entry-display-style selectable" : "app-view-entry app-view-entry-taglib entry-display-style" %>'
+				cssClass='<%= showCheckbox ? "pull-left app-view-entry app-view-entry-taglib entry-display-style selectable" : "pull-left app-view-entry app-view-entry-taglib entry-display-style" %>'
 				data="<%= data %>"
+				iconCssClass="<%= iconCssClass %>"
 				label="<%= true %>"
 				linkCssClass="entry-link"
 				localizeMessage="<%= false %>"
@@ -358,6 +378,10 @@ if (showLinkTitle) {
 				src="<%= thumbnailSrc %>"
 				url="<%= url %>"
 			/>
+
+			<c:if test="<%= locked %>">
+				<i class="icon-lock pull-right"></i>
+			</c:if>
 
 			<c:if test="<%= !folder && (status != WorkflowConstants.STATUS_ANY) && (status != WorkflowConstants.STATUS_APPROVED) %>">
 				<aui:workflow-status showIcon="<%= false %>" showLabel="<%= false %>" status="<%= status %>" />

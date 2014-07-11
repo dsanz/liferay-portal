@@ -18,6 +18,7 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -50,11 +51,13 @@ public interface ReleaseLocalService extends BaseLocalService,
 	*
 	* @param release the release
 	* @return the release that was added
-	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
 	public com.liferay.portal.model.Release addRelease(
-		com.liferay.portal.model.Release release)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.model.Release release);
+
+	public com.liferay.portal.model.Release addRelease(
+		java.lang.String servletContextName, int buildNumber);
 
 	/**
 	* Creates a new release with the primary key. Does not add the release to the database.
@@ -64,28 +67,36 @@ public interface ReleaseLocalService extends BaseLocalService,
 	*/
 	public com.liferay.portal.model.Release createRelease(long releaseId);
 
+	public void createTablesAndPopulate();
+
 	/**
-	* Deletes the release with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param releaseId the primary key of the release
-	* @return the release that was removed
-	* @throws PortalException if a release with the primary key could not be found
-	* @throws SystemException if a system exception occurred
+	* @throws PortalException
 	*/
-	public com.liferay.portal.model.Release deleteRelease(long releaseId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+	@Override
+	public com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Deletes the release from the database. Also notifies the appropriate model listeners.
 	*
 	* @param release the release
 	* @return the release that was removed
-	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
 	public com.liferay.portal.model.Release deleteRelease(
-		com.liferay.portal.model.Release release)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.model.Release release);
+
+	/**
+	* Deletes the release with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param releaseId the primary key of the release
+	* @return the release that was removed
+	* @throws PortalException if a release with the primary key could not be found
+	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
+	public com.liferay.portal.model.Release deleteRelease(long releaseId)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery();
 
@@ -94,12 +105,9 @@ public interface ReleaseLocalService extends BaseLocalService,
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery);
 
 	/**
 	* Performs a dynamic query on the database and returns a range of the matching rows.
@@ -112,12 +120,10 @@ public interface ReleaseLocalService extends BaseLocalService,
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException;
+		int end);
 
 	/**
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
@@ -131,25 +137,20 @@ public interface ReleaseLocalService extends BaseLocalService,
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator);
 
 	/**
 	* Returns the number of rows that match the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery);
 
 	/**
 	* Returns the number of rows that match the dynamic query.
@@ -157,16 +158,37 @@ public interface ReleaseLocalService extends BaseLocalService,
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.dao.orm.Projection projection);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.Release fetchRelease(long releaseId)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public com.liferay.portal.model.Release fetchRelease(long releaseId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.model.Release fetchRelease(
+		java.lang.String servletContextName);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery();
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public java.lang.String getBeanIdentifier();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getBuildNumberOrCreate()
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns the release with the primary key.
@@ -174,23 +196,10 @@ public interface ReleaseLocalService extends BaseLocalService,
 	* @param releaseId the primary key of the release
 	* @return the release
 	* @throws PortalException if a release with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.Release getRelease(long releaseId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns a range of all the releases.
@@ -202,40 +211,18 @@ public interface ReleaseLocalService extends BaseLocalService,
 	* @param start the lower bound of the range of releases
 	* @param end the upper bound of the range of releases (not inclusive)
 	* @return the range of releases
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.Release> getReleases(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		int start, int end);
 
 	/**
 	* Returns the number of releases.
 	*
 	* @return the number of releases
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getReleasesCount()
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	/**
-	* Updates the release in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param release the release
-	* @return the release that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portal.model.Release updateRelease(
-		com.liferay.portal.model.Release release)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
+	public int getReleasesCount();
 
 	/**
 	* Sets the Spring bean ID for this bean.
@@ -244,25 +231,17 @@ public interface ReleaseLocalService extends BaseLocalService,
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
-	public com.liferay.portal.model.Release addRelease(
-		java.lang.String servletContextName, int buildNumber)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	public void createTablesAndPopulate()
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.Release fetchRelease(
-		java.lang.String servletContextName)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getBuildNumberOrCreate()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+	/**
+	* Updates the release in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param release the release
+	* @return the release that was updated
+	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
+	public com.liferay.portal.model.Release updateRelease(
+		com.liferay.portal.model.Release release);
 
 	public com.liferay.portal.model.Release updateRelease(long releaseId,
 		int buildNumber, java.util.Date buildDate, boolean verified)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

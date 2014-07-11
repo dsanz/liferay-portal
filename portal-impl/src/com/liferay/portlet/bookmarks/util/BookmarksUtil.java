@@ -15,7 +15,6 @@
 package com.liferay.portlet.bookmarks.util;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -30,15 +29,11 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.Company;
-import com.liferay.portal.settings.ParameterMapSettings;
-import com.liferay.portal.settings.Settings;
-import com.liferay.portal.settings.SettingsFactoryUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortletURLFactoryUtil;
-import com.liferay.portlet.bookmarks.BookmarksSettings;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
 import com.liferay.portlet.bookmarks.model.BookmarksFolderConstants;
@@ -158,7 +153,7 @@ public class BookmarksUtil {
 
 	public static String getAbsolutePath(
 			PortletRequest portletRequest, long folderId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -192,31 +187,9 @@ public class BookmarksUtil {
 		return sb.toString();
 	}
 
-	public static BookmarksSettings getBookmarksSettings(long groupId)
-		throws PortalException, SystemException {
-
-		Settings settings = SettingsFactoryUtil.getGroupServiceSettings(
-			groupId, BookmarksConstants.SERVICE_NAME);
-
-		return new BookmarksSettings(settings);
-	}
-
-	public static BookmarksSettings getBookmarksSettings(
-			long groupId, HttpServletRequest request)
-		throws PortalException, SystemException {
-
-		Settings settings = SettingsFactoryUtil.getGroupServiceSettings(
-			groupId, BookmarksConstants.SERVICE_NAME);
-
-		ParameterMapSettings parameterMapSettings = new ParameterMapSettings(
-			request.getParameterMap(), settings);
-
-		return new BookmarksSettings(parameterMapSettings);
-	}
-
 	public static String getControlPanelLink(
 			PortletRequest portletRequest, long folderId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -316,7 +289,7 @@ public class BookmarksUtil {
 		return entries;
 	}
 
-	public static OrderByComparator getEntryOrderByComparator(
+	public static OrderByComparator<BookmarksEntry> getEntryOrderByComparator(
 		String orderByCol, String orderByType) {
 
 		boolean orderByAsc = false;
@@ -325,7 +298,7 @@ public class BookmarksUtil {
 			orderByAsc = true;
 		}
 
-		OrderByComparator orderByComparator = null;
+		OrderByComparator<BookmarksEntry> orderByComparator = null;
 
 		if (orderByCol.equals("create-date")) {
 			orderByComparator = new EntryCreateDateComparator(orderByAsc);

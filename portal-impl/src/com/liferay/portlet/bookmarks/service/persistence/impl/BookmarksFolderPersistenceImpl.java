@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -49,7 +48,11 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -117,11 +120,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param resourceBlockId the resource block ID
 	 * @return the matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BookmarksFolder> findByResourceBlockId(long resourceBlockId)
-		throws SystemException {
+	public List<BookmarksFolder> findByResourceBlockId(long resourceBlockId) {
 		return findByResourceBlockId(resourceBlockId, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -137,11 +138,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByResourceBlockId(long resourceBlockId,
-		int start, int end) throws SystemException {
+		int start, int end) {
 		return findByResourceBlockId(resourceBlockId, start, end, null);
 	}
 
@@ -157,12 +157,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByResourceBlockId(long resourceBlockId,
-		int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		int start, int end, OrderByComparator<BookmarksFolder> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -269,12 +267,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByResourceBlockId_First(long resourceBlockId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByResourceBlockId_First(resourceBlockId,
 				orderByComparator);
 
@@ -300,11 +297,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param resourceBlockId the resource block ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByResourceBlockId_First(long resourceBlockId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		List<BookmarksFolder> list = findByResourceBlockId(resourceBlockId, 0,
 				1, orderByComparator);
 
@@ -322,12 +318,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByResourceBlockId_Last(long resourceBlockId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByResourceBlockId_Last(resourceBlockId,
 				orderByComparator);
 
@@ -353,11 +348,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param resourceBlockId the resource block ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByResourceBlockId_Last(long resourceBlockId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		int count = countByResourceBlockId(resourceBlockId);
 
 		if (count == 0) {
@@ -382,12 +376,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] findByResourceBlockId_PrevAndNext(long folderId,
-		long resourceBlockId, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		long resourceBlockId,
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = findByPrimaryKey(folderId);
 
 		Session session = null;
@@ -417,7 +411,7 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder getByResourceBlockId_PrevAndNext(
 		Session session, BookmarksFolder bookmarksFolder, long resourceBlockId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<BookmarksFolder> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -524,11 +518,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * Removes all the bookmarks folders where resourceBlockId = &#63; from the database.
 	 *
 	 * @param resourceBlockId the resource block ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByResourceBlockId(long resourceBlockId)
-		throws SystemException {
+	public void removeByResourceBlockId(long resourceBlockId) {
 		for (BookmarksFolder bookmarksFolder : findByResourceBlockId(
 				resourceBlockId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(bookmarksFolder);
@@ -540,11 +532,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param resourceBlockId the resource block ID
 	 * @return the number of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByResourceBlockId(long resourceBlockId)
-		throws SystemException {
+	public int countByResourceBlockId(long resourceBlockId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_RESOURCEBLOCKID;
 
 		Object[] finderArgs = new Object[] { resourceBlockId };
@@ -619,11 +609,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param uuid the uuid
 	 * @return the matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BookmarksFolder> findByUuid(String uuid)
-		throws SystemException {
+	public List<BookmarksFolder> findByUuid(String uuid) {
 		return findByUuid(uuid, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -638,11 +626,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BookmarksFolder> findByUuid(String uuid, int start, int end)
-		throws SystemException {
+	public List<BookmarksFolder> findByUuid(String uuid, int start, int end) {
 		return findByUuid(uuid, start, end, null);
 	}
 
@@ -658,11 +644,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByUuid(String uuid, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -779,12 +764,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByUuid_First(String uuid,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByUuid_First(uuid,
 				orderByComparator);
 
@@ -810,11 +794,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByUuid_First(String uuid,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		List<BookmarksFolder> list = findByUuid(uuid, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -831,12 +814,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByUuid_Last(String uuid,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByUuid_Last(uuid,
 				orderByComparator);
 
@@ -862,11 +844,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByUuid_Last(String uuid,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		int count = countByUuid(uuid);
 
 		if (count == 0) {
@@ -891,12 +872,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] findByUuid_PrevAndNext(long folderId, String uuid,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = findByPrimaryKey(folderId);
 
 		Session session = null;
@@ -926,7 +906,7 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder getByUuid_PrevAndNext(Session session,
 		BookmarksFolder bookmarksFolder, String uuid,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<BookmarksFolder> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -1047,10 +1027,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * Removes all the bookmarks folders where uuid = &#63; from the database.
 	 *
 	 * @param uuid the uuid
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByUuid(String uuid) throws SystemException {
+	public void removeByUuid(String uuid) {
 		for (BookmarksFolder bookmarksFolder : findByUuid(uuid,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(bookmarksFolder);
@@ -1062,10 +1041,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param uuid the uuid
 	 * @return the number of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByUuid(String uuid) throws SystemException {
+	public int countByUuid(String uuid) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_UUID;
 
 		Object[] finderArgs = new Object[] { uuid };
@@ -1146,11 +1124,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param groupId the group ID
 	 * @return the matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByUUID_G(String uuid, long groupId)
-		throws NoSuchFolderException, SystemException {
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByUUID_G(uuid, groupId);
 
 		if (bookmarksFolder == null) {
@@ -1182,11 +1159,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param uuid the uuid
 	 * @param groupId the group ID
 	 * @return the matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public BookmarksFolder fetchByUUID_G(String uuid, long groupId)
-		throws SystemException {
+	public BookmarksFolder fetchByUUID_G(String uuid, long groupId) {
 		return fetchByUUID_G(uuid, groupId, true);
 	}
 
@@ -1197,11 +1172,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param groupId the group ID
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByUUID_G(String uuid, long groupId,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { uuid, groupId };
 
 		Object result = null;
@@ -1304,11 +1278,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param uuid the uuid
 	 * @param groupId the group ID
 	 * @return the bookmarks folder that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder removeByUUID_G(String uuid, long groupId)
-		throws NoSuchFolderException, SystemException {
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = findByUUID_G(uuid, groupId);
 
 		return remove(bookmarksFolder);
@@ -1320,11 +1293,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param uuid the uuid
 	 * @param groupId the group ID
 	 * @return the number of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByUUID_G(String uuid, long groupId)
-		throws SystemException {
+	public int countByUUID_G(String uuid, long groupId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_UUID_G;
 
 		Object[] finderArgs = new Object[] { uuid, groupId };
@@ -1422,11 +1393,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param uuid the uuid
 	 * @param companyId the company ID
 	 * @return the matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BookmarksFolder> findByUuid_C(String uuid, long companyId)
-		throws SystemException {
+	public List<BookmarksFolder> findByUuid_C(String uuid, long companyId) {
 		return findByUuid_C(uuid, companyId, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -1443,11 +1412,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByUuid_C(String uuid, long companyId,
-		int start, int end) throws SystemException {
+		int start, int end) {
 		return findByUuid_C(uuid, companyId, start, end, null);
 	}
 
@@ -1464,12 +1432,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByUuid_C(String uuid, long companyId,
-		int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		int start, int end, OrderByComparator<BookmarksFolder> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1596,12 +1562,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByUuid_C_First(String uuid, long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByUuid_C_First(uuid, companyId,
 				orderByComparator);
 
@@ -1631,11 +1596,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByUuid_C_First(String uuid, long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		List<BookmarksFolder> list = findByUuid_C(uuid, companyId, 0, 1,
 				orderByComparator);
 
@@ -1654,12 +1618,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByUuid_C_Last(String uuid, long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByUuid_C_Last(uuid, companyId,
 				orderByComparator);
 
@@ -1689,11 +1652,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByUuid_C_Last(String uuid, long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		int count = countByUuid_C(uuid, companyId);
 
 		if (count == 0) {
@@ -1719,12 +1681,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] findByUuid_C_PrevAndNext(long folderId,
-		String uuid, long companyId, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		String uuid, long companyId,
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = findByPrimaryKey(folderId);
 
 		Session session = null;
@@ -1754,7 +1716,7 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder getByUuid_C_PrevAndNext(Session session,
 		BookmarksFolder bookmarksFolder, String uuid, long companyId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<BookmarksFolder> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -1880,11 +1842,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param uuid the uuid
 	 * @param companyId the company ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByUuid_C(String uuid, long companyId)
-		throws SystemException {
+	public void removeByUuid_C(String uuid, long companyId) {
 		for (BookmarksFolder bookmarksFolder : findByUuid_C(uuid, companyId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(bookmarksFolder);
@@ -1897,11 +1857,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param uuid the uuid
 	 * @param companyId the company ID
 	 * @return the number of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByUuid_C(String uuid, long companyId)
-		throws SystemException {
+	public int countByUuid_C(String uuid, long companyId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_UUID_C;
 
 		Object[] finderArgs = new Object[] { uuid, companyId };
@@ -1997,11 +1955,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param groupId the group ID
 	 * @return the matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BookmarksFolder> findByGroupId(long groupId)
-		throws SystemException {
+	public List<BookmarksFolder> findByGroupId(long groupId) {
 		return findByGroupId(groupId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -2016,11 +1972,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BookmarksFolder> findByGroupId(long groupId, int start, int end)
-		throws SystemException {
+	public List<BookmarksFolder> findByGroupId(long groupId, int start, int end) {
 		return findByGroupId(groupId, start, end, null);
 	}
 
@@ -2036,11 +1990,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByGroupId(long groupId, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<BookmarksFolder> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -2143,12 +2096,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByGroupId_First(long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByGroupId_First(groupId,
 				orderByComparator);
 
@@ -2174,11 +2126,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param groupId the group ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByGroupId_First(long groupId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		List<BookmarksFolder> list = findByGroupId(groupId, 0, 1,
 				orderByComparator);
 
@@ -2196,12 +2147,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByGroupId_Last(long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByGroupId_Last(groupId,
 				orderByComparator);
 
@@ -2227,11 +2177,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param groupId the group ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByGroupId_Last(long groupId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		int count = countByGroupId(groupId);
 
 		if (count == 0) {
@@ -2256,12 +2205,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] findByGroupId_PrevAndNext(long folderId,
-		long groupId, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		long groupId, OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = findByPrimaryKey(folderId);
 
 		Session session = null;
@@ -2291,7 +2239,7 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder getByGroupId_PrevAndNext(Session session,
 		BookmarksFolder bookmarksFolder, long groupId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<BookmarksFolder> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -2399,11 +2347,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param groupId the group ID
 	 * @return the matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BookmarksFolder> filterFindByGroupId(long groupId)
-		throws SystemException {
+	public List<BookmarksFolder> filterFindByGroupId(long groupId) {
 		return filterFindByGroupId(groupId, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -2419,11 +2365,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> filterFindByGroupId(long groupId, int start,
-		int end) throws SystemException {
+		int end) {
 		return filterFindByGroupId(groupId, start, end, null);
 	}
 
@@ -2439,11 +2384,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> filterFindByGroupId(long groupId, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<BookmarksFolder> orderByComparator) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByGroupId(groupId, start, end, orderByComparator);
 		}
@@ -2505,12 +2449,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] filterFindByGroupId_PrevAndNext(long folderId,
-		long groupId, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		long groupId, OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByGroupId_PrevAndNext(folderId, groupId,
 				orderByComparator);
@@ -2545,7 +2488,7 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder filterGetByGroupId_PrevAndNext(Session session,
 		BookmarksFolder bookmarksFolder, long groupId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<BookmarksFolder> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -2655,10 +2598,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * Removes all the bookmarks folders where groupId = &#63; from the database.
 	 *
 	 * @param groupId the group ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByGroupId(long groupId) throws SystemException {
+	public void removeByGroupId(long groupId) {
 		for (BookmarksFolder bookmarksFolder : findByGroupId(groupId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(bookmarksFolder);
@@ -2670,10 +2612,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param groupId the group ID
 	 * @return the number of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByGroupId(long groupId) throws SystemException {
+	public int countByGroupId(long groupId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_GROUPID;
 
 		Object[] finderArgs = new Object[] { groupId };
@@ -2723,10 +2664,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param groupId the group ID
 	 * @return the number of matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int filterCountByGroupId(long groupId) throws SystemException {
+	public int filterCountByGroupId(long groupId) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return countByGroupId(groupId);
 		}
@@ -2796,11 +2736,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param companyId the company ID
 	 * @return the matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BookmarksFolder> findByCompanyId(long companyId)
-		throws SystemException {
+	public List<BookmarksFolder> findByCompanyId(long companyId) {
 		return findByCompanyId(companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			null);
 	}
@@ -2816,11 +2754,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByCompanyId(long companyId, int start,
-		int end) throws SystemException {
+		int end) {
 		return findByCompanyId(companyId, start, end, null);
 	}
 
@@ -2836,11 +2773,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByCompanyId(long companyId, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<BookmarksFolder> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -2943,12 +2879,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByCompanyId_First(long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByCompanyId_First(companyId,
 				orderByComparator);
 
@@ -2974,11 +2909,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByCompanyId_First(long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		List<BookmarksFolder> list = findByCompanyId(companyId, 0, 1,
 				orderByComparator);
 
@@ -2996,12 +2930,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByCompanyId_Last(long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByCompanyId_Last(companyId,
 				orderByComparator);
 
@@ -3027,11 +2960,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByCompanyId_Last(long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		int count = countByCompanyId(companyId);
 
 		if (count == 0) {
@@ -3056,12 +2988,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] findByCompanyId_PrevAndNext(long folderId,
-		long companyId, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		long companyId, OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = findByPrimaryKey(folderId);
 
 		Session session = null;
@@ -3091,7 +3022,7 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder getByCompanyId_PrevAndNext(Session session,
 		BookmarksFolder bookmarksFolder, long companyId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<BookmarksFolder> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -3198,10 +3129,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * Removes all the bookmarks folders where companyId = &#63; from the database.
 	 *
 	 * @param companyId the company ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByCompanyId(long companyId) throws SystemException {
+	public void removeByCompanyId(long companyId) {
 		for (BookmarksFolder bookmarksFolder : findByCompanyId(companyId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(bookmarksFolder);
@@ -3213,10 +3143,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param companyId the company ID
 	 * @return the number of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByCompanyId(long companyId) throws SystemException {
+	public int countByCompanyId(long companyId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_COMPANYID;
 
 		Object[] finderArgs = new Object[] { companyId };
@@ -3291,11 +3220,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param groupId the group ID
 	 * @param parentFolderId the parent folder ID
 	 * @return the matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BookmarksFolder> findByG_P(long groupId, long parentFolderId)
-		throws SystemException {
+	public List<BookmarksFolder> findByG_P(long groupId, long parentFolderId) {
 		return findByG_P(groupId, parentFolderId, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -3312,11 +3239,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByG_P(long groupId, long parentFolderId,
-		int start, int end) throws SystemException {
+		int start, int end) {
 		return findByG_P(groupId, parentFolderId, start, end, null);
 	}
 
@@ -3333,12 +3259,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByG_P(long groupId, long parentFolderId,
-		int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		int start, int end, OrderByComparator<BookmarksFolder> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -3451,12 +3375,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByG_P_First(long groupId, long parentFolderId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByG_P_First(groupId,
 				parentFolderId, orderByComparator);
 
@@ -3486,11 +3409,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param parentFolderId the parent folder ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByG_P_First(long groupId, long parentFolderId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		List<BookmarksFolder> list = findByG_P(groupId, parentFolderId, 0, 1,
 				orderByComparator);
 
@@ -3509,12 +3431,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByG_P_Last(long groupId, long parentFolderId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByG_P_Last(groupId,
 				parentFolderId, orderByComparator);
 
@@ -3544,11 +3465,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param parentFolderId the parent folder ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByG_P_Last(long groupId, long parentFolderId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		int count = countByG_P(groupId, parentFolderId);
 
 		if (count == 0) {
@@ -3574,12 +3494,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] findByG_P_PrevAndNext(long folderId, long groupId,
-		long parentFolderId, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		long parentFolderId,
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = findByPrimaryKey(folderId);
 
 		Session session = null;
@@ -3609,7 +3529,7 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder getByG_P_PrevAndNext(Session session,
 		BookmarksFolder bookmarksFolder, long groupId, long parentFolderId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<BookmarksFolder> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -3722,11 +3642,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param groupId the group ID
 	 * @param parentFolderId the parent folder ID
 	 * @return the matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> filterFindByG_P(long groupId,
-		long parentFolderId) throws SystemException {
+		long parentFolderId) {
 		return filterFindByG_P(groupId, parentFolderId, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -3743,11 +3662,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> filterFindByG_P(long groupId,
-		long parentFolderId, int start, int end) throws SystemException {
+		long parentFolderId, int start, int end) {
 		return filterFindByG_P(groupId, parentFolderId, start, end, null);
 	}
 
@@ -3764,12 +3682,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> filterFindByG_P(long groupId,
 		long parentFolderId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByG_P(groupId, parentFolderId, start, end,
 				orderByComparator);
@@ -3837,12 +3754,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] filterFindByG_P_PrevAndNext(long folderId,
-		long groupId, long parentFolderId, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		long groupId, long parentFolderId,
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByG_P_PrevAndNext(folderId, groupId, parentFolderId,
 				orderByComparator);
@@ -3877,7 +3794,7 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder filterGetByG_P_PrevAndNext(Session session,
 		BookmarksFolder bookmarksFolder, long groupId, long parentFolderId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<BookmarksFolder> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -3992,11 +3909,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param groupId the group ID
 	 * @param parentFolderId the parent folder ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByG_P(long groupId, long parentFolderId)
-		throws SystemException {
+	public void removeByG_P(long groupId, long parentFolderId) {
 		for (BookmarksFolder bookmarksFolder : findByG_P(groupId,
 				parentFolderId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(bookmarksFolder);
@@ -4009,11 +3924,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param groupId the group ID
 	 * @param parentFolderId the parent folder ID
 	 * @return the number of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByG_P(long groupId, long parentFolderId)
-		throws SystemException {
+	public int countByG_P(long groupId, long parentFolderId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_G_P;
 
 		Object[] finderArgs = new Object[] { groupId, parentFolderId };
@@ -4068,11 +3981,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param groupId the group ID
 	 * @param parentFolderId the parent folder ID
 	 * @return the number of matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int filterCountByG_P(long groupId, long parentFolderId)
-		throws SystemException {
+	public int filterCountByG_P(long groupId, long parentFolderId) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return countByG_P(groupId, parentFolderId);
 		}
@@ -4138,11 +4049,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param companyId the company ID
 	 * @param status the status
 	 * @return the matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BookmarksFolder> findByC_NotS(long companyId, int status)
-		throws SystemException {
+	public List<BookmarksFolder> findByC_NotS(long companyId, int status) {
 		return findByC_NotS(companyId, status, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -4159,11 +4068,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByC_NotS(long companyId, int status,
-		int start, int end) throws SystemException {
+		int start, int end) {
 		return findByC_NotS(companyId, status, start, end, null);
 	}
 
@@ -4180,12 +4088,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByC_NotS(long companyId, int status,
-		int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		int start, int end, OrderByComparator<BookmarksFolder> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -4290,12 +4196,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByC_NotS_First(long companyId, int status,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByC_NotS_First(companyId,
 				status, orderByComparator);
 
@@ -4325,11 +4230,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByC_NotS_First(long companyId, int status,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		List<BookmarksFolder> list = findByC_NotS(companyId, status, 0, 1,
 				orderByComparator);
 
@@ -4348,12 +4252,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByC_NotS_Last(long companyId, int status,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByC_NotS_Last(companyId, status,
 				orderByComparator);
 
@@ -4383,11 +4286,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByC_NotS_Last(long companyId, int status,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		int count = countByC_NotS(companyId, status);
 
 		if (count == 0) {
@@ -4413,12 +4315,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] findByC_NotS_PrevAndNext(long folderId,
-		long companyId, int status, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		long companyId, int status,
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = findByPrimaryKey(folderId);
 
 		Session session = null;
@@ -4448,7 +4350,7 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder getByC_NotS_PrevAndNext(Session session,
 		BookmarksFolder bookmarksFolder, long companyId, int status,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<BookmarksFolder> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -4560,11 +4462,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param companyId the company ID
 	 * @param status the status
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByC_NotS(long companyId, int status)
-		throws SystemException {
+	public void removeByC_NotS(long companyId, int status) {
 		for (BookmarksFolder bookmarksFolder : findByC_NotS(companyId, status,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(bookmarksFolder);
@@ -4577,11 +4477,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param companyId the company ID
 	 * @param status the status
 	 * @return the number of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByC_NotS(long companyId, int status)
-		throws SystemException {
+	public int countByC_NotS(long companyId, int status) {
 		FinderPath finderPath = FINDER_PATH_WITH_PAGINATION_COUNT_BY_C_NOTS;
 
 		Object[] finderArgs = new Object[] { companyId, status };
@@ -4661,12 +4559,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
 	 * @return the matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByF_C_P_NotS(long folderId,
-		long companyId, long parentFolderId, int status)
-		throws SystemException {
+		long companyId, long parentFolderId, int status) {
 		return findByF_C_P_NotS(folderId, companyId, parentFolderId, status,
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
@@ -4685,12 +4581,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByF_C_P_NotS(long folderId,
-		long companyId, long parentFolderId, int status, int start, int end)
-		throws SystemException {
+		long companyId, long parentFolderId, int status, int start, int end) {
 		return findByF_C_P_NotS(folderId, companyId, parentFolderId, status,
 			start, end, null);
 	}
@@ -4710,12 +4604,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByF_C_P_NotS(long folderId,
 		long companyId, long parentFolderId, int status, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -4832,13 +4725,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByF_C_P_NotS_First(long folderId,
 		long companyId, long parentFolderId, int status,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByF_C_P_NotS_First(folderId,
 				companyId, parentFolderId, status, orderByComparator);
 
@@ -4876,12 +4768,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByF_C_P_NotS_First(long folderId,
 		long companyId, long parentFolderId, int status,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		List<BookmarksFolder> list = findByF_C_P_NotS(folderId, companyId,
 				parentFolderId, status, 0, 1, orderByComparator);
 
@@ -4902,12 +4793,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByF_C_P_NotS_Last(long folderId, long companyId,
-		long parentFolderId, int status, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		long parentFolderId, int status,
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByF_C_P_NotS_Last(folderId,
 				companyId, parentFolderId, status, orderByComparator);
 
@@ -4945,12 +4836,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByF_C_P_NotS_Last(long folderId,
 		long companyId, long parentFolderId, int status,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		int count = countByF_C_P_NotS(folderId, companyId, parentFolderId,
 				status);
 
@@ -4975,11 +4865,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param companyId the company ID
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void removeByF_C_P_NotS(long folderId, long companyId,
-		long parentFolderId, int status) throws SystemException {
+		long parentFolderId, int status) {
 		for (BookmarksFolder bookmarksFolder : findByF_C_P_NotS(folderId,
 				companyId, parentFolderId, status, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null)) {
@@ -4995,11 +4884,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
 	 * @return the number of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public int countByF_C_P_NotS(long folderId, long companyId,
-		long parentFolderId, int status) throws SystemException {
+		long parentFolderId, int status) {
 		FinderPath finderPath = FINDER_PATH_WITH_PAGINATION_COUNT_BY_F_C_P_NOTS;
 
 		Object[] finderArgs = new Object[] {
@@ -5100,11 +4988,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
 	 * @return the matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByG_P_S(long groupId, long parentFolderId,
-		int status) throws SystemException {
+		int status) {
 		return findByG_P_S(groupId, parentFolderId, status, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -5122,11 +5009,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByG_P_S(long groupId, long parentFolderId,
-		int status, int start, int end) throws SystemException {
+		int status, int start, int end) {
 		return findByG_P_S(groupId, parentFolderId, status, start, end, null);
 	}
 
@@ -5144,12 +5030,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByG_P_S(long groupId, long parentFolderId,
-		int status, int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		int status, int start, int end,
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -5268,12 +5153,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByG_P_S_First(long groupId, long parentFolderId,
-		int status, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		int status, OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByG_P_S_First(groupId,
 				parentFolderId, status, orderByComparator);
 
@@ -5307,12 +5191,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByG_P_S_First(long groupId,
-		long parentFolderId, int status, OrderByComparator orderByComparator)
-		throws SystemException {
+		long parentFolderId, int status,
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		List<BookmarksFolder> list = findByG_P_S(groupId, parentFolderId,
 				status, 0, 1, orderByComparator);
 
@@ -5332,12 +5215,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByG_P_S_Last(long groupId, long parentFolderId,
-		int status, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		int status, OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByG_P_S_Last(groupId,
 				parentFolderId, status, orderByComparator);
 
@@ -5371,12 +5253,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByG_P_S_Last(long groupId, long parentFolderId,
-		int status, OrderByComparator orderByComparator)
-		throws SystemException {
+		int status, OrderByComparator<BookmarksFolder> orderByComparator) {
 		int count = countByG_P_S(groupId, parentFolderId, status);
 
 		if (count == 0) {
@@ -5403,13 +5283,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] findByG_P_S_PrevAndNext(long folderId,
 		long groupId, long parentFolderId, int status,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = findByPrimaryKey(folderId);
 
 		Session session = null;
@@ -5439,7 +5318,8 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder getByG_P_S_PrevAndNext(Session session,
 		BookmarksFolder bookmarksFolder, long groupId, long parentFolderId,
-		int status, OrderByComparator orderByComparator, boolean previous) {
+		int status, OrderByComparator<BookmarksFolder> orderByComparator,
+		boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -5557,11 +5437,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
 	 * @return the matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> filterFindByG_P_S(long groupId,
-		long parentFolderId, int status) throws SystemException {
+		long parentFolderId, int status) {
 		return filterFindByG_P_S(groupId, parentFolderId, status,
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
@@ -5579,12 +5458,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> filterFindByG_P_S(long groupId,
-		long parentFolderId, int status, int start, int end)
-		throws SystemException {
+		long parentFolderId, int status, int start, int end) {
 		return filterFindByG_P_S(groupId, parentFolderId, status, start, end,
 			null);
 	}
@@ -5603,12 +5480,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> filterFindByG_P_S(long groupId,
 		long parentFolderId, int status, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByG_P_S(groupId, parentFolderId, status, start, end,
 				orderByComparator);
@@ -5681,13 +5557,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] filterFindByG_P_S_PrevAndNext(long folderId,
 		long groupId, long parentFolderId, int status,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByG_P_S_PrevAndNext(folderId, groupId, parentFolderId,
 				status, orderByComparator);
@@ -5722,7 +5597,8 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder filterGetByG_P_S_PrevAndNext(Session session,
 		BookmarksFolder bookmarksFolder, long groupId, long parentFolderId,
-		int status, OrderByComparator orderByComparator, boolean previous) {
+		int status, OrderByComparator<BookmarksFolder> orderByComparator,
+		boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -5842,11 +5718,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param groupId the group ID
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByG_P_S(long groupId, long parentFolderId, int status)
-		throws SystemException {
+	public void removeByG_P_S(long groupId, long parentFolderId, int status) {
 		for (BookmarksFolder bookmarksFolder : findByG_P_S(groupId,
 				parentFolderId, status, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 				null)) {
@@ -5861,11 +5735,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
 	 * @return the number of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByG_P_S(long groupId, long parentFolderId, int status)
-		throws SystemException {
+	public int countByG_P_S(long groupId, long parentFolderId, int status) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_G_P_S;
 
 		Object[] finderArgs = new Object[] { groupId, parentFolderId, status };
@@ -5925,11 +5797,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
 	 * @return the number of matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int filterCountByG_P_S(long groupId, long parentFolderId, int status)
-		throws SystemException {
+	public int filterCountByG_P_S(long groupId, long parentFolderId, int status) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return countByG_P_S(groupId, parentFolderId, status);
 		}
@@ -6006,11 +5876,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
 	 * @return the matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByG_P_NotS(long groupId,
-		long parentFolderId, int status) throws SystemException {
+		long parentFolderId, int status) {
 		return findByG_P_NotS(groupId, parentFolderId, status,
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
@@ -6028,12 +5897,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByG_P_NotS(long groupId,
-		long parentFolderId, int status, int start, int end)
-		throws SystemException {
+		long parentFolderId, int status, int start, int end) {
 		return findByG_P_NotS(groupId, parentFolderId, status, start, end, null);
 	}
 
@@ -6051,12 +5918,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findByG_P_NotS(long groupId,
 		long parentFolderId, int status, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -6167,12 +6033,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByG_P_NotS_First(long groupId,
-		long parentFolderId, int status, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		long parentFolderId, int status,
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByG_P_NotS_First(groupId,
 				parentFolderId, status, orderByComparator);
 
@@ -6206,12 +6072,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByG_P_NotS_First(long groupId,
-		long parentFolderId, int status, OrderByComparator orderByComparator)
-		throws SystemException {
+		long parentFolderId, int status,
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		List<BookmarksFolder> list = findByG_P_NotS(groupId, parentFolderId,
 				status, 0, 1, orderByComparator);
 
@@ -6231,12 +6096,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByG_P_NotS_Last(long groupId,
-		long parentFolderId, int status, OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		long parentFolderId, int status,
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByG_P_NotS_Last(groupId,
 				parentFolderId, status, orderByComparator);
 
@@ -6270,12 +6135,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param status the status
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder fetchByG_P_NotS_Last(long groupId,
-		long parentFolderId, int status, OrderByComparator orderByComparator)
-		throws SystemException {
+		long parentFolderId, int status,
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		int count = countByG_P_NotS(groupId, parentFolderId, status);
 
 		if (count == 0) {
@@ -6302,13 +6166,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] findByG_P_NotS_PrevAndNext(long folderId,
 		long groupId, long parentFolderId, int status,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = findByPrimaryKey(folderId);
 
 		Session session = null;
@@ -6338,7 +6201,8 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder getByG_P_NotS_PrevAndNext(Session session,
 		BookmarksFolder bookmarksFolder, long groupId, long parentFolderId,
-		int status, OrderByComparator orderByComparator, boolean previous) {
+		int status, OrderByComparator<BookmarksFolder> orderByComparator,
+		boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -6456,11 +6320,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
 	 * @return the matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> filterFindByG_P_NotS(long groupId,
-		long parentFolderId, int status) throws SystemException {
+		long parentFolderId, int status) {
 		return filterFindByG_P_NotS(groupId, parentFolderId, status,
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
@@ -6478,12 +6341,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> filterFindByG_P_NotS(long groupId,
-		long parentFolderId, int status, int start, int end)
-		throws SystemException {
+		long parentFolderId, int status, int start, int end) {
 		return filterFindByG_P_NotS(groupId, parentFolderId, status, start,
 			end, null);
 	}
@@ -6502,12 +6363,11 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> filterFindByG_P_NotS(long groupId,
 		long parentFolderId, int status, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByG_P_NotS(groupId, parentFolderId, status, start, end,
 				orderByComparator);
@@ -6580,13 +6440,12 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder[] filterFindByG_P_NotS_PrevAndNext(long folderId,
 		long groupId, long parentFolderId, int status,
-		OrderByComparator orderByComparator)
-		throws NoSuchFolderException, SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator)
+		throws NoSuchFolderException {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByG_P_NotS_PrevAndNext(folderId, groupId,
 				parentFolderId, status, orderByComparator);
@@ -6623,7 +6482,8 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	protected BookmarksFolder filterGetByG_P_NotS_PrevAndNext(Session session,
 		BookmarksFolder bookmarksFolder, long groupId, long parentFolderId,
-		int status, OrderByComparator orderByComparator, boolean previous) {
+		int status, OrderByComparator<BookmarksFolder> orderByComparator,
+		boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -6743,11 +6603,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param groupId the group ID
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByG_P_NotS(long groupId, long parentFolderId, int status)
-		throws SystemException {
+	public void removeByG_P_NotS(long groupId, long parentFolderId, int status) {
 		for (BookmarksFolder bookmarksFolder : findByG_P_NotS(groupId,
 				parentFolderId, status, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 				null)) {
@@ -6762,11 +6620,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
 	 * @return the number of matching bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByG_P_NotS(long groupId, long parentFolderId, int status)
-		throws SystemException {
+	public int countByG_P_NotS(long groupId, long parentFolderId, int status) {
 		FinderPath finderPath = FINDER_PATH_WITH_PAGINATION_COUNT_BY_G_P_NOTS;
 
 		Object[] finderArgs = new Object[] { groupId, parentFolderId, status };
@@ -6826,11 +6682,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param parentFolderId the parent folder ID
 	 * @param status the status
 	 * @return the number of matching bookmarks folders that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public int filterCountByG_P_NotS(long groupId, long parentFolderId,
-		int status) throws SystemException {
+		int status) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return countByG_P_NotS(groupId, parentFolderId, status);
 		}
@@ -7050,11 +6905,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param folderId the primary key of the bookmarks folder
 	 * @return the bookmarks folder that was removed
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public BookmarksFolder remove(long folderId)
-		throws NoSuchFolderException, SystemException {
+	public BookmarksFolder remove(long folderId) throws NoSuchFolderException {
 		return remove((Serializable)folderId);
 	}
 
@@ -7064,11 +6917,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param primaryKey the primary key of the bookmarks folder
 	 * @return the bookmarks folder that was removed
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder remove(Serializable primaryKey)
-		throws NoSuchFolderException, SystemException {
+		throws NoSuchFolderException {
 		Session session = null;
 
 		try {
@@ -7100,8 +6952,7 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	}
 
 	@Override
-	protected BookmarksFolder removeImpl(BookmarksFolder bookmarksFolder)
-		throws SystemException {
+	protected BookmarksFolder removeImpl(BookmarksFolder bookmarksFolder) {
 		bookmarksFolder = toUnwrappedModel(bookmarksFolder);
 
 		Session session = null;
@@ -7134,8 +6985,7 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 
 	@Override
 	public BookmarksFolder updateImpl(
-		com.liferay.portlet.bookmarks.model.BookmarksFolder bookmarksFolder)
-		throws SystemException {
+		com.liferay.portlet.bookmarks.model.BookmarksFolder bookmarksFolder) {
 		bookmarksFolder = toUnwrappedModel(bookmarksFolder);
 
 		boolean isNew = bookmarksFolder.isNew();
@@ -7365,11 +7215,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param primaryKey the primary key of the bookmarks folder
 	 * @return the bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchFolderException, SystemException {
+		throws NoSuchFolderException {
 		BookmarksFolder bookmarksFolder = fetchByPrimaryKey(primaryKey);
 
 		if (bookmarksFolder == null) {
@@ -7390,11 +7239,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param folderId the primary key of the bookmarks folder
 	 * @return the bookmarks folder
 	 * @throws com.liferay.portlet.bookmarks.NoSuchFolderException if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BookmarksFolder findByPrimaryKey(long folderId)
-		throws NoSuchFolderException, SystemException {
+		throws NoSuchFolderException {
 		return findByPrimaryKey((Serializable)folderId);
 	}
 
@@ -7403,11 +7251,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param primaryKey the primary key of the bookmarks folder
 	 * @return the bookmarks folder, or <code>null</code> if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public BookmarksFolder fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public BookmarksFolder fetchByPrimaryKey(Serializable primaryKey) {
 		BookmarksFolder bookmarksFolder = (BookmarksFolder)EntityCacheUtil.getResult(BookmarksFolderModelImpl.ENTITY_CACHE_ENABLED,
 				BookmarksFolderImpl.class, primaryKey);
 
@@ -7452,22 +7298,111 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 *
 	 * @param folderId the primary key of the bookmarks folder
 	 * @return the bookmarks folder, or <code>null</code> if a bookmarks folder with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public BookmarksFolder fetchByPrimaryKey(long folderId)
-		throws SystemException {
+	public BookmarksFolder fetchByPrimaryKey(long folderId) {
 		return fetchByPrimaryKey((Serializable)folderId);
+	}
+
+	@Override
+	public Map<Serializable, BookmarksFolder> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, BookmarksFolder> map = new HashMap<Serializable, BookmarksFolder>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			BookmarksFolder bookmarksFolder = fetchByPrimaryKey(primaryKey);
+
+			if (bookmarksFolder != null) {
+				map.put(primaryKey, bookmarksFolder);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			BookmarksFolder bookmarksFolder = (BookmarksFolder)EntityCacheUtil.getResult(BookmarksFolderModelImpl.ENTITY_CACHE_ENABLED,
+					BookmarksFolderImpl.class, primaryKey);
+
+			if (bookmarksFolder == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, bookmarksFolder);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_BOOKMARKSFOLDER_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (BookmarksFolder bookmarksFolder : (List<BookmarksFolder>)q.list()) {
+				map.put(bookmarksFolder.getPrimaryKeyObj(), bookmarksFolder);
+
+				cacheResult(bookmarksFolder);
+
+				uncachedPrimaryKeys.remove(bookmarksFolder.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(BookmarksFolderModelImpl.ENTITY_CACHE_ENABLED,
+					BookmarksFolderImpl.class, primaryKey, _nullBookmarksFolder);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the bookmarks folders.
 	 *
 	 * @return the bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BookmarksFolder> findAll() throws SystemException {
+	public List<BookmarksFolder> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -7481,11 +7416,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param start the lower bound of the range of bookmarks folders
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @return the range of bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BookmarksFolder> findAll(int start, int end)
-		throws SystemException {
+	public List<BookmarksFolder> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -7500,11 +7433,10 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * @param end the upper bound of the range of bookmarks folders (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<BookmarksFolder> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<BookmarksFolder> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -7586,10 +7518,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	/**
 	 * Removes all the bookmarks folders from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (BookmarksFolder bookmarksFolder : findAll()) {
 			remove(bookmarksFolder);
 		}
@@ -7599,10 +7530,9 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	 * Returns the number of bookmarks folders.
 	 *
 	 * @return the number of bookmarks folders
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -7671,6 +7601,7 @@ public class BookmarksFolderPersistenceImpl extends BasePersistenceImpl<Bookmark
 	}
 
 	private static final String _SQL_SELECT_BOOKMARKSFOLDER = "SELECT bookmarksFolder FROM BookmarksFolder bookmarksFolder";
+	private static final String _SQL_SELECT_BOOKMARKSFOLDER_WHERE_PKS_IN = "SELECT bookmarksFolder FROM BookmarksFolder bookmarksFolder WHERE folderId IN (";
 	private static final String _SQL_SELECT_BOOKMARKSFOLDER_WHERE = "SELECT bookmarksFolder FROM BookmarksFolder bookmarksFolder WHERE ";
 	private static final String _SQL_COUNT_BOOKMARKSFOLDER = "SELECT COUNT(bookmarksFolder) FROM BookmarksFolder bookmarksFolder";
 	private static final String _SQL_COUNT_BOOKMARKSFOLDER_WHERE = "SELECT COUNT(bookmarksFolder) FROM BookmarksFolder bookmarksFolder WHERE ";

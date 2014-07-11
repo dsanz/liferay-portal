@@ -74,12 +74,11 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 *
 	 * @param workflowInstanceLink the workflow instance link
 	 * @return the workflow instance link that was added
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public WorkflowInstanceLink addWorkflowInstanceLink(
-		WorkflowInstanceLink workflowInstanceLink) throws SystemException {
+		WorkflowInstanceLink workflowInstanceLink) {
 		workflowInstanceLink.setNew(true);
 
 		return workflowInstanceLinkPersistence.update(workflowInstanceLink);
@@ -103,12 +102,11 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 * @param workflowInstanceLinkId the primary key of the workflow instance link
 	 * @return the workflow instance link that was removed
 	 * @throws PortalException if a workflow instance link with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
 	public WorkflowInstanceLink deleteWorkflowInstanceLink(
-		long workflowInstanceLinkId) throws PortalException, SystemException {
+		long workflowInstanceLinkId) throws PortalException {
 		return workflowInstanceLinkPersistence.remove(workflowInstanceLinkId);
 	}
 
@@ -118,13 +116,11 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 * @param workflowInstanceLink the workflow instance link
 	 * @return the workflow instance link that was removed
 	 * @throws PortalException
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
 	public WorkflowInstanceLink deleteWorkflowInstanceLink(
-		WorkflowInstanceLink workflowInstanceLink)
-		throws PortalException, SystemException {
+		WorkflowInstanceLink workflowInstanceLink) throws PortalException {
 		return workflowInstanceLinkPersistence.remove(workflowInstanceLink);
 	}
 
@@ -141,12 +137,9 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery) {
 		return workflowInstanceLinkPersistence.findWithDynamicQuery(dynamicQuery);
 	}
 
@@ -161,12 +154,10 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 * @param start the lower bound of the range of model instances
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @return the range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end) {
 		return workflowInstanceLinkPersistence.findWithDynamicQuery(dynamicQuery,
 			start, end);
 	}
@@ -183,12 +174,10 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end, OrderByComparator<T> orderByComparator) {
 		return workflowInstanceLinkPersistence.findWithDynamicQuery(dynamicQuery,
 			start, end, orderByComparator);
 	}
@@ -198,11 +187,9 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public long dynamicQueryCount(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public long dynamicQueryCount(DynamicQuery dynamicQuery) {
 		return workflowInstanceLinkPersistence.countWithDynamicQuery(dynamicQuery);
 	}
 
@@ -212,18 +199,17 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 * @param dynamicQuery the dynamic query
 	 * @param projection the projection to apply to the query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public long dynamicQueryCount(DynamicQuery dynamicQuery,
-		Projection projection) throws SystemException {
+		Projection projection) {
 		return workflowInstanceLinkPersistence.countWithDynamicQuery(dynamicQuery,
 			projection);
 	}
 
 	@Override
 	public WorkflowInstanceLink fetchWorkflowInstanceLink(
-		long workflowInstanceLinkId) throws SystemException {
+		long workflowInstanceLinkId) {
 		return workflowInstanceLinkPersistence.fetchByPrimaryKey(workflowInstanceLinkId);
 	}
 
@@ -233,17 +219,15 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 * @param workflowInstanceLinkId the primary key of the workflow instance link
 	 * @return the workflow instance link
 	 * @throws PortalException if a workflow instance link with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WorkflowInstanceLink getWorkflowInstanceLink(
-		long workflowInstanceLinkId) throws PortalException, SystemException {
+		long workflowInstanceLinkId) throws PortalException {
 		return workflowInstanceLinkPersistence.findByPrimaryKey(workflowInstanceLinkId);
 	}
 
 	@Override
-	public ActionableDynamicQuery getActionableDynamicQuery()
-		throws SystemException {
+	public ActionableDynamicQuery getActionableDynamicQuery() {
 		ActionableDynamicQuery actionableDynamicQuery = new DefaultActionableDynamicQuery();
 
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.WorkflowInstanceLinkLocalServiceUtil.getService());
@@ -257,8 +241,7 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	}
 
 	protected void initActionableDynamicQuery(
-		ActionableDynamicQuery actionableDynamicQuery)
-		throws SystemException {
+		ActionableDynamicQuery actionableDynamicQuery) {
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.WorkflowInstanceLinkLocalServiceUtil.getService());
 		actionableDynamicQuery.setClass(WorkflowInstanceLink.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
@@ -267,9 +250,18 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 			"workflowInstanceLinkId");
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
+		throws PortalException {
+		return workflowInstanceLinkLocalService.deleteWorkflowInstanceLink((WorkflowInstanceLink)persistedModel);
+	}
+
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return workflowInstanceLinkPersistence.findByPrimaryKey(primaryKeyObj);
 	}
 
@@ -283,11 +275,10 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 * @param start the lower bound of the range of workflow instance links
 	 * @param end the upper bound of the range of workflow instance links (not inclusive)
 	 * @return the range of workflow instance links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<WorkflowInstanceLink> getWorkflowInstanceLinks(int start,
-		int end) throws SystemException {
+		int end) {
 		return workflowInstanceLinkPersistence.findAll(start, end);
 	}
 
@@ -295,10 +286,9 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 * Returns the number of workflow instance links.
 	 *
 	 * @return the number of workflow instance links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getWorkflowInstanceLinksCount() throws SystemException {
+	public int getWorkflowInstanceLinksCount() {
 		return workflowInstanceLinkPersistence.countAll();
 	}
 
@@ -307,12 +297,11 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 *
 	 * @param workflowInstanceLink the workflow instance link
 	 * @return the workflow instance link that was updated
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public WorkflowInstanceLink updateWorkflowInstanceLink(
-		WorkflowInstanceLink workflowInstanceLink) throws SystemException {
+		WorkflowInstanceLink workflowInstanceLink) {
 		return workflowInstanceLinkPersistence.update(workflowInstanceLink);
 	}
 
@@ -585,7 +574,7 @@ public abstract class WorkflowInstanceLinkLocalServiceBaseImpl
 	 *
 	 * @param sql the sql query
 	 */
-	protected void runSQL(String sql) throws SystemException {
+	protected void runSQL(String sql) {
 		try {
 			DataSource dataSource = workflowInstanceLinkPersistence.getDataSource();
 

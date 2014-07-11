@@ -42,12 +42,50 @@ public class WebsiteServiceUtil {
 	 */
 
 	/**
+	* @deprecated As of 6.2.0, replaced by {@link #addWebsite(String, long,
+	String, int, boolean, ServiceContext)}
+	*/
+	@Deprecated
+	public static com.liferay.portal.model.Website addWebsite(
+		java.lang.String className, long classPK, java.lang.String url,
+		int typeId, boolean primary)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().addWebsite(className, classPK, url, typeId, primary);
+	}
+
+	public static com.liferay.portal.model.Website addWebsite(
+		java.lang.String className, long classPK, java.lang.String url,
+		int typeId, boolean primary,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .addWebsite(className, classPK, url, typeId, primary,
+			serviceContext);
+	}
+
+	public static void deleteWebsite(long websiteId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteWebsite(websiteId);
+	}
+
+	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
 	*/
 	public static java.lang.String getBeanIdentifier() {
 		return getService().getBeanIdentifier();
+	}
+
+	public static com.liferay.portal.model.Website getWebsite(long websiteId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getWebsite(websiteId);
+	}
+
+	public static java.util.List<com.liferay.portal.model.Website> getWebsites(
+		java.lang.String className, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getWebsites(className, classPK);
 	}
 
 	/**
@@ -59,53 +97,9 @@ public class WebsiteServiceUtil {
 		getService().setBeanIdentifier(beanIdentifier);
 	}
 
-	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addWebsite(String, long,
-	String, int, boolean, ServiceContext)}
-	*/
-	@Deprecated
-	public static com.liferay.portal.model.Website addWebsite(
-		java.lang.String className, long classPK, java.lang.String url,
-		int typeId, boolean primary)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().addWebsite(className, classPK, url, typeId, primary);
-	}
-
-	public static com.liferay.portal.model.Website addWebsite(
-		java.lang.String className, long classPK, java.lang.String url,
-		int typeId, boolean primary,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .addWebsite(className, classPK, url, typeId, primary,
-			serviceContext);
-	}
-
-	public static void deleteWebsite(long websiteId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteWebsite(websiteId);
-	}
-
-	public static com.liferay.portal.model.Website getWebsite(long websiteId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getWebsite(websiteId);
-	}
-
-	public static java.util.List<com.liferay.portal.model.Website> getWebsites(
-		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getWebsites(className, classPK);
-	}
-
 	public static com.liferay.portal.model.Website updateWebsite(
 		long websiteId, java.lang.String url, int typeId, boolean primary)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().updateWebsite(websiteId, url, typeId, primary);
 	}
 

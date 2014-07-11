@@ -322,7 +322,7 @@ public class WebServerServlet extends HttpServlet {
 	}
 
 	protected Image convertFileEntry(boolean smallImage, FileEntry fileEntry)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		try {
 			Image image = new ImageImpl();
@@ -421,7 +421,7 @@ public class WebServerServlet extends HttpServlet {
 	}
 
 	protected Image getImage(HttpServletRequest request, boolean getDefault)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Image image = null;
 
@@ -515,8 +515,7 @@ public class WebServerServlet extends HttpServlet {
 		return image.getTextObj();
 	}
 
-	protected long getImageId(HttpServletRequest request)
-		throws SystemException {
+	protected long getImageId(HttpServletRequest request) {
 
 		// The image id may be passed in as image_id, img_id, or i_id
 
@@ -631,7 +630,7 @@ public class WebServerServlet extends HttpServlet {
 	}
 
 	protected Image getUserPortraitImageResized(Image image, long imageId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (image == null) {
 			return null;
@@ -1049,9 +1048,18 @@ public class WebServerServlet extends HttpServlet {
 				contentType);
 		}
 		else {
-			ServletResponseUtil.sendFile(
-				request, response, fileName, inputStream, contentLength,
-				contentType);
+			boolean download = ParamUtil.getBoolean(request, "download");
+
+			if (download) {
+				ServletResponseUtil.sendFile(
+					request, response, fileName, inputStream, contentLength,
+					contentType, HttpHeaders.CONTENT_DISPOSITION_ATTACHMENT);
+			}
+			else {
+				ServletResponseUtil.sendFile(
+					request, response, fileName, inputStream, contentLength,
+					contentType);
+			}
 		}
 	}
 
@@ -1195,9 +1203,19 @@ public class WebServerServlet extends HttpServlet {
 			fileName = TrashUtil.getOriginalTitle(fileName);
 		}
 
-		ServletResponseUtil.sendFile(
-			request, response, fileName, fileEntry.getContentStream(),
-			fileEntry.getSize(), fileEntry.getMimeType());
+		boolean download = ParamUtil.getBoolean(request, "download");
+
+		if (download) {
+			ServletResponseUtil.sendFile(
+				request, response, fileName, fileEntry.getContentStream(),
+				fileEntry.getSize(), fileEntry.getMimeType(),
+				HttpHeaders.CONTENT_DISPOSITION_ATTACHMENT);
+		}
+		else {
+			ServletResponseUtil.sendFile(
+				request, response, fileName, fileEntry.getContentStream(),
+				fileEntry.getSize(), fileEntry.getMimeType());
+		}
 	}
 
 	protected void writeImage(

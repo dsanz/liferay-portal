@@ -131,7 +131,10 @@
 
 <#if show_page_settings>
 	<#assign page_settings_text = languageUtil.get(locale, "manage-pages") />
-	<#assign page_settings_url = htmlUtil.escape(theme_display.getURLPageSettings().toString()) />
+
+	<#if theme_display.getURLPageSettings()??>
+		<#assign page_settings_url = htmlUtil.escape(theme_display.getURLPageSettings().toString()) />
+	</#if>
 </#if>
 
 <#assign show_sign_in = theme_display.isShowSignInIcon() />
@@ -295,7 +298,7 @@
 	<#assign the_title = page_group.getDescriptiveName() />
 </#if>
 
-<#if (tilesTitle == "") && !pageTitle??>
+<#if tilesTitle == "">
 	<#assign the_title = htmlUtil.escape(the_title) />
 </#if>
 
@@ -326,7 +329,7 @@
 
 <#assign logo_description = "" />
 
-<#if !$show_site_name>
+<#if !show_site_name>
 	<#assign logo_description = htmlUtil.escape(site_name) />
 </#if>
 

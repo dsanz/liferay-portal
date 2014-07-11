@@ -51,7 +51,7 @@ try {
 					renderRequest.setAttribute(WebKeys.PORTLET_CONFIGURATOR_VISIBILITY, Boolean.TRUE);
 					%>
 
-					<div class="alert alert-error">
+					<div class="alert alert-danger">
 						<liferay-ui:message key="you-do-not-have-the-roles-required-to-access-this-dynamic-data-list-record-set" />
 					</div>
 				</c:otherwise>
@@ -76,8 +76,8 @@ try {
 catch (NoSuchRecordSetException nsrse) {
 %>
 
-	<div class="alert alert-error">
-		<%= LanguageUtil.get(pageContext, "the-selected-list-no-longer-exists") %>
+	<div class="alert alert-danger">
+		<%= LanguageUtil.get(request, "the-selected-list-no-longer-exists") %>
 	</div>
 
 <%
@@ -85,14 +85,14 @@ catch (NoSuchRecordSetException nsrse) {
 
 boolean hasConfigurationPermission = PortletPermissionUtil.contains(permissionChecker, layout, portletDisplay.getId(), ActionKeys.CONFIGURATION);
 
-boolean showAddListIcon = hasConfigurationPermission && DDLPermission.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_RECORD_SET);
+boolean showAddListIcon = hasConfigurationPermission && DDLPermission.contains(permissionChecker, scopeGroupId, portletDisplay.getId(), ActionKeys.ADD_RECORD_SET);
 boolean showAddTemplateIcon = (recordSet != null) && DDMPermission.contains(permissionChecker, scopeGroupId, ddmDisplay.getResourceName(), ddmDisplay.getAddTemplateActionId());
-boolean showEditDisplayTemplateIcon = (displayDDMTemplateId != 0) && DDMTemplatePermission.contains(permissionChecker, displayDDMTemplateId, PortletKeys.DYNAMIC_DATA_LISTS, ActionKeys.UPDATE);
-boolean showEditFormTemplateIcon = (formDDMTemplateId != 0) && DDMTemplatePermission.contains(permissionChecker, formDDMTemplateId, PortletKeys.DYNAMIC_DATA_LISTS, ActionKeys.UPDATE);
+boolean showEditDisplayTemplateIcon = (displayDDMTemplateId != 0) && DDMTemplatePermission.contains(permissionChecker, scopeGroupId, displayDDMTemplateId, PortletKeys.DYNAMIC_DATA_LISTS, ActionKeys.UPDATE);
+boolean showEditFormTemplateIcon = (formDDMTemplateId != 0) && DDMTemplatePermission.contains(permissionChecker, scopeGroupId, formDDMTemplateId, PortletKeys.DYNAMIC_DATA_LISTS, ActionKeys.UPDATE);
 %>
 
 <c:if test="<%= themeDisplay.isSignedIn() && !layout.isLayoutPrototypeLinkActive() && (showAddListIcon || showAddTemplateIcon || showEditDisplayTemplateIcon || showEditFormTemplateIcon || hasConfigurationPermission ) %>">
-	<div class="lfr-meta-actions icons-container">
+	<div class="icons-container lfr-meta-actions">
 		<div class="lfr-icon-actions">
 			<c:if test="<%= showAddTemplateIcon %>">
 				<liferay-portlet:renderURL portletName="<%= PortletKeys.DYNAMIC_DATA_MAPPING %>" var="addFormTemplateURL" windowState="<%= WindowState.MAXIMIZED.toString() %>">
@@ -108,8 +108,8 @@ boolean showEditFormTemplateIcon = (formDDMTemplateId != 0) && DDMTemplatePermis
 				</liferay-portlet:renderURL>
 
 				<liferay-ui:icon
-					cssClass="lfr-icon-action lfr-icon-action-add"
-					image="add_template_form"
+					cssClass="lfr-icon-action"
+					iconCssClass="icon-plus"
 					label="<%= true %>"
 					message="add-form-template"
 					url="<%= addFormTemplateURL %>"
@@ -127,8 +127,8 @@ boolean showEditFormTemplateIcon = (formDDMTemplateId != 0) && DDMTemplatePermis
 				</liferay-portlet:renderURL>
 
 				<liferay-ui:icon
-					cssClass="lfr-icon-action lfr-icon-action-add"
-					image="add_template_display"
+					cssClass="lfr-icon-action"
+					iconCssClass="icon-plus"
 					label="<%= true %>"
 					message="add-display-template"
 					url="<%= addDisplayTemplateURL %>"
@@ -147,8 +147,8 @@ boolean showEditFormTemplateIcon = (formDDMTemplateId != 0) && DDMTemplatePermis
 				</liferay-portlet:renderURL>
 
 				<liferay-ui:icon
-					cssClass="lfr-icon-action lfr-icon-action-edit-template"
-					image="../file_system/small/xml"
+					cssClass="lfr-icon-action"
+					iconCssClass="icon-edit"
 					label="<%= true %>"
 					message="edit-form-template"
 					url="<%= editFormTemplateURL %>"
@@ -165,8 +165,8 @@ boolean showEditFormTemplateIcon = (formDDMTemplateId != 0) && DDMTemplatePermis
 				</liferay-portlet:renderURL>
 
 				<liferay-ui:icon
-					cssClass="lfr-icon-action lfr-icon-action-edit-template"
-					image="../file_system/small/xml"
+					cssClass="lfr-icon-action"
+					iconCssClass="icon-edit"
 					label="<%= true %>"
 					message="edit-display-template"
 					url="<%= editDisplayTemplateURL %>"
@@ -175,8 +175,8 @@ boolean showEditFormTemplateIcon = (formDDMTemplateId != 0) && DDMTemplatePermis
 
 			<c:if test="<%= hasConfigurationPermission %>">
 				<liferay-ui:icon
-					cssClass="lfr-icon-action lfr-icon-action-configuration"
-					image="configuration"
+					cssClass="lfr-icon-action"
+					iconCssClass="icon-cog"
 					label="<%= true %>"
 					message="select-list"
 					method="get"
@@ -194,8 +194,8 @@ boolean showEditFormTemplateIcon = (formDDMTemplateId != 0) && DDMTemplatePermis
 				</liferay-portlet:renderURL>
 
 				<liferay-ui:icon
-					cssClass="lfr-icon-action lfr-icon-action-add"
-					image="add_article"
+					cssClass="lfr-icon-action"
+					iconCssClass="icon-plus"
 					label="<%= true %>"
 					message="add-list"
 					url="<%= addListURL %>"

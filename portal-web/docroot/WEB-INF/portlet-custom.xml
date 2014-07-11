@@ -457,6 +457,10 @@
 		<display-name>Blogs</display-name>
 		<portlet-class>com.liferay.portlet.StrutsPortlet</portlet-class>
 		<init-param>
+			<name>config-template</name>
+			<value>/html/portlet/blogs/configuration.jsp</value>
+		</init-param>
+		<init-param>
 			<name>template-path</name>
 			<value>/html/portlet/blogs/</value>
 		</init-param>
@@ -510,6 +514,10 @@
 		<portlet-name>36</portlet-name>
 		<display-name>Wiki</display-name>
 		<portlet-class>com.liferay.portlet.StrutsPortlet</portlet-class>
+		<init-param>
+			<name>config-template</name>
+			<value>/html/portlet/wiki/configuration.jsp</value>
+		</init-param>
 		<init-param>
 			<name>template-path</name>
 			<value>/html/portlet/wiki/</value>
@@ -2849,7 +2857,7 @@
 		</init-param>
 		<init-param>
 			<name>view-action</name>
-			<value>/asset_publisher/view</value>
+			<value>/related_assets/view</value>
 		</init-param>
 		<expiration-cache>0</expiration-cache>
 		<supports>
@@ -3481,6 +3489,33 @@
 		<resource-bundle>com.liferay.portlet.StrutsResourceBundle</resource-bundle>
 		<security-role-ref>
 			<role-name>administrator</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>200</portlet-name>
+		<display-name>Document Selector</display-name>
+		<portlet-class>com.liferay.portlet.StrutsPortlet</portlet-class>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlet/document_selector/</value>
+		</init-param>
+		<init-param>
+			<name>view-action</name>
+			<value>/document_selector/view</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>com.liferay.portlet.StrutsResourceBundle</resource-bundle>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
 		</security-role-ref>
 	</portlet>
 	<custom-portlet-mode>

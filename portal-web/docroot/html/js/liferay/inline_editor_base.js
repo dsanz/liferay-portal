@@ -9,7 +9,7 @@ AUI.add(
 
 		var CSS_SUCCESS = 'alert alert-success';
 
-		var CSS_ERROR = 'alert alert-error';
+		var CSS_ERROR = 'alert alert-danger';
 
 		var EDITOR = 'editor';
 
@@ -185,7 +185,7 @@ AUI.add(
 								content: instance.get(EDITOR).getData()
 							}
 						),
-						dataType: 'json'
+						dataType: 'JSON'
 					}
 				);
 			},

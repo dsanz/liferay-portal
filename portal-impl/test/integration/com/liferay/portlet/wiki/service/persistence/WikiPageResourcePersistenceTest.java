@@ -30,12 +30,12 @@ import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.wiki.NoSuchPageResourceException;
 import com.liferay.portlet.wiki.model.WikiPageResource;
@@ -51,6 +51,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,7 +101,7 @@ public class WikiPageResourcePersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		WikiPageResource wikiPageResource = _persistence.create(pk);
 
@@ -127,15 +128,15 @@ public class WikiPageResourcePersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		WikiPageResource newWikiPageResource = _persistence.create(pk);
 
-		newWikiPageResource.setUuid(ServiceTestUtil.randomString());
+		newWikiPageResource.setUuid(RandomTestUtil.randomString());
 
-		newWikiPageResource.setNodeId(ServiceTestUtil.nextLong());
+		newWikiPageResource.setNodeId(RandomTestUtil.nextLong());
 
-		newWikiPageResource.setTitle(ServiceTestUtil.randomString());
+		newWikiPageResource.setTitle(RandomTestUtil.randomString());
 
 		_persistence.update(newWikiPageResource);
 
@@ -168,7 +169,7 @@ public class WikiPageResourcePersistenceTest {
 	@Test
 	public void testCountByN_T() {
 		try {
-			_persistence.countByN_T(ServiceTestUtil.nextLong(), StringPool.BLANK);
+			_persistence.countByN_T(RandomTestUtil.nextLong(), StringPool.BLANK);
 
 			_persistence.countByN_T(0L, StringPool.NULL);
 
@@ -190,7 +191,7 @@ public class WikiPageResourcePersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -213,7 +214,7 @@ public class WikiPageResourcePersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<WikiPageResource> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("WikiPageResource", "uuid",
 			true, "resourcePrimKey", true, "nodeId", true, "title", true);
 	}
@@ -229,11 +230,93 @@ public class WikiPageResourcePersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		WikiPageResource missingWikiPageResource = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingWikiPageResource);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		WikiPageResource newWikiPageResource1 = addWikiPageResource();
+		WikiPageResource newWikiPageResource2 = addWikiPageResource();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newWikiPageResource1.getPrimaryKey());
+		primaryKeys.add(newWikiPageResource2.getPrimaryKey());
+
+		Map<Serializable, WikiPageResource> wikiPageResources = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, wikiPageResources.size());
+		Assert.assertEquals(newWikiPageResource1,
+			wikiPageResources.get(newWikiPageResource1.getPrimaryKey()));
+		Assert.assertEquals(newWikiPageResource2,
+			wikiPageResources.get(newWikiPageResource2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, WikiPageResource> wikiPageResources = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(wikiPageResources.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		WikiPageResource newWikiPageResource = addWikiPageResource();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newWikiPageResource.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, WikiPageResource> wikiPageResources = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, wikiPageResources.size());
+		Assert.assertEquals(newWikiPageResource,
+			wikiPageResources.get(newWikiPageResource.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, WikiPageResource> wikiPageResources = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(wikiPageResources.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		WikiPageResource newWikiPageResource = addWikiPageResource();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newWikiPageResource.getPrimaryKey());
+
+		Map<Serializable, WikiPageResource> wikiPageResources = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, wikiPageResources.size());
+		Assert.assertEquals(newWikiPageResource,
+			wikiPageResources.get(newWikiPageResource.getPrimaryKey()));
 	}
 
 	@Test
@@ -284,7 +367,7 @@ public class WikiPageResourcePersistenceTest {
 				WikiPageResource.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("resourcePrimKey",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<WikiPageResource> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -325,7 +408,7 @@ public class WikiPageResourcePersistenceTest {
 				"resourcePrimKey"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("resourcePrimKey",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -352,15 +435,15 @@ public class WikiPageResourcePersistenceTest {
 	}
 
 	protected WikiPageResource addWikiPageResource() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		WikiPageResource wikiPageResource = _persistence.create(pk);
 
-		wikiPageResource.setUuid(ServiceTestUtil.randomString());
+		wikiPageResource.setUuid(RandomTestUtil.randomString());
 
-		wikiPageResource.setNodeId(ServiceTestUtil.nextLong());
+		wikiPageResource.setNodeId(RandomTestUtil.nextLong());
 
-		wikiPageResource.setTitle(ServiceTestUtil.randomString());
+		wikiPageResource.setTitle(RandomTestUtil.randomString());
 
 		_persistence.update(wikiPageResource);
 

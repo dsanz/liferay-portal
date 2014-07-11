@@ -110,11 +110,10 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param wikiPage the wiki page
 	 * @return the wiki page that was added
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public WikiPage addWikiPage(WikiPage wikiPage) throws SystemException {
+	public WikiPage addWikiPage(WikiPage wikiPage) {
 		wikiPage.setNew(true);
 
 		return wikiPagePersistence.update(wikiPage);
@@ -137,12 +136,10 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param pageId the primary key of the wiki page
 	 * @return the wiki page that was removed
 	 * @throws PortalException if a wiki page with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public WikiPage deleteWikiPage(long pageId)
-		throws PortalException, SystemException {
+	public WikiPage deleteWikiPage(long pageId) throws PortalException {
 		return wikiPagePersistence.remove(pageId);
 	}
 
@@ -151,11 +148,10 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param wikiPage the wiki page
 	 * @return the wiki page that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public WikiPage deleteWikiPage(WikiPage wikiPage) throws SystemException {
+	public WikiPage deleteWikiPage(WikiPage wikiPage) {
 		return wikiPagePersistence.remove(wikiPage);
 	}
 
@@ -172,12 +168,9 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery) {
 		return wikiPagePersistence.findWithDynamicQuery(dynamicQuery);
 	}
 
@@ -192,12 +185,10 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param start the lower bound of the range of model instances
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @return the range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end) {
 		return wikiPagePersistence.findWithDynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -213,12 +204,10 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end, OrderByComparator<T> orderByComparator) {
 		return wikiPagePersistence.findWithDynamicQuery(dynamicQuery, start,
 			end, orderByComparator);
 	}
@@ -228,11 +217,9 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public long dynamicQueryCount(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public long dynamicQueryCount(DynamicQuery dynamicQuery) {
 		return wikiPagePersistence.countWithDynamicQuery(dynamicQuery);
 	}
 
@@ -242,17 +229,16 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param dynamicQuery the dynamic query
 	 * @param projection the projection to apply to the query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public long dynamicQueryCount(DynamicQuery dynamicQuery,
-		Projection projection) throws SystemException {
+		Projection projection) {
 		return wikiPagePersistence.countWithDynamicQuery(dynamicQuery,
 			projection);
 	}
 
 	@Override
-	public WikiPage fetchWikiPage(long pageId) throws SystemException {
+	public WikiPage fetchWikiPage(long pageId) {
 		return wikiPagePersistence.fetchByPrimaryKey(pageId);
 	}
 
@@ -262,11 +248,9 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param uuid the wiki page's UUID
 	 * @param  companyId the primary key of the company
 	 * @return the matching wiki page, or <code>null</code> if a matching wiki page could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public WikiPage fetchWikiPageByUuidAndCompanyId(String uuid, long companyId)
-		throws SystemException {
+	public WikiPage fetchWikiPageByUuidAndCompanyId(String uuid, long companyId) {
 		return wikiPagePersistence.fetchByUuid_C_First(uuid, companyId, null);
 	}
 
@@ -276,11 +260,9 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param uuid the wiki page's UUID
 	 * @param groupId the primary key of the group
 	 * @return the matching wiki page, or <code>null</code> if a matching wiki page could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public WikiPage fetchWikiPageByUuidAndGroupId(String uuid, long groupId)
-		throws SystemException {
+	public WikiPage fetchWikiPageByUuidAndGroupId(String uuid, long groupId) {
 		return wikiPagePersistence.fetchByUUID_G(uuid, groupId);
 	}
 
@@ -290,17 +272,14 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param pageId the primary key of the wiki page
 	 * @return the wiki page
 	 * @throws PortalException if a wiki page with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public WikiPage getWikiPage(long pageId)
-		throws PortalException, SystemException {
+	public WikiPage getWikiPage(long pageId) throws PortalException {
 		return wikiPagePersistence.findByPrimaryKey(pageId);
 	}
 
 	@Override
-	public ActionableDynamicQuery getActionableDynamicQuery()
-		throws SystemException {
+	public ActionableDynamicQuery getActionableDynamicQuery() {
 		ActionableDynamicQuery actionableDynamicQuery = new DefaultActionableDynamicQuery();
 
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil.getService());
@@ -313,8 +292,7 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	protected void initActionableDynamicQuery(
-		ActionableDynamicQuery actionableDynamicQuery)
-		throws SystemException {
+		ActionableDynamicQuery actionableDynamicQuery) {
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil.getService());
 		actionableDynamicQuery.setClass(WikiPage.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
@@ -324,11 +302,10 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 
 	@Override
 	public ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		final PortletDataContext portletDataContext) throws SystemException {
+		final PortletDataContext portletDataContext) {
 		final ExportActionableDynamicQuery exportActionableDynamicQuery = new ExportActionableDynamicQuery() {
 				@Override
-				public long performCount()
-					throws PortalException, SystemException {
+				public long performCount() throws PortalException {
 					ManifestSummary manifestSummary = portletDataContext.getManifestSummary();
 
 					StagedModelType stagedModelType = getStagedModelType();
@@ -378,9 +355,8 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 
 		exportActionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				@SuppressWarnings("unused")
 				public void performAction(Object object)
-					throws PortalException, SystemException {
+					throws PortalException {
 					WikiPage stagedModel = (WikiPage)object;
 
 					StagedModelDataHandlerUtil.exportStagedModel(portletDataContext,
@@ -393,9 +369,18 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 		return exportActionableDynamicQuery;
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
+		throws PortalException {
+		return wikiPageLocalService.deleteWikiPage((WikiPage)persistedModel);
+	}
+
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return wikiPagePersistence.findByPrimaryKey(primaryKeyObj);
 	}
 
@@ -406,11 +391,10 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param  companyId the primary key of the company
 	 * @return the matching wiki page
 	 * @throws PortalException if a matching wiki page could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPage getWikiPageByUuidAndCompanyId(String uuid, long companyId)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return wikiPagePersistence.findByUuid_C_First(uuid, companyId, null);
 	}
 
@@ -421,11 +405,10 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param groupId the primary key of the group
 	 * @return the matching wiki page
 	 * @throws PortalException if a matching wiki page could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPage getWikiPageByUuidAndGroupId(String uuid, long groupId)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return wikiPagePersistence.findByUUID_G(uuid, groupId);
 	}
 
@@ -439,11 +422,9 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param start the lower bound of the range of wiki pages
 	 * @param end the upper bound of the range of wiki pages (not inclusive)
 	 * @return the range of wiki pages
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<WikiPage> getWikiPages(int start, int end)
-		throws SystemException {
+	public List<WikiPage> getWikiPages(int start, int end) {
 		return wikiPagePersistence.findAll(start, end);
 	}
 
@@ -451,10 +432,9 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * Returns the number of wiki pages.
 	 *
 	 * @return the number of wiki pages
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getWikiPagesCount() throws SystemException {
+	public int getWikiPagesCount() {
 		return wikiPagePersistence.countAll();
 	}
 
@@ -463,11 +443,10 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param wikiPage the wiki page
 	 * @return the wiki page that was updated
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public WikiPage updateWikiPage(WikiPage wikiPage) throws SystemException {
+	public WikiPage updateWikiPage(WikiPage wikiPage) {
 		return wikiPagePersistence.update(wikiPage);
 	}
 
@@ -1734,7 +1713,7 @@ public abstract class WikiPageLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param sql the sql query
 	 */
-	protected void runSQL(String sql) throws SystemException {
+	protected void runSQL(String sql) {
 		try {
 			DataSource dataSource = wikiPagePersistence.getDataSource();
 

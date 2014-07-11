@@ -15,7 +15,6 @@
 package com.liferay.portlet.ratings.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 import com.liferay.portlet.ratings.model.RatingsEntry;
@@ -23,13 +22,13 @@ import com.liferay.portlet.ratings.service.RatingsEntryLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link RatingsEntryLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link RatingsEntryLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class RatingsEntryActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public RatingsEntryActionableDynamicQuery() throws SystemException {
+	public RatingsEntryActionableDynamicQuery() {
 		setBaseLocalService(RatingsEntryLocalServiceUtil.getService());
 		setClass(RatingsEntry.class);
 

@@ -15,20 +15,19 @@
 package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.model.BrowserTracker;
 import com.liferay.portal.service.BrowserTrackerLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link BrowserTrackerLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link BrowserTrackerLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class BrowserTrackerActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public BrowserTrackerActionableDynamicQuery() throws SystemException {
+	public BrowserTrackerActionableDynamicQuery() {
 		setBaseLocalService(BrowserTrackerLocalServiceUtil.getService());
 		setClass(BrowserTracker.class);
 

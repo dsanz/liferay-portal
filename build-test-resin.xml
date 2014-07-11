@@ -14,7 +14,9 @@
 	</target>
 
 	<target name="run-selenium-resin">
-		<echo file="app.server.${user.name}.properties">app.server.type=resin</echo>
+		<app-server-properties-update>
+			app.server.type=resin
+		</app-server-properties-update>
 
 		<if>
 			<not>
@@ -52,6 +54,8 @@
 		</chmod>
 
 		<antcall target="revert-test-properties" />
+
+		<ant dir="portal-impl" target="build-selenium-new-test-case" />
 
 		<antcall target="prepare-virtual-host-name-properties" />
 

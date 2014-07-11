@@ -32,6 +32,13 @@ public class ExportImportConfigurationServiceWrapper
 		_exportImportConfigurationService = exportImportConfigurationService;
 	}
 
+	@Override
+	public void deleteExportImportConfiguration(
+		long exportImportConfigurationId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_exportImportConfigurationService.deleteExportImportConfiguration(exportImportConfigurationId);
+	}
+
 	/**
 	* Returns the Spring bean ID for this bean.
 	*
@@ -42,6 +49,20 @@ public class ExportImportConfigurationServiceWrapper
 		return _exportImportConfigurationService.getBeanIdentifier();
 	}
 
+	@Override
+	public com.liferay.portal.model.ExportImportConfiguration moveExportImportConfigurationToTrash(
+		long exportImportConfigurationId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _exportImportConfigurationService.moveExportImportConfigurationToTrash(exportImportConfigurationId);
+	}
+
+	@Override
+	public com.liferay.portal.model.ExportImportConfiguration restoreExportImportConfigurationFromTrash(
+		long exportImportConfigurationId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _exportImportConfigurationService.restoreExportImportConfigurationFromTrash(exportImportConfigurationId);
+	}
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -50,30 +71,6 @@ public class ExportImportConfigurationServiceWrapper
 	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_exportImportConfigurationService.setBeanIdentifier(beanIdentifier);
-	}
-
-	@Override
-	public void deleteExportImportConfiguration(
-		long exportImportConfigurationId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_exportImportConfigurationService.deleteExportImportConfiguration(exportImportConfigurationId);
-	}
-
-	@Override
-	public com.liferay.portal.model.ExportImportConfiguration moveExportImportConfigurationToTrash(
-		long exportImportConfigurationId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _exportImportConfigurationService.moveExportImportConfigurationToTrash(exportImportConfigurationId);
-	}
-
-	@Override
-	public com.liferay.portal.model.ExportImportConfiguration restoreExportImportConfigurationFromTrash(
-		long exportImportConfigurationId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _exportImportConfigurationService.restoreExportImportConfigurationFromTrash(exportImportConfigurationId);
 	}
 
 	/**

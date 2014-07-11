@@ -16,7 +16,7 @@
 
 <%@ include file="/html/portlet/journal/init.jsp" %>
 
-<%= LanguageUtil.format(pageContext, "this-page-displays-the-last-x-web-content,-structures,-and-templates-that-you-accessed", String.valueOf(JournalUtil.MAX_STACK_SIZE), false) %>
+<%= LanguageUtil.format(request, "this-page-displays-the-last-x-web-content,-structures,-and-templates-that-you-accessed", String.valueOf(JournalUtil.MAX_STACK_SIZE), false) %>
 
 <table class="lfr-table" width="100%">
 <tr>
@@ -25,7 +25,7 @@
 			<thead class="table-columns">
 			<tr>
 				<td class="table-cell" colspan="2">
-					<%= LanguageUtil.format(pageContext, "last-x-web-content", String.valueOf(JournalUtil.MAX_STACK_SIZE), false) %>
+					<%= LanguageUtil.format(request, "last-x-web-content", String.valueOf(JournalUtil.MAX_STACK_SIZE), false) %>
 				</td>
 			</tr>
 			</thead>
@@ -39,8 +39,6 @@
 
 				for (int i = recentArticlesSize - 1; i >= 0; i--) {
 					JournalArticle article = (JournalArticle)recentArticles.get(i);
-
-					article = article.toEscapedModel();
 				%>
 
 					<portlet:renderURL var="editArticleURL">
@@ -53,10 +51,10 @@
 
 				<tr>
 					<td class="table-cell">
-						<aui:a href="<%= editArticleURL %>"><%= article.getArticleId() %></aui:a>
+						<aui:a href="<%= editArticleURL %>"><%= HtmlUtil.escape(article.getArticleId()) %></aui:a>
 					</td>
 					<td class="table-cell">
-						<aui:a href="<%= editArticleURL %>"><%= article.getTitle(locale) %></aui:a>
+						<aui:a href="<%= editArticleURL %>"><%= HtmlUtil.escape(article.getTitle(locale)) %></aui:a>
 					</td>
 				</tr>
 
@@ -72,7 +70,7 @@
 			<thead class="table-columns">
 				<tr>
 					<td class="table-cell" colspan="2">
-						<%= LanguageUtil.format(pageContext, "last-x-structures", String.valueOf(JournalUtil.MAX_STACK_SIZE), false) %>
+						<%= LanguageUtil.format(request, "last-x-structures", String.valueOf(JournalUtil.MAX_STACK_SIZE), false) %>
 					</td>
 				</tr>
 			</thead>
@@ -86,13 +84,11 @@
 
 			for (int i = recentDDMStructuresSize - 1; i >= 0; i--) {
 				DDMStructure ddmStructure = (DDMStructure)recentDDMStructures.get(i);
-
-				ddmStructure = ddmStructure.toEscapedModel();
 			%>
 
 				<tr>
 					<td class="table-cell">
-						<%= ddmStructure.getName(locale) %>
+						<%= HtmlUtil.escape(ddmStructure.getName(locale)) %>
 					</td>
 				</tr>
 
@@ -108,7 +104,7 @@
 			<thead class="table-columns">
 				<tr>
 					<td class="table-cell" colspan="2">
-						<%= LanguageUtil.format(pageContext, "last-x-templates", String.valueOf(JournalUtil.MAX_STACK_SIZE), false) %>
+						<%= LanguageUtil.format(request, "last-x-templates", String.valueOf(JournalUtil.MAX_STACK_SIZE), false) %>
 					</td>
 				</tr>
 			</thead>
@@ -122,13 +118,11 @@
 
 			for (int i = recentDDMTemplatesSize - 1; i >= 0; i--) {
 				DDMTemplate ddmTemplate = (DDMTemplate)recentDDMTemplates.get(i);
-
-				ddmTemplate = ddmTemplate.toEscapedModel();
 			%>
 
 				<tr>
 					<td class="table-cell">
-						<%= ddmTemplate.getName(locale) %>
+						<%= HtmlUtil.escape(ddmTemplate.getName(locale)) %>
 					</td>
 				</tr>
 

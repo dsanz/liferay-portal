@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.wiki.action;
 
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
@@ -23,6 +24,7 @@ import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.struts.PortletAction;
+import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.trash.util.TrashUtil;
@@ -30,13 +32,12 @@ import com.liferay.portlet.wiki.DuplicateNodeNameException;
 import com.liferay.portlet.wiki.NoSuchNodeException;
 import com.liferay.portlet.wiki.NodeNameException;
 import com.liferay.portlet.wiki.RequiredNodeException;
-import com.liferay.portlet.wiki.WikiSettings;
+import com.liferay.portlet.wiki.WikiPortletInstanceSettings;
 import com.liferay.portlet.wiki.model.WikiNode;
 import com.liferay.portlet.wiki.service.WikiNodeLocalServiceUtil;
 import com.liferay.portlet.wiki.service.WikiNodeServiceUtil;
 import com.liferay.portlet.wiki.util.WikiCacheThreadLocal;
 import com.liferay.portlet.wiki.util.WikiCacheUtil;
-import com.liferay.portlet.wiki.util.WikiUtil;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -150,9 +151,6 @@ public class EditNodeAction extends PortletAction {
 
 		WikiNode wikiNode = WikiNodeServiceUtil.getNode(nodeId);
 
-		WikiSettings wikiSettings = WikiUtil.getWikiSettings(
-			wikiNode.getGroupId());
-
 		String oldName = wikiNode.getName();
 
 		WikiCacheThreadLocal.setClearCache(false);
@@ -170,13 +168,32 @@ public class EditNodeAction extends PortletAction {
 
 		WikiCacheThreadLocal.setClearCache(true);
 
-		updateSettings(wikiSettings, oldName, StringPool.BLANK);
+		WikiPortletInstanceSettings wikiPortletInstanceSettings =
+			getWikiPortletInstanceSettings(actionRequest);
+
+		updateSettings(wikiPortletInstanceSettings, oldName, StringPool.BLANK);
 
 		if (moveToTrash && (trashWikiNode != null)) {
 			TrashUtil.addTrashSessionMessages(actionRequest, trashWikiNode);
 
 			hideDefaultSuccessMessage(actionRequest);
 		}
+	}
+
+	protected WikiPortletInstanceSettings getWikiPortletInstanceSettings(
+			ActionRequest actionRequest)
+		throws PortalException {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+
+		WikiPortletInstanceSettings wikiPortletInstanceSettings =
+			WikiPortletInstanceSettings.getInstance(
+				themeDisplay.getLayout(), portletDisplay.getId());
+
+		return wikiPortletInstanceSettings;
 	}
 
 	protected void subscribeNode(ActionRequest actionRequest) throws Exception {
@@ -214,35 +231,36 @@ public class EditNodeAction extends PortletAction {
 
 			WikiNode wikiNode = WikiNodeServiceUtil.getNode(nodeId);
 
-			WikiSettings wikiSettings = WikiUtil.getWikiSettings(
-				wikiNode.getGroupId());
-
 			String oldName = wikiNode.getName();
 
 			WikiNodeServiceUtil.updateNode(
 				nodeId, name, description, serviceContext);
 
-			updateSettings(wikiSettings, oldName, name);
+			WikiPortletInstanceSettings wikiPortletInstanceSettings =
+				getWikiPortletInstanceSettings(actionRequest);
+
+			updateSettings(wikiPortletInstanceSettings, oldName, name);
 		}
 	}
 
 	protected void updateSettings(
-			WikiSettings wikiSettings, String oldName, String newName)
+			WikiPortletInstanceSettings wikiPortletInstanceSettings,
+			String oldName, String newName)
 		throws Exception {
 
-		String[] hiddenNodes = wikiSettings.getHiddenNodes();
+		String[] hiddenNodes = wikiPortletInstanceSettings.getHiddenNodes();
 
 		ArrayUtil.replace(hiddenNodes, oldName, newName);
 
-		wikiSettings.setHiddenNodes(hiddenNodes);
+		wikiPortletInstanceSettings.setHiddenNodes(hiddenNodes);
 
-		String[] visibleNodes = wikiSettings.getVisibleNodes();
+		String[] visibleNodes = wikiPortletInstanceSettings.getVisibleNodes();
 
 		ArrayUtil.replace(visibleNodes, oldName, newName);
 
-		wikiSettings.setVisibleNodes(visibleNodes);
+		wikiPortletInstanceSettings.setVisibleNodes(visibleNodes);
 
-		wikiSettings.store();
+		wikiPortletInstanceSettings.store();
 	}
 
 }

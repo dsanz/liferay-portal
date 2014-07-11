@@ -29,11 +29,11 @@ import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.ListType;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -44,6 +44,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -93,7 +94,7 @@ public class ListTypePersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		int pk = ServiceTestUtil.nextInt();
+		int pk = RandomTestUtil.nextInt();
 
 		ListType listType = _persistence.create(pk);
 
@@ -120,15 +121,15 @@ public class ListTypePersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		int pk = ServiceTestUtil.nextInt();
+		int pk = RandomTestUtil.nextInt();
 
 		ListType newListType = _persistence.create(pk);
 
-		newListType.setMvccVersion(ServiceTestUtil.nextLong());
+		newListType.setMvccVersion(RandomTestUtil.nextLong());
 
-		newListType.setName(ServiceTestUtil.randomString());
+		newListType.setName(RandomTestUtil.randomString());
 
-		newListType.setType(ServiceTestUtil.randomString());
+		newListType.setType(RandomTestUtil.randomString());
 
 		_persistence.update(newListType);
 
@@ -167,7 +168,7 @@ public class ListTypePersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		int pk = ServiceTestUtil.nextInt();
+		int pk = RandomTestUtil.nextInt();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -189,7 +190,7 @@ public class ListTypePersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<ListType> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("ListType", "mvccVersion",
 			true, "listTypeId", true, "name", true, "type", true);
 	}
@@ -205,11 +206,93 @@ public class ListTypePersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		int pk = ServiceTestUtil.nextInt();
+		int pk = RandomTestUtil.nextInt();
 
 		ListType missingListType = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingListType);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		ListType newListType1 = addListType();
+		ListType newListType2 = addListType();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newListType1.getPrimaryKey());
+		primaryKeys.add(newListType2.getPrimaryKey());
+
+		Map<Serializable, ListType> listTypes = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, listTypes.size());
+		Assert.assertEquals(newListType1,
+			listTypes.get(newListType1.getPrimaryKey()));
+		Assert.assertEquals(newListType2,
+			listTypes.get(newListType2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		int pk1 = RandomTestUtil.nextInt();
+
+		int pk2 = RandomTestUtil.nextInt();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, ListType> listTypes = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(listTypes.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		ListType newListType = addListType();
+
+		int pk = RandomTestUtil.nextInt();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newListType.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, ListType> listTypes = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, listTypes.size());
+		Assert.assertEquals(newListType,
+			listTypes.get(newListType.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, ListType> listTypes = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(listTypes.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		ListType newListType = addListType();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newListType.getPrimaryKey());
+
+		Map<Serializable, ListType> listTypes = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, listTypes.size());
+		Assert.assertEquals(newListType,
+			listTypes.get(newListType.getPrimaryKey()));
 	}
 
 	@Test
@@ -238,7 +321,7 @@ public class ListTypePersistenceTest {
 				ListType.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("listTypeId",
-				ServiceTestUtil.nextInt()));
+				RandomTestUtil.nextInt()));
 
 		List<ListType> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -277,7 +360,7 @@ public class ListTypePersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("listTypeId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("listTypeId",
-				new Object[] { ServiceTestUtil.nextInt() }));
+				new Object[] { RandomTestUtil.nextInt() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -285,15 +368,15 @@ public class ListTypePersistenceTest {
 	}
 
 	protected ListType addListType() throws Exception {
-		int pk = ServiceTestUtil.nextInt();
+		int pk = RandomTestUtil.nextInt();
 
 		ListType listType = _persistence.create(pk);
 
-		listType.setMvccVersion(ServiceTestUtil.nextLong());
+		listType.setMvccVersion(RandomTestUtil.nextLong());
 
-		listType.setName(ServiceTestUtil.randomString());
+		listType.setName(RandomTestUtil.randomString());
 
-		listType.setType(ServiceTestUtil.randomString());
+		listType.setType(RandomTestUtil.randomString());
 
 		_persistence.update(listType);
 

@@ -4,7 +4,9 @@
 	<import file="build-test.xml" />
 
 	<target name="run-selenium-tomcat">
-		<echo file="app.server.${user.name}.properties">app.server.type=tomcat</echo>
+		<app-server-properties-update>
+			app.server.type=tomcat
+		</app-server-properties-update>
 
 		<if>
 			<not>
@@ -16,6 +18,8 @@
 		</if>
 
 		<antcall target="revert-test-properties" />
+
+		<ant dir="portal-impl" target="build-selenium-new-test-case" />
 
 		<if>
 			<isset property="vm.host" />

@@ -9,7 +9,7 @@ AUI.add(
 
 		var STR_CLICK = 'click';
 
-		var STR_PORTLET_MSG_ERROR = 'alert alert-error';
+		var STR_PORTLET_MSG_ERROR = 'alert alert-danger';
 
 		var STR_PORTLET_MSG_SUCCESS = 'alert alert-success';
 
@@ -78,7 +78,7 @@ AUI.add(
 							instance.get('url'),
 							{
 								autoLoad: false,
-								dataType: 'json',
+								dataType: 'JSON',
 								form: form.getDOM()
 							}
 						);

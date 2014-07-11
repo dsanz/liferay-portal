@@ -62,15 +62,7 @@ catch (NoSuchArticleException nsae) {
 		<%
 		DDMStructure ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(article.getGroupId(), PortalUtil.getClassNameId(JournalArticle.class), article.getStructureId(), true);
 
-		List<DDMTemplate> ddmTemplates = new ArrayList<DDMTemplate>();
-
-		if (ddmStructure != null) {
-			ddmTemplates.addAll(DDMTemplateLocalServiceUtil.getTemplates(ddmStructure.getGroupId(), PortalUtil.getClassNameId(DDMStructure.class), ddmStructure.getStructureId()));
-
-			if (article.getGroupId() != ddmStructure.getGroupId()) {
-				ddmTemplates.addAll(DDMTemplateLocalServiceUtil.getTemplates(article.getGroupId(), PortalUtil.getClassNameId(DDMStructure.class), ddmStructure.getStructureId()));
-			}
-		}
+		List<DDMTemplate> ddmTemplates = DDMTemplateLocalServiceUtil.getTemplates(article.getGroupId(), PortalUtil.getClassNameId(DDMStructure.class), ddmStructure.getStructureId(), true);
 
 		if (!ddmTemplates.isEmpty()) {
 			if (Validator.isNull(ddmTemplateKey)) {
@@ -117,7 +109,7 @@ catch (NoSuchArticleException nsae) {
 					<c:if test="<%= tableIteratorObj.isSmallImage() %>">
 						<br />
 
-						<img alt="" border="0" hspace="0" src="<%= Validator.isNotNull(tableIteratorObj.getSmallImageURL()) ? HtmlUtil.escapeHREF(tableIteratorObj.getSmallImageURL()) : themeDisplay.getPathImage() + "/journal/template?img_id=" + tableIteratorObj.getSmallImageId() + "&t=" + WebServerServletTokenUtil.getToken(tableIteratorObj.getSmallImageId()) %>" vspace="0" />
+						<img alt="" hspace="0" src="<%= Validator.isNotNull(tableIteratorObj.getSmallImageURL()) ? HtmlUtil.escapeHREF(tableIteratorObj.getSmallImageURL()) : themeDisplay.getPathImage() + "/journal/template?img_id=" + tableIteratorObj.getSmallImageId() + "&t=" + WebServerServletTokenUtil.getToken(tableIteratorObj.getSmallImageId()) %>" vspace="0" />
 					</c:if>
 				</liferay-ui:table-iterator>
 
@@ -234,9 +226,7 @@ catch (NoSuchArticleException nsae) {
 	<aui:input name="preferences--ddmTemplateKey--" type="hidden" value="<%= ddmTemplateKey %>" />
 
 	<aui:fieldset>
-		<aui:field-wrapper label="portlet-id">
-			<liferay-ui:input-resource url="<%= portletResource %>" />
-		</aui:field-wrapper>
+		<aui:input name="portletId" type="resource" value="<%= portletResource %>" />
 	</aui:fieldset>
 
 	<aui:fieldset>
@@ -250,7 +240,7 @@ catch (NoSuchArticleException nsae) {
 			for (String conversion : conversions) {
 			%>
 
-				<aui:input checked="<%= ArrayUtil.contains(extensions, conversion) %>" disabled="<%= !openOfficeServerEnabled %>" id='<%= "extensions" + conversion %>' includeHiddenField="<%= false %>" inlineField="<%= true %>" label="<%= StringUtil.toUpperCase(conversion) %>" name="extensions" type="checkbox" value="<%= conversion %>" />
+				<aui:input checked="<%= ArrayUtil.contains(extensions, conversion) %>" disabled="<%= !openOfficeServerEnabled %>" id='<%= "extensions" + conversion %>' inlineField="<%= true %>" label="<%= StringUtil.toUpperCase(conversion) %>" name="extensions" type="checkbox" value="<%= conversion %>" />
 
 			<%
 			}
@@ -289,14 +279,15 @@ catch (NoSuchArticleException nsae) {
 
 			document.<portlet:namespace />fm.<portlet:namespace />groupId.value = articleGroupId;
 			document.<portlet:namespace />fm.<portlet:namespace />articleId.value = articleId;
-			document.<portlet:namespace />fm.<portlet:namespace />ddmTemplateKey.value = "";
+			document.<portlet:namespace />fm.<portlet:namespace />ddmTemplateKey.value = '';
 
 			A.one('.displaying-article-id-holder').show();
 			A.one('.displaying-help-message-holder').hide();
 
 			var displayArticleId = A.one('.displaying-article-id');
 
-			displayArticleId.set('innerHTML', Liferay.Util.escapeHTML(articleTitle) + ' (<%= UnicodeLanguageUtil.get(pageContext, "modified") %>)');
+			displayArticleId.html(Liferay.Util.escapeHTML(articleTitle) + ' (<%= UnicodeLanguageUtil.get(request, "modified") %>)');
+
 			displayArticleId.addClass('modified');
 		},
 		['aui-base']

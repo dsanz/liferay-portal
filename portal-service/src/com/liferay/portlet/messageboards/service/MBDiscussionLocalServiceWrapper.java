@@ -34,16 +34,37 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	}
 
 	/**
+	* @deprecated As of 7.0.0, replaced by {@link #addDiscussion(long, long,
+	long, long, long, ServiceContext)}
+	*/
+	@Deprecated
+	@Override
+	public com.liferay.portlet.messageboards.model.MBDiscussion addDiscussion(
+		long userId, long classNameId, long classPK, long threadId,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _mbDiscussionLocalService.addDiscussion(userId, classNameId,
+			classPK, threadId, serviceContext);
+	}
+
+	@Override
+	public com.liferay.portlet.messageboards.model.MBDiscussion addDiscussion(
+		long userId, long groupId, long classNameId, long classPK,
+		long threadId, com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _mbDiscussionLocalService.addDiscussion(userId, groupId,
+			classNameId, classPK, threadId, serviceContext);
+	}
+
+	/**
 	* Adds the message boards discussion to the database. Also notifies the appropriate model listeners.
 	*
 	* @param mbDiscussion the message boards discussion
 	* @return the message boards discussion that was added
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBDiscussion addMBDiscussion(
-		com.liferay.portlet.messageboards.model.MBDiscussion mbDiscussion)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.messageboards.model.MBDiscussion mbDiscussion) {
 		return _mbDiscussionLocalService.addMBDiscussion(mbDiscussion);
 	}
 
@@ -65,13 +86,11 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	* @param discussionId the primary key of the message boards discussion
 	* @return the message boards discussion that was removed
 	* @throws PortalException if a message boards discussion with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBDiscussion deleteMBDiscussion(
 		long discussionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _mbDiscussionLocalService.deleteMBDiscussion(discussionId);
 	}
 
@@ -80,13 +99,21 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	*
 	* @param mbDiscussion the message boards discussion
 	* @return the message boards discussion that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBDiscussion deleteMBDiscussion(
-		com.liferay.portlet.messageboards.model.MBDiscussion mbDiscussion)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.messageboards.model.MBDiscussion mbDiscussion) {
 		return _mbDiscussionLocalService.deleteMBDiscussion(mbDiscussion);
+	}
+
+	/**
+	* @throws PortalException
+	*/
+	@Override
+	public com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _mbDiscussionLocalService.deletePersistedModel(persistedModel);
 	}
 
 	@Override
@@ -99,13 +126,10 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _mbDiscussionLocalService.dynamicQuery(dynamicQuery);
 	}
 
@@ -120,13 +144,11 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return _mbDiscussionLocalService.dynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -142,15 +164,12 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator) {
 		return _mbDiscussionLocalService.dynamicQuery(dynamicQuery, start, end,
 			orderByComparator);
 	}
@@ -160,12 +179,10 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _mbDiscussionLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
@@ -175,21 +192,30 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
 		return _mbDiscussionLocalService.dynamicQueryCount(dynamicQuery,
 			projection);
 	}
 
 	@Override
+	public com.liferay.portlet.messageboards.model.MBDiscussion fetchDiscussion(
+		java.lang.String className, long classPK) {
+		return _mbDiscussionLocalService.fetchDiscussion(className, classPK);
+	}
+
+	@Override
+	public com.liferay.portlet.messageboards.model.MBDiscussion fetchDiscussion(
+		long discussionId) {
+		return _mbDiscussionLocalService.fetchDiscussion(discussionId);
+	}
+
+	@Override
 	public com.liferay.portlet.messageboards.model.MBDiscussion fetchMBDiscussion(
-		long discussionId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long discussionId) {
 		return _mbDiscussionLocalService.fetchMBDiscussion(discussionId);
 	}
 
@@ -199,12 +225,10 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	* @param uuid the message boards discussion's UUID
 	* @param companyId the primary key of the company
 	* @return the matching message boards discussion, or <code>null</code> if a matching message boards discussion could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBDiscussion fetchMBDiscussionByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long companyId) {
 		return _mbDiscussionLocalService.fetchMBDiscussionByUuidAndCompanyId(uuid,
 			companyId);
 	}
@@ -215,14 +239,47 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	* @param uuid the message boards discussion's UUID
 	* @param groupId the primary key of the group
 	* @return the matching message boards discussion, or <code>null</code> if a matching message boards discussion could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBDiscussion fetchMBDiscussionByUuidAndGroupId(
-		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long groupId) {
 		return _mbDiscussionLocalService.fetchMBDiscussionByUuidAndGroupId(uuid,
 			groupId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
+		return _mbDiscussionLocalService.getActionableDynamicQuery();
+	}
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	@Override
+	public java.lang.String getBeanIdentifier() {
+		return _mbDiscussionLocalService.getBeanIdentifier();
+	}
+
+	@Override
+	public com.liferay.portlet.messageboards.model.MBDiscussion getDiscussion(
+		java.lang.String className, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _mbDiscussionLocalService.getDiscussion(className, classPK);
+	}
+
+	@Override
+	public com.liferay.portlet.messageboards.model.MBDiscussion getDiscussion(
+		long discussionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _mbDiscussionLocalService.getDiscussion(discussionId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext) {
+		return _mbDiscussionLocalService.getExportActionableDynamicQuery(portletDataContext);
 	}
 
 	/**
@@ -231,35 +288,12 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	* @param discussionId the primary key of the message boards discussion
 	* @return the message boards discussion
 	* @throws PortalException if a message boards discussion with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBDiscussion getMBDiscussion(
 		long discussionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _mbDiscussionLocalService.getMBDiscussion(discussionId);
-	}
-
-	@Override
-	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mbDiscussionLocalService.getActionableDynamicQuery();
-	}
-
-	@Override
-	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mbDiscussionLocalService.getExportActionableDynamicQuery(portletDataContext);
-	}
-
-	@Override
-	public com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _mbDiscussionLocalService.getPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -269,13 +303,11 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	* @param companyId the primary key of the company
 	* @return the matching message boards discussion
 	* @throws PortalException if a matching message boards discussion could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBDiscussion getMBDiscussionByUuidAndCompanyId(
 		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _mbDiscussionLocalService.getMBDiscussionByUuidAndCompanyId(uuid,
 			companyId);
 	}
@@ -287,13 +319,11 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	* @param groupId the primary key of the group
 	* @return the matching message boards discussion
 	* @throws PortalException if a matching message boards discussion could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBDiscussion getMBDiscussionByUuidAndGroupId(
 		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _mbDiscussionLocalService.getMBDiscussionByUuidAndGroupId(uuid,
 			groupId);
 	}
@@ -308,12 +338,10 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	* @param start the lower bound of the range of message boards discussions
 	* @param end the upper bound of the range of message boards discussions (not inclusive)
 	* @return the range of message boards discussions
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public java.util.List<com.liferay.portlet.messageboards.model.MBDiscussion> getMBDiscussions(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int start, int end) {
 		return _mbDiscussionLocalService.getMBDiscussions(start, end);
 	}
 
@@ -321,36 +349,24 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	* Returns the number of message boards discussions.
 	*
 	* @return the number of message boards discussions
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	public int getMBDiscussionsCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public int getMBDiscussionsCount() {
 		return _mbDiscussionLocalService.getMBDiscussionsCount();
 	}
 
-	/**
-	* Updates the message boards discussion in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param mbDiscussion the message boards discussion
-	* @return the message boards discussion that was updated
-	* @throws SystemException if a system exception occurred
-	*/
 	@Override
-	public com.liferay.portlet.messageboards.model.MBDiscussion updateMBDiscussion(
-		com.liferay.portlet.messageboards.model.MBDiscussion mbDiscussion)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mbDiscussionLocalService.updateMBDiscussion(mbDiscussion);
+	public com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _mbDiscussionLocalService.getPersistedModel(primaryKeyObj);
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _mbDiscussionLocalService.getBeanIdentifier();
+	public com.liferay.portlet.messageboards.model.MBDiscussion getThreadDiscussion(
+		long threadId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _mbDiscussionLocalService.getThreadDiscussion(threadId);
 	}
 
 	/**
@@ -364,73 +380,9 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	}
 
 	@Override
-	public com.liferay.portlet.messageboards.model.MBDiscussion addDiscussion(
-		long userId, long groupId, long classNameId, long classPK,
-		long threadId, com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _mbDiscussionLocalService.addDiscussion(userId, groupId,
-			classNameId, classPK, threadId, serviceContext);
-	}
-
-	/**
-	* @deprecated As of 7.0.0, replaced by {@link #addDiscussion(long, long,
-	long, long, long, ServiceContext)}
-	*/
-	@Deprecated
-	@Override
-	public com.liferay.portlet.messageboards.model.MBDiscussion addDiscussion(
-		long userId, long classNameId, long classPK, long threadId,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _mbDiscussionLocalService.addDiscussion(userId, classNameId,
-			classPK, threadId, serviceContext);
-	}
-
-	@Override
-	public com.liferay.portlet.messageboards.model.MBDiscussion fetchDiscussion(
-		long discussionId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mbDiscussionLocalService.fetchDiscussion(discussionId);
-	}
-
-	@Override
-	public com.liferay.portlet.messageboards.model.MBDiscussion fetchDiscussion(
-		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mbDiscussionLocalService.fetchDiscussion(className, classPK);
-	}
-
-	@Override
-	public com.liferay.portlet.messageboards.model.MBDiscussion getDiscussion(
-		long discussionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _mbDiscussionLocalService.getDiscussion(discussionId);
-	}
-
-	@Override
-	public com.liferay.portlet.messageboards.model.MBDiscussion getDiscussion(
-		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _mbDiscussionLocalService.getDiscussion(className, classPK);
-	}
-
-	@Override
-	public com.liferay.portlet.messageboards.model.MBDiscussion getThreadDiscussion(
-		long threadId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _mbDiscussionLocalService.getThreadDiscussion(threadId);
-	}
-
-	@Override
 	public void subscribeDiscussion(long userId, long groupId,
 		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_mbDiscussionLocalService.subscribeDiscussion(userId, groupId,
 			className, classPK);
 	}
@@ -438,10 +390,21 @@ public class MBDiscussionLocalServiceWrapper implements MBDiscussionLocalService
 	@Override
 	public void unsubscribeDiscussion(long userId, java.lang.String className,
 		long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_mbDiscussionLocalService.unsubscribeDiscussion(userId, className,
 			classPK);
+	}
+
+	/**
+	* Updates the message boards discussion in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param mbDiscussion the message boards discussion
+	* @return the message boards discussion that was updated
+	*/
+	@Override
+	public com.liferay.portlet.messageboards.model.MBDiscussion updateMBDiscussion(
+		com.liferay.portlet.messageboards.model.MBDiscussion mbDiscussion) {
+		return _mbDiscussionLocalService.updateMBDiscussion(mbDiscussion);
 	}
 
 	/**

@@ -15,14 +15,10 @@
 package com.liferay.portal.upgrade.v7_0_0;
 
 import com.liferay.portal.kernel.upgrade.BaseUpgradePortletPreferences;
-import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 
 import javax.portlet.PortletPreferences;
-import javax.portlet.ReadOnlyException;
 
 /**
  * @author Iván Zaera
@@ -32,29 +28,6 @@ public class UpgradeShoppingPreferences extends BaseUpgradePortletPreferences {
 	@Override
 	protected String[] getPortletIds() {
 		return new String[] {PortletKeys.SHOPPING};
-	}
-
-	protected void upgradeCcTypes(PortletPreferences portletPreferences)
-		throws ReadOnlyException {
-
-		String ccTypes = portletPreferences.getValue(
-			"ccTypes", StringPool.BLANK);
-
-		if (Validator.isNotNull(ccTypes)) {
-			portletPreferences.setValues("ccTypes", StringUtil.split(ccTypes));
-		}
-	}
-
-	protected void upgradeInsurance(PortletPreferences portletPreferences)
-		throws ReadOnlyException {
-
-		String insurance = portletPreferences.getValue(
-			"insurance", StringPool.BLANK);
-
-		if (Validator.isNotNull(insurance)) {
-			portletPreferences.setValues(
-				"insurance", StringUtil.split(insurance));
-		}
 	}
 
 	@Override
@@ -67,23 +40,11 @@ public class UpgradeShoppingPreferences extends BaseUpgradePortletPreferences {
 			PortletPreferencesFactoryUtil.fromXML(
 				companyId, ownerId, ownerType, plid, portletId, xml);
 
-		upgradeCcTypes(portletPreferences);
-		upgradeInsurance(portletPreferences);
-		upgradeShipping(portletPreferences);
+		upgradeMultiValuePreference(portletPreferences, "ccTypes");
+		upgradeMultiValuePreference(portletPreferences, "insurance");
+		upgradeMultiValuePreference(portletPreferences, "shipping");
 
 		return PortletPreferencesFactoryUtil.toXML(portletPreferences);
-	}
-
-	protected void upgradeShipping(PortletPreferences portletPreferences)
-		throws ReadOnlyException {
-
-		String shipping = portletPreferences.getValue(
-			"shipping", StringPool.BLANK);
-
-		if (Validator.isNotNull(shipping)) {
-			portletPreferences.setValues(
-				"shipping", StringUtil.split(shipping));
-		}
 	}
 
 }

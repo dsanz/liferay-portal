@@ -40,6 +40,21 @@ public class ShoppingOrderServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portlet.shopping.service.impl.ShoppingOrderServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static void completeOrder(long groupId, java.lang.String number,
+		java.lang.String ppTxnId, java.lang.String ppPaymentStatus,
+		double ppPaymentGross, java.lang.String ppReceiverEmail,
+		java.lang.String ppPayerEmail,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService()
+			.completeOrder(groupId, number, ppTxnId, ppPaymentStatus,
+			ppPaymentGross, ppReceiverEmail, ppPayerEmail, serviceContext);
+	}
+
+	public static void deleteOrder(long groupId, long orderId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteOrder(groupId, orderId);
+	}
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -50,6 +65,19 @@ public class ShoppingOrderServiceUtil {
 		return getService().getBeanIdentifier();
 	}
 
+	public static com.liferay.portlet.shopping.model.ShoppingOrder getOrder(
+		long groupId, long orderId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getOrder(groupId, orderId);
+	}
+
+	public static void sendEmail(long groupId, long orderId,
+		java.lang.String emailType,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().sendEmail(groupId, orderId, emailType, serviceContext);
+	}
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -57,50 +85,6 @@ public class ShoppingOrderServiceUtil {
 	*/
 	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
 		getService().setBeanIdentifier(beanIdentifier);
-	}
-
-	public static void completeOrder(long groupId, java.lang.String number,
-		java.lang.String ppTxnId, java.lang.String ppPaymentStatus,
-		double ppPaymentGross, java.lang.String ppReceiverEmail,
-		java.lang.String ppPayerEmail,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService()
-			.completeOrder(groupId, number, ppTxnId, ppPaymentStatus,
-			ppPaymentGross, ppReceiverEmail, ppPayerEmail, serviceContext);
-	}
-
-	public static void deleteOrder(long groupId, long orderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteOrder(groupId, orderId);
-	}
-
-	public static com.liferay.portlet.shopping.model.ShoppingOrder getOrder(
-		long groupId, long orderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getOrder(groupId, orderId);
-	}
-
-	public static void sendEmail(long groupId, long orderId,
-		java.lang.String emailType,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().sendEmail(groupId, orderId, emailType, serviceContext);
-	}
-
-	public static com.liferay.portlet.shopping.model.ShoppingOrder updateOrder(
-		long groupId, long orderId, java.lang.String ppTxnId,
-		java.lang.String ppPaymentStatus, double ppPaymentGross,
-		java.lang.String ppReceiverEmail, java.lang.String ppPayerEmail)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .updateOrder(groupId, orderId, ppTxnId, ppPaymentStatus,
-			ppPaymentGross, ppReceiverEmail, ppPayerEmail);
 	}
 
 	public static com.liferay.portlet.shopping.model.ShoppingOrder updateOrder(
@@ -118,8 +102,7 @@ public class ShoppingOrderServiceUtil {
 		java.lang.String shippingPhone, java.lang.String ccName,
 		java.lang.String ccType, java.lang.String ccNumber, int ccExpMonth,
 		int ccExpYear, java.lang.String ccVerNumber, java.lang.String comments)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updateOrder(groupId, orderId, billingFirstName,
 			billingLastName, billingEmailAddress, billingCompany,
@@ -129,6 +112,16 @@ public class ShoppingOrderServiceUtil {
 			shippingStreet, shippingCity, shippingState, shippingZip,
 			shippingCountry, shippingPhone, ccName, ccType, ccNumber,
 			ccExpMonth, ccExpYear, ccVerNumber, comments);
+	}
+
+	public static com.liferay.portlet.shopping.model.ShoppingOrder updateOrder(
+		long groupId, long orderId, java.lang.String ppTxnId,
+		java.lang.String ppPaymentStatus, double ppPaymentGross,
+		java.lang.String ppReceiverEmail, java.lang.String ppPayerEmail)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .updateOrder(groupId, orderId, ppTxnId, ppPaymentStatus,
+			ppPaymentGross, ppReceiverEmail, ppPayerEmail);
 	}
 
 	public static ShoppingOrderService getService() {

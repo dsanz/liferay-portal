@@ -31,12 +31,12 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.wiki.NoSuchNodeException;
 import com.liferay.portlet.wiki.model.WikiNode;
@@ -52,6 +52,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -101,7 +102,7 @@ public class WikiNodePersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		WikiNode wikiNode = _persistence.create(pk);
 
@@ -128,37 +129,37 @@ public class WikiNodePersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		WikiNode newWikiNode = _persistence.create(pk);
 
-		newWikiNode.setUuid(ServiceTestUtil.randomString());
+		newWikiNode.setUuid(RandomTestUtil.randomString());
 
-		newWikiNode.setGroupId(ServiceTestUtil.nextLong());
+		newWikiNode.setGroupId(RandomTestUtil.nextLong());
 
-		newWikiNode.setCompanyId(ServiceTestUtil.nextLong());
+		newWikiNode.setCompanyId(RandomTestUtil.nextLong());
 
-		newWikiNode.setUserId(ServiceTestUtil.nextLong());
+		newWikiNode.setUserId(RandomTestUtil.nextLong());
 
-		newWikiNode.setUserName(ServiceTestUtil.randomString());
+		newWikiNode.setUserName(RandomTestUtil.randomString());
 
-		newWikiNode.setCreateDate(ServiceTestUtil.nextDate());
+		newWikiNode.setCreateDate(RandomTestUtil.nextDate());
 
-		newWikiNode.setModifiedDate(ServiceTestUtil.nextDate());
+		newWikiNode.setModifiedDate(RandomTestUtil.nextDate());
 
-		newWikiNode.setName(ServiceTestUtil.randomString());
+		newWikiNode.setName(RandomTestUtil.randomString());
 
-		newWikiNode.setDescription(ServiceTestUtil.randomString());
+		newWikiNode.setDescription(RandomTestUtil.randomString());
 
-		newWikiNode.setLastPostDate(ServiceTestUtil.nextDate());
+		newWikiNode.setLastPostDate(RandomTestUtil.nextDate());
 
-		newWikiNode.setStatus(ServiceTestUtil.nextInt());
+		newWikiNode.setStatus(RandomTestUtil.nextInt());
 
-		newWikiNode.setStatusByUserId(ServiceTestUtil.nextLong());
+		newWikiNode.setStatusByUserId(RandomTestUtil.nextLong());
 
-		newWikiNode.setStatusByUserName(ServiceTestUtil.randomString());
+		newWikiNode.setStatusByUserName(RandomTestUtil.randomString());
 
-		newWikiNode.setStatusDate(ServiceTestUtil.nextDate());
+		newWikiNode.setStatusDate(RandomTestUtil.nextDate());
 
 		_persistence.update(newWikiNode);
 
@@ -216,7 +217,7 @@ public class WikiNodePersistenceTest {
 	public void testCountByUUID_G() {
 		try {
 			_persistence.countByUUID_G(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByUUID_G(StringPool.NULL, 0L);
 
@@ -231,7 +232,7 @@ public class WikiNodePersistenceTest {
 	public void testCountByUuid_C() {
 		try {
 			_persistence.countByUuid_C(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByUuid_C(StringPool.NULL, 0L);
 
@@ -245,7 +246,7 @@ public class WikiNodePersistenceTest {
 	@Test
 	public void testCountByGroupId() {
 		try {
-			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+			_persistence.countByGroupId(RandomTestUtil.nextLong());
 
 			_persistence.countByGroupId(0L);
 		}
@@ -257,7 +258,7 @@ public class WikiNodePersistenceTest {
 	@Test
 	public void testCountByCompanyId() {
 		try {
-			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+			_persistence.countByCompanyId(RandomTestUtil.nextLong());
 
 			_persistence.countByCompanyId(0L);
 		}
@@ -269,7 +270,7 @@ public class WikiNodePersistenceTest {
 	@Test
 	public void testCountByG_N() {
 		try {
-			_persistence.countByG_N(ServiceTestUtil.nextLong(), StringPool.BLANK);
+			_persistence.countByG_N(RandomTestUtil.nextLong(), StringPool.BLANK);
 
 			_persistence.countByG_N(0L, StringPool.NULL);
 
@@ -283,8 +284,8 @@ public class WikiNodePersistenceTest {
 	@Test
 	public void testCountByG_S() {
 		try {
-			_persistence.countByG_S(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextInt());
+			_persistence.countByG_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
 
 			_persistence.countByG_S(0L, 0);
 		}
@@ -296,8 +297,8 @@ public class WikiNodePersistenceTest {
 	@Test
 	public void testCountByC_S() {
 		try {
-			_persistence.countByC_S(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextInt());
+			_persistence.countByC_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
 
 			_persistence.countByC_S(0L, 0);
 		}
@@ -317,7 +318,7 @@ public class WikiNodePersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -350,7 +351,7 @@ public class WikiNodePersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<WikiNode> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("WikiNode", "uuid", true,
 			"nodeId", true, "groupId", true, "companyId", true, "userId", true,
 			"userName", true, "createDate", true, "modifiedDate", true, "name",
@@ -369,11 +370,93 @@ public class WikiNodePersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		WikiNode missingWikiNode = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingWikiNode);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		WikiNode newWikiNode1 = addWikiNode();
+		WikiNode newWikiNode2 = addWikiNode();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newWikiNode1.getPrimaryKey());
+		primaryKeys.add(newWikiNode2.getPrimaryKey());
+
+		Map<Serializable, WikiNode> wikiNodes = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, wikiNodes.size());
+		Assert.assertEquals(newWikiNode1,
+			wikiNodes.get(newWikiNode1.getPrimaryKey()));
+		Assert.assertEquals(newWikiNode2,
+			wikiNodes.get(newWikiNode2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, WikiNode> wikiNodes = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(wikiNodes.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		WikiNode newWikiNode = addWikiNode();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newWikiNode.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, WikiNode> wikiNodes = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, wikiNodes.size());
+		Assert.assertEquals(newWikiNode,
+			wikiNodes.get(newWikiNode.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, WikiNode> wikiNodes = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(wikiNodes.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		WikiNode newWikiNode = addWikiNode();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newWikiNode.getPrimaryKey());
+
+		Map<Serializable, WikiNode> wikiNodes = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, wikiNodes.size());
+		Assert.assertEquals(newWikiNode,
+			wikiNodes.get(newWikiNode.getPrimaryKey()));
 	}
 
 	@Test
@@ -424,7 +507,7 @@ public class WikiNodePersistenceTest {
 				WikiNode.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("nodeId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<WikiNode> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -463,7 +546,7 @@ public class WikiNodePersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("nodeId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("nodeId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -496,37 +579,37 @@ public class WikiNodePersistenceTest {
 	}
 
 	protected WikiNode addWikiNode() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		WikiNode wikiNode = _persistence.create(pk);
 
-		wikiNode.setUuid(ServiceTestUtil.randomString());
+		wikiNode.setUuid(RandomTestUtil.randomString());
 
-		wikiNode.setGroupId(ServiceTestUtil.nextLong());
+		wikiNode.setGroupId(RandomTestUtil.nextLong());
 
-		wikiNode.setCompanyId(ServiceTestUtil.nextLong());
+		wikiNode.setCompanyId(RandomTestUtil.nextLong());
 
-		wikiNode.setUserId(ServiceTestUtil.nextLong());
+		wikiNode.setUserId(RandomTestUtil.nextLong());
 
-		wikiNode.setUserName(ServiceTestUtil.randomString());
+		wikiNode.setUserName(RandomTestUtil.randomString());
 
-		wikiNode.setCreateDate(ServiceTestUtil.nextDate());
+		wikiNode.setCreateDate(RandomTestUtil.nextDate());
 
-		wikiNode.setModifiedDate(ServiceTestUtil.nextDate());
+		wikiNode.setModifiedDate(RandomTestUtil.nextDate());
 
-		wikiNode.setName(ServiceTestUtil.randomString());
+		wikiNode.setName(RandomTestUtil.randomString());
 
-		wikiNode.setDescription(ServiceTestUtil.randomString());
+		wikiNode.setDescription(RandomTestUtil.randomString());
 
-		wikiNode.setLastPostDate(ServiceTestUtil.nextDate());
+		wikiNode.setLastPostDate(RandomTestUtil.nextDate());
 
-		wikiNode.setStatus(ServiceTestUtil.nextInt());
+		wikiNode.setStatus(RandomTestUtil.nextInt());
 
-		wikiNode.setStatusByUserId(ServiceTestUtil.nextLong());
+		wikiNode.setStatusByUserId(RandomTestUtil.nextLong());
 
-		wikiNode.setStatusByUserName(ServiceTestUtil.randomString());
+		wikiNode.setStatusByUserName(RandomTestUtil.randomString());
 
-		wikiNode.setStatusDate(ServiceTestUtil.nextDate());
+		wikiNode.setStatusDate(RandomTestUtil.nextDate());
 
 		_persistence.update(wikiNode);
 

@@ -20,7 +20,7 @@
 String redirect = ParamUtil.getString(request, "redirect");
 
 String modelResource = ParamUtil.getString(request, "modelResource");
-String modelResourceName = ResourceActionsUtil.getModelResource(pageContext, modelResource);
+String modelResourceName = ResourceActionsUtil.getModelResource(request, modelResource);
 
 ExpandoColumn column = (ExpandoColumn)request.getAttribute(WebKeys.EXPANDO_COLUMN);
 
@@ -76,11 +76,9 @@ portletURL.setParameter("modelResource", modelResource);
 	<aui:fieldset>
 		<c:choose>
 			<c:when test="<%= column != null %>">
-				<aui:field-wrapper helpMessage="custom-field-key-help" label="key">
-					<aui:input name="name" type="hidden" value="<%= column.getName() %>" />
+				<aui:input name="name" type="hidden" value="<%= column.getName() %>" />
 
-					<liferay-ui:input-resource url="<%= column.getName() %>" />
-				</aui:field-wrapper>
+				<aui:input helpMessage="custom-field-key-help" name="key" type="resource" value="<%= column.getName() %>" />
 			</c:when>
 			<c:otherwise>
 				<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" helpMessage="custom-field-key-help" label="key" name="name" />
@@ -89,11 +87,9 @@ portletURL.setParameter("modelResource", modelResource);
 
 		<c:choose>
 			<c:when test="<%= column != null %>">
-				<aui:field-wrapper label="type">
-					<aui:input name="type" type="hidden" value="<%= type %>" />
+				<aui:input name="type" type="hidden" value="<%= type %>" />
 
-					<liferay-ui:input-resource url="<%= LanguageUtil.get(pageContext, ExpandoColumnConstants.getTypeLabel(type)) %>" />
-				</aui:field-wrapper>
+				<aui:input name="type" type="resource" value="<%= LanguageUtil.get(request, ExpandoColumnConstants.getTypeLabel(type)) %>" />
 			</c:when>
 			<c:otherwise>
 				<aui:select helpMessage="custom-field-type-help" name="type">
@@ -285,7 +281,7 @@ portletURL.setParameter("modelResource", modelResource);
 
 <aui:script>
 	function <portlet:namespace />saveExpando(options) {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (column == null) ? Constants.ADD : Constants.UPDATE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= (column == null) ? Constants.ADD : Constants.UPDATE %>';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
@@ -298,5 +294,5 @@ if (column != null) {
 	PortalUtil.addPortletBreadcrumbEntry(request, column.getName(), null);
 }
 
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, ((column == null) ? "add-attribute" : "edit")), currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, ((column == null) ? "add-attribute" : "edit")), currentURL);
 %>

@@ -15,7 +15,6 @@
 package com.liferay.portal.workflow;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.workflow.BaseWorkflowHandler;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -33,7 +32,8 @@ import java.util.Map;
 /**
  * @author Raymond Augé
  */
-public class LayoutRevisionWorkflowHandler extends BaseWorkflowHandler {
+public class LayoutRevisionWorkflowHandler
+	extends BaseWorkflowHandler<LayoutRevision> {
 
 	@Override
 	public String getClassName() {
@@ -46,9 +46,9 @@ public class LayoutRevisionWorkflowHandler extends BaseWorkflowHandler {
 	}
 
 	@Override
-	public Object updateStatus(
+	public LayoutRevision updateStatus(
 			int status, Map<String, Serializable> workflowContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		long userId = GetterUtil.getLong(
 			(String)workflowContext.get(WorkflowConstants.CONTEXT_USER_ID));

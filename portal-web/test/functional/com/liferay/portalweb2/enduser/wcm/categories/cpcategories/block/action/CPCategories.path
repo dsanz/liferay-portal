@@ -40,12 +40,12 @@
 </tr>
 <tr>
 	<td>ALL_VOCABULARIES_CHECKBOX</td>
-	<td>//input[@id='_147_checkAllVocabulariesCheckbox']</td>
+	<td>//input[@id='_147_checkAllVocabularies']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ALL_CATEGORIES_CHECKBOX</td>
-	<td>//input[@id='_147_checkAllCategoriesCheckbox']</td>
+	<td>//input[@id='_147_checkAllCategories']</td>
 	<td></td>
 </tr>
 <tr>
@@ -56,6 +56,11 @@
 <tr>
 	<td>INFO_MESSAGE</td>
 	<td>//div[@id='vocabularyCategoryMessages']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_MESSAGE_ALERT</td>
+	<td>//div[contains(@class,'message-response') and contains(@class,'alert')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -185,7 +190,7 @@
 <!--VOCABULARY_CATEGORY-->
 <tr>
 	<td>VOCABULARY_CATEGORY</td>
-	<td>//div[@id='categoriesTreeContainer']/ul/li[contains(.,'${key_categoryName}')]/div</td>
+	<td>//div[@id='categoriesTreeContainer']/ul/li[contains(.,'${key_categoryName}')]/div/span</td>
 	<td></td>
 </tr>
 <tr>

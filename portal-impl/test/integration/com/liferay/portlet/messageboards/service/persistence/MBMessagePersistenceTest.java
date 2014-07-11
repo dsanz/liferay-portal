@@ -32,12 +32,12 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.messageboards.NoSuchMessageException;
 import com.liferay.portlet.messageboards.model.MBMessage;
@@ -53,6 +53,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -102,7 +103,7 @@ public class MBMessagePersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBMessage mbMessage = _persistence.create(pk);
 
@@ -129,57 +130,57 @@ public class MBMessagePersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBMessage newMBMessage = _persistence.create(pk);
 
-		newMBMessage.setUuid(ServiceTestUtil.randomString());
+		newMBMessage.setUuid(RandomTestUtil.randomString());
 
-		newMBMessage.setGroupId(ServiceTestUtil.nextLong());
+		newMBMessage.setGroupId(RandomTestUtil.nextLong());
 
-		newMBMessage.setCompanyId(ServiceTestUtil.nextLong());
+		newMBMessage.setCompanyId(RandomTestUtil.nextLong());
 
-		newMBMessage.setUserId(ServiceTestUtil.nextLong());
+		newMBMessage.setUserId(RandomTestUtil.nextLong());
 
-		newMBMessage.setUserName(ServiceTestUtil.randomString());
+		newMBMessage.setUserName(RandomTestUtil.randomString());
 
-		newMBMessage.setCreateDate(ServiceTestUtil.nextDate());
+		newMBMessage.setCreateDate(RandomTestUtil.nextDate());
 
-		newMBMessage.setModifiedDate(ServiceTestUtil.nextDate());
+		newMBMessage.setModifiedDate(RandomTestUtil.nextDate());
 
-		newMBMessage.setClassNameId(ServiceTestUtil.nextLong());
+		newMBMessage.setClassNameId(RandomTestUtil.nextLong());
 
-		newMBMessage.setClassPK(ServiceTestUtil.nextLong());
+		newMBMessage.setClassPK(RandomTestUtil.nextLong());
 
-		newMBMessage.setCategoryId(ServiceTestUtil.nextLong());
+		newMBMessage.setCategoryId(RandomTestUtil.nextLong());
 
-		newMBMessage.setThreadId(ServiceTestUtil.nextLong());
+		newMBMessage.setThreadId(RandomTestUtil.nextLong());
 
-		newMBMessage.setRootMessageId(ServiceTestUtil.nextLong());
+		newMBMessage.setRootMessageId(RandomTestUtil.nextLong());
 
-		newMBMessage.setParentMessageId(ServiceTestUtil.nextLong());
+		newMBMessage.setParentMessageId(RandomTestUtil.nextLong());
 
-		newMBMessage.setSubject(ServiceTestUtil.randomString());
+		newMBMessage.setSubject(RandomTestUtil.randomString());
 
-		newMBMessage.setBody(ServiceTestUtil.randomString());
+		newMBMessage.setBody(RandomTestUtil.randomString());
 
-		newMBMessage.setFormat(ServiceTestUtil.randomString());
+		newMBMessage.setFormat(RandomTestUtil.randomString());
 
-		newMBMessage.setAnonymous(ServiceTestUtil.randomBoolean());
+		newMBMessage.setAnonymous(RandomTestUtil.randomBoolean());
 
-		newMBMessage.setPriority(ServiceTestUtil.nextDouble());
+		newMBMessage.setPriority(RandomTestUtil.nextDouble());
 
-		newMBMessage.setAllowPingbacks(ServiceTestUtil.randomBoolean());
+		newMBMessage.setAllowPingbacks(RandomTestUtil.randomBoolean());
 
-		newMBMessage.setAnswer(ServiceTestUtil.randomBoolean());
+		newMBMessage.setAnswer(RandomTestUtil.randomBoolean());
 
-		newMBMessage.setStatus(ServiceTestUtil.nextInt());
+		newMBMessage.setStatus(RandomTestUtil.nextInt());
 
-		newMBMessage.setStatusByUserId(ServiceTestUtil.nextLong());
+		newMBMessage.setStatusByUserId(RandomTestUtil.nextLong());
 
-		newMBMessage.setStatusByUserName(ServiceTestUtil.randomString());
+		newMBMessage.setStatusByUserName(RandomTestUtil.randomString());
 
-		newMBMessage.setStatusDate(ServiceTestUtil.nextDate());
+		newMBMessage.setStatusDate(RandomTestUtil.nextDate());
 
 		_persistence.update(newMBMessage);
 
@@ -256,7 +257,7 @@ public class MBMessagePersistenceTest {
 	public void testCountByUUID_G() {
 		try {
 			_persistence.countByUUID_G(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByUUID_G(StringPool.NULL, 0L);
 
@@ -271,7 +272,7 @@ public class MBMessagePersistenceTest {
 	public void testCountByUuid_C() {
 		try {
 			_persistence.countByUuid_C(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByUuid_C(StringPool.NULL, 0L);
 
@@ -285,7 +286,7 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByGroupId() {
 		try {
-			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+			_persistence.countByGroupId(RandomTestUtil.nextLong());
 
 			_persistence.countByGroupId(0L);
 		}
@@ -297,7 +298,7 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByCompanyId() {
 		try {
-			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+			_persistence.countByCompanyId(RandomTestUtil.nextLong());
 
 			_persistence.countByCompanyId(0L);
 		}
@@ -309,7 +310,7 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByThreadId() {
 		try {
-			_persistence.countByThreadId(ServiceTestUtil.nextLong());
+			_persistence.countByThreadId(RandomTestUtil.nextLong());
 
 			_persistence.countByThreadId(0L);
 		}
@@ -321,7 +322,7 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByThreadReplies() {
 		try {
-			_persistence.countByThreadReplies(ServiceTestUtil.nextLong());
+			_persistence.countByThreadReplies(RandomTestUtil.nextLong());
 
 			_persistence.countByThreadReplies(0L);
 		}
@@ -333,7 +334,7 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByUserId() {
 		try {
-			_persistence.countByUserId(ServiceTestUtil.nextLong());
+			_persistence.countByUserId(RandomTestUtil.nextLong());
 
 			_persistence.countByUserId(0L);
 		}
@@ -345,8 +346,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByG_U() {
 		try {
-			_persistence.countByG_U(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong());
+			_persistence.countByG_U(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
 
 			_persistence.countByG_U(0L, 0L);
 		}
@@ -358,8 +359,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByG_C() {
 		try {
-			_persistence.countByG_C(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong());
+			_persistence.countByG_C(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
 
 			_persistence.countByG_C(0L, 0L);
 		}
@@ -371,8 +372,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByG_S() {
 		try {
-			_persistence.countByG_S(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextInt());
+			_persistence.countByG_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
 
 			_persistence.countByG_S(0L, 0);
 		}
@@ -384,8 +385,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByC_S() {
 		try {
-			_persistence.countByC_S(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextInt());
+			_persistence.countByC_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
 
 			_persistence.countByC_S(0L, 0);
 		}
@@ -397,8 +398,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByU_C() {
 		try {
-			_persistence.countByU_C(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong());
+			_persistence.countByU_C(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
 
 			_persistence.countByU_C(0L, 0L);
 		}
@@ -410,8 +411,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByU_CArrayable() {
 		try {
-			_persistence.countByU_C(ServiceTestUtil.nextLong(),
-				new long[] { ServiceTestUtil.nextLong(), 0L });
+			_persistence.countByU_C(RandomTestUtil.nextLong(),
+				new long[] { RandomTestUtil.nextLong(), 0L });
 		}
 		catch (Exception e) {
 			Assert.fail(e.getMessage());
@@ -421,8 +422,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByC_C() {
 		try {
-			_persistence.countByC_C(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong());
+			_persistence.countByC_C(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
 
 			_persistence.countByC_C(0L, 0L);
 		}
@@ -434,8 +435,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByT_P() {
 		try {
-			_persistence.countByT_P(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong());
+			_persistence.countByT_P(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
 
 			_persistence.countByT_P(0L, 0L);
 		}
@@ -447,10 +448,10 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByT_A() {
 		try {
-			_persistence.countByT_A(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.randomBoolean());
+			_persistence.countByT_A(RandomTestUtil.nextLong(),
+				RandomTestUtil.randomBoolean());
 
-			_persistence.countByT_A(0L, ServiceTestUtil.randomBoolean());
+			_persistence.countByT_A(0L, RandomTestUtil.randomBoolean());
 		}
 		catch (Exception e) {
 			Assert.fail(e.getMessage());
@@ -460,8 +461,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByT_S() {
 		try {
-			_persistence.countByT_S(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextInt());
+			_persistence.countByT_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
 
 			_persistence.countByT_S(0L, 0);
 		}
@@ -473,8 +474,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByTR_S() {
 		try {
-			_persistence.countByTR_S(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextInt());
+			_persistence.countByTR_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
 
 			_persistence.countByTR_S(0L, 0);
 		}
@@ -486,8 +487,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByG_U_S() {
 		try {
-			_persistence.countByG_U_S(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextInt());
+			_persistence.countByG_U_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
 
 			_persistence.countByG_U_S(0L, 0L, 0);
 		}
@@ -499,8 +500,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByG_C_T() {
 		try {
-			_persistence.countByG_C_T(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+			_persistence.countByG_C_T(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
 
 			_persistence.countByG_C_T(0L, 0L, 0L);
 		}
@@ -512,8 +513,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByG_C_S() {
 		try {
-			_persistence.countByG_C_S(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextInt());
+			_persistence.countByG_C_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
 
 			_persistence.countByG_C_S(0L, 0L, 0);
 		}
@@ -525,8 +526,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByU_C_C() {
 		try {
-			_persistence.countByU_C_C(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+			_persistence.countByU_C_C(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
 
 			_persistence.countByU_C_C(0L, 0L, 0L);
 		}
@@ -538,8 +539,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByU_C_S() {
 		try {
-			_persistence.countByU_C_S(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextInt());
+			_persistence.countByU_C_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
 
 			_persistence.countByU_C_S(0L, 0L, 0);
 		}
@@ -551,9 +552,9 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByU_C_SArrayable() {
 		try {
-			_persistence.countByU_C_S(ServiceTestUtil.nextLong(),
-				new long[] { ServiceTestUtil.nextLong(), 0L },
-				ServiceTestUtil.nextInt());
+			_persistence.countByU_C_S(RandomTestUtil.nextLong(),
+				new long[] { RandomTestUtil.nextLong(), 0L },
+				RandomTestUtil.nextInt());
 		}
 		catch (Exception e) {
 			Assert.fail(e.getMessage());
@@ -563,8 +564,8 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByC_C_S() {
 		try {
-			_persistence.countByC_C_S(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextInt());
+			_persistence.countByC_C_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
 
 			_persistence.countByC_C_S(0L, 0L, 0);
 		}
@@ -576,12 +577,12 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByG_C_T_A() {
 		try {
-			_persistence.countByG_C_T_A(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong(),
-				ServiceTestUtil.randomBoolean());
+			_persistence.countByG_C_T_A(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+				RandomTestUtil.randomBoolean());
 
 			_persistence.countByG_C_T_A(0L, 0L, 0L,
-				ServiceTestUtil.randomBoolean());
+				RandomTestUtil.randomBoolean());
 		}
 		catch (Exception e) {
 			Assert.fail(e.getMessage());
@@ -591,9 +592,9 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByG_C_T_S() {
 		try {
-			_persistence.countByG_C_T_S(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextInt());
+			_persistence.countByG_C_T_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
 
 			_persistence.countByG_C_T_S(0L, 0L, 0L, 0);
 		}
@@ -605,9 +606,9 @@ public class MBMessagePersistenceTest {
 	@Test
 	public void testCountByU_C_C_S() {
 		try {
-			_persistence.countByU_C_C_S(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextInt());
+			_persistence.countByU_C_C_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
 
 			_persistence.countByU_C_C_S(0L, 0L, 0L, 0);
 		}
@@ -627,7 +628,7 @@ public class MBMessagePersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -660,7 +661,7 @@ public class MBMessagePersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<MBMessage> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("MBMessage", "uuid", true,
 			"messageId", true, "groupId", true, "companyId", true, "userId",
 			true, "userName", true, "createDate", true, "modifiedDate", true,
@@ -683,11 +684,93 @@ public class MBMessagePersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBMessage missingMBMessage = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingMBMessage);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		MBMessage newMBMessage1 = addMBMessage();
+		MBMessage newMBMessage2 = addMBMessage();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMBMessage1.getPrimaryKey());
+		primaryKeys.add(newMBMessage2.getPrimaryKey());
+
+		Map<Serializable, MBMessage> mbMessages = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, mbMessages.size());
+		Assert.assertEquals(newMBMessage1,
+			mbMessages.get(newMBMessage1.getPrimaryKey()));
+		Assert.assertEquals(newMBMessage2,
+			mbMessages.get(newMBMessage2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, MBMessage> mbMessages = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(mbMessages.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		MBMessage newMBMessage = addMBMessage();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMBMessage.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, MBMessage> mbMessages = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, mbMessages.size());
+		Assert.assertEquals(newMBMessage,
+			mbMessages.get(newMBMessage.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, MBMessage> mbMessages = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(mbMessages.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		MBMessage newMBMessage = addMBMessage();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMBMessage.getPrimaryKey());
+
+		Map<Serializable, MBMessage> mbMessages = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, mbMessages.size());
+		Assert.assertEquals(newMBMessage,
+			mbMessages.get(newMBMessage.getPrimaryKey()));
 	}
 
 	@Test
@@ -738,7 +821,7 @@ public class MBMessagePersistenceTest {
 				MBMessage.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("messageId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<MBMessage> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -777,7 +860,7 @@ public class MBMessagePersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("messageId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("messageId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -804,57 +887,57 @@ public class MBMessagePersistenceTest {
 	}
 
 	protected MBMessage addMBMessage() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBMessage mbMessage = _persistence.create(pk);
 
-		mbMessage.setUuid(ServiceTestUtil.randomString());
+		mbMessage.setUuid(RandomTestUtil.randomString());
 
-		mbMessage.setGroupId(ServiceTestUtil.nextLong());
+		mbMessage.setGroupId(RandomTestUtil.nextLong());
 
-		mbMessage.setCompanyId(ServiceTestUtil.nextLong());
+		mbMessage.setCompanyId(RandomTestUtil.nextLong());
 
-		mbMessage.setUserId(ServiceTestUtil.nextLong());
+		mbMessage.setUserId(RandomTestUtil.nextLong());
 
-		mbMessage.setUserName(ServiceTestUtil.randomString());
+		mbMessage.setUserName(RandomTestUtil.randomString());
 
-		mbMessage.setCreateDate(ServiceTestUtil.nextDate());
+		mbMessage.setCreateDate(RandomTestUtil.nextDate());
 
-		mbMessage.setModifiedDate(ServiceTestUtil.nextDate());
+		mbMessage.setModifiedDate(RandomTestUtil.nextDate());
 
-		mbMessage.setClassNameId(ServiceTestUtil.nextLong());
+		mbMessage.setClassNameId(RandomTestUtil.nextLong());
 
-		mbMessage.setClassPK(ServiceTestUtil.nextLong());
+		mbMessage.setClassPK(RandomTestUtil.nextLong());
 
-		mbMessage.setCategoryId(ServiceTestUtil.nextLong());
+		mbMessage.setCategoryId(RandomTestUtil.nextLong());
 
-		mbMessage.setThreadId(ServiceTestUtil.nextLong());
+		mbMessage.setThreadId(RandomTestUtil.nextLong());
 
-		mbMessage.setRootMessageId(ServiceTestUtil.nextLong());
+		mbMessage.setRootMessageId(RandomTestUtil.nextLong());
 
-		mbMessage.setParentMessageId(ServiceTestUtil.nextLong());
+		mbMessage.setParentMessageId(RandomTestUtil.nextLong());
 
-		mbMessage.setSubject(ServiceTestUtil.randomString());
+		mbMessage.setSubject(RandomTestUtil.randomString());
 
-		mbMessage.setBody(ServiceTestUtil.randomString());
+		mbMessage.setBody(RandomTestUtil.randomString());
 
-		mbMessage.setFormat(ServiceTestUtil.randomString());
+		mbMessage.setFormat(RandomTestUtil.randomString());
 
-		mbMessage.setAnonymous(ServiceTestUtil.randomBoolean());
+		mbMessage.setAnonymous(RandomTestUtil.randomBoolean());
 
-		mbMessage.setPriority(ServiceTestUtil.nextDouble());
+		mbMessage.setPriority(RandomTestUtil.nextDouble());
 
-		mbMessage.setAllowPingbacks(ServiceTestUtil.randomBoolean());
+		mbMessage.setAllowPingbacks(RandomTestUtil.randomBoolean());
 
-		mbMessage.setAnswer(ServiceTestUtil.randomBoolean());
+		mbMessage.setAnswer(RandomTestUtil.randomBoolean());
 
-		mbMessage.setStatus(ServiceTestUtil.nextInt());
+		mbMessage.setStatus(RandomTestUtil.nextInt());
 
-		mbMessage.setStatusByUserId(ServiceTestUtil.nextLong());
+		mbMessage.setStatusByUserId(RandomTestUtil.nextLong());
 
-		mbMessage.setStatusByUserName(ServiceTestUtil.randomString());
+		mbMessage.setStatusByUserName(RandomTestUtil.randomString());
 
-		mbMessage.setStatusDate(ServiceTestUtil.nextDate());
+		mbMessage.setStatusDate(RandomTestUtil.nextDate());
 
 		_persistence.update(mbMessage);
 

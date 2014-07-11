@@ -15,11 +15,9 @@
 package com.liferay.portlet.documentlibrary.model.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
-import com.liferay.portal.security.auth.PrincipalThreadLocal;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil;
@@ -41,7 +39,7 @@ public class DLFileVersionImpl extends DLFileVersionBaseImpl {
 	}
 
 	@Override
-	public String buildTreePath() throws PortalException, SystemException {
+	public String buildTreePath() throws PortalException {
 		DLFolder dlFolder = getFolder();
 
 		return dlFolder.buildTreePath();
@@ -49,11 +47,10 @@ public class DLFileVersionImpl extends DLFileVersionBaseImpl {
 
 	@Override
 	public InputStream getContentStream(boolean incrementCounter)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return DLFileEntryLocalServiceUtil.getFileAsStream(
-			PrincipalThreadLocal.getUserId(), getFileEntryId(), getVersion(),
-			incrementCounter);
+			getFileEntryId(), getVersion(), incrementCounter);
 	}
 
 	@Override
@@ -93,12 +90,12 @@ public class DLFileVersionImpl extends DLFileVersionBaseImpl {
 	}
 
 	@Override
-	public DLFileEntry getFileEntry() throws PortalException, SystemException {
+	public DLFileEntry getFileEntry() throws PortalException {
 		return DLFileEntryLocalServiceUtil.getFileEntry(getFileEntryId());
 	}
 
 	@Override
-	public DLFolder getFolder() throws PortalException, SystemException {
+	public DLFolder getFolder() throws PortalException {
 		if (getFolderId() <= 0) {
 			return new DLFolderImpl();
 		}

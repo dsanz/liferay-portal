@@ -34,12 +34,12 @@ import com.liferay.portal.model.ClassName;
 import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.impl.ClassNameModelImpl;
 import com.liferay.portal.service.ClassNameLocalServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -50,6 +50,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -99,7 +100,7 @@ public class ClassNamePersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ClassName className = _persistence.create(pk);
 
@@ -126,13 +127,13 @@ public class ClassNamePersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ClassName newClassName = _persistence.create(pk);
 
-		newClassName.setMvccVersion(ServiceTestUtil.nextLong());
+		newClassName.setMvccVersion(RandomTestUtil.nextLong());
 
-		newClassName.setValue(ServiceTestUtil.randomString());
+		newClassName.setValue(RandomTestUtil.randomString());
 
 		_persistence.update(newClassName);
 
@@ -171,7 +172,7 @@ public class ClassNamePersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -193,7 +194,7 @@ public class ClassNamePersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<ClassName> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("ClassName_", "mvccVersion",
 			true, "classNameId", true, "value", true);
 	}
@@ -209,11 +210,93 @@ public class ClassNamePersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ClassName missingClassName = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingClassName);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		ClassName newClassName1 = addClassName();
+		ClassName newClassName2 = addClassName();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newClassName1.getPrimaryKey());
+		primaryKeys.add(newClassName2.getPrimaryKey());
+
+		Map<Serializable, ClassName> classNames = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, classNames.size());
+		Assert.assertEquals(newClassName1,
+			classNames.get(newClassName1.getPrimaryKey()));
+		Assert.assertEquals(newClassName2,
+			classNames.get(newClassName2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, ClassName> classNames = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(classNames.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		ClassName newClassName = addClassName();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newClassName.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, ClassName> classNames = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, classNames.size());
+		Assert.assertEquals(newClassName,
+			classNames.get(newClassName.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, ClassName> classNames = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(classNames.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		ClassName newClassName = addClassName();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newClassName.getPrimaryKey());
+
+		Map<Serializable, ClassName> classNames = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, classNames.size());
+		Assert.assertEquals(newClassName,
+			classNames.get(newClassName.getPrimaryKey()));
 	}
 
 	@Test
@@ -264,7 +347,7 @@ public class ClassNamePersistenceTest {
 				ClassName.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("classNameId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<ClassName> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -303,7 +386,7 @@ public class ClassNamePersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("classNameId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("classNameId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -328,13 +411,13 @@ public class ClassNamePersistenceTest {
 	}
 
 	protected ClassName addClassName() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ClassName className = _persistence.create(pk);
 
-		className.setMvccVersion(ServiceTestUtil.nextLong());
+		className.setMvccVersion(RandomTestUtil.nextLong());
 
-		className.setValue(ServiceTestUtil.randomString());
+		className.setValue(RandomTestUtil.randomString());
 
 		_persistence.update(className);
 

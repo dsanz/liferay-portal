@@ -18,6 +18,7 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -44,17 +45,20 @@ public interface PortletPreferencesLocalService extends BaseLocalService,
 	 *
 	 * Never modify or reference this interface directly. Always use {@link PortletPreferencesLocalServiceUtil} to access the portlet preferences local service. Add custom service methods to {@link com.liferay.portal.service.impl.PortletPreferencesLocalServiceImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
+	public com.liferay.portal.model.PortletPreferences addPortletPreferences(
+		long companyId, long ownerId, int ownerType, long plid,
+		java.lang.String portletId, com.liferay.portal.model.Portlet portlet,
+		java.lang.String defaultPreferences);
 
 	/**
 	* Adds the portlet preferences to the database. Also notifies the appropriate model listeners.
 	*
 	* @param portletPreferences the portlet preferences
 	* @return the portlet preferences that was added
-	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
 	public com.liferay.portal.model.PortletPreferences addPortletPreferences(
-		com.liferay.portal.model.PortletPreferences portletPreferences)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.model.PortletPreferences portletPreferences);
 
 	/**
 	* Creates a new portlet preferences with the primary key. Does not add the portlet preferences to the database.
@@ -66,28 +70,42 @@ public interface PortletPreferencesLocalService extends BaseLocalService,
 		long portletPreferencesId);
 
 	/**
-	* Deletes the portlet preferences with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param portletPreferencesId the primary key of the portlet preferences
-	* @return the portlet preferences that was removed
-	* @throws PortalException if a portlet preferences with the primary key could not be found
-	* @throws SystemException if a system exception occurred
+	* @throws PortalException
 	*/
-	public com.liferay.portal.model.PortletPreferences deletePortletPreferences(
-		long portletPreferencesId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+	@Override
+	public com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public void deletePortletPreferences(long ownerId, int ownerType, long plid);
+
+	public void deletePortletPreferences(long ownerId, int ownerType,
+		long plid, java.lang.String portletId)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Deletes the portlet preferences from the database. Also notifies the appropriate model listeners.
 	*
 	* @param portletPreferences the portlet preferences
 	* @return the portlet preferences that was removed
-	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
 	public com.liferay.portal.model.PortletPreferences deletePortletPreferences(
-		com.liferay.portal.model.PortletPreferences portletPreferences)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.model.PortletPreferences portletPreferences);
+
+	/**
+	* Deletes the portlet preferences with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param portletPreferencesId the primary key of the portlet preferences
+	* @return the portlet preferences that was removed
+	* @throws PortalException if a portlet preferences with the primary key could not be found
+	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
+	public com.liferay.portal.model.PortletPreferences deletePortletPreferences(
+		long portletPreferencesId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public void deletePortletPreferencesByPlid(long plid);
 
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery();
 
@@ -96,12 +114,9 @@ public interface PortletPreferencesLocalService extends BaseLocalService,
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery);
 
 	/**
 	* Performs a dynamic query on the database and returns a range of the matching rows.
@@ -114,12 +129,10 @@ public interface PortletPreferencesLocalService extends BaseLocalService,
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException;
+		int end);
 
 	/**
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
@@ -133,25 +146,20 @@ public interface PortletPreferencesLocalService extends BaseLocalService,
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator);
 
 	/**
 	* Returns the number of rows that match the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery);
 
 	/**
 	* Returns the number of rows that match the dynamic query.
@@ -159,17 +167,68 @@ public interface PortletPreferencesLocalService extends BaseLocalService,
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.dao.orm.Projection projection);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.PortletPreferences fetchPortletPreferences(
-		long portletPreferencesId)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long portletPreferencesId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public javax.portlet.PortletPreferences fetchPreferences(long companyId,
+		long ownerId, int ownerType, long plid, java.lang.String portletId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public javax.portlet.PortletPreferences fetchPreferences(
+		com.liferay.portal.model.PortletPreferencesIds portletPreferencesIds);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery();
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public java.lang.String getBeanIdentifier();
+
+	@com.liferay.portal.kernel.spring.aop.Skip
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public javax.portlet.PortletPreferences getDefaultPreferences(
+		long companyId, java.lang.String portletId);
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferences();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferences(
+		long companyId, long groupId, long ownerId, int ownerType,
+		java.lang.String portletId, boolean privateLayout);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferences(
+		long ownerId, int ownerType, long plid);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.model.PortletPreferences getPortletPreferences(
+		long ownerId, int ownerType, long plid, java.lang.String portletId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferences(
+		int ownerType, long plid, java.lang.String portletId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferences(
+		long plid, java.lang.String portletId);
 
 	/**
 	* Returns the portlet preferences with the primary key.
@@ -177,24 +236,32 @@ public interface PortletPreferencesLocalService extends BaseLocalService,
 	* @param portletPreferencesId the primary key of the portlet preferences
 	* @return the portlet preferences
 	* @throws PortalException if a portlet preferences with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.PortletPreferences getPortletPreferences(
 		long portletPreferencesId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferencesByPlid(
+		long plid);
 
-	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+	public long getPortletPreferencesCount(long ownerId, int ownerType,
+		long plid, com.liferay.portal.model.Portlet portlet,
+		boolean excludeDefaultPreferences);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public long getPortletPreferencesCount(long ownerId, int ownerType,
+		java.lang.String portletId, boolean excludeDefaultPreferences);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public long getPortletPreferencesCount(int ownerType, long plid,
+		java.lang.String portletId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public long getPortletPreferencesCount(int ownerType,
+		java.lang.String portletId);
 
 	/**
 	* Returns a range of all the portlet preferenceses.
@@ -206,40 +273,40 @@ public interface PortletPreferencesLocalService extends BaseLocalService,
 	* @param start the lower bound of the range of portlet preferenceses
 	* @param end the upper bound of the range of portlet preferenceses (not inclusive)
 	* @return the range of portlet preferenceses
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferenceses(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		int start, int end);
 
 	/**
 	* Returns the number of portlet preferenceses.
 	*
 	* @return the number of portlet preferenceses
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getPortletPreferencesesCount()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public int getPortletPreferencesesCount();
 
-	/**
-	* Updates the portlet preferences in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param portletPreferences the portlet preferences
-	* @return the portlet preferences that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portal.model.PortletPreferences updatePortletPreferences(
-		com.liferay.portal.model.PortletPreferences portletPreferences)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public javax.portlet.PortletPreferences getPreferences(long companyId,
+		long ownerId, int ownerType, long plid, java.lang.String portletId);
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public javax.portlet.PortletPreferences getPreferences(long companyId,
+		long ownerId, int ownerType, long plid, java.lang.String portletId,
+		java.lang.String defaultPreferences);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public javax.portlet.PortletPreferences getPreferences(
+		com.liferay.portal.model.PortletPreferencesIds portletPreferencesIds);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public javax.portlet.PortletPreferences getStrictPreferences(
+		long companyId, long ownerId, int ownerType, long plid,
+		java.lang.String portletId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public javax.portlet.PortletPreferences getStrictPreferences(
+		com.liferay.portal.model.PortletPreferencesIds portletPreferencesIds);
 
 	/**
 	* Sets the Spring bean ID for this bean.
@@ -248,128 +315,21 @@ public interface PortletPreferencesLocalService extends BaseLocalService,
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
-	public com.liferay.portal.model.PortletPreferences addPortletPreferences(
-		long companyId, long ownerId, int ownerType, long plid,
-		java.lang.String portletId, com.liferay.portal.model.Portlet portlet,
-		java.lang.String defaultPreferences)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	public void deletePortletPreferences(long ownerId, int ownerType, long plid)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	public void deletePortletPreferences(long ownerId, int ownerType,
-		long plid, java.lang.String portletId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public void deletePortletPreferencesByPlid(long plid)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public javax.portlet.PortletPreferences fetchPreferences(long companyId,
-		long ownerId, int ownerType, long plid, java.lang.String portletId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public javax.portlet.PortletPreferences fetchPreferences(
-		com.liferay.portal.model.PortletPreferencesIds portletPreferencesIds)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public javax.portlet.PortletPreferences getDefaultPreferences(
-		long companyId, java.lang.String portletId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferences()
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferences(
-		int ownerType, long plid, java.lang.String portletId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferences(
-		long ownerId, int ownerType, long plid)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.PortletPreferences getPortletPreferences(
-		long ownerId, int ownerType, long plid, java.lang.String portletId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferences(
-		long companyId, long groupId, long ownerId, int ownerType,
-		java.lang.String portletId, boolean privateLayout)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferences(
-		long plid, java.lang.String portletId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portal.model.PortletPreferences> getPortletPreferencesByPlid(
-		long plid) throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public long getPortletPreferencesCount(int ownerType, long plid,
-		java.lang.String portletId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public long getPortletPreferencesCount(int ownerType,
-		java.lang.String portletId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public long getPortletPreferencesCount(long ownerId, int ownerType,
-		long plid, com.liferay.portal.model.Portlet portlet,
-		boolean excludeDefaultPreferences)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public long getPortletPreferencesCount(long ownerId, int ownerType,
-		java.lang.String portletId, boolean excludeDefaultPreferences)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public javax.portlet.PortletPreferences getPreferences(long companyId,
-		long ownerId, int ownerType, long plid, java.lang.String portletId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public javax.portlet.PortletPreferences getPreferences(long companyId,
-		long ownerId, int ownerType, long plid, java.lang.String portletId,
-		java.lang.String defaultPreferences)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public javax.portlet.PortletPreferences getPreferences(
-		com.liferay.portal.model.PortletPreferencesIds portletPreferencesIds)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public javax.portlet.PortletPreferences getStrictPreferences(
-		long companyId, long ownerId, int ownerType, long plid,
-		java.lang.String portletId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public javax.portlet.PortletPreferences getStrictPreferences(
-		com.liferay.portal.model.PortletPreferencesIds portletPreferencesIds)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	/**
+	* Updates the portlet preferences in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param portletPreferences the portlet preferences
+	* @return the portlet preferences that was updated
+	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
+	public com.liferay.portal.model.PortletPreferences updatePortletPreferences(
+		com.liferay.portal.model.PortletPreferences portletPreferences);
 
 	public com.liferay.portal.model.PortletPreferences updatePreferences(
 		long ownerId, int ownerType, long plid, java.lang.String portletId,
-		javax.portlet.PortletPreferences portletPreferences)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		javax.portlet.PortletPreferences portletPreferences);
 
 	public com.liferay.portal.model.PortletPreferences updatePreferences(
 		long ownerId, int ownerType, long plid, java.lang.String portletId,
-		java.lang.String xml)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.lang.String xml);
 }

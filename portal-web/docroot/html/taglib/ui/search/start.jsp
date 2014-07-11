@@ -46,7 +46,7 @@ pageContext.setAttribute("portletURL", portletURL);
 	<liferay-portlet:renderURLParams varImpl="portletURL" />
 
 	<aui:fieldset>
-		<aui:input hideLabel="<%= true %>" inlineField="<%= true %>" label="search" name='<%= namespace + "keywords" %>' size="30" title="search" type="text" useNamespace="<%= false %>" value="<%= HtmlUtil.escapeAttribute(keywords) %>" />
+		<aui:input inlineField="<%= true %>" label="" name='<%= namespace + "keywords" %>' size="30" title="search" type="text" useNamespace="<%= false %>" value="<%= HtmlUtil.escapeAttribute(keywords) %>" />
 
 		<%
 		String taglibOnClick = "Liferay.Util.focusFormField('#" + namespace + "keywords');";
@@ -54,12 +54,19 @@ pageContext.setAttribute("portletURL", portletURL);
 
 		<liferay-ui:quick-access-entry label="skip-to-search" onClick="<%= taglibOnClick %>" />
 
-		<aui:select hideLabel="<%= true %>" inlineField="<%= true %>" label="scope" name='<%= namespace + "groupId" %>' title="scope" useNamespace="<%= false %>">
-			<aui:option label="everything" selected="<%= (groupId == 0) %>" value="0" />
+		<aui:select inlineField="<%= true %>" label="" name='<%= namespace + "groupId" %>' title="scope" useNamespace="<%= false %>">
+			<c:if test="<%= !group.isStagingGroup() %>">
+				<aui:option label="everything" selected="<%= (groupId == 0) %>" value="0" />
+			</c:if>
+
 			<aui:option label='<%= "this-" + (group.isOrganization() ? "organization" : "site") %>' selected="<%= (groupId != 0) %>" value="<%= group.getGroupId() %>" />
 		</aui:select>
 
-		<aui:input inlineField="<%= true %>" name="search" src='<%= themeDisplay.getPathThemeImages() + "/common/search.png" %>' title="search" type="image" />
+		<liferay-ui:icon
+			iconCssClass="icon-search"
+			onClick='<%= randomNamespace + namespace + "search();" %>'
+			url="javascript:;"
+		/>
 	</aui:fieldset>
 
 	<aui:script>

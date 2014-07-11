@@ -60,29 +60,9 @@ StringBundler pageBottomSB = OutputTag.getData(request, WebKeys.PAGE_BOTTOM);
 
 <script src="<%= HtmlUtil.escape(PortalUtil.getStaticResourceURL(request, themeDisplay.getPathThemeJavaScript() + "/main.js")) %>" type="text/javascript"></script>
 
-<c:if test="<%= layout != null %>">
-
-	<%-- User Inputted Layout and LayoutSet JavaScript --%>
-
-	<%
-	LayoutSet layoutSet = themeDisplay.getLayoutSet();
-
-	UnicodeProperties layoutSetSettings = layoutSet.getSettingsProperties();
-
-	UnicodeProperties layoutTypeSettings = layout.getTypeSettingsProperties();
-	%>
-
-	<script type="text/javascript">
-		// <![CDATA[
-			<%= GetterUtil.getString(layoutSetSettings.getProperty("javascript")) %>
-
-			<%= GetterUtil.getString(layoutTypeSettings.getProperty("javascript")) %>
-		// ]]>
-	</script>
-</c:if>
-
 <c:if test="<%= PropsValues.MONITORING_PORTAL_REQUEST %>">
 	<%@ include file="/html/common/themes/bottom_monitoring.jspf" %>
 </c:if>
 
 <liferay-util:include page="/html/common/themes/bottom-ext.jsp" />
+<liferay-util:include page="/html/common/themes/bottom-test.jsp" />

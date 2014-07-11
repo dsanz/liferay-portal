@@ -33,11 +33,11 @@ import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.Phone;
 import com.liferay.portal.service.PhoneLocalServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -48,6 +48,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -97,7 +98,7 @@ public class PhonePersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		Phone phone = _persistence.create(pk);
 
@@ -124,35 +125,35 @@ public class PhonePersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		Phone newPhone = _persistence.create(pk);
 
-		newPhone.setMvccVersion(ServiceTestUtil.nextLong());
+		newPhone.setMvccVersion(RandomTestUtil.nextLong());
 
-		newPhone.setUuid(ServiceTestUtil.randomString());
+		newPhone.setUuid(RandomTestUtil.randomString());
 
-		newPhone.setCompanyId(ServiceTestUtil.nextLong());
+		newPhone.setCompanyId(RandomTestUtil.nextLong());
 
-		newPhone.setUserId(ServiceTestUtil.nextLong());
+		newPhone.setUserId(RandomTestUtil.nextLong());
 
-		newPhone.setUserName(ServiceTestUtil.randomString());
+		newPhone.setUserName(RandomTestUtil.randomString());
 
-		newPhone.setCreateDate(ServiceTestUtil.nextDate());
+		newPhone.setCreateDate(RandomTestUtil.nextDate());
 
-		newPhone.setModifiedDate(ServiceTestUtil.nextDate());
+		newPhone.setModifiedDate(RandomTestUtil.nextDate());
 
-		newPhone.setClassNameId(ServiceTestUtil.nextLong());
+		newPhone.setClassNameId(RandomTestUtil.nextLong());
 
-		newPhone.setClassPK(ServiceTestUtil.nextLong());
+		newPhone.setClassPK(RandomTestUtil.nextLong());
 
-		newPhone.setNumber(ServiceTestUtil.randomString());
+		newPhone.setNumber(RandomTestUtil.randomString());
 
-		newPhone.setExtension(ServiceTestUtil.randomString());
+		newPhone.setExtension(RandomTestUtil.randomString());
 
-		newPhone.setTypeId(ServiceTestUtil.nextInt());
+		newPhone.setTypeId(RandomTestUtil.nextInt());
 
-		newPhone.setPrimary(ServiceTestUtil.randomBoolean());
+		newPhone.setPrimary(RandomTestUtil.randomBoolean());
 
 		_persistence.update(newPhone);
 
@@ -200,7 +201,7 @@ public class PhonePersistenceTest {
 	public void testCountByUuid_C() {
 		try {
 			_persistence.countByUuid_C(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByUuid_C(StringPool.NULL, 0L);
 
@@ -214,7 +215,7 @@ public class PhonePersistenceTest {
 	@Test
 	public void testCountByCompanyId() {
 		try {
-			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+			_persistence.countByCompanyId(RandomTestUtil.nextLong());
 
 			_persistence.countByCompanyId(0L);
 		}
@@ -226,7 +227,7 @@ public class PhonePersistenceTest {
 	@Test
 	public void testCountByUserId() {
 		try {
-			_persistence.countByUserId(ServiceTestUtil.nextLong());
+			_persistence.countByUserId(RandomTestUtil.nextLong());
 
 			_persistence.countByUserId(0L);
 		}
@@ -238,8 +239,8 @@ public class PhonePersistenceTest {
 	@Test
 	public void testCountByC_C() {
 		try {
-			_persistence.countByC_C(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong());
+			_persistence.countByC_C(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
 
 			_persistence.countByC_C(0L, 0L);
 		}
@@ -251,8 +252,8 @@ public class PhonePersistenceTest {
 	@Test
 	public void testCountByC_C_C() {
 		try {
-			_persistence.countByC_C_C(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+			_persistence.countByC_C_C(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
 
 			_persistence.countByC_C_C(0L, 0L, 0L);
 		}
@@ -264,12 +265,12 @@ public class PhonePersistenceTest {
 	@Test
 	public void testCountByC_C_C_P() {
 		try {
-			_persistence.countByC_C_C_P(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong(),
-				ServiceTestUtil.randomBoolean());
+			_persistence.countByC_C_C_P(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+				RandomTestUtil.randomBoolean());
 
 			_persistence.countByC_C_C_P(0L, 0L, 0L,
-				ServiceTestUtil.randomBoolean());
+				RandomTestUtil.randomBoolean());
 		}
 		catch (Exception e) {
 			Assert.fail(e.getMessage());
@@ -287,7 +288,7 @@ public class PhonePersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -309,7 +310,7 @@ public class PhonePersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<Phone> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("Phone", "mvccVersion",
 			true, "uuid", true, "phoneId", true, "companyId", true, "userId",
 			true, "userName", true, "createDate", true, "modifiedDate", true,
@@ -328,11 +329,89 @@ public class PhonePersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		Phone missingPhone = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingPhone);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		Phone newPhone1 = addPhone();
+		Phone newPhone2 = addPhone();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newPhone1.getPrimaryKey());
+		primaryKeys.add(newPhone2.getPrimaryKey());
+
+		Map<Serializable, Phone> phones = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, phones.size());
+		Assert.assertEquals(newPhone1, phones.get(newPhone1.getPrimaryKey()));
+		Assert.assertEquals(newPhone2, phones.get(newPhone2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, Phone> phones = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(phones.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		Phone newPhone = addPhone();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newPhone.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, Phone> phones = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, phones.size());
+		Assert.assertEquals(newPhone, phones.get(newPhone.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, Phone> phones = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(phones.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		Phone newPhone = addPhone();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newPhone.getPrimaryKey());
+
+		Map<Serializable, Phone> phones = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, phones.size());
+		Assert.assertEquals(newPhone, phones.get(newPhone.getPrimaryKey()));
 	}
 
 	@Test
@@ -383,7 +462,7 @@ public class PhonePersistenceTest {
 				Phone.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("phoneId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<Phone> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -422,7 +501,7 @@ public class PhonePersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("phoneId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("phoneId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -430,35 +509,35 @@ public class PhonePersistenceTest {
 	}
 
 	protected Phone addPhone() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		Phone phone = _persistence.create(pk);
 
-		phone.setMvccVersion(ServiceTestUtil.nextLong());
+		phone.setMvccVersion(RandomTestUtil.nextLong());
 
-		phone.setUuid(ServiceTestUtil.randomString());
+		phone.setUuid(RandomTestUtil.randomString());
 
-		phone.setCompanyId(ServiceTestUtil.nextLong());
+		phone.setCompanyId(RandomTestUtil.nextLong());
 
-		phone.setUserId(ServiceTestUtil.nextLong());
+		phone.setUserId(RandomTestUtil.nextLong());
 
-		phone.setUserName(ServiceTestUtil.randomString());
+		phone.setUserName(RandomTestUtil.randomString());
 
-		phone.setCreateDate(ServiceTestUtil.nextDate());
+		phone.setCreateDate(RandomTestUtil.nextDate());
 
-		phone.setModifiedDate(ServiceTestUtil.nextDate());
+		phone.setModifiedDate(RandomTestUtil.nextDate());
 
-		phone.setClassNameId(ServiceTestUtil.nextLong());
+		phone.setClassNameId(RandomTestUtil.nextLong());
 
-		phone.setClassPK(ServiceTestUtil.nextLong());
+		phone.setClassPK(RandomTestUtil.nextLong());
 
-		phone.setNumber(ServiceTestUtil.randomString());
+		phone.setNumber(RandomTestUtil.randomString());
 
-		phone.setExtension(ServiceTestUtil.randomString());
+		phone.setExtension(RandomTestUtil.randomString());
 
-		phone.setTypeId(ServiceTestUtil.nextInt());
+		phone.setTypeId(RandomTestUtil.nextInt());
 
-		phone.setPrimary(ServiceTestUtil.randomBoolean());
+		phone.setPrimary(RandomTestUtil.randomBoolean());
 
 		_persistence.update(phone);
 

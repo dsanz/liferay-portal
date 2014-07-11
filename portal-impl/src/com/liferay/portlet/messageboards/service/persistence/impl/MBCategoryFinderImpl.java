@@ -59,9 +59,8 @@ public class MBCategoryFinderImpl
 
 	@Override
 	public int countByS_G_U_P(
-			long groupId, long userId, long[] parentCategoryIds,
-			QueryDefinition queryDefinition)
-		throws SystemException {
+		long groupId, long userId, long[] parentCategoryIds,
+		QueryDefinition<MBCategory> queryDefinition) {
 
 		return doCountByS_G_U_P(
 			groupId, userId, parentCategoryIds, queryDefinition, false);
@@ -69,9 +68,8 @@ public class MBCategoryFinderImpl
 
 	@Override
 	public int filterCountByS_G_U_P(
-			long groupId, long userId, long[] parentCategoryIds,
-			QueryDefinition queryDefinition)
-		throws SystemException {
+		long groupId, long userId, long[] parentCategoryIds,
+		QueryDefinition<MBCategory> queryDefinition) {
 
 		return doCountByS_G_U_P(
 			groupId, userId, parentCategoryIds, queryDefinition, true);
@@ -79,9 +77,8 @@ public class MBCategoryFinderImpl
 
 	@Override
 	public List<MBCategory> filterFindByS_G_U_P(
-			long groupId, long userId, long[] parentCategoryIds,
-			QueryDefinition queryDefinition)
-		throws SystemException {
+		long groupId, long userId, long[] parentCategoryIds,
+		QueryDefinition<MBCategory> queryDefinition) {
 
 		return doFindByS_G_U_P(
 			groupId, userId, parentCategoryIds, queryDefinition, true);
@@ -89,18 +86,16 @@ public class MBCategoryFinderImpl
 
 	@Override
 	public List<MBCategory> findByS_G_U_P(
-			long groupId, long userId, long[] parentCategoryIds,
-			QueryDefinition queryDefinition)
-		throws SystemException {
+		long groupId, long userId, long[] parentCategoryIds,
+		QueryDefinition<MBCategory> queryDefinition) {
 
 		return doFindByS_G_U_P(
 			groupId, userId, parentCategoryIds, queryDefinition, false);
 	}
 
 	protected int doCountByS_G_U_P(
-			long groupId, long userId, long[] parentCategoryIds,
-			QueryDefinition queryDefinition, boolean inlineSQLHelper)
-		throws SystemException {
+		long groupId, long userId, long[] parentCategoryIds,
+		QueryDefinition<MBCategory> queryDefinition, boolean inlineSQLHelper) {
 
 		Session session = null;
 
@@ -180,9 +175,8 @@ public class MBCategoryFinderImpl
 	}
 
 	protected List<MBCategory> doFindByS_G_U_P(
-			long groupId, long userId, long[] parentCategoryIds,
-			QueryDefinition queryDefinition, boolean inlineSQLHelper)
-		throws SystemException {
+		long groupId, long userId, long[] parentCategoryIds,
+		QueryDefinition<MBCategory> queryDefinition, boolean inlineSQLHelper) {
 
 		Session session = null;
 
@@ -273,7 +267,9 @@ public class MBCategoryFinderImpl
 		}
 	}
 
-	protected String updateSQL(String sql, QueryDefinition queryDefinition) {
+	protected String updateSQL(
+		String sql, QueryDefinition<MBCategory> queryDefinition) {
+
 		if (queryDefinition.getStatus() == WorkflowConstants.STATUS_ANY) {
 			return sql;
 		}

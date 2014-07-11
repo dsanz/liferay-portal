@@ -16,7 +16,6 @@ package com.liferay.portal.webserver;
 
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.webdav.methods.Method;
@@ -31,17 +30,16 @@ import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.service.RoleLocalServiceUtil;
-import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portal.util.RoleTestUtil;
-import com.liferay.portal.util.TestPropsValues;
-import com.liferay.portal.util.UserTestUtil;
+import com.liferay.portal.util.test.RoleTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
+import com.liferay.portal.util.test.UserTestUtil;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 import com.liferay.portlet.documentlibrary.service.permission.DLPermission;
-import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
+import com.liferay.portlet.documentlibrary.util.test.DLAppTestUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,13 +53,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Eduardo Garcia
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class WebServerTrashTest extends BaseWebServerTestCase {
 
 	@Override
@@ -86,14 +79,6 @@ public class WebServerTrashTest extends BaseWebServerTestCase {
 	@Override
 	public void tearDown() throws Exception {
 		super.tearDown();
-
-		if (_user != null) {
-			UserLocalServiceUtil.deleteUser(_user.getUserId());
-		}
-
-		if (_role != null) {
-			RoleLocalServiceUtil.deleteRole(_role.getRoleId());
-		}
 
 		RoleTestUtil.removeResourcePermission(
 			RoleConstants.GUEST, DLPermission.RESOURCE_NAME,
@@ -171,7 +156,10 @@ public class WebServerTrashTest extends BaseWebServerTestCase {
 		return mockHttpServletResponse;
 	}
 
+	@DeleteAfterTestRun
 	private Role _role;
+
+	@DeleteAfterTestRun
 	private User _user;
 
 }

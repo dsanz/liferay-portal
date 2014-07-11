@@ -9,7 +9,6 @@ import aQute.bnd.annotation.ProviderType;
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.AuditedModel;
@@ -17,6 +16,7 @@ import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.LocalizedModel;
 import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.ResourcedModel;
 import com.liferay.portal.model.TrashedModel;
@@ -81,6 +81,10 @@ public interface ${entity.name}Model extends
 		, GroupedModel
 
 		<#assign overrideColumnNames = overrideColumnNames + ["companyId", "createDate", "groupId", "modifiedDate", "userId", "userName", "userUuid"]>
+	</#if>
+
+	<#if entity.isLocalizedModel()>
+		, LocalizedModel
 	</#if>
 
 	<#if entity.isMvccEnabled()>
@@ -324,14 +328,13 @@ public interface ${entity.name}Model extends
 			 * Returns the ${column.userUuidHumanName} of this ${entity.humanName}.
 			 *
 			 * @return the ${column.userUuidHumanName} of this ${entity.humanName}
-			 * @throws SystemException if a system exception occurred
 			 */
 
 			<#if overrideColumnNames?seq_index_of(column.userUuidName) != -1>
 				@Override
 			</#if>
 
-			public String get${column.methodUserUuidName}() throws SystemException;
+			public String get${column.methodUserUuidName}();
 
 			/**
 			 * Sets the ${column.userUuidHumanName} of this ${entity.humanName}.
@@ -362,10 +365,9 @@ public interface ${entity.name}Model extends
 		 * Returns the trash entry created when this ${entity.humanName} was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this ${entity.humanName}.
 		 *
 		 * @return the trash entry created when this ${entity.humanName} was moved to the Recycle Bin
-		 * @throws SystemException if a system exception occurred
 		 */
 		@Override
-		public TrashEntry getTrashEntry() throws PortalException, SystemException;
+		public TrashEntry getTrashEntry() throws PortalException;
 
 		/**
 		 * Returns the class primary key of the trash entry for this ${entity.humanName}.
@@ -395,13 +397,15 @@ public interface ${entity.name}Model extends
 		 * Returns <code>true</code> if the parent of this ${entity.humanName} is in the Recycle Bin.
 		 *
 		 * @return <code>true</code> if the parent of this ${entity.humanName} is in the Recycle Bin; <code>false</code> otherwise
-		 * @throws SystemException if a system exception occurred
 		 */
 		@Override
 		public boolean isInTrashContainer();
 
 		@Override
-		public boolean isInTrashExplicitly() throws SystemException;
+		public boolean isInTrashExplicitly();
+
+		@Override
+		public boolean isInTrashImplicitly();
 	</#if>
 
 	<#if entity.isWorkflowEnabled()>
@@ -561,13 +565,17 @@ public interface ${entity.name}Model extends
 	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
-	<#if entity.hasLocalizedColumn()>
+	<#if entity.isLocalizedModel()>
+		@Override
 		public String[] getAvailableLanguageIds();
 
+		@Override
 		public String getDefaultLanguageId();
 
+		@Override
 		public void prepareLocalizedFieldsForImport() throws LocaleException;
 
+		@Override
 		public void prepareLocalizedFieldsForImport(Locale defaultImportLocale) throws LocaleException;
 	</#if>
 

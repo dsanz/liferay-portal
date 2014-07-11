@@ -21,10 +21,10 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.upload.LiferayFileItemException;
 import com.liferay.portal.kernel.upload.UploadException;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
@@ -50,12 +50,12 @@ import com.liferay.portlet.documentlibrary.FileNameException;
 import com.liferay.portlet.documentlibrary.FileSizeException;
 import com.liferay.portlet.documentlibrary.antivirus.AntivirusScannerException;
 import com.liferay.portlet.messageboards.LockedThreadException;
+import com.liferay.portlet.messageboards.MBSettings;
 import com.liferay.portlet.messageboards.MessageBodyException;
 import com.liferay.portlet.messageboards.MessageSubjectException;
 import com.liferay.portlet.messageboards.NoSuchMessageException;
 import com.liferay.portlet.messageboards.RequiredMessageException;
 import com.liferay.portlet.messageboards.model.MBMessage;
-import com.liferay.portlet.messageboards.model.MBMessageConstants;
 import com.liferay.portlet.messageboards.service.MBMessageServiceUtil;
 import com.liferay.portlet.messageboards.service.MBThreadLocalServiceUtil;
 import com.liferay.portlet.messageboards.service.MBThreadServiceUtil;
@@ -69,7 +69,6 @@ import java.util.List;
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletConfig;
-import javax.portlet.PortletPreferences;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
@@ -103,7 +102,10 @@ public class EditMessageAction extends PortletAction {
 					WebKeys.UPLOAD_EXCEPTION);
 
 			if (uploadException != null) {
-				if (uploadException.isExceededSizeLimit()) {
+				if (uploadException.isExceededLiferayFileItemSizeLimit()) {
+					throw new LiferayFileItemException();
+				}
+				else if (uploadException.isExceededSizeLimit()) {
 					throw new FileSizeException(uploadException.getCause());
 				}
 
@@ -165,6 +167,7 @@ public class EditMessageAction extends PortletAction {
 					 e instanceof FileExtensionException ||
 					 e instanceof FileNameException ||
 					 e instanceof FileSizeException ||
+					 e instanceof LiferayFileItemException ||
 					 e instanceof LockedThreadException ||
 					 e instanceof MessageBodyException ||
 					 e instanceof MessageSubjectException ||
@@ -347,8 +350,6 @@ public class EditMessageAction extends PortletAction {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		PortletPreferences portletPreferences = actionRequest.getPreferences();
-
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -362,9 +363,7 @@ public class EditMessageAction extends PortletAction {
 		String subject = ParamUtil.getString(actionRequest, "subject");
 		String body = ParamUtil.getString(actionRequest, "body");
 
-		String format = GetterUtil.getString(
-			portletPreferences.getValue("messageFormat", null),
-			MBMessageConstants.DEFAULT_FORMAT);
+		MBSettings mbSettings = MBSettings.getInstance(groupId);
 
 		List<ObjectValuePair<String, InputStream>> inputStreamOVPs =
 			new ArrayList<ObjectValuePair<String, InputStream>>(5);
@@ -418,9 +417,9 @@ public class EditMessageAction extends PortletAction {
 					// Post new thread
 
 					message = MBMessageServiceUtil.addMessage(
-						groupId, categoryId, subject, body, format,
-						inputStreamOVPs, anonymous, priority, allowPingbacks,
-						serviceContext);
+						groupId, categoryId, subject, body,
+						mbSettings.getMessageFormat(), inputStreamOVPs,
+						anonymous, priority, allowPingbacks, serviceContext);
 
 					if (question) {
 						MBThreadLocalServiceUtil.updateQuestion(
@@ -432,7 +431,8 @@ public class EditMessageAction extends PortletAction {
 					// Post reply
 
 					message = MBMessageServiceUtil.addMessage(
-						parentMessageId, subject, body, format, inputStreamOVPs,
+						parentMessageId, subject, body,
+						mbSettings.getMessageFormat(), inputStreamOVPs,
 						anonymous, priority, allowPingbacks, serviceContext);
 				}
 			}

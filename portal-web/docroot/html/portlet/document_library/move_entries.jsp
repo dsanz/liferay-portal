@@ -109,17 +109,22 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<c:if test="<%= !validMoveFolders.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-folders-ready-to-be-moved", validMoveFolders.size(), false) %></h4>
+			<h4><%= LanguageUtil.format(request, "x-folders-ready-to-be-moved", validMoveFolders.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
-			<ul class="unstyled">
+			<ul class="list-unstyled">
 
 				<%
 				for (Folder folder : validMoveFolders) {
+					AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(DLFolder.class.getName());
+
+					AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(folder.getFolderId());
 				%>
 
 					<li class="move-folder">
+						<i class="<%= assetRenderer.getIconCssClass() %>"></i>
+
 						<span class="folder-title">
 							<%= HtmlUtil.escape(folder.getName()) %>
 						</span>
@@ -135,17 +140,22 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<c:if test="<%= !invalidMoveFolders.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-folders-cannot-be-moved", invalidMoveFolders.size(), false) %></h4>
+			<h4><%= LanguageUtil.format(request, "x-folders-cannot-be-moved", invalidMoveFolders.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
-			<ul class="unstyled">
+			<ul class="list-unstyled">
 
 				<%
 				for (Folder folder : invalidMoveFolders) {
+					AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(DLFolder.class.getName());
+
+					AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(folder.getFolderId());
 				%>
 
-					<li class="move-error move-folder">
+					<li class="icon-warning-sign move-error move-folder">
+						<i class="<%= assetRenderer.getIconCssClass() %>"></i>
+
 						<span class="folder-title">
 							<%= HtmlUtil.escape(folder.getName()) %>
 						</span>
@@ -153,10 +163,10 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 						<span class="error-message">
 							<c:choose>
 								<c:when test="<%= folder.isLocked() && !folder.hasLock() %>">
-									<%= LanguageUtil.get(pageContext, "you-cannot-modify-this-folder-because-it-was-locked") %>
+									<%= LanguageUtil.get(request, "you-cannot-modify-this-folder-because-it-was-locked") %>
 								</c:when>
 								<c:otherwise>
-									<%= LanguageUtil.get(pageContext, "you-do-not-have-the-required-permissions") %>
+									<%= LanguageUtil.get(request, "you-do-not-have-the-required-permissions") %>
 								</c:otherwise>
 							</c:choose>
 						</span>
@@ -174,17 +184,22 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<c:if test="<%= !validMoveFileEntries.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-files-ready-to-be-moved", validMoveFileEntries.size(), false) %></h4>
+			<h4><%= LanguageUtil.format(request, "x-files-ready-to-be-moved", validMoveFileEntries.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
-			<ul class="unstyled">
+			<ul class="list-unstyled">
 
 				<%
 				for (FileEntry validMoveFileEntry : validMoveFileEntries) {
+					AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(DLFileEntry.class.getName());
+
+					AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(validMoveFileEntry.getFileEntryId());
 				%>
 
 					<li class="move-file">
+						<i class="<%= assetRenderer.getIconCssClass() %>"></i>
+
 						<span class="file-title" title="<%= HtmlUtil.escapeAttribute(validMoveFileEntry.getTitle()) %>">
 							<%= HtmlUtil.escape(validMoveFileEntry.getTitle()) %>
 						</span>
@@ -200,18 +215,24 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<c:if test="<%= !invalidMoveFileEntries.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-files-cannot-be-moved", invalidMoveFileEntries.size(), false) %></h4>
+			<h4><%= LanguageUtil.format(request, "x-files-cannot-be-moved", invalidMoveFileEntries.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
-			<ul class="unstyled">
+			<ul class="list-unstyled">
 
 				<%
 				for (FileEntry invalidMoveFileEntry : invalidMoveFileEntries) {
+					AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(DLFileEntry.class.getName());
+
+					AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(invalidMoveFileEntry.getFileEntryId());
+
 					Lock lock = invalidMoveFileEntry.getLock();
 				%>
 
-					<li class="move-error move-file">
+					<li class="icon-warning-sign move-error move-file">
+						<i class="<%= assetRenderer.getIconCssClass() %>"></i>
+
 						<span class="file-title" title="<%= HtmlUtil.escapeAttribute(invalidMoveFileEntry.getTitle()) %>">
 							<%= HtmlUtil.escape(invalidMoveFileEntry.getTitle()) %>
 						</span>
@@ -219,10 +240,10 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 						<span class="error-message">
 							<c:choose>
 								<c:when test="<%= invalidMoveFileEntry.isCheckedOut() && !invalidMoveFileEntry.hasLock() %>">
-									<%= LanguageUtil.format(pageContext, "you-cannot-modify-this-document-because-it-was-checked-out-by-x-on-x", new Object[] {HtmlUtil.escape(PortalUtil.getUserName(lock.getUserId(), String.valueOf(lock.getUserId()))), dateFormatDateTime.format(lock.getCreateDate())}, false) %>
+									<%= LanguageUtil.format(request, "you-cannot-modify-this-document-because-it-was-checked-out-by-x-on-x", new Object[] {HtmlUtil.escape(PortalUtil.getUserName(lock.getUserId(), String.valueOf(lock.getUserId()))), dateFormatDateTime.format(lock.getCreateDate())}, false) %>
 								</c:when>
 								<c:otherwise>
-									<%= LanguageUtil.get(pageContext, "you-do-not-have-the-required-permissions") %>
+									<%= LanguageUtil.get(request, "you-do-not-have-the-required-permissions") %>
 								</c:otherwise>
 							</c:choose>
 						</span>
@@ -240,11 +261,11 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<c:if test="<%= !validShortcutEntries.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-shortcuts-ready-to-be-moved", validShortcutEntries.size(), false) %></h4>
+			<h4><%= LanguageUtil.format(request, "x-shortcuts-ready-to-be-moved", validShortcutEntries.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
-			<ul class="unstyled">
+			<ul class="list-unstyled">
 
 				<%
 				for (DLFileShortcut fileShortcut : validShortcutEntries) {
@@ -266,11 +287,11 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<c:if test="<%= !invalidShortcutEntries.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-shortcuts-cannot-be-moved", invalidShortcutEntries.size(), false) %></h4>
+			<h4><%= LanguageUtil.format(request, "x-shortcuts-cannot-be-moved", invalidShortcutEntries.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
-			<ul class="unstyled">
+			<ul class="list-unstyled">
 
 				<%
 				for (DLFileShortcut fileShortcut : invalidShortcutEntries) {
@@ -282,7 +303,7 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 						</span>
 
 						<span class="error-message">
-							<%= LanguageUtil.get(pageContext, "you-do-not-have-the-required-permissions") %>
+							<%= LanguageUtil.get(request, "you-do-not-have-the-required-permissions") %>
 						</span>
 					</li>
 
@@ -309,17 +330,15 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 			folderName = folder.getName();
 		}
 		else {
-			folderName = LanguageUtil.get(pageContext, "home");
+			folderName = LanguageUtil.get(request, "home");
 		}
 		%>
 
-		<aui:field-wrapper label="new-folder">
-			<div class="input-append">
-				<liferay-ui:input-resource id="folderName" label="new-folder" url="<%= folderName %>" />
+		<div class="form-group">
+			<aui:input label="new-folder" name="folderName" type="resource" value="<%= folderName %>" />
 
-				<aui:button name="selectFolderButton" value="select" />
-			</div>
-		</aui:field-wrapper>
+			<aui:button name="selectFolderButton" value="select" />
+		</div>
 
 		<aui:button-row>
 			<aui:button type="submit" value="move" />
@@ -328,11 +347,6 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 		</aui:button-row>
 	</aui:fieldset>
 </aui:form>
-
-<portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-	<portlet:param name="struts_action" value="/document_library/select_folder" />
-	<portlet:param name="folderId" value="<%= String.valueOf(newFolderId) %>" />
-</portlet:renderURL>
 
 <aui:script use="aui-base">
 	A.one('#<portlet:namespace />selectFolderButton').on(
@@ -347,6 +361,12 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 					},
 					id: '<portlet:namespace />selectFolder',
 					title: '<liferay-ui:message arguments="folder" key="select-x" />',
+
+					<portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+						<portlet:param name="struts_action" value="/document_library/select_folder" />
+						<portlet:param name="folderId" value="<%= String.valueOf(newFolderId) %>" />
+					</portlet:renderURL>
+
 					uri: '<%= selectFolderURL.toString() %>'
 				},
 				function(event) {
@@ -371,5 +391,5 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 </aui:script>
 
 <%
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "move-files"), currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "move-files"), currentURL);
 %>

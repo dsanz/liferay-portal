@@ -157,6 +157,10 @@ public class BaseSearchEngine implements SearchEngine {
 	}
 
 	@Override
+	public void initialize(long companyId) {
+	}
+
+	@Override
 	public boolean isClusteredWrite() {
 		return _clusteredWrite;
 	}
@@ -164,6 +168,10 @@ public class BaseSearchEngine implements SearchEngine {
 	@Override
 	public boolean isLuceneBased() {
 		return _luceneBased;
+	}
+
+	@Override
+	public void removeCompany(long companyId) {
 	}
 
 	public void setBooleanClauseFactory(

@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -45,7 +44,11 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -100,10 +103,9 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 *
 	 * @param size the size
 	 * @return the matching images
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Image> findByLtSize(int size) throws SystemException {
+	public List<Image> findByLtSize(int size) {
 		return findByLtSize(size, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -118,11 +120,9 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param start the lower bound of the range of images
 	 * @param end the upper bound of the range of images (not inclusive)
 	 * @return the range of matching images
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Image> findByLtSize(int size, int start, int end)
-		throws SystemException {
+	public List<Image> findByLtSize(int size, int start, int end) {
 		return findByLtSize(size, start, end, null);
 	}
 
@@ -138,11 +138,10 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param end the upper bound of the range of images (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching images
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Image> findByLtSize(int size, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Image> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -237,12 +236,10 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching image
 	 * @throws com.liferay.portal.NoSuchImageException if a matching image could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Image findByLtSize_First(int size,
-		OrderByComparator orderByComparator)
-		throws NoSuchImageException, SystemException {
+		OrderByComparator<Image> orderByComparator) throws NoSuchImageException {
 		Image image = fetchByLtSize_First(size, orderByComparator);
 
 		if (image != null) {
@@ -267,11 +264,10 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param size the size
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching image, or <code>null</code> if a matching image could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Image fetchByLtSize_First(int size,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Image> orderByComparator) {
 		List<Image> list = findByLtSize(size, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -288,11 +284,10 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching image
 	 * @throws com.liferay.portal.NoSuchImageException if a matching image could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Image findByLtSize_Last(int size, OrderByComparator orderByComparator)
-		throws NoSuchImageException, SystemException {
+	public Image findByLtSize_Last(int size,
+		OrderByComparator<Image> orderByComparator) throws NoSuchImageException {
 		Image image = fetchByLtSize_Last(size, orderByComparator);
 
 		if (image != null) {
@@ -317,11 +312,10 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param size the size
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching image, or <code>null</code> if a matching image could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Image fetchByLtSize_Last(int size,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Image> orderByComparator) {
 		int count = countByLtSize(size);
 
 		if (count == 0) {
@@ -346,12 +340,10 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next image
 	 * @throws com.liferay.portal.NoSuchImageException if a image with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Image[] findByLtSize_PrevAndNext(long imageId, int size,
-		OrderByComparator orderByComparator)
-		throws NoSuchImageException, SystemException {
+		OrderByComparator<Image> orderByComparator) throws NoSuchImageException {
 		Image image = findByPrimaryKey(imageId);
 
 		Session session = null;
@@ -380,7 +372,7 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	}
 
 	protected Image getByLtSize_PrevAndNext(Session session, Image image,
-		int size, OrderByComparator orderByComparator, boolean previous) {
+		int size, OrderByComparator<Image> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -487,10 +479,9 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * Removes all the images where size &lt; &#63; from the database.
 	 *
 	 * @param size the size
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByLtSize(int size) throws SystemException {
+	public void removeByLtSize(int size) {
 		for (Image image : findByLtSize(size, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null)) {
 			remove(image);
@@ -502,10 +493,9 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 *
 	 * @param size the size
 	 * @return the number of matching images
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByLtSize(int size) throws SystemException {
+	public int countByLtSize(int size) {
 		FinderPath finderPath = FINDER_PATH_WITH_PAGINATION_COUNT_BY_LTSIZE;
 
 		Object[] finderArgs = new Object[] { size };
@@ -656,11 +646,9 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param imageId the primary key of the image
 	 * @return the image that was removed
 	 * @throws com.liferay.portal.NoSuchImageException if a image with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Image remove(long imageId)
-		throws NoSuchImageException, SystemException {
+	public Image remove(long imageId) throws NoSuchImageException {
 		return remove((Serializable)imageId);
 	}
 
@@ -670,11 +658,9 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param primaryKey the primary key of the image
 	 * @return the image that was removed
 	 * @throws com.liferay.portal.NoSuchImageException if a image with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Image remove(Serializable primaryKey)
-		throws NoSuchImageException, SystemException {
+	public Image remove(Serializable primaryKey) throws NoSuchImageException {
 		Session session = null;
 
 		try {
@@ -705,7 +691,7 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	}
 
 	@Override
-	protected Image removeImpl(Image image) throws SystemException {
+	protected Image removeImpl(Image image) {
 		image = toUnwrappedModel(image);
 
 		Session session = null;
@@ -737,8 +723,7 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	}
 
 	@Override
-	public Image updateImpl(com.liferay.portal.model.Image image)
-		throws SystemException {
+	public Image updateImpl(com.liferay.portal.model.Image image) {
 		image = toUnwrappedModel(image);
 
 		boolean isNew = image.isNew();
@@ -805,11 +790,10 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param primaryKey the primary key of the image
 	 * @return the image
 	 * @throws com.liferay.portal.NoSuchImageException if a image with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Image findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchImageException, SystemException {
+		throws NoSuchImageException {
 		Image image = fetchByPrimaryKey(primaryKey);
 
 		if (image == null) {
@@ -830,11 +814,9 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param imageId the primary key of the image
 	 * @return the image
 	 * @throws com.liferay.portal.NoSuchImageException if a image with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Image findByPrimaryKey(long imageId)
-		throws NoSuchImageException, SystemException {
+	public Image findByPrimaryKey(long imageId) throws NoSuchImageException {
 		return findByPrimaryKey((Serializable)imageId);
 	}
 
@@ -843,11 +825,9 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 *
 	 * @param primaryKey the primary key of the image
 	 * @return the image, or <code>null</code> if a image with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Image fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public Image fetchByPrimaryKey(Serializable primaryKey) {
 		Image image = (Image)EntityCacheUtil.getResult(ImageModelImpl.ENTITY_CACHE_ENABLED,
 				ImageImpl.class, primaryKey);
 
@@ -890,21 +870,111 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 *
 	 * @param imageId the primary key of the image
 	 * @return the image, or <code>null</code> if a image with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Image fetchByPrimaryKey(long imageId) throws SystemException {
+	public Image fetchByPrimaryKey(long imageId) {
 		return fetchByPrimaryKey((Serializable)imageId);
+	}
+
+	@Override
+	public Map<Serializable, Image> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, Image> map = new HashMap<Serializable, Image>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			Image image = fetchByPrimaryKey(primaryKey);
+
+			if (image != null) {
+				map.put(primaryKey, image);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			Image image = (Image)EntityCacheUtil.getResult(ImageModelImpl.ENTITY_CACHE_ENABLED,
+					ImageImpl.class, primaryKey);
+
+			if (image == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, image);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_IMAGE_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (Image image : (List<Image>)q.list()) {
+				map.put(image.getPrimaryKeyObj(), image);
+
+				cacheResult(image);
+
+				uncachedPrimaryKeys.remove(image.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(ImageModelImpl.ENTITY_CACHE_ENABLED,
+					ImageImpl.class, primaryKey, _nullImage);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the images.
 	 *
 	 * @return the images
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Image> findAll() throws SystemException {
+	public List<Image> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -918,10 +988,9 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param start the lower bound of the range of images
 	 * @param end the upper bound of the range of images (not inclusive)
 	 * @return the range of images
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Image> findAll(int start, int end) throws SystemException {
+	public List<Image> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -936,11 +1005,10 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * @param end the upper bound of the range of images (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of images
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Image> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Image> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1022,10 +1090,9 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	/**
 	 * Removes all the images from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (Image image : findAll()) {
 			remove(image);
 		}
@@ -1035,10 +1102,9 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	 * Returns the number of images.
 	 *
 	 * @return the number of images
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -1107,6 +1173,7 @@ public class ImagePersistenceImpl extends BasePersistenceImpl<Image>
 	}
 
 	private static final String _SQL_SELECT_IMAGE = "SELECT image FROM Image image";
+	private static final String _SQL_SELECT_IMAGE_WHERE_PKS_IN = "SELECT image FROM Image image WHERE imageId IN (";
 	private static final String _SQL_SELECT_IMAGE_WHERE = "SELECT image FROM Image image WHERE ";
 	private static final String _SQL_COUNT_IMAGE = "SELECT COUNT(image) FROM Image image";
 	private static final String _SQL_COUNT_IMAGE_WHERE = "SELECT COUNT(image) FROM Image image WHERE ";

@@ -35,12 +35,12 @@ import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.RepositoryEntry;
 import com.liferay.portal.model.impl.RepositoryEntryModelImpl;
 import com.liferay.portal.service.RepositoryEntryLocalServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -51,6 +51,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,7 +101,7 @@ public class RepositoryEntryPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		RepositoryEntry repositoryEntry = _persistence.create(pk);
 
@@ -127,31 +128,31 @@ public class RepositoryEntryPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		RepositoryEntry newRepositoryEntry = _persistence.create(pk);
 
-		newRepositoryEntry.setMvccVersion(ServiceTestUtil.nextLong());
+		newRepositoryEntry.setMvccVersion(RandomTestUtil.nextLong());
 
-		newRepositoryEntry.setUuid(ServiceTestUtil.randomString());
+		newRepositoryEntry.setUuid(RandomTestUtil.randomString());
 
-		newRepositoryEntry.setGroupId(ServiceTestUtil.nextLong());
+		newRepositoryEntry.setGroupId(RandomTestUtil.nextLong());
 
-		newRepositoryEntry.setCompanyId(ServiceTestUtil.nextLong());
+		newRepositoryEntry.setCompanyId(RandomTestUtil.nextLong());
 
-		newRepositoryEntry.setUserId(ServiceTestUtil.nextLong());
+		newRepositoryEntry.setUserId(RandomTestUtil.nextLong());
 
-		newRepositoryEntry.setUserName(ServiceTestUtil.randomString());
+		newRepositoryEntry.setUserName(RandomTestUtil.randomString());
 
-		newRepositoryEntry.setCreateDate(ServiceTestUtil.nextDate());
+		newRepositoryEntry.setCreateDate(RandomTestUtil.nextDate());
 
-		newRepositoryEntry.setModifiedDate(ServiceTestUtil.nextDate());
+		newRepositoryEntry.setModifiedDate(RandomTestUtil.nextDate());
 
-		newRepositoryEntry.setRepositoryId(ServiceTestUtil.nextLong());
+		newRepositoryEntry.setRepositoryId(RandomTestUtil.nextLong());
 
-		newRepositoryEntry.setMappedId(ServiceTestUtil.randomString());
+		newRepositoryEntry.setMappedId(RandomTestUtil.randomString());
 
-		newRepositoryEntry.setManualCheckInRequired(ServiceTestUtil.randomBoolean());
+		newRepositoryEntry.setManualCheckInRequired(RandomTestUtil.randomBoolean());
 
 		_persistence.update(newRepositoryEntry);
 
@@ -203,7 +204,7 @@ public class RepositoryEntryPersistenceTest {
 	public void testCountByUUID_G() {
 		try {
 			_persistence.countByUUID_G(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByUUID_G(StringPool.NULL, 0L);
 
@@ -218,7 +219,7 @@ public class RepositoryEntryPersistenceTest {
 	public void testCountByUuid_C() {
 		try {
 			_persistence.countByUuid_C(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByUuid_C(StringPool.NULL, 0L);
 
@@ -232,7 +233,7 @@ public class RepositoryEntryPersistenceTest {
 	@Test
 	public void testCountByRepositoryId() {
 		try {
-			_persistence.countByRepositoryId(ServiceTestUtil.nextLong());
+			_persistence.countByRepositoryId(RandomTestUtil.nextLong());
 
 			_persistence.countByRepositoryId(0L);
 		}
@@ -244,7 +245,7 @@ public class RepositoryEntryPersistenceTest {
 	@Test
 	public void testCountByR_M() {
 		try {
-			_persistence.countByR_M(ServiceTestUtil.nextLong(), StringPool.BLANK);
+			_persistence.countByR_M(RandomTestUtil.nextLong(), StringPool.BLANK);
 
 			_persistence.countByR_M(0L, StringPool.NULL);
 
@@ -266,7 +267,7 @@ public class RepositoryEntryPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -289,7 +290,7 @@ public class RepositoryEntryPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<RepositoryEntry> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("RepositoryEntry",
 			"mvccVersion", true, "uuid", true, "repositoryEntryId", true,
 			"groupId", true, "companyId", true, "userId", true, "userName",
@@ -308,11 +309,93 @@ public class RepositoryEntryPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		RepositoryEntry missingRepositoryEntry = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingRepositoryEntry);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		RepositoryEntry newRepositoryEntry1 = addRepositoryEntry();
+		RepositoryEntry newRepositoryEntry2 = addRepositoryEntry();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newRepositoryEntry1.getPrimaryKey());
+		primaryKeys.add(newRepositoryEntry2.getPrimaryKey());
+
+		Map<Serializable, RepositoryEntry> repositoryEntries = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, repositoryEntries.size());
+		Assert.assertEquals(newRepositoryEntry1,
+			repositoryEntries.get(newRepositoryEntry1.getPrimaryKey()));
+		Assert.assertEquals(newRepositoryEntry2,
+			repositoryEntries.get(newRepositoryEntry2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, RepositoryEntry> repositoryEntries = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(repositoryEntries.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		RepositoryEntry newRepositoryEntry = addRepositoryEntry();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newRepositoryEntry.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, RepositoryEntry> repositoryEntries = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, repositoryEntries.size());
+		Assert.assertEquals(newRepositoryEntry,
+			repositoryEntries.get(newRepositoryEntry.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, RepositoryEntry> repositoryEntries = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(repositoryEntries.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		RepositoryEntry newRepositoryEntry = addRepositoryEntry();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newRepositoryEntry.getPrimaryKey());
+
+		Map<Serializable, RepositoryEntry> repositoryEntries = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, repositoryEntries.size());
+		Assert.assertEquals(newRepositoryEntry,
+			repositoryEntries.get(newRepositoryEntry.getPrimaryKey()));
 	}
 
 	@Test
@@ -363,7 +446,7 @@ public class RepositoryEntryPersistenceTest {
 				RepositoryEntry.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("repositoryEntryId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<RepositoryEntry> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -404,7 +487,7 @@ public class RepositoryEntryPersistenceTest {
 				"repositoryEntryId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("repositoryEntryId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -437,31 +520,31 @@ public class RepositoryEntryPersistenceTest {
 	}
 
 	protected RepositoryEntry addRepositoryEntry() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		RepositoryEntry repositoryEntry = _persistence.create(pk);
 
-		repositoryEntry.setMvccVersion(ServiceTestUtil.nextLong());
+		repositoryEntry.setMvccVersion(RandomTestUtil.nextLong());
 
-		repositoryEntry.setUuid(ServiceTestUtil.randomString());
+		repositoryEntry.setUuid(RandomTestUtil.randomString());
 
-		repositoryEntry.setGroupId(ServiceTestUtil.nextLong());
+		repositoryEntry.setGroupId(RandomTestUtil.nextLong());
 
-		repositoryEntry.setCompanyId(ServiceTestUtil.nextLong());
+		repositoryEntry.setCompanyId(RandomTestUtil.nextLong());
 
-		repositoryEntry.setUserId(ServiceTestUtil.nextLong());
+		repositoryEntry.setUserId(RandomTestUtil.nextLong());
 
-		repositoryEntry.setUserName(ServiceTestUtil.randomString());
+		repositoryEntry.setUserName(RandomTestUtil.randomString());
 
-		repositoryEntry.setCreateDate(ServiceTestUtil.nextDate());
+		repositoryEntry.setCreateDate(RandomTestUtil.nextDate());
 
-		repositoryEntry.setModifiedDate(ServiceTestUtil.nextDate());
+		repositoryEntry.setModifiedDate(RandomTestUtil.nextDate());
 
-		repositoryEntry.setRepositoryId(ServiceTestUtil.nextLong());
+		repositoryEntry.setRepositoryId(RandomTestUtil.nextLong());
 
-		repositoryEntry.setMappedId(ServiceTestUtil.randomString());
+		repositoryEntry.setMappedId(RandomTestUtil.randomString());
 
-		repositoryEntry.setManualCheckInRequired(ServiceTestUtil.randomBoolean());
+		repositoryEntry.setManualCheckInRequired(RandomTestUtil.randomBoolean());
 
 		_persistence.update(repositoryEntry);
 

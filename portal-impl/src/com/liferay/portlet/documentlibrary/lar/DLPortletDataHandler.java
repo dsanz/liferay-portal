@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.BasePortletDataHandler;
 import com.liferay.portal.kernel.lar.ExportImportHelperUtil;
 import com.liferay.portal.kernel.lar.ManifestSummary;
@@ -32,6 +31,8 @@ import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
 import com.liferay.portal.kernel.lar.PortletDataHandlerControl;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -57,6 +58,7 @@ import com.liferay.portlet.documentlibrary.service.DLFileEntryTypeLocalServiceUt
 import com.liferay.portlet.documentlibrary.service.DLFileShortcutLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.permission.DLPermission;
+import com.liferay.portlet.documentlibrary.util.DLConstants;
 
 import java.util.List;
 import java.util.Map;
@@ -105,6 +107,11 @@ public class DLPortletDataHandler extends BasePortletDataHandler {
 				NAMESPACE, "shortcuts", true, false, null,
 				DLFileShortcut.class.getName()));
 		setPublishToLiveByDefault(PropsValues.DL_PUBLISH_TO_LIVE_BY_DEFAULT);
+	}
+
+	@Override
+	public String getServiceName() {
+		return DLConstants.SERVICE_NAME;
 	}
 
 	@Override
@@ -296,7 +303,21 @@ public class DLPortletDataHandler extends BasePortletDataHandler {
 			portletPreferences.getValue("rootFolderId", null));
 
 		if (rootFolderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			Folder folder = DLAppLocalServiceUtil.getFolder(rootFolderId);
+			Folder folder = null;
+
+			try {
+				folder = DLAppLocalServiceUtil.getFolder(rootFolderId);
+			}
+			catch (PortalException e) {
+				if (_log.isErrorEnabled()) {
+					_log.error(
+						"Portlet " + portletId +
+							" refers to an invalid root folder ID " +
+								rootFolderId);
+				}
+
+				throw e;
+			}
 
 			StagedModelDataHandlerUtil.exportReferenceStagedModel(
 				portletDataContext, portletId, folder);
@@ -326,7 +347,7 @@ public class DLPortletDataHandler extends BasePortletDataHandler {
 
 				Map<Long, Long> folderIds =
 					(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
-						Folder.class);
+						Folder.class + ".folderIdsAndRepositoryEntryIds");
 
 				rootFolderId = MapUtil.getLong(
 					folderIds, rootFolderId, rootFolderId);
@@ -446,7 +467,7 @@ public class DLPortletDataHandler extends BasePortletDataHandler {
 
 				@Override
 				public void performAction(Object object)
-					throws PortalException, SystemException {
+					throws PortalException {
 
 					DLFileEntry dlFileEntry = (DLFileEntry)object;
 
@@ -465,9 +486,7 @@ public class DLPortletDataHandler extends BasePortletDataHandler {
 			new ActionableDynamicQuery.PerformCountMethod() {
 
 				@Override
-				public long performCount()
-					throws PortalException, SystemException {
-
+				public long performCount() throws PortalException {
 					ManifestSummary manifestSummary =
 						portletDataContext.getManifestSummary();
 
@@ -476,7 +495,7 @@ public class DLPortletDataHandler extends BasePortletDataHandler {
 							portletDataContext.getScopeGroupId(),
 							portletDataContext.getDateRange(),
 							portletDataContext.getScopeGroupId(),
-							new QueryDefinition(
+							new QueryDefinition<DLFileEntry>(
 								WorkflowConstants.STATUS_APPROVED));
 
 					StagedModelType stagedModelType =
@@ -533,7 +552,7 @@ public class DLPortletDataHandler extends BasePortletDataHandler {
 
 				@Override
 				public void performAction(Object object)
-					throws PortalException, SystemException {
+					throws PortalException {
 
 					DLFolder dlFolder = (DLFolder)object;
 
@@ -602,5 +621,7 @@ public class DLPortletDataHandler extends BasePortletDataHandler {
 
 		return exportActionableDynamicQuery;
 	}
+
+	private static Log _log = LogFactoryUtil.getLog(DLPortletDataHandler.class);
 
 }

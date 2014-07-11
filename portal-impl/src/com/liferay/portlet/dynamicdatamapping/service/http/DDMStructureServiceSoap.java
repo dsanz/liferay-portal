@@ -88,7 +88,6 @@ public class DDMStructureServiceSoap {
 	* @throws PortalException if a user with the primary key could not be
 	found, if the user did not have permission to add the structure,
 	if the XSD was not well-formed, or if a portal exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap addStructure(
 		long userId, long groupId, long classNameId,
@@ -143,7 +142,6 @@ public class DDMStructureServiceSoap {
 	* @throws PortalException if the user did not have permission to add the
 	structure, if the XSD is not well formed, or if a portal
 	exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap addStructure(
 		long groupId, long parentStructureId, long classNameId,
@@ -202,7 +200,6 @@ public class DDMStructureServiceSoap {
 	* @throws PortalException if a user with the primary key could not be
 	found, if the user did not have permission to add the structure,
 	if the XSD was not well-formed, or if a portal exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap addStructure(
 		long userId, long groupId, java.lang.String parentStructureKey,
@@ -249,7 +246,6 @@ public class DDMStructureServiceSoap {
 	* @return the new structure
 	* @throws PortalException if the user did not have permission to add the
 	structure or if a portal exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap copyStructure(
 		long structureId, java.lang.String[] nameMapLanguageIds,
@@ -306,7 +302,6 @@ public class DDMStructureServiceSoap {
 	* @param structureId the primary key of the structure to be deleted
 	* @throws PortalException if the user did not have permission to delete the
 	structure or if a portal exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void deleteStructure(long structureId)
 		throws RemoteException {
@@ -332,7 +327,6 @@ public class DDMStructureServiceSoap {
 	structure could not be found
 	* @throws PortalException if the user did not have permission to view the
 	structure or if a portal exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap fetchStructure(
 		long groupId, long classNameId, java.lang.String structureKey)
@@ -352,12 +346,12 @@ public class DDMStructureServiceSoap {
 	}
 
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap[] getJournalFolderStructures(
-		long[] groupIds, long journalFolderId, boolean inherited)
+		long[] groupIds, long journalFolderId, int restrictionType)
 		throws RemoteException {
 		try {
 			java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> returnValue =
 				DDMStructureServiceUtil.getJournalFolderStructures(groupIds,
-					journalFolderId, inherited);
+					journalFolderId, restrictionType);
 
 			return com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap.toSoapModels(returnValue);
 		}
@@ -375,7 +369,6 @@ public class DDMStructureServiceSoap {
 	* @return the structure with the ID
 	* @throws PortalException if the user did not have permission to view the
 	structure or if a structure with the ID could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap getStructure(
 		long structureId) throws RemoteException {
@@ -403,7 +396,6 @@ public class DDMStructureServiceSoap {
 	* @return the matching structure
 	* @throws PortalException if the user did not have permission to view the
 	structure or if a matching structure could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap getStructure(
 		long groupId, long classNameId, java.lang.String structureKey)
@@ -428,7 +420,7 @@ public class DDMStructureServiceSoap {
 	*
 	* <p>
 	* This method first searches in the group. If the structure is still not
-	* found and <code>includeGlobalStructures</code> is set to
+	* found and <code>includeAncestorStructures</code> is set to
 	* <code>true</code>, this method searches the global group.
 	* </p>
 	*
@@ -436,20 +428,19 @@ public class DDMStructureServiceSoap {
 	* @param classNameId the primary key of the class name for the structure's
 	related model
 	* @param structureKey the unique string identifying the structure
-	* @param includeGlobalStructures whether to include the global scope in
+	* @param includeAncestorStructures whether to include the global scope in
 	the search
 	* @return the matching structure
 	* @throws PortalException if the user did not have permission to view the
 	structure or if a matching structure could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap getStructure(
 		long groupId, long classNameId, java.lang.String structureKey,
-		boolean includeGlobalStructures) throws RemoteException {
+		boolean includeAncestorStructures) throws RemoteException {
 		try {
 			com.liferay.portlet.dynamicdatamapping.model.DDMStructure returnValue =
 				DDMStructureServiceUtil.getStructure(groupId, classNameId,
-					structureKey, includeGlobalStructures);
+					structureKey, includeAncestorStructures);
 
 			return com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap.toSoapModel(returnValue);
 		}
@@ -466,7 +457,6 @@ public class DDMStructureServiceSoap {
 	*
 	* @param groupId the primary key of the group
 	* @return the structures in the group that the user has permission to view
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap[] getStructures(
 		long groupId) throws RemoteException {
@@ -489,7 +479,6 @@ public class DDMStructureServiceSoap {
 	*
 	* @param groupIds the primary key of the groups
 	* @return the structures in the groups that the user has permission to view
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap[] getStructures(
 		long[] groupIds) throws RemoteException {
@@ -515,7 +504,6 @@ public class DDMStructureServiceSoap {
 	related model
 	* @return the structures matching the groups and class name ID that the
 	user has permission to view
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap[] getStructures(
 		long[] groupIds, long classNameId) throws RemoteException {
@@ -576,12 +564,11 @@ public class DDMStructureServiceSoap {
 	* @param orderByComparator the comparator to order the structures
 	(optionally <code>null</code>)
 	* @return the range of matching structures ordered by the comparator
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap[] search(
 		long companyId, long[] groupIds, long[] classNameIds,
 		java.lang.String keywords, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> orderByComparator)
 		throws RemoteException {
 		try {
 			java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> returnValue =
@@ -630,14 +617,13 @@ public class DDMStructureServiceSoap {
 	* @param orderByComparator the comparator to order the structures
 	(optionally <code>null</code>)
 	* @return the range of matching structures ordered by the comparator
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap[] search(
 		long companyId, long[] groupIds, long[] classNameIds,
 		java.lang.String name, java.lang.String description,
 		java.lang.String storageType, int type, boolean andOperator, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> orderByComparator)
 		throws RemoteException {
 		try {
 			java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> returnValue =
@@ -665,7 +651,6 @@ public class DDMStructureServiceSoap {
 	* @param keywords the keywords (space separated), which may occur in the
 	structure's name or description (optionally <code>null</code>)
 	* @return the number of matching structures
-	* @throws SystemException if a system exception occurred
 	*/
 	public static int searchCount(long companyId, long[] groupIds,
 		long[] classNameIds, java.lang.String keywords)
@@ -701,7 +686,6 @@ public class DDMStructureServiceSoap {
 	* @param andOperator whether every field must match its keywords, or just
 	one field
 	* @return the number of matching structures
-	* @throws SystemException if a system exception occurred
 	*/
 	public static int searchCount(long companyId, long[] groupIds,
 		long[] classNameIds, java.lang.String name,
@@ -740,7 +724,6 @@ public class DDMStructureServiceSoap {
 	* @return the updated structure
 	* @throws PortalException if the user did not have permission to update the
 	structure or if a portal exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap updateStructure(
 		long groupId, long parentStructureId, long classNameId,
@@ -785,7 +768,6 @@ public class DDMStructureServiceSoap {
 	* @return the updated structure
 	* @throws PortalException if the user did not have permission to update the
 	structure or if a portal exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap updateStructure(
 		long structureId, long parentStructureId,

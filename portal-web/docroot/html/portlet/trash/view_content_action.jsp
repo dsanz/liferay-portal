@@ -40,7 +40,7 @@ else {
 TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(trashRenderer.getClassName());
 %>
 
-<liferay-ui:icon-menu>
+<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>">
 	<c:if test="<%= trashHandler.isMovable() %>">
 		<portlet:renderURL var="moveURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
 			<portlet:param name="struts_action" value="/trash/view_container_model" />
@@ -59,7 +59,7 @@ TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(trashRender
 		<liferay-ui:icon
 			cssClass="trash-restore-link"
 			data="<%= data %>"
-			image="undo"
+			iconCssClass="icon-undo"
 			message="restore"
 			url="javascript:;"
 		/>

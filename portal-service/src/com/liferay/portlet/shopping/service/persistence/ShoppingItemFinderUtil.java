@@ -25,49 +25,42 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
 @ProviderType
 public class ShoppingItemFinderUtil {
 	public static int countByG_C(long groupId,
-		java.util.List<java.lang.Long> categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<java.lang.Long> categoryIds) {
 		return getFinder().countByG_C(groupId, categoryIds);
 	}
 
-	public static int countByFeatured(long groupId, long[] categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByFeatured(long groupId, long[] categoryIds) {
 		return getFinder().countByFeatured(groupId, categoryIds);
 	}
 
 	public static int countByKeywords(long groupId, long[] categoryIds,
-		java.lang.String keywords)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String keywords) {
 		return getFinder().countByKeywords(groupId, categoryIds, keywords);
 	}
 
-	public static int countBySale(long groupId, long[] categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countBySale(long groupId, long[] categoryIds) {
 		return getFinder().countBySale(groupId, categoryIds);
 	}
 
 	public static int filterCountByG_C(long groupId,
-		java.util.List<java.lang.Long> categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<java.lang.Long> categoryIds) {
 		return getFinder().filterCountByG_C(groupId, categoryIds);
 	}
 
 	public static java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> findByFeatured(
-		long groupId, long[] categoryIds, int numOfItems)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, long[] categoryIds, int numOfItems) {
 		return getFinder().findByFeatured(groupId, categoryIds, numOfItems);
 	}
 
 	public static java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> findByKeywords(
 		long groupId, long[] categoryIds, java.lang.String keywords, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return getFinder()
 				   .findByKeywords(groupId, categoryIds, keywords, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> findBySale(
-		long groupId, long[] categoryIds, int numOfItems)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, long[] categoryIds, int numOfItems) {
 		return getFinder().findBySale(groupId, categoryIds, numOfItems);
 	}
 

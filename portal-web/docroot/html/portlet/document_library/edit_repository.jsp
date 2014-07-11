@@ -62,7 +62,7 @@ long folderId = ParamUtil.getLong(request, "folderId");
 				<aui:select id="repositoryTypes" label="repository-type" name="className">
 
 					<%
-					for (String dlRepositoryImpl : RepositoryFactoryUtil.getRepositoryClassNames()) {
+					for (String dlRepositoryImpl : ExternalRepositoryFactoryUtil.getExternalRepositoryClassNames()) {
 					%>
 
 						<aui:option label="<%= HtmlUtil.escape(ResourceActionsUtil.getModelResource(locale, dlRepositoryImpl)) %>" value="<%= HtmlUtil.escapeAttribute(dlRepositoryImpl) %>" />
@@ -100,7 +100,7 @@ long folderId = ParamUtil.getLong(request, "folderId");
 					%>
 
 							<dt>
-								<%= LanguageUtil.get(pageContext, HtmlUtil.escape(StringUtil.replace(StringUtil.toLowerCase(supportedParameter), CharPool.UNDERLINE, CharPool.DASH))) %>
+								<%= LanguageUtil.get(request, HtmlUtil.escape(StringUtil.replace(StringUtil.toLowerCase(supportedParameter), CharPool.UNDERLINE, CharPool.DASH))) %>
 							</dt>
 							<dd>
 								<%= HtmlUtil.escape(supportedParameterValue) %>
@@ -133,7 +133,7 @@ long folderId = ParamUtil.getLong(request, "folderId");
 <div class="hide" id="<portlet:namespace />settingsSupported">
 
 	<%
-	for (String dlRepositoryImpl : RepositoryFactoryUtil.getRepositoryClassNames()) {
+	for (String dlRepositoryImpl : ExternalRepositoryFactoryUtil.getExternalRepositoryClassNames()) {
 		String className = HtmlUtil.escapeAttribute(dlRepositoryImpl.substring(dlRepositoryImpl.lastIndexOf(StringPool.PERIOD) + 1));
 
 		long classNameId = PortalUtil.getClassNameId(dlRepositoryImpl);
@@ -146,7 +146,7 @@ long folderId = ParamUtil.getLong(request, "folderId");
 
 			<div class="settings-configuration <%= ((supportedConfigurations.length == 1) ? "hide" : "") %>" id="<portlet:namespace />repository-<%= className %>-wrapper">
 				<aui:select cssClass="repository-configuration" id='<%= "repository-" + className %>' label="repository-configuration" name="settings--configuration-type--">
-					<aui:option label="<%= LanguageUtil.get(pageContext, HtmlUtil.escape(StringUtil.replace(StringUtil.toLowerCase(supportedConfiguration), CharPool.UNDERLINE, CharPool.DASH))) %>" selected="<%= supportedConfiguration.equals(supportedConfigurations[0]) %>" value="<%= HtmlUtil.escapeAttribute(supportedConfiguration) %>" />
+					<aui:option label="<%= LanguageUtil.get(request, HtmlUtil.escape(StringUtil.replace(StringUtil.toLowerCase(supportedConfiguration), CharPool.UNDERLINE, CharPool.DASH))) %>" selected="<%= supportedConfiguration.equals(supportedConfigurations[0]) %>" value="<%= HtmlUtil.escapeAttribute(supportedConfiguration) %>" />
 				</aui:select>
 			</div>
 			<div class="settings-parameters" id="<portlet:namespace />repository-<%= className %>-configuration-<%= HtmlUtil.escapeAttribute(supportedConfiguration) %>">
@@ -157,7 +157,7 @@ long folderId = ParamUtil.getLong(request, "folderId");
 				for (String supportedParameter : supportedParameters) {
 				%>
 
-					<aui:input label="<%= LanguageUtil.get(pageContext, HtmlUtil.escape(StringUtil.replace(StringUtil.toLowerCase(supportedParameter), CharPool.UNDERLINE, CharPool.DASH))) %>" name='<%= "settings--" + HtmlUtil.escapeAttribute(supportedParameter) + "--" %>' type="text" value="" />
+					<aui:input label="<%= LanguageUtil.get(request, HtmlUtil.escape(StringUtil.replace(StringUtil.toLowerCase(supportedParameter), CharPool.UNDERLINE, CharPool.DASH))) %>" name='<%= "settings--" + HtmlUtil.escapeAttribute(supportedParameter) + "--" %>' type="text" value="" />
 
 				<%
 				}
@@ -242,7 +242,7 @@ long folderId = ParamUtil.getLong(request, "folderId");
 if (repository != null) {
 	DLUtil.addPortletBreadcrumbEntries(folderId, request, renderResponse);
 
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "edit"), currentURL);
 }
 %>
 

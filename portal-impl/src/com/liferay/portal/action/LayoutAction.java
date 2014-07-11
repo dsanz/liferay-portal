@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletContainerUtil;
 import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.servlet.MetaInfoCacheServletResponse;
-import com.liferay.portal.kernel.servlet.PipingServletResponse;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -46,6 +45,7 @@ import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortletRequestImpl;
 import com.liferay.portlet.RenderParametersPool;
 import com.liferay.portlet.login.util.LoginUtil;
+import com.liferay.taglib.servlet.PipingServletResponse;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -102,13 +102,13 @@ public class LayoutAction extends Action {
 			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
 		Boolean layoutDefault = (Boolean)request.getAttribute(
 			WebKeys.LAYOUT_DEFAULT);
 
 		if (Boolean.TRUE.equals(layoutDefault)) {
-			ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
 			Layout requestedLayout = (Layout)request.getAttribute(
 				WebKeys.REQUESTED_LAYOUT);
 
@@ -180,7 +180,16 @@ public class LayoutAction extends Action {
 			return null;
 		}
 
-		long plid = ParamUtil.getLong(request, "p_l_id");
+		long plid = 0;
+
+		Layout layout = themeDisplay.getLayout();
+
+		if (layout != null) {
+			plid = layout.getPlid();
+		}
+		else {
+			plid = ParamUtil.getLong(request, "p_l_id");
+		}
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("p_l_id is " + plid);

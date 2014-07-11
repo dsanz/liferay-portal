@@ -47,6 +47,17 @@ public interface PollsQuestionService extends BaseService {
 	 *
 	 * Never modify or reference this interface directly. Always use {@link PollsQuestionServiceUtil} to access the polls question remote service. Add custom service methods to {@link com.liferay.portlet.polls.service.impl.PollsQuestionServiceImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
+	public com.liferay.portlet.polls.model.PollsQuestion addQuestion(
+		java.util.Map<java.util.Locale, java.lang.String> titleMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
+		int expirationDateHour, int expirationDateMinute, boolean neverExpire,
+		java.util.List<com.liferay.portlet.polls.model.PollsChoice> choices,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public void deleteQuestion(long questionId)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -55,32 +66,17 @@ public interface PollsQuestionService extends BaseService {
 	*/
 	public java.lang.String getBeanIdentifier();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portlet.polls.model.PollsQuestion getQuestion(
+		long questionId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
-
-	public com.liferay.portlet.polls.model.PollsQuestion addQuestion(
-		java.util.Map<java.util.Locale, java.lang.String> titleMap,
-		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
-		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
-		int expirationDateHour, int expirationDateMinute, boolean neverExpire,
-		java.util.List<com.liferay.portlet.polls.model.PollsChoice> choices,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public void deleteQuestion(long questionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portlet.polls.model.PollsQuestion getQuestion(
-		long questionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
 
 	public com.liferay.portlet.polls.model.PollsQuestion updateQuestion(
 		long questionId,
@@ -90,6 +86,5 @@ public interface PollsQuestionService extends BaseService {
 		int expirationDateHour, int expirationDateMinute, boolean neverExpire,
 		java.util.List<com.liferay.portlet.polls.model.PollsChoice> choices,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

@@ -65,9 +65,7 @@ String newTitle = ParamUtil.get(request, "newTitle", StringPool.BLANK);
 			</div>
 
 			<aui:fieldset>
-				<aui:field-wrapper label="current-title">
-					<liferay-ui:input-resource url="<%= wikiPage.getTitle() %>" />
-				</aui:field-wrapper>
+				<aui:input name="currentTitle" type="resource" value="<%= wikiPage.getTitle() %>" />
 
 				<aui:input name="newTitle" value="<%= newTitle %>" />
 
@@ -95,7 +93,7 @@ String newTitle = ParamUtil.get(request, "newTitle", StringPool.BLANK);
 			WikiPage parentPage = wikiPage.getViewableParentPage();
 
 			if (parentPage == null) {
-				parentText = StringPool.OPEN_PARENTHESIS + LanguageUtil.get(pageContext, "none") + StringPool.CLOSE_PARENTHESIS;
+				parentText = StringPool.OPEN_PARENTHESIS + LanguageUtil.get(request, "none") + StringPool.CLOSE_PARENTHESIS;
 			}
 			else {
 				parentText = parentPage.getTitle();
@@ -117,9 +115,7 @@ String newTitle = ParamUtil.get(request, "newTitle", StringPool.BLANK);
 			%>
 
 			<aui:fieldset>
-				<aui:field-wrapper label="current-parent">
-					<liferay-ui:input-resource url="<%= parentText %>" />
-				</aui:field-wrapper>
+				<aui:input name="currentParent" type="resource" value="<%= parentText %>" />
 
 				<%
 				boolean newParentAvailable = true;
@@ -186,19 +182,19 @@ String newTitle = ParamUtil.get(request, "newTitle", StringPool.BLANK);
 
 <aui:script>
 	function <portlet:namespace />changeParent() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "changeParent";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'changeParent';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />publishPage() {
-		document.<portlet:namespace />fm.<portlet:namespace />workflowAction.value = "<%= WorkflowConstants.ACTION_PUBLISH %>";
+		document.<portlet:namespace />fm.<portlet:namespace />workflowAction.value = '<%= WorkflowConstants.ACTION_PUBLISH %>';
 
 		<portlet:namespace />changeParent();
 	}
 
 	function <portlet:namespace />renamePage() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "rename";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'rename';
 
 		submitForm(document.<portlet:namespace />fm);
 	}

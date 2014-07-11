@@ -34,6 +34,20 @@ public class AssetCategoryPropertyServiceWrapper
 		_assetCategoryPropertyService = assetCategoryPropertyService;
 	}
 
+	@Override
+	public com.liferay.portlet.asset.model.AssetCategoryProperty addCategoryProperty(
+		long entryId, java.lang.String key, java.lang.String value)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _assetCategoryPropertyService.addCategoryProperty(entryId, key,
+			value);
+	}
+
+	@Override
+	public void deleteCategoryProperty(long categoryPropertyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_assetCategoryPropertyService.deleteCategoryProperty(categoryPropertyId);
+	}
+
 	/**
 	* Returns the Spring bean ID for this bean.
 	*
@@ -42,6 +56,19 @@ public class AssetCategoryPropertyServiceWrapper
 	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _assetCategoryPropertyService.getBeanIdentifier();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.asset.model.AssetCategoryProperty> getCategoryProperties(
+		long entryId) {
+		return _assetCategoryPropertyService.getCategoryProperties(entryId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.asset.model.AssetCategoryProperty> getCategoryPropertyValues(
+		long companyId, java.lang.String key) {
+		return _assetCategoryPropertyService.getCategoryPropertyValues(companyId,
+			key);
 	}
 
 	/**
@@ -55,53 +82,20 @@ public class AssetCategoryPropertyServiceWrapper
 	}
 
 	@Override
-	public com.liferay.portlet.asset.model.AssetCategoryProperty addCategoryProperty(
-		long entryId, java.lang.String key, java.lang.String value)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _assetCategoryPropertyService.addCategoryProperty(entryId, key,
-			value);
-	}
-
-	@Override
-	public void deleteCategoryProperty(long categoryPropertyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_assetCategoryPropertyService.deleteCategoryProperty(categoryPropertyId);
-	}
-
-	@Override
-	public java.util.List<com.liferay.portlet.asset.model.AssetCategoryProperty> getCategoryProperties(
-		long entryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _assetCategoryPropertyService.getCategoryProperties(entryId);
-	}
-
-	@Override
-	public java.util.List<com.liferay.portlet.asset.model.AssetCategoryProperty> getCategoryPropertyValues(
-		long companyId, java.lang.String key)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _assetCategoryPropertyService.getCategoryPropertyValues(companyId,
-			key);
+	public com.liferay.portlet.asset.model.AssetCategoryProperty updateCategoryProperty(
+		long categoryPropertyId, java.lang.String key, java.lang.String value)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _assetCategoryPropertyService.updateCategoryProperty(categoryPropertyId,
+			key, value);
 	}
 
 	@Override
 	public com.liferay.portlet.asset.model.AssetCategoryProperty updateCategoryProperty(
 		long userId, long categoryPropertyId, java.lang.String key,
 		java.lang.String value)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _assetCategoryPropertyService.updateCategoryProperty(userId,
 			categoryPropertyId, key, value);
-	}
-
-	@Override
-	public com.liferay.portlet.asset.model.AssetCategoryProperty updateCategoryProperty(
-		long categoryPropertyId, java.lang.String key, java.lang.String value)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _assetCategoryPropertyService.updateCategoryProperty(categoryPropertyId,
-			key, value);
 	}
 
 	/**

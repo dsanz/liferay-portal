@@ -28,7 +28,7 @@ portletURL.setParameter("tag", StringPool.BLANK);
 %>
 
 <aui:nav-bar>
-	<aui:nav>
+	<aui:nav cssClass="navbar-nav">
 
 		<%
 		String label = "home";
@@ -61,28 +61,28 @@ portletURL.setParameter("tag", StringPool.BLANK);
 		</c:if>
 	</aui:nav>
 
-	<c:if test="<%= bookmarksSettings.getShowFoldersSearch() %>">
+	<c:if test="<%= bookmarksSettings.isShowFoldersSearch() %>">
 		<liferay-portlet:renderURL varImpl="searchURL">
 			<portlet:param name="struts_action" value="/bookmarks/search" />
 		</liferay-portlet:renderURL>
 
-		<aui:form action="<%= searchURL %>" method="get" name="searchFm">
-			<liferay-portlet:renderURLParams varImpl="searchURL" />
-			<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
-			<aui:input name="breadcrumbsFolderId" type="hidden" value="<%= folderId %>" />
-			<aui:input name="searchFolderIds" type="hidden" value="<%= folderId %>" />
+		<aui:nav-bar-search>
+			<div class="col-xs-12 form-search">
+				<aui:form action="<%= searchURL %>" method="get" name="searchFm">
+					<liferay-portlet:renderURLParams varImpl="searchURL" />
+					<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
+					<aui:input name="breadcrumbsFolderId" type="hidden" value="<%= folderId %>" />
+					<aui:input name="searchFolderIds" type="hidden" value="<%= folderId %>" />
 
-			<aui:nav-bar-search cssClass="pull-right">
-				<div class="form-search">
 					<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" id="keywords1" name="keywords" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' />
-				</div>
-			</aui:nav-bar-search>
-		</aui:form>
+				</aui:form>
+			</div>
+		</aui:nav-bar-search>
 	</c:if>
 </aui:nav-bar>
 
 <c:if test="<%= layout.isTypeControlPanel() %>">
 	<div id="breadcrumb">
-		<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showCurrentPortlet="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showPortletBreadcrumb="<%= true %>" />
+		<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showPortletBreadcrumb="<%= true %>" />
 	</div>
 </c:if>

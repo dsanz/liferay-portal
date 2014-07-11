@@ -18,6 +18,7 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -50,11 +51,13 @@ public interface ResourceBlockPermissionLocalService extends BaseLocalService,
 	*
 	* @param resourceBlockPermission the resource block permission
 	* @return the resource block permission that was added
-	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
 	public com.liferay.portal.model.ResourceBlockPermission addResourceBlockPermission(
-		com.liferay.portal.model.ResourceBlockPermission resourceBlockPermission)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.model.ResourceBlockPermission resourceBlockPermission);
+
+	public void addResourceBlockPermissions(long resourceBlockId,
+		com.liferay.portal.model.ResourceBlockPermissionsContainer resourceBlockPermissionsContainer);
 
 	/**
 	* Creates a new resource block permission with the primary key. Does not add the resource block permission to the database.
@@ -66,28 +69,36 @@ public interface ResourceBlockPermissionLocalService extends BaseLocalService,
 		long resourceBlockPermissionId);
 
 	/**
-	* Deletes the resource block permission with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param resourceBlockPermissionId the primary key of the resource block permission
-	* @return the resource block permission that was removed
-	* @throws PortalException if a resource block permission with the primary key could not be found
-	* @throws SystemException if a system exception occurred
+	* @throws PortalException
 	*/
-	public com.liferay.portal.model.ResourceBlockPermission deleteResourceBlockPermission(
-		long resourceBlockPermissionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+	@Override
+	public com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Deletes the resource block permission from the database. Also notifies the appropriate model listeners.
 	*
 	* @param resourceBlockPermission the resource block permission
 	* @return the resource block permission that was removed
-	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
 	public com.liferay.portal.model.ResourceBlockPermission deleteResourceBlockPermission(
-		com.liferay.portal.model.ResourceBlockPermission resourceBlockPermission)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.model.ResourceBlockPermission resourceBlockPermission);
+
+	/**
+	* Deletes the resource block permission with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param resourceBlockPermissionId the primary key of the resource block permission
+	* @return the resource block permission that was removed
+	* @throws PortalException if a resource block permission with the primary key could not be found
+	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
+	public com.liferay.portal.model.ResourceBlockPermission deleteResourceBlockPermission(
+		long resourceBlockPermissionId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public void deleteResourceBlockPermissions(long resourceBlockId);
 
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery();
 
@@ -96,12 +107,9 @@ public interface ResourceBlockPermissionLocalService extends BaseLocalService,
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery);
 
 	/**
 	* Performs a dynamic query on the database and returns a range of the matching rows.
@@ -114,12 +122,10 @@ public interface ResourceBlockPermissionLocalService extends BaseLocalService,
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException;
+		int end);
 
 	/**
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
@@ -133,25 +139,20 @@ public interface ResourceBlockPermissionLocalService extends BaseLocalService,
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator);
 
 	/**
 	* Returns the number of rows that match the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery);
 
 	/**
 	* Returns the number of rows that match the dynamic query.
@@ -159,17 +160,36 @@ public interface ResourceBlockPermissionLocalService extends BaseLocalService,
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.dao.orm.Projection projection);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.ResourceBlockPermission fetchResourceBlockPermission(
-		long resourceBlockPermissionId)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long resourceBlockPermissionId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.Map<java.lang.Long, java.util.Set<java.lang.String>> getAvailableResourceBlockPermissionActionIds(
+		long[] roleIds, java.lang.String name, long primKey,
+		java.util.List<java.lang.String> actionIds)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public java.lang.String getBeanIdentifier();
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns the resource block permission with the primary key.
@@ -177,24 +197,11 @@ public interface ResourceBlockPermissionLocalService extends BaseLocalService,
 	* @param resourceBlockPermissionId the primary key of the resource block permission
 	* @return the resource block permission
 	* @throws PortalException if a resource block permission with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.ResourceBlockPermission getResourceBlockPermission(
 		long resourceBlockPermissionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns a range of all the resource block permissions.
@@ -206,40 +213,26 @@ public interface ResourceBlockPermissionLocalService extends BaseLocalService,
 	* @param start the lower bound of the range of resource block permissions
 	* @param end the upper bound of the range of resource block permissions (not inclusive)
 	* @return the range of resource block permissions
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.ResourceBlockPermission> getResourceBlockPermissions(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		int start, int end);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.model.ResourceBlockPermissionsContainer getResourceBlockPermissionsContainer(
+		long resourceBlockId);
 
 	/**
 	* Returns the number of resource block permissions.
 	*
 	* @return the number of resource block permissions
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getResourceBlockPermissionsCount()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public int getResourceBlockPermissionsCount();
 
-	/**
-	* Updates the resource block permission in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param resourceBlockPermission the resource block permission
-	* @return the resource block permission that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portal.model.ResourceBlockPermission updateResourceBlockPermission(
-		com.liferay.portal.model.ResourceBlockPermission resourceBlockPermission)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getResourceBlockPermissionsCount(long resourceBlockId,
+		long roleId);
 
 	/**
 	* Sets the Spring bean ID for this bean.
@@ -248,30 +241,16 @@ public interface ResourceBlockPermissionLocalService extends BaseLocalService,
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
-	public void addResourceBlockPermissions(long resourceBlockId,
-		com.liferay.portal.model.ResourceBlockPermissionsContainer resourceBlockPermissionsContainer)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	public void deleteResourceBlockPermissions(long resourceBlockId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.Map<java.lang.Long, java.util.Set<java.lang.String>> getAvailableResourceBlockPermissionActionIds(
-		long[] roleIds, java.lang.String name, long primKey,
-		java.util.List<java.lang.String> actionIds)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.ResourceBlockPermissionsContainer getResourceBlockPermissionsContainer(
-		long resourceBlockId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getResourceBlockPermissionsCount(long resourceBlockId,
-		long roleId) throws com.liferay.portal.kernel.exception.SystemException;
-
 	public void updateResourceBlockPermission(long resourceBlockId,
-		long roleId, long actionIdsLong, int operator)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long roleId, long actionIdsLong, int operator);
+
+	/**
+	* Updates the resource block permission in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param resourceBlockPermission the resource block permission
+	* @return the resource block permission that was updated
+	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
+	public com.liferay.portal.model.ResourceBlockPermission updateResourceBlockPermission(
+		com.liferay.portal.model.ResourceBlockPermission resourceBlockPermission);
 }

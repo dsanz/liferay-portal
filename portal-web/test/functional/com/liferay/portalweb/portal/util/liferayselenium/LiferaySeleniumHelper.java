@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portalweb.portal.BaseTestCase;
+import com.liferay.portalweb.portal.util.AntCommands;
 import com.liferay.portalweb.portal.util.EmailCommands;
 import com.liferay.portalweb.portal.util.RuntimeVariables;
 import com.liferay.portalweb.portal.util.TestPropsValues;
@@ -35,11 +36,15 @@ import com.liferay.portalweb.portal.util.TestPropsValues;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
+import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+
+import java.net.URL;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -48,6 +53,8 @@ import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 
 import org.sikuli.api.robot.Key;
+import org.sikuli.script.Button;
+import org.sikuli.script.Location;
 import org.sikuli.script.Match;
 import org.sikuli.script.Screen;
 
@@ -60,43 +67,12 @@ public class LiferaySeleniumHelper {
 			LiferaySelenium liferaySelenium, String fileName, String target)
 		throws Exception {
 
-		Runtime runtime = Runtime.getRuntime();
+		AntCommands antCommands = new AntCommands(
+			liferaySelenium, fileName, target);
 
-		String command = null;
+		antCommands.start();
 
-		if (!OSDetector.isWindows()) {
-			String projectDirName = liferaySelenium.getProjectDirName();
-
-			projectDirName = StringUtil.replace(projectDirName, "\\", "//");
-
-			runtime.exec("/bin/bash cd " + projectDirName);
-
-			command = "/bin/bash ant -f " + fileName + " " + target;
-		}
-		else {
-			runtime.exec("cmd /c cd " + liferaySelenium.getProjectDirName());
-
-			command = "cmd /c ant -f " + fileName + " " + target;
-		}
-
-		Process process = runtime.exec(command);
-
-		InputStreamReader inputStreamReader = new InputStreamReader(
-			process.getInputStream());
-
-		BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-		String line = null;
-
-		while ((line = bufferedReader.readLine()) != null) {
-			System.out.println(line);
-
-			if (line.contains("BUILD FAILED") ||
-				line.contains("BUILD SUCCESSFUL")) {
-
-				break;
-			}
-		}
+		antCommands.join(120000);
 	}
 
 	public static void assertAlert(
@@ -185,6 +161,26 @@ public class LiferaySeleniumHelper {
 
 		BaseTestCase.assertEquals(
 			subject, liferaySelenium.getEmailSubject(index));
+	}
+
+	public static void assertHTMLSourceTextNotPresent(
+			LiferaySelenium liferaySelenium, String value)
+		throws Exception {
+
+		if (isHTMLSourceTextPresent(liferaySelenium, value)) {
+			throw new Exception(
+				"Pattern \"" + value + "\" does exists in the HTML source");
+		}
+	}
+
+	public static void assertHTMLSourceTextPresent(
+			LiferaySelenium liferaySelenium, String value)
+		throws Exception {
+
+		if (!isHTMLSourceTextPresent(liferaySelenium, value)) {
+			throw new Exception(
+				"Pattern \"" + value + "\" does not exists in the HTML source");
+		}
 	}
 
 	public static void assertLiferayErrors() throws Exception {
@@ -515,6 +511,36 @@ public class LiferaySeleniumHelper {
 		return liferaySelenium.isElementPresent(locator);
 	}
 
+	public static boolean isHTMLSourceTextPresent(
+			LiferaySelenium liferaySelenium, String value)
+		throws Exception {
+
+		URL url = new URL(liferaySelenium.getLocation());
+
+		InputStream inputStream = url.openStream();
+
+		BufferedReader bufferedReader = new BufferedReader(
+			new InputStreamReader(inputStream));
+
+		String line = null;
+
+		while ((line = bufferedReader.readLine()) != null) {
+			Pattern pattern = Pattern.compile(value);
+
+			Matcher matcher = pattern.matcher(line);
+
+			if (matcher.find()) {
+				return true;
+			}
+		}
+
+		inputStream.close();
+
+		bufferedReader.close();
+
+		return false;
+	}
+
 	public static boolean isIgnorableErrorLine(String line) {
 		if (line.contains("[antelope:post]")) {
 			return true;
@@ -649,6 +675,12 @@ public class LiferaySeleniumHelper {
 			}
 		}
 
+		// LPS-41776
+
+		if (line.contains("SEC5054: Certificate has expired")) {
+			return true;
+		}
+
 		// LPS-41863
 
 		if (line.contains("Disabling contextual LOB") &&
@@ -683,10 +715,27 @@ public class LiferaySeleniumHelper {
 			}
 		}
 
-		if (Validator.isNotNull(TestPropsValues.IGNORE_ERROR) &&
-			line.contains(TestPropsValues.IGNORE_ERROR)) {
+		if (Validator.isNotNull(TestPropsValues.IGNORE_ERRORS)) {
+			if (Validator.isNotNull(TestPropsValues.IGNORE_ERRORS_DELIMITER)) {
+				String ignoreErrorsDelimiter =
+					TestPropsValues.IGNORE_ERRORS_DELIMITER;
 
-			return true;
+				if (ignoreErrorsDelimiter.equals("|")) {
+					ignoreErrorsDelimiter = "\\|";
+				}
+
+				String[] ignoreErrors = TestPropsValues.IGNORE_ERRORS.split(
+					ignoreErrorsDelimiter);
+
+				for (String ignoreError : ignoreErrors) {
+					if (line.contains(ignoreError)) {
+						return true;
+					}
+				}
+			}
+			else if (line.contains(TestPropsValues.IGNORE_ERRORS)) {
+				return true;
+			}
 		}
 
 		return false;
@@ -720,6 +769,10 @@ public class LiferaySeleniumHelper {
 		LiferaySelenium liferaySelenium, String locator) {
 
 		return !liferaySelenium.isVisible(locator);
+	}
+
+	public static boolean isTCatEnabled() {
+		return TestPropsValues.TCAT_ENABLED;
 	}
 
 	public static boolean isTextNotPresent(
@@ -773,7 +826,112 @@ public class LiferaySeleniumHelper {
 		liferaySelenium.pause("3000");
 	}
 
+	public static void sikuliAssertElementNotPresent(
+			LiferaySelenium liferaySelenium, String image)
+		throws Exception {
+
+		Match match = _screen.exists(
+			liferaySelenium.getProjectDirName() +
+				liferaySelenium.getSikuliImagesDirName() + image);
+
+		liferaySelenium.pause("1000");
+
+		if (match != null) {
+			throw new Exception("Element is present");
+		}
+	}
+
+	public static void sikuliAssertElementPresent(
+			LiferaySelenium liferaySelenium, String image)
+		throws Exception {
+
+		Match match = _screen.exists(
+			liferaySelenium.getProjectDirName() +
+				liferaySelenium.getSikuliImagesDirName() + image);
+
+		liferaySelenium.pause("1000");
+
+		if (match == null) {
+			throw new Exception("Element is not present");
+		}
+	}
+
 	public static void sikuliClick(
+			LiferaySelenium liferaySelenium, String image)
+		throws Exception {
+
+		Match match = _screen.exists(
+			liferaySelenium.getProjectDirName() +
+				liferaySelenium.getSikuliImagesDirName() + image);
+
+		liferaySelenium.pause("1000");
+
+		if (match == null) {
+			return;
+		}
+
+		_screen.click(
+			liferaySelenium.getProjectDirName() +
+			liferaySelenium.getSikuliImagesDirName() + image);
+	}
+
+	public static void sikuliDragAndDrop(
+			LiferaySelenium liferaySelenium, String image, String coordString)
+		throws Exception {
+
+		Match match = _screen.exists(
+			liferaySelenium.getProjectDirName() +
+				liferaySelenium.getSikuliImagesDirName() + image);
+
+		liferaySelenium.pause("1000");
+
+		if (match == null) {
+			throw new Exception("Image is not present");
+		}
+
+		_screen.mouseMove(
+			liferaySelenium.getProjectDirName() +
+			liferaySelenium.getSikuliImagesDirName() + image);
+
+		Robot robot = new Robot();
+
+		robot.delay(1000);
+
+		robot.mousePress(InputEvent.BUTTON1_MASK);
+
+		robot.delay(1000);
+
+		String[] coords = coordString.split(",");
+
+		Location location = match.getCenter();
+
+		int x = location.getX() + GetterUtil.getInteger(coords[0]);
+		int y = location.getY() + GetterUtil.getInteger(coords[1]);
+
+		robot.mouseMove(x, y);
+
+		robot.delay(1500);
+
+		robot.mouseRelease(InputEvent.BUTTON1_MASK);
+	}
+
+	public static void sikuliLeftMouseDown(LiferaySelenium liferaySelenium)
+		throws Exception {
+
+		liferaySelenium.pause("1000");
+
+		_screen.mouseDown(Button.LEFT);
+	}
+
+	public static void sikuliLeftMouseUp(LiferaySelenium liferaySelenium)
+		throws Exception {
+
+		liferaySelenium.pause("1000");
+
+		_screen.mouseUp(Button.LEFT);
+	}
+
+	public static void sikuliMouseMove(
 			LiferaySelenium liferaySelenium, String image)
 		throws Exception {
 
@@ -787,9 +945,25 @@ public class LiferaySeleniumHelper {
 			return;
 		}
 
-		_screen.click(
+		_screen.mouseMove(
 			liferaySelenium.getProjectDirName() +
 			liferaySelenium.getSikuliImagesDirName() + image);
+	}
+
+	public static void sikuliRightMouseDown(LiferaySelenium liferaySelenium)
+		throws Exception {
+
+		liferaySelenium.pause("1000");
+
+		_screen.mouseDown(Button.RIGHT);
+	}
+
+	public static void sikuliRightMouseUp(LiferaySelenium liferaySelenium)
+		throws Exception {
+
+		liferaySelenium.pause("1000");
+
+		_screen.mouseUp(Button.RIGHT);
 	}
 
 	public static void sikuliType(
@@ -798,7 +972,7 @@ public class LiferaySeleniumHelper {
 
 		Match match = _screen.exists(
 			liferaySelenium.getProjectDirName() +
-			liferaySelenium.getSikuliImagesDirName() + image);
+				liferaySelenium.getSikuliImagesDirName() + image);
 
 		liferaySelenium.pause("1000");
 
@@ -809,6 +983,8 @@ public class LiferaySeleniumHelper {
 		_screen.click(
 			liferaySelenium.getProjectDirName() +
 			liferaySelenium.getSikuliImagesDirName() + image);
+
+		liferaySelenium.pause("1000");
 
 		_screen.type(value);
 	}
@@ -821,6 +997,22 @@ public class LiferaySeleniumHelper {
 			liferaySelenium, image,
 			liferaySelenium.getProjectDirName() +
 				liferaySelenium.getDependenciesDirName() + value);
+
+		_screen.type(Key.ENTER);
+	}
+
+	public static void sikuliUploadTCatFile(
+			LiferaySelenium liferaySelenium, String image, String value)
+		throws Exception {
+
+		String tCatAdminFileName =
+			TestPropsValues.TCAT_ADMIN_REPOSITORY + "/" + value;
+
+		if (OSDetector.isWindows()) {
+			tCatAdminFileName = tCatAdminFileName.replace("/", "\\");
+		}
+
+		sikuliType(liferaySelenium, image, tCatAdminFileName);
 
 		_screen.type(Key.ENTER);
 	}

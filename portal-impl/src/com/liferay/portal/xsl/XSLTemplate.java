@@ -64,8 +64,66 @@ public class XSLTemplate implements Template {
 		_xslTemplateResource = xslTemplateResource;
 		_errorTemplateResource = errorTemplateResource;
 		_templateContextHelper = templateContextHelper;
+		_transformerFactory = TransformerFactory.newInstance();
 
 		_context = new HashMap<String, Object>();
+	}
+
+	@Override
+	public void doProcessTemplate(Writer writer) throws Exception {
+		String languageId = null;
+
+		XSLURIResolver xslURIResolver =
+			_xslTemplateResource.getXSLURIResolver();
+
+		if (xslURIResolver != null) {
+			languageId = xslURIResolver.getLanguageId();
+		}
+
+		Locale locale = LocaleUtil.fromLanguageId(languageId);
+
+		XSLErrorListener xslErrorListener = new XSLErrorListener(locale);
+
+		_transformerFactory.setErrorListener(xslErrorListener);
+
+		_transformerFactory.setURIResolver(xslURIResolver);
+
+		_xmlStreamSource = new StreamSource(
+			_xslTemplateResource.getXMLReader());
+
+		Transformer transformer = null;
+
+		if (_errorTemplateResource == null) {
+			try {
+				transformer = _getTransformer(
+					_transformerFactory, _xslTemplateResource);
+
+				transformer.transform(
+					_xmlStreamSource, new StreamResult(writer));
+
+				return;
+			}
+			catch (Exception e) {
+				throw new TemplateException(
+					"Unable to process XSL template " +
+						_xslTemplateResource.getTemplateId(),
+					e);
+			}
+		}
+
+		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
+
+		transformer = _getTransformer(
+			_transformerFactory, _xslTemplateResource);
+
+		transformer.setParameter(TemplateConstants.WRITER, unsyncStringWriter);
+
+		transformer.transform(
+			_xmlStreamSource, new StreamResult(unsyncStringWriter));
+
+		StringBundler sb = unsyncStringWriter.getStringBundler();
+
+		sb.writeTo(writer);
 	}
 
 	@Override
@@ -87,69 +145,18 @@ public class XSLTemplate implements Template {
 
 	@Override
 	public void processTemplate(Writer writer) throws TemplateException {
-		TransformerFactory transformerFactory =
-			TransformerFactory.newInstance();
-
-		String languageId = null;
-
-		XSLURIResolver xslURIResolver =
-			_xslTemplateResource.getXSLURIResolver();
-
-		if (xslURIResolver != null) {
-			languageId = xslURIResolver.getLanguageId();
-		}
-
-		Locale locale = LocaleUtil.fromLanguageId(languageId);
-
-		XSLErrorListener xslErrorListener = new XSLErrorListener(locale);
-
-		transformerFactory.setErrorListener(xslErrorListener);
-
-		transformerFactory.setURIResolver(xslURIResolver);
-
-		StreamSource xmlSource = new StreamSource(
-			_xslTemplateResource.getXMLReader());
-
-		Transformer transformer = null;
-
-		if (_errorTemplateResource == null) {
-			try {
-				transformer = _getTransformer(
-					transformerFactory, _xslTemplateResource);
-
-				transformer.transform(xmlSource, new StreamResult(writer));
-
-				return;
-			}
-			catch (Exception e) {
-				throw new TemplateException(
-					"Unable to process XSL template " +
-						_xslTemplateResource.getTemplateId(),
-					e);
-			}
-		}
-
 		try {
-			UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
-
-			transformer = _getTransformer(
-				transformerFactory, _xslTemplateResource);
-
-			transformer.setParameter(
-				TemplateConstants.WRITER, unsyncStringWriter);
-
-			transformer.transform(
-				xmlSource, new StreamResult(unsyncStringWriter));
-
-			StringBundler sb = unsyncStringWriter.getStringBundler();
-
-			sb.writeTo(writer);
+			doProcessTemplate(writer);
 		}
 		catch (Exception e1) {
 			Transformer errorTransformer = _getTransformer(
-				transformerFactory, _errorTemplateResource);
+				_transformerFactory, _errorTemplateResource);
 
 			errorTransformer.setParameter(TemplateConstants.WRITER, writer);
+
+			XSLErrorListener xslErrorListener =
+				(XSLErrorListener)_transformerFactory.getErrorListener();
+
 			errorTransformer.setParameter(
 				"exception", xslErrorListener.getMessageAndLocation());
 
@@ -169,7 +176,8 @@ public class XSLTemplate implements Template {
 			}
 
 			try {
-				errorTransformer.transform(xmlSource, new StreamResult(writer));
+				errorTransformer.transform(
+					_xmlStreamSource, new StreamResult(writer));
 			}
 			catch (Exception e2) {
 				throw new TemplateException(
@@ -225,6 +233,8 @@ public class XSLTemplate implements Template {
 	private Map<String, Object> _context;
 	private TemplateResource _errorTemplateResource;
 	private TemplateContextHelper _templateContextHelper;
+	private TransformerFactory _transformerFactory;
+	private StreamSource _xmlStreamSource;
 	private XSLTemplateResource _xslTemplateResource;
 
 	private class TransformerPrivilegedExceptionAction

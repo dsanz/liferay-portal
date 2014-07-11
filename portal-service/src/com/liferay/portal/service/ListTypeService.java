@@ -54,6 +54,14 @@ public interface ListTypeService extends BaseService {
 	*/
 	public java.lang.String getBeanIdentifier();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.model.ListType getListType(int listTypeId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.ListType> getListTypes(
+		java.lang.String type);
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -61,21 +69,9 @@ public interface ListTypeService extends BaseService {
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.ListType getListType(int listTypeId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portal.model.ListType> getListTypes(
-		java.lang.String type)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
 	public void validate(int listTypeId, long classNameId, java.lang.String type)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public void validate(int listTypeId, java.lang.String type)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

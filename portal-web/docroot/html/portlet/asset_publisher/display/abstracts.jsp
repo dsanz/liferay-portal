@@ -31,61 +31,64 @@ if (Validator.isNull(title)) {
 	title = assetRenderer.getTitle(locale);
 }
 
-PortletURL viewFullContentURL = liferayPortletResponse.createLiferayPortletURL(plid, portletDisplay.getId(), PortletRequest.RENDER_PHASE, true);
-
-viewFullContentURL.setParameter("struts_action", "/asset_publisher/view_content");
-viewFullContentURL.setParameter("redirect", currentURL);
-viewFullContentURL.setParameter("assetEntryId", String.valueOf(assetEntry.getEntryId()));
-viewFullContentURL.setParameter("type", assetRendererFactory.getType());
-
-if (Validator.isNotNull(assetRenderer.getUrlTitle())) {
-	if (assetRenderer.getGroupId() != scopeGroupId) {
-		viewFullContentURL.setParameter("groupId", String.valueOf(assetRenderer.getGroupId()));
-	}
-
-	viewFullContentURL.setParameter("urlTitle", assetRenderer.getUrlTitle());
-}
-
-String summary = StringUtil.shorten(assetRenderer.getSummary(liferayPortletRequest, liferayPortletResponse), assetPublisherDisplayContext.getAbstractLength());
-
-String viewURL = null;
-
 boolean viewInContext = ((Boolean)request.getAttribute("view.jsp-viewInContext")).booleanValue();
 
-if (viewInContext) {
-	String viewFullContentURLString = viewFullContentURL.toString();
-
-	viewFullContentURLString = HttpUtil.setParameter(viewFullContentURLString, "redirect", currentURL);
-
-	viewURL = assetRenderer.getURLViewInContext(liferayPortletRequest, liferayPortletResponse, viewFullContentURLString);
-}
-else {
-	viewURL = viewFullContentURL.toString();
-}
-
-if (Validator.isNull(viewURL)) {
-	viewURL = viewFullContentURL.toString();
-}
+String viewURL = AssetPublisherHelperUtil.getAssetViewURL(liferayPortletRequest, liferayPortletResponse, assetEntry, viewInContext);
 
 String viewURLMessage = viewInContext ? assetRenderer.getViewInContextMessage() : "read-more-x-about-x";
 
-viewURL = AssetUtil.checkViewURL(assetEntry, viewInContext, viewURL, currentURL, themeDisplay);
+String summary = StringUtil.shorten(assetRenderer.getSummary(liferayPortletRequest, liferayPortletResponse), assetPublisherDisplayContext.getAbstractLength());
 %>
 
 <c:if test="<%= show %>">
-	<div class="asset-abstract <%= AssetUtil.isDefaultAssetPublisher(layout, portletDisplay.getId(), portletResource) ? "default-asset-publisher" : StringPool.BLANK %>">
+	<div class="asset-abstract <%= AssetUtil.isDefaultAssetPublisher(layout, portletDisplay.getId(), assetPublisherDisplayContext.getPortletResource()) ? "default-asset-publisher" : StringPool.BLANK %>">
 		<liferay-util:include page="/html/portlet/asset_publisher/asset_actions.jsp" />
 
-		<h3 class="asset-title">
-			<c:choose>
-				<c:when test="<%= Validator.isNotNull(viewURL) %>">
-					<a href="<%= viewURL %>"><img alt="" src="<%= assetRenderer.getIconPath(renderRequest) %>" /> <%= HtmlUtil.escape(title) %></a>
-				</c:when>
-				<c:otherwise>
-					<img alt="" src="<%= assetRenderer.getIconPath(renderRequest) %>" /> <%= HtmlUtil.escape(title) %>
-				</c:otherwise>
-			</c:choose>
-		</h3>
+		<h4 class="asset-title">
+			<c:if test="<%= Validator.isNotNull(viewURL) %>">
+				<a href="<%= viewURL %>">
+			</c:if>
+
+			<i class="<%= assetRenderer.getIconCssClass() %>"></i>
+
+			<%= HtmlUtil.escape(title) %>
+
+			<c:if test="<%= Validator.isNotNull(viewURL) %>">
+				</a>
+			</c:if>
+		</h4>
+
+		<%
+		String[] metadataFields = assetPublisherDisplayContext.getMetadataFields();
+		%>
+
+		<c:if test='<%= ArrayUtil.contains(metadataFields, String.valueOf("author")) %>'>
+			<div class="asset-author">
+
+				<%
+				User userDisplay = UserLocalServiceUtil.getUser(assetRenderer.getUserId());
+
+				String displayDate = StringPool.BLANK;
+
+				if (assetEntry.getPublishDate() != null) {
+					displayDate = LanguageUtil.format(request, "x-ago", LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - assetEntry.getPublishDate().getTime(), true), false);
+				}
+				else if (assetEntry.getModifiedDate() != null) {
+					displayDate = LanguageUtil.format(request, "x-ago", LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - assetEntry.getModifiedDate().getTime(), true), false);
+				}
+				%>
+
+				<div class="asset-avatar">
+					<img alt="<%= HtmlUtil.escapeAttribute(userDisplay.getFullName()) %>" class="avatar img-circle" src="<%= HtmlUtil.escape(userDisplay.getPortraitURL(themeDisplay)) %>" />
+				</div>
+
+				<div class="asset-user-info">
+					<span class="user-info"><%= userDisplay.getFullName() %></span>
+
+					<span class="date-info"><%= displayDate %></span>
+				</div>
+			</div>
+		</c:if>
 
 		<div class="asset-content">
 			<div class="asset-summary">
@@ -107,20 +110,12 @@ viewURL = AssetUtil.checkViewURL(assetEntry, viewInContext, viewURL, currentURL,
 					</c:otherwise>
 				</c:choose>
 			</div>
-
-			<c:if test="<%= Validator.isNotNull(viewURL) %>">
-				<div class="asset-more">
-					<a href="<%= viewURL %>"><liferay-ui:message arguments='<%= new Object[] {"hide-accessible", HtmlUtil.escape(assetRenderer.getTitle(locale))} %>' key="<%= viewURLMessage %>" translateArguments="<%= false %>" /> &raquo; </a>
-				</div>
-			</c:if>
 		</div>
 
 		<div class="asset-metadata">
 
 			<%
 			boolean filterByMetadata = true;
-
-			String[] metadataFields = assetPublisherDisplayContext.getMetadataFields();
 			%>
 
 			<%@ include file="/html/portlet/asset_publisher/asset_metadata.jspf" %>

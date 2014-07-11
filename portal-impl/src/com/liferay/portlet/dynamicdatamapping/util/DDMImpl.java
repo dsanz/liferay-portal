@@ -15,7 +15,6 @@
 package com.liferay.portlet.dynamicdatamapping.util;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -193,7 +192,7 @@ public class DDMImpl implements DDM {
 	public Fields getFields(
 			long ddmStructureId, long ddmTemplateId,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getFields(
 			ddmStructureId, ddmTemplateId, StringPool.BLANK, serviceContext);
@@ -203,7 +202,7 @@ public class DDMImpl implements DDM {
 	public Fields getFields(
 			long ddmStructureId, long ddmTemplateId, String fieldNamespace,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMStructure ddmStructure = getDDMStructure(
 			ddmStructureId, ddmTemplateId);
@@ -251,7 +250,7 @@ public class DDMImpl implements DDM {
 
 	@Override
 	public Fields getFields(long ddmStructureId, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getFields(ddmStructureId, 0, serviceContext);
 	}
@@ -260,7 +259,7 @@ public class DDMImpl implements DDM {
 	public Fields getFields(
 			long ddmStructureId, String fieldNamespace,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getFields(ddmStructureId, 0, fieldNamespace, serviceContext);
 	}
@@ -318,7 +317,7 @@ public class DDMImpl implements DDM {
 	}
 
 	@Override
-	public OrderByComparator getStructureOrderByComparator(
+	public OrderByComparator<DDMStructure> getStructureOrderByComparator(
 		String orderByCol, String orderByType) {
 
 		boolean orderByAsc = false;
@@ -327,7 +326,7 @@ public class DDMImpl implements DDM {
 			orderByAsc = true;
 		}
 
-		OrderByComparator orderByComparator = null;
+		OrderByComparator<DDMStructure> orderByComparator = null;
 
 		if (orderByCol.equals("id")) {
 			orderByComparator = new StructureIdComparator(orderByAsc);
@@ -340,7 +339,7 @@ public class DDMImpl implements DDM {
 	}
 
 	@Override
-	public OrderByComparator getTemplateOrderByComparator(
+	public OrderByComparator<DDMTemplate> getTemplateOrderByComparator(
 		String orderByCol, String orderByType) {
 
 		boolean orderByAsc = false;
@@ -349,7 +348,7 @@ public class DDMImpl implements DDM {
 			orderByAsc = true;
 		}
 
-		OrderByComparator orderByComparator = null;
+		OrderByComparator<DDMTemplate> orderByComparator = null;
 
 		if (orderByCol.equals("id")) {
 			orderByComparator = new TemplateIdComparator(orderByAsc);
@@ -388,7 +387,7 @@ public class DDMImpl implements DDM {
 	protected Field createField(
 			DDMStructure ddmStructure, String fieldName,
 			List<Serializable> fieldValues, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Field field = new Field();
 
@@ -421,7 +420,7 @@ public class DDMImpl implements DDM {
 
 	protected DDMStructure getDDMStructure(
 			long ddmStructureId, long ddmTemplateId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMStructure ddmStructure = DDMStructureLocalServiceUtil.getStructure(
 			ddmStructureId);
@@ -434,7 +433,7 @@ public class DDMImpl implements DDM {
 
 			ddmStructure = (DDMStructure)ddmStructure.clone();
 
-			ddmStructure.setXsd(ddmTemplate.getScript());
+			ddmStructure.setDefinition(ddmTemplate.getScript());
 		}
 		catch (NoSuchTemplateException nste) {
 		}
@@ -477,7 +476,7 @@ public class DDMImpl implements DDM {
 	protected List<Serializable> getFieldValues(
 			DDMStructure ddmStructure, String fieldName, String fieldNamespace,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		String fieldDataType = ddmStructure.getFieldDataType(fieldName);
 		String fieldType = ddmStructure.getFieldType(fieldName);

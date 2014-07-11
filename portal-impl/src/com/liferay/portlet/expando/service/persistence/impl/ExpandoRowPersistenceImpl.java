@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -46,7 +45,11 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -107,11 +110,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 *
 	 * @param tableId the table ID
 	 * @return the matching expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ExpandoRow> findByTableId(long tableId)
-		throws SystemException {
+	public List<ExpandoRow> findByTableId(long tableId) {
 		return findByTableId(tableId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -126,11 +127,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param start the lower bound of the range of expando rows
 	 * @param end the upper bound of the range of expando rows (not inclusive)
 	 * @return the range of matching expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ExpandoRow> findByTableId(long tableId, int start, int end)
-		throws SystemException {
+	public List<ExpandoRow> findByTableId(long tableId, int start, int end) {
 		return findByTableId(tableId, start, end, null);
 	}
 
@@ -146,11 +145,10 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param end the upper bound of the range of expando rows (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<ExpandoRow> findByTableId(long tableId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -253,12 +251,11 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching expando row
 	 * @throws com.liferay.portlet.expando.NoSuchRowException if a matching expando row could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow findByTableId_First(long tableId,
-		OrderByComparator orderByComparator)
-		throws NoSuchRowException, SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator)
+		throws NoSuchRowException {
 		ExpandoRow expandoRow = fetchByTableId_First(tableId, orderByComparator);
 
 		if (expandoRow != null) {
@@ -283,11 +280,10 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param tableId the table ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching expando row, or <code>null</code> if a matching expando row could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow fetchByTableId_First(long tableId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator) {
 		List<ExpandoRow> list = findByTableId(tableId, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -304,12 +300,11 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching expando row
 	 * @throws com.liferay.portlet.expando.NoSuchRowException if a matching expando row could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow findByTableId_Last(long tableId,
-		OrderByComparator orderByComparator)
-		throws NoSuchRowException, SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator)
+		throws NoSuchRowException {
 		ExpandoRow expandoRow = fetchByTableId_Last(tableId, orderByComparator);
 
 		if (expandoRow != null) {
@@ -334,11 +329,10 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param tableId the table ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching expando row, or <code>null</code> if a matching expando row could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow fetchByTableId_Last(long tableId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator) {
 		int count = countByTableId(tableId);
 
 		if (count == 0) {
@@ -363,12 +357,11 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next expando row
 	 * @throws com.liferay.portlet.expando.NoSuchRowException if a expando row with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow[] findByTableId_PrevAndNext(long rowId, long tableId,
-		OrderByComparator orderByComparator)
-		throws NoSuchRowException, SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator)
+		throws NoSuchRowException {
 		ExpandoRow expandoRow = findByPrimaryKey(rowId);
 
 		Session session = null;
@@ -398,7 +391,7 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 
 	protected ExpandoRow getByTableId_PrevAndNext(Session session,
 		ExpandoRow expandoRow, long tableId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<ExpandoRow> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -505,10 +498,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * Removes all the expando rows where tableId = &#63; from the database.
 	 *
 	 * @param tableId the table ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByTableId(long tableId) throws SystemException {
+	public void removeByTableId(long tableId) {
 		for (ExpandoRow expandoRow : findByTableId(tableId, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null)) {
 			remove(expandoRow);
@@ -520,10 +512,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 *
 	 * @param tableId the table ID
 	 * @return the number of matching expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByTableId(long tableId) throws SystemException {
+	public int countByTableId(long tableId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_TABLEID;
 
 		Object[] finderArgs = new Object[] { tableId };
@@ -594,11 +585,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 *
 	 * @param classPK the class p k
 	 * @return the matching expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ExpandoRow> findByClassPK(long classPK)
-		throws SystemException {
+	public List<ExpandoRow> findByClassPK(long classPK) {
 		return findByClassPK(classPK, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -613,11 +602,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param start the lower bound of the range of expando rows
 	 * @param end the upper bound of the range of expando rows (not inclusive)
 	 * @return the range of matching expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ExpandoRow> findByClassPK(long classPK, int start, int end)
-		throws SystemException {
+	public List<ExpandoRow> findByClassPK(long classPK, int start, int end) {
 		return findByClassPK(classPK, start, end, null);
 	}
 
@@ -633,11 +620,10 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param end the upper bound of the range of expando rows (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<ExpandoRow> findByClassPK(long classPK, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -740,12 +726,11 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching expando row
 	 * @throws com.liferay.portlet.expando.NoSuchRowException if a matching expando row could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow findByClassPK_First(long classPK,
-		OrderByComparator orderByComparator)
-		throws NoSuchRowException, SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator)
+		throws NoSuchRowException {
 		ExpandoRow expandoRow = fetchByClassPK_First(classPK, orderByComparator);
 
 		if (expandoRow != null) {
@@ -770,11 +755,10 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param classPK the class p k
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching expando row, or <code>null</code> if a matching expando row could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow fetchByClassPK_First(long classPK,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator) {
 		List<ExpandoRow> list = findByClassPK(classPK, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -791,12 +775,11 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching expando row
 	 * @throws com.liferay.portlet.expando.NoSuchRowException if a matching expando row could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow findByClassPK_Last(long classPK,
-		OrderByComparator orderByComparator)
-		throws NoSuchRowException, SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator)
+		throws NoSuchRowException {
 		ExpandoRow expandoRow = fetchByClassPK_Last(classPK, orderByComparator);
 
 		if (expandoRow != null) {
@@ -821,11 +804,10 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param classPK the class p k
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching expando row, or <code>null</code> if a matching expando row could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow fetchByClassPK_Last(long classPK,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator) {
 		int count = countByClassPK(classPK);
 
 		if (count == 0) {
@@ -850,12 +832,11 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next expando row
 	 * @throws com.liferay.portlet.expando.NoSuchRowException if a expando row with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow[] findByClassPK_PrevAndNext(long rowId, long classPK,
-		OrderByComparator orderByComparator)
-		throws NoSuchRowException, SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator)
+		throws NoSuchRowException {
 		ExpandoRow expandoRow = findByPrimaryKey(rowId);
 
 		Session session = null;
@@ -885,7 +866,7 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 
 	protected ExpandoRow getByClassPK_PrevAndNext(Session session,
 		ExpandoRow expandoRow, long classPK,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<ExpandoRow> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -992,10 +973,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * Removes all the expando rows where classPK = &#63; from the database.
 	 *
 	 * @param classPK the class p k
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByClassPK(long classPK) throws SystemException {
+	public void removeByClassPK(long classPK) {
 		for (ExpandoRow expandoRow : findByClassPK(classPK, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null)) {
 			remove(expandoRow);
@@ -1007,10 +987,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 *
 	 * @param classPK the class p k
 	 * @return the number of matching expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByClassPK(long classPK) throws SystemException {
+	public int countByClassPK(long classPK) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_CLASSPK;
 
 		Object[] finderArgs = new Object[] { classPK };
@@ -1074,11 +1053,10 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param classPK the class p k
 	 * @return the matching expando row
 	 * @throws com.liferay.portlet.expando.NoSuchRowException if a matching expando row could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow findByT_C(long tableId, long classPK)
-		throws NoSuchRowException, SystemException {
+		throws NoSuchRowException {
 		ExpandoRow expandoRow = fetchByT_C(tableId, classPK);
 
 		if (expandoRow == null) {
@@ -1110,11 +1088,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param tableId the table ID
 	 * @param classPK the class p k
 	 * @return the matching expando row, or <code>null</code> if a matching expando row could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ExpandoRow fetchByT_C(long tableId, long classPK)
-		throws SystemException {
+	public ExpandoRow fetchByT_C(long tableId, long classPK) {
 		return fetchByT_C(tableId, classPK, true);
 	}
 
@@ -1125,11 +1101,10 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param classPK the class p k
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching expando row, or <code>null</code> if a matching expando row could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow fetchByT_C(long tableId, long classPK,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { tableId, classPK };
 
 		Object result = null;
@@ -1217,11 +1192,10 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param tableId the table ID
 	 * @param classPK the class p k
 	 * @return the expando row that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow removeByT_C(long tableId, long classPK)
-		throws NoSuchRowException, SystemException {
+		throws NoSuchRowException {
 		ExpandoRow expandoRow = findByT_C(tableId, classPK);
 
 		return remove(expandoRow);
@@ -1233,10 +1207,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param tableId the table ID
 	 * @param classPK the class p k
 	 * @return the number of matching expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByT_C(long tableId, long classPK) throws SystemException {
+	public int countByT_C(long tableId, long classPK) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_T_C;
 
 		Object[] finderArgs = new Object[] { tableId, classPK };
@@ -1450,11 +1423,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param rowId the primary key of the expando row
 	 * @return the expando row that was removed
 	 * @throws com.liferay.portlet.expando.NoSuchRowException if a expando row with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ExpandoRow remove(long rowId)
-		throws NoSuchRowException, SystemException {
+	public ExpandoRow remove(long rowId) throws NoSuchRowException {
 		return remove((Serializable)rowId);
 	}
 
@@ -1464,11 +1435,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param primaryKey the primary key of the expando row
 	 * @return the expando row that was removed
 	 * @throws com.liferay.portlet.expando.NoSuchRowException if a expando row with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ExpandoRow remove(Serializable primaryKey)
-		throws NoSuchRowException, SystemException {
+	public ExpandoRow remove(Serializable primaryKey) throws NoSuchRowException {
 		Session session = null;
 
 		try {
@@ -1500,8 +1469,7 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	}
 
 	@Override
-	protected ExpandoRow removeImpl(ExpandoRow expandoRow)
-		throws SystemException {
+	protected ExpandoRow removeImpl(ExpandoRow expandoRow) {
 		expandoRow = toUnwrappedModel(expandoRow);
 
 		Session session = null;
@@ -1534,8 +1502,7 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 
 	@Override
 	public ExpandoRow updateImpl(
-		com.liferay.portlet.expando.model.ExpandoRow expandoRow)
-		throws SystemException {
+		com.liferay.portlet.expando.model.ExpandoRow expandoRow) {
 		expandoRow = toUnwrappedModel(expandoRow);
 
 		boolean isNew = expandoRow.isNew();
@@ -1641,11 +1608,10 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param primaryKey the primary key of the expando row
 	 * @return the expando row
 	 * @throws com.liferay.portlet.expando.NoSuchRowException if a expando row with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ExpandoRow findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchRowException, SystemException {
+		throws NoSuchRowException {
 		ExpandoRow expandoRow = fetchByPrimaryKey(primaryKey);
 
 		if (expandoRow == null) {
@@ -1666,11 +1632,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param rowId the primary key of the expando row
 	 * @return the expando row
 	 * @throws com.liferay.portlet.expando.NoSuchRowException if a expando row with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ExpandoRow findByPrimaryKey(long rowId)
-		throws NoSuchRowException, SystemException {
+	public ExpandoRow findByPrimaryKey(long rowId) throws NoSuchRowException {
 		return findByPrimaryKey((Serializable)rowId);
 	}
 
@@ -1679,11 +1643,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 *
 	 * @param primaryKey the primary key of the expando row
 	 * @return the expando row, or <code>null</code> if a expando row with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ExpandoRow fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public ExpandoRow fetchByPrimaryKey(Serializable primaryKey) {
 		ExpandoRow expandoRow = (ExpandoRow)EntityCacheUtil.getResult(ExpandoRowModelImpl.ENTITY_CACHE_ENABLED,
 				ExpandoRowImpl.class, primaryKey);
 
@@ -1727,21 +1689,111 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 *
 	 * @param rowId the primary key of the expando row
 	 * @return the expando row, or <code>null</code> if a expando row with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ExpandoRow fetchByPrimaryKey(long rowId) throws SystemException {
+	public ExpandoRow fetchByPrimaryKey(long rowId) {
 		return fetchByPrimaryKey((Serializable)rowId);
+	}
+
+	@Override
+	public Map<Serializable, ExpandoRow> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, ExpandoRow> map = new HashMap<Serializable, ExpandoRow>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			ExpandoRow expandoRow = fetchByPrimaryKey(primaryKey);
+
+			if (expandoRow != null) {
+				map.put(primaryKey, expandoRow);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			ExpandoRow expandoRow = (ExpandoRow)EntityCacheUtil.getResult(ExpandoRowModelImpl.ENTITY_CACHE_ENABLED,
+					ExpandoRowImpl.class, primaryKey);
+
+			if (expandoRow == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, expandoRow);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_EXPANDOROW_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (ExpandoRow expandoRow : (List<ExpandoRow>)q.list()) {
+				map.put(expandoRow.getPrimaryKeyObj(), expandoRow);
+
+				cacheResult(expandoRow);
+
+				uncachedPrimaryKeys.remove(expandoRow.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(ExpandoRowModelImpl.ENTITY_CACHE_ENABLED,
+					ExpandoRowImpl.class, primaryKey, _nullExpandoRow);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the expando rows.
 	 *
 	 * @return the expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ExpandoRow> findAll() throws SystemException {
+	public List<ExpandoRow> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -1755,11 +1807,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param start the lower bound of the range of expando rows
 	 * @param end the upper bound of the range of expando rows (not inclusive)
 	 * @return the range of expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ExpandoRow> findAll(int start, int end)
-		throws SystemException {
+	public List<ExpandoRow> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -1774,11 +1824,10 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * @param end the upper bound of the range of expando rows (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<ExpandoRow> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ExpandoRow> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1860,10 +1909,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	/**
 	 * Removes all the expando rows from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (ExpandoRow expandoRow : findAll()) {
 			remove(expandoRow);
 		}
@@ -1873,10 +1921,9 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	 * Returns the number of expando rows.
 	 *
 	 * @return the number of expando rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -1945,6 +1992,7 @@ public class ExpandoRowPersistenceImpl extends BasePersistenceImpl<ExpandoRow>
 	}
 
 	private static final String _SQL_SELECT_EXPANDOROW = "SELECT expandoRow FROM ExpandoRow expandoRow";
+	private static final String _SQL_SELECT_EXPANDOROW_WHERE_PKS_IN = "SELECT expandoRow FROM ExpandoRow expandoRow WHERE rowId_ IN (";
 	private static final String _SQL_SELECT_EXPANDOROW_WHERE = "SELECT expandoRow FROM ExpandoRow expandoRow WHERE ";
 	private static final String _SQL_COUNT_EXPANDOROW = "SELECT COUNT(expandoRow) FROM ExpandoRow expandoRow";
 	private static final String _SQL_COUNT_EXPANDOROW_WHERE = "SELECT COUNT(expandoRow) FROM ExpandoRow expandoRow WHERE ";

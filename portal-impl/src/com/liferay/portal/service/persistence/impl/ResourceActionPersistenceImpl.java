@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -45,7 +44,12 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The persistence implementation for the resource action service.
@@ -109,11 +113,9 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 *
 	 * @param name the name
 	 * @return the matching resource actions
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ResourceAction> findByName(String name)
-		throws SystemException {
+	public List<ResourceAction> findByName(String name) {
 		return findByName(name, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -128,11 +130,9 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param start the lower bound of the range of resource actions
 	 * @param end the upper bound of the range of resource actions (not inclusive)
 	 * @return the range of matching resource actions
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ResourceAction> findByName(String name, int start, int end)
-		throws SystemException {
+	public List<ResourceAction> findByName(String name, int start, int end) {
 		return findByName(name, start, end, null);
 	}
 
@@ -148,11 +148,10 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param end the upper bound of the range of resource actions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching resource actions
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<ResourceAction> findByName(String name, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ResourceAction> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -269,12 +268,11 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching resource action
 	 * @throws com.liferay.portal.NoSuchResourceActionException if a matching resource action could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceAction findByName_First(String name,
-		OrderByComparator orderByComparator)
-		throws NoSuchResourceActionException, SystemException {
+		OrderByComparator<ResourceAction> orderByComparator)
+		throws NoSuchResourceActionException {
 		ResourceAction resourceAction = fetchByName_First(name,
 				orderByComparator);
 
@@ -300,11 +298,10 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param name the name
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching resource action, or <code>null</code> if a matching resource action could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceAction fetchByName_First(String name,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ResourceAction> orderByComparator) {
 		List<ResourceAction> list = findByName(name, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -321,12 +318,11 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching resource action
 	 * @throws com.liferay.portal.NoSuchResourceActionException if a matching resource action could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceAction findByName_Last(String name,
-		OrderByComparator orderByComparator)
-		throws NoSuchResourceActionException, SystemException {
+		OrderByComparator<ResourceAction> orderByComparator)
+		throws NoSuchResourceActionException {
 		ResourceAction resourceAction = fetchByName_Last(name, orderByComparator);
 
 		if (resourceAction != null) {
@@ -351,11 +347,10 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param name the name
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching resource action, or <code>null</code> if a matching resource action could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceAction fetchByName_Last(String name,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ResourceAction> orderByComparator) {
 		int count = countByName(name);
 
 		if (count == 0) {
@@ -380,12 +375,11 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next resource action
 	 * @throws com.liferay.portal.NoSuchResourceActionException if a resource action with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceAction[] findByName_PrevAndNext(long resourceActionId,
-		String name, OrderByComparator orderByComparator)
-		throws NoSuchResourceActionException, SystemException {
+		String name, OrderByComparator<ResourceAction> orderByComparator)
+		throws NoSuchResourceActionException {
 		ResourceAction resourceAction = findByPrimaryKey(resourceActionId);
 
 		Session session = null;
@@ -415,7 +409,7 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 
 	protected ResourceAction getByName_PrevAndNext(Session session,
 		ResourceAction resourceAction, String name,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<ResourceAction> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -536,10 +530,9 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * Removes all the resource actions where name = &#63; from the database.
 	 *
 	 * @param name the name
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByName(String name) throws SystemException {
+	public void removeByName(String name) {
 		for (ResourceAction resourceAction : findByName(name,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(resourceAction);
@@ -551,10 +544,9 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 *
 	 * @param name the name
 	 * @return the number of matching resource actions
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByName(String name) throws SystemException {
+	public int countByName(String name) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_NAME;
 
 		Object[] finderArgs = new Object[] { name };
@@ -634,11 +626,10 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param actionId the action ID
 	 * @return the matching resource action
 	 * @throws com.liferay.portal.NoSuchResourceActionException if a matching resource action could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceAction findByN_A(String name, String actionId)
-		throws NoSuchResourceActionException, SystemException {
+		throws NoSuchResourceActionException {
 		ResourceAction resourceAction = fetchByN_A(name, actionId);
 
 		if (resourceAction == null) {
@@ -670,11 +661,9 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param name the name
 	 * @param actionId the action ID
 	 * @return the matching resource action, or <code>null</code> if a matching resource action could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ResourceAction fetchByN_A(String name, String actionId)
-		throws SystemException {
+	public ResourceAction fetchByN_A(String name, String actionId) {
 		return fetchByN_A(name, actionId, true);
 	}
 
@@ -685,11 +674,10 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param actionId the action ID
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching resource action, or <code>null</code> if a matching resource action could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceAction fetchByN_A(String name, String actionId,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { name, actionId };
 
 		Object result = null;
@@ -807,11 +795,10 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param name the name
 	 * @param actionId the action ID
 	 * @return the resource action that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceAction removeByN_A(String name, String actionId)
-		throws NoSuchResourceActionException, SystemException {
+		throws NoSuchResourceActionException {
 		ResourceAction resourceAction = findByN_A(name, actionId);
 
 		return remove(resourceAction);
@@ -823,11 +810,9 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param name the name
 	 * @param actionId the action ID
 	 * @return the number of matching resource actions
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByN_A(String name, String actionId)
-		throws SystemException {
+	public int countByN_A(String name, String actionId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_N_A;
 
 		Object[] finderArgs = new Object[] { name, actionId };
@@ -1075,11 +1060,10 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param resourceActionId the primary key of the resource action
 	 * @return the resource action that was removed
 	 * @throws com.liferay.portal.NoSuchResourceActionException if a resource action with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceAction remove(long resourceActionId)
-		throws NoSuchResourceActionException, SystemException {
+		throws NoSuchResourceActionException {
 		return remove((Serializable)resourceActionId);
 	}
 
@@ -1089,11 +1073,10 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param primaryKey the primary key of the resource action
 	 * @return the resource action that was removed
 	 * @throws com.liferay.portal.NoSuchResourceActionException if a resource action with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceAction remove(Serializable primaryKey)
-		throws NoSuchResourceActionException, SystemException {
+		throws NoSuchResourceActionException {
 		Session session = null;
 
 		try {
@@ -1125,8 +1108,7 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	}
 
 	@Override
-	protected ResourceAction removeImpl(ResourceAction resourceAction)
-		throws SystemException {
+	protected ResourceAction removeImpl(ResourceAction resourceAction) {
 		resourceAction = toUnwrappedModel(resourceAction);
 
 		Session session = null;
@@ -1159,8 +1141,7 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 
 	@Override
 	public ResourceAction updateImpl(
-		com.liferay.portal.model.ResourceAction resourceAction)
-		throws SystemException {
+		com.liferay.portal.model.ResourceAction resourceAction) {
 		resourceAction = toUnwrappedModel(resourceAction);
 
 		boolean isNew = resourceAction.isNew();
@@ -1250,11 +1231,10 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param primaryKey the primary key of the resource action
 	 * @return the resource action
 	 * @throws com.liferay.portal.NoSuchResourceActionException if a resource action with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceAction findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchResourceActionException, SystemException {
+		throws NoSuchResourceActionException {
 		ResourceAction resourceAction = fetchByPrimaryKey(primaryKey);
 
 		if (resourceAction == null) {
@@ -1275,11 +1255,10 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param resourceActionId the primary key of the resource action
 	 * @return the resource action
 	 * @throws com.liferay.portal.NoSuchResourceActionException if a resource action with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceAction findByPrimaryKey(long resourceActionId)
-		throws NoSuchResourceActionException, SystemException {
+		throws NoSuchResourceActionException {
 		return findByPrimaryKey((Serializable)resourceActionId);
 	}
 
@@ -1288,11 +1267,9 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 *
 	 * @param primaryKey the primary key of the resource action
 	 * @return the resource action, or <code>null</code> if a resource action with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ResourceAction fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public ResourceAction fetchByPrimaryKey(Serializable primaryKey) {
 		ResourceAction resourceAction = (ResourceAction)EntityCacheUtil.getResult(ResourceActionModelImpl.ENTITY_CACHE_ENABLED,
 				ResourceActionImpl.class, primaryKey);
 
@@ -1337,22 +1314,111 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 *
 	 * @param resourceActionId the primary key of the resource action
 	 * @return the resource action, or <code>null</code> if a resource action with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ResourceAction fetchByPrimaryKey(long resourceActionId)
-		throws SystemException {
+	public ResourceAction fetchByPrimaryKey(long resourceActionId) {
 		return fetchByPrimaryKey((Serializable)resourceActionId);
+	}
+
+	@Override
+	public Map<Serializable, ResourceAction> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, ResourceAction> map = new HashMap<Serializable, ResourceAction>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			ResourceAction resourceAction = fetchByPrimaryKey(primaryKey);
+
+			if (resourceAction != null) {
+				map.put(primaryKey, resourceAction);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			ResourceAction resourceAction = (ResourceAction)EntityCacheUtil.getResult(ResourceActionModelImpl.ENTITY_CACHE_ENABLED,
+					ResourceActionImpl.class, primaryKey);
+
+			if (resourceAction == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, resourceAction);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_RESOURCEACTION_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (ResourceAction resourceAction : (List<ResourceAction>)q.list()) {
+				map.put(resourceAction.getPrimaryKeyObj(), resourceAction);
+
+				cacheResult(resourceAction);
+
+				uncachedPrimaryKeys.remove(resourceAction.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(ResourceActionModelImpl.ENTITY_CACHE_ENABLED,
+					ResourceActionImpl.class, primaryKey, _nullResourceAction);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the resource actions.
 	 *
 	 * @return the resource actions
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ResourceAction> findAll() throws SystemException {
+	public List<ResourceAction> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -1366,11 +1432,9 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param start the lower bound of the range of resource actions
 	 * @param end the upper bound of the range of resource actions (not inclusive)
 	 * @return the range of resource actions
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ResourceAction> findAll(int start, int end)
-		throws SystemException {
+	public List<ResourceAction> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -1385,11 +1449,10 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * @param end the upper bound of the range of resource actions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of resource actions
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<ResourceAction> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ResourceAction> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1471,10 +1534,9 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	/**
 	 * Removes all the resource actions from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (ResourceAction resourceAction : findAll()) {
 			remove(resourceAction);
 		}
@@ -1484,10 +1546,9 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	 * Returns the number of resource actions.
 	 *
 	 * @return the number of resource actions
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -1551,6 +1612,7 @@ public class ResourceActionPersistenceImpl extends BasePersistenceImpl<ResourceA
 	}
 
 	private static final String _SQL_SELECT_RESOURCEACTION = "SELECT resourceAction FROM ResourceAction resourceAction";
+	private static final String _SQL_SELECT_RESOURCEACTION_WHERE_PKS_IN = "SELECT resourceAction FROM ResourceAction resourceAction WHERE resourceActionId IN (";
 	private static final String _SQL_SELECT_RESOURCEACTION_WHERE = "SELECT resourceAction FROM ResourceAction resourceAction WHERE ";
 	private static final String _SQL_COUNT_RESOURCEACTION = "SELECT COUNT(resourceAction) FROM ResourceAction resourceAction";
 	private static final String _SQL_COUNT_RESOURCEACTION_WHERE = "SELECT COUNT(resourceAction) FROM ResourceAction resourceAction WHERE ";

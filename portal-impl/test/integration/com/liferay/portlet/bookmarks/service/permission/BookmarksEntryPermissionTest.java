@@ -16,13 +16,13 @@ package com.liferay.portlet.bookmarks.service.permission;
 
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.security.permission.ActionKeys;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.permission.BasePermissionTestCase;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.util.test.RandomTestUtil;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
-import com.liferay.portlet.bookmarks.util.BookmarksTestUtil;
+import com.liferay.portlet.bookmarks.util.test.BookmarksTestUtil;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -60,7 +60,7 @@ public class BookmarksEntryPermissionTest extends BasePermissionTestCase {
 		_entry = BookmarksTestUtil.addEntry(group.getGroupId(), true);
 
 		BookmarksFolder folder = BookmarksTestUtil.addFolder(
-			group.getGroupId(), ServiceTestUtil.randomString());
+			group.getGroupId(), RandomTestUtil.randomString());
 
 		_subentry = BookmarksTestUtil.addEntry(
 			folder.getFolderId(), true, serviceContext);

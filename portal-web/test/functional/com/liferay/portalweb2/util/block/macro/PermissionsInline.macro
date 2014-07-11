@@ -1,4 +1,29 @@
 <definition>
+	<command name="addOrRemoveViewPermissionFromAllRoles">
+		<for list="${roleList}" param="roleName" >
+			<var name="roleName" value="${roleName}" />
+
+			<var name="key_roleName" value="${roleName?replace(' ', '-')}" />
+			<var name="key_roleName" value="${key_roleName?lowercase()}" />
+
+			<if>
+				<equals arg1="${addOrRemoveViewPermission}" arg2="Add" />
+				<then>
+					<execute action="Permissions#check" locator-key1="CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX" />
+				</then>
+				<elseif>
+					<equals arg1="${addOrRemoveViewPermission}" arg2="Remove" />
+					<then>
+						<execute action="Permissions#uncheck" locator-key1="CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX" />
+					</then>
+				</elseif>
+			</if>
+		</for>
+
+		<execute action="Permissions#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
+		<execute action="Permissions#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+	</command>
+
 	<command name="assertDefaultPG">
 		<for list="${roleList}" param="roleName" >
 			<var name="roleName" value="${roleName}" />
@@ -75,7 +100,7 @@
 
 		<var name="key_entryTitle" value="${entryTitle}" />
 
-		<execute action="CPBlogs#assertClick" locator-key1="ENTRY_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPBlogs#click" locator-key1="ENTRY_TABLE_ACTIONS" />
 		<execute action="CPBlogs#assertClick" locator-key1="ENTRY_MENULIST_PERMISSIONS" value1="Permissions" />
 
 		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
@@ -186,6 +211,22 @@
 		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
 	</command>
 
+	<command name="gotoMessageBoardsThreadReplyPG">
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="${siteURL}" />
+		</execute>
+
+		<var name="key_threadSubject" value="${threadSubject}" />
+
+		<execute action="PGMessageboards#assertClick" locator-key1="THREAD_TABLE_THREAD" value1="${threadSubject}" />
+
+		<execute action="PGMessageboardsThread#assertClick" locator-key1="MESSAGE_REPLY_PERMISSIONS_1" value1="Permissions" />
+
+		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
+	</command>
+
 	<command name="gotoPagePG">
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
@@ -214,7 +255,7 @@
 	<command name="gotoPollPermissionsCP">
 		<var name="key_pollsQuestionTitle" value="${pollsQuestionTitle}" />
 
-		<execute action="CPPolls#assertClick" locator-key1="POLLS_TABLE_ACTION" value1="Actions" />
+		<execute action="CPPolls#click" locator-key1="POLLS_TABLE_ACTION" />
 		<execute action="CPPolls#assertClick" locator-key1="POLLS_MENULIST_PERMISSIONS" value1="Permissions" />
 
 		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
@@ -233,6 +274,20 @@
 		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
 	</command>
 
+	<command name="gotoSiteTeamsCP">
+		<execute macro="Page#gotoUsersCP">
+			<var name="portletName" value="${portletName}" />
+			<var name="siteScopeName" value="${siteScopeName}" />
+		</execute>
+
+		<var name="key_teamName" value="${teamName}" />
+
+		<execute action="CPSiteteams#click" locator-key1="TEAM_TABLE_ACTIONS" />
+		<execute action="CPSiteteams#assertClick" locator-key1="TEAM_MENULIST_PERMISSIONS" value1="Permissions" />
+
+		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
+	</command>
+
 	<command name="gotoSiteTemplateCP">
 		<execute macro="Page#gotoPagesCP">
 			<var name="portletName" value="${portletName}" />
@@ -247,6 +302,17 @@
 		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
 	</command>
 
+	<command name="gotoUserGroupSitePermissionsCP">
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="User Groups" />
+		</execute>
+
+		<var name="key_userGroupName" value="${userGroupName}" />
+
+		<execute action="CPUsergroups#click" locator-key1="USER_GROUP_TABLE_ACTIONS" />
+		<execute action="CPUsergroups#assertClick" locator-key1="USER_GROUP_MENULIST_SITE_PERMISSIONS" value1="Site Permissions" />
+	</command>
+
 	<command name="gotoWCArticle">
 		<var name="key_webContentTitle" value="${webContentTitle}" />
 
@@ -258,18 +324,11 @@
 		<execute action="Permissions#assertTextEquals" locator-key1="HEADER_TITLE" value1="${webContentTitle}" />
 	</command>
 
-	<command name="removeViewPermissionFromAllRoles">
-		<for list="${roleList}" param="roleName" >
-			<var name="roleName" value="${roleName}" />
+	<command name="viewPermissionsChecked">
+		<var name="key_roleName" value="${roleName?replace(' ', '-')}" />
+		<var name="key_roleName" value="${key_roleName?lowercase()}" />
 
-			<var name="key_roleName" value="${roleName?replace(' ', '-')}" />
-			<var name="key_roleName" value="${key_roleName?lowercase()}" />
-
-			<execute action="Permissions#uncheck" locator-key1="CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX" />
-		</for>
-
-		<execute action="Permissions#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
-		<execute action="Permissions#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+		<execute action="Permissions#assertChecked" locator-key1="${permissionDefinitionKey}" />
 	</command>
 
 	<command name="viewPermissionsRemoved">

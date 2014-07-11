@@ -38,7 +38,7 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 		<aui:input name="searchCategoryIds" type="hidden" value="<%= categoryId %>" />
 
 		<div class="breadcrumbs">
-			<%= ShoppingUtil.getBreadcrumbs(category, pageContext, renderRequest, renderResponse) %>
+			<%= ShoppingUtil.getBreadcrumbs(category, renderRequest, renderResponse) %>
 		</div>
 
 		<%
@@ -98,7 +98,7 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 
 			// Action
 
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/shopping/category_action.jsp");
+			row.addJSP("/html/portlet/shopping/category_action.jsp", "entry-action");
 
 			// Add result row
 
@@ -185,7 +185,7 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 			orderByType = portalPreferences.getValue(PortletKeys.SHOPPING, "items-order-by-type", "asc");
 		}
 
-		OrderByComparator orderByComparator = ShoppingUtil.getItemOrderByComparator(orderByCol, orderByType);
+		OrderByComparator<ShoppingItem> orderByComparator = ShoppingUtil.getItemOrderByComparator(orderByCol, orderByType);
 
 		List<String> headerNames = new ArrayList<String>();
 
@@ -238,8 +238,8 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 			if (item.isSmallImage()) {
 				sb.append("<br />");
 				sb.append("<img alt=\"");
-				sb.append(item.getSku());
-				sb.append("\" border=\"0\" src=\"");
+				sb.append(HtmlUtil.escapeAttribute(item.getSku()));
+				sb.append("\" src=\"");
 
 				if (Validator.isNotNull(item.getSmallImageURL())) {
 					sb.append(item.getSmallImageURL());
@@ -308,7 +308,7 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 
 			// Action
 
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/shopping/item_action.jsp");
+			row.addJSP("/html/portlet/shopping/item_action.jsp", "entry-action");
 
 			// Add result row
 

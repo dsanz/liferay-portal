@@ -16,7 +16,6 @@ package com.liferay.portal.struts;
 
 import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
@@ -24,17 +23,17 @@ import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.model.impl.VirtualLayout;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalCallbackAwareExecutionTestListener;
+import com.liferay.portal.test.ResetDatabaseExecutionTestListener;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.LayoutTestUtil;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.LayoutTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.blogs.model.BlogsEntry;
-import com.liferay.portlet.blogs.util.BlogsTestUtil;
+import com.liferay.portlet.blogs.util.test.BlogsTestUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,10 +54,9 @@ import org.springframework.mock.web.MockHttpServletRequest;
 @ExecutionTestListeners(
 	listeners = {
 		MainServletExecutionTestListener.class,
-		TransactionalCallbackAwareExecutionTestListener.class
+		ResetDatabaseExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class FindActionTest {
 
 	@Test
@@ -138,7 +136,7 @@ public class FindActionTest {
 
 		_assetPublisherPortletId =
 			PortletKeys.ASSET_PUBLISHER + PortletConstants.INSTANCE_SEPARATOR +
-				ServiceTestUtil.randomString();
+				RandomTestUtil.randomString();
 
 		LayoutTestUtil.addPortletToLayout(
 			TestPropsValues.getUserId(), _assetLayout, _assetPublisherPortletId,

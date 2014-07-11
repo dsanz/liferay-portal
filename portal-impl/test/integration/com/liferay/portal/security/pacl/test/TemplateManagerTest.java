@@ -21,11 +21,11 @@ import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.log.CaptureAppender;
+import com.liferay.portal.log.Log4JLoggerTestUtil;
 import com.liferay.portal.security.pacl.PACLExecutionTestListener;
 import com.liferay.portal.security.pacl.PACLIntegrationJUnitTestRunner;
 import com.liferay.portal.template.TemplateContextHelper;
-import com.liferay.portal.test.CaptureAppender;
-import com.liferay.portal.test.Log4JLoggerTestUtil;
 
 import org.apache.log4j.Level;
 
@@ -44,20 +44,13 @@ public class TemplateManagerTest {
 
 	@BeforeClass
 	public static void setUpClass() {
-		CaptureAppender captureAppender =
-			Log4JLoggerTestUtil.configureLog4JLogger(
-				TemplateContextHelper.class.getName(), Level.OFF);
-
-		captureAppender.close();
+		_captureAppender = Log4JLoggerTestUtil.configureLog4JLogger(
+			TemplateContextHelper.class.getName(), Level.OFF);
 	}
 
 	@AfterClass
 	public static void tearDownClass() {
-		CaptureAppender captureAppender =
-			Log4JLoggerTestUtil.configureLog4JLogger(
-				TemplateContextHelper.class.getName(), null);
-
-		captureAppender.close();
+		_captureAppender.close();
 	}
 
 	@Test
@@ -217,5 +210,7 @@ public class TemplateManagerTest {
 
 		Assert.assertEquals(11, GetterUtil.getInteger(result));
 	}
+
+	private static CaptureAppender _captureAppender;
 
 }

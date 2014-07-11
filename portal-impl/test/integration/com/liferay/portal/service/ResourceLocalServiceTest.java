@@ -21,13 +21,13 @@ import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.permission.DoAsUserThread;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.TestPropsValues;
-import com.liferay.portal.util.UserTestUtil;
+import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
+import com.liferay.portal.util.test.UserTestUtil;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 /**
  * @author Brian Wing Shun Chan
  */
-@ExecutionTestListeners(listeners = {EnvironmentExecutionTestListener.class})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class ResourceLocalServiceTest {
 
@@ -44,22 +44,13 @@ public class ResourceLocalServiceTest {
 	public void setUp() throws Exception {
 		_group = GroupTestUtil.addGroup();
 
-		_userIds = new long[ServiceTestUtil.THREAD_COUNT];
+		_users = new User[ServiceTestUtil.THREAD_COUNT];
 
 		for (int i = 0; i < ServiceTestUtil.THREAD_COUNT; i++) {
 			User user = UserTestUtil.addUser(
 				"ResourceLocalServiceTest" + (i + 1), _group.getGroupId());
 
-			_userIds[i] = user.getUserId();
-		}
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		GroupLocalServiceUtil.deleteGroup(_group);
-
-		for (int i = 0; i < ServiceTestUtil.THREAD_COUNT; i++) {
-			UserLocalServiceUtil.deleteUser(_userIds[i]);
+			_users[i] = user;
 		}
 	}
 
@@ -69,7 +60,7 @@ public class ResourceLocalServiceTest {
 			new DoAsUserThread[ServiceTestUtil.THREAD_COUNT];
 
 		for (int i = 0; i < doAsUserThreads.length; i++) {
-			doAsUserThreads[i] = new AddResources(_userIds[i]);
+			doAsUserThreads[i] = new AddResources(_users[i].getUserId());
 		}
 
 		for (DoAsUserThread doAsUserThread : doAsUserThreads) {
@@ -94,8 +85,11 @@ public class ResourceLocalServiceTest {
 			successCount == ServiceTestUtil.THREAD_COUNT);
 	}
 
+	@DeleteAfterTestRun
 	private Group _group;
-	private long[] _userIds;
+
+	@DeleteAfterTestRun
+	private User[] _users;
 
 	private class AddResources extends DoAsUserThread {
 

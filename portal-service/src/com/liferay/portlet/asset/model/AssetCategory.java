@@ -17,6 +17,7 @@ package com.liferay.portlet.asset.model;
 import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.Accessor;
+import com.liferay.portal.model.NestedSetsTreeNodeModel;
 import com.liferay.portal.model.PersistedModel;
 
 /**
@@ -29,7 +30,8 @@ import com.liferay.portal.model.PersistedModel;
  * @generated
  */
 @ProviderType
-public interface AssetCategory extends AssetCategoryModel, PersistedModel {
+public interface AssetCategory extends AssetCategoryModel,
+	NestedSetsTreeNodeModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -87,12 +89,10 @@ public interface AssetCategory extends AssetCategoryModel, PersistedModel {
 		};
 
 	public java.util.List<com.liferay.portlet.asset.model.AssetCategory> getAncestors()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.lang.String getPath(java.util.Locale locale)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public boolean isRootCategory();
 }

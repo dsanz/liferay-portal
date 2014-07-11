@@ -16,10 +16,10 @@ package com.liferay.portal.kernel.nio.intraband.mailbox;
 
 import com.liferay.portal.kernel.io.Deserializer;
 import com.liferay.portal.kernel.nio.intraband.Datagram;
-import com.liferay.portal.kernel.nio.intraband.MockIntraband;
-import com.liferay.portal.kernel.nio.intraband.MockRegistrationReference;
 import com.liferay.portal.kernel.nio.intraband.PortalExecutorManagerUtilAdvice;
 import com.liferay.portal.kernel.nio.intraband.SystemDataType;
+import com.liferay.portal.kernel.nio.intraband.test.MockIntraband;
+import com.liferay.portal.kernel.nio.intraband.test.MockRegistrationReference;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import com.liferay.portal.kernel.util.PropsUtilAdvice;
 import com.liferay.portal.test.AdviseWith;

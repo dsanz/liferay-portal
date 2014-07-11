@@ -19,14 +19,14 @@ import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.search.BaseSearchTestCase;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
+import com.liferay.portal.util.test.RandomTestUtil;
 import com.liferay.portlet.journal.model.JournalFolder;
 import com.liferay.portlet.journal.model.JournalFolderConstants;
-import com.liferay.portlet.journal.util.JournalTestUtil;
+import com.liferay.portlet.journal.util.test.JournalTestUtil;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -43,6 +43,12 @@ import org.junit.runner.RunWith;
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 @Sync
 public class JournalFolderSearchTest extends BaseSearchTestCase {
+
+	@Ignore()
+	@Override
+	@Test
+	public void testLocalizedSearch() throws Exception {
+	}
 
 	@Ignore()
 	@Override
@@ -133,7 +139,7 @@ public class JournalFolderSearchTest extends BaseSearchTestCase {
 
 		return JournalTestUtil.addFolder(
 			(Long)parentBaseModel.getPrimaryKeyObj(),
-			ServiceTestUtil.randomString(), serviceContext);
+			RandomTestUtil.randomString(), serviceContext);
 	}
 
 	@Override
@@ -143,7 +149,7 @@ public class JournalFolderSearchTest extends BaseSearchTestCase {
 
 		return JournalTestUtil.addFolder(
 			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			ServiceTestUtil.randomString(), serviceContext);
+			RandomTestUtil.randomString(), serviceContext);
 	}
 
 	@Override

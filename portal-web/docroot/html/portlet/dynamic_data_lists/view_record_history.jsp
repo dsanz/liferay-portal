@@ -36,7 +36,7 @@ portletURL.setParameter("recordId", String.valueOf(record.getRecordId()));
 
 <liferay-ui:header
 	backURL="<%= redirect %>"
-	title='<%= LanguageUtil.format(pageContext, "x-history", ddmStructure.getName(locale), false) %>'
+	title='<%= LanguageUtil.format(request, "x-history", ddmStructure.getName(locale), false) %>'
 />
 
 <aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
@@ -97,7 +97,7 @@ portletURL.setParameter("recordId", String.valueOf(record.getRecordId()));
 
 		// Action
 
-		row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/dynamic_data_lists/record_version_action.jsp");
+		row.addJSP("/html/portlet/dynamic_data_lists/record_version_action.jsp", "entry-action");
 
 		// Add result row
 

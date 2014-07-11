@@ -43,8 +43,7 @@ public class PortalPreferencesLocalServiceImpl
 
 	@Override
 	public PortalPreferences addPortalPreferences(
-			long ownerId, int ownerType, String defaultPreferences)
-		throws SystemException {
+		long ownerId, int ownerType, String defaultPreferences) {
 
 		PortalPreferencesWrapperCacheUtil.remove(ownerId, ownerType);
 
@@ -90,24 +89,20 @@ public class PortalPreferencesLocalServiceImpl
 	@Deprecated
 	@Override
 	public PortalPreferences addPortalPreferences(
-			long companyId, long ownerId, int ownerType,
-			String defaultPreferences)
-		throws SystemException {
+		long companyId, long ownerId, int ownerType,
+		String defaultPreferences) {
 
 		return addPortalPreferences(ownerId, ownerType, defaultPreferences);
 	}
 
 	@Override
-	public PortletPreferences getPreferences(long ownerId, int ownerType)
-		throws SystemException {
-
+	public PortletPreferences getPreferences(long ownerId, int ownerType) {
 		return getPreferences(ownerId, ownerType, null);
 	}
 
 	@Override
 	public PortletPreferences getPreferences(
-			long ownerId, int ownerType, String defaultPreferences)
-		throws SystemException {
+		long ownerId, int ownerType, String defaultPreferences) {
 
 		DB db = DBFactoryUtil.getDB();
 
@@ -147,8 +142,7 @@ public class PortalPreferencesLocalServiceImpl
 	@Deprecated
 	@Override
 	public PortletPreferences getPreferences(
-			long companyId, long ownerId, int ownerType)
-		throws SystemException {
+		long companyId, long ownerId, int ownerType) {
 
 		return getPreferences(ownerId, ownerType);
 	}
@@ -160,18 +154,16 @@ public class PortalPreferencesLocalServiceImpl
 	@Deprecated
 	@Override
 	public PortletPreferences getPreferences(
-			long companyId, long ownerId, int ownerType,
-			String defaultPreferences)
-		throws SystemException {
+		long companyId, long ownerId, int ownerType,
+		String defaultPreferences) {
 
 		return getPreferences(ownerId, ownerType, defaultPreferences);
 	}
 
 	@Override
 	public PortalPreferences updatePreferences(
-			long ownerId, int ownerType,
-			com.liferay.portlet.PortalPreferences portalPreferences)
-		throws SystemException {
+		long ownerId, int ownerType,
+		com.liferay.portlet.PortalPreferences portalPreferences) {
 
 		String xml = PortletPreferencesFactoryUtil.toXML(portalPreferences);
 
@@ -180,8 +172,7 @@ public class PortalPreferencesLocalServiceImpl
 
 	@Override
 	public PortalPreferences updatePreferences(
-			long ownerId, int ownerType, String xml)
-		throws SystemException {
+		long ownerId, int ownerType, String xml) {
 
 		PortalPreferencesWrapperCacheUtil.remove(ownerId, ownerType);
 
@@ -206,8 +197,7 @@ public class PortalPreferencesLocalServiceImpl
 	}
 
 	protected PortletPreferences doGetPreferences(
-			long ownerId, int ownerType, String defaultPreferences)
-		throws SystemException {
+		long ownerId, int ownerType, String defaultPreferences) {
 
 		PortalPreferencesWrapper portalPreferencesWrapper =
 			PortalPreferencesWrapperCacheUtil.get(ownerId, ownerType);

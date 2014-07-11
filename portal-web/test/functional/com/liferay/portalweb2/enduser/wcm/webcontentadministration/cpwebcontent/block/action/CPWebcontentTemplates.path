@@ -36,12 +36,12 @@
 </tr>
 <tr>
 	<td>ADD</td>
-	<td>//div[@class='navbar-inner']//span[@class='nav-item-label' and contains(.,'Add')]</td>
+	<td>//div[@class='navbar-inner' or contains(@class,'navbar-default')]//span[@class='nav-item-label' and contains(.,'Add')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ADVANCED_SEARCH_ICON</td>
-	<td>//div[contains(@id,'ddm_template')]/div[@class='advanced-search']/a</td>
+	<td>//div[@class='taglib-search-toggle']/div/a[contains(@id,'ddm_template')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -66,12 +66,12 @@
 </tr>
 <tr>
 	<td>ERROR_MESSAGE_1</td>
-	<td>xpath=(//div[contains(@class,'alert') and contains(@class,'alert-error')])[1]</td>
+	<td>xpath=(//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))])[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ERROR_MESSAGE_2</td>
-	<td>xpath=(//div[contains(@class,'alert') and contains(@class,'alert-error')])[2]</td>
+	<td>xpath=(//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))])[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -140,12 +140,12 @@
 </tr>
 <tr>
 	<td>TEMPLATE_TABLE_ACTIONS</td>
-	<td>//tr[contains(.,'${key_templateName}')]//a[@title='Actions']</td>
+	<td>//tr[contains(.,'${key_templateName}')]/td[8]/div/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TEMPLATE_TABLE_ACTIONS_GENERIC</td>
-	<td>//a[@id='_166_ddmTemplatesSearchContainer_1_menu']</td>
+	<td>//tr/td[8]/div/a</td>
 	<td></td>
 </tr>
 <!---->
@@ -157,7 +157,7 @@
 </tr>
 <tr>
 	<td>TEMPLATE_MENULIST_PERMISSIONS</td>
-	<td>//a[@id='_166_ddmTemplatesSearchContainer_1_menu_permissions']</td>
+	<td>//a[contains(@id,'_166_ddmTemplatesSearchContainer') and contains(@id,'menu_permissions')]</td>
 	<td></td>
 </tr>
 <tr>

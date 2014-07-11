@@ -15,10 +15,11 @@
 package com.liferay.portlet.dynamicdatamapping.util;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
+import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
 import com.liferay.portlet.dynamicdatamapping.storage.Field;
 import com.liferay.portlet.dynamicdatamapping.storage.Fields;
 
@@ -39,20 +40,20 @@ public interface DDM {
 	public Fields getFields(
 			long ddmStructureId, long ddmTemplateId,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public Fields getFields(
 			long ddmStructureId, long ddmTemplateId, String fieldNamespace,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public Fields getFields(long ddmStructureId, ServiceContext serviceContext)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public Fields getFields(
 			long ddmStructureId, String fieldNamespace,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public String[] getFieldsDisplayValues(Field fieldsDisplayField)
 		throws Exception;
@@ -61,10 +62,10 @@ public interface DDM {
 			Serializable fieldValue, String type)
 		throws Exception;
 
-	public OrderByComparator getStructureOrderByComparator(
+	public OrderByComparator<DDMStructure> getStructureOrderByComparator(
 		String orderByCol, String orderByType);
 
-	public OrderByComparator getTemplateOrderByComparator(
+	public OrderByComparator<DDMTemplate> getTemplateOrderByComparator(
 		String orderByCol, String orderByType);
 
 	public Fields mergeFields(Fields newFields, Fields existingFields);

@@ -58,8 +58,7 @@ public class MBMessageServiceHttp {
 		long permissionClassPK, long permissionOwnerId, long threadId,
 		long parentMessageId, java.lang.String subject, java.lang.String body,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"addDiscussionMessage", _addDiscussionMessageParameterTypes0);
@@ -77,10 +76,6 @@ public class MBMessageServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -102,8 +97,7 @@ public class MBMessageServiceHttp {
 		java.util.List<com.liferay.portal.kernel.util.ObjectValuePair<java.lang.String, java.io.InputStream>> inputStreamOVPs,
 		boolean anonymous, double priority, boolean allowPingbacks,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"addMessage", _addMessageParameterTypes1);
@@ -121,10 +115,6 @@ public class MBMessageServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -146,8 +136,7 @@ public class MBMessageServiceHttp {
 		java.util.List<com.liferay.portal.kernel.util.ObjectValuePair<java.lang.String, java.io.InputStream>> inputStreamOVPs,
 		boolean anonymous, double priority, boolean allowPingbacks,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"addMessage", _addMessageParameterTypes2);
@@ -166,10 +155,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -186,8 +171,7 @@ public class MBMessageServiceHttp {
 		HttpPrincipal httpPrincipal, long categoryId, java.lang.String subject,
 		java.lang.String body,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"addMessage", _addMessageParameterTypes3);
@@ -203,10 +187,6 @@ public class MBMessageServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -228,8 +208,7 @@ public class MBMessageServiceHttp {
 		java.util.List<com.liferay.portal.kernel.util.ObjectValuePair<java.lang.String, java.io.InputStream>> inputStreamOVPs,
 		boolean anonymous, double priority, boolean allowPingbacks,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"addMessage", _addMessageParameterTypes4);
@@ -248,10 +227,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -268,8 +243,7 @@ public class MBMessageServiceHttp {
 		long groupId, java.lang.String className, long classPK,
 		java.lang.String permissionClassName, long permissionClassPK,
 		long permissionOwnerId, long messageId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"deleteDiscussionMessage",
@@ -287,10 +261,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -302,8 +272,7 @@ public class MBMessageServiceHttp {
 	}
 
 	public static void deleteMessage(HttpPrincipal httpPrincipal, long messageId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"deleteMessage", _deleteMessageParameterTypes6);
@@ -318,10 +287,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -334,8 +299,7 @@ public class MBMessageServiceHttp {
 
 	public static void deleteMessageAttachments(HttpPrincipal httpPrincipal,
 		long messageId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"deleteMessageAttachments",
@@ -351,10 +315,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -368,8 +328,7 @@ public class MBMessageServiceHttp {
 	public static java.util.List<com.liferay.portlet.messageboards.model.MBMessage> getCategoryMessages(
 		HttpPrincipal httpPrincipal, long groupId, long categoryId, int status,
 		int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getCategoryMessages", _getCategoryMessagesParameterTypes8);
@@ -387,10 +346,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -404,8 +359,7 @@ public class MBMessageServiceHttp {
 	}
 
 	public static int getCategoryMessagesCount(HttpPrincipal httpPrincipal,
-		long groupId, long categoryId, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, long categoryId, int status) {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getCategoryMessagesCount",
@@ -420,10 +374,6 @@ public class MBMessageServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception e) {
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -442,8 +392,7 @@ public class MBMessageServiceHttp {
 		java.lang.String displayStyle, java.lang.String feedURL,
 		java.lang.String entryURL,
 		com.liferay.portal.theme.ThemeDisplay themeDisplay)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getCategoryMessagesRSS",
@@ -463,10 +412,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -484,8 +429,7 @@ public class MBMessageServiceHttp {
 		java.lang.String type, double version, java.lang.String displayStyle,
 		java.lang.String feedURL, java.lang.String entryURL,
 		com.liferay.portal.theme.ThemeDisplay themeDisplay)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getCompanyMessagesRSS",
@@ -505,10 +449,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -522,8 +462,7 @@ public class MBMessageServiceHttp {
 	}
 
 	public static int getGroupMessagesCount(HttpPrincipal httpPrincipal,
-		long groupId, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, int status) {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getGroupMessagesCount",
@@ -538,10 +477,6 @@ public class MBMessageServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception e) {
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -559,8 +494,7 @@ public class MBMessageServiceHttp {
 		java.lang.String type, double version, java.lang.String displayStyle,
 		java.lang.String feedURL, java.lang.String entryURL,
 		com.liferay.portal.theme.ThemeDisplay themeDisplay)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getGroupMessagesRSS", _getGroupMessagesRSSParameterTypes13);
@@ -577,10 +511,6 @@ public class MBMessageServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -601,8 +531,7 @@ public class MBMessageServiceHttp {
 		java.lang.String displayStyle, java.lang.String feedURL,
 		java.lang.String entryURL,
 		com.liferay.portal.theme.ThemeDisplay themeDisplay)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getGroupMessagesRSS", _getGroupMessagesRSSParameterTypes14);
@@ -621,10 +550,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -639,8 +564,7 @@ public class MBMessageServiceHttp {
 
 	public static com.liferay.portlet.messageboards.model.MBMessage getMessage(
 		HttpPrincipal httpPrincipal, long messageId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getMessage", _getMessageParameterTypes15);
@@ -655,10 +579,6 @@ public class MBMessageServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -676,8 +596,7 @@ public class MBMessageServiceHttp {
 	public static com.liferay.portlet.messageboards.model.MBMessageDisplay getMessageDisplay(
 		HttpPrincipal httpPrincipal, long messageId, int status,
 		java.lang.String threadView, boolean includePrevAndNext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getMessageDisplay", _getMessageDisplayParameterTypes16);
@@ -695,10 +614,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -712,8 +627,7 @@ public class MBMessageServiceHttp {
 	}
 
 	public static int getThreadAnswersCount(HttpPrincipal httpPrincipal,
-		long groupId, long categoryId, long threadId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, long categoryId, long threadId) {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getThreadAnswersCount",
@@ -728,10 +642,6 @@ public class MBMessageServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception e) {
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -746,8 +656,7 @@ public class MBMessageServiceHttp {
 
 	public static java.util.List<com.liferay.portlet.messageboards.model.MBMessage> getThreadMessages(
 		HttpPrincipal httpPrincipal, long groupId, long categoryId,
-		long threadId, int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long threadId, int status, int start, int end) {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getThreadMessages", _getThreadMessagesParameterTypes18);
@@ -761,10 +670,6 @@ public class MBMessageServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception e) {
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -778,8 +683,7 @@ public class MBMessageServiceHttp {
 	}
 
 	public static int getThreadMessagesCount(HttpPrincipal httpPrincipal,
-		long groupId, long categoryId, long threadId, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, long categoryId, long threadId, int status) {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getThreadMessagesCount",
@@ -794,10 +698,6 @@ public class MBMessageServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception e) {
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -815,8 +715,7 @@ public class MBMessageServiceHttp {
 		java.lang.String type, double version, java.lang.String displayStyle,
 		java.lang.String feedURL, java.lang.String entryURL,
 		com.liferay.portal.theme.ThemeDisplay themeDisplay)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"getThreadMessagesRSS",
@@ -836,10 +735,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -854,8 +749,7 @@ public class MBMessageServiceHttp {
 
 	public static void restoreMessageAttachmentFromTrash(
 		HttpPrincipal httpPrincipal, long messageId, java.lang.String fileName)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"restoreMessageAttachmentFromTrash",
@@ -872,10 +766,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -888,8 +778,7 @@ public class MBMessageServiceHttp {
 
 	public static void subscribeMessage(HttpPrincipal httpPrincipal,
 		long messageId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"subscribeMessage", _subscribeMessageParameterTypes22);
@@ -904,10 +793,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -920,8 +805,7 @@ public class MBMessageServiceHttp {
 
 	public static void unsubscribeMessage(HttpPrincipal httpPrincipal,
 		long messageId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"unsubscribeMessage", _unsubscribeMessageParameterTypes23);
@@ -936,10 +820,6 @@ public class MBMessageServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -952,8 +832,7 @@ public class MBMessageServiceHttp {
 
 	public static void updateAnswer(HttpPrincipal httpPrincipal,
 		long messageId, boolean answer, boolean cascade)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"updateAnswer", _updateAnswerParameterTypes24);
@@ -967,10 +846,6 @@ public class MBMessageServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -989,8 +864,7 @@ public class MBMessageServiceHttp {
 		long permissionOwnerId, long messageId, java.lang.String subject,
 		java.lang.String body,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"updateDiscussionMessage",
@@ -1008,10 +882,6 @@ public class MBMessageServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -1033,8 +903,7 @@ public class MBMessageServiceHttp {
 		java.util.List<java.lang.String> existingFiles, double priority,
 		boolean allowPingbacks,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(MBMessageServiceUtil.class,
 					"updateMessage", _updateMessageParameterTypes26);
@@ -1051,10 +920,6 @@ public class MBMessageServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);

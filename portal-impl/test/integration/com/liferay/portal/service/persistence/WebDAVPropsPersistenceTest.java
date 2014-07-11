@@ -32,13 +32,13 @@ import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.WebDAVProps;
 import com.liferay.portal.model.impl.WebDAVPropsModelImpl;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.WebDAVPropsLocalServiceUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -49,6 +49,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -98,7 +99,7 @@ public class WebDAVPropsPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		WebDAVProps webDAVProps = _persistence.create(pk);
 
@@ -125,23 +126,23 @@ public class WebDAVPropsPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		WebDAVProps newWebDAVProps = _persistence.create(pk);
 
-		newWebDAVProps.setMvccVersion(ServiceTestUtil.nextLong());
+		newWebDAVProps.setMvccVersion(RandomTestUtil.nextLong());
 
-		newWebDAVProps.setCompanyId(ServiceTestUtil.nextLong());
+		newWebDAVProps.setCompanyId(RandomTestUtil.nextLong());
 
-		newWebDAVProps.setCreateDate(ServiceTestUtil.nextDate());
+		newWebDAVProps.setCreateDate(RandomTestUtil.nextDate());
 
-		newWebDAVProps.setModifiedDate(ServiceTestUtil.nextDate());
+		newWebDAVProps.setModifiedDate(RandomTestUtil.nextDate());
 
-		newWebDAVProps.setClassNameId(ServiceTestUtil.nextLong());
+		newWebDAVProps.setClassNameId(RandomTestUtil.nextLong());
 
-		newWebDAVProps.setClassPK(ServiceTestUtil.nextLong());
+		newWebDAVProps.setClassPK(RandomTestUtil.nextLong());
 
-		newWebDAVProps.setProps(ServiceTestUtil.randomString());
+		newWebDAVProps.setProps(RandomTestUtil.randomString());
 
 		_persistence.update(newWebDAVProps);
 
@@ -170,8 +171,8 @@ public class WebDAVPropsPersistenceTest {
 	@Test
 	public void testCountByC_C() {
 		try {
-			_persistence.countByC_C(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong());
+			_persistence.countByC_C(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
 
 			_persistence.countByC_C(0L, 0L);
 		}
@@ -191,7 +192,7 @@ public class WebDAVPropsPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -214,7 +215,7 @@ public class WebDAVPropsPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<WebDAVProps> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("WebDAVProps",
 			"mvccVersion", true, "webDavPropsId", true, "companyId", true,
 			"createDate", true, "modifiedDate", true, "classNameId", true,
@@ -232,11 +233,93 @@ public class WebDAVPropsPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		WebDAVProps missingWebDAVProps = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingWebDAVProps);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		WebDAVProps newWebDAVProps1 = addWebDAVProps();
+		WebDAVProps newWebDAVProps2 = addWebDAVProps();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newWebDAVProps1.getPrimaryKey());
+		primaryKeys.add(newWebDAVProps2.getPrimaryKey());
+
+		Map<Serializable, WebDAVProps> webDAVPropses = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, webDAVPropses.size());
+		Assert.assertEquals(newWebDAVProps1,
+			webDAVPropses.get(newWebDAVProps1.getPrimaryKey()));
+		Assert.assertEquals(newWebDAVProps2,
+			webDAVPropses.get(newWebDAVProps2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, WebDAVProps> webDAVPropses = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(webDAVPropses.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		WebDAVProps newWebDAVProps = addWebDAVProps();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newWebDAVProps.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, WebDAVProps> webDAVPropses = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, webDAVPropses.size());
+		Assert.assertEquals(newWebDAVProps,
+			webDAVPropses.get(newWebDAVProps.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, WebDAVProps> webDAVPropses = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(webDAVPropses.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		WebDAVProps newWebDAVProps = addWebDAVProps();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newWebDAVProps.getPrimaryKey());
+
+		Map<Serializable, WebDAVProps> webDAVPropses = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, webDAVPropses.size());
+		Assert.assertEquals(newWebDAVProps,
+			webDAVPropses.get(newWebDAVProps.getPrimaryKey()));
 	}
 
 	@Test
@@ -287,7 +370,7 @@ public class WebDAVPropsPersistenceTest {
 				WebDAVProps.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("webDavPropsId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<WebDAVProps> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -328,7 +411,7 @@ public class WebDAVPropsPersistenceTest {
 				"webDavPropsId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("webDavPropsId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -354,23 +437,23 @@ public class WebDAVPropsPersistenceTest {
 	}
 
 	protected WebDAVProps addWebDAVProps() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		WebDAVProps webDAVProps = _persistence.create(pk);
 
-		webDAVProps.setMvccVersion(ServiceTestUtil.nextLong());
+		webDAVProps.setMvccVersion(RandomTestUtil.nextLong());
 
-		webDAVProps.setCompanyId(ServiceTestUtil.nextLong());
+		webDAVProps.setCompanyId(RandomTestUtil.nextLong());
 
-		webDAVProps.setCreateDate(ServiceTestUtil.nextDate());
+		webDAVProps.setCreateDate(RandomTestUtil.nextDate());
 
-		webDAVProps.setModifiedDate(ServiceTestUtil.nextDate());
+		webDAVProps.setModifiedDate(RandomTestUtil.nextDate());
 
-		webDAVProps.setClassNameId(ServiceTestUtil.nextLong());
+		webDAVProps.setClassNameId(RandomTestUtil.nextLong());
 
-		webDAVProps.setClassPK(ServiceTestUtil.nextLong());
+		webDAVProps.setClassPK(RandomTestUtil.nextLong());
 
-		webDAVProps.setProps(ServiceTestUtil.randomString());
+		webDAVProps.setProps(RandomTestUtil.randomString());
 
 		_persistence.update(webDAVProps);
 

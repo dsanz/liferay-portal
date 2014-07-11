@@ -17,15 +17,15 @@ package com.liferay.portlet.blogs.social;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
-import com.liferay.portlet.blogs.util.BlogsTestUtil;
+import com.liferay.portlet.blogs.util.test.BlogsTestUtil;
 import com.liferay.portlet.social.BaseSocialActivityInterpreterTestCase;
 import com.liferay.portlet.social.model.SocialActivityConstants;
 import com.liferay.portlet.social.model.SocialActivityInterpreter;
@@ -72,7 +72,7 @@ public class BlogsActivityInterpreterTest
 
 	@Override
 	protected void renameModels() throws Exception {
-		_entry.setTitle(ServiceTestUtil.randomString());
+		_entry.setTitle(RandomTestUtil.randomString());
 
 		serviceContext.setCommand(Constants.UPDATE);
 

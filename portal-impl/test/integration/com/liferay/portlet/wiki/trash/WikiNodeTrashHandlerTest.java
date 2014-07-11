@@ -19,12 +19,12 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.trash.BaseTrashHandlerTestCase;
 import com.liferay.portlet.trash.util.TrashUtil;
 import com.liferay.portlet.wiki.model.WikiNode;
@@ -186,11 +186,11 @@ public class WikiNodeTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 		String title = getSearchKeywords();
 
-		title += ServiceTestUtil.randomString(
+		title += RandomTestUtil.randomString(
 			_NODE_NAME_MAX_LENGTH - title.length());
 
 		return WikiNodeLocalServiceUtil.addNode(
-			TestPropsValues.getUserId(), title, ServiceTestUtil.randomString(),
+			TestPropsValues.getUserId(), title, RandomTestUtil.randomString(),
 			serviceContext);
 	}
 

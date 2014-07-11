@@ -60,7 +60,8 @@ page import="com.liferay.portlet.sitesadmin.search.UserGroupTeamChecker" %><%@
 page import="com.liferay.portlet.sitesadmin.search.UserTeamChecker" %><%@
 page import="com.liferay.portlet.usergroupsadmin.search.UserGroupChecker" %><%@
 page import="com.liferay.portlet.usergroupsadmin.search.UserGroupGroupChecker" %><%@
-page import="com.liferay.portlet.usersadmin.search.OrganizationGroupChecker" %>
+page import="com.liferay.portlet.usersadmin.search.OrganizationGroupChecker" %><%@
+page import="com.liferay.portlet.usersadmin.util.UsersAdmin" %>
 
 <%
 boolean filterManageableGroups = true;
@@ -74,8 +75,6 @@ if (GroupPermissionUtil.contains(permissionChecker, ActionKeys.VIEW)) {
 }
 
 long[] classNameIds = new long[] {PortalUtil.getClassNameId(Company.class), PortalUtil.getClassNameId(Group.class), PortalUtil.getClassNameId(Organization.class)};
-
-Format dateFormatDate = FastDateFormatFactoryUtil.getDate(locale, timeZone);
 %>
 
 <%@ include file="/html/portlet/sites_admin/init-ext.jsp" %>

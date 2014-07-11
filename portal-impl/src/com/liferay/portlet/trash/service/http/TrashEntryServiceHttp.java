@@ -53,8 +53,7 @@ import com.liferay.portlet.trash.service.TrashEntryServiceUtil;
  */
 public class TrashEntryServiceHttp {
 	public static void deleteEntries(HttpPrincipal httpPrincipal, long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"deleteEntries", _deleteEntriesParameterTypes0);
@@ -69,10 +68,6 @@ public class TrashEntryServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -85,8 +80,7 @@ public class TrashEntryServiceHttp {
 
 	public static void deleteEntries(HttpPrincipal httpPrincipal,
 		long[] entryIds)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"deleteEntries", _deleteEntriesParameterTypes1);
@@ -101,10 +95,6 @@ public class TrashEntryServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -116,8 +106,7 @@ public class TrashEntryServiceHttp {
 	}
 
 	public static void deleteEntry(HttpPrincipal httpPrincipal, long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"deleteEntry", _deleteEntryParameterTypes2);
@@ -132,10 +121,6 @@ public class TrashEntryServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -148,8 +133,7 @@ public class TrashEntryServiceHttp {
 
 	public static void deleteEntry(HttpPrincipal httpPrincipal,
 		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"deleteEntry", _deleteEntryParameterTypes3);
@@ -165,10 +149,6 @@ public class TrashEntryServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -181,8 +161,7 @@ public class TrashEntryServiceHttp {
 
 	public static com.liferay.portlet.trash.model.TrashEntryList getEntries(
 		HttpPrincipal httpPrincipal, long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException,
-			com.liferay.portal.security.auth.PrincipalException {
+		throws com.liferay.portal.security.auth.PrincipalException {
 		try {
 			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"getEntries", _getEntriesParameterTypes4);
@@ -195,10 +174,6 @@ public class TrashEntryServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception e) {
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				if (e instanceof com.liferay.portal.security.auth.PrincipalException) {
 					throw (com.liferay.portal.security.auth.PrincipalException)e;
 				}
@@ -217,9 +192,8 @@ public class TrashEntryServiceHttp {
 
 	public static com.liferay.portlet.trash.model.TrashEntryList getEntries(
 		HttpPrincipal httpPrincipal, long groupId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.SystemException,
-			com.liferay.portal.security.auth.PrincipalException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.trash.model.TrashEntry> obc)
+		throws com.liferay.portal.security.auth.PrincipalException {
 		try {
 			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"getEntries", _getEntriesParameterTypes5);
@@ -233,10 +207,6 @@ public class TrashEntryServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception e) {
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				if (e instanceof com.liferay.portal.security.auth.PrincipalException) {
 					throw (com.liferay.portal.security.auth.PrincipalException)e;
 				}
@@ -257,8 +227,7 @@ public class TrashEntryServiceHttp {
 		java.lang.String className, long classPK,
 		long destinationContainerModelId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"moveEntry", _moveEntryParameterTypes6);
@@ -275,10 +244,6 @@ public class TrashEntryServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -291,8 +256,7 @@ public class TrashEntryServiceHttp {
 
 	public static com.liferay.portlet.trash.model.TrashEntry restoreEntry(
 		HttpPrincipal httpPrincipal, long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"restoreEntry", _restoreEntryParameterTypes7);
@@ -307,10 +271,6 @@ public class TrashEntryServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -328,8 +288,7 @@ public class TrashEntryServiceHttp {
 	public static com.liferay.portlet.trash.model.TrashEntry restoreEntry(
 		HttpPrincipal httpPrincipal, long entryId, long overrideClassPK,
 		java.lang.String name)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"restoreEntry", _restoreEntryParameterTypes8);
@@ -347,10 +306,6 @@ public class TrashEntryServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -365,8 +320,7 @@ public class TrashEntryServiceHttp {
 
 	public static com.liferay.portlet.trash.model.TrashEntry restoreEntry(
 		HttpPrincipal httpPrincipal, java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"restoreEntry", _restoreEntryParameterTypes9);
@@ -384,10 +338,6 @@ public class TrashEntryServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -403,8 +353,7 @@ public class TrashEntryServiceHttp {
 	public static com.liferay.portlet.trash.model.TrashEntry restoreEntry(
 		HttpPrincipal httpPrincipal, java.lang.String className, long classPK,
 		long overrideClassPK, java.lang.String name)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"restoreEntry", _restoreEntryParameterTypes10);
@@ -420,10 +369,6 @@ public class TrashEntryServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);

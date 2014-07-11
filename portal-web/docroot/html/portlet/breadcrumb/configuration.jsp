@@ -16,6 +16,10 @@
 
 <%@ include file="/html/portlet/breadcrumb/init.jsp" %>
 
+<%
+TemplateHandler templateHandler = TemplateHandlerRegistryUtil.getTemplateHandler(Layout.class.getName());
+%>
+
 <aui:row>
 	<aui:col width="<%= 50 %>">
 		<liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL" />
@@ -27,25 +31,21 @@
 			<aui:input name="redirect" type="hidden" value="<%= configurationRenderURL %>" />
 
 			<aui:fieldset>
-				<aui:select name="preferences--displayStyle--">
-
-					<%
-					for (String displayStyleOption : PropsValues.BREADCRUMB_DISPLAY_STYLE_OPTIONS) {
-					%>
-
-						<aui:option label="<%= displayStyleOption %>" selected="<%= displayStyle.equals(displayStyleOption) %>" />
-
-					<%
-					}
-					%>
-
-				</aui:select>
+				<div class="display-template">
+					<liferay-ui:ddm-template-selector
+						classNameId="<%= PortalUtil.getClassNameId(templateHandler.getClassName()) %>"
+						displayStyle="<%= displayStyle %>"
+						displayStyleGroupId="<%= displayStyleGroupId %>"
+						displayStyles="<%= Arrays.asList(PropsValues.BREADCRUMB_DISPLAY_STYLE_OPTIONS) %>"
+						refreshURL="<%= configurationRenderURL %>"
+						showEmptyOption="<%= true %>"
+					/>
+				</div>
 			</aui:fieldset>
 
 			<aui:fieldset cssClass="checkBoxes">
 				<aui:col width="<%= 50 %>">
 					<aui:input data-key='<%= "_" + HtmlUtil.escapeJS(portletResource) + "_showCurrentGroup" %>' label="show-current-site" name="preferences--showCurrentGroup--" type="checkbox" value="<%= showCurrentGroup %>" />
-					<aui:input data-key='<%= "_" + HtmlUtil.escapeJS(portletResource) + "_showCurrentPortlet" %>' label="show-current-application" name="preferences--showCurrentPortlet--" type="checkbox" value="<%= showCurrentPortlet %>" />
 					<aui:input data-key='<%= "_" + HtmlUtil.escapeJS(portletResource) + "_showGuestGroup" %>' label="show-guest-site" name="preferences--showGuestGroup--" type="checkbox" value="<%= showGuestGroup %>" />
 				</aui:col>
 
@@ -64,7 +64,7 @@
 	<aui:col width="<%= 50 %>">
 
 		<%
-		List<BreadcrumbEntry> breadcrumbEntries = PortalUtil.getPortletBreadcrumbs(request);
+		List<BreadcrumbEntry> breadcrumbEntries = BreadcrumbUtil.getPortletBreadcrumbEntries(request);
 
 		breadcrumbEntries.clear();
 		%>
@@ -82,7 +82,6 @@
 
 	var data = {
 		'_<%= HtmlUtil.escapeJS(portletResource) %>_showCurrentGroup': <%= showCurrentGroup %>,
-		'_<%= HtmlUtil.escapeJS(portletResource) %>_showCurrentPortlet': <%= showCurrentPortlet %>,
 		'_<%= HtmlUtil.escapeJS(portletResource) %>_showGuestGroup': <%= showGuestGroup %>,
 		'_<%= HtmlUtil.escapeJS(portletResource) %>_showLayout': <%= showLayout %>,
 		'_<%= HtmlUtil.escapeJS(portletResource) %>_showParentGroups': <%= showParentGroups %>,

@@ -47,21 +47,25 @@ public interface BlogsEntryService extends BaseService {
 	 *
 	 * Never modify or reference this interface directly. Always use {@link BlogsEntryServiceUtil} to access the blogs entry remote service. Add custom service methods to {@link com.liferay.portlet.blogs.service.impl.BlogsEntryServiceImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
+	public com.liferay.portlet.blogs.model.BlogsEntry addEntry(
+		java.lang.String title, java.lang.String deckTitle,
+		java.lang.String description, java.lang.String content,
+		int displayDateMonth, int displayDateDay, int displayDateYear,
+		int displayDateHour, int displayDateMinute, boolean allowPingbacks,
+		boolean allowTrackbacks, java.lang.String[] trackbacks,
+		boolean smallImage, java.lang.String smallImageURL,
+		java.lang.String smallImageFileName,
+		java.io.InputStream smallImageInputStream,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
+	* @deprecated As of 7.0.0, replaced by {@link #addEntry(String, String,
+	String, String, int, int, int, int, int, boolean, boolean,
+	String[], boolean, String, String, InputStream,
+	ServiceContext)}
 	*/
-	public java.lang.String getBeanIdentifier();
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
-
+	@java.lang.Deprecated
 	public com.liferay.portlet.blogs.model.BlogsEntry addEntry(
 		java.lang.String title, java.lang.String description,
 		java.lang.String content, int displayDateMonth, int displayDateDay,
@@ -71,18 +75,22 @@ public interface BlogsEntryService extends BaseService {
 		java.lang.String smallImageURL, java.lang.String smallImageFileName,
 		java.io.InputStream smallImageInputStream,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public void deleteEntry(long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public java.lang.String getBeanIdentifier();
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getCompanyEntries(
 		long companyId, java.util.Date displayDate, int status, int max)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.lang.String getCompanyEntriesRSS(long companyId,
@@ -90,47 +98,39 @@ public interface BlogsEntryService extends BaseService {
 		double version, java.lang.String displayStyle,
 		java.lang.String feedURL, java.lang.String entryURL,
 		com.liferay.portal.theme.ThemeDisplay themeDisplay)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portlet.blogs.model.BlogsEntry getEntry(long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portlet.blogs.model.BlogsEntry getEntry(long groupId,
 		java.lang.String urlTitle)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getGroupEntries(
-		long groupId, java.util.Date displayDate, int status, int max)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long groupId, java.util.Date displayDate, int status, int max);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getGroupEntries(
-		long groupId, java.util.Date displayDate, int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long groupId, java.util.Date displayDate, int status, int start, int end);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getGroupEntries(
-		long groupId, int status, int max)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long groupId, int status, int max);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getGroupEntries(
-		long groupId, int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long groupId, int status, int start, int end);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getGroupEntriesCount(long groupId, java.util.Date displayDate,
-		int status) throws com.liferay.portal.kernel.exception.SystemException;
+		int status);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getGroupEntriesCount(long groupId, int status)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public int getGroupEntriesCount(long groupId, int status);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.lang.String getGroupEntriesRSS(long groupId,
@@ -138,21 +138,17 @@ public interface BlogsEntryService extends BaseService {
 		double version, java.lang.String displayStyle,
 		java.lang.String feedURL, java.lang.String entryURL,
 		com.liferay.portal.theme.ThemeDisplay themeDisplay)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getGroupsEntries(
 		long companyId, long groupId, java.util.Date displayDate, int status,
-		int max)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		int max) throws com.liferay.portal.kernel.exception.PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getOrganizationEntries(
 		long organizationId, java.util.Date displayDate, int status, int max)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.lang.String getOrganizationEntriesRSS(long organizationId,
@@ -160,25 +156,39 @@ public interface BlogsEntryService extends BaseService {
 		double version, java.lang.String displayStyle,
 		java.lang.String feedURL, java.lang.String entryURL,
 		com.liferay.portal.theme.ThemeDisplay themeDisplay)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public com.liferay.portlet.blogs.model.BlogsEntry moveEntryToTrash(
 		long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public void restoreEntryFromTrash(long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	/**
+	* Sets the Spring bean ID for this bean.
+	*
+	* @param beanIdentifier the Spring bean ID for this bean
+	*/
+	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	public void subscribe(long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public void unsubscribe(long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public com.liferay.portlet.blogs.model.BlogsEntry updateEntry(
+		long entryId, java.lang.String title, java.lang.String deckTitle,
+		java.lang.String description, java.lang.String content,
+		int displayDateMonth, int displayDateDay, int displayDateYear,
+		int displayDateHour, int displayDateMinute, boolean allowPingbacks,
+		boolean allowTrackbacks, java.lang.String[] trackbacks,
+		boolean smallImage, java.lang.String smallImageURL,
+		java.lang.String smallImageFileName,
+		java.io.InputStream smallImageInputStream,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public com.liferay.portlet.blogs.model.BlogsEntry updateEntry(
 		long entryId, java.lang.String title, java.lang.String description,
@@ -189,6 +199,5 @@ public interface BlogsEntryService extends BaseService {
 		java.lang.String smallImageURL, java.lang.String smallImageFileName,
 		java.io.InputStream smallImageInputStream,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

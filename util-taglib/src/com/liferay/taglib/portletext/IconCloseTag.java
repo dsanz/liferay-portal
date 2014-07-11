@@ -14,8 +14,8 @@
 
 package com.liferay.taglib.portletext;
 
-import com.liferay.portal.kernel.servlet.taglib.FileAvailabilityUtil;
 import com.liferay.portal.theme.PortletDisplay;
+import com.liferay.taglib.FileAvailabilityUtil;
 import com.liferay.taglib.ui.IconTag;
 
 /**
@@ -37,7 +37,7 @@ public class IconCloseTag extends IconTag {
 			return null;
 		}
 
-		setCssClass("portlet-close portlet-close-icon");
+		setCssClass("item-remove portlet-close portlet-close-icon");
 		setImage("../aui/remove");
 		setMessage("remove");
 

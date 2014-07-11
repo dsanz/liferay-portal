@@ -18,33 +18,29 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.kernel.xml.SAXReaderUtil;
-import com.liferay.portal.util.LocalizationImpl;
-import com.liferay.portal.xml.SAXReaderImpl;
+import com.liferay.portlet.dynamicdatamapping.BaseDDMTest;
 
 import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import org.springframework.mock.web.MockPageContext;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 /**
  * @author Pablo Carvalho
  */
-@PrepareForTest({LocalizationUtil.class, SAXReaderUtil.class})
-@RunWith(PowerMockRunner.class)
-public class DDMXSDImplTest extends PowerMockito {
+@PrepareForTest({LocalizationUtil.class})
+public class DDMXSDImplTest extends BaseDDMTest {
 
 	@Before
 	public void setUp() {
-		setUpMocks();
+		setUpLocalizationUtil();
+		setUpSAXReaderUtil();
 
 		_document = createSampleDocument();
 
@@ -55,9 +51,11 @@ public class DDMXSDImplTest extends PowerMockito {
 	@Test
 	public void testGetFieldsContext() throws Exception {
 		_ddmXSD.getFieldsContext(
-			_mockPageContext, _PORTLET_NAMESPACE, _NAMESPACE);
+			_mockHttpServletRequest, _mockHttpServletResponse,
+			_PORTLET_NAMESPACE, _NAMESPACE);
 
-		Assert.assertNotNull(_mockPageContext.getAttribute(_fieldsContextKey));
+		Assert.assertNotNull(
+			_mockHttpServletRequest.getAttribute(_fieldsContextKey));
 	}
 
 	@Test
@@ -68,8 +66,8 @@ public class DDMXSDImplTest extends PowerMockito {
 			rootElement, "Localizable", "Localizable", true);
 
 		Map<String, Object> fieldContext = _ddmXSD.getFieldContext(
-			_mockPageContext, _PORTLET_NAMESPACE, _NAMESPACE, fieldElement,
-			LocaleUtil.US);
+			_mockHttpServletRequest, _mockHttpServletResponse,
+			_PORTLET_NAMESPACE, _NAMESPACE, fieldElement, LocaleUtil.US);
 
 		Assert.assertFalse(fieldContext.containsKey("disabled"));
 	}
@@ -82,8 +80,8 @@ public class DDMXSDImplTest extends PowerMockito {
 			rootElement, "Localizable", "Localizable", true);
 
 		Map<String, Object> fieldContext = _ddmXSD.getFieldContext(
-			_mockPageContext, _PORTLET_NAMESPACE, _NAMESPACE, fieldElement,
-			LocaleUtil.BRAZIL);
+			_mockHttpServletRequest, _mockHttpServletResponse,
+			_PORTLET_NAMESPACE, _NAMESPACE, fieldElement, LocaleUtil.BRAZIL);
 
 		Assert.assertFalse(fieldContext.containsKey("disabled"));
 	}
@@ -96,8 +94,8 @@ public class DDMXSDImplTest extends PowerMockito {
 			rootElement, "Unlocalizable", "Unlocalizable", false);
 
 		Map<String, Object> fieldContext = _ddmXSD.getFieldContext(
-			_mockPageContext, _PORTLET_NAMESPACE, _NAMESPACE, fieldElement,
-			LocaleUtil.BRAZIL);
+			_mockHttpServletRequest, _mockHttpServletResponse,
+			_PORTLET_NAMESPACE, _NAMESPACE, fieldElement, LocaleUtil.BRAZIL);
 
 		Assert.assertEquals(
 			Boolean.TRUE.toString(), fieldContext.get("disabled"));
@@ -111,64 +109,10 @@ public class DDMXSDImplTest extends PowerMockito {
 			rootElement, "Unlocalizable", "Unlocalizable", false);
 
 		Map<String, Object> fieldContext = _ddmXSD.getFieldContext(
-			_mockPageContext, _PORTLET_NAMESPACE, _NAMESPACE, fieldElement,
-			LocaleUtil.US);
+			_mockHttpServletRequest, _mockHttpServletResponse,
+			_PORTLET_NAMESPACE, _NAMESPACE, fieldElement, LocaleUtil.US);
 
 		Assert.assertFalse(fieldContext.containsKey("disabled"));
-	}
-
-	protected Element addTextElement(
-		Element element, String name, String label, boolean localizable) {
-
-		Element dynamicElement = element.addElement("dynamic-element");
-
-		dynamicElement.addAttribute("dataType", "string");
-		dynamicElement.addAttribute("localizable", String.valueOf(localizable));
-		dynamicElement.addAttribute("name", name);
-		dynamicElement.addAttribute("type", "text");
-
-		Element metadataElement = dynamicElement.addElement("meta-data");
-
-		metadataElement.addAttribute(
-			"locale", LocaleUtil.toLanguageId(LocaleUtil.US));
-
-		Element entryElement = metadataElement.addElement("entry");
-
-		entryElement.addAttribute("name", "label");
-		entryElement.setText(label);
-
-		return dynamicElement;
-	}
-
-	protected Document createSampleDocument() {
-		Document document = SAXReaderUtil.createDocument();
-
-		Element rootElement = document.addElement("root");
-
-		rootElement.addAttribute("available-locales", "en_US");
-		rootElement.addAttribute("default-locale", "en_US");
-
-		addTextElement(rootElement, "Unlocalizable", "Text 2", false);
-
-		return document;
-	}
-
-	protected void setUpMocks() {
-		spy(LocalizationUtil.class);
-
-		when(
-			LocalizationUtil.getLocalization()
-		).thenReturn(
-			new LocalizationImpl()
-		);
-
-		spy(SAXReaderUtil.class);
-
-		when(
-			SAXReaderUtil.getSAXReader()
-		).thenReturn(
-			new SAXReaderImpl()
-		);
 	}
 
 	private static final String _NAMESPACE = "_namespace_";
@@ -178,6 +122,9 @@ public class DDMXSDImplTest extends PowerMockito {
 	private DDMXSDImpl _ddmXSD = new DDMXSDImpl();
 	private Document _document;
 	private String _fieldsContextKey;
-	private MockPageContext _mockPageContext = new MockPageContext();
+	private MockHttpServletRequest _mockHttpServletRequest =
+		new MockHttpServletRequest();
+	private MockHttpServletResponse _mockHttpServletResponse =
+		new MockHttpServletResponse();
 
 }

@@ -23,7 +23,7 @@ long folderId = BeanParamUtil.getLong(folder, request, "folderId", JournalFolder
 
 String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectFolder");
 
-String folderName = LanguageUtil.get(pageContext, "home");
+String folderName = LanguageUtil.get(request, "home");
 
 if (folder != null) {
 	folderName = folder.getName();
@@ -65,7 +65,7 @@ if (folder != null) {
 		Map<String, Object> data = new HashMap<String, Object>();
 
 		data.put("folderid", String.valueOf(folderId));
-		data.put("foldername", folderName);
+		data.put("foldername", HtmlUtil.escape(folderName));
 		%>
 
 		<aui:button cssClass="selector-button" data="<%= data %>" value="choose-this-folder" />
@@ -93,37 +93,32 @@ if (folder != null) {
 			</liferay-portlet:renderURL>
 
 			<%
+			AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(JournalFolder.class.getName());
+
+			AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(curFolder.getFolderId());
+
 			int foldersCount = 0;
 			int articlesCount = 0;
 
-			try {
-				List<Long> subfolderIds = JournalFolderServiceUtil.getSubfolderIds(scopeGroupId, curFolder.getFolderId(), false);
+			List<Long> subfolderIds = JournalFolderServiceUtil.getSubfolderIds(scopeGroupId, curFolder.getFolderId(), false);
 
-				foldersCount = subfolderIds.size();
+			foldersCount = subfolderIds.size();
 
-				subfolderIds.clear();
-				subfolderIds.add(curFolder.getFolderId());
+			subfolderIds.clear();
+			subfolderIds.add(curFolder.getFolderId());
 
-				articlesCount = JournalArticleServiceUtil.getFoldersAndArticlesCount(scopeGroupId, subfolderIds);
-			}
-			catch (com.liferay.portal.kernel.repository.RepositoryException re) {
-				rowURL = null;
-			}
-
-			String image = null;
-
-			if ((foldersCount + articlesCount) > 0) {
-				image = "folder_full_document";
-			}
-			else {
-				image = "folder_empty";
-			}
+			articlesCount = JournalArticleServiceUtil.getFoldersAndArticlesCount(scopeGroupId, subfolderIds);
 			%>
 
 			<liferay-ui:search-container-column-text
 				name="folder"
 			>
-				<liferay-ui:icon image="<%= image %>" label="<%= true %>" message="<%= HtmlUtil.escape(curFolder.getName()) %>" url="<%= (rowURL != null) ? rowURL.toString() : StringPool.BLANK %>" />
+				<liferay-ui:icon
+					iconCssClass="<%= assetRenderer.getIconCssClass() %>"
+					label="<%= true %>"
+					message="<%= HtmlUtil.escape(curFolder.getName()) %>"
+					url="<%= (rowURL != null) ? rowURL.toString() : StringPool.BLANK %>"
+				/>
 			</liferay-ui:search-container-column-text>
 
 			<liferay-ui:search-container-column-text
@@ -143,7 +138,7 @@ if (folder != null) {
 					Map<String, Object> data = new HashMap<String, Object>();
 
 					data.put("folderid", curFolder.getFolderId());
-					data.put("foldername", curFolder.getName());
+					data.put("foldername", HtmlUtil.escape(curFolder.getName()));
 					%>
 
 					<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />

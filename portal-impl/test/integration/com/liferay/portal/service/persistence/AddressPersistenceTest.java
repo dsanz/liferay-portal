@@ -33,11 +33,11 @@ import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.Address;
 import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.service.AddressLocalServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -48,6 +48,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -97,7 +98,7 @@ public class AddressPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		Address address = _persistence.create(pk);
 
@@ -124,47 +125,47 @@ public class AddressPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		Address newAddress = _persistence.create(pk);
 
-		newAddress.setMvccVersion(ServiceTestUtil.nextLong());
+		newAddress.setMvccVersion(RandomTestUtil.nextLong());
 
-		newAddress.setUuid(ServiceTestUtil.randomString());
+		newAddress.setUuid(RandomTestUtil.randomString());
 
-		newAddress.setCompanyId(ServiceTestUtil.nextLong());
+		newAddress.setCompanyId(RandomTestUtil.nextLong());
 
-		newAddress.setUserId(ServiceTestUtil.nextLong());
+		newAddress.setUserId(RandomTestUtil.nextLong());
 
-		newAddress.setUserName(ServiceTestUtil.randomString());
+		newAddress.setUserName(RandomTestUtil.randomString());
 
-		newAddress.setCreateDate(ServiceTestUtil.nextDate());
+		newAddress.setCreateDate(RandomTestUtil.nextDate());
 
-		newAddress.setModifiedDate(ServiceTestUtil.nextDate());
+		newAddress.setModifiedDate(RandomTestUtil.nextDate());
 
-		newAddress.setClassNameId(ServiceTestUtil.nextLong());
+		newAddress.setClassNameId(RandomTestUtil.nextLong());
 
-		newAddress.setClassPK(ServiceTestUtil.nextLong());
+		newAddress.setClassPK(RandomTestUtil.nextLong());
 
-		newAddress.setStreet1(ServiceTestUtil.randomString());
+		newAddress.setStreet1(RandomTestUtil.randomString());
 
-		newAddress.setStreet2(ServiceTestUtil.randomString());
+		newAddress.setStreet2(RandomTestUtil.randomString());
 
-		newAddress.setStreet3(ServiceTestUtil.randomString());
+		newAddress.setStreet3(RandomTestUtil.randomString());
 
-		newAddress.setCity(ServiceTestUtil.randomString());
+		newAddress.setCity(RandomTestUtil.randomString());
 
-		newAddress.setZip(ServiceTestUtil.randomString());
+		newAddress.setZip(RandomTestUtil.randomString());
 
-		newAddress.setRegionId(ServiceTestUtil.nextLong());
+		newAddress.setRegionId(RandomTestUtil.nextLong());
 
-		newAddress.setCountryId(ServiceTestUtil.nextLong());
+		newAddress.setCountryId(RandomTestUtil.nextLong());
 
-		newAddress.setTypeId(ServiceTestUtil.nextInt());
+		newAddress.setTypeId(RandomTestUtil.nextInt());
 
-		newAddress.setMailing(ServiceTestUtil.randomBoolean());
+		newAddress.setMailing(RandomTestUtil.randomBoolean());
 
-		newAddress.setPrimary(ServiceTestUtil.randomBoolean());
+		newAddress.setPrimary(RandomTestUtil.randomBoolean());
 
 		_persistence.update(newAddress);
 
@@ -227,7 +228,7 @@ public class AddressPersistenceTest {
 	public void testCountByUuid_C() {
 		try {
 			_persistence.countByUuid_C(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByUuid_C(StringPool.NULL, 0L);
 
@@ -241,7 +242,7 @@ public class AddressPersistenceTest {
 	@Test
 	public void testCountByCompanyId() {
 		try {
-			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+			_persistence.countByCompanyId(RandomTestUtil.nextLong());
 
 			_persistence.countByCompanyId(0L);
 		}
@@ -253,7 +254,7 @@ public class AddressPersistenceTest {
 	@Test
 	public void testCountByUserId() {
 		try {
-			_persistence.countByUserId(ServiceTestUtil.nextLong());
+			_persistence.countByUserId(RandomTestUtil.nextLong());
 
 			_persistence.countByUserId(0L);
 		}
@@ -265,8 +266,8 @@ public class AddressPersistenceTest {
 	@Test
 	public void testCountByC_C() {
 		try {
-			_persistence.countByC_C(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong());
+			_persistence.countByC_C(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
 
 			_persistence.countByC_C(0L, 0L);
 		}
@@ -278,8 +279,8 @@ public class AddressPersistenceTest {
 	@Test
 	public void testCountByC_C_C() {
 		try {
-			_persistence.countByC_C_C(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+			_persistence.countByC_C_C(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
 
 			_persistence.countByC_C_C(0L, 0L, 0L);
 		}
@@ -291,12 +292,12 @@ public class AddressPersistenceTest {
 	@Test
 	public void testCountByC_C_C_M() {
 		try {
-			_persistence.countByC_C_C_M(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong(),
-				ServiceTestUtil.randomBoolean());
+			_persistence.countByC_C_C_M(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+				RandomTestUtil.randomBoolean());
 
 			_persistence.countByC_C_C_M(0L, 0L, 0L,
-				ServiceTestUtil.randomBoolean());
+				RandomTestUtil.randomBoolean());
 		}
 		catch (Exception e) {
 			Assert.fail(e.getMessage());
@@ -306,12 +307,12 @@ public class AddressPersistenceTest {
 	@Test
 	public void testCountByC_C_C_P() {
 		try {
-			_persistence.countByC_C_C_P(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong(),
-				ServiceTestUtil.randomBoolean());
+			_persistence.countByC_C_C_P(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+				RandomTestUtil.randomBoolean());
 
 			_persistence.countByC_C_C_P(0L, 0L, 0L,
-				ServiceTestUtil.randomBoolean());
+				RandomTestUtil.randomBoolean());
 		}
 		catch (Exception e) {
 			Assert.fail(e.getMessage());
@@ -329,7 +330,7 @@ public class AddressPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -351,7 +352,7 @@ public class AddressPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<Address> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("Address", "mvccVersion",
 			true, "uuid", true, "addressId", true, "companyId", true, "userId",
 			true, "userName", true, "createDate", true, "modifiedDate", true,
@@ -371,11 +372,93 @@ public class AddressPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		Address missingAddress = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingAddress);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		Address newAddress1 = addAddress();
+		Address newAddress2 = addAddress();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newAddress1.getPrimaryKey());
+		primaryKeys.add(newAddress2.getPrimaryKey());
+
+		Map<Serializable, Address> addresses = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, addresses.size());
+		Assert.assertEquals(newAddress1,
+			addresses.get(newAddress1.getPrimaryKey()));
+		Assert.assertEquals(newAddress2,
+			addresses.get(newAddress2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, Address> addresses = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(addresses.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		Address newAddress = addAddress();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newAddress.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, Address> addresses = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, addresses.size());
+		Assert.assertEquals(newAddress,
+			addresses.get(newAddress.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, Address> addresses = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(addresses.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		Address newAddress = addAddress();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newAddress.getPrimaryKey());
+
+		Map<Serializable, Address> addresses = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, addresses.size());
+		Assert.assertEquals(newAddress,
+			addresses.get(newAddress.getPrimaryKey()));
 	}
 
 	@Test
@@ -426,7 +509,7 @@ public class AddressPersistenceTest {
 				Address.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("addressId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<Address> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -465,7 +548,7 @@ public class AddressPersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("addressId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("addressId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -473,47 +556,47 @@ public class AddressPersistenceTest {
 	}
 
 	protected Address addAddress() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		Address address = _persistence.create(pk);
 
-		address.setMvccVersion(ServiceTestUtil.nextLong());
+		address.setMvccVersion(RandomTestUtil.nextLong());
 
-		address.setUuid(ServiceTestUtil.randomString());
+		address.setUuid(RandomTestUtil.randomString());
 
-		address.setCompanyId(ServiceTestUtil.nextLong());
+		address.setCompanyId(RandomTestUtil.nextLong());
 
-		address.setUserId(ServiceTestUtil.nextLong());
+		address.setUserId(RandomTestUtil.nextLong());
 
-		address.setUserName(ServiceTestUtil.randomString());
+		address.setUserName(RandomTestUtil.randomString());
 
-		address.setCreateDate(ServiceTestUtil.nextDate());
+		address.setCreateDate(RandomTestUtil.nextDate());
 
-		address.setModifiedDate(ServiceTestUtil.nextDate());
+		address.setModifiedDate(RandomTestUtil.nextDate());
 
-		address.setClassNameId(ServiceTestUtil.nextLong());
+		address.setClassNameId(RandomTestUtil.nextLong());
 
-		address.setClassPK(ServiceTestUtil.nextLong());
+		address.setClassPK(RandomTestUtil.nextLong());
 
-		address.setStreet1(ServiceTestUtil.randomString());
+		address.setStreet1(RandomTestUtil.randomString());
 
-		address.setStreet2(ServiceTestUtil.randomString());
+		address.setStreet2(RandomTestUtil.randomString());
 
-		address.setStreet3(ServiceTestUtil.randomString());
+		address.setStreet3(RandomTestUtil.randomString());
 
-		address.setCity(ServiceTestUtil.randomString());
+		address.setCity(RandomTestUtil.randomString());
 
-		address.setZip(ServiceTestUtil.randomString());
+		address.setZip(RandomTestUtil.randomString());
 
-		address.setRegionId(ServiceTestUtil.nextLong());
+		address.setRegionId(RandomTestUtil.nextLong());
 
-		address.setCountryId(ServiceTestUtil.nextLong());
+		address.setCountryId(RandomTestUtil.nextLong());
 
-		address.setTypeId(ServiceTestUtil.nextInt());
+		address.setTypeId(RandomTestUtil.nextInt());
 
-		address.setMailing(ServiceTestUtil.randomBoolean());
+		address.setMailing(RandomTestUtil.randomBoolean());
 
-		address.setPrimary(ServiceTestUtil.randomBoolean());
+		address.setPrimary(RandomTestUtil.randomBoolean());
 
 		_persistence.update(address);
 

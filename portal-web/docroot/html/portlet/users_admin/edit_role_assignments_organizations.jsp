@@ -73,28 +73,14 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_role_assignments.
 		/>
 
 		<liferay-ui:search-container-column-text
-			buffer="buffer"
 			name="parent-organization"
-		>
-
-			<%
-			if (organization.getParentOrganizationId() > 0) {
-				try {
-					Organization parentOrganization = OrganizationLocalServiceUtil.getOrganization(organization.getParentOrganizationId());
-
-					buffer.append(HtmlUtil.escape(parentOrganization.getName()));
-				}
-				catch (Exception e) {
-				}
-			}
-			%>
-
-		</liferay-ui:search-container-column-text>
+			value="<%= HtmlUtil.escape(organization.getParentOrganizationName()) %>"
+		/>
 
 		<liferay-ui:search-container-column-text
 			name="type"
 			orderable="<%= true %>"
-			value="<%= LanguageUtil.get(pageContext, organization.getType()) %>"
+			value="<%= LanguageUtil.get(request, organization.getType()) %>"
 		/>
 
 		<liferay-ui:search-container-column-text

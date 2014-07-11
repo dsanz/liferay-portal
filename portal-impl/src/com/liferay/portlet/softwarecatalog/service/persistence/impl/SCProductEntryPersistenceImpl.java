@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -53,8 +52,11 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -121,11 +123,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param groupId the group ID
 	 * @return the matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<SCProductEntry> findByGroupId(long groupId)
-		throws SystemException {
+	public List<SCProductEntry> findByGroupId(long groupId) {
 		return findByGroupId(groupId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -140,11 +140,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param start the lower bound of the range of s c product entries
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @return the range of matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<SCProductEntry> findByGroupId(long groupId, int start, int end)
-		throws SystemException {
+	public List<SCProductEntry> findByGroupId(long groupId, int start, int end) {
 		return findByGroupId(groupId, start, end, null);
 	}
 
@@ -160,11 +158,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductEntry> findByGroupId(long groupId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -267,12 +264,11 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry findByGroupId_First(long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchProductEntryException, SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator)
+		throws NoSuchProductEntryException {
 		SCProductEntry scProductEntry = fetchByGroupId_First(groupId,
 				orderByComparator);
 
@@ -298,11 +294,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param groupId the group ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching s c product entry, or <code>null</code> if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry fetchByGroupId_First(long groupId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator) {
 		List<SCProductEntry> list = findByGroupId(groupId, 0, 1,
 				orderByComparator);
 
@@ -320,12 +315,11 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry findByGroupId_Last(long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchProductEntryException, SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator)
+		throws NoSuchProductEntryException {
 		SCProductEntry scProductEntry = fetchByGroupId_Last(groupId,
 				orderByComparator);
 
@@ -351,11 +345,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param groupId the group ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching s c product entry, or <code>null</code> if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry fetchByGroupId_Last(long groupId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator) {
 		int count = countByGroupId(groupId);
 
 		if (count == 0) {
@@ -380,12 +373,11 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a s c product entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry[] findByGroupId_PrevAndNext(long productEntryId,
-		long groupId, OrderByComparator orderByComparator)
-		throws NoSuchProductEntryException, SystemException {
+		long groupId, OrderByComparator<SCProductEntry> orderByComparator)
+		throws NoSuchProductEntryException {
 		SCProductEntry scProductEntry = findByPrimaryKey(productEntryId);
 
 		Session session = null;
@@ -415,7 +407,7 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 
 	protected SCProductEntry getByGroupId_PrevAndNext(Session session,
 		SCProductEntry scProductEntry, long groupId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<SCProductEntry> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -523,11 +515,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param groupId the group ID
 	 * @return the matching s c product entries that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<SCProductEntry> filterFindByGroupId(long groupId)
-		throws SystemException {
+	public List<SCProductEntry> filterFindByGroupId(long groupId) {
 		return filterFindByGroupId(groupId, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -543,11 +533,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param start the lower bound of the range of s c product entries
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @return the range of matching s c product entries that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductEntry> filterFindByGroupId(long groupId, int start,
-		int end) throws SystemException {
+		int end) {
 		return filterFindByGroupId(groupId, start, end, null);
 	}
 
@@ -563,11 +552,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching s c product entries that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductEntry> filterFindByGroupId(long groupId, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<SCProductEntry> orderByComparator) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByGroupId(groupId, start, end, orderByComparator);
 		}
@@ -655,12 +643,12 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a s c product entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry[] filterFindByGroupId_PrevAndNext(
-		long productEntryId, long groupId, OrderByComparator orderByComparator)
-		throws NoSuchProductEntryException, SystemException {
+		long productEntryId, long groupId,
+		OrderByComparator<SCProductEntry> orderByComparator)
+		throws NoSuchProductEntryException {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByGroupId_PrevAndNext(productEntryId, groupId,
 				orderByComparator);
@@ -695,7 +683,7 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 
 	protected SCProductEntry filterGetByGroupId_PrevAndNext(Session session,
 		SCProductEntry scProductEntry, long groupId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<SCProductEntry> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -837,10 +825,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * Removes all the s c product entries where groupId = &#63; from the database.
 	 *
 	 * @param groupId the group ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByGroupId(long groupId) throws SystemException {
+	public void removeByGroupId(long groupId) {
 		for (SCProductEntry scProductEntry : findByGroupId(groupId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(scProductEntry);
@@ -852,10 +839,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param groupId the group ID
 	 * @return the number of matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByGroupId(long groupId) throws SystemException {
+	public int countByGroupId(long groupId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_GROUPID;
 
 		Object[] finderArgs = new Object[] { groupId };
@@ -905,10 +891,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param groupId the group ID
 	 * @return the number of matching s c product entries that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int filterCountByGroupId(long groupId) throws SystemException {
+	public int filterCountByGroupId(long groupId) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return countByGroupId(groupId);
 		}
@@ -980,11 +965,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param companyId the company ID
 	 * @return the matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<SCProductEntry> findByCompanyId(long companyId)
-		throws SystemException {
+	public List<SCProductEntry> findByCompanyId(long companyId) {
 		return findByCompanyId(companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			null);
 	}
@@ -1000,11 +983,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param start the lower bound of the range of s c product entries
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @return the range of matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductEntry> findByCompanyId(long companyId, int start,
-		int end) throws SystemException {
+		int end) {
 		return findByCompanyId(companyId, start, end, null);
 	}
 
@@ -1020,11 +1002,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductEntry> findByCompanyId(long companyId, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<SCProductEntry> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1127,12 +1108,11 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry findByCompanyId_First(long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchProductEntryException, SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator)
+		throws NoSuchProductEntryException {
 		SCProductEntry scProductEntry = fetchByCompanyId_First(companyId,
 				orderByComparator);
 
@@ -1158,11 +1138,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching s c product entry, or <code>null</code> if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry fetchByCompanyId_First(long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator) {
 		List<SCProductEntry> list = findByCompanyId(companyId, 0, 1,
 				orderByComparator);
 
@@ -1180,12 +1159,11 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry findByCompanyId_Last(long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchProductEntryException, SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator)
+		throws NoSuchProductEntryException {
 		SCProductEntry scProductEntry = fetchByCompanyId_Last(companyId,
 				orderByComparator);
 
@@ -1211,11 +1189,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching s c product entry, or <code>null</code> if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry fetchByCompanyId_Last(long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator) {
 		int count = countByCompanyId(companyId);
 
 		if (count == 0) {
@@ -1240,12 +1217,11 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a s c product entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry[] findByCompanyId_PrevAndNext(long productEntryId,
-		long companyId, OrderByComparator orderByComparator)
-		throws NoSuchProductEntryException, SystemException {
+		long companyId, OrderByComparator<SCProductEntry> orderByComparator)
+		throws NoSuchProductEntryException {
 		SCProductEntry scProductEntry = findByPrimaryKey(productEntryId);
 
 		Session session = null;
@@ -1275,7 +1251,7 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 
 	protected SCProductEntry getByCompanyId_PrevAndNext(Session session,
 		SCProductEntry scProductEntry, long companyId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<SCProductEntry> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -1382,10 +1358,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * Removes all the s c product entries where companyId = &#63; from the database.
 	 *
 	 * @param companyId the company ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByCompanyId(long companyId) throws SystemException {
+	public void removeByCompanyId(long companyId) {
 		for (SCProductEntry scProductEntry : findByCompanyId(companyId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(scProductEntry);
@@ -1397,10 +1372,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param companyId the company ID
 	 * @return the number of matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByCompanyId(long companyId) throws SystemException {
+	public int countByCompanyId(long companyId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_COMPANYID;
 
 		Object[] finderArgs = new Object[] { companyId };
@@ -1476,11 +1450,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param groupId the group ID
 	 * @param userId the user ID
 	 * @return the matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<SCProductEntry> findByG_U(long groupId, long userId)
-		throws SystemException {
+	public List<SCProductEntry> findByG_U(long groupId, long userId) {
 		return findByG_U(groupId, userId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			null);
 	}
@@ -1497,11 +1469,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param start the lower bound of the range of s c product entries
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @return the range of matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductEntry> findByG_U(long groupId, long userId, int start,
-		int end) throws SystemException {
+		int end) {
 		return findByG_U(groupId, userId, start, end, null);
 	}
 
@@ -1518,11 +1489,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductEntry> findByG_U(long groupId, long userId, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<SCProductEntry> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1635,12 +1605,11 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry findByG_U_First(long groupId, long userId,
-		OrderByComparator orderByComparator)
-		throws NoSuchProductEntryException, SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator)
+		throws NoSuchProductEntryException {
 		SCProductEntry scProductEntry = fetchByG_U_First(groupId, userId,
 				orderByComparator);
 
@@ -1670,11 +1639,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param userId the user ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching s c product entry, or <code>null</code> if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry fetchByG_U_First(long groupId, long userId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator) {
 		List<SCProductEntry> list = findByG_U(groupId, userId, 0, 1,
 				orderByComparator);
 
@@ -1693,12 +1661,11 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry findByG_U_Last(long groupId, long userId,
-		OrderByComparator orderByComparator)
-		throws NoSuchProductEntryException, SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator)
+		throws NoSuchProductEntryException {
 		SCProductEntry scProductEntry = fetchByG_U_Last(groupId, userId,
 				orderByComparator);
 
@@ -1728,11 +1695,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param userId the user ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching s c product entry, or <code>null</code> if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry fetchByG_U_Last(long groupId, long userId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator) {
 		int count = countByG_U(groupId, userId);
 
 		if (count == 0) {
@@ -1758,12 +1724,12 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a s c product entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry[] findByG_U_PrevAndNext(long productEntryId,
-		long groupId, long userId, OrderByComparator orderByComparator)
-		throws NoSuchProductEntryException, SystemException {
+		long groupId, long userId,
+		OrderByComparator<SCProductEntry> orderByComparator)
+		throws NoSuchProductEntryException {
 		SCProductEntry scProductEntry = findByPrimaryKey(productEntryId);
 
 		Session session = null;
@@ -1793,7 +1759,7 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 
 	protected SCProductEntry getByG_U_PrevAndNext(Session session,
 		SCProductEntry scProductEntry, long groupId, long userId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<SCProductEntry> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -1906,11 +1872,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param groupId the group ID
 	 * @param userId the user ID
 	 * @return the matching s c product entries that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<SCProductEntry> filterFindByG_U(long groupId, long userId)
-		throws SystemException {
+	public List<SCProductEntry> filterFindByG_U(long groupId, long userId) {
 		return filterFindByG_U(groupId, userId, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -1927,11 +1891,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param start the lower bound of the range of s c product entries
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @return the range of matching s c product entries that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductEntry> filterFindByG_U(long groupId, long userId,
-		int start, int end) throws SystemException {
+		int start, int end) {
 		return filterFindByG_U(groupId, userId, start, end, null);
 	}
 
@@ -1948,12 +1911,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching s c product entries that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductEntry> filterFindByG_U(long groupId, long userId,
-		int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		int start, int end, OrderByComparator<SCProductEntry> orderByComparator) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByG_U(groupId, userId, start, end, orderByComparator);
 		}
@@ -2046,12 +2007,12 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a s c product entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry[] filterFindByG_U_PrevAndNext(long productEntryId,
-		long groupId, long userId, OrderByComparator orderByComparator)
-		throws NoSuchProductEntryException, SystemException {
+		long groupId, long userId,
+		OrderByComparator<SCProductEntry> orderByComparator)
+		throws NoSuchProductEntryException {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByG_U_PrevAndNext(productEntryId, groupId, userId,
 				orderByComparator);
@@ -2086,7 +2047,7 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 
 	protected SCProductEntry filterGetByG_U_PrevAndNext(Session session,
 		SCProductEntry scProductEntry, long groupId, long userId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<SCProductEntry> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -2233,11 +2194,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param groupId the group ID
 	 * @param userId the user ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByG_U(long groupId, long userId)
-		throws SystemException {
+	public void removeByG_U(long groupId, long userId) {
 		for (SCProductEntry scProductEntry : findByG_U(groupId, userId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(scProductEntry);
@@ -2250,10 +2209,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param groupId the group ID
 	 * @param userId the user ID
 	 * @return the number of matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByG_U(long groupId, long userId) throws SystemException {
+	public int countByG_U(long groupId, long userId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_G_U;
 
 		Object[] finderArgs = new Object[] { groupId, userId };
@@ -2308,11 +2266,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param groupId the group ID
 	 * @param userId the user ID
 	 * @return the number of matching s c product entries that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int filterCountByG_U(long groupId, long userId)
-		throws SystemException {
+	public int filterCountByG_U(long groupId, long userId) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return countByG_U(groupId, userId);
 		}
@@ -2377,11 +2333,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param repoArtifactId the repo artifact ID
 	 * @return the matching s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry findByRG_RA(String repoGroupId, String repoArtifactId)
-		throws NoSuchProductEntryException, SystemException {
+		throws NoSuchProductEntryException {
 		SCProductEntry scProductEntry = fetchByRG_RA(repoGroupId, repoArtifactId);
 
 		if (scProductEntry == null) {
@@ -2413,11 +2368,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param repoGroupId the repo group ID
 	 * @param repoArtifactId the repo artifact ID
 	 * @return the matching s c product entry, or <code>null</code> if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public SCProductEntry fetchByRG_RA(String repoGroupId, String repoArtifactId)
-		throws SystemException {
+	public SCProductEntry fetchByRG_RA(String repoGroupId, String repoArtifactId) {
 		return fetchByRG_RA(repoGroupId, repoArtifactId, true);
 	}
 
@@ -2428,12 +2381,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param repoArtifactId the repo artifact ID
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching s c product entry, or <code>null</code> if a matching s c product entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry fetchByRG_RA(String repoGroupId,
-		String repoArtifactId, boolean retrieveFromCache)
-		throws SystemException {
+		String repoArtifactId, boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { repoGroupId, repoArtifactId };
 
 		Object result = null;
@@ -2560,12 +2511,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param repoGroupId the repo group ID
 	 * @param repoArtifactId the repo artifact ID
 	 * @return the s c product entry that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry removeByRG_RA(String repoGroupId,
-		String repoArtifactId)
-		throws NoSuchProductEntryException, SystemException {
+		String repoArtifactId) throws NoSuchProductEntryException {
 		SCProductEntry scProductEntry = findByRG_RA(repoGroupId, repoArtifactId);
 
 		return remove(scProductEntry);
@@ -2577,11 +2526,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param repoGroupId the repo group ID
 	 * @param repoArtifactId the repo artifact ID
 	 * @return the number of matching s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByRG_RA(String repoGroupId, String repoArtifactId)
-		throws SystemException {
+	public int countByRG_RA(String repoGroupId, String repoArtifactId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_RG_RA;
 
 		Object[] finderArgs = new Object[] { repoGroupId, repoArtifactId };
@@ -2834,11 +2781,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param productEntryId the primary key of the s c product entry
 	 * @return the s c product entry that was removed
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a s c product entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry remove(long productEntryId)
-		throws NoSuchProductEntryException, SystemException {
+		throws NoSuchProductEntryException {
 		return remove((Serializable)productEntryId);
 	}
 
@@ -2848,11 +2794,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param primaryKey the primary key of the s c product entry
 	 * @return the s c product entry that was removed
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a s c product entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry remove(Serializable primaryKey)
-		throws NoSuchProductEntryException, SystemException {
+		throws NoSuchProductEntryException {
 		Session session = null;
 
 		try {
@@ -2884,8 +2829,7 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	}
 
 	@Override
-	protected SCProductEntry removeImpl(SCProductEntry scProductEntry)
-		throws SystemException {
+	protected SCProductEntry removeImpl(SCProductEntry scProductEntry) {
 		scProductEntry = toUnwrappedModel(scProductEntry);
 
 		scProductEntryToSCLicenseTableMapper.deleteLeftPrimaryKeyTableMappings(scProductEntry.getPrimaryKey());
@@ -2920,8 +2864,7 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 
 	@Override
 	public SCProductEntry updateImpl(
-		com.liferay.portlet.softwarecatalog.model.SCProductEntry scProductEntry)
-		throws SystemException {
+		com.liferay.portlet.softwarecatalog.model.SCProductEntry scProductEntry) {
 		scProductEntry = toUnwrappedModel(scProductEntry);
 
 		boolean isNew = scProductEntry.isNew();
@@ -3062,11 +3005,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param primaryKey the primary key of the s c product entry
 	 * @return the s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a s c product entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchProductEntryException, SystemException {
+		throws NoSuchProductEntryException {
 		SCProductEntry scProductEntry = fetchByPrimaryKey(primaryKey);
 
 		if (scProductEntry == null) {
@@ -3087,11 +3029,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param productEntryId the primary key of the s c product entry
 	 * @return the s c product entry
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductEntryException if a s c product entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductEntry findByPrimaryKey(long productEntryId)
-		throws NoSuchProductEntryException, SystemException {
+		throws NoSuchProductEntryException {
 		return findByPrimaryKey((Serializable)productEntryId);
 	}
 
@@ -3100,11 +3041,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param primaryKey the primary key of the s c product entry
 	 * @return the s c product entry, or <code>null</code> if a s c product entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public SCProductEntry fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public SCProductEntry fetchByPrimaryKey(Serializable primaryKey) {
 		SCProductEntry scProductEntry = (SCProductEntry)EntityCacheUtil.getResult(SCProductEntryModelImpl.ENTITY_CACHE_ENABLED,
 				SCProductEntryImpl.class, primaryKey);
 
@@ -3149,22 +3088,111 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param productEntryId the primary key of the s c product entry
 	 * @return the s c product entry, or <code>null</code> if a s c product entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public SCProductEntry fetchByPrimaryKey(long productEntryId)
-		throws SystemException {
+	public SCProductEntry fetchByPrimaryKey(long productEntryId) {
 		return fetchByPrimaryKey((Serializable)productEntryId);
+	}
+
+	@Override
+	public Map<Serializable, SCProductEntry> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, SCProductEntry> map = new HashMap<Serializable, SCProductEntry>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			SCProductEntry scProductEntry = fetchByPrimaryKey(primaryKey);
+
+			if (scProductEntry != null) {
+				map.put(primaryKey, scProductEntry);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			SCProductEntry scProductEntry = (SCProductEntry)EntityCacheUtil.getResult(SCProductEntryModelImpl.ENTITY_CACHE_ENABLED,
+					SCProductEntryImpl.class, primaryKey);
+
+			if (scProductEntry == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, scProductEntry);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_SCPRODUCTENTRY_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (SCProductEntry scProductEntry : (List<SCProductEntry>)q.list()) {
+				map.put(scProductEntry.getPrimaryKeyObj(), scProductEntry);
+
+				cacheResult(scProductEntry);
+
+				uncachedPrimaryKeys.remove(scProductEntry.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(SCProductEntryModelImpl.ENTITY_CACHE_ENABLED,
+					SCProductEntryImpl.class, primaryKey, _nullSCProductEntry);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the s c product entries.
 	 *
 	 * @return the s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<SCProductEntry> findAll() throws SystemException {
+	public List<SCProductEntry> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -3178,11 +3206,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param start the lower bound of the range of s c product entries
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @return the range of s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<SCProductEntry> findAll(int start, int end)
-		throws SystemException {
+	public List<SCProductEntry> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -3197,11 +3223,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductEntry> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<SCProductEntry> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -3283,10 +3308,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	/**
 	 * Removes all the s c product entries from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (SCProductEntry scProductEntry : findAll()) {
 			remove(scProductEntry);
 		}
@@ -3296,10 +3320,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * Returns the number of s c product entries.
 	 *
 	 * @return the number of s c product entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -3331,15 +3354,27 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	}
 
 	/**
+	 * Returns the primaryKeys of s c licenses associated with the s c product entry.
+	 *
+	 * @param pk the primary key of the s c product entry
+	 * @return long[] of the primaryKeys of s c licenses associated with the s c product entry
+	 */
+	@Override
+	public long[] getSCLicensePrimaryKeys(long pk) {
+		long[] pks = scProductEntryToSCLicenseTableMapper.getRightPrimaryKeys(pk);
+
+		return pks.clone();
+	}
+
+	/**
 	 * Returns all the s c licenses associated with the s c product entry.
 	 *
 	 * @param pk the primary key of the s c product entry
 	 * @return the s c licenses associated with the s c product entry
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<com.liferay.portlet.softwarecatalog.model.SCLicense> getSCLicenses(
-		long pk) throws SystemException {
+		long pk) {
 		return getSCLicenses(pk, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 	}
 
@@ -3354,11 +3389,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param start the lower bound of the range of s c product entries
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @return the range of s c licenses associated with the s c product entry
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<com.liferay.portlet.softwarecatalog.model.SCLicense> getSCLicenses(
-		long pk, int start, int end) throws SystemException {
+		long pk, int start, int end) {
 		return getSCLicenses(pk, start, end, null);
 	}
 
@@ -3374,12 +3408,11 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param end the upper bound of the range of s c product entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of s c licenses associated with the s c product entry
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<com.liferay.portlet.softwarecatalog.model.SCLicense> getSCLicenses(
-		long pk, int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		long pk, int start, int end,
+		OrderByComparator<com.liferay.portlet.softwarecatalog.model.SCLicense> orderByComparator) {
 		return scProductEntryToSCLicenseTableMapper.getRightBaseModels(pk,
 			start, end, orderByComparator);
 	}
@@ -3389,10 +3422,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param pk the primary key of the s c product entry
 	 * @return the number of s c licenses associated with the s c product entry
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getSCLicensesSize(long pk) throws SystemException {
+	public int getSCLicensesSize(long pk) {
 		long[] pks = scProductEntryToSCLicenseTableMapper.getRightPrimaryKeys(pk);
 
 		return pks.length;
@@ -3404,11 +3436,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * @param pk the primary key of the s c product entry
 	 * @param scLicensePK the primary key of the s c license
 	 * @return <code>true</code> if the s c license is associated with the s c product entry; <code>false</code> otherwise
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public boolean containsSCLicense(long pk, long scLicensePK)
-		throws SystemException {
+	public boolean containsSCLicense(long pk, long scLicensePK) {
 		return scProductEntryToSCLicenseTableMapper.containsTableMapping(pk,
 			scLicensePK);
 	}
@@ -3418,10 +3448,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param pk the primary key of the s c product entry to check for associations with s c licenses
 	 * @return <code>true</code> if the s c product entry has any s c licenses associated with it; <code>false</code> otherwise
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public boolean containsSCLicenses(long pk) throws SystemException {
+	public boolean containsSCLicenses(long pk) {
 		if (getSCLicensesSize(pk) > 0) {
 			return true;
 		}
@@ -3435,11 +3464,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param pk the primary key of the s c product entry
 	 * @param scLicensePK the primary key of the s c license
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void addSCLicense(long pk, long scLicensePK)
-		throws SystemException {
+	public void addSCLicense(long pk, long scLicensePK) {
 		scProductEntryToSCLicenseTableMapper.addTableMapping(pk, scLicensePK);
 	}
 
@@ -3448,12 +3475,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param pk the primary key of the s c product entry
 	 * @param scLicense the s c license
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void addSCLicense(long pk,
-		com.liferay.portlet.softwarecatalog.model.SCLicense scLicense)
-		throws SystemException {
+		com.liferay.portlet.softwarecatalog.model.SCLicense scLicense) {
 		scProductEntryToSCLicenseTableMapper.addTableMapping(pk,
 			scLicense.getPrimaryKey());
 	}
@@ -3463,11 +3488,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param pk the primary key of the s c product entry
 	 * @param scLicensePKs the primary keys of the s c licenses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void addSCLicenses(long pk, long[] scLicensePKs)
-		throws SystemException {
+	public void addSCLicenses(long pk, long[] scLicensePKs) {
 		for (long scLicensePK : scLicensePKs) {
 			scProductEntryToSCLicenseTableMapper.addTableMapping(pk, scLicensePK);
 		}
@@ -3478,12 +3501,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param pk the primary key of the s c product entry
 	 * @param scLicenses the s c licenses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void addSCLicenses(long pk,
-		List<com.liferay.portlet.softwarecatalog.model.SCLicense> scLicenses)
-		throws SystemException {
+		List<com.liferay.portlet.softwarecatalog.model.SCLicense> scLicenses) {
 		for (com.liferay.portlet.softwarecatalog.model.SCLicense scLicense : scLicenses) {
 			scProductEntryToSCLicenseTableMapper.addTableMapping(pk,
 				scLicense.getPrimaryKey());
@@ -3494,10 +3515,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 * Clears all associations between the s c product entry and its s c licenses. Also notifies the appropriate model listeners and clears the mapping table finder cache.
 	 *
 	 * @param pk the primary key of the s c product entry to clear the associated s c licenses from
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void clearSCLicenses(long pk) throws SystemException {
+	public void clearSCLicenses(long pk) {
 		scProductEntryToSCLicenseTableMapper.deleteLeftPrimaryKeyTableMappings(pk);
 	}
 
@@ -3506,11 +3526,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param pk the primary key of the s c product entry
 	 * @param scLicensePK the primary key of the s c license
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeSCLicense(long pk, long scLicensePK)
-		throws SystemException {
+	public void removeSCLicense(long pk, long scLicensePK) {
 		scProductEntryToSCLicenseTableMapper.deleteTableMapping(pk, scLicensePK);
 	}
 
@@ -3519,12 +3537,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param pk the primary key of the s c product entry
 	 * @param scLicense the s c license
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void removeSCLicense(long pk,
-		com.liferay.portlet.softwarecatalog.model.SCLicense scLicense)
-		throws SystemException {
+		com.liferay.portlet.softwarecatalog.model.SCLicense scLicense) {
 		scProductEntryToSCLicenseTableMapper.deleteTableMapping(pk,
 			scLicense.getPrimaryKey());
 	}
@@ -3534,11 +3550,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param pk the primary key of the s c product entry
 	 * @param scLicensePKs the primary keys of the s c licenses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeSCLicenses(long pk, long[] scLicensePKs)
-		throws SystemException {
+	public void removeSCLicenses(long pk, long[] scLicensePKs) {
 		for (long scLicensePK : scLicensePKs) {
 			scProductEntryToSCLicenseTableMapper.deleteTableMapping(pk,
 				scLicensePK);
@@ -3550,12 +3564,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param pk the primary key of the s c product entry
 	 * @param scLicenses the s c licenses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void removeSCLicenses(long pk,
-		List<com.liferay.portlet.softwarecatalog.model.SCLicense> scLicenses)
-		throws SystemException {
+		List<com.liferay.portlet.softwarecatalog.model.SCLicense> scLicenses) {
 		for (com.liferay.portlet.softwarecatalog.model.SCLicense scLicense : scLicenses) {
 			scProductEntryToSCLicenseTableMapper.deleteTableMapping(pk,
 				scLicense.getPrimaryKey());
@@ -3567,11 +3579,9 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param pk the primary key of the s c product entry
 	 * @param scLicensePKs the primary keys of the s c licenses to be associated with the s c product entry
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void setSCLicenses(long pk, long[] scLicensePKs)
-		throws SystemException {
+	public void setSCLicenses(long pk, long[] scLicensePKs) {
 		Set<Long> newSCLicensePKsSet = SetUtil.fromArray(scLicensePKs);
 		Set<Long> oldSCLicensePKsSet = SetUtil.fromArray(scProductEntryToSCLicenseTableMapper.getRightPrimaryKeys(
 					pk));
@@ -3598,12 +3608,10 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 	 *
 	 * @param pk the primary key of the s c product entry
 	 * @param scLicenses the s c licenses to be associated with the s c product entry
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void setSCLicenses(long pk,
-		List<com.liferay.portlet.softwarecatalog.model.SCLicense> scLicenses)
-		throws SystemException {
+		List<com.liferay.portlet.softwarecatalog.model.SCLicense> scLicenses) {
 		try {
 			long[] scLicensePKs = new long[scLicenses.size()];
 
@@ -3658,12 +3666,15 @@ public class SCProductEntryPersistenceImpl extends BasePersistenceImpl<SCProduct
 		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_ENTITY);
 		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		TableMapperFactory.removeTableMapper("SCLicenses_SCProductEntries");
 	}
 
 	@BeanReference(type = SCLicensePersistence.class)
 	protected SCLicensePersistence scLicensePersistence;
 	protected TableMapper<SCProductEntry, com.liferay.portlet.softwarecatalog.model.SCLicense> scProductEntryToSCLicenseTableMapper;
 	private static final String _SQL_SELECT_SCPRODUCTENTRY = "SELECT scProductEntry FROM SCProductEntry scProductEntry";
+	private static final String _SQL_SELECT_SCPRODUCTENTRY_WHERE_PKS_IN = "SELECT scProductEntry FROM SCProductEntry scProductEntry WHERE productEntryId IN (";
 	private static final String _SQL_SELECT_SCPRODUCTENTRY_WHERE = "SELECT scProductEntry FROM SCProductEntry scProductEntry WHERE ";
 	private static final String _SQL_COUNT_SCPRODUCTENTRY = "SELECT COUNT(scProductEntry) FROM SCProductEntry scProductEntry";
 	private static final String _SQL_COUNT_SCPRODUCTENTRY_WHERE = "SELECT COUNT(scProductEntry) FROM SCProductEntry scProductEntry WHERE ";

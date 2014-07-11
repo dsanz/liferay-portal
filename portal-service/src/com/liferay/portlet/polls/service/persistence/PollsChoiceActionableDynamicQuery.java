@@ -15,7 +15,6 @@
 package com.liferay.portlet.polls.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 import com.liferay.portlet.polls.model.PollsChoice;
@@ -23,13 +22,13 @@ import com.liferay.portlet.polls.service.PollsChoiceLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link PollsChoiceLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link PollsChoiceLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class PollsChoiceActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public PollsChoiceActionableDynamicQuery() throws SystemException {
+	public PollsChoiceActionableDynamicQuery() {
 		setBaseLocalService(PollsChoiceLocalServiceUtil.getService());
 		setClass(PollsChoice.class);
 

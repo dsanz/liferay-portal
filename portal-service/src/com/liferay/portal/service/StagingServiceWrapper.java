@@ -30,6 +30,18 @@ public class StagingServiceWrapper implements StagingService,
 		_stagingService = stagingService;
 	}
 
+	@Override
+	public void cleanUpStagingRequest(long stagingRequestId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_stagingService.cleanUpStagingRequest(stagingRequestId);
+	}
+
+	@Override
+	public long createStagingRequest(long groupId, java.lang.String checksum)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _stagingService.createStagingRequest(groupId, checksum);
+	}
+
 	/**
 	* Returns the Spring bean ID for this bean.
 	*
@@ -38,6 +50,15 @@ public class StagingServiceWrapper implements StagingService,
 	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _stagingService.getBeanIdentifier();
+	}
+
+	@Override
+	public void publishStagingRequest(long stagingRequestId,
+		boolean privateLayout,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_stagingService.publishStagingRequest(stagingRequestId, privateLayout,
+			parameterMap);
 	}
 
 	/**
@@ -51,34 +72,9 @@ public class StagingServiceWrapper implements StagingService,
 	}
 
 	@Override
-	public void cleanUpStagingRequest(long stagingRequestId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_stagingService.cleanUpStagingRequest(stagingRequestId);
-	}
-
-	@Override
-	public long createStagingRequest(long groupId, java.lang.String checksum)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _stagingService.createStagingRequest(groupId, checksum);
-	}
-
-	@Override
-	public void publishStagingRequest(long stagingRequestId,
-		boolean privateLayout,
-		java.util.Map<java.lang.String, java.lang.String[]> parameterMap)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_stagingService.publishStagingRequest(stagingRequestId, privateLayout,
-			parameterMap);
-	}
-
-	@Override
 	public void updateStagingRequest(long stagingRequestId,
 		java.lang.String fileName, byte[] bytes)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_stagingService.updateStagingRequest(stagingRequestId, fileName, bytes);
 	}
 
@@ -86,8 +82,7 @@ public class StagingServiceWrapper implements StagingService,
 	public com.liferay.portal.kernel.lar.MissingReferences validateStagingRequest(
 		long stagingRequestId, boolean privateLayout,
 		java.util.Map<java.lang.String, java.lang.String[]> parameterMap)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _stagingService.validateStagingRequest(stagingRequestId,
 			privateLayout, parameterMap);
 	}

@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.cache.Lifecycle;
 import com.liferay.portal.kernel.cache.ThreadLocalCacheManager;
 import com.liferay.portal.kernel.deploy.hot.HotDeployUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -972,7 +971,7 @@ public class MainServlet extends ActionServlet {
 	protected long loginUser(
 			HttpServletRequest request, HttpServletResponse response,
 			long companyId, long userId, String remoteUser)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if ((userId > 0) || (remoteUser == null)) {
 			return userId;
@@ -1040,7 +1039,7 @@ public class MainServlet extends ActionServlet {
 
 	protected boolean processGroupInactiveRequest(
 			HttpServletRequest request, HttpServletResponse response)
-		throws IOException, PortalException, SystemException {
+		throws IOException, PortalException {
 
 		long plid = ParamUtil.getLong(request, "p_l_id");
 
@@ -1188,6 +1187,8 @@ public class MainServlet extends ActionServlet {
 
 		if (plid > 0) {
 			try {
+				redirect = HttpUtil.addParameter(redirect, "refererPlid", plid);
+
 				Layout layout = LayoutLocalServiceUtil.getLayout(plid);
 
 				Group group = layout.getGroup();

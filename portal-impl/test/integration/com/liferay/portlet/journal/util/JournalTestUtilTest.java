@@ -18,29 +18,29 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.PortletRequestModel;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.CompanyTestUtil;
-import com.liferay.portal.util.GroupTestUtil;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.CompanyTestUtil;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.dynamicdatamapping.StructureNameException;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
-import com.liferay.portlet.dynamicdatamapping.util.DDMStructureTestUtil;
-import com.liferay.portlet.dynamicdatamapping.util.DDMTemplateTestUtil;
+import com.liferay.portlet.dynamicdatamapping.util.test.DDMStructureTestUtil;
+import com.liferay.portlet.dynamicdatamapping.util.test.DDMTemplateTestUtil;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalFolder;
+import com.liferay.portlet.journal.util.test.JournalTestUtil;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -56,13 +56,11 @@ import org.junit.runner.RunWith;
  */
 @ExecutionTestListeners(
 	listeners = {
-		EnvironmentExecutionTestListener.class,
-		SynchronousDestinationExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
+		MainServletExecutionTestListener.class,
+		SynchronousDestinationExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 @Sync
-@Transactional
 public class JournalTestUtilTest {
 
 	@Before
@@ -115,6 +113,19 @@ public class JournalTestUtilTest {
 	}
 
 	@Test
+	public void testAddDDMStructureWithDefinition() throws Exception {
+		Assert.assertNotNull(
+			DDMStructureTestUtil.addStructure(JournalArticle.class.getName()));
+	}
+
+	@Test
+	public void testAddDDMStructureWithDefinitionAndLocale() throws Exception {
+		Assert.assertNotNull(
+			DDMStructureTestUtil.addStructure(
+				JournalArticle.class.getName(), LocaleUtil.getSiteDefault()));
+	}
+
+	@Test
 	public void testAddDDMStructureWithLocale() throws Exception {
 		Assert.assertNotNull(
 			DDMStructureTestUtil.addStructure(
@@ -124,10 +135,12 @@ public class JournalTestUtilTest {
 	@Test
 	public void testAddDDMStructureWithNonexistingLocale() throws Exception {
 		Locale[] availableLocales = LanguageUtil.getAvailableLocales();
+		Locale defaultLocale = LocaleUtil.getDefault();
 
 		try {
 			CompanyTestUtil.resetCompanyLocales(
-				PortalUtil.getDefaultCompanyId(), "en_US");
+				PortalUtil.getDefaultCompanyId(), new Locale[] {LocaleUtil.US},
+				LocaleUtil.US);
 
 			DDMStructureTestUtil.addStructure(
 				JournalArticle.class.getName(), LocaleUtil.CANADA);
@@ -138,21 +151,9 @@ public class JournalTestUtilTest {
 		}
 		finally {
 			CompanyTestUtil.resetCompanyLocales(
-				PortalUtil.getDefaultCompanyId(), availableLocales);
+				PortalUtil.getDefaultCompanyId(), availableLocales,
+				defaultLocale);
 		}
-	}
-
-	@Test
-	public void testAddDDMStructureWithXSD() throws Exception {
-		Assert.assertNotNull(
-			DDMStructureTestUtil.addStructure(JournalArticle.class.getName()));
-	}
-
-	@Test
-	public void testAddDDMStructureWithXSDAndLocale() throws Exception {
-		Assert.assertNotNull(
-			DDMStructureTestUtil.addStructure(
-				JournalArticle.class.getName(), LocaleUtil.getSiteDefault()));
 	}
 
 	@Test
@@ -232,8 +233,9 @@ public class JournalTestUtilTest {
 	}
 
 	@Test
-	public void testGetSampleStructureXSD() {
-		Assert.assertNotNull(DDMStructureTestUtil.getSampleStructureXSD());
+	public void testGetSampleStructureDefinition() {
+		Assert.assertNotNull(
+			DDMStructureTestUtil.getSampleStructureDefinition());
 	}
 
 	@Test
@@ -275,6 +277,7 @@ public class JournalTestUtilTest {
 		return tokens;
 	}
 
+	@DeleteAfterTestRun
 	private Group _group;
 
 }

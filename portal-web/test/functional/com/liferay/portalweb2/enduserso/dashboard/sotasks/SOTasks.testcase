@@ -81,9 +81,73 @@
 			<var name="userLoginFullName" value="${userName}" />
 		</execute>
 
-		<execute macro="SOTasks#viewTaskNotification">
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#viewTask">
+			<var name="taskAssignee" value="${userName}" />
 			<var name="taskDescription" value="${taskDescription}" />
 			<var name="taskReporter" value="${adminName}" />
+		</execute>
+	</command>
+
+	<command known-issues="SOS-2281" name="AddTaskAssignedToConnectionCommentBySOUser" priority="5">
+		<var name="taskComment" value="Task Comment" />
+		<var name="taskDescription" value="Task Description" />
+		<var name="userEmailAddress" value="socialoffice01@liferay.com" />
+		<var name="userFirstName" value="Social01" />
+		<var name="userLastName" value="User01" />
+		<var name="userListName" value="User01, Social01" />
+		<var name="userMiddleName" value="Office01" />
+		<var name="userName" value="Social01 Office01 User01" />
+		<var name="userScreenName" value="socialoffice01" />
+
+		<execute macro="SOContactsCenter#addConnection">
+			<var name="adminEmailAddress" value="${adminEmailAddress}" />
+			<var name="senderName" value="${adminName}" />
+			<var name="userEmailAddress" value="${userEmailAddress}" />
+			<var name="userFirstName" value="${userFirstName}" />
+			<var name="userLastName" value="${userLastName}" />
+			<var name="userListName" value="${userListName}" />
+			<var name="userMiddleName" value="${userMiddleName}" />
+			<var name="userName" value="${userName}" />
+			<var name="userScreenName" value="${userScreenName}" />
+		</execute>
+
+		<execute macro="User#logoutAndLoginPG">
+			<var name="userLoginEmailAddress" value="${adminEmailAddress}" />
+			<var name="userLoginFullName" value="${adminName}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#addTask">
+			<var name="taskAssignee" value="${userName}" />
+			<var name="taskDescription" value="${taskDescription}" />
+			<var name="taskReporter" value="${adminName}" />
+		</execute>
+
+		<execute macro="User#logoutAndLoginPG">
+			<var name="userLoginEmailAddress" value="${userEmailAddress}" />
+			<var name="userLoginFullName" value="${userName}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#addComment">
+			<var name="taskComment" value="${taskComment}" />
+			<var name="taskDescription" value="${taskDescription}" />
 		</execute>
 
 		<execute macro="Page#gotoPG">
@@ -94,6 +158,7 @@
 
 		<execute macro="SOTasks#viewTask">
 			<var name="taskAssignee" value="${userName}" />
+			<var name="taskComment" value="${taskComment}" />
 			<var name="taskDescription" value="${taskDescription}" />
 			<var name="taskReporter" value="${adminName}" />
 		</execute>
@@ -135,8 +200,10 @@
 
 		<execute action="SOTasks#click" locator-key1="ADD_TASK_BUTTON" />
 
+		<execute action="SOTasksAdd#selectFrame" locator-key1="ADD_TASK_IFRAME" />
 		<execute action="SOTasksAdd#type" locator-key1="TASK_DESCRIPTION_FIELD" value1="${taskDescription}" />
 		<execute action="SOTasksAdd#assertTextNotEquals" locator-key1="TASK_ASSIGNEE_SELECT_MENU" value1="${userName}" />
+		<execute action="SOTasksAdd#selectFrame" value1="relative=top" />
 	</command>
 
 	<command name="AddTaskAssignedToMe" priority="5">
@@ -285,6 +352,7 @@
 
 		<execute action="SOTasks#click" locator-key1="ADD_TASK_BUTTON" />
 
+		<execute action="SOTasksAdd#selectFrame" locator-key1="ADD_TASK_IFRAME" />
 		<execute action="SOTasksAdd#type" locator-key1="TASK_DESCRIPTION_FIELD" value1="${taskDescription}" />
 		<execute action="SOTasksAdd#select" locator-key1="TASK_ASSIGNEE_SELECT_MENU" value1="${adminName}" />
 		<execute action="SOTasksAdd#type" locator-key1="TASK_TAG_FIELD" value1="&lt;tag1&gt;" />
@@ -301,6 +369,7 @@
 		<execute action="SOTasksTask#assertTextEquals" locator-key1="TASK_REPORTER" value1="Created by ${adminName}" />
 		<execute action="SOTasksTask#assertTextEquals" locator-key1="TASK_TAG" value1="tag1" />
 		<execute action="SOTasksTask#assertTextNotPresent" value1="&lt;tag1&gt;" />
+		<execute action="SOTasksTask#selectFrame" value1="relative=top" />
 	</command>
 
 	<command name="AddTasksAssignedToMe" priority="4">
@@ -465,6 +534,74 @@
 		</execute>
 	</command>
 
+	<command known-issues="SOS-2281" name="DeleteTaskAssignedToConnectionCommentBySOUser" priority="5">
+		<var name="taskComment" value="Task Comment" />
+		<var name="taskDescription" value="Task Description" />
+		<var name="userEmailAddress" value="socialoffice01@liferay.com" />
+		<var name="userFirstName" value="Social01" />
+		<var name="userLastName" value="User01" />
+		<var name="userListName" value="User01, Social01" />
+		<var name="userMiddleName" value="Office01" />
+		<var name="userName" value="Social01 Office01 User01" />
+		<var name="userScreenName" value="socialoffice01" />
+
+		<execute macro="SOContactsCenter#addConnection">
+			<var name="adminEmailAddress" value="${adminEmailAddress}" />
+			<var name="senderName" value="${adminName}" />
+			<var name="userEmailAddress" value="${userEmailAddress}" />
+			<var name="userFirstName" value="${userFirstName}" />
+			<var name="userLastName" value="${userLastName}" />
+			<var name="userListName" value="${userListName}" />
+			<var name="userMiddleName" value="${userMiddleName}" />
+			<var name="userName" value="${userName}" />
+			<var name="userScreenName" value="${userScreenName}" />
+		</execute>
+
+		<execute macro="User#logoutAndLoginPG">
+			<var name="userLoginEmailAddress" value="${adminEmailAddress}" />
+			<var name="userLoginFullName" value="${adminName}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#addTask">
+			<var name="taskAssignee" value="${userName}" />
+			<var name="taskDescription" value="${taskDescription}" />
+			<var name="taskReporter" value="${adminName}" />
+		</execute>
+
+		<execute macro="User#logoutAndLoginPG">
+			<var name="userLoginEmailAddress" value="${userEmailAddress}" />
+			<var name="userLoginFullName" value="${userName}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#addComment">
+			<var name="taskComment" value="${taskComment}" />
+			<var name="taskDescription" value="${taskDescription}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#deleteComment">
+			<var name="taskComment" value="${taskComment}" />
+			<var name="taskDescription" value="${taskDescription}" />
+		</execute>
+	</command>
+
 	<command name="DeleteTaskAssignedToMe" priority="5">
 		<var name="taskDescription" value="Task Description" />
 
@@ -612,6 +749,88 @@
 			<var name="dueDateEdit" value="true" />
 			<var name="taskAssignee" value="${userName}" />
 			<var name="taskDescription" value="${taskDescriptionEdit}" />
+			<var name="taskReporter" value="${adminName}" />
+		</execute>
+	</command>
+
+	<command known-issues="SOS-2281" name="EditTaskAssignedToConnectionCommentBySOUser" priority="5">
+		<var name="taskComment" value="Task Comment" />
+		<var name="taskCommentEdit" value="Task Comment Edit" />
+		<var name="taskDescription" value="Task Description" />
+		<var name="userEmailAddress" value="socialoffice01@liferay.com" />
+		<var name="userFirstName" value="Social01" />
+		<var name="userLastName" value="User01" />
+		<var name="userListName" value="User01, Social01" />
+		<var name="userMiddleName" value="Office01" />
+		<var name="userName" value="Social01 Office01 User01" />
+		<var name="userScreenName" value="socialoffice01" />
+
+		<execute macro="SOContactsCenter#addConnection">
+			<var name="adminEmailAddress" value="${adminEmailAddress}" />
+			<var name="senderName" value="${adminName}" />
+			<var name="userEmailAddress" value="${userEmailAddress}" />
+			<var name="userFirstName" value="${userFirstName}" />
+			<var name="userLastName" value="${userLastName}" />
+			<var name="userListName" value="${userListName}" />
+			<var name="userMiddleName" value="${userMiddleName}" />
+			<var name="userName" value="${userName}" />
+			<var name="userScreenName" value="${userScreenName}" />
+		</execute>
+
+		<execute macro="User#logoutAndLoginPG">
+			<var name="userLoginEmailAddress" value="${adminEmailAddress}" />
+			<var name="userLoginFullName" value="${adminName}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#addTask">
+			<var name="taskAssignee" value="${userName}" />
+			<var name="taskDescription" value="${taskDescription}" />
+			<var name="taskReporter" value="${adminName}" />
+		</execute>
+
+		<execute macro="User#logoutAndLoginPG">
+			<var name="userLoginEmailAddress" value="${userEmailAddress}" />
+			<var name="userLoginFullName" value="${userName}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#addComment">
+			<var name="taskComment" value="${taskComment}" />
+			<var name="taskDescription" value="${taskDescription}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#editComment">
+			<var name="taskCommentEdit" value="${taskCommentEdit}" />
+			<var name="taskDescription" value="${taskDescription}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#viewTask">
+			<var name="taskAssignee" value="${adminName}" />
+			<var name="taskComment" value="${taskCommentEdit}" />
+			<var name="taskDescription" value="${taskDescription}" />
 			<var name="taskReporter" value="${adminName}" />
 		</execute>
 	</command>
@@ -811,7 +1030,7 @@
 		<execute action="SOTasks#assertTextNotPresent" value1="${taskDescription}01" />
 	</command>
 
-	<command name="FilterTasksByTag" known-issues="SOS-1999" priority="5">
+	<command known-issues="SOS-1999" name="FilterTasksByTag" priority="5">
 		<var name="taskDescription" value="Task Description" />
 
 		<execute macro="Page#gotoPG">
@@ -877,6 +1096,100 @@
 		<execute action="SOTasks#assertTextNotPresent" value1="${taskDescription}02" />
 	</command>
 
+	<command name="ReassignTaskToConnection" priority="5">
+		<var name="taskDescription" value="Task Description" />
+		<var name="userEmailAddress" value="socialoffice01@liferay.com" />
+		<var name="userFirstName" value="Social01" />
+		<var name="userLastName" value="User01" />
+		<var name="userListName" value="User01, Social01" />
+		<var name="userMiddleName" value="Office01" />
+		<var name="userName" value="Social01 Office01 User01" />
+		<var name="userScreenName" value="socialoffice01" />
+
+		<execute macro="SOContactsCenter#addConnection">
+			<var name="adminEmailAddress" value="${adminEmailAddress}" />
+			<var name="senderName" value="${adminName}" />
+			<var name="userEmailAddress" value="${userEmailAddress}" />
+			<var name="userFirstName" value="${userFirstName}" />
+			<var name="userLastName" value="${userLastName}" />
+			<var name="userListName" value="${userListName}" />
+			<var name="userMiddleName" value="${userMiddleName}" />
+			<var name="userName" value="${userName}" />
+			<var name="userScreenName" value="${userScreenName}" />
+		</execute>
+
+		<execute macro="User#logoutAndLoginPG">
+			<var name="userLoginEmailAddress" value="${adminEmailAddress}" />
+			<var name="userLoginFullName" value="${adminName}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#addTask">
+			<var name="taskAssignee" value="${adminName}" />
+			<var name="taskDescription" value="${taskDescription}" />
+			<var name="taskReporter" value="${adminName}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#completeTask">
+			<var name="percentCompletion" value="60" />
+			<var name="taskAssignee" value="${adminName}" />
+			<var name="taskDescription" value="${taskDescription}" />
+			<var name="taskReporter" value="${adminName}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#editTask">
+			<var name="taskAssigneeEdit" value="${userName}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#viewTask">
+			<var name="percentCompletion" value="60" />
+			<var name="taskAssignee" value="${userName}" />
+			<var name="taskDescription" value="${taskDescription}" />
+			<var name="taskReporter" value="${adminName}" />
+		</execute>
+
+		<execute macro="User#logoutAndLoginPG">
+			<var name="userLoginEmailAddress" value="${userEmailAddress}" />
+			<var name="userLoginFullName" value="${userName}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="soDashboard" value="true" />
+			<var name="soPage" value="true" />
+		</execute>
+
+		<execute macro="SOTasks#viewTask">
+			<var name="percentCompletion" value="60" />
+			<var name="taskAssignee" value="${userName}" />
+			<var name="taskDescription" value="${taskDescription}" />
+			<var name="taskReporter" value="${adminName}" />
+		</execute>
+	</command>
+
 	<command name="ResolveTaskAssignedToConnection" priority="5">
 		<var name="taskDescription" value="Task Description" />
 		<var name="userEmailAddress" value="socialoffice01@liferay.com" />
@@ -921,11 +1234,6 @@
 			<var name="userLoginFullName" value="${userName}" />
 		</execute>
 
-		<execute macro="SOTasks#viewTaskNotification">
-			<var name="taskDescription" value="${taskDescription}" />
-			<var name="taskReporter" value="${adminName}" />
-		</execute>
-
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
 			<var name="soDashboard" value="true" />
@@ -954,11 +1262,6 @@
 		<execute macro="User#logoutAndLoginPG">
 			<var name="userLoginEmailAddress" value="${adminEmailAddress}" />
 			<var name="userLoginFullName" value="${adminName}" />
-		</execute>
-
-		<execute macro="SOTasks#viewResolveTaskNotification">
-			<var name="taskAssignee" value="${userName}" />
-			<var name="taskDescription" value="${taskDescription}" />
 		</execute>
 
 		<execute macro="Page#gotoPG">

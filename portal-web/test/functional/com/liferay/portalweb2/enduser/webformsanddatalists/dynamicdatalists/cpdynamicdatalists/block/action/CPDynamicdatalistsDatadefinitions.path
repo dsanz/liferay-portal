@@ -35,12 +35,12 @@
 </tr>
 <tr>
 	<td>ERROR_MESSAGE_1</td>
-	<td>xPath=(//div[@class='alert alert-error'])[1]</td>
+	<td>xPath=(//div[contains(@class,'alert-danger')])[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ERROR_MESSAGE_2</td>
-	<td>xPath=(//div[@class='alert alert-error'])[2]</td>
+	<td>xPath=(//div[contains(@class,'alert-danger')])[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -61,22 +61,22 @@
 <!--TOOLBAR-->
 <tr>
 	<td>TOOLBAR_VIEW_ALL</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'View All')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'View All')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_ADD</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Add')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'Add')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_SEARCH_FIELD</td>
-	<td>//div[@class='navbar ']//input[contains(@class,'search-query')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//input[contains(@class,'search-query')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_SEARCH_BUTTON</td>
-	<td>//div[@class='navbar ']//button[contains(.,'Search')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//button[contains(.,'Search')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -112,7 +112,7 @@
 </tr>
 <tr>
 	<td>DATA_DEFINITION_TABLE_ACTIONS_1</td>
-	<td>xpath=(//div[@id='_166_ddmStructuresSearchContainer']//tr/td[6]/div/a[@title='Actions'])[1]</td>
+	<td>xpath=(//a[contains(@id,'_166_ddmStructuresSearchContainer')])[1]</td>
 	<td></td>
 </tr>
 <tr>
@@ -122,7 +122,7 @@
 </tr>
 <tr>
 	<td>DATA_DEFINITION_TABLE_ACTIONS</td>
-	<td>xpath=(//div[@id='_166_ddmStructuresSearchContainer']//tr[contains(.,'${key_dataDefinitionName}')]/td[6]/div/a[@title='Actions'])[1]</td>
+	<td>xpath=(//tr[contains(.,'${key_dataDefinitionName}')]/td[6]/div/a[contains(@id,'_166_ddmStructuresSearchContainer')])[1]</td>
 	<td></td>
 </tr>
 <tr>

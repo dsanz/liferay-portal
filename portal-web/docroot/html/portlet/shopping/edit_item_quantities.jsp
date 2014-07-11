@@ -102,7 +102,7 @@ for (String[] vArray : values) {
 				%>
 
 				<td>
-					<aui:input hideLabel="<%= true %>" label="quantity" name='<%= "fieldsQuantity" + i %>' size="4" type="text" value="<%= fieldsQuantity %>" />
+					<aui:input label="" name='<%= "fieldsQuantity" + i %>' size="4" title="quantity" type="text" value="<%= fieldsQuantity %>" />
 				</td>
 			</tr>
 
@@ -122,13 +122,13 @@ for (String[] vArray : values) {
 
 <aui:script>
 	function <portlet:namespace />updateItemQuantities() {
-		var itemQuantities = "";
+		var itemQuantities = '';
 
 		<%
 		for (int i = 0; i < rowsCount; i++) {
 		%>
 
-			itemQuantities = itemQuantities + document.<portlet:namespace />fm.<portlet:namespace />fieldsQuantity<%= i %>.value + ",";
+			itemQuantities = itemQuantities + document.<portlet:namespace />fm.<portlet:namespace />fieldsQuantity<%= i %>.value + ',';
 
 		<%
 		}

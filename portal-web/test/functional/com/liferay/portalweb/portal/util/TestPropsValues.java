@@ -20,7 +20,8 @@ import com.liferay.portal.kernel.util.StringUtil;
 /**
  * @author Brian Wing Shun Chan
  */
-public class TestPropsValues extends com.liferay.portal.util.TestPropsValues {
+public class TestPropsValues
+	extends com.liferay.portal.util.test.TestPropsValues {
 
 	public static final String BROWSER_COMMANDS_DIR_NAME = TestPropsUtil.get(
 		"browser.commands.dir");
@@ -48,7 +49,11 @@ public class TestPropsValues extends com.liferay.portal.util.TestPropsValues {
 	public static final String[] FIXED_ISSUES = StringUtil.split(
 		TestPropsUtil.get("fixed.issues"));
 
-	public static final String IGNORE_ERROR = TestPropsUtil.get("ignore.error");
+	public static final String IGNORE_ERRORS = TestPropsUtil.get(
+		"ignore.errors");
+
+	public static final String IGNORE_ERRORS_DELIMITER = TestPropsUtil.get(
+		"ignore.errors.delimiter");
 
 	public static final String LIFERAY_PORTAL_BRANCH = TestPropsUtil.get(
 		"liferay.portal.branch");
@@ -90,6 +95,12 @@ public class TestPropsValues extends com.liferay.portal.util.TestPropsValues {
 
 	public static final int SELENIUM_PORT = GetterUtil.getInteger(
 		TestPropsUtil.get("selenium.port"));
+
+	public static final String TCAT_ADMIN_REPOSITORY = TestPropsUtil.get(
+		"tcat.admin.repository");
+
+	public static final boolean TCAT_ENABLED = GetterUtil.getBoolean(
+		TestPropsUtil.get("tcat.enabled"));
 
 	public static final boolean TEAR_DOWN_BEFORE_TEST = GetterUtil.getBoolean(
 		TestPropsUtil.get("tear.down.before.test"));

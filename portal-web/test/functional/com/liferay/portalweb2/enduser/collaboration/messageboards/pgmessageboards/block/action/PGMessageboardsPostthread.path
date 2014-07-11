@@ -33,6 +33,11 @@
 	<td>//div[@id='cke_1_contents']/textarea</td>
 	<td></td>
 </tr>
+<tr><!--This locator is necessary for tests that require the sendKey action-->
+	<td>BODY_FIELD_SOURCE_ON_SEND_KEYS</td>
+	<td>//div[@id='cke_1_contents']/textarea</td>
+	<td></td>
+</tr>
 <tr>
 	<td>SOURCE_BUTTON</td>
 	<td>//a[contains(@class,'cke_button__source')]</td>
@@ -40,17 +45,17 @@
 </tr>
 <tr>
 	<td>MARK_AS_A_QUESTION_CHECKBOX</td>
-	<td>//input[@id='_19_questionCheckbox']</td>
+	<td>//input[@id='_19_question']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ANONYMOUS_CHECKBOX</td>
-	<td>//input[@id='_19_anonymousCheckbox']</td>
+	<td>//input[@id='_19_anonymous']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SUBSCRIBE_ME_CHECKBOX</td>
-	<td>//input[@id='_19_subscribeCheckbox']</td>
+	<td>//input[@id='_19_subscribe']</td>
 	<td></td>
 </tr>
 <tr>
@@ -60,7 +65,7 @@
 </tr>
 <tr>
 	<td>ALLOW_PINGBACKS_CHECKBOX</td>
-	<td>//input[@id='_19_allowPingbacksCheckbox']</td>
+	<td>//input[@id='_19_allowPingbacks']</td>
 	<td></td>
 </tr>
 <tr>
@@ -85,7 +90,28 @@
 </tr>
 <tr>
 	<td>CANCEL_BUTTON</td>
-	<td>//button[@type='button' and contains(.,'Cancel')]</td>
+	<td>//a[contains(@class,'btn-cancel')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_MESSAGE_1</td>
+	<td>xpath=(//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))])[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_MESSAGE_2</td>
+	<td>xpath=(//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))])[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--PERMISSIONS-->
+<tr>
+	<td>PERMISSIONS_VIEWABLE_BY_DROPDOWN</td>
+	<td>//select[contains(@id,'inputPermissionsViewRole')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -137,7 +163,7 @@
 <!--CATEGORIZATION-->
 <tr>
 	<td>CATEGORIZATION_TOGGLE</td>
-	<td>//div[@class='accordion-toggle' and contains(.,'Categorization')]</td>
+	<td>//div[@class='panel-toggle' and contains(.,'Categorization')]</td>
 	<td></td>
 </tr>
 <tr>

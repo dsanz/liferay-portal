@@ -22,40 +22,33 @@ import aQute.bnd.annotation.ProviderType;
 @ProviderType
 public interface MDRRuleGroupFinder {
 	public int countByKeywords(long groupId, java.lang.String keywords,
-		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params);
 
 	public int countByG_N(long groupId, java.lang.String name,
 		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
-		boolean andOperator)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		boolean andOperator);
 
 	public int countByG_N(long groupId, java.lang.String[] names,
 		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
-		boolean andOperator)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		boolean andOperator);
 
 	public java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup> findByKeywords(
 		long groupId, java.lang.String keywords,
 		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		int start, int end);
 
 	public java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup> findByG_N(
 		long groupId, java.lang.String name,
 		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
-		boolean andOperator)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		boolean andOperator);
 
 	public java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup> findByG_N(
 		long groupId, java.lang.String name,
 		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
-		boolean andOperator, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		boolean andOperator, int start, int end);
 
 	public java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup> findByG_N(
 		long groupId, java.lang.String[] names,
 		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
-		boolean andOperator, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		boolean andOperator, int start, int end);
 }

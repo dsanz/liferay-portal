@@ -11,16 +11,16 @@
 <tr>
 	<td>PAGE_NAME</td>
 	<td></td>
+	<td>PGDocumentsandmediaFolder</td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>EXTEND_ACTION_PATH</td>
 	<td>PGDocumentsandmedia</td>
-</tr>
-<tr>
-	<td></td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
-	<td>SUCCESS_MESSAGE</td>
-	<td>//div[contains(@class,'alert-success')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -41,27 +41,27 @@
 </tr>
 <tr>
 	<td>TOOLBAR_SELECT_ALL</td>
-	<td>//input[@id='_20_allRowIdsCheckbox']</td>
+	<td>//input[@id='_20_allRowIds']</td>
 	<td>Select All</td>
 </tr>
 <tr>
 	<td>TOOLBAR_ACTIONS</td>
-	<td>//div[@class='navbar ']/div/div/div/ul/li[contains(.,'Actions')]/a</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]/div/div/div/ul/li[contains(.,'Actions')]/a</td>
 	<td>Actions</td>
 </tr>
 <tr>
 	<td>TOOLBAR_ADD</td>
-	<td>//div[@class='navbar ']/div/div/div/ul/li[contains(.,'Add')]/a</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]/div/div/div/ul/li[contains(.,'Add')]/a</td>
 	<td>Add</td>
 </tr>
 <tr>
 	<td>TOOLBAR_SORT_BY</td>
-	<td>//div[@class='navbar ']/div/div/div/ul/li[contains(.,'Sort By')]/a</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]/div/div/div/ul/li[contains(.,'Sort By')]/a</td>
 	<td>Sort By</td>
 </tr>
 <tr>
 	<td>TOOLBAR_MANAGE</td>
-	<td>//div[@class='navbar ']/div/div/div/ul/li[contains(.,'Manage')]/a</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]/div/div/div/ul/li[contains(.,'Manage')]/a</td>
 	<td>Manage</td>
 </tr>
 <tr>
@@ -222,12 +222,12 @@
 <!--BREADCRUMB-->
 <tr>
 	<td>BREADCRUMB_HOME</td>
-	<td>//div[@id='_20_breadcrumbContainer']/ul/li[1]</td>
+	<td>//div[@id='_20_breadcrumbContainer']/div/ul/li/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>BREADCRUMB_FOLDER</td>
-	<td>//div[@id='_20_breadcrumbContainer']/ul/li[contains(.,'${key_dmFolderName}')]</td>
+	<td>//div[@id='_20_breadcrumbContainer']/div/ul/li/a[contains(.,'${key_dmFolderName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -246,6 +246,17 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--SUBSCRIBE-->
+<tr>
+	<td>SUBSCRIBE_LINK</td>
+	<td>//div[@class='subscribe-action']/span/a/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
 <!--FOLDER_ENTRIES-->
 <tr>
 	<td>FOLDER_ENTRIES_DOCUMENT_TITLE</td>
@@ -254,7 +265,7 @@
 </tr>
 <tr>
 	<td>FOLDER_ENTRIES_DOCUMENT_CHECKBOX</td>
-	<td>//input[@id='_20_rowIdsFileEntryCheckbox']</td>
+	<td>//input[contains(@name,'_rowIdsFileEntry')]</td>
 	<td>Select Document</td>
 </tr>
 <tr>

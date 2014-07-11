@@ -17,7 +17,6 @@ package com.liferay.portal.lar;
 import com.liferay.portal.NoSuchRoleException;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.model.Group;
@@ -45,7 +44,7 @@ public class LayoutCache {
 
 	protected long getEntityGroupId(
 			long companyId, String entityName, String name)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		long entityGroupId = 0;
 
@@ -54,7 +53,8 @@ public class LayoutCache {
 		if (entityGroupIdObj == null) {
 			if (entityName.equals("user-group")) {
 				List<UserGroup> userGroups = UserGroupLocalServiceUtil.search(
-					companyId, null, null, 0, 1, (OrderByComparator)null);
+					companyId, null, null, 0, 1,
+					(OrderByComparator<UserGroup>)null);
 
 				if (!userGroups.isEmpty()) {
 					UserGroup userGroup = userGroups.get(0);
@@ -86,7 +86,7 @@ public class LayoutCache {
 	}
 
 	protected Map<String, Long> getEntityMap(long companyId, String entityName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Map<String, Long> entityMap = entityMapMap.get(entityName);
 
@@ -99,7 +99,7 @@ public class LayoutCache {
 		if (entityName.equals("user-group")) {
 			List<UserGroup> userGroups = UserGroupLocalServiceUtil.search(
 				companyId, null, null, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-				(OrderByComparator)null);
+				(OrderByComparator<UserGroup>)null);
 
 			for (int i = 0; i < userGroups.size(); i++) {
 				UserGroup userGroup = userGroups.get(i);
@@ -131,7 +131,7 @@ public class LayoutCache {
 	}
 
 	protected List<Role> getGroupRoles(long groupId, String resourceName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		List<Role> roles = groupRolesMap.get(groupId);
 
@@ -164,7 +164,7 @@ public class LayoutCache {
 		return roles;
 	}
 
-	protected List<User> getGroupUsers(long groupId) throws SystemException {
+	protected List<User> getGroupUsers(long groupId) {
 		List<User> users = groupUsersMap.get(groupId);
 
 		if (users == null) {
@@ -177,7 +177,7 @@ public class LayoutCache {
 	}
 
 	protected Role getRole(long companyId, String roleName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Role role = rolesMap.get(roleName);
 
@@ -194,7 +194,7 @@ public class LayoutCache {
 		return role;
 	}
 
-	protected List<Role> getUserRoles(long userId) throws SystemException {
+	protected List<Role> getUserRoles(long userId) {
 		List<Role> userRoles = userRolesMap.get(userId);
 
 		if (userRoles == null) {

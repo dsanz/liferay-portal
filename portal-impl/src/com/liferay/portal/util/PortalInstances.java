@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.dao.shard.ShardUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -30,13 +31,15 @@ import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.PortletCategory;
+import com.liferay.portal.model.User;
 import com.liferay.portal.model.VirtualHost;
-import com.liferay.portal.search.lucene.LuceneHelperUtil;
 import com.liferay.portal.security.auth.CompanyThreadLocal;
+import com.liferay.portal.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.service.CompanyLocalServiceUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.service.PortletLocalServiceUtil;
+import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.service.VirtualHostLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalContentSearchLocalServiceUtil;
 
@@ -401,12 +404,25 @@ public class PortalInstances {
 
 		Long currentThreadCompanyId = CompanyThreadLocal.getCompanyId();
 
+		String currentThreadPrincipalName = PrincipalThreadLocal.getName();
+
 		try {
 			CompanyThreadLocal.setCompanyId(companyId);
 
-			// Lucene
+			String principalName = null;
 
-			LuceneHelperUtil.startup(companyId);
+			try {
+				User user = UserLocalServiceUtil.getUser(
+					PrincipalThreadLocal.getUserId());
+
+				if (user.getCompanyId() == companyId) {
+					principalName = currentThreadPrincipalName;
+				}
+			}
+			catch (Exception e) {
+			}
+
+			PrincipalThreadLocal.setName(principalName);
 
 			// Initialize display
 
@@ -496,6 +512,8 @@ public class PortalInstances {
 		}
 		finally {
 			CompanyThreadLocal.setCompanyId(currentThreadCompanyId);
+
+			PrincipalThreadLocal.setName(currentThreadPrincipalName);
 		}
 
 		return companyId;
@@ -550,9 +568,7 @@ public class PortalInstances {
 
 		_getWebIds();
 
-		LuceneHelperUtil.delete(companyId);
-
-		LuceneHelperUtil.shutdown(companyId);
+		SearchEngineUtil.removeCompany(companyId);
 
 		WebAppPool.remove(companyId, WebKeys.PORTLET_CATEGORY);
 	}

@@ -48,6 +48,39 @@ public interface AddressService extends BaseService {
 	 */
 
 	/**
+	* @deprecated As of 6.2.0, replaced by {@link #addAddress(String, long,
+	String, String, String, String, String, long, long, int,
+	boolean, boolean, ServiceContext)}
+	*/
+	@java.lang.Deprecated
+	public com.liferay.portal.model.Address addAddress(
+		java.lang.String className, long classPK, java.lang.String street1,
+		java.lang.String street2, java.lang.String street3,
+		java.lang.String city, java.lang.String zip, long regionId,
+		long countryId, int typeId, boolean mailing, boolean primary)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public com.liferay.portal.model.Address addAddress(
+		java.lang.String className, long classPK, java.lang.String street1,
+		java.lang.String street2, java.lang.String street3,
+		java.lang.String city, java.lang.String zip, long regionId,
+		long countryId, int typeId, boolean mailing, boolean primary,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public void deleteAddress(long addressId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.model.Address getAddress(long addressId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.Address> getAddresses(
+		java.lang.String className, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
@@ -61,49 +94,10 @@ public interface AddressService extends BaseService {
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
-	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addAddress(String, long,
-	String, String, String, String, String, long, long, int,
-	boolean, boolean, ServiceContext)}
-	*/
-	@Deprecated
-	public com.liferay.portal.model.Address addAddress(
-		java.lang.String className, long classPK, java.lang.String street1,
-		java.lang.String street2, java.lang.String street3,
-		java.lang.String city, java.lang.String zip, long regionId,
-		long countryId, int typeId, boolean mailing, boolean primary)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public com.liferay.portal.model.Address addAddress(
-		java.lang.String className, long classPK, java.lang.String street1,
-		java.lang.String street2, java.lang.String street3,
-		java.lang.String city, java.lang.String zip, long regionId,
-		long countryId, int typeId, boolean mailing, boolean primary,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public void deleteAddress(long addressId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.Address getAddress(long addressId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portal.model.Address> getAddresses(
-		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
 	public com.liferay.portal.model.Address updateAddress(long addressId,
 		java.lang.String street1, java.lang.String street2,
 		java.lang.String street3, java.lang.String city, java.lang.String zip,
 		long regionId, long countryId, int typeId, boolean mailing,
 		boolean primary)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

@@ -18,11 +18,11 @@ AUI.add(
 					classPK: {
 					},
 
-					doAsGroupId: {
-					},
-
 					container: {
 						setter: A.one
+					},
+
+					doAsGroupId: {
 					},
 
 					fieldsDisplayInput: {
@@ -83,10 +83,12 @@ AUI.add(
 								data: {
 									classNameId: instance.get('classNameId'),
 									classPK: instance.get('classPK'),
+									controlPanelCategory: 'portlet',
 									doAsGroupId: instance.get('doAsGroupId'),
 									fieldName: fieldName,
 									namespace: instance.get('namespace'),
 									p_l_id: instance.get('p_l_id'),
+									p_p_id: '166',
 									p_p_isolated: true,
 									portletNamespace: instance.get('portletNamespace'),
 									readOnly: instance.get('readOnly')
@@ -100,6 +102,18 @@ AUI.add(
 								}
 							}
 						);
+					},
+
+					getFieldParentNode: function(fieldNode) {
+						var instance = this;
+
+						var parentNode = fieldNode.ancestor('.field-wrapper');
+
+						if (!parentNode) {
+							parentNode = instance.get('container');
+						}
+
+						return parentNode;
 					},
 
 					getFieldsList: function(fieldName, parentNode) {
@@ -123,18 +137,6 @@ AUI.add(
 						}
 
 						return container.all(selector.join(''));
-					},
-
-					getFieldParentNode: function(fieldNode) {
-						var instance = this;
-
-						var parentNode = fieldNode.ancestor('.field-wrapper');
-
-						if (!parentNode) {
-							parentNode = instance.get('container');
-						}
-
-						return parentNode;
 					},
 
 					insertField: function(fieldNode) {
@@ -188,7 +190,7 @@ AUI.add(
 						}
 
 						instance.getFieldsList(null, fieldNode).each(
-							function(item, index, collection) {
+							function(item, index) {
 								instance.renderRepeatableUI(item);
 							}
 						);
@@ -202,7 +204,7 @@ AUI.add(
 						var fieldsDisplayInput = instance.get('fieldsDisplayInput');
 
 						instance.getFieldsList().each(
-							function(item, index, collection) {
+							function(item, index) {
 								instance.renderRepeatableUI(item);
 
 								var fieldName = item.getData('fieldName');

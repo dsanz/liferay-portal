@@ -2,7 +2,6 @@ package ${packagePath}.model;
 
 import aQute.bnd.annotation.ProviderType;
 
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
@@ -83,7 +82,7 @@ public class ${entity.name}Wrapper implements ${entity.name}, ModelWrapper<${ent
 	}
 
 	<#list methods as method>
-		<#if !method.isConstructor() && !method.isStatic() && method.isPublic() && !serviceBuilder.isDuplicateMethod(method, tempMap) && !(method.name == "equals" && (parameters?size == 1))>
+		<#if !method.isConstructor() && !method.isStatic() && method.isPublic() && !(method.name == "equals" && (parameters?size == 1))>
 			<#if method.name == "getStagedModelType">
 				<#assign hasGetStagedModelTypeMethod = true>
 			</#if>
@@ -165,6 +164,33 @@ public class ${entity.name}Wrapper implements ${entity.name}, ModelWrapper<${ent
 
 		return false;
 	}
+
+	<#if entity.isHierarchicalTree()>
+		@Override
+		public long getNestedSetsTreeNodeLeft() {
+			return _${entity.varName}.getNestedSetsTreeNodeLeft();
+		}
+
+		@Override
+		public long getNestedSetsTreeNodeRight() {
+			return _${entity.varName}.getNestedSetsTreeNodeRight();
+		}
+
+		@Override
+		public long getNestedSetsTreeNodeScopeId() {
+			return _${entity.varName}.getNestedSetsTreeNodeScopeId();
+		}
+
+		@Override
+		public void setNestedSetsTreeNodeLeft(long nestedSetsTreeNodeLeft) {
+			_${entity.varName}.setNestedSetsTreeNodeLeft(nestedSetsTreeNodeLeft);
+		}
+
+		@Override
+		public void setNestedSetsTreeNodeRight(long nestedSetsTreeNodeRight) {
+			_${entity.varName}.setNestedSetsTreeNodeRight(nestedSetsTreeNodeRight);
+		}
+	</#if>
 
 	<#if entity.isStagedModel() && !hasGetStagedModelTypeMethod!false>
 		@Override

@@ -24,8 +24,6 @@ AUI.add(
 
 		var DISPLAY_STYLE_TOOLBAR = 'displayStyleToolbar';
 
-		var STR_ACTIVE = 'active';
-
 		var STR_CLICK = 'click';
 
 		var STR_DISPLAY_STYLE = 'displayStyle';
@@ -99,7 +97,7 @@ AUI.add(
 
 						instance._entriesContainer = instance.byId('entriesContainer');
 
-						instance._selectAllCheckbox = instance.byId('allRowIdsCheckbox');
+						instance._selectAllCheckbox = instance.byId('allRowIds');
 
 						instance._folderContainer = instance.get('folderContainer');
 
@@ -268,7 +266,7 @@ AUI.add(
 
 						var selectAllCheckbox = instance._selectAllCheckbox;
 
-						for (var i = 0, length = instance._checkBoxesId.length; i < length; i++) {
+						for (var i = 0; i < instance._checkBoxesId.length; i++) {
 							Util.checkAll(instance._portletContainer, instance._checkBoxesId[i], selectAllCheckbox, CSS_RESULT_ROW);
 						}
 
@@ -310,8 +308,6 @@ AUI.add(
 								var selectElement = node.one(STR_DOT + instance._selector);
 
 								selectElement.attr(ATTR_CHECKED, !selectElement.attr(ATTR_CHECKED));
-
-								Util.updateCheckboxValue(selectElement);
 							}
 						}
 
@@ -336,7 +332,7 @@ AUI.add(
 
 							A.each(
 								selectedEntries,
-								function(item, index, collection) {
+								function(item, index) {
 									var entry = entriesContainer.one('input[value="' + item + '"]');
 
 									if (entry) {

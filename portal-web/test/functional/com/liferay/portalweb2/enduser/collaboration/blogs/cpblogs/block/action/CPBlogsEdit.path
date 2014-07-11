@@ -25,12 +25,12 @@
 </tr>
 <tr>
 	<td>ERROR_MESSAGE_1</td>
-	<td>xPath=(//div[contains(@class,'alert') and contains(@class,'alert-error')])[1]</td>
+	<td>xPath=(//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))])[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ERROR_MESSAGE_2</td>
-	<td>xPath=(//div[contains(@class,'alert') and contains(@class,'alert-error')])[2]</td>
+	<td>xPath=(//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))])[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -71,7 +71,7 @@
 <!--CATEGORIZATION-->
 <tr>
 	<td>CATEGORIZATION_TOGGLE</td>
-	<td>//div[@class='accordion-toggle' and contains(.,'Categorization')]</td>
+	<td>//div[@class='panel-toggle' and contains(.,'Categorization')]</td>
 	<td></td>
 </tr>
 <tr>

@@ -14,9 +14,7 @@
 
 package com.liferay.portal.service;
 
-import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.Role;
@@ -26,16 +24,15 @@ import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.test.TransactionalCallbackAwareExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.OrganizationTestUtil;
-import com.liferay.portal.util.TestPropsValues;
-import com.liferay.portal.util.UserTestUtil;
+import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.test.ResetDatabaseExecutionTestListener;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.OrganizationTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
+import com.liferay.portal.util.test.UserTestUtil;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -44,17 +41,11 @@ import org.junit.runner.RunWith;
  */
 @ExecutionTestListeners(
 	listeners = {
-		EnvironmentExecutionTestListener.class,
-		TransactionalCallbackAwareExecutionTestListener.class
+		MainServletExecutionTestListener.class,
+		ResetDatabaseExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class UserGroupRoleServiceTest {
-
-	@Before
-	public void setUp() {
-		FinderCacheUtil.clearCache();
-	}
 
 	@Test
 	public void testGroupAdminRemovingGroupAdminRoleByRoles() throws Exception {

@@ -15,7 +15,6 @@
 package com.liferay.portal.struts;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletResponseUtil;
@@ -257,7 +256,7 @@ public class PortletAction extends Action {
 
 	protected PortletPreferences getStrictPortletSetup(
 			Layout layout, String portletId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (Validator.isNull(portletId)) {
 			return null;
@@ -276,7 +275,7 @@ public class PortletAction extends Action {
 
 	protected PortletPreferences getStrictPortletSetup(
 			PortletRequest portletRequest)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		String portletResource = ParamUtil.getString(
 			portletRequest, "portletResource");
@@ -315,9 +314,7 @@ public class PortletAction extends Action {
 		return _CHECK_METHOD_ON_PROCESS_ACTION;
 	}
 
-	protected boolean isDisplaySuccessMessage(PortletRequest portletRequest)
-		throws SystemException {
-
+	protected boolean isDisplaySuccessMessage(PortletRequest portletRequest) {
 		if (!SessionErrors.isEmpty(portletRequest)) {
 			return false;
 		}
@@ -382,7 +379,7 @@ public class PortletAction extends Action {
 
 	protected void sendRedirect(
 			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws IOException, SystemException {
+		throws IOException {
 
 		sendRedirect(actionRequest, actionResponse, null);
 	}
@@ -390,7 +387,7 @@ public class PortletAction extends Action {
 	protected void sendRedirect(
 			ActionRequest actionRequest, ActionResponse actionResponse,
 			String redirect)
-		throws IOException, SystemException {
+		throws IOException {
 
 		sendRedirect(null, actionRequest, actionResponse, redirect, null);
 	}
@@ -399,7 +396,7 @@ public class PortletAction extends Action {
 			PortletConfig portletConfig, ActionRequest actionRequest,
 			ActionResponse actionResponse, String redirect,
 			String closeRedirect)
-		throws IOException, SystemException {
+		throws IOException {
 
 		if (isDisplaySuccessMessage(actionRequest)) {
 			addSuccessMessage(actionRequest, actionResponse);
@@ -465,10 +462,19 @@ public class PortletAction extends Action {
 			Object json)
 		throws IOException {
 
+		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+			portletRequest);
+
+		String contentType = ContentTypes.APPLICATION_JSON;
+
+		if (BrowserSnifferUtil.isIe(request)) {
+			contentType = ContentTypes.TEXT_HTML;
+		}
+
 		HttpServletResponse response = PortalUtil.getHttpServletResponse(
 			actionResponse);
 
-		response.setContentType(ContentTypes.APPLICATION_JSON);
+		response.setContentType(contentType);
 
 		ServletResponseUtil.write(response, json.toString());
 
@@ -482,7 +488,16 @@ public class PortletAction extends Action {
 			Object json)
 		throws IOException {
 
-		mimeResponse.setContentType(ContentTypes.APPLICATION_JSON);
+		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+			portletRequest);
+
+		String contentType = ContentTypes.APPLICATION_JSON;
+
+		if (BrowserSnifferUtil.isIe(request)) {
+			contentType = ContentTypes.TEXT_HTML;
+		}
+
+		mimeResponse.setContentType(contentType);
 
 		PortletResponseUtil.write(mimeResponse, json.toString());
 

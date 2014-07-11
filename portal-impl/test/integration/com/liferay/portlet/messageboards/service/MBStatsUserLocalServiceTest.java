@@ -15,21 +15,20 @@
 package com.liferay.portlet.messageboards.service;
 
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalCallbackAwareExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.messageboards.model.MBCategoryConstants;
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.model.MBStatsUser;
-import com.liferay.portlet.messageboards.util.MBTestUtil;
+import com.liferay.portlet.messageboards.util.test.MBTestUtil;
 
 import java.io.InputStream;
 
@@ -44,13 +43,8 @@ import org.junit.runner.RunWith;
 /**
  * @author Roberto Díaz
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalCallbackAwareExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class MBStatsUserLocalServiceTest {
 
 	@Before
@@ -180,8 +174,8 @@ public class MBStatsUserLocalServiceTest {
 			Collections.emptyList();
 		List<String> existingFiles = Collections.emptyList();
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			_group.getGroupId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
 
 		serviceContext.setWorkflowAction(workflowAction);
 
@@ -192,7 +186,9 @@ public class MBStatsUserLocalServiceTest {
 			serviceContext);
 	}
 
+	@DeleteAfterTestRun
 	private Group _group;
+
 	private MBMessage _message;
 
 }

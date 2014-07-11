@@ -34,9 +34,9 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_user_group_roles.
 <aui:input name="removeUserGroupIds" type="hidden" />
 
 <div>
-	<%= LanguageUtil.format(pageContext, "step-x-of-x", new String[] {"2", "2"}, false) %>
+	<%= LanguageUtil.format(request, "step-x-of-x", new String[] {"2", "2"}, false) %>
 
-	<%= LanguageUtil.format(pageContext, "current-signifies-current-user-groups-associated-with-the-x-role.-available-signifies-all-user-groups-associated-with-the-x-x", new String[] {HtmlUtil.escape(role.getTitle(locale)), HtmlUtil.escape(groupDescriptiveName), LanguageUtil.get(pageContext, (group.isOrganization() ? LanguageUtil.get(pageContext, "organization") : LanguageUtil.get(pageContext, "site")))}, false) %>
+	<%= LanguageUtil.format(request, "current-signifies-current-user-groups-associated-with-the-x-role.-available-signifies-all-user-groups-associated-with-the-x-x", new String[] {HtmlUtil.escape(role.getTitle(locale)), HtmlUtil.escape(groupDescriptiveName), LanguageUtil.get(request, (group.isOrganization() ? LanguageUtil.get(request, "organization") : LanguageUtil.get(request, "site")))}, false) %>
 </div>
 
 <br />
@@ -101,7 +101,9 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_user_group_roles.
 	<div class="separator"><!-- --></div>
 
 	<%
-	String taglibOnClick = renderResponse.getNamespace() + "updateUserGroupGroupRoleUsers('" + portletURL.toString() + StringPool.AMPERSAND + renderResponse.getNamespace() + "cur=" + cur + "');";
+	portletURL.setParameter("cur", String.valueOf(cur));
+
+	String taglibOnClick = renderResponse.getNamespace() + "updateUserGroupGroupRoleUsers('" + portletURL.toString() + "');";
 	%>
 
 	<aui:button onClick="<%= taglibOnClick %>" primary="<%= true %>" value="update-associations" />

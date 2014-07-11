@@ -14,11 +14,12 @@
 
 package com.liferay.portlet.blogs.trackback;
 
+import com.liferay.portal.kernel.comment.CommentManager;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.Function;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portlet.blogs.linkback.LinkbackConsumer;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 
 /**
@@ -30,6 +31,10 @@ public interface Trackback {
 			BlogsEntry entry, ThemeDisplay themeDisplay, String excerpt,
 			String url, String blogName, String title,
 			Function<String, ServiceContext> serviceContextFunction)
-		throws PortalException, SystemException;
+		throws PortalException;
+
+	public void setCommentManager(CommentManager commentManager);
+
+	public void setLinkbackConsumer(LinkbackConsumer linkbackConsumer);
 
 }

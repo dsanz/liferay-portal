@@ -33,30 +33,44 @@ import com.liferay.portal.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.service.PasswordPolicyRelLocalServiceUtil;
 import com.liferay.portal.service.PhoneLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.WebsiteLocalServiceUtil;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.OrganizationTestUtil;
+import com.liferay.portal.test.TransactionalTestRule;
+import com.liferay.portal.util.test.OrganizationTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
 
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 /**
  * @author David Mendez Gonzalez
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class OrganizationStagedModelDataHandlerTest
 	extends BaseStagedModelDataHandlerTestCase {
+
+	@ClassRule
+	public static TransactionalTestRule transactionalTestRule =
+		new TransactionalTestRule();
+
+	@After
+	@Override
+	public void tearDown() throws Exception {
+		super.tearDown();
+
+		_organization =
+			OrganizationLocalServiceUtil.fetchOrganizationByUuidAndCompanyId(
+				_organization.getUuid(), _organization.getCompanyId());
+	}
 
 	@Override
 	protected StagedModel addStagedModel(
@@ -64,48 +78,48 @@ public class OrganizationStagedModelDataHandlerTest
 			Map<String, List<StagedModel>> dependentStagedModelsMap)
 		throws Exception {
 
-		Organization organization = OrganizationTestUtil.addOrganization();
+		_organization = OrganizationTestUtil.addOrganization();
 
 		Organization suborganization = OrganizationTestUtil.addOrganization(
-			organization.getOrganizationId(), ServiceTestUtil.randomString(),
+			_organization.getOrganizationId(), RandomTestUtil.randomString(),
 			false);
 
 		addDependentStagedModel(
 			dependentStagedModelsMap, Organization.class, suborganization);
 
-		Address address = OrganizationTestUtil.addAddress(organization);
+		Address address = OrganizationTestUtil.addAddress(_organization);
 
 		addDependentStagedModel(
 			dependentStagedModelsMap, Address.class, address);
 
 		EmailAddress emailAddress = OrganizationTestUtil.addEmailAddress(
-			organization);
+			_organization);
 
 		addDependentStagedModel(
 			dependentStagedModelsMap, EmailAddress.class, emailAddress);
 
-		OrganizationTestUtil.addOrgLabor(organization);
+		OrganizationTestUtil.addOrgLabor(_organization);
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			group.getGroupId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(group.getGroupId());
 
 		PasswordPolicy passwordPolicy =
 			OrganizationTestUtil.addPasswordPolicyRel(
-				organization, serviceContext);
+				_organization, serviceContext);
 
 		addDependentStagedModel(
 			dependentStagedModelsMap, PasswordPolicy.class, passwordPolicy);
 
-		Phone phone = OrganizationTestUtil.addPhone(organization);
+		Phone phone = OrganizationTestUtil.addPhone(_organization);
 
 		addDependentStagedModel(dependentStagedModelsMap, Phone.class, phone);
 
-		Website website = OrganizationTestUtil.addWebsite(organization);
+		Website website = OrganizationTestUtil.addWebsite(_organization);
 
 		addDependentStagedModel(
 			dependentStagedModelsMap, Website.class, website);
 
-		return organization;
+		return _organization;
 	}
 
 	@Override
@@ -248,5 +262,8 @@ public class OrganizationStagedModelDataHandlerTest
 		Assert.assertEquals(
 			organization.getOrganizationId(), importedWebsite.getClassPK());
 	}
+
+	@DeleteAfterTestRun
+	private Organization _organization;
 
 }

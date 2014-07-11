@@ -45,6 +45,14 @@ public interface LayoutBranchService extends BaseService {
 	 *
 	 * Never modify or reference this interface directly. Always use {@link LayoutBranchServiceUtil} to access the layout branch remote service. Add custom service methods to {@link com.liferay.portal.service.impl.LayoutBranchServiceImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
+	public com.liferay.portal.model.LayoutBranch addLayoutBranch(
+		long layoutRevisionId, java.lang.String name,
+		java.lang.String description, boolean master,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public void deleteLayoutBranch(long layoutBranchId)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -60,21 +68,9 @@ public interface LayoutBranchService extends BaseService {
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
-	public com.liferay.portal.model.LayoutBranch addLayoutBranch(
-		long layoutRevisionId, java.lang.String name,
-		java.lang.String description, boolean master,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public void deleteLayoutBranch(long layoutBranchId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
 	public com.liferay.portal.model.LayoutBranch updateLayoutBranch(
 		long layoutBranchId, java.lang.String name,
 		java.lang.String description,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

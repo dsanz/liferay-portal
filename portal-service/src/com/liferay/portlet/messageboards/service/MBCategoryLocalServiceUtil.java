@@ -40,17 +40,77 @@ public class MBCategoryLocalServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portlet.messageboards.service.impl.MBCategoryLocalServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static com.liferay.portlet.messageboards.model.MBCategory addCategory(
+		long userId, long parentCategoryId, java.lang.String name,
+		java.lang.String description, java.lang.String displayStyle,
+		java.lang.String emailAddress, java.lang.String inProtocol,
+		java.lang.String inServerName, int inServerPort, boolean inUseSSL,
+		java.lang.String inUserName, java.lang.String inPassword,
+		int inReadInterval, java.lang.String outEmailAddress,
+		boolean outCustom, java.lang.String outServerName, int outServerPort,
+		boolean outUseSSL, java.lang.String outUserName,
+		java.lang.String outPassword, boolean allowAnonymous,
+		boolean mailingListActive,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .addCategory(userId, parentCategoryId, name, description,
+			displayStyle, emailAddress, inProtocol, inServerName, inServerPort,
+			inUseSSL, inUserName, inPassword, inReadInterval, outEmailAddress,
+			outCustom, outServerName, outServerPort, outUseSSL, outUserName,
+			outPassword, allowAnonymous, mailingListActive, serviceContext);
+	}
+
+	public static com.liferay.portlet.messageboards.model.MBCategory addCategory(
+		long userId, long parentCategoryId, java.lang.String name,
+		java.lang.String description,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .addCategory(userId, parentCategoryId, name, description,
+			serviceContext);
+	}
+
+	public static void addCategoryResources(
+		com.liferay.portlet.messageboards.model.MBCategory category,
+		boolean addGroupPermissions, boolean addGuestPermissions)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService()
+			.addCategoryResources(category, addGroupPermissions,
+			addGuestPermissions);
+	}
+
+	public static void addCategoryResources(
+		com.liferay.portlet.messageboards.model.MBCategory category,
+		java.lang.String[] groupPermissions, java.lang.String[] guestPermissions)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService()
+			.addCategoryResources(category, groupPermissions, guestPermissions);
+	}
+
+	public static void addCategoryResources(long categoryId,
+		boolean addGroupPermissions, boolean addGuestPermissions)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService()
+			.addCategoryResources(categoryId, addGroupPermissions,
+			addGuestPermissions);
+	}
+
+	public static void addCategoryResources(long categoryId,
+		java.lang.String[] groupPermissions, java.lang.String[] guestPermissions)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService()
+			.addCategoryResources(categoryId, groupPermissions, guestPermissions);
+	}
 
 	/**
 	* Adds the message boards category to the database. Also notifies the appropriate model listeners.
 	*
 	* @param mbCategory the message boards category
 	* @return the message boards category that was added
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.messageboards.model.MBCategory addMBCategory(
-		com.liferay.portlet.messageboards.model.MBCategory mbCategory)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.messageboards.model.MBCategory mbCategory) {
 		return getService().addMBCategory(mbCategory);
 	}
 
@@ -65,18 +125,39 @@ public class MBCategoryLocalServiceUtil {
 		return getService().createMBCategory(categoryId);
 	}
 
+	public static void deleteCategories(long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteCategories(groupId);
+	}
+
+	public static void deleteCategory(
+		com.liferay.portlet.messageboards.model.MBCategory category)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteCategory(category);
+	}
+
+	public static void deleteCategory(
+		com.liferay.portlet.messageboards.model.MBCategory category,
+		boolean includeTrashedEntries)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteCategory(category, includeTrashedEntries);
+	}
+
+	public static void deleteCategory(long categoryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteCategory(categoryId);
+	}
+
 	/**
 	* Deletes the message boards category with the primary key from the database. Also notifies the appropriate model listeners.
 	*
 	* @param categoryId the primary key of the message boards category
 	* @return the message boards category that was removed
 	* @throws PortalException if a message boards category with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.messageboards.model.MBCategory deleteMBCategory(
 		long categoryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().deleteMBCategory(categoryId);
 	}
 
@@ -85,12 +166,19 @@ public class MBCategoryLocalServiceUtil {
 	*
 	* @param mbCategory the message boards category
 	* @return the message boards category that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.messageboards.model.MBCategory deleteMBCategory(
-		com.liferay.portlet.messageboards.model.MBCategory mbCategory)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.messageboards.model.MBCategory mbCategory) {
 		return getService().deleteMBCategory(mbCategory);
+	}
+
+	/**
+	* @throws PortalException
+	*/
+	public static com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deletePersistedModel(persistedModel);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
@@ -102,12 +190,9 @@ public class MBCategoryLocalServiceUtil {
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return getService().dynamicQuery(dynamicQuery);
 	}
 
@@ -122,12 +207,10 @@ public class MBCategoryLocalServiceUtil {
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
+	public static <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return getService().dynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -143,14 +226,11 @@ public class MBCategoryLocalServiceUtil {
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
+	public static <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator) {
 		return getService()
 				   .dynamicQuery(dynamicQuery, start, end, orderByComparator);
 	}
@@ -160,11 +240,9 @@ public class MBCategoryLocalServiceUtil {
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public static long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
@@ -174,18 +252,15 @@ public class MBCategoryLocalServiceUtil {
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public static long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
 		return getService().dynamicQueryCount(dynamicQuery, projection);
 	}
 
 	public static com.liferay.portlet.messageboards.model.MBCategory fetchMBCategory(
-		long categoryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long categoryId) {
 		return getService().fetchMBCategory(categoryId);
 	}
 
@@ -195,11 +270,9 @@ public class MBCategoryLocalServiceUtil {
 	* @param uuid the message boards category's UUID
 	* @param companyId the primary key of the company
 	* @return the matching message boards category, or <code>null</code> if a matching message boards category could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.messageboards.model.MBCategory fetchMBCategoryByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long companyId) {
 		return getService().fetchMBCategoryByUuidAndCompanyId(uuid, companyId);
 	}
 
@@ -209,77 +282,137 @@ public class MBCategoryLocalServiceUtil {
 	* @param uuid the message boards category's UUID
 	* @param groupId the primary key of the group
 	* @return the matching message boards category, or <code>null</code> if a matching message boards category could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.messageboards.model.MBCategory fetchMBCategoryByUuidAndGroupId(
-		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long groupId) {
 		return getService().fetchMBCategoryByUuidAndGroupId(uuid, groupId);
 	}
 
-	/**
-	* Returns the message boards category with the primary key.
-	*
-	* @param categoryId the primary key of the message boards category
-	* @return the message boards category
-	* @throws PortalException if a message boards category with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.messageboards.model.MBCategory getMBCategory(
-		long categoryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getMBCategory(categoryId);
-	}
-
-	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
 		return getService().getActionableDynamicQuery();
 	}
 
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public static java.lang.String getBeanIdentifier() {
+		return getService().getBeanIdentifier();
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
+		long groupId) {
+		return getService().getCategories(groupId);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
+		long groupId, long excludedCategoryId, long parentCategoryId,
+		int status, int start, int end) {
+		return getService()
+				   .getCategories(groupId, excludedCategoryId,
+			parentCategoryId, status, start, end);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
+		long groupId, long[] excludedCategoryIds, long[] parentCategoryIds,
+		int status, int start, int end) {
+		return getService()
+				   .getCategories(groupId, excludedCategoryIds,
+			parentCategoryIds, status, start, end);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
+		long groupId, long parentCategoryId, int start, int end) {
+		return getService().getCategories(groupId, parentCategoryId, start, end);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
+		long groupId, long parentCategoryId, int status, int start, int end) {
+		return getService()
+				   .getCategories(groupId, parentCategoryId, status, start, end);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
+		long groupId, long[] parentCategoryIds, int start, int end) {
+		return getService().getCategories(groupId, parentCategoryIds, start, end);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
+		long groupId, long[] parentCategoryIds, int status, int start, int end) {
+		return getService()
+				   .getCategories(groupId, parentCategoryIds, status, start, end);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
+		long groupId, int status) {
+		return getService().getCategories(groupId, status);
+	}
+
+	public static java.util.List<java.lang.Object> getCategoriesAndThreads(
+		long groupId, long categoryId) {
+		return getService().getCategoriesAndThreads(groupId, categoryId);
+	}
+
+	public static int getCategoriesCount(long groupId) {
+		return getService().getCategoriesCount(groupId);
+	}
+
+	public static int getCategoriesCount(long groupId, long excludedCategoryId,
+		long parentCategoryId, int status) {
+		return getService()
+				   .getCategoriesCount(groupId, excludedCategoryId,
+			parentCategoryId, status);
+	}
+
+	public static int getCategoriesCount(long groupId,
+		long[] excludedCategoryIds, long[] parentCategoryIds, int status) {
+		return getService()
+				   .getCategoriesCount(groupId, excludedCategoryIds,
+			parentCategoryIds, status);
+	}
+
+	public static int getCategoriesCount(long groupId, long parentCategoryId) {
+		return getService().getCategoriesCount(groupId, parentCategoryId);
+	}
+
+	public static int getCategoriesCount(long groupId, long parentCategoryId,
+		int status) {
+		return getService().getCategoriesCount(groupId, parentCategoryId, status);
+	}
+
+	public static int getCategoriesCount(long groupId, long[] parentCategoryIds) {
+		return getService().getCategoriesCount(groupId, parentCategoryIds);
+	}
+
+	public static int getCategoriesCount(long groupId,
+		long[] parentCategoryIds, int status) {
+		return getService()
+				   .getCategoriesCount(groupId, parentCategoryIds, status);
+	}
+
+	public static int getCategoriesCount(long groupId, int status) {
+		return getService().getCategoriesCount(groupId, status);
+	}
+
+	public static com.liferay.portlet.messageboards.model.MBCategory getCategory(
+		long categoryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getCategory(categoryId);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCompanyCategories(
+		long companyId, int start, int end) {
+		return getService().getCompanyCategories(companyId, start, end);
+	}
+
+	public static int getCompanyCategoriesCount(long companyId) {
+		return getService().getCompanyCategoriesCount(companyId);
+	}
+
 	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext) {
 		return getService().getExportActionableDynamicQuery(portletDataContext);
-	}
-
-	public static com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getPersistedModel(primaryKeyObj);
-	}
-
-	/**
-	* Returns the message boards category with the matching UUID and company.
-	*
-	* @param uuid the message boards category's UUID
-	* @param companyId the primary key of the company
-	* @return the matching message boards category
-	* @throws PortalException if a matching message boards category could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.messageboards.model.MBCategory getMBCategoryByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getMBCategoryByUuidAndCompanyId(uuid, companyId);
-	}
-
-	/**
-	* Returns the message boards category matching the UUID and group.
-	*
-	* @param uuid the message boards category's UUID
-	* @param groupId the primary key of the group
-	* @return the matching message boards category
-	* @throws PortalException if a matching message boards category could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.messageboards.model.MBCategory getMBCategoryByUuidAndGroupId(
-		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getMBCategoryByUuidAndGroupId(uuid, groupId);
 	}
 
 	/**
@@ -292,11 +425,9 @@ public class MBCategoryLocalServiceUtil {
 	* @param start the lower bound of the range of message boards categories
 	* @param end the upper bound of the range of message boards categories (not inclusive)
 	* @return the range of message boards categories
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getMBCategories(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int start, int end) {
 		return getService().getMBCategories(start, end);
 	}
 
@@ -304,33 +435,102 @@ public class MBCategoryLocalServiceUtil {
 	* Returns the number of message boards categories.
 	*
 	* @return the number of message boards categories
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getMBCategoriesCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getMBCategoriesCount() {
 		return getService().getMBCategoriesCount();
 	}
 
 	/**
-	* Updates the message boards category in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	* Returns the message boards category with the primary key.
 	*
-	* @param mbCategory the message boards category
-	* @return the message boards category that was updated
-	* @throws SystemException if a system exception occurred
+	* @param categoryId the primary key of the message boards category
+	* @return the message boards category
+	* @throws PortalException if a message boards category with the primary key could not be found
 	*/
-	public static com.liferay.portlet.messageboards.model.MBCategory updateMBCategory(
-		com.liferay.portlet.messageboards.model.MBCategory mbCategory)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().updateMBCategory(mbCategory);
+	public static com.liferay.portlet.messageboards.model.MBCategory getMBCategory(
+		long categoryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getMBCategory(categoryId);
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the message boards category with the matching UUID and company.
 	*
-	* @return the Spring bean ID for this bean
+	* @param uuid the message boards category's UUID
+	* @param companyId the primary key of the company
+	* @return the matching message boards category
+	* @throws PortalException if a matching message boards category could not be found
 	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
+	public static com.liferay.portlet.messageboards.model.MBCategory getMBCategoryByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getMBCategoryByUuidAndCompanyId(uuid, companyId);
+	}
+
+	/**
+	* Returns the message boards category matching the UUID and group.
+	*
+	* @param uuid the message boards category's UUID
+	* @param groupId the primary key of the group
+	* @return the matching message boards category
+	* @throws PortalException if a matching message boards category could not be found
+	*/
+	public static com.liferay.portlet.messageboards.model.MBCategory getMBCategoryByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getMBCategoryByUuidAndGroupId(uuid, groupId);
+	}
+
+	public static com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	public static java.util.List<java.lang.Long> getSubcategoryIds(
+		java.util.List<java.lang.Long> categoryIds, long groupId,
+		long categoryId) {
+		return getService().getSubcategoryIds(categoryIds, groupId, categoryId);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getSubscribedCategories(
+		long groupId, long userId, int start, int end) {
+		return getService().getSubscribedCategories(groupId, userId, start, end);
+	}
+
+	public static int getSubscribedCategoriesCount(long groupId, long userId) {
+		return getService().getSubscribedCategoriesCount(groupId, userId);
+	}
+
+	public static void moveCategoriesToTrash(long groupId, long userId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().moveCategoriesToTrash(groupId, userId);
+	}
+
+	public static com.liferay.portlet.messageboards.model.MBCategory moveCategory(
+		long categoryId, long parentCategoryId, boolean mergeWithParentCategory)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .moveCategory(categoryId, parentCategoryId,
+			mergeWithParentCategory);
+	}
+
+	public static com.liferay.portlet.messageboards.model.MBCategory moveCategoryFromTrash(
+		long userId, long categoryId, long newCategoryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .moveCategoryFromTrash(userId, categoryId, newCategoryId);
+	}
+
+	public static com.liferay.portlet.messageboards.model.MBCategory moveCategoryToTrash(
+		long userId, long categoryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().moveCategoryToTrash(userId, categoryId);
+	}
+
+	public static void restoreCategoryFromTrash(long userId, long categoryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().restoreCategoryFromTrash(userId, categoryId);
 	}
 
 	/**
@@ -342,295 +542,15 @@ public class MBCategoryLocalServiceUtil {
 		getService().setBeanIdentifier(beanIdentifier);
 	}
 
-	public static com.liferay.portlet.messageboards.model.MBCategory addCategory(
-		long userId, long parentCategoryId, java.lang.String name,
-		java.lang.String description,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .addCategory(userId, parentCategoryId, name, description,
-			serviceContext);
-	}
-
-	public static com.liferay.portlet.messageboards.model.MBCategory addCategory(
-		long userId, long parentCategoryId, java.lang.String name,
-		java.lang.String description, java.lang.String displayStyle,
-		java.lang.String emailAddress, java.lang.String inProtocol,
-		java.lang.String inServerName, int inServerPort, boolean inUseSSL,
-		java.lang.String inUserName, java.lang.String inPassword,
-		int inReadInterval, java.lang.String outEmailAddress,
-		boolean outCustom, java.lang.String outServerName, int outServerPort,
-		boolean outUseSSL, java.lang.String outUserName,
-		java.lang.String outPassword, boolean allowAnonymous,
-		boolean mailingListActive,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .addCategory(userId, parentCategoryId, name, description,
-			displayStyle, emailAddress, inProtocol, inServerName, inServerPort,
-			inUseSSL, inUserName, inPassword, inReadInterval, outEmailAddress,
-			outCustom, outServerName, outServerPort, outUseSSL, outUserName,
-			outPassword, allowAnonymous, mailingListActive, serviceContext);
-	}
-
-	public static void addCategoryResources(long categoryId,
-		boolean addGroupPermissions, boolean addGuestPermissions)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService()
-			.addCategoryResources(categoryId, addGroupPermissions,
-			addGuestPermissions);
-	}
-
-	public static void addCategoryResources(long categoryId,
-		java.lang.String[] groupPermissions, java.lang.String[] guestPermissions)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService()
-			.addCategoryResources(categoryId, groupPermissions, guestPermissions);
-	}
-
-	public static void addCategoryResources(
-		com.liferay.portlet.messageboards.model.MBCategory category,
-		boolean addGroupPermissions, boolean addGuestPermissions)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService()
-			.addCategoryResources(category, addGroupPermissions,
-			addGuestPermissions);
-	}
-
-	public static void addCategoryResources(
-		com.liferay.portlet.messageboards.model.MBCategory category,
-		java.lang.String[] groupPermissions, java.lang.String[] guestPermissions)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService()
-			.addCategoryResources(category, groupPermissions, guestPermissions);
-	}
-
-	public static void deleteCategories(long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteCategories(groupId);
-	}
-
-	public static void deleteCategory(long categoryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteCategory(categoryId);
-	}
-
-	public static void deleteCategory(
-		com.liferay.portlet.messageboards.model.MBCategory category)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteCategory(category);
-	}
-
-	public static void deleteCategory(
-		com.liferay.portlet.messageboards.model.MBCategory category,
-		boolean includeTrashedEntries)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteCategory(category, includeTrashedEntries);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
-		long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCategories(groupId);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
-		long groupId, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCategories(groupId, status);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
-		long groupId, long parentCategoryId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCategories(groupId, parentCategoryId, start, end);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
-		long groupId, long parentCategoryId, int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getCategories(groupId, parentCategoryId, status, start, end);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
-		long groupId, long excludedCategoryId, long parentCategoryId,
-		int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getCategories(groupId, excludedCategoryId,
-			parentCategoryId, status, start, end);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
-		long groupId, long[] parentCategoryIds, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCategories(groupId, parentCategoryIds, start, end);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
-		long groupId, long[] parentCategoryIds, int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getCategories(groupId, parentCategoryIds, status, start, end);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCategories(
-		long groupId, long[] excludedCategoryIds, long[] parentCategoryIds,
-		int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getCategories(groupId, excludedCategoryIds,
-			parentCategoryIds, status, start, end);
-	}
-
-	public static java.util.List<java.lang.Object> getCategoriesAndThreads(
-		long groupId, long categoryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCategoriesAndThreads(groupId, categoryId);
-	}
-
-	public static int getCategoriesCount(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCategoriesCount(groupId);
-	}
-
-	public static int getCategoriesCount(long groupId, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCategoriesCount(groupId, status);
-	}
-
-	public static int getCategoriesCount(long groupId, long parentCategoryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCategoriesCount(groupId, parentCategoryId);
-	}
-
-	public static int getCategoriesCount(long groupId, long parentCategoryId,
-		int status) throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCategoriesCount(groupId, parentCategoryId, status);
-	}
-
-	public static int getCategoriesCount(long groupId, long excludedCategoryId,
-		long parentCategoryId, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getCategoriesCount(groupId, excludedCategoryId,
-			parentCategoryId, status);
-	}
-
-	public static int getCategoriesCount(long groupId, long[] parentCategoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCategoriesCount(groupId, parentCategoryIds);
-	}
-
-	public static int getCategoriesCount(long groupId,
-		long[] parentCategoryIds, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getCategoriesCount(groupId, parentCategoryIds, status);
-	}
-
-	public static int getCategoriesCount(long groupId,
-		long[] excludedCategoryIds, long[] parentCategoryIds, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getCategoriesCount(groupId, excludedCategoryIds,
-			parentCategoryIds, status);
-	}
-
-	public static com.liferay.portlet.messageboards.model.MBCategory getCategory(
-		long categoryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCategory(categoryId);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getCompanyCategories(
-		long companyId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCompanyCategories(companyId, start, end);
-	}
-
-	public static int getCompanyCategoriesCount(long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getCompanyCategoriesCount(companyId);
-	}
-
-	public static java.util.List<java.lang.Long> getSubcategoryIds(
-		java.util.List<java.lang.Long> categoryIds, long groupId,
-		long categoryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getSubcategoryIds(categoryIds, groupId, categoryId);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> getSubscribedCategories(
-		long groupId, long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getSubscribedCategories(groupId, userId, start, end);
-	}
-
-	public static int getSubscribedCategoriesCount(long groupId, long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getSubscribedCategoriesCount(groupId, userId);
-	}
-
-	public static void moveCategoriesToTrash(long groupId, long userId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().moveCategoriesToTrash(groupId, userId);
-	}
-
-	public static com.liferay.portlet.messageboards.model.MBCategory moveCategory(
-		long categoryId, long parentCategoryId, boolean mergeWithParentCategory)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .moveCategory(categoryId, parentCategoryId,
-			mergeWithParentCategory);
-	}
-
-	public static com.liferay.portlet.messageboards.model.MBCategory moveCategoryFromTrash(
-		long userId, long categoryId, long newCategoryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .moveCategoryFromTrash(userId, categoryId, newCategoryId);
-	}
-
-	public static com.liferay.portlet.messageboards.model.MBCategory moveCategoryToTrash(
-		long userId, long categoryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().moveCategoryToTrash(userId, categoryId);
-	}
-
-	public static void restoreCategoryFromTrash(long userId, long categoryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().restoreCategoryFromTrash(userId, categoryId);
-	}
-
 	public static void subscribeCategory(long userId, long groupId,
 		long categoryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().subscribeCategory(userId, groupId, categoryId);
 	}
 
 	public static void unsubscribeCategory(long userId, long groupId,
 		long categoryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().unsubscribeCategory(userId, groupId, categoryId);
 	}
 
@@ -646,8 +566,7 @@ public class MBCategoryLocalServiceUtil {
 		java.lang.String outPassword, boolean allowAnonymous,
 		boolean mailingListActive, boolean mergeWithParentCategory,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updateCategory(categoryId, parentCategoryId, name,
 			description, displayStyle, emailAddress, inProtocol, inServerName,
@@ -657,10 +576,20 @@ public class MBCategoryLocalServiceUtil {
 			mailingListActive, mergeWithParentCategory, serviceContext);
 	}
 
+	/**
+	* Updates the message boards category in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param mbCategory the message boards category
+	* @return the message boards category that was updated
+	*/
+	public static com.liferay.portlet.messageboards.model.MBCategory updateMBCategory(
+		com.liferay.portlet.messageboards.model.MBCategory mbCategory) {
+		return getService().updateMBCategory(mbCategory);
+	}
+
 	public static com.liferay.portlet.messageboards.model.MBCategory updateStatus(
 		long userId, long categoryId, int status)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().updateStatus(userId, categoryId, status);
 	}
 

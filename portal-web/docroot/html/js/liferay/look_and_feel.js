@@ -162,7 +162,6 @@ AUI.add(
 							instance._currentPopup.plug(
 								[
 									{
-										fn: A.Plugin.IO,
 										cfg: {
 											after: {
 												success: function(event) {
@@ -178,15 +177,16 @@ AUI.add(
 												}
 											},
 											autoLoad: false,
-											showLoading: false,
 											data: {
+												doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
 												p_l_id: themeDisplay.getPlid(),
 												p_p_id: 113,
-												p_p_state: EXCLUSIVE,
-												doAsUserId: themeDisplay.getDoAsUserIdEncoded()
+												p_p_state: EXCLUSIVE
 											},
+											showLoading: false,
 											uri: themeDisplay.getPathMain() + '/portal/render_portlet'
-										}
+										},
+										fn: A.Plugin.IO
 									},
 									{
 										fn: A.LoadingMask
@@ -233,8 +233,9 @@ AUI.add(
 				if (!instance._backgroundColorPicker) {
 					instance._backgroundColorPicker = new A.ColorPickerPopover(
 						{
-							trigger: backgroundColor,
-							plugins: [Liferay.WidgetZIndex]
+							constrain: true,
+							plugins: [Liferay.WidgetZIndex],
+							trigger: backgroundColor
 						}
 					).render(instance._currentPopup.get(BOUNDING_BOX));
 				}
@@ -470,7 +471,7 @@ AUI.add(
 
 				A.each(
 					[cTopColor, cRightColor, cBottomColor, cLeftColor],
-					function(item, index, collection) {
+					function(item, index) {
 						var hexValue = item.val().replace('#', EMPTY);
 
 						var borderLocation = '_borderColorPicker' + index;
@@ -478,6 +479,7 @@ AUI.add(
 						if (!instance[borderLocation]) {
 							instance[borderLocation] = new A.ColorPickerPopover(
 								{
+									constrain: true,
 									trigger: item,
 									zIndex: 1000
 								}
@@ -724,17 +726,6 @@ AUI.add(
 				}
 			},
 
-			_getCombo: function(input, selectBox) {
-				var instance = this;
-
-				var inputVal = input.val();
-				var selectVal = selectBox.val();
-
-				inputVal = instance._getSafeInteger(inputVal);
-
-				return {input: inputVal, selectBox: selectVal, both: inputVal + selectVal};
-			},
-
 			_getCSSClasses: function(portletBoundary, portlet) {
 				var instance = this;
 
@@ -762,6 +753,21 @@ AUI.add(
 				);
 
 				return '.' + boundaryClasses.join('.') + portletClasses;
+			},
+
+			_getCombo: function(input, selectBox) {
+				var instance = this;
+
+				var inputVal = input.val();
+				var selectVal = selectBox.val();
+
+				inputVal = instance._getSafeInteger(inputVal);
+
+				return {
+					both: inputVal + selectVal,
+					input: inputVal,
+					selectBox: selectVal
+				};
 			},
 
 			_getDefaultData: function() {
@@ -952,7 +958,7 @@ AUI.add(
 					instance._defaultPortletTitle = Lang.trim(portletTitle ? portletTitle.text() : EMPTY);
 
 					instance._customTitleInput = instance._getNodeById('custom-title');
-					instance._customTitleCheckbox = instance._getNodeById('use-custom-titleCheckbox');
+					instance._customTitleCheckbox = instance._getNodeById('use-custom-title');
 					instance._showBorders = instance._getNodeById('show-borders');
 					instance._borderNote = A.one('#border-note');
 					instance._portletLanguage = instance._getNodeById('lfr-portlet-language');
@@ -961,8 +967,8 @@ AUI.add(
 					// Text
 
 					instance._fontFamily = instance._getNodeById('lfr-font-family');
-					instance._fontWeight = instance._getNodeById('lfr-font-boldCheckbox');
-					instance._fontStyle = instance._getNodeById('lfr-font-italicCheckbox');
+					instance._fontWeight = instance._getNodeById('lfr-font-bold');
+					instance._fontStyle = instance._getNodeById('lfr-font-italic');
 					instance._fontSize = instance._getNodeById('lfr-font-size');
 					instance._fontColor = instance._getNodeById('lfr-font-color');
 					instance._textAlign = instance._getNodeById('lfr-font-align');
@@ -977,9 +983,9 @@ AUI.add(
 
 					// Border
 
-					instance._ufaBorderWidth = instance._getNodeById('lfr-use-for-all-widthCheckbox');
-					instance._ufaBorderStyle = instance._getNodeById('lfr-use-for-all-styleCheckbox');
-					instance._ufaBorderColor = instance._getNodeById('lfr-use-for-all-colorCheckbox');
+					instance._ufaBorderWidth = instance._getNodeById('lfr-use-for-all-width');
+					instance._ufaBorderStyle = instance._getNodeById('lfr-use-for-all-style');
+					instance._ufaBorderColor = instance._getNodeById('lfr-use-for-all-color');
 
 					instance._borderTopInt = instance._getNodeById('lfr-border-width-top');
 					instance._borderTopUnit = instance._getNodeById('lfr-border-width-top-unit');
@@ -1002,8 +1008,8 @@ AUI.add(
 
 					// Spacing
 
-					instance._ufaPadding = instance._getNodeById('lfr-use-for-all-paddingCheckbox');
-					instance._ufaMargin = instance._getNodeById('lfr-use-for-all-marginCheckbox');
+					instance._ufaPadding = instance._getNodeById('lfr-use-for-all-padding');
+					instance._ufaMargin = instance._getNodeById('lfr-use-for-all-margin');
 
 					instance._paddingTopInt = instance._getNodeById('lfr-padding-top');
 					instance._paddingTopUnit = instance._getNodeById('lfr-padding-top-unit');
@@ -1043,8 +1049,8 @@ AUI.add(
 
 				instance._tabs = new A.TabView(
 					{
-						srcNode: newPanel,
-						panelNode: newPanel.one('.tab-pane')
+						panelNode: newPanel.one('.tab-pane'),
+						srcNode: newPanel
 					}
 				).render();
 
@@ -1076,7 +1082,7 @@ AUI.add(
 
 					var useForAll = newPanel.all('.lfr-use-for-all input[type=checkbox]');
 
-					var handleForms = function(item, index, collection) {
+					var handleForms = function(item, index) {
 						var checkBox = item;
 
 						var fieldset = checkBox.ancestor(FIELDSET);
@@ -1092,7 +1098,7 @@ AUI.add(
 						var checked = item.get(CHECKED);
 
 						otherHolders.each(
-							function(holderItem, holderIndex, holderCollection) {
+							function(holderItem, holderIndex) {
 								if (holderIndex > firstIndex) {
 									var fields = holderItem.all('input, select');
 									var colorPickerImages = holderItem.all('.buttonitem');
@@ -1150,7 +1156,7 @@ AUI.add(
 						}
 						else {
 							message = Liferay.Language.get('your-settings-could-not-be-saved');
-							messageClass = 'alert alert-error';
+							messageClass = 'alert alert-danger';
 						}
 
 						var ajaxResponse = ajaxResponseMsg;
@@ -1510,7 +1516,7 @@ AUI.add(
 					if (portletData.titles) {
 						A.each(
 							portletData.titles,
-							function(item, index, collection) {
+							function(item, index) {
 								instance._languageClasses(item);
 							}
 						);
@@ -1944,8 +1950,9 @@ AUI.add(
 				if (!instance._fontColorPicker) {
 					instance._fontColorPicker = new A.ColorPickerPopover(
 						{
-							trigger: fontColor,
-							plugins: [Liferay.WidgetZIndex]
+							constrain: true,
+							plugins: [Liferay.WidgetZIndex],
+							trigger: fontColor
 						}
 					).render(instance._currentPopup.get(BOUNDING_BOX));
 				}

@@ -22,32 +22,25 @@ import aQute.bnd.annotation.ProviderType;
 @ProviderType
 public interface ShoppingItemFinder {
 	public int countByG_C(long groupId,
-		java.util.List<java.lang.Long> categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.util.List<java.lang.Long> categoryIds);
 
-	public int countByFeatured(long groupId, long[] categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public int countByFeatured(long groupId, long[] categoryIds);
 
 	public int countByKeywords(long groupId, long[] categoryIds,
-		java.lang.String keywords)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.lang.String keywords);
 
-	public int countBySale(long groupId, long[] categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public int countBySale(long groupId, long[] categoryIds);
 
 	public int filterCountByG_C(long groupId,
-		java.util.List<java.lang.Long> categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.util.List<java.lang.Long> categoryIds);
 
 	public java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> findByFeatured(
-		long groupId, long[] categoryIds, int numOfItems)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long groupId, long[] categoryIds, int numOfItems);
 
 	public java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> findByKeywords(
 		long groupId, long[] categoryIds, java.lang.String keywords, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException;
+		int end);
 
 	public java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> findBySale(
-		long groupId, long[] categoryIds, int numOfItems)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long groupId, long[] categoryIds, int numOfItems);
 }

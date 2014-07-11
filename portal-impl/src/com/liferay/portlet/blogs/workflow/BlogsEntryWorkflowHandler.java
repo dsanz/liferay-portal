@@ -15,7 +15,6 @@
 package com.liferay.portlet.blogs.workflow;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.workflow.BaseWorkflowHandler;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -33,7 +32,7 @@ import java.util.Map;
 /**
  * @author Jorge Ferrer
  */
-public class BlogsEntryWorkflowHandler extends BaseWorkflowHandler {
+public class BlogsEntryWorkflowHandler extends BaseWorkflowHandler<BlogsEntry> {
 
 	@Override
 	public String getClassName() {
@@ -48,7 +47,7 @@ public class BlogsEntryWorkflowHandler extends BaseWorkflowHandler {
 	@Override
 	public BlogsEntry updateStatus(
 			int status, Map<String, Serializable> workflowContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		long userId = GetterUtil.getLong(
 			(String)workflowContext.get(WorkflowConstants.CONTEXT_USER_ID));

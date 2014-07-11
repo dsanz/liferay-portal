@@ -15,18 +15,18 @@
 package com.liferay.portlet.assetpublisher.util;
 
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.asset.model.AssetCategory;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetVocabulary;
@@ -35,7 +35,7 @@ import com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil;
 import com.liferay.portlet.asset.service.AssetVocabularyLocalServiceUtil;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
-import com.liferay.portlet.journal.util.JournalTestUtil;
+import com.liferay.portlet.journal.util.test.JournalTestUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,13 +53,8 @@ import org.springframework.mock.web.portlet.MockPortletRequest;
 /**
  * @author Roberto Díaz
  */
-@ExecutionTestListeners(
-	listeners = {
-		EnvironmentExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class AssetPublisherServiceTest {
 
 	@Before
@@ -183,7 +178,7 @@ public class AssetPublisherServiceTest {
 			AssetCategory assetCategory =
 				AssetCategoryLocalServiceUtil.addCategory(
 					TestPropsValues.getUserId(), assetCategoryName,
-					vocabularyId, ServiceTestUtil.getServiceContext());
+					vocabularyId, ServiceContextTestUtil.getServiceContext());
 
 			_assetCategoryIds = ArrayUtil.append(
 				_assetCategoryIds, assetCategory.getCategoryId());
@@ -199,8 +194,8 @@ public class AssetPublisherServiceTest {
 
 		for (int i = 0; i < count; i++) {
 			JournalArticle article = JournalTestUtil.addArticle(
-				_group.getGroupId(), ServiceTestUtil.randomString(),
-				ServiceTestUtil.randomString(100));
+				_group.getGroupId(), RandomTestUtil.randomString(),
+				RandomTestUtil.randomString(100));
 
 			JournalArticleLocalServiceUtil.updateAsset(
 				TestPropsValues.getUserId(), article, assetCategoryIds,
@@ -230,16 +225,16 @@ public class AssetPublisherServiceTest {
 	}
 
 	protected void addAssetVocabulary() throws Exception {
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			_group.getGroupId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
 
 		serviceContext.setAddGroupPermissions(false);
 		serviceContext.setAddGuestPermissions(false);
 
 		AssetVocabulary assetVocabulary =
 			AssetVocabularyLocalServiceUtil.addVocabulary(
-				TestPropsValues.getUserId(), ServiceTestUtil.randomString(),
-				ServiceTestUtil.getServiceContext(_group.getGroupId()));
+				TestPropsValues.getUserId(), RandomTestUtil.randomString(),
+				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		addAssetCategories(assetVocabulary.getVocabularyId());
 	}
@@ -267,7 +262,10 @@ public class AssetPublisherServiceTest {
 	private long[] _assetCategoryIds = new long[0];
 	private List<AssetEntry> _assetEntries = new ArrayList<AssetEntry>();
 	private String[] _assetEntryXmls = new String[0];
+
+	@DeleteAfterTestRun
 	private Group _group;
+
 	private PermissionChecker _permissionChecker;
 
 }

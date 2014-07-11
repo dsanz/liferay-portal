@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -48,7 +47,11 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -112,11 +115,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 *
 	 * @param uuid the uuid
 	 * @return the matching d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<DDMStorageLink> findByUuid(String uuid)
-		throws SystemException {
+	public List<DDMStorageLink> findByUuid(String uuid) {
 		return findByUuid(uuid, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -131,11 +132,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param start the lower bound of the range of d d m storage links
 	 * @param end the upper bound of the range of d d m storage links (not inclusive)
 	 * @return the range of matching d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<DDMStorageLink> findByUuid(String uuid, int start, int end)
-		throws SystemException {
+	public List<DDMStorageLink> findByUuid(String uuid, int start, int end) {
 		return findByUuid(uuid, start, end, null);
 	}
 
@@ -151,11 +150,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param end the upper bound of the range of d d m storage links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<DDMStorageLink> findByUuid(String uuid, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<DDMStorageLink> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -272,12 +270,11 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching d d m storage link
 	 * @throws com.liferay.portlet.dynamicdatamapping.NoSuchStorageLinkException if a matching d d m storage link could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink findByUuid_First(String uuid,
-		OrderByComparator orderByComparator)
-		throws NoSuchStorageLinkException, SystemException {
+		OrderByComparator<DDMStorageLink> orderByComparator)
+		throws NoSuchStorageLinkException {
 		DDMStorageLink ddmStorageLink = fetchByUuid_First(uuid,
 				orderByComparator);
 
@@ -303,11 +300,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching d d m storage link, or <code>null</code> if a matching d d m storage link could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink fetchByUuid_First(String uuid,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<DDMStorageLink> orderByComparator) {
 		List<DDMStorageLink> list = findByUuid(uuid, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -324,12 +320,11 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching d d m storage link
 	 * @throws com.liferay.portlet.dynamicdatamapping.NoSuchStorageLinkException if a matching d d m storage link could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink findByUuid_Last(String uuid,
-		OrderByComparator orderByComparator)
-		throws NoSuchStorageLinkException, SystemException {
+		OrderByComparator<DDMStorageLink> orderByComparator)
+		throws NoSuchStorageLinkException {
 		DDMStorageLink ddmStorageLink = fetchByUuid_Last(uuid, orderByComparator);
 
 		if (ddmStorageLink != null) {
@@ -354,11 +349,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching d d m storage link, or <code>null</code> if a matching d d m storage link could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink fetchByUuid_Last(String uuid,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<DDMStorageLink> orderByComparator) {
 		int count = countByUuid(uuid);
 
 		if (count == 0) {
@@ -383,12 +377,11 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next d d m storage link
 	 * @throws com.liferay.portlet.dynamicdatamapping.NoSuchStorageLinkException if a d d m storage link with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink[] findByUuid_PrevAndNext(long storageLinkId,
-		String uuid, OrderByComparator orderByComparator)
-		throws NoSuchStorageLinkException, SystemException {
+		String uuid, OrderByComparator<DDMStorageLink> orderByComparator)
+		throws NoSuchStorageLinkException {
 		DDMStorageLink ddmStorageLink = findByPrimaryKey(storageLinkId);
 
 		Session session = null;
@@ -418,7 +411,7 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 
 	protected DDMStorageLink getByUuid_PrevAndNext(Session session,
 		DDMStorageLink ddmStorageLink, String uuid,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<DDMStorageLink> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -539,10 +532,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * Removes all the d d m storage links where uuid = &#63; from the database.
 	 *
 	 * @param uuid the uuid
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByUuid(String uuid) throws SystemException {
+	public void removeByUuid(String uuid) {
 		for (DDMStorageLink ddmStorageLink : findByUuid(uuid,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(ddmStorageLink);
@@ -554,10 +546,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 *
 	 * @param uuid the uuid
 	 * @return the number of matching d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByUuid(String uuid) throws SystemException {
+	public int countByUuid(String uuid) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_UUID;
 
 		Object[] finderArgs = new Object[] { uuid };
@@ -635,11 +626,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param classPK the class p k
 	 * @return the matching d d m storage link
 	 * @throws com.liferay.portlet.dynamicdatamapping.NoSuchStorageLinkException if a matching d d m storage link could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink findByClassPK(long classPK)
-		throws NoSuchStorageLinkException, SystemException {
+		throws NoSuchStorageLinkException {
 		DDMStorageLink ddmStorageLink = fetchByClassPK(classPK);
 
 		if (ddmStorageLink == null) {
@@ -667,11 +657,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 *
 	 * @param classPK the class p k
 	 * @return the matching d d m storage link, or <code>null</code> if a matching d d m storage link could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public DDMStorageLink fetchByClassPK(long classPK)
-		throws SystemException {
+	public DDMStorageLink fetchByClassPK(long classPK) {
 		return fetchByClassPK(classPK, true);
 	}
 
@@ -681,11 +669,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param classPK the class p k
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching d d m storage link, or <code>null</code> if a matching d d m storage link could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public DDMStorageLink fetchByClassPK(long classPK, boolean retrieveFromCache)
-		throws SystemException {
+	public DDMStorageLink fetchByClassPK(long classPK, boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { classPK };
 
 		Object result = null;
@@ -766,11 +752,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 *
 	 * @param classPK the class p k
 	 * @return the d d m storage link that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink removeByClassPK(long classPK)
-		throws NoSuchStorageLinkException, SystemException {
+		throws NoSuchStorageLinkException {
 		DDMStorageLink ddmStorageLink = findByClassPK(classPK);
 
 		return remove(ddmStorageLink);
@@ -781,10 +766,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 *
 	 * @param classPK the class p k
 	 * @return the number of matching d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByClassPK(long classPK) throws SystemException {
+	public int countByClassPK(long classPK) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_CLASSPK;
 
 		Object[] finderArgs = new Object[] { classPK };
@@ -858,11 +842,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 *
 	 * @param structureId the structure ID
 	 * @return the matching d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<DDMStorageLink> findByStructureId(long structureId)
-		throws SystemException {
+	public List<DDMStorageLink> findByStructureId(long structureId) {
 		return findByStructureId(structureId, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -878,11 +860,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param start the lower bound of the range of d d m storage links
 	 * @param end the upper bound of the range of d d m storage links (not inclusive)
 	 * @return the range of matching d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<DDMStorageLink> findByStructureId(long structureId, int start,
-		int end) throws SystemException {
+		int end) {
 		return findByStructureId(structureId, start, end, null);
 	}
 
@@ -898,11 +879,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param end the upper bound of the range of d d m storage links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<DDMStorageLink> findByStructureId(long structureId, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<DDMStorageLink> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1005,12 +985,11 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching d d m storage link
 	 * @throws com.liferay.portlet.dynamicdatamapping.NoSuchStorageLinkException if a matching d d m storage link could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink findByStructureId_First(long structureId,
-		OrderByComparator orderByComparator)
-		throws NoSuchStorageLinkException, SystemException {
+		OrderByComparator<DDMStorageLink> orderByComparator)
+		throws NoSuchStorageLinkException {
 		DDMStorageLink ddmStorageLink = fetchByStructureId_First(structureId,
 				orderByComparator);
 
@@ -1036,11 +1015,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param structureId the structure ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching d d m storage link, or <code>null</code> if a matching d d m storage link could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink fetchByStructureId_First(long structureId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<DDMStorageLink> orderByComparator) {
 		List<DDMStorageLink> list = findByStructureId(structureId, 0, 1,
 				orderByComparator);
 
@@ -1058,12 +1036,11 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching d d m storage link
 	 * @throws com.liferay.portlet.dynamicdatamapping.NoSuchStorageLinkException if a matching d d m storage link could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink findByStructureId_Last(long structureId,
-		OrderByComparator orderByComparator)
-		throws NoSuchStorageLinkException, SystemException {
+		OrderByComparator<DDMStorageLink> orderByComparator)
+		throws NoSuchStorageLinkException {
 		DDMStorageLink ddmStorageLink = fetchByStructureId_Last(structureId,
 				orderByComparator);
 
@@ -1089,11 +1066,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param structureId the structure ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching d d m storage link, or <code>null</code> if a matching d d m storage link could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink fetchByStructureId_Last(long structureId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<DDMStorageLink> orderByComparator) {
 		int count = countByStructureId(structureId);
 
 		if (count == 0) {
@@ -1118,12 +1094,11 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next d d m storage link
 	 * @throws com.liferay.portlet.dynamicdatamapping.NoSuchStorageLinkException if a d d m storage link with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink[] findByStructureId_PrevAndNext(long storageLinkId,
-		long structureId, OrderByComparator orderByComparator)
-		throws NoSuchStorageLinkException, SystemException {
+		long structureId, OrderByComparator<DDMStorageLink> orderByComparator)
+		throws NoSuchStorageLinkException {
 		DDMStorageLink ddmStorageLink = findByPrimaryKey(storageLinkId);
 
 		Session session = null;
@@ -1153,7 +1128,7 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 
 	protected DDMStorageLink getByStructureId_PrevAndNext(Session session,
 		DDMStorageLink ddmStorageLink, long structureId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<DDMStorageLink> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -1260,10 +1235,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * Removes all the d d m storage links where structureId = &#63; from the database.
 	 *
 	 * @param structureId the structure ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByStructureId(long structureId) throws SystemException {
+	public void removeByStructureId(long structureId) {
 		for (DDMStorageLink ddmStorageLink : findByStructureId(structureId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(ddmStorageLink);
@@ -1275,10 +1249,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 *
 	 * @param structureId the structure ID
 	 * @return the number of matching d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByStructureId(long structureId) throws SystemException {
+	public int countByStructureId(long structureId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_STRUCTUREID;
 
 		Object[] finderArgs = new Object[] { structureId };
@@ -1483,11 +1456,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param storageLinkId the primary key of the d d m storage link
 	 * @return the d d m storage link that was removed
 	 * @throws com.liferay.portlet.dynamicdatamapping.NoSuchStorageLinkException if a d d m storage link with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink remove(long storageLinkId)
-		throws NoSuchStorageLinkException, SystemException {
+		throws NoSuchStorageLinkException {
 		return remove((Serializable)storageLinkId);
 	}
 
@@ -1497,11 +1469,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param primaryKey the primary key of the d d m storage link
 	 * @return the d d m storage link that was removed
 	 * @throws com.liferay.portlet.dynamicdatamapping.NoSuchStorageLinkException if a d d m storage link with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink remove(Serializable primaryKey)
-		throws NoSuchStorageLinkException, SystemException {
+		throws NoSuchStorageLinkException {
 		Session session = null;
 
 		try {
@@ -1533,8 +1504,7 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	}
 
 	@Override
-	protected DDMStorageLink removeImpl(DDMStorageLink ddmStorageLink)
-		throws SystemException {
+	protected DDMStorageLink removeImpl(DDMStorageLink ddmStorageLink) {
 		ddmStorageLink = toUnwrappedModel(ddmStorageLink);
 
 		Session session = null;
@@ -1567,8 +1537,7 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 
 	@Override
 	public DDMStorageLink updateImpl(
-		com.liferay.portlet.dynamicdatamapping.model.DDMStorageLink ddmStorageLink)
-		throws SystemException {
+		com.liferay.portlet.dynamicdatamapping.model.DDMStorageLink ddmStorageLink) {
 		ddmStorageLink = toUnwrappedModel(ddmStorageLink);
 
 		boolean isNew = ddmStorageLink.isNew();
@@ -1683,11 +1652,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param primaryKey the primary key of the d d m storage link
 	 * @return the d d m storage link
 	 * @throws com.liferay.portlet.dynamicdatamapping.NoSuchStorageLinkException if a d d m storage link with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchStorageLinkException, SystemException {
+		throws NoSuchStorageLinkException {
 		DDMStorageLink ddmStorageLink = fetchByPrimaryKey(primaryKey);
 
 		if (ddmStorageLink == null) {
@@ -1708,11 +1676,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param storageLinkId the primary key of the d d m storage link
 	 * @return the d d m storage link
 	 * @throws com.liferay.portlet.dynamicdatamapping.NoSuchStorageLinkException if a d d m storage link with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMStorageLink findByPrimaryKey(long storageLinkId)
-		throws NoSuchStorageLinkException, SystemException {
+		throws NoSuchStorageLinkException {
 		return findByPrimaryKey((Serializable)storageLinkId);
 	}
 
@@ -1721,11 +1688,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 *
 	 * @param primaryKey the primary key of the d d m storage link
 	 * @return the d d m storage link, or <code>null</code> if a d d m storage link with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public DDMStorageLink fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public DDMStorageLink fetchByPrimaryKey(Serializable primaryKey) {
 		DDMStorageLink ddmStorageLink = (DDMStorageLink)EntityCacheUtil.getResult(DDMStorageLinkModelImpl.ENTITY_CACHE_ENABLED,
 				DDMStorageLinkImpl.class, primaryKey);
 
@@ -1770,22 +1735,111 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 *
 	 * @param storageLinkId the primary key of the d d m storage link
 	 * @return the d d m storage link, or <code>null</code> if a d d m storage link with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public DDMStorageLink fetchByPrimaryKey(long storageLinkId)
-		throws SystemException {
+	public DDMStorageLink fetchByPrimaryKey(long storageLinkId) {
 		return fetchByPrimaryKey((Serializable)storageLinkId);
+	}
+
+	@Override
+	public Map<Serializable, DDMStorageLink> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, DDMStorageLink> map = new HashMap<Serializable, DDMStorageLink>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			DDMStorageLink ddmStorageLink = fetchByPrimaryKey(primaryKey);
+
+			if (ddmStorageLink != null) {
+				map.put(primaryKey, ddmStorageLink);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			DDMStorageLink ddmStorageLink = (DDMStorageLink)EntityCacheUtil.getResult(DDMStorageLinkModelImpl.ENTITY_CACHE_ENABLED,
+					DDMStorageLinkImpl.class, primaryKey);
+
+			if (ddmStorageLink == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, ddmStorageLink);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_DDMSTORAGELINK_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (DDMStorageLink ddmStorageLink : (List<DDMStorageLink>)q.list()) {
+				map.put(ddmStorageLink.getPrimaryKeyObj(), ddmStorageLink);
+
+				cacheResult(ddmStorageLink);
+
+				uncachedPrimaryKeys.remove(ddmStorageLink.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(DDMStorageLinkModelImpl.ENTITY_CACHE_ENABLED,
+					DDMStorageLinkImpl.class, primaryKey, _nullDDMStorageLink);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the d d m storage links.
 	 *
 	 * @return the d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<DDMStorageLink> findAll() throws SystemException {
+	public List<DDMStorageLink> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -1799,11 +1853,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param start the lower bound of the range of d d m storage links
 	 * @param end the upper bound of the range of d d m storage links (not inclusive)
 	 * @return the range of d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<DDMStorageLink> findAll(int start, int end)
-		throws SystemException {
+	public List<DDMStorageLink> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -1818,11 +1870,10 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * @param end the upper bound of the range of d d m storage links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<DDMStorageLink> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<DDMStorageLink> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1904,10 +1955,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	/**
 	 * Removes all the d d m storage links from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (DDMStorageLink ddmStorageLink : findAll()) {
 			remove(ddmStorageLink);
 		}
@@ -1917,10 +1967,9 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	 * Returns the number of d d m storage links.
 	 *
 	 * @return the number of d d m storage links
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -1989,6 +2038,7 @@ public class DDMStorageLinkPersistenceImpl extends BasePersistenceImpl<DDMStorag
 	}
 
 	private static final String _SQL_SELECT_DDMSTORAGELINK = "SELECT ddmStorageLink FROM DDMStorageLink ddmStorageLink";
+	private static final String _SQL_SELECT_DDMSTORAGELINK_WHERE_PKS_IN = "SELECT ddmStorageLink FROM DDMStorageLink ddmStorageLink WHERE storageLinkId IN (";
 	private static final String _SQL_SELECT_DDMSTORAGELINK_WHERE = "SELECT ddmStorageLink FROM DDMStorageLink ddmStorageLink WHERE ";
 	private static final String _SQL_COUNT_DDMSTORAGELINK = "SELECT COUNT(ddmStorageLink) FROM DDMStorageLink ddmStorageLink";
 	private static final String _SQL_COUNT_DDMSTORAGELINK_WHERE = "SELECT COUNT(ddmStorageLink) FROM DDMStorageLink ddmStorageLink WHERE ";

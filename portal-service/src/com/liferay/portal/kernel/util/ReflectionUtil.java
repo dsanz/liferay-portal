@@ -15,13 +15,14 @@
 package com.liferay.portal.kernel.util;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
@@ -46,20 +47,6 @@ public class ReflectionUtil {
 		}
 	}
 
-	public static Method getBridgeMethod(
-			Class<?> clazz, String name, Class<?> ... parameterTypes)
-		throws Exception {
-
-		return getBridgeMethod(true, clazz, name, parameterTypes);
-	}
-
-	public static Method getDeclaredBridgeMethod(
-			Class<?> clazz, String name, Class<?> ... parameterTypes)
-		throws Exception {
-
-		return getBridgeMethod(false, clazz, name, parameterTypes);
-	}
-
 	public static Field getDeclaredField(Class<?> clazz, String name)
 		throws Exception {
 
@@ -72,8 +59,7 @@ public class ReflectionUtil {
 		int modifiers = field.getModifiers();
 
 		if ((modifiers & Modifier.FINAL) == Modifier.FINAL) {
-			Field modifiersField = ReflectionUtil.getDeclaredField(
-				Field.class, "modifiers");
+			Field modifiersField = getDeclaredField(Field.class, "modifiers");
 
 			modifiersField.setInt(field, modifiers & ~Modifier.FINAL);
 		}
@@ -161,6 +147,27 @@ public class ReflectionUtil {
 		return parameterTypes;
 	}
 
+	public static Set<Method> getVisibleMethods(Class<?> clazz) {
+		Set<Method> visibleMethods = new HashSet<Method>(
+			Arrays.asList(clazz.getMethods()));
+
+		visibleMethods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+
+		while ((clazz = clazz.getSuperclass()) != null) {
+			for (Method method : clazz.getDeclaredMethods()) {
+				int modifiers = method.getModifiers();
+
+				if (!Modifier.isPrivate(modifiers) &
+					!Modifier.isPublic(modifiers)) {
+
+					visibleMethods.add(method);
+				}
+			}
+		}
+
+		return visibleMethods;
+	}
+
 	public static boolean isAnnotationDeclaredInClass(
 		Class<? extends Annotation> annotationClass, Class<?> clazz) {
 
@@ -177,138 +184,6 @@ public class ReflectionUtil {
 		}
 
 		return false;
-	}
-
-	public static <T extends Enum<T>> T newEnumElement(
-			Class<T> enumClass, Class<?>[] constructorParameterTypes,
-			String name, int ordinal, Object... constructorParameters)
-		throws Exception {
-
-		Class<?>[] parameterTypes = null;
-
-		if ((constructorParameterTypes != null) &&
-			(constructorParameterTypes.length != 0)) {
-
-			parameterTypes = new Class<?>[constructorParameterTypes.length + 2];
-
-			parameterTypes[0] = String.class;
-			parameterTypes[1] = int.class;
-
-			System.arraycopy(
-				constructorParameterTypes, 0, parameterTypes, 2,
-				constructorParameterTypes.length);
-		}
-		else {
-			parameterTypes = new Class<?>[2];
-
-			parameterTypes[0] = String.class;
-			parameterTypes[1] = int.class;
-		}
-
-		Constructor<T> constructor = enumClass.getDeclaredConstructor(
-			parameterTypes);
-
-		Method acquireConstructorAccessorMethod = getDeclaredMethod(
-			Constructor.class, "acquireConstructorAccessor");
-
-		acquireConstructorAccessorMethod.invoke(constructor);
-
-		Field constructorAccessorField = getDeclaredField(
-			Constructor.class, "constructorAccessor");
-
-		Object constructorAccessor = constructorAccessorField.get(constructor);
-
-		Method newInstanceMethod = getDeclaredMethod(
-			constructorAccessor.getClass(), "newInstance", Object[].class);
-
-		Object[] parameters = null;
-
-		if ((constructorParameters != null) &&
-			(constructorParameters.length != 0)) {
-
-			parameters = new Object[constructorParameters.length + 2];
-
-			parameters[0] = name;
-			parameters[1] = ordinal;
-
-			System.arraycopy(
-				constructorParameters, 0, parameters, 2,
-				constructorParameters.length);
-		}
-		else {
-			parameters = new Object[2];
-
-			parameters[0] = name;
-			parameters[1] = ordinal;
-		}
-
-		return (T)newInstanceMethod.invoke(
-			constructorAccessor, new Object[] {parameters});
-	}
-
-	public static <T extends Enum<T>> T newEnumElement(
-			Class<T> enumClass, String name, int ordinal)
-		throws Exception {
-
-		return newEnumElement(enumClass, null, name, ordinal, (Object[])null);
-	}
-
-	protected static Method getBridgeMethod(
-			boolean publicMethod, Class<?> clazz, String name,
-			Class<?> ... parameterTypes)
-		throws Exception {
-
-		Method method = null;
-
-		if (publicMethod) {
-			method = clazz.getMethod(name, parameterTypes);
-		}
-		else {
-			method = clazz.getDeclaredMethod(name, parameterTypes);
-		}
-
-		if (method.isBridge()) {
-			return method;
-		}
-
-		Method[] methods = null;
-
-		if (publicMethod) {
-			methods = clazz.getMethods();
-		}
-		else {
-			methods = clazz.getDeclaredMethods();
-		}
-
-		bridge:
-		for (Method currentMethod : methods) {
-			if (!currentMethod.isBridge() ||
-				!name.equals(currentMethod.getName())) {
-
-				continue;
-			}
-
-			Class<?>[] currentParameterTypes =
-				currentMethod.getParameterTypes();
-
-			if (currentParameterTypes.length != parameterTypes.length) {
-				continue;
-			}
-
-			for (int i = 0; i < currentParameterTypes.length; i++) {
-				if (!currentParameterTypes[i].isAssignableFrom(
-						parameterTypes[i])) {
-
-					continue bridge;
-				}
-			}
-
-			return currentMethod;
-		}
-
-		throw new NoSuchMethodException(
-			"No bridge method on " + clazz + " with name " + name +
-				" and parameter types " + Arrays.toString(parameterTypes));
 	}
 
 	private static void _getInterfaces(

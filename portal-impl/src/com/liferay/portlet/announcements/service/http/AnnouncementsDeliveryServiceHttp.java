@@ -55,8 +55,7 @@ public class AnnouncementsDeliveryServiceHttp {
 	public static com.liferay.portlet.announcements.model.AnnouncementsDelivery updateDelivery(
 		HttpPrincipal httpPrincipal, long userId, java.lang.String type,
 		boolean email, boolean sms, boolean website)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(AnnouncementsDeliveryServiceUtil.class,
 					"updateDelivery", _updateDeliveryParameterTypes0);
@@ -72,10 +71,6 @@ public class AnnouncementsDeliveryServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);

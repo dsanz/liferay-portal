@@ -28,12 +28,12 @@ import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.documentlibrary.NoSuchSyncEventException;
 import com.liferay.portlet.documentlibrary.model.DLSyncEvent;
@@ -49,6 +49,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -98,7 +99,7 @@ public class DLSyncEventPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		DLSyncEvent dlSyncEvent = _persistence.create(pk);
 
@@ -125,17 +126,17 @@ public class DLSyncEventPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		DLSyncEvent newDLSyncEvent = _persistence.create(pk);
 
-		newDLSyncEvent.setModifiedTime(ServiceTestUtil.nextLong());
+		newDLSyncEvent.setModifiedTime(RandomTestUtil.nextLong());
 
-		newDLSyncEvent.setEvent(ServiceTestUtil.randomString());
+		newDLSyncEvent.setEvent(RandomTestUtil.randomString());
 
-		newDLSyncEvent.setType(ServiceTestUtil.randomString());
+		newDLSyncEvent.setType(RandomTestUtil.randomString());
 
-		newDLSyncEvent.setTypePK(ServiceTestUtil.nextLong());
+		newDLSyncEvent.setTypePK(RandomTestUtil.nextLong());
 
 		_persistence.update(newDLSyncEvent);
 
@@ -156,7 +157,7 @@ public class DLSyncEventPersistenceTest {
 	@Test
 	public void testCountByModifiedTime() {
 		try {
-			_persistence.countByModifiedTime(ServiceTestUtil.nextLong());
+			_persistence.countByModifiedTime(RandomTestUtil.nextLong());
 
 			_persistence.countByModifiedTime(0L);
 		}
@@ -168,7 +169,7 @@ public class DLSyncEventPersistenceTest {
 	@Test
 	public void testCountByTypePK() {
 		try {
-			_persistence.countByTypePK(ServiceTestUtil.nextLong());
+			_persistence.countByTypePK(RandomTestUtil.nextLong());
 
 			_persistence.countByTypePK(0L);
 		}
@@ -188,7 +189,7 @@ public class DLSyncEventPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -210,7 +211,7 @@ public class DLSyncEventPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<DLSyncEvent> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("DLSyncEvent",
 			"syncEventId", true, "modifiedTime", true, "event", true, "type",
 			true, "typePK", true);
@@ -227,11 +228,93 @@ public class DLSyncEventPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		DLSyncEvent missingDLSyncEvent = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingDLSyncEvent);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		DLSyncEvent newDLSyncEvent1 = addDLSyncEvent();
+		DLSyncEvent newDLSyncEvent2 = addDLSyncEvent();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newDLSyncEvent1.getPrimaryKey());
+		primaryKeys.add(newDLSyncEvent2.getPrimaryKey());
+
+		Map<Serializable, DLSyncEvent> dlSyncEvents = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, dlSyncEvents.size());
+		Assert.assertEquals(newDLSyncEvent1,
+			dlSyncEvents.get(newDLSyncEvent1.getPrimaryKey()));
+		Assert.assertEquals(newDLSyncEvent2,
+			dlSyncEvents.get(newDLSyncEvent2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, DLSyncEvent> dlSyncEvents = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(dlSyncEvents.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		DLSyncEvent newDLSyncEvent = addDLSyncEvent();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newDLSyncEvent.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, DLSyncEvent> dlSyncEvents = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, dlSyncEvents.size());
+		Assert.assertEquals(newDLSyncEvent,
+			dlSyncEvents.get(newDLSyncEvent.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, DLSyncEvent> dlSyncEvents = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(dlSyncEvents.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		DLSyncEvent newDLSyncEvent = addDLSyncEvent();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newDLSyncEvent.getPrimaryKey());
+
+		Map<Serializable, DLSyncEvent> dlSyncEvents = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, dlSyncEvents.size());
+		Assert.assertEquals(newDLSyncEvent,
+			dlSyncEvents.get(newDLSyncEvent.getPrimaryKey()));
 	}
 
 	@Test
@@ -282,7 +365,7 @@ public class DLSyncEventPersistenceTest {
 				DLSyncEvent.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("syncEventId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<DLSyncEvent> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -321,7 +404,7 @@ public class DLSyncEventPersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("syncEventId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("syncEventId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -345,17 +428,17 @@ public class DLSyncEventPersistenceTest {
 	}
 
 	protected DLSyncEvent addDLSyncEvent() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		DLSyncEvent dlSyncEvent = _persistence.create(pk);
 
-		dlSyncEvent.setModifiedTime(ServiceTestUtil.nextLong());
+		dlSyncEvent.setModifiedTime(RandomTestUtil.nextLong());
 
-		dlSyncEvent.setEvent(ServiceTestUtil.randomString());
+		dlSyncEvent.setEvent(RandomTestUtil.randomString());
 
-		dlSyncEvent.setType(ServiceTestUtil.randomString());
+		dlSyncEvent.setType(RandomTestUtil.randomString());
 
-		dlSyncEvent.setTypePK(ServiceTestUtil.nextLong());
+		dlSyncEvent.setTypePK(RandomTestUtil.nextLong());
 
 		_persistence.update(dlSyncEvent);
 

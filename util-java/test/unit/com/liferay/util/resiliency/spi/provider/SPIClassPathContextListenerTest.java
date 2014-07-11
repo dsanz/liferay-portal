@@ -18,27 +18,23 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.process.ClassPathUtil;
 import com.liferay.portal.kernel.resiliency.mpi.MPIHelperUtil;
 import com.liferay.portal.kernel.resiliency.spi.MockSPI;
-import com.liferay.portal.kernel.resiliency.spi.SPI;
-import com.liferay.portal.kernel.resiliency.spi.SPIConfiguration;
+import com.liferay.portal.kernel.resiliency.spi.MockSPIProvider;
 import com.liferay.portal.kernel.resiliency.spi.SPIUtil;
 import com.liferay.portal.kernel.resiliency.spi.provider.SPIProvider;
 import com.liferay.portal.kernel.test.CaptureHandler;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
 import com.liferay.portal.kernel.test.NewClassLoaderJUnitTestRunner;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
-import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.util.PropsImpl;
 
 import java.io.File;
 import java.io.IOException;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -254,17 +250,15 @@ public class SPIClassPathContextListenerTest {
 
 			logRecords = captureHandler.resetLogLevel(Level.OFF);
 
-			Field field = ReflectionUtil.getDeclaredField(
-				SPIUtil.class, "_spi");
-
-			field.set(null, new MockSPI());
+			ReflectionTestUtil.setFieldValue(
+				SPIUtil.class, "_spi", new MockSPI());
 
 			try {
 				spiClassPathContextListener.contextInitialized(
 					new ServletContextEvent(_mockServletContext));
 			}
 			finally {
-				field.set(null, null);
+				ReflectionTestUtil.setFieldValue(SPIUtil.class, "_spi", null);
 			}
 
 			Assert.assertEquals(
@@ -295,17 +289,15 @@ public class SPIClassPathContextListenerTest {
 		Assert.assertNotSame(TestClass.class, clazz);
 		Assert.assertEquals(TestClass.class.getName(), clazz.getName());
 		Assert.assertSame(childClassLoader, clazz.getClassLoader());
-
-		Method findLoadedClassMethod = ReflectionUtil.getDeclaredMethod(
-			ClassLoader.class, "findLoadedClass", String.class);
-
 		Assert.assertSame(
 			clazz,
-			findLoadedClassMethod.invoke(
-				childClassLoader, TestClass.class.getName()));
+			ReflectionTestUtil.invoke(
+				childClassLoader, "findLoadedClass",
+				new Class<?>[] {String.class}, TestClass.class.getName()));
 		Assert.assertNull(
-			findLoadedClassMethod.invoke(
-				parentClassLoader, TestClass.class.getName()));
+			ReflectionTestUtil.invoke(
+				parentClassLoader, "findLoadedClass",
+				new Class<?>[] {String.class}, TestClass.class.getName()));
 		Assert.assertSame(
 			clazz,
 			SPIClassPathContextListener.loadClassDirectly(
@@ -410,16 +402,14 @@ public class SPIClassPathContextListenerTest {
 		_mockServletContext.addInitParameter(
 			"spiProviderClassName", MockSPIProvider.class.getName());
 
-		Field field = ReflectionUtil.getDeclaredField(SPIUtil.class, "_spi");
-
-		field.set(null, new MockSPI());
+		ReflectionTestUtil.setFieldValue(SPIUtil.class, "_spi", new MockSPI());
 
 		try {
 			spiClassPathContextListener.contextInitialized(
 				new ServletContextEvent(_mockServletContext));
 		}
 		finally {
-			field.set(null, null);
+			ReflectionTestUtil.setFieldValue(SPIUtil.class, "_spi", null);
 		}
 
 		spiProviderReference = SPIClassPathContextListener.spiProviderReference;
@@ -432,25 +422,6 @@ public class SPIClassPathContextListenerTest {
 		Assert.assertSame(spiProviderReference.get(), spiProviders.get(0));
 
 		embeddedLibDir.delete();
-	}
-
-	public static class MockSPIProvider implements SPIProvider {
-
-		@Override
-		public SPI createSPI(SPIConfiguration spiConfiguration) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public String getName() {
-			return MockSPIProvider.class.getName();
-		}
-
-		@Override
-		public String toString() {
-			return MockSPIProvider.class.getName();
-		}
-
 	}
 
 	protected void deleteFile(File file) {

@@ -38,7 +38,7 @@ if (group.isOrganization()) {
 	backURL="<%= redirect %>"
 	escapeXml="<%= false %>"
 	localizeTitle="<%= false %>"
-	title='<%= ((team == null) ? LanguageUtil.get(pageContext, "new-team") : HtmlUtil.escape(team.getName())) %>'
+	title='<%= ((team == null) ? LanguageUtil.get(request, "new-team") : HtmlUtil.escape(team.getName())) %>'
 />
 
 <portlet:actionURL var="editTeamURL">
@@ -58,9 +58,7 @@ if (group.isOrganization()) {
 
 	<aui:fieldset>
 		<c:if test="<%= team != null %>">
-			<aui:field-wrapper label="team-id">
-				<liferay-ui:input-resource url="<%= String.valueOf(team.getTeamId()) %>" />
-			</aui:field-wrapper>
+			<aui:input name="teamId" type="resource" value="<%= String.valueOf(team.getTeamId()) %>" />
 		</c:if>
 
 		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="name" />
@@ -77,7 +75,7 @@ if (group.isOrganization()) {
 
 <aui:script>
 	function <portlet:namespace />saveTeam() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (team == null) ? Constants.ADD : Constants.UPDATE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= (team == null) ? Constants.ADD : Constants.UPDATE %>';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
@@ -92,12 +90,12 @@ else {
 }
 
 if (team != null) {
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "manage-teams"), redirect);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "manage-teams"), redirect);
 	PortalUtil.addPortletBreadcrumbEntry(request, team.getName(), null);
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "edit"), currentURL);
 }
 else {
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "manage-teams"), redirect);
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-team"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "manage-teams"), redirect);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "add-team"), currentURL);
 }
 %>

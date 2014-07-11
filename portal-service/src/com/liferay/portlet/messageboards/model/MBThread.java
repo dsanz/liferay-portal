@@ -35,20 +35,16 @@ public interface MBThread extends MBThreadModel, PersistedModel {
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portlet.messageboards.model.impl.MBThreadImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public com.liferay.portal.kernel.repository.model.Folder addAttachmentsFolder()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
-	public long getAttachmentsFolderId()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public long getAttachmentsFolderId();
 
 	public com.liferay.portlet.messageboards.model.MBCategory getCategory()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public com.liferay.portal.model.Lock getLock();
 
-	public long[] getParticipantUserIds()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public long[] getParticipantUserIds();
 
 	public boolean hasLock(long userId);
 

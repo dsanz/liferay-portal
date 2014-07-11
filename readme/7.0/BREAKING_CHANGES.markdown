@@ -20,7 +20,7 @@ feature or API will be dropped in an upcoming version.
 replaces an old API, in spite of the old API being kept in Liferay Portal for
 backwards compatibility.
 
-*This document has been reviewed through commit `6524623`.*
+*This document has been reviewed through commit `d70397b`.*
 
 ## Breaking Changes Contribution Guidelines
 
@@ -180,3 +180,206 @@ This change gives users the flexibility to modify the default structure and
 template.
 
 ---------------------------------------
+
+### Changed the AssetRenderer and Indexer APIs to Include the `PortletRequest` and `PortletResponse` Parameters
+- **Date:** 2014-May-07
+- **JIRA Ticket:** LPS-44639 and LPS-44894
+
+#### What changed?
+The `getSummary()` method in the AssetRenderer API and the `doGetSummary()`
+method in the Indexer API have changed and must include a `PortletRequest`
+and `PortletResponse` parameter as part of their signatures.
+
+#### Who is affected?
+These methods must be updated in all AssetRenderer and Indexer implementations.
+
+#### How should I update my code?
+Add a `PortletRequest` and `PortletResponse` parameter to the signatures of
+these methods.
+
+**Example**
+
+Replace:
+```
+protected Summary doGetSummary(Document document, Locale locale, String snippet, PortletURL portletURL)
+```
+
+With:
+```
+protected Summary doGetSummary(Document document, Locale locale, String snippet, PortletURL portletURL, PortletRequest portletRequest, PortletResponse portletResponse)
+```
+
+and replace:
+```
+public String getSummary(Locale locale)
+```
+
+With:
+```
+public String getSummary(PortletRequest portletRequest, PortletResponse portletResponse)
+```
+
+#### Why was this change made?
+Some content (such as web content) needs the `PortletRequest` and
+`PortletResponse` parameters in order to be rendered.
+
+---------------------------------------
+
+### Only One Portlet Instance's Settings is Used Per Portlet
+- **Date:** 2014-Jun-06
+- **JIRA Ticket:** LPS-43134
+
+#### What changed?
+Previously, some portlets allowed separate setups per portlet instance,
+regardless of whether the instances were in the same page or in different pages.
+For some of the portlet setup fields, however, it didn't make sense to allow
+different values in different instances. The flexibility of these fields was
+unnecessary and confused users. As part of this change, these fields have been
+moved from portlet instance setup to Site Administration.
+
+The upgrade process takes care of making the necessary database changes. In the
+case of several portlet instances having different configurations, however, only
+one configuration is preserved.
+
+For example, if you configured three Bookmarks portlets where the mail
+configuration was the same, upgrade will be the same and you won't have any
+problem. But if you configured the three portlet instances differently, only one
+configuration will be chosen. To find out which configuration is chosen, you can
+check the log generated in the console by the upgrade process.
+
+Since configuring instances of the same portlet type differently is highly
+discouraged and notoriously problematic, we expect this change will
+inconvenience only a very low minority of portal users.
+
+#### Who is affected?
+Affected users are those who have specified varying configurations for multiple
+portlet instances of a portlet type, that stores configurations at the layout
+level.
+
+#### How should I update my code?
+The upgrade process chooses one portlet instance's configurations and stores it
+at the service level. After the upgrade, you should review the portlet's
+configuration and make any necessary modifications.
+
+#### Why was this change made?
+Unifying portlet and service configuration facilitates managing them.
+
+---------------------------------------
+### DDM Structure Local Service API No Longer Has the `updateXSDFieldMetadata()` operation
+- **Date:** 2014-Jun-11
+- **JIRA Ticket:** LPS-47559
+
+#### What changed?
+The `updateXSDFieldMetadata()` operation was removed from the DDM Structure
+Local Service API.
+
+DDM Structure Local API users should reference a structure's internal
+representation; any call to modify a DDM structure's content should be done
+through the DDMForm model.
+
+#### Who is affected?
+Applications that use the DDM Structure Local Service API might be affected.
+
+#### How should I update my code?
+You should always use DDMForm to update the DDM Structure content. You can
+retrieve it by calling `ddmStructure.getDDMForm()`. Perform any changes to it and
+then call `DDMStructureLocalServiceUtil.updateDDMStructure(ddmStructure)`.
+
+#### Why was this change made?
+This change gives users the flexibility to modify the structure content without
+concerning themselves with the DDM Structure's internal content representation
+of data.
+
+---------------------------------------
+### The `aui:input` Taglib for Type `checkbox` No Longer Creates a Hidden Input
+- **Date:** 2014-Jun-16
+- **JIRA Ticket:** LPS-44228
+
+#### What changed?
+Whenever the aui:input taglib is used to generate an input of type checkbox,
+only an input tag will be generated, instead of the checkbox and hidden field it
+was generating before.
+
+#### Who is affected?
+Anyone trying to grab the previously generated fields is affected. The change
+mostly affects JavaScript code trying to add some additional actions when
+clicking on the checkboxes.
+
+#### How should I update my code?
+In your front-end JavaScript code, follow these steps:
+
+- Remove the `Checkbox` suffix when querying for the node in any of its forms,
+like `A.one(...)`, `$(...)`, etc. 
+- Remove any action that tries to set the value of the checkbox on the
+previously generated hidden field.
+
+#### Why was this change made?
+This change makes generated forms more standard and interoperable since it falls
+back to the checkboxes default behavior. It allows the form to be submitted
+properly even when JavaScript is disabled.
+
+---------------------------------------
+
+### Using `util-taglib` No Longer Binds You to Using `portal-service`'s `javax.servlet.jsp` Implementation
+- **Date:** 2014-Jun-19
+- **JIRA Ticket:** LPS-47682
+
+#### What changed?
+Several APIs in `portal-service.jar` contained references to the
+`javax.servlet.jsp` package. This forced `util-taglib`, which depended on many
+of the package's features, to be bound to the same JSP implementation. 
+
+Due to this, the following APIs had breaking changes:
+
+- `LanguageUtil`
+- `UnicodeLanguageUtil`
+- `VelocityTaglibImpl`
+- `ThemeUtil`
+- `RuntimePageUtil`
+- `PortletDisplayTemplateUtil`
+- `DDMXSDUtil`
+- `PortletResourceBundles`
+- `ResourceActionsUtil`
+- `PortalUtil`
+
+#### How should I update my code?
+Code invoking the APIs listed above should should be updated to use an
+`HttpServletRequest` parameter instead of the formerly used `PageContext`
+parameter.
+
+#### Why was this change made?
+As stated previously, the use of the `javax.servlet.jsp` API in `portal-service`
+prevented the use of any other JSP impl within plugins (OSGi or otherwise). This
+limited what Liferay could change with respect to providing its own JSP
+implementation within OSGi.
+
+### Changes in Exceptions thrown by user services
+- **Date:** 2014-July
+- **JIRA Ticket:** LPS-47130
+
+#### What changed?
+
+In order to provide more information about the root cause of an exception
+several exceptions have been extended with static inner classes, one for each
+cause. As a result of this effort we identified some exceptions that really
+belong as (static inner) subclasses of existing exceptions.
+
+#### Who is affected?
+
+Client code which is handling any of the following exceptions:
+- `DuplicateUserScreenNameException`
+- `DuplicateUserEmailAddressException`
+
+
+#### How should I update my code?
+
+Replace the old exception with the equivalent inner class exception as follows:
+- `DuplicateUserScreenNameException` -> UserScreenNameException.MustNotBeDuplicate
+- `DuplicateUserEmailAddressException`-> UserEmailAddressException.MustNotBeDuplicate
+
+#### Why was this change made?
+
+In order to provide more information to clients of the services API about what
+is the root cause of the error. This should allow for easier recovery when it
+is possible and to provide a more helpful error message to the end user
+otherwise.

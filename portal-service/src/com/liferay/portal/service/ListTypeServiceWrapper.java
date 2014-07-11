@@ -40,6 +40,18 @@ public class ListTypeServiceWrapper implements ListTypeService,
 		return _listTypeService.getBeanIdentifier();
 	}
 
+	@Override
+	public com.liferay.portal.model.ListType getListType(int listTypeId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _listTypeService.getListType(listTypeId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.ListType> getListTypes(
+		java.lang.String type) {
+		return _listTypeService.getListTypes(type);
+	}
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -51,30 +63,14 @@ public class ListTypeServiceWrapper implements ListTypeService,
 	}
 
 	@Override
-	public com.liferay.portal.model.ListType getListType(int listTypeId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _listTypeService.getListType(listTypeId);
-	}
-
-	@Override
-	public java.util.List<com.liferay.portal.model.ListType> getListTypes(
-		java.lang.String type)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _listTypeService.getListTypes(type);
-	}
-
-	@Override
 	public void validate(int listTypeId, long classNameId, java.lang.String type)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_listTypeService.validate(listTypeId, classNameId, type);
 	}
 
 	@Override
 	public void validate(int listTypeId, java.lang.String type)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_listTypeService.validate(listTypeId, type);
 	}
 

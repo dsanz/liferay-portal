@@ -15,7 +15,6 @@
 package com.liferay.portlet.asset.model;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.util.Tuple;
@@ -41,38 +40,56 @@ public interface AssetRendererFactory {
 
 	public static final int TYPE_LATEST_APPROVED = 1;
 
-	public AssetEntry getAssetEntry(long assetEntryId)
-		throws PortalException, SystemException;
+	public AssetEntry getAssetEntry(long assetEntryId) throws PortalException;
 
 	public AssetEntry getAssetEntry(String classNameId, long classPK)
-		throws PortalException, SystemException;
+		throws PortalException;
 
-	public AssetRenderer getAssetRenderer(long classPK)
-		throws PortalException, SystemException;
+	public AssetRenderer getAssetRenderer(long classPK) throws PortalException;
 
 	public AssetRenderer getAssetRenderer(long classPK, int type)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public AssetRenderer getAssetRenderer(long groupId, String urlTitle)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public String getClassName();
 
 	public long getClassNameId();
 
+	/**
+	 * @deprecated As of 7.0.0, see {@link com.liferay.portlet.asset.model.ClassTypeReader}
+	 */
+	@Deprecated
 	public Tuple getClassTypeFieldName(
 			long classTypeId, String fieldName, Locale locale)
 		throws Exception;
 
+	/**
+	 * @deprecated As of 7.0.0, see {@link com.liferay.portlet.asset.model.ClassTypeReader}
+	 */
+	@Deprecated
 	public List<Tuple> getClassTypeFieldNames(
 			long classTypeId, Locale locale, int start, int end)
 		throws Exception;
 
+	/**
+	 * @deprecated As of 7.0.0, see {@link com.liferay.portlet.asset.model.ClassTypeReader}
+	 */
+	@Deprecated
 	public int getClassTypeFieldNamesCount(long classTypeId, Locale locale)
 		throws Exception;
 
+	public ClassTypeReader getClassTypeReader();
+
+	/**
+	 * @deprecated As of 7.0.0, see {@link com.liferay.portlet.asset.model.ClassTypeReader}
+	 */
+	@Deprecated
 	public Map<Long, String> getClassTypes(long[] groupIds, Locale locale)
 		throws Exception;
+
+	public String getIconCssClass();
 
 	public String getIconPath(PortletRequest portletRequest);
 
@@ -93,17 +110,21 @@ public interface AssetRendererFactory {
 	public PortletURL getURLAdd(
 			LiferayPortletRequest liferayPortletRequest,
 			LiferayPortletResponse liferayPortletResponse)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public PortletURL getURLView(
 			LiferayPortletResponse liferayPortletResponse,
 			WindowState windowState)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public boolean hasAddPermission(
 			PermissionChecker permissionChecker, long groupId, long classTypeId)
 		throws Exception;
 
+	/**
+	 * @deprecated As of 7.0.0, see {@link com.liferay.portlet.asset.model.ClassTypeReader}
+	 */
+	@Deprecated
 	public boolean hasClassTypeFieldNames(long classTypeId, Locale locale)
 		throws Exception;
 

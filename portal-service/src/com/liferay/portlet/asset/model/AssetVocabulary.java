@@ -34,15 +34,49 @@ public interface AssetVocabulary extends AssetVocabularyModel, PersistedModel {
 	 *
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portlet.asset.model.impl.AssetVocabularyImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
-	public java.util.List<com.liferay.portlet.asset.model.AssetCategory> getCategories()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public java.util.List<com.liferay.portlet.asset.model.AssetCategory> getCategories();
 
+	public long[] getRequiredClassNameIds();
+
+	public long[] getSelectedClassNameIds();
+
+	public long[] getSelectedClassTypePKs();
+
+	/**
+	* @deprecated As of 7.0.0, with no direct replacement
+	*/
+	@java.lang.Deprecated()
 	public com.liferay.portal.kernel.util.UnicodeProperties getSettingsProperties();
+
+	public java.lang.String getUnambiguousTitle(
+		java.util.List<com.liferay.portlet.asset.model.AssetVocabulary> vocabularies,
+		long groupId, java.util.Locale locale)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public boolean hasMoreThanOneCategorySelected(long[] categoryIds);
+
+	public boolean isAssociatedToClassNameId(long classNameId);
+
+	public boolean isAssociatedToClassNameIdAndClassTypePK(long classNameId,
+		long classTypePK);
+
+	public boolean isMissingRequiredCategory(long classNameId,
+		long classTypePK, long[] categoryIds);
 
 	public boolean isMultiValued();
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #isRequired(long, long)}
+	*/
+	@java.lang.Deprecated()
 	public boolean isRequired(long classNameId);
 
+	public boolean isRequired(long classNameId, long classTypePK);
+
+	/**
+	* @deprecated As of 7.0.0, with no direct replacement
+	*/
+	@java.lang.Deprecated()
 	public void setSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties settingsProperties);
 }

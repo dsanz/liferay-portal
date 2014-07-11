@@ -40,25 +40,6 @@ public class JournalFeedServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portlet.journal.service.impl.JournalFeedServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
-
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
-	}
-
 	public static com.liferay.portlet.journal.model.JournalFeed addFeed(
 		long groupId, java.lang.String feedId, boolean autoFeedId,
 		java.lang.String name, java.lang.String description,
@@ -69,8 +50,7 @@ public class JournalFeedServiceUtil {
 		java.lang.String targetPortletId, java.lang.String contentField,
 		java.lang.String feedType, double feedVersion,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .addFeed(groupId, feedId, autoFeedId, name, description,
 			type, structureId, templateId, rendererTemplateId, delta,
@@ -79,8 +59,7 @@ public class JournalFeedServiceUtil {
 	}
 
 	public static void deleteFeed(long feedId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().deleteFeed(feedId);
 	}
 
@@ -89,21 +68,26 @@ public class JournalFeedServiceUtil {
 	*/
 	@Deprecated
 	public static void deleteFeed(long groupId, long feedId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().deleteFeed(groupId, feedId);
 	}
 
 	public static void deleteFeed(long groupId, java.lang.String feedId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().deleteFeed(groupId, feedId);
 	}
 
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public static java.lang.String getBeanIdentifier() {
+		return getService().getBeanIdentifier();
+	}
+
 	public static com.liferay.portlet.journal.model.JournalFeed getFeed(
-		long feedId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		long feedId) throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getFeed(feedId);
 	}
 
@@ -113,16 +97,23 @@ public class JournalFeedServiceUtil {
 	@Deprecated
 	public static com.liferay.portlet.journal.model.JournalFeed getFeed(
 		long groupId, long feedId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getFeed(groupId, feedId);
 	}
 
 	public static com.liferay.portlet.journal.model.JournalFeed getFeed(
 		long groupId, java.lang.String feedId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getFeed(groupId, feedId);
+	}
+
+	/**
+	* Sets the Spring bean ID for this bean.
+	*
+	* @param beanIdentifier the Spring bean ID for this bean
+	*/
+	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
+		getService().setBeanIdentifier(beanIdentifier);
 	}
 
 	public static com.liferay.portlet.journal.model.JournalFeed updateFeed(
@@ -135,8 +126,7 @@ public class JournalFeedServiceUtil {
 		java.lang.String targetPortletId, java.lang.String contentField,
 		java.lang.String feedType, double feedVersion,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updateFeed(groupId, feedId, name, description, type,
 			structureId, templateId, rendererTemplateId, delta, orderByCol,

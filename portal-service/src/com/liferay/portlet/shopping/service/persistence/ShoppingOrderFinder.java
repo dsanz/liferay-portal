@@ -26,8 +26,7 @@ public interface ShoppingOrderFinder {
 		java.lang.String billingLastName, java.lang.String billingEmailAddress,
 		java.lang.String shippingFirstName, java.lang.String shippingLastName,
 		java.lang.String shippingEmailAddress,
-		java.lang.String ppPaymentStatus, boolean andOperator)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.lang.String ppPaymentStatus, boolean andOperator);
 
 	public java.util.List<com.liferay.portlet.shopping.model.ShoppingOrder> findByG_C_U_N_PPPS(
 		long groupId, long companyId, long userId, java.lang.String number,
@@ -36,6 +35,6 @@ public interface ShoppingOrderFinder {
 		java.lang.String shippingFirstName, java.lang.String shippingLastName,
 		java.lang.String shippingEmailAddress,
 		java.lang.String ppPaymentStatus, boolean andOperator, int start,
-		int end, com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.shopping.model.ShoppingOrder> obc);
 }

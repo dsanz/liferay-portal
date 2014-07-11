@@ -16,12 +16,12 @@ package com.liferay.portlet.documentlibrary.service;
 
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portlet.documentlibrary.DuplicateFileException;
 import com.liferay.portlet.documentlibrary.FileNameException;
-import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
 import com.liferay.portlet.documentlibrary.util.DLUtil;
+import com.liferay.portlet.documentlibrary.util.test.DLAppTestUtil;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -181,7 +181,7 @@ import org.junit.runner.RunWith;
  *
  * @author Alexander Chow
  */
-@ExecutionTestListeners(listeners = {EnvironmentExecutionTestListener.class})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class DLFileEntryExtensionTest extends BaseDLAppTestCase {
 

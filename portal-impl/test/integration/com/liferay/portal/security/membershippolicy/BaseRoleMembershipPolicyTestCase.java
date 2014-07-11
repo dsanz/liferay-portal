@@ -14,7 +14,7 @@
 
 package com.liferay.portal.security.membershippolicy;
 
-import com.liferay.portal.util.RoleTestUtil;
+import com.liferay.portal.util.test.RoleTestUtil;
 
 import org.junit.After;
 

@@ -15,16 +15,15 @@
 package com.liferay.portlet.documentlibrary.service;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 
 import org.junit.Assert;
@@ -34,7 +33,7 @@ import org.junit.runner.RunWith;
 /**
  * @author Alexander Chow
  */
-@ExecutionTestListeners(listeners = {EnvironmentExecutionTestListener.class})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class DLFileVersionUpdateTest extends BaseDLAppTestCase {
 
@@ -70,13 +69,13 @@ public class DLFileVersionUpdateTest extends BaseDLAppTestCase {
 	protected void testVersionUpdate(
 			String addFileName, byte[] addBytes, String addMimeType,
 			String updateFileName, byte[] updateBytes, String updateMimeType)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		String description = StringPool.BLANK;
 		String changeLog = StringPool.BLANK;
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			group.getGroupId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(group.getGroupId());
 
 		FileEntry fileEntry = DLAppServiceUtil.addFileEntry(
 			group.getGroupId(), parentFolder.getFolderId(), addFileName,

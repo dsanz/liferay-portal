@@ -19,7 +19,7 @@ SearchContainer mainSearchSearchContainer = new SearchContainer(renderRequest, n
 
 SearchContext searchContext = SearchContextFactory.getInstance(request);
 
-mainSearchSearchContainer.setEmptyResultsMessage(LanguageUtil.format(pageContext, "no-results-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(searchContext.getKeywords()) + "</strong>", false));
+mainSearchSearchContainer.setEmptyResultsMessage(LanguageUtil.format(request, "no-results-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(searchContext.getKeywords()) + "</strong>", false));
 
 searchContext.setAttribute("paginationType", "more");
 searchContext.setEnd(mainSearchSearchContainer.getEnd());
@@ -161,14 +161,6 @@ boolean showMenu = advancedConfiguration || displayScopeFacet || displayAssetTyp
 			>
 				<liferay-ui:search-container-column-jsp path='<%= displayResultsInDocumentForm ? "/html/portlet/search/main_search_document_form.jsp" : "/html/portlet/search/main_search_result_form.jsp" %>' />
 			</liferay-ui:search-container-row>
-
-			<%
-			String[] entryClassNames = searchContext.getEntryClassNames();
-
-			if (entryClassNames.length == 1) {
-				portletURL.setParameter("entryClassName", entryClassNames[0]);
-			}
-			%>
 
 			<liferay-ui:search-iterator type="more" />
 

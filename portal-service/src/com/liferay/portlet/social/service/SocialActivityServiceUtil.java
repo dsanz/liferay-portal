@@ -42,21 +42,29 @@ public class SocialActivityServiceUtil {
 	 */
 
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns a range of all the activities done on assets identified by the
+	* class name.
 	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end -
+	* start</code> instances. <code>start</code> and <code>end</code> are not
+	* primary keys, they are indexes in the result set. Thus, <code>0</code>
+	* refers to the first result in the set. Setting both <code>start</code>
+	* and <code>end</code> to {@link
+	* com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
+	* result set.
+	* </p>
 	*
-	* @param beanIdentifier the Spring bean ID for this bean
+	* @param className the target asset's class name
+	* @param start the lower bound of the range of results
+	* @param end the upper bound of the range of results (not inclusive)
+	* @return the range of matching activities
+	* @throws PortalException if a permission checker was not initialized
 	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
+	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getActivities(
+		java.lang.String className, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getActivities(className, start, end);
 	}
 
 	/**
@@ -78,47 +86,11 @@ public class SocialActivityServiceUtil {
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getActivities(
 		long classNameId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getActivities(classNameId, start, end);
-	}
-
-	/**
-	* Returns a range of all the activities done on the asset identified by the
-	* class name ID and class primary key that are mirrors of the activity
-	* identified by the mirror activity ID.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end -
-	* start</code> instances. <code>start</code> and <code>end</code> are not
-	* primary keys, they are indexes in the result set. Thus, <code>0</code>
-	* refers to the first result in the set. Setting both <code>start</code>
-	* and <code>end</code> to {@link
-	* com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
-	* result set.
-	* </p>
-	*
-	* @param mirrorActivityId the primary key of the mirror activity
-	* @param classNameId the target asset's class name ID
-	* @param classPK the primary key of the target asset
-	* @param start the lower bound of the range of results
-	* @param end the upper bound of the range of results (not inclusive)
-	* @return the range of matching activities
-	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
-	*/
-	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getActivities(
-		long mirrorActivityId, long classNameId, long classPK, int start,
-		int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getActivities(mirrorActivityId, classNameId, classPK,
-			start, end);
 	}
 
 	/**
@@ -143,21 +115,20 @@ public class SocialActivityServiceUtil {
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getActivities(
 		long mirrorActivityId, java.lang.String className, long classPK,
 		int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .getActivities(mirrorActivityId, className, classPK, start,
 			end);
 	}
 
 	/**
-	* Returns a range of all the activities done on assets identified by the
-	* class name.
+	* Returns a range of all the activities done on the asset identified by the
+	* class name ID and class primary key that are mirrors of the activity
+	* identified by the mirror activity ID.
 	*
 	* <p>
 	* Useful when paginating results. Returns a maximum of <code>end -
@@ -169,18 +140,30 @@ public class SocialActivityServiceUtil {
 	* result set.
 	* </p>
 	*
-	* @param className the target asset's class name
+	* @param mirrorActivityId the primary key of the mirror activity
+	* @param classNameId the target asset's class name ID
+	* @param classPK the primary key of the target asset
 	* @param start the lower bound of the range of results
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getActivities(
-		java.lang.String className, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getActivities(className, start, end);
+		long mirrorActivityId, long classNameId, long classPK, int start,
+		int end) throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .getActivities(mirrorActivityId, classNameId, classPK,
+			start, end);
+	}
+
+	/**
+	* Returns the number of activities done on assets identified by class name.
+	*
+	* @param className the target asset's class name
+	* @return the number of matching activities
+	*/
+	public static int getActivitiesCount(java.lang.String className) {
+		return getService().getActivitiesCount(className);
 	}
 
 	/**
@@ -189,29 +172,9 @@ public class SocialActivityServiceUtil {
 	*
 	* @param classNameId the target asset's class name ID
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getActivitiesCount(long classNameId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getActivitiesCount(long classNameId) {
 		return getService().getActivitiesCount(classNameId);
-	}
-
-	/**
-	* Returns the number of activities done on the asset identified by the
-	* class name ID and class primary key that are mirrors of the activity
-	* identified by the mirror activity ID.
-	*
-	* @param mirrorActivityId the primary key of the mirror activity
-	* @param classNameId the target asset's class name ID
-	* @param classPK the primary key of the target asset
-	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
-	*/
-	public static int getActivitiesCount(long mirrorActivityId,
-		long classNameId, long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getActivitiesCount(mirrorActivityId, classNameId, classPK);
 	}
 
 	/**
@@ -223,25 +186,27 @@ public class SocialActivityServiceUtil {
 	* @param className the target asset's class name
 	* @param classPK the primary key of the target asset
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
 	public static int getActivitiesCount(long mirrorActivityId,
-		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String className, long classPK) {
 		return getService()
 				   .getActivitiesCount(mirrorActivityId, className, classPK);
 	}
 
 	/**
-	* Returns the number of activities done on assets identified by class name.
+	* Returns the number of activities done on the asset identified by the
+	* class name ID and class primary key that are mirrors of the activity
+	* identified by the mirror activity ID.
 	*
-	* @param className the target asset's class name
+	* @param mirrorActivityId the primary key of the mirror activity
+	* @param classNameId the target asset's class name ID
+	* @param classPK the primary key of the target asset
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getActivitiesCount(java.lang.String className)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getActivitiesCount(className);
+	public static int getActivitiesCount(long mirrorActivityId,
+		long classNameId, long classPK) {
+		return getService()
+				   .getActivitiesCount(mirrorActivityId, classNameId, classPK);
 	}
 
 	/**
@@ -250,20 +215,26 @@ public class SocialActivityServiceUtil {
 	* @param activityId the primary key of the activity
 	* @return Returns the activity
 	* @throws PortalException if the activity could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.social.model.SocialActivity getActivity(
 		long activityId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getActivity(activityId);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getActivitySetActivities(
 		long activitySetId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getActivitySetActivities(activitySetId, start, end);
+	}
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public static java.lang.String getBeanIdentifier() {
+		return getService().getBeanIdentifier();
 	}
 
 	/**
@@ -288,12 +259,10 @@ public class SocialActivityServiceUtil {
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getGroupActivities(
 		long groupId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getGroupActivities(groupId, start, end);
 	}
 
@@ -306,10 +275,8 @@ public class SocialActivityServiceUtil {
 	*
 	* @param groupId the primary key of the group
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getGroupActivitiesCount(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getGroupActivitiesCount(long groupId) {
 		return getService().getGroupActivitiesCount(groupId);
 	}
 
@@ -336,12 +303,10 @@ public class SocialActivityServiceUtil {
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getGroupUsersActivities(
 		long groupId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getGroupUsersActivities(groupId, start, end);
 	}
 
@@ -355,10 +320,8 @@ public class SocialActivityServiceUtil {
 	*
 	* @param groupId the primary key of the group
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getGroupUsersActivitiesCount(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getGroupUsersActivitiesCount(long groupId) {
 		return getService().getGroupUsersActivitiesCount(groupId);
 	}
 
@@ -368,12 +331,10 @@ public class SocialActivityServiceUtil {
 	* @param mirrorActivityId the primary key of the mirror activity
 	* @return Returns the mirror activity
 	* @throws PortalException if the mirror activity could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.social.model.SocialActivity getMirrorActivity(
 		long mirrorActivityId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getMirrorActivity(mirrorActivityId);
 	}
 
@@ -396,12 +357,10 @@ public class SocialActivityServiceUtil {
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getOrganizationActivities(
 		long organizationId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getOrganizationActivities(organizationId, start, end);
 	}
 
@@ -411,10 +370,8 @@ public class SocialActivityServiceUtil {
 	*
 	* @param organizationId the primary key of the organization
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getOrganizationActivitiesCount(long organizationId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getOrganizationActivitiesCount(long organizationId) {
 		return getService().getOrganizationActivitiesCount(organizationId);
 	}
 
@@ -437,12 +394,10 @@ public class SocialActivityServiceUtil {
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getOrganizationUsersActivities(
 		long organizationId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .getOrganizationUsersActivities(organizationId, start, end);
 	}
@@ -453,10 +408,8 @@ public class SocialActivityServiceUtil {
 	*
 	* @param organizationId the primary key of the organization
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getOrganizationUsersActivitiesCount(long organizationId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getOrganizationUsersActivitiesCount(long organizationId) {
 		return getService().getOrganizationUsersActivitiesCount(organizationId);
 	}
 
@@ -479,12 +432,10 @@ public class SocialActivityServiceUtil {
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getRelationActivities(
 		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getRelationActivities(userId, start, end);
 	}
 
@@ -509,12 +460,10 @@ public class SocialActivityServiceUtil {
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getRelationActivities(
 		long userId, int type, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getRelationActivities(userId, type, start, end);
 	}
 
@@ -524,10 +473,8 @@ public class SocialActivityServiceUtil {
 	*
 	* @param userId the primary key of the user
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getRelationActivitiesCount(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getRelationActivitiesCount(long userId) {
 		return getService().getRelationActivitiesCount(userId);
 	}
 
@@ -539,10 +486,8 @@ public class SocialActivityServiceUtil {
 	* @param userId the primary key of the user
 	* @param type the relationship type
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getRelationActivitiesCount(long userId, int type)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getRelationActivitiesCount(long userId, int type) {
 		return getService().getRelationActivitiesCount(userId, type);
 	}
 
@@ -564,12 +509,10 @@ public class SocialActivityServiceUtil {
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getUserActivities(
 		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getUserActivities(userId, start, end);
 	}
 
@@ -578,10 +521,8 @@ public class SocialActivityServiceUtil {
 	*
 	* @param userId the primary key of the user
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getUserActivitiesCount(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getUserActivitiesCount(long userId) {
 		return getService().getUserActivitiesCount(userId);
 	}
 
@@ -604,12 +545,10 @@ public class SocialActivityServiceUtil {
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getUserGroupsActivities(
 		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getUserGroupsActivities(userId, start, end);
 	}
 
@@ -619,10 +558,8 @@ public class SocialActivityServiceUtil {
 	*
 	* @param userId the primary key of the user
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getUserGroupsActivitiesCount(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getUserGroupsActivitiesCount(long userId) {
 		return getService().getUserGroupsActivitiesCount(userId);
 	}
 
@@ -645,12 +582,10 @@ public class SocialActivityServiceUtil {
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getUserGroupsAndOrganizationsActivities(
 		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .getUserGroupsAndOrganizationsActivities(userId, start, end);
 	}
@@ -661,10 +596,8 @@ public class SocialActivityServiceUtil {
 	*
 	* @param userId the primary key of the user
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getUserGroupsAndOrganizationsActivitiesCount(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getUserGroupsAndOrganizationsActivitiesCount(long userId) {
 		return getService().getUserGroupsAndOrganizationsActivitiesCount(userId);
 	}
 
@@ -687,12 +620,10 @@ public class SocialActivityServiceUtil {
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching activities
 	* @throws PortalException if a permission checker was not initialized
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> getUserOrganizationsActivities(
 		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getUserOrganizationsActivities(userId, start, end);
 	}
 
@@ -702,11 +633,18 @@ public class SocialActivityServiceUtil {
 	*
 	* @param userId the primary key of the user
 	* @return the number of matching activities
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getUserOrganizationsActivitiesCount(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getUserOrganizationsActivitiesCount(long userId) {
 		return getService().getUserOrganizationsActivitiesCount(userId);
+	}
+
+	/**
+	* Sets the Spring bean ID for this bean.
+	*
+	* @param beanIdentifier the Spring bean ID for this bean
+	*/
+	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
+		getService().setBeanIdentifier(beanIdentifier);
 	}
 
 	public static SocialActivityService getService() {

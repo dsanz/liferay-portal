@@ -90,7 +90,7 @@ portletURL.setParameter("tabs1", tabs1);
 		orderableHeaders.put("type", "type");
 		orderableHeaders.put("modified-date", "modified-date");
 
-		SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.get(pageContext, "no-products-were-found"));
+		SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.get(request, "no-products-were-found"));
 
 		searchContainer.setOrderableHeaders(orderableHeaders);
 		searchContainer.setOrderByCol(orderByCol);
@@ -191,16 +191,16 @@ portletURL.setParameter("tabs1", tabs1);
 				row.addText(latestProductVersion.getVersion(), rowURL);
 			}
 			else {
-				row.addText(LanguageUtil.get(pageContext, "not-available"), rowURL);
+				row.addText(LanguageUtil.get(request, "not-available"), rowURL);
 			}
 
 			// Type
 
-			row.addText(LanguageUtil.get(pageContext, productEntry.getType()), rowURL);
+			row.addText(LanguageUtil.get(request, productEntry.getType()), rowURL);
 
 			// Tags
 
-			row.addText(LanguageUtil.get(pageContext, productEntry.getTags()), rowURL);
+			row.addText(LanguageUtil.get(request, productEntry.getTags()), rowURL);
 
 			// Licenses
 
@@ -230,7 +230,7 @@ portletURL.setParameter("tabs1", tabs1);
 
 			// Action
 
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/software_catalog/product_entry_action.jsp");
+			row.addJSP("/html/portlet/software_catalog/product_entry_action.jsp", "entry-action");
 
 			// Add result row
 
@@ -309,7 +309,7 @@ portletURL.setParameter("tabs1", tabs1);
 			orderByType = portalPreferences.getValue(PortletKeys.SOFTWARE_CATALOG, "product-entries-order-by-type", "desc");
 		}
 
-		OrderByComparator orderByComparator = SCUtil.getProductEntryOrderByComparator(orderByCol, orderByType);
+		OrderByComparator<SCProductEntry> orderByComparator = SCUtil.getProductEntryOrderByComparator(orderByCol, orderByType);
 
 		List<String> headerNames = new ArrayList<String>();
 
@@ -397,16 +397,16 @@ portletURL.setParameter("tabs1", tabs1);
 				row.addText(latestProductVersion.getVersion(), rowURL);
 			}
 			else {
-				row.addText(LanguageUtil.get(pageContext, "not-available"), rowURL);
+				row.addText(LanguageUtil.get(request, "not-available"), rowURL);
 			}
 
 			// Type
 
-			row.addText(LanguageUtil.get(pageContext, productEntry.getType()), rowURL);
+			row.addText(LanguageUtil.get(request, productEntry.getType()), rowURL);
 
 			// Tags
 
-			row.addText(LanguageUtil.get(pageContext, productEntry.getTags()), rowURL);
+			row.addText(LanguageUtil.get(request, productEntry.getTags()), rowURL);
 
 			// Licenses
 
@@ -436,7 +436,7 @@ portletURL.setParameter("tabs1", tabs1);
 
 			// Action
 
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/software_catalog/product_entry_action.jsp");
+			row.addJSP("/html/portlet/software_catalog/product_entry_action.jsp", "entry-action");
 
 			// Add result row
 
@@ -517,13 +517,13 @@ portletURL.setParameter("tabs1", tabs1);
 
 			rowTextEntry = (TextSearchEntry)rowTextEntry.clone();
 
-			rowTextEntry.setName(LanguageUtil.get(pageContext,frameworkVersion.isActive() ? "yes" : "no"));
+			rowTextEntry.setName(LanguageUtil.get(request,frameworkVersion.isActive() ? "yes" : "no"));
 
 			row.addText(rowTextEntry);
 
 			// Action
 
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/software_catalog/framework_version_action.jsp");
+			row.addJSP("/html/portlet/software_catalog/framework_version_action.jsp", "entry-action");
 
 			// Add result row
 
@@ -626,7 +626,7 @@ portletURL.setParameter("tabs1", tabs1);
 
 			rowTextEntry = (TextSearchEntry)rowTextEntry.clone();
 
-			rowTextEntry.setName(LanguageUtil.get(pageContext, license.isOpenSource() ? "yes" : "no"));
+			rowTextEntry.setName(LanguageUtil.get(request, license.isOpenSource() ? "yes" : "no"));
 
 			row.addText(rowTextEntry);
 
@@ -634,7 +634,7 @@ portletURL.setParameter("tabs1", tabs1);
 
 			rowTextEntry = (TextSearchEntry)rowTextEntry.clone();
 
-			rowTextEntry.setName(LanguageUtil.get(pageContext, license.isActive() ? "yes" : "no"));
+			rowTextEntry.setName(LanguageUtil.get(request, license.isActive() ? "yes" : "no"));
 
 			row.addText(rowTextEntry);
 
@@ -642,13 +642,13 @@ portletURL.setParameter("tabs1", tabs1);
 
 			rowTextEntry = (TextSearchEntry)rowTextEntry.clone();
 
-			rowTextEntry.setName(LanguageUtil.get(pageContext, license.isRecommended() ? "yes" : "no"));
+			rowTextEntry.setName(LanguageUtil.get(request, license.isRecommended() ? "yes" : "no"));
 
 			row.addText(rowTextEntry);
 
 			// Action
 
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/software_catalog/license_action.jsp");
+			row.addJSP("/html/portlet/software_catalog/license_action.jsp", "entry-action");
 
 			// Add result row
 
@@ -697,8 +697,8 @@ portletURL.setParameter("tabs1", tabs1);
 
 <%
 if (!tabs1.equals("products")) {
-	PortalUtil.setPageSubtitle(LanguageUtil.get(pageContext, StringUtil.replace(tabs1, StringPool.UNDERLINE, StringPool.DASH)), request);
+	PortalUtil.setPageSubtitle(LanguageUtil.get(request, StringUtil.replace(tabs1, StringPool.UNDERLINE, StringPool.DASH)), request);
 
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, TextFormatter.format(tabs1, TextFormatter.O)), portletURL.toString());
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, TextFormatter.format(tabs1, TextFormatter.O)), portletURL.toString());
 }
 %>

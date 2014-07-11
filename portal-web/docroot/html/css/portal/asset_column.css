@@ -19,6 +19,7 @@
 
 	.lfr-asset-avatar img {
 		margin: 0 auto;
+		max-width: 100%;
 		padding-right: 2em;
 	}
 
@@ -37,7 +38,6 @@
 		border-right: 1px solid transparent;
 		float: left;
 		margin-right: 10px;
-		padding-left: 25px;
 		padding-right: 10px;
 
 		&.last {
@@ -46,10 +46,6 @@
 	}
 
 	.lfr-asset-date {
-		overflow: hidden;
-	}
-
-	.lfr-asset-items {
 		overflow: hidden;
 	}
 
@@ -66,10 +62,6 @@
 
 	.lfr-asset-ratings {
 		margin: 2em 0;
-	}
-
-	.lfr-asset-teams {
-		border-right-width: 0;
 	}
 
 	.taglib-custom-attributes-list label, .lfr-asset-field label {
@@ -142,26 +134,6 @@
 	.lfr-asset-icon {
 		border-right-color: #999;
 		color: #999;
-	}
-
-	.lfr-asset-author {
-		background: url(@theme_image_path@/portlet/edit_guest.png) no-repeat 0 50%;
-	}
-
-	.lfr-asset-date {
-		background: url(@theme_image_path@/common/date.png) no-repeat 0 50%;
-	}
-
-	.lfr-asset-subfolders {
-		background: url(@theme_image_path@/common/folder.png) no-repeat 0 50%;
-	}
-
-	.lfr-asset-teams {
-		background: url(@theme_image_path@/common/team_icon.png) no-repeat 0 50%;
-	}
-
-	.lfr-asset-items {
-		background: url(@theme_image_path@/common/page.png) no-repeat 0 50%;
 	}
 
 	.lfr-asset-tags {

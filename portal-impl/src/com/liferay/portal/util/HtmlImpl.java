@@ -479,10 +479,12 @@ public class HtmlImpl implements Html {
 	 * Replaces all Microsoft&reg; Word Unicode characters with plain HTML
 	 * entities or characters.
 	 *
-	 * @param  text the text
-	 * @return the converted text, or <code>null</code> if the text is
-	 *         <code>null</code>
+	 * @param      text the text
+	 * @return     the converted text, or <code>null</code> if the text is
+	 *             <code>null</code>
+	 * @deprecated As of 7.0.0, with no direct replacement
 	 */
+	@Deprecated
 	@Override
 	public String replaceMsWordCharacters(String text) {
 		return StringUtil.replace(text, _MS_WORD_UNICODE, _MS_WORD_HTML);

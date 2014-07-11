@@ -68,8 +68,8 @@ portletURL.setParameter("struts_action", "/layout_prototypes/view");
 
 				<c:if test="<%= mergeFailCount > PropsValues.LAYOUT_PROTOTYPE_MERGE_FAIL_THRESHOLD %>">
 					<liferay-ui:icon
-						image="../messages/alert"
-						message='<%= LanguageUtil.format(pageContext, "the-propagation-of-changes-from-the-x-has-been-disabled-temporarily-after-x-errors", new Object[] {mergeFailCount, LanguageUtil.get(pageContext, "page-template")}, false) %>'
+						iconCssClass="icon-warning-sign"
+						message='<%= LanguageUtil.format(request, "the-propagation-of-changes-from-the-x-has-been-disabled-temporarily-after-x-errors", new Object[] {mergeFailCount, LanguageUtil.get(request, "page-template")}, false) %>'
 					/>
 				</c:if>
 			</liferay-ui:search-container-column-text>
@@ -82,11 +82,12 @@ portletURL.setParameter("struts_action", "/layout_prototypes/view");
 			<liferay-ui:search-container-column-text
 				name="active"
 			>
-				<%= LanguageUtil.get(pageContext, layoutPrototype.isActive()? "yes" : "no") %>
+				<%= LanguageUtil.get(request, layoutPrototype.isActive()? "yes" : "no") %>
 			</liferay-ui:search-container-column-text>
 
 			<liferay-ui:search-container-column-jsp
 				align="right"
+				cssClass="entry-action"
 				path="/html/portlet/layout_prototypes/layout_prototype_action.jsp"
 			/>
 		</liferay-ui:search-container-row>

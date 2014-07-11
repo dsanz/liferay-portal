@@ -91,6 +91,8 @@ public class SiteMinderAutoLogin extends BaseAutoLogin {
 			}
 		}
 
+		addRedirect(request);
+
 		String[] credentials = new String[3];
 
 		credentials[0] = String.valueOf(user.getUserId());

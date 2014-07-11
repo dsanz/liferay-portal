@@ -32,6 +32,7 @@ Locale contentsLocale = LocaleUtil.fromLanguageId(contentsLanguageId);
 
 contentsLanguageId = LocaleUtil.toLanguageId(contentsLocale);
 
+String colorSchemeCssClass = ParamUtil.getString(request, "colorSchemeCssClass");
 String cssPath = ParamUtil.getString(request, "cssPath");
 String cssClasses = ParamUtil.getString(request, "cssClasses");
 boolean inlineEdit = ParamUtil.getBoolean(request, "inlineEdit");
@@ -81,11 +82,13 @@ response.setContentType(ContentTypes.TEXT_JAVASCRIPT);
 
 	var config = ckEditor.config;
 
+	config.allowedContent = true;
+
 	config.autoParagraph = false;
 
 	config.autoSaveTimeout = 3000;
 
-	config.bodyClass = 'html-editor <%= HtmlUtil.escapeJS(cssClasses) %>';
+	config.bodyClass = 'html-editor <%= HtmlUtil.escapeJS(colorSchemeCssClass) %> <%= HtmlUtil.escapeJS(cssClasses) %>';
 
 	config.closeNoticeTimeout = 8000;
 
@@ -101,7 +104,13 @@ response.setContentType(ContentTypes.TEXT_JAVASCRIPT);
 
 	config.entities = false;
 
-	config.extraPlugins = 'ajaxsave,media,restore,scayt,wsc';
+	config.extraPlugins = 'lfrpopup,media,scayt,wsc';
+
+	<c:if test="<%= inlineEdit %>">
+		config.extraPlugins += ',ajaxsave,restore';
+	</c:if>
+
+	config.filebrowserWindowFeatures = 'title=<%= LanguageUtil.get(locale, "browse") %>';
 
 	config.height = 265;
 

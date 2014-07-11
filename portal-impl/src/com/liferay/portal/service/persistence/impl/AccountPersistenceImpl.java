@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -30,6 +29,7 @@ import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.Account;
 import com.liferay.portal.model.CacheModel;
@@ -43,7 +43,11 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -185,11 +189,9 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	 * @param accountId the primary key of the account
 	 * @return the account that was removed
 	 * @throws com.liferay.portal.NoSuchAccountException if a account with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Account remove(long accountId)
-		throws NoSuchAccountException, SystemException {
+	public Account remove(long accountId) throws NoSuchAccountException {
 		return remove((Serializable)accountId);
 	}
 
@@ -199,11 +201,10 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	 * @param primaryKey the primary key of the account
 	 * @return the account that was removed
 	 * @throws com.liferay.portal.NoSuchAccountException if a account with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Account remove(Serializable primaryKey)
-		throws NoSuchAccountException, SystemException {
+		throws NoSuchAccountException {
 		Session session = null;
 
 		try {
@@ -234,7 +235,7 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	}
 
 	@Override
-	protected Account removeImpl(Account account) throws SystemException {
+	protected Account removeImpl(Account account) {
 		account = toUnwrappedModel(account);
 
 		Session session = null;
@@ -266,8 +267,7 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	}
 
 	@Override
-	public Account updateImpl(com.liferay.portal.model.Account account)
-		throws SystemException {
+	public Account updateImpl(com.liferay.portal.model.Account account) {
 		account = toUnwrappedModel(account);
 
 		boolean isNew = account.isNew();
@@ -344,11 +344,10 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	 * @param primaryKey the primary key of the account
 	 * @return the account
 	 * @throws com.liferay.portal.NoSuchAccountException if a account with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Account findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchAccountException, SystemException {
+		throws NoSuchAccountException {
 		Account account = fetchByPrimaryKey(primaryKey);
 
 		if (account == null) {
@@ -369,11 +368,10 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	 * @param accountId the primary key of the account
 	 * @return the account
 	 * @throws com.liferay.portal.NoSuchAccountException if a account with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Account findByPrimaryKey(long accountId)
-		throws NoSuchAccountException, SystemException {
+		throws NoSuchAccountException {
 		return findByPrimaryKey((Serializable)accountId);
 	}
 
@@ -382,11 +380,9 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	 *
 	 * @param primaryKey the primary key of the account
 	 * @return the account, or <code>null</code> if a account with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Account fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public Account fetchByPrimaryKey(Serializable primaryKey) {
 		Account account = (Account)EntityCacheUtil.getResult(AccountModelImpl.ENTITY_CACHE_ENABLED,
 				AccountImpl.class, primaryKey);
 
@@ -429,21 +425,111 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	 *
 	 * @param accountId the primary key of the account
 	 * @return the account, or <code>null</code> if a account with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Account fetchByPrimaryKey(long accountId) throws SystemException {
+	public Account fetchByPrimaryKey(long accountId) {
 		return fetchByPrimaryKey((Serializable)accountId);
+	}
+
+	@Override
+	public Map<Serializable, Account> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, Account> map = new HashMap<Serializable, Account>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			Account account = fetchByPrimaryKey(primaryKey);
+
+			if (account != null) {
+				map.put(primaryKey, account);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			Account account = (Account)EntityCacheUtil.getResult(AccountModelImpl.ENTITY_CACHE_ENABLED,
+					AccountImpl.class, primaryKey);
+
+			if (account == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, account);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_ACCOUNT_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (Account account : (List<Account>)q.list()) {
+				map.put(account.getPrimaryKeyObj(), account);
+
+				cacheResult(account);
+
+				uncachedPrimaryKeys.remove(account.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(AccountModelImpl.ENTITY_CACHE_ENABLED,
+					AccountImpl.class, primaryKey, _nullAccount);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the accounts.
 	 *
 	 * @return the accounts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Account> findAll() throws SystemException {
+	public List<Account> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -457,10 +543,9 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	 * @param start the lower bound of the range of accounts
 	 * @param end the upper bound of the range of accounts (not inclusive)
 	 * @return the range of accounts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Account> findAll(int start, int end) throws SystemException {
+	public List<Account> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -475,11 +560,10 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	 * @param end the upper bound of the range of accounts (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of accounts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Account> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Account> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -561,10 +645,9 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	/**
 	 * Removes all the accounts from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (Account account : findAll()) {
 			remove(account);
 		}
@@ -574,10 +657,9 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	 * Returns the number of accounts.
 	 *
 	 * @return the number of accounts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -646,6 +728,7 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 	}
 
 	private static final String _SQL_SELECT_ACCOUNT = "SELECT account FROM Account account";
+	private static final String _SQL_SELECT_ACCOUNT_WHERE_PKS_IN = "SELECT account FROM Account account WHERE accountId IN (";
 	private static final String _SQL_COUNT_ACCOUNT = "SELECT COUNT(account) FROM Account account";
 	private static final String _ORDER_BY_ENTITY_ALIAS = "account.";
 	private static final String _NO_SUCH_ENTITY_WITH_PRIMARY_KEY = "No Account exists with the primary key ";

@@ -65,7 +65,7 @@
 </tr>
 <tr>
 	<td>ENTRY_RELATED_ASSETS_LINK_IMAGE</td>
-	<td>//div[@class='entry-links']//a/img</td>
+	<td>//div[@class='entry-links']//a/i</td>
 	<td></td>
 </tr>
 <tr>
@@ -365,7 +365,7 @@
 </tr>
 <tr>
 	<td>COMMENTS_TRACKBACK_URL</td>
-	<td>//div[@class='accordion-inner' and contains(.,'Trackback URL')]//input[@type='text']</td>
+	<td>//div[@class='panel-inner' and contains(.,'Trackback URL')]//input[@type='text']</td>
 	<td></td>
 </tr>
 <tr>
@@ -396,6 +396,11 @@
 <tr>
 	<td>COMMENTS_REPLY_BUTTON</td>
 	<td>//button[@type='button' and contains(.,'Reply')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>COMMENTS_SUBMIT_BUTTON</td>
+	<td>//button[@type='button' and contains(.,'Submit')]</td>
 	<td></td>
 </tr>
 <tr>

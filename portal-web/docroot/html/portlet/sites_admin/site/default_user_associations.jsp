@@ -55,7 +55,7 @@ for (long defaultTeamId : defaultTeamIds) {
 
 <liferay-util:buffer var="removeRoleIcon">
 	<liferay-ui:icon
-		image="unlink"
+		iconCssClass="icon-unlink"
 		label="<%= true %>"
 		message="remove"
 	/>
@@ -85,8 +85,13 @@ for (long defaultTeamId : defaultTeamIds) {
 
 		<liferay-ui:search-container-column-text
 			name="title"
-			value="<%= HtmlUtil.escape(role.getTitle(locale)) %>"
-		/>
+		>
+			<liferay-ui:icon
+				iconCssClass="<%= RolesAdminUtil.getIconCssClass(role) %>"
+				label="<%= true %>"
+				message="<%= HtmlUtil.escape(role.getTitle(locale)) %>"
+			/>
+		</liferay-ui:search-container-column-text>
 
 		<liferay-ui:search-container-column-text>
 			<a class="modify-link" data-rowId="<%= role.getRoleId() %>" href="javascript:;"><%= removeRoleIcon %></a>
@@ -101,7 +106,7 @@ for (long defaultTeamId : defaultTeamIds) {
 	iconCssClass="icon-search"
 	id="selectSiteRoleLink"
 	label="<%= true %>"
-	linkCssClass="btn"
+	linkCssClass="btn btn-default"
 	message="select"
 	url="javascript:;"
 />
@@ -142,7 +147,7 @@ for (long defaultTeamId : defaultTeamIds) {
 	iconCssClass="icon-search"
 	id="selectTeamLink"
 	label="<%= true %>"
-	linkCssClass="btn"
+	linkCssClass="btn btn-default"
 	message="select"
 	url="javascript:;"
 />
@@ -239,11 +244,6 @@ for (long defaultTeamId : defaultTeamIds) {
 	);
 </aui:script>
 
-<portlet:renderURL var="selectTeamURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-	<portlet:param name="struts_action" value="/sites_admin/select_team" />
-	<portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
-</portlet:renderURL>
-
 <aui:script use="liferay-search-container,escape">
 	A.one('#<portlet:namespace />selectSiteRoleLink').on(
 		'click',
@@ -270,7 +270,7 @@ for (long defaultTeamId : defaultTeamIds) {
 
 					var rowColumns = [];
 
-					rowColumns.push(A.Escape.html(event.roletitle));
+					rowColumns.push('<i class="' + event.iconcssclass + '"></i> ' + A.Escape.html(event.roletitle));
 
 					if (event.groupid) {
 						rowColumns.push('<a class="modify-link" data-rowId="' + event.roleid + '" href="javascript:;"><%= UnicodeFormatter.toString(removeRoleIcon) %></a>');
@@ -303,6 +303,12 @@ for (long defaultTeamId : defaultTeamIds) {
 					},
 					id: '<portlet:namespace />selectTeam',
 					title: '<liferay-ui:message arguments="team" key="select-x" />',
+
+					<portlet:renderURL var="selectTeamURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+						<portlet:param name="struts_action" value="/sites_admin/select_team" />
+						<portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
+					</portlet:renderURL>
+
 					uri: '<%= selectTeamURL.toString() %>'
 				},
 				function(event) {

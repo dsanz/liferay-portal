@@ -36,50 +36,37 @@ public interface DDMStructure extends DDMStructureModel, PersistedModel {
 	 */
 	public java.util.List<java.lang.String> getChildrenFieldNames(
 		java.lang.String fieldName)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
-	public java.lang.String getCompleteXsd()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public com.liferay.portal.kernel.xml.Document getDocument();
+	public com.liferay.portlet.dynamicdatamapping.model.DDMForm getDDMForm();
 
 	public java.lang.String getFieldDataType(java.lang.String fieldName)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.lang.String getFieldLabel(java.lang.String fieldName,
 		java.util.Locale locale)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.lang.String getFieldLabel(java.lang.String fieldName,
 		java.lang.String locale)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.util.Set<java.lang.String> getFieldNames()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.lang.String getFieldProperty(java.lang.String fieldName,
 		java.lang.String property)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.lang.String getFieldProperty(java.lang.String fieldName,
 		java.lang.String property, java.lang.String locale)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public boolean getFieldRepeatable(java.lang.String fieldName)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public boolean getFieldRequired(java.lang.String fieldName)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.util.Map<java.lang.String, java.lang.String> getFields(
 		java.lang.String fieldName, java.lang.String attributeName,
@@ -90,37 +77,33 @@ public interface DDMStructure extends DDMStructureModel, PersistedModel {
 		java.lang.String attributeValue, java.lang.String locale);
 
 	public java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>> getFieldsMap()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>> getFieldsMap(
 		boolean includeTransientFields)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>> getFieldsMap(
 		java.lang.String locale)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>> getFieldsMap(
 		java.lang.String locale, boolean includeTransientFields)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.lang.String getFieldTip(java.lang.String fieldName,
 		java.util.Locale locale)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.lang.String getFieldTip(java.lang.String fieldName,
 		java.lang.String locale)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.lang.String getFieldType(java.lang.String fieldName)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public com.liferay.portlet.dynamicdatamapping.model.DDMForm getFullHierarchyDDMForm()
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>>> getLocalizedFieldsMap();
 
@@ -130,20 +113,21 @@ public interface DDMStructure extends DDMStructureModel, PersistedModel {
 
 	public java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>> getPersistentFieldsMap(
 		java.lang.String locale)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public java.util.List<java.lang.String> getRootFieldNames()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
-	public java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMTemplate> getTemplates()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMTemplate> getTemplates();
 
 	public java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>> getTransientFieldsMap(
 		java.lang.String locale)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public java.lang.String getUnambiguousName(
+		java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> structures,
+		long groupId, java.util.Locale locale)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns the WebDAV URL to access the structure.
@@ -159,22 +143,19 @@ public interface DDMStructure extends DDMStructureModel, PersistedModel {
 		java.lang.String webDAVToken);
 
 	public boolean hasField(java.lang.String fieldName)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public boolean isFieldPrivate(java.lang.String fieldName)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public boolean isFieldRepeatable(java.lang.String fieldName)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public boolean isFieldTransient(java.lang.String fieldName)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
-	public void setDocument(com.liferay.portal.kernel.xml.Document document);
+	public void setDDMForm(
+		com.liferay.portlet.dynamicdatamapping.model.DDMForm ddmForm);
 
 	public void setLocalizedFieldsMap(
 		java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>>> localizedFieldsMap);
@@ -184,4 +165,7 @@ public interface DDMStructure extends DDMStructureModel, PersistedModel {
 
 	public void setLocalizedTransientFieldsMap(
 		java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.util.Map<java.lang.String, java.lang.String>>> localizedTransientFieldsMap);
+
+	public void updateDDMForm(
+		com.liferay.portlet.dynamicdatamapping.model.DDMForm ddmForm);
 }

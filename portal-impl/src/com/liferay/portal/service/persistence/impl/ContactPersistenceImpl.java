@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -44,7 +43,12 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The persistence implementation for the contact service.
@@ -105,11 +109,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 *
 	 * @param companyId the company ID
 	 * @return the matching contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Contact> findByCompanyId(long companyId)
-		throws SystemException {
+	public List<Contact> findByCompanyId(long companyId) {
 		return findByCompanyId(companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			null);
 	}
@@ -125,11 +127,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param start the lower bound of the range of contacts
 	 * @param end the upper bound of the range of contacts (not inclusive)
 	 * @return the range of matching contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Contact> findByCompanyId(long companyId, int start, int end)
-		throws SystemException {
+	public List<Contact> findByCompanyId(long companyId, int start, int end) {
 		return findByCompanyId(companyId, start, end, null);
 	}
 
@@ -145,11 +145,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param end the upper bound of the range of contacts (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Contact> findByCompanyId(long companyId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Contact> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -252,12 +251,11 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching contact
 	 * @throws com.liferay.portal.NoSuchContactException if a matching contact could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact findByCompanyId_First(long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchContactException, SystemException {
+		OrderByComparator<Contact> orderByComparator)
+		throws NoSuchContactException {
 		Contact contact = fetchByCompanyId_First(companyId, orderByComparator);
 
 		if (contact != null) {
@@ -282,11 +280,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching contact, or <code>null</code> if a matching contact could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact fetchByCompanyId_First(long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Contact> orderByComparator) {
 		List<Contact> list = findByCompanyId(companyId, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -303,12 +300,11 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching contact
 	 * @throws com.liferay.portal.NoSuchContactException if a matching contact could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact findByCompanyId_Last(long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchContactException, SystemException {
+		OrderByComparator<Contact> orderByComparator)
+		throws NoSuchContactException {
 		Contact contact = fetchByCompanyId_Last(companyId, orderByComparator);
 
 		if (contact != null) {
@@ -333,11 +329,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching contact, or <code>null</code> if a matching contact could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact fetchByCompanyId_Last(long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Contact> orderByComparator) {
 		int count = countByCompanyId(companyId);
 
 		if (count == 0) {
@@ -362,12 +357,11 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next contact
 	 * @throws com.liferay.portal.NoSuchContactException if a contact with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact[] findByCompanyId_PrevAndNext(long contactId,
-		long companyId, OrderByComparator orderByComparator)
-		throws NoSuchContactException, SystemException {
+		long companyId, OrderByComparator<Contact> orderByComparator)
+		throws NoSuchContactException {
 		Contact contact = findByPrimaryKey(contactId);
 
 		Session session = null;
@@ -396,8 +390,8 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	}
 
 	protected Contact getByCompanyId_PrevAndNext(Session session,
-		Contact contact, long companyId, OrderByComparator orderByComparator,
-		boolean previous) {
+		Contact contact, long companyId,
+		OrderByComparator<Contact> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -504,10 +498,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * Removes all the contacts where companyId = &#63; from the database.
 	 *
 	 * @param companyId the company ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByCompanyId(long companyId) throws SystemException {
+	public void removeByCompanyId(long companyId) {
 		for (Contact contact : findByCompanyId(companyId, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null)) {
 			remove(contact);
@@ -519,10 +512,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 *
 	 * @param companyId the company ID
 	 * @return the number of matching contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByCompanyId(long companyId) throws SystemException {
+	public int countByCompanyId(long companyId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_COMPANYID;
 
 		Object[] finderArgs = new Object[] { companyId };
@@ -594,11 +586,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 *
 	 * @param accountId the account ID
 	 * @return the matching contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Contact> findByAccountId(long accountId)
-		throws SystemException {
+	public List<Contact> findByAccountId(long accountId) {
 		return findByAccountId(accountId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			null);
 	}
@@ -614,11 +604,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param start the lower bound of the range of contacts
 	 * @param end the upper bound of the range of contacts (not inclusive)
 	 * @return the range of matching contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Contact> findByAccountId(long accountId, int start, int end)
-		throws SystemException {
+	public List<Contact> findByAccountId(long accountId, int start, int end) {
 		return findByAccountId(accountId, start, end, null);
 	}
 
@@ -634,11 +622,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param end the upper bound of the range of contacts (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Contact> findByAccountId(long accountId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Contact> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -741,12 +728,11 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching contact
 	 * @throws com.liferay.portal.NoSuchContactException if a matching contact could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact findByAccountId_First(long accountId,
-		OrderByComparator orderByComparator)
-		throws NoSuchContactException, SystemException {
+		OrderByComparator<Contact> orderByComparator)
+		throws NoSuchContactException {
 		Contact contact = fetchByAccountId_First(accountId, orderByComparator);
 
 		if (contact != null) {
@@ -771,11 +757,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param accountId the account ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching contact, or <code>null</code> if a matching contact could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact fetchByAccountId_First(long accountId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Contact> orderByComparator) {
 		List<Contact> list = findByAccountId(accountId, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -792,12 +777,11 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching contact
 	 * @throws com.liferay.portal.NoSuchContactException if a matching contact could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact findByAccountId_Last(long accountId,
-		OrderByComparator orderByComparator)
-		throws NoSuchContactException, SystemException {
+		OrderByComparator<Contact> orderByComparator)
+		throws NoSuchContactException {
 		Contact contact = fetchByAccountId_Last(accountId, orderByComparator);
 
 		if (contact != null) {
@@ -822,11 +806,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param accountId the account ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching contact, or <code>null</code> if a matching contact could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact fetchByAccountId_Last(long accountId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Contact> orderByComparator) {
 		int count = countByAccountId(accountId);
 
 		if (count == 0) {
@@ -851,12 +834,11 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next contact
 	 * @throws com.liferay.portal.NoSuchContactException if a contact with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact[] findByAccountId_PrevAndNext(long contactId,
-		long accountId, OrderByComparator orderByComparator)
-		throws NoSuchContactException, SystemException {
+		long accountId, OrderByComparator<Contact> orderByComparator)
+		throws NoSuchContactException {
 		Contact contact = findByPrimaryKey(contactId);
 
 		Session session = null;
@@ -885,8 +867,8 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	}
 
 	protected Contact getByAccountId_PrevAndNext(Session session,
-		Contact contact, long accountId, OrderByComparator orderByComparator,
-		boolean previous) {
+		Contact contact, long accountId,
+		OrderByComparator<Contact> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -993,10 +975,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * Removes all the contacts where accountId = &#63; from the database.
 	 *
 	 * @param accountId the account ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByAccountId(long accountId) throws SystemException {
+	public void removeByAccountId(long accountId) {
 		for (Contact contact : findByAccountId(accountId, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null)) {
 			remove(contact);
@@ -1008,10 +989,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 *
 	 * @param accountId the account ID
 	 * @return the number of matching contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByAccountId(long accountId) throws SystemException {
+	public int countByAccountId(long accountId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_ACCOUNTID;
 
 		Object[] finderArgs = new Object[] { accountId };
@@ -1083,11 +1063,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param classNameId the class name ID
 	 * @param classPK the class p k
 	 * @return the matching contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Contact> findByC_C(long classNameId, long classPK)
-		throws SystemException {
+	public List<Contact> findByC_C(long classNameId, long classPK) {
 		return findByC_C(classNameId, classPK, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -1104,11 +1082,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param start the lower bound of the range of contacts
 	 * @param end the upper bound of the range of contacts (not inclusive)
 	 * @return the range of matching contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Contact> findByC_C(long classNameId, long classPK, int start,
-		int end) throws SystemException {
+		int end) {
 		return findByC_C(classNameId, classPK, start, end, null);
 	}
 
@@ -1125,11 +1102,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param end the upper bound of the range of contacts (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Contact> findByC_C(long classNameId, long classPK, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<Contact> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1242,12 +1218,11 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching contact
 	 * @throws com.liferay.portal.NoSuchContactException if a matching contact could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact findByC_C_First(long classNameId, long classPK,
-		OrderByComparator orderByComparator)
-		throws NoSuchContactException, SystemException {
+		OrderByComparator<Contact> orderByComparator)
+		throws NoSuchContactException {
 		Contact contact = fetchByC_C_First(classNameId, classPK,
 				orderByComparator);
 
@@ -1277,11 +1252,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param classPK the class p k
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching contact, or <code>null</code> if a matching contact could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact fetchByC_C_First(long classNameId, long classPK,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Contact> orderByComparator) {
 		List<Contact> list = findByC_C(classNameId, classPK, 0, 1,
 				orderByComparator);
 
@@ -1300,12 +1274,11 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching contact
 	 * @throws com.liferay.portal.NoSuchContactException if a matching contact could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact findByC_C_Last(long classNameId, long classPK,
-		OrderByComparator orderByComparator)
-		throws NoSuchContactException, SystemException {
+		OrderByComparator<Contact> orderByComparator)
+		throws NoSuchContactException {
 		Contact contact = fetchByC_C_Last(classNameId, classPK,
 				orderByComparator);
 
@@ -1335,11 +1308,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param classPK the class p k
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching contact, or <code>null</code> if a matching contact could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact fetchByC_C_Last(long classNameId, long classPK,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Contact> orderByComparator) {
 		int count = countByC_C(classNameId, classPK);
 
 		if (count == 0) {
@@ -1365,12 +1337,11 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next contact
 	 * @throws com.liferay.portal.NoSuchContactException if a contact with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact[] findByC_C_PrevAndNext(long contactId, long classNameId,
-		long classPK, OrderByComparator orderByComparator)
-		throws NoSuchContactException, SystemException {
+		long classPK, OrderByComparator<Contact> orderByComparator)
+		throws NoSuchContactException {
 		Contact contact = findByPrimaryKey(contactId);
 
 		Session session = null;
@@ -1399,8 +1370,8 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	}
 
 	protected Contact getByC_C_PrevAndNext(Session session, Contact contact,
-		long classNameId, long classPK, OrderByComparator orderByComparator,
-		boolean previous) {
+		long classNameId, long classPK,
+		OrderByComparator<Contact> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -1512,11 +1483,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 *
 	 * @param classNameId the class name ID
 	 * @param classPK the class p k
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByC_C(long classNameId, long classPK)
-		throws SystemException {
+	public void removeByC_C(long classNameId, long classPK) {
 		for (Contact contact : findByC_C(classNameId, classPK,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(contact);
@@ -1529,11 +1498,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param classNameId the class name ID
 	 * @param classPK the class p k
 	 * @return the number of matching contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByC_C(long classNameId, long classPK)
-		throws SystemException {
+	public int countByC_C(long classNameId, long classPK) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_C_C;
 
 		Object[] finderArgs = new Object[] { classNameId, classPK };
@@ -1690,11 +1657,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param contactId the primary key of the contact
 	 * @return the contact that was removed
 	 * @throws com.liferay.portal.NoSuchContactException if a contact with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Contact remove(long contactId)
-		throws NoSuchContactException, SystemException {
+	public Contact remove(long contactId) throws NoSuchContactException {
 		return remove((Serializable)contactId);
 	}
 
@@ -1704,11 +1669,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param primaryKey the primary key of the contact
 	 * @return the contact that was removed
 	 * @throws com.liferay.portal.NoSuchContactException if a contact with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact remove(Serializable primaryKey)
-		throws NoSuchContactException, SystemException {
+		throws NoSuchContactException {
 		Session session = null;
 
 		try {
@@ -1739,7 +1703,7 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	}
 
 	@Override
-	protected Contact removeImpl(Contact contact) throws SystemException {
+	protected Contact removeImpl(Contact contact) {
 		contact = toUnwrappedModel(contact);
 
 		Session session = null;
@@ -1771,8 +1735,7 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	}
 
 	@Override
-	public Contact updateImpl(com.liferay.portal.model.Contact contact)
-		throws SystemException {
+	public Contact updateImpl(com.liferay.portal.model.Contact contact) {
 		contact = toUnwrappedModel(contact);
 
 		boolean isNew = contact.isNew();
@@ -1929,11 +1892,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param primaryKey the primary key of the contact
 	 * @return the contact
 	 * @throws com.liferay.portal.NoSuchContactException if a contact with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchContactException, SystemException {
+		throws NoSuchContactException {
 		Contact contact = fetchByPrimaryKey(primaryKey);
 
 		if (contact == null) {
@@ -1954,11 +1916,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param contactId the primary key of the contact
 	 * @return the contact
 	 * @throws com.liferay.portal.NoSuchContactException if a contact with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Contact findByPrimaryKey(long contactId)
-		throws NoSuchContactException, SystemException {
+		throws NoSuchContactException {
 		return findByPrimaryKey((Serializable)contactId);
 	}
 
@@ -1967,11 +1928,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 *
 	 * @param primaryKey the primary key of the contact
 	 * @return the contact, or <code>null</code> if a contact with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Contact fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public Contact fetchByPrimaryKey(Serializable primaryKey) {
 		Contact contact = (Contact)EntityCacheUtil.getResult(ContactModelImpl.ENTITY_CACHE_ENABLED,
 				ContactImpl.class, primaryKey);
 
@@ -2014,21 +1973,111 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 *
 	 * @param contactId the primary key of the contact
 	 * @return the contact, or <code>null</code> if a contact with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Contact fetchByPrimaryKey(long contactId) throws SystemException {
+	public Contact fetchByPrimaryKey(long contactId) {
 		return fetchByPrimaryKey((Serializable)contactId);
+	}
+
+	@Override
+	public Map<Serializable, Contact> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, Contact> map = new HashMap<Serializable, Contact>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			Contact contact = fetchByPrimaryKey(primaryKey);
+
+			if (contact != null) {
+				map.put(primaryKey, contact);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			Contact contact = (Contact)EntityCacheUtil.getResult(ContactModelImpl.ENTITY_CACHE_ENABLED,
+					ContactImpl.class, primaryKey);
+
+			if (contact == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, contact);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_CONTACT_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (Contact contact : (List<Contact>)q.list()) {
+				map.put(contact.getPrimaryKeyObj(), contact);
+
+				cacheResult(contact);
+
+				uncachedPrimaryKeys.remove(contact.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(ContactModelImpl.ENTITY_CACHE_ENABLED,
+					ContactImpl.class, primaryKey, _nullContact);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the contacts.
 	 *
 	 * @return the contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Contact> findAll() throws SystemException {
+	public List<Contact> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -2042,10 +2091,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param start the lower bound of the range of contacts
 	 * @param end the upper bound of the range of contacts (not inclusive)
 	 * @return the range of contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Contact> findAll(int start, int end) throws SystemException {
+	public List<Contact> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -2060,11 +2108,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * @param end the upper bound of the range of contacts (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Contact> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Contact> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -2146,10 +2193,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	/**
 	 * Removes all the contacts from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (Contact contact : findAll()) {
 			remove(contact);
 		}
@@ -2159,10 +2205,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	 * Returns the number of contacts.
 	 *
 	 * @return the number of contacts
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -2226,6 +2271,7 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	}
 
 	private static final String _SQL_SELECT_CONTACT = "SELECT contact FROM Contact contact";
+	private static final String _SQL_SELECT_CONTACT_WHERE_PKS_IN = "SELECT contact FROM Contact contact WHERE contactId IN (";
 	private static final String _SQL_SELECT_CONTACT_WHERE = "SELECT contact FROM Contact contact WHERE ";
 	private static final String _SQL_COUNT_CONTACT = "SELECT COUNT(contact) FROM Contact contact";
 	private static final String _SQL_COUNT_CONTACT_WHERE = "SELECT COUNT(contact) FROM Contact contact WHERE ";

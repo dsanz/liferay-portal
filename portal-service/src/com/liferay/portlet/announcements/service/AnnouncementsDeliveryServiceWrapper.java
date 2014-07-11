@@ -58,8 +58,7 @@ public class AnnouncementsDeliveryServiceWrapper
 	public com.liferay.portlet.announcements.model.AnnouncementsDelivery updateDelivery(
 		long userId, java.lang.String type, boolean email, boolean sms,
 		boolean website)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsDeliveryService.updateDelivery(userId, type,
 			email, sms, website);
 	}

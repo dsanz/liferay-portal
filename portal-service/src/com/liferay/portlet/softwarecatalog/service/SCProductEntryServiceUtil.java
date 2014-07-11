@@ -40,6 +40,25 @@ public class SCProductEntryServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portlet.softwarecatalog.service.impl.SCProductEntryServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static com.liferay.portlet.softwarecatalog.model.SCProductEntry addProductEntry(
+		java.lang.String name, java.lang.String type, java.lang.String tags,
+		java.lang.String shortDescription, java.lang.String longDescription,
+		java.lang.String pageURL, java.lang.String author,
+		java.lang.String repoGroupId, java.lang.String repoArtifactId,
+		long[] licenseIds, java.util.List<byte[]> thumbnails,
+		java.util.List<byte[]> fullImages,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .addProductEntry(name, type, tags, shortDescription,
+			longDescription, pageURL, author, repoGroupId, repoArtifactId,
+			licenseIds, thumbnails, fullImages, serviceContext);
+	}
+
+	public static void deleteProductEntry(long productEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteProductEntry(productEntryId);
+	}
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -48,6 +67,12 @@ public class SCProductEntryServiceUtil {
 	*/
 	public static java.lang.String getBeanIdentifier() {
 		return getService().getBeanIdentifier();
+	}
+
+	public static com.liferay.portlet.softwarecatalog.model.SCProductEntry getProductEntry(
+		long productEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getProductEntry(productEntryId);
 	}
 
 	/**
@@ -59,35 +84,6 @@ public class SCProductEntryServiceUtil {
 		getService().setBeanIdentifier(beanIdentifier);
 	}
 
-	public static com.liferay.portlet.softwarecatalog.model.SCProductEntry addProductEntry(
-		java.lang.String name, java.lang.String type, java.lang.String tags,
-		java.lang.String shortDescription, java.lang.String longDescription,
-		java.lang.String pageURL, java.lang.String author,
-		java.lang.String repoGroupId, java.lang.String repoArtifactId,
-		long[] licenseIds, java.util.List<byte[]> thumbnails,
-		java.util.List<byte[]> fullImages,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .addProductEntry(name, type, tags, shortDescription,
-			longDescription, pageURL, author, repoGroupId, repoArtifactId,
-			licenseIds, thumbnails, fullImages, serviceContext);
-	}
-
-	public static void deleteProductEntry(long productEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteProductEntry(productEntryId);
-	}
-
-	public static com.liferay.portlet.softwarecatalog.model.SCProductEntry getProductEntry(
-		long productEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getProductEntry(productEntryId);
-	}
-
 	public static com.liferay.portlet.softwarecatalog.model.SCProductEntry updateProductEntry(
 		long productEntryId, java.lang.String name, java.lang.String type,
 		java.lang.String tags, java.lang.String shortDescription,
@@ -95,8 +91,7 @@ public class SCProductEntryServiceUtil {
 		java.lang.String author, java.lang.String repoGroupId,
 		java.lang.String repoArtifactId, long[] licenseIds,
 		java.util.List<byte[]> thumbnails, java.util.List<byte[]> fullImages)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updateProductEntry(productEntryId, name, type, tags,
 			shortDescription, longDescription, pageURL, author, repoGroupId,

@@ -15,10 +15,10 @@
 package com.liferay.portlet.dynamicdatamapping.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
 import com.liferay.portlet.dynamicdatamapping.service.base.DDMTemplateServiceBaseImpl;
 import com.liferay.portlet.dynamicdatamapping.service.permission.DDMPermission;
@@ -28,6 +28,7 @@ import com.liferay.portlet.dynamicdatamapping.util.DDMUtil;
 
 import java.io.File;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -68,7 +69,6 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @return the template
 	 * @throws PortalException if the user did not have permission to add the
 	 *         template or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMTemplate addTemplate(
@@ -76,7 +76,7 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 			Map<Locale, String> nameMap, Map<Locale, String> descriptionMap,
 			String type, String mode, String language, String script,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMDisplay ddmDisplay = DDMUtil.getDDMDisplay(serviceContext);
 
@@ -123,7 +123,6 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @return the template
 	 * @throws PortalException if the user did not have permission to add the
 	 *         template or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMTemplate addTemplate(
@@ -132,7 +131,7 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 			String type, String mode, String language, String script,
 			boolean cacheable, boolean smallImage, String smallImageURL,
 			File smallImageFile, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMDisplay ddmDisplay = DDMUtil.getDDMDisplay(serviceContext);
 
@@ -163,13 +162,12 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @return the new template
 	 * @throws PortalException if the user did not have permission to add the
 	 *         template or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMTemplate copyTemplate(
 			long templateId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMDisplay ddmDisplay = DDMUtil.getDDMDisplay(serviceContext);
 
@@ -190,7 +188,7 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	@Override
 	public DDMTemplate copyTemplate(
 			long templateId, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMDisplay ddmDisplay = DDMUtil.getDDMDisplay(serviceContext);
 
@@ -226,13 +224,12 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @return the new template
 	 * @throws PortalException if the user did not have permission to add the
 	 *         template or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<DDMTemplate> copyTemplates(
 			long classNameId, long classPK, long newClassPK, String type,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMDisplay ddmDisplay = DDMUtil.getDDMDisplay(serviceContext);
 
@@ -252,12 +249,9 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  templateId the primary key of the template to be deleted
 	 * @throws PortalException if the user did not have permission to delete the
 	 *         template or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void deleteTemplate(long templateId)
-		throws PortalException, SystemException {
-
+	public void deleteTemplate(long templateId) throws PortalException {
 		DDMTemplatePermission.check(
 			getPermissionChecker(), templateId, ActionKeys.DELETE);
 
@@ -275,12 +269,11 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 *         template could not be found
 	 * @throws PortalException if the user did not have permission to view the
 	 *         template
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMTemplate fetchTemplate(
 			long groupId, long classNameId, String templateKey)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMTemplate ddmTemplate = ddmTemplateLocalService.fetchTemplate(
 			groupId, classNameId, templateKey);
@@ -300,12 +293,9 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @return the template with the ID
 	 * @throws PortalException if the user did not have permission to view the
 	 *         template or if a matching template could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public DDMTemplate getTemplate(long templateId)
-		throws PortalException, SystemException {
-
+	public DDMTemplate getTemplate(long templateId) throws PortalException {
 		DDMTemplatePermission.check(
 			getPermissionChecker(), templateId, ActionKeys.VIEW);
 
@@ -321,12 +311,11 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  templateKey the unique string identifying the template
 	 * @return the matching template
 	 * @throws PortalException if a matching template could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMTemplate getTemplate(
 			long groupId, long classNameId, String templateKey)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMTemplate ddmTemplate = ddmTemplateLocalService.getTemplate(
 			groupId, classNameId, templateKey);
@@ -343,7 +332,7 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 *
 	 * <p>
 	 * This method first searches in the group. If the template is still not
-	 * found and <code>includeGlobalTemplates</code> is set to
+	 * found and <code>includeAncestorTemplates</code> is set to
 	 * <code>true</code>, this method searches the global group.
 	 * </p>
 	 *
@@ -351,20 +340,19 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  classNameId the primary key of the class name for template's
 	 *         related model
 	 * @param  templateKey the unique string identifying the template
-	 * @param  includeGlobalTemplates whether to include the global scope in the
+	 * @param  includeAncestorTemplates whether to include the global scope in the
 	 *         search
 	 * @return the matching template
 	 * @throws PortalException if a matching template could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMTemplate getTemplate(
 			long groupId, long classNameId, String templateKey,
-			boolean includeGlobalTemplates)
-		throws PortalException, SystemException {
+			boolean includeAncestorTemplates)
+		throws PortalException {
 
 		DDMTemplate ddmTemplate = ddmTemplateLocalService.getTemplate(
-			groupId, classNameId, templateKey, includeGlobalTemplates);
+			groupId, classNameId, templateKey, includeAncestorTemplates);
 
 		DDMTemplatePermission.check(
 			getPermissionChecker(), ddmTemplate, ActionKeys.VIEW);
@@ -379,12 +367,9 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  classNameId the primary key of the class name for template's
 	 *         related model
 	 * @return the matching templates
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<DDMTemplate> getTemplates(long groupId, long classNameId)
-		throws SystemException {
-
+	public List<DDMTemplate> getTemplates(long groupId, long classNameId) {
 		return ddmTemplatePersistence.filterFindByG_C(groupId, classNameId);
 	}
 
@@ -397,15 +382,37 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 *         related model
 	 * @param  classPK the primary key of the template's related entity
 	 * @return the matching templates
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<DDMTemplate> getTemplates(
-			long groupId, long classNameId, long classPK)
-		throws SystemException {
+		long groupId, long classNameId, long classPK) {
 
 		return ddmTemplatePersistence.filterFindByG_C_C(
 			groupId, classNameId, classPK);
+	}
+
+	@Override
+	public List<DDMTemplate> getTemplates(
+			long groupId, long classNameId, long classPK,
+			boolean includeAncestorTemplates)
+		throws PortalException {
+
+		List<DDMTemplate> ddmTemplates = new ArrayList<DDMTemplate>();
+
+		ddmTemplates.addAll(
+			ddmTemplatePersistence.filterFindByG_C_C(
+				groupId, classNameId, classPK));
+
+		if (!includeAncestorTemplates) {
+			return ddmTemplates;
+		}
+
+		ddmTemplates.addAll(
+			ddmTemplatePersistence.filterFindByG_C_C(
+				PortalUtil.getAncestorSiteGroupIds(groupId), classNameId,
+				classPK));
+
+		return ddmTemplates;
 	}
 
 	/**
@@ -419,12 +426,10 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  type the template's type. For more information, see {@link
 	 *         com.liferay.portlet.dynamicdatamapping.model.DDMTemplateConstants}.
 	 * @return the matching templates
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<DDMTemplate> getTemplates(
-			long groupId, long classNameId, long classPK, String type)
-		throws SystemException {
+		long groupId, long classNameId, long classPK, String type) {
 
 		return ddmTemplatePersistence.filterFindByG_C_C_T(
 			groupId, classNameId, classPK, type);
@@ -432,9 +437,8 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 
 	@Override
 	public List<DDMTemplate> getTemplates(
-			long groupId, long classNameId, long classPK, String type,
-			String mode)
-		throws SystemException {
+		long groupId, long classNameId, long classPK, String type,
+		String mode) {
 
 		return ddmTemplatePersistence.filterFindByG_C_C_T_M(
 			groupId, classNameId, classPK, type, mode);
@@ -446,12 +450,9 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  groupId the primary key of the group
 	 * @param  classPK the primary key of the template's related entity
 	 * @return the matching templates
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<DDMTemplate> getTemplatesByClassPK(long groupId, long classPK)
-		throws SystemException {
-
+	public List<DDMTemplate> getTemplatesByClassPK(long groupId, long classPK) {
 		return ddmTemplatePersistence.filterFindByG_CPK(groupId, classPK);
 	}
 
@@ -479,13 +480,11 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  orderByComparator the comparator to order the templates
 	 *         (optionally <code>null</code>)
 	 * @return the range of matching templates ordered by the comparator
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<DDMTemplate> getTemplatesByStructureClassNameId(
-			long groupId, long structureClassNameId, int start, int end,
-			OrderByComparator orderByComparator)
-		throws SystemException {
+		long groupId, long structureClassNameId, int start, int end,
+		OrderByComparator<DDMTemplate> orderByComparator) {
 
 		return ddmTemplateFinder.filterFindByG_SC(
 			groupId, structureClassNameId, start, end, orderByComparator);
@@ -501,12 +500,10 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 *         <code>0</code> to count generic templates only.
 	 * @return the number of matching templates plus the number of matching
 	 *         generic templates
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public int getTemplatesByStructureClassNameIdCount(
-			long groupId, long structureClassNameId)
-		throws SystemException {
+		long groupId, long structureClassNameId) {
 
 		return ddmTemplateFinder.filterCountByG_SC(
 			groupId, structureClassNameId);
@@ -546,14 +543,12 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  orderByComparator the comparator to order the templates
 	 *         (optionally <code>null</code>)
 	 * @return the matching templates ordered by the comparator
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<DDMTemplate> search(
-			long companyId, long groupId, long classNameId, long classPK,
-			String keywords, String type, String mode, int start, int end,
-			OrderByComparator orderByComparator)
-		throws SystemException {
+		long companyId, long groupId, long classNameId, long classPK,
+		String keywords, String type, String mode, int start, int end,
+		OrderByComparator<DDMTemplate> orderByComparator) {
 
 		return ddmTemplateFinder.filterFindByKeywords(
 			companyId, groupId, classNameId, classPK, keywords, type, mode,
@@ -600,15 +595,13 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  orderByComparator the comparator to order the templates
 	 *         (optionally <code>null</code>)
 	 * @return the matching templates ordered by the comparator
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<DDMTemplate> search(
-			long companyId, long groupId, long classNameId, long classPK,
-			String name, String description, String type, String mode,
-			String language, boolean andOperator, int start, int end,
-			OrderByComparator orderByComparator)
-		throws SystemException {
+		long companyId, long groupId, long classNameId, long classPK,
+		String name, String description, String type, String mode,
+		String language, boolean andOperator, int start, int end,
+		OrderByComparator<DDMTemplate> orderByComparator) {
 
 		return ddmTemplateFinder.filterFindByC_G_C_C_N_D_T_M_L(
 			companyId, groupId, classNameId, classPK, name, description, type,
@@ -649,14 +642,12 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  orderByComparator the comparator to order the templates
 	 *         (optionally <code>null</code>)
 	 * @return the matching templates ordered by the comparator
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<DDMTemplate> search(
-			long companyId, long[] groupIds, long[] classNameIds,
-			long[] classPKs, String keywords, String type, String mode,
-			int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		long companyId, long[] groupIds, long[] classNameIds, long[] classPKs,
+		String keywords, String type, String mode, int start, int end,
+		OrderByComparator<DDMTemplate> orderByComparator) {
 
 		return ddmTemplateFinder.filterFindByKeywords(
 			companyId, groupIds, classNameIds, classPKs, keywords, type, mode,
@@ -703,15 +694,13 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  orderByComparator the comparator to order the templates
 	 *         (optionally <code>null</code>)
 	 * @return the matching templates ordered by the comparator
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<DDMTemplate> search(
-			long companyId, long[] groupIds, long[] classNameIds,
-			long[] classPKs, String name, String description, String type,
-			String mode, String language, boolean andOperator, int start,
-			int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		long companyId, long[] groupIds, long[] classNameIds, long[] classPKs,
+		String name, String description, String type, String mode,
+		String language, boolean andOperator, int start, int end,
+		OrderByComparator<DDMTemplate> orderByComparator) {
 
 		return ddmTemplateFinder.filterFindByC_G_C_C_N_D_T_M_L(
 			companyId, groupIds, classNameIds, classPKs, name, description,
@@ -737,13 +726,11 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 *         information, see {@link
 	 *         com.liferay.portlet.dynamicdatamapping.model.DDMTemplateConstants}.
 	 * @return the number of matching templates
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public int searchCount(
-			long companyId, long groupId, long classNameId, long classPK,
-			String keywords, String type, String mode)
-		throws SystemException {
+		long companyId, long groupId, long classNameId, long classPK,
+		String keywords, String type, String mode) {
 
 		return ddmTemplateFinder.filterCountByKeywords(
 			companyId, groupId, classNameId, classPK, keywords, type, mode);
@@ -773,14 +760,12 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @return the number of matching templates
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public int searchCount(
-			long companyId, long groupId, long classNameId, long classPK,
-			String name, String description, String type, String mode,
-			String language, boolean andOperator)
-		throws SystemException {
+		long companyId, long groupId, long classNameId, long classPK,
+		String name, String description, String type, String mode,
+		String language, boolean andOperator) {
 
 		return ddmTemplateFinder.filterCountByC_G_C_C_N_D_T_M_L(
 			companyId, groupId, classNameId, classPK, name, description, type,
@@ -806,13 +791,11 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 *         information, see {@link
 	 *         com.liferay.portlet.dynamicdatamapping.model.DDMTemplateConstants}.
 	 * @return the number of matching templates
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public int searchCount(
-			long companyId, long[] groupIds, long[] classNameIds,
-			long[] classPKs, String keywords, String type, String mode)
-		throws SystemException {
+		long companyId, long[] groupIds, long[] classNameIds, long[] classPKs,
+		String keywords, String type, String mode) {
 
 		return ddmTemplateFinder.filterCountByKeywords(
 			companyId, groupIds, classNameIds, classPKs, keywords, type, mode);
@@ -842,14 +825,12 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @return the number of matching templates
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public int searchCount(
-			long companyId, long[] groupIds, long[] classNameIds,
-			long[] classPKs, String name, String description, String type,
-			String mode, String language, boolean andOperator)
-		throws SystemException {
+		long companyId, long[] groupIds, long[] classNameIds, long[] classPKs,
+		String name, String description, String type, String mode,
+		String language, boolean andOperator) {
 
 		return ddmTemplateFinder.filterCountByC_G_C_C_N_D_T_M_L(
 			companyId, groupIds, classNameIds, classPKs, name, description,
@@ -883,7 +864,6 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 	 * @return the updated template
 	 * @throws PortalException if the user did not have permission to update the
 	 *         template or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public DDMTemplate updateTemplate(
@@ -892,7 +872,7 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 			String language, String script, boolean cacheable,
 			boolean smallImage, String smallImageURL, File smallImageFile,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMTemplatePermission.check(
 			getPermissionChecker(), templateId, ActionKeys.UPDATE);
@@ -901,6 +881,45 @@ public class DDMTemplateServiceImpl extends DDMTemplateServiceBaseImpl {
 			templateId, classPK, nameMap, descriptionMap, type, mode, language,
 			script, cacheable, smallImage, smallImageURL, smallImageFile,
 			serviceContext);
+	}
+
+	/**
+	 * Updates the template matching the ID.
+	 *
+	 * @param  templateId the primary key of the template
+	 * @param  classPK the primary key of the template's related entity
+	 * @param  nameMap the template's new locales and localized names
+	 * @param  descriptionMap the template's new locales and localized
+	 *         description
+	 * @param  type the template's type. For more information, see {@link
+	 *         com.liferay.portlet.dynamicdatamapping.model.DDMTemplateConstants}.
+	 * @param  mode the template's mode. For more information, see {@link
+	 *         com.liferay.portlet.dynamicdatamapping.model.DDMTemplateConstants}.
+	 * @param  language the template's script language. For more information,
+	 *         see {@link
+	 *         com.liferay.portlet.dynamicdatamapping.model.DDMTemplateConstants}.
+	 * @param  script the template's script
+	 * @param  cacheable whether the template is cacheable
+	 * @param  serviceContext the service context to be applied. Can set the
+	 *         modification date.
+	 * @return the updated template
+	 * @throws PortalException if the user did not have permission to update the
+	 *         template or if a portal exception occurred
+	 */
+	@Override
+	public DDMTemplate updateTemplate(
+			long templateId, long classPK, Map<Locale, String> nameMap,
+			Map<Locale, String> descriptionMap, String type, String mode,
+			String language, String script, boolean cacheable,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		DDMTemplatePermission.check(
+			getPermissionChecker(), templateId, ActionKeys.UPDATE);
+
+		return ddmTemplateLocalService.updateTemplate(
+			templateId, classPK, nameMap, descriptionMap, type, mode, language,
+			script, cacheable, serviceContext);
 	}
 
 }

@@ -1,3 +1,0 @@
-include 'registry', 'spring-extender'
-
-rootProject.name = 'osgi-modules'

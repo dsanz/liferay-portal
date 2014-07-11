@@ -40,17 +40,19 @@ public class ShardLocalServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portal.service.impl.ShardLocalServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static com.liferay.portal.model.Shard addShard(
+		java.lang.String className, long classPK, java.lang.String name) {
+		return getService().addShard(className, classPK, name);
+	}
 
 	/**
 	* Adds the shard to the database. Also notifies the appropriate model listeners.
 	*
 	* @param shard the shard
 	* @return the shard that was added
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Shard addShard(
-		com.liferay.portal.model.Shard shard)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.model.Shard shard) {
 		return getService().addShard(shard);
 	}
 
@@ -65,17 +67,12 @@ public class ShardLocalServiceUtil {
 	}
 
 	/**
-	* Deletes the shard with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param shardId the primary key of the shard
-	* @return the shard that was removed
-	* @throws PortalException if a shard with the primary key could not be found
-	* @throws SystemException if a system exception occurred
+	* @throws PortalException
 	*/
-	public static com.liferay.portal.model.Shard deleteShard(long shardId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().deleteShard(shardId);
+	public static com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deletePersistedModel(persistedModel);
 	}
 
 	/**
@@ -83,12 +80,22 @@ public class ShardLocalServiceUtil {
 	*
 	* @param shard the shard
 	* @return the shard that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Shard deleteShard(
-		com.liferay.portal.model.Shard shard)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.model.Shard shard) {
 		return getService().deleteShard(shard);
+	}
+
+	/**
+	* Deletes the shard with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param shardId the primary key of the shard
+	* @return the shard that was removed
+	* @throws PortalException if a shard with the primary key could not be found
+	*/
+	public static com.liferay.portal.model.Shard deleteShard(long shardId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deleteShard(shardId);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
@@ -100,12 +107,9 @@ public class ShardLocalServiceUtil {
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return getService().dynamicQuery(dynamicQuery);
 	}
 
@@ -120,12 +124,10 @@ public class ShardLocalServiceUtil {
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
+	public static <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return getService().dynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -141,14 +143,11 @@ public class ShardLocalServiceUtil {
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
+	public static <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator) {
 		return getService()
 				   .dynamicQuery(dynamicQuery, start, end, orderByComparator);
 	}
@@ -158,11 +157,9 @@ public class ShardLocalServiceUtil {
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public static long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
@@ -172,18 +169,40 @@ public class ShardLocalServiceUtil {
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public static long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
 		return getService().dynamicQueryCount(dynamicQuery, projection);
 	}
 
-	public static com.liferay.portal.model.Shard fetchShard(long shardId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static com.liferay.portal.model.Shard fetchShard(long shardId) {
 		return getService().fetchShard(shardId);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
+		return getService().getActionableDynamicQuery();
+	}
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public static java.lang.String getBeanIdentifier() {
+		return getService().getBeanIdentifier();
+	}
+
+	public static com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	public static com.liferay.portal.model.Shard getShard(
+		java.lang.String className, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getShard(className, classPK);
 	}
 
 	/**
@@ -192,24 +211,10 @@ public class ShardLocalServiceUtil {
 	* @param shardId the primary key of the shard
 	* @return the shard
 	* @throws PortalException if a shard with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Shard getShard(long shardId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getShard(shardId);
-	}
-
-	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getActionableDynamicQuery();
-	}
-
-	public static com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -222,11 +227,9 @@ public class ShardLocalServiceUtil {
 	* @param start the lower bound of the range of shards
 	* @param end the upper bound of the range of shards (not inclusive)
 	* @return the range of shards
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.Shard> getShards(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int start, int end) {
 		return getService().getShards(start, end);
 	}
 
@@ -234,33 +237,9 @@ public class ShardLocalServiceUtil {
 	* Returns the number of shards.
 	*
 	* @return the number of shards
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getShardsCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getShardsCount() {
 		return getService().getShardsCount();
-	}
-
-	/**
-	* Updates the shard in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param shard the shard
-	* @return the shard that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.Shard updateShard(
-		com.liferay.portal.model.Shard shard)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().updateShard(shard);
-	}
-
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
 	}
 
 	/**
@@ -272,17 +251,15 @@ public class ShardLocalServiceUtil {
 		getService().setBeanIdentifier(beanIdentifier);
 	}
 
-	public static com.liferay.portal.model.Shard addShard(
-		java.lang.String className, long classPK, java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().addShard(className, classPK, name);
-	}
-
-	public static com.liferay.portal.model.Shard getShard(
-		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getShard(className, classPK);
+	/**
+	* Updates the shard in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param shard the shard
+	* @return the shard that was updated
+	*/
+	public static com.liferay.portal.model.Shard updateShard(
+		com.liferay.portal.model.Shard shard) {
+		return getService().updateShard(shard);
 	}
 
 	public static ShardLocalService getService() {

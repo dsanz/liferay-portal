@@ -69,6 +69,18 @@
 		</default>
 	</command>
 
+	<command name="assertHTMLSourceTextNotPresent">
+		<default>
+			<execute function="AssertHTMLSourceTextNotPresent#assertHTMLSourceTextNotPresent" />
+		</default>
+	</command>
+
+	<command name="assertHTMLSourceTextPresent">
+		<default>
+			<execute function="AssertHTMLSourceTextPresent#assertHTMLSourceTextPresent" />
+		</default>
+	</command>
+
 	<command name="assertLocation">
 		<default>
 			<execute function="AssertLocation#assertLocation" />
@@ -211,6 +223,12 @@
 		</default>
 	</command>
 
+	<command name="isHTMLSourceTextPresent">
+		<default>
+			<execute function="IsHTMLSourceTextPresent#isHTMLSourceTextPresent" />
+		</default>
+	</command>
+
 	<command name="isNotVisible">
 		<default>
 			<execute function="IsNotVisible#isNotVisible" />
@@ -307,6 +325,12 @@
 		</default>
 	</command>
 
+	<command name="scrollWebElementIntoView">
+		<default>
+			<execute function="ScrollWebElementIntoView#scrollWebElementIntoView" />
+		</default>
+	</command>
+
 	<command name="select">
 		<default>
 			<execute function="Select#select" />
@@ -332,6 +356,98 @@
 	<command name="selectWindow">
 		<default>
 			<execute function="SelectWindow#selectWindow" />
+		</default>
+	</command>
+
+	<command name="sikuliAssertElementNotPresent">
+		<default>
+			<execute function="SikuliAssertElementNotPresent#sikuliAssertElementNotPresent" />
+		</default>
+	</command>
+
+	<command name="sikuliAssertElementPresent">
+		<default>
+			<execute function="SikuliAssertElementPresent#sikuliAssertElementPresent" />
+		</default>
+	</command>
+
+	<command name="sikuliClick">
+		<default>
+			<description message="Click on the ${locator1}." />
+
+			<execute function="SikuliClick#sikuliClick" />
+		</default>
+	</command>
+
+	<command name="sikuliDragAndDrop">
+		<default>
+			<execute function="SikuliDragAndDrop#sikuliDragAndDrop" />
+		</default>
+	</command>
+
+	<command name="sikuliLeftMouseDown">
+		<default>
+			<description message="Push left mouse button down." />
+
+			<execute function="SikuliLeftMouseDown#sikuliLeftMouseDown" />
+		</default>
+	</command>
+
+	<command name="sikuliLeftMouseUp">
+		<default>
+			<description message="Lift left mouse button up." />
+
+			<execute function="SikuliLeftMouseUp#sikuliLeftMouseUp" />
+		</default>
+	</command>
+
+	<command name="sikuliMouseMove">
+		<default>
+			<description message="Mouse over the ${locator1}." />
+
+			<execute function="SikuliMouseMove#sikuliMouseMove" />
+		</default>
+	</command>
+
+	<command name="sikuliRightMouseDown">
+		<default>
+			<description message="Push right mouse button down." />
+
+			<execute function="SikuliRightMouseDown#sikuliRightMouseDown" />
+		</default>
+	</command>
+
+	<command name="sikuliRightMouseUp">
+		<default>
+			<description message="Lift right mouse button up." />
+
+			<execute function="SikuliRightMouseUp#sikuliRightMouseUp" />
+		</default>
+	</command>
+
+	<command name="sikuliType">
+		<default>
+			<description message="Uses Sikuli to type into the ${locator1} with the value ${value1}." />
+
+			<execute function="SikuliType#sikuliType" />
+		</default>
+	</command>
+
+	<command name="sikuliUploadCommonFile">
+		<default>
+			<execute function="SikuliUploadCommonFile#sikuliUploadCommonFile" />
+		</default>
+	</command>
+
+	<command name="sikuliUploadTCatFile">
+		<default>
+			<execute function="SikuliUploadTCatFile#sikuliUploadTCatFile" />
+		</default>
+	</command>
+
+	<command name="sikuliUploadTempFile">
+		<default>
+			<execute function="SikuliUploadTempFile#sikuliUploadTempFile" />
 		</default>
 	</command>
 

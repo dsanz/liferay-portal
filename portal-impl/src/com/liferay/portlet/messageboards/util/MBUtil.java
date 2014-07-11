@@ -16,7 +16,6 @@ package com.liferay.portlet.messageboards.util;
 
 import com.liferay.portal.kernel.dao.shard.ShardCallable;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -63,9 +62,6 @@ import com.liferay.portal.service.SubscriptionLocalServiceUtil;
 import com.liferay.portal.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.service.UserGroupRoleLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
-import com.liferay.portal.settings.ParameterMapSettings;
-import com.liferay.portal.settings.Settings;
-import com.liferay.portal.settings.SettingsFactoryUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
@@ -281,7 +277,7 @@ public class MBUtil {
 
 	public static String getAbsolutePath(
 			PortletRequest portletRequest, long mbCategoryId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -350,9 +346,7 @@ public class MBUtil {
 		return categoryId;
 	}
 
-	public static Set<Long> getCategorySubscriptionClassPKs(long userId)
-		throws SystemException {
-
+	public static Set<Long> getCategorySubscriptionClassPKs(long userId) {
 		List<Subscription> subscriptions =
 			SubscriptionLocalServiceUtil.getUserSubscriptions(
 				userId, MBCategory.class.getName());
@@ -583,28 +577,6 @@ public class MBUtil {
 		return entries;
 	}
 
-	public static MBSettings getMBSettings(long groupId)
-		throws PortalException, SystemException {
-
-		Settings settings = SettingsFactoryUtil.getGroupServiceSettings(
-			groupId, MBConstants.SERVICE_NAME);
-
-		return new MBSettings(settings);
-	}
-
-	public static MBSettings getMBSettings(
-			long groupId, HttpServletRequest request)
-		throws PortalException, SystemException {
-
-		Settings settings = SettingsFactoryUtil.getGroupServiceSettings(
-			groupId, MBConstants.SERVICE_NAME);
-
-		ParameterMapSettings parameterMapSettings = new ParameterMapSettings(
-			request.getParameterMap(), settings);
-
-		return new MBSettings(parameterMapSettings);
-	}
-
 	public static long getMessageId(String mailId) {
 		int x = mailId.indexOf(CharPool.LESS_THAN) + 1;
 		int y = mailId.indexOf(CharPool.AT);
@@ -763,9 +735,7 @@ public class MBUtil {
 		return priorityPair;
 	}
 
-	public static Set<Long> getThreadSubscriptionClassPKs(long userId)
-		throws SystemException {
-
+	public static Set<Long> getThreadSubscriptionClassPKs(long userId) {
 		List<Subscription> subscriptions =
 			SubscriptionLocalServiceUtil.getUserSubscriptions(
 				userId, MBThread.class.getName());
@@ -945,7 +915,7 @@ public class MBUtil {
 	public static void propagatePermissions(
 			long companyId, long groupId, long parentMessageId,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		MBMessage parentMessage = MBMessageLocalServiceUtil.getMBMessage(
 			parentMessageId);
@@ -1159,9 +1129,7 @@ public class MBUtil {
 		return null;
 	}
 
-	private static int _getMessageCount(MBCategory category)
-		throws SystemException {
-
+	private static int _getMessageCount(MBCategory category) {
 		return MBMessageLocalServiceUtil.getCategoryMessagesCount(
 			category.getGroupId(), category.getCategoryId(),
 			WorkflowConstants.STATUS_APPROVED);

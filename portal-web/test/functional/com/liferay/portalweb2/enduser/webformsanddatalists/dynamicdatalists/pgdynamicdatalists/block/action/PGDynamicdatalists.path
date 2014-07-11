@@ -40,7 +40,7 @@
 </tr>
 <tr>
 	<td>HEADER_TITLE</td>
-	<td>//h3[@class='header-title']</td>
+	<td>//h3[@class='header-title']/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -128,7 +128,7 @@
 </tr>
 <tr>
 	<td>RECORD_TABLE_ACTIONS_1</td>
-	<td>xpath=(//div/a[@title='Actions'])[1]</td>
+	<td>xpath=//td[contains(@class,'entry-action last')]/div/a/i[contains(@class,'menu-arrow caret')][1]</td>
 	<td></td>
 </tr>
 <tr>
@@ -159,12 +159,12 @@
 </tr>
 <tr>
 	<td>TOOLBAR_SELECT_LIST</td>
-	<td>//span[contains(@class,'lfr-icon-action-configuration')]/a[contains(.,'Select List')]</td>
+	<td>//span[contains(@class,'lfr-icon-action')]/a[contains(.,'Select List')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_ADD_LIST</td>
-	<td>//span[contains(@class,'lfr-icon-action-add')]/a[contains(.,'Add List')]</td>
+	<td>//span[contains(@class,'lfr-icon-action')]/a[contains(.,'Add List')]</td>
 	<td></td>
 </tr>
 <tr>

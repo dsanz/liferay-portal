@@ -54,6 +54,9 @@ public interface PortletService extends BaseService {
 	*/
 	public java.lang.String getBeanIdentifier();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.json.JSONArray getWARPortlets();
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -61,11 +64,7 @@ public interface PortletService extends BaseService {
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.kernel.json.JSONArray getWARPortlets();
-
 	public com.liferay.portal.model.Portlet updatePortlet(long companyId,
 		java.lang.String portletId, java.lang.String roles, boolean active)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

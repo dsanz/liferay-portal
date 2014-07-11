@@ -19,15 +19,16 @@ import com.liferay.portal.lar.BaseWorkflowedStagedModelDataHandlerTestCase;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
+import com.liferay.portal.test.TransactionalTestRule;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
 import com.liferay.portlet.bookmarks.service.BookmarksEntryLocalServiceUtil;
 import com.liferay.portlet.bookmarks.service.BookmarksFolderLocalServiceUtil;
-import com.liferay.portlet.bookmarks.util.BookmarksTestUtil;
+import com.liferay.portlet.bookmarks.util.test.BookmarksTestUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,19 +36,20 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 /**
  * @author Mate Thurzo
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class BookmarksEntryStagedModelDataHandlerTest
 	extends BaseWorkflowedStagedModelDataHandlerTestCase {
+
+	@ClassRule
+	public static TransactionalTestRule transactionalTestRule =
+		new TransactionalTestRule();
 
 	@Override
 	protected Map<String, List<StagedModel>> addDependentStagedModelsMap(
@@ -58,7 +60,7 @@ public class BookmarksEntryStagedModelDataHandlerTest
 			new HashMap<String, List<StagedModel>>();
 
 		BookmarksFolder folder = BookmarksTestUtil.addFolder(
-			group.getGroupId(), ServiceTestUtil.randomString());
+			group.getGroupId(), RandomTestUtil.randomString());
 
 		addDependentStagedModel(
 			dependentStagedModelsMap, BookmarksFolder.class, folder);
@@ -77,8 +79,8 @@ public class BookmarksEntryStagedModelDataHandlerTest
 
 		BookmarksFolder folder = (BookmarksFolder)dependentStagedModels.get(0);
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			group.getGroupId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(group.getGroupId());
 
 		return BookmarksTestUtil.addEntry(
 			folder.getFolderId(), true, serviceContext);

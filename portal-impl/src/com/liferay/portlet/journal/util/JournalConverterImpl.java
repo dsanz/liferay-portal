@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -450,6 +451,10 @@ public class JournalConverterImpl implements JournalConverter {
 			String[] values = StringUtil.split(
 				dynamicContentElement.getText(), CharPool.AT);
 
+			if (ArrayUtil.isEmpty(values)) {
+				values = new String[] {"1", "public"};
+			}
+
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
 			if (values.length > 2) {
@@ -637,21 +642,25 @@ public class JournalConverterImpl implements JournalConverter {
 		if (Validator.equals(parentType, "list") ||
 			Validator.equals(parentType, "multi-list")) {
 
+			Element metadataElement = dynamicElementElement.element(
+				"meta-data");
+
+			Element labelElement = fetchMetadataEntry(
+				metadataElement, "name", "label");
+
+			dynamicElementElement.addAttribute("name", labelElement.getText());
+
 			String repeatable = parentElement.attributeValue("repeatable");
+
+			dynamicElementElement.addAttribute("repeatable", repeatable);
 
 			String value = dynamicElementElement.attributeValue("value");
 
-			dynamicElementElement.addAttribute("name", value);
-			dynamicElementElement.addAttribute("repeatable", repeatable);
-			dynamicElementElement.addAttribute("type", "value");
+			dynamicElementElement.addAttribute("type", value);
 
 			removeAttribute(dynamicElementElement, "value");
 
-			for (Element metadataElement :
-					dynamicElementElement.elements("meta-data")) {
-
-				dynamicElementElement.remove(metadataElement);
-			}
+			dynamicElementElement.remove(metadataElement);
 
 			return;
 		}
@@ -851,11 +860,14 @@ public class JournalConverterImpl implements JournalConverter {
 			if ((parentType != null) && parentType.equals("select")) {
 				metadataElement.addAttribute("locale", defaultLanguageId);
 
-				addMetadataEntry(metadataElement, "label", name);
+				addMetadataEntry(
+					metadataElement, "label", HttpUtil.decodeURL(name));
+
+				removeAttribute(element, "index-type");
 
 				element.addAttribute("name", "option" + StringUtil.randomId());
 				element.addAttribute("type", "option");
-				element.addAttribute("value", name);
+				element.addAttribute("value", HttpUtil.decodeURL(type));
 
 				return;
 			}
@@ -944,6 +956,8 @@ public class JournalConverterImpl implements JournalConverter {
 			element.addAttribute("fieldNamespace", "ddm");
 			element.addAttribute("readOnly", "false");
 		}
+
+		element.add(metadataElement.detach());
 
 		List<Element> dynamicElementElements = element.elements(
 			"dynamic-element");

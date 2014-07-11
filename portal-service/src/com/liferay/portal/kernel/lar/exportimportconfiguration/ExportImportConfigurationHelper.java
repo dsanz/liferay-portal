@@ -16,16 +16,12 @@ package com.liferay.portal.kernel.lar.exportimportconfiguration;
 
 import aQute.bnd.annotation.ProviderType;
 
-import com.liferay.portal.kernel.lar.ExportImportDateUtil;
-import com.liferay.portal.kernel.staging.StagingUtil;
-import com.liferay.portal.kernel.util.DateRange;
-import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.ExportImportConfiguration;
 import com.liferay.portal.service.ExportImportConfigurationLocalServiceUtil;
-import com.liferay.portal.service.LayoutServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.theme.ThemeDisplay;
 
@@ -44,7 +40,7 @@ public class ExportImportConfigurationHelper {
 	public static ExportImportConfiguration
 			addExportLayoutExportImportConfiguration(
 				PortletRequest portletRequest)
-		throws Exception {
+		throws PortalException {
 
 		return addExportImportConfiguration(
 			portletRequest,
@@ -54,7 +50,7 @@ public class ExportImportConfigurationHelper {
 	public static ExportImportConfiguration
 			addPublishLayoutLocalExportImportConfiguration(
 				PortletRequest portletRequest)
-		throws Exception {
+		throws PortalException {
 
 		return addExportImportConfiguration(
 			portletRequest,
@@ -64,81 +60,17 @@ public class ExportImportConfigurationHelper {
 	public static ExportImportConfiguration
 			addPublishLayoutRemoteExportImportConfiguration(
 				PortletRequest portletRequest)
-		throws Exception {
+		throws PortalException {
 
 		return addExportImportConfiguration(
 			portletRequest,
 			ExportImportConfigurationConstants.TYPE_PUBLISH_LAYOUT_REMOTE);
 	}
 
-	public static void exportLayoutsByExportImportConfiguration(
-			long exportImportConfigurationId)
-		throws Exception {
-
-		ExportImportConfiguration exportImportConfiguration =
-			ExportImportConfigurationLocalServiceUtil.
-				getExportImportConfiguration(exportImportConfigurationId);
-
-		Map<String, Serializable> settingsMap =
-			exportImportConfiguration.getSettingsMap();
-
-		long groupId = MapUtil.getLong(settingsMap, "sourceGroupId");
-		boolean privateLayout = GetterUtil.getBoolean(
-			settingsMap.get("privateLayout"));
-		long[] layoutIds = GetterUtil.getLongValues(
-			settingsMap.get("layoutIds"));
-		Map<String, String[]> parameterMap =
-			(Map<String, String[]>)settingsMap.get("parameterMap");
-		DateRange dateRange = ExportImportDateUtil.getDateRange(
-			exportImportConfiguration);
-		String fileName = exportImportConfiguration.getName();
-
-		LayoutServiceUtil.exportLayoutsAsFileInBackground(
-			fileName, groupId, privateLayout, layoutIds, parameterMap,
-			dateRange.getStartDate(), dateRange.getEndDate(), fileName);
-	}
-
-	public static void exportLayoutsByExportImportConfiguration(
-			PortletRequest portletRequest)
-		throws Exception {
-
-		long exportImportConfigurationId = ParamUtil.getLong(
-			portletRequest, "exportImportConfigurationId");
-
-		exportLayoutsByExportImportConfiguration(exportImportConfigurationId);
-	}
-
-	public static void publishLayoutsByExportImportConfiguration(
-			long userId, long exportImportConfigurationId)
-		throws Exception {
-
-		ExportImportConfiguration exportImportConfiguration =
-			ExportImportConfigurationLocalServiceUtil.
-				getExportImportConfiguration(exportImportConfigurationId);
-
-		Map<String, Serializable> settingsMap =
-			exportImportConfiguration.getSettingsMap();
-
-		long sourceGroupId = MapUtil.getLong(settingsMap, "sourceGroupId");
-		long targetGroupId = MapUtil.getLong(settingsMap, "targetGroupId");
-		boolean privateLayout = GetterUtil.getBoolean(
-			settingsMap.get("privateLayout"));
-		long[] layoutIds = GetterUtil.getLongValues(
-			settingsMap.get("layoutIds"));
-		Map<String, String[]> parameterMap =
-			(Map<String, String[]>)settingsMap.get("parameterMap");
-		DateRange dateRange = ExportImportDateUtil.getDateRange(
-			exportImportConfiguration);
-
-		StagingUtil.publishLayouts(
-			userId, sourceGroupId, targetGroupId, privateLayout, layoutIds,
-			parameterMap, dateRange.getStartDate(), dateRange.getEndDate());
-	}
-
 	public static ExportImportConfiguration
 			updateExportLayoutExportImportConfiguration(
 				PortletRequest portletRequest)
-		throws Exception {
+		throws PortalException {
 
 		return updateExportImportConfiguration(
 			portletRequest,
@@ -148,7 +80,7 @@ public class ExportImportConfigurationHelper {
 	public static ExportImportConfiguration
 			updatePublishLayoutLocalExportImportConfiguration(
 				PortletRequest portletRequest)
-		throws Exception {
+		throws PortalException {
 
 		return updateExportImportConfiguration(
 			portletRequest,
@@ -158,7 +90,7 @@ public class ExportImportConfigurationHelper {
 	public static ExportImportConfiguration
 			updatePublishLayoutRemoteExportImportConfiguration(
 				PortletRequest portletRequest)
-		throws Exception {
+		throws PortalException {
 
 		return updateExportImportConfiguration(
 			portletRequest,
@@ -167,7 +99,7 @@ public class ExportImportConfigurationHelper {
 
 	protected static ExportImportConfiguration addExportImportConfiguration(
 			PortletRequest portletRequest, int type)
-		throws Exception {
+		throws PortalException {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -180,6 +112,18 @@ public class ExportImportConfigurationHelper {
 			ExportImportConfigurationSettingsMapFactory.buildSettingsMap(
 				portletRequest, groupId, type);
 
+		Map<String, String[]> parameterMap =
+			(Map<String, String[]>)settingsMap.get("parameterMap");
+
+		if ((parameterMap != null) &&
+			(type ==
+				ExportImportConfigurationConstants.TYPE_PUBLISH_LAYOUT_LOCAL)) {
+
+			parameterMap.put(
+				PortletDataHandlerKeys.PERFORM_DIRECT_BINARY_IMPORT,
+				new String[]{Boolean.TRUE.toString()});
+		}
+
 		return ExportImportConfigurationLocalServiceUtil.
 			addExportImportConfiguration(
 				themeDisplay.getUserId(), groupId, name, description, type,
@@ -188,7 +132,7 @@ public class ExportImportConfigurationHelper {
 
 	protected static ExportImportConfiguration updateExportImportConfiguration(
 			PortletRequest portletRequest, int type)
-		throws Exception {
+		throws PortalException {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);

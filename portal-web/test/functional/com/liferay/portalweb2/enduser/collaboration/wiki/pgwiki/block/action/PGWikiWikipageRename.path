@@ -51,7 +51,7 @@
 </tr>
 <tr>
 	<td>CURRENT_TITLE_FIELD</td>
-	<td>//div[@class='control-group field-wrapper']//input[@value='(None)']</td>
+	<td>//div[(contains(@class,'control-group') or contains(@class,'form-group')) and contains(@class,'field-wrapper')]//input[@value='(None)']</td>
 	<td></td>
 </tr>
 <tr>
@@ -61,7 +61,7 @@
 </tr>
 <tr>
 	<td>NEW_TITLE_FIELD</td>
-	<td>//div[@class='control-group']//input[@name='_36_newTitle']</td>
+	<td>//input[contains(@id,'newTitle') and @type='text']</td>
 	<td></td>
 </tr>
 <tr>
@@ -71,7 +71,7 @@
 </tr>
 <tr>
 	<td>CANCEL_BUTTON</td>
-	<td>//button[@class='btn btn-cancel' and contains(.,'Cancel')]</td>
+	<td>//a[contains(@class,'btn-cancel') and contains(.,'Cancel')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -92,7 +92,7 @@
 </tr>
 <tr>
 	<td>CHANGE_PARENT_CURRENT_PARENT_FIELD</td>
-	<td>//div[@class='control-group field-wrapper']//input[@value='(None)']</td>
+	<td>//div[(contains(@class,'control-group') or contains(@class,'form-group')) and contains(@class,'field-wrapper')]//input</td>
 	<td></td>
 </tr>
 <tr>
@@ -102,7 +102,7 @@
 </tr>
 <tr>
 	<td>CHANGE_PARENT_NEW_PARENT_SELECT</td>
-	<td>//select[@name='_36_newParentTitle']//option[@value='${key_wikiPageTitle}']</td>
+	<td>//select[@name='_36_newParentTitle']</td>
 	<td></td>
 </tr>
 <tr>

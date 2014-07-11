@@ -14,33 +14,32 @@
 
 package com.liferay.portlet.journal.service;
 
-import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
-import com.liferay.portlet.dynamicdatamapping.util.DDMStructureTestUtil;
-import com.liferay.portlet.dynamicdatamapping.util.DDMTemplateTestUtil;
+import com.liferay.portlet.dynamicdatamapping.util.test.DDMStructureTestUtil;
+import com.liferay.portlet.dynamicdatamapping.util.test.DDMTemplateTestUtil;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalArticleConstants;
 import com.liferay.portlet.journal.model.JournalFolderConstants;
-import com.liferay.portlet.journal.util.JournalTestUtil;
+import com.liferay.portlet.journal.util.test.JournalTestUtil;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -49,7 +48,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,7 +58,7 @@ import org.junit.runner.RunWith;
  */
 @ExecutionTestListeners(
 	listeners = {
-		EnvironmentExecutionTestListener.class,
+		MainServletExecutionTestListener.class,
 		MainServletExecutionTestListener.class,
 		SynchronousDestinationExecutionTestListener.class
 	})
@@ -70,14 +68,7 @@ public class JournalArticleScheduledTest {
 
 	@Before
 	public void setUp() throws Exception {
-		FinderCacheUtil.clearCache();
-
 		_group = GroupTestUtil.addGroup();
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		GroupLocalServiceUtil.deleteGroup(_group);
 	}
 
 	@Test
@@ -106,27 +97,27 @@ public class JournalArticleScheduledTest {
 
 		Map<Locale, String> titleMap = new HashMap<Locale, String>();
 
-		titleMap.put(LocaleUtil.getDefault(), ServiceTestUtil.randomString());
+		titleMap.put(LocaleUtil.getDefault(), RandomTestUtil.randomString());
 
 		Map<Locale, String> descriptionMap = new HashMap<Locale, String>();
 
 		descriptionMap.put(
-			LocaleUtil.getDefault(), ServiceTestUtil.randomString());
+			LocaleUtil.getDefault(), RandomTestUtil.randomString());
 
 		String content = DDMStructureTestUtil.getSampleStructuredContent();
 
-		String xsd = DDMStructureTestUtil.getSampleStructureXSD();
+		String definition = DDMStructureTestUtil.getSampleStructureDefinition();
 
 		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
-			groupId, JournalArticle.class.getName(), xsd);
+			groupId, JournalArticle.class.getName(), definition);
 
 		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
 			groupId, ddmStructure.getStructureId());
 
 		Calendar displayDateCalendar = getCalendar(displayDate, when);
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			groupId);
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(groupId);
 
 		if (approved) {
 			serviceContext.setWorkflowAction(WorkflowConstants.ACTION_PUBLISH);
@@ -212,6 +203,7 @@ public class JournalArticleScheduledTest {
 
 	private static final int _WHEN_PAST = -1;
 
+	@DeleteAfterTestRun
 	private Group _group;
 
 }

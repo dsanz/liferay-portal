@@ -75,13 +75,13 @@
 
 .dockbar {
 	@include respond-to(phone, tablet) {
-		.navbar-inner .btn-navbar {
+		.navbar-btn {
 			@include box-shadow(none);
 			@include text-shadow(none);
 		}
 	}
 
-	.navbar-inner .nav li.staging-toggle {
+	.nav li.staging-toggle {
 		&.active > a {
 			@include box-shadow(none);
 		}
@@ -100,20 +100,22 @@
 	}
 }
 
-.dockbar .navbar-inner {
-	.container .nav-collapse > .nav {
-		@include respond-to(phone, tablet) {
-			&.nav-account-controls .info-link-container .info-link {
-				@include border-radius(3px);
+.dockbar {
+	.container, .container-fluid {
+		> .nav {
+			@include respond-to(phone, tablet) {
+				&.nav-account-controls .info-link-container .info-link {
+					@include border-radius(3px);
+				}
 			}
-		}
 
-		> li {
-			> a, .info-button > a {
-				@include text-shadow(none);
+			> li {
+				> a, .info-button > a {
+					@include text-shadow(none);
 
-				@include respond-to(phone) {
-					@include border-radius(4px);
+					@include respond-to(phone, tablet) {
+						@include border-radius(4px);
+					}
 				}
 			}
 		}
@@ -124,31 +126,33 @@
 	}
 }
 
-.dockbar-split .dockbar .navbar-inner .container .nav-collapse > .nav {
-	&.nav-add-controls {
-		> li {
-			a {
-				@include border-radius(4px);
+.dockbar-split .dockbar {
+	.container, .container-fluid {
+		> .nav {
+			&.nav-add-controls {
+				> li {
+					a {
+						@include respond-to(desktop) {
+							@include border-radius(4px);
+						}
 
-				.nav-item-label {
-					@include border-radius(30px);
+						.nav-item-label {
+							@include border-radius(30px);
+						}
+					}
+
+					&.open a {
+						@include respond-to(desktop) {
+							@include border-radius(4px);
+						}
+					}
+
+					> ul {
+						@include box-shadow(none);
+					}
 				}
 			}
-
-			&.open a {
-				@include border-radius(4px);
-			}
-
-			> ul {
-				@include box-shadow(none);
-			}
 		}
-	}
-}
-
-@include respond-to(phone, tablet) {
-	.form-search .input-append input[type="text"].search-query {
-		@include border-radius(14px);
 	}
 }
 
@@ -200,7 +204,7 @@ body > .lfr-menu-list ul, .active-area-proxy, .entry-display-style .entry-thumbn
 	@include border-radius(4px);
 }
 
-.entry-display-style, .lfr-search-combobox, .lfr-upload-container .upload-file, .lfr-upload-container .upload-target, .portlet-document-library .common-file-metadata-container.selected, .portlet-document-library-display .common-file-metadata-container.selected, .portlet-image-gallery-display .image-icon, .select-documents, .select-files {
+.entry-display-style, .lfr-search-combobox, .lfr-upload-container .upload-file, .lfr-upload-container .upload-target, .portlet-asset-tag-admin .merge-tag, .portlet-document-library .common-file-metadata-container.selected, .portlet-document-library-display .common-file-metadata-container.selected, .portlet-image-gallery-display .image-icon, .select-documents, .select-files {
 	@include border-radius(5px);
 }
 
@@ -222,6 +226,25 @@ body > .lfr-menu-list ul, .active-area-proxy, .entry-display-style .entry-thumbn
 .menu-content {
 	@include border-bottom-left-radius(4px);
 	@include border-bottom-right-radius(4px);
+}
+
+.taglib-form-navigator > .form-steps > ul.form-navigator.list-group {
+	@include box-shadow(none);
+
+	.tab .tab-label {
+		&:hover, &:focus {
+			.number {
+				@include box-shadow(0 0 5px 0 #333);
+				@include transition-duration(0.25s);
+				@include transition-property(box-shadow);
+				@include transition-timing-function(ease-out);
+			}
+		}
+
+		.number {
+			@include border-radius(50%);
+		}
+	}
 }
 
 .underlay-content {
@@ -273,8 +296,16 @@ body > .lfr-menu-list ul, .active-area-proxy, .entry-display-style .entry-thumbn
 }
 
 .lfr-add-dialog, .lfr-add-panel {
-	.add-content-menu .search-query {
-		@include border-radius(15px);
+	.add-content-menu {
+		.search-query {
+			@include border-radius(15px);
+		}
+
+		@include respond-to(phone, tablet) {
+			.add-content-item {
+				@include border-radius(4px);
+			}
+		}
 	}
 }
 
@@ -311,14 +342,11 @@ body > .lfr-menu-list ul, .active-area-proxy, .entry-display-style .entry-thumbn
 	@include border-radius(2px);
 }
 
-.lfr-api-service-search .field-input {
-	@include box-sizing(border-box);
-}
-
 @include keyframes(progress-bar-stripes) {
 	from {
 		background-position: 40px 0;
 	}
+
 	to {
 		background-position: 0 0;
 	}
@@ -345,6 +373,33 @@ body > .lfr-menu-list ul, .active-area-proxy, .entry-display-style .entry-thumbn
 
 .highlight-animation {
 	@include experimental(animation, highlight-animation 0.7s);
+}
+
+.lfr-surface-loading .lfr-surface-loading-bar {
+	@include experimental(animation, shift-rightwards 1s ease-in-out infinite);
+	@include experimental(animation-delay, 0.4s);
+}
+
+.lfr-surface-loading-bar {
+	@include translateX(100%);
+}
+
+@include keyframes(shift-rightwards) {
+	0% {
+		@include translateX(-100%);
+	}
+
+	40% {
+		@include translateX(0%);
+	}
+
+	60% {
+		@include translateX(0%);
+	}
+
+	100% {
+		@include translateX(100%);
+	}
 }
 
 body:first-of-type {
@@ -446,16 +501,19 @@ body:first-of-type {
 		background-color: #EBEBEB;
 		border-color: #DDD;
 	}
+
 	50% {
 		background-color: #DDEDDE;
 		border-color: #7D7;
 
 		@include scale(1.1);
 	}
+
 	75% {
 		background-color: #DDEDDE;
 		border-color: #7D7;
 	}
+
 	100% {
 		background-color: #EBEBEB;
 		border-color: #DDD;

@@ -17,7 +17,6 @@ package com.liferay.portal.kernel.lar;
 import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.DateRange;
 import com.liferay.portal.kernel.xml.Document;
@@ -100,7 +99,7 @@ public interface ExportImportHelper {
 		throws Exception;
 
 	public Layout getExportableLayout(ThemeDisplay themeDisplay)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public String getExportableRootPortletId(long companyId, String portletId)
 		throws Exception;
@@ -170,19 +169,24 @@ public interface ExportImportHelper {
 	public long[] getLayoutIds(List<Layout> layouts);
 
 	public long[] getLayoutIds(Map<Long, Boolean> layoutIdMap)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public long[] getLayoutIds(
 			Map<Long, Boolean> layoutIdMap, long targetGroupId)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public long[] getLayoutIds(PortletRequest portletRequest)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public long[] getLayoutIds(
 			PortletRequest portletRequest, long targetGroupId)
-		throws PortalException, SystemException;
+		throws PortalException;
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #getManifestSummary(PortletDataContext)}
+	 */
+	@Deprecated
 	public ManifestSummary getManifestSummary(
 			long userId, long groupId, Map<String, String[]> parameterMap,
 			File file)
@@ -193,22 +197,53 @@ public interface ExportImportHelper {
 			FileEntry fileEntry)
 		throws Exception;
 
+	public ManifestSummary getManifestSummary(
+			PortletDataContext portletDataContext)
+		throws Exception;
+
 	public List<Layout> getMissingParentLayouts(Layout layout, long liveGroupId)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public long getModelDeletionCount(
 			final PortletDataContext portletDataContext,
 			final StagedModelType stagedModelType)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public FileEntry getTempFileEntry(
 			long groupId, long userId, String folderName)
-		throws PortalException, SystemException;
+		throws PortalException;
+
+	public UserIdStrategy getUserIdStrategy(long userId, String userIdStrategy)
+		throws PortalException;
 
 	public boolean isReferenceWithinExportScope(
 		PortletDataContext portletDataContext, StagedModel stagedModel);
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #replaceExportContentReferences(PortletDataContext,
+	 *             StagedModel, String, boolean)}
+	 */
+	@Deprecated
 	public String replaceExportContentReferences(
+			PortletDataContext portletDataContext,
+			StagedModel entityStagedModel, Element entityElement,
+			String content, boolean exportReferencedContent)
+		throws Exception;
+
+	public String replaceExportContentReferences(
+			PortletDataContext portletDataContext,
+			StagedModel entityStagedModel, String content,
+			boolean exportReferencedContent)
+		throws Exception;
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #replaceExportDLReferences(PortletDataContext, StagedModel,
+	 *             String, boolean)}
+	 */
+	@Deprecated
+	public String replaceExportDLReferences(
 			PortletDataContext portletDataContext,
 			StagedModel entityStagedModel, Element entityElement,
 			String content, boolean exportReferencedContent)
@@ -216,25 +251,45 @@ public interface ExportImportHelper {
 
 	public String replaceExportDLReferences(
 			PortletDataContext portletDataContext,
-			StagedModel entityStagedModel, Element entityElement,
-			String content, boolean exportReferencedContent)
+			StagedModel entityStagedModel, String content,
+			boolean exportReferencedContent)
 		throws Exception;
 
+	public String replaceExportLayoutReferences(
+			PortletDataContext portletDataContext, String content)
+		throws Exception;
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #replaceExportLayoutReferences(PortletDataContext, String)}
+	 */
+	@Deprecated
 	public String replaceExportLayoutReferences(
 			PortletDataContext portletDataContext, String content,
 			boolean exportReferencedContent)
 		throws Exception;
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #replaceExportLinksToLayouts(PortletDataContext, StagedModel,
+	 *             String)}
+	 */
+	@Deprecated
 	public String replaceExportLinksToLayouts(
 			PortletDataContext portletDataContext,
 			StagedModel entityStagedModel, Element entityElement,
 			String content, boolean exportReferencedContent)
 		throws Exception;
 
+	public String replaceExportLinksToLayouts(
+			PortletDataContext portletDataContext,
+			StagedModel entityStagedModel, String content)
+		throws Exception;
+
 	/**
 	 * @deprecated As of 7.0.0, replaced by {@link
 	 *             #replaceImportContentReferences(PortletDataContext,
-	 *             StagedModel, Element, String, boolean)}
+	 *             StagedModel, String)}
 	 */
 	@Deprecated
 	public String replaceImportContentReferences(
@@ -244,14 +299,13 @@ public interface ExportImportHelper {
 
 	public String replaceImportContentReferences(
 			PortletDataContext portletDataContext,
-			StagedModel entityStagedModel, Element entityElement,
-			String content, boolean importReferencedContent)
+			StagedModel entityStagedModel, String content)
 		throws Exception;
 
 	/**
 	 * @deprecated As of 7.0.0, replaced by {@link
 	 *             #replaceImportDLReferences(PortletDataContext, StagedModel,
-	 *             String, boolean)}
+	 *             String)}
 	 */
 	@Deprecated
 	public String replaceImportDLReferences(
@@ -261,15 +315,32 @@ public interface ExportImportHelper {
 
 	public String replaceImportDLReferences(
 			PortletDataContext portletDataContext,
-			StagedModel entityStagedModel, String content,
-			boolean importReferencedContent)
+			StagedModel entityStagedModel, String content)
 		throws Exception;
 
+	public String replaceImportLayoutReferences(
+			PortletDataContext portletDataContext, String content)
+		throws Exception;
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #replaceImportLayoutReferences(PortletDataContext, String)}
+	 */
+	@Deprecated
 	public String replaceImportLayoutReferences(
 			PortletDataContext portletDataContext, String content,
 			boolean importReferencedContent)
 		throws Exception;
 
+	public String replaceImportLinksToLayouts(
+			PortletDataContext portletDataContext, String content)
+		throws Exception;
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #replaceImportLinksToLayouts(PortletDataContext, String)}
+	 */
+	@Deprecated
 	public String replaceImportLinksToLayouts(
 			PortletDataContext portletDataContext, String content,
 			boolean importReferencedContent)
@@ -298,6 +369,15 @@ public interface ExportImportHelper {
 			long companyGroupId)
 		throws Exception;
 
+	public MissingReferences validateMissingReferences(
+			final PortletDataContext portletDataContext)
+		throws Exception;
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #validateMissingReferences(PortletDataContext)}
+	 */
+	@Deprecated
 	public MissingReferences validateMissingReferences(
 			long userId, long groupId, Map<String, String[]> parameterMap,
 			File file)

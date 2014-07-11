@@ -15,21 +15,19 @@
 package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.model.WorkflowInstanceLink;
 import com.liferay.portal.service.WorkflowInstanceLinkLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link WorkflowInstanceLinkLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link WorkflowInstanceLinkLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class WorkflowInstanceLinkActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public WorkflowInstanceLinkActionableDynamicQuery()
-		throws SystemException {
+	public WorkflowInstanceLinkActionableDynamicQuery() {
 		setBaseLocalService(WorkflowInstanceLinkLocalServiceUtil.getService());
 		setClass(WorkflowInstanceLink.class);
 

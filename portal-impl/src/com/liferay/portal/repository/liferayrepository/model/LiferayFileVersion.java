@@ -15,12 +15,10 @@
 package com.liferay.portal.repository.liferayrepository.model;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.security.auth.PrincipalThreadLocal;
 import com.liferay.portlet.documentlibrary.model.DLFileVersion;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil;
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -111,7 +109,7 @@ public class LiferayFileVersion extends LiferayModel implements FileVersion {
 
 	@Override
 	public InputStream getContentStream(boolean incrementCounter)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return _dlFileVersion.getContentStream(incrementCounter);
 	}
@@ -141,16 +139,14 @@ public class LiferayFileVersion extends LiferayModel implements FileVersion {
 		return _dlFileVersion.getExtraSettings();
 	}
 
-	public File getFile(boolean incrementCounter)
-		throws PortalException, SystemException {
-
+	public File getFile(boolean incrementCounter) throws PortalException {
 		return DLFileEntryLocalServiceUtil.getFile(
-			PrincipalThreadLocal.getUserId(), _dlFileVersion.getFileEntryId(),
-			_dlFileVersion.getVersion(), incrementCounter);
+			_dlFileVersion.getFileEntryId(), _dlFileVersion.getVersion(),
+			incrementCounter);
 	}
 
 	@Override
-	public FileEntry getFileEntry() throws PortalException, SystemException {
+	public FileEntry getFileEntry() throws PortalException {
 		return new LiferayFileEntry(_dlFileVersion.getFileEntry());
 	}
 
@@ -240,7 +236,7 @@ public class LiferayFileVersion extends LiferayModel implements FileVersion {
 	}
 
 	@Override
-	public String getStatusByUserUuid() throws SystemException {
+	public String getStatusByUserUuid() {
 		return _dlFileVersion.getStatusByUserUuid();
 	}
 
@@ -265,7 +261,7 @@ public class LiferayFileVersion extends LiferayModel implements FileVersion {
 	}
 
 	@Override
-	public String getUserUuid() throws SystemException {
+	public String getUserUuid() {
 		return _dlFileVersion.getUserUuid();
 	}
 

@@ -17,28 +17,31 @@ package com.liferay.portal.kernel.poller;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.io.Serializable;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-
 /**
  * @author Brian Wing Shun Chan
  */
-public class PollerRequest {
+public class PollerRequest implements Serializable {
 
 	public PollerRequest(
-		HttpServletRequest request, PollerHeader pollerHeader, String portletId,
+		PollerHeader pollerHeader, String portletId,
 		Map<String, String> parameterMap, String chunkId,
 		boolean receiveRequest) {
 
-		_request = request;
 		_pollerHeader = pollerHeader;
 		_portletId = portletId;
 		_parameterMap = parameterMap;
 		_chunkId = chunkId;
 		_receiveRequest = receiveRequest;
+	}
+
+	public PollerResponse createPollerResponse() {
+		return new DefaultPollerResponse();
 	}
 
 	@Override
@@ -88,10 +91,6 @@ public class PollerRequest {
 		Map<String, Boolean> portletIdsMap = _pollerHeader.getPortletIdsMap();
 
 		return portletIdsMap.keySet();
-	}
-
-	public HttpServletRequest getRequest() {
-		return _request;
 	}
 
 	public long getTimestamp() {
@@ -150,6 +149,5 @@ public class PollerRequest {
 	private PollerHeader _pollerHeader;
 	private String _portletId;
 	private boolean _receiveRequest;
-	private HttpServletRequest _request;
 
 }

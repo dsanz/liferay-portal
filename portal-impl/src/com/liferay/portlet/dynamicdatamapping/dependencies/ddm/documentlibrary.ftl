@@ -4,7 +4,10 @@
 	<#assign fieldRawValue = predefinedValue>
 </#if>
 
+<#assign fieldRawValue = paramUtil.getString(request, "${namespacedFieldName}", fieldRawValue)>
+
 <#assign fileEntryTitle = "">
+<#assign folderId = "">
 
 <#if (fieldRawValue != "")>
 	<#assign fileJSONObject = getFileJSONObject(fieldRawValue)>
@@ -13,6 +16,7 @@
 
 	<#if (fileEntry != "")>
 		<#assign fileEntryTitle = fileEntry.getTitle()>
+		<#assign folderId = fileEntry.getFolderId()>
 	</#if>
 </#if>
 
@@ -84,19 +88,31 @@
 				var portletURL = Liferay.PortletURL.createURL('${themeDisplay.getURLControlPanel()}');
 
 				portletURL.setDoAsGroupId(${scopeGroupId?c});
+				portletURL.setParameter('eventName', '${portletNamespace}selectDocumentLibrary');
+				portletURL.setParameter('folderId', '${folderId}');
 				portletURL.setParameter('groupId', ${scopeGroupId?c});
-				portletURL.setParameter('struts_action', '/dynamic_data_mapping/select_document_library');
-				portletURL.setPortletId('166');
+				portletURL.setParameter('refererPortletName', '${themeDisplay.getPortletDisplay().getId()}');
+				portletURL.setParameter('struts_action', '/document_selector/view');
+				portletURL.setParameter('tabs1Names', 'documents');
+				portletURL.setPortletId('200');
 				portletURL.setWindowState('pop_up');
 
-				Liferay.Util.openWindow(
+				Liferay.Util.selectEntity(
 					{
+						dialog: {
+							constrain: true,
+							destroyOnHide: true,
+							modal: true
+						},
+						eventName: '${portletNamespace}selectDocumentLibrary',
 						id: '${portletNamespace}selectDocumentLibrary',
+						title: '${languageUtil.get(locale, "select-document")}',
 						uri: portletURL.toString()
+					},
+					function(event) {
+						window['${portletNamespace}${namespacedFieldName}setFileEntry'](event.url, event.uuid, event.groupid, event.title, event.version);
 					}
 				);
-
-				window['${portalUtil.getPortletNamespace("166")}selectDocumentLibrary'] = window['${portletNamespace}${namespacedFieldName}setFileEntry'];
 			}
 		);
 	}

@@ -14,12 +14,12 @@
 
 package com.liferay.portal.security.membershippolicy;
 
-import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.User;
-import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.UserTestUtil;
+import com.liferay.portal.test.DeleteAfterTestRun;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.UserTestUtil;
 
 import org.junit.After;
 import org.junit.Before;
@@ -59,15 +59,11 @@ public abstract class BaseMembershipPolicyTestCase {
 
 	@Before
 	public void setUp() throws Exception {
-		FinderCacheUtil.clearCache();
-
 		group = GroupTestUtil.addGroup();
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		group = null;
-
 		_propagateMembership = false;
 		_propagateRoles = false;
 		_userIds = new long[2];
@@ -76,18 +72,19 @@ public abstract class BaseMembershipPolicyTestCase {
 
 	protected long[] addUsers() throws Exception {
 		User user1 = UserTestUtil.addUser(
-			ServiceTestUtil.randomString(), group.getGroupId());
+			RandomTestUtil.randomString(), group.getGroupId());
 
 		_userIds[0] = user1.getUserId();
 
 		User user2 = UserTestUtil.addUser(
-			ServiceTestUtil.randomString(), group.getGroupId());
+			RandomTestUtil.randomString(), group.getGroupId());
 
 		_userIds[1] = user2.getUserId();
 
 		return _userIds;
 	}
 
+	@DeleteAfterTestRun
 	protected Group group;
 
 	private static boolean _propagateMembership;

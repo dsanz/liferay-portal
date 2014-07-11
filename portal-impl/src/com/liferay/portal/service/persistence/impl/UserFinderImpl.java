@@ -20,9 +20,11 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
+import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -32,7 +34,6 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.User;
-import com.liferay.portal.model.UserGroup;
 import com.liferay.portal.model.impl.UserImpl;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.persistence.GroupUtil;
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,11 +61,11 @@ import java.util.Set;
 public class UserFinderImpl
 	extends BasePersistenceImpl<User> implements UserFinder {
 
+	public static final String COUNT_BY_SOCIAL_USERS =
+		UserFinder.class.getName() + ".countBySocialUsers";
+
 	public static final String COUNT_BY_USER =
 		UserFinder.class.getName() + ".countByUser";
-
-	public static final String COUNT_BY_C_FN_MN_LN_SN_EA_S =
-		UserFinder.class.getName() + ".countByC_FN_MN_LN_SN_EA_S";
 
 	public static final String FIND_BY_NO_ANNOUNCEMENTS_DELIVERIES =
 		UserFinder.class.getName() + ".findByNoAnnouncementsDeliveries";
@@ -73,6 +75,9 @@ public class UserFinderImpl
 
 	public static final String FIND_BY_NO_GROUPS =
 		UserFinder.class.getName() + ".findByNoGroups";
+
+	public static final String FIND_BY_SOCIAL_USERS =
+		UserFinder.class.getName() + ".findBySocialUsers";
 
 	public static final String FIND_BY_C_FN_MN_LN_SN_EA_S =
 		UserFinder.class.getName() + ".findByC_FN_MN_LN_SN_EA_S";
@@ -123,9 +128,56 @@ public class UserFinderImpl
 		UserFinder.class.getName() + ".joinBySocialRelationType";
 
 	@Override
-	public int countByUser(long userId, LinkedHashMap<String, Object> params)
-		throws SystemException {
+	public int countBySocialUsers(
+		long companyId, long userId, int socialRelationType,
+		String socialRelationTypeComparator, int status) {
 
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			String sql = CustomSQLUtil.get(COUNT_BY_SOCIAL_USERS);
+
+			sql = StringUtil.replace(
+				sql, "[$SOCIAL_RELATION_TYPE_COMPARATOR$]",
+				socialRelationTypeComparator.equals(StringPool.EQUAL) ?
+					StringPool.EQUAL : StringPool.NOT_EQUAL);
+
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+
+			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
+
+			QueryPos qPos = QueryPos.getInstance(q);
+
+			qPos.add(socialRelationType);
+			qPos.add(userId);
+			qPos.add(companyId);
+			qPos.add(Boolean.FALSE);
+			qPos.add(status);
+
+			Iterator<Long> itr = q.iterate();
+
+			if (itr.hasNext()) {
+				Long count = itr.next();
+
+				if (count != null) {
+					return count.intValue();
+				}
+			}
+
+			return 0;
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	@Override
+	public int countByUser(long userId, LinkedHashMap<String, Object> params) {
 		Session session = null;
 
 		try {
@@ -167,9 +219,8 @@ public class UserFinderImpl
 
 	@Override
 	public int countByKeywords(
-			long companyId, String keywords, int status,
-			LinkedHashMap<String, Object> params)
-		throws SystemException {
+		long companyId, String keywords, int status,
+		LinkedHashMap<String, Object> params) {
 
 		String[] firstNames = null;
 		String[] middleNames = null;
@@ -196,10 +247,9 @@ public class UserFinderImpl
 
 	@Override
 	public int countByC_FN_MN_LN_SN_EA_S(
-			long companyId, String firstName, String middleName,
-			String lastName, String screenName, String emailAddress, int status,
-			LinkedHashMap<String, Object> params, boolean andOperator)
-		throws SystemException {
+		long companyId, String firstName, String middleName, String lastName,
+		String screenName, String emailAddress, int status,
+		LinkedHashMap<String, Object> params, boolean andOperator) {
 
 		String[] firstNames = CustomSQLUtil.keywords(firstName);
 		String[] middleNames = CustomSQLUtil.keywords(middleName);
@@ -214,11 +264,9 @@ public class UserFinderImpl
 
 	@Override
 	public int countByC_FN_MN_LN_SN_EA_S(
-			long companyId, String[] firstNames, String[] middleNames,
-			String[] lastNames, String[] screenNames, String[] emailAddresses,
-			int status, LinkedHashMap<String, Object> params,
-			boolean andOperator)
-		throws SystemException {
+		long companyId, String[] firstNames, String[] middleNames,
+		String[] lastNames, String[] screenNames, String[] emailAddresses,
+		int status, LinkedHashMap<String, Object> params, boolean andOperator) {
 
 		firstNames = CustomSQLUtil.keywords(firstNames);
 		middleNames = CustomSQLUtil.keywords(middleNames);
@@ -284,17 +332,13 @@ public class UserFinderImpl
 					userGroupIds.add(group.getClassPK());
 				}
 				else {
-					for (Organization organization :
-							GroupUtil.getOrganizations(groupId)) {
+					organizationIds.addAll(
+						ListUtil.toList(
+							GroupUtil.getOrganizationPrimaryKeys(groupId)));
 
-						organizationIds.add(organization.getOrganizationId());
-					}
-
-					for (UserGroup userGroup :
-							GroupUtil.getUserGroups(groupId)) {
-
-						userGroupIds.add(userGroup.getUserGroupId());
-					}
+					userGroupIds.addAll(
+						ListUtil.toList(
+							GroupUtil.getUserGroupPrimaryKeys(groupId)));
 				}
 			}
 
@@ -335,21 +379,17 @@ public class UserFinderImpl
 						userGroupIds.add(group.getClassPK());
 					}
 					else {
+						organizationIds.addAll(
+							ListUtil.toList(
+								GroupUtil.getOrganizationPrimaryKeys(
+									group.getGroupId())));
+
 						roleGroupIds.add(group.getGroupId());
 
-						for (Organization organization :
-								GroupUtil.getOrganizations(
-									group.getGroupId())) {
-
-							organizationIds.add(
-								organization.getOrganizationId());
-						}
-
-						for (UserGroup userGroup :
-								GroupUtil.getUserGroups(group.getGroupId())) {
-
-							userGroupIds.add(userGroup.getUserGroupId());
-						}
+						userGroupIds.addAll(
+							ListUtil.toList(
+								GroupUtil.getUserGroupPrimaryKeys(
+									group.getGroupId())));
 					}
 				}
 			}
@@ -433,10 +473,9 @@ public class UserFinderImpl
 
 	@Override
 	public List<User> findByKeywords(
-			long companyId, String keywords, int status,
-			LinkedHashMap<String, Object> params, int start, int end,
-			OrderByComparator obc)
-		throws SystemException {
+		long companyId, String keywords, int status,
+		LinkedHashMap<String, Object> params, int start, int end,
+		OrderByComparator<User> obc) {
 
 		String[] firstNames = null;
 		String[] middleNames = null;
@@ -445,12 +484,19 @@ public class UserFinderImpl
 		String[] emailAddresses = null;
 		boolean andOperator = false;
 
+		if (params == null) {
+			params = _emptyLinkedHashMap;
+		}
+
 		if (Validator.isNotNull(keywords)) {
-			firstNames = CustomSQLUtil.keywords(keywords);
-			middleNames = CustomSQLUtil.keywords(keywords);
-			lastNames = CustomSQLUtil.keywords(keywords);
-			screenNames = CustomSQLUtil.keywords(keywords);
-			emailAddresses = CustomSQLUtil.keywords(keywords);
+			WildcardMode wildcardMode = (WildcardMode)GetterUtil.getObject(
+				params.get("wildcardMode"), WildcardMode.SURROUND);
+
+			firstNames = CustomSQLUtil.keywords(keywords, wildcardMode);
+			middleNames = CustomSQLUtil.keywords(keywords, wildcardMode);
+			lastNames = CustomSQLUtil.keywords(keywords, wildcardMode);
+			screenNames = CustomSQLUtil.keywords(keywords, wildcardMode);
+			emailAddresses = CustomSQLUtil.keywords(keywords, wildcardMode);
 		}
 		else {
 			andOperator = true;
@@ -462,9 +508,7 @@ public class UserFinderImpl
 	}
 
 	@Override
-	public List<User> findByNoAnnouncementsDeliveries(String type)
-		throws SystemException {
-
+	public List<User> findByNoAnnouncementsDeliveries(String type) {
 		Session session = null;
 
 		try {
@@ -491,7 +535,7 @@ public class UserFinderImpl
 	}
 
 	@Override
-	public List<User> findByNoContacts() throws SystemException {
+	public List<User> findByNoContacts() {
 		Session session = null;
 
 		try {
@@ -514,7 +558,7 @@ public class UserFinderImpl
 	}
 
 	@Override
-	public List<User> findByNoGroups() throws SystemException {
+	public List<User> findByNoGroups() {
 		Session session = null;
 
 		try {
@@ -537,12 +581,53 @@ public class UserFinderImpl
 	}
 
 	@Override
+	public List<User> findBySocialUsers(
+		long companyId, long userId, int socialRelationType,
+		String socialRelationTypeComparator, int status, int start, int end,
+		OrderByComparator<User> obc) {
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			String sql = CustomSQLUtil.get(FIND_BY_SOCIAL_USERS);
+
+			sql = StringUtil.replace(
+				sql, "[$SOCIAL_RELATION_TYPE_COMPARATOR$]",
+				socialRelationTypeComparator.equals(StringPool.EQUAL) ?
+					StringPool.EQUAL : StringPool.NOT_EQUAL);
+
+			sql = CustomSQLUtil.replaceOrderBy(sql, obc);
+
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+
+			q.addEntity("User_", UserImpl.class);
+
+			QueryPos qPos = QueryPos.getInstance(q);
+
+			qPos.add(socialRelationType);
+			qPos.add(userId);
+			qPos.add(companyId);
+			qPos.add(Boolean.FALSE);
+			qPos.add(status);
+
+			return (List<User>)QueryUtil.list(q, getDialect(), start, end);
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	@Override
 	public List<User> findByC_FN_MN_LN_SN_EA_S(
-			long companyId, String firstName, String middleName,
-			String lastName, String screenName, String emailAddress, int status,
-			LinkedHashMap<String, Object> params, boolean andOperator,
-			int start, int end, OrderByComparator obc)
-		throws SystemException {
+		long companyId, String firstName, String middleName, String lastName,
+		String screenName, String emailAddress, int status,
+		LinkedHashMap<String, Object> params, boolean andOperator, int start,
+		int end, OrderByComparator<User> obc) {
 
 		String[] firstNames = CustomSQLUtil.keywords(firstName);
 		String[] middleNames = CustomSQLUtil.keywords(middleName);
@@ -557,11 +642,10 @@ public class UserFinderImpl
 
 	@Override
 	public List<User> findByC_FN_MN_LN_SN_EA_S(
-			long companyId, String[] firstNames, String[] middleNames,
-			String[] lastNames, String[] screenNames, String[] emailAddresses,
-			int status, LinkedHashMap<String, Object> params,
-			boolean andOperator, int start, int end, OrderByComparator obc)
-		throws SystemException {
+		long companyId, String[] firstNames, String[] middleNames,
+		String[] lastNames, String[] screenNames, String[] emailAddresses,
+		int status, LinkedHashMap<String, Object> params, boolean andOperator,
+		int start, int end, OrderByComparator<User> obc) {
 
 		firstNames = CustomSQLUtil.keywords(firstNames);
 		middleNames = CustomSQLUtil.keywords(middleNames);
@@ -608,8 +692,12 @@ public class UserFinderImpl
 		}
 
 		boolean inherit = GetterUtil.getBoolean(params.get("inherit"));
+		boolean socialRelationTypeUnionUserGroups = GetterUtil.getBoolean(
+			params.get("socialRelationTypeUnionUserGroups"));
 
-		if (ArrayUtil.isNotEmpty(groupIds) && inherit) {
+		if (ArrayUtil.isNotEmpty(groupIds) && inherit &&
+			!socialRelationTypeUnionUserGroups) {
+
 			List<Long> organizationIds = new ArrayList<Long>();
 			List<Long> userGroupIds = new ArrayList<Long>();
 
@@ -627,17 +715,13 @@ public class UserFinderImpl
 					userGroupIds.add(group.getClassPK());
 				}
 				else {
-					for (Organization organization :
-							GroupUtil.getOrganizations(groupId)) {
+					organizationIds.addAll(
+						ListUtil.toList(
+							GroupUtil.getOrganizationPrimaryKeys(groupId)));
 
-						organizationIds.add(organization.getOrganizationId());
-					}
-
-					for (UserGroup userGroup :
-							GroupUtil.getUserGroups(groupId)) {
-
-						userGroupIds.add(userGroup.getUserGroupId());
-					}
+					userGroupIds.addAll(
+						ListUtil.toList(
+							GroupUtil.getUserGroupPrimaryKeys(groupId)));
 				}
 			}
 
@@ -662,7 +746,9 @@ public class UserFinderImpl
 			}
 		}
 
-		if (ArrayUtil.isNotEmpty(roleIds) && inherit) {
+		if (ArrayUtil.isNotEmpty(roleIds) && inherit &&
+			!socialRelationTypeUnionUserGroups) {
+
 			List<Long> organizationIds = new ArrayList<Long>();
 			List<Long> roleGroupIds = new ArrayList<Long>();
 			List<Long> userGroupIds = new ArrayList<Long>();
@@ -678,21 +764,17 @@ public class UserFinderImpl
 						userGroupIds.add(group.getClassPK());
 					}
 					else {
+						organizationIds.addAll(
+							ListUtil.toList(
+								GroupUtil.getOrganizationPrimaryKeys(
+									group.getGroupId())));
+
 						roleGroupIds.add(group.getGroupId());
 
-						for (Organization organization :
-								GroupUtil.getOrganizations(
-									group.getGroupId())) {
-
-							organizationIds.add(
-								organization.getOrganizationId());
-						}
-
-						for (UserGroup userGroup :
-								GroupUtil.getUserGroups(group.getGroupId())) {
-
-							userGroupIds.add(userGroup.getUserGroupId());
-						}
+						userGroupIds.addAll(
+							ListUtil.toList(
+								GroupUtil.getUserGroupPrimaryKeys(
+									group.getGroupId())));
 					}
 				}
 			}
@@ -725,6 +807,19 @@ public class UserFinderImpl
 				params4.put(
 					"usersOrgs",
 					organizationIds.toArray(new Long[organizationIds.size()]));
+			}
+		}
+
+		if (socialRelationTypeUnionUserGroups) {
+			boolean hasSocialRelationTypes = Validator.isNotNull(
+				params.get("socialRelationType"));
+
+			if (hasSocialRelationTypes && ArrayUtil.isNotEmpty(groupIds)) {
+				params2 = new LinkedHashMap<String, Object>(params1);
+
+				params1.remove("socialRelationType");
+
+				params2.remove("usersGroups");
 			}
 		}
 
@@ -856,8 +951,8 @@ public class UserFinderImpl
 				}
 			}
 
-			List<Long> userIds = (List<Long>)QueryUtil.list(
-				q, getDialect(), start, end);
+			Set<Long> userIds = new LinkedHashSet<Long>(
+				(List<Long>)QueryUtil.list(q, getDialect(), start, end));
 
 			List<User> users = new ArrayList<User>(userIds.size());
 
@@ -883,7 +978,7 @@ public class UserFinderImpl
 		String[] emailAddresses, int status,
 		LinkedHashMap<String, Object> params, boolean andOperator) {
 
-		String sql = CustomSQLUtil.get(COUNT_BY_C_FN_MN_LN_SN_EA_S);
+		String sql = CustomSQLUtil.get(FIND_BY_C_FN_MN_LN_SN_EA_S);
 
 		sql = CustomSQLUtil.replaceKeywords(
 			sql, "lower(User_.firstName)", StringPool.LIKE, false, firstNames);
@@ -1185,7 +1280,31 @@ public class UserFinderImpl
 			join = CustomSQLUtil.get(JOIN_BY_SOCIAL_RELATION);
 		}
 		else if (key.equals("socialRelationType")) {
-			join = CustomSQLUtil.get(JOIN_BY_SOCIAL_RELATION_TYPE);
+			if (value instanceof Long[]) {
+				join = CustomSQLUtil.get(JOIN_BY_SOCIAL_RELATION_TYPE);
+			}
+			else if (value instanceof Long[][]) {
+				StringBundler sb = new StringBundler();
+
+				sb.append("WHERE (SocialRelation.userId1 = ?) AND ");
+				sb.append("(SocialRelation.type_ IN (");
+
+				Long[][] valueDoubleArray = (Long[][])value;
+
+				Long[] socialRelationTypes = valueDoubleArray[1];
+
+				for (int i = 0; i < socialRelationTypes.length; i++) {
+					sb.append(StringPool.QUESTION);
+
+					if ((i + 1) < socialRelationTypes.length) {
+						sb.append(StringPool.COMMA);
+					}
+				}
+
+				sb.append("))");
+
+				join = sb.toString();
+			}
 		}
 		else if (value instanceof CustomSQLParam) {
 			CustomSQLParam customSQLParam = (CustomSQLParam)value;

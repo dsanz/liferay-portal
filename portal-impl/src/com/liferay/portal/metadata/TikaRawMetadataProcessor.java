@@ -109,8 +109,7 @@ public class TikaRawMetadataProcessor extends XugglerRawMetadataProcessor {
 
 	@Override
 	protected Metadata extractMetadata(
-			String extension, String mimeType, File file)
-		throws SystemException {
+		String extension, String mimeType, File file) {
 
 		Metadata metadata = super.extractMetadata(extension, mimeType, file);
 
@@ -131,6 +130,7 @@ public class TikaRawMetadataProcessor extends XugglerRawMetadataProcessor {
 
 			try {
 				Future<Metadata> future = ProcessExecutor.execute(
+					ClassPathUtil.getGlobalClassPath(),
 					ClassPathUtil.getPortalClassPath(),
 					extractMetadataProcessCallable);
 
@@ -158,8 +158,7 @@ public class TikaRawMetadataProcessor extends XugglerRawMetadataProcessor {
 
 	@Override
 	protected Metadata extractMetadata(
-			String extension, String mimeType, InputStream inputStream)
-		throws SystemException {
+		String extension, String mimeType, InputStream inputStream) {
 
 		Metadata metadata = super.extractMetadata(
 			extension, mimeType, inputStream);
@@ -185,6 +184,7 @@ public class TikaRawMetadataProcessor extends XugglerRawMetadataProcessor {
 					new ExtractMetadataProcessCallable(file, metadata, _parser);
 
 				Future<Metadata> future = ProcessExecutor.execute(
+					ClassPathUtil.getGlobalClassPath(),
 					ClassPathUtil.getPortalClassPath(),
 					extractMetadataProcessCallable);
 

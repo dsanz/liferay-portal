@@ -40,6 +40,22 @@ public class DDLRecordSetServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portlet.dynamicdatalists.service.impl.DDLRecordSetServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static com.liferay.portlet.dynamicdatalists.model.DDLRecordSet addRecordSet(
+		long groupId, long ddmStructureId, java.lang.String recordSetKey,
+		java.util.Map<java.util.Locale, java.lang.String> nameMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		int minDisplayRows, int scope,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .addRecordSet(groupId, ddmStructureId, recordSetKey,
+			nameMap, descriptionMap, minDisplayRows, scope, serviceContext);
+	}
+
+	public static void deleteRecordSet(long recordSetId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteRecordSet(recordSetId);
+	}
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -48,6 +64,44 @@ public class DDLRecordSetServiceUtil {
 	*/
 	public static java.lang.String getBeanIdentifier() {
 		return getService().getBeanIdentifier();
+	}
+
+	public static com.liferay.portlet.dynamicdatalists.model.DDLRecordSet getRecordSet(
+		long recordSetId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getRecordSet(recordSetId);
+	}
+
+	public static java.util.List<com.liferay.portlet.dynamicdatalists.model.DDLRecordSet> search(
+		long companyId, long groupId, java.lang.String keywords, int scope,
+		int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.dynamicdatalists.model.DDLRecordSet> orderByComparator) {
+		return getService()
+				   .search(companyId, groupId, keywords, scope, start, end,
+			orderByComparator);
+	}
+
+	public static java.util.List<com.liferay.portlet.dynamicdatalists.model.DDLRecordSet> search(
+		long companyId, long groupId, java.lang.String name,
+		java.lang.String description, int scope, boolean andOperator,
+		int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.dynamicdatalists.model.DDLRecordSet> orderByComparator) {
+		return getService()
+				   .search(companyId, groupId, name, description, scope,
+			andOperator, start, end, orderByComparator);
+	}
+
+	public static int searchCount(long companyId, long groupId,
+		java.lang.String keywords, int scope) {
+		return getService().searchCount(companyId, groupId, keywords, scope);
+	}
+
+	public static int searchCount(long companyId, long groupId,
+		java.lang.String name, java.lang.String description, int scope,
+		boolean andOperator) {
+		return getService()
+				   .searchCount(companyId, groupId, name, description, scope,
+			andOperator);
 	}
 
 	/**
@@ -59,76 +113,25 @@ public class DDLRecordSetServiceUtil {
 		getService().setBeanIdentifier(beanIdentifier);
 	}
 
-	public static com.liferay.portlet.dynamicdatalists.model.DDLRecordSet addRecordSet(
-		long groupId, long ddmStructureId, java.lang.String recordSetKey,
-		java.util.Map<java.util.Locale, java.lang.String> nameMap,
-		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
-		int minDisplayRows, int scope,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .addRecordSet(groupId, ddmStructureId, recordSetKey,
-			nameMap, descriptionMap, minDisplayRows, scope, serviceContext);
-	}
-
-	public static void deleteRecordSet(long recordSetId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteRecordSet(recordSetId);
-	}
-
-	public static com.liferay.portlet.dynamicdatalists.model.DDLRecordSet getRecordSet(
-		long recordSetId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getRecordSet(recordSetId);
-	}
-
-	public static java.util.List<com.liferay.portlet.dynamicdatalists.model.DDLRecordSet> search(
-		long companyId, long groupId, java.lang.String keywords, int scope,
-		int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .search(companyId, groupId, keywords, scope, start, end,
-			orderByComparator);
-	}
-
-	public static java.util.List<com.liferay.portlet.dynamicdatalists.model.DDLRecordSet> search(
-		long companyId, long groupId, java.lang.String name,
-		java.lang.String description, int scope, boolean andOperator,
-		int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .search(companyId, groupId, name, description, scope,
-			andOperator, start, end, orderByComparator);
-	}
-
-	public static int searchCount(long companyId, long groupId,
-		java.lang.String keywords, int scope)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().searchCount(companyId, groupId, keywords, scope);
-	}
-
-	public static int searchCount(long companyId, long groupId,
-		java.lang.String name, java.lang.String description, int scope,
-		boolean andOperator)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .searchCount(companyId, groupId, name, description, scope,
-			andOperator);
-	}
-
 	public static com.liferay.portlet.dynamicdatalists.model.DDLRecordSet updateMinDisplayRows(
 		long recordSetId, int minDisplayRows,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updateMinDisplayRows(recordSetId, minDisplayRows,
 			serviceContext);
+	}
+
+	public static com.liferay.portlet.dynamicdatalists.model.DDLRecordSet updateRecordSet(
+		long groupId, long ddmStructureId, java.lang.String recordSetKey,
+		java.util.Map<java.util.Locale, java.lang.String> nameMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		int minDisplayRows,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .updateRecordSet(groupId, ddmStructureId, recordSetKey,
+			nameMap, descriptionMap, minDisplayRows, serviceContext);
 	}
 
 	public static com.liferay.portlet.dynamicdatalists.model.DDLRecordSet updateRecordSet(
@@ -137,24 +140,10 @@ public class DDLRecordSetServiceUtil {
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
 		int minDisplayRows,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updateRecordSet(recordSetId, ddmStructureId, nameMap,
 			descriptionMap, minDisplayRows, serviceContext);
-	}
-
-	public static com.liferay.portlet.dynamicdatalists.model.DDLRecordSet updateRecordSet(
-		long groupId, long ddmStructureId, java.lang.String recordSetKey,
-		java.util.Map<java.util.Locale, java.lang.String> nameMap,
-		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
-		int minDisplayRows,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .updateRecordSet(groupId, ddmStructureId, recordSetKey,
-			nameMap, descriptionMap, minDisplayRows, serviceContext);
 	}
 
 	public static DDLRecordSetService getService() {

@@ -40,6 +40,37 @@ public class DDLRecordServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portlet.dynamicdatalists.service.impl.DDLRecordServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord addRecord(
+		long groupId, long recordSetId, int displayIndex,
+		com.liferay.portlet.dynamicdatamapping.storage.Fields fields,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .addRecord(groupId, recordSetId, displayIndex, fields,
+			serviceContext);
+	}
+
+	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord addRecord(
+		long groupId, long recordSetId, int displayIndex,
+		java.util.Map<java.lang.String, java.io.Serializable> fieldsMap,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .addRecord(groupId, recordSetId, displayIndex, fieldsMap,
+			serviceContext);
+	}
+
+	public static void deleteRecord(long recordId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteRecord(recordId);
+	}
+
+	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord deleteRecordLocale(
+		long recordId, java.util.Locale locale,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deleteRecordLocale(recordId, locale, serviceContext);
+	}
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -48,6 +79,19 @@ public class DDLRecordServiceUtil {
 	*/
 	public static java.lang.String getBeanIdentifier() {
 		return getService().getBeanIdentifier();
+	}
+
+	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord getRecord(
+		long recordId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getRecord(recordId);
+	}
+
+	public static void revertRecordVersion(long recordId,
+		java.lang.String version,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().revertRecordVersion(recordId, version, serviceContext);
 	}
 
 	/**
@@ -59,55 +103,15 @@ public class DDLRecordServiceUtil {
 		getService().setBeanIdentifier(beanIdentifier);
 	}
 
-	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord addRecord(
-		long groupId, long recordSetId, int displayIndex,
-		com.liferay.portlet.dynamicdatamapping.storage.Fields fields,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .addRecord(groupId, recordSetId, displayIndex, fields,
-			serviceContext);
-	}
-
-	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord addRecord(
-		long groupId, long recordSetId, int displayIndex,
+	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord updateRecord(
+		long recordId, int displayIndex,
 		java.util.Map<java.lang.String, java.io.Serializable> fieldsMap,
+		boolean mergeFields,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
-				   .addRecord(groupId, recordSetId, displayIndex, fieldsMap,
-			serviceContext);
-	}
-
-	public static void deleteRecord(long recordId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteRecord(recordId);
-	}
-
-	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord deleteRecordLocale(
-		long recordId, java.util.Locale locale,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().deleteRecordLocale(recordId, locale, serviceContext);
-	}
-
-	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord getRecord(
-		long recordId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getRecord(recordId);
-	}
-
-	public static void revertRecordVersion(long recordId,
-		java.lang.String version,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().revertRecordVersion(recordId, version, serviceContext);
+				   .updateRecord(recordId, displayIndex, fieldsMap,
+			mergeFields, serviceContext);
 	}
 
 	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord updateRecord(
@@ -115,22 +119,9 @@ public class DDLRecordServiceUtil {
 		com.liferay.portlet.dynamicdatamapping.storage.Fields fields,
 		boolean mergeFields,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updateRecord(recordId, majorVersion, displayIndex, fields,
-			mergeFields, serviceContext);
-	}
-
-	public static com.liferay.portlet.dynamicdatalists.model.DDLRecord updateRecord(
-		long recordId, int displayIndex,
-		java.util.Map<java.lang.String, java.io.Serializable> fieldsMap,
-		boolean mergeFields,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .updateRecord(recordId, displayIndex, fieldsMap,
 			mergeFields, serviceContext);
 	}
 

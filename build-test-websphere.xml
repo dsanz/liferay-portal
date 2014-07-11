@@ -4,7 +4,9 @@
 	<import file="build-test.xml" />
 
 	<target name="run-selenium-websphere">
-		<echo file="app.server.${user.name}.properties">app.server.type=websphere</echo>
+		<app-server-properties-update>
+			app.server.type=websphere
+		</app-server-properties-update>
 
 		<if>
 			<not>
@@ -18,6 +20,8 @@
 		</if>
 
 		<antcall target="revert-test-properties" />
+
+		<ant dir="portal-impl" target="build-selenium-new-test-case" />
 
 		<antcall target="prepare-selenium">
 			<param name="test.class" value="${test.name}" />

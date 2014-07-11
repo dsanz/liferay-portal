@@ -17,6 +17,8 @@
 <%@ include file="/html/portlet/document_library/init.jsp" %>
 
 <%
+boolean emailFileEntryAnyEventEnabled = dlSettings.isEmailFileEntryAddedEnabled() || dlSettings.isEmailFileEntryUpdatedEnabled();
+
 String navigation = ParamUtil.getString(request, "navigation", "home");
 
 Folder folder = (Folder)request.getAttribute(WebKeys.DOCUMENT_LIBRARY_FOLDER);
@@ -27,7 +29,7 @@ long repositoryId = GetterUtil.getLong((String)request.getAttribute("view.jsp-re
 
 long fileEntryTypeId = ParamUtil.getLong(request, "fileEntryTypeId", -1);
 
-String dlFileEntryTypeName = LanguageUtil.get(pageContext, "basic-document");
+String dlFileEntryTypeName = LanguageUtil.get(request, "basic-document");
 
 int status = WorkflowConstants.STATUS_APPROVED;
 
@@ -41,6 +43,10 @@ String tagName = ParamUtil.getString(request, "tag");
 boolean useAssetEntryQuery = (categoryId > 0) || Validator.isNotNull(tagName);
 
 String displayStyle = ParamUtil.getString(request, "displayStyle");
+
+DLEntryListDisplayContext dlEntriesListDisplayContext = new DLEntryListDisplayContext(request, dlPortletInstanceSettings);
+
+String[] displayViews = dlPortletInstanceSettings.getDisplayViews();
 
 if (Validator.isNull(displayStyle)) {
 	displayStyle = portalPreferences.getValue(PortletKeys.DOCUMENT_LIBRARY, "display-style", PropsValues.DL_DEFAULT_DISPLAY_VIEW);
@@ -64,11 +70,13 @@ portletURL.setParameter("folderId", String.valueOf(folderId));
 portletURL.setParameter("displayStyle", String.valueOf(displayStyle));
 
 int entryStart = ParamUtil.getInteger(request, "entryStart");
-int entryEnd = ParamUtil.getInteger(request, "entryEnd", entriesPerPage);
+int entryEnd = ParamUtil.getInteger(request, "entryEnd", dlPortletInstanceSettings.getEntriesPerPage());
 
 SearchContainer searchContainer = new SearchContainer(liferayPortletRequest, null, null, "cur2", entryEnd / (entryEnd - entryStart), entryEnd - entryStart, portletURL, null, null);
 
 List<String> headerNames = new ArrayList<String>();
+
+String[] entryColumns = dlEntriesListDisplayContext.getEntryColumns();
 
 for (String headerName : entryColumns) {
 	if (headerName.equals("action")) {
@@ -113,7 +121,7 @@ else {
 	}
 }
 
-OrderByComparator orderByComparator = DLUtil.getRepositoryModelOrderByComparator(orderByCol, orderByType);
+OrderByComparator<?> orderByComparator = DLUtil.getRepositoryModelOrderByComparator(orderByCol, orderByType);
 
 searchContainer.setOrderableHeaders(orderableHeaders);
 searchContainer.setOrderByCol(orderByCol);
@@ -252,7 +260,7 @@ request.setAttribute("view_entries.jsp-entryEnd", String.valueOf(searchContainer
 %>
 
 <div class="subscribe-action">
-	<c:if test="<%= DLFolderPermission.contains(permissionChecker, scopeGroupId, folderId, ActionKeys.SUBSCRIBE) && ((folder == null) || folder.isSupportsSubscribing()) && DLUtil.getEmailFileEntryAnyEventEnabled(dlSettings) %>">
+	<c:if test="<%= DLFolderPermission.contains(permissionChecker, scopeGroupId, folderId, ActionKeys.SUBSCRIBE) && ((folder == null) || folder.isSupportsSubscribing()) && emailFileEntryAnyEventEnabled %>">
 
 		<%
 		boolean subscribed = false;
@@ -292,14 +300,15 @@ request.setAttribute("view_entries.jsp-entryEnd", String.valueOf(searchContainer
 						</portlet:actionURL>
 
 						<liferay-ui:icon
-							image="unsubscribe"
+							iconCssClass="icon-remove-sign"
 							label="<%= true %>"
+							message="unsubscribe"
 							url="<%= unsubscribeURL %>"
 						/>
 					</c:when>
 					<c:otherwise>
 						<liferay-ui:icon
-							image="unsubscribe"
+							iconCssClass="icon-remove-sign"
 							label="<%= true %>"
 							message="subscribed-to-a-parent-folder"
 						/>
@@ -323,8 +332,9 @@ request.setAttribute("view_entries.jsp-entryEnd", String.valueOf(searchContainer
 				</portlet:actionURL>
 
 				<liferay-ui:icon
-					image="subscribe"
+					iconCssClass="icon-ok-sign"
 					label="<%= true %>"
+					message="subscribe"
 					url="<%= subscribeURL %>"
 				/>
 			</c:otherwise>
@@ -333,7 +343,7 @@ request.setAttribute("view_entries.jsp-entryEnd", String.valueOf(searchContainer
 </div>
 
 <c:if test="<%= results.isEmpty() %>">
-	<div class="entries-empty alert alert-info">
+	<div class="alert alert-info entries-empty">
 		<c:choose>
 			<c:when test="<%= (fileEntryTypeId >= 0) %>">
 				<liferay-ui:message arguments="<%= HtmlUtil.escape(dlFileEntryTypeName) %>" key="there-are-no-documents-or-media-files-of-type-x" translateArguments="<%= false %>" />
@@ -384,7 +394,7 @@ for (int i = 0; i < results.size(); i++) {
 
 						<c:otherwise>
 							<div style="float: left; margin: 100px 10px 0px;">
-								<img alt="<liferay-ui:message key="error" />" border="no" src="<%= themeDisplay.getPathThemeImages() %>/application/forbidden_action.png" />
+								<i class="icon-ban-circle"></i>
 							</div>
 						</c:otherwise>
 					</c:choose>
@@ -403,6 +413,10 @@ for (int i = 0; i < results.size(); i++) {
 					<liferay-util:buffer var="fileEntryTitle">
 
 						<%
+						AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(DLFileEntry.class.getName());
+
+						AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(fileEntry.getFileEntryId());
+
 						PortletURL rowURL = liferayPortletResponse.createRenderURL();
 
 						rowURL.setParameter("struts_action", "/document_library/view_file_entry");
@@ -412,9 +426,9 @@ for (int i = 0; i < results.size(); i++) {
 
 						<liferay-ui:app-view-entry
 							displayStyle="list"
+							iconCssClass="<%= assetRenderer.getIconCssClass() %>"
 							locked="<%= fileEntry.isCheckedOut() %>"
 							showCheckbox="<%= true %>"
-							thumbnailSrc='<%= themeDisplay.getPathThemeImages() + "/file_system/small/" + DLUtil.getFileIcon(fileEntry.getExtension()) + ".png" %>'
 							title="<%= latestFileVersion.getTitle() %>"
 							url="<%= rowURL.toString() %>"
 						/>
@@ -443,7 +457,7 @@ for (int i = 0; i < results.size(); i++) {
 
 					for (String columnName : entryColumns) {
 						if (columnName.equals("action")) {
-							row.addJSP("/html/portlet/document_library/file_entry_action.jsp");
+							row.addJSP("/html/portlet/document_library/file_entry_action.jsp", "entry-action");
 						}
 
 						if (columnName.equals("create-date")) {
@@ -522,16 +536,14 @@ for (int i = 0; i < results.size(); i++) {
 					<liferay-util:buffer var="folderTitle">
 
 						<%
-						String folderImage = "folder_empty";
-
-						if (DLAppServiceUtil.getFoldersAndFileEntriesAndFileShortcutsCount(curFolder.getRepositoryId(), curFolder.getFolderId(), status, true) > 0) {
-							folderImage = "folder_full_document";
-						}
-
 						Map<String, Object> data = new HashMap<String, Object>();
 
 						data.put("folder", true);
 						data.put("folder-id", curFolder.getFolderId());
+
+						AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(DLFolder.class.getName());
+
+						AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(curFolder.getFolderId());
 
 						PortletURL rowURL = liferayPortletResponse.createRenderURL();
 
@@ -544,8 +556,8 @@ for (int i = 0; i < results.size(); i++) {
 							data="<%= data %>"
 							displayStyle="list"
 							folder="<%= true %>"
+							iconCssClass="<%= assetRenderer.getIconCssClass() %>"
 							showCheckbox="<%= false %>"
-							thumbnailSrc='<%= themeDisplay.getPathThemeImages() + "/common/" + folderImage + ".png" %>'
 							title="<%= curFolder.getName() %>"
 							url="<%= rowURL.toString() %>"
 						/>
@@ -569,7 +581,7 @@ for (int i = 0; i < results.size(); i++) {
 
 					for (String columnName : entryColumns) {
 						if (columnName.equals("action")) {
-							row.addJSP("/html/portlet/document_library/folder_action.jsp");
+							row.addJSP("/html/portlet/document_library/folder_action.jsp", "entry-action");
 						}
 
 						if (columnName.equals("create-date")) {

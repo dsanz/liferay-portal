@@ -15,20 +15,19 @@
 package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.model.SystemEvent;
 import com.liferay.portal.service.SystemEventLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link SystemEventLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link SystemEventLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class SystemEventActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public SystemEventActionableDynamicQuery() throws SystemException {
+	public SystemEventActionableDynamicQuery() {
 		setBaseLocalService(SystemEventLocalServiceUtil.getService());
 		setClass(SystemEvent.class);
 

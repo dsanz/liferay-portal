@@ -37,8 +37,6 @@ AUI.add(
 
 		var STR_PREVIEW_PANEL = 'previewPanel';
 
-		var STR_TOUCHSTART = 'touchstart';
-
 		var TPL_ADD_CONTENT = '<div class="lfr-add-panel lfr-admin-panel" id="{0}" />';
 
 		var TPL_EDIT_LAYOUT_PANEL = '<div class="lfr-admin-panel lfr-edit-layout-panel" id="{0}" />';
@@ -56,22 +54,19 @@ AUI.add(
 				if (dockBar) {
 					instance.dockBar = dockBar;
 
-					instance._namespace = dockBar.attr('data-namespace');
+					var namespace = dockBar.attr('data-namespace');
+
+					instance._namespace = namespace;
 
 					Liferay.once('initDockbar', instance._init, instance);
 
 					var eventHandle = dockBar.on(
-						['focus', 'mousemove', STR_TOUCHSTART],
+						['focus', 'mousemove', 'touchstart'],
 						function(event) {
 							var target = event.target;
 							var type = event.type;
 
-							Liferay.fire(
-								'initDockbar',
-								{
-									siteNavTouch: ((type === STR_TOUCHSTART) && (target.ancestor('.site-navigation-btn', true, '.nav-navigation')))
-								}
-							);
+							Liferay.fire('initDockbar');
 
 							eventHandle.detach();
 
@@ -80,6 +75,22 @@ AUI.add(
 							}
 						}
 					);
+
+					var btnNavigation = A.one('#' + namespace + 'navSiteNavigation');
+
+					var navigation = A.one(Liferay.Data.NAV_SELECTOR);
+
+					if (btnNavigation && navigation) {
+						btnNavigation.setData('menuItem', navigation);
+
+						new Liferay.MenuToggle(
+							{
+								content: [btnNavigation, navigation],
+								toggleTouch: false,
+								trigger: btnNavigation
+							}
+						);
+					}
 
 					BODY.addClass('dockbar-ready');
 
@@ -111,7 +122,7 @@ AUI.add(
 
 							BODY.prepend(panelNode);
 
-							panelNode.set('id', panelSidebarId);
+							panelNode.attr('id', panelSidebarId);
 
 							panel.node = panelNode;
 						}
@@ -119,12 +130,6 @@ AUI.add(
 				}
 
 				return panelNode;
-			},
-
-			togglePreviewPanel: function() {
-				var instance = this;
-
-				Dockbar._togglePanel(STR_PREVIEW_PANEL);
 			},
 
 			toggleAddPanel: function() {
@@ -139,6 +144,12 @@ AUI.add(
 				Dockbar._togglePanel(STR_EDIT_LAYOUT_PANEL);
 			},
 
+			togglePreviewPanel: function() {
+				var instance = this;
+
+				Dockbar._togglePanel(STR_PREVIEW_PANEL);
+			},
+
 			_registerPanels: function() {
 				var instance = this;
 
@@ -146,7 +157,7 @@ AUI.add(
 
 				AObject.each(
 					DOCKBAR_PANELS,
-					function(item, index, collection) {
+					function(item, index) {
 						var panelId = item.id;
 
 						var panelTrigger = A.one('#' + namespace + panelId);
@@ -198,11 +209,15 @@ AUI.add(
 
 					var navAccountControls = A.one('#' + namespace + 'navAccountControls');
 
-					navAccountControls.toggleClass('nav-account-controls-notice', force);
+					if (navAccountControls) {
+						navAccountControls.toggleClass('nav-account-controls-notice', force);
+					}
 
 					var navAddControls = A.one('#' + namespace + 'navAddControls');
 
-					navAddControls.toggleClass('nav-add-controls-notice', force);
+					if (navAddControls) {
+						navAddControls.toggleClass('nav-add-controls-notice', force);
+					}
 				}
 			},
 
@@ -211,7 +226,7 @@ AUI.add(
 
 				AObject.each(
 					DOCKBAR_PANELS,
-					function(item, index, collection) {
+					function(item, index) {
 						if (item.id !== panelId) {
 							BODY.removeClass(item.css);
 
@@ -299,7 +314,7 @@ AUI.add(
 						if (panelId === STR_ADD_PANEL) {
 							A.Array.each(
 								ADD_PANEL_COMPONENTS,
-								function(item, index, collection) {
+								function(item, index) {
 									var componentName = Liferay.Util.ns(namespace, item);
 
 									var component = Liferay.component(componentName);
@@ -320,11 +335,10 @@ AUI.add(
 		Liferay.provide(
 			Dockbar,
 			'_init',
-			function(event) {
+			function() {
 				var instance = this;
 
 				var dockBar = instance.dockBar;
-				var namespace = instance._namespace;
 
 				Liferay.Util.toggleControls(dockBar);
 
@@ -335,31 +349,9 @@ AUI.add(
 
 				instance._registerPanels();
 
-				var btnNavigation = A.oneNS(namespace, '#navSiteNavigation');
-
-				var navigation = A.one(Liferay.Data.NAV_SELECTOR);
-
-				if (btnNavigation && navigation) {
-					btnNavigation.setData('menuItem', navigation);
-
-					var toggleMenu = new Liferay.MenuToggle(
-						{
-							content: [btnNavigation, navigation],
-							toggleTouch: false,
-							trigger: btnNavigation
-						}
-					);
-
-					if (event.siteNavTouch) {
-						event._event.type = STR_TOUCHSTART;
-
-						toggleMenu._toggleMenu(event, btnNavigation);
-					}
-				}
-
 				Liferay.fire('dockbarLoaded');
 			},
-			['aui-io-request', 'liferay-menu-toggle', 'liferay-node', 'liferay-store', 'node-focusmanager']
+			['aui-io-request', 'liferay-node', 'liferay-store', 'node-focusmanager']
 		);
 
 		Liferay.provide(
@@ -412,7 +404,7 @@ AUI.add(
 					}
 				}
 				else if (themeDisplay.isSignedIn() && navAddControls) {
-					var brand = dockBar.one('.brand');
+					var brand = dockBar.one('.navbar-brand');
 
 					if (brand) {
 						brand.all('a').get('parentNode').addClass(CSS_DOCKBAR_ITEM);
@@ -507,6 +499,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-node', 'aui-overlay-mask-deprecated', 'event-move', 'event-touch']
+		requires: ['aui-node', 'aui-overlay-mask-deprecated', 'event-move', 'event-touch', 'liferay-menu-toggle']
 	}
 );

@@ -36,27 +36,27 @@
 <!--TOOLBAR-->
 <tr>
 	<td>TOOLBAR_VIEW_ALL</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'View All')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'View All')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_ADD</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Add')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'Add')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_MANAGE_DATA_DEFINITIONS</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Manage Data Definitions')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'Manage Data Definitions')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_SEARCH_FIELD</td>
-	<td>//div[@class='navbar ']//input[contains(@class,'search-query')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//input[contains(@class,'search-query')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_SEARCH_BUTTON</td>
-	<td>//div[@class='navbar ']//button[contains(.,'Search')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//button[contains(.,'Search')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -72,7 +72,7 @@
 </tr>
 <tr>
 	<td>LIST_TABLE_ACTIONS</td>
-	<td>xpath=(//div[@id='_167_ddlRecordSetsSearchContainer']//tr[contains(.,'${key_listName}')]/td[5]/div/a[@title='Actions'])[1]</td>
+	<td>xpath=(//div[@id='_167_ddlRecordSetsSearchContainer']//tr[contains(.,'${key_listName}')]/td[5]/div/a)[1]</td>
 	<td></td>
 </tr>
 <tr>
@@ -92,7 +92,7 @@
 </tr>
 <tr>
 	<td>LIST_TABLE_ACTIONS_1</td>
-	<td>xpath=(//div[@id='_167_ddlRecordSetsSearchContainer']//tr/td[5]/div/a[@title='Actions'])[1]</td>
+	<td>xpath=//td[contains(@class,'entry-action last')]/div/a/i[contains(@class,'menu-arrow caret')][1]</td>
 	<td></td>
 </tr>
 <tr>

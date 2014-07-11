@@ -50,6 +50,29 @@ public class DLFileVersionServiceUtil {
 		return getService().getBeanIdentifier();
 	}
 
+	public static com.liferay.portlet.documentlibrary.model.DLFileVersion getFileVersion(
+		long fileVersionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getFileVersion(fileVersionId);
+	}
+
+	public static java.util.List<com.liferay.portlet.documentlibrary.model.DLFileVersion> getFileVersions(
+		long fileEntryId, int status)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getFileVersions(fileEntryId, status);
+	}
+
+	public static int getFileVersionsCount(long fileEntryId, int status)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getFileVersionsCount(fileEntryId, status);
+	}
+
+	public static com.liferay.portlet.documentlibrary.model.DLFileVersion getLatestFileVersion(
+		long fileEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getLatestFileVersion(fileEntryId);
+	}
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -57,33 +80,6 @@ public class DLFileVersionServiceUtil {
 	*/
 	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
 		getService().setBeanIdentifier(beanIdentifier);
-	}
-
-	public static com.liferay.portlet.documentlibrary.model.DLFileVersion getFileVersion(
-		long fileVersionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getFileVersion(fileVersionId);
-	}
-
-	public static java.util.List<com.liferay.portlet.documentlibrary.model.DLFileVersion> getFileVersions(
-		long fileEntryId, int status)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getFileVersions(fileEntryId, status);
-	}
-
-	public static int getFileVersionsCount(long fileEntryId, int status)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getFileVersionsCount(fileEntryId, status);
-	}
-
-	public static com.liferay.portlet.documentlibrary.model.DLFileVersion getLatestFileVersion(
-		long fileEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getLatestFileVersion(fileEntryId);
 	}
 
 	public static DLFileVersionService getService() {

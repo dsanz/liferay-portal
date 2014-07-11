@@ -17,7 +17,6 @@ package com.liferay.portlet.asset.model.impl;
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -427,7 +426,7 @@ public class AssetCategoryModelImpl extends BaseModelImpl<AssetCategory>
 	}
 
 	@Override
-	public String getUserUuid() throws SystemException {
+	public String getUserUuid() {
 		try {
 			User user = UserLocalServiceUtil.getUserById(getUserId());
 
@@ -776,6 +775,26 @@ public class AssetCategoryModelImpl extends BaseModelImpl<AssetCategory>
 		return _originalVocabularyId;
 	}
 
+	public long getNestedSetsTreeNodeLeft() {
+		return _leftCategoryId;
+	}
+
+	public long getNestedSetsTreeNodeRight() {
+		return _rightCategoryId;
+	}
+
+	public long getNestedSetsTreeNodeScopeId() {
+		return _groupId;
+	}
+
+	public void setNestedSetsTreeNodeLeft(long nestedSetsTreeNodeLeft) {
+		_leftCategoryId = nestedSetsTreeNodeLeft;
+	}
+
+	public void setNestedSetsTreeNodeRight(long nestedSetsTreeNodeRight) {
+		_rightCategoryId = nestedSetsTreeNodeRight;
+	}
+
 	@Override
 	public StagedModelType getStagedModelType() {
 		return new StagedModelType(PortalUtil.getClassNameId(
@@ -836,19 +855,28 @@ public class AssetCategoryModelImpl extends BaseModelImpl<AssetCategory>
 			return StringPool.BLANK;
 		}
 
-		return LocalizationUtil.getDefaultLanguageId(xml);
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
+
+		return LocalizationUtil.getDefaultLanguageId(xml, defaultLocale);
 	}
 
 	@Override
 	public void prepareLocalizedFieldsForImport() throws LocaleException {
-		prepareLocalizedFieldsForImport(null);
+		Locale defaultLocale = LocaleUtil.fromLanguageId(getDefaultLanguageId());
+
+		Locale[] availableLocales = LocaleUtil.fromLanguageIds(getAvailableLanguageIds());
+
+		Locale defaultImportLocale = LocalizationUtil.getDefaultImportLocale(AssetCategory.class.getName(),
+				getPrimaryKey(), defaultLocale, availableLocales);
+
+		prepareLocalizedFieldsForImport(defaultImportLocale);
 	}
 
 	@Override
 	@SuppressWarnings("unused")
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException {
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String modelDefaultLanguageId = getDefaultLanguageId();
 

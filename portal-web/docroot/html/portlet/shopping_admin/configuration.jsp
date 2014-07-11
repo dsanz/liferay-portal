@@ -17,7 +17,7 @@
 <%@ include file="/html/portlet/shopping/init.jsp" %>
 
 <%
-shoppingSettings = ShoppingUtil.getShoppingSettings(themeDisplay.getSiteGroupId(), request);
+shoppingSettings = ShoppingSettings.getInstance(themeDisplay.getSiteGroupId(), request.getParameterMap());
 %>
 
 <liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL">
@@ -30,7 +30,7 @@ shoppingSettings = ShoppingUtil.getShoppingSettings(themeDisplay.getSiteGroupId(
 <aui:form action="<%= configurationActionURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
 	<aui:input name="redirect" type="hidden" value="<%= configurationRenderURL %>" />
-	<aui:input name="ccTypes" type="hidden" />
+	<aui:input name="preferences--ccTypes--" type="hidden" />
 
 	<liferay-ui:tabs
 		names="payment-settings,shipping-calculation,insurance-calculation,email-from,confirmation-email,shipping-email"
@@ -68,7 +68,7 @@ shoppingSettings = ShoppingUtil.getShoppingSettings(themeDisplay.getSiteGroupId(
 					List leftList = new ArrayList();
 
 					for (String ccType : ccTypes2) {
-						leftList.add(new KeyValuePair(HtmlUtil.escapeAttribute(ccType), LanguageUtil.get(pageContext, "cc_" + HtmlUtil.escape(ccType))));
+						leftList.add(new KeyValuePair(HtmlUtil.escapeAttribute(ccType), LanguageUtil.get(request, "cc_" + HtmlUtil.escape(ccType))));
 					}
 
 					// Right list
@@ -77,7 +77,7 @@ shoppingSettings = ShoppingUtil.getShoppingSettings(themeDisplay.getSiteGroupId(
 
 					for (String ccType : ccTypes1) {
 						if (!ArrayUtil.contains(ccTypes2, ccType)) {
-							rightList.add(new KeyValuePair(ccType, LanguageUtil.get(pageContext, "cc_" + ccType)));
+							rightList.add(new KeyValuePair(ccType, LanguageUtil.get(request, "cc_" + ccType)));
 						}
 					}
 					%>
@@ -129,7 +129,7 @@ shoppingSettings = ShoppingUtil.getShoppingSettings(themeDisplay.getSiteGroupId(
 
 		<liferay-ui:section>
 			<div class="alert alert-info">
-				<liferay-ui:message key="calculate-a-flat-shipping-amount-based-on-the-total-amount-of-the-purchase" /> <span style="font-size: xx-small;">-- <%= StringUtil.toUpperCase(LanguageUtil.get(pageContext, "or")) %> --</span> <liferay-ui:message key="calculate-the-shipping-based-on-a-percentage-of-the-total-amount-of-the-purchase" />
+				<liferay-ui:message key="calculate-a-flat-shipping-amount-based-on-the-total-amount-of-the-purchase" /> <span style="font-size: xx-small;">-- <%= StringUtil.toUpperCase(LanguageUtil.get(request, "or")) %> --</span> <liferay-ui:message key="calculate-the-shipping-based-on-a-percentage-of-the-total-amount-of-the-purchase" />
 			</div>
 
 			<aui:fieldset>
@@ -158,7 +158,7 @@ shoppingSettings = ShoppingUtil.getShoppingSettings(themeDisplay.getSiteGroupId(
 						and over
 					</c:if>
 
-					<aui:input hideLabel="<%= true %>" label="shipping" maxlength="6" name='<%= "shipping" + i %>' size="6" type="text" value="<%= GetterUtil.getString(shoppingSettings.getShipping()[i]) %>" />
+					<aui:input label="" maxlength="6" name='<%= "shipping" + i %>' size="6" title="shipping" type="text" value="<%= GetterUtil.getString(shoppingSettings.getShipping()[i]) %>" />
 
 					<%
 					}
@@ -170,7 +170,7 @@ shoppingSettings = ShoppingUtil.getShoppingSettings(themeDisplay.getSiteGroupId(
 
 		<liferay-ui:section>
 			<div class="alert alert-info">
-				<liferay-ui:message key="calculate-a-flat-insurance-amount-based-on-the-total-amount-of-the-purchase" /> <span style="font-size: xx-small;">-- <%= StringUtil.toUpperCase(LanguageUtil.get(pageContext, "or")) %> --</span> <liferay-ui:message key="calculate-the-insurance-based-on-a-percentage-of-the-total-amount-of-the-purchase" />
+				<liferay-ui:message key="calculate-a-flat-insurance-amount-based-on-the-total-amount-of-the-purchase" /> <span style="font-size: xx-small;">-- <%= StringUtil.toUpperCase(LanguageUtil.get(request, "or")) %> --</span> <liferay-ui:message key="calculate-the-insurance-based-on-a-percentage-of-the-total-amount-of-the-purchase" />
 			</div>
 
 			<aui:fieldset>
@@ -199,7 +199,7 @@ shoppingSettings = ShoppingUtil.getShoppingSettings(themeDisplay.getSiteGroupId(
 						and over
 					</c:if>
 
-					<aui:input hideLabel="<%= true %>" label="insurance" maxlength="6" name='<%= "insurance" + i %>' size="6" type="text" value="<%= GetterUtil.getString(shoppingSettings.getInsurance()[i]) %>" />
+					<aui:input label="" maxlength="6" name='<%= "insurance" + i %>' size="6" title="insurance" type="text" value="<%= GetterUtil.getString(shoppingSettings.getInsurance()[i]) %>" />
 
 					<%
 					}
@@ -225,7 +225,7 @@ shoppingSettings = ShoppingUtil.getShoppingSettings(themeDisplay.getSiteGroupId(
 			<liferay-ui:email-notification-settings
 				emailBody="<%= shoppingSettings.getEmailOrderConfirmationBodyXml() %>"
 				emailDefinitionTerms="<%= emailDefinitionTerms %>"
-				emailEnabled="<%= shoppingSettings.getEmailOrderConfirmationEnabled() %>"
+				emailEnabled="<%= shoppingSettings.isEmailOrderConfirmationEnabled() %>"
 				emailParam="emailOrderConfirmation"
 				emailSubject="<%= shoppingSettings.getEmailOrderConfirmationSubjectXml() %>"
 			/>
@@ -235,7 +235,7 @@ shoppingSettings = ShoppingUtil.getShoppingSettings(themeDisplay.getSiteGroupId(
 			<liferay-ui:email-notification-settings
 				emailBody="<%= shoppingSettings.getEmailOrderShippingBodyXml() %>"
 				emailDefinitionTerms="<%= emailDefinitionTerms %>"
-				emailEnabled="<%= shoppingSettings.getEmailOrderShippingEnabled() %>"
+				emailEnabled="<%= shoppingSettings.isEmailOrderShippingEnabled() %>"
 				emailParam="emailOrderShipping"
 				emailSubject="<%= shoppingSettings.getEmailOrderShippingSubjectXml() %>"
 			/>
@@ -252,7 +252,7 @@ shoppingSettings = ShoppingUtil.getShoppingSettings(themeDisplay.getSiteGroupId(
 		window,
 		'<portlet:namespace />saveConfiguration',
 		function() {
-			document.<portlet:namespace />fm.<portlet:namespace />ccTypes.value = Liferay.Util.listSelect(document.<portlet:namespace />fm.<portlet:namespace />current_cc_types);
+			document.<portlet:namespace />fm['<portlet:namespace />preferences--ccTypes--'].value = Liferay.Util.listSelect(document.<portlet:namespace />fm.<portlet:namespace />current_cc_types);
 
 			<portlet:namespace />saveEmails();
 

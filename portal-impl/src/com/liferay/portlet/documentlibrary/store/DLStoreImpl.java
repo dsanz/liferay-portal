@@ -32,30 +32,18 @@ import com.liferay.portal.kernel.search.TermQuery;
 import com.liferay.portal.kernel.search.TermQueryFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.UnicodeFormatter;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.service.GroupLocalService;
-import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.documentlibrary.DirectoryNameException;
-import com.liferay.portlet.documentlibrary.FileExtensionException;
-import com.liferay.portlet.documentlibrary.FileNameException;
-import com.liferay.portlet.documentlibrary.FileSizeException;
-import com.liferay.portlet.documentlibrary.FolderNameException;
-import com.liferay.portlet.documentlibrary.InvalidFileVersionException;
-import com.liferay.portlet.documentlibrary.SourceFileNameException;
 import com.liferay.portlet.documentlibrary.antivirus.AntivirusScannerUtil;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.permission.DLFolderPermission;
-import com.liferay.portlet.documentlibrary.util.DLUtil;
+import com.liferay.portlet.documentlibrary.util.DLValidatorUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,9 +60,9 @@ public class DLStoreImpl implements DLStore {
 
 	@Override
 	public void addDirectory(long companyId, long repositoryId, String dirName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		if (!isValidName(dirName) || dirName.equals("/")) {
+		if (!DLValidatorUtil.isValidName(dirName) || dirName.equals("/")) {
 			throw new DirectoryNameException(dirName);
 		}
 
@@ -85,7 +73,7 @@ public class DLStoreImpl implements DLStore {
 	public void addFile(
 			long companyId, long repositoryId, String fileName,
 			boolean validateFileExtension, byte[] bytes)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, validateFileExtension, bytes);
 
@@ -100,7 +88,7 @@ public class DLStoreImpl implements DLStore {
 	public void addFile(
 			long companyId, long repositoryId, String fileName,
 			boolean validateFileExtension, File file)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, validateFileExtension, file);
 
@@ -115,7 +103,7 @@ public class DLStoreImpl implements DLStore {
 	public void addFile(
 			long companyId, long repositoryId, String fileName,
 			boolean validateFileExtension, InputStream is)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (is instanceof ByteArrayFileInputStream) {
 			ByteArrayFileInputStream byteArrayFileInputStream =
@@ -174,7 +162,7 @@ public class DLStoreImpl implements DLStore {
 	@Override
 	public void addFile(
 			long companyId, long repositoryId, String fileName, byte[] bytes)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		addFile(companyId, repositoryId, fileName, true, bytes);
 	}
@@ -182,7 +170,7 @@ public class DLStoreImpl implements DLStore {
 	@Override
 	public void addFile(
 			long companyId, long repositoryId, String fileName, File file)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		addFile(companyId, repositoryId, fileName, true, file);
 	}
@@ -190,13 +178,13 @@ public class DLStoreImpl implements DLStore {
 	@Override
 	public void addFile(
 			long companyId, long repositoryId, String fileName, InputStream is)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		addFile(companyId, repositoryId, fileName, true, is);
 	}
 
 	@Override
-	public void checkRoot(long companyId) throws SystemException {
+	public void checkRoot(long companyId) {
 		store.checkRoot(companyId);
 	}
 
@@ -204,7 +192,7 @@ public class DLStoreImpl implements DLStore {
 	public void copyFileVersion(
 			long companyId, long repositoryId, String fileName,
 			String fromVersionLabel, String toVersionLabel)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		store.copyFileVersion(
 			companyId, repositoryId, fileName, fromVersionLabel,
@@ -214,14 +202,14 @@ public class DLStoreImpl implements DLStore {
 	@Override
 	public void deleteDirectory(
 			long companyId, long repositoryId, String dirName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		store.deleteDirectory(companyId, repositoryId, dirName);
 	}
 
 	@Override
 	public void deleteFile(long companyId, long repositoryId, String fileName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, false);
 
@@ -232,7 +220,7 @@ public class DLStoreImpl implements DLStore {
 	public void deleteFile(
 			long companyId, long repositoryId, String fileName,
 			String versionLabel)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, false, versionLabel);
 
@@ -241,7 +229,7 @@ public class DLStoreImpl implements DLStore {
 
 	@Override
 	public File getFile(long companyId, long repositoryId, String fileName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, false);
 
@@ -252,7 +240,7 @@ public class DLStoreImpl implements DLStore {
 	public File getFile(
 			long companyId, long repositoryId, String fileName,
 			String versionLabel)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, false, versionLabel);
 
@@ -262,7 +250,7 @@ public class DLStoreImpl implements DLStore {
 	@Override
 	public byte[] getFileAsBytes(
 			long companyId, long repositoryId, String fileName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, false);
 
@@ -273,7 +261,7 @@ public class DLStoreImpl implements DLStore {
 	public byte[] getFileAsBytes(
 			long companyId, long repositoryId, String fileName,
 			String versionLabel)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, false, versionLabel);
 
@@ -284,7 +272,7 @@ public class DLStoreImpl implements DLStore {
 	@Override
 	public InputStream getFileAsStream(
 			long companyId, long repositoryId, String fileName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, false);
 
@@ -295,7 +283,7 @@ public class DLStoreImpl implements DLStore {
 	public InputStream getFileAsStream(
 			long companyId, long repositoryId, String fileName,
 			String versionLabel)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, false, versionLabel);
 
@@ -306,9 +294,9 @@ public class DLStoreImpl implements DLStore {
 	@Override
 	public String[] getFileNames(
 			long companyId, long repositoryId, String dirName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		if (!isValidName(dirName)) {
+		if (!DLValidatorUtil.isValidName(dirName)) {
 			throw new DirectoryNameException(dirName);
 		}
 
@@ -317,7 +305,7 @@ public class DLStoreImpl implements DLStore {
 
 	@Override
 	public long getFileSize(long companyId, long repositoryId, String fileName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, false);
 
@@ -327,9 +315,9 @@ public class DLStoreImpl implements DLStore {
 	@Override
 	public boolean hasDirectory(
 			long companyId, long repositoryId, String dirName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		if (!isValidName(dirName)) {
+		if (!DLValidatorUtil.isValidName(dirName)) {
 			throw new DirectoryNameException(dirName);
 		}
 
@@ -338,7 +326,7 @@ public class DLStoreImpl implements DLStore {
 
 	@Override
 	public boolean hasFile(long companyId, long repositoryId, String fileName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, false);
 
@@ -349,64 +337,31 @@ public class DLStoreImpl implements DLStore {
 	public boolean hasFile(
 			long companyId, long repositoryId, String fileName,
 			String versionLabel)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, false, versionLabel);
 
 		return store.hasFile(companyId, repositoryId, fileName, versionLabel);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             DLValidatorUtil#isValidName(String)}
+	 */
+	@Deprecated
 	@Override
 	public boolean isValidName(String name) {
-		if (Validator.isNull(name)) {
-			return false;
-		}
-
-		for (String blacklistChar : PropsValues.DL_CHAR_BLACKLIST) {
-			if (name.contains(blacklistChar)) {
-				return false;
-			}
-		}
-
-		for (String blacklistLastChar : PropsValues.DL_CHAR_LAST_BLACKLIST) {
-			if (blacklistLastChar.startsWith(_UNICODE_PREFIX)) {
-				blacklistLastChar = UnicodeFormatter.parseString(
-					blacklistLastChar);
-			}
-
-			if (name.endsWith(blacklistLastChar)) {
-				return false;
-			}
-		}
-
-		String nameWithoutExtension = name;
-
-		if (name.contains(StringPool.PERIOD)) {
-			int index = name.lastIndexOf(StringPool.PERIOD);
-
-			nameWithoutExtension = name.substring(0, index);
-		}
-
-		for (String blacklistName : PropsValues.DL_NAME_BLACKLIST) {
-			if (StringUtil.equalsIgnoreCase(
-					nameWithoutExtension, blacklistName)) {
-
-				return false;
-			}
-		}
-
-		return true;
+		return DLValidatorUtil.isValidName(name);
 	}
 
 	@Override
-	public void move(String srcDir, String destDir) throws SystemException {
+	public void move(String srcDir, String destDir) {
 		store.move(srcDir, destDir);
 	}
 
 	public Hits search(
-			long companyId, long userId, String portletId, long groupId,
-			long[] repositoryIds, String keywords, int start, int end)
-		throws SystemException {
+		long companyId, long userId, String portletId, long groupId,
+		long[] repositoryIds, String keywords, int start, int end) {
 
 		try {
 			SearchContext searchContext = new SearchContext();
@@ -503,7 +458,7 @@ public class DLStoreImpl implements DLStore {
 	public void updateFile(
 			long companyId, long repositoryId, long newRepositoryId,
 			String fileName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		store.updateFile(companyId, repositoryId, newRepositoryId, fileName);
 	}
@@ -512,7 +467,7 @@ public class DLStoreImpl implements DLStore {
 	public void updateFile(
 			long companyId, long repositoryId, String fileName,
 			String newFileName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		store.updateFile(companyId, repositoryId, fileName, newFileName);
 	}
@@ -522,7 +477,7 @@ public class DLStoreImpl implements DLStore {
 			long companyId, long repositoryId, String fileName,
 			String fileExtension, boolean validateFileExtension,
 			String versionLabel, String sourceFileName, File file)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(
 			fileName, fileExtension, sourceFileName, validateFileExtension,
@@ -540,7 +495,7 @@ public class DLStoreImpl implements DLStore {
 			long companyId, long repositoryId, String fileName,
 			String fileExtension, boolean validateFileExtension,
 			String versionLabel, String sourceFileName, InputStream is)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (is instanceof ByteArrayFileInputStream) {
 			ByteArrayFileInputStream byteArrayFileInputStream =
@@ -607,7 +562,7 @@ public class DLStoreImpl implements DLStore {
 	public void updateFileVersion(
 			long companyId, long repositoryId, String fileName,
 			String fromVersionLabel, String toVersionLabel)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		store.updateFileVersion(
 			companyId, repositoryId, fileName, fromVersionLabel,
@@ -616,198 +571,123 @@ public class DLStoreImpl implements DLStore {
 
 	@Override
 	public void validate(String fileName, boolean validateFileExtension)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		if (!isValidName(fileName)) {
-			throw new FileNameException(fileName);
-		}
+		DLValidatorUtil.validateFileName(fileName);
 
 		if (validateFileExtension) {
-			boolean validFileExtension = false;
-
-			String[] fileExtensions = PrefsPropsUtil.getStringArray(
-				PropsKeys.DL_FILE_EXTENSIONS, StringPool.COMMA);
-
-			for (String fileExtension : fileExtensions) {
-				if (StringPool.STAR.equals(fileExtension) ||
-					StringUtil.endsWith(fileName, fileExtension)) {
-
-					validFileExtension = true;
-
-					break;
-				}
-			}
-
-			if (!validFileExtension) {
-				throw new FileExtensionException(fileName);
-			}
+			DLValidatorUtil.validateFileExtension(fileName);
 		}
 	}
 
 	@Override
 	public void validate(
 			String fileName, boolean validateFileExtension, byte[] bytes)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, validateFileExtension);
 
-		if ((PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE) > 0) &&
-			((bytes == null) ||
-			 (bytes.length >
-				 PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE)))) {
-
-			throw new FileSizeException(fileName);
-		}
+		DLValidatorUtil.validateFileSize(fileName, bytes);
 	}
 
 	@Override
 	public void validate(
 			String fileName, boolean validateFileExtension, File file)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, validateFileExtension);
 
-		if ((PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE) > 0) &&
-			((file == null) ||
-			 (file.length() >
-				PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE)))) {
-
-			throw new FileSizeException(fileName);
-		}
+		DLValidatorUtil.validateFileSize(fileName, file);
 	}
 
 	@Override
 	public void validate(
 			String fileName, boolean validateFileExtension, InputStream is)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(fileName, validateFileExtension);
 
-		// LEP-4851
+		DLValidatorUtil.validateFileSize(fileName, is);
+	}
 
-		try {
-			if ((is == null) ||
-				((PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE) > 0) &&
-				 (is.available() >
-					PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE)))) {
+	@Override
+	public void validate(
+			String fileName, String fileExtension, String sourceFileName,
+			boolean validateFileExtension)
+		throws PortalException {
 
-				throw new FileSizeException(fileName);
-			}
-		}
-		catch (IOException ioe) {
-			throw new FileSizeException(ioe.getMessage());
-		}
+		validate(fileName, validateFileExtension);
+
+		DLValidatorUtil.validateSourceFileExtension(
+			fileExtension, sourceFileName);
 	}
 
 	@Override
 	public void validate(
 			String fileName, String fileExtension, String sourceFileName,
 			boolean validateFileExtension, File file)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(
-			fileName, fileExtension, sourceFileName, validateFileExtension,
-			StringPool.BLANK);
+			fileName, fileExtension, sourceFileName, validateFileExtension);
 
-		if ((file != null) &&
-			(PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE) > 0) &&
-			(file.length() >
-				PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE))) {
-
-			throw new FileSizeException(fileName);
-		}
+		DLValidatorUtil.validateFileSize(fileName, file);
 	}
 
 	@Override
 	public void validate(
 			String fileName, String fileExtension, String sourceFileName,
 			boolean validateFileExtension, InputStream is)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validate(
-			fileName, fileExtension, sourceFileName, validateFileExtension,
-			StringPool.BLANK);
+			fileName, fileExtension, sourceFileName, validateFileExtension);
 
-		try {
-			if ((is != null) &&
-				(PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE) > 0) &&
-				(is.available() >
-					PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE))) {
-
-				throw new FileSizeException(fileName);
-			}
-		}
-		catch (IOException ioe) {
-			throw new FileSizeException(ioe.getMessage());
-		}
+		DLValidatorUtil.validateFileSize(fileName, is);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             DLValidatorUtil#validateDirectoryName(String)}
+	 */
+	@Deprecated
 	@Override
 	public void validateDirectoryName(String directoryName)
 		throws PortalException {
 
-		if (!isValidName(directoryName)) {
-			throw new FolderNameException(directoryName);
-		}
-	}
-
-	protected void isValidVersion(String versionLabel) throws PortalException {
-		if (Validator.isNull(versionLabel)) {
-			return;
-		}
-
-		if (!DLUtil.isValidVersion(versionLabel)) {
-			throw new InvalidFileVersionException();
-		}
+		DLValidatorUtil.validateDirectoryName(directoryName);
 	}
 
 	protected void validate(
 			String fileName, boolean validateFileExtension, String versionLabel)
-		throws PortalException, SystemException {
-
-		isValidVersion(versionLabel);
+		throws PortalException {
 
 		validate(fileName, validateFileExtension);
+
+		DLValidatorUtil.validateVersionLabel(versionLabel);
 	}
 
 	protected void validate(
 			String fileName, String fileExtension, String sourceFileName,
 			boolean validateFileExtension, File file, String versionLabel)
-		throws PortalException, SystemException {
-
-		isValidVersion(versionLabel);
+		throws PortalException {
 
 		validate(
 			fileName, fileExtension, sourceFileName, validateFileExtension,
 			file);
+
+		DLValidatorUtil.validateVersionLabel(versionLabel);
 	}
 
 	protected void validate(
 			String fileName, String fileExtension, String sourceFileName,
 			boolean validateFileExtension, InputStream is, String versionLabel)
-		throws PortalException, SystemException {
-
-		isValidVersion(versionLabel);
+		throws PortalException {
 
 		validate(
 			fileName, fileExtension, sourceFileName, validateFileExtension, is);
-	}
 
-	protected void validate(
-			String fileName, String fileExtension, String sourceFileName,
-			boolean validateFileExtension, String versionLabel)
-		throws PortalException, SystemException {
-
-		String sourceFileExtension = FileUtil.getExtension(sourceFileName);
-
-		if (Validator.isNotNull(sourceFileName) &&
-			PropsValues.DL_FILE_EXTENSIONS_STRICT_CHECK &&
-			!fileExtension.equals(sourceFileExtension)) {
-
-			throw new SourceFileNameException(sourceFileExtension);
-		}
-
-		validate(fileName, validateFileExtension, versionLabel);
+		DLValidatorUtil.validateVersionLabel(versionLabel);
 	}
 
 	@BeanReference(type = GroupLocalService.class)
@@ -819,7 +699,5 @@ public class DLStoreImpl implements DLStore {
 	private static final String[] _KEYWORDS_FIELDS = {
 		Field.ASSET_TAG_NAMES, Field.CONTENT, Field.PROPERTIES
 	};
-
-	private static final String _UNICODE_PREFIX = "\\u";
 
 }

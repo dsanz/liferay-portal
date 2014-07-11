@@ -34,26 +34,6 @@ public class AnnouncementsEntryServiceWrapper
 		_announcementsEntryService = announcementsEntryService;
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _announcementsEntryService.getBeanIdentifier();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_announcementsEntryService.setBeanIdentifier(beanIdentifier);
-	}
-
 	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsEntry addEntry(
 		long plid, long classNameId, long classPK, java.lang.String title,
@@ -63,8 +43,7 @@ public class AnnouncementsEntryServiceWrapper
 		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
 		int expirationDateHour, int expirationDateMinute, int priority,
 		boolean alert)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsEntryService.addEntry(plid, classNameId, classPK,
 			title, content, url, type, displayDateMonth, displayDateDay,
 			displayDateYear, displayDateHour, displayDateMinute,
@@ -87,8 +66,7 @@ public class AnnouncementsEntryServiceWrapper
 		int displayDateHour, int displayDateMinute, int expirationDateMonth,
 		int expirationDateDay, int expirationDateYear, int expirationDateHour,
 		int expirationDateMinute, int priority, boolean alert)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsEntryService.addEntry(plid, classNameId, classPK,
 			title, content, url, type, displayDateMonth, displayDateDay,
 			displayDateYear, displayDateHour, displayDateMinute,
@@ -98,17 +76,35 @@ public class AnnouncementsEntryServiceWrapper
 
 	@Override
 	public void deleteEntry(long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_announcementsEntryService.deleteEntry(entryId);
+	}
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	@Override
+	public java.lang.String getBeanIdentifier() {
+		return _announcementsEntryService.getBeanIdentifier();
 	}
 
 	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsEntry getEntry(
 		long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsEntryService.getEntry(entryId);
+	}
+
+	/**
+	* Sets the Spring bean ID for this bean.
+	*
+	* @param beanIdentifier the Spring bean ID for this bean
+	*/
+	@Override
+	public void setBeanIdentifier(java.lang.String beanIdentifier) {
+		_announcementsEntryService.setBeanIdentifier(beanIdentifier);
 	}
 
 	@Override
@@ -119,8 +115,7 @@ public class AnnouncementsEntryServiceWrapper
 		int displayDateMinute, boolean displayImmediately,
 		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
 		int expirationDateHour, int expirationDateMinute, int priority)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsEntryService.updateEntry(entryId, title, content,
 			url, type, displayDateMonth, displayDateDay, displayDateYear,
 			displayDateHour, displayDateMinute, displayImmediately,

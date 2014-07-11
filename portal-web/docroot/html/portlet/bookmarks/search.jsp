@@ -45,7 +45,7 @@ if (searchFolderId > 0) {
 	BookmarksUtil.addPortletBreadcrumbEntries(searchFolderId, request, renderResponse);
 }
 
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "search") + ": " + keywords, currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "search") + ": " + keywords, currentURL);
 %>
 
 <liferay-portlet:renderURL varImpl="searchURL">
@@ -76,7 +76,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "sea
 	%>
 
 	<liferay-ui:search-container
-		emptyResultsMessage='<%= LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>'
+		emptyResultsMessage='<%= LanguageUtil.format(request, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>'
 		iteratorURL="<%= portletURL %>"
 	>
 
@@ -122,8 +122,15 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "sea
 						name="entry"
 						title="<%= entry.getDescription() %>"
 					>
+
+						<%
+						AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(BookmarksEntry.class.getName());
+
+						AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(entry.getEntryId());
+						%>
+
 						<liferay-ui:icon
-							image="../ratings/star_hover"
+							iconCssClass="<%= assetRenderer.getIconCssClass() %>"
 							label="<%= true %>"
 							message="<%= entry.getName() %>"
 							target="_blank"
@@ -149,6 +156,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "sea
 
 					<c:if test='<%= ArrayUtil.contains(entryColumns, "action") %>'>
 						<liferay-ui:search-container-column-jsp
+							cssClass="entry-action"
 							path="/html/portlet/bookmarks/entry_action.jsp"
 						/>
 					</c:if>
@@ -171,8 +179,15 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "sea
 						name="entry"
 						title="<%= folder.getDescription() %>"
 					>
+
+						<%
+						AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(BookmarksFolder.class.getName());
+
+						AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(folder.getFolderId());
+						%>
+
 						<liferay-ui:icon
-							image='<%= (BookmarksFolderLocalServiceUtil.getFoldersAndEntriesCount(folder.getGroupId(), folder.getFolderId(), WorkflowConstants.STATUS_ANY) > 0) ? "folder_full_document" : "folder_empty" %>'
+							iconCssClass="<%= assetRenderer.getIconCssClass() %>"
 							label="<%= true %>"
 							message="<%= HtmlUtil.escape(folder.getName()) %>"
 							url="<%= rowURL %>"
@@ -195,6 +210,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "sea
 
 					<c:if test='<%= ArrayUtil.contains(folderColumns, "action") %>'>
 						<liferay-ui:search-container-column-jsp
+							cssClass="entry-action"
 							path="/html/portlet/bookmarks/folder_action.jsp"
 						/>
 					</c:if>

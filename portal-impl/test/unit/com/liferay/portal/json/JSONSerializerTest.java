@@ -55,7 +55,7 @@ public class JSONSerializerTest {
 	public void testSerializeDDMStructure() {
 		DDMStructure ddmStructure = new DDMStructureImpl();
 
-		ddmStructure.setXsd("value");
+		ddmStructure.setDefinition("value");
 
 		JSONSerializer jsonSerializer = JSONFactoryUtil.createJSONSerializer();
 
@@ -63,7 +63,7 @@ public class JSONSerializerTest {
 
 		String json = jsonSerializer.serialize(ddmStructure);
 
-		Assert.assertTrue(json.contains("\"xsd\":\"value\""));
+		Assert.assertTrue(json.contains("\"definition\":\"value\""));
 	}
 
 	@Test

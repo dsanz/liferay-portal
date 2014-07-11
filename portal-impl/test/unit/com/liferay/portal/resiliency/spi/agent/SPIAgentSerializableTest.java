@@ -18,11 +18,10 @@ import com.liferay.portal.kernel.io.BigEndianCodec;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.nio.intraband.Datagram;
-import com.liferay.portal.kernel.nio.intraband.MockIntraband;
-import com.liferay.portal.kernel.nio.intraband.MockRegistrationReference;
-import com.liferay.portal.kernel.nio.intraband.RegistrationReference;
 import com.liferay.portal.kernel.nio.intraband.mailbox.MailboxException;
 import com.liferay.portal.kernel.nio.intraband.mailbox.MailboxUtil;
+import com.liferay.portal.kernel.nio.intraband.test.MockIntraband;
+import com.liferay.portal.kernel.nio.intraband.test.MockRegistrationReference;
 import com.liferay.portal.kernel.resiliency.spi.agent.annotation.Direction;
 import com.liferay.portal.kernel.resiliency.spi.agent.annotation.DistributedRegistry;
 import com.liferay.portal.kernel.resiliency.spi.agent.annotation.MatchType;
@@ -30,11 +29,11 @@ import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.test.CaptureHandler;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.ClassLoaderPool;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtilAdvice;
-import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.ThreadLocalDistributor;
@@ -48,9 +47,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.Serializable;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -61,7 +57,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -499,27 +494,17 @@ public class SPIAgentSerializableTest {
 			PropsKeys.INTRABAND_MAILBOX_STORAGE_LIFE,
 			String.valueOf(Long.MAX_VALUE));
 
-		final AtomicBoolean throwException = new AtomicBoolean(true);
 		final AtomicLong receiptReference = new AtomicLong();
 
 		MockIntraband mockIntraband = new MockIntraband() {
 
 			@Override
-			public Datagram sendSyncDatagram(
-					RegistrationReference registrationReference,
-					Datagram datagram)
-				throws IOException {
-
-				if (throwException.get()) {
-					throw new IOException("Unable to send");
-				}
-
+			protected Datagram processDatagram(Datagram datagram) {
 				try {
-					Method depositMailMethod = ReflectionUtil.getDeclaredMethod(
-						MailboxUtil.class, "depositMail", ByteBuffer.class);
-
-					long receipt = (Long)depositMailMethod.invoke(
-						null, datagram.getDataByteBuffer());
+					long receipt = (Long)ReflectionTestUtil.invoke(
+						MailboxUtil.class, "depositMail",
+						new Class<?>[] {ByteBuffer.class},
+						datagram.getDataByteBuffer());
 
 					receiptReference.set(receipt);
 
@@ -531,7 +516,7 @@ public class SPIAgentSerializableTest {
 						datagram, ByteBuffer.wrap(data));
 				}
 				catch (Exception e) {
-					throw new IOException(e);
+					throw new RuntimeException(e);
 				}
 			}
 
@@ -539,6 +524,10 @@ public class SPIAgentSerializableTest {
 
 		SPIAgentSerializable agentSerializable = new SPIAgentSerializable(
 			_SERVLET_CONTEXT_NAME);
+
+		IOException ioException = new IOException();
+
+		mockIntraband.setIOException(ioException);
 
 		try {
 			agentSerializable.writeTo(
@@ -551,19 +540,15 @@ public class SPIAgentSerializableTest {
 			Throwable throwable = ioe.getCause();
 
 			Assert.assertSame(MailboxException.class, throwable.getClass());
-
-			throwable = throwable.getCause();
-
-			Assert.assertSame(IOException.class, throwable.getClass());
-			Assert.assertEquals("Unable to send", throwable.getMessage());
+			Assert.assertSame(ioException, throwable.getCause());
 		}
 
 		// Successfully send
 
-		throwException.set(false);
-
 		UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 			new UnsyncByteArrayOutputStream();
+
+		mockIntraband.setIOException(null);
 
 		agentSerializable.writeTo(
 			new MockRegistrationReference(mockIntraband),
@@ -682,11 +667,9 @@ public class SPIAgentSerializableTest {
 
 		threadLocalDistributor.afterPropertiesSet();
 
-		Field threadLocalValuesField = ReflectionUtil.getDeclaredField(
-			ThreadLocalDistributor.class, "_threadLocalValues");
-
 		Serializable[] serializables =
-			(Serializable[])threadLocalValuesField.get(threadLocalDistributor);
+			(Serializable[])ReflectionTestUtil.getFieldValue(
+				threadLocalDistributor, "_threadLocalValues");
 
 		Assert.assertNotNull(serializables);
 		Assert.assertEquals(1, serializables.length);
@@ -710,8 +693,8 @@ public class SPIAgentSerializableTest {
 		Assert.assertEquals(1, threadLocalDistributors.length);
 		Assert.assertSame(threadLocalDistributor, threadLocalDistributors[0]);
 
-		serializables = (Serializable[])threadLocalValuesField.get(
-			threadLocalDistributor);
+		serializables = (Serializable[])ReflectionTestUtil.getFieldValue(
+			threadLocalDistributor, "_threadLocalValues");
 
 		Assert.assertNotNull(serializables);
 		Assert.assertEquals(1, serializables.length);

@@ -15,7 +15,6 @@
 package com.liferay.portlet.messageboards.asset;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.security.permission.PermissionChecker;
@@ -49,7 +48,7 @@ public class MBMessageAssetRendererFactory extends BaseAssetRendererFactory {
 
 	@Override
 	public AssetRenderer getAssetRenderer(long classPK, int type)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		MBMessage message = MBMessageLocalServiceUtil.getMessage(classPK);
 
@@ -64,6 +63,11 @@ public class MBMessageAssetRendererFactory extends BaseAssetRendererFactory {
 	@Override
 	public String getClassName() {
 		return MBMessage.class.getName();
+	}
+
+	@Override
+	public String getIconCssClass() {
+		return "icon-comments";
 	}
 
 	@Override

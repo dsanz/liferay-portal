@@ -16,15 +16,15 @@
 
 <%@ include file="/html/taglib/init.jsp" %>
 
+<liferay-staging:defineObjects />
+
 <%
 String cssClass = "staging-icon-menu " + GetterUtil.getString((String) request.getAttribute("liferay-staging:menu:cssClass"));
 boolean extended = GetterUtil.getBoolean((String)request.getAttribute("liferay-staging:menu:extended"));
-long groupId = GetterUtil.getLong((String)request.getAttribute("liferay-staging:menu:groupId"));
 String icon = GetterUtil.getString((String)request.getAttribute("liferay-staging:menu:icon"));
 long layoutSetBranchId = GetterUtil.getLong((String)request.getAttribute("liferay-staging:menu:layoutSetBranchId"));
 String message = GetterUtil.getString((String)request.getAttribute("liferay-staging:menu:message"));
 boolean onlyActions = GetterUtil.getBoolean((String)request.getAttribute("liferay-staging:menu:onlyActions"));
-boolean privateLayout = GetterUtil.getBoolean((String)request.getAttribute("liferay-staging:menu:privateLayout"));
 long selPlid = GetterUtil.getLong((String)request.getAttribute("liferay-staging:menu:selPlid"));
 boolean showManageBranches = GetterUtil.getBoolean((String)request.getAttribute("liferay-staging:menu:showManageBranches"));
 
@@ -34,41 +34,6 @@ if (Validator.isNotNull(icon)) {
 
 LayoutSetBranch layoutSetBranch = null;
 List<LayoutSetBranch> layoutSetBranches = null;
-
-Group group = null;
-
-if (groupId > 0) {
-	group = GroupLocalServiceUtil.getGroup(groupId);
-}
-else {
-	group = themeDisplay.getScopeGroup();
-
-	if (group.isLayout()) {
-		group = layout.getGroup();
-	}
-}
-
-Group liveGroup = null;
-Group stagingGroup = null;
-
-if (group.isStagingGroup()) {
-	liveGroup = group.getLiveGroup();
-	stagingGroup = group;
-}
-else if (group.isStaged()) {
-	if (group.isStagedRemotely()) {
-		liveGroup = group;
-		stagingGroup = group;
-	}
-	else {
-		liveGroup = group;
-		stagingGroup = group.getStagingGroup();
-	}
-}
-
-if (groupId <= 0) {
-	privateLayout = layout.isPrivateLayout();
-}
 
 String publishDialogTitle = null;
 
@@ -93,7 +58,7 @@ else {
 	}
 }
 
-String publishMessage = LanguageUtil.get(pageContext, publishDialogTitle);
+String publishMessage = LanguageUtil.get(request, publishDialogTitle);
 %>
 
 <liferay-portlet:renderURL plid="<%= plid %>" portletMode="<%= PortletMode.VIEW.toString() %>" portletName="<%= PortletKeys.LAYOUTS_ADMIN %>" varImpl="publishRenderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
@@ -102,6 +67,7 @@ String publishMessage = LanguageUtil.get(pageContext, publishDialogTitle);
 	<liferay-portlet:param name="tabs1" value='<%= (privateLayout) ? "private-pages" : "public-pages" %>' />
 	<liferay-portlet:param name="closeRedirect" value="<%= currentURL %>" />
 	<liferay-portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
+	<liferay-portlet:param name="privateLayout" value="<%= String.valueOf(privateLayout) %>" />
 	<liferay-portlet:param name="selPlid" value="<%= String.valueOf(selPlid) %>" />
 </liferay-portlet:renderURL>
 
@@ -112,7 +78,7 @@ String publishMessage = LanguageUtil.get(pageContext, publishDialogTitle);
 		</c:when>
 		<c:otherwise>
 			<aui:nav-bar>
-				<aui:nav>
+				<aui:nav cssClass="navbar-nav">
 					<aui:nav-item dropdown="<%= true %>" label="staging">
 						<aui:nav-item cssClass="<%= cssClass %>" label="<%= extended ? message : StringPool.BLANK %>">
 							<%@ include file="/html/taglib/staging/menu/staging_actions.jspf" %>

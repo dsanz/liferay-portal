@@ -31,12 +31,12 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.asset.NoSuchTagPropertyException;
 import com.liferay.portlet.asset.model.AssetTagProperty;
@@ -52,6 +52,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -101,7 +102,7 @@ public class AssetTagPropertyPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetTagProperty assetTagProperty = _persistence.create(pk);
 
@@ -128,25 +129,25 @@ public class AssetTagPropertyPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetTagProperty newAssetTagProperty = _persistence.create(pk);
 
-		newAssetTagProperty.setCompanyId(ServiceTestUtil.nextLong());
+		newAssetTagProperty.setCompanyId(RandomTestUtil.nextLong());
 
-		newAssetTagProperty.setUserId(ServiceTestUtil.nextLong());
+		newAssetTagProperty.setUserId(RandomTestUtil.nextLong());
 
-		newAssetTagProperty.setUserName(ServiceTestUtil.randomString());
+		newAssetTagProperty.setUserName(RandomTestUtil.randomString());
 
-		newAssetTagProperty.setCreateDate(ServiceTestUtil.nextDate());
+		newAssetTagProperty.setCreateDate(RandomTestUtil.nextDate());
 
-		newAssetTagProperty.setModifiedDate(ServiceTestUtil.nextDate());
+		newAssetTagProperty.setModifiedDate(RandomTestUtil.nextDate());
 
-		newAssetTagProperty.setTagId(ServiceTestUtil.nextLong());
+		newAssetTagProperty.setTagId(RandomTestUtil.nextLong());
 
-		newAssetTagProperty.setKey(ServiceTestUtil.randomString());
+		newAssetTagProperty.setKey(RandomTestUtil.randomString());
 
-		newAssetTagProperty.setValue(ServiceTestUtil.randomString());
+		newAssetTagProperty.setValue(RandomTestUtil.randomString());
 
 		_persistence.update(newAssetTagProperty);
 
@@ -177,7 +178,7 @@ public class AssetTagPropertyPersistenceTest {
 	@Test
 	public void testCountByCompanyId() {
 		try {
-			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+			_persistence.countByCompanyId(RandomTestUtil.nextLong());
 
 			_persistence.countByCompanyId(0L);
 		}
@@ -189,7 +190,7 @@ public class AssetTagPropertyPersistenceTest {
 	@Test
 	public void testCountByTagId() {
 		try {
-			_persistence.countByTagId(ServiceTestUtil.nextLong());
+			_persistence.countByTagId(RandomTestUtil.nextLong());
 
 			_persistence.countByTagId(0L);
 		}
@@ -201,7 +202,7 @@ public class AssetTagPropertyPersistenceTest {
 	@Test
 	public void testCountByC_K() {
 		try {
-			_persistence.countByC_K(ServiceTestUtil.nextLong(), StringPool.BLANK);
+			_persistence.countByC_K(RandomTestUtil.nextLong(), StringPool.BLANK);
 
 			_persistence.countByC_K(0L, StringPool.NULL);
 
@@ -215,7 +216,7 @@ public class AssetTagPropertyPersistenceTest {
 	@Test
 	public void testCountByT_K() {
 		try {
-			_persistence.countByT_K(ServiceTestUtil.nextLong(), StringPool.BLANK);
+			_persistence.countByT_K(RandomTestUtil.nextLong(), StringPool.BLANK);
 
 			_persistence.countByT_K(0L, StringPool.NULL);
 
@@ -237,7 +238,7 @@ public class AssetTagPropertyPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -260,7 +261,7 @@ public class AssetTagPropertyPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<AssetTagProperty> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("AssetTagProperty",
 			"tagPropertyId", true, "companyId", true, "userId", true,
 			"userName", true, "createDate", true, "modifiedDate", true,
@@ -278,11 +279,93 @@ public class AssetTagPropertyPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetTagProperty missingAssetTagProperty = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingAssetTagProperty);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		AssetTagProperty newAssetTagProperty1 = addAssetTagProperty();
+		AssetTagProperty newAssetTagProperty2 = addAssetTagProperty();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newAssetTagProperty1.getPrimaryKey());
+		primaryKeys.add(newAssetTagProperty2.getPrimaryKey());
+
+		Map<Serializable, AssetTagProperty> assetTagProperties = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, assetTagProperties.size());
+		Assert.assertEquals(newAssetTagProperty1,
+			assetTagProperties.get(newAssetTagProperty1.getPrimaryKey()));
+		Assert.assertEquals(newAssetTagProperty2,
+			assetTagProperties.get(newAssetTagProperty2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, AssetTagProperty> assetTagProperties = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(assetTagProperties.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		AssetTagProperty newAssetTagProperty = addAssetTagProperty();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newAssetTagProperty.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, AssetTagProperty> assetTagProperties = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, assetTagProperties.size());
+		Assert.assertEquals(newAssetTagProperty,
+			assetTagProperties.get(newAssetTagProperty.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, AssetTagProperty> assetTagProperties = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(assetTagProperties.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		AssetTagProperty newAssetTagProperty = addAssetTagProperty();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newAssetTagProperty.getPrimaryKey());
+
+		Map<Serializable, AssetTagProperty> assetTagProperties = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, assetTagProperties.size());
+		Assert.assertEquals(newAssetTagProperty,
+			assetTagProperties.get(newAssetTagProperty.getPrimaryKey()));
 	}
 
 	@Test
@@ -333,7 +416,7 @@ public class AssetTagPropertyPersistenceTest {
 				AssetTagProperty.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("tagPropertyId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<AssetTagProperty> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -374,7 +457,7 @@ public class AssetTagPropertyPersistenceTest {
 				"tagPropertyId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("tagPropertyId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -401,25 +484,25 @@ public class AssetTagPropertyPersistenceTest {
 	}
 
 	protected AssetTagProperty addAssetTagProperty() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetTagProperty assetTagProperty = _persistence.create(pk);
 
-		assetTagProperty.setCompanyId(ServiceTestUtil.nextLong());
+		assetTagProperty.setCompanyId(RandomTestUtil.nextLong());
 
-		assetTagProperty.setUserId(ServiceTestUtil.nextLong());
+		assetTagProperty.setUserId(RandomTestUtil.nextLong());
 
-		assetTagProperty.setUserName(ServiceTestUtil.randomString());
+		assetTagProperty.setUserName(RandomTestUtil.randomString());
 
-		assetTagProperty.setCreateDate(ServiceTestUtil.nextDate());
+		assetTagProperty.setCreateDate(RandomTestUtil.nextDate());
 
-		assetTagProperty.setModifiedDate(ServiceTestUtil.nextDate());
+		assetTagProperty.setModifiedDate(RandomTestUtil.nextDate());
 
-		assetTagProperty.setTagId(ServiceTestUtil.nextLong());
+		assetTagProperty.setTagId(RandomTestUtil.nextLong());
 
-		assetTagProperty.setKey(ServiceTestUtil.randomString());
+		assetTagProperty.setKey(RandomTestUtil.randomString());
 
-		assetTagProperty.setValue(ServiceTestUtil.randomString());
+		assetTagProperty.setValue(RandomTestUtil.randomString());
 
 		_persistence.update(assetTagProperty);
 

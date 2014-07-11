@@ -21,29 +21,30 @@ import com.liferay.portal.model.PasswordPolicy;
 import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.service.PasswordPolicyLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.TestPropsValues;
-import com.liferay.portlet.passwordpoliciesadmin.util.PasswordPolicyTestUtil;
+import com.liferay.portal.test.TransactionalTestRule;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
+import com.liferay.portlet.passwordpoliciesadmin.util.test.PasswordPolicyTestUtil;
 
 import java.util.List;
 import java.util.Map;
 
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 /**
  * @author Daniela Zapata Riesco
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class PasswordPolicyStagedModelDataHandlerTest
 	extends BaseStagedModelDataHandlerTestCase {
+
+	@ClassRule
+	public static TransactionalTestRule transactionalTestRule =
+		new TransactionalTestRule();
 
 	@Override
 	protected StagedModel addStagedModel(
@@ -51,8 +52,9 @@ public class PasswordPolicyStagedModelDataHandlerTest
 			Map<String, List<StagedModel>> dependentStagedModelsMap)
 		throws Exception {
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			group.getGroupId(), TestPropsValues.getUserId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				group.getGroupId(), TestPropsValues.getUserId());
 
 		return PasswordPolicyTestUtil.addPasswordPolicy(serviceContext);
 	}

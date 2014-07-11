@@ -15,7 +15,6 @@
 package com.liferay.portal.kernel.workflow;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
@@ -54,12 +53,10 @@ import javax.portlet.WindowStateException;
  * @author Julio Camarero
  * @author Jorge Ferrer
  */
-public abstract class BaseWorkflowHandler implements WorkflowHandler {
+public abstract class BaseWorkflowHandler<T> implements WorkflowHandler<T> {
 
 	@Override
-	public AssetRenderer getAssetRenderer(long classPK)
-		throws PortalException, SystemException {
-
+	public AssetRenderer getAssetRenderer(long classPK) throws PortalException {
 		AssetRendererFactory assetRendererFactory = getAssetRendererFactory();
 
 		if (assetRendererFactory != null) {
@@ -75,6 +72,17 @@ public abstract class BaseWorkflowHandler implements WorkflowHandler {
 	public AssetRendererFactory getAssetRendererFactory() {
 		return AssetRendererFactoryRegistryUtil.
 			getAssetRendererFactoryByClassName(getClassName());
+	}
+
+	@Override
+	public String getIconCssClass() {
+		AssetRendererFactory assetRendererFactory = getAssetRendererFactory();
+
+		if (assetRendererFactory != null) {
+			return assetRendererFactory.getIconCssClass();
+		}
+
+		return "icon-file-alt";
 	}
 
 	@Override
@@ -161,7 +169,7 @@ public abstract class BaseWorkflowHandler implements WorkflowHandler {
 	@Override
 	public String getURLEditWorkflowTask(
 			long workflowTaskId, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		try {
 			LiferayPortletURL liferayPortletURL = PortletURLFactoryUtil.create(
@@ -232,7 +240,7 @@ public abstract class BaseWorkflowHandler implements WorkflowHandler {
 	@Override
 	public WorkflowDefinitionLink getWorkflowDefinitionLink(
 			long companyId, long groupId, long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return WorkflowDefinitionLinkLocalServiceUtil.
 			fetchWorkflowDefinitionLink(
@@ -278,9 +286,9 @@ public abstract class BaseWorkflowHandler implements WorkflowHandler {
 
 	@Override
 	public void startWorkflowInstance(
-			long companyId, long groupId, long userId, long classPK,
-			Object model, Map<String, Serializable> workflowContext)
-		throws PortalException, SystemException {
+			long companyId, long groupId, long userId, long classPK, T model,
+			Map<String, Serializable> workflowContext)
+		throws PortalException {
 
 		WorkflowInstanceLinkLocalServiceUtil.startWorkflowInstance(
 			companyId, groupId, userId, getClassName(), classPK,

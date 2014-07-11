@@ -15,7 +15,6 @@
 package com.liferay.portlet.messageboards.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 import com.liferay.portlet.messageboards.model.MBThreadFlag;
@@ -23,13 +22,13 @@ import com.liferay.portlet.messageboards.service.MBThreadFlagLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link MBThreadFlagLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link MBThreadFlagLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class MBThreadFlagActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public MBThreadFlagActionableDynamicQuery() throws SystemException {
+	public MBThreadFlagActionableDynamicQuery() {
 		setBaseLocalService(MBThreadFlagLocalServiceUtil.getService());
 		setClass(MBThreadFlag.class);
 

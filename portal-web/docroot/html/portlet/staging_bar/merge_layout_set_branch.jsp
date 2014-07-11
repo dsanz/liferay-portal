@@ -59,25 +59,13 @@ if (layoutSetBranches.contains(layoutSetBranch)) {
 
 				<liferay-ui:search-container-column-text
 					name="branch"
-					value="<%= LanguageUtil.get(pageContext, curLayoutSetBranch.getName()) %>"
+					value="<%= LanguageUtil.get(request, curLayoutSetBranch.getName()) %>"
 				/>
 
-				<liferay-ui:search-container-column-text
-					buffer="buffer"
-				>
-
-					<%
-					buffer.append("<a class='layout-set-branch' data-layoutSetBranchId='");
-					buffer.append(curLayoutSetBranch.getLayoutSetBranchId());
-					buffer.append("' data-layoutSetBranchName='");
-					buffer.append(HtmlUtil.escapeAttribute(curLayoutSetBranch.getName()));
-					buffer.append("' data-layoutSetBranchMessage='");
-					buffer.append(HtmlUtil.escapeAttribute(LanguageUtil.format(pageContext, "are-you-sure-you-want-to-merge-changes-from-x", curLayoutSetBranch.getName(), false)));
-					buffer.append("' href='#'>");
-					buffer.append(LanguageUtil.get(pageContext, "select"));
-					buffer.append("</a>");
-					%>
-
+				<liferay-ui:search-container-column-text>
+					<a class="layout-set-branch" data-layoutSetBranchId="<%= curLayoutSetBranch.getLayoutSetBranchId() %>" data-layoutSetBranchMessage="<%= HtmlUtil.escapeAttribute(LanguageUtil.format(request, "are-you-sure-you-want-to-merge-changes-from-x", curLayoutSetBranch.getName(), false)) %>" data-layoutSetBranchName="<%= HtmlUtil.escapeAttribute(curLayoutSetBranch.getName()) %>" href="#">
+						<liferay-ui:message key="select" />
+					</a>
 				</liferay-ui:search-container-column-text>
 			</liferay-ui:search-container-row>
 

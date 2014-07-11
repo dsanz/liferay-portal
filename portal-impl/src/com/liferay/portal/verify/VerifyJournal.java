@@ -19,12 +19,9 @@ import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.service.ResourceLocalServiceUtil;
@@ -248,7 +245,7 @@ public class VerifyJournal extends VerifyProcess {
 
 				@Override
 				public void performAction(Object object)
-					throws PortalException, SystemException {
+					throws PortalException {
 
 					JournalArticle article = (JournalArticle)object;
 
@@ -265,7 +262,7 @@ public class VerifyJournal extends VerifyProcess {
 	}
 
 	protected void verifyPermissionsAndAssets(JournalArticle article)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		long groupId = article.getGroupId();
 		String articleId = article.getArticleId();
@@ -307,15 +304,6 @@ public class VerifyJournal extends VerifyProcess {
 				assetEntry.isVisible());
 		}
 
-		String content = GetterUtil.getString(article.getContent());
-
-		String newContent = HtmlUtil.replaceMsWordCharacters(content);
-
-		if (!content.equals(newContent)) {
-			JournalArticleLocalServiceUtil.updateContent(
-				groupId, articleId, version, newContent);
-		}
-
 		try {
 			JournalArticleLocalServiceUtil.checkStructure(
 				groupId, articleId, version);
@@ -331,6 +319,11 @@ public class VerifyJournal extends VerifyProcess {
 			article.setTemplateId(StringPool.BLANK);
 
 			JournalArticleLocalServiceUtil.updateJournalArticle(article);
+		}
+		catch (Exception e) {
+			_log.error(
+				"Unable to check the structure for article " + article.getId(),
+				e);
 		}
 	}
 

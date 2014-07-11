@@ -14,24 +14,22 @@
 
 package com.liferay.portlet.documentlibrary.lar;
 
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFolder;
-import com.liferay.portal.repository.liferayrepository.util.LiferayBase;
 import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.service.persistence.DLFolderUtil;
+import com.liferay.portlet.documentlibrary.util.RepositoryModelUtil;
 
 import java.util.List;
 
 /**
  * @author Alexander Chow
  */
-public class FolderUtil extends LiferayBase {
+public class FolderUtil {
 
 	public static Folder fetchByR_P_N(
-			long groupId, long parentFolderId, String name)
-		throws SystemException {
+		long groupId, long parentFolderId, String name) {
 
 		DLFolder dlFolder = DLFolderUtil.fetchByG_P_N(
 			groupId, parentFolderId, name);
@@ -43,9 +41,7 @@ public class FolderUtil extends LiferayBase {
 		return new LiferayFolder(dlFolder);
 	}
 
-	public static Folder fetchByUUID_R(String uuid, long repositoryId)
-		throws SystemException {
-
+	public static Folder fetchByUUID_R(String uuid, long repositoryId) {
 		DLFolder dlFolder = DLFolderUtil.fetchByUUID_G(uuid, repositoryId);
 
 		if (dlFolder == null) {
@@ -56,30 +52,34 @@ public class FolderUtil extends LiferayBase {
 	}
 
 	public static Folder findByPrimaryKey(long folderId)
-		throws NoSuchFolderException, SystemException {
+		throws NoSuchFolderException {
 
 		DLFolder dlFolder = DLFolderUtil.findByPrimaryKey(folderId);
 
 		return new LiferayFolder(dlFolder);
 	}
 
-	public static List<Folder> findByR_P(long repositoryId, long parentFolderId)
-		throws SystemException {
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
+	public static List<Folder> findByR_P(
+		long repositoryId, long parentFolderId) {
 
 		List<DLFolder> dlFolders = DLFolderUtil.findByG_P(
 			repositoryId, parentFolderId);
 
-		return _instance.toFolders(dlFolders);
+		return RepositoryModelUtil.toFolders(dlFolders);
 	}
 
-	public static List<Folder> findByRepositoryId(long repositoryId)
-		throws SystemException {
-
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
+	public static List<Folder> findByRepositoryId(long repositoryId) {
 		List<DLFolder> dlFolders = DLFolderUtil.findByGroupId(repositoryId);
 
-		return _instance.toFolders(dlFolders);
+		return RepositoryModelUtil.toFolders(dlFolders);
 	}
-
-	private static FolderUtil _instance = new FolderUtil();
 
 }

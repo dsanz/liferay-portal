@@ -35,11 +35,11 @@ portletURL.setParameter("redirect", redirect);
 portletURL.setParameter("passwordPolicyId", String.valueOf(passwordPolicy.getPasswordPolicyId()));
 
 PortalUtil.addPortletBreadcrumbEntry(request, passwordPolicy.getName(), null);
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "assign-members"), portletURL.toString());
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "assign-members"), portletURL.toString());
 
 portletURL.setParameter("tabs2", tabs2);
 
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, tabs2), portletURL.toString());
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, tabs2), portletURL.toString());
 
 portletURL.setParameter("tabs3", tabs3);
 %>
@@ -135,7 +135,7 @@ portletURL.setParameter("tabs3", tabs3);
 								<portlet:param name="passwordPolicyId" value="<%= String.valueOf(curPasswordPolicy.getPasswordPolicyId()) %>" />
 							</portlet:renderURL>
 
-							<liferay-ui:icon-help message='<%= LanguageUtil.format(pageContext, "this-user-is-already-assigned-to-password-policy-x", new Object[] {assignMembersURL, curPasswordPolicy.getName()}, false) %>' />
+							<liferay-ui:icon-help message='<%= LanguageUtil.format(request, "this-user-is-already-assigned-to-password-policy-x", new Object[] {assignMembersURL, curPasswordPolicy.getName()}, false) %>' />
 						</c:if>
 					</liferay-ui:search-container-column-text>
 
@@ -229,33 +229,19 @@ portletURL.setParameter("tabs3", tabs3);
 								<portlet:param name="passwordPolicyId" value="<%= String.valueOf(curPasswordPolicy.getPasswordPolicyId()) %>" />
 							</portlet:renderURL>
 
-							<liferay-ui:icon-help message='<%= LanguageUtil.format(pageContext, "this-organization-is-already-assigned-to-password-policy-x", new Object[] {assignMembersURL, curPasswordPolicy.getName()}, false) %>' />
+							<liferay-ui:icon-help message='<%= LanguageUtil.format(request, "this-organization-is-already-assigned-to-password-policy-x", new Object[] {assignMembersURL, curPasswordPolicy.getName()}, false) %>' />
 						</c:if>
 					</liferay-ui:search-container-column-text>
 
 					<liferay-ui:search-container-column-text
-						buffer="buffer"
 						name="parent-organization"
-					>
-
-						<%
-						if (organization.getParentOrganizationId() > 0) {
-							try {
-								Organization parentOrganization = OrganizationLocalServiceUtil.getOrganization(organization.getParentOrganizationId());
-
-								buffer.append(HtmlUtil.escape(parentOrganization.getName()));
-							}
-							catch (Exception e) {
-							}
-						}
-						%>
-
-					</liferay-ui:search-container-column-text>
+						value="<%= HtmlUtil.escape(organization.getParentOrganizationName()) %>"
+					/>
 
 					<liferay-ui:search-container-column-text
 						name="type"
 						orderable="<%= true %>"
-						value="<%= LanguageUtil.get(pageContext, organization.getType()) %>"
+						value="<%= LanguageUtil.get(request, organization.getType()) %>"
 					/>
 
 					<liferay-ui:search-container-column-text
@@ -295,7 +281,7 @@ portletURL.setParameter("tabs3", tabs3);
 		window,
 		'<portlet:namespace />updatePasswordPolicyOrganizations',
 		function(assignmentsRedirect) {
-			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "password_policy_organizations";
+			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'password_policy_organizations';
 			document.<portlet:namespace />fm.<portlet:namespace />assignmentsRedirect.value = assignmentsRedirect;
 			document.<portlet:namespace />fm.<portlet:namespace />addOrganizationIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
 			document.<portlet:namespace />fm.<portlet:namespace />removeOrganizationIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
@@ -309,7 +295,7 @@ portletURL.setParameter("tabs3", tabs3);
 		window,
 		'<portlet:namespace />updatePasswordPolicyUsers',
 		function(assignmentsRedirect) {
-			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "password_policy_users";
+			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'password_policy_users';
 			document.<portlet:namespace />fm.<portlet:namespace />assignmentsRedirect.value = assignmentsRedirect;
 			document.<portlet:namespace />fm.<portlet:namespace />addUserIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
 			document.<portlet:namespace />fm.<portlet:namespace />removeUserIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');

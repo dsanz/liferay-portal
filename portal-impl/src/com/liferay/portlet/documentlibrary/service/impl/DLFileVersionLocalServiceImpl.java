@@ -16,7 +16,6 @@ package com.liferay.portlet.documentlibrary.service.impl;
 
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.TreePathUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -39,30 +38,27 @@ public class DLFileVersionLocalServiceImpl
 
 	@Override
 	public DLFileVersion getFileVersion(long fileVersionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return dlFileVersionPersistence.findByPrimaryKey(fileVersionId);
 	}
 
 	@Override
 	public DLFileVersion getFileVersion(long fileEntryId, String version)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return dlFileVersionPersistence.findByF_V(fileEntryId, version);
 	}
 
 	@Override
 	public DLFileVersion getFileVersionByUuidAndGroupId(
-			String uuid, long groupId)
-		throws SystemException {
+		String uuid, long groupId) {
 
 		return dlFileVersionPersistence.fetchByUUID_G(uuid, groupId);
 	}
 
 	@Override
-	public List<DLFileVersion> getFileVersions(long fileEntryId, int status)
-		throws SystemException {
-
+	public List<DLFileVersion> getFileVersions(long fileEntryId, int status) {
 		List<DLFileVersion> dlFileVersions = null;
 
 		if (status == WorkflowConstants.STATUS_ANY) {
@@ -82,16 +78,14 @@ public class DLFileVersionLocalServiceImpl
 	}
 
 	@Override
-	public int getFileVersionsCount(long fileEntryId, int status)
-		throws SystemException {
-
+	public int getFileVersionsCount(long fileEntryId, int status) {
 		return dlFileVersionPersistence.countByF_S(fileEntryId, status);
 	}
 
 	@Override
 	public DLFileVersion getLatestFileVersion(
 			long fileEntryId, boolean excludeWorkingCopy)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		List<DLFileVersion> dlFileVersions =
 			dlFileVersionPersistence.findByFileEntryId(fileEntryId);
@@ -120,7 +114,7 @@ public class DLFileVersionLocalServiceImpl
 
 	@Override
 	public DLFileVersion getLatestFileVersion(long userId, long fileEntryId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		boolean excludeWorkingCopy = true;
 
@@ -133,7 +127,7 @@ public class DLFileVersionLocalServiceImpl
 	}
 
 	@Override
-	public void rebuildTree(long companyId) throws SystemException {
+	public void rebuildTree(long companyId) {
 		dlFolderLocalService.rebuildTree(companyId);
 
 		Session session = dlFileVersionPersistence.openSession();

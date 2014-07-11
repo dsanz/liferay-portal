@@ -54,7 +54,7 @@ portletURL.setParameter("struts_action", "/document_library/view_file_entry_type
 
 		<liferay-ui:search-container-column-text
 			name="scope"
-			value="<%= LanguageUtil.get(pageContext, group.getScopeLabel(themeDisplay)) %>"
+			value="<%= LanguageUtil.get(request, group.getScopeLabel(themeDisplay)) %>"
 		/>
 
 		<liferay-ui:search-container-column-date
@@ -64,6 +64,7 @@ portletURL.setParameter("struts_action", "/document_library/view_file_entry_type
 
 		<liferay-ui:search-container-column-jsp
 			align="right"
+			cssClass="entry-action"
 			path="/html/portlet/document_library/file_entry_type_action.jsp"
 		/>
 	</liferay-ui:search-container-row>

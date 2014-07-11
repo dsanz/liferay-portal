@@ -46,6 +46,8 @@ public interface RatingsEntryService extends BaseService {
 	 *
 	 * Never modify or reference this interface directly. Always use {@link RatingsEntryServiceUtil} to access the ratings entry remote service. Add custom service methods to {@link com.liferay.portlet.ratings.service.impl.RatingsEntryServiceImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
+	public void deleteEntry(java.lang.String className, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -61,12 +63,7 @@ public interface RatingsEntryService extends BaseService {
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
-	public void deleteEntry(java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
 	public com.liferay.portlet.ratings.model.RatingsEntry updateEntry(
 		java.lang.String className, long classPK, double score)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

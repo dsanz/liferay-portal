@@ -41,6 +41,7 @@ public class UserNotificationEventSoap implements Serializable {
 		soapModel.setDeliverBy(model.getDeliverBy());
 		soapModel.setDelivered(model.getDelivered());
 		soapModel.setPayload(model.getPayload());
+		soapModel.setActionRequired(model.getActionRequired());
 		soapModel.setArchived(model.getArchived());
 
 		return soapModel;
@@ -189,6 +190,18 @@ public class UserNotificationEventSoap implements Serializable {
 		_payload = payload;
 	}
 
+	public boolean getActionRequired() {
+		return _actionRequired;
+	}
+
+	public boolean isActionRequired() {
+		return _actionRequired;
+	}
+
+	public void setActionRequired(boolean actionRequired) {
+		_actionRequired = actionRequired;
+	}
+
 	public boolean getArchived() {
 		return _archived;
 	}
@@ -212,5 +225,6 @@ public class UserNotificationEventSoap implements Serializable {
 	private long _deliverBy;
 	private boolean _delivered;
 	private String _payload;
+	private boolean _actionRequired;
 	private boolean _archived;
 }

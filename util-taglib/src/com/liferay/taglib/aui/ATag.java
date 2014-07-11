@@ -60,8 +60,7 @@ public class ATag extends BaseATag {
 		if (Validator.isNotNull(getHref())) {
 			if (isOpensNewWindow()) {
 				jspWriter.write("<span class=\"opens-new-window-accessible\">");
-				jspWriter.write(
-					LanguageUtil.get(pageContext, "opens-new-window"));
+				jspWriter.write(LanguageUtil.get(request, "opens-new-window"));
 				jspWriter.write("</span>");
 			}
 
@@ -85,6 +84,7 @@ public class ATag extends BaseATag {
 		String id = getId();
 		String label = getLabel();
 		String lang = getLang();
+		Boolean localizeLabel = getLocalizeLabel();
 		String namespace = _getNamespace();
 		String onClick = getOnClick();
 		String target = getTarget();
@@ -142,12 +142,11 @@ public class ATag extends BaseATag {
 			jspWriter.write("title=\"");
 
 			if (Validator.isNotNull(title)) {
-				jspWriter.write(LanguageUtil.get(pageContext, title));
+				jspWriter.write(LanguageUtil.get(request, title));
 			}
 
 			if (isOpensNewWindow()) {
-				jspWriter.write(
-					LanguageUtil.get(pageContext, "opens-new-window"));
+				jspWriter.write(LanguageUtil.get(request, "opens-new-window"));
 			}
 
 			jspWriter.write("\" ");
@@ -162,7 +161,12 @@ public class ATag extends BaseATag {
 		jspWriter.write(">");
 
 		if (Validator.isNotNull(label)) {
-			jspWriter.write(LanguageUtil.get(pageContext, label));
+			if (localizeLabel) {
+				jspWriter.write(LanguageUtil.get(request, label));
+			}
+			else {
+				jspWriter.write(label);
+			}
 		}
 
 		return EVAL_BODY_INCLUDE;

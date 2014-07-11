@@ -33,7 +33,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, node.getName(), portletURL.toStrin
 
 portletURL.setParameter("struts_action", "/wiki/view_node_deleted_attachments");
 
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "attachments-recycle-bin"), portletURL.toString());
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "attachments-recycle-bin"), portletURL.toString());
 
 PortletURL iteratorURL = renderResponse.createRenderURL();
 
@@ -78,14 +78,25 @@ iteratorURL.setParameter("viewTrashAttachments", Boolean.TRUE.toString());
 		<%
 		WikiPage wikiPage = WikiPageAttachmentsUtil.getPage(fileEntry.getFileEntryId());
 
-		String rowHREF = PortletFileRepositoryUtil.getPortletFileEntryURL(themeDisplay, fileEntry, "status=" + WorkflowConstants.STATUS_IN_TRASH);
+		String rowHREF = PortletFileRepositoryUtil.getDownloadPortletFileEntryURL(themeDisplay, fileEntry, "status=" + WorkflowConstants.STATUS_IN_TRASH);
 		%>
 
 		<liferay-ui:search-container-column-text
 			href="<%= rowHREF %>"
 			name="file-name"
 		>
-			<img align="left" alt="" border="0" src="<%= themeDisplay.getPathThemeImages() %>/file_system/small/<%= DLUtil.getFileIcon(fileEntry.getExtension()) %>.png"> <%= TrashUtil.getOriginalTitle(fileEntry.getTitle()) %>
+
+			<%
+			AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(DLFileEntry.class.getName());
+
+			AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(fileEntry.getFileEntryId());
+			%>
+
+			<liferay-ui:icon
+				iconCssClass="<%= assetRenderer.getIconCssClass() %>"
+				label="<%= true %>"
+				message="<%= TrashUtil.getOriginalTitle(fileEntry.getTitle()) %>"
+			/>
 		</liferay-ui:search-container-column-text>
 
 		<liferay-ui:search-container-column-text
@@ -96,6 +107,7 @@ iteratorURL.setParameter("viewTrashAttachments", Boolean.TRUE.toString());
 
 		<liferay-ui:search-container-column-jsp
 			align="right"
+			cssClass="entry-action"
 			path="/html/portlet/wiki/page_attachment_action.jsp"
 		/>
 	</liferay-ui:search-container-row>

@@ -16,6 +16,8 @@
 
 <%@ include file="/html/portlet/layouts_admin/init.jsp" %>
 
+<liferay-staging:defineObjects />
+
 <%
 String cmd = ParamUtil.getString(request, Constants.CMD);
 
@@ -58,38 +60,6 @@ else {
 
 		parameterMap = (Map<String, String[]>)exportImportConfigurationSettingsMap.get("parameterMap");
 	}
-}
-
-Group group = (Group)request.getAttribute(WebKeys.GROUP);
-
-Group liveGroup = null;
-Group stagingGroup = null;
-
-if (group.isStagingGroup()) {
-	liveGroup = group.getLiveGroup();
-	stagingGroup = group;
-}
-else if (group.isStaged()) {
-	liveGroup = group;
-
-	if (group.isStagedRemotely()) {
-		stagingGroup = group;
-	}
-	else {
-		stagingGroup = group.getStagingGroup();
-	}
-}
-
-long liveGroupId = 0;
-
-if (liveGroup != null) {
-	liveGroupId = liveGroup.getGroupId();
-}
-
-long stagingGroupId = 0;
-
-if (stagingGroup != null) {
-	stagingGroupId = stagingGroup.getGroupId();
 }
 
 long layoutSetBranchId = MapUtil.getLong(parameterMap, "layoutSetBranchId", ParamUtil.getLong(request, "layoutSetBranchId"));
@@ -141,8 +111,6 @@ try {
 }
 catch (NoSuchLayoutException nsle) {
 }
-
-boolean privateLayout = ParamUtil.getBoolean(request, "privateLayout", tabs1.equals("private-pages"));
 
 treeId = treeId + privateLayout + layoutSetBranchId;
 
@@ -234,7 +202,7 @@ else {
 		<liferay-ui:section>
 			<div <%= (!cmd.equals(Constants.ADD) && !cmd.equals(Constants.UPDATE)) ? StringPool.BLANK : "class=\"hide\"" %>>
 				<aui:nav-bar>
-					<aui:nav id="publishConfigurationButtons">
+					<aui:nav cssClass="navbar-nav" id="publishConfigurationButtons">
 						<aui:nav-item
 							data-value="custom"
 							iconCssClass="icon-puzzle"
@@ -267,6 +235,10 @@ else {
 					<aui:input name="layoutSetBranchName" type="hidden" value="<%= layoutSetBranchName %>" />
 					<aui:input name="lastImportUserName" type="hidden" value="<%= user.getFullName() %>" />
 					<aui:input name="lastImportUserUuid" type="hidden" value="<%= String.valueOf(user.getUserUuid()) %>" />
+					<aui:input name="<%= PortletDataHandlerKeys.PORTLET_ARCHIVED_SETUPS_ALL %>" type="hidden" value="<%= true %>" />
+					<aui:input name="<%= PortletDataHandlerKeys.PORTLET_CONFIGURATION_ALL %>" type="hidden" value="<%= true %>" />
+					<aui:input name="<%= PortletDataHandlerKeys.PORTLET_SETUP_ALL %>" type="hidden" value="<%= true %>"  />
+					<aui:input name="<%= PortletDataHandlerKeys.PORTLET_USER_PREFERENCES_ALL %>" type="hidden" value="<%= true %>" />
 
 					<liferay-ui:error exception="<%= DuplicateLockException.class %>" message="another-publishing-process-is-in-progress,-please-try-again-later" />
 
@@ -316,15 +288,7 @@ else {
 					</liferay-ui:error>
 
 					<c:if test="<%= !cmd.equals(Constants.PUBLISH_TO_LIVE) && !cmd.equals(Constants.PUBLISH_TO_REMOTE) %>">
-						<aui:model-context bean="<%= exportImportConfiguration %>" model="<%= ExportImportConfiguration.class %>" />
-
-						<aui:fieldset cssClass="options-group" label='<%= cmd.equals(Constants.ADD) ? "new-publish-template" : "edit-template" %>'>
-							<aui:input label="name" name="name" showRequiredLabel="<%= false %>">
-								<aui:validator name="required" />
-							</aui:input>
-
-							<aui:input label="description" name="description" />
-						</aui:fieldset>
+						<liferay-staging:configuration-header exportImportConfiguration="<%= exportImportConfiguration %>" label='<%= cmd.equals(Constants.ADD) ? "new-publish-template" : "edit-template" %>' />
 					</c:if>
 
 					<div id="<portlet:namespace />publishOptions">
@@ -384,28 +348,6 @@ else {
 										<liferay-util:param name="treeId" value="<%= treeId %>" />
 										<liferay-util:param name="selectedLayoutIds" value="<%= StringUtil.merge(selectedLayoutIds) %>" />
 									</liferay-util:include>
-								</aui:fieldset>
-							</c:if>
-
-							<%
-							List<Layout> exportLayouts = new ArrayList<Layout>();
-
-							if (selLayout != null) {
-								exportLayouts.add(selLayout);
-							}
-							else if (!selectedLayouts.isEmpty()) {
-								exportLayouts = selectedLayouts;
-							}
-							else {
-								exportLayouts = LayoutLocalServiceUtil.getLayouts(group.getGroupId(), privateLayout);
-							}
-
-							List<Portlet> portletDataHandlerPortlets = LayoutExporter.getPortletDataHandlerPortlets(exportLayouts);
-							%>
-
-							<c:if test="<%= !portletDataHandlerPortlets.isEmpty() %>">
-								<aui:fieldset cssClass="options-group" label="application-configuration">
-									<%@ include file="/html/portlet/layouts_admin/publish_layouts_portlets_setup.jspf" %>
 								</aui:fieldset>
 							</c:if>
 
@@ -495,25 +437,13 @@ else {
 		window,
 		'<portlet:namespace />publishPages',
 		function() {
-			if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-" + publishActionKey + "-these-pages") %>')) {
+			if (confirm('<%= UnicodeLanguageUtil.get(request, "are-you-sure-you-want-to-" + publishActionKey + "-these-pages") %>')) {
 				var A = AUI();
 
 				var allContentRadioChecked = A.one('#<portlet:namespace />allContent').attr('checked');
 
 				if (allContentRadioChecked) {
 					var selectedContents = A.one('#<portlet:namespace />selectContents');
-
-					var checkedNodes = selectedContents.all('input[type=checkbox]');
-
-					checkedNodes.each(
-						function(item, index, collection) {
-							if (!item.attr('checked')) {
-								item.attr('checked', true);
-
-								Liferay.Util.updateCheckboxValue(item);
-							}
-						}
-					);
 
 					var portletDataControlDefault = A.one('#<portlet:namespace /><%= PortletDataHandlerKeys.PORTLET_DATA_CONTROL_DEFAULT %>');
 
@@ -549,18 +479,19 @@ else {
 		<portlet:param name="layoutSetBranchName" value="<%= layoutSetBranchName %>" />
 		<portlet:param name="liveGroupId" value="<%= String.valueOf(liveGroupId) %>" />
 		<portlet:param name="localPublishing" value="<%= String.valueOf(localPublishing) %>" />
+		<portlet:param name="privateLayout" value="<%= String.valueOf(privateLayout) %>" />
 	</liferay-portlet:resourceURL>
 
 	new Liferay.ExportImport(
 		{
-			commentsNode: '#<%= PortletDataHandlerKeys.COMMENTS %>Checkbox',
-			deleteMissingLayoutsNode: '#<%= PortletDataHandlerKeys.DELETE_MISSING_LAYOUTS %>Checkbox',
-			deletePortletDataNode: '#<%= PortletDataHandlerKeys.DELETE_PORTLET_DATA %>Checkbox',
-			deletionsNode: '#<%= PortletDataHandlerKeys.DELETIONS %>Checkbox',
+			commentsNode: '#<%= PortletDataHandlerKeys.COMMENTS %>',
+			deleteMissingLayoutsNode: '#<%= PortletDataHandlerKeys.DELETE_MISSING_LAYOUTS %>',
+			deletePortletDataNode: '#<%= PortletDataHandlerKeys.DELETE_PORTLET_DATA %>',
+			deletionsNode: '#<%= PortletDataHandlerKeys.DELETIONS %>',
 			form: document.<portlet:namespace />exportPagesFm,
 			incompleteProcessMessageNode: '#<portlet:namespace />incompleteProcessMessage',
-			layoutSetSettingsNode: '#<%= PortletDataHandlerKeys.LAYOUT_SET_SETTINGS %>Checkbox',
-			logoNode: '#<%= PortletDataHandlerKeys.LOGO %>Checkbox',
+			layoutSetSettingsNode: '#<%= PortletDataHandlerKeys.LAYOUT_SET_SETTINGS %>',
+			logoNode: '#<%= PortletDataHandlerKeys.LOGO %>',
 			namespace: '<portlet:namespace />',
 			pageTreeId: '<%= treeId %>',
 			processesNode: '#publishProcesses',
@@ -569,16 +500,16 @@ else {
 			rangeDateRangeNode: '#rangeDateRange',
 			rangeLastNode: '#rangeLast',
 			rangeLastPublishNode: '#rangeLastPublish',
-			ratingsNode: '#<%= PortletDataHandlerKeys.RATINGS %>Checkbox',
+			ratingsNode: '#<%= PortletDataHandlerKeys.RATINGS %>',
 			remoteAddressNode: '#<portlet:namespace />remoteAddress',
-			remoteDeletePortletDataNode: '#remoteDeletePortletDataCheckbox',
+			remoteDeletePortletDataNode: '#remoteDeletePortletData',
 			remotePortNode: '#<portlet:namespace />remotePort',
 			remotePathContextNode: '#<portlet:namespace />remotePathContext',
 			remoteGroupIdNode: '#<portlet:namespace />remoteGroupId',
-			secureConnectionNode: '#secureConnectionCheckbox',
-			setupNode: '#<%= PortletDataHandlerKeys.PORTLET_SETUP_ALL %>Checkbox',
-			themeReferenceNode: '#<%= PortletDataHandlerKeys.THEME_REFERENCE %>Checkbox',
-			userPreferencesNode: '#<%= PortletDataHandlerKeys.PORTLET_USER_PREFERENCES_ALL %>Checkbox'
+			secureConnectionNode: '#secureConnection',
+			setupNode: '#<%= PortletDataHandlerKeys.PORTLET_SETUP_ALL %>',
+			themeReferenceNode: '#<%= PortletDataHandlerKeys.THEME_REFERENCE %>',
+			userPreferencesNode: '#<%= PortletDataHandlerKeys.PORTLET_USER_PREFERENCES_ALL %>'
 		}
 	);
 

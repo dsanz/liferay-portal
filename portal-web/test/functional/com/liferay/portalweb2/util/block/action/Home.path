@@ -104,6 +104,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SITE_NAME_LOGO</td>
+	<td>//h1[@class='site-title']/a/img</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SCOPE_SELECTOR</td>
 	<td>//a[@id='_145_controlPanelSiteSelector']</td>
 	<td></td>
@@ -115,7 +120,7 @@
 </tr>
 <tr>
 	<td>ERROR_MESSAGE</td>
-	<td>//div[contains(@class,'alert') and contains(@class, 'alert-error')]</td>
+	<td>//div[contains(@class, 'alert-danger')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -135,12 +140,22 @@
 </tr>
 <tr>
 	<td>ERROR_MESSAGE_ALERT_ERROR</td>
-	<td>//div[@class='portlet-content']/h3[contains(@class,'alert') and contains(@class, 'alert-error')]</td>
+	<td>//div[@class='portlet-content']/h3[contains(@class, 'alert-danger')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>URL_ERROR_MESSAGE</td>
 	<td>//code[@class='lfr-url-error']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONFIRMATION</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>NODE_NAME</td>
+	<td>//section[@id='content']/div[contains(.,'${key_nodePort}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -152,6 +167,11 @@
 <tr>
 	<td>SCOPE_SELECTOR_MENULIST_ITEM</td>
 	<td>//ul[contains(@aria-labelledby,'controlPanelSiteSelector')]/li/a[contains(.,'${key_siteScopeName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SCOPE_SELECTOR_SITE_NAME</td>
+	<td>//div[contains(@class,'control-panel-site-selector')]/a[contains(@id,'_145_controlPanelSiteSelector')]/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -173,7 +193,12 @@
 <!--PAGE-->
 <tr>
 	<td>PAGE</td>
-	<td>//li[contains(@class,'add-page')]/a[contains(.,'${key_pageName}')] | //li[contains(@class,'lfr-nav-item')]/a[contains(.,'${key_pageName}')]</td>
+	<td>//li[contains(@class,'add-page')]/a[contains(.,&apos;${key_pageName}&apos;)] | //li[contains(@class,'lfr-nav-item')]/a[contains(.,&apos;${key_pageName}&apos;)]</td>
+	<td>Page</td>
+</tr>
+<tr>
+	<td>PAGE_WITH_QUOTES</td>
+	<td>//li[contains(@class,'add-page')]/a[contains(.,&quot;${key_pageName}&quot;)] | //li[contains(@class,'lfr-nav-item')]/a[contains(.,&quot;${key_pageName}&quot;)]</td>
 	<td>Page</td>
 </tr>
 <tr>
@@ -183,7 +208,7 @@
 </tr>
 <tr>
 	<td>PAGE_TEMPLATE_1</td>
-	<td>xpath=(//li[contains(@class,'lfr-nav-item')])[1]/a</td>
+	<td>//ul[@aria-label='Site Pages' and @role='menubar']/li[1]/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -207,13 +232,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PAGE_1_STAGING_LIVE</td>
+	<td>//nav/ul/li[@id='layout_1']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PAGE_2</td>
 	<td>xpath=(//li[contains(@class,'lfr-nav-deletable')])[2]/a</td>
 	<td>2nd Page</td>
 </tr>
 <tr>
 	<td>PAGE_TEMPLATE_2</td>
-	<td>xpath=(//li[contains(@class,'lfr-nav-item')])[2]/a</td>
+	<td>//ul[@aria-label='Site Pages' and @role='menubar']/li[2]/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -222,13 +252,43 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PAGE_2_STAGING_LIVE</td>
+	<td>//nav/ul/li[@id='layout_2']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PAGE_3</td>
 	<td>xpath=(//li[contains(@class,'lfr-nav-deletable')])[3]/a</td>
 	<td>3rd Page</td>
 </tr>
 <tr>
+	<td>PAGE_3_STAGING_LIVE</td>
+	<td>//nav/ul/li[@id='layout_3']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PAGE_TEMPLATE_3</td>
-	<td>xpath=(//li[contains(@class,'lfr-nav-item')])[3]/a</td>
+	<td>//ul[@aria-label='Site Pages' and @role='menubar']/li[3]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_TEMPLATE_4</td>
+	<td>//ul[@aria-label='Site Pages' and @role='menubar']/li[4]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_TEMPLATE_5</td>
+	<td>//ul[@aria-label='Site Pages' and @role='menubar']/li[5]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_TEMPLATE_6</td>
+	<td>//ul[@aria-label='Site Pages' and @role='menubar']/li[6]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_TEMPLATE_7</td>
+	<td>//ul[@aria-label='Site Pages' and @role='menubar']/li[7]/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -254,17 +314,17 @@
 <!--BREADCRUMB-->
 <tr>
 	<td>BREADCRUMB_1</td>
-	<td>xpath=(//nav[@id='breadcrumbs']/ul/li/a)[1]</td>
+	<td>xpath=(//nav[@id='breadcrumbs']/div/ul/li/a)[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>BREADCRUMB_2</td>
-	<td>xpath=(//nav[@id='breadcrumbs']/ul/li/a)[2]</td>
+	<td>xpath=(//nav[@id='breadcrumbs']/div/ul/li/a)[2]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>BREADCRUMB_3</td>
-	<td>xpath=(//nav[@id='breadcrumbs']/ul/li/a)[3]</td>
+	<td>xpath=(//nav[@id='breadcrumbs']/div/ul/li/a)[3]</td>
 	<td></td>
 </tr>
 <tr>
@@ -285,27 +345,27 @@
 </tr>
 <tr>
 	<td>PAGE_COLUMN_1_LAYOUT_1_COLUMN</td>
-	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-1' and contains(@class,'span12')]</td>
+	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-1' and contains(@class,'col-md-12')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_COLUMN_1_LAYOUT_2_COLUMNS_30_SPLIT</td>
-	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-1' and contains(@class,'span4')]</td>
+	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-1' and contains(@class,'col-md-4')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_COLUMN_2_LAYOUT_2_COLUMNS_70_SPLIT</td>
-	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-2' and contains(@class,'span8')]</td>
+	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-2' and contains(@class,'col-md-8')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_COLUMN_1_LAYOUT_2_COLUMNS_50_SPLIT</td>
-	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-1' and contains(@class,'span6')]</td>
+	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-1' and contains(@class,'col-md-6')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_COLUMN_2_LAYOUT_2_COLUMNS_50_SPLIT</td>
-	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-2' and contains(@class,'span6')]</td>
+	<td>//div[contains(@class,'portlet-layout')]/div[@id='column-2' and contains(@class,'col-md-6')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -322,6 +382,32 @@
 <tr>
 	<td>PAGE_COLUMN_PORTLET_COLUMN_2_PORTLET_TITLE</td>
 	<td>//div[@id='column-2']//h1[@class='portlet-title']//span[contains(@class,'portlet-title-text') and contains(.,'${key_portletTitleName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--PAGE_CUSTOMIZATION-->
+<tr>
+	<td>PAGE_CUSTOMIZATION_MESSAGE_INFO</td>
+	<td>//div[@class='page-customization-bar']//span[contains(@class,'page-customization-bar-message')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_CUSTOMIZATION_VIEW_DEFAULT_PAGE</td>
+	<td>//div[contains(@class,'page-customization-bar-form')]/span[contains(.,'View Default Page')]/a/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_CUSTOMIZATION_RESET_MY_CUSTOMIZATIONS</td>
+	<td>//div[contains(@class,'page-customization-bar-form')]/span[contains(.,'Reset My Customizations')]/a/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_CUSTOMIZATION_VIEW_MY_CUSTOMIZED_PAGE</td>
+	<td>//div[contains(@class,'page-customization-bar-form')]/span[contains(.,'View My Customized')]/a/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -382,6 +468,21 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SIGN_IN_PORTLET</td>
+	<td>/portal/portlets/sign_in_portlet.png</td>
+	<td></td>
+</tr>
+<tr>
+	<td>HELLO_WORLD_PORTLET</td>
+	<td>/portal/portlets/hello_world_portlet.png</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_COLUMN_2_SIGN_IN_PORTLET</td>
+	<td>//div[@id='column-2']/div/div/section/header/h1[contains(.,'Sign In')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -395,6 +496,16 @@
 <tr>
 	<td>CONTROL_PANEL_NAVIGATION</td>
 	<td>//a[contains(.,'${key_portletName}') and contains(@id,'_190_controlPanelPortletLink')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTROL_PANEL_NAVIGATION_TOOLTIP_ICON</td>
+	<td>//li[@role='presentation' and span/a[contains(.,'${key_portletName}')]]/span[@class='taglib-icon-help']/img</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTROL_PANEL_NAVIGATION_TOOLTIP_MESSAGE</td>
+	<td>//div[contains(@class,'tooltip-help-content')]/div</td>
 	<td></td>
 </tr>
 <tr>
@@ -420,7 +531,7 @@
 </tr>
 <tr>
 	<td>SITE_ADMINISTRATION_NAVIGATION</td>
-	<td>//ul[contains(@class,'category-portlets')]/li[contains(.,'${key_portletName}')]/a</td>
+	<td>//ul[contains(@class,'category-portlets')]/li[contains(.,'${key_portletName}')]/span/a</td>
 	<td>Site Administration Navigation</td>
 </tr>
 <tr>
@@ -430,17 +541,17 @@
 </tr>
 <tr>
 	<td>SITE_ADMINISTRATION_USERS_SITE_MEMBERSHIPS</td>
-	<td>//ul[@class='category-portlets']/li[contains(.,'Site Memberships')]/a</td>
+	<td>//ul[@class='category-portlets']/li[contains(.,'Site Memberships')]/span/a/span</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_ADMINISTRATION_CONFIGURATION_SITE_SETTINGS</td>
-	<td>//ul[@class='category-portlets']/li[contains(.,'Site Settings')]/a</td>
+	<td>//ul[@class='category-portlets']/li[contains(.,'Site Settings')]/span/a/span</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_ADMINISTRATION_USERS_SITE_TEAMS</td>
-	<td>//ul[@class='category-portlets']/li[contains(.,'Site Teams')]/a</td>
+	<td>//ul[@class='category-portlets']/li[contains(.,'Site Teams')]/span/a/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -457,6 +568,16 @@
 <tr>
 	<td>PORTAL_LOCALIZATION_CONFIRMATION_MESSAGE</td>
 	<td>//div[@id='portalMessageContainer']/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PORTAL_LOCALIZATION_PREFERRED_MESSAGE</td>
+	<td>//div[@id='portalMessageContainer']/a[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PORTAL_LOCALIZATION_MESSAGE_INFO</td>
+	<td>//div[@id='portalMessageContainer']</td>
 	<td></td>
 </tr>
 <tr>

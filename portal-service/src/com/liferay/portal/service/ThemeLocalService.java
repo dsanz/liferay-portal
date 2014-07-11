@@ -43,21 +43,6 @@ public interface ThemeLocalService extends BaseLocalService {
 	 *
 	 * Never modify or reference this interface directly. Always use {@link ThemeLocalServiceUtil} to access the theme local service. Add custom service methods to {@link com.liferay.portal.service.impl.ThemeLocalServiceImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
-
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
-
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.ColorScheme fetchColorScheme(
 		long companyId, java.lang.String themeId, java.lang.String colorSchemeId);
@@ -66,26 +51,29 @@ public interface ThemeLocalService extends BaseLocalService {
 	public com.liferay.portal.model.Theme fetchTheme(long companyId,
 		java.lang.String themeId);
 
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public java.lang.String getBeanIdentifier();
+
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.ColorScheme getColorScheme(long companyId,
 		java.lang.String themeId, java.lang.String colorSchemeId,
-		boolean wapTheme)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		boolean wapTheme);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.Theme> getControlPanelThemes(
-		long companyId, long userId, boolean wapTheme)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long companyId, long userId, boolean wapTheme);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.Theme> getPageThemes(
-		long companyId, long groupId, long userId, boolean wapTheme)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long companyId, long groupId, long userId, boolean wapTheme);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.Theme getTheme(long companyId,
-		java.lang.String themeId, boolean wapTheme)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.lang.String themeId, boolean wapTheme);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.Theme> getThemes(
@@ -94,11 +82,10 @@ public interface ThemeLocalService extends BaseLocalService {
 	/**
 	* @deprecated As of 7.0.0, replaced by {@link #getPageThemes}
 	*/
-	@Deprecated
+	@java.lang.Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.Theme> getThemes(
-		long companyId, long groupId, long userId, boolean wapTheme)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long companyId, long groupId, long userId, boolean wapTheme);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.Theme> getWARThemes();
@@ -115,6 +102,13 @@ public interface ThemeLocalService extends BaseLocalService {
 		java.lang.String themesPath, boolean loadFromServletContext,
 		java.lang.String[] xmls,
 		com.liferay.portal.kernel.plugin.PluginPackage pluginPackage);
+
+	/**
+	* Sets the Spring bean ID for this bean.
+	*
+	* @param beanIdentifier the Spring bean ID for this bean
+	*/
+	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	public void uninstallThemes(
 		java.util.List<com.liferay.portal.model.Theme> themes);

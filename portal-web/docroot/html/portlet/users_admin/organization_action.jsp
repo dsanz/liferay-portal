@@ -47,13 +47,13 @@ String cssClass = StringPool.BLANK;
 boolean view = false;
 
 if (row == null) {
-	cssClass = "nav nav-list unstyled well";
+	cssClass = "list-group nav";
 
 	view = true;
 }
 %>
 
-<liferay-ui:icon-menu cssClass="<%= cssClass %>" showExpanded="<%= view %>" showWhenSingleIcon="<%= view %>">
+<liferay-ui:icon-menu cssClass="<%= cssClass %>" icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>" showExpanded="<%= view %>" showWhenSingleIcon="<%= view %>">
 
 	<%
 	boolean hasUpdatePermission = OrganizationPermissionUtil.contains(permissionChecker, organization, ActionKeys.UPDATE);
@@ -67,7 +67,8 @@ if (row == null) {
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			image="edit"
+			iconCssClass="icon-edit"
+			message="edit"
 			url="<%= editOrganizationURL %>"
 		/>
 	</c:if>
@@ -82,7 +83,8 @@ if (row == null) {
 		/>
 
 		<liferay-ui:icon
-			image="permissions"
+			iconCssClass="icon-lock"
+			message="permissions"
 			method="get"
 			url="<%= editOrganizationPermissionsURL %>"
 			useDialog="<%= true %>"
@@ -96,7 +98,7 @@ if (row == null) {
 		</liferay-portlet:renderURL>
 
 		<liferay-ui:icon
-			image="configuration"
+			iconCssClass="icon-cog"
 			message="manage-site"
 			url="<%= editSettingsURL %>"
 		/>
@@ -111,7 +113,7 @@ if (row == null) {
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			image="assign_user_roles"
+			iconCssClass="icon-signin"
 			message="assign-organization-roles"
 			url="<%= assignUserRolesURL %>"
 		/>
@@ -125,7 +127,7 @@ if (row == null) {
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			image="assign"
+			iconCssClass="icon-signin"
 			message="assign-users"
 			url="<%= assignMembersURL %>"
 		/>
@@ -139,7 +141,7 @@ if (row == null) {
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			image="add_user"
+			iconCssClass="icon-plus"
 			message="add-user"
 			url="<%= addUserURL %>"
 		/>
@@ -162,8 +164,8 @@ if (row == null) {
 				</portlet:renderURL>
 
 				<liferay-ui:icon
-					image="add_location"
-					message='<%= LanguageUtil.format(pageContext, "add-x", childrenType) %>'
+					iconCssClass="icon-plus"
+					message='<%= LanguageUtil.format(request, "add-x", childrenType) %>'
 					url="<%= addSuborganizationURL %>"
 				/>
 			</c:if>
@@ -181,7 +183,9 @@ if (row == null) {
 		%>
 
 		<liferay-ui:icon
-			image="delete"
+			cssClass="item-remove"
+			iconCssClass="icon-remove"
+			message="delete"
 			url="<%= taglibDeleteURL %>"
 		/>
 	</c:if>

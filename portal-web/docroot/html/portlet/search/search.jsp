@@ -40,12 +40,7 @@ String format = ParamUtil.getString(request, "format");
 
 List<String> portletTitles = new ArrayList<String>();
 
-PortletURL portletURL = renderResponse.createRenderURL();
-
-portletURL.setParameter("struts_action", "/search/search");
-portletURL.setParameter("groupId", String.valueOf(groupId));
-portletURL.setParameter("keywords", keywords);
-portletURL.setParameter("format", format);
+PortletURL portletURL = PortletURLUtil.getCurrent(renderRequest, renderResponse);
 
 request.setAttribute("search.jsp-portletURL", portletURL);
 request.setAttribute("search.jsp-returnToFullPageURL", portletDisplay.getURLBack());
@@ -61,11 +56,19 @@ request.setAttribute("search.jsp-returnToFullPageURL", portletDisplay.getURLBack
 	<aui:input name="format" type="hidden" value="<%= format %>" />
 
 	<aui:fieldset id="searchContainer">
-		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" hideLabel="<%= true %>" inlineField="<%= true %>" label="search" name="keywords" size="30" value="<%= HtmlUtil.escape(keywords) %>" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" inlineField="<%= true %>" label="" name="keywords" size="30" title="search" value="<%= HtmlUtil.escape(keywords) %>" />
 
-		<aui:input inlineField="<%= true %>" name="search" src='<%= themeDisplay.getPathThemeImages() + "/common/search.png" %>' title="search" type="image" />
+		<liferay-ui:icon
+			iconCssClass="icon-search"
+			id="searchButton"
+			url="javascript:;"
+		/>
 
-		<aui:input inlineField="<%= true %>" name="clearSearch" src='<%= themeDisplay.getPathThemeImages() + "/common/close.png" %>' title="clear-search" type="image" />
+		<liferay-ui:icon
+			iconCssClass="icon-remove"
+			id="clearSearch"
+			url="javascript:;"
+		/>
 	</aui:fieldset>
 
 	<div class="lfr-token-list" id="<portlet:namespace />searchTokens">
@@ -83,7 +86,7 @@ request.setAttribute("search.jsp-returnToFullPageURL", portletDisplay.getURLBack
 
 						A.Array.each(
 							fieldValues,
-							function(item, index, collection) {
+							function(item, index) {
 								var values = item.split('|');
 
 								var field = A.one('#' + values[0]);
@@ -119,12 +122,12 @@ request.setAttribute("search.jsp-returnToFullPageURL", portletDisplay.getURLBack
 </aui:form>
 
 <aui:script use="aui-base">
-	A.on(
+	A.one('#<portlet:namespace />searchContainer').delegate(
 		'click',
 		function(event) {
-			var targetId = event.target.get('id');
+			var targetId = event.currentTarget.get('id');
 
-			if (targetId === '<portlet:namespace />search') {
+			if (targetId === '<portlet:namespace />searchButton') {
 				<portlet:namespace />search();
 			}
 			else if (targetId === '<portlet:namespace />clearSearch') {
@@ -135,7 +138,18 @@ request.setAttribute("search.jsp-returnToFullPageURL", portletDisplay.getURLBack
 				window.location.href = '<%= clearSearchURL %>';
 			}
 		},
-		'#<portlet:namespace />searchContainer'
+		'a'
+	);
+
+	A.one('#<portlet:namespace />keywords').on(
+		'keydown',
+		function(event) {
+			keyCode = event.keyCode;
+
+			if (keyCode === 13) {
+				<portlet:namespace />search();
+			}
+		}
 	);
 
 	var searchContainer = A.one('.portlet-search .result .lfr-search-container');
@@ -206,7 +220,7 @@ request.setAttribute("search.jsp-returnToFullPageURL", portletDisplay.getURLBack
 		window,
 		'<portlet:namespace />addSearchProvider',
 		function() {
-			window.external.AddSearchProvider("<%= themeDisplay.getPortalURL() %><%= PortalUtil.getPathMain() %>/search/open_search_description.xml?p_l_id=<%= themeDisplay.getPlid() %>&groupId=<%= groupId %>");
+			window.external.AddSearchProvider('<%= themeDisplay.getPortalURL() %><%= PortalUtil.getPathMain() %>/search/open_search_description.xml?p_l_id=<%= themeDisplay.getPlid() %>&groupId=<%= groupId %>');
 		},
 		['aui-base']
 	);
@@ -230,12 +244,12 @@ request.setAttribute("search.jsp-returnToFullPageURL", portletDisplay.getURLBack
 </aui:script>
 
 <%
-String pageSubtitle = LanguageUtil.get(pageContext, "search-results");
-String pageDescription = LanguageUtil.get(pageContext, "search-results");
-String pageKeywords = LanguageUtil.get(pageContext, "search");
+String pageSubtitle = LanguageUtil.get(request, "search-results");
+String pageDescription = LanguageUtil.get(request, "search-results");
+String pageKeywords = LanguageUtil.get(request, "search");
 
 if (!portletTitles.isEmpty()) {
-	pageDescription = LanguageUtil.get(pageContext, "searched") + StringPool.SPACE + StringUtil.merge(portletTitles, StringPool.COMMA_AND_SPACE);
+	pageDescription = LanguageUtil.get(request, "searched") + StringPool.SPACE + StringUtil.merge(portletTitles, StringPool.COMMA_AND_SPACE);
 }
 
 if (Validator.isNotNull(keywords)) {

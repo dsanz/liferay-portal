@@ -15,7 +15,6 @@
 package com.liferay.portal.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Shard;
 import com.liferay.portal.service.base.ShardLocalServiceBaseImpl;
@@ -27,9 +26,7 @@ import com.liferay.portal.util.PropsValues;
 public class ShardLocalServiceImpl extends ShardLocalServiceBaseImpl {
 
 	@Override
-	public Shard addShard(String className, long classPK, String name)
-		throws SystemException {
-
+	public Shard addShard(String className, long classPK, String name) {
 		long classNameId = classNameLocalService.getClassNameId(className);
 
 		if (Validator.isNull(name)) {
@@ -51,7 +48,7 @@ public class ShardLocalServiceImpl extends ShardLocalServiceBaseImpl {
 
 	@Override
 	public Shard getShard(String className, long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		long classNameId = classNameLocalService.getClassNameId(className);
 

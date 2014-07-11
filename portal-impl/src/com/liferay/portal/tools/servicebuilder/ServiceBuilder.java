@@ -59,6 +59,7 @@ import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaField;
 import com.thoughtworks.qdox.model.JavaMethod;
 import com.thoughtworks.qdox.model.JavaParameter;
+import com.thoughtworks.qdox.model.JavaSource;
 import com.thoughtworks.qdox.model.Type;
 
 import de.hunsicker.io.FileFormat;
@@ -82,6 +83,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+
+import java.net.URL;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -430,6 +433,10 @@ public class ServiceBuilder {
 			jalopyXmlFile = new File("../../misc/jalopy.xml");
 		}
 
+		if (!jalopyXmlFile.exists()) {
+			jalopyXmlFile = _readJalopyXmlFromClassLoader();
+		}
+
 		try {
 			Jalopy.setConvention(jalopyXmlFile);
 		}
@@ -584,9 +591,11 @@ public class ServiceBuilder {
 
 			_springNamespaces = springNamespaces;
 
-			if (!ArrayUtil.contains(_springNamespaces, "beans")) {
+			if (!ArrayUtil.contains(
+					_springNamespaces, _SPRING_NAMESPACE_BEANS)) {
+
 				_springNamespaces = ArrayUtil.append(
-					_springNamespaces, "beans");
+					_springNamespaces, _SPRING_NAMESPACE_BEANS);
 			}
 
 			_apiDir = apiDir;
@@ -863,6 +872,61 @@ public class ServiceBuilder {
 			remotingFileName, resourcesDir, springFileName, springNamespaces,
 			sqlDir, sqlFileName, sqlIndexesFileName, sqlSequencesFileName,
 			targetEntityName, testDir, true);
+	}
+
+	public String annotationToString(Annotation annotation) {
+		StringBundler sb = new StringBundler();
+
+		sb.append(StringPool.AT);
+
+		Type type = annotation.getType();
+
+		sb.append(type.getValue());
+
+		Map<String, Object> namedParameters = annotation.getNamedParameterMap();
+
+		if (namedParameters.isEmpty()) {
+			return sb.toString();
+		}
+
+		sb.append(StringPool.OPEN_PARENTHESIS);
+
+		for (Map.Entry<String, Object> entry : namedParameters.entrySet()) {
+			sb.append(entry.getKey());
+
+			sb.append(StringPool.EQUAL);
+
+			Object value = entry.getValue();
+
+			if (value instanceof List) {
+				List<String> stringValues = (List<String>)entry.getValue();
+
+				sb.append(StringPool.OPEN_CURLY_BRACE);
+
+				for (String stringValue : stringValues) {
+					sb.append(stringValue);
+
+					sb.append(StringPool.COMMA_AND_SPACE);
+				}
+
+				if (!stringValues.isEmpty()) {
+					sb.setIndex(sb.index() - 1);
+				}
+
+				sb.append(StringPool.CLOSE_CURLY_BRACE);
+			}
+			else {
+				sb.append(value);
+			}
+
+			sb.append(StringPool.COMMA_AND_SPACE);
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		sb.append(StringPool.CLOSE_PARENTHESIS);
+
+		return sb.toString();
 	}
 
 	public String getClassName(Type type) {
@@ -1327,7 +1391,7 @@ public class ServiceBuilder {
 		else if (type.equals("Date")) {
 			return "TIMESTAMP";
 		}
-		else if (type.equals("String")) {
+		else if (type.equals("Map") || type.equals("String")) {
 			Map<String, String> hints = ModelHintsUtil.getHints(model, field);
 
 			if (hints != null) {
@@ -1355,13 +1419,13 @@ public class ServiceBuilder {
 		if (actualTypeArguments != null) {
 			sb.append(StringPool.LESS_THAN);
 
-			for (int i = 0; i < actualTypeArguments.length; i++) {
-				if (i > 0) {
-					sb.append(", ");
-				}
+			for (Type actualTypeArgument : actualTypeArguments) {
+				sb.append(getTypeGenericsName(actualTypeArgument));
 
-				sb.append(getTypeGenericsName(actualTypeArguments[i]));
+				sb.append(StringPool.COMMA_AND_SPACE);
 			}
+
+			sb.setIndex(sb.index() - 1);
 
 			sb.append(StringPool.GREATER_THAN);
 		}
@@ -1501,41 +1565,6 @@ public class ServiceBuilder {
 		}
 		else {
 			return true;
-		}
-	}
-
-	public boolean isDuplicateMethod(
-		JavaMethod method, Map<String, Object> tempMap) {
-
-		StringBundler sb = new StringBundler();
-
-		sb.append("isDuplicateMethod ");
-		sb.append(getTypeGenericsName(method.getReturns()));
-		sb.append(StringPool.SPACE);
-		sb.append(method.getName());
-		sb.append(StringPool.OPEN_PARENTHESIS);
-
-		JavaParameter[] parameters = method.getParameters();
-
-		for (int i = 0; i < parameters.length; i++) {
-			JavaParameter javaParameter = parameters[i];
-
-			sb.append(getTypeGenericsName(javaParameter.getType()));
-
-			if ((i + 1) != parameters.length) {
-				sb.append(StringPool.COMMA);
-			}
-		}
-
-		sb.append(StringPool.CLOSE_PARENTHESIS);
-
-		String key = sb.toString();
-
-		if (tempMap.put(key, key) != null) {
-			return true;
-		}
-		else {
-			return false;
 		}
 	}
 
@@ -1729,6 +1758,20 @@ public class ServiceBuilder {
 		fileName = fileName.substring(x + 4, y);
 
 		return StringUtil.replace(fileName, "/", ".");
+	}
+
+	private static File _readJalopyXmlFromClassLoader() {
+		ClassLoader classLoader = ServiceBuilder.class.getClassLoader();
+
+		URL url = classLoader.getResource("jalopy.xml");
+
+		try {
+			return new File(url.toURI());
+		}
+		catch (Exception e) {
+			throw new RuntimeException(
+				"Unable to load jalopy.xml from the class loader", e);
+		}
 	}
 
 	private void _addIndexMetadata(
@@ -2437,19 +2480,19 @@ public class ServiceBuilder {
 		JavaClass modelJavaClass = _getJavaClass(
 			_serviceOutputPath + "/model/" + entity.getName() + "Model.java");
 
-		Object[] methods = _getMethods(modelJavaClass);
+		JavaMethod[] methods = _getMethods(modelJavaClass);
 
 		JavaClass extendedModelBaseImplJavaClass = _getJavaClass(
 			_outputPath + "/model/impl/" + entity.getName() + "BaseImpl.java");
 
-		methods = ArrayUtil.append(
-			methods, _getMethods(extendedModelBaseImplJavaClass));
+		methods = _mergeMethods(
+			methods, _getMethods(extendedModelBaseImplJavaClass), false);
 
 		JavaClass extendedModelJavaClass = _getJavaClass(
 			_serviceOutputPath + "/model/" + entity.getName() + ".java");
 
-		methods = ArrayUtil.append(
-			methods, _getMethods(extendedModelJavaClass));
+		methods = _mergeMethods(
+			methods, _getMethods(extendedModelJavaClass), false);
 
 		Map<String, Object> context = _getContext();
 
@@ -2748,9 +2791,15 @@ public class ServiceBuilder {
 	private void _createService(Entity entity, int sessionType)
 		throws Exception {
 
+		Set<String> imports = new HashSet<String>();
+
 		JavaClass javaClass = _getJavaClass(
 			_outputPath + "/service/impl/" + entity.getName() +
 				_getSessionTypeName(sessionType) + "ServiceImpl.java");
+
+		JavaSource javaSource = javaClass.getSource();
+
+		imports.addAll(Arrays.asList(javaSource.getImports()));
 
 		JavaMethod[] methods = _getMethods(javaClass);
 
@@ -2766,13 +2815,18 @@ public class ServiceBuilder {
 				_outputPath + "/service/base/" + entity.getName() +
 					_getSessionTypeName(sessionType) + "ServiceBaseImpl.java");
 
-			methods = ArrayUtil.append(
-				parentJavaClass.getMethods(), methods);
+			JavaSource parentJavaSource = parentJavaClass.getSource();
+
+			imports.addAll(Arrays.asList(parentJavaSource.getImports()));
+
+			methods = _mergeMethods(
+				methods, parentJavaClass.getMethods(), true);
 		}
 
 		Map<String, Object> context = _getContext();
 
 		context.put("entity", entity);
+		context.put("imports", imports);
 		context.put("methods", methods);
 		context.put("sessionTypeName", _getSessionTypeName(sessionType));
 
@@ -3186,8 +3240,7 @@ public class ServiceBuilder {
 			"\tdefault-init-method=\"afterPropertiesSet\"\n" +
 			_getSpringNamespacesDeclarations() +
 			"\txmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
-			_getSpringSchemaLocations() +
-			">\n" +
+			"\txsi:schemaLocation=\"" + _getSpringSchemaLocations() + "\">\n" +
 			"</beans>";
 
 		if (!xmlFile.exists()) {
@@ -3930,6 +3983,9 @@ public class ServiceBuilder {
 				else if (StringUtil.equalsIgnoreCase(colType, "long")) {
 					sb.append("LONG");
 				}
+				else if (colType.equals("Map")) {
+						sb.append("TEXT");
+				}
 				else if (colType.equals("String")) {
 					Map<String, String> hints = ModelHintsUtil.getHints(
 						_packagePath + ".model." + entity.getName(), colName);
@@ -3967,7 +4023,9 @@ public class ServiceBuilder {
 				if (col.isPrimary()) {
 					sb.append(" not null");
 				}
-				else if (colType.equals("Date") || colType.equals("String")) {
+				else if (colType.equals("Date") || colType.equals("Map") ||
+						 colType.equals("String")) {
+
 					sb.append(" null");
 				}
 
@@ -4049,6 +4107,9 @@ public class ServiceBuilder {
 			else if (colType.equals("Date")) {
 				sb.append("DATE");
 			}
+			else if (colType.equals("Map")) {
+				sb.append("TEXT");
+			}
 			else if (colType.equals("String")) {
 				Map<String, String> hints = ModelHintsUtil.getHints(
 					_packagePath + ".model." + entity.getName(), colName);
@@ -4087,7 +4148,9 @@ public class ServiceBuilder {
 					sb.append(" primary key");
 				}
 			}
-			else if (colType.equals("Date") || colType.equals("String")) {
+			else if (colType.equals("Date") || colType.equals("Map") ||
+					 colType.equals("String")) {
+
 				sb.append(" null");
 			}
 
@@ -4180,6 +4243,34 @@ public class ServiceBuilder {
 		return javaClass;
 	}
 
+	private String _getMethodKey(JavaMethod javaMethod) {
+		StringBundler sb = new StringBundler();
+
+		if (!javaMethod.isConstructor()) {
+			sb.append(getTypeGenericsName(javaMethod.getReturns()));
+			sb.append(StringPool.SPACE);
+		}
+
+		sb.append(javaMethod.getName());
+		sb.append(StringPool.OPEN_PARENTHESIS);
+
+		JavaParameter[] javaParameters = javaMethod.getParameters();
+
+		for (JavaParameter javaParameter : javaParameters) {
+			sb.append(getTypeGenericsName(javaParameter.getType()));
+
+			sb.append(StringPool.COMMA);
+		}
+
+		if (javaParameters.length > 0) {
+			sb.setIndex(sb.index() - 1);
+		}
+
+		sb.append(StringPool.CLOSE_PARENTHESIS);
+
+		return sb.toString();
+	}
+
 	private JavaMethod[] _getMethods(JavaClass javaClass) {
 		return _getMethods(javaClass, false);
 	}
@@ -4209,8 +4300,13 @@ public class ServiceBuilder {
 		StringBundler sb = new StringBundler(_springNamespaces.length * 4);
 
 		for (String namespace : _springNamespaces) {
-			sb.append("\txmlns:");
-			sb.append(namespace);
+			sb.append("\txmlns");
+
+			if (!_SPRING_NAMESPACE_BEANS.equals(namespace)) {
+				sb.append(":");
+				sb.append(namespace);
+			}
+
 			sb.append("=\"http://www.springframework.org/schema/");
 			sb.append(namespace);
 			sb.append("\"\n");
@@ -4359,6 +4455,87 @@ public class ServiceBuilder {
 
 	private boolean _isTypeValue(Type type, String value) {
 		return value.equals(type.getValue());
+	}
+
+	private Annotation[] _mergeAnnotations(
+		Annotation[] annotations1, Annotation[] annotations2) {
+
+		Map<Type, Annotation> annotationsMap = new HashMap<Type, Annotation>();
+
+		for (Annotation annotation : annotations2) {
+			annotationsMap.put(annotation.getType(), annotation);
+		}
+
+		for (Annotation annotation : annotations1) {
+			annotationsMap.put(annotation.getType(), annotation);
+		}
+
+		List<Annotation> annotations = new ArrayList<Annotation>(
+			annotationsMap.values());
+
+		Comparator<Annotation> comparator = new Comparator<Annotation>() {
+
+			@Override
+			public int compare(Annotation annotation1, Annotation annotation2) {
+				String annotationString1 = annotation1.toString();
+				String annotationString2 = annotation2.toString();
+
+				return annotationString1.compareTo(annotationString2);
+			}
+
+		};
+
+		Collections.sort(annotations, comparator);
+
+		return annotations.toArray(new Annotation[annotations.size()]);
+	}
+
+	private JavaMethod[] _mergeMethods(
+		JavaMethod[] javaMethods1, JavaMethod[] javaMethods2,
+		boolean mergeAnnotations) {
+
+		Map<String, JavaMethod> javaMethodMap =
+			new HashMap<String, JavaMethod>();
+
+		for (JavaMethod javaMethod : javaMethods2) {
+			javaMethodMap.put(_getMethodKey(javaMethod), javaMethod);
+		}
+
+		for (JavaMethod javaMethod : javaMethods1) {
+			String javaMethodKey = _getMethodKey(javaMethod);
+
+			JavaMethod existingJavaMethod = javaMethodMap.get(javaMethodKey);
+
+			if (existingJavaMethod == null) {
+				javaMethodMap.put(javaMethodKey, javaMethod);
+			}
+			else if (mergeAnnotations) {
+				Annotation[] annotations = _mergeAnnotations(
+					javaMethod.getAnnotations(),
+					existingJavaMethod.getAnnotations());
+
+				existingJavaMethod.setAnnotations(annotations);
+			}
+		}
+
+		List<JavaMethod> javaMethods = new ArrayList<JavaMethod>(
+			javaMethodMap.values());
+
+		Comparator<JavaMethod> comparator = new Comparator<JavaMethod>() {
+
+			@Override
+			public int compare(JavaMethod javaMethod1, JavaMethod javaMethod2) {
+				String callSignature1 = javaMethod1.getCallSignature();
+				String callSignature2 = javaMethod2.getCallSignature();
+
+				return callSignature1.compareTo(callSignature2);
+			}
+
+		};
+
+		Collections.sort(javaMethods, comparator);
+
+		return javaMethods.toArray(new JavaMethod[javaMethods.size()]);
 	}
 
 	private List<Entity> _mergeReferenceList(Entity entity) {
@@ -4932,6 +5109,8 @@ public class ServiceBuilder {
 	private static final int _SESSION_TYPE_LOCAL = 1;
 
 	private static final int _SESSION_TYPE_REMOTE = 0;
+
+	private static final String _SPRING_NAMESPACE_BEANS = "beans";
 
 	private static final String _SQL_CREATE_TABLE = "create table ";
 

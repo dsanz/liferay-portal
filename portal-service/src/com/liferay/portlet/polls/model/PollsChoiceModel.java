@@ -18,9 +18,9 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.LocalizedModel;
 import com.liferay.portal.model.StagedGroupedModel;
 import com.liferay.portal.service.ServiceContext;
 
@@ -46,7 +46,7 @@ import java.util.Map;
  * @generated
  */
 @ProviderType
-public interface PollsChoiceModel extends BaseModel<PollsChoice>,
+public interface PollsChoiceModel extends BaseModel<PollsChoice>, LocalizedModel,
 	StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -151,10 +151,9 @@ public interface PollsChoiceModel extends BaseModel<PollsChoice>,
 	 * Returns the user uuid of this polls choice.
 	 *
 	 * @return the user uuid of this polls choice
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public String getUserUuid() throws SystemException;
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this polls choice.
@@ -376,12 +375,16 @@ public interface PollsChoiceModel extends BaseModel<PollsChoice>,
 	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public String[] getAvailableLanguageIds();
 
+	@Override
 	public String getDefaultLanguageId();
 
+	@Override
 	public void prepareLocalizedFieldsForImport() throws LocaleException;
 
+	@Override
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 

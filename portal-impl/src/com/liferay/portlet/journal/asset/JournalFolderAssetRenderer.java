@@ -15,7 +15,6 @@
 package com.liferay.portlet.journal.asset;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.trash.TrashRenderer;
@@ -73,6 +72,17 @@ public class JournalFolderAssetRenderer
 	@Override
 	public long getGroupId() {
 		return _folder.getGroupId();
+	}
+
+	@Override
+	public String getIconCssClass() throws PortalException {
+		if (JournalFolderServiceUtil.getFoldersAndArticlesCount(
+				_folder.getGroupId(), _folder.getFolderId()) > 0) {
+
+			return "icon-folder-close";
+		}
+
+		return super.getIconCssClass();
 	}
 
 	@Override
@@ -201,7 +211,7 @@ public class JournalFolderAssetRenderer
 
 	@Override
 	public boolean hasEditPermission(PermissionChecker permissionChecker)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return JournalFolderPermission.contains(
 			permissionChecker, _folder, ActionKeys.UPDATE);
@@ -209,7 +219,7 @@ public class JournalFolderAssetRenderer
 
 	@Override
 	public boolean hasViewPermission(PermissionChecker permissionChecker)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return JournalFolderPermission.contains(
 			permissionChecker, _folder, ActionKeys.VIEW);

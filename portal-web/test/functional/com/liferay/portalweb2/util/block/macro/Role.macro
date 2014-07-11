@@ -52,7 +52,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionsCP">
-			<var name="permissionDefinitionKeys" value="SITE_ADMIN_PAGES_SITE_PAGES_SITE_GENERAL_PERMISSIONS_ACTION,SITE_ADMIN_PAGES_SITE_PAGES_SITE_RESOURCE_PERMISSIONS_SITE_ACTION,SITE_ADMIN_PAGES_SITE_PAGES_SITE_RESOURCE_PERMISSIONS_PAGE_ACTION,SITE_ADMIN_PAGES_SITE_PAGES_SITE_RESOURCE_PERMISSIONS_PAGE_VARIATION_ACTION,SITE_ADMIN_PAGES_SITE_PAGES_SITE_RESOURCE_PERMISSIONS_SITE_PAGES_VARIATION_ACTION" />
+			<var name="permissionDefinitionKeys" value="SITE_ADMIN_PAGES_SITE_PAGES_GENERAL_PERMISSIONS_ACTION_CHECKBOX,SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_SITE_ACTION_CHECKBOX,SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_PAGE_ACTION_CHECKBOX,SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_PAGE_VARIATION_ACTION_CHECKBOX,SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_SITE_PAGES_VARIATION_ACTION_CHECKBOX" />
 			<var name="roleName" value="${roleName}" />
 		</execute>
 	</command>
@@ -62,7 +62,7 @@
 
 		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="${roleName}" />
 		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
-		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS" />
 		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_ASSIGN_MEMBERS" value1="Assign Members" />
 		<execute action="CPRolesAssignmembersUsers#assertClick" locator-key1="MEMBERS_ORGANIZATIONS" value1="Organizations" />
 
@@ -83,7 +83,7 @@
 
 		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="${roleName}" />
 		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
-		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS" />
 		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_ASSIGN_MEMBERS" value1="Assign Members" />
 		<execute action="CPRolesAssignmembersUsers#assertClick" locator-key1="MEMBERS_SITES" value1="Sites" />
 
@@ -104,7 +104,7 @@
 
 		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="${roleName}" />
 		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
-		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS" />
 		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_ASSIGN_MEMBERS" value1="Assign Members" />
 		<execute action="CPRolesAssignmembersUsers#assertClick" locator-key1="MEMBERS_USER_GROUPS" value1="User Groups" />
 
@@ -125,7 +125,7 @@
 
 		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="${roleName}" />
 		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
-		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS" />
 		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_ASSIGN_MEMBERS" value1="Assign Members" />
 
 		<var name="key_userScreenName" value="${userScreenName}" />
@@ -177,6 +177,45 @@
 		</execute>
 	</command>
 
+	<command name="editCP">
+		<var name="key_roleName" value="${roleName}" />
+
+		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="${roleName}" />
+		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
+		<execute action="CPRoles#assertTextEquals" locator-key1="ROLE_TABLE_TITLE" value1="${roleName}" />
+		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_EDIT" value1="Edit" />
+
+		<if>
+			<equals arg1="${localizeRoleName}" arg2="true" />
+			<then>
+				<execute macro="Role#localizeRoleNameCmd" />
+			</then>
+			<else>
+				<execute action="CPRolesEdit#type" locator-key1="TITLE_FIELD" value1="${roleName}" />
+			</else>
+		</if>
+
+		<if>
+			<isset var="roleDescription" />
+			<then>
+				<if>
+					<equals arg1="${localizeRoleDescription}" arg2="true" />
+					<then>
+						<execute macro="Role#localizeRoleDescriptionCmd" />
+					</then>
+					<else>
+						<execute action="CPRolesEdit#type" locator-key1="DESCRIPTION_FIELD" value1="${roleDescription}" />
+					</else>
+				</if>
+			</then>
+		</if>
+
+		<execute action="CPRolesEdit#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
+
+		<execute action="CPRoles#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+	</command>
+
 	<command name="editPermissionCmdCP">
 		<var name="key_roleName" value="${roleName}" />
 
@@ -187,11 +226,11 @@
 			<isset var="roleUser" />
 			<then>
 				<execute action="CPRoles#assertTextEquals" locator1="//tr[contains(.,'${roleName}') and contains(.,'${roleUser}')]/td[1]/a" value1="${roleUser}" />
-				<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+				<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS" />
 			</then>
 			<else>
 				<execute action="CPRoles#assertTextEquals" locator-key1="ROLE_TABLE_TITLE" value1="${roleName}" />
-				<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+				<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS" />
 			</else>
 		</if>
 
@@ -256,6 +295,41 @@
 					</then>
 				</elseif>
 				<elseif>
+					<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_APPLICATIONS_BOOKMARKS" />
+					<then>
+						<var name="permissionNavigationKey" value="SITE_ADMIN_APPLICATIONS_BOOKMARKS" />
+						<var name="permissionNavigationValue" value="Bookmarks" />
+					</then>
+				</elseif>
+				<elseif>
+					<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_APPLICATIONS_CATEGORIES_NAVIGATION" />
+					<then>
+						<var name="permissionNavigationKey" value="SITE_ADMIN_APPLICATIONS_CATEGORIES_NAVIGATION" />
+						<var name="permissionNavigationValue" value="Categories Navigation" />
+					</then>
+				</elseif>
+				<elseif>
+					<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA" />
+					<then>
+						<var name="permissionNavigationKey" value="SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA" />
+						<var name="permissionNavigationValue" value="Documents and Media" />
+					</then>
+				</elseif>
+				<elseif>
+					<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_APPLICATIONS_LANGUAGE" />
+					<then>
+						<var name="permissionNavigationKey" value="SITE_ADMIN_APPLICATIONS_LANGUAGE" />
+						<var name="permissionNavigationValue" value="Language" />
+					</then>
+				</elseif>
+				<elseif>
+					<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_APPLICATIONS_MESSAGE_BOARDS" />
+					<then>
+						<var name="permissionNavigationKey" value="SITE_ADMIN_APPLICATIONS_MESSAGE_BOARDS" />
+						<var name="permissionNavigationValue" value="Message Boards" />
+					</then>
+				</elseif>
+				<elseif>
 					<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_APPLICATIONS_WEB_CONTENT_DISPLAY" />
 					<then>
 						<var name="permissionNavigationKey" value="SITE_ADMIN_APPLICATIONS_WEB_CONTENT_DISPLAY" />
@@ -274,6 +348,13 @@
 					<then>
 						<var name="permissionNavigationKey" value="SITE_ADMIN_CONTENT_BOOKMARKS" />
 						<var name="permissionNavigationValue" value="Bookmarks" />
+					</then>
+				</elseif>
+				<elseif>
+					<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_CONTENT_CATEGORIES" />
+					<then>
+						<var name="permissionNavigationKey" value="SITE_ADMIN_CONTENT_CATEGORIES" />
+						<var name="permissionNavigationValue" value="Categories" />
 					</then>
 				</elseif>
 				<elseif>
@@ -379,6 +460,158 @@
 		<execute action="CPRolesDefinepermissions#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="The role permissions were updated." />
 	</command>
 
+	<command name="localizeRoleDescriptionCmd">
+		<execute action="CPRolesEdit#click" locator-key1="DESCRIPTION_FIELD_LOCALIZATION_FLAG_ENGLISH" />
+		<execute action="CPRolesEdit#type" locator-key1="DESCRIPTION_FIELD" value1="${roleName}" />
+
+		<if>
+			<equals arg1="${language}" arg2="Catalan (Spain)" />
+			<then>
+				<execute action="CPRolesEdit#click" locator-key1="DESCRIPTION_FIELD_LOCALIZATION_FLAG_CATALAN" />
+				<execute action="CPRolesEdit#type" locator-key1="DESCRIPTION_FIELD" value1="${roleDescriptionLocalized}" />
+			</then>
+			<elseif>
+				<equals arg1="${language}" arg2="Chinese (China)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="DESCRIPTION_FIELD_LOCALIZATION_FLAG_CHINESE" />
+					<execute action="CPRolesEdit#type" locator-key1="DESCRIPTION_FIELD" value1="${roleDescriptionLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="Finnish (Finland)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="DESCRIPTION_FIELD_LOCALIZATION_FLAG_FINNISH" />
+					<execute action="CPRolesEdit#type" locator-key1="DESCRIPTION_FIELD" value1="${roleDescriptionLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="French (France)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="DESCRIPTION_FIELD_LOCALIZATION_FLAG_FRENCH" />
+					<execute action="CPRolesEdit#type" locator-key1="DESCRIPTION_FIELD" value1="${roleDescriptionLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="German (Germany)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="DESCRIPTION_FIELD_LOCALIZATION_FLAG_GERMAN" />
+					<execute action="CPRolesEdit#type" locator-key1="DESCRIPTION_FIELD" value1="${roleDescriptionLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="Hebrew (Israel)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="DESCRIPTION_FIELD_LOCALIZATION_FLAG_HEBREW" />
+					<execute action="CPRolesEdit#type" locator-key1="DESCRIPTION_FIELD" value1="${roleDescriptionLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="Hungarian (Hungary)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="DESCRIPTION_FIELD_LOCALIZATION_FLAG_HUNGARIAN" />
+					<execute action="CPRolesEdit#type" locator-key1="DESCRIPTION_FIELD" value1="${roleDescriptionLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="Japanese (Japan)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="DESCRIPTION_FIELD_LOCALIZATION_FLAG_JAPANESE" />
+					<execute action="CPRolesEdit#type" locator-key1="DESCRIPTION_FIELD" value1="${roleDescriptionLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="Portuguese (Brazil)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="DESCRIPTION_FIELD_LOCALIZATION_FLAG_PORTUGUESE" />
+					<execute action="CPRolesEdit#type" locator-key1="DESCRIPTION_FIELD" value1="${roleDescriptionLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="Spanish (Spain)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="DESCRIPTION_FIELD_LOCALIZATION_FLAG_SPANISH" />
+					<execute action="CPRolesEdit#type" locator-key1="DESCRIPTION_FIELD" value1="${roleDescriptionLocalized}" />
+				</then>
+			</elseif>
+		</if>
+	</command>
+
+	<command name="localizeRoleNameCmd">
+		<execute action="CPRolesEdit#click" locator-key1="TITLE_FIELD_LOCALIZATION_FLAG_ENGLISH" />
+		<execute action="CPRolesEdit#type" locator-key1="TITLE_FIELD" value1="${roleName}" />
+
+		<if>
+			<equals arg1="${language}" arg2="Catalan (Spain)" />
+			<then>
+				<execute action="CPRolesEdit#click" locator-key1="TITLE_FIELD_LOCALIZATION_FLAG_CATALAN" />
+				<execute action="CPRolesEdit#type" locator-key1="TITLE_FIELD" value1="${roleNameLocalized}" />
+			</then>
+			<elseif>
+				<equals arg1="${language}" arg2="Chinese (China)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="TITLE_FIELD_LOCALIZATION_FLAG_CHINESE" />
+					<execute action="CPRolesEdit#type" locator-key1="TITLE_FIELD" value1="${roleNameLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="Finnish (Finland)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="TITLE_FIELD_LOCALIZATION_FLAG_FINNISH" />
+					<execute action="CPRolesEdit#type" locator-key1="TITLE_FIELD" value1="${roleNameLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="French (France)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="TITLE_FIELD_LOCALIZATION_FLAG_FRENCH" />
+					<execute action="CPRolesEdit#type" locator-key1="TITLE_FIELD" value1="${roleNameLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="German (Germany)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="TITLE_FIELD_LOCALIZATION_FLAG_GERMAN" />
+					<execute action="CPRolesEdit#type" locator-key1="TITLE_FIELD" value1="${roleNameLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="Hebrew (Israel)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="TITLE_FIELD_LOCALIZATION_FLAG_HEBREW" />
+					<execute action="CPRolesEdit#type" locator-key1="TITLE_FIELD" value1="${roleNameLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="Hungarian (Hungary)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="TITLE_FIELD_LOCALIZATION_FLAG_HUNGARIAN" />
+					<execute action="CPRolesEdit#type" locator-key1="TITLE_FIELD" value1="${roleNameLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="Japanese (Japan)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="TITLE_FIELD_LOCALIZATION_FLAG_JAPANESE" />
+					<execute action="CPRolesEdit#type" locator-key1="TITLE_FIELD" value1="${roleNameLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="Portuguese (Brazil)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="TITLE_FIELD_LOCALIZATION_FLAG_PORTUGUESE" />
+					<execute action="CPRolesEdit#type" locator-key1="TITLE_FIELD" value1="${roleNameLocalized}" />
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${language}" arg2="Spanish (Spain)" />
+				<then>
+					<execute action="CPRolesEdit#click" locator-key1="TITLE_FIELD_LOCALIZATION_FLAG_SPANISH" />
+					<execute action="CPRolesEdit#type" locator-key1="TITLE_FIELD" value1="${roleNameLocalized}" />
+				</then>
+			</elseif>
+		</if>
+	</command>
+
 	<command name="removePermissionCP">
 		<execute macro="Role#editPermissionCmdCP">
 			<var name="permissionDefinitionKey" value="${permissionDefinitionKey}" />
@@ -422,7 +655,7 @@
 		<while>
 			<condition action="CPRoles#isElementPresent" locator-key1="ROLE_TABLE_ACTIONS_1" />
 			<then>
-				<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS_1" value1="Actions" />
+				<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS_1" />
 				<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_DELETE" value1="Delete" />
 				<execute action="CPRoles#confirm" locator-key1="CONFIRMATION" value1="Are you sure you want to delete this? It will be deleted immediately." />
 			</then>
@@ -434,7 +667,7 @@
 
 		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="${roleName}" />
 		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
-		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS" />
 		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_ASSIGN_MEMBERS" value1="Assign Members" />
 		<execute action="CPRolesAssignmembersUsers#assertClick" locator-key1="MEMBERS_ORGANIZATIONS" value1="Organizations" />
 
@@ -454,7 +687,7 @@
 
 		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="${roleName}" />
 		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
-		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS" />
 		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_ASSIGN_MEMBERS" value1="Assign Members" />
 		<execute action="CPRolesAssignmembersUsers#assertClick" locator-key1="MEMBERS_SITES" value1="Sites" />
 
@@ -475,7 +708,7 @@
 
 		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="${roleName}" />
 		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
-		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS" />
 		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_ASSIGN_MEMBERS" value1="Assign Members" />
 		<execute action="CPRolesAssignmembersUsers#assertClick" locator-key1="MEMBERS_USER_GROUPS" value1="User Groups" />
 
@@ -495,7 +728,7 @@
 
 		<execute action="CPRoles#type" locator-key1="SEARCH_FIELD" value1="${roleName}" />
 		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
-		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS" />
 		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_ASSIGN_MEMBERS" value1="Assign Members" />
 
 		<var name="key_userScreenName" value="${userScreenName}" />
@@ -514,7 +747,7 @@
 		<execute action="CPRoles#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
 		<execute action="CPRoles#assertTextEquals" locator-key1="ROLE_TABLE_TITLE" value1="${roleName}" />
 		<execute action="CPRoles#assertTextEquals" locator-key1="ROLE_TABLE_TYPE" value1="${roleType}" />
-		<execute action="CPRoles#assertClick" locator-key1="ROLE_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPRoles#click" locator-key1="ROLE_TABLE_ACTIONS" />
 		<execute action="CPRoles#assertClick" locator-key1="ROLE_MENULIST_EDIT" value1="Edit" />
 
 		<execute action="CPRolesEdit#assertTextEquals" locator-key1="HEADER" value1="${roleName}" />
@@ -569,6 +802,34 @@
 				<then>
 					<var name="permissionNavigationKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER" />
 					<var name="permissionNavigationValue" value="Asset Publisher" />
+				</then>
+			</elseif>
+			<elseif>
+				<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_APPLICATIONS_BOOKMARKS" />
+				<then>
+					<var name="permissionNavigationKey" value="SITE_ADMIN_APPLICATIONS_BOOKMARKS" />
+					<var name="permissionNavigationValue" value="Bookmarks" />
+				</then>
+			</elseif>
+			<elseif>
+				<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA" />
+				<then>
+					<var name="permissionNavigationKey" value="SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA" />
+					<var name="permissionNavigationValue" value="Documents and Media" />
+				</then>
+			</elseif>
+			<elseif>
+				<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_APPLICATIONS_LANGUAGE" />
+				<then>
+					<var name="permissionNavigationKey" value="SITE_ADMIN_APPLICATIONS_LANGUAGE" />
+					<var name="permissionNavigationValue" value="Language" />
+				</then>
+			</elseif>
+			<elseif>
+				<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_APPLICATIONS_MESSAGE_BOARDS" />
+				<then>
+					<var name="permissionNavigationKey" value="SITE_ADMIN_APPLICATIONS_MESSAGE_BOARDS" />
+					<var name="permissionNavigationValue" value="Message Boards" />
 				</then>
 			</elseif>
 			<elseif>
@@ -642,7 +903,7 @@
 				<var name="permissionNavigationValue" value="Portal" />
 			</then>
 			<elseif>
-				<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_PAGES_SITE_PAGES_SITE" />
+				<contains string="${permissionDefinitionKey}" substring="SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_SITE" />
 				<then>
 					<var name="permissionNavigationValue" value="Sites" />
 				</then>

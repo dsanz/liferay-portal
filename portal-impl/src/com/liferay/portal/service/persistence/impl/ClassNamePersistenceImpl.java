@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -45,7 +44,12 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The persistence implementation for the class name service.
@@ -96,11 +100,9 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 * @param value the value
 	 * @return the matching class name
 	 * @throws com.liferay.portal.NoSuchClassNameException if a matching class name could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ClassName findByValue(String value)
-		throws NoSuchClassNameException, SystemException {
+	public ClassName findByValue(String value) throws NoSuchClassNameException {
 		ClassName className = fetchByValue(value);
 
 		if (className == null) {
@@ -128,10 +130,9 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 *
 	 * @param value the value
 	 * @return the matching class name, or <code>null</code> if a matching class name could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ClassName fetchByValue(String value) throws SystemException {
+	public ClassName fetchByValue(String value) {
 		return fetchByValue(value, true);
 	}
 
@@ -141,11 +142,9 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 * @param value the value
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching class name, or <code>null</code> if a matching class name could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ClassName fetchByValue(String value, boolean retrieveFromCache)
-		throws SystemException {
+	public ClassName fetchByValue(String value, boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { value };
 
 		Object result = null;
@@ -241,11 +240,10 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 *
 	 * @param value the value
 	 * @return the class name that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ClassName removeByValue(String value)
-		throws NoSuchClassNameException, SystemException {
+		throws NoSuchClassNameException {
 		ClassName className = findByValue(value);
 
 		return remove(className);
@@ -256,10 +254,9 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 *
 	 * @param value the value
 	 * @return the number of matching class names
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByValue(String value) throws SystemException {
+	public int countByValue(String value) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_VALUE;
 
 		Object[] finderArgs = new Object[] { value };
@@ -475,11 +472,9 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 * @param classNameId the primary key of the class name
 	 * @return the class name that was removed
 	 * @throws com.liferay.portal.NoSuchClassNameException if a class name with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ClassName remove(long classNameId)
-		throws NoSuchClassNameException, SystemException {
+	public ClassName remove(long classNameId) throws NoSuchClassNameException {
 		return remove((Serializable)classNameId);
 	}
 
@@ -489,11 +484,10 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 * @param primaryKey the primary key of the class name
 	 * @return the class name that was removed
 	 * @throws com.liferay.portal.NoSuchClassNameException if a class name with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ClassName remove(Serializable primaryKey)
-		throws NoSuchClassNameException, SystemException {
+		throws NoSuchClassNameException {
 		Session session = null;
 
 		try {
@@ -525,8 +519,7 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	}
 
 	@Override
-	protected ClassName removeImpl(ClassName className)
-		throws SystemException {
+	protected ClassName removeImpl(ClassName className) {
 		className = toUnwrappedModel(className);
 
 		Session session = null;
@@ -558,8 +551,7 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	}
 
 	@Override
-	public ClassName updateImpl(com.liferay.portal.model.ClassName className)
-		throws SystemException {
+	public ClassName updateImpl(com.liferay.portal.model.ClassName className) {
 		className = toUnwrappedModel(className);
 
 		boolean isNew = className.isNew();
@@ -625,11 +617,10 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 * @param primaryKey the primary key of the class name
 	 * @return the class name
 	 * @throws com.liferay.portal.NoSuchClassNameException if a class name with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ClassName findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchClassNameException, SystemException {
+		throws NoSuchClassNameException {
 		ClassName className = fetchByPrimaryKey(primaryKey);
 
 		if (className == null) {
@@ -650,11 +641,10 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 * @param classNameId the primary key of the class name
 	 * @return the class name
 	 * @throws com.liferay.portal.NoSuchClassNameException if a class name with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ClassName findByPrimaryKey(long classNameId)
-		throws NoSuchClassNameException, SystemException {
+		throws NoSuchClassNameException {
 		return findByPrimaryKey((Serializable)classNameId);
 	}
 
@@ -663,11 +653,9 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 *
 	 * @param primaryKey the primary key of the class name
 	 * @return the class name, or <code>null</code> if a class name with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ClassName fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public ClassName fetchByPrimaryKey(Serializable primaryKey) {
 		ClassName className = (ClassName)EntityCacheUtil.getResult(ClassNameModelImpl.ENTITY_CACHE_ENABLED,
 				ClassNameImpl.class, primaryKey);
 
@@ -711,22 +699,111 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 *
 	 * @param classNameId the primary key of the class name
 	 * @return the class name, or <code>null</code> if a class name with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ClassName fetchByPrimaryKey(long classNameId)
-		throws SystemException {
+	public ClassName fetchByPrimaryKey(long classNameId) {
 		return fetchByPrimaryKey((Serializable)classNameId);
+	}
+
+	@Override
+	public Map<Serializable, ClassName> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, ClassName> map = new HashMap<Serializable, ClassName>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			ClassName className = fetchByPrimaryKey(primaryKey);
+
+			if (className != null) {
+				map.put(primaryKey, className);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			ClassName className = (ClassName)EntityCacheUtil.getResult(ClassNameModelImpl.ENTITY_CACHE_ENABLED,
+					ClassNameImpl.class, primaryKey);
+
+			if (className == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, className);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_CLASSNAME_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (ClassName className : (List<ClassName>)q.list()) {
+				map.put(className.getPrimaryKeyObj(), className);
+
+				cacheResult(className);
+
+				uncachedPrimaryKeys.remove(className.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(ClassNameModelImpl.ENTITY_CACHE_ENABLED,
+					ClassNameImpl.class, primaryKey, _nullClassName);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the class names.
 	 *
 	 * @return the class names
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ClassName> findAll() throws SystemException {
+	public List<ClassName> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -740,11 +817,9 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 * @param start the lower bound of the range of class names
 	 * @param end the upper bound of the range of class names (not inclusive)
 	 * @return the range of class names
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ClassName> findAll(int start, int end)
-		throws SystemException {
+	public List<ClassName> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -759,11 +834,10 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 * @param end the upper bound of the range of class names (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of class names
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<ClassName> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ClassName> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -845,10 +919,9 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	/**
 	 * Removes all the class names from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (ClassName className : findAll()) {
 			remove(className);
 		}
@@ -858,10 +931,9 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	 * Returns the number of class names.
 	 *
 	 * @return the number of class names
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -925,6 +997,7 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	}
 
 	private static final String _SQL_SELECT_CLASSNAME = "SELECT className FROM ClassName className";
+	private static final String _SQL_SELECT_CLASSNAME_WHERE_PKS_IN = "SELECT className FROM ClassName className WHERE classNameId IN (";
 	private static final String _SQL_SELECT_CLASSNAME_WHERE = "SELECT className FROM ClassName className WHERE ";
 	private static final String _SQL_COUNT_CLASSNAME = "SELECT COUNT(className) FROM ClassName className";
 	private static final String _SQL_COUNT_CLASSNAME_WHERE = "SELECT COUNT(className) FROM ClassName className WHERE ";

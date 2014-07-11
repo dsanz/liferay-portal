@@ -95,32 +95,14 @@ if (step == 1) {
 					/>
 
 					<liferay-ui:search-container-column-text
-						buffer="buffer"
 						name="parent-organization"
-					>
-
-						<%
-						String parentOrganizationName = StringPool.BLANK;
-
-						if (organization.getParentOrganizationId() > 0) {
-							try {
-								Organization parentOrganization = OrganizationLocalServiceUtil.getOrganization(organization.getParentOrganizationId());
-
-								parentOrganizationName = parentOrganization.getName();
-							}
-							catch (Exception e) {
-							}
-						}
-
-						buffer.append(HtmlUtil.escape(parentOrganizationName));
-						%>
-
-					</liferay-ui:search-container-column-text>
+						value="<%= HtmlUtil.escape(organization.getParentOrganizationName()) %>"
+					/>
 
 					<liferay-ui:search-container-column-text
 						name="type"
 						orderable="<%= true %>"
-						value="<%= LanguageUtil.get(pageContext, organization.getType()) %>"
+						value="<%= LanguageUtil.get(request, organization.getType()) %>"
 					/>
 
 					<liferay-ui:search-container-column-text
@@ -170,7 +152,7 @@ if (step == 1) {
 						portletURL.setParameter("step", "2");
 						%>
 
-						submitForm(document.<portlet:namespace />selectOrganizationRoleFm, "<%= portletURL.toString() %>");
+						submitForm(document.<portlet:namespace />selectOrganizationRoleFm, '<%= portletURL.toString() %>');
 					},
 					'.organization-selector-button'
 				);
@@ -195,7 +177,7 @@ if (step == 1) {
 
 			portletURL.setParameter("step", "1");
 
-			String breadcrumbs = "<a href=\"" + portletURL.toString() + "\">" + LanguageUtil.get(pageContext, "organizations") + "</a> &raquo; " + HtmlUtil.escape(organization.getName());
+			String breadcrumbs = "<a href=\"" + portletURL.toString() + "\">" + LanguageUtil.get(request, "organizations") + "</a> &raquo; " + HtmlUtil.escape(organization.getName());
 			%>
 
 			<div class="breadcrumbs">
@@ -251,13 +233,15 @@ if (step == 1) {
 					keyProperty="roleId"
 					modelVar="role"
 				>
-					<liferay-util:param name="className" value="<%= RolesAdminUtil.getCssClassName(role) %>" />
-					<liferay-util:param name="classHoverName" value="<%= RolesAdminUtil.getCssClassName(role) %>" />
-
 					<liferay-ui:search-container-column-text
 						name="title"
-						value="<%= HtmlUtil.escape(role.getTitle(locale)) %>"
-					/>
+					>
+						<liferay-ui:icon
+							iconCssClass="<%= RolesAdminUtil.getIconCssClass(role) %>"
+							label="<%= true %>"
+							message="<%= HtmlUtil.escape(role.getTitle(locale)) %>"
+						/>
+					</liferay-ui:search-container-column-text>
 
 					<liferay-ui:search-container-column-text>
 						<c:if test="<%= Validator.isNull(p_u_i_d) || OrganizationMembershipPolicyUtil.isRoleAllowed((selUser != null) ? selUser.getUserId() : 0, organization.getOrganizationId(), role.getRoleId()) %>">
@@ -265,6 +249,7 @@ if (step == 1) {
 							<%
 							Map<String, Object> data = new HashMap<String, Object>();
 
+							data.put("iconcssclass", RolesAdminUtil.getIconCssClass(role));
 							data.put("groupdescriptivename", organization.getGroup().getDescriptiveName(locale));
 							data.put("groupid", organization.getGroupId());
 							data.put("roleid", role.getRoleId());

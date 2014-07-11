@@ -17,7 +17,6 @@ package com.liferay.portal.model;
 import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -137,9 +136,8 @@ public interface UserNotificationEventModel extends BaseModel<UserNotificationEv
 	 * Returns the user uuid of this user notification event.
 	 *
 	 * @return the user uuid of this user notification event
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this user notification event.
@@ -240,6 +238,27 @@ public interface UserNotificationEventModel extends BaseModel<UserNotificationEv
 	 * @param payload the payload of this user notification event
 	 */
 	public void setPayload(String payload);
+
+	/**
+	 * Returns the action required of this user notification event.
+	 *
+	 * @return the action required of this user notification event
+	 */
+	public boolean getActionRequired();
+
+	/**
+	 * Returns <code>true</code> if this user notification event is action required.
+	 *
+	 * @return <code>true</code> if this user notification event is action required; <code>false</code> otherwise
+	 */
+	public boolean isActionRequired();
+
+	/**
+	 * Sets whether this user notification event is action required.
+	 *
+	 * @param actionRequired the action required of this user notification event
+	 */
+	public void setActionRequired(boolean actionRequired);
 
 	/**
 	 * Returns the archived of this user notification event.

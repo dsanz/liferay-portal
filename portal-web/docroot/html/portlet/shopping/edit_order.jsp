@@ -39,7 +39,7 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 	<c:choose>
 		<c:when test="<%= windowState.equals(LiferayWindowState.POP_UP) %>">
 			<h3 class="header-title">
-				<aui:a href="<%= themeDisplay.getURLHome() %>"><img alt="<liferay-ui:message key="logo" />" src="<%= themeDisplay.getCompanyLogo() %>" /></aui:a>
+				<aui:a href="<%= themeDisplay.getURLHome() %>"><img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="logo" />" src="<%= themeDisplay.getCompanyLogo() %>" /></aui:a>
 
 				<liferay-ui:message key="invoice" />
 			</h3>
@@ -81,8 +81,8 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 		</table>
 	</div>
 
-	<div class="row-fluid">
-		<div class="span6">
+	<div class="row">
+		<div class="col-md-6">
 			<div class="well">
 				<h4><liferay-ui:message key="billing-address" /></h4>
 
@@ -90,7 +90,7 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 			</div>
 		</div>
 
-		<div class="span6">
+		<div class="col-md-6">
 			<div class="well">
 				<h4><liferay-ui:message key="shipping-address" /></h4>
 
@@ -111,7 +111,7 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 						for (int i = 0; i < ShoppingOrderConstants.STATUSES.length; i++) {
 						%>
 
-							<aui:option label="<%= ShoppingOrderConstants.STATUSES[i] %>" selected="<%= ShoppingUtil.getPpPaymentStatus(ShoppingOrderConstants.STATUSES[i]).equals(order.getPpPaymentStatus()) %>" />
+							<aui:option label="<%= ShoppingOrderConstants.STATUSES[i] %>" selected="<%= ShoppingUtil.getPpPaymentStatus(ShoppingOrderConstants.STATUSES[i]).equals(order.getPpPaymentStatus()) %>" useModelValue="<%= false %>" />
 
 						<%
 						}
@@ -346,7 +346,7 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 					String taglibOpenCouponWindow = "var viewCouponWindow = window.open('" + viewCouponURL + "', 'viewCoupon', 'directories=no,height=200,location=no,menubar=no,resizable=no,scrollbars=yes,status=no,toolbar=no,width=280'); void(''); viewCouponWindow.focus();";
 					%>
 
-					<aui:a href='<%= "javascript:" + taglibOpenCouponWindow %>' label='<%= "(" + LanguageUtil.get(pageContext, order.getCouponCodes()) + ")" %>' />
+					<aui:a href='<%= "javascript:" + taglibOpenCouponWindow %>' label='<%= "(" + LanguageUtil.get(request, order.getCouponCodes()) + ")" %>' />
 				</td>
 			</tr>
 		</c:if>
@@ -383,13 +383,13 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 			String taglibSendEmailConfirmation = renderResponse.getNamespace() + "sendEmail('confirmation');";
 			%>
 
-			<aui:button onClick="<%= taglibSendEmailConfirmation %>" value='<%= LanguageUtil.get(pageContext, (order.isSendOrderEmail() ? "" : "re") + "send-confirmation-email") %>' />
+			<aui:button onClick="<%= taglibSendEmailConfirmation %>" value='<%= LanguageUtil.get(request, (order.isSendOrderEmail() ? "" : "re") + "send-confirmation-email") %>' />
 
 			<%
 			String taglibSendEmailShipping = renderResponse.getNamespace() + "sendEmail('shipping');";
 			%>
 
-			<aui:button onClick="<%= taglibSendEmailShipping %>" value='<%= LanguageUtil.get(pageContext, (order.isSendShippingEmail() ? "" : "re") + "send-shipping-email") %>' />
+			<aui:button onClick="<%= taglibSendEmailShipping %>" value='<%= LanguageUtil.get(request, (order.isSendShippingEmail() ? "" : "re") + "send-shipping-email") %>' />
 
 			<c:if test="<%= ShoppingOrderPermission.contains(permissionChecker, scopeGroupId, order, ActionKeys.DELETE) %>">
 				<aui:button onClick='<%= renderResponse.getNamespace() + "deleteOrder();" %>' value="delete" />
@@ -421,20 +421,20 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 
 <aui:script>
 	function <portlet:namespace />deleteOrder() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
-		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = "<%= HtmlUtil.escapeURL(redirect) %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.DELETE %>';
+		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = '<%= HtmlUtil.escapeURL(redirect) %>';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />saveOrder() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.UPDATE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.UPDATE %>';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />sendEmail(emailType) {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "sendEmail";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'sendEmail';
 		document.<portlet:namespace />fm.<portlet:namespace />emailType.value = emailType;
 
 		submitForm(document.<portlet:namespace />fm);

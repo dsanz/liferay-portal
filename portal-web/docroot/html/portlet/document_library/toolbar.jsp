@@ -29,17 +29,13 @@ Group scopeGroup = themeDisplay.getScopeGroup();
 %>
 
 <aui:nav-bar>
-	<aui:nav collapsible="<%= false %>" cssClass="nav-display-style-buttons pull-right" id="displayStyleButtons">
-		<aui:nav-item>
-			<span class="pull-left display-style-buttons-container" id="<portlet:namespace />displayStyleButtonsContainer">
-				<c:if test='<%= !strutsAction.equals("/document_library/search") %>'>
-					<liferay-util:include page="/html/portlet/document_library/display_style_buttons.jsp" />
-				</c:if>
-			</span>
-		</aui:nav-item>
+	<aui:nav collapsible="<%= true %>" cssClass="nav-display-style-buttons navbar-nav" icon="th-list" id="displayStyleButtons">
+		<c:if test='<%= !strutsAction.equals("/document_library/search") %>'>
+			<liferay-util:include page="/html/portlet/document_library/display_style_buttons.jsp" />
+		</c:if>
 	</aui:nav>
 
-	<aui:nav id="toolbarContainer">
+	<aui:nav cssClass="navbar-nav" id="toolbarContainer">
 		<aui:nav-item cssClass="hide" dropdown="<%= true %>" id="actionsButtonContainer" label="actions">
 			<c:if test="<%= !scopeGroup.isStaged() || scopeGroup.isStagingGroup() || !scopeGroup.isStagedPortlet(PortletKeys.DOCUMENT_LIBRARY) %>">
 
@@ -53,13 +49,13 @@ Group scopeGroup = themeDisplay.getScopeGroup();
 				taglibURL = "javascript:Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: '" + Constants.CHECKIN + "'}); void(0);";
 				%>
 
-				<aui:nav-item href="<%= taglibURL %>" iconCssClass="icon-signin" label="checkin" />
+				<aui:nav-item href="<%= taglibURL %>" iconCssClass="icon-lock" label="checkin" />
 
 				<%
 				taglibURL = "javascript:Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: '" + Constants.CHECKOUT + "'}); void(0);";
 				%>
 
-				<aui:nav-item href="<%= taglibURL %>" iconCssClass="icon-signout" label="checkout[document]" />
+				<aui:nav-item href="<%= taglibURL %>" iconCssClass="icon-unlock" label="checkout[document]" />
 
 				<%
 				taglibURL = "javascript:Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: '" + Constants.MOVE + "'}); void(0);";
@@ -72,13 +68,13 @@ Group scopeGroup = themeDisplay.getScopeGroup();
 			String taglibURL = "javascript:Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: '" + Constants.MOVE_TO_TRASH + "'}); void(0);";
 			%>
 
-			<aui:nav-item href="<%= taglibURL %>" iconCssClass="icon-trash" id="moveToTrashAction" label="move-to-the-recycle-bin" />
+			<aui:nav-item cssClass="item-remove" href="<%= taglibURL %>" iconCssClass="icon-trash" id="moveToTrashAction" label="move-to-the-recycle-bin" />
 
 			<%
 			taglibURL = "javascript:" + renderResponse.getNamespace() + "deleteEntries();";
 			%>
 
-			<aui:nav-item href="<%= taglibURL %>" iconCssClass="icon-remove" id="deleteAction" label="delete" />
+			<aui:nav-item cssClass="item-remove" href="<%= taglibURL %>" iconCssClass="icon-remove" id="deleteAction" label="delete" />
 		</aui:nav-item>
 
 		<liferay-util:include page="/html/portlet/document_library/add_button.jsp" />
@@ -103,9 +99,9 @@ Group scopeGroup = themeDisplay.getScopeGroup();
 		</c:if>
 	</aui:nav>
 
-	<c:if test="<%= showFoldersSearch %>">
-		<aui:nav-bar-search cssClass="pull-right">
-			<div class="form-search">
+	<c:if test="<%= dlPortletInstanceSettings.isShowFoldersSearch() %>">
+		<aui:nav-bar-search>
+			<div class="col-xs-12 form-search">
 				<liferay-portlet:resourceURL varImpl="searchURL">
 					<portlet:param name="struts_action" value="/document_library/search" />
 					<portlet:param name="repositoryId" value="<%= String.valueOf(repositoryId) %>" />
@@ -129,7 +125,7 @@ Group scopeGroup = themeDisplay.getScopeGroup();
 
 <aui:script>
 	function <portlet:namespace />deleteEntries() {
-		if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-delete-the-selected-entries") %>')) {
+		if (confirm('<%= UnicodeLanguageUtil.get(request, "are-you-sure-you-want-to-delete-the-selected-entries") %>')) {
 			Liferay.fire(
 				'<%= renderResponse.getNamespace() %>editEntry',
 				{
@@ -143,7 +139,7 @@ Group scopeGroup = themeDisplay.getScopeGroup();
 		Liferay.Util.openWindow(
 			{
 				id: '<portlet:namespace />openFileEntryTypeView',
-				title: '<%= UnicodeLanguageUtil.get(pageContext, "document-types") %>',
+				title: '<%= UnicodeLanguageUtil.get(request, "document-types") %>',
 				uri: '<liferay-portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="struts_action" value="/document_library/view_file_entry_type" /><portlet:param name="redirect" value="<%= currentURL %>" /></liferay-portlet:renderURL>'
 			}
 		);
@@ -157,9 +153,9 @@ Group scopeGroup = themeDisplay.getScopeGroup();
 					destroyOnHide: true
 				},
 				refererPortletName: '<%= PortletKeys.DOCUMENT_LIBRARY %>',
-				showGlobalScope: true,
+				showAncestorScopes: true,
 				showManageTemplates: false,
-				title: '<%= UnicodeLanguageUtil.get(pageContext, "metadata-sets") %>'
+				title: '<%= UnicodeLanguageUtil.get(request, "metadata-sets") %>'
 			}
 		);
 	}

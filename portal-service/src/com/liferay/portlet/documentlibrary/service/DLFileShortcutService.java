@@ -47,6 +47,13 @@ public interface DLFileShortcutService extends BaseService {
 	 *
 	 * Never modify or reference this interface directly. Always use {@link DLFileShortcutServiceUtil} to access the document library file shortcut remote service. Add custom service methods to {@link com.liferay.portlet.documentlibrary.service.impl.DLFileShortcutServiceImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
+	public com.liferay.portlet.documentlibrary.model.DLFileShortcut addFileShortcut(
+		long groupId, long folderId, long toFileEntryId,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public void deleteFileShortcut(long fileShortcutId)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -55,6 +62,11 @@ public interface DLFileShortcutService extends BaseService {
 	*/
 	public java.lang.String getBeanIdentifier();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portlet.documentlibrary.model.DLFileShortcut getFileShortcut(
+		long fileShortcutId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -62,25 +74,8 @@ public interface DLFileShortcutService extends BaseService {
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
-	public com.liferay.portlet.documentlibrary.model.DLFileShortcut addFileShortcut(
-		long groupId, long folderId, long toFileEntryId,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public void deleteFileShortcut(long fileShortcutId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portlet.documentlibrary.model.DLFileShortcut getFileShortcut(
-		long fileShortcutId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
 	public com.liferay.portlet.documentlibrary.model.DLFileShortcut updateFileShortcut(
 		long fileShortcutId, long folderId, long toFileEntryId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

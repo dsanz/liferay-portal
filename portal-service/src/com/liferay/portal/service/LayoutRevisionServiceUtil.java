@@ -40,6 +40,25 @@ public class LayoutRevisionServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portal.service.impl.LayoutRevisionServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static com.liferay.portal.model.LayoutRevision addLayoutRevision(
+		long userId, long layoutSetBranchId, long layoutBranchId,
+		long parentLayoutRevisionId, boolean head, long plid,
+		long portletPreferencesPlid, boolean privateLayout,
+		java.lang.String name, java.lang.String title,
+		java.lang.String description, java.lang.String keywords,
+		java.lang.String robots, java.lang.String typeSettings,
+		boolean iconImage, long iconImageId, java.lang.String themeId,
+		java.lang.String colorSchemeId, java.lang.String wapThemeId,
+		java.lang.String wapColorSchemeId, java.lang.String css,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .addLayoutRevision(userId, layoutSetBranchId,
+			layoutBranchId, parentLayoutRevisionId, head, plid,
+			portletPreferencesPlid, privateLayout, name, title, description,
+			keywords, robots, typeSettings, iconImage, iconImageId, themeId,
+			colorSchemeId, wapThemeId, wapColorSchemeId, css, serviceContext);
+	}
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -57,27 +76,6 @@ public class LayoutRevisionServiceUtil {
 	*/
 	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
 		getService().setBeanIdentifier(beanIdentifier);
-	}
-
-	public static com.liferay.portal.model.LayoutRevision addLayoutRevision(
-		long userId, long layoutSetBranchId, long layoutBranchId,
-		long parentLayoutRevisionId, boolean head, long plid,
-		long portletPreferencesPlid, boolean privateLayout,
-		java.lang.String name, java.lang.String title,
-		java.lang.String description, java.lang.String keywords,
-		java.lang.String robots, java.lang.String typeSettings,
-		boolean iconImage, long iconImageId, java.lang.String themeId,
-		java.lang.String colorSchemeId, java.lang.String wapThemeId,
-		java.lang.String wapColorSchemeId, java.lang.String css,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .addLayoutRevision(userId, layoutSetBranchId,
-			layoutBranchId, parentLayoutRevisionId, head, plid,
-			portletPreferencesPlid, privateLayout, name, title, description,
-			keywords, robots, typeSettings, iconImage, iconImageId, themeId,
-			colorSchemeId, wapThemeId, wapColorSchemeId, css, serviceContext);
 	}
 
 	public static LayoutRevisionService getService() {

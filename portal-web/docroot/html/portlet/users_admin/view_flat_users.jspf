@@ -23,7 +23,7 @@ SearchContainer searchContainer = new UserSearch(renderRequest, "cur2", currentU
 
 RowChecker rowChecker = new RowChecker(renderResponse);
 
-rowChecker.setRowIds("rowIdsUserCheckbox");
+rowChecker.setRowIds("rowIdsUser");
 
 searchContainer.setRowChecker(rowChecker);
 
@@ -99,12 +99,12 @@ if (!ParamUtil.getBoolean(renderRequest, "advancedSearch")) {
 
 	if (role != null) {
 		PortalUtil.addPortletBreadcrumbEntry(request, role.getName(), null);
-		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "all-users"), currentURL);
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "all-users"), currentURL);
 	}
 
 	if (userGroup != null) {
 		PortalUtil.addPortletBreadcrumbEntry(request, userGroup.getName(), null);
-		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "all-users"), currentURL);
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "all-users"), currentURL);
 	}
 	%>
 
@@ -114,13 +114,13 @@ if (!ParamUtil.getBoolean(renderRequest, "advancedSearch")) {
 		if (userOrganization != null) {
 			UsersAdminUtil.addPortletBreadcrumbEntries(userOrganization, request, renderResponse);
 
-			PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "all-users"), currentURL);
+			PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "all-users"), currentURL);
 		}
 		%>
 
 		<c:if test="<%= layout.isTypeControlPanel() %>">
 			<div id="breadcrumb">
-				<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showCurrentPortlet="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showPortletBreadcrumb="<%= true %>" />
+				<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showPortletBreadcrumb="<%= true %>" />
 			</div>
 		</c:if>
 
@@ -211,9 +211,7 @@ if (!ParamUtil.getBoolean(renderRequest, "advancedSearch")) {
 	}
 	else {
 		if (filterManageableOrganizations && !UserPermissionUtil.contains(permissionChecker, ResourceConstants.PRIMKEY_DNE, ActionKeys.VIEW)) {
-			Long[] organizationIds = UsersAdminUtil.getOrganizationIds(user.getOrganizations());
-
-			userParams.put("usersOrgs", organizationIds);
+			userParams.put("usersOrgs", user.getOrganizationIds());
 		}
 	}
 
@@ -260,6 +258,7 @@ if (!ParamUtil.getBoolean(renderRequest, "advancedSearch")) {
 
 		<liferay-ui:search-container-column-jsp
 			align="right"
+			cssClass="entry-action"
 			path="/html/portlet/users_admin/user_action.jsp"
 		/>
 	</liferay-ui:search-container-row>
@@ -274,7 +273,7 @@ if (!ParamUtil.getBoolean(renderRequest, "advancedSearch")) {
 			<div class="separator"><!-- --></div>
 		</c:if>
 
-		<div class="control-group user-table">
+		<div class="form-group user-table">
 			<c:if test="<%= showDeleteButton %>">
 
 				<%

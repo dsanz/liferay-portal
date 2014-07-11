@@ -15,20 +15,19 @@
 package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.model.LayoutSetPrototype;
 import com.liferay.portal.service.LayoutSetPrototypeLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link LayoutSetPrototypeLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link LayoutSetPrototypeLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class LayoutSetPrototypeActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public LayoutSetPrototypeActionableDynamicQuery() throws SystemException {
+	public LayoutSetPrototypeActionableDynamicQuery() {
 		setBaseLocalService(LayoutSetPrototypeLocalServiceUtil.getService());
 		setClass(LayoutSetPrototype.class);
 

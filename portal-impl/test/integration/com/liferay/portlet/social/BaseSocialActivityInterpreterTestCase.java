@@ -15,17 +15,16 @@
 package com.liferay.portlet.social;
 
 import com.liferay.portal.events.ServicePreAction;
-import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portal.util.WebKeys;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.social.model.SocialActivity;
 import com.liferay.portlet.social.model.SocialActivityFeedEntry;
 import com.liferay.portlet.social.model.SocialActivityInterpreter;
@@ -42,7 +41,6 @@ import javax.portlet.PortletURL;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,8 +55,6 @@ public abstract class BaseSocialActivityInterpreterTestCase {
 
 	@Before
 	public void setUp() throws Exception {
-		FinderCacheUtil.clearCache();
-
 		group = GroupTestUtil.addGroup();
 
 		HttpServletRequest request = new MockHttpServletRequest();
@@ -77,11 +73,6 @@ public abstract class BaseSocialActivityInterpreterTestCase {
 		request.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
 
 		serviceContext = ServiceContextFactory.getInstance(request);
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		GroupLocalServiceUtil.deleteGroup(group);
 	}
 
 	@Test
@@ -232,7 +223,9 @@ public abstract class BaseSocialActivityInterpreterTestCase {
 
 	protected abstract void restoreModelsFromTrash() throws Exception;
 
+	@DeleteAfterTestRun
 	protected Group group;
+
 	protected ServiceContext serviceContext;
 
 }

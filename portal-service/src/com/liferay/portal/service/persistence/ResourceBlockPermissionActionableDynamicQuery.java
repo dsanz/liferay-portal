@@ -15,21 +15,19 @@
 package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.model.ResourceBlockPermission;
 import com.liferay.portal.service.ResourceBlockPermissionLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link ResourceBlockPermissionLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link ResourceBlockPermissionLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class ResourceBlockPermissionActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public ResourceBlockPermissionActionableDynamicQuery()
-		throws SystemException {
+	public ResourceBlockPermissionActionableDynamicQuery() {
 		setBaseLocalService(ResourceBlockPermissionLocalServiceUtil.getService());
 		setClass(ResourceBlockPermission.class);
 

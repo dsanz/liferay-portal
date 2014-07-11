@@ -117,43 +117,41 @@ searchContainer.setEmptyResultsMessage(emptyResultsMessage);
 		/>
 
 		<liferay-ui:search-container-column-text
-			buffer="buffer"
 			name="name"
 		>
 
-			<%
-			buffer.append(user2.getFullName());
+			<%= user2.getFullName() %>
 
+			<%
 			List<String> names = new ArrayList<String>();
 
-			boolean organizationUser = SitesUtil.isOrganizationUser(company.getCompanyId(), group, user2, names);
+			List<String> organizationNames = SitesUtil.getOrganizationNames(group, user2);
+
+			names.addAll(organizationNames);
+
+			boolean organizationUser = !organizationNames.isEmpty();
 
 			row.setParameter("organizationUser", organizationUser);
 
-			boolean userGroupUser = SitesUtil.isUserGroupUser(company.getCompanyId(), group, user2, names);
+			List<String> userGroupNames = SitesUtil.getUserGroupNames(group, user2);
+
+			names.addAll(userGroupNames);
+
+			boolean userGroupUser = !userGroupNames.isEmpty();
 
 			row.setParameter("userGroupUser", userGroupUser);
-
-			String message = StringPool.BLANK;
-
-			if (organizationUser || userGroupUser) {
-				if (names.size() == 1) {
-					message = LanguageUtil.format(pageContext, "this-user-is-a-member-of-x-because-he-belongs-to-x", new Object[] {HtmlUtil.escape(group.getDescriptiveName(locale)), names.get(0)}, false);
-				}
-				else {
-					message = LanguageUtil.format(pageContext, "this-user-is-a-member-of-x-because-he-belongs-to-x-and-x", new Object[] {HtmlUtil.escape(group.getDescriptiveName(locale)), StringUtil.merge(names.subList(0, names.size() - 1).toArray(new String[names.size() - 1]), ", "), names.get(names.size() - 1)}, false);
-				}
 			%>
 
-				<liferay-util:buffer var="iconHelp">
-					<liferay-ui:icon-help message="<%= message %>" />
-				</liferay-util:buffer>
-
-			<%
-				buffer.append(iconHelp);
-			}
-			%>
-
+			<c:if test="<%= organizationUser || userGroupUser %>">
+				<c:choose>
+					<c:when test="<%= names.size() == 1 %>">
+						<liferay-ui:icon-help message='<%= LanguageUtil.format(request, "this-user-is-a-member-of-x-because-he-belongs-to-x", new Object[] {HtmlUtil.escape(group.getDescriptiveName(locale)), names.get(0)}, false) %>' />
+					</c:when>
+					<c:otherwise>
+						<liferay-ui:icon-help message='<%= LanguageUtil.format(request, "this-user-is-a-member-of-x-because-he-belongs-to-x-and-x", new Object[] {HtmlUtil.escape(group.getDescriptiveName(locale)), StringUtil.merge(names.subList(0, names.size() - 1).toArray(new String[names.size() - 1]), ", "), names.get(names.size() - 1)}, false) %>' />
+					</c:otherwise>
+				</c:choose>
+			</c:if>
 		</liferay-ui:search-container-column-text>
 
 		<liferay-ui:search-container-column-text
@@ -163,91 +161,72 @@ searchContainer.setEmptyResultsMessage(emptyResultsMessage);
 		/>
 
 		<c:if test='<%= tabs1.equals("summary") || tabs2.equals("current") %>'>
+
+			<%
+			List<UserGroupRole> userGroupRoles = UserGroupRoleLocalServiceUtil.getUserGroupRoles(user2.getUserId(), group.getGroupId());
+
+			List<Team> teams = TeamLocalServiceUtil.getUserTeams(user2.getUserId(), group.getGroupId());
+
+			List<String> names = ListUtil.toList(userGroupRoles, UsersAdmin.USER_GROUP_ROLE_TITLE_ACCESSOR);
+
+			names.addAll(ListUtil.toList(teams, Team.NAME_ACCESSOR));
+			%>
+
 			<liferay-ui:search-container-column-text
-				buffer="buffer"
 				name="site-roles-and-teams"
-			>
-
-				<%
-				List<UserGroupRole> userGroupRoles = UserGroupRoleLocalServiceUtil.getUserGroupRoles(user2.getUserId(), group.getGroupId());
-
-				for (int i = 0; i < userGroupRoles.size(); i++) {
-					UserGroupRole userGroupRole = userGroupRoles.get(i);
-
-					Role role = RoleLocalServiceUtil.getRole(userGroupRole.getRoleId());
-
-					buffer.append(HtmlUtil.escape(role.getTitle(locale)));
-
-					if ((i + 1) < userGroupRoles.size()) {
-						buffer.append(StringPool.COMMA_AND_SPACE);
-					}
-				}
-
-				List<Team> teams = TeamLocalServiceUtil.getUserTeams(user2.getUserId(), group.getGroupId());
-
-				if (!teams.isEmpty() && !userGroupRoles.isEmpty()) {
-					buffer.append(StringPool.COMMA_AND_SPACE);
-				}
-
-				for (int i = 0; i < teams.size(); i++) {
-					Team team = teams.get(i);
-
-					buffer.append(HtmlUtil.escape(team.getName()));
-
-					if ((i + 1) < teams.size()) {
-						buffer.append(StringPool.COMMA_AND_SPACE);
-					}
-				}
-				%>
-
-			</liferay-ui:search-container-column-text>
+				value="<%= StringUtil.merge(names, StringPool.COMMA_AND_SPACE) %>"
+			/>
 
 			<liferay-ui:search-container-column-jsp
 				align="right"
+				cssClass="entry-action"
 				path="/html/portlet/sites_admin/user_action.jsp"
 			/>
 		</c:if>
 	</liferay-ui:search-container-row>
 
 	<liferay-util:buffer var="formButton">
-		<c:choose>
-			<c:when test='<%= tabs2.equals("current") %>'>
+		<c:if test="<%= GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.ASSIGN_MEMBERS) %>">
+			<c:choose>
+				<c:when test='<%= tabs2.equals("current") %>'>
 
-				<%
-				viewUsersURL.setParameter("tabs2", "available");
-				viewUsersURL.setParameter("redirect", currentURL);
-				%>
+					<%
+					viewUsersURL.setParameter("tabs2", "available");
+					viewUsersURL.setParameter("redirect", currentURL);
+					%>
 
-				<liferay-ui:icon
-					image="../aui/user"
-					label="<%= true %>"
-					message="assign-users"
-					url="<%= viewUsersURL.toString() %>"
-				/>
+					<liferay-ui:icon
+						iconCssClass="icon-user"
+						label="<%= true %>"
+						message="assign-users"
+						url="<%= viewUsersURL.toString() %>"
+					/>
 
-				<%
-				viewUsersURL.setParameter("tabs2", "current");
-				%>
+					<%
+					viewUsersURL.setParameter("tabs2", "current");
+					%>
 
-			</c:when>
-			<c:otherwise>
+				</c:when>
+				<c:otherwise>
 
-				<%
-				portletURL.setParameter("tabs2", "current");
+					<%
+					portletURL.setParameter("tabs2", "current");
+					portletURL.setParameter("cur", String.valueOf(cur));
 
-				String taglibOnClick = renderResponse.getNamespace() + "updateGroupUsers('" + redirect + StringPool.AMPERSAND + renderResponse.getNamespace() + "cur=" + cur + "');";
-				%>
+					String taglibOnClick = renderResponse.getNamespace() + "updateGroupUsers('" + redirect + "');";
+					%>
 
-				<aui:button-row>
-					<aui:button onClick="<%= taglibOnClick %>" primary="<%= true %>" value="save" />
-				</aui:button-row>
-			</c:otherwise>
-		</c:choose>
+					<aui:button-row>
+						<aui:button onClick="<%= taglibOnClick %>" primary="<%= true %>" value="save" />
+					</aui:button-row>
+				</c:otherwise>
+			</c:choose>
+		</c:if>
 	</liferay-util:buffer>
 
 	<c:choose>
 		<c:when test='<%= tabs1.equals("summary") && (total > 0) %>'>
-			<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" persistState="<%= true %>" title='<%= LanguageUtil.format(pageContext, (total > 1) ? "x-users" : "x-user", total, false) %>'>
+			<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" persistState="<%= true %>" title='<%= LanguageUtil.format(request, (total > 1) ? "x-users" : "x-user", total, false) %>'>
 				<span class="form-search">
 					<liferay-ui:input-search name='<%= DisplayTerms.KEYWORDS + "_users" %>' />
 				</span>

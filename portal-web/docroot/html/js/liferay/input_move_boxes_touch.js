@@ -25,7 +25,7 @@ AUI.add(
 
 		var STR_TRUE = 'true';
 
-		var TPL_EDIT_SELECTION = '<button class="btn edit-selection" type="button"><i class="icon-edit"></i> <span class="btn-text">{0}</span></button>';
+		var TPL_EDIT_SELECTION = '<button class="btn btn-default edit-selection" type="button"><i class="icon-edit"></i> <span class="btn-text">{0}</span></button>';
 
 		var TPL_MOVE_OPTION = new A.Template(
 			'<tpl for="options">',
@@ -83,7 +83,7 @@ AUI.add(
 						function(event) {
 							event.preventDefault();
 						},
-						SELECTOR_SORT_LIST_ACTIVE + SELECTOR_TITLE
+						SELECTOR_SORT_LIST_ACTIVE + ' ' + SELECTOR_TITLE
 					);
 
 					instance._sortableContainer.delegate(
@@ -216,7 +216,7 @@ AUI.add(
 					var data = [];
 
 					options.each(
-						function(item, index, collection) {
+						function(item, index) {
 							data.push(
 								{
 									name: item.html(),

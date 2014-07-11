@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -44,7 +43,12 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The persistence implementation for the portal preferences service.
@@ -100,11 +104,10 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 * @param ownerType the owner type
 	 * @return the matching portal preferences
 	 * @throws com.liferay.portal.NoSuchPreferencesException if a matching portal preferences could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PortalPreferences findByO_O(long ownerId, int ownerType)
-		throws NoSuchPreferencesException, SystemException {
+		throws NoSuchPreferencesException {
 		PortalPreferences portalPreferences = fetchByO_O(ownerId, ownerType);
 
 		if (portalPreferences == null) {
@@ -136,11 +139,9 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 * @param ownerId the owner ID
 	 * @param ownerType the owner type
 	 * @return the matching portal preferences, or <code>null</code> if a matching portal preferences could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public PortalPreferences fetchByO_O(long ownerId, int ownerType)
-		throws SystemException {
+	public PortalPreferences fetchByO_O(long ownerId, int ownerType) {
 		return fetchByO_O(ownerId, ownerType, true);
 	}
 
@@ -151,11 +152,10 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 * @param ownerType the owner type
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching portal preferences, or <code>null</code> if a matching portal preferences could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PortalPreferences fetchByO_O(long ownerId, int ownerType,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { ownerId, ownerType };
 
 		Object result = null;
@@ -250,11 +250,10 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 * @param ownerId the owner ID
 	 * @param ownerType the owner type
 	 * @return the portal preferences that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PortalPreferences removeByO_O(long ownerId, int ownerType)
-		throws NoSuchPreferencesException, SystemException {
+		throws NoSuchPreferencesException {
 		PortalPreferences portalPreferences = findByO_O(ownerId, ownerType);
 
 		return remove(portalPreferences);
@@ -266,11 +265,9 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 * @param ownerId the owner ID
 	 * @param ownerType the owner type
 	 * @return the number of matching portal preferenceses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByO_O(long ownerId, int ownerType)
-		throws SystemException {
+	public int countByO_O(long ownerId, int ownerType) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_O_O;
 
 		Object[] finderArgs = new Object[] { ownerId, ownerType };
@@ -490,11 +487,10 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 * @param portalPreferencesId the primary key of the portal preferences
 	 * @return the portal preferences that was removed
 	 * @throws com.liferay.portal.NoSuchPreferencesException if a portal preferences with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PortalPreferences remove(long portalPreferencesId)
-		throws NoSuchPreferencesException, SystemException {
+		throws NoSuchPreferencesException {
 		return remove((Serializable)portalPreferencesId);
 	}
 
@@ -504,11 +500,10 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 * @param primaryKey the primary key of the portal preferences
 	 * @return the portal preferences that was removed
 	 * @throws com.liferay.portal.NoSuchPreferencesException if a portal preferences with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PortalPreferences remove(Serializable primaryKey)
-		throws NoSuchPreferencesException, SystemException {
+		throws NoSuchPreferencesException {
 		Session session = null;
 
 		try {
@@ -540,8 +535,7 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	}
 
 	@Override
-	protected PortalPreferences removeImpl(PortalPreferences portalPreferences)
-		throws SystemException {
+	protected PortalPreferences removeImpl(PortalPreferences portalPreferences) {
 		portalPreferences = toUnwrappedModel(portalPreferences);
 
 		Session session = null;
@@ -574,8 +568,7 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 
 	@Override
 	public PortalPreferences updateImpl(
-		com.liferay.portal.model.PortalPreferences portalPreferences)
-		throws SystemException {
+		com.liferay.portal.model.PortalPreferences portalPreferences) {
 		portalPreferences = toUnwrappedModel(portalPreferences);
 
 		boolean isNew = portalPreferences.isNew();
@@ -645,11 +638,10 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 * @param primaryKey the primary key of the portal preferences
 	 * @return the portal preferences
 	 * @throws com.liferay.portal.NoSuchPreferencesException if a portal preferences with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PortalPreferences findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchPreferencesException, SystemException {
+		throws NoSuchPreferencesException {
 		PortalPreferences portalPreferences = fetchByPrimaryKey(primaryKey);
 
 		if (portalPreferences == null) {
@@ -670,11 +662,10 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 * @param portalPreferencesId the primary key of the portal preferences
 	 * @return the portal preferences
 	 * @throws com.liferay.portal.NoSuchPreferencesException if a portal preferences with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PortalPreferences findByPrimaryKey(long portalPreferencesId)
-		throws NoSuchPreferencesException, SystemException {
+		throws NoSuchPreferencesException {
 		return findByPrimaryKey((Serializable)portalPreferencesId);
 	}
 
@@ -683,11 +674,9 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 *
 	 * @param primaryKey the primary key of the portal preferences
 	 * @return the portal preferences, or <code>null</code> if a portal preferences with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public PortalPreferences fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public PortalPreferences fetchByPrimaryKey(Serializable primaryKey) {
 		PortalPreferences portalPreferences = (PortalPreferences)EntityCacheUtil.getResult(PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
 				PortalPreferencesImpl.class, primaryKey);
 
@@ -732,22 +721,112 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 *
 	 * @param portalPreferencesId the primary key of the portal preferences
 	 * @return the portal preferences, or <code>null</code> if a portal preferences with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public PortalPreferences fetchByPrimaryKey(long portalPreferencesId)
-		throws SystemException {
+	public PortalPreferences fetchByPrimaryKey(long portalPreferencesId) {
 		return fetchByPrimaryKey((Serializable)portalPreferencesId);
+	}
+
+	@Override
+	public Map<Serializable, PortalPreferences> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, PortalPreferences> map = new HashMap<Serializable, PortalPreferences>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			PortalPreferences portalPreferences = fetchByPrimaryKey(primaryKey);
+
+			if (portalPreferences != null) {
+				map.put(primaryKey, portalPreferences);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			PortalPreferences portalPreferences = (PortalPreferences)EntityCacheUtil.getResult(PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
+					PortalPreferencesImpl.class, primaryKey);
+
+			if (portalPreferences == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, portalPreferences);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_PORTALPREFERENCES_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (PortalPreferences portalPreferences : (List<PortalPreferences>)q.list()) {
+				map.put(portalPreferences.getPrimaryKeyObj(), portalPreferences);
+
+				cacheResult(portalPreferences);
+
+				uncachedPrimaryKeys.remove(portalPreferences.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
+					PortalPreferencesImpl.class, primaryKey,
+					_nullPortalPreferences);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the portal preferenceses.
 	 *
 	 * @return the portal preferenceses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<PortalPreferences> findAll() throws SystemException {
+	public List<PortalPreferences> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -761,11 +840,9 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 * @param start the lower bound of the range of portal preferenceses
 	 * @param end the upper bound of the range of portal preferenceses (not inclusive)
 	 * @return the range of portal preferenceses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<PortalPreferences> findAll(int start, int end)
-		throws SystemException {
+	public List<PortalPreferences> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -780,11 +857,10 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 * @param end the upper bound of the range of portal preferenceses (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of portal preferenceses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<PortalPreferences> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<PortalPreferences> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -866,10 +942,9 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	/**
 	 * Removes all the portal preferenceses from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (PortalPreferences portalPreferences : findAll()) {
 			remove(portalPreferences);
 		}
@@ -879,10 +954,9 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	 * Returns the number of portal preferenceses.
 	 *
 	 * @return the number of portal preferenceses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -946,6 +1020,7 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	}
 
 	private static final String _SQL_SELECT_PORTALPREFERENCES = "SELECT portalPreferences FROM PortalPreferences portalPreferences";
+	private static final String _SQL_SELECT_PORTALPREFERENCES_WHERE_PKS_IN = "SELECT portalPreferences FROM PortalPreferences portalPreferences WHERE portalPreferencesId IN (";
 	private static final String _SQL_SELECT_PORTALPREFERENCES_WHERE = "SELECT portalPreferences FROM PortalPreferences portalPreferences WHERE ";
 	private static final String _SQL_COUNT_PORTALPREFERENCES = "SELECT COUNT(portalPreferences) FROM PortalPreferences portalPreferences";
 	private static final String _SQL_COUNT_PORTALPREFERENCES_WHERE = "SELECT COUNT(portalPreferences) FROM PortalPreferences portalPreferences WHERE ";

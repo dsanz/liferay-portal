@@ -59,28 +59,6 @@ Liferay = window.Liferay || {};
 				return A.bind.apply(A, args);
 			},
 
-			parseInvokeArgs: function(args) {
-				var instance = this;
-
-				var payload = args[0];
-
-				var ioConfig = instance.parseIOConfig(args);
-
-				if (Lang.isString(payload)) {
-					payload = instance.parseStringPayload(args);
-
-					instance.parseIOFormConfig(ioConfig, args);
-
-					var lastArg = args[args.length - 1];
-
-					if (Lang.isObject(lastArg) && lastArg.method) {
-						ioConfig.method = lastArg.method;
-					}
-				}
-
-				return [payload, ioConfig];
-			},
-
 			parseIOConfig: function(args) {
 				var instance = this;
 
@@ -111,7 +89,7 @@ Liferay = window.Liferay || {};
 							}
 						}
 						else if (callbackException) {
-							var exception = responseData ? responseData.exception : 'The server returned an empty response';
+							var exception = responseData ? (responseData.exception + ': ' + responseData.message) : 'The server returned an empty response';
 
 							callbackException.call(this, exception, responseData);
 						}
@@ -139,6 +117,28 @@ Liferay = window.Liferay || {};
 
 					ioConfig.form.id = form._node || form;
 				}
+			},
+
+			parseInvokeArgs: function(args) {
+				var instance = this;
+
+				var payload = args[0];
+
+				var ioConfig = instance.parseIOConfig(args);
+
+				if (Lang.isString(payload)) {
+					payload = instance.parseStringPayload(args);
+
+					instance.parseIOFormConfig(ioConfig, args);
+
+					var lastArg = args[args.length - 1];
+
+					if (Lang.isObject(lastArg) && lastArg.method) {
+						ioConfig.method = lastArg.method;
+					}
+				}
+
+				return [payload, ioConfig];
 			},
 
 			parseStringPayload: function(args) {
@@ -175,7 +175,7 @@ Liferay = window.Liferay || {};
 							cmd: A.JSON.stringify(payload),
 							p_auth: Liferay.authToken
 						},
-						dataType: 'json'
+						dataType: 'JSON'
 					},
 					ioConfig
 				)
@@ -186,7 +186,7 @@ Liferay = window.Liferay || {};
 
 	A.each(
 		['get', 'delete', 'post', 'put', 'update'],
-		function(item, index, collection) {
+		function(item, index) {
 			var methodName = item;
 
 			if (item === 'delete') {

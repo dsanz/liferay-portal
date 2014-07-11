@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.dao.orm;
 
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.TableNameOrderByComparator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
@@ -25,7 +26,7 @@ import java.util.Map;
 /**
  * @author Zsolt Berentey
  */
-public class QueryDefinition {
+public class QueryDefinition<T> {
 
 	public QueryDefinition() {
 	}
@@ -41,17 +42,19 @@ public class QueryDefinition {
 
 	public QueryDefinition(
 		int status, boolean excludeStatus, int start, int end,
-		OrderByComparator obc) {
+		OrderByComparator<T> orderByComparator) {
 
 		_status = status;
 		_excludeStatus = excludeStatus;
 		_start = start;
 		_end = end;
-		_orderByComparator = obc;
+
+		setOrderByComparator(orderByComparator);
 	}
 
 	public QueryDefinition(
-		int status, int start, int end, OrderByComparator obc) {
+		int status, int start, int end,
+		OrderByComparator<T> orderByComparator) {
 
 		if (status == WorkflowConstants.STATUS_ANY) {
 			setStatus(WorkflowConstants.STATUS_IN_TRASH, true);
@@ -62,7 +65,8 @@ public class QueryDefinition {
 
 		_start = start;
 		_end = end;
-		_orderByComparator = obc;
+
+		setOrderByComparator(orderByComparator);
 	}
 
 	public Serializable getAttribute(String name) {
@@ -81,8 +85,16 @@ public class QueryDefinition {
 		return _end;
 	}
 
-	public OrderByComparator getOrderByComparator() {
+	public OrderByComparator<T> getOrderByComparator() {
 		return _orderByComparator;
+	}
+
+	public OrderByComparator<T> getOrderByComparator(String tableName) {
+		if (_orderByComparator == null) {
+			return null;
+		}
+
+		return new TableNameOrderByComparator<T>(_orderByComparator, tableName);
 	}
 
 	public int getStart() {
@@ -113,7 +125,7 @@ public class QueryDefinition {
 		_end = end;
 	}
 
-	public void setOrderByComparator(OrderByComparator orderByComparator) {
+	public void setOrderByComparator(OrderByComparator<T> orderByComparator) {
 		_orderByComparator = orderByComparator;
 	}
 
@@ -133,7 +145,7 @@ public class QueryDefinition {
 	private Map<String, Serializable> _attributes;
 	private int _end = QueryUtil.ALL_POS;
 	private boolean _excludeStatus;
-	private OrderByComparator _orderByComparator;
+	private OrderByComparator<T> _orderByComparator;
 	private int _start = QueryUtil.ALL_POS;
 	private int _status = WorkflowConstants.STATUS_ANY;
 

@@ -33,6 +33,27 @@ public class SCProductEntryServiceWrapper implements SCProductEntryService,
 		_scProductEntryService = scProductEntryService;
 	}
 
+	@Override
+	public com.liferay.portlet.softwarecatalog.model.SCProductEntry addProductEntry(
+		java.lang.String name, java.lang.String type, java.lang.String tags,
+		java.lang.String shortDescription, java.lang.String longDescription,
+		java.lang.String pageURL, java.lang.String author,
+		java.lang.String repoGroupId, java.lang.String repoArtifactId,
+		long[] licenseIds, java.util.List<byte[]> thumbnails,
+		java.util.List<byte[]> fullImages,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _scProductEntryService.addProductEntry(name, type, tags,
+			shortDescription, longDescription, pageURL, author, repoGroupId,
+			repoArtifactId, licenseIds, thumbnails, fullImages, serviceContext);
+	}
+
+	@Override
+	public void deleteProductEntry(long productEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_scProductEntryService.deleteProductEntry(productEntryId);
+	}
+
 	/**
 	* Returns the Spring bean ID for this bean.
 	*
@@ -41,6 +62,13 @@ public class SCProductEntryServiceWrapper implements SCProductEntryService,
 	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _scProductEntryService.getBeanIdentifier();
+	}
+
+	@Override
+	public com.liferay.portlet.softwarecatalog.model.SCProductEntry getProductEntry(
+		long productEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _scProductEntryService.getProductEntry(productEntryId);
 	}
 
 	/**
@@ -54,37 +82,6 @@ public class SCProductEntryServiceWrapper implements SCProductEntryService,
 	}
 
 	@Override
-	public com.liferay.portlet.softwarecatalog.model.SCProductEntry addProductEntry(
-		java.lang.String name, java.lang.String type, java.lang.String tags,
-		java.lang.String shortDescription, java.lang.String longDescription,
-		java.lang.String pageURL, java.lang.String author,
-		java.lang.String repoGroupId, java.lang.String repoArtifactId,
-		long[] licenseIds, java.util.List<byte[]> thumbnails,
-		java.util.List<byte[]> fullImages,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _scProductEntryService.addProductEntry(name, type, tags,
-			shortDescription, longDescription, pageURL, author, repoGroupId,
-			repoArtifactId, licenseIds, thumbnails, fullImages, serviceContext);
-	}
-
-	@Override
-	public void deleteProductEntry(long productEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_scProductEntryService.deleteProductEntry(productEntryId);
-	}
-
-	@Override
-	public com.liferay.portlet.softwarecatalog.model.SCProductEntry getProductEntry(
-		long productEntryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _scProductEntryService.getProductEntry(productEntryId);
-	}
-
-	@Override
 	public com.liferay.portlet.softwarecatalog.model.SCProductEntry updateProductEntry(
 		long productEntryId, java.lang.String name, java.lang.String type,
 		java.lang.String tags, java.lang.String shortDescription,
@@ -92,8 +89,7 @@ public class SCProductEntryServiceWrapper implements SCProductEntryService,
 		java.lang.String author, java.lang.String repoGroupId,
 		java.lang.String repoArtifactId, long[] licenseIds,
 		java.util.List<byte[]> thumbnails, java.util.List<byte[]> fullImages)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _scProductEntryService.updateProductEntry(productEntryId, name,
 			type, tags, shortDescription, longDescription, pageURL, author,
 			repoGroupId, repoArtifactId, licenseIds, thumbnails, fullImages);

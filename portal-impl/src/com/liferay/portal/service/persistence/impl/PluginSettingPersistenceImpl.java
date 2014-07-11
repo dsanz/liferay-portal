@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -46,7 +45,11 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -111,11 +114,9 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 *
 	 * @param companyId the company ID
 	 * @return the matching plugin settings
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<PluginSetting> findByCompanyId(long companyId)
-		throws SystemException {
+	public List<PluginSetting> findByCompanyId(long companyId) {
 		return findByCompanyId(companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			null);
 	}
@@ -131,11 +132,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param start the lower bound of the range of plugin settings
 	 * @param end the upper bound of the range of plugin settings (not inclusive)
 	 * @return the range of matching plugin settings
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<PluginSetting> findByCompanyId(long companyId, int start,
-		int end) throws SystemException {
+		int end) {
 		return findByCompanyId(companyId, start, end, null);
 	}
 
@@ -151,11 +151,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param end the upper bound of the range of plugin settings (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching plugin settings
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<PluginSetting> findByCompanyId(long companyId, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<PluginSetting> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -258,12 +257,11 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching plugin setting
 	 * @throws com.liferay.portal.NoSuchPluginSettingException if a matching plugin setting could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting findByCompanyId_First(long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchPluginSettingException, SystemException {
+		OrderByComparator<PluginSetting> orderByComparator)
+		throws NoSuchPluginSettingException {
 		PluginSetting pluginSetting = fetchByCompanyId_First(companyId,
 				orderByComparator);
 
@@ -289,11 +287,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching plugin setting, or <code>null</code> if a matching plugin setting could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting fetchByCompanyId_First(long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<PluginSetting> orderByComparator) {
 		List<PluginSetting> list = findByCompanyId(companyId, 0, 1,
 				orderByComparator);
 
@@ -311,12 +308,11 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching plugin setting
 	 * @throws com.liferay.portal.NoSuchPluginSettingException if a matching plugin setting could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting findByCompanyId_Last(long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchPluginSettingException, SystemException {
+		OrderByComparator<PluginSetting> orderByComparator)
+		throws NoSuchPluginSettingException {
 		PluginSetting pluginSetting = fetchByCompanyId_Last(companyId,
 				orderByComparator);
 
@@ -342,11 +338,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching plugin setting, or <code>null</code> if a matching plugin setting could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting fetchByCompanyId_Last(long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<PluginSetting> orderByComparator) {
 		int count = countByCompanyId(companyId);
 
 		if (count == 0) {
@@ -371,12 +366,11 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next plugin setting
 	 * @throws com.liferay.portal.NoSuchPluginSettingException if a plugin setting with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting[] findByCompanyId_PrevAndNext(long pluginSettingId,
-		long companyId, OrderByComparator orderByComparator)
-		throws NoSuchPluginSettingException, SystemException {
+		long companyId, OrderByComparator<PluginSetting> orderByComparator)
+		throws NoSuchPluginSettingException {
 		PluginSetting pluginSetting = findByPrimaryKey(pluginSettingId);
 
 		Session session = null;
@@ -406,7 +400,7 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 
 	protected PluginSetting getByCompanyId_PrevAndNext(Session session,
 		PluginSetting pluginSetting, long companyId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<PluginSetting> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -513,10 +507,9 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * Removes all the plugin settings where companyId = &#63; from the database.
 	 *
 	 * @param companyId the company ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByCompanyId(long companyId) throws SystemException {
+	public void removeByCompanyId(long companyId) {
 		for (PluginSetting pluginSetting : findByCompanyId(companyId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(pluginSetting);
@@ -528,10 +521,9 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 *
 	 * @param companyId the company ID
 	 * @return the number of matching plugin settings
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByCompanyId(long companyId) throws SystemException {
+	public int countByCompanyId(long companyId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_COMPANYID;
 
 		Object[] finderArgs = new Object[] { companyId };
@@ -603,11 +595,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param pluginType the plugin type
 	 * @return the matching plugin setting
 	 * @throws com.liferay.portal.NoSuchPluginSettingException if a matching plugin setting could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting findByC_I_T(long companyId, String pluginId,
-		String pluginType) throws NoSuchPluginSettingException, SystemException {
+		String pluginType) throws NoSuchPluginSettingException {
 		PluginSetting pluginSetting = fetchByC_I_T(companyId, pluginId,
 				pluginType);
 
@@ -644,11 +635,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param pluginId the plugin ID
 	 * @param pluginType the plugin type
 	 * @return the matching plugin setting, or <code>null</code> if a matching plugin setting could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting fetchByC_I_T(long companyId, String pluginId,
-		String pluginType) throws SystemException {
+		String pluginType) {
 		return fetchByC_I_T(companyId, pluginId, pluginType, true);
 	}
 
@@ -660,11 +650,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param pluginType the plugin type
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching plugin setting, or <code>null</code> if a matching plugin setting could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting fetchByC_I_T(long companyId, String pluginId,
-		String pluginType, boolean retrieveFromCache) throws SystemException {
+		String pluginType, boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { companyId, pluginId, pluginType };
 
 		Object result = null;
@@ -789,11 +778,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param pluginId the plugin ID
 	 * @param pluginType the plugin type
 	 * @return the plugin setting that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting removeByC_I_T(long companyId, String pluginId,
-		String pluginType) throws NoSuchPluginSettingException, SystemException {
+		String pluginType) throws NoSuchPluginSettingException {
 		PluginSetting pluginSetting = findByC_I_T(companyId, pluginId,
 				pluginType);
 
@@ -807,11 +795,9 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param pluginId the plugin ID
 	 * @param pluginType the plugin type
 	 * @return the number of matching plugin settings
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByC_I_T(long companyId, String pluginId, String pluginType)
-		throws SystemException {
+	public int countByC_I_T(long companyId, String pluginId, String pluginType) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_C_I_T;
 
 		Object[] finderArgs = new Object[] { companyId, pluginId, pluginType };
@@ -1071,11 +1057,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param pluginSettingId the primary key of the plugin setting
 	 * @return the plugin setting that was removed
 	 * @throws com.liferay.portal.NoSuchPluginSettingException if a plugin setting with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting remove(long pluginSettingId)
-		throws NoSuchPluginSettingException, SystemException {
+		throws NoSuchPluginSettingException {
 		return remove((Serializable)pluginSettingId);
 	}
 
@@ -1085,11 +1070,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param primaryKey the primary key of the plugin setting
 	 * @return the plugin setting that was removed
 	 * @throws com.liferay.portal.NoSuchPluginSettingException if a plugin setting with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting remove(Serializable primaryKey)
-		throws NoSuchPluginSettingException, SystemException {
+		throws NoSuchPluginSettingException {
 		Session session = null;
 
 		try {
@@ -1121,8 +1105,7 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	}
 
 	@Override
-	protected PluginSetting removeImpl(PluginSetting pluginSetting)
-		throws SystemException {
+	protected PluginSetting removeImpl(PluginSetting pluginSetting) {
 		pluginSetting = toUnwrappedModel(pluginSetting);
 
 		Session session = null;
@@ -1155,8 +1138,7 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 
 	@Override
 	public PluginSetting updateImpl(
-		com.liferay.portal.model.PluginSetting pluginSetting)
-		throws SystemException {
+		com.liferay.portal.model.PluginSetting pluginSetting) {
 		pluginSetting = toUnwrappedModel(pluginSetting);
 
 		boolean isNew = pluginSetting.isNew();
@@ -1250,11 +1232,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param primaryKey the primary key of the plugin setting
 	 * @return the plugin setting
 	 * @throws com.liferay.portal.NoSuchPluginSettingException if a plugin setting with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchPluginSettingException, SystemException {
+		throws NoSuchPluginSettingException {
 		PluginSetting pluginSetting = fetchByPrimaryKey(primaryKey);
 
 		if (pluginSetting == null) {
@@ -1275,11 +1256,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param pluginSettingId the primary key of the plugin setting
 	 * @return the plugin setting
 	 * @throws com.liferay.portal.NoSuchPluginSettingException if a plugin setting with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PluginSetting findByPrimaryKey(long pluginSettingId)
-		throws NoSuchPluginSettingException, SystemException {
+		throws NoSuchPluginSettingException {
 		return findByPrimaryKey((Serializable)pluginSettingId);
 	}
 
@@ -1288,11 +1268,9 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 *
 	 * @param primaryKey the primary key of the plugin setting
 	 * @return the plugin setting, or <code>null</code> if a plugin setting with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public PluginSetting fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public PluginSetting fetchByPrimaryKey(Serializable primaryKey) {
 		PluginSetting pluginSetting = (PluginSetting)EntityCacheUtil.getResult(PluginSettingModelImpl.ENTITY_CACHE_ENABLED,
 				PluginSettingImpl.class, primaryKey);
 
@@ -1336,22 +1314,111 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 *
 	 * @param pluginSettingId the primary key of the plugin setting
 	 * @return the plugin setting, or <code>null</code> if a plugin setting with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public PluginSetting fetchByPrimaryKey(long pluginSettingId)
-		throws SystemException {
+	public PluginSetting fetchByPrimaryKey(long pluginSettingId) {
 		return fetchByPrimaryKey((Serializable)pluginSettingId);
+	}
+
+	@Override
+	public Map<Serializable, PluginSetting> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, PluginSetting> map = new HashMap<Serializable, PluginSetting>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			PluginSetting pluginSetting = fetchByPrimaryKey(primaryKey);
+
+			if (pluginSetting != null) {
+				map.put(primaryKey, pluginSetting);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			PluginSetting pluginSetting = (PluginSetting)EntityCacheUtil.getResult(PluginSettingModelImpl.ENTITY_CACHE_ENABLED,
+					PluginSettingImpl.class, primaryKey);
+
+			if (pluginSetting == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, pluginSetting);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_PLUGINSETTING_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (PluginSetting pluginSetting : (List<PluginSetting>)q.list()) {
+				map.put(pluginSetting.getPrimaryKeyObj(), pluginSetting);
+
+				cacheResult(pluginSetting);
+
+				uncachedPrimaryKeys.remove(pluginSetting.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(PluginSettingModelImpl.ENTITY_CACHE_ENABLED,
+					PluginSettingImpl.class, primaryKey, _nullPluginSetting);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the plugin settings.
 	 *
 	 * @return the plugin settings
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<PluginSetting> findAll() throws SystemException {
+	public List<PluginSetting> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -1365,11 +1432,9 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param start the lower bound of the range of plugin settings
 	 * @param end the upper bound of the range of plugin settings (not inclusive)
 	 * @return the range of plugin settings
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<PluginSetting> findAll(int start, int end)
-		throws SystemException {
+	public List<PluginSetting> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -1384,11 +1449,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * @param end the upper bound of the range of plugin settings (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of plugin settings
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<PluginSetting> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<PluginSetting> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1470,10 +1534,9 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	/**
 	 * Removes all the plugin settings from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (PluginSetting pluginSetting : findAll()) {
 			remove(pluginSetting);
 		}
@@ -1483,10 +1546,9 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	 * Returns the number of plugin settings.
 	 *
 	 * @return the number of plugin settings
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -1555,6 +1617,7 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	}
 
 	private static final String _SQL_SELECT_PLUGINSETTING = "SELECT pluginSetting FROM PluginSetting pluginSetting";
+	private static final String _SQL_SELECT_PLUGINSETTING_WHERE_PKS_IN = "SELECT pluginSetting FROM PluginSetting pluginSetting WHERE pluginSettingId IN (";
 	private static final String _SQL_SELECT_PLUGINSETTING_WHERE = "SELECT pluginSetting FROM PluginSetting pluginSetting WHERE ";
 	private static final String _SQL_COUNT_PLUGINSETTING = "SELECT COUNT(pluginSetting) FROM PluginSetting pluginSetting";
 	private static final String _SQL_COUNT_PLUGINSETTING_WHERE = "SELECT COUNT(pluginSetting) FROM PluginSetting pluginSetting WHERE ";

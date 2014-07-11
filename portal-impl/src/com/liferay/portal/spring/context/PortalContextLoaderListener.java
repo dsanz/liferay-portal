@@ -16,6 +16,9 @@ package com.liferay.portal.spring.context;
 
 import com.liferay.portal.bean.BeanLocatorImpl;
 import com.liferay.portal.cache.ehcache.ClearEhcacheThreadUtil;
+import com.liferay.portal.deploy.hot.IndexerPostProcessorRegistry;
+import com.liferay.portal.deploy.hot.SchedulerEntryRegistry;
+import com.liferay.portal.deploy.hot.ServiceWrapperRegistry;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.cache.CacheRegistryUtil;
 import com.liferay.portal.kernel.cache.MultiVMPoolUtil;
@@ -33,6 +36,7 @@ import com.liferay.portal.kernel.process.ClassPathUtil;
 import com.liferay.portal.kernel.servlet.DirectServletRegistryUtil;
 import com.liferay.portal.kernel.servlet.SerializableSessionAttributeListener;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
+import com.liferay.portal.kernel.settings.SettingsFactoryUtil;
 import com.liferay.portal.kernel.template.TemplateResourceLoaderUtil;
 import com.liferay.portal.kernel.util.CharBufferPool;
 import com.liferay.portal.kernel.util.ClassLoaderPool;
@@ -53,7 +57,6 @@ import com.liferay.portal.module.framework.ModuleFrameworkUtilAdapter;
 import com.liferay.portal.security.lang.SecurityManagerUtil;
 import com.liferay.portal.security.permission.PermissionCacheUtil;
 import com.liferay.portal.servlet.filters.cache.CacheUtil;
-import com.liferay.portal.settings.SettingsFactoryUtil;
 import com.liferay.portal.spring.bean.BeanReferenceRefreshUtil;
 import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.InitUtil;
@@ -135,6 +138,10 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 		catch (Exception e) {
 			_log.error(e, e);
 		}
+
+		_indexerPostProcessorRegistry.close();
+		_schedulerEntryRegistry.close();
+		_serviceWrapperRegistry.close();
 
 		try {
 			ModuleFrameworkUtilAdapter.stopRuntime();
@@ -293,6 +300,10 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 
 		clearFilteredPropertyDescriptorsCache(autowireCapableBeanFactory);
 
+		_indexerPostProcessorRegistry = new IndexerPostProcessorRegistry();
+		_schedulerEntryRegistry = new SchedulerEntryRegistry();
+		_serviceWrapperRegistry = new ServiceWrapperRegistry();
+
 		try {
 			PortalLifecycleUtil.register(
 				new PortalLifecycle() {
@@ -350,6 +361,10 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 	private static Field _filteredPropertyDescriptorsCacheField;
 	private static String _portalServlerContextName = StringPool.BLANK;
 	private static String _portalServletContextPath = StringPool.SLASH;
+
+	private IndexerPostProcessorRegistry _indexerPostProcessorRegistry;
+	private SchedulerEntryRegistry _schedulerEntryRegistry;
+	private ServiceWrapperRegistry _serviceWrapperRegistry;
 
 	static {
 		try {

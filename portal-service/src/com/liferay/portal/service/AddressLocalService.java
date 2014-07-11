@@ -18,9 +18,11 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.model.SystemEventConstants;
 
 /**
  * Provides the local service interface for Address. Methods of this
@@ -50,11 +52,31 @@ public interface AddressLocalService extends BaseLocalService,
 	*
 	* @param address the address
 	* @return the address that was added
-	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
 	public com.liferay.portal.model.Address addAddress(
-		com.liferay.portal.model.Address address)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.model.Address address);
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #addAddress(long, String,
+	long, String, String, String, String, String, long, long,
+	int, boolean, boolean, ServiceContext)}
+	*/
+	@java.lang.Deprecated
+	public com.liferay.portal.model.Address addAddress(long userId,
+		java.lang.String className, long classPK, java.lang.String street1,
+		java.lang.String street2, java.lang.String street3,
+		java.lang.String city, java.lang.String zip, long regionId,
+		long countryId, int typeId, boolean mailing, boolean primary)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public com.liferay.portal.model.Address addAddress(long userId,
+		java.lang.String className, long classPK, java.lang.String street1,
+		java.lang.String street2, java.lang.String street3,
+		java.lang.String city, java.lang.String zip, long regionId,
+		long countryId, int typeId, boolean mailing, boolean primary,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Creates a new address with the primary key. Does not add the address to the database.
@@ -65,27 +87,37 @@ public interface AddressLocalService extends BaseLocalService,
 	public com.liferay.portal.model.Address createAddress(long addressId);
 
 	/**
+	* Deletes the address from the database. Also notifies the appropriate model listeners.
+	*
+	* @param address the address
+	* @return the address that was removed
+	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
+	@com.liferay.portal.kernel.systemevent.SystemEvent(action = SystemEventConstants.ACTION_SKIP, type = SystemEventConstants.TYPE_DELETE)
+	public com.liferay.portal.model.Address deleteAddress(
+		com.liferay.portal.model.Address address);
+
+	/**
 	* Deletes the address with the primary key from the database. Also notifies the appropriate model listeners.
 	*
 	* @param addressId the primary key of the address
 	* @return the address that was removed
 	* @throws PortalException if a address with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
 	public com.liferay.portal.model.Address deleteAddress(long addressId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public void deleteAddresses(long companyId, java.lang.String className,
+		long classPK);
 
 	/**
-	* Deletes the address from the database. Also notifies the appropriate model listeners.
-	*
-	* @param address the address
-	* @return the address that was removed
-	* @throws SystemException if a system exception occurred
+	* @throws PortalException
 	*/
-	public com.liferay.portal.model.Address deleteAddress(
-		com.liferay.portal.model.Address address)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	@Override
+	public com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery();
 
@@ -94,12 +126,9 @@ public interface AddressLocalService extends BaseLocalService,
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery);
 
 	/**
 	* Performs a dynamic query on the database and returns a range of the matching rows.
@@ -112,12 +141,10 @@ public interface AddressLocalService extends BaseLocalService,
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException;
+		int end);
 
 	/**
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
@@ -131,25 +158,20 @@ public interface AddressLocalService extends BaseLocalService,
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator);
 
 	/**
 	* Returns the number of rows that match the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery);
 
 	/**
 	* Returns the number of rows that match the dynamic query.
@@ -157,16 +179,13 @@ public interface AddressLocalService extends BaseLocalService,
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.dao.orm.Projection projection);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.Address fetchAddress(long addressId)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public com.liferay.portal.model.Address fetchAddress(long addressId);
 
 	/**
 	* Returns the address with the matching UUID and company.
@@ -174,12 +193,13 @@ public interface AddressLocalService extends BaseLocalService,
 	* @param uuid the address's UUID
 	* @param companyId the primary key of the company
 	* @return the matching address, or <code>null</code> if a matching address could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.Address fetchAddressByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.lang.String uuid, long companyId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery();
 
 	/**
 	* Returns the address with the primary key.
@@ -187,28 +207,10 @@ public interface AddressLocalService extends BaseLocalService,
 	* @param addressId the primary key of the address
 	* @return the address
 	* @throws PortalException if a address with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.Address getAddress(long addressId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns the address with the matching UUID and company.
@@ -217,13 +219,18 @@ public interface AddressLocalService extends BaseLocalService,
 	* @param companyId the primary key of the company
 	* @return the matching address
 	* @throws PortalException if a matching address could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.Address getAddressByUuidAndCompanyId(
 		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.Address> getAddresses();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.Address> getAddresses(
+		long companyId, java.lang.String className, long classPK);
 
 	/**
 	* Returns a range of all the addresses.
@@ -235,33 +242,18 @@ public interface AddressLocalService extends BaseLocalService,
 	* @param start the lower bound of the range of addresses
 	* @param end the upper bound of the range of addresses (not inclusive)
 	* @return the range of addresses
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.Address> getAddresses(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		int start, int end);
 
 	/**
 	* Returns the number of addresses.
 	*
 	* @return the number of addresses
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getAddressesCount()
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	/**
-	* Updates the address in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param address the address
-	* @return the address that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portal.model.Address updateAddress(
-		com.liferay.portal.model.Address address)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public int getAddressesCount();
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -269,6 +261,16 @@ public interface AddressLocalService extends BaseLocalService,
 	* @return the Spring bean ID for this bean
 	*/
 	public java.lang.String getBeanIdentifier();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext);
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Sets the Spring bean ID for this bean.
@@ -278,46 +280,19 @@ public interface AddressLocalService extends BaseLocalService,
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addAddress(long, String,
-	long, String, String, String, String, String, long, long,
-	int, boolean, boolean, ServiceContext)}
+	* Updates the address in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param address the address
+	* @return the address that was updated
 	*/
-	@Deprecated
-	public com.liferay.portal.model.Address addAddress(long userId,
-		java.lang.String className, long classPK, java.lang.String street1,
-		java.lang.String street2, java.lang.String street3,
-		java.lang.String city, java.lang.String zip, long regionId,
-		long countryId, int typeId, boolean mailing, boolean primary)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public com.liferay.portal.model.Address addAddress(long userId,
-		java.lang.String className, long classPK, java.lang.String street1,
-		java.lang.String street2, java.lang.String street3,
-		java.lang.String city, java.lang.String zip, long regionId,
-		long countryId, int typeId, boolean mailing, boolean primary,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public void deleteAddresses(long companyId, java.lang.String className,
-		long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portal.model.Address> getAddresses()
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portal.model.Address> getAddresses(
-		long companyId, java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
+	public com.liferay.portal.model.Address updateAddress(
+		com.liferay.portal.model.Address address);
 
 	public com.liferay.portal.model.Address updateAddress(long addressId,
 		java.lang.String street1, java.lang.String street2,
 		java.lang.String street3, java.lang.String city, java.lang.String zip,
 		long regionId, long countryId, int typeId, boolean mailing,
 		boolean primary)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

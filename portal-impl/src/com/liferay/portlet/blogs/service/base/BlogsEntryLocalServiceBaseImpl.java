@@ -67,8 +67,6 @@ import com.liferay.portlet.blogs.service.persistence.BlogsEntryPersistence;
 import com.liferay.portlet.blogs.service.persistence.BlogsStatsUserFinder;
 import com.liferay.portlet.blogs.service.persistence.BlogsStatsUserPersistence;
 import com.liferay.portlet.expando.service.persistence.ExpandoRowPersistence;
-import com.liferay.portlet.messageboards.service.persistence.MBMessageFinder;
-import com.liferay.portlet.messageboards.service.persistence.MBMessagePersistence;
 import com.liferay.portlet.ratings.service.persistence.RatingsStatsFinder;
 import com.liferay.portlet.ratings.service.persistence.RatingsStatsPersistence;
 import com.liferay.portlet.social.service.persistence.SocialActivityFinder;
@@ -107,12 +105,10 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 *
 	 * @param blogsEntry the blogs entry
 	 * @return the blogs entry that was added
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public BlogsEntry addBlogsEntry(BlogsEntry blogsEntry)
-		throws SystemException {
+	public BlogsEntry addBlogsEntry(BlogsEntry blogsEntry) {
 		blogsEntry.setNew(true);
 
 		return blogsEntryPersistence.update(blogsEntry);
@@ -135,12 +131,10 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 * @param entryId the primary key of the blogs entry
 	 * @return the blogs entry that was removed
 	 * @throws PortalException if a blogs entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public BlogsEntry deleteBlogsEntry(long entryId)
-		throws PortalException, SystemException {
+	public BlogsEntry deleteBlogsEntry(long entryId) throws PortalException {
 		return blogsEntryPersistence.remove(entryId);
 	}
 
@@ -149,12 +143,10 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 *
 	 * @param blogsEntry the blogs entry
 	 * @return the blogs entry that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public BlogsEntry deleteBlogsEntry(BlogsEntry blogsEntry)
-		throws SystemException {
+	public BlogsEntry deleteBlogsEntry(BlogsEntry blogsEntry) {
 		return blogsEntryPersistence.remove(blogsEntry);
 	}
 
@@ -171,12 +163,9 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery) {
 		return blogsEntryPersistence.findWithDynamicQuery(dynamicQuery);
 	}
 
@@ -191,12 +180,10 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 * @param start the lower bound of the range of model instances
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @return the range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end) {
 		return blogsEntryPersistence.findWithDynamicQuery(dynamicQuery, start,
 			end);
 	}
@@ -213,12 +200,10 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end, OrderByComparator<T> orderByComparator) {
 		return blogsEntryPersistence.findWithDynamicQuery(dynamicQuery, start,
 			end, orderByComparator);
 	}
@@ -228,11 +213,9 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public long dynamicQueryCount(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public long dynamicQueryCount(DynamicQuery dynamicQuery) {
 		return blogsEntryPersistence.countWithDynamicQuery(dynamicQuery);
 	}
 
@@ -242,17 +225,16 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 * @param dynamicQuery the dynamic query
 	 * @param projection the projection to apply to the query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public long dynamicQueryCount(DynamicQuery dynamicQuery,
-		Projection projection) throws SystemException {
+		Projection projection) {
 		return blogsEntryPersistence.countWithDynamicQuery(dynamicQuery,
 			projection);
 	}
 
 	@Override
-	public BlogsEntry fetchBlogsEntry(long entryId) throws SystemException {
+	public BlogsEntry fetchBlogsEntry(long entryId) {
 		return blogsEntryPersistence.fetchByPrimaryKey(entryId);
 	}
 
@@ -262,11 +244,10 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 * @param uuid the blogs entry's UUID
 	 * @param  companyId the primary key of the company
 	 * @return the matching blogs entry, or <code>null</code> if a matching blogs entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BlogsEntry fetchBlogsEntryByUuidAndCompanyId(String uuid,
-		long companyId) throws SystemException {
+		long companyId) {
 		return blogsEntryPersistence.fetchByUuid_C_First(uuid, companyId, null);
 	}
 
@@ -276,11 +257,9 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 * @param uuid the blogs entry's UUID
 	 * @param groupId the primary key of the group
 	 * @return the matching blogs entry, or <code>null</code> if a matching blogs entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public BlogsEntry fetchBlogsEntryByUuidAndGroupId(String uuid, long groupId)
-		throws SystemException {
+	public BlogsEntry fetchBlogsEntryByUuidAndGroupId(String uuid, long groupId) {
 		return blogsEntryPersistence.fetchByUUID_G(uuid, groupId);
 	}
 
@@ -290,17 +269,14 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 * @param entryId the primary key of the blogs entry
 	 * @return the blogs entry
 	 * @throws PortalException if a blogs entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public BlogsEntry getBlogsEntry(long entryId)
-		throws PortalException, SystemException {
+	public BlogsEntry getBlogsEntry(long entryId) throws PortalException {
 		return blogsEntryPersistence.findByPrimaryKey(entryId);
 	}
 
 	@Override
-	public ActionableDynamicQuery getActionableDynamicQuery()
-		throws SystemException {
+	public ActionableDynamicQuery getActionableDynamicQuery() {
 		ActionableDynamicQuery actionableDynamicQuery = new DefaultActionableDynamicQuery();
 
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil.getService());
@@ -313,8 +289,7 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	}
 
 	protected void initActionableDynamicQuery(
-		ActionableDynamicQuery actionableDynamicQuery)
-		throws SystemException {
+		ActionableDynamicQuery actionableDynamicQuery) {
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil.getService());
 		actionableDynamicQuery.setClass(BlogsEntry.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
@@ -324,11 +299,10 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 
 	@Override
 	public ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		final PortletDataContext portletDataContext) throws SystemException {
+		final PortletDataContext portletDataContext) {
 		final ExportActionableDynamicQuery exportActionableDynamicQuery = new ExportActionableDynamicQuery() {
 				@Override
-				public long performCount()
-					throws PortalException, SystemException {
+				public long performCount() throws PortalException {
 					ManifestSummary manifestSummary = portletDataContext.getManifestSummary();
 
 					StagedModelType stagedModelType = getStagedModelType();
@@ -372,9 +346,8 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 
 		exportActionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				@SuppressWarnings("unused")
 				public void performAction(Object object)
-					throws PortalException, SystemException {
+					throws PortalException {
 					BlogsEntry stagedModel = (BlogsEntry)object;
 
 					StagedModelDataHandlerUtil.exportStagedModel(portletDataContext,
@@ -387,9 +360,18 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 		return exportActionableDynamicQuery;
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
+		throws PortalException {
+		return blogsEntryLocalService.deleteBlogsEntry((BlogsEntry)persistedModel);
+	}
+
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return blogsEntryPersistence.findByPrimaryKey(primaryKeyObj);
 	}
 
@@ -400,11 +382,10 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 * @param  companyId the primary key of the company
 	 * @return the matching blogs entry
 	 * @throws PortalException if a matching blogs entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BlogsEntry getBlogsEntryByUuidAndCompanyId(String uuid,
-		long companyId) throws PortalException, SystemException {
+		long companyId) throws PortalException {
 		return blogsEntryPersistence.findByUuid_C_First(uuid, companyId, null);
 	}
 
@@ -415,11 +396,10 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 * @param groupId the primary key of the group
 	 * @return the matching blogs entry
 	 * @throws PortalException if a matching blogs entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public BlogsEntry getBlogsEntryByUuidAndGroupId(String uuid, long groupId)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return blogsEntryPersistence.findByUUID_G(uuid, groupId);
 	}
 
@@ -433,11 +413,9 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 * @param start the lower bound of the range of blogs entries
 	 * @param end the upper bound of the range of blogs entries (not inclusive)
 	 * @return the range of blogs entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<BlogsEntry> getBlogsEntries(int start, int end)
-		throws SystemException {
+	public List<BlogsEntry> getBlogsEntries(int start, int end) {
 		return blogsEntryPersistence.findAll(start, end);
 	}
 
@@ -445,10 +423,9 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 * Returns the number of blogs entries.
 	 *
 	 * @return the number of blogs entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getBlogsEntriesCount() throws SystemException {
+	public int getBlogsEntriesCount() {
 		return blogsEntryPersistence.countAll();
 	}
 
@@ -457,12 +434,10 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 *
 	 * @param blogsEntry the blogs entry
 	 * @return the blogs entry that was updated
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public BlogsEntry updateBlogsEntry(BlogsEntry blogsEntry)
-		throws SystemException {
+	public BlogsEntry updateBlogsEntry(BlogsEntry blogsEntry) {
 		return blogsEntryPersistence.update(blogsEntry);
 	}
 
@@ -1218,81 +1193,6 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the message-boards message local service.
-	 *
-	 * @return the message-boards message local service
-	 */
-	public com.liferay.portlet.messageboards.service.MBMessageLocalService getMBMessageLocalService() {
-		return mbMessageLocalService;
-	}
-
-	/**
-	 * Sets the message-boards message local service.
-	 *
-	 * @param mbMessageLocalService the message-boards message local service
-	 */
-	public void setMBMessageLocalService(
-		com.liferay.portlet.messageboards.service.MBMessageLocalService mbMessageLocalService) {
-		this.mbMessageLocalService = mbMessageLocalService;
-	}
-
-	/**
-	 * Returns the message-boards message remote service.
-	 *
-	 * @return the message-boards message remote service
-	 */
-	public com.liferay.portlet.messageboards.service.MBMessageService getMBMessageService() {
-		return mbMessageService;
-	}
-
-	/**
-	 * Sets the message-boards message remote service.
-	 *
-	 * @param mbMessageService the message-boards message remote service
-	 */
-	public void setMBMessageService(
-		com.liferay.portlet.messageboards.service.MBMessageService mbMessageService) {
-		this.mbMessageService = mbMessageService;
-	}
-
-	/**
-	 * Returns the message-boards message persistence.
-	 *
-	 * @return the message-boards message persistence
-	 */
-	public MBMessagePersistence getMBMessagePersistence() {
-		return mbMessagePersistence;
-	}
-
-	/**
-	 * Sets the message-boards message persistence.
-	 *
-	 * @param mbMessagePersistence the message-boards message persistence
-	 */
-	public void setMBMessagePersistence(
-		MBMessagePersistence mbMessagePersistence) {
-		this.mbMessagePersistence = mbMessagePersistence;
-	}
-
-	/**
-	 * Returns the message-boards message finder.
-	 *
-	 * @return the message-boards message finder
-	 */
-	public MBMessageFinder getMBMessageFinder() {
-		return mbMessageFinder;
-	}
-
-	/**
-	 * Sets the message-boards message finder.
-	 *
-	 * @param mbMessageFinder the message-boards message finder
-	 */
-	public void setMBMessageFinder(MBMessageFinder mbMessageFinder) {
-		this.mbMessageFinder = mbMessageFinder;
-	}
-
-	/**
 	 * Returns the ratings stats local service.
 	 *
 	 * @return the ratings stats local service
@@ -1581,7 +1481,7 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	 *
 	 * @param sql the sql query
 	 */
-	protected void runSQL(String sql) throws SystemException {
+	protected void runSQL(String sql) {
 		try {
 			DataSource dataSource = blogsEntryPersistence.getDataSource();
 
@@ -1680,14 +1580,6 @@ public abstract class BlogsEntryLocalServiceBaseImpl
 	protected com.liferay.portlet.expando.service.ExpandoRowLocalService expandoRowLocalService;
 	@BeanReference(type = ExpandoRowPersistence.class)
 	protected ExpandoRowPersistence expandoRowPersistence;
-	@BeanReference(type = com.liferay.portlet.messageboards.service.MBMessageLocalService.class)
-	protected com.liferay.portlet.messageboards.service.MBMessageLocalService mbMessageLocalService;
-	@BeanReference(type = com.liferay.portlet.messageboards.service.MBMessageService.class)
-	protected com.liferay.portlet.messageboards.service.MBMessageService mbMessageService;
-	@BeanReference(type = MBMessagePersistence.class)
-	protected MBMessagePersistence mbMessagePersistence;
-	@BeanReference(type = MBMessageFinder.class)
-	protected MBMessageFinder mbMessageFinder;
 	@BeanReference(type = com.liferay.portlet.ratings.service.RatingsStatsLocalService.class)
 	protected com.liferay.portlet.ratings.service.RatingsStatsLocalService ratingsStatsLocalService;
 	@BeanReference(type = RatingsStatsPersistence.class)

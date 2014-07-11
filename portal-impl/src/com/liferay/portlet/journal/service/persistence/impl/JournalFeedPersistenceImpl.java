@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -50,7 +49,11 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -111,10 +114,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 *
 	 * @param uuid the uuid
 	 * @return the matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<JournalFeed> findByUuid(String uuid) throws SystemException {
+	public List<JournalFeed> findByUuid(String uuid) {
 		return findByUuid(uuid, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -129,11 +131,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param start the lower bound of the range of journal feeds
 	 * @param end the upper bound of the range of journal feeds (not inclusive)
 	 * @return the range of matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<JournalFeed> findByUuid(String uuid, int start, int end)
-		throws SystemException {
+	public List<JournalFeed> findByUuid(String uuid, int start, int end) {
 		return findByUuid(uuid, start, end, null);
 	}
 
@@ -149,11 +149,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param end the upper bound of the range of journal feeds (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<JournalFeed> findByUuid(String uuid, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<JournalFeed> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -270,12 +269,11 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed findByUuid_First(String uuid,
-		OrderByComparator orderByComparator)
-		throws NoSuchFeedException, SystemException {
+		OrderByComparator<JournalFeed> orderByComparator)
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = fetchByUuid_First(uuid, orderByComparator);
 
 		if (journalFeed != null) {
@@ -300,11 +298,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal feed, or <code>null</code> if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed fetchByUuid_First(String uuid,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<JournalFeed> orderByComparator) {
 		List<JournalFeed> list = findByUuid(uuid, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -321,12 +318,11 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed findByUuid_Last(String uuid,
-		OrderByComparator orderByComparator)
-		throws NoSuchFeedException, SystemException {
+		OrderByComparator<JournalFeed> orderByComparator)
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = fetchByUuid_Last(uuid, orderByComparator);
 
 		if (journalFeed != null) {
@@ -351,11 +347,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal feed, or <code>null</code> if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed fetchByUuid_Last(String uuid,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<JournalFeed> orderByComparator) {
 		int count = countByUuid(uuid);
 
 		if (count == 0) {
@@ -380,12 +375,11 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a journal feed with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed[] findByUuid_PrevAndNext(long id, String uuid,
-		OrderByComparator orderByComparator)
-		throws NoSuchFeedException, SystemException {
+		OrderByComparator<JournalFeed> orderByComparator)
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = findByPrimaryKey(id);
 
 		Session session = null;
@@ -415,7 +409,7 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 
 	protected JournalFeed getByUuid_PrevAndNext(Session session,
 		JournalFeed journalFeed, String uuid,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<JournalFeed> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -536,10 +530,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * Removes all the journal feeds where uuid = &#63; from the database.
 	 *
 	 * @param uuid the uuid
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByUuid(String uuid) throws SystemException {
+	public void removeByUuid(String uuid) {
 		for (JournalFeed journalFeed : findByUuid(uuid, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null)) {
 			remove(journalFeed);
@@ -551,10 +544,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 *
 	 * @param uuid the uuid
 	 * @return the number of matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByUuid(String uuid) throws SystemException {
+	public int countByUuid(String uuid) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_UUID;
 
 		Object[] finderArgs = new Object[] { uuid };
@@ -634,11 +626,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param groupId the group ID
 	 * @return the matching journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed findByUUID_G(String uuid, long groupId)
-		throws NoSuchFeedException, SystemException {
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = fetchByUUID_G(uuid, groupId);
 
 		if (journalFeed == null) {
@@ -670,11 +661,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param uuid the uuid
 	 * @param groupId the group ID
 	 * @return the matching journal feed, or <code>null</code> if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public JournalFeed fetchByUUID_G(String uuid, long groupId)
-		throws SystemException {
+	public JournalFeed fetchByUUID_G(String uuid, long groupId) {
 		return fetchByUUID_G(uuid, groupId, true);
 	}
 
@@ -685,11 +674,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param groupId the group ID
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching journal feed, or <code>null</code> if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed fetchByUUID_G(String uuid, long groupId,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { uuid, groupId };
 
 		Object result = null;
@@ -792,11 +780,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param uuid the uuid
 	 * @param groupId the group ID
 	 * @return the journal feed that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed removeByUUID_G(String uuid, long groupId)
-		throws NoSuchFeedException, SystemException {
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = findByUUID_G(uuid, groupId);
 
 		return remove(journalFeed);
@@ -808,11 +795,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param uuid the uuid
 	 * @param groupId the group ID
 	 * @return the number of matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByUUID_G(String uuid, long groupId)
-		throws SystemException {
+	public int countByUUID_G(String uuid, long groupId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_UUID_G;
 
 		Object[] finderArgs = new Object[] { uuid, groupId };
@@ -907,11 +892,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param uuid the uuid
 	 * @param companyId the company ID
 	 * @return the matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<JournalFeed> findByUuid_C(String uuid, long companyId)
-		throws SystemException {
+	public List<JournalFeed> findByUuid_C(String uuid, long companyId) {
 		return findByUuid_C(uuid, companyId, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -928,11 +911,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param start the lower bound of the range of journal feeds
 	 * @param end the upper bound of the range of journal feeds (not inclusive)
 	 * @return the range of matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<JournalFeed> findByUuid_C(String uuid, long companyId,
-		int start, int end) throws SystemException {
+		int start, int end) {
 		return findByUuid_C(uuid, companyId, start, end, null);
 	}
 
@@ -949,12 +931,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param end the upper bound of the range of journal feeds (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<JournalFeed> findByUuid_C(String uuid, long companyId,
-		int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		int start, int end, OrderByComparator<JournalFeed> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1081,12 +1061,11 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed findByUuid_C_First(String uuid, long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFeedException, SystemException {
+		OrderByComparator<JournalFeed> orderByComparator)
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = fetchByUuid_C_First(uuid, companyId,
 				orderByComparator);
 
@@ -1116,11 +1095,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal feed, or <code>null</code> if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed fetchByUuid_C_First(String uuid, long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<JournalFeed> orderByComparator) {
 		List<JournalFeed> list = findByUuid_C(uuid, companyId, 0, 1,
 				orderByComparator);
 
@@ -1139,12 +1117,11 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed findByUuid_C_Last(String uuid, long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFeedException, SystemException {
+		OrderByComparator<JournalFeed> orderByComparator)
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = fetchByUuid_C_Last(uuid, companyId,
 				orderByComparator);
 
@@ -1174,11 +1151,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal feed, or <code>null</code> if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed fetchByUuid_C_Last(String uuid, long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<JournalFeed> orderByComparator) {
 		int count = countByUuid_C(uuid, companyId);
 
 		if (count == 0) {
@@ -1204,12 +1180,11 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a journal feed with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed[] findByUuid_C_PrevAndNext(long id, String uuid,
-		long companyId, OrderByComparator orderByComparator)
-		throws NoSuchFeedException, SystemException {
+		long companyId, OrderByComparator<JournalFeed> orderByComparator)
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = findByPrimaryKey(id);
 
 		Session session = null;
@@ -1239,7 +1214,7 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 
 	protected JournalFeed getByUuid_C_PrevAndNext(Session session,
 		JournalFeed journalFeed, String uuid, long companyId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<JournalFeed> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -1365,11 +1340,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 *
 	 * @param uuid the uuid
 	 * @param companyId the company ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByUuid_C(String uuid, long companyId)
-		throws SystemException {
+	public void removeByUuid_C(String uuid, long companyId) {
 		for (JournalFeed journalFeed : findByUuid_C(uuid, companyId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(journalFeed);
@@ -1382,11 +1355,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param uuid the uuid
 	 * @param companyId the company ID
 	 * @return the number of matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByUuid_C(String uuid, long companyId)
-		throws SystemException {
+	public int countByUuid_C(String uuid, long companyId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_UUID_C;
 
 		Object[] finderArgs = new Object[] { uuid, companyId };
@@ -1479,11 +1450,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 *
 	 * @param groupId the group ID
 	 * @return the matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<JournalFeed> findByGroupId(long groupId)
-		throws SystemException {
+	public List<JournalFeed> findByGroupId(long groupId) {
 		return findByGroupId(groupId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -1498,11 +1467,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param start the lower bound of the range of journal feeds
 	 * @param end the upper bound of the range of journal feeds (not inclusive)
 	 * @return the range of matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<JournalFeed> findByGroupId(long groupId, int start, int end)
-		throws SystemException {
+	public List<JournalFeed> findByGroupId(long groupId, int start, int end) {
 		return findByGroupId(groupId, start, end, null);
 	}
 
@@ -1518,11 +1485,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param end the upper bound of the range of journal feeds (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<JournalFeed> findByGroupId(long groupId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<JournalFeed> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1625,12 +1591,11 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed findByGroupId_First(long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFeedException, SystemException {
+		OrderByComparator<JournalFeed> orderByComparator)
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = fetchByGroupId_First(groupId,
 				orderByComparator);
 
@@ -1656,11 +1621,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param groupId the group ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal feed, or <code>null</code> if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed fetchByGroupId_First(long groupId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<JournalFeed> orderByComparator) {
 		List<JournalFeed> list = findByGroupId(groupId, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -1677,12 +1641,11 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed findByGroupId_Last(long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFeedException, SystemException {
+		OrderByComparator<JournalFeed> orderByComparator)
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = fetchByGroupId_Last(groupId, orderByComparator);
 
 		if (journalFeed != null) {
@@ -1707,11 +1670,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param groupId the group ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal feed, or <code>null</code> if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed fetchByGroupId_Last(long groupId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<JournalFeed> orderByComparator) {
 		int count = countByGroupId(groupId);
 
 		if (count == 0) {
@@ -1736,12 +1698,11 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a journal feed with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed[] findByGroupId_PrevAndNext(long id, long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFeedException, SystemException {
+		OrderByComparator<JournalFeed> orderByComparator)
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = findByPrimaryKey(id);
 
 		Session session = null;
@@ -1771,7 +1732,7 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 
 	protected JournalFeed getByGroupId_PrevAndNext(Session session,
 		JournalFeed journalFeed, long groupId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<JournalFeed> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -1879,11 +1840,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 *
 	 * @param groupId the group ID
 	 * @return the matching journal feeds that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<JournalFeed> filterFindByGroupId(long groupId)
-		throws SystemException {
+	public List<JournalFeed> filterFindByGroupId(long groupId) {
 		return filterFindByGroupId(groupId, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -1899,11 +1858,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param start the lower bound of the range of journal feeds
 	 * @param end the upper bound of the range of journal feeds (not inclusive)
 	 * @return the range of matching journal feeds that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<JournalFeed> filterFindByGroupId(long groupId, int start,
-		int end) throws SystemException {
+		int end) {
 		return filterFindByGroupId(groupId, start, end, null);
 	}
 
@@ -1919,11 +1877,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param end the upper bound of the range of journal feeds (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching journal feeds that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<JournalFeed> filterFindByGroupId(long groupId, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<JournalFeed> orderByComparator) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByGroupId(groupId, start, end, orderByComparator);
 		}
@@ -2010,12 +1967,11 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a journal feed with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed[] filterFindByGroupId_PrevAndNext(long id, long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchFeedException, SystemException {
+		OrderByComparator<JournalFeed> orderByComparator)
+		throws NoSuchFeedException {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return findByGroupId_PrevAndNext(id, groupId, orderByComparator);
 		}
@@ -2049,7 +2005,7 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 
 	protected JournalFeed filterGetByGroupId_PrevAndNext(Session session,
 		JournalFeed journalFeed, long groupId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<JournalFeed> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -2191,10 +2147,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * Removes all the journal feeds where groupId = &#63; from the database.
 	 *
 	 * @param groupId the group ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByGroupId(long groupId) throws SystemException {
+	public void removeByGroupId(long groupId) {
 		for (JournalFeed journalFeed : findByGroupId(groupId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(journalFeed);
@@ -2206,10 +2161,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 *
 	 * @param groupId the group ID
 	 * @return the number of matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByGroupId(long groupId) throws SystemException {
+	public int countByGroupId(long groupId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_GROUPID;
 
 		Object[] finderArgs = new Object[] { groupId };
@@ -2259,10 +2213,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 *
 	 * @param groupId the group ID
 	 * @return the number of matching journal feeds that the user has permission to view
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int filterCountByGroupId(long groupId) throws SystemException {
+	public int filterCountByGroupId(long groupId) {
 		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
 			return countByGroupId(groupId);
 		}
@@ -2322,11 +2275,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param feedId the feed ID
 	 * @return the matching journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed findByG_F(long groupId, String feedId)
-		throws NoSuchFeedException, SystemException {
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = fetchByG_F(groupId, feedId);
 
 		if (journalFeed == null) {
@@ -2358,11 +2310,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param groupId the group ID
 	 * @param feedId the feed ID
 	 * @return the matching journal feed, or <code>null</code> if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public JournalFeed fetchByG_F(long groupId, String feedId)
-		throws SystemException {
+	public JournalFeed fetchByG_F(long groupId, String feedId) {
 		return fetchByG_F(groupId, feedId, true);
 	}
 
@@ -2373,11 +2323,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param feedId the feed ID
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching journal feed, or <code>null</code> if a matching journal feed could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed fetchByG_F(long groupId, String feedId,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { groupId, feedId };
 
 		Object result = null;
@@ -2480,11 +2429,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param groupId the group ID
 	 * @param feedId the feed ID
 	 * @return the journal feed that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed removeByG_F(long groupId, String feedId)
-		throws NoSuchFeedException, SystemException {
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = findByG_F(groupId, feedId);
 
 		return remove(journalFeed);
@@ -2496,11 +2444,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param groupId the group ID
 	 * @param feedId the feed ID
 	 * @return the number of matching journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByG_F(long groupId, String feedId)
-		throws SystemException {
+	public int countByG_F(long groupId, String feedId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_G_F;
 
 		Object[] finderArgs = new Object[] { groupId, feedId };
@@ -2776,11 +2722,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param id the primary key of the journal feed
 	 * @return the journal feed that was removed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a journal feed with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public JournalFeed remove(long id)
-		throws NoSuchFeedException, SystemException {
+	public JournalFeed remove(long id) throws NoSuchFeedException {
 		return remove((Serializable)id);
 	}
 
@@ -2790,11 +2734,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param primaryKey the primary key of the journal feed
 	 * @return the journal feed that was removed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a journal feed with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed remove(Serializable primaryKey)
-		throws NoSuchFeedException, SystemException {
+		throws NoSuchFeedException {
 		Session session = null;
 
 		try {
@@ -2826,8 +2769,7 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	}
 
 	@Override
-	protected JournalFeed removeImpl(JournalFeed journalFeed)
-		throws SystemException {
+	protected JournalFeed removeImpl(JournalFeed journalFeed) {
 		journalFeed = toUnwrappedModel(journalFeed);
 
 		Session session = null;
@@ -2860,8 +2802,7 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 
 	@Override
 	public JournalFeed updateImpl(
-		com.liferay.portlet.journal.model.JournalFeed journalFeed)
-		throws SystemException {
+		com.liferay.portlet.journal.model.JournalFeed journalFeed) {
 		journalFeed = toUnwrappedModel(journalFeed);
 
 		boolean isNew = journalFeed.isNew();
@@ -3013,11 +2954,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param primaryKey the primary key of the journal feed
 	 * @return the journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a journal feed with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public JournalFeed findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchFeedException, SystemException {
+		throws NoSuchFeedException {
 		JournalFeed journalFeed = fetchByPrimaryKey(primaryKey);
 
 		if (journalFeed == null) {
@@ -3038,11 +2978,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param id the primary key of the journal feed
 	 * @return the journal feed
 	 * @throws com.liferay.portlet.journal.NoSuchFeedException if a journal feed with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public JournalFeed findByPrimaryKey(long id)
-		throws NoSuchFeedException, SystemException {
+	public JournalFeed findByPrimaryKey(long id) throws NoSuchFeedException {
 		return findByPrimaryKey((Serializable)id);
 	}
 
@@ -3051,11 +2989,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 *
 	 * @param primaryKey the primary key of the journal feed
 	 * @return the journal feed, or <code>null</code> if a journal feed with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public JournalFeed fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public JournalFeed fetchByPrimaryKey(Serializable primaryKey) {
 		JournalFeed journalFeed = (JournalFeed)EntityCacheUtil.getResult(JournalFeedModelImpl.ENTITY_CACHE_ENABLED,
 				JournalFeedImpl.class, primaryKey);
 
@@ -3099,21 +3035,111 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 *
 	 * @param id the primary key of the journal feed
 	 * @return the journal feed, or <code>null</code> if a journal feed with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public JournalFeed fetchByPrimaryKey(long id) throws SystemException {
+	public JournalFeed fetchByPrimaryKey(long id) {
 		return fetchByPrimaryKey((Serializable)id);
+	}
+
+	@Override
+	public Map<Serializable, JournalFeed> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, JournalFeed> map = new HashMap<Serializable, JournalFeed>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			JournalFeed journalFeed = fetchByPrimaryKey(primaryKey);
+
+			if (journalFeed != null) {
+				map.put(primaryKey, journalFeed);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			JournalFeed journalFeed = (JournalFeed)EntityCacheUtil.getResult(JournalFeedModelImpl.ENTITY_CACHE_ENABLED,
+					JournalFeedImpl.class, primaryKey);
+
+			if (journalFeed == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, journalFeed);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_JOURNALFEED_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (JournalFeed journalFeed : (List<JournalFeed>)q.list()) {
+				map.put(journalFeed.getPrimaryKeyObj(), journalFeed);
+
+				cacheResult(journalFeed);
+
+				uncachedPrimaryKeys.remove(journalFeed.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(JournalFeedModelImpl.ENTITY_CACHE_ENABLED,
+					JournalFeedImpl.class, primaryKey, _nullJournalFeed);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the journal feeds.
 	 *
 	 * @return the journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<JournalFeed> findAll() throws SystemException {
+	public List<JournalFeed> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -3127,11 +3153,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param start the lower bound of the range of journal feeds
 	 * @param end the upper bound of the range of journal feeds (not inclusive)
 	 * @return the range of journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<JournalFeed> findAll(int start, int end)
-		throws SystemException {
+	public List<JournalFeed> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -3146,11 +3170,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * @param end the upper bound of the range of journal feeds (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<JournalFeed> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<JournalFeed> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -3232,10 +3255,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	/**
 	 * Removes all the journal feeds from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (JournalFeed journalFeed : findAll()) {
 			remove(journalFeed);
 		}
@@ -3245,10 +3267,9 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	 * Returns the number of journal feeds.
 	 *
 	 * @return the number of journal feeds
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -3317,6 +3338,7 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	}
 
 	private static final String _SQL_SELECT_JOURNALFEED = "SELECT journalFeed FROM JournalFeed journalFeed";
+	private static final String _SQL_SELECT_JOURNALFEED_WHERE_PKS_IN = "SELECT journalFeed FROM JournalFeed journalFeed WHERE id_ IN (";
 	private static final String _SQL_SELECT_JOURNALFEED_WHERE = "SELECT journalFeed FROM JournalFeed journalFeed WHERE ";
 	private static final String _SQL_COUNT_JOURNALFEED = "SELECT COUNT(journalFeed) FROM JournalFeed journalFeed";
 	private static final String _SQL_COUNT_JOURNALFEED_WHERE = "SELECT COUNT(journalFeed) FROM JournalFeed journalFeed WHERE ";

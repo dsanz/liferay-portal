@@ -28,7 +28,7 @@ if (bodyContent != null) {
 }
 
 if (Validator.isNull(title)) {
-	title = HtmlUtil.stripHtml(LanguageUtil.get(pageContext, label));
+	title = HtmlUtil.stripHtml(LanguageUtil.get(request, label));
 }
 %>
 
@@ -44,9 +44,14 @@ if (Validator.isNull(title)) {
 					</aui:script>
 				</c:if>
 			</c:if>
-					<c:if test="<%= Validator.isNotNull(iconCssClass) %>">
-						<i class="nav-item-icon <%= iconCssClass %>"></i>
-					</c:if>
+					<c:choose>
+						<c:when test="<%= Validator.isNotNull(iconCssClass) %>">
+							<i class="nav-item-icon <%= iconCssClass %>"></i>
+						</c:when>
+						<c:when test="<%= Validator.isNotNull(iconSrc) %>">
+							<i class="nav-item-icon"><img src="<%= iconSrc %>" /></i>
+						</c:when>
+					</c:choose>
 
 					<span class="nav-item-label">
 						<liferay-ui:message key="<%= label %>" localizeKey="<%= localizeLabel %>" />
@@ -65,6 +70,8 @@ if (Validator.isNull(title)) {
 				var toggleMenu = new Liferay.MenuToggle(
 					{
 						content: '#<%= id %>',
+						maxDisplayItems: <%= PropsValues.MENU_MAX_DISPLAY_ITEMS %>,
+						'strings.placeholder': '<%= LanguageUtil.get(request, "search") %>',
 						toggle: <%= toggle %>,
 						toggleTouch: <%= toggleTouch %>,
 						trigger: '#<%= id %> a'

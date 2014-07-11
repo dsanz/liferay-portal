@@ -43,9 +43,7 @@ import java.util.Date;
 public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 
 	@Override
-	public Release addRelease(String servletContextName, int buildNumber)
-		throws SystemException {
-
+	public Release addRelease(String servletContextName, int buildNumber) {
 		Release release = null;
 
 		if (servletContextName.equals(
@@ -78,7 +76,7 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 	}
 
 	@Override
-	public void createTablesAndPopulate() throws SystemException {
+	public void createTablesAndPopulate() {
 		try {
 			if (_log.isInfoEnabled()) {
 				_log.info("Create tables and populate with default data");
@@ -101,9 +99,7 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 	}
 
 	@Override
-	public Release fetchRelease(String servletContextName)
-		throws SystemException {
-
+	public Release fetchRelease(String servletContextName) {
 		if (Validator.isNull(servletContextName)) {
 			throw new IllegalArgumentException("Servlet context name is null");
 		}
@@ -125,8 +121,7 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 	}
 
 	@Override
-	public int getBuildNumberOrCreate()
-		throws PortalException, SystemException {
+	public int getBuildNumberOrCreate() throws PortalException {
 
 		// Get release build number
 
@@ -198,7 +193,7 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 	@Override
 	public Release updateRelease(
 			long releaseId, int buildNumber, Date buildDate, boolean verified)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Release release = releasePersistence.findByPrimaryKey(releaseId);
 
@@ -212,9 +207,7 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 		return release;
 	}
 
-	protected void testSupportsStringCaseSensitiveQuery()
-		throws SystemException {
-
+	protected void testSupportsStringCaseSensitiveQuery() {
 		DB db = DBFactoryUtil.getDB();
 
 		int count = testSupportsStringCaseSensitiveQuery(

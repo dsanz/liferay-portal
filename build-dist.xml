@@ -51,11 +51,13 @@
 	<target name="build-dist-geronimo">
 		<antcall target="unzip-geronimo" />
 
-		<echo file="app.server.${user.name}.properties">app.server.type=geronimo</echo>
+		<app-server-properties-update>
+			app.server.type=geronimo
+		</app-server-properties-update>
 
 		<antcall target="deploy" inheritAll="false" />
 
-		<delete file="app.server.${user.name}.properties" />
+		<app-server-properties-reset />
 
 		<antcall target="deploy-plugins">
 			<param name="deployer.dest.dir" value="${app.server.geronimo.deploy.dir}" />
@@ -67,11 +69,13 @@
 	<target name="build-dist-glassfish">
 		<antcall target="unzip-glassfish" />
 
-		<echo file="app.server.${user.name}.properties">app.server.type=glassfish</echo>
+		<app-server-properties-update>
+			app.server.type=glassfish
+		</app-server-properties-update>
 
 		<ant target="deploy" inheritAll="false" />
 
-		<delete file="app.server.${user.name}.properties" />
+		<app-server-properties-reset />
 
 		<antcall target="deploy-plugins">
 			<param name="deployer.dest.dir" value="${app.server.glassfish.deploy.dir}" />
@@ -83,13 +87,15 @@
 	<target name="build-dist-jboss">
 		<antcall target="unzip-jboss" />
 
-		<echo file="app.server.${user.name}.properties">app.server.type=jboss</echo>
+		<app-server-properties-update>
+			app.server.type=jboss
+		</app-server-properties-update>
 
 		<delete dir="${project.dir}/portal-web/classes" />
 
 		<ant target="deploy" inheritAll="false" />
 
-		<delete file="app.server.${user.name}.properties" />
+		<app-server-properties-reset />
 
 		<if>
 			<equals arg1="${app.server.jboss.major.version}" arg2="5" />
@@ -110,19 +116,46 @@
 		</if>
 	</target>
 
-	<target name="build-dist-jboss-eap">
-		<echo file="app.server.${user.name}.properties">app.server.type=jboss
-app.server.jboss.version=6.1.0
-app.server.jboss.dir=${app.server.parent.dir}/jboss-eap-6.1
-app.server.jboss.zip.name=jboss-eap-$${app.server.jboss.version}.zip</echo>
+	<target name="build-dist-jboss-eap-6.0">
+		<app-server-properties-update>
+			app.server.type=jboss
+			app.server.jboss.version=6.0.1
+			app.server.jboss.dir=${app.server.parent.dir}/jboss-eap-6.0
+			app.server.jboss.zip.name=jboss-eap-6.0.1.zip
+			app.server.jboss.zip.url=http://mirrors/www.jboss.org/jbossas/downloads/jboss-eap-6.0.1.zip
+		</app-server-properties-update>
 
-		<antcall target="unzip-jboss-eap" inheritAll="false" />
+		<antcall target="unzip-jboss" inheritAll="false" />
 
 		<delete dir="${project.dir}/portal-web/classes" />
 
 		<ant target="deploy" inheritAll="false" />
 
-		<delete file="app.server.${user.name}.properties" />
+		<app-server-properties-reset />
+
+		<antcall target="deploy-plugins">
+			<param name="deployer.dest.dir" value="${app.server.jboss.deploy.dir}" />
+			<param name="deployer.app.server.type" value="jboss" />
+			<param name="deployer.app.server.lib.portal.dir" value="${app.server.jboss.portal.dir}/WEB-INF/lib" />
+		</antcall>
+	</target>
+
+	<target name="build-dist-jboss-eap-6.1">
+		<app-server-properties-update>
+			app.server.type=jboss
+			app.server.jboss.version=6.1.0
+			app.server.jboss.dir=${app.server.parent.dir}/jboss-eap-6.1
+			app.server.jboss.zip.name=jboss-eap-6.1.0.zip
+			app.server.jboss.zip.url=http://mirrors/www.jboss.org/jbossas/downloads/jboss-eap-6.1.0.zip
+		</app-server-properties-update>
+
+		<antcall target="unzip-jboss" inheritAll="false" />
+
+		<delete dir="${project.dir}/portal-web/classes" />
+
+		<ant target="deploy" inheritAll="false" />
+
+		<app-server-properties-reset />
 
 		<antcall target="deploy-plugins">
 			<param name="deployer.dest.dir" value="${app.server.jboss.deploy.dir}" />
@@ -134,13 +167,15 @@ app.server.jboss.zip.name=jboss-eap-$${app.server.jboss.version}.zip</echo>
 	<target name="build-dist-jetty">
 		<antcall target="unzip-jetty" />
 
-		<echo file="app.server.${user.name}.properties">app.server.type=jetty</echo>
+		<app-server-properties-update>
+			app.server.type=jetty
+		</app-server-properties-update>
 
 		<delete dir="${project.dir}/portal-web/classes" />
 
 		<ant target="deploy" inheritAll="false" />
 
-		<delete file="app.server.${user.name}.properties" />
+		<app-server-properties-reset />
 
 		<antcall target="deploy-plugins">
 			<param name="deployer.dest.dir" value="${app.server.jetty.deploy.dir}" />
@@ -152,13 +187,15 @@ app.server.jboss.zip.name=jboss-eap-$${app.server.jboss.version}.zip</echo>
 	<target name="build-dist-jonas">
 		<antcall target="unzip-jonas" />
 
-		<echo file="app.server.${user.name}.properties">app.server.type=jonas</echo>
+		<app-server-properties-update>
+			app.server.type=jonas
+		</app-server-properties-update>
 
 		<delete dir="${project.dir}/portal-web/classes" />
 
 		<ant target="deploy" inheritAll="false" />
 
-		<delete file="app.server.${user.name}.properties" />
+		<app-server-properties-reset />
 
 		<antcall target="deploy-plugins">
 			<param name="deployer.dest.dir" value="${app.server.jonas.deploy.dir}" />
@@ -251,13 +288,15 @@ app.server.jboss.zip.name=jboss-eap-$${app.server.jboss.version}.zip</echo>
 	<target name="build-dist-resin">
 		<antcall target="unzip-resin" />
 
-		<echo file="app.server.${user.name}.properties">app.server.type=resin</echo>
+		<app-server-properties-update>
+			app.server.type=resin
+		</app-server-properties-update>
 
 		<delete dir="${project.dir}/portal-web/classes" />
 
 		<ant target="deploy" inheritAll="false" />
 
-		<delete file="app.server.${user.name}.properties" />
+		<app-server-properties-reset />
 
 		<antcall target="deploy-plugins">
 			<param name="deployer.dest.dir" value="${app.server.resin.deploy.dir}" />
@@ -274,12 +313,11 @@ app.server.jboss.zip.name=jboss-eap-$${app.server.jboss.version}.zip</echo>
 	</target>
 
 	<target name="build-dist-tcat">
-		<echo file="app.server.${user.name}.properties">
+		<app-server-properties-update>
 			app.server.type=tomcat
-
 			app.server.tomcat.version=7.0.39
 			app.server.tomcat.zip.url=http://archive.apache.org/dist/tomcat/tomcat-7/v7.0.39/bin/apache-tomcat-7.0.39.zip
-		</echo>
+		</app-server-properties-update>
 
 		<antcall target="build-dist-tomcat" inheritAll="false">
 			<param name="tomcat.keep.app.server.properties" value="true" />
@@ -332,7 +370,7 @@ app.server.jboss.zip.name=jboss-eap-$${app.server.jboss.version}.zip</echo>
 			<param name="app.server.tcat.zip.name" value="${app.server.tcat.zip.name}" />
 		</antcall>
 
-		<delete file="app.server.${user.name}.properties" />
+		<app-server-properties-reset />
 	</target>
 
 	<target name="build-dist-tcat-admin">
@@ -377,15 +415,14 @@ app.server.jboss.zip.name=jboss-eap-$${app.server.jboss.version}.zip</echo>
 			plugins.war.excludes=**/WEB-INF/service/**,**/WEB-INF/src/**
 		</echo>
 
-		<ant dir="${lp.plugins.dir}" target="all" inheritAll="false" />
+		<ant-execute
+			ant.dir="${lp.plugins.dir}"
+			ant.target="all"
+		/>
 
 		<copy todir="${app.server.tcat.dir}/admin/tcat_init/webapps/${lp.version.tcat}">
 			<fileset dir="${lp.plugins.dir}/dist" includes="*.war" />
 		</copy>
-
-		<ant dir="${lp.plugins.dir}" target="clean" inheritAll="false" />
-
-		<ant dir="${lp.plugins.dir}" target="all" inheritAll="false" />
 	</target>
 
 	<target name="build-dist-tcat-admin-webapps-portal">
@@ -485,6 +522,26 @@ app.server.jboss.zip.name=jboss-eap-$${app.server.jboss.version}.zip</echo>
 		</copy>
 	</target>
 
+	<target name="build-dist-tcserver">
+		<antcall target="unzip-tcserver" />
+
+		<app-server-properties-update>
+			app.server.type=tcserver
+		</app-server-properties-update>
+
+		<delete dir="${project.dir}/portal-web/classes" />
+
+		<antcall target="all" inheritAll="false" />
+
+		<app-server-properties-reset />
+
+		<antcall target="deploy-plugins">
+			<param name="deployer.dest.dir" value="${app.server.tcserver.deploy.dir}" />
+			<param name="deployer.app.server.type" value="tomcat" />
+			<param name="deployer.app.server.lib.portal.dir" value="${app.server.tcserver.lib.portal.dir}" />
+		</antcall>
+	</target>
+
 	<target name="build-dist-tomcat">
 		<if>
 			<equals arg1="${tomcat.keep.app.server.properties}" arg2="true" />
@@ -494,7 +551,9 @@ app.server.jboss.zip.name=jboss-eap-$${app.server.jboss.version}.zip</echo>
 			<else>
 				<antcall target="unzip-tomcat" />
 
-				<echo file="app.server.${user.name}.properties">app.server.type=tomcat</echo>
+				<app-server-properties-update>
+					app.server.type=tomcat
+				</app-server-properties-update>
 			</else>
 		</if>
 
@@ -507,7 +566,7 @@ app.server.jboss.zip.name=jboss-eap-$${app.server.jboss.version}.zip</echo>
 				<equals arg1="${tomcat.keep.app.server.properties}" arg2="true" />
 			</not>
 			<then>
-				<delete file="app.server.${user.name}.properties" />
+				<app-server-properties-reset />
 			</then>
 		</if>
 
@@ -624,7 +683,6 @@ app.server.jboss.zip.name=jboss-eap-$${app.server.jboss.version}.zip</echo>
 			<jvmarg value="-Ddeployer.portlet.taglib.dtd=util-taglib/classes/META-INF/liferay-portlet.tld" />
 			<jvmarg value="-Ddeployer.portlet-ext.taglib.dtd=util-taglib/classes/META-INF/liferay-portlet-ext.tld" />
 			<jvmarg value="-Ddeployer.security.taglib.dtd=util-taglib/classes/META-INF/liferay-security.tld" />
-			<jvmarg value="-Ddeployer.staging.taglib.dtd=util-taglib/classes/META-INF/liferay-staging.tld" />
 			<jvmarg value="-Ddeployer.theme.taglib.dtd=util-taglib/classes/META-INF/liferay-theme.tld" />
 			<jvmarg value="-Ddeployer.ui.taglib.dtd=util-taglib/classes/META-INF/liferay-ui.tld" />
 			<jvmarg value="-Ddeployer.util.taglib.dtd=util-taglib/classes/META-INF/liferay-util.tld" />
@@ -1122,11 +1180,36 @@ release was successful.</echo>
 			<then>
 				<mkdir dir="${app.server.parent.dir}" />
 
-				<get
-					dest="${app.server.parent.dir}/${app.server.jboss.zip.name}"
-					src="${app.server.jboss.zip.url}"
-					verbose="true"
-				/>
+				<if>
+					<contains string="${app.server.jboss.zip.name}" substring="jboss-eap" />
+					<then>
+						<trycatch>
+							<try>
+								<get
+									dest="${app.server.parent.dir}/${app.server.jboss.zip.name}"
+									src="${app.server.jboss.zip.url}"
+									verbose="true"
+								/>
+							</try>
+							<catch>
+								<fail>
+.
+
+Please download the JBoss EAP zip file from ${app.server.jboss.zip.url} and
+place it here: ${app.server.parent.dir}/${app.server.jboss.zip.name}. Then rerun
+this task.
+								</fail>
+							</catch>
+						</trycatch>
+					</then>
+					<else>
+						<get
+							dest="${app.server.parent.dir}/${app.server.jboss.zip.name}"
+							src="${app.server.jboss.zip.url}"
+							verbose="true"
+						/>
+					</else>
+				</if>
 			</then>
 		</if>
 
@@ -1225,7 +1308,10 @@ release was successful.</echo>
 					</if>
 
 					<if>
-						<equals arg1="${app.server.jboss.major.version}" arg2="7" />
+						<or>
+							<equals arg1="${app.server.jboss.major.version}" arg2="7" />
+							<contains string="${app.server.jboss.zip.name}" substring="jboss-eap-6" />
+						</or>
 						<then>
 							<echo file="${app.server.jboss.dir}/modules/ibm/jdk/main/module.xml"><![CDATA[<?xml version="1.0"?>
 
@@ -1257,10 +1343,15 @@ release was successful.</echo>
 					</if>
 
 					<if>
-						<or>
-							<equals arg1="${app.server.jboss.major.version}" arg2="6" />
-							<equals arg1="${app.server.jboss.major.version}" arg2="8" />
-						</or>
+						<and>
+							<or>
+								<equals arg1="${app.server.jboss.major.version}" arg2="6" />
+								<equals arg1="${app.server.jboss.major.version}" arg2="8" />
+							</or>
+							<not>
+								<contains string="${app.server.jboss.zip.name}" substring="jboss-eap-6.0" />
+							</not>
+						</and>
 						<then>
 							<property name="app.server.jboss.module.file" value="${app.server.jboss.dir}/modules/system/layers/base/sun/jdk/main/module.xml" />
 						</then>
@@ -1297,6 +1388,16 @@ release was successful.</echo>
 						<else>
 							<replace file="${app.server.jboss.dir}/standalone/configuration/standalone.xml">
 								<replacetoken><![CDATA[<location name="/" handler="welcome-content"/>]]></replacetoken>
+								<replacevalue></replacevalue>
+							</replace>
+
+							<replace file="${app.server.jboss.dir}/standalone/configuration/standalone.xml">
+								<replacetoken><![CDATA[<extension module="org.jboss.as.weld"/>]]></replacetoken>
+								<replacevalue></replacevalue>
+							</replace>
+
+							<replace file="${app.server.jboss.dir}/standalone/configuration/standalone.xml">
+								<replacetoken><![CDATA[<subsystem xmlns="urn:jboss:domain:weld:2.0"/>]]></replacetoken>
 								<replacevalue></replacevalue>
 							</replace>
 						</else>
@@ -1356,7 +1457,12 @@ release was successful.</echo>
 					</if>
 
 					<if>
-						<equals arg1="${app.server.jboss.major.version}" arg2="6" />
+						<and>
+							<equals arg1="${app.server.jboss.major.version}" arg2="6" />
+							<not>
+								<contains string="${app.server.jboss.zip.name}" substring="jboss-eap-6" />
+							</not>
+						</and>
 						<then>
 							<echo file="${app.server.jboss.bin.dir}/standalone.conf" append="true">
 								<![CDATA[
@@ -1365,6 +1471,11 @@ release was successful.</echo>
 							</echo>
 						</then>
 						<else>
+							<replace file="${app.server.jboss.bin.dir}/standalone.conf">
+								<replacetoken><![CDATA[JAVA_OPTS="-Xms1303m -Xmx1303m -XX:MaxPermSize=256m ]]></replacetoken>
+								<replacevalue><![CDATA[JAVA_OPTS="]]></replacevalue>
+							</replace>
+
 							<echo file="${app.server.jboss.bin.dir}/standalone.conf" append="true">
 								<![CDATA[
 									JAVA_OPTS="$JAVA_OPTS -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true ${java.security.config} -Duser.timezone=GMT -Xmx1024m -XX:MaxPermSize=256m"
@@ -1379,7 +1490,12 @@ release was successful.</echo>
 					</replace>
 
 					<if>
-						<equals arg1="${app.server.jboss.major.version}" arg2="6" />
+						<and>
+							<equals arg1="${app.server.jboss.major.version}" arg2="6" />
+							<not>
+								<contains string="${app.server.jboss.zip.name}" substring="jboss-eap-6" />
+							</not>
+						</and>
 						<then>
 							<replace file="${app.server.jboss.bin.dir}/standalone.conf.bat">
 								<replacefilter token="@java.security.config@" value="${java.security.config}" />
@@ -1811,6 +1927,98 @@ release was successful.</echo>
 				<include name="*.sh" />
 			</fileset>
 		</chmod>
+	</target>
+
+	<target name="unzip-tcserver">
+		<delete dir="${app.server.tcserver.dir}" />
+
+		<if>
+			<not>
+				<available file="${app.server.parent.dir}/${app.server.tcserver.zip.name}" />
+			</not>
+			<then>
+				<mkdir dir="${app.server.parent.dir}" />
+
+				<get
+					dest="${app.server.parent.dir}/${app.server.tcserver.zip.name}"
+					src="${app.server.tcserver.zip.url}"
+					verbose="true"
+				/>
+			</then>
+		</if>
+
+		<unzip
+			dest="${app.server.parent.dir}"
+			src="${app.server.parent.dir}/${app.server.tcserver.zip.name}"
+		>
+			<mapper
+				from="vfabric-tc-server-standard-${app.server.tcserver.version}.RELEASE/*"
+				to="tc-server-${app.server.tcserver.version}/*"
+				type="glob"
+			/>
+		</unzip>
+
+		<chmod perm="a+x">
+			<fileset dir="${app.server.tcserver.dir}">
+				<include name="**/*.sh" />
+			</fileset>
+		</chmod>
+
+		<if>
+			<os family="windows" />
+			<then>
+				<exec dir="${app.server.tcserver.dir}" executable="cmd">
+					<arg line="/c set JAVA_OPTS= &amp; tcruntime-instance.bat create liferay" />
+				</exec>
+			</then>
+			<else>
+				<exec dir="${app.server.tcserver.dir}" executable="${app.server.tcserver.dir}/tcruntime-instance.sh">
+					<arg line="create liferay" />
+				</exec>
+			</else>
+		</if>
+
+		<if>
+			<os family="windows" />
+			<then>
+				<replace file="${app.server.tcserver.bin.dir}/setenv.bat">
+					<replacetoken><![CDATA[set JVM_OPTS=-Xmx512M -Xss192K]]></replacetoken>
+					<replacevalue><![CDATA[set JVM_OPTS=-Xmx1024M -Xss512K -XX:MaxPermSize=512m]]></replacevalue>
+				</replace>
+			</then>
+			<else>
+				<replace file="${app.server.tcserver.bin.dir}/setenv.sh">
+					<replacetoken><![CDATA[JVM_OPTS="-Xmx512M -Xss192K"]]></replacetoken>
+					<replacevalue><![CDATA[JVM_OPTS="-Xmx1024M -Xss512K -XX:MaxPermSize=512m"]]></replacevalue>
+				</replace>
+			</else>
+		</if>
+
+		<replace file="${app.server.tcserver.dir}/liferay/conf/catalina.properties">
+			<replacetoken><![CDATA[common.loader=${catalina.base}/lib,${catalina.base}/lib/*.jar,${catalina.home}/lib,${catalina.home}/lib/*.jar]]></replacetoken>
+			<replacevalue><![CDATA[common.loader=${catalina.base}/lib,${catalina.base}/lib/*.jar,${catalina.home}/lib,${catalina.home}/lib/*.jar,${catalina.home}/lib/ext,${catalina.home}/lib/ext/*.jar]]></replacevalue>
+		</replace>
+
+		<replace file="${app.server.tcserver.dir}/liferay/conf/server.xml">
+			<replacetoken><![CDATA[redirectPort="${bio.https.port}"/>]]></replacetoken>
+			<replacevalue><![CDATA[redirectPort="${bio.https.port}" URIEncoding="UTF-8"/>]]></replacevalue>
+		</replace>
+
+		<if>
+			<os family="windows" />
+			<then>
+				<replace file="${app.server.tcserver.dir}/liferay/conf/wrapper.conf">
+					<replacetoken><![CDATA[wrapper.java.additional.8="-Xmx512M"]]></replacetoken>
+					<replacevalue><![CDATA[wrapper.java.additional.8="-Xmx1024M"]]></replacevalue>
+				</replace>
+
+				<replace file="${app.server.tcserver.dir}/liferay/conf/wrapper.conf">
+					<replacetoken><![CDATA[wrapper.java.additional.9="-Xss192K"]]></replacetoken>
+					<replacevalue><![CDATA[wrapper.java.additional.9="-Xss512K"
+						wrapper.java.additional.10="-XX:MaxPermSize=256m"]]></replacevalue>
+				</replace>
+			</then>
+		</if>
 	</target>
 
 	<target name="unzip-tomcat">
@@ -2784,7 +2992,6 @@ plugins.includes=</echo>
 		<zip
 			basedir="${app.server.portal.dir}"
 			destfile="dist/liferay-portal-${lp.version}.war"
-			excludes="html/js/editor/_fckeditor/**,html/js/editor/fckeditor/_samples/**"
 		/>
 
 		<tstamp>

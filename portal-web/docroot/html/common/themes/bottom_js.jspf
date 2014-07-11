@@ -87,12 +87,22 @@ if (layout != null) {
 				<c:choose>
 					<c:when test="<%= !themeDisplay.isFreeformLayout() %>">
 						dropNodes: '.portlet-column',
-						handles: ['.portlet-title', '.portlet-title-default'],
 					</c:when>
 					<c:otherwise>
 						dropNodes: '.portlet-boundary',
 						freeForm: true,
 						freeformPlaceholderClass: 'lfr-freeform-layout-drag-indicator',
+					</c:otherwise>
+				</c:choose>
+
+				<c:choose>
+					<c:when test="<%= BrowserSnifferUtil.isMobile(request) %>">
+						handles: Liferay.Data.PORTLET_TOUCH_DRAG_HANDLE_SELECTOR || ['.portlet-title-text'],
+					</c:when>
+					<c:when test="<%= !themeDisplay.isFreeformLayout() %>">
+						handles: ['.portlet-title', '.portlet-title-default'],
+					</c:when>
+					<c:otherwise>
 						handles: ['.portlet-header-bar', '.portlet-title-default', '.portlet-topper'],
 					</c:otherwise>
 				</c:choose>
@@ -131,10 +141,10 @@ if (layout != null) {
 								<c:if test="<%= (i > 0) %>">,</c:if>
 
 								{
-									deletable: !A.UA.touch && <%= LayoutPermissionUtil.contains(permissionChecker, curLayout, ActionKeys.DELETE) %>,
+									deletable: !A.UA.touchMobile && <%= LayoutPermissionUtil.contains(permissionChecker, curLayout, ActionKeys.DELETE) %>,
 									id: <%= curLayout.getLayoutId() %>,
 									sortable: <%= GroupPermissionUtil.contains(permissionChecker, scopeGroup, ActionKeys.MANAGE_LAYOUTS) && SitesUtil.isLayoutSortable(curLayout) %>,
-									updateable: <%= LayoutPermissionUtil.contains(permissionChecker, curLayout, ActionKeys.UPDATE) %>
+									updateable: <%= !group.isLayoutPrototype() && LayoutPermissionUtil.contains(permissionChecker, curLayout, ActionKeys.UPDATE) %>
 								}
 
 							<%
@@ -184,3 +194,86 @@ if (layout != null) {
 		);
 	</c:if>
 </aui:script>
+
+<c:if test="<%= PropsValues.JAVASCRIPT_SINGLE_PAGE_APPLICATION_ENABLED %>">
+	<div id="bottomJS">
+		<div id="bottomJS-defaultScreen">
+			<aui:script use="liferay-surface-app">
+				if (Liferay.Surface) {
+
+					<%
+					List<Portlet> companyPortlets = PortletLocalServiceUtil.getPortlets(themeDisplay.getCompanyId());
+
+					for (Portlet portlet : companyPortlets) {
+						if (portlet.isActive() && portlet.isReady() && !portlet.isUndeployedPortlet() && !portlet.isSinglePageApplication()) {
+					%>
+
+							Liferay.Surface.blacklist['<%= portlet.getPortletId() %>'] = true;
+
+					<%
+						}
+					}
+					%>
+
+				}
+			</aui:script>
+
+			<script type="text/surface-data-channel">
+
+				<%
+				String portletId = request.getParameter("p_p_id");
+
+				String singlePageApplicationLastPortletId = (String)session.getAttribute(WebKeys.SINGLE_PAGE_APPLICATION_LAST_PORTLET_ID);
+				%>
+
+					{
+						"clearScreensCache": <%= (Validator.isNotNull(portletId) && Validator.isNotNull(singlePageApplicationLastPortletId) && !Validator.equals(portletId, singlePageApplicationLastPortletId)) %>
+					}
+
+				<%
+				session.setAttribute(WebKeys.SINGLE_PAGE_APPLICATION_LAST_PORTLET_ID, portletId);
+				%>
+
+			</script>
+
+			<script type="text/javascript">
+				// <![CDATA[
+
+					<%
+					String currentURL = PortalUtil.getCurrentURL(request);
+					%>
+
+					Liferay.currentURL = '<%= HtmlUtil.escapeJS(currentURL) %>';
+					Liferay.currentURLEncoded = '<%= HttpUtil.encodeURL(currentURL) %>';
+
+				// ]]>
+			</script>
+
+			<div class="lfr-surface-loading-bar"></div>
+</c:if>
+
+<c:if test="<%= layout != null %>">
+
+	<%-- User Inputted Layout and LayoutSet JavaScript --%>
+
+	<%
+	LayoutSet layoutSet = themeDisplay.getLayoutSet();
+
+	UnicodeProperties layoutSetSettings = layoutSet.getSettingsProperties();
+
+	UnicodeProperties layoutTypeSettings = layout.getTypeSettingsProperties();
+	%>
+
+	<script type="text/javascript">
+		// <![CDATA[
+			<%= GetterUtil.getString(layoutSetSettings.getProperty("javascript")) %>
+
+			<%= GetterUtil.getString(layoutTypeSettings.getProperty("javascript")) %>
+		// ]]>
+	</script>
+</c:if>
+
+<c:if test="<%= PropsValues.JAVASCRIPT_SINGLE_PAGE_APPLICATION_ENABLED %>">
+		</div>
+	</div>
+</c:if>

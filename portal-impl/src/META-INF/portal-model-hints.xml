@@ -1103,6 +1103,7 @@
 		<field name="payload" type="String">
 			<hint-collection name="CLOB" />
 		</field>
+		<field name="actionRequired" type="boolean" />
 		<field name="archived" type="boolean" />
 	</model>
 	<model name="com.liferay.portal.model.UserTracker">
@@ -1389,6 +1390,9 @@
 			<sanitize content-type="text/plain" modes="ALL" />
 			<validator name="required" />
 		</field>
+		<field name="deckTitle" type="String">
+			<hint-collection name="TEXTAREA" />
+		</field>
 		<field name="urlTitle" type="String">
 			<hint name="max-length">150</hint>
 		</field>
@@ -1500,7 +1504,7 @@
 			<sanitize content-type="text/plain" modes="ALL" />
 		</field>
 		<field name="description" type="String">
-			<hint-collection name="TEXTAREA" />
+			<hint-collection name="CLOB" />
 			<sanitize content-type="text/html" modes="ALL" />
 		</field>
 		<field name="location" type="String">
@@ -1808,7 +1812,7 @@
 		<field name="description" type="String" localized="true">
 			<hint-collection name="TEXTAREA" />
 		</field>
-		<field name="xsd" type="String">
+		<field name="definition" type="String">
 			<hint-collection name="CLOB" />
 		</field>
 		<field name="storageType" type="String" />
@@ -1887,7 +1891,7 @@
 		<field name="classNameId" type="long" />
 		<field name="classPK" type="long" />
 		<field name="data" type="String">
-			<hint-collection name="TEXTAREA" />
+			<hint-collection name="CLOB" />
 		</field>
 	</model>
 	<model name="com.liferay.portlet.journal.model.JournalArticle">
@@ -2038,7 +2042,7 @@
 		<field name="description" type="String">
 			<hint-collection name="TEXTAREA" />
 		</field>
-		<field name="overrideDDMStructures" type="boolean" />
+		<field name="restrictionType" type="int" />
 		<field name="status" type="int" />
 		<field name="statusByUserId" type="long" />
 		<field name="statusByUserName" type="String" />

@@ -33,14 +33,25 @@ AUI.add(
 			{
 				ATTRS: {
 					averageScore: {},
+
 					className: {},
+
 					classPK: {},
+
 					namespace: {},
+
+					round: {},
+
 					size: {},
+
 					totalEntries: {},
+
 					totalScore: {},
+
 					type: {},
+
 					uri: {},
+
 					yourScore: {}
 				},
 
@@ -125,7 +136,7 @@ AUI.add(
 									p_l_id: themeDisplay.getPlid(),
 									score: score
 								},
-								dataType: 'json',
+								dataType: 'JSON',
 								on: {
 									success: A.bind(callback, instance)
 								}
@@ -208,7 +219,7 @@ AUI.add(
 					function() {
 						A.Array.each(
 							buffer,
-							function(item, index, collection) {
+							function(item, index) {
 								var handle = item.container.on(
 									EVENT_INTERACTIONS_RENDER,
 									function(event) {
@@ -241,15 +252,24 @@ AUI.add(
 
 		var StarRating = A.Component.create(
 			{
-				EXTENDS: Ratings,
-
 				ATTRS: {
 					initialFocus: {
 						validator: Lang.isBoolean
 					}
 				},
 
+				EXTENDS: Ratings,
+
 				prototype: {
+					_itemSelect: function(event) {
+						var instance = this;
+
+						var uri = instance.get(STR_URI);
+						var score = instance.ratings.get('selectedIndex') + 1;
+
+						instance._sendVoteRequest(uri, score, instance._saveCallback);
+					},
+
 					_renderRatings: function() {
 						var instance = this;
 
@@ -279,15 +299,6 @@ AUI.add(
 						instance._ratingScoreNode.on('mouseenter', instance._showScoreTooltip, instance);
 					},
 
-					_itemSelect: function(event) {
-						var instance = this;
-
-						var uri = instance.get(STR_URI);
-						var score = instance.ratings.get('selectedIndex') + 1;
-
-						instance._sendVoteRequest(uri, score, instance._saveCallback);
-					},
-
 					_saveCallback: function(event, id, obj) {
 						var instance = this;
 
@@ -297,16 +308,18 @@ AUI.add(
 
 						var description = Liferay.Language.get('average');
 
-						var label = instance._getLabel(description, json.totalEntries, json.averageScore);
+						var averageScore = json.averageScore;
 
-						var averageIndex = json.averageScore;
+						var label = instance._getLabel(description, json.totalEntries, averageScore);
+
+						var averageIndex = instance.get('round') ? Math.round(averageScore) : Math.floor(averageScore);
 
 						var ratingScore = instance._ratingScoreNode;
 
 						ratingScore.one('.rating-label').html(label);
 
 						ratingScore.all(SELECTOR_RATING_ELEMENT).each(
-							function(item, index, collection) {
+							function(item, index) {
 								var fromCssClass = CSS_ICON_STAR;
 								var toCssClass = CSS_ICON_STAR_EMPTY;
 
@@ -319,7 +332,7 @@ AUI.add(
 							}
 						);
 
-						instance._updateAverageScoreText(json.averageScore);
+						instance._updateAverageScoreText(averageScore);
 					}
 				}
 			}
@@ -327,15 +340,26 @@ AUI.add(
 
 		var ThumbRating = A.Component.create(
 			{
-				EXTENDS: Ratings,
-
 				ATTRS: {
 					initialFocus: {
 						validator: Lang.isBoolean
 					}
 				},
 
+				EXTENDS: Ratings,
+
 				prototype: {
+					_itemSelect: function(event) {
+						var instance = this;
+
+						var uri = instance.get(STR_URI);
+						var value = instance.ratings.get('value');
+
+						var score = Liferay.Ratings._thumbScoreMap[value];
+
+						instance._sendVoteRequest(uri, score, instance._saveCallback);
+					},
+
 					_renderRatings: function() {
 						var instance = this;
 
@@ -369,17 +393,6 @@ AUI.add(
 
 							instance.ratings.select(yourScoreIndex);
 						}
-					},
-
-					_itemSelect: function(event) {
-						var instance = this;
-
-						var uri = instance.get(STR_URI);
-						var value = instance.ratings.get('value');
-
-						var score = Liferay.Ratings._thumbScoreMap[value];
-
-						instance._sendVoteRequest(uri, score, instance._saveCallback);
 					},
 
 					_saveCallback: function(event, id, obj) {

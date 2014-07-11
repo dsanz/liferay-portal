@@ -16,7 +16,6 @@ package com.liferay.portlet.mobiledevicerules.service.impl;
 
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -41,7 +40,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	public MDRRuleGroupInstance addRuleGroupInstance(
 			long groupId, String className, long classPK, long ruleGroupId,
 			int priority, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		User user = userPersistence.findByPrimaryKey(
 			serviceContext.getUserId());
@@ -75,7 +74,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	public MDRRuleGroupInstance addRuleGroupInstance(
 			long groupId, String className, long classPK, long ruleGroupId,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		List<MDRRuleGroupInstance> ruleGroupInstances = getRuleGroupInstances(
 			className, classPK, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
@@ -95,9 +94,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	}
 
 	@Override
-	public void deleteGroupRuleGroupInstances(long groupId)
-		throws SystemException {
-
+	public void deleteGroupRuleGroupInstances(long groupId) {
 		List<MDRRuleGroupInstance> ruleGroupInstances =
 			mdrRuleGroupInstancePersistence.findByGroupId(groupId);
 
@@ -108,9 +105,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	}
 
 	@Override
-	public void deleteRuleGroupInstance(long ruleGroupInstanceId)
-		throws SystemException {
-
+	public void deleteRuleGroupInstance(long ruleGroupInstanceId) {
 		MDRRuleGroupInstance ruleGroupInstance =
 			mdrRuleGroupInstancePersistence.fetchByPrimaryKey(
 				ruleGroupInstanceId);
@@ -123,8 +118,8 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	@SystemEvent(
 		action = SystemEventConstants.ACTION_SKIP,
 		type = SystemEventConstants.TYPE_DELETE)
-	public void deleteRuleGroupInstance(MDRRuleGroupInstance ruleGroupInstance)
-		throws SystemException {
+	public void deleteRuleGroupInstance(
+		MDRRuleGroupInstance ruleGroupInstance) {
 
 		// Rule group instance
 
@@ -137,9 +132,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	}
 
 	@Override
-	public void deleteRuleGroupInstances(long ruleGroupId)
-		throws SystemException {
-
+	public void deleteRuleGroupInstances(long ruleGroupId) {
 		List<MDRRuleGroupInstance> ruleGroupInstances =
 			mdrRuleGroupInstancePersistence.findByRuleGroupId(ruleGroupId);
 
@@ -150,8 +143,8 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	}
 
 	@Override
-	public MDRRuleGroupInstance fetchRuleGroupInstance(long ruleGroupInstanceId)
-		throws SystemException {
+	public MDRRuleGroupInstance fetchRuleGroupInstance(
+		long ruleGroupInstanceId) {
 
 		return mdrRuleGroupInstancePersistence.fetchByPrimaryKey(
 			ruleGroupInstanceId);
@@ -159,8 +152,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 
 	@Override
 	public MDRRuleGroupInstance fetchRuleGroupInstance(
-			String className, long classPK, long ruleGroupId)
-		throws SystemException {
+		String className, long classPK, long ruleGroupId) {
 
 		long classNameId = classNameLocalService.getClassNameId(className);
 
@@ -170,7 +162,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 
 	@Override
 	public MDRRuleGroupInstance getRuleGroupInstance(long ruleGroupInstanceId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return mdrRuleGroupInstancePersistence.findByPrimaryKey(
 			ruleGroupInstanceId);
@@ -179,7 +171,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	@Override
 	public MDRRuleGroupInstance getRuleGroupInstance(
 			String className, long classPK, long ruleGroupId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		long classNameId = classNameLocalService.getClassNameId(className);
 
@@ -188,16 +180,13 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	}
 
 	@Override
-	public List<MDRRuleGroupInstance> getRuleGroupInstances(long ruleGroupId)
-		throws SystemException {
-
+	public List<MDRRuleGroupInstance> getRuleGroupInstances(long ruleGroupId) {
 		return mdrRuleGroupInstancePersistence.findByRuleGroupId(ruleGroupId);
 	}
 
 	@Override
 	public List<MDRRuleGroupInstance> getRuleGroupInstances(
-			long ruleGroupId, int start, int end)
-		throws SystemException {
+		long ruleGroupId, int start, int end) {
 
 		return mdrRuleGroupInstancePersistence.findByRuleGroupId(
 			ruleGroupId, start, end);
@@ -205,8 +194,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 
 	@Override
 	public List<MDRRuleGroupInstance> getRuleGroupInstances(
-			String className, long classPK)
-		throws SystemException {
+		String className, long classPK) {
 
 		long classNameId = classNameLocalService.getClassNameId(className);
 
@@ -215,9 +203,8 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 
 	@Override
 	public List<MDRRuleGroupInstance> getRuleGroupInstances(
-			String className, long classPK, int start, int end,
-			OrderByComparator orderByComparator)
-		throws SystemException {
+		String className, long classPK, int start, int end,
+		OrderByComparator<MDRRuleGroupInstance> orderByComparator) {
 
 		long classNameId = classNameLocalService.getClassNameId(className);
 
@@ -226,16 +213,12 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	}
 
 	@Override
-	public int getRuleGroupInstancesCount(long ruleGroupId)
-		throws SystemException {
-
+	public int getRuleGroupInstancesCount(long ruleGroupId) {
 		return mdrRuleGroupInstancePersistence.countByRuleGroupId(ruleGroupId);
 	}
 
 	@Override
-	public int getRuleGroupInstancesCount(String className, long classPK)
-		throws SystemException {
-
+	public int getRuleGroupInstancesCount(String className, long classPK) {
 		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return mdrRuleGroupInstancePersistence.countByC_C(classNameId, classPK);
@@ -244,7 +227,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	@Override
 	public MDRRuleGroupInstance updateRuleGroupInstance(
 			long ruleGroupInstanceId, int priority)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		MDRRuleGroupInstance ruleGroupInstance =
 			mdrRuleGroupInstancePersistence.findByPrimaryKey(
@@ -258,7 +241,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	}
 
 	protected void validate(long classNameId, long classPK, long ruleGroupId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		MDRRuleGroupInstance ruleGroupInstance =
 			mdrRuleGroupInstancePersistence.fetchByC_C_R(

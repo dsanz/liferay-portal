@@ -41,6 +41,29 @@
 	</command>
 
 	<command name="exportSiteCmd">
+		<execute action="CPSitepagesExport#assertClick" locator-key1="EXPORT_BUTTON" value1="Export" />
+
+		<execute action="CPSitepagesExport#assertTextEquals" locator-key1="CURRENT_AND_PREVIOUS_STATUS" value1="Successful" />
+
+		<var method="selenium#getText(&quot;//tr/td[5]/span/a&quot;)" name="valueName" />
+
+		<echo message="value name ${valueName}" />
+
+		<var group="1" input="${valueName}"  name="larFileName" pattern="([a-zA-z0-9_.-]*)[(0-9k)]*" />
+
+		<echo message="import file name ${larFileName}" />
+
+		<execute action="CPSitepagesExport#click" locator-key1="CURRENT_AND_PREVIOUS_DOWNLOAD" />
+		<execute action="CPSitepagesExport#downloadTempFile" />
+	</command>
+
+	<command name="exportSiteCP">
+		<execute macro="LAR#gotoExportSiteCmd" />
+
+		<execute macro="LAR#exportSiteOptionsCmd" />
+	</command>
+
+	<command name="exportSiteOptionsCmd">
 		<if>
 			<equals arg1="${exportPermissions}" arg2="true" />
 			<then>
@@ -48,27 +71,130 @@
 			</then>
 		</if>
 
-		<execute action="CPSitepagesExport#assertClick" locator-key1="EXPORT_BUTTON" value1="Export" />
+		<if>
+			<equals arg1="${deleteMissingPages}" arg2="true" />
+			<then>
+				<execute action="BasePortletExport#assertClick" locator-key1="PAGES_CHANGE_LINK" value1="Change" />
+				<execute action="BasePortletExport#check" locator-key1="PAGES_DELETE_MISSING_PAGES_CHECKBOX" />
+				<execute action="BasePortletExport#assertClick" locator-key1="PAGES_OK_BUTTON" value1="OK" />
+			</then>
+		</if>
 
-		<execute action="CPSitepagesExport#assertTextEquals" locator-key1="CURRENT_AND_PREVIOUS_STATUS" value1="Successful" />
+		<if>
+			<equals arg1="${uncheckLogo}" arg2="true" />
+			<then>
+				<execute action="BasePortletExport#assertClick" locator-key1="PAGES_CHANGE_LINK" value1="Change" />
+				<execute action="BasePortletExport#uncheck" locator-key1="PAGES_LOGO_CHECKBOX" />
+				<execute action="BasePortletExport#assertClick" locator-key1="PAGES_OK_BUTTON" value1="OK" />
+			</then>
+		</if>
 
-		<var name="valueName" method='selenium#getText("//tr/td[5]/span/a")' />
+		<if>
+			<isset var="checkPageName" />
+			<then>
+				<execute action="BasePortletExport#assertClick" locator-key1="PAGES_CHANGE_LINK" value1="Change" />
 
-		<echo message="value name ${valueName}" />
+				<for list="${checkPageName}" param="pageName">
+					<var name="key_pageName" value="${pageName}" />
 
-		<var name="larFileName" input="${valueName}"  pattern="([a-zA-z0-9_.-]*)[(0-9k)]*" group="1" />
+					<execute action="BasePortletExport#click" locator-key1="PAGES_SPECIFIC_PAGE_NAME" />
+				</for>
 
-		<echo message="import file name ${larFileName}" />
+				<execute action="BasePortletExport#assertClick" locator-key1="PAGES_OK_BUTTON" value1="OK" />
+			</then>
+		</if>
 
-		<execute action="CPSitepagesExport#click" locator-key1="CURRENT_AND_PREVIOUS_DOWNLOAD" />
-		<execute action="CPSitepagesExport#downloadTempFile" />
-		<execute action="CPSitepagesExport#selectFrame" value1="relative=top" />
-	</command>
+		<if>
+			<equals arg1="${contentDeletion}" arg2="true" />
+			<then>
+				<execute action="BasePortletExport#check" locator-key1="CONTENT_CHOOSE_CONTENT_RADIO" />
+				<execute action="BasePortletExport#check" locator-key1="CONTENT_CHOOSE_CONTENT_DELETION_CHECKBOX" />
+			</then>
+		</if>
 
-	<command name="exportSiteCP">
-		<execute macro="LAR#gotoExportSiteCmd" />
+		<if>
+			<equals arg1="${uncheckApplication}" arg2="true" />
+			<then>
+				<execute action="BasePortletExport#check" locator-key1="APPLICATION_CONFIGURATION_CHOOSE_APPLICATIONS_RADIO" />
 
-		<execute macro="LAR#exportSiteCmd" />
+				<for list="${applicationNameList}" param="applicationName">
+					<var name="key_applicationName" value="${applicationName}" />
+
+					<execute action="BasePortletExport#uncheck" locator-key1="APPLICATION_CONFIGURATION_CHOOSE_APPLICATIONS_APPLICATION_CHECKBOX" />
+				</for>
+			</then>
+			<else>
+				<if>
+					<condition action="BasePortletExport#isElementPresent" locator-key1="APPLICATION_CONFIGURATION_ALL_APPLICATIONS_RADIO" />
+					<then>
+						<execute action="BasePortletExport#check" locator-key1="APPLICATION_CONFIGURATION_ALL_APPLICATIONS_RADIO" />
+					</then>
+				</if>
+			</else>
+		</if>
+
+		<if>
+			<isset var="checkContentNameList" />
+			<then>
+				<execute action="BasePortletExport#check" locator-key1="CONTENT_CHOOSE_CONTENT_RADIO" />
+
+				<for list="${checkContentNameList}" param="contentName">
+					<var name="key_contentName" value="${contentName}" />
+
+					<execute action="BasePortletExport#check" locator-key1="CONTENT_CHOOSE_CONTENT_CONTENT_CHECKBOX" />
+				</for>
+			</then>
+			<else>
+				<execute action="BasePortletExport#check" locator-key1="CONTENT_ALL_CONTENT_RADIO" />
+			</else>
+		</if>
+
+		<if>
+			<isset var="uncheckContentNameList" />
+			<then>
+				<execute action="BasePortletExport#check" locator-key1="CONTENT_CHOOSE_CONTENT_RADIO" />
+
+				<for list="${uncheckContentNameList}" param="contentName">
+					<var name="key_contentName" value="${contentName}" />
+
+					<execute action="BasePortletExport#uncheck" locator-key1="CONTENT_CHOOSE_CONTENT_CONTENT_CHECKBOX" />
+				</for>
+			</then>
+			<else>
+				<execute action="BasePortletExport#check" locator-key1="CONTENT_ALL_CONTENT_RADIO" />
+			</else>
+		</if>
+
+		<if>
+			<isset var="uncheckSubContent" />
+			<then>
+				<execute action="BasePortletExport#check" locator-key1="CONTENT_CHOOSE_CONTENT_RADIO" />
+
+				<var name="key_contentName" value="${mainContent}" />
+
+				<execute action="BasePortletExport#check" locator-key1="CONTENT_CHOOSE_CONTENT_CONTENT_CHECKBOX" />
+				<execute action="BasePortletExport#assertClick" locator-key1="CONTENT_CHOOSE_CONTENT_CONTENT_CHANGE_CHECKBOX" value1="Change" />
+
+				<var name="key_dataName" value="${uncheckSubContent}" />
+
+				<execute action="BasePortletExport#uncheck" locator-key1="CONTENT_CHOOSE_CONTENT_SUBCONTENT_CHECKBOX" />
+				<execute action="BasePortletExport#assertClick" locator-key1="CONTENT_CHOOSE_CONTENT_SUBCONTENT_OK_BUTTON" value1="OK" />
+			</then>
+		</if>
+
+		<if>
+			<isset var="contentDateRange" />
+			<then>
+				<execute action="BasePortletExport#click" locator-key1="CONTENT_CHOOSE_CONTENT_RADIO" />
+				<execute action="BasePortletExport#assertClick" locator-key1="CHOOSE_CONTENT_DATE_RANGE_SELECT_LINK" value1="Select" />
+
+				<var name="key_contentDateRange" value="${contentDateRange}" />
+
+				<execute action="BasePortletExport#click" locator-key1="DATE_RANGE_POPUP_RANGE_RADIO" />
+				<execute action="BasePortletExport#assertClick" locator-key1="DATE_RANGE_POPUP_OK_BUTTON" value1="OK" />
+				<execute action="BasePortletExport#assertTextEquals" locator-key1="CHOOSE_CONTENT_DATE_RANGE_STATUS" value1="${contentDateRange}" />
+			</then>
+		</if>
 	</command>
 
 	<command name="exportUserGroups">
@@ -83,6 +209,8 @@
 		<execute macro="Portlet#gotoPortletOptions">
 			<var name="portletOption" value="Export / Import" />
 		</execute>
+
+		<execute action="BasePortletExport#selectFrame" locator-key1="EXPORT_IFRAME" />
 	</command>
 
 	<command name="gotoExportSiteCmd">
@@ -155,20 +283,29 @@
 		<execute macro="LAR#gotoImportSiteCmd" />
 
 		<execute macro="LAR#selectImportFileSiteCmd">
+			<var name="importValidationMissingItem" value="${importValidationMissingItem}" />
 			<var name="larFileName" value="${larFileName}" />
 		</execute>
 
-		<execute macro="LAR#importSiteCmd">
-			<var name="larFileName" value="${larFileName}" />
-		</execute>
+		<if>
+			<not>
+				<isset var="importValidationMissingItem" />
+			</not>
+			<then>
+				<execute macro="LAR#importSiteCmd">
+					<var name="larFileName" value="${larFileName}" />
+				</execute>
+			</then>
+		</if>
 	</command>
 
 	<command name="selectImportFileCmd">
 		<execute action="BasePortletImport#assertClick" locator-key1="NAVIGATION_IMPORT" value1="Import" />
 		<execute action="BasePortletImport#assertClick" locator-key1="SELECT_FILE_BUTTON" value1="Select File" />
 
-		<execute action="Sikuli#click" locator-key1="TYPE_FILE_NAME" />
-		<execute action="Sikuli#uploadTempFile" locator-key1="FILE_DIALOG" value1="${larFileName}" />
+		<execute action="OS#sikuliClick" locator-key1="FILE_DIALOG_BOX_TYPE_FILE_NAME_ICON_PNG" />
+		<execute action="OS#sikuliUploadTempFile" locator-key1="FILE_DIALOG_BOX_FILE_NAME_FIELD_PNG" value1="${larFileName}" />
+		<execute action="Home#pause" locator1="5000" />
 
 		<execute action="BasePortletImport#assertTextEquals" locator-key1="FILE_TITLE" value1="${larFileName}" />
 		<execute action="BasePortletImport#assertClick" locator-key1="CONTINUE_BUTTON" value1="Continue" />
@@ -179,12 +316,23 @@
 		<execute action="CPSitepagesImport#assertClick" locator-key1="NEW_IMPORT_PROCESS_NAVIGATION" value1="New Import Process" />
 		<execute action="CPSitepagesImport#assertClick" locator-key1="SELECT_FILE_BUTTON" value1="Select File" />
 
-		<execute action="Sikuli#click" locator-key1="TYPE_FILE_NAME" />
-		<execute action="Sikuli#uploadTempFile" locator-key1="FILE_DIALOG" value1="${larFileName}" />
+		<execute action="OS#sikuliClick" locator-key1="FILE_DIALOG_BOX_TYPE_FILE_NAME_ICON_PNG" />
+		<execute action="OS#sikuliUploadTempFile" locator-key1="FILE_DIALOG_BOX_FILE_NAME_FIELD_PNG" value1="${larFileName}" />
+		<execute action="Home#pause" locator1="5000" />
 
-		<execute action="CPSitepagesImport#assertTextEquals" locator-key1="FILE_TITLE" value1="${larFileName}" />
-		<execute action="CPSitepagesImport#assertClick" locator-key1="CONTINUE_BUTTON" value1="Continue" />
-		<execute action="CPSitepagesImport#assertTextEquals" locator-key1="FILE_NAME" value1="${larFileName}" />
+		<if>
+			<isset var="importValidationMissingItem" />
+			<then>
+				<execute action="CPSitepagesImport#assertTextEquals" locator-key1="VALIDATION_ERROR_MESSAGE_HEADER" value1="The file ${larFileName} cannot be imported." />
+				<execute action="CPSitepagesImport#assertTextEquals" locator-key1="VALIDATION_ERROR_MESSAGE" value1="There are missing references that could not be found in the current site. Please import another LAR file containing the following elements:" />
+				<execute action="CPSitepagesImport#assertTextEquals" locator-key1="VALIDATION_ERROR_LIST_ITEM" value1="${importValidationMissingItem}" />
+			</then>
+			<else>
+				<execute action="CPSitepagesImport#assertTextEquals" locator-key1="FILE_TITLE" value1="${larFileName}" />
+				<execute action="CPSitepagesImport#assertClick" locator-key1="CONTINUE_BUTTON" value1="Continue" />
+				<execute action="CPSitepagesImport#assertTextEquals" locator-key1="FILE_NAME" value1="${larFileName}" />
+			</else>
+		</if>
 	</command>
 
 	<command name="viewSitePagesExportApplications">

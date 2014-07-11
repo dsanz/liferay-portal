@@ -16,7 +16,6 @@ package com.liferay.portal.lar;
 
 import com.liferay.portal.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -32,28 +31,28 @@ import com.liferay.portal.service.CompanyLocalServiceUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.test.TransactionalCallbackAwareExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.LayoutTestUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.LayoutTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.asset.model.AssetCategory;
 import com.liferay.portlet.asset.model.AssetVocabulary;
 import com.liferay.portlet.asset.service.AssetCategoryLocalServiceUtil;
 import com.liferay.portlet.asset.service.AssetVocabularyLocalServiceUtil;
-import com.liferay.portlet.asset.util.AssetTestUtil;
+import com.liferay.portlet.asset.util.test.AssetTestUtil;
 import com.liferay.portlet.assetpublisher.util.AssetPublisher;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
-import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
+import com.liferay.portlet.documentlibrary.util.test.DLAppTestUtil;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
-import com.liferay.portlet.dynamicdatamapping.util.DDMStructureTestUtil;
+import com.liferay.portlet.dynamicdatamapping.util.test.DDMStructureTestUtil;
 import com.liferay.portlet.journal.model.JournalArticle;
 
 import java.util.HashMap;
@@ -72,12 +71,10 @@ import org.junit.runner.RunWith;
 @ExecutionTestListeners(
 	listeners = {
 		MainServletExecutionTestListener.class,
-		SynchronousDestinationExecutionTestListener.class,
-		TransactionalCallbackAwareExecutionTestListener.class
+		SynchronousDestinationExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 @Sync
-@Transactional
 public class AssetPublisherExportImportTest
 	extends BasePortletExportImportTestCase {
 
@@ -85,7 +82,7 @@ public class AssetPublisherExportImportTest
 	public String getPortletId() throws Exception {
 		return PortletKeys.ASSET_PUBLISHER +
 			PortletConstants.INSTANCE_SEPARATOR +
-				ServiceTestUtil.randomString();
+				RandomTestUtil.randomString();
 	}
 
 	@Test
@@ -195,7 +192,7 @@ public class AssetPublisherExportImportTest
 		Map<String, String[]> preferenceMap = new HashMap<String, String[]>();
 
 		Group childGroup = GroupTestUtil.addGroup(
-			group.getGroupId(), ServiceTestUtil.randomString());
+			group.getGroupId(), RandomTestUtil.randomString());
 
 		preferenceMap.put(
 			"scopeIds",
@@ -224,7 +221,7 @@ public class AssetPublisherExportImportTest
 	public void testDisplayStyle() throws Exception {
 		Map<String, String[]> preferenceMap = new HashMap<String, String[]>();
 
-		String displayStyle = ServiceTestUtil.randomString();
+		String displayStyle = RandomTestUtil.randomString();
 
 		preferenceMap.put("displayStyle", new String[] {displayStyle});
 
@@ -320,20 +317,22 @@ public class AssetPublisherExportImportTest
 		DLFileEntryType dlFileEntryType = DLAppTestUtil.addDLFileEntryType(
 			group.getGroupId(), ddmStructure.getStructureId());
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext();
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
 
 		serviceContext.setUuid(ddmStructure.getUuid());
 
 		DDMStructure importedDDMStructure = DDMStructureTestUtil.addStructure(
 			importedGroup.getGroupId(), DLFileEntryType.class.getName(), 0,
-			ddmStructure.getXsd(), LocaleUtil.getDefault(), serviceContext);
+			ddmStructure.getDefinition(), LocaleUtil.getDefault(),
+			serviceContext);
 
 		serviceContext.setUuid(dlFileEntryType.getUuid());
 
 		DLFileEntryType importedDLFileEntryType =
 			DLAppTestUtil.addDLFileEntryType(
 				TestPropsValues.getUserId(), importedGroup.getGroupId(),
-				ServiceTestUtil.randomString(), ServiceTestUtil.randomString(),
+				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				new long[] {importedDDMStructure.getStructureId()},
 				serviceContext);
 
@@ -384,13 +383,15 @@ public class AssetPublisherExportImportTest
 		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
 			group.getGroupId(), JournalArticle.class.getName());
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext();
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
 
 		serviceContext.setUuid(ddmStructure.getUuid());
 
 		DDMStructure importedDDMStructure = DDMStructureTestUtil.addStructure(
 			importedGroup.getGroupId(), JournalArticle.class.getName(), 0,
-			ddmStructure.getXsd(), LocaleUtil.getDefault(), serviceContext);
+			ddmStructure.getDefinition(), LocaleUtil.getDefault(),
+			serviceContext);
 
 		Map<String, String[]> preferenceMap = new HashMap<String, String[]>();
 
@@ -441,20 +442,22 @@ public class AssetPublisherExportImportTest
 		DLFileEntryType dlFileEntryType1 = DLAppTestUtil.addDLFileEntryType(
 			group.getGroupId(), ddmStructure1.getStructureId());
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext();
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
 
 		serviceContext.setUuid(ddmStructure1.getUuid());
 
 		DDMStructure importedDDMStructure1 = DDMStructureTestUtil.addStructure(
 			importedGroup.getGroupId(), DLFileEntryType.class.getName(), 0,
-			ddmStructure1.getXsd(), LocaleUtil.getDefault(), serviceContext);
+			ddmStructure1.getDefinition(), LocaleUtil.getDefault(),
+			serviceContext);
 
 		serviceContext.setUuid(dlFileEntryType1.getUuid());
 
 		DLFileEntryType importedDLFileEntryType1 =
 			DLAppTestUtil.addDLFileEntryType(
 				TestPropsValues.getUserId(), importedGroup.getGroupId(),
-				ServiceTestUtil.randomString(), ServiceTestUtil.randomString(),
+				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				new long[] {importedDDMStructure1.getStructureId()},
 				serviceContext);
 
@@ -468,14 +471,15 @@ public class AssetPublisherExportImportTest
 
 		DDMStructure importedDDMStructure2 = DDMStructureTestUtil.addStructure(
 			importedGroup.getGroupId(), DLFileEntryType.class.getName(), 0,
-			ddmStructure2.getXsd(), LocaleUtil.getDefault(), serviceContext);
+			ddmStructure2.getDefinition(), LocaleUtil.getDefault(),
+			serviceContext);
 
 		serviceContext.setUuid(dlFileEntryType2.getUuid());
 
 		DLFileEntryType importedDLFileEntryType2 =
 			DLAppTestUtil.addDLFileEntryType(
 				TestPropsValues.getUserId(), importedGroup.getGroupId(),
-				ServiceTestUtil.randomString(), ServiceTestUtil.randomString(),
+				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				new long[] {importedDDMStructure2.getStructureId()},
 				serviceContext);
 
@@ -510,13 +514,15 @@ public class AssetPublisherExportImportTest
 		DDMStructure ddmStructure1 = DDMStructureTestUtil.addStructure(
 			group.getGroupId(), JournalArticle.class.getName());
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext();
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
 
 		serviceContext.setUuid(ddmStructure1.getUuid());
 
 		DDMStructure importedDDMStructure1 = DDMStructureTestUtil.addStructure(
 			importedGroup.getGroupId(), JournalArticle.class.getName(), 0,
-			ddmStructure1.getXsd(), LocaleUtil.getDefault(), serviceContext);
+			ddmStructure1.getDefinition(), LocaleUtil.getDefault(),
+			serviceContext);
 
 		DDMStructure ddmStructure2 = DDMStructureTestUtil.addStructure(
 			group.getGroupId(), JournalArticle.class.getName());
@@ -525,7 +531,8 @@ public class AssetPublisherExportImportTest
 
 		DDMStructure importedDDMStructure2 = DDMStructureTestUtil.addStructure(
 			importedGroup.getGroupId(), JournalArticle.class.getName(), 0,
-			ddmStructure1.getXsd(), LocaleUtil.getDefault(), serviceContext);
+			ddmStructure1.getDefinition(), LocaleUtil.getDefault(),
+			serviceContext);
 
 		Map<String, String[]> preferenceMap = new HashMap<String, String[]>();
 
@@ -559,7 +566,7 @@ public class AssetPublisherExportImportTest
 			layout.getCompanyId());
 
 		Layout secondLayout = LayoutTestUtil.addLayout(
-			group.getGroupId(), ServiceTestUtil.randomString());
+			group.getGroupId(), RandomTestUtil.randomString());
 
 		GroupTestUtil.addGroup(TestPropsValues.getUserId(), secondLayout);
 
@@ -608,7 +615,7 @@ public class AssetPublisherExportImportTest
 	@Test
 	public void testSeveralLegacyLayoutScopeIds() throws Exception {
 		Layout secondLayout = LayoutTestUtil.addLayout(
-			group.getGroupId(), ServiceTestUtil.randomString());
+			group.getGroupId(), RandomTestUtil.randomString());
 
 		GroupTestUtil.addGroup(TestPropsValues.getUserId(), secondLayout);
 
@@ -719,8 +726,8 @@ public class AssetPublisherExportImportTest
 
 		AssetVocabulary assetVocabulary =
 			AssetVocabularyLocalServiceUtil.addVocabulary(
-				TestPropsValues.getUserId(), ServiceTestUtil.randomString(),
-				ServiceTestUtil.getServiceContext(groupId));
+				TestPropsValues.getUserId(), RandomTestUtil.randomString(),
+				ServiceContextTestUtil.getServiceContext(groupId));
 
 		Map<String, String[]> preferenceMap = new HashMap<String, String[]>();
 

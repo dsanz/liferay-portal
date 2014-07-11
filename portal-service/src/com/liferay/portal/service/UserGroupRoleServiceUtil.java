@@ -40,6 +40,27 @@ public class UserGroupRoleServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portal.service.impl.UserGroupRoleServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static void addUserGroupRoles(long userId, long groupId,
+		long[] roleIds)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().addUserGroupRoles(userId, groupId, roleIds);
+	}
+
+	public static void addUserGroupRoles(long[] userIds, long groupId,
+		long roleId) throws com.liferay.portal.kernel.exception.PortalException {
+		getService().addUserGroupRoles(userIds, groupId, roleId);
+	}
+
+	public static void deleteUserGroupRoles(long userId, long groupId,
+		long[] roleIds)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteUserGroupRoles(userId, groupId, roleIds);
+	}
+
+	public static void deleteUserGroupRoles(long[] userIds, long groupId,
+		long roleId) throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteUserGroupRoles(userIds, groupId, roleId);
+	}
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -57,34 +78,6 @@ public class UserGroupRoleServiceUtil {
 	*/
 	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
 		getService().setBeanIdentifier(beanIdentifier);
-	}
-
-	public static void addUserGroupRoles(long userId, long groupId,
-		long[] roleIds)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().addUserGroupRoles(userId, groupId, roleIds);
-	}
-
-	public static void addUserGroupRoles(long[] userIds, long groupId,
-		long roleId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().addUserGroupRoles(userIds, groupId, roleId);
-	}
-
-	public static void deleteUserGroupRoles(long userId, long groupId,
-		long[] roleIds)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteUserGroupRoles(userId, groupId, roleIds);
-	}
-
-	public static void deleteUserGroupRoles(long[] userIds, long groupId,
-		long roleId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteUserGroupRoles(userIds, groupId, roleId);
 	}
 
 	public static UserGroupRoleService getService() {

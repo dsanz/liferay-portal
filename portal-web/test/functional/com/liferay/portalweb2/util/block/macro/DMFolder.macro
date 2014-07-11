@@ -22,8 +22,8 @@
 	</command>
 
 	<command name="addPG">
-		<execute action="CPDocumentsandmedia#assertClick" locator-key1="TOOLBAR_ADD" value1="Add" />
-		<execute action="CPDocumentsandmedia#assertClick" locator-key1="ADD_MENULIST_FOLDER" value1="Folder" />
+		<execute action="PGDocumentsandmedia#assertClick" locator-key1="TOOLBAR_ADD" value1="Add" />
+		<execute action="PGDocumentsandmedia#assertClick" locator-key1="ADD_MENULIST_FOLDER" value1="Folder" />
 
 		<execute action="PGDocumentsandmediaAddfolder#type" locator-key1="NAME_FIELD" value1="${dmFolderName}" />
 		<execute action="PGDocumentsandmediaAddfolder#type" locator-key1="DESCRIPTION_FIELD" value1="${dmFolderDescription}" />
@@ -162,7 +162,7 @@
 	<command name="gotoCP">
 		<var name="key_dmFolderName" value="${dmFolderName}" />
 
-		<execute action="CPDocumentsandmedia#assertClick" locator-key1="DOCUMENT_CONTAINER_FOLDER" value1="${dmFolderName}" />
+		<execute action="CPDocumentsandmedia#assertClick" locator-key1="DOCUMENT_CONTAINER_FOLDER_TITLE" value1="${dmFolderName}" />
 	</command>
 
 	<command name="gotoPG">
@@ -187,7 +187,7 @@
 		<execute action="CPDocumentsandmedia#assertElementPresent" locator-key1="FOLDER_MENULIST_MOVE" />
 		<execute action="CPDocumentsandmedia#assertClick" locator-key1="FOLDER_MENULIST_MOVE" value1="Move" />
 
-		<execute action="CPDocumentsandmediaMovefolder#assertClick" locator-key1="SELECT_PARENT_FOLDER_BUTTON" value1="Select" />
+		<execute action="CPDocumentsandmediaMovefolder#assertClick" locator-key1="SELECT_BUTTON" value1="Select" />
 		<execute action="CPDocumentsandmediaMovefolder#selectFrame" locator-key1="FOLDER_WINDOW_ID" />
 
 		<var name="key_dmFolderName" value="${dmFolderName1}" />
@@ -197,7 +197,7 @@
 
 		<var name="key_dmFolderName" value="${dmFolderName1}" />
 
-		<execute action="CPDocumentsandmediaMovefolder#assertTextEquals" locator-key1="PARENT_FOLDER" value1="${dmFolderName1}" />
+		<execute action="CPDocumentsandmediaMovefolder#assertTextEquals" locator-key1="NEW_FOLDER" value1="${dmFolderName1}" />
 		<execute action="CPDocumentsandmediaMovefolder#assertClick" locator-key1="MOVE_BUTTON" value1="Move" />
 
 		<var name="key_dmFolderName" value="${dmFolderName2}" />
@@ -225,12 +225,12 @@
 		<execute action="CPDocumentsandmedia#assertElementPresent" locator-key1="FOLDER_MENULIST_MOVE" />
 		<execute action="CPDocumentsandmedia#assertClick" locator-key1="FOLDER_MENULIST_MOVE" value1="Move" />
 
-		<execute action="CPDocumentsandmediaMovefolder#assertClick" locator-key1="SELECT_PARENT_FOLDER_BUTTON" value1="Select" />
+		<execute action="CPDocumentsandmediaMovefolder#assertClick" locator-key1="SELECT_BUTTON" value1="Select" />
 		<execute action="CPDocumentsandmediaMovefolder#selectWindow" locator-key1="FOLDER_WINDOW_ID" />
 		<execute action="CPDocumentsandmediaMovefolder#assertClick" locator-key1="FOLDER_WINDOW_FOLDER_CHOOSE_BUTTON" value1="Choose" />
 		<execute action="CPDocumentsandmediaMovefolder#selectWindow" locator1="null" />
 
-		<execute action="CPDocumentsandmediaMovefolder#assertTextEquals" locator-key1="PARENT_FOLDER" value1="${dmFolderName2}" />
+		<execute action="CPDocumentsandmediaMovefolder#assertTextEquals" locator-key1="NEW_FOLDER" value1="${dmFolderName2}" />
 		<execute action="CPDocumentsandmediaMovefolder#assertClick" locator-key1="MOVE_BUTTON" value1="Move" />
 
 		<execute action="CPDocumentsandmedia#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
@@ -271,6 +271,12 @@
 		<execute action="Permissions#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
 		<execute action="Permissions#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
 		<execute action="Permissions#selectFrame" value1="relative=top" />
+	</command>
+
+	<command name="subcribePG">
+		<execute action="PGDocumentsandmediaFolder#assertClick" locator-key1="SUBSCRIBE_LINK" value1="Subscribe" />
+		<execute action="PGDocumentsandmediaFolder#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="Your request completed successfully." />
+		<execute action="PGDocumentsandmediaFolder#assertTextEquals" locator-key1="SUBSCRIBE_LINK" value1="Unsubscribe" />
 	</command>
 
 	<command name="tearDownCP">

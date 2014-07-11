@@ -252,6 +252,15 @@ AUI.add(
 						);
 
 						instance.publish('warned');
+
+						A.on(
+							'io:complete',
+							function(transactionId, response, args) {
+								if (!args || (args && (args.sessionExtend || !Lang.isBoolean(args.sessionExtend)))) {
+									instance.resetInterval();
+								}
+							}
+						);
 					},
 
 					_onSessionStateChange: function(event) {
@@ -521,7 +530,7 @@ AUI.add(
 
 						banner.replaceClass('popup-alert-notice', 'popup-alert-warning');
 
-						banner.addClass('alert-error');
+						banner.addClass('alert-danger');
 
 						banner.show();
 

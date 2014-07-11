@@ -15,7 +15,6 @@
 package com.liferay.portlet.softwarecatalog.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 import com.liferay.portlet.softwarecatalog.model.SCLicense;
@@ -23,13 +22,13 @@ import com.liferay.portlet.softwarecatalog.service.SCLicenseLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link SCLicenseLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link SCLicenseLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class SCLicenseActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public SCLicenseActionableDynamicQuery() throws SystemException {
+	public SCLicenseActionableDynamicQuery() {
 		setBaseLocalService(SCLicenseLocalServiceUtil.getService());
 		setClass(SCLicense.class);
 

@@ -28,6 +28,8 @@ import com.liferay.portal.service.ServiceContext;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -89,10 +91,8 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 *
 	 * @param  dynamicQuery the dynamic query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
-	public long countWithDynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException;
+	public long countWithDynamicQuery(DynamicQuery dynamicQuery);
 
 	/**
 	 * Returns the number of rows that match the dynamic query.
@@ -100,11 +100,9 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 * @param  dynamicQuery the dynamic query
 	 * @param  projection the projection to apply to the query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	public long countWithDynamicQuery(
-			DynamicQuery dynamicQuery, Projection projection)
-		throws SystemException;
+		DynamicQuery dynamicQuery, Projection projection);
 
 	/**
 	 * Returns the model instance with the primary key or returns
@@ -116,7 +114,10 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 * @throws SystemException if the primary key is <code>null</code>, or if a
 	 *         system exception occurred
 	 */
-	public T fetchByPrimaryKey(Serializable primaryKey) throws SystemException;
+	public T fetchByPrimaryKey(Serializable primaryKey);
+
+	public Map<Serializable, T> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys);
 
 	/**
 	 * Returns the model instance with the primary key or throws a {@link
@@ -130,18 +131,15 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 *         system exception occurred
 	 */
 	public T findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchModelException, SystemException;
+		throws NoSuchModelException;
 
 	/**
 	 * Performs a dynamic query on the database and returns the matching rows.
 	 *
 	 * @param  dynamicQuery the dynamic query
 	 * @return the matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
-	@SuppressWarnings("rawtypes")
-	public List findWithDynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException;
+	public <V> List<V> findWithDynamicQuery(DynamicQuery dynamicQuery);
 
 	/**
 	 * Performs a dynamic query on the database and returns a range of the
@@ -161,15 +159,12 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 * @param  start the lower bound of the range of matching rows
 	 * @param  end the upper bound of the range of matching rows (not inclusive)
 	 * @return the range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 * @see    com.liferay.portal.kernel.dao.orm.QueryUtil#list(
 	 *         com.liferay.portal.kernel.dao.orm.Query,
 	 *         com.liferay.portal.kernel.dao.orm.Dialect, int, int)
 	 */
-	@SuppressWarnings("rawtypes")
-	public List findWithDynamicQuery(
-			DynamicQuery dynamicQuery, int start, int end)
-		throws SystemException;
+	public <V> List<V> findWithDynamicQuery(
+		DynamicQuery dynamicQuery, int start, int end);
 
 	/**
 	 * Performs a dynamic query on the database and returns an ordered range of
@@ -191,15 +186,12 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 * @param  orderByComparator the comparator to order the results by
 	 *         (optionally <code>null</code>)
 	 * @return the ordered range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
-	@SuppressWarnings("rawtypes")
-	public List findWithDynamicQuery(
-			DynamicQuery dynamicQuery, int start, int end,
-			OrderByComparator orderByComparator)
-		throws SystemException;
+	public <V> List<V> findWithDynamicQuery(
+		DynamicQuery dynamicQuery, int start, int end,
+		OrderByComparator<V> orderByComparator);
 
-	public void flush() throws SystemException;
+	public void flush();
 
 	public Session getCurrentSession() throws ORMException;
 
@@ -245,10 +237,8 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 * @return the model instance that was removed
 	 * @throws NoSuchModelException if an instance of this model with the
 	 *         primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
-	public T remove(Serializable primaryKey)
-		throws NoSuchModelException, SystemException;
+	public T remove(Serializable primaryKey) throws NoSuchModelException;
 
 	/**
 	 * Removes the model instance from the database. Also notifies the
@@ -256,9 +246,8 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 *
 	 * @param  model the model instance to remove
 	 * @return the model instance that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
-	public T remove(T model) throws SystemException;
+	public T remove(T model);
 
 	/**
 	 * Sets the data source for this model.
@@ -288,23 +277,21 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 *
 	 * @param  model the model instance to update
 	 * @return the model instance that was updated
-	 * @throws SystemException if a system exception occurred
 	 */
-	public T update(T model) throws SystemException;
+	public T update(T model);
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #update(BaseModel)}}
 	 */
 	@Deprecated
-	public T update(T model, boolean merge) throws SystemException;
+	public T update(T model, boolean merge);
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #update(BaseModel,
 	 *             ServiceContext)}}
 	 */
 	@Deprecated
-	public T update(T model, boolean merge, ServiceContext serviceContext)
-		throws SystemException;
+	public T update(T model, boolean merge, ServiceContext serviceContext);
 
 	/**
 	 * Updates the model instance in the database or adds it if it does not yet
@@ -314,9 +301,7 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 * @param  model the model instance to update
 	 * @param  serviceContext the service context to be applied
 	 * @return the model instance that was updated
-	 * @throws SystemException if a system exception occurred
 	 */
-	public T update(T model, ServiceContext serviceContext)
-		throws SystemException;
+	public T update(T model, ServiceContext serviceContext);
 
 }

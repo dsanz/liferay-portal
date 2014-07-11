@@ -15,7 +15,6 @@
 package com.liferay.portlet.documentlibrary.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 import com.liferay.portlet.documentlibrary.model.DLFileEntryMetadata;
@@ -23,14 +22,13 @@ import com.liferay.portlet.documentlibrary.service.DLFileEntryMetadataLocalServi
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link DLFileEntryMetadataLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link DLFileEntryMetadataLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class DLFileEntryMetadataActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public DLFileEntryMetadataActionableDynamicQuery()
-		throws SystemException {
+	public DLFileEntryMetadataActionableDynamicQuery() {
 		setBaseLocalService(DLFileEntryMetadataLocalServiceUtil.getService());
 		setClass(DLFileEntryMetadata.class);
 

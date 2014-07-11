@@ -85,19 +85,24 @@ for (JournalArticle curArticle : articles) {
 
 	<c:if test="<%= !validMoveFolders.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-folders-ready-to-be-moved", validMoveFolders.size(), false) %></h4>
+			<h4><%= LanguageUtil.format(request, "x-folders-ready-to-be-moved", validMoveFolders.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
-			<ul class="unstyled">
+			<ul class="list-unstyled">
 
 				<%
 				for (JournalFolder folder : validMoveFolders) {
+					AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(JournalFolder.class.getName());
+
+					AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(folder.getFolderId());
 				%>
 
 					<li class="move-folder">
+						<i class="<%= assetRendererFactory.getIconCssClass() %>"></i>
+
 						<span class="folder-title">
-							<%= folder.getName() %>
+							<%= HtmlUtil.escape(folder.getName()) %>
 						</span>
 					</li>
 
@@ -111,23 +116,28 @@ for (JournalArticle curArticle : articles) {
 
 	<c:if test="<%= !invalidMoveFolders.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-folders-cannot-be-moved", invalidMoveFolders.size(), false) %></h4>
+			<h4><%= LanguageUtil.format(request, "x-folders-cannot-be-moved", invalidMoveFolders.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
-			<ul class="unstyled">
+			<ul class="list-unstyled">
 
 				<%
 				for (JournalFolder folder : invalidMoveFolders) {
+					AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(JournalFolder.class.getName());
+
+					AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(folder.getFolderId());
 				%>
 
-					<li class="move-error move-folder">
+					<li class="icon-warning-sign move-error move-folder">
+						<i class="<%= assetRenderer.getIconCssClass() %>"></i>
+
 						<span class="folder-title">
-							<%= folder.getName() %>
+							<%= HtmlUtil.escape(folder.getName()) %>
 						</span>
 
 						<span class="error-message">
-							<%= LanguageUtil.get(pageContext, "you-do-not-have-the-required-permissions") %>
+							<%= LanguageUtil.get(request, "you-do-not-have-the-required-permissions") %>
 						</span>
 					</li>
 
@@ -143,17 +153,22 @@ for (JournalArticle curArticle : articles) {
 
 	<c:if test="<%= !validMoveArticles.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-web-content-instances-are-ready-to-be-moved", validMoveArticles.size(), false) %></h4>
+			<h4><%= LanguageUtil.format(request, "x-web-content-instances-are-ready-to-be-moved", validMoveArticles.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
-			<ul class="unstyled">
+			<ul class="list-unstyled">
 
 				<%
 				for (JournalArticle validMoveArticle : validMoveArticles) {
+					AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(JournalArticle.class.getName());
+
+					AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(JournalArticleAssetRenderer.getClassPK(validMoveArticle));
 				%>
 
 					<li class="move-article">
+						<i class="<%= assetRenderer.getIconCssClass() %>"></i>
+
 						<span class="article-title" title="<%= HtmlUtil.escapeAttribute(validMoveArticle.getTitle(locale)) %>">
 							<%= HtmlUtil.escape(validMoveArticle.getTitle(locale)) %>
 						</span>
@@ -169,23 +184,28 @@ for (JournalArticle curArticle : articles) {
 
 	<c:if test="<%= !invalidMoveArticles.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-web-content-instances-cannot-be-moved", invalidMoveArticles.size(), false) %></h4>
+			<h4><%= LanguageUtil.format(request, "x-web-content-instances-cannot-be-moved", invalidMoveArticles.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
-			<ul class="unstyled">
+			<ul class="list-unstyled">
 
 				<%
 				for (JournalArticle invalidMoveArticle : invalidMoveArticles) {
+					AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(JournalArticle.class.getName());
+
+					AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(JournalArticleAssetRenderer.getClassPK(invalidMoveArticle));
 				%>
 
-					<li class="move-article move-error">
+					<li class="icon-warning-sign move-article move-error">
+						<i class="<%= assetRenderer.getIconCssClass() %>"></i>
+
 						<span class="article-title" title="<%= HtmlUtil.escapeAttribute(invalidMoveArticle.getTitle()) %>">
 							<%= HtmlUtil.escape(invalidMoveArticle.getTitle()) %>
 						</span>
 
 						<span class="error-message">
-							<%= LanguageUtil.get(pageContext, "you-do-not-have-the-required-permissions") %>
+							<%= LanguageUtil.get(request, "you-do-not-have-the-required-permissions") %>
 						</span>
 					</li>
 
@@ -207,22 +227,18 @@ for (JournalArticle curArticle : articles) {
 		if (newFolderId > 0) {
 			JournalFolder folder = JournalFolderLocalServiceUtil.getFolder(newFolderId);
 
-			folder = folder.toEscapedModel();
-
 			folderName = folder.getName();
 		}
 		else {
-			folderName = LanguageUtil.get(pageContext, "home");
+			folderName = LanguageUtil.get(request, "home");
 		}
 		%>
 
-		<aui:field-wrapper label="new-folder">
-			<div class="input-append">
-				<liferay-ui:input-resource id="folderName" label="new-folder" url="<%= folderName %>" />
+		<div class="form-group">
+			<aui:input label="new-folder" name="folderName" title="new-folder" type="resource" value="<%= folderName %>" />
 
-				<aui:button name="selectFolderButton" value="select" />
-			</div>
-		</aui:field-wrapper>
+			<aui:button name="selectFolderButton" value="select" />
+		</div>
 
 		<aui:button-row>
 			<aui:button type="submit" value="move" />
@@ -231,11 +247,6 @@ for (JournalArticle curArticle : articles) {
 		</aui:button-row>
 	</aui:fieldset>
 </aui:form>
-
-<portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-	<portlet:param name="struts_action" value="/journal/select_folder" />
-	<portlet:param name="folderId" value="<%= String.valueOf(newFolderId) %>" />
-</portlet:renderURL>
 
 <aui:script use="aui-base">
 	A.one('#<portlet:namespace />selectFolderButton').on(
@@ -251,6 +262,12 @@ for (JournalArticle curArticle : articles) {
 					},
 					id: '<portlet:namespace />selectFolder',
 					title: '<liferay-ui:message arguments="folder" key="select-x" />',
+
+					<portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+						<portlet:param name="struts_action" value="/journal/select_folder" />
+						<portlet:param name="folderId" value="<%= String.valueOf(newFolderId) %>" />
+					</portlet:renderURL>
+
 					uri: '<%= selectFolderURL.toString() %>'
 				},
 				function(event) {
@@ -275,5 +292,5 @@ for (JournalArticle curArticle : articles) {
 </aui:script>
 
 <%
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "move-web-content"), currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "move-web-content"), currentURL);
 %>

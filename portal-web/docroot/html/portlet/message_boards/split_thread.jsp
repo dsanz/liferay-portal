@@ -99,14 +99,14 @@ boolean splitThread = true;
 			<aui:input fieldParam="splitThreadSubject" label="subject-of-the-new-thread" model="<%= MBMessage.class %>" name="subject" value="<%= message.getSubject() %>" />
 		</div>
 
-		<aui:input disabled="<%= thread.isLocked() %>" helpMessage='<%= thread.isLocked() ? LanguageUtil.get(pageContext, "unlock-thread-to-add-an-explanation-post") : StringPool.BLANK %>' label="add-explanation-post-to-the-source-thread" name="addExplanationPost" onClick='<%= renderResponse.getNamespace() + "toggleExplanationPost();" %>' type="checkbox" />
+		<aui:input disabled="<%= thread.isLocked() %>" helpMessage='<%= thread.isLocked() ? LanguageUtil.get(request, "unlock-thread-to-add-an-explanation-post") : StringPool.BLANK %>' label="add-explanation-post-to-the-source-thread" name="addExplanationPost" onClick='<%= renderResponse.getNamespace() + "toggleExplanationPost();" %>' type="checkbox" />
 
 		<div id="<portlet:namespace />explanationPost" style="display: none;">
 			<div class="alert alert-info">
 				<liferay-ui:message key="the-following-post-will-be-added-in-place-of-the-moved-message" />
 			</div>
 
-			<aui:input model="<%= MBMessage.class %>" name="subject" value='<%= LanguageUtil.get(pageContext, "thread-split") %>' />
+			<aui:input model="<%= MBMessage.class %>" name="subject" value='<%= LanguageUtil.get(request, "thread-split") %>' />
 
 			<aui:field-wrapper label="body">
 				<c:choose>
@@ -140,18 +140,18 @@ boolean splitThread = true;
 	function <portlet:namespace />selectCategory(categoryId, categoryName) {
 		document.<portlet:namespace />fm.<portlet:namespace />mbCategoryId.value = categoryId;
 
-		var nameEl = document.getElementById("<portlet:namespace />categoryName");
+		var nameEl = document.getElementById('<portlet:namespace />categoryName');
 
-		nameEl.href = "<portlet:renderURL><portlet:param name="struts_action" value="/message_boards/view" /></portlet:renderURL>&<portlet:namespace />mbCategoryId=" + categoryId;
-		nameEl.innerHTML = categoryName + "&nbsp;";
+		nameEl.href = '<portlet:renderURL><portlet:param name="struts_action" value="/message_boards/view" /></portlet:renderURL>&<portlet:namespace />mbCategoryId=' + categoryId;
+		nameEl.innerHTML = categoryName + '&nbsp;';
 	}
 
 	function <portlet:namespace />toggleExplanationPost() {
-		if (document.getElementById("<portlet:namespace />addExplanationPostCheckbox").checked) {
-			document.getElementById("<portlet:namespace />explanationPost").style.display = "";
+		if (document.getElementById('<portlet:namespace />addExplanationPost').checked) {
+			document.getElementById('<portlet:namespace />explanationPost').style.display = '';
 		}
 		else {
-			document.getElementById("<portlet:namespace />explanationPost").style.display = "none";
+			document.getElementById('<portlet:namespace />explanationPost').style.display = 'none';
 		}
 	}
 </aui:script>
@@ -159,5 +159,5 @@ boolean splitThread = true;
 <%
 MBUtil.addPortletBreadcrumbEntries(message, request, renderResponse);
 
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "split-thread"), currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "split-thread"), currentURL);
 %>

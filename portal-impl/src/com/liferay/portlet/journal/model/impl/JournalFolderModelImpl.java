@@ -17,7 +17,6 @@ package com.liferay.portlet.journal.model.impl;
 import com.liferay.portal.NoSuchModelException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.trash.TrashHandler;
@@ -90,13 +89,13 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 			{ "treePath", Types.VARCHAR },
 			{ "name", Types.VARCHAR },
 			{ "description", Types.VARCHAR },
-			{ "overrideDDMStructures", Types.BOOLEAN },
+			{ "restrictionType", Types.INTEGER },
 			{ "status", Types.INTEGER },
 			{ "statusByUserId", Types.BIGINT },
 			{ "statusByUserName", Types.VARCHAR },
 			{ "statusDate", Types.TIMESTAMP }
 		};
-	public static final String TABLE_SQL_CREATE = "create table JournalFolder (uuid_ VARCHAR(75) null,folderId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentFolderId LONG,treePath STRING null,name VARCHAR(100) null,description STRING null,overrideDDMStructures BOOLEAN,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+	public static final String TABLE_SQL_CREATE = "create table JournalFolder (uuid_ VARCHAR(75) null,folderId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentFolderId LONG,treePath STRING null,name VARCHAR(100) null,description STRING null,restrictionType INTEGER,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 	public static final String TABLE_SQL_DROP = "drop table JournalFolder";
 	public static final String ORDER_BY_JPQL = " ORDER BY journalFolder.parentFolderId ASC, journalFolder.name ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY JournalFolder.parentFolderId ASC, JournalFolder.name ASC";
@@ -145,7 +144,7 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 		model.setTreePath(soapModel.getTreePath());
 		model.setName(soapModel.getName());
 		model.setDescription(soapModel.getDescription());
-		model.setOverrideDDMStructures(soapModel.getOverrideDDMStructures());
+		model.setRestrictionType(soapModel.getRestrictionType());
 		model.setStatus(soapModel.getStatus());
 		model.setStatusByUserId(soapModel.getStatusByUserId());
 		model.setStatusByUserName(soapModel.getStatusByUserName());
@@ -238,7 +237,7 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 		attributes.put("treePath", getTreePath());
 		attributes.put("name", getName());
 		attributes.put("description", getDescription());
-		attributes.put("overrideDDMStructures", getOverrideDDMStructures());
+		attributes.put("restrictionType", getRestrictionType());
 		attributes.put("status", getStatus());
 		attributes.put("statusByUserId", getStatusByUserId());
 		attributes.put("statusByUserName", getStatusByUserName());
@@ -324,11 +323,10 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 			setDescription(description);
 		}
 
-		Boolean overrideDDMStructures = (Boolean)attributes.get(
-				"overrideDDMStructures");
+		Integer restrictionType = (Integer)attributes.get("restrictionType");
 
-		if (overrideDDMStructures != null) {
-			setOverrideDDMStructures(overrideDDMStructures);
+		if (restrictionType != null) {
+			setRestrictionType(restrictionType);
 		}
 
 		Integer status = (Integer)attributes.get("status");
@@ -461,7 +459,7 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 	}
 
 	@Override
-	public String getUserUuid() throws SystemException {
+	public String getUserUuid() {
 		try {
 			User user = UserLocalServiceUtil.getUserById(getUserId());
 
@@ -597,18 +595,13 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 
 	@JSON
 	@Override
-	public boolean getOverrideDDMStructures() {
-		return _overrideDDMStructures;
+	public int getRestrictionType() {
+		return _restrictionType;
 	}
 
 	@Override
-	public boolean isOverrideDDMStructures() {
-		return _overrideDDMStructures;
-	}
-
-	@Override
-	public void setOverrideDDMStructures(boolean overrideDDMStructures) {
-		_overrideDDMStructures = overrideDDMStructures;
+	public void setRestrictionType(int restrictionType) {
+		_restrictionType = restrictionType;
 	}
 
 	@JSON
@@ -646,7 +639,7 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 	}
 
 	@Override
-	public String getStatusByUserUuid() throws SystemException {
+	public String getStatusByUserUuid() {
 		try {
 			User user = UserLocalServiceUtil.getUserById(getStatusByUserId());
 
@@ -720,7 +713,7 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 	}
 
 	@Override
-	public TrashEntry getTrashEntry() throws PortalException, SystemException {
+	public TrashEntry getTrashEntry() throws PortalException {
 		if (!isInTrash()) {
 			return null;
 		}
@@ -811,7 +804,7 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 	}
 
 	@Override
-	public boolean isInTrashExplicitly() throws SystemException {
+	public boolean isInTrashExplicitly() {
 		if (!isInTrash()) {
 			return false;
 		}
@@ -824,6 +817,22 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 		}
 
 		return false;
+	}
+
+	@Override
+	public boolean isInTrashImplicitly() {
+		if (!isInTrash()) {
+			return false;
+		}
+
+		TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(),
+				getTrashEntryClassPK());
+
+		if (trashEntry != null) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -958,7 +967,7 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 		journalFolderImpl.setTreePath(getTreePath());
 		journalFolderImpl.setName(getName());
 		journalFolderImpl.setDescription(getDescription());
-		journalFolderImpl.setOverrideDDMStructures(getOverrideDDMStructures());
+		journalFolderImpl.setRestrictionType(getRestrictionType());
 		journalFolderImpl.setStatus(getStatus());
 		journalFolderImpl.setStatusByUserId(getStatusByUserId());
 		journalFolderImpl.setStatusByUserName(getStatusByUserName());
@@ -1136,7 +1145,7 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 			journalFolderCacheModel.description = null;
 		}
 
-		journalFolderCacheModel.overrideDDMStructures = getOverrideDDMStructures();
+		journalFolderCacheModel.restrictionType = getRestrictionType();
 
 		journalFolderCacheModel.status = getStatus();
 
@@ -1190,8 +1199,8 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 		sb.append(getName());
 		sb.append(", description=");
 		sb.append(getDescription());
-		sb.append(", overrideDDMStructures=");
-		sb.append(getOverrideDDMStructures());
+		sb.append(", restrictionType=");
+		sb.append(getRestrictionType());
 		sb.append(", status=");
 		sb.append(getStatus());
 		sb.append(", statusByUserId=");
@@ -1262,8 +1271,8 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 		sb.append(getDescription());
 		sb.append("]]></column-value></column>");
 		sb.append(
-			"<column><column-name>overrideDDMStructures</column-name><column-value><![CDATA[");
-		sb.append(getOverrideDDMStructures());
+			"<column><column-name>restrictionType</column-name><column-value><![CDATA[");
+		sb.append(getRestrictionType());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>status</column-name><column-value><![CDATA[");
@@ -1313,7 +1322,7 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 	private String _name;
 	private String _originalName;
 	private String _description;
-	private boolean _overrideDDMStructures;
+	private int _restrictionType;
 	private int _status;
 	private int _originalStatus;
 	private boolean _setOriginalStatus;

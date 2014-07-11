@@ -1,0 +1,6 @@
+Bundle-Name: Liferay Portal Console
+Bundle-Version: ${plugin.full.version}
+Include-Resource: classes
+
+-include: classes/META-INF/MANIFEST.MF
+-removeheaders: Bundle-ActivationPolicy

@@ -36,7 +36,7 @@ portletURL.setParameter("organizationId", String.valueOf(organization.getOrganiz
 
 UsersAdminUtil.addPortletBreadcrumbEntries(organization, request, renderResponse);
 
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "assign-members"), currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "assign-members"), currentURL);
 %>
 
 <liferay-ui:header
@@ -129,7 +129,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "ass
 		window,
 		'<portlet:namespace />updateOrganizationUsers',
 		function(assignmentsRedirect) {
-			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "organization_users";
+			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'organization_users';
 			document.<portlet:namespace />fm.<portlet:namespace />assignmentsRedirect.value = assignmentsRedirect;
 			document.<portlet:namespace />fm.<portlet:namespace />addUserIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
 			document.<portlet:namespace />fm.<portlet:namespace />removeUserIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');

@@ -16,20 +16,25 @@ package com.liferay.portal.service;
 
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskConstants;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.messaging.Destination;
+import com.liferay.portal.kernel.messaging.DestinationNames;
+import com.liferay.portal.kernel.messaging.MessageBus;
+import com.liferay.portal.kernel.messaging.MessageBusUtil;
+import com.liferay.portal.kernel.messaging.SynchronousDestination;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.lar.backgroundtask.PortletStagingBackgroundTaskExecutor;
 import com.liferay.portal.model.BackgroundTask;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.BackgroundTaskImpl;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.UserTestUtil;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.UserTestUtil;
 
 import java.io.File;
 import java.io.InputStream;
@@ -42,6 +47,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,13 +56,8 @@ import org.junit.runner.RunWith;
 /**
  * @author Cristina González
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class BackgroundTaskLocalServiceTest {
 
 	@Before
@@ -64,7 +65,29 @@ public class BackgroundTaskLocalServiceTest {
 		_group = GroupTestUtil.addGroup();
 
 		_user = UserTestUtil.addUser(
-			ServiceTestUtil.randomString(), _group.getGroupId());
+			RandomTestUtil.randomString(), _group.getGroupId());
+
+		MessageBus messageBus = MessageBusUtil.getMessageBus();
+
+		Destination destination = messageBus.getDestination(
+			DestinationNames.BACKGROUND_TASK);
+
+		destination.copyMessageListeners(_destination);
+
+		destination.unregisterMessageListeners();
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		MessageBus messageBus = MessageBusUtil.getMessageBus();
+
+		Destination destination = messageBus.getDestination(
+			DestinationNames.BACKGROUND_TASK);
+
+		_destination.copyMessageListeners(destination);
+
+		BackgroundTaskLocalServiceUtil.deleteGroupBackgroundTasks(
+			_group.getGroupId());
 	}
 
 	@Test
@@ -106,7 +129,7 @@ public class BackgroundTaskLocalServiceTest {
 
 		BackgroundTaskLocalServiceUtil.addBackgroundTaskAttachment(
 			_user.getUserId(), backgroundTask.getBackgroundTaskId(),
-			ServiceTestUtil.randomString(), file);
+			RandomTestUtil.randomString(), file);
 
 		backgroundTask = BackgroundTaskLocalServiceUtil.fetchBackgroundTask(
 			backgroundTask.getBackgroundTaskId());
@@ -126,7 +149,7 @@ public class BackgroundTaskLocalServiceTest {
 
 		Assert.assertEquals(backgroundTask.getAttachmentsFileEntriesCount(), 0);
 
-		String fileName = ServiceTestUtil.randomString();
+		String fileName = RandomTestUtil.randomString();
 
 		Class<?> clazz = getClass();
 
@@ -288,9 +311,9 @@ public class BackgroundTaskLocalServiceTest {
 		Map<String, Serializable> taskContext =
 			new HashMap<String, Serializable>();
 
-		taskContext.put("param1", ServiceTestUtil.randomBoolean());
-		taskContext.put("param2", ServiceTestUtil.randomString());
-		taskContext.put("param3", ServiceTestUtil.randomInt());
+		taskContext.put("param1", RandomTestUtil.randomBoolean());
+		taskContext.put("param2", RandomTestUtil.randomString());
+		taskContext.put("param3", RandomTestUtil.randomInt());
 		taskContext.put("param4", new Date());
 
 		return taskContext;
@@ -305,7 +328,12 @@ public class BackgroundTaskLocalServiceTest {
 	private static final Class<?> _TASK_EXECUTOR_CLASS =
 		PortletStagingBackgroundTaskExecutor.class;
 
+	private Destination _destination = new SynchronousDestination();
+
+	@DeleteAfterTestRun
 	private Group _group;
+
+	@DeleteAfterTestRun
 	private User _user;
 
 }

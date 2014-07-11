@@ -32,7 +32,7 @@ else {
 %>
 
 <span class="entry-action overlay">
-	<liferay-ui:icon-menu direction="down" extended="<%= false %>" icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>" triggerCssClass="btn">
+	<liferay-ui:icon-menu direction="down" extended="<%= false %>" icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>" triggerCssClass="btn btn-default">
 		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.UPDATE) %>">
 			<portlet:renderURL var="editURL">
 				<portlet:param name="struts_action" value="/journal/edit_article" />
@@ -46,7 +46,8 @@ else {
 			</portlet:renderURL>
 
 			<liferay-ui:icon
-				image="edit"
+				iconCssClass="icon-edit"
+				message="edit"
 				url="<%= editURL %>"
 			/>
 		</c:if>
@@ -61,7 +62,7 @@ else {
 			</portlet:renderURL>
 
 			<liferay-ui:icon
-				image="submit"
+				iconCssClass="icon-move"
 				message="move"
 				url="<%= moveURL %>"
 			/>
@@ -70,14 +71,15 @@ else {
 		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.PERMISSIONS) %>">
 			<liferay-security:permissionsURL
 				modelResource="<%= JournalArticle.class.getName() %>"
-				modelResourceDescription="<%= article.getTitle(locale) %>"
+				modelResourceDescription="<%= HtmlUtil.escape(article.getTitle(locale)) %>"
 				resourcePrimKey="<%= String.valueOf(article.getResourcePrimKey()) %>"
 				var="permissionsURL"
 				windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 			/>
 
 			<liferay-ui:icon
-				image="permissions"
+				iconCssClass="icon-lock"
+				message="permissions"
 				method="get"
 				url="<%= permissionsURL %>"
 				useDialog="<%= true %>"
@@ -97,7 +99,8 @@ else {
 			%>
 
 			<liferay-ui:icon
-				image="preview"
+				iconCssClass="icon-search"
+				message="preview"
 				onClick="<%= taglibOnClick %>"
 				url="javascript:;"
 			/>
@@ -111,7 +114,7 @@ else {
 				</portlet:renderURL>
 
 				<liferay-ui:icon
-					image="time"
+					iconCssClass="icon-time"
 					message="view-history"
 					url="<%= viewHistoryURL.toString() %>"
 				/>
@@ -127,7 +130,8 @@ else {
 				</portlet:renderURL>
 
 				<liferay-ui:icon
-					image="copy"
+					iconCssClass="icon-copy"
+					message="copy"
 					url="<%= copyURL.toString() %>"
 				/>
 			</c:if>
@@ -143,7 +147,8 @@ else {
 			</portlet:actionURL>
 
 			<liferay-ui:icon
-				image="expire"
+				iconCssClass="icon-time"
+				message="expire"
 				url="<%= expireURL %>"
 			/>
 		</c:if>

@@ -89,7 +89,7 @@
 		</finder>
 		<finder name="R_ST" return-type="Collection">
 			<finder-column name="resourcePrimKey" />
-			<finder-column name="status" />
+			<finder-column name="status" arrayable-operator="OR" />
 		</finder>
 		<finder name="G_U" return-type="Collection">
 			<finder-column name="groupId" />
@@ -449,7 +449,7 @@
 		<column name="treePath" type="String" />
 		<column name="name" type="String" />
 		<column name="description" type="String" />
-		<column name="overrideDDMStructures" type="boolean" />
+		<column name="restrictionType" type="int" />
 		<column name="status" type="int" />
 		<column name="statusByUserId" type="long" />
 		<column name="statusByUserName" type="String" />
@@ -515,6 +515,7 @@
 		<reference package-path="com.liferay.portal" entity="Resource" />
 		<reference package-path="com.liferay.portal" entity="Subscription" />
 		<reference package-path="com.liferay.portal" entity="User" />
+		<reference package-path="com.liferay.portal" entity="WorkflowDefinitionLink" />
 		<reference package-path="com.liferay.portal" entity="WorkflowInstanceLink" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetLink" />
@@ -524,26 +525,6 @@
 		<reference package-path="com.liferay.portlet.social" entity="SocialActivity" />
 		<reference package-path="com.liferay.portlet.trash" entity="TrashEntry" />
 		<reference package-path="com.liferay.portlet.trash" entity="TrashVersion" />
-	</entity>
-	<entity name="JournalStructure" local-service="true" remote-service="true" deprecated="true">
-
-		<!-- References -->
-
-		<reference package-path="com.liferay.portal" entity="ClassName" />
-		<reference package-path="com.liferay.portal" entity="Group" />
-		<reference package-path="com.liferay.portal" entity="User" />
-		<reference package-path="com.liferay.portlet.dynamicdatamapping" entity="DDMStructure" />
-	</entity>
-	<entity name="JournalTemplate" local-service="true" remote-service="true" deprecated="true">
-
-		<!-- References -->
-
-		<reference package-path="com.liferay.portal" entity="ClassName" />
-		<reference package-path="com.liferay.portal" entity="Group" />
-		<reference package-path="com.liferay.portal" entity="Image" />
-		<reference package-path="com.liferay.portal" entity="User" />
-		<reference package-path="com.liferay.portlet.dynamicdatamapping" entity="DDMTemplate" />
-		<reference package-path="com.liferay.portlet.journal" entity="JournalStructure" />
 	</entity>
 	<exceptions>
 		<exception>ArticleContent</exception>
@@ -560,9 +541,6 @@
 		<exception>DuplicateArticleImageId</exception>
 		<exception>DuplicateFeedId</exception>
 		<exception>DuplicateFolderName</exception>
-		<exception>DuplicateStructureElement</exception>
-		<exception>DuplicateStructureId</exception>
-		<exception>DuplicateTemplateId</exception>
 		<exception>FeedContentField</exception>
 		<exception>FeedId</exception>
 		<exception>FeedName</exception>
@@ -570,16 +548,5 @@
 		<exception>FeedTargetPortletId</exception>
 		<exception>FolderName</exception>
 		<exception>InvalidDDMStructure</exception>
-		<exception>RequiredStructure</exception>
-		<exception>RequiredTemplate</exception>
-		<exception>StructureId</exception>
-		<exception>StructureInheritance</exception>
-		<exception>StructureName</exception>
-		<exception>StructureXsd</exception>
-		<exception>TemplateId</exception>
-		<exception>TemplateName</exception>
-		<exception>TemplateSmallImageName</exception>
-		<exception>TemplateSmallImageSize</exception>
-		<exception>TemplateXsl</exception>
 	</exceptions>
 </service-builder>

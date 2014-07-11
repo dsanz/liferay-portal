@@ -25,7 +25,7 @@
 </tr>
 <tr>
 	<td>ERROR_MESSAGE</td>
-	<td>//div[contains(@class,'alert-error')]</td>
+	<td>//div[(contains(@class,'alert-error') or contains(@class,'alert-danger'))]</td>
 	<td></td>
 </tr>
 <tr>
@@ -45,7 +45,7 @@
 </tr>
 <tr>
 	<td>CANCEL_BUTTON</td>
-	<td>//button[contains(.,'Cancel')]</td>
+	<td>//a[contains(@class,'btn-cancel')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -85,7 +85,7 @@
 </tr>
 <tr>
 	<td>BOOLEAN_CHECKBOX</td>
-	<td>//div[contains(@data-fieldname,'${key_fieldName}')]//input[2]</td>
+	<td>//div[contains(@data-fieldname,'${key_fieldName}')]//input</td>
 	<td></td>
 </tr>
 <tr>

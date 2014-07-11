@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.dao.jdbc.SqlUpdateFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
@@ -97,7 +98,17 @@ public class TableMapperTest {
 		ClassLoader classLoader = clazz.getClassLoader();
 
 		_dataSource = (DataSource)ProxyUtil.newProxyInstance(
-			classLoader, new Class<?>[] {DataSource.class}, null);
+			classLoader, new Class<?>[] {DataSource.class},
+			new InvocationHandler() {
+
+				@Override
+				public Object invoke(Object proxy, Method method, Object[] args)
+					throws Throwable {
+
+					throw new UnsupportedOperationException();
+				}
+
+			});
 
 		_leftBasePersistence = new MockBasePersistence<Left>(Left.class);
 
@@ -113,7 +124,7 @@ public class TableMapperTest {
 	}
 
 	@Test
-	public void testAddTableMapping() throws SystemException {
+	public void testAddTableMapping() {
 
 		// Success, no model listener
 
@@ -275,7 +286,7 @@ public class TableMapperTest {
 	}
 
 	@Test
-	public void testContainsTableMapping() throws SystemException {
+	public void testContainsTableMapping() {
 
 		// Does not contain table mapping
 
@@ -301,7 +312,7 @@ public class TableMapperTest {
 	}
 
 	@Test
-	public void testDeleteLeftPrimaryKeyTableMappings() throws SystemException {
+	public void testDeleteLeftPrimaryKeyTableMappings() {
 
 		// Delete 0 entry
 
@@ -463,8 +474,7 @@ public class TableMapperTest {
 	}
 
 	@Test
-	public void testDeleteRightPrimaryKeyTableMappings()
-		throws SystemException {
+	public void testDeleteRightPrimaryKeyTableMappings() {
 
 		// Delete 0 entry
 
@@ -634,7 +644,7 @@ public class TableMapperTest {
 	}
 
 	@Test
-	public void testDeleteTableMapping() throws SystemException {
+	public void testDeleteTableMapping() {
 
 		// No such table mapping
 
@@ -777,7 +787,17 @@ public class TableMapperTest {
 	}
 
 	@Test
-	public void testGetLeftBaseModels() throws SystemException {
+	public void testDestroy() throws Exception {
+		testDestroy(_tableMapperImpl);
+	}
+
+	@Test
+	public void testDestroyReverse() throws Exception {
+		testDestroy(new ReverseTableMapper<Right, Left>(_tableMapperImpl));
+	}
+
+	@Test
+	public void testGetLeftBaseModels() {
 
 		// Get 0 result
 
@@ -837,13 +857,10 @@ public class TableMapperTest {
 
 		lefts = _tableMapperImpl.getLeftBaseModels(
 			rightPrimaryKey, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-			new OrderByComparator() {
+			new OrderByComparator<Left>() {
 
 				@Override
-				public int compare(Object obj1, Object obj2) {
-					Left left1 = (Left)obj1;
-					Left left2 = (Left)obj2;
-
+				public int compare(Left left1, Left left2) {
 					Long leftPrimaryKey1 = (Long)left1.getPrimaryKeyObj();
 					Long leftPrimaryKey2 = (Long)left2.getPrimaryKeyObj();
 
@@ -902,7 +919,7 @@ public class TableMapperTest {
 	}
 
 	@Test
-	public void testGetLeftPrimaryKeys() throws SystemException {
+	public void testGetLeftPrimaryKeys() {
 
 		// Get 0 result
 
@@ -966,7 +983,7 @@ public class TableMapperTest {
 	}
 
 	@Test
-	public void testGetRightBaseModels() throws SystemException {
+	public void testGetRightBaseModels() {
 
 		// Get 0 result
 
@@ -1027,13 +1044,10 @@ public class TableMapperTest {
 
 		rights = _tableMapperImpl.getRightBaseModels(
 			leftPrimaryKey, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-			new OrderByComparator() {
+			new OrderByComparator<Right>() {
 
 				@Override
-				public int compare(Object obj1, Object obj2) {
-					Right right1 = (Right)obj1;
-					Right right2 = (Right)obj2;
-
+				public int compare(Right right1, Right right2) {
 					Long rightPrimaryKey1 = (Long)right1.getPrimaryKeyObj();
 					Long rightPrimaryKey2 = (Long)right2.getPrimaryKeyObj();
 
@@ -1093,7 +1107,7 @@ public class TableMapperTest {
 	}
 
 	@Test
-	public void testGetRightPrimaryKeys() throws SystemException {
+	public void testGetRightPrimaryKeys() {
 
 		// Get 0 result
 
@@ -1178,7 +1192,7 @@ public class TableMapperTest {
 	}
 
 	@Test
-	public void testReverseTableMapper() throws SystemException {
+	public void testReverseTableMapper() {
 		Class<?> clazz = TableMapper.class;
 
 		ClassLoader classLoader = clazz.getClassLoader();
@@ -1283,6 +1297,61 @@ public class TableMapperTest {
 			TableMapperFactory.getTableMapper(
 				_tableName, _rightColumnName, _leftColumnName,
 				_rightBasePersistence, _leftBasePersistence));
+
+		// Remove
+
+		TableMapperFactory.removeTableMapper(_tableName);
+
+		Assert.assertTrue(tableMappers.isEmpty());
+
+		TableMapperFactory.removeTableMapper(_tableName);
+
+		Assert.assertTrue(tableMappers.isEmpty());
+	}
+
+	protected void testDestroy(TableMapper<?, ?> tableMapper) throws Exception {
+		MockMultiVMPool mockMultiVMPool =
+			(MockMultiVMPool)MultiVMPoolUtil.getMultiVMPool();
+
+		Map<String, PortalCache<?, ?>> portalCaches =
+			mockMultiVMPool.getPortalCaches();
+
+		Assert.assertEquals(2, portalCaches.size());
+
+		if (tableMapper instanceof ReverseTableMapper) {
+			Assert.assertSame(
+				ReflectionTestUtil.getFieldValue(
+					tableMapper.getReverseTableMapper(),
+					"leftToRightPortalCache"),
+				portalCaches.get(
+					TableMapper.class.getName() + "-" + _tableName +
+						"-LeftToRight"));
+			Assert.assertSame(
+				ReflectionTestUtil.getFieldValue(
+					tableMapper.getReverseTableMapper(),
+					"rightToLeftPortalCache"),
+				portalCaches.get(
+					TableMapper.class.getName() + "-" + _tableName +
+						"-RightToLeft"));
+		}
+		else {
+			Assert.assertSame(
+				ReflectionTestUtil.getFieldValue(
+					tableMapper, "leftToRightPortalCache"),
+				portalCaches.get(
+					TableMapper.class.getName() + "-" + _tableName +
+						"-LeftToRight"));
+			Assert.assertSame(
+				ReflectionTestUtil.getFieldValue(
+					tableMapper, "rightToLeftPortalCache"),
+				portalCaches.get(
+					TableMapper.class.getName() + "-" + _tableName +
+						"-RightToLeft"));
+		}
+
+		tableMapper.destroy();
+
+		Assert.assertTrue(portalCaches.isEmpty());
 	}
 
 	private DataSource _dataSource;
@@ -1704,6 +1773,10 @@ public class TableMapperTest {
 			getCache(String name, boolean blocking) {
 
 			return getCache(name);
+		}
+
+		public Map<String, PortalCache<?, ?>> getPortalCaches() {
+			return _portalCaches;
 		}
 
 		@Override

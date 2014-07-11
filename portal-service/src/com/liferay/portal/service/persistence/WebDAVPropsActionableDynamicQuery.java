@@ -15,20 +15,19 @@
 package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.model.WebDAVProps;
 import com.liferay.portal.service.WebDAVPropsLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link WebDAVPropsLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link WebDAVPropsLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class WebDAVPropsActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public WebDAVPropsActionableDynamicQuery() throws SystemException {
+	public WebDAVPropsActionableDynamicQuery() {
 		setBaseLocalService(WebDAVPropsLocalServiceUtil.getService());
 		setClass(WebDAVProps.class);
 

@@ -35,7 +35,7 @@
 </tr>
 <tr>
 	<td>ADD_PAGE_BUTTON</td>
-	<td>//button[@id='_154_addPageButton']</td>
+	<td>//a[contains(@id,'addPageButton')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -46,27 +46,27 @@
 <!--NAVIGATION-->
 <tr>
 	<td>NAVIGATION_FRONTPAGE</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'FrontPage')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'FrontPage')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>NAVIGATION_RECENT_CHANGES</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Recent Changes')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'Recent Changes')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>NAVIGATION_ALL_PAGES</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'All Pages')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'All Pages')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>NAVIGATION_ORPHAN_PAGES</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Orphan Pages')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'Orphan Pages')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>NAVIGATION_DRAFT_PAGES</td>
-	<td>//div[@class='navbar ']//li/a[contains(.,'Draft Pages')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//li/a[contains(.,'Draft Pages')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -102,17 +102,17 @@
 </tr>
 <tr>
 	<td>WIKI_PAGE_TABLE_ACTIONS</td>
-	<td>//tr[contains(.,'${key_wikiPageTitle}')]/td[6]/div/a[@title='Actions']</td>
+	<td>//tr[contains(.,'${key_wikiPageTitle}')]/td[6]/div/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>WIKI_PAGE_TABLE_ACTIONS_GENERIC</td>
-	<td>//tr[1]/td[6]/div/a[@title='Actions']</td>
+	<td>//tr[1]/td[6]/div/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>WIKI_PAGE_TABLE_ACTIONS_GENERIC_2</td>
-	<td>//tr[2]/td[6]/div/a[@title='Actions']</td>
+	<td>//tr[2]/td[6]/div/a</td>
 	<td></td>
 </tr>
 <tr>

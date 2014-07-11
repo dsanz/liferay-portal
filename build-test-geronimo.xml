@@ -16,7 +16,9 @@
 	</target>
 
 	<target name="run-selenium-geronimo">
-		<echo file="app.server.${user.name}.properties">app.server.type=geronimo</echo>
+		<app-server-properties-update>
+			app.server.type=geronimo
+		</app-server-properties-update>
 
 		<if>
 			<not>
@@ -28,6 +30,8 @@
 		</if>
 
 		<antcall target="revert-test-properties" />
+
+		<ant dir="portal-impl" target="build-selenium-new-test-case" />
 
 		<antcall target="prepare-virtual-host-name-properties" />
 

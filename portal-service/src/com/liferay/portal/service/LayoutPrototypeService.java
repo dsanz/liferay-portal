@@ -48,11 +48,52 @@ public interface LayoutPrototypeService extends BaseService {
 	 */
 
 	/**
+	* @deprecated As of 6.2.0, replaced by {@link #addLayoutPrototype(Map,
+	String, boolean, ServiceContext)}
+	*/
+	@java.lang.Deprecated
+	public com.liferay.portal.model.LayoutPrototype addLayoutPrototype(
+		java.util.Map<java.util.Locale, java.lang.String> nameMap,
+		java.lang.String description, boolean active)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #addLayoutPrototype(Map, Map,
+	boolean, ServiceContext)}
+	*/
+	@java.lang.Deprecated
+	public com.liferay.portal.model.LayoutPrototype addLayoutPrototype(
+		java.util.Map<java.util.Locale, java.lang.String> nameMap,
+		java.lang.String description, boolean active,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public com.liferay.portal.model.LayoutPrototype addLayoutPrototype(
+		java.util.Map<java.util.Locale, java.lang.String> nameMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		boolean active, com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public void deleteLayoutPrototype(long layoutPrototypeId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
 	*/
 	public java.lang.String getBeanIdentifier();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.model.LayoutPrototype getLayoutPrototype(
+		long layoutPrototypeId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.LayoutPrototype> search(
+		long companyId, java.lang.Boolean active,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.LayoutPrototype> obc)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Sets the Spring bean ID for this bean.
@@ -61,83 +102,33 @@ public interface LayoutPrototypeService extends BaseService {
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
-	public com.liferay.portal.model.LayoutPrototype addLayoutPrototype(
-		java.util.Map<java.util.Locale, java.lang.String> nameMap,
-		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
-		boolean active, com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addLayoutPrototype(Map,
-	String, boolean, ServiceContext)}
-	*/
-	@Deprecated
-	public com.liferay.portal.model.LayoutPrototype addLayoutPrototype(
-		java.util.Map<java.util.Locale, java.lang.String> nameMap,
-		java.lang.String description, boolean active)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	/**
-	* @deprecated As of 7.0.0, replaced by {@link #addLayoutPrototype(Map, Map,
-	boolean, ServiceContext)}
-	*/
-	@Deprecated
-	public com.liferay.portal.model.LayoutPrototype addLayoutPrototype(
-		java.util.Map<java.util.Locale, java.lang.String> nameMap,
-		java.lang.String description, boolean active,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public void deleteLayoutPrototype(long layoutPrototypeId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.LayoutPrototype getLayoutPrototype(
-		long layoutPrototypeId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portal.model.LayoutPrototype> search(
-		long companyId, java.lang.Boolean active,
-		com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public com.liferay.portal.model.LayoutPrototype updateLayoutPrototype(
-		long layoutPrototypeId,
-		java.util.Map<java.util.Locale, java.lang.String> nameMap,
-		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
-		boolean active, com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
 	/**
 	* @deprecated As of 6.2.0, replaced by {@link #updateLayoutPrototype(long,
 	Map, String, boolean, ServiceContext)}
 	*/
-	@Deprecated
+	@java.lang.Deprecated
 	public com.liferay.portal.model.LayoutPrototype updateLayoutPrototype(
 		long layoutPrototypeId,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
 		java.lang.String description, boolean active)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* @deprecated As of 7.0.0, replaced by {@link #updateLayoutPrototype(long,
 	Map, Map, boolean, ServiceContext)}
 	*/
-	@Deprecated
+	@java.lang.Deprecated
 	public com.liferay.portal.model.LayoutPrototype updateLayoutPrototype(
 		long layoutPrototypeId,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
 		java.lang.String description, boolean active,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public com.liferay.portal.model.LayoutPrototype updateLayoutPrototype(
+		long layoutPrototypeId,
+		java.util.Map<java.util.Locale, java.lang.String> nameMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		boolean active, com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

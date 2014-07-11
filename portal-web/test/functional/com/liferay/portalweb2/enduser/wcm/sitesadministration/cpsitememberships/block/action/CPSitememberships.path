@@ -41,17 +41,17 @@
 <!--TOOLBAR-->
 <tr>
 	<td>TOOLBAR_ADD_MEMBERS</td>
-	<td>//div[@class='navbar ']//a[contains(.,'Add Members')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//a[contains(.,'Add Members')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_ADD_SITE_ROLES_TO</td>
-	<td>//div[@class='navbar ']//a[contains(.,'Add Site Roles to')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//a[contains(.,'Add Site Roles to')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TOOLBAR_VIEW_MEMBERSHIP_REQUESTS</td>
-	<td>//div[@class='navbar ']//a[contains(.,'View Members')]</td>
+	<td>//div[@class='navbar ' or contains(@class,'navbar-default')]//a[contains(.,'View Members')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -125,12 +125,12 @@
 <!--USER_SEARCH-->
 <tr>
 	<td>USER_SEARCH_FIELD</td>
-	<td>//button[contains(.,'Search')]/../input[contains(@name,'_174_keywords')]</td>
+	<td>//span[@class='form-search']//input[contains(@name,'_174_keywords_users')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>USER_SEARCH_BUTTON</td>
-	<td>//input[contains(@name,'_174_keywords')]/../button[contains(.,'Search')]</td>
+	<td>//span[@class='form-search']//button[contains(.,'Search')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -141,7 +141,7 @@
 <!--USER_TABLE-->
 <tr>
 	<td>USER_TABLE_LABEL</td>
-	<td>//input[@id='_174_keywords_users']/../../../../../..//div/div</td>
+	<td>//div[contains(@class,'panel-default lfr-panel')]//span[@class='title-text']</td>
 	<td></td>
 </tr>
 <tr>
@@ -161,7 +161,7 @@
 </tr>
 <tr>
 	<td>USER_TABLE_ACTIONS</td>
-	<td>//div[contains(@id,'usersSearchContainerSearchContainer')]//tr[contains(.,'${key_userScreenName}')]//a[contains(@title,'Actions')]</td>
+	<td>//div[contains(@id,'usersSearchContainerSearchContainer')]//tr[contains(.,'${key_userScreenName}')]//a[contains(@class,'dropdown-toggle')]</td>
 	<td></td>
 </tr>
 <tr>

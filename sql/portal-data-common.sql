@@ -324,7 +324,7 @@ insert into Region (regionId, countryId, regionCode, name, active_) values (3026
 insert into Region (regionId, countryId, regionCode, name, active_) values (4001, 4, 'BW', 'Baden-Württemberg', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (4002, 4, 'BY', 'Bayern', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (4003, 4, 'BE', 'Berlin', TRUE);
-insert into Region (regionId, countryId, regionCode, name, active_) values (4004, 4, 'BR', 'Brandenburg', TRUE);
+insert into Region (regionId, countryId, regionCode, name, active_) values (4004, 4, 'BB', 'Brandenburg', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (4005, 4, 'HB', 'Bremen', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (4006, 4, 'HH', 'Hamburg', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (4007, 4, 'HE', 'Hessen', TRUE);
@@ -396,7 +396,7 @@ insert into Region (regionId, countryId, regionCode, name, active_) values (8056
 insert into Region (regionId, countryId, regionCode, name, active_) values (8057, 8, 'ME', 'Messina', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (8058, 8, 'MI', 'Milano', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (8059, 8, 'MO', 'Modena', TRUE);
-insert into Region (regionId, countryId, regionCode, name, active_) values (8060, 8, 'MZ', 'Monza', TRUE);
+insert into Region (regionId, countryId, regionCode, name, active_) values (8060, 8, 'MB', 'Monza e Brianza', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (8061, 8, 'NA', 'Napoli', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (8062, 8, 'NO', 'Novara', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (8063, 8, 'NU', 'Nuoro', TRUE);
@@ -538,6 +538,15 @@ insert into Region (regionId, countryId, regionCode, name, active_) values (3200
 insert into Region (regionId, countryId, regionCode, name, active_) values (32006, 32, 'TAS', 'Tasmania', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (32007, 32, 'VIC', 'Victoria', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (32008, 32, 'WA', 'Western Australia', TRUE);
+insert into Region (regionId, countryId, regionCode, name, active_) values (33001, 33, 'AT-1', 'Burgenland', TRUE);
+insert into Region (regionId, countryId, regionCode, name, active_) values (33002, 33, 'AT-2', 'Kärnten', TRUE);
+insert into Region (regionId, countryId, regionCode, name, active_) values (33003, 33, 'AT-3', 'Niederösterreich', TRUE);
+insert into Region (regionId, countryId, regionCode, name, active_) values (33004, 33, 'AT-4', 'Oberösterreich', TRUE);
+insert into Region (regionId, countryId, regionCode, name, active_) values (33005, 33, 'AT-5', 'Salzburg', TRUE);
+insert into Region (regionId, countryId, regionCode, name, active_) values (33006, 33, 'AT-6', 'Steiermark', TRUE);
+insert into Region (regionId, countryId, regionCode, name, active_) values (33007, 33, 'AT-7', 'Tirol', TRUE);
+insert into Region (regionId, countryId, regionCode, name, active_) values (33008, 33, 'AT-8', 'Vorarlberg', TRUE);
+insert into Region (regionId, countryId, regionCode, name, active_) values (33009, 33, 'AT-9', 'Vienna', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (144001, 144, 'MX-AGS', 'Aguascalientes', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (144002, 144, 'MX-BCN', 'Baja California', TRUE);
 insert into Region (regionId, countryId, regionCode, name, active_) values (144003, 144, 'MX-BCS', 'Baja California Sur', TRUE);

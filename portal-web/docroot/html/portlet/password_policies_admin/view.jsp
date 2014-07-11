@@ -46,12 +46,12 @@ boolean passwordPolicyEnabled = LDAPSettingsUtil.isPasswordPolicyEnabled(company
 	%>
 
 	<aui:nav-bar>
-		<aui:nav>
-			<portlet:renderURL var="viewPasswordPoliciesURL">
-				<portlet:param name="struts_action" value="/password_policies_admin/view" />
-			</portlet:renderURL>
-
+		<aui:nav cssClass="navbar-nav">
 			<c:if test="<%= PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_PASSWORD_POLICY) %>">
+				<portlet:renderURL var="viewPasswordPoliciesURL">
+					<portlet:param name="struts_action" value="/password_policies_admin/view" />
+				</portlet:renderURL>
+
 				<portlet:renderURL var="addPasswordPolicyURL">
 					<portlet:param name="struts_action" value="/password_policies_admin/edit_password_policy" />
 					<portlet:param name="redirect" value="<%= viewPasswordPoliciesURL %>" />
@@ -62,7 +62,7 @@ boolean passwordPolicyEnabled = LDAPSettingsUtil.isPasswordPolicyEnabled(company
 		</aui:nav>
 
 		<c:if test="<%= !passwordPolicyEnabled %>">
-			<aui:nav-bar-search cssClass="pull-right" file="/html/portlet/password_policies_admin/password_policy_search.jsp" searchContainer="<%= searchContainer %>" />
+			<aui:nav-bar-search file="/html/portlet/password_policies_admin/password_policy_search.jsp" searchContainer="<%= searchContainer %>" />
 		</c:if>
 	</aui:nav-bar>
 
@@ -114,7 +114,7 @@ boolean passwordPolicyEnabled = LDAPSettingsUtil.isPasswordPolicyEnabled(company
 
 			// Action
 
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/password_policies_admin/password_policy_action.jsp");
+			row.addJSP("/html/portlet/password_policies_admin/password_policy_action.jsp", "entry-action");
 
 			// Add result row
 

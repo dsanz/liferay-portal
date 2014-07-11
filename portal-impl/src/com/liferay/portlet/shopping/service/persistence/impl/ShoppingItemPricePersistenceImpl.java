@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -45,7 +44,12 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The persistence implementation for the shopping item price service.
@@ -109,11 +113,9 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 *
 	 * @param itemId the item ID
 	 * @return the matching shopping item prices
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ShoppingItemPrice> findByItemId(long itemId)
-		throws SystemException {
+	public List<ShoppingItemPrice> findByItemId(long itemId) {
 		return findByItemId(itemId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -128,11 +130,9 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param start the lower bound of the range of shopping item prices
 	 * @param end the upper bound of the range of shopping item prices (not inclusive)
 	 * @return the range of matching shopping item prices
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ShoppingItemPrice> findByItemId(long itemId, int start, int end)
-		throws SystemException {
+	public List<ShoppingItemPrice> findByItemId(long itemId, int start, int end) {
 		return findByItemId(itemId, start, end, null);
 	}
 
@@ -148,11 +148,10 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param end the upper bound of the range of shopping item prices (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching shopping item prices
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<ShoppingItemPrice> findByItemId(long itemId, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<ShoppingItemPrice> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -255,12 +254,11 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching shopping item price
 	 * @throws com.liferay.portlet.shopping.NoSuchItemPriceException if a matching shopping item price could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ShoppingItemPrice findByItemId_First(long itemId,
-		OrderByComparator orderByComparator)
-		throws NoSuchItemPriceException, SystemException {
+		OrderByComparator<ShoppingItemPrice> orderByComparator)
+		throws NoSuchItemPriceException {
 		ShoppingItemPrice shoppingItemPrice = fetchByItemId_First(itemId,
 				orderByComparator);
 
@@ -286,11 +284,10 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param itemId the item ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching shopping item price, or <code>null</code> if a matching shopping item price could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ShoppingItemPrice fetchByItemId_First(long itemId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ShoppingItemPrice> orderByComparator) {
 		List<ShoppingItemPrice> list = findByItemId(itemId, 0, 1,
 				orderByComparator);
 
@@ -308,12 +305,11 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching shopping item price
 	 * @throws com.liferay.portlet.shopping.NoSuchItemPriceException if a matching shopping item price could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ShoppingItemPrice findByItemId_Last(long itemId,
-		OrderByComparator orderByComparator)
-		throws NoSuchItemPriceException, SystemException {
+		OrderByComparator<ShoppingItemPrice> orderByComparator)
+		throws NoSuchItemPriceException {
 		ShoppingItemPrice shoppingItemPrice = fetchByItemId_Last(itemId,
 				orderByComparator);
 
@@ -339,11 +335,10 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param itemId the item ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching shopping item price, or <code>null</code> if a matching shopping item price could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ShoppingItemPrice fetchByItemId_Last(long itemId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ShoppingItemPrice> orderByComparator) {
 		int count = countByItemId(itemId);
 
 		if (count == 0) {
@@ -368,12 +363,11 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next shopping item price
 	 * @throws com.liferay.portlet.shopping.NoSuchItemPriceException if a shopping item price with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ShoppingItemPrice[] findByItemId_PrevAndNext(long itemPriceId,
-		long itemId, OrderByComparator orderByComparator)
-		throws NoSuchItemPriceException, SystemException {
+		long itemId, OrderByComparator<ShoppingItemPrice> orderByComparator)
+		throws NoSuchItemPriceException {
 		ShoppingItemPrice shoppingItemPrice = findByPrimaryKey(itemPriceId);
 
 		Session session = null;
@@ -403,7 +397,7 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 
 	protected ShoppingItemPrice getByItemId_PrevAndNext(Session session,
 		ShoppingItemPrice shoppingItemPrice, long itemId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<ShoppingItemPrice> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -510,10 +504,9 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * Removes all the shopping item prices where itemId = &#63; from the database.
 	 *
 	 * @param itemId the item ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByItemId(long itemId) throws SystemException {
+	public void removeByItemId(long itemId) {
 		for (ShoppingItemPrice shoppingItemPrice : findByItemId(itemId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(shoppingItemPrice);
@@ -525,10 +518,9 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 *
 	 * @param itemId the item ID
 	 * @return the number of matching shopping item prices
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByItemId(long itemId) throws SystemException {
+	public int countByItemId(long itemId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_ITEMID;
 
 		Object[] finderArgs = new Object[] { itemId };
@@ -682,11 +674,10 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param itemPriceId the primary key of the shopping item price
 	 * @return the shopping item price that was removed
 	 * @throws com.liferay.portlet.shopping.NoSuchItemPriceException if a shopping item price with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ShoppingItemPrice remove(long itemPriceId)
-		throws NoSuchItemPriceException, SystemException {
+		throws NoSuchItemPriceException {
 		return remove((Serializable)itemPriceId);
 	}
 
@@ -696,11 +687,10 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param primaryKey the primary key of the shopping item price
 	 * @return the shopping item price that was removed
 	 * @throws com.liferay.portlet.shopping.NoSuchItemPriceException if a shopping item price with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ShoppingItemPrice remove(Serializable primaryKey)
-		throws NoSuchItemPriceException, SystemException {
+		throws NoSuchItemPriceException {
 		Session session = null;
 
 		try {
@@ -732,8 +722,7 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	}
 
 	@Override
-	protected ShoppingItemPrice removeImpl(ShoppingItemPrice shoppingItemPrice)
-		throws SystemException {
+	protected ShoppingItemPrice removeImpl(ShoppingItemPrice shoppingItemPrice) {
 		shoppingItemPrice = toUnwrappedModel(shoppingItemPrice);
 
 		Session session = null;
@@ -766,8 +755,7 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 
 	@Override
 	public ShoppingItemPrice updateImpl(
-		com.liferay.portlet.shopping.model.ShoppingItemPrice shoppingItemPrice)
-		throws SystemException {
+		com.liferay.portlet.shopping.model.ShoppingItemPrice shoppingItemPrice) {
 		shoppingItemPrice = toUnwrappedModel(shoppingItemPrice);
 
 		boolean isNew = shoppingItemPrice.isNew();
@@ -860,11 +848,10 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param primaryKey the primary key of the shopping item price
 	 * @return the shopping item price
 	 * @throws com.liferay.portlet.shopping.NoSuchItemPriceException if a shopping item price with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ShoppingItemPrice findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchItemPriceException, SystemException {
+		throws NoSuchItemPriceException {
 		ShoppingItemPrice shoppingItemPrice = fetchByPrimaryKey(primaryKey);
 
 		if (shoppingItemPrice == null) {
@@ -885,11 +872,10 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param itemPriceId the primary key of the shopping item price
 	 * @return the shopping item price
 	 * @throws com.liferay.portlet.shopping.NoSuchItemPriceException if a shopping item price with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ShoppingItemPrice findByPrimaryKey(long itemPriceId)
-		throws NoSuchItemPriceException, SystemException {
+		throws NoSuchItemPriceException {
 		return findByPrimaryKey((Serializable)itemPriceId);
 	}
 
@@ -898,11 +884,9 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 *
 	 * @param primaryKey the primary key of the shopping item price
 	 * @return the shopping item price, or <code>null</code> if a shopping item price with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ShoppingItemPrice fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public ShoppingItemPrice fetchByPrimaryKey(Serializable primaryKey) {
 		ShoppingItemPrice shoppingItemPrice = (ShoppingItemPrice)EntityCacheUtil.getResult(ShoppingItemPriceModelImpl.ENTITY_CACHE_ENABLED,
 				ShoppingItemPriceImpl.class, primaryKey);
 
@@ -947,22 +931,112 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 *
 	 * @param itemPriceId the primary key of the shopping item price
 	 * @return the shopping item price, or <code>null</code> if a shopping item price with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ShoppingItemPrice fetchByPrimaryKey(long itemPriceId)
-		throws SystemException {
+	public ShoppingItemPrice fetchByPrimaryKey(long itemPriceId) {
 		return fetchByPrimaryKey((Serializable)itemPriceId);
+	}
+
+	@Override
+	public Map<Serializable, ShoppingItemPrice> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, ShoppingItemPrice> map = new HashMap<Serializable, ShoppingItemPrice>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			ShoppingItemPrice shoppingItemPrice = fetchByPrimaryKey(primaryKey);
+
+			if (shoppingItemPrice != null) {
+				map.put(primaryKey, shoppingItemPrice);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			ShoppingItemPrice shoppingItemPrice = (ShoppingItemPrice)EntityCacheUtil.getResult(ShoppingItemPriceModelImpl.ENTITY_CACHE_ENABLED,
+					ShoppingItemPriceImpl.class, primaryKey);
+
+			if (shoppingItemPrice == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, shoppingItemPrice);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_SHOPPINGITEMPRICE_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (ShoppingItemPrice shoppingItemPrice : (List<ShoppingItemPrice>)q.list()) {
+				map.put(shoppingItemPrice.getPrimaryKeyObj(), shoppingItemPrice);
+
+				cacheResult(shoppingItemPrice);
+
+				uncachedPrimaryKeys.remove(shoppingItemPrice.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(ShoppingItemPriceModelImpl.ENTITY_CACHE_ENABLED,
+					ShoppingItemPriceImpl.class, primaryKey,
+					_nullShoppingItemPrice);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the shopping item prices.
 	 *
 	 * @return the shopping item prices
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ShoppingItemPrice> findAll() throws SystemException {
+	public List<ShoppingItemPrice> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -976,11 +1050,9 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param start the lower bound of the range of shopping item prices
 	 * @param end the upper bound of the range of shopping item prices (not inclusive)
 	 * @return the range of shopping item prices
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ShoppingItemPrice> findAll(int start, int end)
-		throws SystemException {
+	public List<ShoppingItemPrice> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -995,11 +1067,10 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * @param end the upper bound of the range of shopping item prices (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of shopping item prices
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<ShoppingItemPrice> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ShoppingItemPrice> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1081,10 +1152,9 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	/**
 	 * Removes all the shopping item prices from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (ShoppingItemPrice shoppingItemPrice : findAll()) {
 			remove(shoppingItemPrice);
 		}
@@ -1094,10 +1164,9 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	 * Returns the number of shopping item prices.
 	 *
 	 * @return the number of shopping item prices
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -1161,6 +1230,7 @@ public class ShoppingItemPricePersistenceImpl extends BasePersistenceImpl<Shoppi
 	}
 
 	private static final String _SQL_SELECT_SHOPPINGITEMPRICE = "SELECT shoppingItemPrice FROM ShoppingItemPrice shoppingItemPrice";
+	private static final String _SQL_SELECT_SHOPPINGITEMPRICE_WHERE_PKS_IN = "SELECT shoppingItemPrice FROM ShoppingItemPrice shoppingItemPrice WHERE itemPriceId IN (";
 	private static final String _SQL_SELECT_SHOPPINGITEMPRICE_WHERE = "SELECT shoppingItemPrice FROM ShoppingItemPrice shoppingItemPrice WHERE ";
 	private static final String _SQL_COUNT_SHOPPINGITEMPRICE = "SELECT COUNT(shoppingItemPrice) FROM ShoppingItemPrice shoppingItemPrice";
 	private static final String _SQL_COUNT_SHOPPINGITEMPRICE_WHERE = "SELECT COUNT(shoppingItemPrice) FROM ShoppingItemPrice shoppingItemPrice WHERE ";

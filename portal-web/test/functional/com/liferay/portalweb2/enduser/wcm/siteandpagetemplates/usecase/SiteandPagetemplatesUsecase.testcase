@@ -100,8 +100,6 @@
 			<var name="pageName" value="Page2 Name" />
 		</execute>
 
-		<execute action="CPSitetemplates#close" locator1="home - Liferay" />
-
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Sites" />
 		</execute>
@@ -143,8 +141,6 @@
 			<var name="portletName" value="Hello World" />
 		</execute>
 
-		<execute action="CPSitetemplates#close" locator1="home - Liferay" />
-
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="Page1 Name" />
 			<var name="siteName" value="Site Name" />
@@ -161,6 +157,35 @@
 			<var name="permissionFlagged" value="false" />
 			<var name="roleName" value="Guest" />
 		</execute>
+	</command>
+
+	<command name="SiteAdminCannotDeletePagesThatWereCreatedBySiteTemplates" priority="3">
+		<var name="pageNamelist" value="Home,Wiki" />
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="User Groups" />
+		</execute>
+
+		<execute macro="UserGroup#addCP">
+			<var name="selectSiteTemplate" value="true" />
+			<var name="siteTemplateName" value="Community Site" />
+			<var name="userGroupName" value="UG UserGroup Name" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="User Groups" />
+		</execute>
+
+		<execute macro="UserGroup#gotoManageSitePages">
+			<var name="userGroupName" value="UG UserGroup Name" />
+		</execute>
+
+		<for list="${pageNamelist}" param="sitePageName">
+			<execute macro="SitePage#viewNoDeletePagesAssociatedWithSiteTemplateCP">
+				<var name="sitePageName" value="${sitePageName}" />
+				<var name="userGroupName" value="UG UserGroup Name" />
+			</execute>
+		</for>
 	</command>
 
 	<command name="SitesDynamicTemplateInheritance" priority="4">
@@ -187,8 +212,6 @@
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Message Boards" />
 		</execute>
-
-		<execute action="CPSitetemplates#close" locator1="home - Liferay" />
 
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Users and Organizations" />
@@ -741,8 +764,6 @@
 			<var name="portletName" value="Documents and Media" />
 		</execute>
 
-		<execute action="CPSitetemplates#close" locator1="home - Liferay" />
-
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Site Templates" />
 		</execute>
@@ -760,8 +781,6 @@
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Tasks" />
 		</execute>
-
-		<execute action="CPSitetemplates#close" locator1="home - Liferay" />
 
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Users and Organizations" />
@@ -840,8 +859,6 @@
 			<var name="portletName" value="Web Content Display" />
 		</execute>
 
-		<execute action="CPSitetemplates#close" locator1="home - Liferay" />
-
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Site Templates" />
 		</execute>
@@ -860,8 +877,6 @@
 			<var name="permissionFlagged" value="true" />
 			<var name="roleName" value="Guest" />
 		</execute>
-
-		<execute action="CPSitetemplates#close" locator1="home - Liferay" />
 	</command>
 
 	<command name="ViewNoAddPageTabViaPageTemplatesCP" priority="5">

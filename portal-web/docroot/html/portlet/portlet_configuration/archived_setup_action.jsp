@@ -21,21 +21,21 @@ ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_
 
 Object[] objects = (Object[])row.getObject();
 
-PortletItem portletItem = (PortletItem)objects[0];
+ArchivedSettings archivedSettings = (ArchivedSettings)objects[0];
 portletResource = (String)objects[1];
 %>
 
-<liferay-ui:icon-menu>
+<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>">
 	<portlet:actionURL var="restoreURL">
 		<portlet:param name="struts_action" value="/portlet_configuration/edit_archived_setups" />
 		<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RESTORE %>" />
 		<portlet:param name="redirect" value="<%= currentURL %>" />
 		<portlet:param name="portletResource" value="<%= portletResource %>" />
-		<portlet:param name="name" value="<%= portletItem.getName() %>" />
+		<portlet:param name="name" value="<%= archivedSettings.getName() %>" />
 	</portlet:actionURL>
 
 	<liferay-ui:icon
-		image="undo"
+		iconCssClass="icon-undo"
 		message="restore"
 		url="<%= restoreURL %>"
 	/>
@@ -45,7 +45,7 @@ portletResource = (String)objects[1];
 		<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.DELETE %>" />
 		<portlet:param name="redirect" value="<%= currentURL %>" />
 		<portlet:param name="portletResource" value="<%= portletResource %>" />
-		<portlet:param name="portletItemId" value="<%= String.valueOf(portletItem.getPortletItemId()) %>" />
+		<portlet:param name="name" value="<%= archivedSettings.getName() %>" />
 	</portlet:actionURL>
 
 	<liferay-ui:icon-delete

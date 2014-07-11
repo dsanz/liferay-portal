@@ -45,7 +45,7 @@
 </tr>
 <tr>
 	<td>DETAILS</td>
-	<td>//div[@class='accordion-toggle']</td>
+	<td>//div[@class='panel-toggle']</td>
 	<td></td>
 </tr>
 <tr>
@@ -55,7 +55,7 @@
 </tr>
 <tr>
 	<td>STRUCTURE</td>
-	<td>//div[contains(@class,'control-group') and contains(@class,'field-wrapper')]/input</td>
+	<td>//input[@id='_166_structure']</td>
 	<td></td>
 </tr>
 <tr>
@@ -80,7 +80,7 @@
 </tr>
 <tr>
 	<td>CANCEL_BUTTON</td>
-	<td>//button[contains(., 'Cancel')]</td>
+	<td>//a[contains(@class,'btn-cancel')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -91,7 +91,7 @@
 <!--PALETTE-->
 <tr>
 	<td>PALETTE_FIELD</td>
-	<td>//div[@class='palette-section' and contains(.,'Fields')]/ul/li/span[contains(.,'${key_fieldName}')]</td>
+	<td>//div[contains(@class,'palette-section') and contains(.,'Fields')]//ul/li/span[contains(.,'${key_fieldName}')]</td>
 	<td></td>
 </tr>
 <tr>

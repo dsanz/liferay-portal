@@ -52,7 +52,7 @@ List<SocialRequest> requests = (List<SocialRequest>)request.getAttribute(WebKeys
 				<aui:col width="<%= 50 %>">
 					<c:choose>
 						<c:when test="<%= requestFeedEntry == null %>">
-							<div class="alert alert-error">
+							<div class="alert alert-danger">
 								<liferay-ui:message key="request-cannot-be-interpreted-because-it-does-not-have-an-associated-interpreter" />
 							</div>
 						</c:when>
@@ -83,7 +83,7 @@ List<SocialRequest> requests = (List<SocialRequest>)request.getAttribute(WebKeys
 								%>
 
 								<liferay-ui:icon
-									image="activate"
+									iconCssClass="icon-ok-sign"
 									message="confirm"
 									url="<%= portletURL.toString() %>"
 								/>
@@ -93,7 +93,7 @@ List<SocialRequest> requests = (List<SocialRequest>)request.getAttribute(WebKeys
 								%>
 
 								<liferay-ui:icon
-									image="deactivate"
+									iconCssClass="icon-remove-sign"
 									message="ignore"
 									url="<%= portletURL.toString() %>"
 								/>

@@ -29,9 +29,11 @@ import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.scheduler.SchedulerEntry;
 import com.liferay.portal.kernel.scheduler.StorageType;
 import com.liferay.portal.kernel.servlet.DirectServletRegistryUtil;
+import com.liferay.portal.kernel.servlet.FileTimestampUtil;
 import com.liferay.portal.kernel.servlet.PortletServlet;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.servlet.ServletContextProvider;
+import com.liferay.portal.kernel.settings.SettingsFactoryUtil;
 import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
@@ -49,7 +51,6 @@ import com.liferay.portal.model.PortletURLListener;
 import com.liferay.portal.security.permission.ResourceActionsUtil;
 import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.service.ResourceActionLocalServiceUtil;
-import com.liferay.portal.settings.SettingsFactoryUtil;
 import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PropsValues;
@@ -380,7 +381,7 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		JavadocManagerUtil.load(servletContextName, classLoader);
 
 		DirectServletRegistryUtil.clearServlets();
-
+		FileTimestampUtil.reset();
 		SettingsFactoryUtil.clearCache();
 
 		_portlets.put(servletContextName, portlets);

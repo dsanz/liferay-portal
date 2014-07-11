@@ -13,10 +13,10 @@
 		<execute action="PGCalendarAddevent#assertElementPresent" locator-key1="END_DATE" />
 		<execute action="PGCalendarAddevent#assertElementPresent" locator-key1="END_DATE_TIME" />
 
-		<var name="endDate" path="PGCalendarAddevent" locator-key="END_DATE" />
-		<var name="endDateTime" path="PGCalendarAddevent" locator-key="END_DATE_TIME" />
-		<var name="startDate" path="PGCalendarAddevent" locator-key="START_DATE" />
-		<var name="startDateTime" path="PGCalendarAddevent" locator-key="START_DATE_TIME" />
+		<var locator-key="END_DATE" name="endDate" path="PGCalendarAddevent" />
+		<var locator-key="END_DATE_TIME" name="endDateTime" path="PGCalendarAddevent" />
+		<var locator-key="START_DATE" name="startDate" path="PGCalendarAddevent" />
+		<var locator-key="START_DATE_TIME" name="startDateTime" path="PGCalendarAddevent" />
 
 		<execute action="PGCalendarAddevent#check" locator-key1="REPEAT_CHECKBOX" />
 
@@ -60,7 +60,7 @@
 
 		<execute action="PGCalendar#click" locator-key1="SCHEDULER_EVENT_DIALOG_BOX_DELETE_BUTTON" />
 
-		<execute action="PGCalendarDeleteRecurringEvent#click" locator-key1="ONLY_THIS_INSTANCE_BUTTON" />
+		<execute action="PGCalendarRecurringEventDialogBox#click" locator-key1="ONLY_THIS_INSTANCE_BUTTON" />
 
 		<var name="key_eventTitle" value="${eventTitle}" />
 
@@ -90,7 +90,7 @@
 		<execute action="PGCalendar#type" locator-key1="SCHEDULER_EVENT_DIALOG_BOX_EVENT_TITLE" value1="${eventTitle}" />
 		<execute action="PGCalendar#click" locator-key1="SCHEDULER_EVENT_DIALOG_BOX_SAVE_BUTTON" />
 
-		<execute action="PGCalendarDeleteRecurringEvent#click" locator-key1="ONLY_THIS_INSTANCE_BUTTON" />
+		<execute action="PGCalendarRecurringEventDialogBox#click" locator-key1="ONLY_THIS_INSTANCE_BUTTON" />
 
 		<var name="key_eventTitle" value="${eventTitle}" />
 
@@ -98,12 +98,12 @@
 	</command>
 
 	<command name="tearDownPG">
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
 		<if>
-			<condition action="SODashboard#isElementPresent" locator1="//div[@id='content']//li[contains(.,'Calendar')]/a/span" />
+			<condition action="SODashboard#isElementPresent" locator1="//div[@id='navigation']//li[contains(.,'Calendar')]/a/span" />
 			<then>
-				<execute action="SODashboard#click" locator1="//div[@id='content']//li[contains(.,'Calendar')]/a/span" />
+				<execute action="SODashboard#click" locator1="//div[@id='navigation']//li[contains(.,'Calendar')]/a/span" />
 
 				<execute macro="CalendarEvent#tearDownPG" />
 			</then>

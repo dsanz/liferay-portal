@@ -34,12 +34,12 @@ import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.ServiceComponent;
 import com.liferay.portal.model.impl.ServiceComponentModelImpl;
 import com.liferay.portal.service.ServiceComponentLocalServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -50,6 +50,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -99,7 +100,7 @@ public class ServiceComponentPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ServiceComponent serviceComponent = _persistence.create(pk);
 
@@ -126,19 +127,19 @@ public class ServiceComponentPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ServiceComponent newServiceComponent = _persistence.create(pk);
 
-		newServiceComponent.setMvccVersion(ServiceTestUtil.nextLong());
+		newServiceComponent.setMvccVersion(RandomTestUtil.nextLong());
 
-		newServiceComponent.setBuildNamespace(ServiceTestUtil.randomString());
+		newServiceComponent.setBuildNamespace(RandomTestUtil.randomString());
 
-		newServiceComponent.setBuildNumber(ServiceTestUtil.nextLong());
+		newServiceComponent.setBuildNumber(RandomTestUtil.nextLong());
 
-		newServiceComponent.setBuildDate(ServiceTestUtil.nextLong());
+		newServiceComponent.setBuildDate(RandomTestUtil.nextLong());
 
-		newServiceComponent.setData(ServiceTestUtil.randomString());
+		newServiceComponent.setData(RandomTestUtil.randomString());
 
 		_persistence.update(newServiceComponent);
 
@@ -176,7 +177,7 @@ public class ServiceComponentPersistenceTest {
 	public void testCountByBNS_BNU() {
 		try {
 			_persistence.countByBNS_BNU(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByBNS_BNU(StringPool.NULL, 0L);
 
@@ -198,7 +199,7 @@ public class ServiceComponentPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -221,7 +222,7 @@ public class ServiceComponentPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<ServiceComponent> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("ServiceComponent",
 			"mvccVersion", true, "serviceComponentId", true, "buildNamespace",
 			true, "buildNumber", true, "buildDate", true, "data", true);
@@ -238,11 +239,93 @@ public class ServiceComponentPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ServiceComponent missingServiceComponent = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingServiceComponent);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		ServiceComponent newServiceComponent1 = addServiceComponent();
+		ServiceComponent newServiceComponent2 = addServiceComponent();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newServiceComponent1.getPrimaryKey());
+		primaryKeys.add(newServiceComponent2.getPrimaryKey());
+
+		Map<Serializable, ServiceComponent> serviceComponents = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, serviceComponents.size());
+		Assert.assertEquals(newServiceComponent1,
+			serviceComponents.get(newServiceComponent1.getPrimaryKey()));
+		Assert.assertEquals(newServiceComponent2,
+			serviceComponents.get(newServiceComponent2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, ServiceComponent> serviceComponents = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(serviceComponents.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		ServiceComponent newServiceComponent = addServiceComponent();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newServiceComponent.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, ServiceComponent> serviceComponents = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, serviceComponents.size());
+		Assert.assertEquals(newServiceComponent,
+			serviceComponents.get(newServiceComponent.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, ServiceComponent> serviceComponents = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(serviceComponents.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		ServiceComponent newServiceComponent = addServiceComponent();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newServiceComponent.getPrimaryKey());
+
+		Map<Serializable, ServiceComponent> serviceComponents = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, serviceComponents.size());
+		Assert.assertEquals(newServiceComponent,
+			serviceComponents.get(newServiceComponent.getPrimaryKey()));
 	}
 
 	@Test
@@ -293,7 +376,7 @@ public class ServiceComponentPersistenceTest {
 				ServiceComponent.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("serviceComponentId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<ServiceComponent> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -334,7 +417,7 @@ public class ServiceComponentPersistenceTest {
 				"serviceComponentId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("serviceComponentId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -361,19 +444,19 @@ public class ServiceComponentPersistenceTest {
 	}
 
 	protected ServiceComponent addServiceComponent() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ServiceComponent serviceComponent = _persistence.create(pk);
 
-		serviceComponent.setMvccVersion(ServiceTestUtil.nextLong());
+		serviceComponent.setMvccVersion(RandomTestUtil.nextLong());
 
-		serviceComponent.setBuildNamespace(ServiceTestUtil.randomString());
+		serviceComponent.setBuildNamespace(RandomTestUtil.randomString());
 
-		serviceComponent.setBuildNumber(ServiceTestUtil.nextLong());
+		serviceComponent.setBuildNumber(RandomTestUtil.nextLong());
 
-		serviceComponent.setBuildDate(ServiceTestUtil.nextLong());
+		serviceComponent.setBuildDate(RandomTestUtil.nextLong());
 
-		serviceComponent.setData(ServiceTestUtil.randomString());
+		serviceComponent.setData(RandomTestUtil.randomString());
 
 		_persistence.update(serviceComponent);
 

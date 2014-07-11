@@ -16,6 +16,7 @@ package com.liferay.portal.kernel.lar;
 
 import aQute.bnd.annotation.ProviderType;
 
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.DateRange;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -88,15 +89,22 @@ public class ExportImportDateUtil {
 	}
 
 	public static DateRange getDateRange(
-			ExportImportConfiguration configuration)
-		throws Exception {
+			ExportImportConfiguration configuration, String defaultRange)
+		throws PortalException {
 
 		Map<String, Serializable> settingsMap = configuration.getSettingsMap();
+
+		Date startDate = (Date)settingsMap.get("startDate");
+		Date endDate = (Date)settingsMap.get("endDate");
+
+		if ((startDate != null) && (endDate != null)) {
+			return new DateRange(startDate, endDate);
+		}
 
 		Map<String, String[]> parameterMap =
 			(Map<String, String[]>)settingsMap.get("parameterMap");
 
-		String range = MapUtil.getString(parameterMap, "range");
+		String range = MapUtil.getString(parameterMap, "range", defaultRange);
 		int rangeLast = MapUtil.getInteger(parameterMap, "last");
 		int startDateAmPm = MapUtil.getInteger(parameterMap, "startDateAmPm");
 		int startDateYear = MapUtil.getInteger(parameterMap, "startDateYear");
@@ -125,20 +133,21 @@ public class ExportImportDateUtil {
 			null, groupId, 0, privateLayout, locale, timeZone);
 	}
 
-	public static DateRange getDateRange(long configurationId)
-		throws Exception {
+	public static DateRange getDateRange(
+			long configurationId, String defaultRange)
+		throws PortalException {
 
 		ExportImportConfiguration exportImportConfiguration =
 			ExportImportConfigurationLocalServiceUtil.
 				getExportImportConfiguration(configurationId);
 
-		return getDateRange(exportImportConfiguration);
+		return getDateRange(exportImportConfiguration, defaultRange);
 	}
 
 	public static DateRange getDateRange(
 			PortletRequest portletRequest, long groupId, boolean privateLayout,
 			long plid, String portletId, String defaultRange)
-		throws Exception {
+		throws PortalException {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -207,7 +216,7 @@ public class ExportImportDateUtil {
 			int endDateMonth, int endDateDay, int endDateHour,
 			int endDateMinute, String portletId, long groupId, long plid,
 			boolean privateLayout, Locale locale, TimeZone timeZone)
-		throws Exception {
+		throws PortalException {
 
 		Date startDate = null;
 		Date endDate = null;

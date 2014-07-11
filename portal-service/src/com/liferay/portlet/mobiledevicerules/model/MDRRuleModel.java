@@ -18,9 +18,9 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.LocalizedModel;
 import com.liferay.portal.model.StagedGroupedModel;
 import com.liferay.portal.service.ServiceContext;
 
@@ -46,7 +46,8 @@ import java.util.Map;
  * @generated
  */
 @ProviderType
-public interface MDRRuleModel extends BaseModel<MDRRule>, StagedGroupedModel {
+public interface MDRRuleModel extends BaseModel<MDRRule>, LocalizedModel,
+	StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -150,10 +151,9 @@ public interface MDRRuleModel extends BaseModel<MDRRule>, StagedGroupedModel {
 	 * Returns the user uuid of this m d r rule.
 	 *
 	 * @return the user uuid of this m d r rule
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public String getUserUuid() throws SystemException;
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this m d r rule.
@@ -489,12 +489,16 @@ public interface MDRRuleModel extends BaseModel<MDRRule>, StagedGroupedModel {
 	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public String[] getAvailableLanguageIds();
 
+	@Override
 	public String getDefaultLanguageId();
 
+	@Override
 	public void prepareLocalizedFieldsForImport() throws LocaleException;
 
+	@Override
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 

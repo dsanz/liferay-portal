@@ -17,7 +17,7 @@
 <%@ include file="/html/portlet/bookmarks/init.jsp" %>
 
 <%
-bookmarksSettings = BookmarksUtil.getBookmarksSettings(scopeGroupId, request);
+bookmarksSettings = BookmarksSettings.getInstance(scopeGroupId, request.getParameterMap());
 
 try {
 	BookmarksFolder rootFolder = BookmarksFolderLocalServiceUtil.getFolder(rootFolderId);
@@ -77,7 +77,7 @@ catch (NoSuchFolderException nsfe) {
 			<liferay-ui:email-notification-settings
 				emailBody="<%= bookmarksSettings.getEmailEntryAddedBodyXml() %>"
 				emailDefinitionTerms="<%= emailDefinitionTerms %>"
-				emailEnabled="<%= bookmarksSettings.getEmailEntryAddedEnabled() %>"
+				emailEnabled="<%= bookmarksSettings.isEmailEntryAddedEnabled() %>"
 				emailParam="emailEntryAdded"
 				emailSubject="<%= bookmarksSettings.getEmailEntryAddedSubjectXml() %>"
 			/>
@@ -87,7 +87,7 @@ catch (NoSuchFolderException nsfe) {
 			<liferay-ui:email-notification-settings
 				emailBody="<%= bookmarksSettings.getEmailEntryUpdatedBodyXml() %>"
 				emailDefinitionTerms="<%= emailDefinitionTerms %>"
-				emailEnabled="<%= bookmarksSettings.getEmailEntryUpdatedEnabled() %>"
+				emailEnabled="<%= bookmarksSettings.isEmailEntryUpdatedEnabled() %>"
 				emailParam="emailEntryUpdated"
 				emailSubject="<%= bookmarksSettings.getEmailEntryUpdatedSubjectXml() %>"
 			/>

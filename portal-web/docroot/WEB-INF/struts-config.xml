@@ -35,8 +35,6 @@
 
 		<action path="/portal/extend_session" forward="/portal/extend_session.jsp" />
 
-		<action path="/portal/fckeditor" type="com.liferay.portal.editor.fckeditor.ConnectorAction" />
-
 		<action path="/portal/flash" forward="/portal/flash.jsp" />
 
 		<action path="/portal/j_login" forward="/portal/j_login.jsp" />
@@ -287,17 +285,23 @@
 			<forward name="portlet.asset_publisher.view" path="portlet.asset_publisher.view" />
 		</action>
 
-		<action path="/asset_publisher/view_content" forward="portlet.asset_publisher.view_content" />
+		<action path="/asset_publisher/view_content" type="com.liferay.portlet.assetpublisher.action.ViewContentAction">
+			<forward name="portlet.asset_publisher.view_content" path="portlet.asset_publisher.view_content" />
+		</action>
 
 		<!-- Asset Tag Admin -->
 
 		<action path="/asset_tag_admin/edit_tag" type="com.liferay.portlet.assettagadmin.action.EditTagAction">
 			<forward name="portlet.asset_tag_admin.edit_tag" path="portlet.asset_tag_admin.edit_tag" />
+			<forward name="portlet.asset_tag_admin.error" path="portlet.asset_tag_admin.error" />
+		</action>
+
+		<action path="/asset_tag_admin/merge_tag" type="com.liferay.portlet.assettagadmin.action.EditTagAction">
+			<forward name="portlet.asset_tag_admin.edit_tag" path="portlet.asset_tag_admin.merge_tag" />
+			<forward name="portlet.asset_tag_admin.error" path="portlet.asset_tag_admin.error" />
 		</action>
 
 		<action path="/asset_tag_admin/view" forward="portlet.asset_tag_admin.view" />
-
-		<action path="/asset_tag_admin/view_tag" forward="portlet.asset_tag_admin.view_tag" />
 
 		<!-- Asset Tags Cloud -->
 
@@ -581,11 +585,20 @@
 			<forward name="portlet.document_library.view" path="portlet.document_library_display.view" />
 		</action>
 
+		<!-- Document Selector -->
+
+		<action path="/document_selector/add_file_entry" type="com.liferay.portlet.documentselector.action.EditFileEntryAction">
+			<forward name="portlet.document_selector.add_file_entry" path="portlet.document_selector.add_file_entry" />
+		</action>
+
+		<action path="/document_selector/view" forward="portlet.document_selector.view" />
+
 		<!-- Dynamic Data List Display -->
 
 		<action path="/dynamic_data_list_display/edit_record" type="com.liferay.portlet.dynamicdatalists.action.EditRecordAction">
 			<forward name="portlet.dynamic_data_lists.edit_record" path="portlet.dynamic_data_lists.edit_record" />
 			<forward name="portlet.dynamic_data_lists.error" path="portlet.dynamic_data_lists.error" />
+			<forward name="portlet.dynamic_data_lists.update_translation_redirect" path="portlet.dynamic_data_lists.update_translation_redirect" />
 		</action>
 
 		<action path="/dynamic_data_list_display/view" forward="portlet.dynamic_data_list_display.view" />
@@ -610,6 +623,7 @@
 		<action path="/dynamic_data_lists/edit_record" type="com.liferay.portlet.dynamicdatalists.action.EditRecordAction">
 			<forward name="portlet.dynamic_data_lists.edit_record" path="portlet.dynamic_data_lists.edit_record" />
 			<forward name="portlet.dynamic_data_lists.error" path="portlet.dynamic_data_lists.error" />
+			<forward name="portlet.dynamic_data_lists.update_translation_redirect" path="portlet.dynamic_data_lists.update_translation_redirect" />
 		</action>
 
 		<action path="/dynamic_data_lists/edit_record_file" type="com.liferay.portlet.dynamicdatalists.action.EditRecordFileAction" />
@@ -899,15 +913,16 @@
 
 		<action path="/journal/rss" type="com.liferay.portlet.journal.action.RSSAction" />
 
-		<action path="/journal/search" type="com.liferay.portlet.journal.action.SearchAction">
-			<forward name="portlet.journal.view" path="portlet.journal.view" />
-		</action>
-
 		<action path="/journal/select_display_page" type="com.liferay.portlet.layoutsadmin.action.EditLayoutsAction" />
 
 		<action path="/journal/select_folder" type="com.liferay.portlet.journal.action.EditFolderAction">
 			<forward name="portlet.journal.edit_folder" path="portlet.journal.select_folder" />
 			<forward name="portlet.journal.error" path="portlet.journal.error" />
+		</action>
+
+		<action path="/journal/select_version" type="com.liferay.portlet.journal.action.ViewAction">
+			<forward name="portlet.journal.error" path="portlet.journal.error" />
+			<forward name="portlet.journal.view" path="portlet.journal.select_version" />
 		</action>
 
 		<action path="/journal/view" type="com.liferay.portlet.journal.action.ViewAction">
@@ -1654,6 +1669,16 @@
 		<action path="/recent_documents/get_file" type="com.liferay.portlet.documentlibrary.action.GetFileAction" />
 
 		<action path="/recent_documents/view" forward="portlet.recent_documents.view" />
+
+		<!-- Related Assets -->
+
+		<action path="/related_assets/view" type="com.liferay.portlet.relatedassets.action.ViewAction">
+			<forward name="portlet.asset_publisher.view" path="portlet.asset_publisher.view" />
+		</action>
+
+		<action path="/related_assets/view_content" type="com.liferay.portlet.relatedassets.action.ViewContentAction">
+			<forward name="portlet.asset_publisher.view_content" path="portlet.asset_publisher.view_content" />
+		</action>
 
 		<!-- Requests -->
 

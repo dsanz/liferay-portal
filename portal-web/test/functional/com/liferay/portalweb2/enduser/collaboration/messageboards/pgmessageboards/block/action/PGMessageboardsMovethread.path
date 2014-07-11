@@ -40,7 +40,7 @@
 </tr>
 <tr>
 	<td>CANCEL_BUTTON</td>
-	<td>//button[@class='btn btn-cancel']</td>
+	<td>//a[contains(@class,'btn-cancel')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -51,7 +51,7 @@
 <!--ADD_EXPLANATION_POST-->
 <tr>
 	<td>ADD_EXPLANATION_POST_CHECKBOX</td>
-	<td>//input[contains(@id,'addExplanationPostCheckbox')]</td>
+	<td>//input[contains(@id,'addExplanationPost')]</td>
 	<td></td>
 </tr>
 <tr>

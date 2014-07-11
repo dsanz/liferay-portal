@@ -27,7 +27,7 @@ Format timeFormat = FastDateFormatFactoryUtil.getSimpleDateFormat("HH:mm", local
 %>
 
 <c:if test="<%= !orgLabors.isEmpty() %>">
-	<h3><liferay-ui:message key="services" /></h3>
+	<h3 class="icon-cogs"><liferay-ui:message key="services" /></h3>
 
 	<%
 	Calendar cal = CalendarFactoryUtil.getCalendar();
@@ -52,7 +52,7 @@ Format timeFormat = FastDateFormatFactoryUtil.getSimpleDateFormat("HH:mm", local
 
 		<ul class="property-list">
 			<li>
-				<h4><%= LanguageUtil.get(pageContext,ListTypeServiceUtil.getListType(orgLabor.getTypeId()).getName()) %></h4>
+				<h4><%= LanguageUtil.get(request,ListTypeServiceUtil.getListType(orgLabor.getTypeId()).getName()) %></h4>
 
 				<table border="1" class="org-labor-table">
 				<tr>
@@ -63,7 +63,7 @@ Format timeFormat = FastDateFormatFactoryUtil.getSimpleDateFormat("HH:mm", local
 					%>
 
 						<th>
-							<label><liferay-ui:message key="<%= day %>" /></label>
+							<label><%= day %></label>
 						</th>
 
 					<%

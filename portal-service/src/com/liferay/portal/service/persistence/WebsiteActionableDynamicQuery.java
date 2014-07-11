@@ -15,20 +15,19 @@
 package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.model.Website;
 import com.liferay.portal.service.WebsiteLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link WebsiteLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link WebsiteLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class WebsiteActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public WebsiteActionableDynamicQuery() throws SystemException {
+	public WebsiteActionableDynamicQuery() {
 		setBaseLocalService(WebsiteLocalServiceUtil.getService());
 		setClass(Website.class);
 

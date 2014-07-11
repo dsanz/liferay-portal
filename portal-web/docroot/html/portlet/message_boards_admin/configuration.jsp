@@ -17,10 +17,8 @@
 <%@ include file="/html/portlet/message_boards/init.jsp" %>
 
 <%
-mbSettings = MBUtil.getMBSettings(themeDisplay.getSiteGroupId(), request);
+mbSettings = MBSettings.getInstance(themeDisplay.getSiteGroupId(), request.getParameterMap());
 %>
-
-<liferay-portlet:renderURL portletConfiguration="<%= true %>" var="portletURL" />
 
 <liferay-portlet:actionURL portletConfiguration="<%= true %>" var="configurationActionURL">
 	<portlet:param name="serviceName" value="<%= MBConstants.SERVICE_NAME %>" />
@@ -66,7 +64,7 @@ mbSettings = MBUtil.getMBSettings(themeDisplay.getSiteGroupId(), request);
 					%>
 
 						<c:if test="<%= MBUtil.isValidMessageFormat(MBMessageConstants.FORMATS[i]) %>">
-							<aui:option label='<%= LanguageUtil.get(pageContext,"message-boards.message-formats." + MBMessageConstants.FORMATS[i]) %>' selected="<%= messageFormat.equals(MBMessageConstants.FORMATS[i]) %>" value="<%= MBMessageConstants.FORMATS[i] %>" />
+							<aui:option label='<%= LanguageUtil.get(request,"message-boards.message-formats." + MBMessageConstants.FORMATS[i]) %>' selected="<%= messageFormat.equals(MBMessageConstants.FORMATS[i]) %>" value="<%= MBMessageConstants.FORMATS[i] %>" />
 						</c:if>
 
 					<%
@@ -82,10 +80,10 @@ mbSettings = MBUtil.getMBSettings(themeDisplay.getSiteGroupId(), request);
 				<aui:input name="preferences--threadAsQuestionByDefault--" type="checkbox" value="<%= threadAsQuestionByDefault %>" />
 
 				<aui:select label="show-recent-posts-from-last" name="preferences--recentPostsDateOffset--" value="<%= recentPostsDateOffset %>">
-					<aui:option label='<%= LanguageUtil.format(pageContext, "x-hours", "24", false) %>' value="1" />
-					<aui:option label='<%= LanguageUtil.format(pageContext, "x-days", "7", false) %>' value="7" />
-					<aui:option label='<%= LanguageUtil.format(pageContext, "x-days", "30", false) %>' value="30" />
-					<aui:option label='<%= LanguageUtil.format(pageContext, "x-days", "365", false) %>' value="365" />
+					<aui:option label='<%= LanguageUtil.format(request, "x-hours", "24", false) %>' value="1" />
+					<aui:option label='<%= LanguageUtil.format(request, "x-days", "7", false) %>' value="7" />
+					<aui:option label='<%= LanguageUtil.format(request, "x-days", "30", false) %>' value="30" />
+					<aui:option label='<%= LanguageUtil.format(request, "x-days", "365", false) %>' value="365" />
 				</aui:select>
 			</aui:fieldset>
 		</liferay-ui:section>
@@ -157,9 +155,7 @@ mbSettings = MBUtil.getMBSettings(themeDisplay.getSiteGroupId(), request);
 			<table class="lfr-table">
 			<tr>
 				<td>
-					<aui:field-wrapper label="default-language">
-						<liferay-ui:input-resource url="<%= defaultLocale.getDisplayName(defaultLocale) %>" />
-					</aui:field-wrapper>
+					<aui:input name="defaultLanguage" type="resource" value="<%= defaultLocale.getDisplayName(defaultLocale) %>" />
 				</td>
 				<td>
 					<aui:select label="localized-language" name="prioritiesLanguageId" onClick='<%= renderResponse.getNamespace() + "updatePrioritiesLanguage();" %>' showEmptyOption="<%= true %>">
@@ -227,13 +223,13 @@ mbSettings = MBUtil.getMBSettings(themeDisplay.getSiteGroupId(), request);
 
 						<tr>
 							<td>
-								<aui:input hideLabel="<%= true %>" label="priority-name" name='<%= "priorityName" + i + "_" + defaultLanguageId %>' size="15" value="<%= name %>" />
+								<aui:input label="" name='<%= "priorityName" + i + "_" + defaultLanguageId %>' size="15" title="priority-name" value="<%= name %>" />
 							</td>
 							<td>
-								<aui:input hideLabel="<%= true %>" label="priority-image" name='<%= "priorityImage" + i + "_" + defaultLanguageId %>' size="40" value="<%= image %>" />
+								<aui:input label="" name='<%= "priorityImage" + i + "_" + defaultLanguageId %>' size="40" title="priority-image" value="<%= image %>" />
 							</td>
 							<td>
-								<aui:input hideLabel="<%= true %>" label="priority-value" name='<%= "priorityValue" + i + "_" + defaultLanguageId %>' size="4" value="<%= value %>" />
+								<aui:input label="" name='<%= "priorityValue" + i + "_" + defaultLanguageId %>' size="4" title="priority-value" value="<%= value %>" />
 							</td>
 						</tr>
 
@@ -263,13 +259,13 @@ mbSettings = MBUtil.getMBSettings(themeDisplay.getSiteGroupId(), request);
 
 						<tr>
 							<td>
-								<aui:input hideLabel="<%= true %>" label="priority-name" name='<%= "priorityName" + i + "_temp" %>' onChange='<%= renderResponse.getNamespace() + "onPrioritiesChanged();" %>' size="15" />
+								<aui:input label="" name='<%= "priorityName" + i + "_temp" %>' onChange='<%= renderResponse.getNamespace() + "onPrioritiesChanged();" %>' size="15" title="priority-name" />
 							</td>
 							<td>
-								<aui:input hideLabel="<%= true %>" label="priority-image" name='<%= "priorityImage" + i + "_temp" %>' onChange='<%= renderResponse.getNamespace() + "onPrioritiesChanged();" %>' size="40" />
+								<aui:input label="" name='<%= "priorityImage" + i + "_temp" %>' onChange='<%= renderResponse.getNamespace() + "onPrioritiesChanged();" %>' size="40" title="priority-image" />
 							</td>
 							<td>
-								<aui:input hideLabel="<%= true %>" label="priority-value" name='<%= "priorityValue" + i + "_temp" %>' onChange='<%= renderResponse.getNamespace() + "onPrioritiesChanged();" %>' size="4" />
+								<aui:input label="" name='<%= "priorityValue" + i + "_temp" %>' onChange='<%= renderResponse.getNamespace() + "onPrioritiesChanged();" %>' size="4" title="priority-value" />
 							</td>
 						</tr>
 
@@ -326,7 +322,7 @@ mbSettings = MBUtil.getMBSettings(themeDisplay.getSiteGroupId(), request);
 
 			<aui:script>
 				var prioritiesChanged = false;
-				var prioritiesLastLanguageId = "<%= currentLanguageId %>";
+				var prioritiesLastLanguageId = '<%= currentLanguageId %>';
 
 				function <portlet:namespace />onPrioritiesChanged() {
 					prioritiesChanged = true;
@@ -414,9 +410,7 @@ mbSettings = MBUtil.getMBSettings(themeDisplay.getSiteGroupId(), request);
 				<table class="lfr-table">
 				<tr>
 					<td class="lfr-label">
-						<aui:field-wrapper label="default-language">
-							<liferay-ui:input-resource url="<%= defaultLocale.getDisplayName(defaultLocale) %>" />
-						</aui:field-wrapper>
+						<aui:input name="defaultLanguage" type="resource" value="<%= defaultLocale.getDisplayName(defaultLocale) %>" />
 					</td>
 					<td class="lfr-label">
 						<aui:select label="localized-language" name="ranksLanguageId" onChange='<%= renderResponse.getNamespace() + "updateRanksLanguage();" %>' showEmptyOption="<%= true %>">
@@ -439,7 +433,7 @@ mbSettings = MBUtil.getMBSettings(themeDisplay.getSiteGroupId(), request);
 				</tr>
 				<tr>
 					<td>
-						<aui:input cssClass="lfr-textarea-container" hideLabel="<%= true %>" label="ranks" name='<%= "ranks_" + defaultLanguageId %>' type="textarea" value="<%= StringUtil.merge(mbSettings.getRanks(defaultLanguageId), StringPool.NEW_LINE) %>" />
+						<aui:input cssClass="lfr-textarea-container" label="" name='<%= "ranks_" + defaultLanguageId %>' title="ranks" type="textarea" value="<%= StringUtil.merge(mbSettings.getRanks(defaultLanguageId), StringPool.NEW_LINE) %>" />
 					</td>
 					<td>
 
@@ -456,7 +450,7 @@ mbSettings = MBUtil.getMBSettings(themeDisplay.getSiteGroupId(), request);
 						}
 						%>
 
-						<aui:input cssClass="lfr-textarea-container" hideLabel="<%= true %>" label="ranks" name="ranks_temp" onChange='<%= renderResponse.getNamespace() + "onRanksChanged();" %>' type="textarea" />
+						<aui:input cssClass="lfr-textarea-container" label="" name="ranks_temp" onChange='<%= renderResponse.getNamespace() + "onRanksChanged();" %>' title="ranks" type="textarea" />
 					</td>
 				</tr>
 				</table>

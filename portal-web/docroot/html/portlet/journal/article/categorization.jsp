@@ -27,6 +27,8 @@ if (Validator.isNull(type)) {
 	type = "general";
 }
 
+DDMStructure ddmStructure = (DDMStructure)request.getAttribute("edit_article.jsp-structure");
+
 String toLanguageId = (String)request.getAttribute("edit_article.jsp-toLanguageId");
 %>
 
@@ -66,18 +68,16 @@ String toLanguageId = (String)request.getAttribute("edit_article.jsp-toLanguageI
 		classPK = article.getResourcePrimKey();
 
 		if (!article.isApproved() && (article.getVersion() != JournalArticleConstants.VERSION_DEFAULT)) {
-			try {
-				AssetEntryLocalServiceUtil.getEntry(JournalArticle.class.getName(), article.getPrimaryKey());
+			AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(JournalArticle.class.getName(), article.getPrimaryKey());
 
+			if (assetEntry != null) {
 				classPK = article.getPrimaryKey();
-			}
-			catch (NoSuchEntryException nsee) {
 			}
 		}
 	}
 	%>
 
-	<aui:input classPK="<%= classPK %>" name="categories" type="assetCategories" />
+	<aui:input classPK="<%= classPK %>" classTypePK="<%= ddmStructure.getStructureId() %>" name="categories" type="assetCategories" />
 
 	<aui:input classPK="<%= classPK %>" name="tags" type="assetTags" />
 </aui:fieldset>

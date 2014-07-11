@@ -16,7 +16,6 @@ package com.liferay.portal.util;
 
 import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.webdav.methods.Method;
@@ -31,14 +30,16 @@ import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.LayoutServiceUtil;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.UserGroupLocalServiceUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
+import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.journal.model.JournalArticleConstants;
 import com.liferay.portlet.journal.model.JournalFolderConstants;
-import com.liferay.portlet.journal.util.JournalTestUtil;
+import com.liferay.portlet.journal.util.test.JournalTestUtil;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -53,34 +54,30 @@ import org.springframework.mock.web.MockHttpServletRequest;
 /**
  * @author Vilmos Papp
  */
-@ExecutionTestListeners(
-	listeners = {
-		EnvironmentExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class PortalImplActualURLTest {
 
 	@Test
 	public void testChildLayoutFriendlyURL() throws Exception {
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext();
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
 
 		UserGroup userGroup = UserGroupLocalServiceUtil.addUserGroup(
 			TestPropsValues.getUserId(), TestPropsValues.getCompanyId(),
-			"Test " + ServiceTestUtil.nextInt(), StringPool.BLANK,
+			"Test " + RandomTestUtil.nextInt(), StringPool.BLANK,
 			serviceContext);
 
-		Group group = userGroup.getGroup();
+		_group = userGroup.getGroup();
 
 		Layout homeLayout = LayoutLocalServiceUtil.addLayout(
-			serviceContext.getUserId(), group.getGroupId(), true,
+			serviceContext.getUserId(), _group.getGroupId(), true,
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, "Home", StringPool.BLANK,
 			StringPool.BLANK, LayoutConstants.TYPE_PORTLET, false,
 			StringPool.BLANK, serviceContext);
 
 		LayoutLocalServiceUtil.addLayout(
-			serviceContext.getUserId(), group.getGroupId(), true,
+			serviceContext.getUserId(), _group.getGroupId(), true,
 			homeLayout.getLayoutId(), "Child Layout", StringPool.BLANK,
 			StringPool.BLANK, LayoutConstants.TYPE_PORTLET, false,
 			StringPool.BLANK, serviceContext);
@@ -103,32 +100,31 @@ public class PortalImplActualURLTest {
 		}
 		catch (NoSuchLayoutException nsle) {
 		}
-
-		UserGroupLocalServiceUtil.deleteUserGroup(userGroup);
 	}
 
 	@Test
 	public void testJournalArticleFriendlyURL() throws Exception {
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext();
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
 
-		Group group = GroupLocalServiceUtil.addGroup(
+		_group = GroupLocalServiceUtil.addGroup(
 			TestPropsValues.getUserId(), GroupConstants.DEFAULT_PARENT_GROUP_ID,
 			StringPool.BLANK, 0, GroupConstants.DEFAULT_LIVE_GROUP_ID,
-			"Test " + ServiceTestUtil.nextInt(), StringPool.BLANK,
+			"Test " + RandomTestUtil.nextInt(), StringPool.BLANK,
 			GroupConstants.TYPE_SITE_OPEN, true,
 			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, StringPool.BLANK,
 			true, true, serviceContext);
 
 		LayoutLocalServiceUtil.addLayout(
-			TestPropsValues.getUserId(), group.getGroupId(), false,
+			TestPropsValues.getUserId(), _group.getGroupId(), false,
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, "Home", StringPool.BLANK,
 			StringPool.BLANK, LayoutConstants.TYPE_PORTLET, false,
 			StringPool.BLANK, serviceContext);
 
 		Layout layout = LayoutLocalServiceUtil.addLayout(
-			TestPropsValues.getUserId(), group.getGroupId(), false,
+			TestPropsValues.getUserId(), _group.getGroupId(), false,
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
-			"Test " + ServiceTestUtil.nextInt(), StringPool.BLANK,
+			"Test " + RandomTestUtil.nextInt(), StringPool.BLANK,
 			StringPool.BLANK, LayoutConstants.TYPE_PORTLET, false,
 			StringPool.BLANK, serviceContext);
 
@@ -156,13 +152,14 @@ public class PortalImplActualURLTest {
 		contentMap.put(LocaleUtil.US, "This test content is in English.");
 
 		JournalTestUtil.addArticle(
-			group.getGroupId(), JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			JournalArticleConstants.CLASSNAME_ID_DEFAULT, titleMap, titleMap,
 			contentMap, layout.getUuid(), LocaleUtil.US, null, false, false,
 			serviceContext);
 
 		String actualURL = PortalUtil.getActualURL(
-			group.getGroupId(), false, Portal.PATH_MAIN,
+			_group.getGroupId(), false, Portal.PATH_MAIN,
 			"/-/test-journal-article", new HashMap<String, String[]>(),
 			getRequestContext());
 
@@ -170,7 +167,7 @@ public class PortalImplActualURLTest {
 
 		try {
 			PortalUtil.getActualURL(
-				group.getGroupId(), false, Portal.PATH_MAIN,
+				_group.getGroupId(), false, Portal.PATH_MAIN,
 				"/-/non-existing-test-journal-article",
 				new HashMap<String, String[]>(), getRequestContext());
 
@@ -178,8 +175,6 @@ public class PortalImplActualURLTest {
 		}
 		catch (NoSuchLayoutException nsle) {
 		}
-
-		GroupLocalServiceUtil.deleteGroup(group);
 	}
 
 	protected Map<String, Object> getRequestContext() {
@@ -192,5 +187,8 @@ public class PortalImplActualURLTest {
 
 		return requestContext;
 	}
+
+	@DeleteAfterTestRun
+	private Group _group;
 
 }

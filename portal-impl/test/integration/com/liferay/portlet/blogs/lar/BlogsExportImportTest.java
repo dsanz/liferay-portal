@@ -15,22 +15,19 @@
 package com.liferay.portlet.blogs.lar;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.lar.BasePortletExportImportTestCase;
 import com.liferay.portal.model.StagedModel;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.test.TransactionalCallbackAwareExecutionTestListener;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
-import com.liferay.portlet.blogs.util.BlogsTestUtil;
+import com.liferay.portlet.blogs.util.test.BlogsTestUtil;
 
 import java.util.Map;
 
@@ -42,12 +39,10 @@ import org.junit.runner.RunWith;
 @ExecutionTestListeners(
 	listeners = {
 		MainServletExecutionTestListener.class,
-		SynchronousDestinationExecutionTestListener.class,
-		TransactionalCallbackAwareExecutionTestListener.class
+		SynchronousDestinationExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 @Sync
-@Transactional
 public class BlogsExportImportTest extends BasePortletExportImportTestCase {
 
 	@Override
@@ -63,8 +58,8 @@ public class BlogsExportImportTest extends BasePortletExportImportTestCase {
 	@Override
 	protected StagedModel addStagedModel(long groupId) throws Exception {
 		return BlogsTestUtil.addEntry(
-			TestPropsValues.getUserId(), groupId,
-			ServiceTestUtil.randomString(), true);
+			TestPropsValues.getUserId(), groupId, RandomTestUtil.randomString(),
+			true);
 	}
 
 	@Override
@@ -94,7 +89,7 @@ public class BlogsExportImportTest extends BasePortletExportImportTestCase {
 
 	@Override
 	protected StagedModel getStagedModel(String uuid, long groupId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return BlogsEntryLocalServiceUtil.getBlogsEntryByUuidAndGroupId(
 			uuid, groupId);

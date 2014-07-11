@@ -157,6 +157,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CONTENT_PERMISSIONS_ADD_RECORD_CHECKBOX</td>
+	<td>//input[@id='${key_roleName}_ACTION_ADD_RECORD']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CONTENT_PERMISSIONS_ADD_PAGE_CHECKBOX</td>
 	<td>//input[@id='${key_roleName}_ACTION_ADD_LAYOUT']</td>
 	<td></td>
@@ -202,6 +207,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CONTENT_PERMISSIONS_PREFERENCES_CHECKBOX</td>
+	<td>//input[@id='${key_roleName}_ACTION_PREFERENCES']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CONTENT_PERMISSIONS_UPDATE_CHECKBOX</td>
 	<td>//input[@id='${key_roleName}_ACTION_UPDATE']</td>
 	<td></td>
@@ -222,6 +232,11 @@
 	<td></td>
 </tr>
 <!--EVENT_PERMISSIONS-->
+<tr>
+	<td>EVENT_PERMISSIONS_VIEW_CHECKBOX</td>
+	<td>//input[@id='${key_roleName}_ACTION_VIEW']</td>
+	<td></td>
+</tr>
 <tr>
 	<td>EVENT_PERMISSIONS_VIEW_EVENT_DETAILS_CHECKBOX</td>
 	<td>//input[@id='${key_roleName}_ACTION_VIEW_BOOKING_DETAILS']</td>

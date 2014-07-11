@@ -19,6 +19,7 @@
 <%
 String tabs1 = ParamUtil.getString(request, "tabs1", "templates");
 
+long groupId = ParamUtil.getLong(request, "groupId", themeDisplay.getSiteGroupId());
 long classNameId = ParamUtil.getLong(request, "classNameId");
 long classPK = ParamUtil.getLong(request, "classPK");
 
@@ -83,7 +84,7 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, templat
 		orderByType = portalPreferences.getValue(PortletKeys.DYNAMIC_DATA_MAPPING, "entries-order-by-type", "asc");
 	}
 
-	OrderByComparator orderByComparator = DDMUtil.getTemplateOrderByComparator(orderByCol, orderByType);
+	OrderByComparator<DDMTemplate> orderByComparator = DDMUtil.getTemplateOrderByComparator(orderByCol, orderByType);
 	%>
 
 	<liferay-ui:search-container
@@ -100,6 +101,7 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, templat
 
 		<liferay-util:include page="/html/portlet/dynamic_data_mapping/template_toolbar.jsp">
 			<liferay-util:param name="redirect" value="<%= currentURL %>" />
+			<liferay-util:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 			<liferay-util:param name="classNameId" value="<%= String.valueOf(classNameId) %>" />
 			<liferay-util:param name="classPK" value="<%= String.valueOf(classPK) %>" />
 		</liferay-util:include>
@@ -152,7 +154,7 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, templat
 				<liferay-ui:search-container-column-text
 					href="<%= rowHREF %>"
 					name="name"
-					value="<%= HtmlUtil.escape(LanguageUtil.get(pageContext, template.getName(locale))) %>"
+					value="<%= HtmlUtil.escape(LanguageUtil.get(request, template.getName(locale))) %>"
 				/>
 			</c:if>
 
@@ -192,7 +194,7 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, templat
 				<liferay-ui:search-container-column-text
 					href="<%= rowHREF %>"
 					name="mode"
-					value="<%= LanguageUtil.get(pageContext, template.getMode()) %>"
+					value="<%= LanguageUtil.get(request, template.getMode()) %>"
 				/>
 			</c:if>
 
@@ -200,7 +202,19 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, templat
 				<liferay-ui:search-container-column-text
 					href="<%= rowHREF %>"
 					name="language"
-					value='<%= LanguageUtil.get(pageContext, template.getLanguage() + "[stands-for]") %>'
+					value='<%= LanguageUtil.get(request, template.getLanguage() + "[stands-for]") %>'
+				/>
+			</c:if>
+
+			<c:if test='<%= !excludedColumnNames.contains("scope") %>'>
+
+				<%
+				Group group = GroupLocalServiceUtil.getGroup(template.getGroupId());
+				%>
+
+				<liferay-ui:search-container-column-text
+					name="scope"
+					value="<%= LanguageUtil.get(request, group.getScopeLabel(themeDisplay)) %>"
 				/>
 			</c:if>
 
@@ -216,6 +230,7 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, templat
 
 			<liferay-ui:search-container-column-jsp
 				align="right"
+				cssClass="entry-action"
 				path="/html/portlet/dynamic_data_mapping/template_action.jsp"
 			/>
 		</liferay-ui:search-container-row>
@@ -240,7 +255,7 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, templat
 			{
 				id: '<portlet:namespace />copyTemplate',
 				refreshWindow: window,
-				title: '<%= UnicodeLanguageUtil.get(pageContext, "copy-template") %>',
+				title: '<%= UnicodeLanguageUtil.get(request, "copy-template") %>',
 				uri: uri
 			}
 		);
@@ -250,12 +265,12 @@ String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, templat
 		window,
 		'<portlet:namespace />deleteTemplates',
 		function() {
-			if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-delete-this") %>')) {
-				document.<portlet:namespace />fm.method = "post";
-				document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
+			if (confirm('<%= UnicodeLanguageUtil.get(request, "are-you-sure-you-want-to-delete-this") %>')) {
+				document.<portlet:namespace />fm.method = 'post';
+				document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.DELETE %>';
 				document.<portlet:namespace />fm.<portlet:namespace />deleteTemplateIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
 
-				submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/dynamic_data_mapping/edit_template" /></portlet:actionURL>");
+				submitForm(document.<portlet:namespace />fm, '<portlet:actionURL><portlet:param name="struts_action" value="/dynamic_data_mapping/edit_template" /></portlet:actionURL>');
 			}
 		},
 		['liferay-util-list-fields']

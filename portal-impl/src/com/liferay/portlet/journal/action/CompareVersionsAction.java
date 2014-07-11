@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.journal.action;
 
+import com.liferay.portal.kernel.diff.CompareVersionsException;
 import com.liferay.portal.kernel.portlet.PortletRequestModel;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -35,8 +36,12 @@ import java.util.Locale;
 import java.util.Set;
 
 import javax.portlet.PortletConfig;
+import javax.portlet.PortletContext;
+import javax.portlet.PortletRequestDispatcher;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
+import javax.portlet.ResourceRequest;
+import javax.portlet.ResourceResponse;
 
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -71,6 +76,49 @@ public class CompareVersionsAction extends PortletAction {
 		}
 
 		return actionMapping.findForward("portlet.journal.compare_versions");
+	}
+
+	@Override
+	public void serveResource(
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ResourceRequest resourceRequest,
+			ResourceResponse resourceResponse)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		long groupId = ParamUtil.getLong(resourceRequest, "groupId");
+		String articleId = ParamUtil.getString(resourceRequest, "articleId");
+		double sourceVersion = ParamUtil.getDouble(
+			resourceRequest, "filterSourceVersion");
+		double targetVersion = ParamUtil.getDouble(
+			resourceRequest, "filterTargetVersion");
+		String languageId = ParamUtil.getString(resourceRequest, "languageId");
+
+		String diffHtmlResults = null;
+
+		try {
+			diffHtmlResults = JournalUtil.diffHtml(
+				groupId, articleId, sourceVersion, targetVersion, languageId,
+				new PortletRequestModel(resourceRequest, resourceResponse),
+				themeDisplay);
+		}
+		catch (CompareVersionsException cve) {
+			resourceRequest.setAttribute(
+				WebKeys.DIFF_VERSION, cve.getVersion());
+		}
+
+		resourceRequest.setAttribute(
+			WebKeys.DIFF_HTML_RESULTS, diffHtmlResults);
+
+		PortletContext portletContext = portletConfig.getPortletContext();
+
+		PortletRequestDispatcher portletRequestDispatcher =
+			portletContext.getRequestDispatcher(
+				"/html/taglib/ui/diff_version_comparator/diff_html.jsp");
+
+		portletRequestDispatcher.include(resourceRequest, resourceResponse);
 	}
 
 	protected void compareVersions(
@@ -114,13 +162,23 @@ public class CompareVersionsAction extends PortletAction {
 		double targetVersion = GetterUtil.getDouble(targetArticleId);
 
 		if ((sourceVersion == 0) && (targetVersion == 0)) {
-			List<JournalArticle> articles =
+			List<JournalArticle> sourceArticles =
 				JournalArticleServiceUtil.getArticlesByArticleId(
-					groupId, articleId, 0, 2,
+					groupId, articleId, 0, 1,
 					new ArticleVersionComparator(false));
 
-			sourceVersion = articles.get(0).getVersion();
-			targetVersion = articles.get(1).getVersion();
+			JournalArticle sourceArticle = sourceArticles.get(0);
+
+			sourceVersion = sourceArticle.getVersion();
+
+			List<JournalArticle> targetArticles =
+				JournalArticleServiceUtil.getArticlesByArticleId(
+					groupId, articleId, 0, 1,
+					new ArticleVersionComparator(true));
+
+			JournalArticle targetArticle = targetArticles.get(0);
+
+			targetVersion = targetArticle.getVersion();
 		}
 
 		if (sourceVersion > targetVersion) {
@@ -133,10 +191,17 @@ public class CompareVersionsAction extends PortletAction {
 		String languageId = getLanguageId(
 			renderRequest, groupId, articleId, sourceVersion, targetVersion);
 
-		String diffHtmlResults = JournalUtil.diffHtml(
-			groupId, articleId, sourceVersion, targetVersion, languageId,
-			new PortletRequestModel(renderRequest, renderResponse),
-			themeDisplay);
+		String diffHtmlResults = null;
+
+		try {
+			diffHtmlResults = JournalUtil.diffHtml(
+				groupId, articleId, sourceVersion, targetVersion, languageId,
+				new PortletRequestModel(renderRequest, renderResponse),
+				themeDisplay);
+		}
+		catch (CompareVersionsException cve) {
+			renderRequest.setAttribute(WebKeys.DIFF_VERSION, cve.getVersion());
+		}
 
 		renderRequest.setAttribute(WebKeys.DIFF_HTML_RESULTS, diffHtmlResults);
 		renderRequest.setAttribute(WebKeys.SOURCE_VERSION, sourceVersion);

@@ -15,7 +15,6 @@
 package com.liferay.portlet.mobiledevicerules.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 import com.liferay.portlet.mobiledevicerules.model.MDRAction;
@@ -23,13 +22,13 @@ import com.liferay.portlet.mobiledevicerules.service.MDRActionLocalServiceUtil;
 
 /**
  * @author Edward C. Han
- * @deprecated As of 7.0.0, replaced by {@link MDRActionLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link MDRActionLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class MDRActionActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public MDRActionActionableDynamicQuery() throws SystemException {
+	public MDRActionActionableDynamicQuery() {
 		setBaseLocalService(MDRActionLocalServiceUtil.getService());
 		setClass(MDRAction.class);
 

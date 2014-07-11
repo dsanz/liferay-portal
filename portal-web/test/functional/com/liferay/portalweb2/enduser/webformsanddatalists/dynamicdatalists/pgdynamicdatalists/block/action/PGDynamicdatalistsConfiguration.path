@@ -34,6 +34,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FAILURE_MESSAGE</td>
+	<td>//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SAVE_BUTTON</td>
 	<td>//button[contains(.,'Save')]</td>
 	<td></td>
@@ -82,12 +87,12 @@
 </tr>
 <tr>
 	<td>TEMPLATES_EDITABLE_CHECKBOX</td>
-	<td>//input[@id='_86_editableCheckbox']</td>
+	<td>//input[@id='_86_editable']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TEMPLATES_SPREADSHEET_VIEW_CHECKBOX</td>
-	<td>//input[@id='_86_spreadsheetCheckbox']</td>
+	<td>//input[@id='_86_spreadsheet']</td>
 	<td></td>
 </tr>
 <tr>
@@ -150,7 +155,7 @@
 </tr>
 <tr>
 	<td>LIST_TABLE_ACTIONS_1</td>
-	<td>xpath=(//div[@id='_86_ddlRecordSetsSearchContainer']//tr/td[5]/div/a[@title='Actions'])</td>
+	<td>xpath=//td[contains(@class,'entry-action last')]/div/a/i[contains(@class,'menu-arrow caret')][1]</td>
 	<td></td>
 </tr>
 <tr>

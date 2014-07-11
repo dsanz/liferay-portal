@@ -184,10 +184,6 @@
 		<priority value="ERROR" />
 	</category>
 
-	<category name="com.liferay.portal.editor.fckeditor.ConnectorAction">
-		<priority value="ERROR" />
-	</category>
-
 	<category name="com.liferay.portal.events.ChannelHubAppShutdownAction">
 		<priority value="INFO" />
 	</category>
@@ -354,6 +350,14 @@
 
 	<category name="com.liferay.portal.kernel.servlet.ServletContextUtil">
 		<priority value="INFO" />
+	</category>
+
+	<category name="com.liferay.portal.kernel.servlet.filters.invoker.InvokerFilter">
+		<priority value="FATAL" />
+	</category>
+
+	<category name="com.liferay.portal.kernel.servlet.filters.invoker.InvokerFilterHelper">
+		<priority value="FATAL" />
 	</category>
 
 	<category name="com.liferay.portal.kernel.upgrade">
@@ -857,6 +861,10 @@
 	</category>
 
 	<category name="com.liferay.portal.upgrade.UpgradeProcessUtil">
+		<priority value="INFO" />
+	</category>
+
+	<category name="com.liferay.portal.upgrade.v7_0_0.UpgradePortletSettings">
 		<priority value="INFO" />
 	</category>
 

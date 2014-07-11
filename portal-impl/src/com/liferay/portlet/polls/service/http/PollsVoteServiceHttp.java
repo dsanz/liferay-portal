@@ -55,8 +55,7 @@ public class PollsVoteServiceHttp {
 	public static com.liferay.portlet.polls.model.PollsVote addVote(
 		HttpPrincipal httpPrincipal, long questionId, long choiceId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(PollsVoteServiceUtil.class,
 					"addVote", _addVoteParameterTypes0);
@@ -72,10 +71,6 @@ public class PollsVoteServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);

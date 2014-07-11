@@ -16,6 +16,7 @@ package com.liferay.util.dao.orm;
 
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
+import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.log.Log;
@@ -117,12 +118,12 @@ public class CustomSQL {
 		return _sqlPool.get(id);
 	}
 
-	public String get(String id, QueryDefinition queryDefinition) {
+	public String get(String id, QueryDefinition<?> queryDefinition) {
 		return get(id, queryDefinition, StringPool.BLANK);
 	}
 
 	public String get(
-		String id, QueryDefinition queryDefinition, String tableName) {
+		String id, QueryDefinition<?> queryDefinition, String tableName) {
 
 		String sql = get(id);
 
@@ -227,10 +228,16 @@ public class CustomSQL {
 	}
 
 	public String[] keywords(String keywords) {
-		return keywords(keywords, true);
+		return keywords(keywords, true, WildcardMode.SURROUND);
 	}
 
 	public String[] keywords(String keywords, boolean lowerCase) {
+		return keywords(keywords, lowerCase, WildcardMode.SURROUND);
+	}
+
+	public String[] keywords(
+		String keywords, boolean lowerCase, WildcardMode wildcardMode) {
+
 		if (Validator.isNull(keywords)) {
 			return new String[] {null};
 		}
@@ -262,8 +269,7 @@ public class CustomSQL {
 				if (i > pos) {
 					String keyword = keywords.substring(pos, i);
 
-					keywordsList.add(
-						StringUtil.quote(keyword, StringPool.PERCENT));
+					keywordsList.add(insertWildcard(keyword, wildcardMode));
 				}
 			}
 			else {
@@ -287,11 +293,15 @@ public class CustomSQL {
 
 				String keyword = keywords.substring(pos, i);
 
-				keywordsList.add(StringUtil.quote(keyword, StringPool.PERCENT));
+				keywordsList.add(insertWildcard(keyword, wildcardMode));
 			}
 		}
 
 		return keywordsList.toArray(new String[keywordsList.size()]);
+	}
+
+	public String[] keywords(String keywords, WildcardMode wildcardMode) {
+		return keywords(keywords, true, wildcardMode);
 	}
 
 	public String[] keywords(String[] keywordsArray) {
@@ -699,7 +709,7 @@ public class CustomSQL {
 		return StringUtil.replace(sql, oldSql.toString(), newSql.toString());
 	}
 
-	public String replaceOrderBy(String sql, OrderByComparator obc) {
+	public String replaceOrderBy(String sql, OrderByComparator<?> obc) {
 		if (obc == null) {
 			return sql;
 		}
@@ -730,6 +740,22 @@ public class CustomSQL {
 		}
 		else {
 			return new String[] {"custom-sql/default.xml"};
+		}
+	}
+
+	protected String insertWildcard(String keyword, WildcardMode wildcardMode) {
+		if (wildcardMode == WildcardMode.LEADING) {
+			return StringPool.PERCENT.concat(keyword);
+		}
+		else if (wildcardMode == WildcardMode.SURROUND) {
+			return StringUtil.quote(keyword, StringPool.PERCENT);
+		}
+		else if (wildcardMode == WildcardMode.TRAILING) {
+			return keyword.concat(StringPool.PERCENT);
+		}
+		else {
+			throw new IllegalArgumentException(
+				"Invalid wildcard mode " + wildcardMode);
 		}
 	}
 

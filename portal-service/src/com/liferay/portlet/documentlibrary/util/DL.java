@@ -17,7 +17,6 @@ package com.liferay.portlet.documentlibrary.util;
 import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
@@ -27,7 +26,6 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portlet.documentlibrary.DLSettings;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
 import com.liferay.portlet.documentlibrary.model.DLFileVersion;
@@ -93,7 +91,7 @@ public interface DL {
 	public int compareVersions(String version1, String version2);
 
 	public String getAbsolutePath(PortletRequest portletRequest, long folderId)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public Set<String> getAllMediaGalleryMimeTypes();
 
@@ -109,17 +107,19 @@ public interface DL {
 
 	public String getDLFileEntryControlPanelLink(
 			PortletRequest portletRequest, long fileEntryId)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public String getDLFolderControlPanelLink(
 			PortletRequest portletRequest, long folderId)
-		throws PortalException, SystemException;
+		throws PortalException;
 
-	public DLSettings getDLSettings(long groupId)
-		throws PortalException, SystemException;
+	public String getDownloadURL(
+		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
+		String queryString);
 
-	public DLSettings getDLSettings(long groupId, HttpServletRequest request)
-		throws PortalException, SystemException;
+	public String getDownloadURL(
+		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
+		String queryString, boolean appendVersion, boolean absoluteURL);
 
 	public Map<String, String> getEmailDefinitionTerms(
 		PortletRequest portletRequest, String emailFromAddress,
@@ -131,13 +131,16 @@ public interface DL {
 
 	public List<Object> getEntries(Hits hits);
 
+	public List<FileEntry> getFileEntries(Hits hits);
+
 	public String getFileEntryImage(
 		FileEntry fileEntry, ThemeDisplay themeDisplay);
 
-	public Set<Long> getFileEntryTypeSubscriptionClassPKs(long userId)
-		throws SystemException;
+	public Set<Long> getFileEntryTypeSubscriptionClassPKs(long userId);
 
 	public String getFileIcon(String extension);
+
+	public String getFileIconCssClass(String extension);
 
 	public String getGenericName(String extension);
 
@@ -167,7 +170,7 @@ public interface DL {
 		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
 		String queryString, boolean appendVersion, boolean absoluteURL);
 
-	public OrderByComparator getRepositoryModelOrderByComparator(
+	public <T> OrderByComparator<T> getRepositoryModelOrderByComparator(
 		String orderByCol, String orderByType);
 
 	public String getTempFileId(long id, String version);
@@ -186,8 +189,7 @@ public interface DL {
 
 	public String getThumbnailStyle() throws Exception;
 
-	public String getThumbnailStyle(boolean max, int margin)
-		throws Exception;
+	public String getThumbnailStyle(boolean max, int margin) throws Exception;
 
 	public String getTitleWithExtension(FileEntry fileEntry);
 
@@ -195,17 +197,17 @@ public interface DL {
 
 	public String getWebDavURL(
 			ThemeDisplay themeDisplay, Folder folder, FileEntry fileEntry)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public String getWebDavURL(
 			ThemeDisplay themeDisplay, Folder folder, FileEntry fileEntry,
 			boolean manualCheckInRequired)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public String getWebDavURL(
 			ThemeDisplay themeDisplay, Folder folder, FileEntry fileEntry,
 			boolean manualCheckInRequired, boolean officeExtensionRequired)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public boolean hasWorkflowDefinitionLink(
 			long companyId, long groupId, long folderId, long fileEntryTypeId)
@@ -217,23 +219,22 @@ public interface DL {
 	public abstract boolean isOfficeExtension(String extension);
 
 	public boolean isSubscribedToFileEntryType(
-			long companyId, long groupId, long userId, long fileEntryTypeId)
-		throws SystemException;
+		long companyId, long groupId, long userId, long fileEntryTypeId);
 
 	public boolean isSubscribedToFolder(
 			long companyId, long groupId, long userId, long folderId)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public boolean isSubscribedToFolder(
 			long companyId, long groupId, long userId, long folderId,
 			boolean recursive)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	public boolean isValidVersion(String version);
 
 	public void startWorkflowInstance(
 			long userId, DLFileVersion dlFileVersion, String syncEventType,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 }

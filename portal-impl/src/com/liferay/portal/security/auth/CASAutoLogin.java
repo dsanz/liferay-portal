@@ -18,7 +18,6 @@ import com.liferay.portal.NoSuchUserException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
@@ -145,12 +144,7 @@ public class CASAutoLogin extends BaseAutoLogin {
 			}
 		}
 
-		String redirect = ParamUtil.getString(request, "redirect");
-
-		if (Validator.isNotNull(redirect)) {
-			request.setAttribute(
-				AutoLogin.AUTO_LOGIN_REDIRECT_AND_CONTINUE, redirect);
-		}
+		addRedirect(request);
 
 		String[] credentials = new String[3];
 

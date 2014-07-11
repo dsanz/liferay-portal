@@ -47,6 +47,39 @@ public interface PasswordPolicyService extends BaseService {
 	 */
 
 	/**
+	* @deprecated As of 6.2.0, replaced by {@link #addPasswordPolicy(String,
+	String, boolean, boolean, long, boolean, boolean, int, int,
+	int, int, int, int, String, boolean, int, boolean, long,
+	long, int, boolean, int, long, long, long, ServiceContext)}
+	*/
+	@java.lang.Deprecated
+	public com.liferay.portal.model.PasswordPolicy addPasswordPolicy(
+		java.lang.String name, java.lang.String description,
+		boolean changeable, boolean changeRequired, long minAge,
+		boolean checkSyntax, boolean allowDictionaryWords, int minAlphanumeric,
+		int minLength, int minLowerCase, int minNumbers, int minSymbols,
+		int minUpperCase, boolean history, int historyCount,
+		boolean expireable, long maxAge, long warningTime, int graceLimit,
+		boolean lockout, int maxFailure, long lockoutDuration,
+		long resetFailureCount, long resetTicketMaxAge)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public com.liferay.portal.model.PasswordPolicy addPasswordPolicy(
+		java.lang.String name, java.lang.String description,
+		boolean changeable, boolean changeRequired, long minAge,
+		boolean checkSyntax, boolean allowDictionaryWords, int minAlphanumeric,
+		int minLength, int minLowerCase, int minNumbers, int minSymbols,
+		int minUpperCase, java.lang.String regex, boolean history,
+		int historyCount, boolean expireable, long maxAge, long warningTime,
+		int graceLimit, boolean lockout, int maxFailure, long lockoutDuration,
+		long resetFailureCount, long resetTicketMaxAge,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public void deletePasswordPolicy(long passwordPolicyId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
@@ -61,49 +94,13 @@ public interface PasswordPolicyService extends BaseService {
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addPasswordPolicy(String,
-	String, boolean, boolean, long, boolean, boolean, int, int,
-	int, int, int, int, String, boolean, int, boolean, long,
-	long, int, boolean, int, long, long, long, ServiceContext)}
-	*/
-	@Deprecated
-	public com.liferay.portal.model.PasswordPolicy addPasswordPolicy(
-		java.lang.String name, java.lang.String description,
-		boolean changeable, boolean changeRequired, long minAge,
-		boolean checkSyntax, boolean allowDictionaryWords, int minAlphanumeric,
-		int minLength, int minLowerCase, int minNumbers, int minSymbols,
-		int minUpperCase, boolean history, int historyCount,
-		boolean expireable, long maxAge, long warningTime, int graceLimit,
-		boolean lockout, int maxFailure, long lockoutDuration,
-		long resetFailureCount, long resetTicketMaxAge)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public com.liferay.portal.model.PasswordPolicy addPasswordPolicy(
-		java.lang.String name, java.lang.String description,
-		boolean changeable, boolean changeRequired, long minAge,
-		boolean checkSyntax, boolean allowDictionaryWords, int minAlphanumeric,
-		int minLength, int minLowerCase, int minNumbers, int minSymbols,
-		int minUpperCase, java.lang.String regex, boolean history,
-		int historyCount, boolean expireable, long maxAge, long warningTime,
-		int graceLimit, boolean lockout, int maxFailure, long lockoutDuration,
-		long resetFailureCount, long resetTicketMaxAge,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public void deletePasswordPolicy(long passwordPolicyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	/**
 	* @deprecated As of 6.2.0, replaced by {@link #updatePasswordPolicy(long,
 	String, String, boolean, boolean, long, boolean, boolean,
 	int, int, int, int, int, int, String, boolean, int, boolean,
 	long, long, int, boolean, int, long, long, long,
 	ServiceContext)}
 	*/
-	@Deprecated
+	@java.lang.Deprecated
 	public com.liferay.portal.model.PasswordPolicy updatePasswordPolicy(
 		long passwordPolicyId, java.lang.String name,
 		java.lang.String description, boolean changeable,
@@ -113,8 +110,7 @@ public interface PasswordPolicyService extends BaseService {
 		boolean history, int historyCount, boolean expireable, long maxAge,
 		long warningTime, int graceLimit, boolean lockout, int maxFailure,
 		long lockoutDuration, long resetFailureCount, long resetTicketMaxAge)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public com.liferay.portal.model.PasswordPolicy updatePasswordPolicy(
 		long passwordPolicyId, java.lang.String name,
@@ -127,6 +123,5 @@ public interface PasswordPolicyService extends BaseService {
 		boolean lockout, int maxFailure, long lockoutDuration,
 		long resetFailureCount, long resetTicketMaxAge,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

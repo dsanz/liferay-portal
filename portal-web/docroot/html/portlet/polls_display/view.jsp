@@ -53,7 +53,7 @@ PollsQuestion question = (PollsQuestion)request.getAttribute(WebKeys.POLLS_QUEST
 			<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.VOTE %>" />
 			<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 			<aui:input name="questionId" type="hidden" value="<%= question.getQuestionId() %>" />
-			<aui:input name="successMessage" type="hidden" value='<%= LanguageUtil.get(pageContext, "thank-you-for-your-vote") %>' />
+			<aui:input name="successMessage" type="hidden" value='<%= LanguageUtil.get(request, "thank-you-for-your-vote") %>' />
 
 			<liferay-ui:error exception="<%= DuplicateVoteException.class %>" message="you-may-only-vote-once" />
 			<liferay-ui:error exception="<%= NoSuchChoiceException.class %>" message="please-select-an-option" />
@@ -136,8 +136,8 @@ boolean showIconsActions = themeDisplay.isSignedIn() && (hasConfigurationPermiss
 				%>
 
 				<liferay-ui:icon
-					cssClass="lfr-icon-action lfr-icon-action-edit"
-					image="edit"
+					cssClass="lfr-icon-action"
+					iconCssClass="icon-pencil"
 					label="<%= true %>"
 					message="edit-question"
 					url="<%= taglibEditQuestionURL %>"
@@ -146,8 +146,8 @@ boolean showIconsActions = themeDisplay.isSignedIn() && (hasConfigurationPermiss
 
 			<c:if test="<%= hasConfigurationPermission %>">
 				<liferay-ui:icon
-					cssClass="lfr-icon-action lfr-icon-action-configuration"
-					image="configuration"
+					cssClass="lfr-icon-action"
+					iconCssClass="icon-cog"
 					label="<%= true %>"
 					message="select-poll"
 					method="get"
@@ -165,12 +165,12 @@ boolean showIconsActions = themeDisplay.isSignedIn() && (hasConfigurationPermiss
 				</liferay-portlet:renderURL>
 
 				<%
-				String taglibEditQuestionURL = "javascript:Liferay.Util.openWindow({id: '" + liferayPortletResponse.getNamespace() + "editQuestion', title: '" + HtmlUtil.escapeJS(LanguageUtil.get(pageContext, "new-poll")) + "', uri:'" + HtmlUtil.escapeJS(editQuestionURL.toString()) + "'});";
+				String taglibEditQuestionURL = "javascript:Liferay.Util.openWindow({id: '" + liferayPortletResponse.getNamespace() + "editQuestion', title: '" + HtmlUtil.escapeJS(LanguageUtil.get(request, "new-poll")) + "', uri:'" + HtmlUtil.escapeJS(editQuestionURL.toString()) + "'});";
 				%>
 
 				<liferay-ui:icon
-					cssClass="lfr-icon-action lfr-icon-action-add"
-					image="add_article"
+					cssClass="lfr-icon-action"
+					iconCssClass="icon-plus"
 					label="<%= true %>"
 					message="add"
 					url="<%= taglibEditQuestionURL %>"

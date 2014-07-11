@@ -15,7 +15,6 @@
 package com.liferay.portlet.asset.util;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 
 /**
  * @author Brian Wing Shun Chan
@@ -23,8 +22,8 @@ import com.liferay.portal.kernel.exception.SystemException;
 public interface AssetEntryValidator {
 
 	public void validate(
-			long groupId, String className, long[] categoryIds,
-			String[] entryNames)
-		throws PortalException, SystemException;
+			long groupId, String className, long classTypePK,
+			long[] categoryIds, String[] entryNames)
+		throws PortalException;
 
 }

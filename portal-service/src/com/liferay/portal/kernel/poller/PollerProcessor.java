@@ -14,15 +14,18 @@
 
 package com.liferay.portal.kernel.poller;
 
+import com.liferay.portal.kernel.nio.intraband.proxy.annotation.Proxy;
+
 /**
  * @author Brian Wing Shun Chan
  */
 public interface PollerProcessor {
 
-	public void receive(
-			PollerRequest pollerRequest, PollerResponse pollerResponse)
+	@Proxy
+	public PollerResponse receive(PollerRequest pollerRequest)
 		throws PollerException;
 
+	@Proxy
 	public void send(PollerRequest pollerRequest) throws PollerException;
 
 }

@@ -31,12 +31,12 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.messageboards.NoSuchBanException;
 import com.liferay.portlet.messageboards.model.MBBan;
@@ -52,6 +52,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -101,7 +102,7 @@ public class MBBanPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBBan mbBan = _persistence.create(pk);
 
@@ -128,25 +129,25 @@ public class MBBanPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBBan newMBBan = _persistence.create(pk);
 
-		newMBBan.setUuid(ServiceTestUtil.randomString());
+		newMBBan.setUuid(RandomTestUtil.randomString());
 
-		newMBBan.setGroupId(ServiceTestUtil.nextLong());
+		newMBBan.setGroupId(RandomTestUtil.nextLong());
 
-		newMBBan.setCompanyId(ServiceTestUtil.nextLong());
+		newMBBan.setCompanyId(RandomTestUtil.nextLong());
 
-		newMBBan.setUserId(ServiceTestUtil.nextLong());
+		newMBBan.setUserId(RandomTestUtil.nextLong());
 
-		newMBBan.setUserName(ServiceTestUtil.randomString());
+		newMBBan.setUserName(RandomTestUtil.randomString());
 
-		newMBBan.setCreateDate(ServiceTestUtil.nextDate());
+		newMBBan.setCreateDate(RandomTestUtil.nextDate());
 
-		newMBBan.setModifiedDate(ServiceTestUtil.nextDate());
+		newMBBan.setModifiedDate(RandomTestUtil.nextDate());
 
-		newMBBan.setBanUserId(ServiceTestUtil.nextLong());
+		newMBBan.setBanUserId(RandomTestUtil.nextLong());
 
 		_persistence.update(newMBBan);
 
@@ -187,7 +188,7 @@ public class MBBanPersistenceTest {
 	public void testCountByUUID_G() {
 		try {
 			_persistence.countByUUID_G(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByUUID_G(StringPool.NULL, 0L);
 
@@ -202,7 +203,7 @@ public class MBBanPersistenceTest {
 	public void testCountByUuid_C() {
 		try {
 			_persistence.countByUuid_C(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByUuid_C(StringPool.NULL, 0L);
 
@@ -216,7 +217,7 @@ public class MBBanPersistenceTest {
 	@Test
 	public void testCountByGroupId() {
 		try {
-			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+			_persistence.countByGroupId(RandomTestUtil.nextLong());
 
 			_persistence.countByGroupId(0L);
 		}
@@ -228,7 +229,7 @@ public class MBBanPersistenceTest {
 	@Test
 	public void testCountByUserId() {
 		try {
-			_persistence.countByUserId(ServiceTestUtil.nextLong());
+			_persistence.countByUserId(RandomTestUtil.nextLong());
 
 			_persistence.countByUserId(0L);
 		}
@@ -240,7 +241,7 @@ public class MBBanPersistenceTest {
 	@Test
 	public void testCountByBanUserId() {
 		try {
-			_persistence.countByBanUserId(ServiceTestUtil.nextLong());
+			_persistence.countByBanUserId(RandomTestUtil.nextLong());
 
 			_persistence.countByBanUserId(0L);
 		}
@@ -252,8 +253,8 @@ public class MBBanPersistenceTest {
 	@Test
 	public void testCountByG_B() {
 		try {
-			_persistence.countByG_B(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong());
+			_persistence.countByG_B(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
 
 			_persistence.countByG_B(0L, 0L);
 		}
@@ -273,7 +274,7 @@ public class MBBanPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -295,7 +296,7 @@ public class MBBanPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<MBBan> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("MBBan", "uuid", true,
 			"banId", true, "groupId", true, "companyId", true, "userId", true,
 			"userName", true, "createDate", true, "modifiedDate", true,
@@ -313,11 +314,89 @@ public class MBBanPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBBan missingMBBan = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingMBBan);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		MBBan newMBBan1 = addMBBan();
+		MBBan newMBBan2 = addMBBan();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMBBan1.getPrimaryKey());
+		primaryKeys.add(newMBBan2.getPrimaryKey());
+
+		Map<Serializable, MBBan> mbBans = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, mbBans.size());
+		Assert.assertEquals(newMBBan1, mbBans.get(newMBBan1.getPrimaryKey()));
+		Assert.assertEquals(newMBBan2, mbBans.get(newMBBan2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, MBBan> mbBans = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(mbBans.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		MBBan newMBBan = addMBBan();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMBBan.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, MBBan> mbBans = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, mbBans.size());
+		Assert.assertEquals(newMBBan, mbBans.get(newMBBan.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, MBBan> mbBans = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(mbBans.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		MBBan newMBBan = addMBBan();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMBBan.getPrimaryKey());
+
+		Map<Serializable, MBBan> mbBans = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, mbBans.size());
+		Assert.assertEquals(newMBBan, mbBans.get(newMBBan.getPrimaryKey()));
 	}
 
 	@Test
@@ -367,7 +446,7 @@ public class MBBanPersistenceTest {
 				MBBan.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("banId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<MBBan> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -406,7 +485,7 @@ public class MBBanPersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("banId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("banId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -437,25 +516,25 @@ public class MBBanPersistenceTest {
 	}
 
 	protected MBBan addMBBan() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBBan mbBan = _persistence.create(pk);
 
-		mbBan.setUuid(ServiceTestUtil.randomString());
+		mbBan.setUuid(RandomTestUtil.randomString());
 
-		mbBan.setGroupId(ServiceTestUtil.nextLong());
+		mbBan.setGroupId(RandomTestUtil.nextLong());
 
-		mbBan.setCompanyId(ServiceTestUtil.nextLong());
+		mbBan.setCompanyId(RandomTestUtil.nextLong());
 
-		mbBan.setUserId(ServiceTestUtil.nextLong());
+		mbBan.setUserId(RandomTestUtil.nextLong());
 
-		mbBan.setUserName(ServiceTestUtil.randomString());
+		mbBan.setUserName(RandomTestUtil.randomString());
 
-		mbBan.setCreateDate(ServiceTestUtil.nextDate());
+		mbBan.setCreateDate(RandomTestUtil.nextDate());
 
-		mbBan.setModifiedDate(ServiceTestUtil.nextDate());
+		mbBan.setModifiedDate(RandomTestUtil.nextDate());
 
-		mbBan.setBanUserId(ServiceTestUtil.nextLong());
+		mbBan.setBanUserId(RandomTestUtil.nextLong());
 
 		_persistence.update(mbBan);
 

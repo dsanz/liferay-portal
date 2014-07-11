@@ -25,7 +25,7 @@ import com.liferay.portal.service.UserLocalService;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalService;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
 

@@ -19,18 +19,28 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EXTEND_ACTION_PATH</td>
+	<td>CPDocumentsandmediaAdddocument</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
 	<td>SUCCESS_MESSAGE</td>
 	<td>//div[contains(@class,'alert-success')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ERROR_MESSAGE</td>
-	<td>//div[contains(@class,'alert-error')]</td>
+	<td>//div[(contains(@class,'alert-error') or contains(@class,'alert-danger'))]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>UNIQUE_DOCUMENT_ERROR_MESSAGE</td>
-	<td>//div[contains(@class,'alert alert-error') and contains(.,'Please enter a unique document name.')]</td>
+	<td>//div[contains(@class,'alert-danger') and contains(.,'Please enter a unique document name.')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -64,6 +74,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>RELATED_ASSETS_DROPDOWN</td>
+	<td>//div[@id='dlFileEntryAssetLinksPanel']/div[contains(@class,'header-expanded')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RELATED_ASSETS_DROPDOWN_COLLAPSED</td>
+	<td>//div[@id='dlFileEntryAssetLinksPanel']/div[contains(@class,'header-collapsed')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SAVE_AS_DRAFT_BUTTON</td>
 	<td>//button[contains(.,'Save as Draft')]</td>
 	<td></td>
@@ -75,98 +95,7 @@
 </tr>
 <tr>
 	<td>CANCEL_BUTTON</td>
-	<td>//button[contains(.,'Cancel')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td></td>
-	<td></td>
-	<td></td>
-</tr>
-<!--PERMISSIONS-->
-<tr>
-	<td>PERMISSIONS_SELECT</td>
-	<td>//select[@id='_20_inputPermissionsViewRole']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_MORE_OPTIONS</td>
-	<td>link=More Options »</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_HIDE_OPTIONS</td>
-	<td>link=« Hide Options</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_GUEST_ADD_DISCUSSION_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[2]/td[2]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_GUEST_DELETE_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[2]/td[3]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_GUEST_DELETE_DISCUSSION_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[2]/td[4]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_GUEST_OVERRIDE_CHECKOUT_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[2]/td[5]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_GUEST_PERMISSIONS_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[2]/td[6]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_GUEST_UPDATE_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[2]/td[7]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_GUEST_UPDATE_DISCUSSION_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[2]/td[8]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_SITE_MEMBER_ADD_DISCUSSION_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[3]/td[2]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_SITE_MEMBER_DELETE_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[3]/td[3]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_SITE_MEMBER_DELETE_DISCUSSION_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[3]/td[4]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_GUEST_OVERRIDE_CHECKOUT_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[3]/td[5]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_SITE_MEMBER_PERMISSIONS_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[3]/td[6]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_SITE_MEMBER_UPDATE_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[3]/td[7]/input</td>
-	<td></td>
-</tr>
-<tr>
-	<td>PERMISSIONS_SITE_MEMBER_UPDATE_DISCUSSION_CHECKBOX</td>
-	<td>//table[@id='_20_inputPermissionsTable']/tbody/tr[3]/td[8]/input</td>
+	<td>//a[contains(@class,'btn-cancel')]</td>
 	<td></td>
 </tr>
 </tbody>

@@ -65,6 +65,7 @@ portletURL.setParameter("struts_action", "/dynamic_data_lists/view");
 
 			<liferay-ui:search-container-column-jsp
 				align="right"
+				cssClass="entry-action"
 				path="/html/portlet/dynamic_data_lists/record_set_action.jsp"
 			/>
 		</liferay-ui:search-container-row>
@@ -105,7 +106,7 @@ portletURL.setParameter("struts_action", "/dynamic_data_lists/view");
 						toolbars: {
 							footer: [
 								{
-									label: '<%= UnicodeLanguageUtil.get(pageContext, "ok") %>',
+									label: '<%= UnicodeLanguageUtil.get(request, "ok") %>',
 									on: {
 										click: function() {
 											submitForm(form, url, false);
@@ -113,7 +114,7 @@ portletURL.setParameter("struts_action", "/dynamic_data_lists/view");
 									}
 								},
 								{
-									label: '<%= UnicodeLanguageUtil.get(pageContext, "cancel") %>',
+									label: '<%= UnicodeLanguageUtil.get(request, "cancel") %>',
 									on: {
 										click: function() {
 											dialog.hide();
@@ -123,7 +124,7 @@ portletURL.setParameter("struts_action", "/dynamic_data_lists/view");
 							]
 						}
 					},
-					title: '<%= UnicodeLanguageUtil.get(pageContext, "export") %>'
+					title: '<%= UnicodeLanguageUtil.get(request, "export") %>'
 				}
 			);
 

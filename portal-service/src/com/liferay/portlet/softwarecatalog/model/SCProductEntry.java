@@ -34,12 +34,9 @@ public interface SCProductEntry extends SCProductEntryModel, PersistedModel {
 	 *
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portlet.softwarecatalog.model.impl.SCProductEntryImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
-	public com.liferay.portlet.softwarecatalog.model.SCProductVersion getLatestVersion()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public com.liferay.portlet.softwarecatalog.model.SCProductVersion getLatestVersion();
 
-	public java.util.List<com.liferay.portlet.softwarecatalog.model.SCLicense> getLicenses()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public java.util.List<com.liferay.portlet.softwarecatalog.model.SCLicense> getLicenses();
 
-	public java.util.List<com.liferay.portlet.softwarecatalog.model.SCProductScreenshot> getScreenshots()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public java.util.List<com.liferay.portlet.softwarecatalog.model.SCProductScreenshot> getScreenshots();
 }

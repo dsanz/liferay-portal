@@ -31,12 +31,12 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.softwarecatalog.NoSuchProductEntryException;
 import com.liferay.portlet.softwarecatalog.model.SCProductEntry;
@@ -52,6 +52,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -101,7 +102,7 @@ public class SCProductEntryPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		SCProductEntry scProductEntry = _persistence.create(pk);
 
@@ -128,39 +129,39 @@ public class SCProductEntryPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		SCProductEntry newSCProductEntry = _persistence.create(pk);
 
-		newSCProductEntry.setGroupId(ServiceTestUtil.nextLong());
+		newSCProductEntry.setGroupId(RandomTestUtil.nextLong());
 
-		newSCProductEntry.setCompanyId(ServiceTestUtil.nextLong());
+		newSCProductEntry.setCompanyId(RandomTestUtil.nextLong());
 
-		newSCProductEntry.setUserId(ServiceTestUtil.nextLong());
+		newSCProductEntry.setUserId(RandomTestUtil.nextLong());
 
-		newSCProductEntry.setUserName(ServiceTestUtil.randomString());
+		newSCProductEntry.setUserName(RandomTestUtil.randomString());
 
-		newSCProductEntry.setCreateDate(ServiceTestUtil.nextDate());
+		newSCProductEntry.setCreateDate(RandomTestUtil.nextDate());
 
-		newSCProductEntry.setModifiedDate(ServiceTestUtil.nextDate());
+		newSCProductEntry.setModifiedDate(RandomTestUtil.nextDate());
 
-		newSCProductEntry.setName(ServiceTestUtil.randomString());
+		newSCProductEntry.setName(RandomTestUtil.randomString());
 
-		newSCProductEntry.setType(ServiceTestUtil.randomString());
+		newSCProductEntry.setType(RandomTestUtil.randomString());
 
-		newSCProductEntry.setTags(ServiceTestUtil.randomString());
+		newSCProductEntry.setTags(RandomTestUtil.randomString());
 
-		newSCProductEntry.setShortDescription(ServiceTestUtil.randomString());
+		newSCProductEntry.setShortDescription(RandomTestUtil.randomString());
 
-		newSCProductEntry.setLongDescription(ServiceTestUtil.randomString());
+		newSCProductEntry.setLongDescription(RandomTestUtil.randomString());
 
-		newSCProductEntry.setPageURL(ServiceTestUtil.randomString());
+		newSCProductEntry.setPageURL(RandomTestUtil.randomString());
 
-		newSCProductEntry.setAuthor(ServiceTestUtil.randomString());
+		newSCProductEntry.setAuthor(RandomTestUtil.randomString());
 
-		newSCProductEntry.setRepoGroupId(ServiceTestUtil.randomString());
+		newSCProductEntry.setRepoGroupId(RandomTestUtil.randomString());
 
-		newSCProductEntry.setRepoArtifactId(ServiceTestUtil.randomString());
+		newSCProductEntry.setRepoArtifactId(RandomTestUtil.randomString());
 
 		_persistence.update(newSCProductEntry);
 
@@ -205,7 +206,7 @@ public class SCProductEntryPersistenceTest {
 	@Test
 	public void testCountByGroupId() {
 		try {
-			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+			_persistence.countByGroupId(RandomTestUtil.nextLong());
 
 			_persistence.countByGroupId(0L);
 		}
@@ -217,7 +218,7 @@ public class SCProductEntryPersistenceTest {
 	@Test
 	public void testCountByCompanyId() {
 		try {
-			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+			_persistence.countByCompanyId(RandomTestUtil.nextLong());
 
 			_persistence.countByCompanyId(0L);
 		}
@@ -229,8 +230,8 @@ public class SCProductEntryPersistenceTest {
 	@Test
 	public void testCountByG_U() {
 		try {
-			_persistence.countByG_U(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong());
+			_persistence.countByG_U(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
 
 			_persistence.countByG_U(0L, 0L);
 		}
@@ -264,7 +265,7 @@ public class SCProductEntryPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -298,7 +299,7 @@ public class SCProductEntryPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<SCProductEntry> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("SCProductEntry",
 			"productEntryId", true, "groupId", true, "companyId", true,
 			"userId", true, "userName", true, "createDate", true,
@@ -318,11 +319,93 @@ public class SCProductEntryPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		SCProductEntry missingSCProductEntry = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingSCProductEntry);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		SCProductEntry newSCProductEntry1 = addSCProductEntry();
+		SCProductEntry newSCProductEntry2 = addSCProductEntry();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newSCProductEntry1.getPrimaryKey());
+		primaryKeys.add(newSCProductEntry2.getPrimaryKey());
+
+		Map<Serializable, SCProductEntry> scProductEntries = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, scProductEntries.size());
+		Assert.assertEquals(newSCProductEntry1,
+			scProductEntries.get(newSCProductEntry1.getPrimaryKey()));
+		Assert.assertEquals(newSCProductEntry2,
+			scProductEntries.get(newSCProductEntry2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, SCProductEntry> scProductEntries = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(scProductEntries.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		SCProductEntry newSCProductEntry = addSCProductEntry();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newSCProductEntry.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, SCProductEntry> scProductEntries = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, scProductEntries.size());
+		Assert.assertEquals(newSCProductEntry,
+			scProductEntries.get(newSCProductEntry.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, SCProductEntry> scProductEntries = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(scProductEntries.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		SCProductEntry newSCProductEntry = addSCProductEntry();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newSCProductEntry.getPrimaryKey());
+
+		Map<Serializable, SCProductEntry> scProductEntries = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, scProductEntries.size());
+		Assert.assertEquals(newSCProductEntry,
+			scProductEntries.get(newSCProductEntry.getPrimaryKey()));
 	}
 
 	@Test
@@ -373,7 +456,7 @@ public class SCProductEntryPersistenceTest {
 				SCProductEntry.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("productEntryId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<SCProductEntry> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -414,7 +497,7 @@ public class SCProductEntryPersistenceTest {
 				"productEntryId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("productEntryId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -442,39 +525,39 @@ public class SCProductEntryPersistenceTest {
 	}
 
 	protected SCProductEntry addSCProductEntry() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		SCProductEntry scProductEntry = _persistence.create(pk);
 
-		scProductEntry.setGroupId(ServiceTestUtil.nextLong());
+		scProductEntry.setGroupId(RandomTestUtil.nextLong());
 
-		scProductEntry.setCompanyId(ServiceTestUtil.nextLong());
+		scProductEntry.setCompanyId(RandomTestUtil.nextLong());
 
-		scProductEntry.setUserId(ServiceTestUtil.nextLong());
+		scProductEntry.setUserId(RandomTestUtil.nextLong());
 
-		scProductEntry.setUserName(ServiceTestUtil.randomString());
+		scProductEntry.setUserName(RandomTestUtil.randomString());
 
-		scProductEntry.setCreateDate(ServiceTestUtil.nextDate());
+		scProductEntry.setCreateDate(RandomTestUtil.nextDate());
 
-		scProductEntry.setModifiedDate(ServiceTestUtil.nextDate());
+		scProductEntry.setModifiedDate(RandomTestUtil.nextDate());
 
-		scProductEntry.setName(ServiceTestUtil.randomString());
+		scProductEntry.setName(RandomTestUtil.randomString());
 
-		scProductEntry.setType(ServiceTestUtil.randomString());
+		scProductEntry.setType(RandomTestUtil.randomString());
 
-		scProductEntry.setTags(ServiceTestUtil.randomString());
+		scProductEntry.setTags(RandomTestUtil.randomString());
 
-		scProductEntry.setShortDescription(ServiceTestUtil.randomString());
+		scProductEntry.setShortDescription(RandomTestUtil.randomString());
 
-		scProductEntry.setLongDescription(ServiceTestUtil.randomString());
+		scProductEntry.setLongDescription(RandomTestUtil.randomString());
 
-		scProductEntry.setPageURL(ServiceTestUtil.randomString());
+		scProductEntry.setPageURL(RandomTestUtil.randomString());
 
-		scProductEntry.setAuthor(ServiceTestUtil.randomString());
+		scProductEntry.setAuthor(RandomTestUtil.randomString());
 
-		scProductEntry.setRepoGroupId(ServiceTestUtil.randomString());
+		scProductEntry.setRepoGroupId(RandomTestUtil.randomString());
 
-		scProductEntry.setRepoArtifactId(ServiceTestUtil.randomString());
+		scProductEntry.setRepoArtifactId(RandomTestUtil.randomString());
 
 		_persistence.update(scProductEntry);
 

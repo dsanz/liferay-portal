@@ -46,273 +46,10 @@ public class PasswordPolicyLocalServiceUtil {
 	*
 	* @param passwordPolicy the password policy
 	* @return the password policy that was added
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.PasswordPolicy addPasswordPolicy(
-		com.liferay.portal.model.PasswordPolicy passwordPolicy)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.model.PasswordPolicy passwordPolicy) {
 		return getService().addPasswordPolicy(passwordPolicy);
-	}
-
-	/**
-	* Creates a new password policy with the primary key. Does not add the password policy to the database.
-	*
-	* @param passwordPolicyId the primary key for the new password policy
-	* @return the new password policy
-	*/
-	public static com.liferay.portal.model.PasswordPolicy createPasswordPolicy(
-		long passwordPolicyId) {
-		return getService().createPasswordPolicy(passwordPolicyId);
-	}
-
-	/**
-	* Deletes the password policy with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param passwordPolicyId the primary key of the password policy
-	* @return the password policy that was removed
-	* @throws PortalException if a password policy with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy deletePasswordPolicy(
-		long passwordPolicyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().deletePasswordPolicy(passwordPolicyId);
-	}
-
-	/**
-	* Deletes the password policy from the database. Also notifies the appropriate model listeners.
-	*
-	* @param passwordPolicy the password policy
-	* @return the password policy that was removed
-	* @throws PortalException
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy deletePasswordPolicy(
-		com.liferay.portal.model.PasswordPolicy passwordPolicy)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().deletePasswordPolicy(passwordPolicy);
-	}
-
-	public static com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
-		return getService().dynamicQuery();
-	}
-
-	/**
-	* Performs a dynamic query on the database and returns the matching rows.
-	*
-	* @param dynamicQuery the dynamic query
-	* @return the matching rows
-	* @throws SystemException if a system exception occurred
-	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().dynamicQuery(dynamicQuery);
-	}
-
-	/**
-	* Performs a dynamic query on the database and returns a range of the matching rows.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
-	* </p>
-	*
-	* @param dynamicQuery the dynamic query
-	* @param start the lower bound of the range of model instances
-	* @param end the upper bound of the range of model instances (not inclusive)
-	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
-	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().dynamicQuery(dynamicQuery, start, end);
-	}
-
-	/**
-	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
-	* </p>
-	*
-	* @param dynamicQuery the dynamic query
-	* @param start the lower bound of the range of model instances
-	* @param end the upper bound of the range of model instances (not inclusive)
-	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
-	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .dynamicQuery(dynamicQuery, start, end, orderByComparator);
-	}
-
-	/**
-	* Returns the number of rows that match the dynamic query.
-	*
-	* @param dynamicQuery the dynamic query
-	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
-	*/
-	public static long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().dynamicQueryCount(dynamicQuery);
-	}
-
-	/**
-	* Returns the number of rows that match the dynamic query.
-	*
-	* @param dynamicQuery the dynamic query
-	* @param projection the projection to apply to the query
-	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
-	*/
-	public static long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().dynamicQueryCount(dynamicQuery, projection);
-	}
-
-	public static com.liferay.portal.model.PasswordPolicy fetchPasswordPolicy(
-		long passwordPolicyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().fetchPasswordPolicy(passwordPolicyId);
-	}
-
-	/**
-	* Returns the password policy with the matching UUID and company.
-	*
-	* @param uuid the password policy's UUID
-	* @param companyId the primary key of the company
-	* @return the matching password policy, or <code>null</code> if a matching password policy could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy fetchPasswordPolicyByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .fetchPasswordPolicyByUuidAndCompanyId(uuid, companyId);
-	}
-
-	/**
-	* Returns the password policy with the primary key.
-	*
-	* @param passwordPolicyId the primary key of the password policy
-	* @return the password policy
-	* @throws PortalException if a password policy with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy getPasswordPolicy(
-		long passwordPolicyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getPasswordPolicy(passwordPolicyId);
-	}
-
-	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getActionableDynamicQuery();
-	}
-
-	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getExportActionableDynamicQuery(portletDataContext);
-	}
-
-	public static com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getPersistedModel(primaryKeyObj);
-	}
-
-	/**
-	* Returns the password policy with the matching UUID and company.
-	*
-	* @param uuid the password policy's UUID
-	* @param companyId the primary key of the company
-	* @return the matching password policy
-	* @throws PortalException if a matching password policy could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy getPasswordPolicyByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getPasswordPolicyByUuidAndCompanyId(uuid, companyId);
-	}
-
-	/**
-	* Returns a range of all the password policies.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
-	* </p>
-	*
-	* @param start the lower bound of the range of password policies
-	* @param end the upper bound of the range of password policies (not inclusive)
-	* @return the range of password policies
-	* @throws SystemException if a system exception occurred
-	*/
-	public static java.util.List<com.liferay.portal.model.PasswordPolicy> getPasswordPolicies(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getPasswordPolicies(start, end);
-	}
-
-	/**
-	* Returns the number of password policies.
-	*
-	* @return the number of password policies
-	* @throws SystemException if a system exception occurred
-	*/
-	public static int getPasswordPoliciesCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getPasswordPoliciesCount();
-	}
-
-	/**
-	* Updates the password policy in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param passwordPolicy the password policy
-	* @return the password policy that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy updatePasswordPolicy(
-		com.liferay.portal.model.PasswordPolicy passwordPolicy)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().updatePasswordPolicy(passwordPolicy);
-	}
-
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
 	}
 
 	/**
@@ -332,8 +69,7 @@ public class PasswordPolicyLocalServiceUtil {
 		boolean history, int historyCount, boolean expireable, long maxAge,
 		long warningTime, int graceLimit, boolean lockout, int maxFailure,
 		long lockoutDuration, long resetFailureCount, long resetTicketMaxAge)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .addPasswordPolicy(userId, defaultPolicy, name, description,
 			changeable, changeRequired, minAge, checkSyntax,
@@ -354,8 +90,7 @@ public class PasswordPolicyLocalServiceUtil {
 		boolean lockout, int maxFailure, long lockoutDuration,
 		long resetFailureCount, long resetTicketMaxAge,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .addPasswordPolicy(userId, defaultPolicy, name, description,
 			changeable, changeRequired, minAge, checkSyntax,
@@ -367,28 +102,209 @@ public class PasswordPolicyLocalServiceUtil {
 	}
 
 	public static void checkDefaultPasswordPolicy(long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().checkDefaultPasswordPolicy(companyId);
 	}
 
+	/**
+	* Creates a new password policy with the primary key. Does not add the password policy to the database.
+	*
+	* @param passwordPolicyId the primary key for the new password policy
+	* @return the new password policy
+	*/
+	public static com.liferay.portal.model.PasswordPolicy createPasswordPolicy(
+		long passwordPolicyId) {
+		return getService().createPasswordPolicy(passwordPolicyId);
+	}
+
 	public static void deleteNondefaultPasswordPolicies(long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().deleteNondefaultPasswordPolicies(companyId);
 	}
 
+	/**
+	* Deletes the password policy from the database. Also notifies the appropriate model listeners.
+	*
+	* @param passwordPolicy the password policy
+	* @return the password policy that was removed
+	* @throws PortalException
+	*/
+	public static com.liferay.portal.model.PasswordPolicy deletePasswordPolicy(
+		com.liferay.portal.model.PasswordPolicy passwordPolicy)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deletePasswordPolicy(passwordPolicy);
+	}
+
+	/**
+	* Deletes the password policy with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param passwordPolicyId the primary key of the password policy
+	* @return the password policy that was removed
+	* @throws PortalException if a password policy with the primary key could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy deletePasswordPolicy(
+		long passwordPolicyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deletePasswordPolicy(passwordPolicyId);
+	}
+
+	/**
+	* @throws PortalException
+	*/
+	public static com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
+		return getService().dynamicQuery();
+	}
+
+	/**
+	* Performs a dynamic query on the database and returns the matching rows.
+	*
+	* @param dynamicQuery the dynamic query
+	* @return the matching rows
+	*/
+	public static <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
+		return getService().dynamicQuery(dynamicQuery);
+	}
+
+	/**
+	* Performs a dynamic query on the database and returns a range of the matching rows.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param dynamicQuery the dynamic query
+	* @param start the lower bound of the range of model instances
+	* @param end the upper bound of the range of model instances (not inclusive)
+	* @return the range of matching rows
+	*/
+	public static <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
+		int end) {
+		return getService().dynamicQuery(dynamicQuery, start, end);
+	}
+
+	/**
+	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param dynamicQuery the dynamic query
+	* @param start the lower bound of the range of model instances
+	* @param end the upper bound of the range of model instances (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the ordered range of matching rows
+	*/
+	public static <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
+		int end,
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator) {
+		return getService()
+				   .dynamicQuery(dynamicQuery, start, end, orderByComparator);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @return the number of rows that match the dynamic query
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
+		return getService().dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portal.model.PasswordPolicy fetchPasswordPolicy(
-		long companyId, java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, java.lang.String name) {
 		return getService().fetchPasswordPolicy(companyId, name);
+	}
+
+	public static com.liferay.portal.model.PasswordPolicy fetchPasswordPolicy(
+		long passwordPolicyId) {
+		return getService().fetchPasswordPolicy(passwordPolicyId);
+	}
+
+	/**
+	* Returns the password policy with the matching UUID and company.
+	*
+	* @param uuid the password policy's UUID
+	* @param companyId the primary key of the company
+	* @return the matching password policy, or <code>null</code> if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy fetchPasswordPolicyByUuidAndCompanyId(
+		java.lang.String uuid, long companyId) {
+		return getService()
+				   .fetchPasswordPolicyByUuidAndCompanyId(uuid, companyId);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
+		return getService().getActionableDynamicQuery();
+	}
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public static java.lang.String getBeanIdentifier() {
+		return getService().getBeanIdentifier();
 	}
 
 	public static com.liferay.portal.model.PasswordPolicy getDefaultPasswordPolicy(
 		long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getDefaultPasswordPolicy(companyId);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext) {
+		return getService().getExportActionableDynamicQuery(portletDataContext);
+	}
+
+	/**
+	* Returns a range of all the password policies.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @return the range of password policies
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> getPasswordPolicies(
+		int start, int end) {
+		return getService().getPasswordPolicies(start, end);
+	}
+
+	/**
+	* Returns the number of password policies.
+	*
+	* @return the number of password policies
+	*/
+	public static int getPasswordPoliciesCount() {
+		return getService().getPasswordPoliciesCount();
 	}
 
 	/**
@@ -397,36 +313,83 @@ public class PasswordPolicyLocalServiceUtil {
 	@Deprecated
 	public static com.liferay.portal.model.PasswordPolicy getPasswordPolicy(
 		long companyId, long organizationId, long locationId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .getPasswordPolicy(companyId, organizationId, locationId);
 	}
 
 	public static com.liferay.portal.model.PasswordPolicy getPasswordPolicy(
 		long companyId, long[] organizationIds)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getPasswordPolicy(companyId, organizationIds);
 	}
 
+	/**
+	* Returns the password policy with the primary key.
+	*
+	* @param passwordPolicyId the primary key of the password policy
+	* @return the password policy
+	* @throws PortalException if a password policy with the primary key could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy getPasswordPolicy(
+		long passwordPolicyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getPasswordPolicy(passwordPolicyId);
+	}
+
 	public static com.liferay.portal.model.PasswordPolicy getPasswordPolicyByUserId(
-		long userId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		long userId) throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getPasswordPolicyByUserId(userId);
+	}
+
+	/**
+	* Returns the password policy with the matching UUID and company.
+	*
+	* @param uuid the password policy's UUID
+	* @param companyId the primary key of the company
+	* @return the matching password policy
+	* @throws PortalException if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy getPasswordPolicyByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getPasswordPolicyByUuidAndCompanyId(uuid, companyId);
+	}
+
+	public static com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getPersistedModel(primaryKeyObj);
 	}
 
 	public static java.util.List<com.liferay.portal.model.PasswordPolicy> search(
 		long companyId, java.lang.String name, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.model.PasswordPolicy> obc) {
 		return getService().search(companyId, name, start, end, obc);
 	}
 
-	public static int searchCount(long companyId, java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int searchCount(long companyId, java.lang.String name) {
 		return getService().searchCount(companyId, name);
+	}
+
+	/**
+	* Sets the Spring bean ID for this bean.
+	*
+	* @param beanIdentifier the Spring bean ID for this bean
+	*/
+	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
+		getService().setBeanIdentifier(beanIdentifier);
+	}
+
+	/**
+	* Updates the password policy in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param passwordPolicy the password policy
+	* @return the password policy that was updated
+	*/
+	public static com.liferay.portal.model.PasswordPolicy updatePasswordPolicy(
+		com.liferay.portal.model.PasswordPolicy passwordPolicy) {
+		return getService().updatePasswordPolicy(passwordPolicy);
 	}
 
 	/**
@@ -446,8 +409,7 @@ public class PasswordPolicyLocalServiceUtil {
 		boolean history, int historyCount, boolean expireable, long maxAge,
 		long warningTime, int graceLimit, boolean lockout, int maxFailure,
 		long lockoutDuration, long resetFailureCount, long resetTicketMaxAge)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updatePasswordPolicy(passwordPolicyId, name, description,
 			changeable, changeRequired, minAge, checkSyntax,
@@ -468,8 +430,7 @@ public class PasswordPolicyLocalServiceUtil {
 		boolean lockout, int maxFailure, long lockoutDuration,
 		long resetFailureCount, long resetTicketMaxAge,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updatePasswordPolicy(passwordPolicyId, name, description,
 			changeable, changeRequired, minAge, checkSyntax,

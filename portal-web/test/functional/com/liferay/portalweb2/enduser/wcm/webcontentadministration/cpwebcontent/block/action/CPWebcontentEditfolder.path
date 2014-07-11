@@ -30,7 +30,7 @@
 </tr>
 <tr>
 	<td>MERGE_WITH_PARENT_FOLDER_CHECKBOX</td>
-	<td>//input[@id='_15_mergeWithParentFolderCheckbox']</td>
+	<td>//input[@id='_15_mergeWithParentFolder']</td>
 	<td></td>
 </tr>
 <tr>
@@ -50,7 +50,7 @@
 </tr>
 <tr>
 	<td>CANCEL_BUTTON</td>
-	<td>//button[contains(.,'Cancel')]</td>
+	<td>//a[contains(@class,'btn-cancel')]</td>
 	<td></td>
 </tr>
 </tbody>

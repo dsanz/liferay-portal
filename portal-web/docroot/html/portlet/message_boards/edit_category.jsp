@@ -59,7 +59,7 @@ if (category != null) {
 	MBUtil.addPortletBreadcrumbEntries(category, request, renderResponse);
 
 	if (!layout.isTypeControlPanel()) {
-		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "edit"), currentURL);
 	}
 }
 else {
@@ -68,7 +68,7 @@ else {
 	}
 
 	if (!layout.isTypeControlPanel()) {
-		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-category[message-board]"), currentURL);
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "add-category[message-board]"), currentURL);
 	}
 }
 %>
@@ -78,7 +78,7 @@ else {
 <liferay-ui:header
 	backURL="<%= redirect %>"
 	localizeTitle="<%= (category == null) %>"
-	title='<%= (category == null) ? "add-category[message-board]" : LanguageUtil.format(pageContext, "edit-x", category.getName(), false) %>'
+	title='<%= (category == null) ? "add-category[message-board]" : LanguageUtil.format(request, "edit-x", category.getName(), false) %>'
 />
 
 <portlet:actionURL var="editCategoryURL">
@@ -119,9 +119,7 @@ else {
 			%>
 
 			<c:if test="<%= category != null %>">
-				<aui:field-wrapper label="parent-category[message-board]">
-					<liferay-ui:input-resource id="parentCategoryName" url="<%= parentCategoryName %>" />
-				</aui:field-wrapper>
+				<aui:input label="parent-category[message-board]" name="parentCategoryName" type="resource" value="<%= parentCategoryName %>" />
 			</c:if>
 		</c:if>
 
@@ -241,11 +239,11 @@ else {
 
 <aui:script>
 	function <portlet:namespace />saveCategory() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (category == null) ? Constants.ADD : Constants.UPDATE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= (category == null) ? Constants.ADD : Constants.UPDATE %>';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
 
-	Liferay.Util.toggleBoxes('<portlet:namespace />mailingListActiveCheckbox', '<portlet:namespace />mailingListSettings');
-	Liferay.Util.toggleBoxes('<portlet:namespace />outCustomCheckbox', '<portlet:namespace />outCustomSettings');
+	Liferay.Util.toggleBoxes('<portlet:namespace />mailingListActive', '<portlet:namespace />mailingListSettings');
+	Liferay.Util.toggleBoxes('<portlet:namespace />outCustom', '<portlet:namespace />outCustomSettings');
 </aui:script>

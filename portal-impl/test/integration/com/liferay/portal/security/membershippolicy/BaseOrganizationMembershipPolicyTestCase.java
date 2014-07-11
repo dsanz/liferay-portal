@@ -15,8 +15,9 @@
 package com.liferay.portal.security.membershippolicy;
 
 import com.liferay.portal.model.Organization;
-import com.liferay.portal.util.OrganizationTestUtil;
-import com.liferay.portal.util.RoleTestUtil;
+import com.liferay.portal.test.DeleteAfterTestRun;
+import com.liferay.portal.util.test.OrganizationTestUtil;
+import com.liferay.portal.util.test.RoleTestUtil;
 
 import org.junit.After;
 import org.junit.Before;
@@ -63,8 +64,6 @@ public abstract class BaseOrganizationMembershipPolicyTestCase
 	@Override
 	public void tearDown() throws Exception {
 		super.tearDown();
-
-		organization = null;
 
 		_forbiddenOrganizationIds = new long[2];
 		_forbiddenRoleIds = new long[2];
@@ -145,6 +144,7 @@ public abstract class BaseOrganizationMembershipPolicyTestCase
 		return _standardRoleIds;
 	}
 
+	@DeleteAfterTestRun
 	protected Organization organization;
 
 	private static long[] _forbiddenOrganizationIds = new long[2];

@@ -62,7 +62,7 @@ portletURL.setParameter("tabs1", tabs1);
 		orderByType = portalPreferences.getValue(PortletKeys.DYNAMIC_DATA_MAPPING, "entries-order-by-type", "asc");
 	}
 
-	OrderByComparator orderByComparator = DDMUtil.getStructureOrderByComparator(orderByCol, orderByType);
+	OrderByComparator<DDMStructure> orderByComparator = DDMUtil.getStructureOrderByComparator(orderByCol, orderByType);
 	%>
 
 	<liferay-ui:search-container
@@ -129,23 +129,26 @@ portletURL.setParameter("tabs1", tabs1);
 				<liferay-ui:search-container-column-text
 					href="<%= rowHREF %>"
 					name="storage-type"
-					value="<%= LanguageUtil.get(pageContext, structure.getStorageType()) %>"
+					value="<%= LanguageUtil.get(request, structure.getStorageType()) %>"
 				/>
 			</c:if>
 
 			<c:if test="<%= scopeClassNameId == 0 %>">
 				<liferay-ui:search-container-column-text
-					buffer="buffer"
 					href="<%= rowHREF %>"
 					name="type"
-				>
-
-					<%
-					buffer.append(ResourceActionsUtil.getModelResource(locale, structure.getClassName()));
-					%>
-
-				</liferay-ui:search-container-column-text>
+					value="<%= ResourceActionsUtil.getModelResource(locale, structure.getClassName()) %>"
+				/>
 			</c:if>
+
+			<%
+			Group group = GroupLocalServiceUtil.getGroup(structure.getGroupId());
+			%>
+
+			<liferay-ui:search-container-column-text
+				name="scope"
+				value="<%= LanguageUtil.get(request, group.getScopeLabel(themeDisplay)) %>"
+			/>
 
 			<liferay-ui:search-container-column-date
 				href="<%= rowHREF %>"
@@ -157,6 +160,7 @@ portletURL.setParameter("tabs1", tabs1);
 
 			<liferay-ui:search-container-column-jsp
 				align="right"
+				cssClass="entry-action"
 				path="/html/portlet/dynamic_data_mapping/structure_action.jsp"
 			/>
 		</liferay-ui:search-container-row>
@@ -181,7 +185,7 @@ portletURL.setParameter("tabs1", tabs1);
 			{
 				id: '<portlet:namespace />copyStructure',
 				refreshWindow: window,
-				title: '<%= UnicodeLanguageUtil.format(pageContext, "copy-x", ddmDisplay.getStructureName(locale), false) %>',
+				title: '<%= UnicodeLanguageUtil.format(request, "copy-x", ddmDisplay.getStructureName(locale), false) %>',
 				uri: uri
 			}
 		);
@@ -191,12 +195,12 @@ portletURL.setParameter("tabs1", tabs1);
 		window,
 		'<portlet:namespace />deleteStructures',
 		function() {
-			if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-delete-this") %>')) {
-				document.<portlet:namespace />fm.method = "post";
-				document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
+			if (confirm('<%= UnicodeLanguageUtil.get(request, "are-you-sure-you-want-to-delete-this") %>')) {
+				document.<portlet:namespace />fm.method = 'post';
+				document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.DELETE %>';
 				document.<portlet:namespace />fm.<portlet:namespace />deleteStructureIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
 
-				submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/dynamic_data_mapping/edit_structure" /></portlet:actionURL>");
+				submitForm(document.<portlet:namespace />fm, '<portlet:actionURL><portlet:param name="struts_action" value="/dynamic_data_mapping/edit_structure" /></portlet:actionURL>');
 			}
 		},
 		['liferay-util-list-fields']

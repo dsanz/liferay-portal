@@ -19,14 +19,16 @@ import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.DoAsUserThread;
-import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.UserTestUtil;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.UserTestUtil;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.MBCategoryConstants;
 import com.liferay.portlet.messageboards.model.MBMessage;
@@ -37,7 +39,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,11 +78,11 @@ public class MBMessageServiceTest {
 
 		for (int i = 0; i < ServiceTestUtil.THREAD_COUNT; i++) {
 			UserTestUtil.addUser(
-				ServiceTestUtil.randomString(), _group.getGroupId());
+				RandomTestUtil.randomString(), _group.getGroupId());
 		}
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			_group.getGroupId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
 
 		serviceContext.setGroupPermissions(
 			new String[] {ActionKeys.ADD_MESSAGE, ActionKeys.VIEW});
@@ -96,11 +97,6 @@ public class MBMessageServiceTest {
 			outPassword, allowAnonymous, mailingListActive, serviceContext);
 
 		_userIds = UserLocalServiceUtil.getGroupUserIds(_group.getGroupId());
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		GroupLocalServiceUtil.deleteGroup(_group);
 	}
 
 	@Test
@@ -136,7 +132,10 @@ public class MBMessageServiceTest {
 	}
 
 	private MBCategory _category;
+
+	@DeleteAfterTestRun
 	private Group _group;
+
 	private long[] _userIds;
 
 	private class AddMessageThread extends DoAsUserThread {

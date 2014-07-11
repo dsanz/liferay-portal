@@ -29,12 +29,12 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.asset.NoSuchLinkException;
 import com.liferay.portlet.asset.model.AssetLink;
@@ -50,6 +50,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -99,7 +100,7 @@ public class AssetLinkPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetLink assetLink = _persistence.create(pk);
 
@@ -126,25 +127,25 @@ public class AssetLinkPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetLink newAssetLink = _persistence.create(pk);
 
-		newAssetLink.setCompanyId(ServiceTestUtil.nextLong());
+		newAssetLink.setCompanyId(RandomTestUtil.nextLong());
 
-		newAssetLink.setUserId(ServiceTestUtil.nextLong());
+		newAssetLink.setUserId(RandomTestUtil.nextLong());
 
-		newAssetLink.setUserName(ServiceTestUtil.randomString());
+		newAssetLink.setUserName(RandomTestUtil.randomString());
 
-		newAssetLink.setCreateDate(ServiceTestUtil.nextDate());
+		newAssetLink.setCreateDate(RandomTestUtil.nextDate());
 
-		newAssetLink.setEntryId1(ServiceTestUtil.nextLong());
+		newAssetLink.setEntryId1(RandomTestUtil.nextLong());
 
-		newAssetLink.setEntryId2(ServiceTestUtil.nextLong());
+		newAssetLink.setEntryId2(RandomTestUtil.nextLong());
 
-		newAssetLink.setType(ServiceTestUtil.nextInt());
+		newAssetLink.setType(RandomTestUtil.nextInt());
 
-		newAssetLink.setWeight(ServiceTestUtil.nextInt());
+		newAssetLink.setWeight(RandomTestUtil.nextInt());
 
 		_persistence.update(newAssetLink);
 
@@ -173,7 +174,7 @@ public class AssetLinkPersistenceTest {
 	@Test
 	public void testCountByE1() {
 		try {
-			_persistence.countByE1(ServiceTestUtil.nextLong());
+			_persistence.countByE1(RandomTestUtil.nextLong());
 
 			_persistence.countByE1(0L);
 		}
@@ -185,7 +186,7 @@ public class AssetLinkPersistenceTest {
 	@Test
 	public void testCountByE2() {
 		try {
-			_persistence.countByE2(ServiceTestUtil.nextLong());
+			_persistence.countByE2(RandomTestUtil.nextLong());
 
 			_persistence.countByE2(0L);
 		}
@@ -197,8 +198,8 @@ public class AssetLinkPersistenceTest {
 	@Test
 	public void testCountByE_E() {
 		try {
-			_persistence.countByE_E(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong());
+			_persistence.countByE_E(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
 
 			_persistence.countByE_E(0L, 0L);
 		}
@@ -210,8 +211,8 @@ public class AssetLinkPersistenceTest {
 	@Test
 	public void testCountByE1_T() {
 		try {
-			_persistence.countByE1_T(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextInt());
+			_persistence.countByE1_T(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
 
 			_persistence.countByE1_T(0L, 0);
 		}
@@ -223,8 +224,8 @@ public class AssetLinkPersistenceTest {
 	@Test
 	public void testCountByE2_T() {
 		try {
-			_persistence.countByE2_T(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextInt());
+			_persistence.countByE2_T(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
 
 			_persistence.countByE2_T(0L, 0);
 		}
@@ -236,8 +237,8 @@ public class AssetLinkPersistenceTest {
 	@Test
 	public void testCountByE_E_T() {
 		try {
-			_persistence.countByE_E_T(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.nextLong(), ServiceTestUtil.nextInt());
+			_persistence.countByE_E_T(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
 
 			_persistence.countByE_E_T(0L, 0L, 0);
 		}
@@ -257,7 +258,7 @@ public class AssetLinkPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -279,7 +280,7 @@ public class AssetLinkPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<AssetLink> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("AssetLink", "linkId", true,
 			"companyId", true, "userId", true, "userName", true, "createDate",
 			true, "entryId1", true, "entryId2", true, "type", true, "weight",
@@ -297,11 +298,93 @@ public class AssetLinkPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetLink missingAssetLink = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingAssetLink);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		AssetLink newAssetLink1 = addAssetLink();
+		AssetLink newAssetLink2 = addAssetLink();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newAssetLink1.getPrimaryKey());
+		primaryKeys.add(newAssetLink2.getPrimaryKey());
+
+		Map<Serializable, AssetLink> assetLinks = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, assetLinks.size());
+		Assert.assertEquals(newAssetLink1,
+			assetLinks.get(newAssetLink1.getPrimaryKey()));
+		Assert.assertEquals(newAssetLink2,
+			assetLinks.get(newAssetLink2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, AssetLink> assetLinks = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(assetLinks.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		AssetLink newAssetLink = addAssetLink();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newAssetLink.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, AssetLink> assetLinks = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, assetLinks.size());
+		Assert.assertEquals(newAssetLink,
+			assetLinks.get(newAssetLink.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, AssetLink> assetLinks = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(assetLinks.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		AssetLink newAssetLink = addAssetLink();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newAssetLink.getPrimaryKey());
+
+		Map<Serializable, AssetLink> assetLinks = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, assetLinks.size());
+		Assert.assertEquals(newAssetLink,
+			assetLinks.get(newAssetLink.getPrimaryKey()));
 	}
 
 	@Test
@@ -352,7 +435,7 @@ public class AssetLinkPersistenceTest {
 				AssetLink.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("linkId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<AssetLink> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -391,7 +474,7 @@ public class AssetLinkPersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("linkId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("linkId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -419,25 +502,25 @@ public class AssetLinkPersistenceTest {
 	}
 
 	protected AssetLink addAssetLink() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetLink assetLink = _persistence.create(pk);
 
-		assetLink.setCompanyId(ServiceTestUtil.nextLong());
+		assetLink.setCompanyId(RandomTestUtil.nextLong());
 
-		assetLink.setUserId(ServiceTestUtil.nextLong());
+		assetLink.setUserId(RandomTestUtil.nextLong());
 
-		assetLink.setUserName(ServiceTestUtil.randomString());
+		assetLink.setUserName(RandomTestUtil.randomString());
 
-		assetLink.setCreateDate(ServiceTestUtil.nextDate());
+		assetLink.setCreateDate(RandomTestUtil.nextDate());
 
-		assetLink.setEntryId1(ServiceTestUtil.nextLong());
+		assetLink.setEntryId1(RandomTestUtil.nextLong());
 
-		assetLink.setEntryId2(ServiceTestUtil.nextLong());
+		assetLink.setEntryId2(RandomTestUtil.nextLong());
 
-		assetLink.setType(ServiceTestUtil.nextInt());
+		assetLink.setType(RandomTestUtil.nextInt());
 
-		assetLink.setWeight(ServiceTestUtil.nextInt());
+		assetLink.setWeight(RandomTestUtil.nextInt());
 
 		_persistence.update(assetLink);
 

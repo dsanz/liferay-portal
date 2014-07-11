@@ -19,6 +19,8 @@
 <%
 User selUser = (User)request.getAttribute("user.selUser");
 List<UserGroup> userGroups = (List<UserGroup>)request.getAttribute("user.userGroups");
+
+currentURLObj.setParameter("historyKey", renderResponse.getNamespace() + "userGroups");
 %>
 
 <liferay-ui:error-marker key="errorSection" value="user-groups" />
@@ -27,7 +29,7 @@ List<UserGroup> userGroups = (List<UserGroup>)request.getAttribute("user.userGro
 
 <liferay-util:buffer var="removeUserGroupIcon">
 	<liferay-ui:icon
-		image="unlink"
+		iconCssClass="icon-remove"
 		label="<%= true %>"
 		message="remove"
 	/>
@@ -36,11 +38,13 @@ List<UserGroup> userGroups = (List<UserGroup>)request.getAttribute("user.userGro
 <h3><liferay-ui:message key="user-groups" /></h3>
 
 <liferay-ui:search-container
+	curParam="userGroupsCur"
 	headerNames="name,null"
+	iteratorURL="<%= currentURLObj %>"
+	total="<%= userGroups.size() %>"
 >
 	<liferay-ui:search-container-results
-		results="<%= userGroups %>"
-		total="<%= userGroups.size() %>"
+		results="<%= userGroups.subList(searchContainer.getStart(), searchContainer.getResultEnd()) %>"
 	/>
 
 	<liferay-ui:search-container-row
@@ -61,7 +65,7 @@ List<UserGroup> userGroups = (List<UserGroup>)request.getAttribute("user.userGro
 		</c:if>
 	</liferay-ui:search-container-row>
 
-	<liferay-ui:search-iterator paginate="<%= false %>" />
+	<liferay-ui:search-iterator />
 </liferay-ui:search-container>
 
 <c:if test="<%= !portletName.equals(PortletKeys.MY_ACCOUNT) %>">
@@ -70,15 +74,10 @@ List<UserGroup> userGroups = (List<UserGroup>)request.getAttribute("user.userGro
 		iconCssClass="icon-search"
 		id="openUserGroupsLink"
 		label="<%= true %>"
-		linkCssClass="btn"
+		linkCssClass="btn btn-default"
 		message="select"
 		url="javascript:;"
 	/>
-
-	<portlet:renderURL var="selectUserGroupURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-		<portlet:param name="struts_action" value="/user_groups_admin/select_user_group" />
-		<portlet:param name="p_u_i_d" value="<%= String.valueOf(selUser.getUserId()) %>" />
-	</portlet:renderURL>
 
 	<aui:script use="aui-base,escape">
 		A.one('#<portlet:namespace />openUserGroupsLink').on(
@@ -93,6 +92,12 @@ List<UserGroup> userGroups = (List<UserGroup>)request.getAttribute("user.userGro
 						},
 						id: '<portlet:namespace />selectUserGroup',
 						title: '<liferay-ui:message arguments="user-group" key="select-x" />',
+
+						<portlet:renderURL var="selectUserGroupURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+							<portlet:param name="struts_action" value="/user_groups_admin/select_user_group" />
+							<portlet:param name="p_u_i_d" value="<%= String.valueOf(selUser.getUserId()) %>" />
+						</portlet:renderURL>
+
 						uri: '<%= selectUserGroupURL.toString() %>'
 					},
 					function(event) {

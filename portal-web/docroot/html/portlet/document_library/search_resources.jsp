@@ -70,7 +70,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 int searchType = ParamUtil.getInteger(request, "searchType");
 
 int entryStart = ParamUtil.getInteger(request, "entryStart");
-int entryEnd = ParamUtil.getInteger(request, "entryEnd", entriesPerPage);
+int entryEnd = ParamUtil.getInteger(request, "entryEnd", dlPortletInstanceSettings.getEntriesPerPage());
 
 int total = 0;
 
@@ -112,7 +112,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 	<liferay-util:buffer var="searchInfo">
 		<div class="search-info">
 			<span class="keywords">
-				<%= (folder != null) ? LanguageUtil.format(pageContext, "searched-for-x-in-x", new Object[] {HtmlUtil.escape(keywords), HtmlUtil.escape(folder.getName())}, false) : LanguageUtil.format(pageContext, "searched-for-x-everywhere", HtmlUtil.escape(keywords), false) %>
+				<%= (folder != null) ? LanguageUtil.format(request, "searched-for-x-in-x", new Object[] {HtmlUtil.escape(keywords), HtmlUtil.escape(folder.getName())}, false) : LanguageUtil.format(request, "searched-for-x-everywhere", HtmlUtil.escape(keywords), false) %>
 			</span>
 
 			<c:if test="<%= folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID %>">
@@ -126,7 +126,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 				</span>
 			</c:if>
 
-			<liferay-ui:icon cssClass="close-search" id="closeSearch" image="../aui/remove" url="javascript:;" />
+			<liferay-ui:icon cssClass="close-search" iconCssClass="icon-remove" id="closeSearch" url="javascript:;" />
 		</div>
 
 		<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
@@ -308,7 +308,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 
 						<c:otherwise>
 							<div style="float: left; margin: 100px 10px 0px;">
-								<img alt="<liferay-ui:message key="error" />" border="no" src="<%= themeDisplay.getPathThemeImages() %>/application/forbidden_action.png" />
+								<i class="icon-ban-circle"></i>
 							</div>
 						</c:otherwise>
 					</c:choose>
@@ -319,7 +319,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 
 				<c:if test="<%= searchResultsList.isEmpty() %>">
 					<div class="alert alert-info">
-						<%= LanguageUtil.format(pageContext, "no-documents-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>
+						<%= LanguageUtil.format(request, "no-documents-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>
 					</div>
 				</c:if>
 
@@ -358,7 +358,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 			<c:when test="<%= showRepositoryTabs %>">
 
 			<%
-			String selectedTab = LanguageUtil.get(pageContext, "local");
+			String selectedTab = LanguageUtil.get(request, "local");
 
 			for (Folder mountFolder : mountFolders) {
 				if (mountFolder.getRepositoryId() == searchRepositoryId) {
@@ -369,7 +369,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 
 				<div class="search-results-container" id="<portlet:namespace />searchResultsContainer">
 					<liferay-ui:tabs
-						names='<%= LanguageUtil.get(pageContext, "local") + "," + HtmlUtil.escape(ListUtil.toString(mountFolders, "name")) %>'
+						names='<%= LanguageUtil.get(request, "local") + "," + HtmlUtil.escape(ListUtil.toString(mountFolders, "name")) %>'
 						refresh="<%= false %>"
 						value="<%= selectedTab %>"
 					>
@@ -381,7 +381,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 									</c:when>
 									<c:otherwise>
 										<div class="alert alert-info">
-											<%= LanguageUtil.get(pageContext, "searching,-please-wait") %>
+											<%= LanguageUtil.get(request, "searching,-please-wait") %>
 										</div>
 										<div class="loading-animation"></div>
 									</c:otherwise>
@@ -401,7 +401,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 										</c:when>
 										<c:otherwise>
 											<div class="alert alert-info">
-												<%= LanguageUtil.get(pageContext, "searching,-please-wait") %>
+												<%= LanguageUtil.get(request, "searching,-please-wait") %>
 											</div>
 											<div class="loading-animation"></div>
 										</c:otherwise>

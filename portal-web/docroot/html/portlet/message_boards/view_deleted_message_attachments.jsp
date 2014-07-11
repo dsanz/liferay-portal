@@ -32,9 +32,9 @@ PortletURL portletURL = renderResponse.createRenderURL();
 portletURL.setParameter("struts_action", "/message_boards/edit_message");
 portletURL.setParameter("messageId", String.valueOf(message.getMessageId()));
 
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), portletURL.toString());
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "edit"), portletURL.toString());
 
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "removed-attachments"), currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "removed-attachments"), currentURL);
 
 PortletURL iteratorURL = renderResponse.createRenderURL();
 
@@ -79,15 +79,22 @@ iteratorURL.setParameter("messageId", String.valueOf(messageId));
 	>
 
 		<%
-		String rowHREF = PortletFileRepositoryUtil.getPortletFileEntryURL(themeDisplay, fileEntry, "status=" + WorkflowConstants.STATUS_IN_TRASH);
+		String rowHREF = PortletFileRepositoryUtil.getDownloadPortletFileEntryURL(themeDisplay, fileEntry, "status=" + WorkflowConstants.STATUS_IN_TRASH);
 		%>
 
 		<liferay-ui:search-container-column-text
 			href="<%= rowHREF %>"
 			name="file-name"
 		>
+
+			<%
+			AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(DLFileEntry.class.getName());
+
+			AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(fileEntry.getFileEntryId());
+			%>
+
 			<liferay-ui:icon
-				image='<%= "../file_system/small/" + DLUtil.getFileIcon(fileEntry.getExtension()) %>'
+				iconCssClass="<%= assetRenderer.getIconCssClass() %>"
 				label="<%= true %>"
 				message="<%= TrashUtil.getOriginalTitle(fileEntry.getTitle()) %>"
 			/>
@@ -101,6 +108,7 @@ iteratorURL.setParameter("messageId", String.valueOf(messageId));
 
 		<liferay-ui:search-container-column-jsp
 			align="right"
+			cssClass="entry-action"
 			path="/html/portlet/message_boards/deleted_message_attachment_action.jsp"
 		/>
 	</liferay-ui:search-container-row>

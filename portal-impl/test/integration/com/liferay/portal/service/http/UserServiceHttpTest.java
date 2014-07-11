@@ -19,10 +19,10 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
 /**
  * @author Brian Wing Shun Chan
  */
-@ExecutionTestListeners(listeners = {EnvironmentExecutionTestListener.class})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class UserServiceHttpTest {
 
@@ -47,7 +47,7 @@ public class UserServiceHttpTest {
 		User user = addUser();
 
 		UserServiceHttp.deleteUser(
-			TestPropsValues.getHttpPrincipal(), user.getUserId());
+			HttpPrincipalTestUtil.getHttpPrincipal(), user.getUserId());
 	}
 
 	@Test
@@ -55,8 +55,8 @@ public class UserServiceHttpTest {
 		User user = addUser();
 
 		UserServiceHttp.getUserByEmailAddress(
-			TestPropsValues.getHttpPrincipal(), TestPropsValues.getCompanyId(),
-			user.getEmailAddress());
+			HttpPrincipalTestUtil.getHttpPrincipal(),
+			TestPropsValues.getCompanyId(), user.getEmailAddress());
 	}
 
 	protected User addUser() throws Exception {
@@ -66,7 +66,7 @@ public class UserServiceHttpTest {
 		boolean autoScreenName = true;
 		String screenName = StringPool.BLANK;
 		String emailAddress =
-			"UserServiceHttpTest." + ServiceTestUtil.nextLong() +
+			"UserServiceHttpTest." + RandomTestUtil.nextLong() +
 				"@liferay.com";
 		long facebookId = 0;
 		String openId = StringPool.BLANK;
@@ -90,12 +90,12 @@ public class UserServiceHttpTest {
 		ServiceContext serviceContext = new ServiceContext();
 
 		return UserServiceHttp.addUser(
-			TestPropsValues.getHttpPrincipal(), TestPropsValues.getCompanyId(),
-			autoPassword, password1, password2, autoScreenName, screenName,
-			emailAddress, facebookId, openId, locale, firstName, middleName,
-			lastName, prefixId, suffixId, male, birthdayMonth, birthdayDay,
-			birthdayYear, jobTitle, groupIds, organizationIds, roleIds,
-			userGroupIds, sendMail, serviceContext);
+			HttpPrincipalTestUtil.getHttpPrincipal(),
+			TestPropsValues.getCompanyId(), autoPassword, password1, password2,
+			autoScreenName, screenName, emailAddress, facebookId, openId,
+			locale, firstName, middleName, lastName, prefixId, suffixId, male,
+			birthdayMonth, birthdayDay, birthdayYear, jobTitle, groupIds,
+			organizationIds, roleIds, userGroupIds, sendMail, serviceContext);
 	}
 
 }

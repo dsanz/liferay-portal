@@ -14,29 +14,27 @@
 
 package com.liferay.portlet.documentlibrary.util;
 
-import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.service.GroupLocalServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
 import com.liferay.portlet.documentlibrary.FileNameException;
 import com.liferay.portlet.documentlibrary.FolderNameException;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
+import com.liferay.portlet.documentlibrary.util.test.DLAppTestUtil;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -46,21 +44,14 @@ import org.junit.runner.RunWith;
 @ExecutionTestListeners(
 	listeners = {
 		MainServletExecutionTestListener.class,
-		EnvironmentExecutionTestListener.class
+		MainServletExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class DLDirectoryNameAndFileNameTest {
 
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-		FinderCacheUtil.clearCache();
-
+	@Before
+	public void setUp() throws Exception {
 		_group = GroupTestUtil.addGroup();
-	}
-
-	@AfterClass
-	public static void tearDownClass() throws Exception {
-		GroupLocalServiceUtil.deleteGroup(_group);
 	}
 
 	@Test(expected = FileNameException.class)
@@ -187,12 +178,13 @@ public class DLDirectoryNameAndFileNameTest {
 
 		DLAppServiceUtil.updateFolder(
 			folder.getFolderId(), name, StringPool.BLANK,
-			ServiceTestUtil.getServiceContext(_group.getGroupId()));
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 	}
-
-	private static Group _group;
 
 	private String[] _DL_CHAR_LAST_BLACKLIST =
 		{StringPool.SPACE, StringPool.PERIOD};
+
+	@DeleteAfterTestRun
+	private Group _group;
 
 }

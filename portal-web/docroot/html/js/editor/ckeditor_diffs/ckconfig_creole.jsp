@@ -26,10 +26,22 @@
 
 <%
 String attachmentURLPrefix = ParamUtil.getString(request, "attachmentURLPrefix");
+
 String contentsLanguageId = ParamUtil.getString(request, "contentsLanguageId");
+
+Locale contentsLocale = LocaleUtil.fromLanguageId(contentsLanguageId);
+
+contentsLanguageId = LocaleUtil.toLanguageId(contentsLocale);
+
 String cssClasses = ParamUtil.getString(request, "cssClasses");
 String cssPath = ParamUtil.getString(request, "cssPath");
+
 String languageId = ParamUtil.getString(request, "languageId");
+
+Locale locale = LocaleUtil.fromLanguageId(languageId);
+
+languageId = LocaleUtil.toLanguageId(locale);
+
 String name = ParamUtil.getString(request, "name");
 boolean resizable = ParamUtil.getBoolean(request, "resizable");
 long wikiPageResourcePrimKey = ParamUtil.getLong(request, "wikiPageResourcePrimKey");
@@ -37,10 +49,12 @@ long wikiPageResourcePrimKey = ParamUtil.getLong(request, "wikiPageResourcePrimK
 response.setContentType(ContentTypes.TEXT_JAVASCRIPT);
 %>
 
-;(function() {
+;window['<%= HtmlUtil.escapeJS(name) %>Config'] = function() {
 	var ckEditor = CKEDITOR.instances['<%= HtmlUtil.escapeJS(name) %>'];
 
 	var config = ckEditor.config;
+
+	config.allowedContent = true;
 
 	config.attachmentURLPrefix = '<%= HtmlUtil.escapeJS(attachmentURLPrefix) %>';
 
@@ -49,26 +63,26 @@ response.setContentType(ContentTypes.TEXT_JAVASCRIPT);
 	config.contentsCss = ['<%= HtmlUtil.escapeJS(cssPath) %>/aui.css', '<%= HtmlUtil.escapeJS(cssPath) %>/main.css'];
 
 	<%
-	Locale contentsLocale = LocaleUtil.fromLanguageId(contentsLanguageId);
-
 	String contentsLanguageDir = LanguageUtil.get(contentsLocale, "lang.dir");
 	%>
 
 	config.contentsLangDirection = '<%= HtmlUtil.escapeJS(contentsLanguageDir) %>';
 
-	config.contentsLanguage = '<%= HtmlUtil.escapeJS(contentsLanguageId.replace("iw_", "he_")) %>';
+	config.contentsLanguage = '<%= contentsLanguageId.replace("iw_", "he_") %>';
 
 	config.decodeLinks = true;
 
 	config.disableObjectResizing = true;
 
-	config.extraPlugins = 'creole,wikilink';
+	config.extraPlugins = 'creole,lfrpopup,wikilink';
+
+	config.filebrowserWindowFeatures = 'title=<%= LanguageUtil.get(locale, "browse") %>';
 
 	config.format_tags = 'p;h1;h2;h3;h4;h5;h6;pre';
 
 	config.height = 265;
 
-	config.language = '<%= HtmlUtil.escapeJS(languageId.replace("iw_", "he_")) %>';
+	config.language = '<%= languageId.replace("iw_", "he_") %>';
 
 	config.removePlugins = [
 		'elementspath',
@@ -186,4 +200,6 @@ response.setContentType(ContentTypes.TEXT_JAVASCRIPT);
 			}
 		}
 	);
-})();
+};
+
+window['<%= HtmlUtil.escapeJS(name) %>Config']();

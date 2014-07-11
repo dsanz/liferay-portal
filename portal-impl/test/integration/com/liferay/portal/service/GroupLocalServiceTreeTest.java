@@ -15,28 +15,22 @@
 package com.liferay.portal.service;
 
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.TreeModel;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 
 import org.junit.runner.RunWith;
 
 /**
  * @author Shinn Lok
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class GroupLocalServiceTreeTest extends BaseLocalServiceTreeTestCase {
 
 	@Override
@@ -52,7 +46,7 @@ public class GroupLocalServiceTreeTest extends BaseLocalServiceTreeTestCase {
 		}
 
 		Group group = GroupTestUtil.addGroup(
-			parentGroupId, ServiceTestUtil.randomString());
+			parentGroupId, RandomTestUtil.randomString());
 
 		group.setTreePath(null);
 

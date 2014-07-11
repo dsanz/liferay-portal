@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -46,7 +45,11 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -98,11 +101,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param name the name
 	 * @return the matching country
 	 * @throws com.liferay.portal.NoSuchCountryException if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country findByName(String name)
-		throws NoSuchCountryException, SystemException {
+	public Country findByName(String name) throws NoSuchCountryException {
 		Country country = fetchByName(name);
 
 		if (country == null) {
@@ -130,10 +131,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param name the name
 	 * @return the matching country, or <code>null</code> if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country fetchByName(String name) throws SystemException {
+	public Country fetchByName(String name) {
 		return fetchByName(name, true);
 	}
 
@@ -143,11 +143,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param name the name
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching country, or <code>null</code> if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country fetchByName(String name, boolean retrieveFromCache)
-		throws SystemException {
+	public Country fetchByName(String name, boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { name };
 
 		Object result = null;
@@ -243,11 +241,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param name the name
 	 * @return the country that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country removeByName(String name)
-		throws NoSuchCountryException, SystemException {
+	public Country removeByName(String name) throws NoSuchCountryException {
 		Country country = findByName(name);
 
 		return remove(country);
@@ -258,10 +254,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param name the name
 	 * @return the number of matching countries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByName(String name) throws SystemException {
+	public int countByName(String name) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_NAME;
 
 		Object[] finderArgs = new Object[] { name };
@@ -339,11 +334,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param a2 the a2
 	 * @return the matching country
 	 * @throws com.liferay.portal.NoSuchCountryException if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country findByA2(String a2)
-		throws NoSuchCountryException, SystemException {
+	public Country findByA2(String a2) throws NoSuchCountryException {
 		Country country = fetchByA2(a2);
 
 		if (country == null) {
@@ -371,10 +364,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param a2 the a2
 	 * @return the matching country, or <code>null</code> if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country fetchByA2(String a2) throws SystemException {
+	public Country fetchByA2(String a2) {
 		return fetchByA2(a2, true);
 	}
 
@@ -384,11 +376,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param a2 the a2
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching country, or <code>null</code> if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country fetchByA2(String a2, boolean retrieveFromCache)
-		throws SystemException {
+	public Country fetchByA2(String a2, boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { a2 };
 
 		Object result = null;
@@ -483,11 +473,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param a2 the a2
 	 * @return the country that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country removeByA2(String a2)
-		throws NoSuchCountryException, SystemException {
+	public Country removeByA2(String a2) throws NoSuchCountryException {
 		Country country = findByA2(a2);
 
 		return remove(country);
@@ -498,10 +486,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param a2 the a2
 	 * @return the number of matching countries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByA2(String a2) throws SystemException {
+	public int countByA2(String a2) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_A2;
 
 		Object[] finderArgs = new Object[] { a2 };
@@ -579,11 +566,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param a3 the a3
 	 * @return the matching country
 	 * @throws com.liferay.portal.NoSuchCountryException if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country findByA3(String a3)
-		throws NoSuchCountryException, SystemException {
+	public Country findByA3(String a3) throws NoSuchCountryException {
 		Country country = fetchByA3(a3);
 
 		if (country == null) {
@@ -611,10 +596,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param a3 the a3
 	 * @return the matching country, or <code>null</code> if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country fetchByA3(String a3) throws SystemException {
+	public Country fetchByA3(String a3) {
 		return fetchByA3(a3, true);
 	}
 
@@ -624,11 +608,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param a3 the a3
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching country, or <code>null</code> if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country fetchByA3(String a3, boolean retrieveFromCache)
-		throws SystemException {
+	public Country fetchByA3(String a3, boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { a3 };
 
 		Object result = null;
@@ -723,11 +705,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param a3 the a3
 	 * @return the country that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country removeByA3(String a3)
-		throws NoSuchCountryException, SystemException {
+	public Country removeByA3(String a3) throws NoSuchCountryException {
 		Country country = findByA3(a3);
 
 		return remove(country);
@@ -738,10 +718,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param a3 the a3
 	 * @return the number of matching countries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByA3(String a3) throws SystemException {
+	public int countByA3(String a3) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_A3;
 
 		Object[] finderArgs = new Object[] { a3 };
@@ -829,10 +808,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param active the active
 	 * @return the matching countries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Country> findByActive(boolean active) throws SystemException {
+	public List<Country> findByActive(boolean active) {
 		return findByActive(active, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -847,11 +825,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param start the lower bound of the range of countries
 	 * @param end the upper bound of the range of countries (not inclusive)
 	 * @return the range of matching countries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Country> findByActive(boolean active, int start, int end)
-		throws SystemException {
+	public List<Country> findByActive(boolean active, int start, int end) {
 		return findByActive(active, start, end, null);
 	}
 
@@ -867,11 +843,10 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param end the upper bound of the range of countries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching countries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Country> findByActive(boolean active, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Country> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -974,12 +949,11 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching country
 	 * @throws com.liferay.portal.NoSuchCountryException if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Country findByActive_First(boolean active,
-		OrderByComparator orderByComparator)
-		throws NoSuchCountryException, SystemException {
+		OrderByComparator<Country> orderByComparator)
+		throws NoSuchCountryException {
 		Country country = fetchByActive_First(active, orderByComparator);
 
 		if (country != null) {
@@ -1004,11 +978,10 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param active the active
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching country, or <code>null</code> if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Country fetchByActive_First(boolean active,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Country> orderByComparator) {
 		List<Country> list = findByActive(active, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -1025,12 +998,11 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching country
 	 * @throws com.liferay.portal.NoSuchCountryException if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Country findByActive_Last(boolean active,
-		OrderByComparator orderByComparator)
-		throws NoSuchCountryException, SystemException {
+		OrderByComparator<Country> orderByComparator)
+		throws NoSuchCountryException {
 		Country country = fetchByActive_Last(active, orderByComparator);
 
 		if (country != null) {
@@ -1055,11 +1027,10 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param active the active
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching country, or <code>null</code> if a matching country could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Country fetchByActive_Last(boolean active,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Country> orderByComparator) {
 		int count = countByActive(active);
 
 		if (count == 0) {
@@ -1084,12 +1055,11 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next country
 	 * @throws com.liferay.portal.NoSuchCountryException if a country with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Country[] findByActive_PrevAndNext(long countryId, boolean active,
-		OrderByComparator orderByComparator)
-		throws NoSuchCountryException, SystemException {
+		OrderByComparator<Country> orderByComparator)
+		throws NoSuchCountryException {
 		Country country = findByPrimaryKey(countryId);
 
 		Session session = null;
@@ -1118,7 +1088,8 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	}
 
 	protected Country getByActive_PrevAndNext(Session session, Country country,
-		boolean active, OrderByComparator orderByComparator, boolean previous) {
+		boolean active, OrderByComparator<Country> orderByComparator,
+		boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -1225,10 +1196,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * Removes all the countries where active = &#63; from the database.
 	 *
 	 * @param active the active
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByActive(boolean active) throws SystemException {
+	public void removeByActive(boolean active) {
 		for (Country country : findByActive(active, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null)) {
 			remove(country);
@@ -1240,10 +1210,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param active the active
 	 * @return the number of matching countries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByActive(boolean active) throws SystemException {
+	public int countByActive(boolean active) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_ACTIVE;
 
 		Object[] finderArgs = new Object[] { active };
@@ -1504,11 +1473,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param countryId the primary key of the country
 	 * @return the country that was removed
 	 * @throws com.liferay.portal.NoSuchCountryException if a country with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country remove(long countryId)
-		throws NoSuchCountryException, SystemException {
+	public Country remove(long countryId) throws NoSuchCountryException {
 		return remove((Serializable)countryId);
 	}
 
@@ -1518,11 +1485,10 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param primaryKey the primary key of the country
 	 * @return the country that was removed
 	 * @throws com.liferay.portal.NoSuchCountryException if a country with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Country remove(Serializable primaryKey)
-		throws NoSuchCountryException, SystemException {
+		throws NoSuchCountryException {
 		Session session = null;
 
 		try {
@@ -1553,7 +1519,7 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	}
 
 	@Override
-	protected Country removeImpl(Country country) throws SystemException {
+	protected Country removeImpl(Country country) {
 		country = toUnwrappedModel(country);
 
 		Session session = null;
@@ -1585,8 +1551,7 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	}
 
 	@Override
-	public Country updateImpl(com.liferay.portal.model.Country country)
-		throws SystemException {
+	public Country updateImpl(com.liferay.portal.model.Country country) {
 		country = toUnwrappedModel(country);
 
 		boolean isNew = country.isNew();
@@ -1679,11 +1644,10 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param primaryKey the primary key of the country
 	 * @return the country
 	 * @throws com.liferay.portal.NoSuchCountryException if a country with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Country findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchCountryException, SystemException {
+		throws NoSuchCountryException {
 		Country country = fetchByPrimaryKey(primaryKey);
 
 		if (country == null) {
@@ -1704,11 +1668,10 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param countryId the primary key of the country
 	 * @return the country
 	 * @throws com.liferay.portal.NoSuchCountryException if a country with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Country findByPrimaryKey(long countryId)
-		throws NoSuchCountryException, SystemException {
+		throws NoSuchCountryException {
 		return findByPrimaryKey((Serializable)countryId);
 	}
 
@@ -1717,11 +1680,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param primaryKey the primary key of the country
 	 * @return the country, or <code>null</code> if a country with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public Country fetchByPrimaryKey(Serializable primaryKey) {
 		Country country = (Country)EntityCacheUtil.getResult(CountryModelImpl.ENTITY_CACHE_ENABLED,
 				CountryImpl.class, primaryKey);
 
@@ -1764,21 +1725,111 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 *
 	 * @param countryId the primary key of the country
 	 * @return the country, or <code>null</code> if a country with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Country fetchByPrimaryKey(long countryId) throws SystemException {
+	public Country fetchByPrimaryKey(long countryId) {
 		return fetchByPrimaryKey((Serializable)countryId);
+	}
+
+	@Override
+	public Map<Serializable, Country> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, Country> map = new HashMap<Serializable, Country>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			Country country = fetchByPrimaryKey(primaryKey);
+
+			if (country != null) {
+				map.put(primaryKey, country);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			Country country = (Country)EntityCacheUtil.getResult(CountryModelImpl.ENTITY_CACHE_ENABLED,
+					CountryImpl.class, primaryKey);
+
+			if (country == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, country);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_COUNTRY_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (Country country : (List<Country>)q.list()) {
+				map.put(country.getPrimaryKeyObj(), country);
+
+				cacheResult(country);
+
+				uncachedPrimaryKeys.remove(country.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(CountryModelImpl.ENTITY_CACHE_ENABLED,
+					CountryImpl.class, primaryKey, _nullCountry);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the countries.
 	 *
 	 * @return the countries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Country> findAll() throws SystemException {
+	public List<Country> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -1792,10 +1843,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param start the lower bound of the range of countries
 	 * @param end the upper bound of the range of countries (not inclusive)
 	 * @return the range of countries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Country> findAll(int start, int end) throws SystemException {
+	public List<Country> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -1810,11 +1860,10 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * @param end the upper bound of the range of countries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of countries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Country> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Country> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1896,10 +1945,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	/**
 	 * Removes all the countries from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (Country country : findAll()) {
 			remove(country);
 		}
@@ -1909,10 +1957,9 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	 * Returns the number of countries.
 	 *
 	 * @return the number of countries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -1981,6 +2028,7 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	}
 
 	private static final String _SQL_SELECT_COUNTRY = "SELECT country FROM Country country";
+	private static final String _SQL_SELECT_COUNTRY_WHERE_PKS_IN = "SELECT country FROM Country country WHERE countryId IN (";
 	private static final String _SQL_SELECT_COUNTRY_WHERE = "SELECT country FROM Country country WHERE ";
 	private static final String _SQL_COUNT_COUNTRY = "SELECT COUNT(country) FROM Country country";
 	private static final String _SQL_COUNT_COUNTRY_WHERE = "SELECT COUNT(country) FROM Country country WHERE ";

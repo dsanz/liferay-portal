@@ -56,7 +56,7 @@ else if (group != null) {
 	PortalUtil.addPortletBreadcrumbEntry(request, group.getDescriptiveName(locale), null);
 }
 
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "assign-user-group-roles"), portletURL.toString());
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "assign-user-group-roles"), portletURL.toString());
 
 if (role != null) {
 	portletURL.setParameter("roleId", String.valueOf(roleId));
@@ -84,7 +84,7 @@ request.setAttribute("edit_user_group_roles.jsp-portletURL", portletURL);
 	backURL="<%= redirect %>"
 	escapeXml="<%= false %>"
 	localizeTitle="<%= false %>"
-	title='<%= LanguageUtil.get(pageContext, "add-site-roles-to") + ": " + LanguageUtil.get(pageContext, "user-groups") %>'
+	title='<%= LanguageUtil.get(request, "add-site-roles-to") + ": " + LanguageUtil.get(request, "user-groups") %>'
 />
 
 <aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
@@ -109,12 +109,12 @@ request.setAttribute("edit_user_group_roles.jsp-portletURL", portletURL);
 		window,
 		'<portlet:namespace />updateUserGroupGroupRoleUsers',
 		function(redirect) {
-			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "user_group_group_role_users";
+			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'user_group_group_role_users';
 			document.<portlet:namespace />fm.<portlet:namespace />redirect.value = redirect;
 			document.<portlet:namespace />fm.<portlet:namespace />addUserGroupIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
 			document.<portlet:namespace />fm.<portlet:namespace />removeUserGroupIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
 
-			submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/sites_admin/edit_user_group_roles" /></portlet:actionURL>");
+			submitForm(document.<portlet:namespace />fm, '<portlet:actionURL><portlet:param name="struts_action" value="/sites_admin/edit_user_group_roles" /></portlet:actionURL>');
 		},
 		['liferay-util-list-fields']
 	);

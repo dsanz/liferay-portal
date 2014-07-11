@@ -29,7 +29,7 @@ ShoppingItemPrice[] itemPrices = (ShoppingItemPrice[])ShoppingItemPriceLocalServ
 String orderByCol = portalPreferences.getValue(PortletKeys.SHOPPING, "items-order-by-col", "sku");
 String orderByType = portalPreferences.getValue(PortletKeys.SHOPPING, "items-order-by-type", "asc");
 
-OrderByComparator orderByComparator = ShoppingUtil.getItemOrderByComparator(orderByCol, orderByType);
+OrderByComparator<ShoppingItem> orderByComparator = ShoppingUtil.getItemOrderByComparator(orderByCol, orderByType);
 
 ShoppingItem[] prevAndNext = ShoppingItemServiceUtil.getItemsPrevAndNext(item.getItemId(), orderByComparator);
 %>
@@ -55,7 +55,7 @@ ShoppingItem[] prevAndNext = ShoppingItemServiceUtil.getItemsPrevAndNext(item.ge
 	/>
 
 	<div class="breadcrumbs">
-		<%= ShoppingUtil.getBreadcrumbs(item.getCategoryId(), pageContext, renderRequest, renderResponse) %>
+		<%= ShoppingUtil.getBreadcrumbs(item.getCategoryId(), renderRequest, renderResponse) %>
 	</div>
 
 	<table border="0" cellpadding="0" cellspacing="0">
@@ -66,7 +66,7 @@ ShoppingItem[] prevAndNext = ShoppingItemServiceUtil.getItemsPrevAndNext(item.ge
 			<br /><br />
 
 			<c:if test="<%= item.isMediumImage() %>">
-				<img alt="<liferay-ui:message key="image" />" src='<%= Validator.isNotNull(item.getMediumImageURL()) ? item.getMediumImageURL() : themeDisplay.getPathImage() + "/shopping/item?img_id=" + item.getMediumImageId() + "&t=" + WebServerServletTokenUtil.getToken(item.getMediumImageId()) %>' vspace="0" />
+				<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="image" />" src='<%= Validator.isNotNull(item.getMediumImageURL()) ? item.getMediumImageURL() : themeDisplay.getPathImage() + "/shopping/item?img_id=" + item.getMediumImageId() + "&t=" + WebServerServletTokenUtil.getToken(item.getMediumImageId()) %>' vspace="0" />
 			</c:if>
 
 			<c:if test="<%= item.isLargeImage() %>">
@@ -135,7 +135,7 @@ ShoppingItem[] prevAndNext = ShoppingItemServiceUtil.getItemsPrevAndNext(item.ge
 				</c:if>
 
 				<c:if test="<%= itemPrice.getDiscount() > 0 %>">
-					<strike><%= currencyFormat.format(itemPrice.getPrice()) %></strike> <div class="alert alert-success"><%= currencyFormat.format(ShoppingUtil.calculateActualPrice(itemPrice)) %></div> / <liferay-ui:message key="you-save" />: <div class="alert alert-error"><%= currencyFormat.format(ShoppingUtil.calculateDiscountPrice(itemPrice)) %> (<%= percentFormat.format(itemPrice.getDiscount()) %>)</div><br />
+					<strike><%= currencyFormat.format(itemPrice.getPrice()) %></strike> <div class="alert alert-success"><%= currencyFormat.format(ShoppingUtil.calculateActualPrice(itemPrice)) %></div> / <liferay-ui:message key="you-save" />: <div class="alert alert-danger"><%= currencyFormat.format(ShoppingUtil.calculateDiscountPrice(itemPrice)) %> (<%= percentFormat.format(itemPrice.getDiscount()) %>)</div><br />
 				</c:if>
 
 			<%
@@ -150,7 +150,7 @@ ShoppingItem[] prevAndNext = ShoppingItemServiceUtil.getItemsPrevAndNext(item.ge
 						<liferay-ui:message key="availability" />: <div class="alert alert-success"><liferay-ui:message key="in-stock" /></div><br />
 					</c:when>
 					<c:otherwise>
-						<liferay-ui:message key="availability" />: <div class="alert alert-error"><liferay-ui:message key="out-of-stock" /></div><br />
+						<liferay-ui:message key="availability" />: <div class="alert alert-danger"><liferay-ui:message key="out-of-stock" /></div><br />
 					</c:otherwise>
 				</c:choose>
 
@@ -221,7 +221,7 @@ ShoppingItem[] prevAndNext = ShoppingItemServiceUtil.getItemsPrevAndNext(item.ge
 
 <aui:script>
 	function <portlet:namespace />addToCart() {
-		document.<portlet:namespace />fm.<portlet:namespace />fields.value = "";
+		document.<portlet:namespace />fm.<portlet:namespace />fields.value = '';
 
 		<%
 		for (int i = 0; i < itemFields.length; i++) {
@@ -231,8 +231,8 @@ ShoppingItem[] prevAndNext = ShoppingItemServiceUtil.getItemsPrevAndNext(item.ge
 			String[] fieldValues = itemField.getValuesArray();
 		%>
 
-			if (document.<portlet:namespace />fm['<portlet:namespace />fieldName<%= HtmlUtil.escapeJS(fieldName) %>'].value == "") {
-				alert("<%= UnicodeLanguageUtil.get(pageContext, "please-select-all-options") %>");
+			if (document.<portlet:namespace />fm['<portlet:namespace />fieldName<%= HtmlUtil.escapeJS(fieldName) %>'].value == '') {
+				alert('<%= UnicodeLanguageUtil.get(request, "please-select-all-options") %>');
 
 				return;
 			}

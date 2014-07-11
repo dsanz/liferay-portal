@@ -77,6 +77,10 @@
 	margin: 2px 0;
 }
 
+.yui3-dd-proxy {
+	z-index: 1110 !important;
+}
+
 /* ---------- Portal tool tips ---------- */
 
 .tooltip {
@@ -214,6 +218,10 @@
 }
 
 /* ---------- Tabs ---------- */
+
+.lfr-nav.nav-tabs {
+	margin-bottom: 20px;
+}
 
 .tab-active strong {
 	font-weight: normal;
@@ -399,6 +407,25 @@
 	text-shadow: -1px -1px #2C2F34;
 }
 
+/* ---------- Modals ---------- */
+
+.aui {
+	.modal {
+		display: block;
+		margin: 0;
+		overflow: hidden;
+		position: fixed;
+	}
+
+	.modal-body {
+		overflow: auto;
+	}
+
+	.modal-hidden {
+		display: none;
+	}
+}
+
 /* ---------- Loading mask ---------- */
 
 .loadingmask-content {
@@ -571,6 +598,82 @@
 	padding: 0;
 }
 
+/* ---------- CKEditor menu ---------- */
+
+.aui {
+	.cke_dialog .cke_dialog_ui_input_text {
+		height: auto;
+	}
+
+	.cke_panel.cke_combopanel {
+		width: 220px;
+	}
+
+	.cke_panel_block {
+		.cke_panel_grouptitle {
+			font-size: 20px;
+			line-height: 20px;
+			margin-top: 0;
+		}
+
+		.cke_panel_list {
+			margin-left: 0;
+
+			.cke_panel_listItem {
+				line-height: initial;
+
+				a:hover {
+					text-decoration: none;
+				}
+			}
+		}
+	}
+}
+
+/* ---------- HTML editor ---------- */
+
+body.html-editor {
+	background: #FFF;
+	color: #000;
+	line-height: 1;
+	padding: 1em;
+}
+
+.html-editor.portlet-message-boards {
+	@include hyphenation;
+
+	word-wrap: break-word;
+
+	blockquote {
+		background: #EEF0F2 url(../images/message_boards/quoteleft.png) no-repeat 5px 5px;
+		border: 1px solid #777;
+		padding: 5px 45px;
+
+		&:after {
+			background: url(../images/message_boards/quoteright.png) no-repeat 50%;
+			content: '';
+			display: block;
+			float: right;
+			height: 24px;
+			margin-right: -35px;
+			margin-top: -25px;
+			width: 31px;
+			z-index: 999;
+		}
+
+		cite {
+			display: block;
+			font-weight: bold;
+		}
+	}
+
+	pre {
+		background: #F9F9F9;
+		border: 1px solid #777;
+		padding: 0.5em;
+	}
+}
+
 /* ---------- Inline editing ---------- */
 
 .lfr-editable {
@@ -657,6 +760,10 @@
 }
 
 .ie {
+	& input.cke_dialog_ui_input_text {
+		height: auto;
+	}
+
 	.proxy.not-intersecting .forbidden-action {
 		right: 2px;
 		top: 2px;
@@ -690,9 +797,32 @@
 	}
 }
 
+/* LPS-45287 */
+
 .ios.mobile {
-	.modal-content .dialog-iframe-bd {
-		-webkit-overflow-scrolling: touch;
-		overflow: auto;
+	.dialog-iframe-modal {
+		height: auto !important;
+		position: absolute !important;
+		top: 10px !important;
+
+		&, .dialog-iframe-bd, .dialog-iframe-node, .modal-content {
+			height: auto !important;
+			overflow: visible;
+		}
+
+		.dialog-iframe-bd {
+			max-height: none !important;
+		}
+
+		.dialog-iframe-node {
+			min-width: 100%;
+			width: 100px;
+		}
+	}
+
+	&.dialog-iframe-root-node {
+		&, .dialog-iframe-popup {
+			overflow: auto;
+		}
 	}
 }

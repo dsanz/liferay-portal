@@ -30,7 +30,6 @@ import com.liferay.portal.LocaleException;
 import com.liferay.portal.NoSuchModelException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.lar.StagedModelType;
@@ -632,7 +631,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 		<#if column.userUuid>
 			@Override
-			public String get${column.methodUserUuidName}() throws SystemException {
+			public String get${column.methodUserUuidName}() {
 				try {
 					User user = UserLocalServiceUtil.getUserById(get${column.methodName}());
 
@@ -734,6 +733,34 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		</#if>
 	</#if>
 
+	<#if entity.isHierarchicalTree()>
+		public long getNestedSetsTreeNodeLeft() {
+			return _left${pkColumn.methodName};
+		}
+
+		public long getNestedSetsTreeNodeRight() {
+			return _right${pkColumn.methodName};
+		}
+
+		public long getNestedSetsTreeNodeScopeId() {
+			<#if entity.hasColumn("groupId")>
+				<#assign scopeColumn = entity.getColumn("groupId")>
+			<#else>
+				<#assign scopeColumn = entity.getColumn("companyId")>
+			</#if>
+
+			return _${scopeColumn.name};
+		}
+
+		public void setNestedSetsTreeNodeLeft(long nestedSetsTreeNodeLeft) {
+			_left${pkColumn.methodName} = nestedSetsTreeNodeLeft;
+		}
+
+		public void setNestedSetsTreeNodeRight(long nestedSetsTreeNodeRight) {
+			_right${pkColumn.methodName} = nestedSetsTreeNodeRight;
+		}
+	</#if>
+
 	<#if entity.isStagedModel()>
 		@Override
 		public StagedModelType getStagedModelType() {
@@ -754,7 +781,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		</#if>
 
 		@Override
-		public TrashEntry getTrashEntry() throws PortalException, SystemException {
+		public TrashEntry getTrashEntry() throws PortalException {
 			if (!isInTrash()) {
 				return null;
 			}
@@ -843,7 +870,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		}
 
 		@Override
-		public boolean isInTrashExplicitly() throws SystemException {
+		public boolean isInTrashExplicitly() {
 			if (!isInTrash()) {
 				return false;
 			}
@@ -855,6 +882,21 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 			}
 
 			return false;
+		}
+
+		@Override
+		public boolean isInTrashImplicitly() {
+			if (!isInTrash()) {
+				return false;
+			}
+
+			TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(), getTrashEntryClassPK());
+
+			if (trashEntry != null) {
+				return false;
+			}
+
+			return true;
 		}
 	</#if>
 
@@ -977,7 +1019,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		}
 	</#if>
 
-	<#if entity.hasLocalizedColumn()>
+	<#if entity.isLocalizedModel()>
 		@Override
 		public String[] getAvailableLanguageIds() {
 			Set<String> availableLanguageIds = new TreeSet<String>();
@@ -1010,7 +1052,13 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 						return StringPool.BLANK;
 					}
 
-					return LocalizationUtil.getDefaultLanguageId(xml);
+					<#if entity.isGroupedModel()>
+						Locale defaultLocale = LocaleUtil.getSiteDefault();
+					<#else>
+						Locale defaultLocale = LocaleUtil.getDefault();
+					</#if>
+
+					return LocalizationUtil.getDefaultLanguageId(xml, defaultLocale);
 					<#break>
 				</#if>
 			</#list>
@@ -1018,13 +1066,23 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 		@Override
 		public void prepareLocalizedFieldsForImport() throws LocaleException {
-			prepareLocalizedFieldsForImport (null);
+			Locale defaultLocale = LocaleUtil.fromLanguageId(getDefaultLanguageId());
+
+			Locale[] availableLocales = LocaleUtil.fromLanguageIds(getAvailableLanguageIds());
+
+			Locale defaultImportLocale = LocalizationUtil.getDefaultImportLocale(${entity.name}.class.getName(), getPrimaryKey(), defaultLocale, availableLocales);
+
+			prepareLocalizedFieldsForImport(defaultImportLocale);
 		}
 
 		@Override
 		@SuppressWarnings("unused")
 		public void prepareLocalizedFieldsForImport(Locale defaultImportLocale) throws LocaleException {
-			Locale defaultLocale = LocaleUtil.getDefault();
+			<#if entity.isGroupedModel()>
+				Locale defaultLocale = LocaleUtil.getSiteDefault();
+			<#else>
+				Locale defaultLocale = LocaleUtil.getDefault();
+			</#if>
 
 			String modelDefaultLanguageId = getDefaultLanguageId();
 

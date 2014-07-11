@@ -46,272 +46,10 @@ public class AnnouncementsEntryLocalServiceUtil {
 	*
 	* @param announcementsEntry the announcements entry
 	* @return the announcements entry that was added
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.announcements.model.AnnouncementsEntry addAnnouncementsEntry(
-		com.liferay.portlet.announcements.model.AnnouncementsEntry announcementsEntry)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.announcements.model.AnnouncementsEntry announcementsEntry) {
 		return getService().addAnnouncementsEntry(announcementsEntry);
-	}
-
-	/**
-	* Creates a new announcements entry with the primary key. Does not add the announcements entry to the database.
-	*
-	* @param entryId the primary key for the new announcements entry
-	* @return the new announcements entry
-	*/
-	public static com.liferay.portlet.announcements.model.AnnouncementsEntry createAnnouncementsEntry(
-		long entryId) {
-		return getService().createAnnouncementsEntry(entryId);
-	}
-
-	/**
-	* Deletes the announcements entry with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param entryId the primary key of the announcements entry
-	* @return the announcements entry that was removed
-	* @throws PortalException if a announcements entry with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.announcements.model.AnnouncementsEntry deleteAnnouncementsEntry(
-		long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().deleteAnnouncementsEntry(entryId);
-	}
-
-	/**
-	* Deletes the announcements entry from the database. Also notifies the appropriate model listeners.
-	*
-	* @param announcementsEntry the announcements entry
-	* @return the announcements entry that was removed
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.announcements.model.AnnouncementsEntry deleteAnnouncementsEntry(
-		com.liferay.portlet.announcements.model.AnnouncementsEntry announcementsEntry)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().deleteAnnouncementsEntry(announcementsEntry);
-	}
-
-	public static com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
-		return getService().dynamicQuery();
-	}
-
-	/**
-	* Performs a dynamic query on the database and returns the matching rows.
-	*
-	* @param dynamicQuery the dynamic query
-	* @return the matching rows
-	* @throws SystemException if a system exception occurred
-	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().dynamicQuery(dynamicQuery);
-	}
-
-	/**
-	* Performs a dynamic query on the database and returns a range of the matching rows.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.announcements.model.impl.AnnouncementsEntryModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
-	* </p>
-	*
-	* @param dynamicQuery the dynamic query
-	* @param start the lower bound of the range of model instances
-	* @param end the upper bound of the range of model instances (not inclusive)
-	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
-	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().dynamicQuery(dynamicQuery, start, end);
-	}
-
-	/**
-	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.announcements.model.impl.AnnouncementsEntryModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
-	* </p>
-	*
-	* @param dynamicQuery the dynamic query
-	* @param start the lower bound of the range of model instances
-	* @param end the upper bound of the range of model instances (not inclusive)
-	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
-	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .dynamicQuery(dynamicQuery, start, end, orderByComparator);
-	}
-
-	/**
-	* Returns the number of rows that match the dynamic query.
-	*
-	* @param dynamicQuery the dynamic query
-	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
-	*/
-	public static long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().dynamicQueryCount(dynamicQuery);
-	}
-
-	/**
-	* Returns the number of rows that match the dynamic query.
-	*
-	* @param dynamicQuery the dynamic query
-	* @param projection the projection to apply to the query
-	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
-	*/
-	public static long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().dynamicQueryCount(dynamicQuery, projection);
-	}
-
-	public static com.liferay.portlet.announcements.model.AnnouncementsEntry fetchAnnouncementsEntry(
-		long entryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().fetchAnnouncementsEntry(entryId);
-	}
-
-	/**
-	* Returns the announcements entry with the matching UUID and company.
-	*
-	* @param uuid the announcements entry's UUID
-	* @param companyId the primary key of the company
-	* @return the matching announcements entry, or <code>null</code> if a matching announcements entry could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.announcements.model.AnnouncementsEntry fetchAnnouncementsEntryByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .fetchAnnouncementsEntryByUuidAndCompanyId(uuid, companyId);
-	}
-
-	/**
-	* Returns the announcements entry with the primary key.
-	*
-	* @param entryId the primary key of the announcements entry
-	* @return the announcements entry
-	* @throws PortalException if a announcements entry with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.announcements.model.AnnouncementsEntry getAnnouncementsEntry(
-		long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getAnnouncementsEntry(entryId);
-	}
-
-	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getActionableDynamicQuery();
-	}
-
-	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getExportActionableDynamicQuery(portletDataContext);
-	}
-
-	public static com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getPersistedModel(primaryKeyObj);
-	}
-
-	/**
-	* Returns the announcements entry with the matching UUID and company.
-	*
-	* @param uuid the announcements entry's UUID
-	* @param companyId the primary key of the company
-	* @return the matching announcements entry
-	* @throws PortalException if a matching announcements entry could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.announcements.model.AnnouncementsEntry getAnnouncementsEntryByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getAnnouncementsEntryByUuidAndCompanyId(uuid, companyId);
-	}
-
-	/**
-	* Returns a range of all the announcements entries.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.announcements.model.impl.AnnouncementsEntryModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
-	* </p>
-	*
-	* @param start the lower bound of the range of announcements entries
-	* @param end the upper bound of the range of announcements entries (not inclusive)
-	* @return the range of announcements entries
-	* @throws SystemException if a system exception occurred
-	*/
-	public static java.util.List<com.liferay.portlet.announcements.model.AnnouncementsEntry> getAnnouncementsEntries(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getAnnouncementsEntries(start, end);
-	}
-
-	/**
-	* Returns the number of announcements entries.
-	*
-	* @return the number of announcements entries
-	* @throws SystemException if a system exception occurred
-	*/
-	public static int getAnnouncementsEntriesCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getAnnouncementsEntriesCount();
-	}
-
-	/**
-	* Updates the announcements entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param announcementsEntry the announcements entry
-	* @return the announcements entry that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.announcements.model.AnnouncementsEntry updateAnnouncementsEntry(
-		com.liferay.portlet.announcements.model.AnnouncementsEntry announcementsEntry)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().updateAnnouncementsEntry(announcementsEntry);
-	}
-
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
 	}
 
 	public static com.liferay.portlet.announcements.model.AnnouncementsEntry addEntry(
@@ -322,8 +60,7 @@ public class AnnouncementsEntryLocalServiceUtil {
 		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
 		int expirationDateHour, int expirationDateMinute, int priority,
 		boolean alert)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .addEntry(userId, classNameId, classPK, title, content, url,
 			type, displayDateMonth, displayDateDay, displayDateYear,
@@ -345,8 +82,7 @@ public class AnnouncementsEntryLocalServiceUtil {
 		int displayDateHour, int displayDateMinute, int expirationDateMonth,
 		int expirationDateDay, int expirationDateYear, int expirationDateHour,
 		int expirationDateMinute, int priority, boolean alert)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .addEntry(userId, classNameId, classPK, title, content, url,
 			type, displayDateMonth, displayDateDay, displayDateYear,
@@ -356,28 +92,250 @@ public class AnnouncementsEntryLocalServiceUtil {
 	}
 
 	public static void checkEntries()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().checkEntries();
+	}
+
+	/**
+	* Creates a new announcements entry with the primary key. Does not add the announcements entry to the database.
+	*
+	* @param entryId the primary key for the new announcements entry
+	* @return the new announcements entry
+	*/
+	public static com.liferay.portlet.announcements.model.AnnouncementsEntry createAnnouncementsEntry(
+		long entryId) {
+		return getService().createAnnouncementsEntry(entryId);
+	}
+
+	/**
+	* Deletes the announcements entry from the database. Also notifies the appropriate model listeners.
+	*
+	* @param announcementsEntry the announcements entry
+	* @return the announcements entry that was removed
+	*/
+	public static com.liferay.portlet.announcements.model.AnnouncementsEntry deleteAnnouncementsEntry(
+		com.liferay.portlet.announcements.model.AnnouncementsEntry announcementsEntry) {
+		return getService().deleteAnnouncementsEntry(announcementsEntry);
+	}
+
+	/**
+	* Deletes the announcements entry with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param entryId the primary key of the announcements entry
+	* @return the announcements entry that was removed
+	* @throws PortalException if a announcements entry with the primary key could not be found
+	*/
+	public static com.liferay.portlet.announcements.model.AnnouncementsEntry deleteAnnouncementsEntry(
+		long entryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deleteAnnouncementsEntry(entryId);
 	}
 
 	public static void deleteEntry(
 		com.liferay.portlet.announcements.model.AnnouncementsEntry entry)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().deleteEntry(entry);
 	}
 
 	public static void deleteEntry(long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().deleteEntry(entryId);
+	}
+
+	/**
+	* @throws PortalException
+	*/
+	public static com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deletePersistedModel(persistedModel);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
+		return getService().dynamicQuery();
+	}
+
+	/**
+	* Performs a dynamic query on the database and returns the matching rows.
+	*
+	* @param dynamicQuery the dynamic query
+	* @return the matching rows
+	*/
+	public static <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
+		return getService().dynamicQuery(dynamicQuery);
+	}
+
+	/**
+	* Performs a dynamic query on the database and returns a range of the matching rows.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.announcements.model.impl.AnnouncementsEntryModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param dynamicQuery the dynamic query
+	* @param start the lower bound of the range of model instances
+	* @param end the upper bound of the range of model instances (not inclusive)
+	* @return the range of matching rows
+	*/
+	public static <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
+		int end) {
+		return getService().dynamicQuery(dynamicQuery, start, end);
+	}
+
+	/**
+	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.announcements.model.impl.AnnouncementsEntryModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param dynamicQuery the dynamic query
+	* @param start the lower bound of the range of model instances
+	* @param end the upper bound of the range of model instances (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the ordered range of matching rows
+	*/
+	public static <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
+		int end,
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator) {
+		return getService()
+				   .dynamicQuery(dynamicQuery, start, end, orderByComparator);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @return the number of rows that match the dynamic query
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
+		return getService().dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
+	public static com.liferay.portlet.announcements.model.AnnouncementsEntry fetchAnnouncementsEntry(
+		long entryId) {
+		return getService().fetchAnnouncementsEntry(entryId);
+	}
+
+	/**
+	* Returns the announcements entry with the matching UUID and company.
+	*
+	* @param uuid the announcements entry's UUID
+	* @param companyId the primary key of the company
+	* @return the matching announcements entry, or <code>null</code> if a matching announcements entry could not be found
+	*/
+	public static com.liferay.portlet.announcements.model.AnnouncementsEntry fetchAnnouncementsEntryByUuidAndCompanyId(
+		java.lang.String uuid, long companyId) {
+		return getService()
+				   .fetchAnnouncementsEntryByUuidAndCompanyId(uuid, companyId);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
+		return getService().getActionableDynamicQuery();
+	}
+
+	/**
+	* Returns a range of all the announcements entries.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.announcements.model.impl.AnnouncementsEntryModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param start the lower bound of the range of announcements entries
+	* @param end the upper bound of the range of announcements entries (not inclusive)
+	* @return the range of announcements entries
+	*/
+	public static java.util.List<com.liferay.portlet.announcements.model.AnnouncementsEntry> getAnnouncementsEntries(
+		int start, int end) {
+		return getService().getAnnouncementsEntries(start, end);
+	}
+
+	/**
+	* Returns the number of announcements entries.
+	*
+	* @return the number of announcements entries
+	*/
+	public static int getAnnouncementsEntriesCount() {
+		return getService().getAnnouncementsEntriesCount();
+	}
+
+	/**
+	* Returns the announcements entry with the primary key.
+	*
+	* @param entryId the primary key of the announcements entry
+	* @return the announcements entry
+	* @throws PortalException if a announcements entry with the primary key could not be found
+	*/
+	public static com.liferay.portlet.announcements.model.AnnouncementsEntry getAnnouncementsEntry(
+		long entryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getAnnouncementsEntry(entryId);
+	}
+
+	/**
+	* Returns the announcements entry with the matching UUID and company.
+	*
+	* @param uuid the announcements entry's UUID
+	* @param companyId the primary key of the company
+	* @return the matching announcements entry
+	* @throws PortalException if a matching announcements entry could not be found
+	*/
+	public static com.liferay.portlet.announcements.model.AnnouncementsEntry getAnnouncementsEntryByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .getAnnouncementsEntryByUuidAndCompanyId(uuid, companyId);
+	}
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public static java.lang.String getBeanIdentifier() {
+		return getService().getBeanIdentifier();
+	}
+
+	public static java.util.List<com.liferay.portlet.announcements.model.AnnouncementsEntry> getEntries(
+		long classNameId, long classPK, boolean alert, int start, int end) {
+		return getService().getEntries(classNameId, classPK, alert, start, end);
+	}
+
+	public static java.util.List<com.liferay.portlet.announcements.model.AnnouncementsEntry> getEntries(
+		long userId, long classNameId, long[] classPKs, int displayDateMonth,
+		int displayDateDay, int displayDateYear, int displayDateHour,
+		int displayDateMinute, int expirationDateMonth, int expirationDateDay,
+		int expirationDateYear, int expirationDateHour,
+		int expirationDateMinute, boolean alert, int flagValue, int start,
+		int end) {
+		return getService()
+				   .getEntries(userId, classNameId, classPKs, displayDateMonth,
+			displayDateDay, displayDateYear, displayDateHour,
+			displayDateMinute, expirationDateMonth, expirationDateDay,
+			expirationDateYear, expirationDateHour, expirationDateMinute,
+			alert, flagValue, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.announcements.model.AnnouncementsEntry> getEntries(
 		long userId, java.util.LinkedHashMap<java.lang.Long, long[]> scopes,
-		boolean alert, int flagValue, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		boolean alert, int flagValue, int start, int end) {
 		return getService()
 				   .getEntries(userId, scopes, alert, flagValue, start, end);
 	}
@@ -388,7 +346,7 @@ public class AnnouncementsEntryLocalServiceUtil {
 		int displayDateHour, int displayDateMinute, int expirationDateMonth,
 		int expirationDateDay, int expirationDateYear, int expirationDateHour,
 		int expirationDateMinute, boolean alert, int flagValue, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return getService()
 				   .getEntries(userId, scopes, displayDateMonth,
 			displayDateDay, displayDateYear, displayDateHour,
@@ -397,58 +355,13 @@ public class AnnouncementsEntryLocalServiceUtil {
 			alert, flagValue, start, end);
 	}
 
-	public static java.util.List<com.liferay.portlet.announcements.model.AnnouncementsEntry> getEntries(
-		long classNameId, long classPK, boolean alert, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getEntries(classNameId, classPK, alert, start, end);
-	}
-
-	public static java.util.List<com.liferay.portlet.announcements.model.AnnouncementsEntry> getEntries(
-		long userId, long classNameId, long[] classPKs, int displayDateMonth,
-		int displayDateDay, int displayDateYear, int displayDateHour,
-		int displayDateMinute, int expirationDateMonth, int expirationDateDay,
-		int expirationDateYear, int expirationDateHour,
-		int expirationDateMinute, boolean alert, int flagValue, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getEntries(userId, classNameId, classPKs, displayDateMonth,
-			displayDateDay, displayDateYear, displayDateHour,
-			displayDateMinute, expirationDateMonth, expirationDateDay,
-			expirationDateYear, expirationDateHour, expirationDateMinute,
-			alert, flagValue, start, end);
-	}
-
-	public static int getEntriesCount(long userId,
-		java.util.LinkedHashMap<java.lang.Long, long[]> scopes, boolean alert,
-		int flagValue)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getEntriesCount(userId, scopes, alert, flagValue);
-	}
-
-	public static int getEntriesCount(long userId,
-		java.util.LinkedHashMap<java.lang.Long, long[]> scopes,
-		int displayDateMonth, int displayDateDay, int displayDateYear,
-		int displayDateHour, int displayDateMinute, int expirationDateMonth,
-		int expirationDateDay, int expirationDateYear, int expirationDateHour,
-		int expirationDateMinute, boolean alert, int flagValue)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .getEntriesCount(userId, scopes, displayDateMonth,
-			displayDateDay, displayDateYear, displayDateHour,
-			displayDateMinute, expirationDateMonth, expirationDateDay,
-			expirationDateYear, expirationDateHour, expirationDateMinute,
-			alert, flagValue);
-	}
-
 	public static int getEntriesCount(long classNameId, long classPK,
-		boolean alert)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		boolean alert) {
 		return getService().getEntriesCount(classNameId, classPK, alert);
 	}
 
 	public static int getEntriesCount(long userId, long classNameId,
-		long[] classPKs, boolean alert, int flagValue)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long[] classPKs, boolean alert, int flagValue) {
 		return getService()
 				   .getEntriesCount(userId, classNameId, classPKs, alert,
 			flagValue);
@@ -459,8 +372,7 @@ public class AnnouncementsEntryLocalServiceUtil {
 		int displayDateYear, int displayDateHour, int displayDateMinute,
 		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
 		int expirationDateHour, int expirationDateMinute, boolean alert,
-		int flagValue)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int flagValue) {
 		return getService()
 				   .getEntriesCount(userId, classNameId, classPKs,
 			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
@@ -469,22 +381,70 @@ public class AnnouncementsEntryLocalServiceUtil {
 			alert, flagValue);
 	}
 
+	public static int getEntriesCount(long userId,
+		java.util.LinkedHashMap<java.lang.Long, long[]> scopes, boolean alert,
+		int flagValue) {
+		return getService().getEntriesCount(userId, scopes, alert, flagValue);
+	}
+
+	public static int getEntriesCount(long userId,
+		java.util.LinkedHashMap<java.lang.Long, long[]> scopes,
+		int displayDateMonth, int displayDateDay, int displayDateYear,
+		int displayDateHour, int displayDateMinute, int expirationDateMonth,
+		int expirationDateDay, int expirationDateYear, int expirationDateHour,
+		int expirationDateMinute, boolean alert, int flagValue) {
+		return getService()
+				   .getEntriesCount(userId, scopes, displayDateMonth,
+			displayDateDay, displayDateYear, displayDateHour,
+			displayDateMinute, expirationDateMonth, expirationDateDay,
+			expirationDateYear, expirationDateHour, expirationDateMinute,
+			alert, flagValue);
+	}
+
 	public static com.liferay.portlet.announcements.model.AnnouncementsEntry getEntry(
 		long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getEntry(entryId);
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext) {
+		return getService().getExportActionableDynamicQuery(portletDataContext);
+	}
+
+	public static com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getPersistedModel(primaryKeyObj);
+	}
+
 	public static java.util.List<com.liferay.portlet.announcements.model.AnnouncementsEntry> getUserEntries(
-		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId, int start, int end) {
 		return getService().getUserEntries(userId, start, end);
 	}
 
-	public static int getUserEntriesCount(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getUserEntriesCount(long userId) {
 		return getService().getUserEntriesCount(userId);
+	}
+
+	/**
+	* Sets the Spring bean ID for this bean.
+	*
+	* @param beanIdentifier the Spring bean ID for this bean
+	*/
+	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
+		getService().setBeanIdentifier(beanIdentifier);
+	}
+
+	/**
+	* Updates the announcements entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param announcementsEntry the announcements entry
+	* @return the announcements entry that was updated
+	*/
+	public static com.liferay.portlet.announcements.model.AnnouncementsEntry updateAnnouncementsEntry(
+		com.liferay.portlet.announcements.model.AnnouncementsEntry announcementsEntry) {
+		return getService().updateAnnouncementsEntry(announcementsEntry);
 	}
 
 	public static com.liferay.portlet.announcements.model.AnnouncementsEntry updateEntry(
@@ -494,8 +454,7 @@ public class AnnouncementsEntryLocalServiceUtil {
 		int displayDateHour, int displayDateMinute, boolean displayImmediately,
 		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
 		int expirationDateHour, int expirationDateMinute, int priority)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updateEntry(userId, entryId, title, content, url, type,
 			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,

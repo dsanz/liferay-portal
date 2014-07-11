@@ -104,12 +104,10 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 *
 	 * @param organization the organization
 	 * @return the organization that was added
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public Organization addOrganization(Organization organization)
-		throws SystemException {
+	public Organization addOrganization(Organization organization) {
 		organization.setNew(true);
 
 		return organizationPersistence.update(organization);
@@ -132,12 +130,11 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 * @param organizationId the primary key of the organization
 	 * @return the organization that was removed
 	 * @throws PortalException if a organization with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
 	public Organization deleteOrganization(long organizationId)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return organizationPersistence.remove(organizationId);
 	}
 
@@ -147,12 +144,11 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 * @param organization the organization
 	 * @return the organization that was removed
 	 * @throws PortalException
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
 	public Organization deleteOrganization(Organization organization)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return organizationPersistence.remove(organization);
 	}
 
@@ -169,12 +165,9 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery) {
 		return organizationPersistence.findWithDynamicQuery(dynamicQuery);
 	}
 
@@ -189,12 +182,10 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 * @param start the lower bound of the range of model instances
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @return the range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end) {
 		return organizationPersistence.findWithDynamicQuery(dynamicQuery,
 			start, end);
 	}
@@ -211,12 +202,10 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end, OrderByComparator<T> orderByComparator) {
 		return organizationPersistence.findWithDynamicQuery(dynamicQuery,
 			start, end, orderByComparator);
 	}
@@ -226,11 +215,9 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public long dynamicQueryCount(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public long dynamicQueryCount(DynamicQuery dynamicQuery) {
 		return organizationPersistence.countWithDynamicQuery(dynamicQuery);
 	}
 
@@ -240,18 +227,16 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 * @param dynamicQuery the dynamic query
 	 * @param projection the projection to apply to the query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public long dynamicQueryCount(DynamicQuery dynamicQuery,
-		Projection projection) throws SystemException {
+		Projection projection) {
 		return organizationPersistence.countWithDynamicQuery(dynamicQuery,
 			projection);
 	}
 
 	@Override
-	public Organization fetchOrganization(long organizationId)
-		throws SystemException {
+	public Organization fetchOrganization(long organizationId) {
 		return organizationPersistence.fetchByPrimaryKey(organizationId);
 	}
 
@@ -261,11 +246,10 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 * @param uuid the organization's UUID
 	 * @param  companyId the primary key of the company
 	 * @return the matching organization, or <code>null</code> if a matching organization could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Organization fetchOrganizationByUuidAndCompanyId(String uuid,
-		long companyId) throws SystemException {
+		long companyId) {
 		return organizationPersistence.fetchByUuid_C_First(uuid, companyId, null);
 	}
 
@@ -275,17 +259,15 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 * @param organizationId the primary key of the organization
 	 * @return the organization
 	 * @throws PortalException if a organization with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Organization getOrganization(long organizationId)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return organizationPersistence.findByPrimaryKey(organizationId);
 	}
 
 	@Override
-	public ActionableDynamicQuery getActionableDynamicQuery()
-		throws SystemException {
+	public ActionableDynamicQuery getActionableDynamicQuery() {
 		ActionableDynamicQuery actionableDynamicQuery = new DefaultActionableDynamicQuery();
 
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.OrganizationLocalServiceUtil.getService());
@@ -298,8 +280,7 @@ public abstract class OrganizationLocalServiceBaseImpl
 	}
 
 	protected void initActionableDynamicQuery(
-		ActionableDynamicQuery actionableDynamicQuery)
-		throws SystemException {
+		ActionableDynamicQuery actionableDynamicQuery) {
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.OrganizationLocalServiceUtil.getService());
 		actionableDynamicQuery.setClass(Organization.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
@@ -309,11 +290,10 @@ public abstract class OrganizationLocalServiceBaseImpl
 
 	@Override
 	public ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		final PortletDataContext portletDataContext) throws SystemException {
+		final PortletDataContext portletDataContext) {
 		final ExportActionableDynamicQuery exportActionableDynamicQuery = new ExportActionableDynamicQuery() {
 				@Override
-				public long performCount()
-					throws PortalException, SystemException {
+				public long performCount() throws PortalException {
 					ManifestSummary manifestSummary = portletDataContext.getManifestSummary();
 
 					StagedModelType stagedModelType = getStagedModelType();
@@ -347,9 +327,8 @@ public abstract class OrganizationLocalServiceBaseImpl
 
 		exportActionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				@SuppressWarnings("unused")
 				public void performAction(Object object)
-					throws PortalException, SystemException {
+					throws PortalException {
 					Organization stagedModel = (Organization)object;
 
 					StagedModelDataHandlerUtil.exportStagedModel(portletDataContext,
@@ -362,9 +341,18 @@ public abstract class OrganizationLocalServiceBaseImpl
 		return exportActionableDynamicQuery;
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
+		throws PortalException {
+		return organizationLocalService.deleteOrganization((Organization)persistedModel);
+	}
+
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return organizationPersistence.findByPrimaryKey(primaryKeyObj);
 	}
 
@@ -375,11 +363,10 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 * @param  companyId the primary key of the company
 	 * @return the matching organization
 	 * @throws PortalException if a matching organization could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Organization getOrganizationByUuidAndCompanyId(String uuid,
-		long companyId) throws PortalException, SystemException {
+		long companyId) throws PortalException {
 		return organizationPersistence.findByUuid_C_First(uuid, companyId, null);
 	}
 
@@ -393,11 +380,9 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 * @param start the lower bound of the range of organizations
 	 * @param end the upper bound of the range of organizations (not inclusive)
 	 * @return the range of organizations
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Organization> getOrganizations(int start, int end)
-		throws SystemException {
+	public List<Organization> getOrganizations(int start, int end) {
 		return organizationPersistence.findAll(start, end);
 	}
 
@@ -405,10 +390,9 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 * Returns the number of organizations.
 	 *
 	 * @return the number of organizations
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getOrganizationsCount() throws SystemException {
+	public int getOrganizationsCount() {
 		return organizationPersistence.countAll();
 	}
 
@@ -417,302 +401,271 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 *
 	 * @param organization the organization
 	 * @return the organization that was updated
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public Organization updateOrganization(Organization organization)
-		throws SystemException {
+	public Organization updateOrganization(Organization organization) {
 		return organizationPersistence.update(organization);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void addGroupOrganization(long groupId, long organizationId)
-		throws SystemException {
+	public void addGroupOrganization(long groupId, long organizationId) {
 		groupPersistence.addOrganization(groupId, organizationId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void addGroupOrganization(long groupId, Organization organization)
-		throws SystemException {
+	public void addGroupOrganization(long groupId, Organization organization) {
 		groupPersistence.addOrganization(groupId, organization);
 	}
 
 	/**
 	 * @throws PortalException
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void addGroupOrganizations(long groupId, long[] organizationIds)
-		throws PortalException, SystemException {
+		throws PortalException {
 		groupPersistence.addOrganizations(groupId, organizationIds);
 	}
 
 	/**
 	 * @throws PortalException
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void addGroupOrganizations(long groupId,
-		List<Organization> Organizations)
-		throws PortalException, SystemException {
+		List<Organization> Organizations) throws PortalException {
 		groupPersistence.addOrganizations(groupId, Organizations);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void clearGroupOrganizations(long groupId) throws SystemException {
+	public void clearGroupOrganizations(long groupId) {
 		groupPersistence.clearOrganizations(groupId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void deleteGroupOrganization(long groupId, long organizationId)
-		throws SystemException {
+	public void deleteGroupOrganization(long groupId, long organizationId) {
 		groupPersistence.removeOrganization(groupId, organizationId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void deleteGroupOrganization(long groupId, Organization organization)
-		throws SystemException {
+	public void deleteGroupOrganization(long groupId, Organization organization) {
 		groupPersistence.removeOrganization(groupId, organization);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void deleteGroupOrganizations(long groupId, long[] organizationIds)
-		throws SystemException {
+	public void deleteGroupOrganizations(long groupId, long[] organizationIds) {
 		groupPersistence.removeOrganizations(groupId, organizationIds);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void deleteGroupOrganizations(long groupId,
-		List<Organization> Organizations) throws SystemException {
+		List<Organization> Organizations) {
 		groupPersistence.removeOrganizations(groupId, Organizations);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
+	 * Returns the groupIds of the groups associated with the organization.
+	 *
+	 * @param organizationId the organizationId of the organization
+	 * @return long[] the groupIds of groups associated with the organization
 	 */
 	@Override
-	public List<Organization> getGroupOrganizations(long groupId)
-		throws SystemException {
+	public long[] getGroupPrimaryKeys(long organizationId) {
+		return organizationPersistence.getGroupPrimaryKeys(organizationId);
+	}
+
+	/**
+	 */
+	@Override
+	public List<Organization> getGroupOrganizations(long groupId) {
 		return groupPersistence.getOrganizations(groupId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Organization> getGroupOrganizations(long groupId, int start,
-		int end) throws SystemException {
+		int end) {
 		return groupPersistence.getOrganizations(groupId, start, end);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Organization> getGroupOrganizations(long groupId, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<Organization> orderByComparator) {
 		return groupPersistence.getOrganizations(groupId, start, end,
 			orderByComparator);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getGroupOrganizationsCount(long groupId)
-		throws SystemException {
+	public int getGroupOrganizationsCount(long groupId) {
 		return groupPersistence.getOrganizationsSize(groupId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public boolean hasGroupOrganization(long groupId, long organizationId)
-		throws SystemException {
+	public boolean hasGroupOrganization(long groupId, long organizationId) {
 		return groupPersistence.containsOrganization(groupId, organizationId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public boolean hasGroupOrganizations(long groupId)
-		throws SystemException {
+	public boolean hasGroupOrganizations(long groupId) {
 		return groupPersistence.containsOrganizations(groupId);
 	}
 
 	/**
 	 * @throws PortalException
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void setGroupOrganizations(long groupId, long[] organizationIds)
-		throws PortalException, SystemException {
+		throws PortalException {
 		groupPersistence.setOrganizations(groupId, organizationIds);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void addUserOrganization(long userId, long organizationId)
-		throws SystemException {
+	public void addUserOrganization(long userId, long organizationId) {
 		userPersistence.addOrganization(userId, organizationId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void addUserOrganization(long userId, Organization organization)
-		throws SystemException {
+	public void addUserOrganization(long userId, Organization organization) {
 		userPersistence.addOrganization(userId, organization);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void addUserOrganizations(long userId, long[] organizationIds)
-		throws SystemException {
+	public void addUserOrganizations(long userId, long[] organizationIds) {
 		userPersistence.addOrganizations(userId, organizationIds);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void addUserOrganizations(long userId,
-		List<Organization> Organizations) throws SystemException {
+		List<Organization> Organizations) {
 		userPersistence.addOrganizations(userId, Organizations);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void clearUserOrganizations(long userId) throws SystemException {
+	public void clearUserOrganizations(long userId) {
 		userPersistence.clearOrganizations(userId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void deleteUserOrganization(long userId, long organizationId)
-		throws SystemException {
+	public void deleteUserOrganization(long userId, long organizationId) {
 		userPersistence.removeOrganization(userId, organizationId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void deleteUserOrganization(long userId, Organization organization)
-		throws SystemException {
+	public void deleteUserOrganization(long userId, Organization organization) {
 		userPersistence.removeOrganization(userId, organization);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void deleteUserOrganizations(long userId, long[] organizationIds)
-		throws SystemException {
+	public void deleteUserOrganizations(long userId, long[] organizationIds) {
 		userPersistence.removeOrganizations(userId, organizationIds);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void deleteUserOrganizations(long userId,
-		List<Organization> Organizations) throws SystemException {
+		List<Organization> Organizations) {
 		userPersistence.removeOrganizations(userId, Organizations);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
+	 * Returns the userIds of the users associated with the organization.
+	 *
+	 * @param organizationId the organizationId of the organization
+	 * @return long[] the userIds of users associated with the organization
 	 */
 	@Override
-	public List<Organization> getUserOrganizations(long userId)
-		throws SystemException {
+	public long[] getUserPrimaryKeys(long organizationId) {
+		return organizationPersistence.getUserPrimaryKeys(organizationId);
+	}
+
+	/**
+	 */
+	@Override
+	public List<Organization> getUserOrganizations(long userId) {
 		return userPersistence.getOrganizations(userId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Organization> getUserOrganizations(long userId, int start,
-		int end) throws SystemException {
+		int end) {
 		return userPersistence.getOrganizations(userId, start, end);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Organization> getUserOrganizations(long userId, int start,
-		int end, OrderByComparator orderByComparator) throws SystemException {
+		int end, OrderByComparator<Organization> orderByComparator) {
 		return userPersistence.getOrganizations(userId, start, end,
 			orderByComparator);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getUserOrganizationsCount(long userId) throws SystemException {
+	public int getUserOrganizationsCount(long userId) {
 		return userPersistence.getOrganizationsSize(userId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public boolean hasUserOrganization(long userId, long organizationId)
-		throws SystemException {
+	public boolean hasUserOrganization(long userId, long organizationId) {
 		return userPersistence.containsOrganization(userId, organizationId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public boolean hasUserOrganizations(long userId) throws SystemException {
+	public boolean hasUserOrganizations(long userId) {
 		return userPersistence.containsOrganizations(userId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void setUserOrganizations(long userId, long[] organizationIds)
-		throws SystemException {
+	public void setUserOrganizations(long userId, long[] organizationIds) {
 		userPersistence.setOrganizations(userId, organizationIds);
 	}
 
@@ -1937,7 +1890,7 @@ public abstract class OrganizationLocalServiceBaseImpl
 	 *
 	 * @param sql the sql query
 	 */
-	protected void runSQL(String sql) throws SystemException {
+	protected void runSQL(String sql) {
 		try {
 			DataSource dataSource = organizationPersistence.getDataSource();
 

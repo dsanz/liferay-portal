@@ -237,6 +237,7 @@ create table BlogsEntry (
 	createDate DATE null,
 	modifiedDate DATE null,
 	title VARCHAR(150) null,
+	deckTitle STRING null,
 	urlTitle VARCHAR(150) null,
 	description STRING null,
 	content TEXT null,
@@ -325,7 +326,7 @@ create table CalEvent (
 	createDate DATE null,
 	modifiedDate DATE null,
 	title VARCHAR(75) null,
-	description STRING null,
+	description TEXT null,
 	location STRING null,
 	startDate DATE null,
 	endDate DATE null,
@@ -521,7 +522,7 @@ create table DDMStructure (
 	structureKey VARCHAR(75) null,
 	name STRING null,
 	description STRING null,
-	xsd TEXT null,
+	definition TEXT null,
 	storageType VARCHAR(75) null,
 	type_ INTEGER
 );
@@ -776,7 +777,7 @@ create table ExpandoValue (
 	rowId_ LONG,
 	classNameId LONG,
 	classPK LONG,
-	data_ STRING null
+	data_ TEXT null
 );
 
 create table ExportImportConfiguration (
@@ -953,7 +954,7 @@ create table JournalFolder (
 	treePath STRING null,
 	name VARCHAR(100) null,
 	description STRING null,
-	overrideDDMStructures BOOLEAN,
+	restrictionType INTEGER,
 	status INTEGER,
 	statusByUserId LONG,
 	statusByUserName VARCHAR(75) null,
@@ -2311,6 +2312,7 @@ create table UserNotificationEvent (
 	deliverBy LONG,
 	delivered BOOLEAN,
 	payload TEXT null,
+	actionRequired BOOLEAN,
 	archived BOOLEAN
 );
 

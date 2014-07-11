@@ -35,6 +35,5 @@ public interface PollsVote extends PollsVoteModel, PersistedModel {
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portlet.polls.model.impl.PollsVoteImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public com.liferay.portlet.polls.model.PollsChoice getChoice()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

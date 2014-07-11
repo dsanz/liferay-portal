@@ -45,7 +45,7 @@
 </tr>
 <tr>
 	<td>ERROR_MESSAGE</td>
-	<td>//div[@class='alert alert-error']</td>
+	<td>//div[contains(@class,'alert-danger')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -133,7 +133,7 @@
 <!--TOOLBAR-->
 <tr>
 	<td>TOOLBAR_SELECT_ALL_CHECKBOX</td>
-	<td>//input[@id='_20_allRowIdsCheckbox']</td>
+	<td>//input[@id='_20_allRowIds']</td>
 	<td></td>
 </tr>
 <tr>
@@ -344,6 +344,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>BREADCRUMB_FOLDER_NAME</td>
+	<td>//div[@id='_20_breadcrumbContainer']/ul/li[contains(.,'${key_dmFolderName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -352,6 +357,17 @@
 <tr>
 	<td>LIFERAY_SYNC_LINK</td>
 	<td>//div[@id='_20_syncNotificationContent']/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--SUBSCRIBE-->
+<tr>
+	<td>SUBSCRIBE_LINK</td>
+	<td>//div[@class='subscribe-action']/span/a/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -387,7 +403,7 @@
 </tr>
 <tr>
 	<td>ENTRY_ICON_DOCUMENT_CHECKBOX</td>
-	<td>//div[contains(.,'${key_dmDocumentTitle}') and a[@data-folder='false']]//input[@id='_20_rowIdsFileEntryCheckbox']</td>
+	<td>//div[contains(.,'${key_dmDocumentTitle}') and a[@data-folder='false']]//input</td>
 	<td></td>
 </tr>
 <tr>
@@ -418,7 +434,7 @@
 </tr>
 <tr>
 	<td>ENTRY_ICON_FOLDER_CHECKBOX</td>
-	<td>//div[contains(.,'${key_dmFolderName}') and a[@data-folder='true']]//input[@id='_20_rowIdsFolderCheckbox']</td>
+	<td>//div[contains(.,'${key_dmFolderName}') and a[@data-folder='true']]/input</td>
 	<td></td>
 </tr>
 <tr>

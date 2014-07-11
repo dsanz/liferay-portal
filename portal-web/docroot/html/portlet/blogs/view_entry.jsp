@@ -21,8 +21,6 @@ String strutsAction = ParamUtil.getString(request, "struts_action");
 
 String redirect = ParamUtil.getString(request, "redirect");
 
-String portletId = portletDisplay.getId();
-
 if (Validator.isNull(redirect) || (strutsAction.equals("/blogs/view_entry") && !portletId.equals(PortletKeys.BLOGS))) {
 	PortletURL portletURL = renderResponse.createRenderURL();
 
@@ -44,8 +42,6 @@ BlogsEntry entry = (BlogsEntry)request.getAttribute(WebKeys.BLOGS_ENTRY);
 //entry = entry.toEscapedModel();
 
 long entryId = BeanParamUtil.getLong(entry, request, "entryId");
-
-displayStyle = BlogsUtil.DISPLAY_STYLE_FULL_CONTENT;
 
 AssetEntry assetEntry = AssetEntryLocalServiceUtil.getEntry(BlogsEntry.class.getName(), entry.getEntryId());
 
@@ -95,10 +91,10 @@ request.setAttribute("view_entry_content.jsp-assetEntry", assetEntry);
 					<portlet:param name="entryId" value="<%= String.valueOf(previousEntry.getEntryId()) %>" />
 				</portlet:renderURL>
 
-				<aui:a cssClass="previous" href="<%= previousEntryURL %>" label="previous" />
+				<aui:a cssClass="icon-circle-arrow-left" href="<%= previousEntryURL %>" label="previous" />
 			</c:when>
 			<c:otherwise>
-				<span class="previous"><liferay-ui:message key="previous" /></span>
+				<span class="icon-circle-arrow-left"><liferay-ui:message key="previous" /></span>
 			</c:otherwise>
 		</c:choose>
 
@@ -110,22 +106,25 @@ request.setAttribute("view_entry_content.jsp-assetEntry", assetEntry);
 					<portlet:param name="entryId" value="<%= String.valueOf(nextEntry.getEntryId()) %>" />
 				</portlet:renderURL>
 
-				<aui:a cssClass="next" href="<%= nextEntryURL %>" label="next" />
+				<aui:a cssClass="next" href="<%= nextEntryURL %>" label="next">
+					<i class="icon-circle-arrow-right"></i>
+				</aui:a>
 			</c:when>
 			<c:otherwise>
-				<span class="next"><liferay-ui:message key="next" /></span>
+				<span class="next">
+					<liferay-ui:message key="next" />
+					<i class="icon-circle-arrow-right"></i>
+				</span>
 			</c:otherwise>
 		</c:choose>
 	</div>
 </c:if>
 
-<c:if test="<%= enableComments %>">
+<c:if test="<%= blogsPortletInstanceSettings.isEnableComments() %>">
 	<liferay-ui:panel-container extended="<%= false %>" id="blogsCommentsPanelContainer" persistState="<%= true %>">
 		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="blogsCommentsPanel" persistState="<%= true %>" title="comments">
 			<c:if test="<%= PropsValues.BLOGS_TRACKBACK_ENABLED && entry.isAllowTrackbacks() && !portletId.equals(PortletKeys.BLOGS_ADMIN) %>">
-				<aui:field-wrapper inlineLabel="left" label="trackback-url">
-					<liferay-ui:input-resource id="trackbackUrl" url='<%= PortalUtil.getLayoutFullURL(themeDisplay) + Portal.FRIENDLY_URL_SEPARATOR + "blogs/trackback/" + entry.getUrlTitle() %>' />
-				</aui:field-wrapper>
+				<aui:input inlineLabel="left" name="trackbackURL" type="resource" value='<%= PortalUtil.getLayoutFullURL(themeDisplay) + Portal.FRIENDLY_URL_SEPARATOR + "blogs/trackback/" + entry.getUrlTitle() %>' />
 			</c:if>
 
 			<portlet:actionURL var="discussionURL">
@@ -137,7 +136,7 @@ request.setAttribute("view_entry_content.jsp-assetEntry", assetEntry);
 				classPK="<%= entry.getEntryId() %>"
 				formAction="<%= discussionURL %>"
 				formName="fm2"
-				ratingsEnabled="<%= enableCommentRatings %>"
+				ratingsEnabled="<%= blogsPortletInstanceSettings.isEnableCommentRatings() %>"
 				redirect="<%= currentURL %>"
 				userId="<%= entry.getUserId() %>"
 			/>

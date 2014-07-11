@@ -228,9 +228,20 @@
 
 		<execute action="PGWebcontentdisplayConfiguration#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
 
-		<var name='key_webContentTitle' value="${webContentTitle}" />
+		<var name="key_webContentTitle" value="${webContentTitle}" />
 
 		<execute action="PGWebcontentdisplayConfiguration#assertTextEquals" locator-key1="WEB_CONTENT_TABLE_TITLE" value1="${webContentTitle}" />
+
+		<if>
+			<equals arg1="${addSearchedContent}" arg2="true" />
+			<then>
+				<execute action="PGWebcontentdisplayConfiguration#assertClick" locator-key1="WEB_CONTENT_TABLE_TITLE" value1="${webContentTitle}" />
+				<execute action="PGWebcontentdisplayConfiguration#assertTextEquals" locator-key1="INFO_MESSAGE_ARTICLE" value1="${webContentTitle} (Modified)" />
+				<execute action="PGWebcontentdisplayConfiguration#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
+				<execute action="PGWebcontentdisplayConfiguration#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="You have successfully updated the setup." />
+			</then>
+		</if>
+
 		<execute action="PGWebcontentdisplayConfiguration#selectFrame" value1="relative=top" />
 	</command>
 
@@ -244,7 +255,7 @@
 		<execute action="PGWebcontentdisplayConfiguration#type" locator-key1="SEARCH_FIELD" value1="${webContentTitle}" />
 		<execute action="PGWebcontentdisplayConfiguration#assertClick" locator-key1="SEARCH_BUTTON" value1="Search" />
 
-		<var name='key_webContentTitle' value="${webContentTitle}" />
+		<var name="key_webContentTitle" value="${webContentTitle}" />
 
 		<execute action="PGWebcontentdisplayConfiguration#assertElementNotPresent" locator-key1="WEB_CONTENT_TABLE_TITLE" value1="${webContentTitle}" />
 		<execute action="PGWebcontentdisplayConfiguration#selectFrame" value1="relative=top" />
@@ -257,35 +268,13 @@
 
 		<execute action="PGWebcontentdisplayConfiguration#selectFrame" locator-key1="CONFIGURATION_IFRAME" />
 
-		<var name='key_webContentTitle' value="${webContentTitle}" />
+		<var name="key_webContentTitle" value="${webContentTitle}" />
 
 		<execute action="PGWebcontentdisplayConfiguration#assertClick" locator-key1="WEB_CONTENT_TABLE_TITLE" value1="${webContentTitle}" />
 		<execute action="PGWebcontentdisplayConfiguration#assertTextEquals" locator-key1="INFO_MESSAGE_ARTICLE" value1="${webContentTitle} (Modified)" />
 		<execute action="PGWebcontentdisplayConfiguration#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
 		<execute action="PGWebcontentdisplayConfiguration#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="You have successfully updated the setup." />
 		<execute action="PGWebcontentdisplayConfiguration#selectFrame" value1="relative=top" />
-	</command>
-
-	<command name="selectWebContentGlobalStructure">
-		<var name="key_selectStructureName" value="${selectStructureName}" />
-
-		<execute action="PGWebcontentdisplay#click" locator-key1="ADD_WEB_CONTENT" value1="Add" />
-		<execute action="PGWebcontentdisplay#assertClick" locator-key1="ADD_MENU_WEB_CONTENT_STRUCTURE" value1="${selectStructureName}" />
-		<execute action="PGWebcontentdisplayAddwebcontent#selectFrame" locator-key1="WEB_CONTENT_IFRAME" />
-		<execute action="PGWebcontentdisplayAddwebcontent#assertClick" locator-key1="SELECT_STRUCTURE" value1="Select" />
-		<execute action="PGWebcontentdisplayAddwebcontent#selectFrame" value1="relative=top" />
-
-		<execute action="PGWebcontentdisplayAddwebcontentStructures#selectFrame" locator-key1="STRUCTURE_IFRAME" />
-
-		<var name="key_structureName" value="${structureName}" />
-
-		<execute action="PGWebcontentdisplayAddwebcontentStructures#assertClick" locator-key1="STRUCTURE_TABLE_CHOOSE_BUTTON" value1="Choose" />
-		<execute action="PGWebcontentdisplayAddwebcontentStructures#confirm" locator-key1="CONFIRMATION" value1="Selecting a new structure will change the available input fields and available templates? Do you want to proceed?" />
-		<execute action="PGWebcontentdisplayAddwebcontentStructures#selectFrame" value1="relative=top" />
-
-		<execute action="PGWebcontentdisplayAddwebcontent#selectFrame" locator-key1="WEB_CONTENT_IFRAME" />
-		<execute action="PGWebcontentdisplayAddwebcontent#assertTextEquals" locator-key1="STRUCTURE_NAME" value1="${structureName}" />
-		<execute action="PGWebcontentdisplayAddwebcontent#assertTextEquals" locator-key1="TEMPLATE_NAME" value1="${templateName}" />
 	</command>
 
 	<command name="tearDownScopePG">

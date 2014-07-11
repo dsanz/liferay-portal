@@ -18,6 +18,7 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -52,11 +53,15 @@ public interface PollsVoteLocalService extends BaseLocalService,
 	*
 	* @param pollsVote the polls vote
 	* @return the polls vote that was added
-	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
 	public com.liferay.portlet.polls.model.PollsVote addPollsVote(
-		com.liferay.portlet.polls.model.PollsVote pollsVote)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portlet.polls.model.PollsVote pollsVote);
+
+	public com.liferay.portlet.polls.model.PollsVote addVote(long userId,
+		long questionId, long choiceId,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Creates a new polls vote with the primary key. Does not add the polls vote to the database.
@@ -68,28 +73,33 @@ public interface PollsVoteLocalService extends BaseLocalService,
 		long voteId);
 
 	/**
-	* Deletes the polls vote with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param voteId the primary key of the polls vote
-	* @return the polls vote that was removed
-	* @throws PortalException if a polls vote with the primary key could not be found
-	* @throws SystemException if a system exception occurred
+	* @throws PortalException
 	*/
-	public com.liferay.portlet.polls.model.PollsVote deletePollsVote(
-		long voteId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+	@Override
+	public com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Deletes the polls vote from the database. Also notifies the appropriate model listeners.
 	*
 	* @param pollsVote the polls vote
 	* @return the polls vote that was removed
-	* @throws SystemException if a system exception occurred
 	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
 	public com.liferay.portlet.polls.model.PollsVote deletePollsVote(
-		com.liferay.portlet.polls.model.PollsVote pollsVote)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portlet.polls.model.PollsVote pollsVote);
+
+	/**
+	* Deletes the polls vote with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param voteId the primary key of the polls vote
+	* @return the polls vote that was removed
+	* @throws PortalException if a polls vote with the primary key could not be found
+	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
+	public com.liferay.portlet.polls.model.PollsVote deletePollsVote(
+		long voteId) throws com.liferay.portal.kernel.exception.PortalException;
 
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery();
 
@@ -98,12 +108,9 @@ public interface PollsVoteLocalService extends BaseLocalService,
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery);
 
 	/**
 	* Performs a dynamic query on the database and returns a range of the matching rows.
@@ -116,12 +123,10 @@ public interface PollsVoteLocalService extends BaseLocalService,
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException;
+		int end);
 
 	/**
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
@@ -135,25 +140,20 @@ public interface PollsVoteLocalService extends BaseLocalService,
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator);
 
 	/**
 	* Returns the number of rows that match the dynamic query.
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery);
 
 	/**
 	* Returns the number of rows that match the dynamic query.
@@ -161,16 +161,13 @@ public interface PollsVoteLocalService extends BaseLocalService,
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.dao.orm.Projection projection);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portlet.polls.model.PollsVote fetchPollsVote(long voteId)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public com.liferay.portlet.polls.model.PollsVote fetchPollsVote(long voteId);
 
 	/**
 	* Returns the polls vote with the matching UUID and company.
@@ -178,12 +175,10 @@ public interface PollsVoteLocalService extends BaseLocalService,
 	* @param uuid the polls vote's UUID
 	* @param companyId the primary key of the company
 	* @return the matching polls vote, or <code>null</code> if a matching polls vote could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portlet.polls.model.PollsVote fetchPollsVoteByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.lang.String uuid, long companyId);
 
 	/**
 	* Returns the polls vote matching the UUID and group.
@@ -191,12 +186,37 @@ public interface PollsVoteLocalService extends BaseLocalService,
 	* @param uuid the polls vote's UUID
 	* @param groupId the primary key of the group
 	* @return the matching polls vote, or <code>null</code> if a matching polls vote could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portlet.polls.model.PollsVote fetchPollsVoteByUuidAndGroupId(
-		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.lang.String uuid, long groupId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery();
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public java.lang.String getBeanIdentifier();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portlet.polls.model.PollsVote> getChoiceVotes(
+		long choiceId, int start, int end);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getChoiceVotesCount(long choiceId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext);
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns the polls vote with the primary key.
@@ -204,28 +224,10 @@ public interface PollsVoteLocalService extends BaseLocalService,
 	* @param voteId the primary key of the polls vote
 	* @return the polls vote
 	* @throws PortalException if a polls vote with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portlet.polls.model.PollsVote getPollsVote(long voteId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns the polls vote with the matching UUID and company.
@@ -234,13 +236,11 @@ public interface PollsVoteLocalService extends BaseLocalService,
 	* @param companyId the primary key of the company
 	* @return the matching polls vote
 	* @throws PortalException if a matching polls vote could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portlet.polls.model.PollsVote getPollsVoteByUuidAndCompanyId(
 		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns the polls vote matching the UUID and group.
@@ -249,13 +249,11 @@ public interface PollsVoteLocalService extends BaseLocalService,
 	* @param groupId the primary key of the group
 	* @return the matching polls vote
 	* @throws PortalException if a matching polls vote could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portlet.polls.model.PollsVote getPollsVoteByUuidAndGroupId(
 		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Returns a range of all the polls votes.
@@ -267,40 +265,29 @@ public interface PollsVoteLocalService extends BaseLocalService,
 	* @param start the lower bound of the range of polls votes
 	* @param end the upper bound of the range of polls votes (not inclusive)
 	* @return the range of polls votes
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.polls.model.PollsVote> getPollsVotes(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		int start, int end);
 
 	/**
 	* Returns the number of polls votes.
 	*
 	* @return the number of polls votes
-	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getPollsVotesCount()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public int getPollsVotesCount();
 
-	/**
-	* Updates the polls vote in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param pollsVote the polls vote
-	* @return the polls vote that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.polls.model.PollsVote updatePollsVote(
-		com.liferay.portlet.polls.model.PollsVote pollsVote)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portlet.polls.model.PollsVote> getQuestionVotes(
+		long questionId, int start, int end);
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getQuestionVotesCount(long questionId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portlet.polls.model.PollsVote getVote(long questionId,
+		long userId) throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Sets the Spring bean ID for this bean.
@@ -309,33 +296,13 @@ public interface PollsVoteLocalService extends BaseLocalService,
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
-	public com.liferay.portlet.polls.model.PollsVote addVote(long userId,
-		long questionId, long choiceId,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portlet.polls.model.PollsVote> getChoiceVotes(
-		long choiceId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getChoiceVotesCount(long choiceId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portlet.polls.model.PollsVote> getQuestionVotes(
-		long questionId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getQuestionVotesCount(long questionId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portlet.polls.model.PollsVote getVote(long questionId,
-		long userId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+	/**
+	* Updates the polls vote in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param pollsVote the polls vote
+	* @return the polls vote that was updated
+	*/
+	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
+	public com.liferay.portlet.polls.model.PollsVote updatePollsVote(
+		com.liferay.portlet.polls.model.PollsVote pollsVote);
 }

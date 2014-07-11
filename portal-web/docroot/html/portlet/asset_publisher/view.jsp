@@ -38,7 +38,7 @@ if (assetPublisherDisplayContext.isMergeURLTags() || assetPublisherDisplayContex
 
 	String titleEntry = ArrayUtil.isNotEmpty(compilerTagNames) ? compilerTagNames[compilerTagNames.length - 1] : null;
 
-	String portletTitle = HtmlUtil.unescape(portletDisplay.getTitle());
+	String portletTitle = portletDisplay.getTitle();
 
 	portletTitle = AssetUtil.substituteTagPropertyVariables(scopeGroupId, titleEntry, portletTitle);
 
@@ -75,30 +75,33 @@ boolean hasAddPortletURLs = false;
 <c:if test="<%= assetPublisherDisplayContext.isShowAddContentButton() && (scopeGroup != null) && (!scopeGroup.hasStagingGroup() || scopeGroup.isStagingGroup()) && !portletName.equals(PortletKeys.HIGHEST_RATED_ASSETS) && !portletName.equals(PortletKeys.MOST_VIEWED_ASSETS) && !portletName.equals(PortletKeys.RELATED_ASSETS) %>">
 
 	<%
-	boolean defaultAssetPublisher = AssetUtil.isDefaultAssetPublisher(layout, portletDisplay.getId(), portletResource);
+	boolean defaultAssetPublisher = AssetUtil.isDefaultAssetPublisher(layout, portletDisplay.getId(), assetPublisherDisplayContext.getPortletResource());
 
 	long[] groupIds = assetPublisherDisplayContext.getGroupIds();
-
-	for (long groupId : groupIds) {
-		Map<String, PortletURL> addPortletURLs = AssetUtil.getAddPortletURLs(liferayPortletRequest, liferayPortletResponse, groupId, assetPublisherDisplayContext.getClassNameIds(), assetPublisherDisplayContext.getClassTypeIds(), assetPublisherDisplayContext.getAllAssetCategoryIds(), assetPublisherDisplayContext.getAllAssetTagNames(), null);
-
-		if ((addPortletURLs != null) && !addPortletURLs.isEmpty()) {
-			hasAddPortletURLs = true;
-		}
 	%>
 
-		<c:if test="<%= !addPortletURLs.isEmpty() %>">
-			<aui:nav-bar>
-				<div class="lfr-meta-actions add-asset-selector">
+	<c:if test="<%= groupIds.length > 0 %>">
+		<aui:nav-bar cssClass='<%= "add-asset-selector lfr-meta-actions" + ((groupIds.length == 1) ? " single-item-button" : StringPool.BLANK) %>'>
+
+			<%
+			for (long groupId : groupIds) {
+				Map<String, PortletURL> addPortletURLs = AssetUtil.getAddPortletURLs(liferayPortletRequest, liferayPortletResponse, groupId, assetPublisherDisplayContext.getClassNameIds(), assetPublisherDisplayContext.getClassTypeIds(), assetPublisherDisplayContext.getAllAssetCategoryIds(), assetPublisherDisplayContext.getAllAssetTagNames(), null);
+
+				if ((addPortletURLs != null) && !addPortletURLs.isEmpty()) {
+					hasAddPortletURLs = true;
+				}
+			%>
+
+				<c:if test="<%= !addPortletURLs.isEmpty() %>">
 					<%@ include file="/html/portlet/asset_publisher/add_asset.jspf" %>
-				</div>
-			</aui:nav-bar>
-		</c:if>
+				</c:if>
 
-	<%
-	}
-	%>
+			<%
+			}
+			%>
 
+		</aui:nav-bar>
+	</c:if>
 </c:if>
 
 <div class="subscribe-action">
@@ -112,8 +115,9 @@ boolean hasAddPortletURLs = false;
 				</portlet:actionURL>
 
 				<liferay-ui:icon
-					image="unsubscribe"
+					iconCssClass="icon-remove-sign"
 					label="<%= true %>"
+					message="unsubscribe"
 					url="<%= unsubscribeURL %>"
 				/>
 			</c:when>
@@ -125,8 +129,9 @@ boolean hasAddPortletURLs = false;
 				</portlet:actionURL>
 
 				<liferay-ui:icon
-					image="subscribe"
+					iconCssClass="icon-ok-sign"
 					label="<%= true %>"
+					message="subscribe"
 					url="<%= subscribeURL %>"
 				/>
 			</c:otherwise>

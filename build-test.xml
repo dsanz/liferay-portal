@@ -17,20 +17,18 @@
 
 	<propertycopy from="browser.${browser.type}.version" name="browser.version" />
 
-	<propertycopy from="database.${database.type}.version" name="database.version" />
+	<propertycopy from="database.${database.type}.version.build" name="database.version.build" />
 
-	<propertycopy from="database.${database.type}.${database.version}.host" name="database.host" />
-	<propertycopy from="database.${database.type}.${database.version}.password" name="database.password" />
-	<propertycopy from="database.${database.type}.${database.version}.schema" name="database.schema" />
-	<propertycopy from="database.${database.type}.${database.version}.username" name="database.username" />
-	<propertycopy from="database.${database.type}.${database.version}.url" name="database.url" />
+	<propertycopy from="database.${database.type}${database.version.build}.host" name="database.host" />
+	<propertycopy from="database.${database.type}${database.version.build}.password" name="database.password" />
+	<propertycopy from="database.${database.type}${database.version.build}.schema" name="database.schema" />
+	<propertycopy from="database.${database.type}${database.version.build}.username" name="database.username" />
+	<propertycopy from="database.${database.type}${database.version.build}.url" name="database.url" />
+	<propertycopy from="database.${database.type}${database.version.build}.version" name="database.version" />
 
 	<propertycopy from="java.jdk.${java.jdk.type}.version" name="java.jdk.version" />
 
 	<propertycopy from="liferay.portal.${liferay.portal.branch}.bundle" name="liferay.portal.bundle" />
-
-	<propertycopy from="mobile.device.resolution[${mobile.device.type}]" name="mobile.device.resolution" />
-	<propertycopy from="mobile.device.user.agent[${mobile.device.type}]" name="mobile.device.user.agent" />
 
 	<propertycopy from="operating.system.${operating.system.type}.version" name="operating.system.version" />
 
@@ -40,7 +38,47 @@
 	<propertycopy from="testray.build.${testray.build.type}.name" name="testray.build.name" />
 	<propertycopy from="testray.product.${testray.product.type}.version" name="testray.product.version" />
 
-	<taskdef classname="com.liferay.portal.ant.FormatTask" classpathref="project.classpath" name="liferay-format" />
+	<macrodef name="prepare-additional-bundles">
+		<sequential>
+			<if>
+				<isset property="app.server.bundle.count" />
+				<then>
+					<var name="bundle.count" value="1" />
+
+					<antelope:repeat count="${app.server.bundle.count}">
+						<delete dir="${app.server.parent.dir}-${bundle.count}" />
+
+						<copy todir="${app.server.parent.dir}-${bundle.count}/${app.server.type}-${app.server.version}">
+							<fileset dir="${app.server.dir}" />
+						</copy>
+
+						<if>
+	  					 	<available file="${liferay.home}/osgi" />
+							<then>
+								<copy todir="${app.server.parent.dir}-${bundle.count}/osgi">
+									<fileset dir="${liferay.home}/osgi" />
+								</copy>
+							</then>
+						</if>
+
+						<chmod perm="a+x">
+							<fileset dir="${app.server.parent.dir}-${bundle.count}/${app.server.type}-${app.server.version}/bin">
+								<include name="*.sh" />
+							</fileset>
+						</chmod>
+
+						<math
+							datatype="int"
+							operand1="${bundle.count}"
+							operand2="1"
+							operation="+"
+							result="bundle.count"
+						/>
+					</antelope:repeat>
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
 
 	<macrodef name="prepare-fix-pack-bundle" >
 		<sequential>
@@ -121,48 +159,56 @@
 		</sequential>
 	</macrodef>
 
-	<macrodef name="prepare-test-cluster-bundle">
-		<sequential>
-			<copy todir="${app.server.parent.dir}-node-2">
-				<fileset
-					dir="${app.server.parent.dir}"
-				/>
-			</copy>
-
-			<prepare-test-cluster-properties />
-
-			<prepare-test-cluster-properties
-				app.server.parent.dir="${app.server.parent.dir}-node-2"
-				cluster.node.id="node-2"
-			/>
-		</sequential>
-	</macrodef>
-
 	<macrodef name="prepare-test-cluster-properties">
-		<attribute default="${app.server.parent.dir}" name="app.server.parent.dir" />
-		<attribute default="node-1" name="cluster.node.id" />
-
 		<sequential>
 			<if>
-				<equals arg1="${app.server.type}" arg2="tomcat" />
+				<not>
+					<equals arg1="${app.server.type}" arg2="tomcat" />
+				</not>
 				<then>
-					<if>
-						<equals arg1="@{cluster.node.id}" arg2="node-2" />
-						<then>
-							<replaceregexp
-								file="@{app.server.parent.dir}/tomcat-${app.server.tomcat.version}/conf/server.xml"
-								flags="g"
-								match="=&quot;8(\d\d\d)&quot;"
-								replace="=&quot;9\1&quot;"
-							/>
-						</then>
-					</if>
+					<fail>The public test clustering scripts are only available for Tomcat.</fail>
+				</then>
+			</if>
 
-					<replace
-						file="@{app.server.parent.dir}/tomcat-${app.server.tomcat.version}/conf/server.xml"
-						token="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot;&gt;"
-						value="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot; jvmRoute=&quot;@{cluster.node.id}&quot;&gt;"
-					/>
+			<replace
+				file="${app.server.tomcat.dir}/conf/server.xml"
+				token="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot;&gt;"
+				value="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot; jvmRoute=&quot;0&quot;&gt;"
+			/>
+
+			<if>
+				<isset property="app.server.bundle.count" />
+				<then>
+					<var name="bundle.count" value="1" />
+
+					<antelope:repeat count="${app.server.bundle.count}">
+						<replaceregexp
+							file="${app.server.parent.dir}-${bundle.count}/tomcat-${app.server.tomcat.version}/conf/server.xml"
+							flags="g"
+							match="=&quot;8(\d\d\d)&quot;"
+							replace="=&quot;${bundle.count}\1&quot;"
+						/>
+
+						<replace
+							file="${app.server.parent.dir}-${bundle.count}/tomcat-${app.server.tomcat.version}/conf/server.xml"
+							token="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot;&gt;"
+							value="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot; jvmRoute=&quot;${bundle.count}&quot;&gt;"
+						/>
+
+						<replace
+							file="${app.server.parent.dir}-${bundle.count}/tomcat-${app.server.tomcat.version}/webapps/ROOT/WEB-INF/classes/portal-ext.properties"
+							token="liferay.home=${liferay.home}"
+							value="liferay.home=${app.server.parent.dir}-${bundle.count}"
+						/>
+
+						<math
+							datatype="int"
+							operand1="${bundle.count}"
+							operand2="1"
+							operation="+"
+							result="bundle.count"
+						/>
+					</antelope:repeat>
 				</then>
 			</if>
 		</sequential>
@@ -178,8 +224,18 @@
 				replace="\1"
 			/>
 
+			<propertyregex
+				defaultValue="${app.server.major.version}"
+				global="true"
+				input="${app.server.major.version}"
+				override="true"
+				property="app.server.major.version.build"
+				regexp="\."
+				replace=""
+			/>
+
 			<propertycopy
-				from="env.option.app.server.${app.server.type}.${app.server.major.version}"
+				from="env.option.app.server.${app.server.type}${app.server.major.version.build}"
 				name="env.option.app.server"
 				override="true"
 			/>
@@ -196,8 +252,18 @@
 				replace="\1"
 			/>
 
+			<propertyregex
+				defaultValue="${browser.major.version}"
+				global="true"
+				input="${browser.major.version}"
+				override="true"
+				property="browser.major.version.build"
+				regexp="\."
+				replace=""
+			/>
+
 			<propertycopy
-				from="env.option.browser.${browser.type}.${browser.major.version}"
+				from="env.option.browser.${browser.type}${browser.major.version.build}"
 				name="env.option.browser"
 				override="true"
 			/>
@@ -214,8 +280,18 @@
 				replace="\1"
 			/>
 
+			<propertyregex
+				defaultValue="${database.major.version}"
+				global="true"
+				input="${database.major.version}"
+				override="true"
+				property="database.major.version.build"
+				regexp="\."
+				replace=""
+			/>
+
 			<propertycopy
-				from="env.option.database.${database.type}.${database.major.version}"
+				from="env.option.database.${database.type}${database.major.version.build}"
 				name="env.option.database"
 				override="true"
 			/>
@@ -248,8 +324,18 @@
 
 	<macrodef name="record-env-operating-system">
 		<sequential>
+			<propertyregex
+				defaultValue="${operating.system.version}"
+				global="true"
+				input="${operating.system.version}"
+				override="true"
+				property="operating.system.version.build"
+				regexp="\."
+				replace=""
+			/>
+
 			<propertycopy
-				from="env.option.operating.system.${operating.system.type}.${operating.system.version}"
+				from="env.option.operating.system.${operating.system.type}${operating.system.version.build}"
 				name="env.option.operating.system"
 				override="true"
 			/>
@@ -277,6 +363,126 @@
 					<property name="testray.component.names" value="${testray.main.component.name}" />
 				</then>
 			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="start-additional-app-servers">
+		<sequential>
+			<if>
+				<isset property="app.server.bundle.count" />
+				<then>
+					<var name="bundle.count" value="1" />
+
+					<antelope:repeat count="${app.server.bundle.count}">
+						<start-app-server
+							app.server.bin.dir="${app.server.parent.dir}-${bundle.count}/${app.server.type}-${app.server.version}/bin"
+							app.server.http.url="http://localhost:${bundle.count}080/web/guest"
+							liferay.home="${app.server.parent.dir}-${bundle.count}"
+						/>
+
+						<math
+							datatype="int"
+							operand1="${bundle.count}"
+							operand2="1"
+							operation="+"
+							result="bundle.count"
+						/>
+					</antelope:repeat>
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="start-app-server">
+		<attribute default="${app.server.bin.dir}" name="app.server.bin.dir" />
+		<attribute default="${liferay.home}" name="liferay.home" />
+		<attribute default="http://localhost:8080/web/guest" name="app.server.http.url" />
+
+		<sequential>
+			<if>
+				<equals arg1="${app.server.type}" arg2="jboss" />
+				<then>
+					<echo file="${app.server.deploy.dir}/ROOT.war.dodeploy"></echo>
+				</then>
+			</if>
+
+			<if>
+				<equals arg1="${test.ant.launched.by.selenium}" arg2="true" />
+				<then>
+					<exec dir="${app.server.bin.dir}" executable="${app.server.start.executable}" resolveexecutable="true">
+						<arg line="${app.server.start.executable.arg.line}" />
+					</exec>
+				</then>
+				<else>
+					<parallel>
+						<daemons>
+							<exec dir="@{app.server.bin.dir}" executable="${app.server.start.executable}" resolveexecutable="true">
+								<arg line="${app.server.start.executable.arg.line}" />
+							</exec>
+						</daemons>
+					</parallel>
+				</else>
+			</if>
+
+			<if>
+				<equals arg1="@{app.server.bin.dir}" arg2="${app.server.tcat.admin.bin.dir}" />
+				<then>
+					<waitfor maxwait="5" maxwaitunit="minute">
+						<http url="http://localhost:8180/console" />
+					</waitfor>
+				</then>
+				<elseif>
+					<equals arg1="@{app.server.bin.dir}" arg2="${app.server.tcat.agent.bin.dir}" />
+					<then>
+						<waitfor maxwait="1" maxwaitunit="minute">
+							<http url="http://localhost:8080" />
+						</waitfor>
+					</then>
+				</elseif>
+				<else>
+					<waitfor maxwait="5" maxwaitunit="minute">
+						<and>
+							<available file="@{liferay.home}/logs" />
+							<http url="@{app.server.http.url}" />
+						</and>
+					</waitfor>
+				</else>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="stop-additional-app-servers">
+		<sequential>
+			<if>
+				<isset property="app.server.bundle.count" />
+				<then>
+					<var name="bundle.count" value="1" />
+
+					<antelope:repeat count="${app.server.bundle.count}">
+						<stop-app-server
+							app.server.bin.dir="${app.server.parent.dir}-${bundle.count}/${app.server.type}-${app.server.version}/bin"
+						/>
+
+						<math
+							datatype="int"
+							operand1="${bundle.count}"
+							operand2="1"
+							operation="+"
+							result="bundle.count"
+						/>
+					</antelope:repeat>
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="stop-app-server">
+		<attribute default="${app.server.bin.dir}" name="app.server.bin.dir" />
+
+		<sequential>
+			<exec dir="@{app.server.bin.dir}" executable="${app.server.stop.executable}" resolveexecutable="true">
+				<arg line="${app.server.stop.executable.arg.line}" />
+			</exec>
 		</sequential>
 	</macrodef>
 
@@ -542,13 +748,14 @@ create database lportal2 character set utf8;</echo>
 					<equals arg1="${app.server.type}" arg2="jetty" />
 					<equals arg1="${app.server.type}" arg2="jonas" />
 					<equals arg1="${app.server.type}" arg2="resin" />
+					<equals arg1="${app.server.type}" arg2="tcserver" />
 					<equals arg1="${app.server.type}" arg2="tomcat" />
 					<equals arg1="${app.server.type}" arg2="weblogic" />
 					<equals arg1="${app.server.type}" arg2="websphere" />
 				</or>
 			</not>
 			<then>
-				<fail>Please set "app.server.type" to one of the following:${line.separator}geronimo, glassfish, jboss, jetty, jonas, resin, tomcat, weblogic, or websphere.</fail>
+				<fail>Please set "app.server.type" to one of the following:${line.separator}geronimo, glassfish, jboss, jetty, jonas, resin, tcserver, tomcat, weblogic, or websphere.</fail>
 			</then>
 		</if>
 
@@ -691,12 +898,14 @@ create database lportal2 character set utf8;</echo>
 					/>
 				</delete>
 
-				<copy todir="${todir}">
-					<fileset
-						dir="${jdbc.drivers.optional.dir}/db2/8.1.18"
-						includes="${jdbc.db2.driver}"
-					/>
-				</copy>
+				<for list="${jdbc.db2.driver}" param="jdbc.driver">
+					<sequential>
+						<get
+							dest="${todir}"
+							src="${test.jdbc.drivers.url}/db2/8.1.18/@{jdbc.driver}"
+						/>
+					</sequential>
+				</for>
 			</then>
 			<elseif>
 				<and>
@@ -750,6 +959,22 @@ create database lportal2 character set utf8;</echo>
 						dest="${todir}"
 						src="${test.jdbc.drivers.url}/oracle/11.2.0.1.0/${jdbc.oracle.driver}"
 					/>
+				</then>
+			</elseif>
+			<elseif>
+				<and>
+					<equals arg1="${database.type}" arg2="postgresql" />
+					<not>
+						<available file="${app.server.lib.global.dir}/${jdbc.postgresql.driver}" />
+					</not>
+				</and>
+				<then>
+					<copy todir="${todir}">
+						<fileset
+							dir="lib/development"
+							includes="${jdbc.postgresql.driver}"
+						/>
+					</copy>
 				</then>
 			</elseif>
 		</if>
@@ -845,16 +1070,23 @@ create database lportal2 character set utf8;</echo>
 				<available file="${previous.changelog.dir}/git-commit-portal" />
 			</and>
 			<then>
+				<loadfile
+					property="previous.git.commit.plugins.rev.parse"
+					srcfile="${previous.changelog.dir}/git-commit-plugins"
+				/>
+
+				<loadfile
+					property="previous.git.commit.portal.rev.parse"
+					srcfile="${previous.changelog.dir}/git-commit-portal"
+				/>
+
 				<copy
 					file="${previous.changelog.dir}/git-build-log.html"
 					tofile="${changelog.dir}/git-build-log.html"
 				/>
 
 				<if>
-					<resourcecontains
-						resource="${previous.changelog.dir}/git-commit-plugins"
-						substring="${previous.git.commit.plugins.rev.parse}"
-					/>
+					<equals arg1="${git.commit.plugins.rev.parse}" arg2="${previous.git.commit.plugins.rev.parse}" />
 					<then>
 						<property
 							name="git.log.content.plugins"
@@ -874,10 +1106,7 @@ create database lportal2 character set utf8;</echo>
 				</if>
 
 				<if>
-					<resourcecontains
-						resource="${previous.changelog.dir}/git-commit-portal"
-						substring="${previous.git.commit.portal.rev.parse}"
-					/>
+					<equals arg1="${git.commit.portal.rev.parse}" arg2="${previous.git.commit.portal.rev.parse}" />
 					<then>
 						<property
 							name="git.log.content.portal"
@@ -1056,6 +1285,10 @@ create database lportal2 character set utf8;</echo>
 	</target>
 
 	<target name="generate-test-properties" depends="check-config">
+		<property file="${project.dir}/test.generated.properties" />
+
+		<var name="mobile.device.type" unset="true" />
+
 		<if>
 			<contains string="${test.class}" substring="#" />
 			<then>
@@ -1118,18 +1351,37 @@ create database lportal2 character set utf8;</echo>
 		</loadfile>
 
 		<echo file="${basedir}/test.run.properties">${test.properties.expanded}</echo>
+
+		<property file="${project.dir}/test.${user.name}.properties" />
+		<property file="${project.dir}/test.${env.COMPUTERNAME}.properties" />
+		<property file="${project.dir}/test.${env.HOST}.properties" />
+		<property file="${project.dir}/test.${env.HOSTNAME}.properties" />
+		<property file="${project.dir}/test.properties" />
+
+		<propertycopy from="mobile.device.resolution[${mobile.device.type}]" name="mobile.device.resolution" />
+		<propertycopy from="mobile.device.user.agent[${mobile.device.type}]" name="mobile.device.user.agent" />
+	</target>
+
+	<target name="kill-spi">
+		<if>
+			<os family="unix" />
+			<then>
+				<execute>
+					kill -9 pgrep -n java
+				</execute>
+			</then>
+			<else>
+				<execute>
+					taskkill.exe /F /FI "imagename eq java.exe" /FI "memusage lt 700000" /FI "memusage gt 600000"
+				</execute>
+			</else>
+		</if>
 	</target>
 
 	<target name="merge-jenkins-test-results">
-		<property name="jenkins.test.results.dir" value="${env.JENKINS_HOME}/userContent/jobs/${env.BUILD_FLOW_JOB_NAME}/${env.BUILD_FLOW_BUILD_NUMBER}/test-results" />
+		<property name="jenkins.test.results.dir" value="${env.JENKINS_HOME}/userContent/jobs/${env.BUILD_FLOW_JOB_NAME}/builds/${env.BUILD_FLOW_BUILD_NUMBER}/test-results" />
 
 		<property name="jenkins.results.xml.suite.file" value="${jenkins.test.results.dir}/test-suite/TESTS-${env.BUILD_FLOW_JOB_NAME}_${env.BUILD_FLOW_BUILD_NUMBER}.xml" />
-
-		<copy flatten="true" todir="${jenkins.test.results.dir}">
-			<fileset dir="${env.JENKINS_HOME}/userContent/jobs/" erroronmissingdir="false">
-				<include name="**/TEST-${env.BUILD_FLOW_JOB_NAME}_${env.BUILD_FLOW_BUILD_NUMBER}_*.xml" />
-			</fileset>
-		</copy>
 
 		<first id="first">
 			<fileset dir="${jenkins.test.results.dir}" includes="*.xml" />
@@ -1649,6 +1901,19 @@ tck.url=true</echo>
 		<if>
 			<contains string="${app.server.portal.dir}" substring="liferay-portal.war" />
 			<then>
+				<property name="test.build.liferay.portal.zip.file.name" value="${app.server.portal.dir}" />
+			</then>
+			<elseif>
+				<equals arg1="${tcat.enabled}" arg2="true" />
+				<then>
+					<property name="test.build.liferay.portal.zip.file.name" value="${app.server.tcat.admin.dir}/tcat_init/webapps/${lp.version.dtd}/ROOT.war" />
+				</then>
+			</elseif>
+		</if>
+
+		<if>
+			<isset property="test.build.liferay.portal.zip.file.name" />
+			<then>
 				<tstamp>
 					<format property="tstamp.value" pattern="yyyyMMddkkmmssSSS" />
 				</tstamp>
@@ -1657,7 +1922,7 @@ tck.url=true</echo>
 
 				<unzip
 					dest="${tstamp.value}"
-					src="${app.server.portal.dir}"
+					src="${test.build.liferay.portal.zip.file.name}"
 				/>
 
 				<copy
@@ -1667,7 +1932,7 @@ tck.url=true</echo>
 
 				<zip
 					basedir="${tstamp.value}"
-					destfile="${app.server.portal.dir}"
+					destfile="${test.build.liferay.portal.zip.file.name}"
 					update="yes"
 				/>
 
@@ -1683,19 +1948,9 @@ tck.url=true</echo>
 	</target>
 
 	<target name="prepare-portal-properties">
-		<liferay-format
-			arguments="portal-impl/src/portal.properties"
-			message="${scm.revert.command}"
-			property="scm.revert.command.formatted"
-		/>
-
-		<exec executable="/bin/sh" os="${os.unix}">
-			<arg line="${scm.revert.command.formatted}" />
-		</exec>
-
-		<exec executable="cmd.exe" os="${os.windows}">
-			<arg line="${scm.revert.command.formatted}" />
-		</exec>
+		<execute>
+			<![CDATA[git checkout -- portal-impl/src/portal.properties]]>
+		</execute>
 
 		<replace file="portal-impl/src/portal.properties">
 			<replacefilter
@@ -1713,9 +1968,7 @@ tck.url=true</echo>
 		</replace>
 	</target>
 
-	<target name="prepare-selenium">
-		<ant dir="portal-impl" target="build-selenium-new-test-case" />
-
+	<target name="prepare-selenium" depends="generate-test-properties">
 		<delete file="portal-web/test/test-portal-web-ext.properties" />
 
 		<if>
@@ -1767,10 +2020,19 @@ tck.url=true</echo>
 		</if>
 
 		<if>
-			<isset property="ignore.error" />
+			<isset property="ignore.errors" />
 			<then>
 				<echo file="portal-web/test/test-portal-web-ext.properties" append="true">
-					ignore.error=${ignore.error}
+					ignore.errors=${ignore.errors}
+				</echo>
+			</then>
+		</if>
+
+		<if>
+			<isset property="ignore.errors.delimiter" />
+			<then>
+				<echo file="portal-web/test/test-portal-web-ext.properties" append="true">
+					ignore.errors.delimiter=${ignore.errors.delimiter}
 				</echo>
 			</then>
 		</if>
@@ -1821,6 +2083,16 @@ tck.url=true</echo>
 				<delete dir="${selenium.output.dir}" />
 
 				<mkdir dir="${selenium.output.dir}" />
+			</then>
+		</if>
+
+		<if>
+			<equals arg1="${tcat.enabled}" arg2="true" />
+			<then>
+				<echo file="portal-web/test/test-portal-web-ext.properties" append="true">
+					tcat.admin.repository=${app.server.tcat.admin.dir}/tcat_init/webapps/${lp.version.dtd}
+					tcat.enabled=true
+				</echo>
 			</then>
 		</if>
 
@@ -1957,6 +2229,18 @@ tck.url=true</echo>
 		</if>
 	</target>
 
+	<target name="prepare-so-plugins">
+		<property file="${lp.plugins.dir}/portlets/so-portlet/docroot/WEB-INF/liferay-releng.properties" />
+
+		<property name="plugins.includes" value="so-portlet,${dependent-apps}" />
+
+		<ant dir="${lp.plugins.dir}" target="clean" />
+
+		<ant dir="${lp.plugins.dir}" target="compile" />
+
+		<ant antfile="build-test-plugins.xml" target="deploy-simple-server-plugins" />
+	</target>
+
 	<target name="prepare-test-build">
 		<antcall target="record-git-commit-portal" inheritAll="false" />
 
@@ -1971,6 +2255,12 @@ tck.url=true</echo>
 					<param name="test.build.bundle.zip.url" value="${test.build.bundle.geronimo.zip.url}" />
 				</antcall>
 			</then>
+			<elseif>
+				<equals arg1="${test.build.bundle.geronimo}" arg2="true" />
+				<then>
+					<ant antfile="build-dist.xml" target="build-dist-geronimo" inheritAll="false" />
+				</then>
+			</elseif>
 		</if>
 
 		<if>
@@ -1982,6 +2272,12 @@ tck.url=true</echo>
 					<param name="test.build.bundle.zip.url" value="${test.build.bundle.glassfish.zip.url}" />
 				</antcall>
 			</then>
+			<elseif>
+				<equals arg1="${test.build.bundle.glassfish}" arg2="true" />
+				<then>
+					<ant antfile="build-dist.xml" target="build-dist-glassfish" inheritAll="false" />
+				</then>
+			</elseif>
 		</if>
 
 		<if>
@@ -1992,6 +2288,26 @@ tck.url=true</echo>
 					<param name="test.app.server.bin.dir" value="${app.server.jboss.bin.dir}" />
 					<param name="test.build.bundle.zip.url" value="${test.build.bundle.jboss.zip.url}" />
 				</antcall>
+			</then>
+			<elseif>
+				<equals arg1="${test.build.bundle.jboss}" arg2="true" />
+				<then>
+					<ant antfile="build-dist.xml" target="build-dist-jboss" inheritAll="false" />
+				</then>
+			</elseif>
+		</if>
+
+		<if>
+			<equals arg1="${test.build.bundle.jbosseap6.0}" arg2="true" />
+			<then>
+				<ant antfile="build-dist.xml" target="build-dist-jboss-eap-6.0" inheritAll="false" />
+			</then>
+		</if>
+
+		<if>
+			<equals arg1="${test.build.bundle.jbosseap6.1}" arg2="true" />
+			<then>
+				<ant antfile="build-dist.xml" target="build-dist-jboss-eap-6.1" inheritAll="false" />
 			</then>
 		</if>
 
@@ -2004,6 +2320,12 @@ tck.url=true</echo>
 					<param name="test.build.bundle.zip.url" value="${test.build.bundle.jetty.zip.url}" />
 				</antcall>
 			</then>
+			<elseif>
+				<equals arg1="${test.build.bundle.jetty}" arg2="true" />
+				<then>
+					<ant antfile="build-dist.xml" target="build-dist-jetty" inheritAll="false" />
+				</then>
+			</elseif>
 		</if>
 
 		<if>
@@ -2015,6 +2337,12 @@ tck.url=true</echo>
 					<param name="test.build.bundle.zip.url" value="${test.build.bundle.jonas.zip.url}" />
 				</antcall>
 			</then>
+			<elseif>
+				<equals arg1="${test.build.bundle.jonas}" arg2="true" />
+				<then>
+					<ant antfile="build-dist.xml" target="build-dist-jonas" inheritAll="false" />
+				</then>
+			</elseif>
 		</if>
 
 		<if>
@@ -2026,6 +2354,30 @@ tck.url=true</echo>
 					<param name="test.build.bundle.zip.url" value="${test.build.bundle.resin.zip.url}" />
 				</antcall>
 			</then>
+			<elseif>
+				<equals arg1="${test.build.bundle.resin}" arg2="true" />
+				<then>
+					<ant antfile="build-dist.xml" target="build-dist-resin" inheritAll="false" />
+				</then>
+			</elseif>
+		</if>
+
+		<if>
+			<and>
+				<equals arg1="${test.build.bundle.tcserver}" arg2="true" />
+				<isset property="test.build.portal.war.url" />
+			</and>
+			<then>
+				<antcall target="prepare-test-bundle">
+					<param name="app.server.type" value="tcserver" />
+				</antcall>
+			</then>
+			<elseif>
+				<equals arg1="${test.build.bundle.tcserver}" arg2="true" />
+				<then>
+					<ant antfile="build-dist.xml" target="build-dist-tcserver" inheritAll="false" />
+				</then>
+			</elseif>
 		</if>
 
 		<if>
@@ -2038,19 +2390,36 @@ tck.url=true</echo>
 				</antcall>
 			</then>
 			<else>
-				<ant antfile="build-dist.xml" target="unzip-tomcat" inheritAll="false" />
-
-				<antcall target="deploy" inheritAll="false" />
+				<ant antfile="build-dist.xml" target="build-dist-tomcat" inheritAll="false" />
 			</else>
 		</if>
 
+		<antcall target="prepare-test-build-tomcat-dependents" inheritAll="false" />
+
 		<if>
-			<equals arg1="${test.build.bundle.weblogic}" arg2="true" />
+			<and>
+				<equals arg1="${test.build.bundle.weblogic}" arg2="true" />
+				<isset property="test.build.portal.war.url" />
+			</and>
 			<then>
 				<antcall target="prepare-test-bundle">
 					<param name="app.server.type" value="weblogic" />
 				</antcall>
 			</then>
+			<elseif>
+				<equals arg1="${test.build.bundle.weblogic}" arg2="true" />
+				<then>
+					<app-server-properties-update>
+						app.server.type=weblogic
+					</app-server-properties-update>
+
+					<ant antfile="build-dist.xml" target="unzip-weblogic" inheritAll="false" />
+
+					<antcall target="deploy" inheritAll="false" />
+
+					<app-server-properties-reset />
+				</then>
+			</elseif>
 		</if>
 
 		<if>
@@ -2089,23 +2458,57 @@ tck.url=true</echo>
 		<antcall target="record-test-package-names" inheritAll="false" />
 	</target>
 
+	<target name="prepare-test-build-tomcat-dependents">
+		<if>
+			<equals arg1="${test.build.bundle.tcat}" arg2="true" />
+			<then>
+				<echo file="${lp.plugins.dir}/build.${user.name}.properties">app.server.tomcat.dir=${app.server.parent.dir}/tomcat-7.0.39
+
+plugins.includes=marketplace-portlet</echo>
+
+				<if>
+					<isset property="test.build.portal.war.url" />
+					<then>
+						<mkdir dir="dist" />
+
+						<get
+							dest="dist/liferay-portal-${lp.version}.war"
+							src="${test.build.portal.war.url}"
+						/>
+					</then>
+					<else>
+						<ant antfile="build-dist.xml" target="zip-portal-war" inheritAll="false" />
+					</else>
+				</if>
+
+				<ant antfile="build-dist.xml" target="build-dist-tcat" inheritAll="false" />
+
+				<delete dir="dist" />
+
+				<delete file="${lp.plugins.dir}/build.${user.name}.properties" />
+			</then>
+		</if>
+	</target>
+
 	<target name="prepare-test-bundle">
 		<if>
-			<equals arg1="${app.server.type}" arg2="weblogic" />
+			<equals arg1="${app.server.type}" arg2="tcserver" />
 			<then>
-				<ant antfile="build-dist.xml" target="unzip-weblogic" inheritAll="false" />
+				<ant antfile="build-dist.xml" target="unzip-tcserver" inheritAll="false" />
+
+				<mkdir dir="dist" />
 
 				<get
-					dest="liferay-portal.war"
+					dest="dist/liferay-portal-${lp.version}.war"
 					src="${test.build.portal.war.url}"
 				/>
 
 				<unzip
-					dest="${app.server.weblogic.portal.dir}"
-					src="liferay-portal.war"
+					dest="${app.server.tcserver.portal.dir}"
+					src="dist/liferay-portal-${lp.version}.war"
 				/>
 
-				<delete file="liferay-portal.war" />
+				<delete dir="dist" />
 
 				<get
 					dest="liferay-portal-dependencies.zip"
@@ -2113,7 +2516,7 @@ tck.url=true</echo>
 				/>
 
 				<unzip
-					dest="${app.server.weblogic.lib.global.dir}"
+					dest="${app.server.tcserver.lib.global.dir}"
 					src="liferay-portal-dependencies.zip"
 				>
 					<mapper
@@ -2124,7 +2527,59 @@ tck.url=true</echo>
 				</unzip>
 
 				<delete file="liferay-portal-dependencies.zip" />
+
+				<copy todir="${app.server.tcserver.lib.global.dir}">
+					<fileset
+						dir="lib/development"
+						includes="activation.jar,jms.jar,jta.jar,jutf7.jar,mail.jar,mysql.jar,persistence.jar,script-10.jar"
+					/>
+				</copy>
+
+				<copy todir="${app.server.tcserver.lib.global.dir}">
+					<fileset
+						dir="lib/portal"
+						includes="ccpp.jar"
+					/>
+				</copy>
 			</then>
+			<elseif>
+				<equals arg1="${app.server.type}" arg2="weblogic" />
+				<then>
+					<ant antfile="build-dist.xml" target="unzip-weblogic" inheritAll="false" />
+
+					<mkdir dir="dist" />
+
+					<get
+						dest="dist/liferay-portal-${lp.version}.war"
+						src="${test.build.portal.war.url}"
+					/>
+
+					<unzip
+						dest="${app.server.weblogic.portal.dir}"
+						src="dist/liferay-portal-${lp.version}.war"
+					/>
+
+					<delete dir="dist" />
+
+					<get
+						dest="liferay-portal-dependencies.zip"
+						src="${test.build.portal.dependencies.zip.url}"
+					/>
+
+					<unzip
+						dest="${app.server.weblogic.lib.global.dir}"
+						src="liferay-portal-dependencies.zip"
+					>
+						<mapper
+							from="[^/]+/(.*)"
+							to="\1"
+							type="regexp"
+						/>
+					</unzip>
+
+					<delete file="liferay-portal-dependencies.zip" />
+				</then>
+			</elseif>
 			<else>
 				<mkdir dir="${app.server.parent.dir}" />
 
@@ -2150,6 +2605,8 @@ tck.url=true</echo>
 						type="regexp"
 					/>
 				</unzip>
+
+				<delete file="${tstamp.value}.zip" />
 
 				<chmod perm="a+x">
 					<fileset dir="${test.app.server.bin.dir}">
@@ -2234,67 +2691,25 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 	</target>
 
 	<target name="print-scm-revision">
-		<if>
-			<equals arg1="${scm.tool}" arg2="git" />
-			<then>
-				<echo>Portal GIT ID:</echo>
-				<echo />
+		<echo>Portal GIT ID:</echo>
+		<echo />
 
-				<exec dir="${project.dir}" executable="git">
-					<arg line="log -n 1" />
-				</exec>
+		<exec dir="${project.dir}" executable="git">
+			<arg line="log -n 1" />
+		</exec>
 
-				<echo />
-				<echo>Plugins GIT ID:</echo>
-				<echo />
+		<echo />
+		<echo>Plugins GIT ID:</echo>
+		<echo />
 
-				<exec dir="${lp.plugins.dir}" executable="git">
-					<arg line="log -n 1" />
-				</exec>
+		<exec dir="${lp.plugins.dir}" executable="git">
+			<arg line="log -n 1" />
+		</exec>
 
-				<echo />
-			</then>
-			<else>
-				<echo>Portal SVN Revision:</echo>
-				<echo />
-
-				<exec dir="${project.dir}" executable="svn">
-					<arg line="info" />
-				</exec>
-
-				<echo />
-				<echo>Plugins SVN Revision:</echo>
-				<echo />
-
-				<exec dir="${lp.plugins.dir}" executable="svn">
-					<arg line="info" />
-				</exec>
-			</else>
-		</if>
+		<echo />
 	</target>
 
 	<target name="rebuild-database" depends="generate-test-properties,build-sql-file">
-		<if>
-			<equals arg1="${database.type}" arg2="sybase" />
-			<then>
-				<parallel>
-					<daemons>
-						<exec executable="${plink.executable}">
-							<arg line="-pw ${vm.password} ${vm.username}@${database.host} cmd.exe /c C:/Sybase/ASE-15_0/install/RUN_LIFERAYEAD7385.bat" />
-						</exec>
-					</daemons>
-
-					<sequential>
-						<waitfor>
-							<socket server="${database.host}" port="5000" />
-						</waitfor>
-
-						<sleep seconds="5" />
-					</sequential>
-				</parallel>
-			</then>
-		</if>
-
 		<if>
 			<not>
 				<isset property="skip.rebuild-database" />
@@ -2311,13 +2726,22 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 				</if>
 
 				<if>
-					<equals arg1="${database.type}" arg2="hsql" />
+					<equals arg1="${database.type}" arg2="db2" />
 					<then>
-						<delete dir="${liferay.home}/data" includeemptydirs="true" />
-
-						<copy file="sql/${database.name}.properties" tofile="${liferay.home}/data/hsql/${database.name}.properties" />
-						<copy file="sql/${database.name}.script" tofile="${liferay.home}/data/hsql/${database.name}.script" />
+						<exec executable="${db2.executable}">
+							<arg value="-fcreate.sql" />
+							<arg value="-t" />
+						</exec>
 					</then>
+					<elseif>
+						<equals arg1="${database.type}" arg2="hsql" />
+						<then>
+							<delete dir="${liferay.home}/data" includeemptydirs="true" />
+
+							<copy file="sql/${database.name}.properties" tofile="${liferay.home}/data/hsql/${database.name}.properties" />
+							<copy file="sql/${database.name}.script" tofile="${liferay.home}/data/hsql/${database.name}.script" />
+						</then>
+					</elseif>
 					<elseif>
 						<equals arg1="${database.type}" arg2="mysql" />
 						<then>
@@ -2361,6 +2785,32 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 								<arg value="@create.sql" />
 								<arg value="${database.username}" />
 								<arg value="${database.password}" />
+							</exec>
+						</then>
+					</elseif>
+					<elseif>
+						<equals arg1="${database.type}" arg2="postgresql" />
+						<then>
+							<exec executable="${postgresql.executable}">
+								<arg value="-f" />
+								<arg value="create.sql" />
+								<arg value="-U" />
+								<arg value="${database.username}" />
+							</exec>
+						</then>
+					</elseif>
+					<elseif>
+						<equals arg1="${database.type}" arg2="sybase" />
+						<then>
+							<exec executable="${sybase.executable}">
+								<arg value="-i" />
+								<arg value="create.sql" />
+								<arg value="-P" />
+								<arg value="${database.password}" />
+								<arg value="-S" />
+								<arg value="${database.schema}" />
+								<arg value="-U" />
+								<arg value="${database.username}" />
 							</exec>
 						</then>
 					</elseif>
@@ -2412,6 +2862,40 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 		</if>
 	</target>
 
+	<target name="record-git-commit-bottom-test-jsp">
+		<exec dir="${project.dir}" executable="git" outputproperty="git.commit.portal.rev.parse">
+			<arg line="rev-parse HEAD" />
+		</exec>
+
+		<exec dir="${project.dir}" executable="git" outputproperty="git.commit.portal.current.date">
+			<arg line="log -1 --pretty=format:%cd HEAD" />
+		</exec>
+
+		<loadfile property="copyright.content" srcFile="${project.dir}/portal-impl/src/com/liferay/portal/tools/servicebuilder/dependencies/copyright.txt" />
+
+		<echo file="${app.server.dir}/webapps/ROOT/html/common/themes/bottom-test.jsp"><![CDATA[<%--
+${copyright.content}
+--%>
+
+<%@ page import="com.liferay.portal.kernel.util.ParamUtil" %>
+
+<%
+String ppstate = ParamUtil.getString(request, "p_p_state", "normal");
+
+if (ppstate.equals("normal")) {
+%>
+
+	<div class="alert alert-info" id="currentHead" style="margin: 2em">
+		Commit <a href="https://github.com/liferay/liferay-portal/commit/${git.commit.portal.rev.parse}" target="_blank">${git.commit.portal.rev.parse} - ${git.commit.portal.current.date}</a>
+	</div>
+
+<%
+}
+%>]]></echo>
+
+		<echo>Updated ${app.server.dir}/webapps/ROOT/html/common/themes/bottom-test.jsp.</echo>
+	</target>
+
 	<target name="record-test-package-names">
 		<script classpathref="project.classpath" language="beanshell">
 			import com.liferay.portal.kernel.util.OSDetector;
@@ -2460,49 +2944,19 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 	</target>
 
 	<target name="revert-test-properties">
-		<liferay-format
-			arguments="portal-impl/test/portal-test.properties"
-			message="${scm.revert.command}"
-			property="scm.revert.command.formatted"
-		/>
-
-		<exec executable="/bin/sh" os="${os.unix}">
-			<arg line="${scm.revert.command.formatted}" />
-		</exec>
-
-		<exec executable="cmd.exe" os="${os.windows}">
-			<arg line="${scm.revert.command.formatted}" />
-		</exec>
+		<execute>
+			<![CDATA[git checkout -- portal-impl/test/portal-test.properties]]>
+		</execute>
 
 		<delete file="portal-impl/test/portal-test-ext.properties" failonerror="false" />
 
-		<liferay-format
-			arguments="portal-impl/test/test-portal-impl.properties"
-			message="${scm.revert.command}"
-			property="scm.revert.command.formatted"
-		/>
+		<execute>
+			<![CDATA[git checkout -- portal-impl/test/test-portal-impl.properties]]>
+		</execute>
 
-		<exec executable="/bin/sh" os="${os.unix}">
-			<arg line="${scm.revert.command.formatted}" />
-		</exec>
-
-		<exec executable="cmd.exe" os="${os.windows}">
-			<arg line="${scm.revert.command.formatted}" />
-		</exec>
-
-		<liferay-format
-			arguments="portal-web/test/test-portal-web.properties"
-			message="${scm.revert.command}"
-			property="scm.revert.command.formatted"
-		/>
-
-		<exec executable="/bin/sh" os="${os.unix}">
-			<arg line="${scm.revert.command.formatted}" />
-		</exec>
-
-		<exec executable="cmd.exe" os="${os.windows}">
-			<arg line="${scm.revert.command.formatted}" />
-		</exec>
+		<execute>
+			<![CDATA[git checkout -- portal-web/test/test-portal-web.properties]]>
+		</execute>
 	</target>
 
 	<target name="run-selenium-smoke-test">
@@ -2565,13 +3019,17 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 		<if>
 			<isset property="env.JENKINS_HOME" />
 			<then>
+				<antelope:stringutil property="job.name" string="${env.JOB_NAME}">
+					<antelope:replace regex="," replacement="_" />
+				</antelope:stringutil>
+
 				<if>
 					<and>
 						<available file="portal-web/test-results/functional/screenshots" />
 						<equals arg1="${test.save.screenshot}" arg2="true" />
 					</and>
 					<then>
-						<copy todir="screenshots">
+						<copy todir="${job.name}/builds/${env.BUILD_NUMBER}/screenshots">
 							<fileset
 								dir="portal-web/test-results/functional/screenshots"
 							/>
@@ -2587,7 +3045,7 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 					<then>
 						<copy
 							file="portal-web/test-results/functional/report.html"
-							tofile="report.html"
+							tofile="${job.name}/builds/${env.BUILD_NUMBER}/report.html"
 						/>
 					</then>
 				</if>
@@ -2614,7 +3072,7 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 
 						<copy
 							file="${jenkins.results.xml.file}"
-							tofile="test-results/TEST-${env.BUILD_FLOW_JOB_NAME}_${env.BUILD_FLOW_BUILD_NUMBER}_${test.class}.xml"
+							tofile="${env.BUILD_FLOW_JOB_NAME}/builds/${env.BUILD_FLOW_BUILD_NUMBER}/test-results/TEST-${env.BUILD_FLOW_JOB_NAME}_${env.BUILD_FLOW_BUILD_NUMBER}_${test.class}.xml"
 						/>
 					</then>
 				</if>
@@ -2633,7 +3091,9 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 		<if>
 			<equals arg1="${cluster.enabled}" arg2="true" />
 			<then>
-				<prepare-test-cluster-bundle />
+				<prepare-additional-bundles />
+
+				<prepare-test-cluster-properties />
 			</then>
 		</if>
 
@@ -2665,9 +3125,9 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 		<if>
 			<equals arg1="${app.server.type}" arg2="glassfish" />
 			<then>
-				<antcall target="start-app-server" />
+				<start-app-server />
 
-				<antcall target="stop-app-server" />
+				<stop-app-server />
 			</then>
 		</if>
 
@@ -2765,64 +3225,85 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 
 		<antcall target="copy-sikuli-temp-files" />
 
-		<antcall target="start-app-server" />
+		<if>
+			<equals arg1="${tcat.enabled}" arg2="true" />
+			<then>
+				<start-app-server
+					app.server.bin.dir="${app.server.tcat.admin.bin.dir}"
+				/>
 
-		<for param="log.file">
-			<path>
-				<fileset dir="${liferay.home}/logs">
-					<include name="*.log" />
-				</fileset>
-			</path>
-			<sequential>
-				<var name="log.file" value="@{log.file}" />
-			</sequential>
-		</for>
+				<start-app-server
+					app.server.bin.dir="${app.server.tcat.agent.bin.dir}"
+				/>
+			</then>
+			<else>
+				<start-app-server />
 
-		<script classpathref="project.classpath" language="beanshell">
-			<![CDATA[
-				import com.liferay.portal.kernel.util.StringUtil;
+				<if>
+					<equals arg1="${cluster.enabled}" arg2="true" />
+					<then>
+						<start-additional-app-servers />
+					</then>
+				</if>
 
-				import org.apache.commons.io.FileUtils;
+				<for param="log.file">
+					<path>
+						<fileset dir="${liferay.home}/logs">
+							<include name="*.log" />
+						</fileset>
+					</path>
+					<sequential>
+						<var name="log.file" value="@{log.file}" />
+					</sequential>
+				</for>
 
-				Set requiredPluginNamesSet = new HashSet();
+				<script classpathref="project.classpath" language="beanshell">
+					<![CDATA[
+						import com.liferay.portal.kernel.util.StringUtil;
 
-				requiredPluginNamesSet.add("marketplace-portlet");
+						import org.apache.commons.io.FileUtils;
 
-				String[] pluginTypes = {"hook", "layouttpl", "portlet", "theme", "web"};
+						Set requiredPluginNamesSet = new HashSet();
 
-				for (String pluginType : pluginTypes) {
-					String[] pluginNames = StringUtil.split(project.getProperty(pluginType + ".plugins.includes"), ',');
+						requiredPluginNamesSet.add("marketplace-portlet");
 
-					for (String pluginName : pluginNames) {
-						requiredPluginNamesSet.add(pluginName);
-					}
-				}
+						String[] pluginTypes = {"hook", "layouttpl", "portlet", "theme", "web"};
 
-				System.out.println("Ensuring the following plugins have been deployed:");
-				System.out.println(StringUtil.merge(requiredPluginNamesSet));
+						for (String pluginType : pluginTypes) {
+							String[] pluginNames = StringUtil.split(project.getProperty(pluginType + ".plugins.includes"), ',');
 
-				int i = 0;
-
-				for (String pluginName : requiredPluginNamesSet) {
-					String content = "";
-
-					while (i < 120 && !content.contains(pluginName + " is available for use")) {
-						try {
-							Thread.sleep(1000);
-
-							File file = new File(StringUtil.replace(project.getProperty("log.file"), "\\", "/"));
-
-							content = FileUtils.readFileToString(file);
-
-							i++;
+							for (String pluginName : pluginNames) {
+								requiredPluginNamesSet.add(pluginName);
+							}
 						}
-						catch (Exception e) {
-							e.printStackTrace();
+
+						System.out.println("Ensuring the following plugins have been deployed:");
+						System.out.println(StringUtil.merge(requiredPluginNamesSet));
+
+						int i = 0;
+
+						for (String pluginName : requiredPluginNamesSet) {
+							String content = "";
+
+							while (i < 120 && !content.contains(pluginName + " is available for use")) {
+								try {
+									Thread.sleep(1000);
+
+									File file = new File(StringUtil.replace(project.getProperty("log.file"), "\\", "/"));
+
+									content = FileUtils.readFileToString(file);
+
+									i++;
+								}
+								catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
 						}
-					}
-				}
-			]]>
-		</script>
+					]]>
+				</script>
+			</else>
+		</if>
 
 		<if>
 			<contains string="${hook.plugins.includes}" substring="so-hook" />
@@ -2840,7 +3321,28 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 
 		<antcall target="run-selenium-test" />
 
-		<antcall target="stop-app-server" />
+		<if>
+			<equals arg1="${tcat.enabled}" arg2="true" />
+			<then>
+				<stop-app-server
+					app.server.bin.dir="${app.server.tcat.admin.bin.dir}"
+				/>
+
+				<stop-app-server
+					app.server.bin.dir="${app.server.tcat.agent.bin.dir}"
+				/>
+			</then>
+			<else>
+				<stop-app-server />
+			</else>
+		</if>
+
+		<if>
+			<equals arg1="${cluster.enabled}" arg2="true" />
+			<then>
+				<stop-additional-app-servers />
+			</then>
+		</if>
 
 		<antcall target="clean-up-sikuli-temp-files" />
 
@@ -2862,25 +3364,7 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 	</target>
 
 	<target name="start-app-server">
-		<if>
-			<equals arg1="${app.server.type}" arg2="jboss" />
-			<then>
-				<echo file="${app.server.deploy.dir}/ROOT.war.dodeploy"></echo>
-			</then>
-		</if>
-
-		<forget>
-			<exec dir="${app.server.bin.dir}" executable="${app.server.start.executable}" resolveexecutable="true">
-				<arg line="${app.server.start.executable.arg.line}" />
-			</exec>
-		</forget>
-
-		<waitfor maxwait="5" maxwaitunit="minute">
-			<and>
-				<available file="${liferay.home}/logs" />
-				<http url="http://localhost:8080/web/guest" />
-			</and>
-		</waitfor>
+		<start-app-server />
 	</target>
 
 	<target name="start-chrome-driver">
@@ -2966,9 +3450,7 @@ Please set "ie.driver.zip" in test.properties to point to "IEDriverServer_x64_2.
 	</target>
 
 	<target name="stop-app-server">
-		<exec dir="${app.server.bin.dir}" executable="${app.server.stop.executable}" resolveexecutable="true">
-			<arg line="${app.server.stop.executable.arg.line}" />
-		</exec>
+		<stop-app-server />
 	</target>
 
 	<target name="stop-chrome-driver">

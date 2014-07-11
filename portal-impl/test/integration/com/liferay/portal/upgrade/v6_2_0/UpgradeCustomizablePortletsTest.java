@@ -14,9 +14,7 @@
 
 package com.liferay.portal.upgrade.v6_2_0;
 
-import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.model.Group;
@@ -25,14 +23,14 @@ import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.model.PortletPreferences;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.PortletPreferencesLocalServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalCallbackAwareExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.LayoutTestUtil;
+import com.liferay.portal.test.ResetDatabaseExecutionTestListener;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.LayoutTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.PortalPreferencesImpl;
 import com.liferay.portlet.PortalPreferencesWrapper;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
@@ -45,7 +43,6 @@ import java.util.List;
 import jodd.util.ArraysUtil;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -55,19 +52,13 @@ import org.junit.runner.RunWith;
 @ExecutionTestListeners(
 	listeners = {
 		MainServletExecutionTestListener.class,
-		TransactionalCallbackAwareExecutionTestListener.class
+		ResetDatabaseExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class UpgradeCustomizablePortletsTest
 	extends UpgradeCustomizablePortlets {
 
-	@Before
-	public void setUp() throws Exception {
-		FinderCacheUtil.clearCache();
-	}
-
 	@Test
-	@Transactional
 	public void testBasicPreferencesExtraction() throws Exception {
 		Layout layout = getLayout();
 
@@ -110,12 +101,16 @@ public class UpgradeCustomizablePortletsTest
 	public void testUpgrade() throws Exception {
 		_invokeSuper = true;
 
-		Layout layout = getLayout();
+		Layout layout1 = getLayout();
 
-		addPortletPreferences(layout, "23");
-		addPortletPreferences(layout, "71_INSTANCE_LhZwzy867qfr");
-		addPortletPreferences(layout, "56_INSTANCE_LhZwzy867qqb");
-		addPortletPreferences(layout, "56_INSTANCE_LhZwzy867qxc");
+		addPortletPreferences(layout1, _PORTLET_IDS[0]);
+		addPortletPreferences(layout1, _PORTLET_IDS[1]);
+		addPortletPreferences(layout1, _PORTLET_IDS[2]);
+		addPortletPreferences(layout1, _PORTLET_IDS[3]);
+
+		Layout layout2 = getLayout();
+
+		addPortletPreferences(layout2, _PORTLET_IDS[3]);
 
 		long ownerId = 1234;
 		int ownerType = PortletKeys.PREFS_OWNER_TYPE_USER;
@@ -128,7 +123,8 @@ public class UpgradeCustomizablePortletsTest
 				"@portlet_4@"
 			},
 			ArraysUtil.join(
-				new String[] {String.valueOf(layout.getPlid())}, _PORTLET_IDS));
+				new String[] {String.valueOf(layout1.getPlid())},
+				_PORTLET_IDS));
 
 		PortalPreferencesWrapper portalPreferencesWrapper =
 			getPortalPreferences(ownerId, ownerType, preferences);
@@ -153,47 +149,48 @@ public class UpgradeCustomizablePortletsTest
 
 		List<PortletPreferences> portletPreferencesList =
 			PortletPreferencesLocalServiceUtil.getPortletPreferences(
-				layout.getPlid(), _newPortletIds.get(0));
+				layout1.getPlid(), _newPortletIds.get(0));
 
 		Assert.assertEquals(portletPreferencesList.size(), 1);
 
 		portletPreferencesList =
 			PortletPreferencesLocalServiceUtil.getPortletPreferences(
-				layout.getPlid(), _newPortletIds.get(1));
+				layout1.getPlid(), _newPortletIds.get(1));
 
 		Assert.assertEquals(portletPreferencesList.size(), 1);
 
 		portletPreferencesList =
 			PortletPreferencesLocalServiceUtil.getPortletPreferences(
-				layout.getPlid(), _PORTLET_IDS[1]);
+				layout1.getPlid(), _PORTLET_IDS[1]);
 
 		Assert.assertEquals(portletPreferencesList.size(), 0);
 
 		portletPreferencesList =
 			PortletPreferencesLocalServiceUtil.getPortletPreferences(
-				layout.getPlid(), _newPortletIds.get(2));
+				layout1.getPlid(), _newPortletIds.get(2));
 
 		Assert.assertEquals(portletPreferencesList.size(), 1);
 
 		portletPreferencesList =
 			PortletPreferencesLocalServiceUtil.getPortletPreferences(
-				layout.getPlid(), _PORTLET_IDS[2]);
+				layout1.getPlid(), _PORTLET_IDS[2]);
 
 		Assert.assertEquals(portletPreferencesList.size(), 0);
 
 		portletPreferencesList =
 			PortletPreferencesLocalServiceUtil.getPortletPreferences(
-				layout.getPlid(), _newPortletIds.get(3));
+				layout1.getPlid(), _newPortletIds.get(3));
 
 		Assert.assertEquals(portletPreferencesList.size(), 1);
 
 		portletPreferencesList =
 			PortletPreferencesLocalServiceUtil.getPortletPreferences(
-				layout.getPlid(), _PORTLET_IDS[3]);
+				layout1.getPlid(), _PORTLET_IDS[3]);
 
 		Assert.assertEquals(portletPreferencesList.size(), 0);
 
-		GroupLocalServiceUtil.deleteGroup(layout.getGroup());
+		GroupLocalServiceUtil.deleteGroup(layout1.getGroup());
+		GroupLocalServiceUtil.deleteGroup(layout2.getGroup());
 	}
 
 	protected void addPortletPreferences(Layout layout, String portletId)
@@ -209,7 +206,7 @@ public class UpgradeCustomizablePortletsTest
 		Group group = GroupTestUtil.addGroup();
 
 		return LayoutTestUtil.addLayout(
-			group.getGroupId(), ServiceTestUtil.randomString(), false);
+			group.getGroupId(), RandomTestUtil.randomString(), false);
 	}
 
 	protected PortalPreferencesWrapper getPortalPreferences(

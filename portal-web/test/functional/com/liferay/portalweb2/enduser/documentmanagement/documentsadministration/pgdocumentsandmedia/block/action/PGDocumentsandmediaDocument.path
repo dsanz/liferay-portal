@@ -49,6 +49,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CONFIRMATION</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -121,6 +126,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DOCUMENT_INFO_RELATED_ASSETS_HEADER</td>
+	<td>//h2[contains(@class,'asset-links-title')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DOCUMENT_INFO_RELATED_ASSETS_TITLE</td>
+	<td>//li[@class='asset-links-list-item']//a/span</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DOCUMENT_INFO_LINKS</td>
 	<td>//div[@class='document-info']//div[@class='links']</td>
 	<td></td>
@@ -146,18 +161,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DOCUMENT_INFO_WORKFLOW_STATUS</td>
+	<td>//span[@class='workflow-status']/strong</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DOCUMENT_INFO_LAST_UPDATED_BY</td>
-	<td>//div[@class='lfr-asset-icon lfr-asset-author' and contains(.,'Last Updated by Test Test')]</td>
+	<td>//div[contains(@class,'lfr-asset-icon') and contains(.,'Last Updated by Test Test')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DOCUMENT_INFO_DATE</td>
-	<td>//div[@class='lfr-asset-icon lfr-asset-date']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DOCUMENT_INFO_WORKFLOW_STATUS</td>
-	<td>//span[@class='workflow-status workflow-status-icon']</td>
+	<td>//div[contains(@class,'lfr-asset-icon') and contains(@class,'icon-calendar')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -184,6 +199,16 @@
 <tr>
 	<td>AVERAGE_RATING</td>
 	<td>xPath=(//div[@class='rating-label'])[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>AVERAGE_RATING_STAR_ICON_PNG</td>
+	<td>portal/icons/average_rating_star_icon.png</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SOCIAL_OFFICE_AVERAGE_RATING_STAR_ICON_PNG</td>
+	<td>so/icons/average_rating_star_icon.png</td>
 	<td></td>
 </tr>
 <tr>
@@ -339,6 +364,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>COMMENTS_AUTHOR</td>
+	<td>//div[contains(@class,'lfr-discussion') and contains(.,'${key_commentBody}')]//span[@class='user-name']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>COMMENTS_BODY</td>
 	<td>//div[contains(@class,'lfr-discussion') and contains(.,'${key_commentBody}')]//div[@class='lfr-discussion-message']</td>
 	<td></td>
@@ -376,6 +406,11 @@
 <tr>
 	<td>COMMENTS_REPLY_BUTTON</td>
 	<td>//div[@class='taglib-discussion']/form/fieldset/div/div[2]/div[2]/button[contains(.,'Reply')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>COMMENTS_SUBMIT_BUTTON</td>
+	<td>//div[@class='taglib-discussion']/form/fieldset/div/div[2]/div[2]/button[contains(.,'Submit')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -458,17 +493,22 @@
 </tr>
 <tr>
 	<td>DOCUMENT_DETAILS_UPLOADER</td>
-	<td>//div[@class='asset-details-content']//div[@class='lfr-asset-icon lfr-asset-author']</td>
+	<td>//div[@class='asset-details-content']/div[contains(@class,'icon-user') and contains(@class,'lfr-asset-icon')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DOCUMENT_DETAILS_DATE</td>
-	<td>//div[@class='asset-details-content']//div[@class='lfr-asset-icon lfr-asset-date']</td>
+	<td>//div[@class='asset-details-content']//div[contains(@class,'lfr-asset-icon') and contains(@class,'icon-calendar')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DOCUMENT_DETAILS_WORKFLOW</td>
 	<td>//div[@class='asset-details-content']//span[contains(@class,'workflow-status')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DOCUMENT_DETAILS_WORKFLOW_PNG</td>
+	<td>portal/icons/document_detail_workflow.png</td>
 	<td></td>
 </tr>
 <tr>

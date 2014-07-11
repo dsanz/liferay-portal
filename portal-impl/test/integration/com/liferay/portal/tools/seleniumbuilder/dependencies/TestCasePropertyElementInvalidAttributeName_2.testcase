@@ -1,0 +1,3 @@
+<definition component-name="portal-collaboration">
+	<property name="custom.properties" test-case="123" value="error value" />
+</definition>

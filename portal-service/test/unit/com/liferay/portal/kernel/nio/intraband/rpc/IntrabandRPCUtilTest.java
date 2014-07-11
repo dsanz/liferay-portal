@@ -16,25 +16,20 @@ package com.liferay.portal.kernel.nio.intraband.rpc;
 
 import com.liferay.portal.kernel.io.Deserializer;
 import com.liferay.portal.kernel.io.Serializer;
-import com.liferay.portal.kernel.nio.intraband.CompletionHandler;
 import com.liferay.portal.kernel.nio.intraband.Datagram;
-import com.liferay.portal.kernel.nio.intraband.DatagramHelper;
-import com.liferay.portal.kernel.nio.intraband.MockIntraband;
-import com.liferay.portal.kernel.nio.intraband.MockRegistrationReference;
-import com.liferay.portal.kernel.nio.intraband.RegistrationReference;
 import com.liferay.portal.kernel.nio.intraband.SystemDataType;
 import com.liferay.portal.kernel.nio.intraband.rpc.IntrabandRPCUtil.FutureCompletionHandler;
 import com.liferay.portal.kernel.nio.intraband.rpc.IntrabandRPCUtil.FutureResult;
+import com.liferay.portal.kernel.nio.intraband.test.MockIntraband;
+import com.liferay.portal.kernel.nio.intraband.test.MockRegistrationReference;
 import com.liferay.portal.kernel.process.ProcessCallable;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
-import com.liferay.portal.kernel.util.ReflectionUtil;
 
 import java.io.IOException;
 import java.io.Serializable;
-
-import java.lang.reflect.Method;
 
 import java.nio.ByteBuffer;
 
@@ -77,55 +72,22 @@ public class IntrabandRPCUtilTest {
 	public void testExecuteFail() throws Exception {
 		PortalClassLoaderUtil.setClassLoader(getClass().getClassLoader());
 
+		final Exception exception = new Exception("Execution error");
+
 		MockIntraband mockIntraband = new MockIntraband() {
 
 			@Override
-			protected void doSendDatagram(
-				RegistrationReference registrationReference,
-				Datagram datagram) {
-
-				throw new RuntimeException();
-			}
-
-		};
-
-		try {
-			IntrabandRPCUtil.execute(
-				new MockRegistrationReference(mockIntraband),
-				new TestProcessCallable());
-
-			Assert.fail();
-		}
-		catch (IntrabandRPCException ibrpce) {
-			Throwable throwable = ibrpce.getCause();
-
-			Assert.assertSame(RuntimeException.class, throwable.getClass());
-		}
-
-		final Exception exception = new Exception("Execution error");
-
-		mockIntraband = new MockIntraband() {
-
-			@Override
-			protected void doSendDatagram(
-				RegistrationReference registrationReference,
-				Datagram datagram) {
-
+			protected Datagram processDatagram(Datagram datagram) {
 				try {
 					Serializer serializer = new Serializer();
 
 					serializer.writeObject(new RPCResponse(exception));
 
-					CompletionHandler<Object> completionHandler =
-						DatagramHelper.getCompletionHandler(datagram);
-
-					completionHandler.replied(
-						null,
-						Datagram.createResponseDatagram(
-							datagram, serializer.toByteBuffer()));
+					return Datagram.createResponseDatagram(
+						datagram, serializer.toByteBuffer());
 				}
 				catch (Exception e) {
-					Assert.fail(e.getMessage());
+					throw new RuntimeException();
 				}
 			}
 
@@ -156,10 +118,7 @@ public class IntrabandRPCUtilTest {
 		MockIntraband mockIntraband = new MockIntraband() {
 
 			@Override
-			protected void doSendDatagram(
-				RegistrationReference registrationReference,
-				Datagram datagram) {
-
+			protected Datagram processDatagram(Datagram datagram) {
 				Deserializer deserializer = new Deserializer(
 					datagram.getDataByteBuffer());
 
@@ -172,16 +131,11 @@ public class IntrabandRPCUtilTest {
 					serializer.writeObject(
 						new RPCResponse(processCallable.call()));
 
-					CompletionHandler<Object> completionHandler =
-						DatagramHelper.getCompletionHandler(datagram);
-
-					completionHandler.replied(
-						null,
-						Datagram.createResponseDatagram(
-							datagram, serializer.toByteBuffer()));
+					return Datagram.createResponseDatagram(
+						datagram, serializer.toByteBuffer());
 				}
 				catch (Exception e) {
-					Assert.fail(e.getMessage());
+					throw new RuntimeException(e);
 				}
 			}
 
@@ -277,14 +231,12 @@ public class IntrabandRPCUtilTest {
 
 		// Bridge set
 
-		Method bridgeSetMethod = ReflectionUtil.getDeclaredBridgeMethod(
-			FutureResult.class, "set", Serializable.class);
-
 		FutureResult<String> futureResult = new FutureResult<String>();
 
 		String s = new String();
 
-		bridgeSetMethod.invoke(futureResult, s);
+		ReflectionTestUtil.invokeBridge(
+			futureResult, "set", new Class<?>[] {Serializable.class}, s);
 
 		Assert.assertSame(s, futureResult.get());
 

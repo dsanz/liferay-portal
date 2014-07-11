@@ -33,6 +33,18 @@ public class AnnouncementsFlagServiceWrapper implements AnnouncementsFlagService
 		_announcementsFlagService = announcementsFlagService;
 	}
 
+	@Override
+	public void addFlag(long entryId, int value)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_announcementsFlagService.addFlag(entryId, value);
+	}
+
+	@Override
+	public void deleteFlag(long flagId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_announcementsFlagService.deleteFlag(flagId);
+	}
+
 	/**
 	* Returns the Spring bean ID for this bean.
 	*
@@ -43,6 +55,13 @@ public class AnnouncementsFlagServiceWrapper implements AnnouncementsFlagService
 		return _announcementsFlagService.getBeanIdentifier();
 	}
 
+	@Override
+	public com.liferay.portlet.announcements.model.AnnouncementsFlag getFlag(
+		long entryId, int value)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _announcementsFlagService.getFlag(entryId, value);
+	}
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -51,28 +70,6 @@ public class AnnouncementsFlagServiceWrapper implements AnnouncementsFlagService
 	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_announcementsFlagService.setBeanIdentifier(beanIdentifier);
-	}
-
-	@Override
-	public void addFlag(long entryId, int value)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_announcementsFlagService.addFlag(entryId, value);
-	}
-
-	@Override
-	public void deleteFlag(long flagId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_announcementsFlagService.deleteFlag(flagId);
-	}
-
-	@Override
-	public com.liferay.portlet.announcements.model.AnnouncementsFlag getFlag(
-		long entryId, int value)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _announcementsFlagService.getFlag(entryId, value);
 	}
 
 	/**

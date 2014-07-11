@@ -48,11 +48,39 @@ public interface PhoneService extends BaseService {
 	 */
 
 	/**
+	* @deprecated As of 6.2.0, replaced by {@link #addPhone(String, long,
+	String, String, int, boolean, ServiceContext)}
+	*/
+	@java.lang.Deprecated
+	public com.liferay.portal.model.Phone addPhone(java.lang.String className,
+		long classPK, java.lang.String number, java.lang.String extension,
+		int typeId, boolean primary)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public com.liferay.portal.model.Phone addPhone(java.lang.String className,
+		long classPK, java.lang.String number, java.lang.String extension,
+		int typeId, boolean primary,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	public void deletePhone(long phoneId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
 	*/
 	public java.lang.String getBeanIdentifier();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.model.Phone getPhone(long phoneId)
+		throws com.liferay.portal.kernel.exception.PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.Phone> getPhones(
+		java.lang.String className, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	/**
 	* Sets the Spring bean ID for this bean.
@@ -61,42 +89,8 @@ public interface PhoneService extends BaseService {
 	*/
 	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
-	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addPhone(String, long,
-	String, String, int, boolean, ServiceContext)}
-	*/
-	@Deprecated
-	public com.liferay.portal.model.Phone addPhone(java.lang.String className,
-		long classPK, java.lang.String number, java.lang.String extension,
-		int typeId, boolean primary)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public com.liferay.portal.model.Phone addPhone(java.lang.String className,
-		long classPK, java.lang.String number, java.lang.String extension,
-		int typeId, boolean primary,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	public void deletePhone(long phoneId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public com.liferay.portal.model.Phone getPhone(long phoneId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.util.List<com.liferay.portal.model.Phone> getPhones(
-		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
 	public com.liferay.portal.model.Phone updatePhone(long phoneId,
 		java.lang.String number, java.lang.String extension, int typeId,
 		boolean primary)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 }

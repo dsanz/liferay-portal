@@ -35,15 +35,17 @@ public class JSONWebServiceActionsManagerUtil {
 	}
 
 	public static JSONWebServiceAction getJSONWebServiceAction(
-		HttpServletRequest request) {
+			HttpServletRequest request)
+		throws NoSuchJSONWebServiceException {
 
 		return getJSONWebServiceActionsManager().getJSONWebServiceAction(
 			request);
 	}
 
 	public static JSONWebServiceAction getJSONWebServiceAction(
-		HttpServletRequest request, String path, String method,
-		Map<String, Object> parameterMap) {
+			HttpServletRequest request, String path, String method,
+			Map<String, Object> parameterMap)
+		throws NoSuchJSONWebServiceException {
 
 		return getJSONWebServiceActionsManager().getJSONWebServiceAction(
 			request, path, method, parameterMap);
@@ -75,6 +77,10 @@ public class JSONWebServiceActionsManagerUtil {
 		getJSONWebServiceActionsManager() {
 
 		return _jsonWebServiceActionsManager;
+	}
+
+	public static JSONWebServiceNaming getJSONWebServiceNaming() {
+		return getJSONWebServiceActionsManager().getJSONWebServiceNaming();
 	}
 
 	public static void registerJSONWebServiceAction(

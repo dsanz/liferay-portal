@@ -16,8 +16,7 @@
 
 <%@ include file="/html/portlet/init.jsp" %>
 
-<%@ page import="com.liferay.portal.NoSuchWorkflowDefinitionLinkException" %><%@
-page import="com.liferay.portlet.dynamicdatalists.NoSuchRecordSetException" %><%@
+<%@ page import="com.liferay.portlet.dynamicdatalists.NoSuchRecordSetException" %><%@
 page import="com.liferay.portlet.dynamicdatalists.RecordSetDDMStructureIdException" %><%@
 page import="com.liferay.portlet.dynamicdatalists.RecordSetNameException" %><%@
 page import="com.liferay.portlet.dynamicdatalists.model.DDLRecord" %><%@
@@ -36,7 +35,6 @@ page import="com.liferay.portlet.dynamicdatalists.util.DDLUtil" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.StorageFieldRequiredException" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.service.DDMStorageLinkLocalServiceUtil" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.storage.FieldConstants" %><%@
-page import="com.liferay.portlet.dynamicdatamapping.storage.Fields" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.storage.StorageEngineUtil" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.util.DDMXSDUtil" %>
 

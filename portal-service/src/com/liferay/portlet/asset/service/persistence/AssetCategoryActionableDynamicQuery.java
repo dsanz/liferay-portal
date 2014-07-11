@@ -15,7 +15,6 @@
 package com.liferay.portlet.asset.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 import com.liferay.portlet.asset.model.AssetCategory;
@@ -23,13 +22,13 @@ import com.liferay.portlet.asset.service.AssetCategoryLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link AssetCategoryLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link AssetCategoryLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class AssetCategoryActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public AssetCategoryActionableDynamicQuery() throws SystemException {
+	public AssetCategoryActionableDynamicQuery() {
 		setBaseLocalService(AssetCategoryLocalServiceUtil.getService());
 		setClass(AssetCategory.class);
 

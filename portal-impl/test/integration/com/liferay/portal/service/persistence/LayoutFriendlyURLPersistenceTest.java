@@ -35,12 +35,12 @@ import com.liferay.portal.model.LayoutFriendlyURL;
 import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.impl.LayoutFriendlyURLModelImpl;
 import com.liferay.portal.service.LayoutFriendlyURLLocalServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -51,6 +51,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,7 +101,7 @@ public class LayoutFriendlyURLPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		LayoutFriendlyURL layoutFriendlyURL = _persistence.create(pk);
 
@@ -127,33 +128,33 @@ public class LayoutFriendlyURLPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		LayoutFriendlyURL newLayoutFriendlyURL = _persistence.create(pk);
 
-		newLayoutFriendlyURL.setMvccVersion(ServiceTestUtil.nextLong());
+		newLayoutFriendlyURL.setMvccVersion(RandomTestUtil.nextLong());
 
-		newLayoutFriendlyURL.setUuid(ServiceTestUtil.randomString());
+		newLayoutFriendlyURL.setUuid(RandomTestUtil.randomString());
 
-		newLayoutFriendlyURL.setGroupId(ServiceTestUtil.nextLong());
+		newLayoutFriendlyURL.setGroupId(RandomTestUtil.nextLong());
 
-		newLayoutFriendlyURL.setCompanyId(ServiceTestUtil.nextLong());
+		newLayoutFriendlyURL.setCompanyId(RandomTestUtil.nextLong());
 
-		newLayoutFriendlyURL.setUserId(ServiceTestUtil.nextLong());
+		newLayoutFriendlyURL.setUserId(RandomTestUtil.nextLong());
 
-		newLayoutFriendlyURL.setUserName(ServiceTestUtil.randomString());
+		newLayoutFriendlyURL.setUserName(RandomTestUtil.randomString());
 
-		newLayoutFriendlyURL.setCreateDate(ServiceTestUtil.nextDate());
+		newLayoutFriendlyURL.setCreateDate(RandomTestUtil.nextDate());
 
-		newLayoutFriendlyURL.setModifiedDate(ServiceTestUtil.nextDate());
+		newLayoutFriendlyURL.setModifiedDate(RandomTestUtil.nextDate());
 
-		newLayoutFriendlyURL.setPlid(ServiceTestUtil.nextLong());
+		newLayoutFriendlyURL.setPlid(RandomTestUtil.nextLong());
 
-		newLayoutFriendlyURL.setPrivateLayout(ServiceTestUtil.randomBoolean());
+		newLayoutFriendlyURL.setPrivateLayout(RandomTestUtil.randomBoolean());
 
-		newLayoutFriendlyURL.setFriendlyURL(ServiceTestUtil.randomString());
+		newLayoutFriendlyURL.setFriendlyURL(RandomTestUtil.randomString());
 
-		newLayoutFriendlyURL.setLanguageId(ServiceTestUtil.randomString());
+		newLayoutFriendlyURL.setLanguageId(RandomTestUtil.randomString());
 
 		_persistence.update(newLayoutFriendlyURL);
 
@@ -207,7 +208,7 @@ public class LayoutFriendlyURLPersistenceTest {
 	public void testCountByUUID_G() {
 		try {
 			_persistence.countByUUID_G(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByUUID_G(StringPool.NULL, 0L);
 
@@ -222,7 +223,7 @@ public class LayoutFriendlyURLPersistenceTest {
 	public void testCountByUuid_C() {
 		try {
 			_persistence.countByUuid_C(StringPool.BLANK,
-				ServiceTestUtil.nextLong());
+				RandomTestUtil.nextLong());
 
 			_persistence.countByUuid_C(StringPool.NULL, 0L);
 
@@ -236,7 +237,7 @@ public class LayoutFriendlyURLPersistenceTest {
 	@Test
 	public void testCountByGroupId() {
 		try {
-			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+			_persistence.countByGroupId(RandomTestUtil.nextLong());
 
 			_persistence.countByGroupId(0L);
 		}
@@ -248,7 +249,7 @@ public class LayoutFriendlyURLPersistenceTest {
 	@Test
 	public void testCountByCompanyId() {
 		try {
-			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+			_persistence.countByCompanyId(RandomTestUtil.nextLong());
 
 			_persistence.countByCompanyId(0L);
 		}
@@ -260,7 +261,7 @@ public class LayoutFriendlyURLPersistenceTest {
 	@Test
 	public void testCountByPlid() {
 		try {
-			_persistence.countByPlid(ServiceTestUtil.nextLong());
+			_persistence.countByPlid(RandomTestUtil.nextLong());
 
 			_persistence.countByPlid(0L);
 		}
@@ -272,7 +273,7 @@ public class LayoutFriendlyURLPersistenceTest {
 	@Test
 	public void testCountByP_F() {
 		try {
-			_persistence.countByP_F(ServiceTestUtil.nextLong(), StringPool.BLANK);
+			_persistence.countByP_F(RandomTestUtil.nextLong(), StringPool.BLANK);
 
 			_persistence.countByP_F(0L, StringPool.NULL);
 
@@ -286,7 +287,7 @@ public class LayoutFriendlyURLPersistenceTest {
 	@Test
 	public void testCountByP_L() {
 		try {
-			_persistence.countByP_L(ServiceTestUtil.nextLong(), StringPool.BLANK);
+			_persistence.countByP_L(RandomTestUtil.nextLong(), StringPool.BLANK);
 
 			_persistence.countByP_L(0L, StringPool.NULL);
 
@@ -300,13 +301,13 @@ public class LayoutFriendlyURLPersistenceTest {
 	@Test
 	public void testCountByG_P_F() {
 		try {
-			_persistence.countByG_P_F(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.randomBoolean(), StringPool.BLANK);
+			_persistence.countByG_P_F(RandomTestUtil.nextLong(),
+				RandomTestUtil.randomBoolean(), StringPool.BLANK);
 
-			_persistence.countByG_P_F(0L, ServiceTestUtil.randomBoolean(),
+			_persistence.countByG_P_F(0L, RandomTestUtil.randomBoolean(),
 				StringPool.NULL);
 
-			_persistence.countByG_P_F(0L, ServiceTestUtil.randomBoolean(),
+			_persistence.countByG_P_F(0L, RandomTestUtil.randomBoolean(),
 				(String)null);
 		}
 		catch (Exception e) {
@@ -317,14 +318,14 @@ public class LayoutFriendlyURLPersistenceTest {
 	@Test
 	public void testCountByG_P_F_L() {
 		try {
-			_persistence.countByG_P_F_L(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.randomBoolean(), StringPool.BLANK,
+			_persistence.countByG_P_F_L(RandomTestUtil.nextLong(),
+				RandomTestUtil.randomBoolean(), StringPool.BLANK,
 				StringPool.BLANK);
 
-			_persistence.countByG_P_F_L(0L, ServiceTestUtil.randomBoolean(),
+			_persistence.countByG_P_F_L(0L, RandomTestUtil.randomBoolean(),
 				StringPool.NULL, StringPool.NULL);
 
-			_persistence.countByG_P_F_L(0L, ServiceTestUtil.randomBoolean(),
+			_persistence.countByG_P_F_L(0L, RandomTestUtil.randomBoolean(),
 				(String)null, (String)null);
 		}
 		catch (Exception e) {
@@ -343,7 +344,7 @@ public class LayoutFriendlyURLPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -366,7 +367,7 @@ public class LayoutFriendlyURLPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<LayoutFriendlyURL> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("LayoutFriendlyURL",
 			"mvccVersion", true, "uuid", true, "layoutFriendlyURLId", true,
 			"groupId", true, "companyId", true, "userId", true, "userName",
@@ -385,11 +386,93 @@ public class LayoutFriendlyURLPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		LayoutFriendlyURL missingLayoutFriendlyURL = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingLayoutFriendlyURL);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		LayoutFriendlyURL newLayoutFriendlyURL1 = addLayoutFriendlyURL();
+		LayoutFriendlyURL newLayoutFriendlyURL2 = addLayoutFriendlyURL();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newLayoutFriendlyURL1.getPrimaryKey());
+		primaryKeys.add(newLayoutFriendlyURL2.getPrimaryKey());
+
+		Map<Serializable, LayoutFriendlyURL> layoutFriendlyURLs = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, layoutFriendlyURLs.size());
+		Assert.assertEquals(newLayoutFriendlyURL1,
+			layoutFriendlyURLs.get(newLayoutFriendlyURL1.getPrimaryKey()));
+		Assert.assertEquals(newLayoutFriendlyURL2,
+			layoutFriendlyURLs.get(newLayoutFriendlyURL2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, LayoutFriendlyURL> layoutFriendlyURLs = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(layoutFriendlyURLs.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		LayoutFriendlyURL newLayoutFriendlyURL = addLayoutFriendlyURL();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newLayoutFriendlyURL.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, LayoutFriendlyURL> layoutFriendlyURLs = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, layoutFriendlyURLs.size());
+		Assert.assertEquals(newLayoutFriendlyURL,
+			layoutFriendlyURLs.get(newLayoutFriendlyURL.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, LayoutFriendlyURL> layoutFriendlyURLs = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(layoutFriendlyURLs.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		LayoutFriendlyURL newLayoutFriendlyURL = addLayoutFriendlyURL();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newLayoutFriendlyURL.getPrimaryKey());
+
+		Map<Serializable, LayoutFriendlyURL> layoutFriendlyURLs = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, layoutFriendlyURLs.size());
+		Assert.assertEquals(newLayoutFriendlyURL,
+			layoutFriendlyURLs.get(newLayoutFriendlyURL.getPrimaryKey()));
 	}
 
 	@Test
@@ -440,7 +523,7 @@ public class LayoutFriendlyURLPersistenceTest {
 				LayoutFriendlyURL.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("layoutFriendlyURLId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<LayoutFriendlyURL> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -481,7 +564,7 @@ public class LayoutFriendlyURLPersistenceTest {
 				"layoutFriendlyURLId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("layoutFriendlyURLId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -526,33 +609,33 @@ public class LayoutFriendlyURLPersistenceTest {
 
 	protected LayoutFriendlyURL addLayoutFriendlyURL()
 		throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		LayoutFriendlyURL layoutFriendlyURL = _persistence.create(pk);
 
-		layoutFriendlyURL.setMvccVersion(ServiceTestUtil.nextLong());
+		layoutFriendlyURL.setMvccVersion(RandomTestUtil.nextLong());
 
-		layoutFriendlyURL.setUuid(ServiceTestUtil.randomString());
+		layoutFriendlyURL.setUuid(RandomTestUtil.randomString());
 
-		layoutFriendlyURL.setGroupId(ServiceTestUtil.nextLong());
+		layoutFriendlyURL.setGroupId(RandomTestUtil.nextLong());
 
-		layoutFriendlyURL.setCompanyId(ServiceTestUtil.nextLong());
+		layoutFriendlyURL.setCompanyId(RandomTestUtil.nextLong());
 
-		layoutFriendlyURL.setUserId(ServiceTestUtil.nextLong());
+		layoutFriendlyURL.setUserId(RandomTestUtil.nextLong());
 
-		layoutFriendlyURL.setUserName(ServiceTestUtil.randomString());
+		layoutFriendlyURL.setUserName(RandomTestUtil.randomString());
 
-		layoutFriendlyURL.setCreateDate(ServiceTestUtil.nextDate());
+		layoutFriendlyURL.setCreateDate(RandomTestUtil.nextDate());
 
-		layoutFriendlyURL.setModifiedDate(ServiceTestUtil.nextDate());
+		layoutFriendlyURL.setModifiedDate(RandomTestUtil.nextDate());
 
-		layoutFriendlyURL.setPlid(ServiceTestUtil.nextLong());
+		layoutFriendlyURL.setPlid(RandomTestUtil.nextLong());
 
-		layoutFriendlyURL.setPrivateLayout(ServiceTestUtil.randomBoolean());
+		layoutFriendlyURL.setPrivateLayout(RandomTestUtil.randomBoolean());
 
-		layoutFriendlyURL.setFriendlyURL(ServiceTestUtil.randomString());
+		layoutFriendlyURL.setFriendlyURL(RandomTestUtil.randomString());
 
-		layoutFriendlyURL.setLanguageId(ServiceTestUtil.randomString());
+		layoutFriendlyURL.setLanguageId(RandomTestUtil.randomString());
 
 		_persistence.update(layoutFriendlyURL);
 

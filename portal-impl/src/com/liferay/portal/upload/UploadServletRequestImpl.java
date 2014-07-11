@@ -14,7 +14,6 @@
 
 package com.liferay.portal.upload;
 
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.io.ByteArrayFileInputStream;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -24,6 +23,7 @@ import com.liferay.portal.kernel.upload.UploadServletRequest;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PrefsPropsUtil;
@@ -59,7 +59,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 public class UploadServletRequestImpl
 	extends HttpServletRequestWrapper implements UploadServletRequest {
 
-	public static File getTempDir() throws SystemException {
+	public static File getTempDir() {
 		if (_tempDir == null) {
 			_tempDir = new File(
 				PrefsPropsUtil.getString(
@@ -108,7 +108,29 @@ public class UploadServletRequestImpl
 
 					List<String> values = _regularParameters.get(fieldName);
 
-					values.add(liferayFileItem.getString());
+					if (liferayFileItem.getSize() >
+							LiferayFileItem.THRESHOLD_SIZE) {
+
+						StringBundler sb = new StringBundler(5);
+
+						sb.append("The field ");
+						sb.append(fieldName);
+						sb.append(" exceeds its maximum permitted size of ");
+						sb.append(LiferayFileItem.THRESHOLD_SIZE);
+						sb.append(" bytes");
+
+						UploadException uploadException = new UploadException(
+							sb.toString());
+
+						uploadException.setExceededLiferayFileItemSizeLimit(
+							true);
+						uploadException.setExceededSizeLimit(true);
+
+						request.setAttribute(
+							WebKeys.UPLOAD_EXCEPTION, uploadException);
+					}
+
+					values.add(liferayFileItem.getEncodedString());
 
 					continue;
 				}

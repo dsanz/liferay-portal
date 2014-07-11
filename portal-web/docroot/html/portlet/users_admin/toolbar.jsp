@@ -24,7 +24,7 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "browse");
 String usersListView = ParamUtil.get(request, "usersListView", UserConstants.LIST_VIEW_TREE);
 %>
 
-<aui:nav searchContainer="<%= searchContainer %>">
+<aui:nav cssClass="navbar-nav" searchContainer="<%= searchContainer %>">
 
 	<%
 	boolean hasAddOrganizationPermission = PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_ORGANIZATION);
@@ -61,7 +61,7 @@ String usersListView = ParamUtil.get(request, "usersListView", UserConstants.LIS
 						<portlet:param name="type" value="<%= organizationType %>" />
 					</portlet:renderURL>
 
-					<aui:nav-item href="<%= addOrganizationURL %>" iconCssClass="icon-globe" label="<%= LanguageUtil.get(pageContext, organizationType) %>" />
+					<aui:nav-item href="<%= addOrganizationURL %>" iconCssClass="icon-globe" label="<%= LanguageUtil.get(request, organizationType) %>" />
 
 				<%
 				}
@@ -83,8 +83,8 @@ String usersListView = ParamUtil.get(request, "usersListView", UserConstants.LIS
 
 <aui:script>
 	function <portlet:namespace />exportUsers() {
-		document.<portlet:namespace />fm.method = "post";
+		document.<portlet:namespace />fm.method = 'post';
 
-		submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/users_admin/export_users" /></portlet:actionURL>&compress=0&etag=0&strip=0", false);
+		submitForm(document.<portlet:namespace />fm, '<portlet:actionURL><portlet:param name="struts_action" value="/users_admin/export_users" /></portlet:actionURL>&compress=0&etag=0&strip=0', false);
 	}
 </aui:script>

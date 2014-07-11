@@ -71,14 +71,14 @@ String randomNamespace = ParamUtil.getString(request, "randomNamespace");
 			<liferay-ui:error exception="<%= UploadException.class %>" message="an-unexpected-error-occurred-while-uploading-your-file" />
 
 			<aui:fieldset cssClass="lfr-portrait-editor">
-				<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) || windowState.equals(LiferayWindowState.POP_UP) %>" label='<%= LanguageUtil.format(pageContext, "upload-images-no-larger-than-x", TextFormatter.formatStorageSize(maxFileSize, locale), false) %>' name="fileName" size="50" type="file">
+				<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) || windowState.equals(LiferayWindowState.POP_UP) %>" label='<%= LanguageUtil.format(request, "upload-images-no-larger-than-x", TextFormatter.formatStorageSize(maxFileSize, locale), false) %>' name="fileName" size="50" type="file">
 					<aui:validator name="acceptFiles">
 						'<%= StringUtil.merge(PrefsPropsUtil.getStringArray(PropsKeys.DL_FILE_EXTENSIONS, StringPool.COMMA)) %>'
 					</aui:validator>
 				</aui:input>
 
 				<div class="lfr-change-logo lfr-portrait-preview" id="<portlet:namespace />portraitPreview">
-					<img alt="<liferay-ui:message key="image-preview" />" class="lfr-portrait-preview-img" id="<portlet:namespace />portraitPreviewImg" src="<%= HtmlUtil.escape(currentImageURL) %>" />
+					<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="image-preview" />" class="lfr-portrait-preview-img" id="<portlet:namespace />portraitPreviewImg" src="<%= HtmlUtil.escape(currentImageURL) %>" />
 				</div>
 
 				<aui:button-row>

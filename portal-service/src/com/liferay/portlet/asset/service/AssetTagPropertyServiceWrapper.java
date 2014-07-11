@@ -34,6 +34,37 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	}
 
 	/**
+	* Adds an asset tag property.
+	*
+	* @param tagId the primary key of the tag
+	* @param key the key to be associated to the value
+	* @param value the value to which the key will refer
+	* @return the created asset tag property
+	* @throws PortalException if the user did not have permission to update the
+	asset tag, or if the key or value were invalid
+	*/
+	@Override
+	public com.liferay.portlet.asset.model.AssetTagProperty addTagProperty(
+		long tagId, java.lang.String key, java.lang.String value)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _assetTagPropertyService.addTagProperty(tagId, key, value);
+	}
+
+	/**
+	* Deletes the asset tag property with the specified ID.
+	*
+	* @param tagPropertyId the primary key of the asset tag property instance
+	* @throws PortalException if an asset tag property with the primary key
+	could not be found or if the user did not have permission to
+	update the asset tag property
+	*/
+	@Override
+	public void deleteTagProperty(long tagPropertyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_assetTagPropertyService.deleteTagProperty(tagPropertyId);
+	}
+
+	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
@@ -41,6 +72,31 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _assetTagPropertyService.getBeanIdentifier();
+	}
+
+	/**
+	* Returns all the asset tag property instances with the specified tag ID.
+	*
+	* @param tagId the primary key of the tag
+	* @return the matching asset tag properties
+	*/
+	@Override
+	public java.util.List<com.liferay.portlet.asset.model.AssetTagProperty> getTagProperties(
+		long tagId) {
+		return _assetTagPropertyService.getTagProperties(tagId);
+	}
+
+	/**
+	* Returns asset tag properties with the specified group and key.
+	*
+	* @param companyId the primary key of the company
+	* @param key the key that refers to some value
+	* @return the matching asset tag properties
+	*/
+	@Override
+	public java.util.List<com.liferay.portlet.asset.model.AssetTagProperty> getTagPropertyValues(
+		long companyId, java.lang.String key) {
+		return _assetTagPropertyService.getTagPropertyValues(companyId, key);
 	}
 
 	/**
@@ -54,69 +110,6 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	}
 
 	/**
-	* Adds an asset tag property.
-	*
-	* @param tagId the primary key of the tag
-	* @param key the key to be associated to the value
-	* @param value the value to which the key will refer
-	* @return the created asset tag property
-	* @throws PortalException if the user did not have permission to update the
-	asset tag, or if the key or value were invalid
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public com.liferay.portlet.asset.model.AssetTagProperty addTagProperty(
-		long tagId, java.lang.String key, java.lang.String value)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _assetTagPropertyService.addTagProperty(tagId, key, value);
-	}
-
-	/**
-	* Deletes the asset tag property with the specified ID.
-	*
-	* @param tagPropertyId the primary key of the asset tag property instance
-	* @throws PortalException if an asset tag property with the primary key
-	could not be found or if the user did not have permission to
-	update the asset tag property
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public void deleteTagProperty(long tagPropertyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_assetTagPropertyService.deleteTagProperty(tagPropertyId);
-	}
-
-	/**
-	* Returns all the asset tag property instances with the specified tag ID.
-	*
-	* @param tagId the primary key of the tag
-	* @return the matching asset tag properties
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public java.util.List<com.liferay.portlet.asset.model.AssetTagProperty> getTagProperties(
-		long tagId) throws com.liferay.portal.kernel.exception.SystemException {
-		return _assetTagPropertyService.getTagProperties(tagId);
-	}
-
-	/**
-	* Returns asset tag properties with the specified group and key.
-	*
-	* @param companyId the primary key of the company
-	* @param key the key that refers to some value
-	* @return the matching asset tag properties
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public java.util.List<com.liferay.portlet.asset.model.AssetTagProperty> getTagPropertyValues(
-		long companyId, java.lang.String key)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _assetTagPropertyService.getTagPropertyValues(companyId, key);
-	}
-
-	/**
 	* Updates the asset tag property.
 	*
 	* @param tagPropertyId the primary key of the asset tag property
@@ -126,13 +119,11 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	* @throws PortalException if an asset tag property with the primary key
 	could not be found, if the user did not have permission to update
 	the asset tag, or if the key or value were invalid
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.asset.model.AssetTagProperty updateTagProperty(
 		long tagPropertyId, java.lang.String key, java.lang.String value)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _assetTagPropertyService.updateTagProperty(tagPropertyId, key,
 			value);
 	}

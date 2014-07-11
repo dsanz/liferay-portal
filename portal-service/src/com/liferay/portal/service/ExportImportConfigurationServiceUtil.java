@@ -40,6 +40,11 @@ public class ExportImportConfigurationServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portal.service.impl.ExportImportConfigurationServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static void deleteExportImportConfiguration(
+		long exportImportConfigurationId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteExportImportConfiguration(exportImportConfigurationId);
+	}
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -50,6 +55,20 @@ public class ExportImportConfigurationServiceUtil {
 		return getService().getBeanIdentifier();
 	}
 
+	public static com.liferay.portal.model.ExportImportConfiguration moveExportImportConfigurationToTrash(
+		long exportImportConfigurationId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .moveExportImportConfigurationToTrash(exportImportConfigurationId);
+	}
+
+	public static com.liferay.portal.model.ExportImportConfiguration restoreExportImportConfigurationFromTrash(
+		long exportImportConfigurationId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .restoreExportImportConfigurationFromTrash(exportImportConfigurationId);
+	}
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -57,29 +76,6 @@ public class ExportImportConfigurationServiceUtil {
 	*/
 	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
 		getService().setBeanIdentifier(beanIdentifier);
-	}
-
-	public static void deleteExportImportConfiguration(
-		long exportImportConfigurationId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteExportImportConfiguration(exportImportConfigurationId);
-	}
-
-	public static com.liferay.portal.model.ExportImportConfiguration moveExportImportConfigurationToTrash(
-		long exportImportConfigurationId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .moveExportImportConfigurationToTrash(exportImportConfigurationId);
-	}
-
-	public static com.liferay.portal.model.ExportImportConfiguration restoreExportImportConfigurationFromTrash(
-		long exportImportConfigurationId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .restoreExportImportConfigurationFromTrash(exportImportConfigurationId);
 	}
 
 	public static ExportImportConfigurationService getService() {

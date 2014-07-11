@@ -10,8 +10,6 @@ AUI.add(
 
 		var LiferayModal = A.Component.create(
 			{
-				NAME: A.Modal.NAME,
-
 				ATTRS: {
 					autoHeight: {
 						value: false
@@ -36,6 +34,8 @@ AUI.add(
 
 				EXTENDS: A.Modal,
 
+				NAME: A.Modal.NAME,
+
 				prototype: {
 				}
 			}
@@ -46,15 +46,15 @@ AUI.add(
 			{
 				DEFAULTS: {
 					centered: true,
-					modal: true,
 					headerContent: '&nbsp;',
+					modal: true,
 					visible: true,
 					zIndex: Liferay.zIndex.WINDOW
 				},
 
 				IFRAME_SUFFIX: '_iframe_',
 
-				TITLE_TEMPLATE: '<h3 />',
+				TITLE_TEMPLATE: '<h3 class="modal-title" />',
 
 				_winResizeHandler: null,
 
@@ -164,7 +164,13 @@ AUI.add(
 										modalUtil.Window._name = id;
 									}
 
-									modal.iframe.node.focus();
+									var iframeNode = modal.iframe.node;
+
+									iframeNode.focus();
+
+									if (A.UA.ios) {
+										iframeNode.attr('scrolling', 'no');
+									}
 								}
 							}
 						)
@@ -181,99 +187,6 @@ AUI.add(
 					if (!config.iframeId) {
 						config.iframeId = config.id + instance.IFRAME_SUFFIX;
 					}
-				},
-
-				_getWindow: function(config) {
-					var instance = this;
-
-					var id = config.id;
-
-					var modalConfig = instance._getWindowConfig(config);
-
-					var dialogIframeConfig = instance._getDialogIframeConfig(config);
-
-					var modal = instance.getById(id);
-
-					if (!modal) {
-						var titleNode = A.Node.create(instance.TITLE_TEMPLATE);
-
-						if (config.stack !== false) {
-							A.mix(
-								modalConfig,
-								{
-									plugins: [Liferay.WidgetZIndex]
-								}
-							);
-						}
-
-						modal = new LiferayModal(
-							A.merge(
-								{
-									headerContent: titleNode,
-									id: id
-								},
-								modalConfig
-							)
-						);
-
-						modal.titleNode = titleNode;
-
-						instance._register(modal);
-
-						instance._bindWindowHooks(modal, config);
-					}
-					else {
-						if (!config.zIndex && modal.hasPlugin('zindex')) {
-							delete modalConfig.zIndex;
-						}
-
-						var openingWindow = config.openingWindow;
-
-						modal._opener = openingWindow;
-						modal._refreshWindow = config.refreshWindow;
-
-						instance._map[id]._opener = openingWindow;
-
-						modal.setAttrs(modalConfig);
-					}
-
-					if (dialogIframeConfig) {
-						modal.plug(A.Plugin.DialogIframe, dialogIframeConfig);
-					}
-
-					if (!Lang.isValue(config.title)) {
-						config.title = instance.DEFAULTS.headerContent;
-					}
-
-					modal.titleNode.html(config.title);
-
-					modal.fillHeight(modal.bodyNode);
-
-					return modal;
-				},
-
-				_getWindowConfig: function(config) {
-					var instance = this;
-
-					var modalConfig = A.merge(instance.DEFAULTS, config.dialog);
-
-					var height = modalConfig.height;
-
-					var width = modalConfig.width;
-
-					if (height === 'auto' || height === '' || height === undefined || height > DOM.winHeight()) {
-						modalConfig.autoHeight = true;
-					}
-
-					if (width === 'auto' || width === '' || width === undefined || width > DOM.winWidth()) {
-						modalConfig.autoWidth = true;
-					}
-
-					modalConfig.id = config.id;
-
-					delete modalConfig.headerContent;
-
-					return modalConfig;
 				},
 
 				_getDialogIframeConfig: function(config) {
@@ -339,6 +252,101 @@ AUI.add(
 					}
 
 					return dialogIframeConfig;
+				},
+
+				_getWindow: function(config) {
+					var instance = this;
+
+					var id = config.id;
+
+					var modalConfig = instance._getWindowConfig(config);
+
+					var dialogIframeConfig = instance._getDialogIframeConfig(config);
+
+					var modal = instance.getById(id);
+
+					if (!modal) {
+						var titleNode = A.Node.create(instance.TITLE_TEMPLATE);
+
+						if (config.stack !== false) {
+							A.mix(
+								modalConfig,
+								{
+									plugins: [Liferay.WidgetZIndex]
+								}
+							);
+						}
+
+						modal = new LiferayModal(
+							A.merge(
+								{
+									headerContent: titleNode,
+									id: id
+								},
+								modalConfig
+							)
+						);
+
+						modal.titleNode = titleNode;
+
+						instance._register(modal);
+
+						instance._bindWindowHooks(modal, config);
+					}
+					else {
+						if (!config.zIndex && modal.hasPlugin('zindex')) {
+							delete modalConfig.zIndex;
+						}
+
+						var openingWindow = config.openingWindow;
+
+						modal._opener = openingWindow;
+						modal._refreshWindow = config.refreshWindow;
+
+						instance._map[id]._opener = openingWindow;
+
+						modal.setAttrs(modalConfig);
+					}
+
+					if (dialogIframeConfig) {
+						modal.plug(A.Plugin.DialogIframe, dialogIframeConfig);
+
+						modal.get('boundingBox').addClass('dialog-iframe-modal');
+					}
+
+					if (!Lang.isValue(config.title)) {
+						config.title = instance.DEFAULTS.headerContent;
+					}
+
+					modal.titleNode.html(config.title);
+
+					modal.fillHeight(modal.bodyNode);
+
+					return modal;
+				},
+
+				_getWindowConfig: function(config) {
+					var instance = this;
+
+					var modalConfig = A.merge(instance.DEFAULTS, config.dialog);
+
+					var height = modalConfig.height;
+
+					var width = modalConfig.width;
+
+					if (height === 'auto' || height === '' || height === undefined || height > DOM.winHeight()) {
+						modalConfig.autoHeight = true;
+					}
+
+					if (width === 'auto' || width === '' || width === undefined || width > DOM.winWidth()) {
+						modalConfig.autoWidth = true;
+					}
+
+					modalConfig.id = config.id;
+
+					delete modalConfig.headerContent;
+
+					return modalConfig;
 				},
 
 				_register: function(modal) {

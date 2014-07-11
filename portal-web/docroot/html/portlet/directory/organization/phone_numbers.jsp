@@ -28,21 +28,21 @@ if (classPK > 0) {
 %>
 
 <c:if test="<%= !phones.isEmpty() %>">
-	<h3><liferay-ui:message key="phones" /></h3>
+	<h3 class="icon-phone-sign"><liferay-ui:message key="phones" /></h3>
 
 	<ul class="property-list">
 
-	<%
-	for (Phone phone: phones) {
-	%>
+		<%
+		for (Phone phone : phones) {
+		%>
 
-		<li class="<%= phone.isPrimary() ? "primary" : "" %>">
-			<%= phone.getNumber() %> <%= phone.getExtension() %> <%= LanguageUtil.get(pageContext, phone.getType().getName()) %>
-		</li>
+			<li class="<%= (phone.isPrimary() && !phones.isEmpty()) ? "icon-star" : StringPool.BLANK %>">
+				<%= phone.getNumber() %> <%= phone.getExtension() %> <%= LanguageUtil.get(request, phone.getType().getName()) %>
+			</li>
 
-	<%
-	}
-	%>
+		<%
+		}
+		%>
 
 	</ul>
 </c:if>

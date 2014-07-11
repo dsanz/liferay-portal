@@ -24,7 +24,7 @@ LayoutSetBranch layoutSetBranch = (LayoutSetBranch)row.getObject();
 long currentLayoutSetBranchId = GetterUtil.getLong((String)request.getAttribute("view_layout_set_branches.jsp-currentLayoutSetBranchId"));
 %>
 
-<liferay-ui:icon-menu>
+<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>">
 	<c:if test="<%= LayoutSetBranchPermissionUtil.contains(permissionChecker, layoutSetBranch, ActionKeys.UPDATE) %>">
 		<portlet:renderURL var="editURL" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>">
 			<portlet:param name="struts_action" value="/staging_bar/edit_layout_set_branch" />
@@ -35,11 +35,12 @@ long currentLayoutSetBranchId = GetterUtil.getLong((String)request.getAttribute(
 		</portlet:renderURL>
 
 		<%
-		String taglibURL = "javascript:Liferay.StagingBar.updateBranch({uri: '" + HtmlUtil.escapeJS(editURL) + "', dialogTitle: '" + HtmlUtil.escapeJS(LanguageUtil.get(pageContext, "update-site-pages-variation")) + "'});";
+		String taglibURL = "javascript:Liferay.StagingBar.updateBranch({uri: '" + HtmlUtil.escapeJS(editURL) + "', dialogTitle: '" + HtmlUtil.escapeJS(LanguageUtil.get(request, "update-site-pages-variation")) + "'});";
 		%>
 
 		<liferay-ui:icon
-			image="edit"
+			iconCssClass="icon-edit"
+			message="edit"
 			url="<%= taglibURL %>"
 		/>
 	</c:if>
@@ -54,10 +55,31 @@ long currentLayoutSetBranchId = GetterUtil.getLong((String)request.getAttribute(
 		/>
 
 		<liferay-ui:icon
-			image="permissions"
+			iconCssClass="icon-lock"
+			message="permissions"
 			method="get"
 			url="<%= permissionsURL %>"
 			useDialog="<%= true %>"
+		/>
+	</c:if>
+
+	<c:if test="<%= LayoutSetBranchPermissionUtil.contains(permissionChecker, layoutSetBranch, ActionKeys.MERGE) %>">
+		<portlet:renderURL var="mergeURL" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>">
+			<portlet:param name="struts_action" value="/staging_bar/merge_layout_set_branch" />
+			<portlet:param name="redirect" value="<%= currentURL %>" />
+			<portlet:param name="groupId" value="<%= String.valueOf(layoutSetBranch.getGroupId()) %>" />
+			<portlet:param name="privateLayout" value="<%= String.valueOf(layoutSetBranch.isPrivateLayout()) %>" />
+			<portlet:param name="layoutSetBranchId" value="<%= String.valueOf(layoutSetBranch.getLayoutSetBranchId()) %>" />
+		</portlet:renderURL>
+
+		<%
+		String taglibURL = "javascript:Liferay.StagingBar.mergeBranch({uri: '" + HtmlUtil.escapeJS(mergeURL) + "', dialogTitle: '" + HtmlUtil.escapeJS(LanguageUtil.get(request, "merge-site-pages-variation")) + "'});";
+		%>
+
+		<liferay-ui:icon
+			iconCssClass="icon-copy"
+			message="merge"
+			url="<%= taglibURL %>"
 		/>
 	</c:if>
 
@@ -73,26 +95,6 @@ long currentLayoutSetBranchId = GetterUtil.getLong((String)request.getAttribute(
 
 		<liferay-ui:icon-delete
 			url="<%= deleteURL %>"
-		/>
-	</c:if>
-
-	<c:if test="<%= LayoutSetBranchPermissionUtil.contains(permissionChecker, layoutSetBranch, ActionKeys.MERGE) %>">
-		<portlet:renderURL var="mergeURL" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>">
-			<portlet:param name="struts_action" value="/staging_bar/merge_layout_set_branch" />
-			<portlet:param name="redirect" value="<%= currentURL %>" />
-			<portlet:param name="groupId" value="<%= String.valueOf(layoutSetBranch.getGroupId()) %>" />
-			<portlet:param name="privateLayout" value="<%= String.valueOf(layoutSetBranch.isPrivateLayout()) %>" />
-			<portlet:param name="layoutSetBranchId" value="<%= String.valueOf(layoutSetBranch.getLayoutSetBranchId()) %>" />
-		</portlet:renderURL>
-
-		<%
-		String taglibURL = "javascript:Liferay.StagingBar.mergeBranch({uri: '" + HtmlUtil.escapeJS(mergeURL) + "', dialogTitle: '" + HtmlUtil.escapeJS(LanguageUtil.get(pageContext, "merge-site-pages-variation")) + "'});";
-		%>
-
-		<liferay-ui:icon
-			image="copy"
-			message="merge"
-			url="<%= taglibURL %>"
 		/>
 	</c:if>
 </liferay-ui:icon-menu>

@@ -20,28 +20,29 @@ import com.liferay.portal.model.Group;
 import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
+import com.liferay.portal.test.TransactionalTestRule;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
-import com.liferay.portlet.blogs.util.BlogsTestUtil;
+import com.liferay.portlet.blogs.util.test.BlogsTestUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 /**
  * @author Zsolt Berentey
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class BlogsEntryStagedModelDataHandlerTest
 	extends BaseWorkflowedStagedModelDataHandlerTestCase {
+
+	@ClassRule
+	public static TransactionalTestRule transactionalTestRule =
+		new TransactionalTestRule();
 
 	@Override
 	protected StagedModel addStagedModel(

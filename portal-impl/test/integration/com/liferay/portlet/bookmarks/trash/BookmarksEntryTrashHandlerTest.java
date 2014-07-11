@@ -22,12 +22,12 @@ import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
 import com.liferay.portlet.bookmarks.model.BookmarksFolderConstants;
@@ -182,7 +182,7 @@ public class BookmarksEntryTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 		return BookmarksFolderLocalServiceUtil.addFolder(
 			TestPropsValues.getUserId(), parentBaseModelId,
-			ServiceTestUtil.randomString(), StringPool.BLANK, serviceContext);
+			RandomTestUtil.randomString(), StringPool.BLANK, serviceContext);
 	}
 
 	@Override

@@ -40,6 +40,11 @@ public class PortletServiceWrapper implements PortletService,
 		return _portletService.getBeanIdentifier();
 	}
 
+	@Override
+	public com.liferay.portal.kernel.json.JSONArray getWARPortlets() {
+		return _portletService.getWARPortlets();
+	}
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -51,15 +56,9 @@ public class PortletServiceWrapper implements PortletService,
 	}
 
 	@Override
-	public com.liferay.portal.kernel.json.JSONArray getWARPortlets() {
-		return _portletService.getWARPortlets();
-	}
-
-	@Override
 	public com.liferay.portal.model.Portlet updatePortlet(long companyId,
 		java.lang.String portletId, java.lang.String roles, boolean active)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _portletService.updatePortlet(companyId, portletId, roles, active);
 	}
 

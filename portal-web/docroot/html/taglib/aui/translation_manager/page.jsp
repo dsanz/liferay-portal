@@ -26,7 +26,7 @@
 			Locale defaultLocale = LocaleUtil.fromLanguageId(defaultLanguageId);
 			%>
 
-			<img alt="<%= defaultLocale.getDisplayName(locale) %>" src='<%= HtmlUtil.escapeAttribute(themeDisplay.getPathThemeImages() + "/language/" + defaultLanguageId + ".png") %>' />
+			<img alt="<%= HtmlUtil.escapeAttribute(defaultLocale.getDisplayName(locale)) %>" src='<%= HtmlUtil.escapeAttribute(themeDisplay.getPathThemeImages() + "/language/" + defaultLanguageId + ".png") %>' />
 
 			<%= defaultLocale.getDisplayName(locale) %>
 		</span>
@@ -50,34 +50,37 @@
 		<a class="lfr-translation-manager-change-default-locale" href="javascript:;"><liferay-ui:message key="change" /></a>
 
 		<c:if test="<%= !readOnly %>">
-			<span class="lfr-translation-manager-add-menu">
-				<liferay-ui:icon-menu
-					cssClass="lfr-translation-manager-icon-menu"
-					direction="down"
-					icon='<%= themeDisplay.getPathThemeImages() + "/common/add.png" %>'
-					message='<%= LanguageUtil.get(pageContext, "add-translation") %>'
-					showArrow="<%= true %>"
-					showWhenSingleIcon="<%= true %>"
-				>
+			<liferay-ui:icon-menu
+				cssClass="lfr-translation-manager-icon-menu"
+				direction="down"
+				icon="../aui/plus"
+				message='<%= LanguageUtil.get(request, "add-translation") %>'
+				showArrow="<%= true %>"
+				showWhenSingleIcon="<%= true %>"
+			>
 
-					<%
-					for (int i = 0; i < locales.length; i++) {
-					%>
+				<%
+				for (int i = 0; i < locales.length; i++) {
+				%>
 
-						<liferay-ui:icon
-							cssClass="lfr-translation-manager-translation-item"
-							image='<%= "../language/" + LocaleUtil.toLanguageId(locales[i]) %>'
-							lang="<%= LocaleUtil.toLanguageId(locales[i]) %>"
-							message="<%= locales[i].getDisplayName(locale) %>"
-							url="javascript:;"
-						/>
+					<liferay-ui:icon
+						cssClass="lfr-translation-manager-translation-item"
+						id="<%= LocaleUtil.toLanguageId(locales[i]) %>"
+						image='<%= "../language/" + LocaleUtil.toLanguageId(locales[i]) %>'
+						lang="<%= LocaleUtil.toLanguageId(locales[i]) %>"
+						message="<%= locales[i].getDisplayName(locale) %>"
+						url="javascript:;"
+					/>
 
-					<%
-					}
-					%>
+				<%
+				}
+				%>
 
-				</liferay-ui:icon-menu>
-			</span>
+			</liferay-ui:icon-menu>
+
+			<div class="alert alert-info hide lfr-translation-manager-translations-message" id="<portlet:namespace />translationsMessage">
+				<liferay-ui:message key="the-changes-in-your-translations-will-be-available-once-the-content-is-published" />
+			</div>
 
 			<c:if test="<%= availableLocales.length > 1 %>">
 				<div class="lfr-translation-manager-available-translations">
@@ -93,7 +96,7 @@
 						%>
 
 							<span class="lfr-translation-manager-translation" locale="<%= availableLocales[i] %>">
-								<img alt="<%= availableLocales[i].getDisplayName(locale) %>" src="<%= themeDisplay.getPathThemeImages() %>/language/<%= LocaleUtil.toLanguageId(availableLocales[i]) %>.png">
+								<img alt="<%= HtmlUtil.escapeAttribute(availableLocales[i].getDisplayName(locale)) %>" src="<%= themeDisplay.getPathThemeImages() %>/language/<%= LocaleUtil.toLanguageId(availableLocales[i]) %>.png">
 
 								<%= availableLocales[i].getDisplayName(locale) %>
 
@@ -133,7 +136,6 @@
 		Liferay.component(
 			'<%= namespace + id %>',
 			function() {
-
 				if (!translationManager) {
 					translationManager = new Liferay.TranslationManager(
 						{

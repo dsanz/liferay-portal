@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -45,7 +44,11 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -111,11 +114,9 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 *
 	 * @param userId the user ID
 	 * @return the matching password trackers
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<PasswordTracker> findByUserId(long userId)
-		throws SystemException {
+	public List<PasswordTracker> findByUserId(long userId) {
 		return findByUserId(userId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -130,11 +131,9 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param start the lower bound of the range of password trackers
 	 * @param end the upper bound of the range of password trackers (not inclusive)
 	 * @return the range of matching password trackers
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<PasswordTracker> findByUserId(long userId, int start, int end)
-		throws SystemException {
+	public List<PasswordTracker> findByUserId(long userId, int start, int end) {
 		return findByUserId(userId, start, end, null);
 	}
 
@@ -150,11 +149,10 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param end the upper bound of the range of password trackers (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching password trackers
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<PasswordTracker> findByUserId(long userId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<PasswordTracker> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -257,12 +255,11 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching password tracker
 	 * @throws com.liferay.portal.NoSuchPasswordTrackerException if a matching password tracker could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PasswordTracker findByUserId_First(long userId,
-		OrderByComparator orderByComparator)
-		throws NoSuchPasswordTrackerException, SystemException {
+		OrderByComparator<PasswordTracker> orderByComparator)
+		throws NoSuchPasswordTrackerException {
 		PasswordTracker passwordTracker = fetchByUserId_First(userId,
 				orderByComparator);
 
@@ -288,11 +285,10 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param userId the user ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching password tracker, or <code>null</code> if a matching password tracker could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PasswordTracker fetchByUserId_First(long userId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<PasswordTracker> orderByComparator) {
 		List<PasswordTracker> list = findByUserId(userId, 0, 1,
 				orderByComparator);
 
@@ -310,12 +306,11 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching password tracker
 	 * @throws com.liferay.portal.NoSuchPasswordTrackerException if a matching password tracker could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PasswordTracker findByUserId_Last(long userId,
-		OrderByComparator orderByComparator)
-		throws NoSuchPasswordTrackerException, SystemException {
+		OrderByComparator<PasswordTracker> orderByComparator)
+		throws NoSuchPasswordTrackerException {
 		PasswordTracker passwordTracker = fetchByUserId_Last(userId,
 				orderByComparator);
 
@@ -341,11 +336,10 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param userId the user ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching password tracker, or <code>null</code> if a matching password tracker could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PasswordTracker fetchByUserId_Last(long userId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<PasswordTracker> orderByComparator) {
 		int count = countByUserId(userId);
 
 		if (count == 0) {
@@ -370,12 +364,11 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next password tracker
 	 * @throws com.liferay.portal.NoSuchPasswordTrackerException if a password tracker with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PasswordTracker[] findByUserId_PrevAndNext(long passwordTrackerId,
-		long userId, OrderByComparator orderByComparator)
-		throws NoSuchPasswordTrackerException, SystemException {
+		long userId, OrderByComparator<PasswordTracker> orderByComparator)
+		throws NoSuchPasswordTrackerException {
 		PasswordTracker passwordTracker = findByPrimaryKey(passwordTrackerId);
 
 		Session session = null;
@@ -405,7 +398,7 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 
 	protected PasswordTracker getByUserId_PrevAndNext(Session session,
 		PasswordTracker passwordTracker, long userId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<PasswordTracker> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -512,10 +505,9 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * Removes all the password trackers where userId = &#63; from the database.
 	 *
 	 * @param userId the user ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByUserId(long userId) throws SystemException {
+	public void removeByUserId(long userId) {
 		for (PasswordTracker passwordTracker : findByUserId(userId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(passwordTracker);
@@ -527,10 +519,9 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 *
 	 * @param userId the user ID
 	 * @return the number of matching password trackers
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByUserId(long userId) throws SystemException {
+	public int countByUserId(long userId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_USERID;
 
 		Object[] finderArgs = new Object[] { userId };
@@ -684,11 +675,10 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param passwordTrackerId the primary key of the password tracker
 	 * @return the password tracker that was removed
 	 * @throws com.liferay.portal.NoSuchPasswordTrackerException if a password tracker with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PasswordTracker remove(long passwordTrackerId)
-		throws NoSuchPasswordTrackerException, SystemException {
+		throws NoSuchPasswordTrackerException {
 		return remove((Serializable)passwordTrackerId);
 	}
 
@@ -698,11 +688,10 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param primaryKey the primary key of the password tracker
 	 * @return the password tracker that was removed
 	 * @throws com.liferay.portal.NoSuchPasswordTrackerException if a password tracker with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PasswordTracker remove(Serializable primaryKey)
-		throws NoSuchPasswordTrackerException, SystemException {
+		throws NoSuchPasswordTrackerException {
 		Session session = null;
 
 		try {
@@ -734,8 +723,7 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	}
 
 	@Override
-	protected PasswordTracker removeImpl(PasswordTracker passwordTracker)
-		throws SystemException {
+	protected PasswordTracker removeImpl(PasswordTracker passwordTracker) {
 		passwordTracker = toUnwrappedModel(passwordTracker);
 
 		Session session = null;
@@ -768,8 +756,7 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 
 	@Override
 	public PasswordTracker updateImpl(
-		com.liferay.portal.model.PasswordTracker passwordTracker)
-		throws SystemException {
+		com.liferay.portal.model.PasswordTracker passwordTracker) {
 		passwordTracker = toUnwrappedModel(passwordTracker);
 
 		boolean isNew = passwordTracker.isNew();
@@ -856,11 +843,10 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param primaryKey the primary key of the password tracker
 	 * @return the password tracker
 	 * @throws com.liferay.portal.NoSuchPasswordTrackerException if a password tracker with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PasswordTracker findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchPasswordTrackerException, SystemException {
+		throws NoSuchPasswordTrackerException {
 		PasswordTracker passwordTracker = fetchByPrimaryKey(primaryKey);
 
 		if (passwordTracker == null) {
@@ -881,11 +867,10 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param passwordTrackerId the primary key of the password tracker
 	 * @return the password tracker
 	 * @throws com.liferay.portal.NoSuchPasswordTrackerException if a password tracker with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public PasswordTracker findByPrimaryKey(long passwordTrackerId)
-		throws NoSuchPasswordTrackerException, SystemException {
+		throws NoSuchPasswordTrackerException {
 		return findByPrimaryKey((Serializable)passwordTrackerId);
 	}
 
@@ -894,11 +879,9 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 *
 	 * @param primaryKey the primary key of the password tracker
 	 * @return the password tracker, or <code>null</code> if a password tracker with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public PasswordTracker fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public PasswordTracker fetchByPrimaryKey(Serializable primaryKey) {
 		PasswordTracker passwordTracker = (PasswordTracker)EntityCacheUtil.getResult(PasswordTrackerModelImpl.ENTITY_CACHE_ENABLED,
 				PasswordTrackerImpl.class, primaryKey);
 
@@ -943,22 +926,111 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 *
 	 * @param passwordTrackerId the primary key of the password tracker
 	 * @return the password tracker, or <code>null</code> if a password tracker with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public PasswordTracker fetchByPrimaryKey(long passwordTrackerId)
-		throws SystemException {
+	public PasswordTracker fetchByPrimaryKey(long passwordTrackerId) {
 		return fetchByPrimaryKey((Serializable)passwordTrackerId);
+	}
+
+	@Override
+	public Map<Serializable, PasswordTracker> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, PasswordTracker> map = new HashMap<Serializable, PasswordTracker>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			PasswordTracker passwordTracker = fetchByPrimaryKey(primaryKey);
+
+			if (passwordTracker != null) {
+				map.put(primaryKey, passwordTracker);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			PasswordTracker passwordTracker = (PasswordTracker)EntityCacheUtil.getResult(PasswordTrackerModelImpl.ENTITY_CACHE_ENABLED,
+					PasswordTrackerImpl.class, primaryKey);
+
+			if (passwordTracker == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, passwordTracker);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_PASSWORDTRACKER_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (PasswordTracker passwordTracker : (List<PasswordTracker>)q.list()) {
+				map.put(passwordTracker.getPrimaryKeyObj(), passwordTracker);
+
+				cacheResult(passwordTracker);
+
+				uncachedPrimaryKeys.remove(passwordTracker.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(PasswordTrackerModelImpl.ENTITY_CACHE_ENABLED,
+					PasswordTrackerImpl.class, primaryKey, _nullPasswordTracker);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the password trackers.
 	 *
 	 * @return the password trackers
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<PasswordTracker> findAll() throws SystemException {
+	public List<PasswordTracker> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -972,11 +1044,9 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param start the lower bound of the range of password trackers
 	 * @param end the upper bound of the range of password trackers (not inclusive)
 	 * @return the range of password trackers
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<PasswordTracker> findAll(int start, int end)
-		throws SystemException {
+	public List<PasswordTracker> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -991,11 +1061,10 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * @param end the upper bound of the range of password trackers (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of password trackers
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<PasswordTracker> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<PasswordTracker> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1077,10 +1146,9 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	/**
 	 * Removes all the password trackers from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (PasswordTracker passwordTracker : findAll()) {
 			remove(passwordTracker);
 		}
@@ -1090,10 +1158,9 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	 * Returns the number of password trackers.
 	 *
 	 * @return the number of password trackers
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -1162,6 +1229,7 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	}
 
 	private static final String _SQL_SELECT_PASSWORDTRACKER = "SELECT passwordTracker FROM PasswordTracker passwordTracker";
+	private static final String _SQL_SELECT_PASSWORDTRACKER_WHERE_PKS_IN = "SELECT passwordTracker FROM PasswordTracker passwordTracker WHERE passwordTrackerId IN (";
 	private static final String _SQL_SELECT_PASSWORDTRACKER_WHERE = "SELECT passwordTracker FROM PasswordTracker passwordTracker WHERE ";
 	private static final String _SQL_COUNT_PASSWORDTRACKER = "SELECT COUNT(passwordTracker) FROM PasswordTracker passwordTracker";
 	private static final String _SQL_COUNT_PASSWORDTRACKER_WHERE = "SELECT COUNT(passwordTracker) FROM PasswordTracker passwordTracker WHERE ";

@@ -127,6 +127,36 @@ public class MathUtil {
 		return !isEven(x);
 	}
 
+	public static double sum(Double... values) {
+		double sum = 0.0;
+
+		for (double value : values) {
+			sum += value;
+		}
+
+		return sum;
+	}
+
+	public static int sum(Integer... values) {
+		int sum = 0;
+
+		for (int value : values) {
+			sum += value;
+		}
+
+		return sum;
+	}
+
+	public static long sum(Long... values) {
+		long sum = 0;
+
+		for (long value : values) {
+			sum += value;
+		}
+
+		return sum;
+	}
+
 	private static Log _log = LogFactoryUtil.getLog(MathUtil.class);
 
 	private static Map<Long, Integer> _base2LogValues =

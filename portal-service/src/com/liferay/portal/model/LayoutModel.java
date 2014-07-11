@@ -18,7 +18,6 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -43,7 +42,7 @@ import java.util.Map;
  * @generated
  */
 @ProviderType
-public interface LayoutModel extends BaseModel<Layout>, MVCCModel,
+public interface LayoutModel extends BaseModel<Layout>, LocalizedModel, MVCCModel,
 	StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -164,10 +163,9 @@ public interface LayoutModel extends BaseModel<Layout>, MVCCModel,
 	 * Returns the user uuid of this layout.
 	 *
 	 * @return the user uuid of this layout
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public String getUserUuid() throws SystemException;
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this layout.
@@ -1027,12 +1025,16 @@ public interface LayoutModel extends BaseModel<Layout>, MVCCModel,
 	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public String[] getAvailableLanguageIds();
 
+	@Override
 	public String getDefaultLanguageId();
 
+	@Override
 	public void prepareLocalizedFieldsForImport() throws LocaleException;
 
+	@Override
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;
 

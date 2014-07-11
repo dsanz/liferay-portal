@@ -51,10 +51,7 @@ PortletURL portletURL = (PortletURL)request.getAttribute("search.jsp-portletURL"
 
 	<span class="toggle-details">[+]</span>
 
-	<span class="asset-entry-title">
-		<c:if test="<%= assetRenderer != null %>">
-			<img alt="" src="<%= assetRenderer.getIconPath(renderRequest) %>" />
-		</c:if>
+	<span class="asset-entry-title <%= (assetRenderer != null) ? assetRenderer.getIconCssClass() : StringPool.BLANK %>">
 
 		<%
 		String name = document.get(locale, Field.NAME);
@@ -135,9 +132,7 @@ PortletURL portletURL = (PortletURL)request.getAttribute("search.jsp-portletURL"
 
 						<c:if test="<%= i == 0 %>">
 							<div class="taglib-asset-categories-summary">
-								<span class="asset-vocabulary">
-									<%= HtmlUtil.escape(assetVocabulary.getTitle(locale)) %>:
-								</span>
+								<%= HtmlUtil.escape(assetVocabulary.getTitle(locale)) %>:
 						</c:if>
 
 						<a class="asset-category" href="<%= categoryURL.toString() %>">

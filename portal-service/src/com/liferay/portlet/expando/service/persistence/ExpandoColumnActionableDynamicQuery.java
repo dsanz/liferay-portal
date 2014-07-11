@@ -15,7 +15,6 @@
 package com.liferay.portlet.expando.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 import com.liferay.portlet.expando.model.ExpandoColumn;
@@ -23,13 +22,13 @@ import com.liferay.portlet.expando.service.ExpandoColumnLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link ExpandoColumnLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link ExpandoColumnLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class ExpandoColumnActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public ExpandoColumnActionableDynamicQuery() throws SystemException {
+	public ExpandoColumnActionableDynamicQuery() {
 		setBaseLocalService(ExpandoColumnLocalServiceUtil.getService());
 		setClass(ExpandoColumn.class);
 

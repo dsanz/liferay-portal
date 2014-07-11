@@ -43,16 +43,12 @@ if (organizationId > 0) {
 			<aui:option label="scope" />
 		</aui:select>
 
-		<div id="<portlet:namespace />UsersSelectionOptions">
-			<aui:field-wrapper label="organization">
-				<div class="input-append">
-					<liferay-ui:input-resource id="organizationName" url="<%= HtmlUtil.escape(organizationName) %>" />
+		<div class="form-group" id="<portlet:namespace />UsersSelectionOptions">
+			<aui:input label="organization" name="organizationName" type="resource" value="<%= organizationName %>" />
 
-					<aui:button name="selectOrganizationButton" value="select" />
+			<aui:button name="selectOrganizationButton" value="select" />
 
-					<aui:button disabled="<%= organizationId <= 0 %>" name="removeOrganizationButton" onClick='<%= renderResponse.getNamespace() + "removeOrganization();" %>' value="remove" />
-				</div>
-			</aui:field-wrapper>
+			<aui:button disabled="<%= organizationId <= 0 %>" name="removeOrganizationButton" onClick='<%= renderResponse.getNamespace() + "removeOrganization();" %>' value="remove" />
 		</div>
 
 		<aui:select name="preferences--displayStyle--">
@@ -114,9 +110,9 @@ if (organizationId > 0) {
 
 <aui:script>
 	function <portlet:namespace />removeOrganization() {
-		document.<portlet:namespace />fm.<portlet:namespace />organizationId.value = "";
+		document.<portlet:namespace />fm.<portlet:namespace />organizationId.value = '';
 
-		document.getElementById('<portlet:namespace />organizationName').value = "";
+		document.getElementById('<portlet:namespace />organizationName').value = '';
 
 		Liferay.Util.toggleDisabled('#<portlet:namespace />removeOrganizationButton', true);
 	}

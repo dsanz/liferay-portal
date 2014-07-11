@@ -198,14 +198,14 @@ if (selUser != null) {
 	</aui:nav-bar>
 
 	<div id="breadcrumb">
-		<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showCurrentPortlet="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showPortletBreadcrumb="<%= true %>" />
+		<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showPortletBreadcrumb="<%= true %>" />
 	</div>
 
 	<liferay-ui:header
 		backURL="<%= backURL %>"
 		escapeXml="<%= false %>"
 		localizeTitle="<%= (selUser == null) %>"
-		title='<%= (selUser == null) ? "add-user" : LanguageUtil.format(pageContext, "edit-user-x", HtmlUtil.escape(selUser.getFullName()), false) %>'
+		title='<%= (selUser == null) ? "add-user" : LanguageUtil.format(request, "edit-user-x", HtmlUtil.escape(selUser.getFullName()), false) %>'
 	/>
 </c:if>
 
@@ -261,7 +261,7 @@ if (selUser != null) {
 		<c:if test="<%= selUser != null %>">
 			<div class="user-info">
 				<div class="float-container">
-					<img alt="<%= HtmlUtil.escape(selUser.getFullName()) %>" class="user-logo" src="<%= selUser.getPortraitURL(themeDisplay) %>" />
+					<img alt="<%= HtmlUtil.escapeAttribute(selUser.getFullName()) %>" class="user-logo" src="<%= selUser.getPortraitURL(themeDisplay) %>" />
 
 					<span class="user-name"><%= HtmlUtil.escape(selUser.getFullName()) %></span>
 				</div>

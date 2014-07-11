@@ -20,27 +20,39 @@ import com.liferay.portal.model.Group;
 import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.model.UserGroup;
 import com.liferay.portal.service.UserGroupLocalServiceUtil;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.UserGroupTestUtil;
+import com.liferay.portal.test.TransactionalTestRule;
+import com.liferay.portal.util.test.UserGroupTestUtil;
 
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 /**
  * @author David Mendez Gonzalez
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class UserGroupStagedModelDataHandlerTest
 	extends BaseStagedModelDataHandlerTestCase {
+
+	@ClassRule
+	public static TransactionalTestRule transactionalTestRule =
+		new TransactionalTestRule();
+
+	@After
+	@Override
+	public void tearDown() throws Exception {
+		super.tearDown();
+
+		_userGroup = UserGroupLocalServiceUtil.fetchUserGroupByUuidAndCompanyId(
+			_userGroup.getUuid(), _userGroup.getCompanyId());
+	}
 
 	@Override
 	protected StagedModel addStagedModel(
@@ -48,7 +60,9 @@ public class UserGroupStagedModelDataHandlerTest
 			Map<String, List<StagedModel>> dependentStagedModelsMap)
 		throws Exception {
 
-		return UserGroupTestUtil.addUserGroup();
+		_userGroup = UserGroupTestUtil.addUserGroup();
+
+		return _userGroup;
 	}
 
 	@Override
@@ -76,5 +90,8 @@ public class UserGroupStagedModelDataHandlerTest
 	protected Class<? extends StagedModel> getStagedModelClass() {
 		return UserGroup.class;
 	}
+
+	@DeleteAfterTestRun
+	private UserGroup _userGroup;
 
 }

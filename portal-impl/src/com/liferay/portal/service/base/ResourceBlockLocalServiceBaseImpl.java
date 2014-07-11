@@ -77,12 +77,10 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 *
 	 * @param resourceBlock the resource block
 	 * @return the resource block that was added
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public ResourceBlock addResourceBlock(ResourceBlock resourceBlock)
-		throws SystemException {
+	public ResourceBlock addResourceBlock(ResourceBlock resourceBlock) {
 		resourceBlock.setNew(true);
 
 		return resourceBlockPersistence.update(resourceBlock);
@@ -105,12 +103,11 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 * @param resourceBlockId the primary key of the resource block
 	 * @return the resource block that was removed
 	 * @throws PortalException if a resource block with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
 	public ResourceBlock deleteResourceBlock(long resourceBlockId)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return resourceBlockPersistence.remove(resourceBlockId);
 	}
 
@@ -119,12 +116,10 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 *
 	 * @param resourceBlock the resource block
 	 * @return the resource block that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public ResourceBlock deleteResourceBlock(ResourceBlock resourceBlock)
-		throws SystemException {
+	public ResourceBlock deleteResourceBlock(ResourceBlock resourceBlock) {
 		return resourceBlockPersistence.remove(resourceBlock);
 	}
 
@@ -141,12 +136,9 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery) {
 		return resourceBlockPersistence.findWithDynamicQuery(dynamicQuery);
 	}
 
@@ -161,12 +153,10 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 * @param start the lower bound of the range of model instances
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @return the range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end) {
 		return resourceBlockPersistence.findWithDynamicQuery(dynamicQuery,
 			start, end);
 	}
@@ -183,12 +173,10 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end, OrderByComparator<T> orderByComparator) {
 		return resourceBlockPersistence.findWithDynamicQuery(dynamicQuery,
 			start, end, orderByComparator);
 	}
@@ -198,11 +186,9 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public long dynamicQueryCount(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public long dynamicQueryCount(DynamicQuery dynamicQuery) {
 		return resourceBlockPersistence.countWithDynamicQuery(dynamicQuery);
 	}
 
@@ -212,18 +198,16 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 * @param dynamicQuery the dynamic query
 	 * @param projection the projection to apply to the query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public long dynamicQueryCount(DynamicQuery dynamicQuery,
-		Projection projection) throws SystemException {
+		Projection projection) {
 		return resourceBlockPersistence.countWithDynamicQuery(dynamicQuery,
 			projection);
 	}
 
 	@Override
-	public ResourceBlock fetchResourceBlock(long resourceBlockId)
-		throws SystemException {
+	public ResourceBlock fetchResourceBlock(long resourceBlockId) {
 		return resourceBlockPersistence.fetchByPrimaryKey(resourceBlockId);
 	}
 
@@ -233,17 +217,15 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 * @param resourceBlockId the primary key of the resource block
 	 * @return the resource block
 	 * @throws PortalException if a resource block with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ResourceBlock getResourceBlock(long resourceBlockId)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return resourceBlockPersistence.findByPrimaryKey(resourceBlockId);
 	}
 
 	@Override
-	public ActionableDynamicQuery getActionableDynamicQuery()
-		throws SystemException {
+	public ActionableDynamicQuery getActionableDynamicQuery() {
 		ActionableDynamicQuery actionableDynamicQuery = new DefaultActionableDynamicQuery();
 
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.ResourceBlockLocalServiceUtil.getService());
@@ -256,8 +238,7 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	}
 
 	protected void initActionableDynamicQuery(
-		ActionableDynamicQuery actionableDynamicQuery)
-		throws SystemException {
+		ActionableDynamicQuery actionableDynamicQuery) {
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.ResourceBlockLocalServiceUtil.getService());
 		actionableDynamicQuery.setClass(ResourceBlock.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
@@ -265,9 +246,18 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 		actionableDynamicQuery.setPrimaryKeyPropertyName("resourceBlockId");
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
+		throws PortalException {
+		return resourceBlockLocalService.deleteResourceBlock((ResourceBlock)persistedModel);
+	}
+
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return resourceBlockPersistence.findByPrimaryKey(primaryKeyObj);
 	}
 
@@ -281,11 +271,9 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 * @param start the lower bound of the range of resource blocks
 	 * @param end the upper bound of the range of resource blocks (not inclusive)
 	 * @return the range of resource blocks
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ResourceBlock> getResourceBlocks(int start, int end)
-		throws SystemException {
+	public List<ResourceBlock> getResourceBlocks(int start, int end) {
 		return resourceBlockPersistence.findAll(start, end);
 	}
 
@@ -293,10 +281,9 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 * Returns the number of resource blocks.
 	 *
 	 * @return the number of resource blocks
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getResourceBlocksCount() throws SystemException {
+	public int getResourceBlocksCount() {
 		return resourceBlockPersistence.countAll();
 	}
 
@@ -305,12 +292,10 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 *
 	 * @param resourceBlock the resource block
 	 * @return the resource block that was updated
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public ResourceBlock updateResourceBlock(ResourceBlock resourceBlock)
-		throws SystemException {
+	public ResourceBlock updateResourceBlock(ResourceBlock resourceBlock) {
 		return resourceBlockPersistence.update(resourceBlock);
 	}
 
@@ -696,7 +681,7 @@ public abstract class ResourceBlockLocalServiceBaseImpl
 	 *
 	 * @param sql the sql query
 	 */
-	protected void runSQL(String sql) throws SystemException {
+	protected void runSQL(String sql) {
 		try {
 			DataSource dataSource = resourceBlockPersistence.getDataSource();
 

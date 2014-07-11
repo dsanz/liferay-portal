@@ -42,7 +42,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="CONTROL_PANEL_GENERAL_PERMISSIONS_GO_TO_CONTROL_PANEL" />
+			<var name="permissionDefinitionKey" value="CONTROL_PANEL_GENERAL_PERMISSIONS_GO_TO_CONTROL_PANEL_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Go to Control Panel" />
 			<var name="roleName" value="Authenticated" />
 			<var name="roleUser" value="User" />
@@ -62,7 +62,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_PAGES_SITE_PAGES_SITE_RESOURCE_PERMISSIONS_SITE_ACTION" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_SITE_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="roleName" value="Roles Siterole Name" />
 		</execute>
@@ -72,7 +72,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_USERS_SITE_MEMBERSHIPS_TEAM_ALL_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_USERS_SITE_MEMBERSHIPS_RESOURCE_PERMISSIONS_TEAM_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="roleName" value="Roles Siterole Name" />
 		</execute>
@@ -82,7 +82,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_USERS_SITE_MEMBERSHIPS_GENERAL_ALL_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_USERS_SITE_MEMBERSHIPS_GENERAL_PERMISSIONS_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="roleName" value="Roles Siterole Name" />
 		</execute>
@@ -92,7 +92,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_WEB_CONTENT_DISPLAY_APPLICATIONS_PERMISSIONS_ACTION" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_WEB_CONTENT_DISPLAY_APPLICATIONS_PERMISSIONS_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="roleName" value="Roles Siterole Name" />
 		</execute>
@@ -214,13 +214,9 @@
 
 		<execute action="Permissions#assertTextEquals" locator-key1="CONFIGURATION_PERMISSIONS_TEAM_ROLE_NAME" value1="${teamName}" />
 
-		<execute macro="Page#gotoUsersCP">
+		<execute macro="PermissionsInline#gotoSiteTeamsCP">
 			<var name="portletName" value="Site Teams" />
 			<var name="siteScopeName" value="Site Name" />
-		</execute>
-
-		<execute macro="Team#viewPermissionsCP">
-			<var name="teamName" value="Site Team Name" />
 		</execute>
 
 		<execute macro="Role#definePermissionPG">
@@ -299,7 +295,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_BOOKMARKS_BOOKMARKS_ENTRY_VIEW_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_BOOKMARKS_RESOURCE_PERMISSIONS_BOOKMARKS_ENTRY_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Group Scope Role Name" />
 			<var name="siteNameScope" value="Liferay" />
@@ -422,6 +418,11 @@
 			<var name="userEmailAddress" value="userea@liferay.com" />
 		</execute>
 
+		<execute macro="Bookmark#gotoPG">
+			<var name="bookmarkName" value="Test Bookmark1 Name" />
+			<var name="bookmarkURL" value="http://www.liferay.com" />
+		</execute>
+
 		<execute macro="Bookmark#viewPG">
 			<var name="bookmarkName" value="Test Bookmark1 Name" />
 			<var name="bookmarkURL" value="http://www.liferay.com" />
@@ -512,7 +513,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_DOCUMENTS_AND_MEDIA_DOCUMENT_VIEW" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA_RESOURCE_PERMISSIONS_DOCUMENT_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Roles Orgrole Name" />
 		</execute>
@@ -781,7 +782,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_DYNAMIC_DATA_LISTS_ADD_RECORD_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_DYNAMIC_DATA_LISTS_RESOURCE_PERMISSIONS_DYNAMIC_DATA_LISTS_RECORD_SET_ADD_RECORD_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Add Record" />
 			<var name="roleName" value="Data Recorder Name" />
 		</execute>
@@ -791,7 +792,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_DYNAMIC_DATA_LISTS_VIEW_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_DYNAMIC_DATA_LISTS_RESOURCE_PERMISSIONS_DYNAMIC_DATA_LISTS_RECORD_SET_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Data Recorder Name" />
 		</execute>
@@ -810,7 +811,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_DYNAMIC_DATA_LISTS_UPDATE_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_DYNAMIC_DATA_LISTS_RESOURCE_PERMISSIONS_DYNAMIC_DATA_LISTS_RECORD_SET_UPDATE_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Update" />
 			<var name="roleName" value="Records Manager Name" />
 		</execute>
@@ -820,7 +821,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_DYNAMIC_DATA_LISTS_VIEW_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_DYNAMIC_DATA_LISTS_RESOURCE_PERMISSIONS_DYNAMIC_DATA_LISTS_RECORD_SET_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Records Manager Name" />
 		</execute>
@@ -1021,73 +1022,63 @@
 			<var name="ddlDataDefinitionName" value="${ddlDataDefinitionName}" />
 		</execute>
 
-		<execute macro="DDLRecord#populateField">
+		<execute macro="DDLRecord#populateFieldBoolean">
 			<var name="ddlRecordFieldData" value="true" />
-			<var name="field" value="Boolean" />
 			<var name="fieldFieldLabel" value="Employee" />
 			<var name="fieldName" value="Employee" />
 		</execute>
 
-		<execute macro="DDLRecord#populateField">
+		<execute macro="DDLRecord#populateFieldDate">
 			<var name="ddlRecordFieldData" value="04/01/2015" />
-			<var name="field" value="Date" />
 			<var name="fieldFieldLabel" value="Start Date" />
 			<var name="fieldName" value="Start_Date" />
 		</execute>
 
-		<execute macro="DDLRecord#populateField">
+		<execute macro="DDLRecord#populateFieldDecimal">
 			<var name="ddlRecordFieldData" value="35000" />
-			<var name="field" value="Decimal" />
 			<var name="fieldFieldLabel" value="Salary" />
 			<var name="fieldName" value="Salary" />
 		</execute>
 
-		<execute macro="DDLRecord#populateField">
+		<execute macro="DDLRecord#populateFieldDocumentsAndMedia">
 			<var name="ddlRecordFieldData" value="Document Title" />
 			<var name="document" value="Document_1.txt" />
-			<var name="field" value="Documents and Media" />
 			<var name="fieldFieldLabel" value="Resume" />
 			<var name="fieldName" value="Resume" />
 		</execute>
 
-		<execute macro="DDLRecord#populateField">
+		<execute macro="DDLRecord#populateFieldInteger">
 			<var name="ddlRecordFieldData" value="30" />
-			<var name="field" value="Integer" />
 			<var name="fieldFieldLabel" value="Age" />
 			<var name="fieldName" value="Age" />
 		</execute>
 
-		<execute macro="DDLRecord#populateField">
+		<execute macro="DDLRecord#populateFieldNumber">
 			<var name="ddlRecordFieldData" value="40" />
-			<var name="field" value="Number" />
 			<var name="fieldFieldLabel" value="Weekly Hours" />
 			<var name="fieldName" value="Weekly_Hours" />
 		</execute>
 
-		<execute macro="DDLRecord#populateField">
+		<execute macro="DDLRecord#populateFieldRadio">
 			<var name="ddlRecordFieldData" value="QA Engineer" />
-			<var name="field" value="Radio" />
 			<var name="fieldFieldLabel" value="Department" />
 			<var name="fieldName" value="Department" />
 		</execute>
 
-		<execute macro="DDLRecord#populateField">
+		<execute macro="DDLRecord#populateFieldSelect">
 			<var name="ddlRecordFieldData" value="5+" />
-			<var name="field" value="Select" />
 			<var name="fieldFieldLabel" value="Years Worked" />
 			<var name="fieldName" value="Years_Worked" />
 		</execute>
 
-		<execute macro="DDLRecord#populateField">
+		<execute macro="DDLRecord#populateFieldText">
 			<var name="ddlRecordFieldData" value="Joe Engineer" />
-			<var name="field" value="Text" />
 			<var name="fieldFieldLabel" value="Name" />
 			<var name="fieldName" value="Name" />
 		</execute>
 
-		<execute macro="DDLRecord#populateField">
+		<execute macro="DDLRecord#populateFieldTextBox">
 			<var name="ddlRecordFieldData" value="Joe Engineer works in QA" />
-			<var name="field" value="Text Box" />
 			<var name="fieldFieldLabel" value="Description" />
 			<var name="fieldName" value="Description" />
 		</execute>
@@ -1147,7 +1138,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_DOCUMENTS_AND_MEDIA_DOCUMENT_VIEW" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA_RESOURCE_PERMISSIONS_DOCUMENT_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Roles Siterole Name" />
 		</execute>
@@ -1578,7 +1569,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_BLOGS_BLOGS_ENTRIES_ADD_ENTRY_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_BLOGS_RESOURCE_PERMISSIONS_BLOGS_ENTRIES_ADD_ENTRY_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Add Entry" />
 			<var name="roleName" value="Movie Blogger Name" />
 		</execute>
@@ -1588,7 +1579,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_BLOGS_BLOGS_ENTRY_VIEW_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_BLOGS_RESOURCE_PERMISSIONS_BLOGS_ENTRY_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Movie Blogger Name" />
 		</execute>
@@ -1598,7 +1589,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER_ADD_TO_PAGE_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER_APPLICATION_PERIMISSIONS_ADD_TO_PAGE_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Add to Page" />
 			<var name="roleName" value="Movie Blogger Name" />
 		</execute>
@@ -1608,7 +1599,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER_VIEW_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER_APPLICATION_PERIMISSIONS_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Movie Blogger Name" />
 		</execute>
@@ -1627,7 +1618,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_MESSAGE_BOARDS_MESSAGES_ADD_CATEGORY_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_MESSAGE_BOARDS_RESOURCE_PERMISSIONS_MESSAGES_ADD_CATEGORY_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Add Category" />
 			<var name="roleName" value="Music Fan Name" />
 		</execute>
@@ -1637,7 +1628,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_MESSAGE_BOARDS_MESSAGES_ADD_MESSAGE_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_MESSAGE_BOARDS_RESOURCE_PERMISSIONS_MESSAGES_ADD_MESSAGE_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Add Message" />
 			<var name="roleName" value="Music Fan Name" />
 		</execute>
@@ -1647,7 +1638,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_MESSAGE_BOARDS_MESSAGES_VIEW_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_MESSAGE_BOARDS_RESOURCE_PERMISSIONS_MESSAGES_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Music Fan Name" />
 		</execute>
@@ -1657,7 +1648,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_MESSAGE_BOARDS_CATEGORY_ADD_MESSAGE_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_MESSAGE_BOARDS_RESOURCE_PERMISSIONS_MESSAGE_BOARDS_CATEGORY_ADD_MESSAGE_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Add Message" />
 			<var name="roleName" value="Music Fan Name" />
 		</execute>
@@ -1667,7 +1658,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_MESSAGE_BOARDS_CATEGORY_VIEW_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_MESSAGE_BOARDS_RESOURCE_PERMISSIONS_MESSAGE_BOARDS_CATEGORY_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Music Fan Name" />
 		</execute>
@@ -1677,7 +1668,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_MESSAGE_BOARDS_MESSAGE_VIEW_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_MESSAGE_BOARDS_RESOURCE_PERMISSIONS_MESSAGE_BOARDS_MESSAGE_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Music Fan Name" />
 		</execute>
@@ -1687,7 +1678,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER_ADD_TO_PAGE_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER_APPLICATION_PERIMISSIONS_ADD_TO_PAGE_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Add to Page" />
 			<var name="roleName" value="Music Fan Name" />
 		</execute>
@@ -1697,7 +1688,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER_VIEW_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER_APPLICATION_PERIMISSIONS_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Music Fan Name" />
 		</execute>
@@ -1736,7 +1727,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER_ADD_TO_PAGE_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER_APPLICATION_PERIMISSIONS_ADD_TO_PAGE_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Add to Page" />
 			<var name="roleName" value="Sports Journalist Name" />
 		</execute>
@@ -1746,7 +1737,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER_VIEW_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_ASSET_PUBLISHER_APPLICATION_PERIMISSIONS_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Sports Journalist Name" />
 		</execute>
@@ -1888,7 +1879,7 @@
 		<execute action="PGMessageboards#assertElementNotPresent" locator-key1="ADD_CATEGORY_BUTTON" />
 		<execute action="PGMessageboards#assertElementNotPresent" locator-key1="PERMISSIONS_BUTTON" />
 
-		<execute macro="AssetPublisherPortlet#addBlogsEntryPG">
+		<execute macro="BlogsEntry#addPGViaAP">
 			<var name="entryContent" value="This is a movie blog by usersn2" />
 			<var name="entryTitle" value="Movie Blog" />
 		</execute>
@@ -2028,7 +2019,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_BOOKMARKS_BOOKMARKS_ENTRY_VIEW_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_BOOKMARKS_RESOURCE_PERMISSIONS_BOOKMARKS_ENTRY_VIEW_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="View" />
 			<var name="roleName" value="Roles Siterole Name" />
 		</execute>
@@ -2117,6 +2108,11 @@
 		<execute macro="User#loginUserPG">
 			<var name="password" value="test" />
 			<var name="userEmailAddress" value="userea@liferay.com" />
+		</execute>
+
+		<execute macro="Bookmark#gotoPG">
+			<var name="bookmarkName" value="Test Bookmark Name" />
+			<var name="bookmarkURL" value="http://www.liferay.com" />
 		</execute>
 
 		<execute macro="Bookmark#viewPG">
@@ -2337,9 +2333,9 @@
 	</command>
 
 	<command name="ViewAutomaticAssignedRoles" priority="5">
-		<var name="permissionDefinition1Key" value="CONTROL_PANEL_USERS_USERS_AND_ORGANIZATIONS_ACCESS_IN_CONTROL_PANEL" />
+		<var name="permissionDefinition1Key" value="CONTROL_PANEL_USERS_USERS_AND_ORGANIZATIONS_GENERAL_PERMISSIONS_ACCESS_IN_CONTROL_PANEL_CHECKBOX" />
 		<var name="permissionDefinition1Value" value="Access in Control Panel" />
-		<var name="permissionDefinition2Key" value="SITE_ADMIN_PAGES_SITE_PAGES_GENERAL_ACCESS_IN_SITE_ADMINISTRATION" />
+		<var name="permissionDefinition2Key" value="SITE_ADMIN_PAGES_SITE_PAGES_GENERAL_PERMISSIONS_ACCESS_IN_SITE_ADMINISTRATION_CHECKBOX" />
 		<var name="permissionDefinition2Value" value="Access in Site Administration" />
 		<var name="permissionDefinition3Value" value="Go to Control Panel" />
 		<var name="permissionDefinition4Value" value="Go to Site Administration" />
@@ -2385,7 +2381,7 @@
 	</command>
 
 	<command name="ViewDocumentsAndMediaAddRepositoryPermissionSiteMemberRole" priority="5">
-		<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_DOCUMENTS_AND_MEDIA_DOCUMENTS_ADD_REPOSITORY" />
+		<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA_RESOURCE_PERMISSIONS_DOCUMENTS_ADD_REPOSITORY_CHECKBOX" />
 		<var name="permissionDefinitionValue" value="Add Repository" />
 		<var name="roleName" value="Site Member" />
 
@@ -2409,6 +2405,82 @@
 			<var name="permissionDefinitionKey" value="${permissionDefinitionKey}" />
 			<var name="permissionDefinitionValue" value="${permissionDefinitionValue}" />
 			<var name="roleName" value="${roleName}" />
+		</execute>
+	</command>
+
+	<command name="ViewPreferencesPanelPermissionSiteMemberRole" priority="5">
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#addCP">
+			<var name="userEmailAddress" value="userea@liferay.com" />
+			<var name="userFirstName" value="userfn" />
+			<var name="userLastName" value="userln" />
+			<var name="userScreenName" value="usersn" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#editUserSiteCP">
+			<var name="siteName" value="Liferay" />
+			<var name="userScreenName" value="usersn" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#editPasswordCP">
+			<var name="userEmailAddress" value="userea@liferay.com" />
+			<var name="userScreenName" value="usersn" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Currency Converter" />
+		</execute>
+
+		<execute macro="PermissionsInline#gotoConfigurationPG">
+			<var name="portletName" value="Currency Converter" />
+			<var name="portletOption" value="Configuration" />
+		</execute>
+
+		<execute macro="Role#definePermissionPG">
+			<var name="permissionDefinitionKey" value="CONTENT_PERMISSIONS_VIEW_CHECKBOX" />
+			<var name="roleName" value="Site Member" />
+		</execute>
+
+		<execute macro="Role#definePermissionPG">
+			<var name="permissionDefinitionKey" value="CONTENT_PERMISSIONS_PREFERENCES_CHECKBOX" />
+			<var name="roleName" value="Site Member" />
+		</execute>
+
+		<execute macro="User#logoutPG" />
+
+		<execute macro="User#loginUserPG">
+			<var name="password" value="test" />
+			<var name="userEmailAddress" value="userea@liferay.com" />
+		</execute>
+
+		<execute macro="Portlet#gotoPortletOptions">
+			<var name="portletName" value="Currency Converter" />
+			<var name="portletOption" value="Preferences" />
+		</execute>
+
+		<var name="key_pageName" value="Welcome" />
+
+		<execute action="Home#assertElementPresent" locator-key1="PAGE" value1="Welcome" />
+
+		<execute action="PGHelloworld#assertTextEquals" locator-key1="PORTLET_TITLE" value1="Hello World" />
+		<execute action="PGHelloworld#assertElementPresent" locator-key1="PORTLET_CONTENT" value1="Welcome to Liferay Portal" />
+
+		<execute macro="User#logoutPG" />
+
+		<execute macro="User#loginUserPG">
+			<var name="password" value="test" />
+			<var name="userEmailAddress" value="test@liferay.com" />
 		</execute>
 	</command>
 </definition>

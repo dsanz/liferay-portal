@@ -15,7 +15,6 @@
 package com.liferay.portlet.documentlibrary.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
@@ -23,13 +22,13 @@ import com.liferay.portlet.documentlibrary.service.DLFileShortcutLocalServiceUti
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link DLFileShortcutLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link DLFileShortcutLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class DLFileShortcutActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public DLFileShortcutActionableDynamicQuery() throws SystemException {
+	public DLFileShortcutActionableDynamicQuery() {
 		setBaseLocalService(DLFileShortcutLocalServiceUtil.getService());
 		setClass(DLFileShortcut.class);
 

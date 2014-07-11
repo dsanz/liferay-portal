@@ -15,30 +15,23 @@
 package com.liferay.portlet.bookmarks.service;
 
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.model.TreeModel;
 import com.liferay.portal.service.BaseLocalServiceTreeTestCase;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
 import com.liferay.portlet.bookmarks.model.BookmarksFolderConstants;
-import com.liferay.portlet.bookmarks.util.BookmarksTestUtil;
+import com.liferay.portlet.bookmarks.util.test.BookmarksTestUtil;
 
 import org.junit.runner.RunWith;
 
 /**
  * @author Shinn Lok
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class BookmarksFolderLocalServiceTreeTest
 	extends BaseLocalServiceTreeTestCase {
 
@@ -56,7 +49,7 @@ public class BookmarksFolderLocalServiceTreeTest
 
 		BookmarksFolder folder = BookmarksTestUtil.addFolder(
 			TestPropsValues.getGroupId(), parentFolderId,
-			ServiceTestUtil.randomString());
+			RandomTestUtil.randomString());
 
 		folder.setTreePath(null);
 

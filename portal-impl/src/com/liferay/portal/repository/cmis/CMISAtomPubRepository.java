@@ -16,13 +16,13 @@ package com.liferay.portal.repository.cmis;
 
 import com.liferay.portal.InvalidRepositoryException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.cmis.CMISRepositoryHandler;
 import com.liferay.portal.kernel.repository.cmis.Session;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.util.PropsValues;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -37,7 +37,7 @@ import org.apache.chemistry.opencmis.commons.enums.BindingType;
 public class CMISAtomPubRepository extends CMISRepositoryHandler {
 
 	@Override
-	public Session getSession() throws PortalException, SystemException {
+	public Session getSession() throws PortalException {
 		Map<String, String> parameters = new HashMap<String, String>();
 
 		parameters.put(
@@ -53,17 +53,19 @@ public class CMISAtomPubRepository extends CMISRepositoryHandler {
 		parameters.put(
 			SessionParameter.LOCALE_ISO639_LANGUAGE, locale.getLanguage());
 
-		String password = PrincipalThreadLocal.getPassword();
-
-		if (Validator.isNotNull(password)) {
-			parameters.put(SessionParameter.PASSWORD, password);
-		}
-
 		String login = getLogin();
+		String password = null;
 
 		if (Validator.isNotNull(login)) {
-			parameters.put(SessionParameter.USER, login);
+			password = PrincipalThreadLocal.getPassword();
 		}
+		else {
+			login = PropsValues.DL_REPOSITORY_GUEST_USERNAME;
+			password = PropsValues.DL_REPOSITORY_GUEST_PASSWORD;
+		}
+
+		parameters.put(SessionParameter.PASSWORD, password);
+		parameters.put(SessionParameter.USER, login);
 
 		CMISRepositoryUtil.checkRepository(
 			getRepositoryId(), parameters, getTypeSettingsProperties(),

@@ -34,12 +34,12 @@ import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.PluginSetting;
 import com.liferay.portal.model.impl.PluginSettingModelImpl;
 import com.liferay.portal.service.PluginSettingLocalServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -50,6 +50,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -99,7 +100,7 @@ public class PluginSettingPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		PluginSetting pluginSetting = _persistence.create(pk);
 
@@ -126,21 +127,21 @@ public class PluginSettingPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		PluginSetting newPluginSetting = _persistence.create(pk);
 
-		newPluginSetting.setMvccVersion(ServiceTestUtil.nextLong());
+		newPluginSetting.setMvccVersion(RandomTestUtil.nextLong());
 
-		newPluginSetting.setCompanyId(ServiceTestUtil.nextLong());
+		newPluginSetting.setCompanyId(RandomTestUtil.nextLong());
 
-		newPluginSetting.setPluginId(ServiceTestUtil.randomString());
+		newPluginSetting.setPluginId(RandomTestUtil.randomString());
 
-		newPluginSetting.setPluginType(ServiceTestUtil.randomString());
+		newPluginSetting.setPluginType(RandomTestUtil.randomString());
 
-		newPluginSetting.setRoles(ServiceTestUtil.randomString());
+		newPluginSetting.setRoles(RandomTestUtil.randomString());
 
-		newPluginSetting.setActive(ServiceTestUtil.randomBoolean());
+		newPluginSetting.setActive(RandomTestUtil.randomBoolean());
 
 		_persistence.update(newPluginSetting);
 
@@ -165,7 +166,7 @@ public class PluginSettingPersistenceTest {
 	@Test
 	public void testCountByCompanyId() {
 		try {
-			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+			_persistence.countByCompanyId(RandomTestUtil.nextLong());
 
 			_persistence.countByCompanyId(0L);
 		}
@@ -177,7 +178,7 @@ public class PluginSettingPersistenceTest {
 	@Test
 	public void testCountByC_I_T() {
 		try {
-			_persistence.countByC_I_T(ServiceTestUtil.nextLong(),
+			_persistence.countByC_I_T(RandomTestUtil.nextLong(),
 				StringPool.BLANK, StringPool.BLANK);
 
 			_persistence.countByC_I_T(0L, StringPool.NULL, StringPool.NULL);
@@ -200,7 +201,7 @@ public class PluginSettingPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -223,7 +224,7 @@ public class PluginSettingPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<PluginSetting> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("PluginSetting",
 			"mvccVersion", true, "pluginSettingId", true, "companyId", true,
 			"pluginId", true, "pluginType", true, "roles", true, "active", true);
@@ -240,11 +241,93 @@ public class PluginSettingPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		PluginSetting missingPluginSetting = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingPluginSetting);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		PluginSetting newPluginSetting1 = addPluginSetting();
+		PluginSetting newPluginSetting2 = addPluginSetting();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newPluginSetting1.getPrimaryKey());
+		primaryKeys.add(newPluginSetting2.getPrimaryKey());
+
+		Map<Serializable, PluginSetting> pluginSettings = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, pluginSettings.size());
+		Assert.assertEquals(newPluginSetting1,
+			pluginSettings.get(newPluginSetting1.getPrimaryKey()));
+		Assert.assertEquals(newPluginSetting2,
+			pluginSettings.get(newPluginSetting2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, PluginSetting> pluginSettings = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(pluginSettings.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		PluginSetting newPluginSetting = addPluginSetting();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newPluginSetting.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, PluginSetting> pluginSettings = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, pluginSettings.size());
+		Assert.assertEquals(newPluginSetting,
+			pluginSettings.get(newPluginSetting.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, PluginSetting> pluginSettings = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(pluginSettings.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		PluginSetting newPluginSetting = addPluginSetting();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newPluginSetting.getPrimaryKey());
+
+		Map<Serializable, PluginSetting> pluginSettings = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, pluginSettings.size());
+		Assert.assertEquals(newPluginSetting,
+			pluginSettings.get(newPluginSetting.getPrimaryKey()));
 	}
 
 	@Test
@@ -295,7 +378,7 @@ public class PluginSettingPersistenceTest {
 				PluginSetting.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("pluginSettingId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<PluginSetting> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -336,7 +419,7 @@ public class PluginSettingPersistenceTest {
 				"pluginSettingId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("pluginSettingId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -366,21 +449,21 @@ public class PluginSettingPersistenceTest {
 	}
 
 	protected PluginSetting addPluginSetting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		PluginSetting pluginSetting = _persistence.create(pk);
 
-		pluginSetting.setMvccVersion(ServiceTestUtil.nextLong());
+		pluginSetting.setMvccVersion(RandomTestUtil.nextLong());
 
-		pluginSetting.setCompanyId(ServiceTestUtil.nextLong());
+		pluginSetting.setCompanyId(RandomTestUtil.nextLong());
 
-		pluginSetting.setPluginId(ServiceTestUtil.randomString());
+		pluginSetting.setPluginId(RandomTestUtil.randomString());
 
-		pluginSetting.setPluginType(ServiceTestUtil.randomString());
+		pluginSetting.setPluginType(RandomTestUtil.randomString());
 
-		pluginSetting.setRoles(ServiceTestUtil.randomString());
+		pluginSetting.setRoles(RandomTestUtil.randomString());
 
-		pluginSetting.setActive(ServiceTestUtil.randomBoolean());
+		pluginSetting.setActive(RandomTestUtil.randomBoolean());
 
 		_persistence.update(pluginSetting);
 

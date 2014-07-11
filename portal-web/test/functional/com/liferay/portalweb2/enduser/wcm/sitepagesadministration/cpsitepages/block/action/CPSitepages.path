@@ -30,12 +30,17 @@
 </tr>
 <tr>
 	<td>INFO_MESSAGE_1</td>
-	<td>xpath=(//div[contains(@class,'alert') and contains(@class,'alert-error')])[1]</td>
+	<td>xpath=(//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))])[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>INFO_MESSAGE_2</td>
-	<td>xpath=(//div[contains(@class,'alert') and contains(@class,'alert-error')])[2]</td>
+	<td>xpath=(//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))])[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BLOCK_MESSAGE</td>
+	<td>xpath=(//div[contains(@class,'alert') and (contains(@class,'alert-block'))])</td>
 	<td></td>
 </tr>
 <tr>
@@ -45,12 +50,17 @@
 </tr>
 <tr>
 	<td>CANCEL_BUTTON</td>
-	<td>//button[contains(.,'Cancel')]</td>
+	<td>//a[contains(@class,'btn-cancel')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CONFIRMATION</td>
 	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_PAGES_LINK</td>
+	<td>//ul[@class='visit-links']/li/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -132,8 +142,18 @@
 </tr>
 <!--PAGE_TREE-->
 <tr>
+	<td>PAGE_TREE_ROOT_ARROW_PLUS</td>
+	<td>//li[contains(@id,'layoutsTree_layoutId_0_')]/div[contains(@class,'tree-collapse')]/span[contains(@class,'tree-hitarea')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_TREE_ROOT_ARROW_MINUS</td>
+	<td>//li[contains(@id,'layoutsTree_layoutId_0_')]/div[contains(@class,'tree-expanded')]/span[contains(@class,'tree-hitarea')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PAGE_TREE_ROOT_ARROW</td>
-	<td>//li[contains(@id,'layoutsTree_layoutId_0_')]/div/i[contains(@class,'tree-hitarea')]</td>
+	<td>//li[contains(@id,'layoutsTree_layoutId_0_')]/div/span[contains(@class,'tree-hitarea')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -143,22 +163,27 @@
 </tr>
 <tr>
 	<td>PAGE_TREE_PAGE_ARROW_1</td>
-	<td>xpath=(//a[contains(@id,'layoutsTree_layout_')]/../../i[contains(@class,'tree-hitarea')])[1]</td>
+	<td>xpath=(//a[contains(@id,'layoutsTree_layout_')]/../../span[contains(@class,'tree-hitarea')])[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_TREE_PAGE_ARROW_2</td>
-	<td>xpath=(//a[contains(@id,'layoutsTree_layout_')]/../../i[contains(@class,'tree-hitarea')])[2]</td>
+	<td>xpath=(//a[contains(@id,'layoutsTree_layout_')]/../../span[contains(@class,'tree-hitarea')])[2]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_TREE_PAGE_ARROW_3</td>
-	<td>xpath=(//a[contains(@id,'layoutsTree_layout_')]/../../i[contains(@class,'tree-hitarea')])[3]</td>
+	<td>xpath=(//a[contains(@id,'layoutsTree_layout_')]/../../span[contains(@class,'tree-hitarea')])[3]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGE_TREE_PAGE_SPECIFIC_PAGE</td>
 	<td>//span[contains(@class,'tree-label')]/a[contains(.,'${key_sitePageName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_TREE_PAGE_PLUS_ICON</td>
+	<td>//div[contains(@class,'tree-collapsed')]/i[contains(@class,'icon-plus')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -212,6 +237,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PAGE_TREE_PAGE_LINK_TO_PAGE</td>
+	<td>xpath=(//li[contains(@id,'layoutsTree_layoutId_2')]/div/span[contains(@class,'icon-link')])</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_TREE_LOAD_MORE_RESULTS_LINK</td>
+	<td>//ul/li/div[contains(.,'${key_pageName}')]/..//a[@class='tree-node-paginator']</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -220,6 +255,11 @@
 <tr>
 	<td>DETAILS_NAME_FIELD</td>
 	<td>//input[@id='_156_name']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAILS_LANGAUGE_TRANSLATIONS</td>
+	<td>//div[contains(@id,'nameContentBox')]//li[contains(@data-value,'${key_pageTranslation}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -239,17 +279,17 @@
 </tr>
 <tr>
 	<td>DETAILS_HIDDEN_CHECKBOX</td>
-	<td>//input[@id='_156_hiddenCheckbox']</td>
+	<td>//input[@id='_156_hidden']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DETAILS_PAGE_TEMPLATE_UPDATEABLE_CHECKBOX</td>
-	<td>//input[contains(@id,'UpdateableCheckbox')]</td>
+	<td>//input[contains(@id,'Updateable')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DETAILS_PAGE_TEMPLATE_PROTOTYPE_LINK_CHECKBOX</td>
-	<td>//input[contains(@id,'PrototypeLinkEnabledCheckbox')]</td>
+	<td>//input[contains(@id,'layoutPrototypeLinkEnabled')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -270,12 +310,12 @@
 </tr>
 <tr>
 	<td>DETAILS_PAGE_TYPE_PANEL_COMPONENT_TREE_ARROW</td>
-	<td>//div[contains(@id,'detailsselectPortletsTree')]//span[contains(.,'${key_componentName}')]/../i[contains(@class,'tree-hitarea icon-plus')]</td>
+	<td>//div[contains(@id,'detailsselectPortletsTree')]//span[contains(.,'${key_componentName}')]/../span[contains(@class,'tree-hitarea glyphicon-plus')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DETAILS_PAGE_TYPE_PANEL_CHECKBOX_INPUT</td>
-	<td>//li[contains(@id,'detailsselectPortletsRootNode')]//span[contains(.,'${key_componentOrPortletName}')]/../i[contains(@class,'tree-node-checkbox')]/input</td>
+	<td>//li[contains(@id,'detailsselectPortletsRootNode')]//span[contains(.,'${key_componentOrPortletName}')]/../span[contains(@class,'tree-node-checkbox')]/input</td>
 	<td></td>
 </tr>
 <tr>

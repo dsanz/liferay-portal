@@ -29,8 +29,13 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CONFIRMATION</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
 	<td>WORKFLOW_STATUS</td>
-	<td>//span[contains(@class,'workflow-status') and contains(@class,'workflow-status-icon')]/strong</td>
+	<td>//span[@class='workflow-status']/strong</td>
 	<td></td>
 </tr>
 <tr>
@@ -46,6 +51,11 @@
 <tr>
 	<td>TEMPLATE_NAME</td>
 	<td>//span[@id='_15_templateNameLabel']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_TEMPLATE</td>
+	<td>//a[@id='_15_editDDMTemplate']</td>
 	<td></td>
 </tr>
 <tr>
@@ -65,7 +75,7 @@
 </tr>
 <tr>
 	<td>AVAILABLE_TRANSLATION</td>
-	<td>//a[contains(@class,'journal-article-translation-') and contains(.,'${key_webContentTranslationLanguage}')]</td>
+	<td>//div[@id='_15_availableTranslationContainer']//a[contains(.,'${key_webContentTranslationLanguage}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -80,7 +90,7 @@
 </tr>
 <tr>
 	<td>SEARCHABLE_CHECKBOX</td>
-	<td>//input[@id='_15_indexableCheckbox']</td>
+	<td>//input[@id='_15_indexable']</td>
 	<td></td>
 </tr>
 <tr>
@@ -95,7 +105,7 @@
 </tr>
 <tr>
 	<td>CANCEL_BUTTON</td>
-	<td>//button[contains(.,'Cancel')]</td>
+	<td>//a[contains(@class,'btn-cancel')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -142,6 +152,27 @@
 <tr>
 	<td>MENU_CUSTOM_FIELDS</td>
 	<td>//a[@id='_15_customFieldsLink']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--TOOLBAR-->
+<tr>
+	<td>TOOLBAR_BASIC_PREVIEW</td>
+	<td>//div[@id='_15_articleToolbar']//div/button[contains(.,'Basic Preview')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TOOLBAR_PERMISSIONS</td>
+	<td>//div[@id='_15_articleToolbar']//div/button[contains(.,'Permissions')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TOOLBAR_VIEW_HISTORY</td>
+	<td>//div[@id='_15_articleToolbar']//div/button[contains(.,'View History')]</td>
 	<td></td>
 </tr>
 <tr>

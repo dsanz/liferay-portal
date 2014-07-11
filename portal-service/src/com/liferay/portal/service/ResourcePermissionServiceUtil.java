@@ -42,24 +42,6 @@ public class ResourcePermissionServiceUtil {
 	 */
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
-	}
-
-	/**
 	* Grants the role permission at the scope to perform the action on
 	* resources of the type. Existing actions are retained.
 	*
@@ -98,16 +80,23 @@ public class ResourcePermissionServiceUtil {
 	resource permissions, or if scope was set to individual scope or
 	if a role with the primary key or a resource action with the name
 	and action ID could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void addResourcePermission(long groupId, long companyId,
 		java.lang.String name, int scope, java.lang.String primKey,
 		long roleId, java.lang.String actionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService()
 			.addResourcePermission(groupId, companyId, name, scope, primKey,
 			roleId, actionId);
+	}
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public static java.lang.String getBeanIdentifier() {
+		return getService().getBeanIdentifier();
 	}
 
 	/**
@@ -132,13 +121,11 @@ public class ResourcePermissionServiceUtil {
 	* @throws PortalException if the user did not have permission to remove
 	resource permissions, or if a role with the primary key or a
 	resource action with the name and action ID could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void removeResourcePermission(long groupId, long companyId,
 		java.lang.String name, int scope, java.lang.String primKey,
 		long roleId, java.lang.String actionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService()
 			.removeResourcePermission(groupId, companyId, name, scope, primKey,
 			roleId, actionId);
@@ -160,15 +147,22 @@ public class ResourcePermissionServiceUtil {
 	* @throws PortalException if the user did not have permission to remove
 	resource permissions, or if a role with the primary key or a
 	resource action with the name and action ID could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void removeResourcePermissions(long groupId, long companyId,
 		java.lang.String name, int scope, long roleId, java.lang.String actionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService()
 			.removeResourcePermissions(groupId, companyId, name, scope, roleId,
 			actionId);
+	}
+
+	/**
+	* Sets the Spring bean ID for this bean.
+	*
+	* @param beanIdentifier the Spring bean ID for this bean
+	*/
+	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
+		getService().setBeanIdentifier(beanIdentifier);
 	}
 
 	/**
@@ -197,13 +191,11 @@ public class ResourcePermissionServiceUtil {
 	* @throws PortalException if the user did not have permission to set
 	resource permissions, or if a role with the primary key or a
 	resource action with the name and action ID could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void setIndividualResourcePermissions(long groupId,
 		long companyId, java.lang.String name, java.lang.String primKey,
 		long roleId, java.lang.String[] actionIds)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService()
 			.setIndividualResourcePermissions(groupId, companyId, name,
 			primKey, roleId, actionIds);
@@ -234,13 +226,11 @@ public class ResourcePermissionServiceUtil {
 	* @throws PortalException if the user did not have permission to set
 	resource permissions, or if a role with the primary key or a
 	resource action with the name and action ID could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void setIndividualResourcePermissions(long groupId,
 		long companyId, java.lang.String name, java.lang.String primKey,
 		java.util.Map<java.lang.Long, java.lang.String[]> roleIdsToActionIds)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService()
 			.setIndividualResourcePermissions(groupId, companyId, name,
 			primKey, roleIdsToActionIds);

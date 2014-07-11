@@ -24,102 +24,84 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  */
 @ProviderType
 public class SocialActivityFinderUtil {
-	public static int countByGroupId(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByGroupId(long groupId) {
 		return getFinder().countByGroupId(groupId);
 	}
 
-	public static int countByGroupUsers(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByGroupUsers(long groupId) {
 		return getFinder().countByGroupUsers(groupId);
 	}
 
-	public static int countByOrganizationId(long organizationId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByOrganizationId(long organizationId) {
 		return getFinder().countByOrganizationId(organizationId);
 	}
 
-	public static int countByOrganizationUsers(long organizationId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByOrganizationUsers(long organizationId) {
 		return getFinder().countByOrganizationUsers(organizationId);
 	}
 
-	public static int countByRelation(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByRelation(long userId) {
 		return getFinder().countByRelation(userId);
 	}
 
-	public static int countByRelationType(long userId, int type)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByRelationType(long userId, int type) {
 		return getFinder().countByRelationType(userId, type);
 	}
 
-	public static int countByUserGroups(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByUserGroups(long userId) {
 		return getFinder().countByUserGroups(userId);
 	}
 
-	public static int countByUserGroupsAndOrganizations(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByUserGroupsAndOrganizations(long userId) {
 		return getFinder().countByUserGroupsAndOrganizations(userId);
 	}
 
-	public static int countByUserOrganizations(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByUserOrganizations(long userId) {
 		return getFinder().countByUserOrganizations(userId);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> findByGroupId(
-		long groupId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, int start, int end) {
 		return getFinder().findByGroupId(groupId, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> findByGroupUsers(
-		long groupId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, int start, int end) {
 		return getFinder().findByGroupUsers(groupId, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> findByOrganizationId(
-		long organizationId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long organizationId, int start, int end) {
 		return getFinder().findByOrganizationId(organizationId, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> findByOrganizationUsers(
-		long organizationId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long organizationId, int start, int end) {
 		return getFinder().findByOrganizationUsers(organizationId, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> findByRelation(
-		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId, int start, int end) {
 		return getFinder().findByRelation(userId, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> findByRelationType(
-		long userId, int type, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId, int type, int start, int end) {
 		return getFinder().findByRelationType(userId, type, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> findByUserGroups(
-		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId, int start, int end) {
 		return getFinder().findByUserGroups(userId, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> findByUserGroupsAndOrganizations(
-		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId, int start, int end) {
 		return getFinder().findByUserGroupsAndOrganizations(userId, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivity> findByUserOrganizations(
-		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId, int start, int end) {
 		return getFinder().findByUserOrganizations(userId, start, end);
 	}
 

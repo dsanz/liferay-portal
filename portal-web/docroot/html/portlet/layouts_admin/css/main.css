@@ -26,10 +26,6 @@
 		text-align: center;
 		text-decoration: none;
 
-		&:hover label, &:hover {
-
-		}
-
 		&:hover {
 			&, & label {
 				color: #369;
@@ -88,38 +84,6 @@
 
 	.selected-color-scheme img {
 		border: 3px solid #369;
-	}
-
-	.lfr-header-row {
-		margin-bottom: 0.5em;
-
-		.icon-add, .icon-copy, .icon-delete, .icon-export, .icon-permissions, .icon-search {
-			background: url() no-repeat 0 0;
-		}
-
-		.icon-add {
-			background-image: url(@theme_image_path@/common/add.png);
-		}
-
-		.icon-copy {
-			background-image: url(@theme_image_path@/common/copy.png);
-		}
-
-		.icon-delete {
-			background-image: url(@theme_image_path@/common/delete.png);
-		}
-
-		.icon-export {
-			background-image: url(@theme_image_path@/common/export.png);
-		}
-
-		.icon-permissions {
-			background-image: url(@theme_image_path@/common/permissions.png);
-		}
-
-		.icon-search {
-			background-image: url(@theme_image_path@/common/search.png);
-		}
 	}
 
 	.button-holder.edit-toolbar {
@@ -222,8 +186,16 @@
 
 	.organizations-msg-info {
 		background-color: #FEFEFE;
-		background-image: url(@theme_image_path@/common/organization_icon.png);
 		border-color: #BBB;
+	}
+
+	.organization-type {
+		font-size: 0.8em;
+	}
+
+	.subsites-count {
+		font-size: 0.85em;
+		margin-top: 0.3em;
 	}
 
 	.export-configuration-user-column {
@@ -317,10 +289,6 @@
 	}
 }
 
-.lfr-page-locked .tree-icon {
-	background-image: url(@theme_image_path@/trees/page_locked.png);
-}
-
 .export-dialog-tree {
 	.content-options {
 		margin-bottom: 1em;
@@ -412,7 +380,7 @@
 		display: inline;
 	}
 
-	ul.unstyled ul {
+	ul.list-unstyled ul {
 		list-style: none;
 	}
 }
@@ -427,7 +395,7 @@
 			margin-bottom: 1em;
 
 			legend {
-				border: 0;
+				border-width: 0;
 				display: block;
 				font-size: 1em;
 				font-weight: normal;
@@ -484,14 +452,6 @@
 
 .lfr-tree-controls-item {
 	padding: 0 0 6px 6px;
-}
-
-.lfr-tree-controls-expand {
-	background-image: url(@theme_image_path@/trees/expand_all.png);
-}
-
-.lfr-tree-controls-collapse {
-	background-image: url(@theme_image_path@/trees/collapse_all.png);
 }
 
 .ie6 {

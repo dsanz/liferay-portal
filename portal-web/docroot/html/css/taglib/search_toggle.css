@@ -1,25 +1,55 @@
-.taglib-search-toggle-advanced-wrapper .taglib-search-toggle-advanced {
-	border: 1px solid transparent;
-	margin-top: 5px;
-	padding: 20px;
+@import "mixins";
+
+.taglib-search-toggle {
+	.form-search {
+		position: relative;
+
+		.input-group-btn {
+			position: absolute;
+
+			@include respond-to(desktop) {
+				position: static;
+			}
+		}
+	}
+
+	.toggle-advanced {
+		margin-left: 10px;
+		position: absolute;
+		top: 8px;
+	}
 }
 
-.navbar .navbar-inner {
-	.taglib-search-toggle-advanced-wrapper {
-		margin: 0 -20px;
+.taglib-search-toggle-advanced-wrapper {
+	.taglib-search-toggle-advanced {
+		border: solid transparent;
+		border-width: 0 1px 1px;
+		margin-top: 0;
+		padding: 15px 15px 0;
+	}
 
-		&, .toggler-content-wrapper {
-			clear: both;
-		}
+	.toggler-content-wrapper {
+		clear: both;
+	}
 
-		.btn.close {
-			margin-top: 0;
-			position: static;
-		}
+	.btn.close {
+		position: relative;
+		z-index: 1;
+	}
+}
 
-		.taglib-search-toggle-advanced {
-			border-width: 1px 0 0;
-			margin-top: 0;
+.navbar-search .taglib-search-toggle-advanced-wrapper {
+	.taglib-search-toggle-advanced {
+		border-width: 1px 0 0;
+	}
+
+	.toggler-content-wrapper {
+		margin: 0 -15px;
+		padding: 0;
+		width: auto;
+
+		@media (min-width: 768px) {
+			margin: 0 -30px;
 		}
 	}
 }
@@ -37,4 +67,21 @@
 .taglib-search-toggle-advanced-wrapper .taglib-search-toggle-advanced {
 	background-color: #FCFCFC;
 	border-color: #DDD;
+
+	.btn.close {
+		margin-right: 5px;
+	}
+
+	.taglib-search-toggle-advanced-content {
+		position: relative;
+
+		.match-fields {
+			margin-bottom: 0;
+		}
+
+		.match-fields-legend {
+			color: #999;
+			font-size: 13px;
+		}
+	}
 }

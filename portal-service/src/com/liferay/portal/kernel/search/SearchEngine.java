@@ -38,8 +38,12 @@ public interface SearchEngine {
 
 	public String getVendor();
 
+	public void initialize(long companyId);
+
 	public boolean isClusteredWrite();
 
 	public boolean isLuceneBased();
+
+	public void removeCompany(long companyId);
 
 }

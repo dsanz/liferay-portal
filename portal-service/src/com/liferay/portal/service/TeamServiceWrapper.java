@@ -30,6 +30,19 @@ public class TeamServiceWrapper implements TeamService,
 		_teamService = teamService;
 	}
 
+	@Override
+	public com.liferay.portal.model.Team addTeam(long groupId,
+		java.lang.String name, java.lang.String description)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _teamService.addTeam(groupId, name, description);
+	}
+
+	@Override
+	public void deleteTeam(long teamId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_teamService.deleteTeam(teamId);
+	}
+
 	/**
 	* Returns the Spring bean ID for this bean.
 	*
@@ -38,6 +51,45 @@ public class TeamServiceWrapper implements TeamService,
 	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _teamService.getBeanIdentifier();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Team> getGroupTeams(
+		long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _teamService.getGroupTeams(groupId);
+	}
+
+	@Override
+	public com.liferay.portal.model.Team getTeam(long groupId,
+		java.lang.String name)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _teamService.getTeam(groupId, name);
+	}
+
+	@Override
+	public com.liferay.portal.model.Team getTeam(long teamId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _teamService.getTeam(teamId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Team> getUserTeams(
+		long userId) throws com.liferay.portal.kernel.exception.PortalException {
+		return _teamService.getUserTeams(userId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Team> getUserTeams(
+		long userId, long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _teamService.getUserTeams(userId, groupId);
+	}
+
+	@Override
+	public boolean hasUserTeam(long userId, long teamId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _teamService.hasUserTeam(userId, teamId);
 	}
 
 	/**
@@ -51,71 +103,9 @@ public class TeamServiceWrapper implements TeamService,
 	}
 
 	@Override
-	public com.liferay.portal.model.Team addTeam(long groupId,
-		java.lang.String name, java.lang.String description)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _teamService.addTeam(groupId, name, description);
-	}
-
-	@Override
-	public void deleteTeam(long teamId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_teamService.deleteTeam(teamId);
-	}
-
-	@Override
-	public java.util.List<com.liferay.portal.model.Team> getGroupTeams(
-		long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _teamService.getGroupTeams(groupId);
-	}
-
-	@Override
-	public com.liferay.portal.model.Team getTeam(long teamId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _teamService.getTeam(teamId);
-	}
-
-	@Override
-	public com.liferay.portal.model.Team getTeam(long groupId,
-		java.lang.String name)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _teamService.getTeam(groupId, name);
-	}
-
-	@Override
-	public java.util.List<com.liferay.portal.model.Team> getUserTeams(
-		long userId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _teamService.getUserTeams(userId);
-	}
-
-	@Override
-	public java.util.List<com.liferay.portal.model.Team> getUserTeams(
-		long userId, long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _teamService.getUserTeams(userId, groupId);
-	}
-
-	@Override
-	public boolean hasUserTeam(long userId, long teamId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _teamService.hasUserTeam(userId, teamId);
-	}
-
-	@Override
 	public com.liferay.portal.model.Team updateTeam(long teamId,
 		java.lang.String name, java.lang.String description)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _teamService.updateTeam(teamId, name, description);
 	}
 

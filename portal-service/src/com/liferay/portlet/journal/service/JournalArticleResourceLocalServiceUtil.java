@@ -46,11 +46,9 @@ public class JournalArticleResourceLocalServiceUtil {
 	*
 	* @param journalArticleResource the journal article resource
 	* @return the journal article resource that was added
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.journal.model.JournalArticleResource addJournalArticleResource(
-		com.liferay.portlet.journal.model.JournalArticleResource journalArticleResource)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.journal.model.JournalArticleResource journalArticleResource) {
 		return getService().addJournalArticleResource(journalArticleResource);
 	}
 
@@ -65,19 +63,10 @@ public class JournalArticleResourceLocalServiceUtil {
 		return getService().createJournalArticleResource(resourcePrimKey);
 	}
 
-	/**
-	* Deletes the journal article resource with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param resourcePrimKey the primary key of the journal article resource
-	* @return the journal article resource that was removed
-	* @throws PortalException if a journal article resource with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.journal.model.JournalArticleResource deleteJournalArticleResource(
-		long resourcePrimKey)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().deleteJournalArticleResource(resourcePrimKey);
+	public static void deleteArticleResource(long groupId,
+		java.lang.String articleId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteArticleResource(groupId, articleId);
 	}
 
 	/**
@@ -85,12 +74,32 @@ public class JournalArticleResourceLocalServiceUtil {
 	*
 	* @param journalArticleResource the journal article resource
 	* @return the journal article resource that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.journal.model.JournalArticleResource deleteJournalArticleResource(
-		com.liferay.portlet.journal.model.JournalArticleResource journalArticleResource)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.journal.model.JournalArticleResource journalArticleResource) {
 		return getService().deleteJournalArticleResource(journalArticleResource);
+	}
+
+	/**
+	* Deletes the journal article resource with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param resourcePrimKey the primary key of the journal article resource
+	* @return the journal article resource that was removed
+	* @throws PortalException if a journal article resource with the primary key could not be found
+	*/
+	public static com.liferay.portlet.journal.model.JournalArticleResource deleteJournalArticleResource(
+		long resourcePrimKey)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deleteJournalArticleResource(resourcePrimKey);
+	}
+
+	/**
+	* @throws PortalException
+	*/
+	public static com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deletePersistedModel(persistedModel);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
@@ -102,12 +111,9 @@ public class JournalArticleResourceLocalServiceUtil {
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return getService().dynamicQuery(dynamicQuery);
 	}
 
@@ -122,12 +128,10 @@ public class JournalArticleResourceLocalServiceUtil {
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
+	public static <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return getService().dynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -143,14 +147,11 @@ public class JournalArticleResourceLocalServiceUtil {
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
+	public static <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator) {
 		return getService()
 				   .dynamicQuery(dynamicQuery, start, end, orderByComparator);
 	}
@@ -160,11 +161,9 @@ public class JournalArticleResourceLocalServiceUtil {
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public static long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
@@ -174,18 +173,25 @@ public class JournalArticleResourceLocalServiceUtil {
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public static long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
 		return getService().dynamicQueryCount(dynamicQuery, projection);
 	}
 
+	public static com.liferay.portlet.journal.model.JournalArticleResource fetchArticleResource(
+		long groupId, java.lang.String articleId) {
+		return getService().fetchArticleResource(groupId, articleId);
+	}
+
+	public static com.liferay.portlet.journal.model.JournalArticleResource fetchArticleResource(
+		java.lang.String uuid, long groupId) {
+		return getService().fetchArticleResource(uuid, groupId);
+	}
+
 	public static com.liferay.portlet.journal.model.JournalArticleResource fetchJournalArticleResource(
-		long resourcePrimKey)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long resourcePrimKey) {
 		return getService().fetchJournalArticleResource(resourcePrimKey);
 	}
 
@@ -195,13 +201,45 @@ public class JournalArticleResourceLocalServiceUtil {
 	* @param uuid the journal article resource's UUID
 	* @param groupId the primary key of the group
 	* @return the matching journal article resource, or <code>null</code> if a matching journal article resource could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.journal.model.JournalArticleResource fetchJournalArticleResourceByUuidAndGroupId(
-		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long groupId) {
 		return getService()
 				   .fetchJournalArticleResourceByUuidAndGroupId(uuid, groupId);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
+		return getService().getActionableDynamicQuery();
+	}
+
+	public static com.liferay.portlet.journal.model.JournalArticleResource getArticleResource(
+		long articleResourcePrimKey)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getArticleResource(articleResourcePrimKey);
+	}
+
+	public static long getArticleResourcePrimKey(long groupId,
+		java.lang.String articleId) {
+		return getService().getArticleResourcePrimKey(groupId, articleId);
+	}
+
+	public static long getArticleResourcePrimKey(java.lang.String uuid,
+		long groupId, java.lang.String articleId) {
+		return getService().getArticleResourcePrimKey(uuid, groupId, articleId);
+	}
+
+	public static java.util.List<com.liferay.portlet.journal.model.JournalArticleResource> getArticleResources(
+		long groupId) {
+		return getService().getArticleResources(groupId);
+	}
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public static java.lang.String getBeanIdentifier() {
+		return getService().getBeanIdentifier();
 	}
 
 	/**
@@ -210,25 +248,11 @@ public class JournalArticleResourceLocalServiceUtil {
 	* @param resourcePrimKey the primary key of the journal article resource
 	* @return the journal article resource
 	* @throws PortalException if a journal article resource with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.journal.model.JournalArticleResource getJournalArticleResource(
 		long resourcePrimKey)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getJournalArticleResource(resourcePrimKey);
-	}
-
-	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getActionableDynamicQuery();
-	}
-
-	public static com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -238,12 +262,10 @@ public class JournalArticleResourceLocalServiceUtil {
 	* @param groupId the primary key of the group
 	* @return the matching journal article resource
 	* @throws PortalException if a matching journal article resource could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.journal.model.JournalArticleResource getJournalArticleResourceByUuidAndGroupId(
 		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .getJournalArticleResourceByUuidAndGroupId(uuid, groupId);
 	}
@@ -258,11 +280,9 @@ public class JournalArticleResourceLocalServiceUtil {
 	* @param start the lower bound of the range of journal article resources
 	* @param end the upper bound of the range of journal article resources (not inclusive)
 	* @return the range of journal article resources
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.journal.model.JournalArticleResource> getJournalArticleResources(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int start, int end) {
 		return getService().getJournalArticleResources(start, end);
 	}
 
@@ -270,33 +290,15 @@ public class JournalArticleResourceLocalServiceUtil {
 	* Returns the number of journal article resources.
 	*
 	* @return the number of journal article resources
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getJournalArticleResourcesCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getJournalArticleResourcesCount() {
 		return getService().getJournalArticleResourcesCount();
 	}
 
-	/**
-	* Updates the journal article resource in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param journalArticleResource the journal article resource
-	* @return the journal article resource that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.journal.model.JournalArticleResource updateJournalArticleResource(
-		com.liferay.portlet.journal.model.JournalArticleResource journalArticleResource)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().updateJournalArticleResource(journalArticleResource);
-	}
-
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
+	public static com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -308,48 +310,15 @@ public class JournalArticleResourceLocalServiceUtil {
 		getService().setBeanIdentifier(beanIdentifier);
 	}
 
-	public static void deleteArticleResource(long groupId,
-		java.lang.String articleId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteArticleResource(groupId, articleId);
-	}
-
-	public static com.liferay.portlet.journal.model.JournalArticleResource fetchArticleResource(
-		long groupId, java.lang.String articleId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().fetchArticleResource(groupId, articleId);
-	}
-
-	public static com.liferay.portlet.journal.model.JournalArticleResource fetchArticleResource(
-		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().fetchArticleResource(uuid, groupId);
-	}
-
-	public static com.liferay.portlet.journal.model.JournalArticleResource getArticleResource(
-		long articleResourcePrimKey)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getArticleResource(articleResourcePrimKey);
-	}
-
-	public static long getArticleResourcePrimKey(long groupId,
-		java.lang.String articleId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getArticleResourcePrimKey(groupId, articleId);
-	}
-
-	public static long getArticleResourcePrimKey(java.lang.String uuid,
-		long groupId, java.lang.String articleId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getArticleResourcePrimKey(uuid, groupId, articleId);
-	}
-
-	public static java.util.List<com.liferay.portlet.journal.model.JournalArticleResource> getArticleResources(
-		long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getArticleResources(groupId);
+	/**
+	* Updates the journal article resource in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param journalArticleResource the journal article resource
+	* @return the journal article resource that was updated
+	*/
+	public static com.liferay.portlet.journal.model.JournalArticleResource updateJournalArticleResource(
+		com.liferay.portlet.journal.model.JournalArticleResource journalArticleResource) {
+		return getService().updateJournalArticleResource(journalArticleResource);
 	}
 
 	public static JournalArticleResourceLocalService getService() {

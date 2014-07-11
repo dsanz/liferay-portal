@@ -331,7 +331,9 @@
 		</execute>
 
 		<execute macro="WebContent#addPGViaWCD">
+			<var name="localizedBasicWebContent" value="Contenido web básico" />
 			<var name="localizedTitle" value="true" />
+			<var name="lowercaseLanguageCode" value="es" />
 			<var name="webContentContent" value="${webContentContent}" />
 			<var name="webContentTitle" value="${webContentTitle}" />
 		</execute>
@@ -374,7 +376,7 @@
 		</execute>
 	</command>
 
-	<command name="SiteTemplateLocalization" priority="5">
+	<command known-issues="LPS-47822" name="SiteTemplateLocalization" priority="5">
 		<property name="web.plugins.includes" value="kaleo-web" />
 
 		<var name="currentSiteLanguages" value="English (United States),German (Germany),Spanish (Spain)" />

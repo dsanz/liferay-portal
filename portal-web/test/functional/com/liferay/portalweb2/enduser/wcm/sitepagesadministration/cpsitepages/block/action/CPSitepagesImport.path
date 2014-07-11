@@ -45,7 +45,7 @@
 </tr>
 <tr>
 	<td>CANCEL_BUTTON</td>
-	<td>//button[contains(.,'Cancel')]</td>
+	<td>//a[contains(@class,'btn-cancel')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -55,7 +55,22 @@
 </tr>
 <tr>
 	<td>PERMISSIONS_CHECKBOX</td>
-	<td>//input[@id='_156_PERMISSIONSCheckbox']</td>
+	<td>//input[@id='_156_PERMISSIONS']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_ERROR_MESSAGE_HEADER</td>
+	<td>//h4[@class='upload-error-message']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_ERROR_MESSAGE</td>
+	<td>//span[@class='error-message']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VALIDATION_ERROR_LIST_ITEM</td>
+	<td>//ul[@class='error-list-items']</td>
 	<td></td>
 </tr>
 <tr>
@@ -112,17 +127,17 @@
 </tr>
 <tr>
 	<td>PAGES_SITE_PAGES_SETTINGS_CHECKBOX</td>
-	<td>//input[@id='_156_LAYOUT_SET_SETTINGSCheckbox']</td>
+	<td>//input[@id='_156_LAYOUT_SET_SETTINGS']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGES_THEME_SETTINGS_CHECKBOX</td>
-	<td>//input[@id='_156_THEME_REFERENCECheckbox']</td>
+	<td>//input[@id='_156_THEME_REFERENCE']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGES_LOGO_CHECKBOX</td>
-	<td>//input[@id='_156_LOGOCheckbox']</td>
+	<td>//input[@id='_156_LOGO']</td>
 	<td></td>
 </tr>
 <tr>

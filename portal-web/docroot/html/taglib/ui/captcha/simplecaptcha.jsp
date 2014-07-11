@@ -36,9 +36,9 @@ catch (CaptchaMaxChallengesException cmce) {
 
 <c:if test="<%= captchaEnabled %>">
 	<div class="taglib-captcha">
-		<img alt="<liferay-ui:message key="text-to-identify" />" class="captcha" id="<portlet:namespace />captcha" src="<%= url %>" />
+		<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="text-to-identify" />" class="captcha" id="<portlet:namespace />captcha" src="<%= url %>" />
 
-		<liferay-ui:icon cssClass="refresh" id="refreshCaptcha" image="../portlet/refresh" label="<%= false %>" localizeMessage="<%= true %>" message="refresh-captcha" url="javascript:;" />
+		<liferay-ui:icon cssClass="refresh" iconCssClass="icon-refresh" id="refreshCaptcha" label="<%= false %>" localizeMessage="<%= true %>" message="refresh-captcha" url="javascript:;" />
 
 		<aui:input label="text-verification" name="captchaText" size="10" type="text" value="">
 			<aui:validator name="required" />

@@ -74,14 +74,44 @@ if (Validator.isNotNull(historyKey)) {
 			</aui:button-row>
 		</c:when>
 		<c:otherwise>
-			<div class="taglib-form-navigator row-fluid" id="<portlet:namespace />tabs">
+
+			<%
+			String wrapperCssClass = StringPool.BLANK;
+
+			if (displayStyle.equals("steps")) {
+				wrapperCssClass = "form-steps";
+			}
+			%>
+
+			<div class="<%= wrapperCssClass %>" id="<portlet:namespace />tabs">
+				<liferay-util:buffer var="formNavigatorBottom">
+					<c:if test="<%= showButtons %>">
+						<aui:button-row>
+							<aui:button primary="<%= true %>" type="submit" />
+
+							<aui:button href="<%= backURL %>" type="cancel" />
+						</aui:button-row>
+					</c:if>
+
+					<%= Validator.isNotNull(htmlBottom) ? htmlBottom : StringPool.BLANK %>
+				</liferay-util:buffer>
+
 				<liferay-util:buffer var="formSectionsBuffer">
-					<div class="form-navigator-content span8">
+
+					<%
+					String contentCssClass = "form-navigator-content";
+
+					if (!displayStyle.equals("steps")) {
+						contentCssClass += " col-md-8";
+					}
+					%>
+
+					<div class="<%= contentCssClass %>">
 						<%@ include file="/html/taglib/ui/form_navigator/sections.jspf" %>
 					</div>
 				</liferay-util:buffer>
 
-				<ul class="form-navigator nav nav-list span4 well">
+				<ul class="col-md-4 form-navigator list-group nav">
 					<%= Validator.isNotNull(htmlTop) ? htmlTop : StringPool.BLANK %>
 
 					<%
@@ -103,7 +133,7 @@ if (Validator.isNotNull(historyKey)) {
 					%>
 
 							<c:if test="<%= Validator.isNotNull(category) %>">
-								<li class="nav-header"><liferay-ui:message key="<%= category %>" /></li>
+								<li class="list-group-item nav-header "><liferay-ui:message key="<%= category %>" /></li>
 							</c:if>
 
 							<%
@@ -112,6 +142,8 @@ if (Validator.isNotNull(historyKey)) {
 
 								error = true;
 							}
+
+							int step = 1;
 
 							for (String section : sections) {
 								String sectionId = namespace + _getSectionId(section);
@@ -122,10 +154,10 @@ if (Validator.isNotNull(historyKey)) {
 									continue;
 								}
 
-								String cssClass = StringPool.BLANK;
+								String cssClass = "list-group-item tab";
 
 								if (sectionId.equals(namespace + errorSection)) {
-									cssClass += "section-error";
+									cssClass += " section-error";
 
 									curSection = section;
 								}
@@ -140,16 +172,28 @@ if (Validator.isNotNull(historyKey)) {
 							%>
 
 								<li class="<%= cssClass %>" data-sectionId="<%= sectionId %>" id="<%= sectionId %>Tab">
-									<a href="#<%= sectionId %>" id="<%= sectionId %>Link">
+									<a class="tab-label" href="#<%= sectionId %>" id="<%= sectionId %>Link">
 										<span class="badge badge-important error-notice">!</span>
 
-										<liferay-ui:message key="<%= section %>" />
+										<c:choose>
+											<c:when test='<%= displayStyle.equals("steps") %>'>
+												<span class="number"><liferay-ui:message key="<%= String.valueOf(step) %>" /></span>
+
+												<span class="message"><liferay-ui:message key="<%= section %>" /></span>
+
+												<aui:icon cssClass="tab-icon" image="long-arrow-right" />
+											</c:when>
+											<c:otherwise>
+												<liferay-ui:message key="<%= section %>" />
+											</c:otherwise>
+										</c:choose>
 
 										<span class="modified-notice"> (<liferay-ui:message key="modified" />) </span>
 									</a>
 								</li>
 
 							<%
+								step++;
 							}
 							%>
 
@@ -158,21 +202,19 @@ if (Validator.isNotNull(historyKey)) {
 					}
 					%>
 
-					<c:if test="<%= showButtons %>">
-						<aui:button-row>
-							<aui:button primary="<%= true %>" type="submit" />
-
-							<aui:button href="<%= backURL %>" type="cancel" />
-						</aui:button-row>
+					<c:if test='<%= !displayStyle.equals("steps") %>'>
+						<%= formNavigatorBottom %>
 					</c:if>
-
-					<%= Validator.isNotNull(htmlBottom) ? htmlBottom : StringPool.BLANK %>
 				</ul>
 
 				<%= formSectionsBuffer %>
+
+				<c:if test='<%= displayStyle.equals("steps") %>'>
+					<%= formNavigatorBottom %>
+				</c:if>
 			</div>
 
-			<aui:script use="aui-event-input,aui-tabview,aui-url,history,io-form">
+			<aui:script use="anim,aui-event-input,aui-tabview,aui-url,history,io-form,scrollview">
 				var formNode = A.one('#<portlet:namespace /><%= formName %>');
 
 				Liferay.component(
@@ -190,12 +232,32 @@ if (Validator.isNotNull(historyKey)) {
 
 				var tabview = Liferay.component('<portlet:namespace /><%= formName %>Tabview');
 
-				var history = new A.HistoryHash();
+				<c:if test='<%= displayStyle.equals("steps") %>'>
+					var listNode = tabview.get('listNode');
+
+					var scrollAnim = new A.Anim(
+						{
+							duration: 0.3,
+							node: listNode,
+							to: {
+								scrollLeft: function() {
+									var activeTabNode = tabview.getActiveTab();
+
+									var scrollLeft = listNode.get('scrollLeft');
+
+									return (activeTabNode.getX() + scrollLeft) - listNode.getX();
+								}
+							}
+						}
+					);
+				</c:if>
 
 				function selectTabBySectionId(sectionId) {
 					var instance = this;
 
-					var tab = A.Widget.getByNode('#' + sectionId + 'Tab');
+					var tabNode = A.one('#' + sectionId + 'Tab');
+
+					var tab = A.Widget.getByNode(tabNode);
 
 					var tabIndex = tabview.indexOf(tab);
 
@@ -204,6 +266,14 @@ if (Validator.isNotNull(historyKey)) {
 					}
 
 					updateRedirectForSectionId(sectionId);
+
+					<c:if test='<%= displayStyle.equals("steps") %>'>
+						var listNodeRegion = listNode.get('region');
+
+						if (tabNode && !tabNode.inRegion(listNodeRegion, true)) {
+							scrollAnim.run();
+						}
+					</c:if>
 
 					Liferay.fire('formNavigator:reveal' + sectionId);
 				};
@@ -247,6 +317,8 @@ if (Validator.isNotNull(historyKey)) {
 						redirect.val(url.toString());
 					}
 				}
+
+				var history = new A.HistoryHash();
 
 				tabview.after(
 					'selectionChange',
@@ -339,35 +411,44 @@ if (Validator.isNotNull(historyKey)) {
 
 					formNode.on('autofields:update', updateSectionError);
 
-					Liferay.after(
-						'form:registered',
-						function(event) {
-							var form = event.form;
+					var updateSectionOnError = function(event) {
+						var form = event.form;
 
-							if (form.formNode.compareTo(formNode)) {
-								var validator = form.formValidator;
+						if (form.formNode.compareTo(formNode)) {
+							var validator = form.formValidator;
 
-								validator.on(
-									'submitError',
-									function() {
-										var errorClass = validator.get('errorClass');
+							validator.on(
+								'submitError',
+								function() {
+									var errorClass = validator.get('errorClass');
 
-										var errorField = formNode.one('.' + errorClass);
+									var errorField = formNode.one('.' + errorClass);
 
-										if (errorField) {
-											var errorSection = errorField.ancestor('.form-section');
+									if (errorField) {
+										var errorSection = errorField.ancestor('.form-section');
 
-											var errorSectionId = errorSection.attr('id');
+										var errorSectionId = errorSection.attr('id');
 
-											selectTabBySectionId(errorSectionId);
+										selectTabBySectionId(errorSectionId);
 
-											updateSectionError();
-										}
+										updateSectionError();
 									}
-								);
-							}
+								}
+							);
 						}
-					);
+					};
+
+					var detachUpdateSection = function(event) {
+						if (event.portletId === '<%= portletDisplay.getRootPortletId() %>') {
+							Liferay.detach('form:registered', updateSectionOnError);
+
+							Liferay.detach('destroyPortlet', detachUpdateSection);
+						}
+					};
+
+					Liferay.after('form:registered', updateSectionOnError);
+
+					Liferay.on('destroyPortlet', detachUpdateSection);
 				}
 			</aui:script>
 		</c:otherwise>

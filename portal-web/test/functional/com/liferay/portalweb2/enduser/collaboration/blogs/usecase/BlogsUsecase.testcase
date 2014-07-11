@@ -21,6 +21,11 @@
 	</set-up>
 
 	<tear-down>
+		<execute macro="User#logoutAndLoginPG">
+			<var name="userLoginEmailAddress" value="test@liferay.com" />
+			<var name="userLoginFullName" value="Test Test" />
+		</execute>
+
 		<execute macro="BlogsEntry#tearDownCP" />
 
 		<execute macro="BlogsPortlet#tearDownConfigurationScopePG" />
@@ -67,6 +72,10 @@
 
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Asset Publisher" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Asset Publisher Page" />
 		</execute>
 
 		<execute macro="BlogsEntry#viewAbstractEntryViaAPPG">
@@ -238,6 +247,149 @@
 		</execute>
 	</command>
 
+	<command name="ImportBlogsCommentLAR" priority="5">
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="BlogsEntry#addPG">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="BlogsEntry#gotoPG">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="BlogsEntry#viewPG">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="BlogsEntryComment#addPG">
+			<var name="entryComment" value="Blogs Entry Comment" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="BlogsEntryComment#viewPG">
+			<var name="entryComment" value="Blogs Entry Comment" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+			<var name="userFullName" value="Test Test" />
+		</execute>
+
+		<execute macro="LAR#exportPortlet">
+			<var name="larFileName" value="Blogs.portlet.lar" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="BlogsEntry#tearDownCP" />
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="LAR#importPortlet">
+			<var name="larFileName" value="Blogs.portlet.lar" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="BlogsEntry#gotoPG">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="BlogsEntry#viewPG">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="BlogsEntryComment#viewPG">
+			<var name="entryComment" value="Blogs Entry Comment" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+			<var name="userFullName" value="Test Test" />
+		</execute>
+	</command>
+
+	<command name="ViewBlogsEntriesAsGuestViaAP" priority="4">
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Asset Publisher" />
+		</execute>
+
+		<execute macro="BlogsEntry#addPG">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="BlogsEntry#addPG">
+			<var name="entryContent" value="Blogs Entry Content 2" />
+			<var name="entryTitle" value="Blogs Entry Title 2" />
+		</execute>
+
+		<execute macro="BlogsEntry#removeViewPermissionsPG">
+			<var name="entryTitle" value="Blogs Entry Title 2" />
+			<var name="roleName" value="Guest" />
+		</execute>
+
+		<execute macro="User#logoutPG" />
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="BlogsEntry#gotoPG">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="BlogsEntry#viewPG">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="BlogsEntry#viewNoPG">
+			<var name="entryTitle" value="Blogs Entry Title 2" />
+		</execute>
+
+		<execute macro="BlogsEntry#viewEntryViaAPPG">
+			<var name="assetTitle" value="Blogs Entry Title" />
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="BlogsEntry#viewNoEntryViaAPPG">
+			<var name="assetTitle" value="Blogs Entry Title 2" />
+			<var name="entryContent" value="Blogs Entry Content 2" />
+			<var name="entryTitle" value="Blogs Entry Title 2" />
+		</execute>
+	</command>
+
 	<command name="ViewBlogsEntriesWithSpecialCharactersOnPublicAndPrivateVirtualHostPages" priority="3">
 		<var name="entryTitleSpecialCharacter" value="true" />
 		<var name="privatePageVirtualHostURL" value="www.baker.com" />
@@ -251,10 +403,14 @@
 			<var name="pageName" value="${pageName}" />
 		</execute>
 
+		<execute macro="BlogsEntry#gotoPG">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle"><![CDATA[Blogs Entry Title !@? ...!@#$%^&*(){.,:;'p[]"}]]></var>
+		</execute>
+
 		<execute macro="BlogsEntry#viewPG">
 			<var name="entryContent" value="Blogs Entry Content" />
 			<var name="entryTitle"><![CDATA[Blogs Entry Title !@? ...!@#$%^&*(){.,:;'p[]"}]]></var>
-			<var name="entryTitleSpecialCharacter" value="${entryTitleSpecialCharacter}" />
 		</execute>
 
 		<execute macro="Page#gotoCP">
@@ -318,6 +474,11 @@
 			<var name="entryTitle"><![CDATA[Blogs Entry2 Title !@#$%^&*(){['.:;"]}]]></var>
 		</execute>
 
+		<execute macro="BlogsEntry#gotoPG">
+			<var name="entryContent" value="Blogs Entry2 Content" />
+			<var name="entryTitle"><![CDATA[Blogs Entry2 Title !@#$%^&*(){['.:;"]}]]></var>
+		</execute>
+
 		<execute macro="BlogsEntry#viewPG">
 			<var name="entryContent" value="Blogs Entry2 Content" />
 			<var name="entryTitle"><![CDATA[Blogs Entry2 Title !@#$%^&*(){['.:;"]}]]></var>
@@ -342,10 +503,14 @@
 			<var name="portletName" value="${portletName}" />
 		</execute>
 
+		<execute macro="BlogsEntry#gotoPG">
+			<var name="entryContent" value="Blogs Entry2 Content" />
+			<var name="entryTitle"><![CDATA[Blogs Entry2 Title !@#$%^&*(){['.:;"]}]]></var>
+		</execute>
+
 		<execute macro="BlogsEntry#viewPG">
 			<var name="entryContent" value="Blogs Entry2 Content" />
 			<var name="entryTitle"><![CDATA[Blogs Entry2 Title !@#$%^&*(){['.:;"]}]]></var>
-			<var name="entryTitleSpecialCharacter" value="${entryTitleSpecialCharacter}" />
 		</execute>
 
 		<execute macro="User#logoutPG" />
@@ -550,6 +715,11 @@
 
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="BlogsEntry#gotoPG">
+			<var name="entryContent" value="${entryContent}" />
+			<var name="entryTitle" value="${entryTitle}" />
 		</execute>
 
 		<execute macro="BlogsEntry#viewPG">

@@ -55,8 +55,8 @@
 		"isElementNotPresent", "isElementPresent", "isElementPresentAfterWait",
 		"isIgnorableErrorLine", "isLowerCase", "isNotChecked",
 		"isNotPartialText", "isNotText", "isNotValue", "isNotVisible",
-		"isTextNotPresent", "isTextPresent", "isVisible", "isUpperCase",
-		"matches", "matchesIgnoreCase", "startsWith"
+		"isTCatEnabled", "isTextNotPresent", "isTextPresent", "isVisible",
+		"isUpperCase", "matches", "matchesIgnoreCase", "startsWith"
 	]>
 
 	<#assign methodName = method?substring(x + 1, y)>
@@ -100,7 +100,7 @@
 
 				<#assign parameter = parameter?trim>
 
-				RuntimeVariables.evaluateVariable("${parameter}", ${variableContext})
+				RuntimeVariables.evaluateVariable("${seleniumBuilderFileUtil.escapeHtml(parameter)}", ${variableContext})
 
 				<#if methodParameter_has_next>
 					,
@@ -125,7 +125,11 @@
 		<#assign group = varElement.attributeValue("group")>
 	</#if>
 
-	${variableContext}.put("${varName}", RuntimeVariables.replaceRegularExpression("${input}", "${pattern}", ${group}));
+	${variableContext}.put("${varName}", RuntimeVariables.replaceRegularExpression(RuntimeVariables.evaluateVariable("${input}", ${variableContext}), "${pattern}", ${group}));
+<#elseif varElement.attributeValue("property-value")??>
+	<#assign propertyValue = varElement.attributeValue("property-value")?upper_case>
+
+	${variableContext}.put("${varName}", TestPropsValues.${propertyValue?replace(".", "_")});
 <#else>
 	${variableContext}.put("${varName}", RuntimeVariables.evaluateVariable("${seleniumBuilderFileUtil.escapeJava(varValue)}", ${variableContext}));
 </#if>

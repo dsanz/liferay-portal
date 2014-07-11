@@ -30,7 +30,7 @@
 </tr>
 <tr>
 	<td>SELECT_STRUCTURE</td>
-	<td>//fieldset[contains(@class,'fieldset') and contains(@class,'article-structure-toolbar')]/div/div/span[3]/a/span</td>
+	<td>//fieldset[contains(@class,'fieldset') and contains(@class,'article-structure-toolbar')]/div/div/span[2]/a/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -45,7 +45,7 @@
 </tr>
 <tr>
 	<td>TITLE_FIELD_LOCALIZED</td>
-	<td>//input[@id='_15_title__${key_languageKey}']</td>
+	<td>//input[contains(@id,'_15_title__${key_lowercaseLanguageCode}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -59,13 +59,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>TEXT_FIELD</td>
+	<td>//div[@data-fieldname='${key_fieldName}']/input</td>
+	<td></td>
+</tr>
+<tr>
 	<td>BODY_FIELD</td>
 	<td>//body</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SEARCHABLE_CHECKBOX</td>
-	<td>//input[@id='_15_indexableCheckbox']</td>
+	<td>//input[@id='_15_indexable']</td>
 	<td></td>
 </tr>
 <tr>
@@ -95,7 +100,7 @@
 </tr>
 <tr>
 	<td>CANCEL_BUTTON</td>
-	<td>//button[contains(.,'Cancel')]</td>
+	<td>//a[contains(@class,'btn-cancel')]</td>
 	<td></td>
 </tr>
 <tr>

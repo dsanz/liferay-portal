@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.util;
 
+import com.liferay.portal.service.ServiceContext;
+
 import java.util.Map;
 import java.util.Properties;
 
@@ -342,7 +344,7 @@ public class PropertiesParamUtil {
 		Map<String, String[]> parameterMap = request.getParameterMap();
 
 		for (String param : parameterMap.keySet()) {
-			if (param.startsWith(prefix) && !param.endsWith("--Checkbox")) {
+			if (param.startsWith(prefix)) {
 				String key = param.substring(
 					prefix.length(), param.length() - 2);
 
@@ -361,13 +363,32 @@ public class PropertiesParamUtil {
 		UnicodeProperties properties = new UnicodeProperties(true);
 
 		for (String param : portletRequest.getParameterMap().keySet()) {
-			if (param.startsWith(prefix) && !param.endsWith("--Checkbox")) {
+			if (param.startsWith(prefix)) {
 				String key = param.substring(
 					prefix.length(), param.length() - 2);
 
 				String[] values = portletRequest.getParameterValues(param);
 
 				String value = StringUtil.merge(values);
+
+				properties.setProperty(key, value);
+			}
+		}
+
+		return properties;
+	}
+
+	public static UnicodeProperties getProperties(
+		ServiceContext serviceContext, String prefix) {
+
+		UnicodeProperties properties = new UnicodeProperties(true);
+
+		for (String param : serviceContext.getAttributes().keySet()) {
+			if (param.startsWith(prefix)) {
+				String key = param.substring(
+					prefix.length(), param.length() - 2);
+
+				String value = ParamUtil.getString(serviceContext, param);
 
 				properties.setProperty(key, value);
 			}

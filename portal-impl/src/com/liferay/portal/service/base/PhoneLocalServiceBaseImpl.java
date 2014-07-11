@@ -81,11 +81,10 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param phone the phone
 	 * @return the phone that was added
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public Phone addPhone(Phone phone) throws SystemException {
+	public Phone addPhone(Phone phone) {
 		phone.setNew(true);
 
 		return phonePersistence.update(phone);
@@ -108,12 +107,10 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param phoneId the primary key of the phone
 	 * @return the phone that was removed
 	 * @throws PortalException if a phone with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public Phone deletePhone(long phoneId)
-		throws PortalException, SystemException {
+	public Phone deletePhone(long phoneId) throws PortalException {
 		return phonePersistence.remove(phoneId);
 	}
 
@@ -122,11 +119,10 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param phone the phone
 	 * @return the phone that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public Phone deletePhone(Phone phone) throws SystemException {
+	public Phone deletePhone(Phone phone) {
 		return phonePersistence.remove(phone);
 	}
 
@@ -143,12 +139,9 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery) {
 		return phonePersistence.findWithDynamicQuery(dynamicQuery);
 	}
 
@@ -163,12 +156,10 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param start the lower bound of the range of model instances
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @return the range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end) {
 		return phonePersistence.findWithDynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -184,12 +175,10 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end, OrderByComparator<T> orderByComparator) {
 		return phonePersistence.findWithDynamicQuery(dynamicQuery, start, end,
 			orderByComparator);
 	}
@@ -199,11 +188,9 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public long dynamicQueryCount(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public long dynamicQueryCount(DynamicQuery dynamicQuery) {
 		return phonePersistence.countWithDynamicQuery(dynamicQuery);
 	}
 
@@ -213,16 +200,15 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param dynamicQuery the dynamic query
 	 * @param projection the projection to apply to the query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public long dynamicQueryCount(DynamicQuery dynamicQuery,
-		Projection projection) throws SystemException {
+		Projection projection) {
 		return phonePersistence.countWithDynamicQuery(dynamicQuery, projection);
 	}
 
 	@Override
-	public Phone fetchPhone(long phoneId) throws SystemException {
+	public Phone fetchPhone(long phoneId) {
 		return phonePersistence.fetchByPrimaryKey(phoneId);
 	}
 
@@ -232,11 +218,9 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param uuid the phone's UUID
 	 * @param  companyId the primary key of the company
 	 * @return the matching phone, or <code>null</code> if a matching phone could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Phone fetchPhoneByUuidAndCompanyId(String uuid, long companyId)
-		throws SystemException {
+	public Phone fetchPhoneByUuidAndCompanyId(String uuid, long companyId) {
 		return phonePersistence.fetchByUuid_C_First(uuid, companyId, null);
 	}
 
@@ -246,16 +230,14 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param phoneId the primary key of the phone
 	 * @return the phone
 	 * @throws PortalException if a phone with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Phone getPhone(long phoneId) throws PortalException, SystemException {
+	public Phone getPhone(long phoneId) throws PortalException {
 		return phonePersistence.findByPrimaryKey(phoneId);
 	}
 
 	@Override
-	public ActionableDynamicQuery getActionableDynamicQuery()
-		throws SystemException {
+	public ActionableDynamicQuery getActionableDynamicQuery() {
 		ActionableDynamicQuery actionableDynamicQuery = new DefaultActionableDynamicQuery();
 
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.PhoneLocalServiceUtil.getService());
@@ -268,8 +250,7 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	protected void initActionableDynamicQuery(
-		ActionableDynamicQuery actionableDynamicQuery)
-		throws SystemException {
+		ActionableDynamicQuery actionableDynamicQuery) {
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.PhoneLocalServiceUtil.getService());
 		actionableDynamicQuery.setClass(Phone.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
@@ -279,11 +260,10 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 
 	@Override
 	public ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		final PortletDataContext portletDataContext) throws SystemException {
+		final PortletDataContext portletDataContext) {
 		final ExportActionableDynamicQuery exportActionableDynamicQuery = new ExportActionableDynamicQuery() {
 				@Override
-				public long performCount()
-					throws PortalException, SystemException {
+				public long performCount() throws PortalException {
 					ManifestSummary manifestSummary = portletDataContext.getManifestSummary();
 
 					StagedModelType stagedModelType = getStagedModelType();
@@ -327,9 +307,8 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 
 		exportActionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				@SuppressWarnings("unused")
 				public void performAction(Object object)
-					throws PortalException, SystemException {
+					throws PortalException {
 					Phone stagedModel = (Phone)object;
 
 					StagedModelDataHandlerUtil.exportStagedModel(portletDataContext,
@@ -342,9 +321,18 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 		return exportActionableDynamicQuery;
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
+		throws PortalException {
+		return phoneLocalService.deletePhone((Phone)persistedModel);
+	}
+
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return phonePersistence.findByPrimaryKey(primaryKeyObj);
 	}
 
@@ -355,11 +343,10 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param  companyId the primary key of the company
 	 * @return the matching phone
 	 * @throws PortalException if a matching phone could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public Phone getPhoneByUuidAndCompanyId(String uuid, long companyId)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return phonePersistence.findByUuid_C_First(uuid, companyId, null);
 	}
 
@@ -373,10 +360,9 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param start the lower bound of the range of phones
 	 * @param end the upper bound of the range of phones (not inclusive)
 	 * @return the range of phones
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Phone> getPhones(int start, int end) throws SystemException {
+	public List<Phone> getPhones(int start, int end) {
 		return phonePersistence.findAll(start, end);
 	}
 
@@ -384,10 +370,9 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * Returns the number of phones.
 	 *
 	 * @return the number of phones
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getPhonesCount() throws SystemException {
+	public int getPhonesCount() {
 		return phonePersistence.countAll();
 	}
 
@@ -396,11 +381,10 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param phone the phone
 	 * @return the phone that was updated
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public Phone updatePhone(Phone phone) throws SystemException {
+	public Phone updatePhone(Phone phone) {
 		return phonePersistence.update(phone);
 	}
 
@@ -690,7 +674,7 @@ public abstract class PhoneLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param sql the sql query
 	 */
-	protected void runSQL(String sql) throws SystemException {
+	protected void runSQL(String sql) {
 		try {
 			DataSource dataSource = phonePersistence.getDataSource();
 

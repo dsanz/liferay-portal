@@ -20,12 +20,12 @@
 </tr>
 <tr>
 	<td>ERROR_MESSAGE_1</td>
-	<td>xPath=(//div[contains(@class,'alert') and contains(@class,'alert-error')])[1]</td>
+	<td>xPath=(//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))])[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ERROR_MESSAGE_2</td>
-	<td>xPath=(//div[contains(@class,'alert') and contains(@class,'alert-error')])[2]</td>
+	<td>xPath=(//div[contains(@class,'alert') and (contains(@class,'alert-error') or contains(@class,'alert-danger'))])[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -75,17 +75,17 @@
 </tr>
 <tr>
 	<td>CONTENT_FIELD</td>
-	<td>//div[@id='cke_1_contents']/iframe</td>
+	<td>//div[contains(@class,'cke_contents')]/iframe</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ALLOW_PINGBACKS_CHECKBOX</td>
-	<td>//input[@id='_33_allowPingbacksCheckbox']</td>
+	<td>//input[@id='_33_allowPingbacks']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ALLOWS_TRACKBACKS_CHECKBOX</td>
-	<td>//input[@id='_33_allowTrackbacksCheckbox']</td>
+	<td>//input[@id='_33_allowTrackbacks']</td>
 	<td></td>
 </tr>
 <tr>
@@ -143,6 +143,32 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--PERMISSIONS-->
+<tr>
+	<td>PERMISSIONS_VIEWABLE_BY_DROPDOWN</td>
+	<td>//select[contains(@id,'inputPermissionsViewRole')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PERMISSIONS_MORE_OPTIONS_LINK</td>
+	<td>//span[contains(@id,'inputPermissionsShowOptions')]/a[contains(.,'More Options')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PERMISSIONS_HIDE_OPTIONS_LINK</td>
+	<td>//a[contains(@id,'inputPermissionsHideOptions') and contains (.,'Hide Options')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PERMISSIONS_CHECKBOX</td>
+	<td>//tr[contains(.,'${key_roleName}')]//input[@value='${key_permissionDefinitionKey}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
 <!--ABSTRACT-->
 <tr>
 	<td>ABSTRACT_DESCRIPTION_FIELD</td>
@@ -151,7 +177,7 @@
 </tr>
 <tr>
 	<td>ABSTRACT_USE_SMALL_IMAGE_CHECKBOX</td>
-	<td>//input[@id='_33_smallImageCheckbox']</td>
+	<td>//input[@id='_33_smallImage']</td>
 	<td></td>
 </tr>
 <tr>
@@ -171,7 +197,7 @@
 </tr>
 <tr>
 	<td>ABSTRACT_SMALL_IMAGE_FILE_BROWSE_BUTTON</td>
-	<td>//input[@id='_33_smallImageFile']</td>
+	<td>//input[@id='_33_smallFile']</td>
 	<td></td>
 </tr>
 <tr>
@@ -182,7 +208,7 @@
 <!--CATEGORIZATION-->
 <tr>
 	<td>CATEGORIZATION_TOGGLE</td>
-	<td>//div[@class='accordion-toggle' and contains(.,'Categorization')]</td>
+	<td>//div[@class='panel-toggle' and contains(.,'Categorization')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -264,13 +290,13 @@
 </tr>
 <!--RELATED_ASSETS-->
 <tr>
-	<td>RELATED_ASSETS_SELECT_MENULIST</td>
+	<td>RELATED_ASSETS_SELECT</td>
 	<td>//div[contains(@class,'select-existing')]/a[@title='Select']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>RELATED_ASSETS_MENULIST_SELECTION</td>
-	<td>//li[@class='asset-selector' and contains(.,'${key_assetType}')]/a/span</td>
+	<td>//li[contains(@class,'asset-selector') and contains(.,'${key_assetType}')]/a/span</td>
 	<td></td>
 </tr>
 </tbody>

@@ -15,28 +15,30 @@
 package com.liferay.portlet.documentlibrary.trash;
 
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
+import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileShortcutLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
+import com.liferay.portlet.documentlibrary.util.test.DLAppTestUtil;
 import com.liferay.portlet.trash.BaseTrashHandlerTestCase;
 
 import org.junit.Assert;
@@ -76,7 +78,6 @@ public class DLFileShortcutTrashHandlerTest extends BaseTrashHandlerTestCase {
 	}
 
 	@Test
-	@Transactional
 	public void testTrashFileEntry() throws Exception {
 		trashFileEntry();
 	}
@@ -190,10 +191,11 @@ public class DLFileShortcutTrashHandlerTest extends BaseTrashHandlerTestCase {
 			Group group, long parentBaseModelId, ServiceContext serviceContext)
 		throws Exception {
 
-		return DLFolderLocalServiceUtil.addFolder(
-			TestPropsValues.getUserId(), group.getGroupId(), group.getGroupId(),
-			false, parentBaseModelId, ServiceTestUtil.randomString(),
-			StringPool.BLANK, false, serviceContext);
+		Folder folder = DLAppLocalServiceUtil.addFolder(
+			TestPropsValues.getUserId(), group.getGroupId(), parentBaseModelId,
+			RandomTestUtil.randomString(), StringPool.BLANK, serviceContext);
+
+		return (BaseModel<?>)folder.getModel();
 	}
 
 	@Override
@@ -261,8 +263,8 @@ public class DLFileShortcutTrashHandlerTest extends BaseTrashHandlerTestCase {
 	protected void trashFileEntry() throws Exception {
 		Group group = GroupTestUtil.addGroup();
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			group.getGroupId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(group.getGroupId());
 
 		BaseModel<?> parentBaseModel = getParentBaseModel(
 			group, serviceContext);

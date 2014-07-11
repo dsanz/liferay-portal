@@ -14,11 +14,14 @@
 
 package com.liferay.portlet.blogs.action;
 
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.upload.LiferayFileItemException;
+import com.liferay.portal.kernel.upload.UploadException;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.Constants;
@@ -52,6 +55,7 @@ import com.liferay.portlet.blogs.NoSuchEntryException;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
 import com.liferay.portlet.blogs.service.BlogsEntryServiceUtil;
+import com.liferay.portlet.documentlibrary.FileSizeException;
 import com.liferay.portlet.trash.util.TrashUtil;
 
 import java.io.InputStream;
@@ -97,7 +101,23 @@ public class EditEntryAction extends PortletAction {
 			BlogsEntry entry = null;
 			String oldUrlTitle = StringPool.BLANK;
 
-			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
+			UploadException uploadException =
+				(UploadException)actionRequest.getAttribute(
+					WebKeys.UPLOAD_EXCEPTION);
+
+			if (uploadException != null) {
+				if (uploadException.isExceededLiferayFileItemSizeLimit()) {
+					throw new LiferayFileItemException();
+				}
+				else if (uploadException.isExceededSizeLimit()) {
+					throw new FileSizeException(uploadException.getCause());
+				}
+
+				throw new PortalException(uploadException.getCause());
+			}
+			else if (cmd.equals(Constants.ADD) ||
+					 cmd.equals(Constants.UPDATE)) {
+
 				Object[] returnValue = updateEntry(actionRequest);
 
 				entry = (BlogsEntry)returnValue[0];
@@ -221,6 +241,8 @@ public class EditEntryAction extends PortletAction {
 					 e instanceof EntrySmallImageNameException ||
 					 e instanceof EntrySmallImageSizeException ||
 					 e instanceof EntryTitleException ||
+					 e instanceof LiferayFileItemException ||
+					 e instanceof FileSizeException ||
 					 e instanceof SanitizerException) {
 
 				SessionErrors.add(actionRequest, e.getClass());
@@ -438,6 +460,7 @@ public class EditEntryAction extends PortletAction {
 		long entryId = ParamUtil.getLong(actionRequest, "entryId");
 
 		String title = ParamUtil.getString(actionRequest, "title");
+		String deckTitle = ParamUtil.getString(actionRequest, "deckTitle");
 		String description = ParamUtil.getString(actionRequest, "description");
 		String content = ParamUtil.getString(actionRequest, "content");
 
@@ -503,7 +526,7 @@ public class EditEntryAction extends PortletAction {
 				// Add entry
 
 				entry = BlogsEntryServiceUtil.addEntry(
-					title, description, content, displayDateMonth,
+					title, deckTitle, description, content, displayDateMonth,
 					displayDateDay, displayDateYear, displayDateHour,
 					displayDateMinute, allowPingbacks, allowTrackbacks,
 					trackbacks, smallImage, smallImageURL, smallImageFileName,
@@ -522,11 +545,11 @@ public class EditEntryAction extends PortletAction {
 				String tempOldUrlTitle = entry.getUrlTitle();
 
 				entry = BlogsEntryServiceUtil.updateEntry(
-					entryId, title, description, content, displayDateMonth,
-					displayDateDay, displayDateYear, displayDateHour,
-					displayDateMinute, allowPingbacks, allowTrackbacks,
-					trackbacks, smallImage, smallImageURL, smallImageFileName,
-					smallImageInputStream, serviceContext);
+					entryId, title, deckTitle, description, content,
+					displayDateMonth, displayDateDay, displayDateYear,
+					displayDateHour, displayDateMinute, allowPingbacks,
+					allowTrackbacks, trackbacks, smallImage, smallImageURL,
+					smallImageFileName, smallImageInputStream, serviceContext);
 
 				if (!tempOldUrlTitle.equals(entry.getUrlTitle())) {
 					oldUrlTitle = tempOldUrlTitle;

@@ -17,10 +17,7 @@
 <%@ include file="/html/portlet/document_library/init.jsp" %>
 
 <%
-dlSettings = DLUtil.getDLSettings(themeDisplay.getSiteGroupId(), request);
-
-String emailFromName = dlSettings.getEmailFromName();
-String emailFromAddress = dlSettings.getEmailFromAddress();
+dlSettings = DLSettings.getInstance(themeDisplay.getSiteGroupId(), request.getParameterMap());
 %>
 
 <liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL">
@@ -47,16 +44,16 @@ String emailFromAddress = dlSettings.getEmailFromAddress();
 
 		<liferay-ui:section>
 			<aui:fieldset>
-				<aui:input cssClass="lfr-input-text-container" label="name" name="preferences--emailFromName--" value="<%= emailFromName %>" />
+				<aui:input cssClass="lfr-input-text-container" label="name" name="preferences--emailFromName--" value="<%= dlSettings.getEmailFromName() %>" />
 
-				<aui:input cssClass="lfr-input-text-container" label="address" name="preferences--emailFromAddress--" value="<%= emailFromAddress %>" />
+				<aui:input cssClass="lfr-input-text-container" label="address" name="preferences--emailFromAddress--" value="<%= dlSettings.getEmailFromAddress() %>" />
 			</aui:fieldset>
 
 			<aui:fieldset cssClass="definition-of-terms" label="definition-of-terms">
 				<dl>
 
 					<%
-					Map<String, String> emailDefinitionTerms = DLUtil.getEmailFromDefinitionTerms(renderRequest, emailFromAddress, emailFromName);
+					Map<String, String> emailDefinitionTerms = DLUtil.getEmailFromDefinitionTerms(renderRequest, dlSettings.getEmailFromAddress(), dlSettings.getEmailFromName());
 
 					for (Map.Entry<String, String> entry : emailDefinitionTerms.entrySet()) {
 					%>
@@ -77,14 +74,14 @@ String emailFromAddress = dlSettings.getEmailFromAddress();
 		</liferay-ui:section>
 
 		<%
-		Map<String, String> emailDefinitionTerms = DLUtil.getEmailDefinitionTerms(renderRequest, emailFromAddress, emailFromName);
+		Map<String, String> emailDefinitionTerms = DLUtil.getEmailDefinitionTerms(renderRequest, dlSettings.getEmailFromAddress(), dlSettings.getEmailFromName());
 		%>
 
 		<liferay-ui:section>
 			<liferay-ui:email-notification-settings
 				emailBody="<%= dlSettings.getEmailFileEntryAddedBodyXml() %>"
 				emailDefinitionTerms="<%= emailDefinitionTerms %>"
-				emailEnabled="<%= dlSettings.getEmailFileEntryAddedEnabled() %>"
+				emailEnabled="<%= dlSettings.isEmailFileEntryAddedEnabled() %>"
 				emailParam="emailFileEntryAdded"
 				emailSubject="<%= dlSettings.getEmailFileEntryAddedSubjectXml() %>"
 			/>
@@ -94,7 +91,7 @@ String emailFromAddress = dlSettings.getEmailFromAddress();
 			<liferay-ui:email-notification-settings
 				emailBody="<%= dlSettings.getEmailFileEntryUpdatedBodyXml() %>"
 				emailDefinitionTerms="<%= emailDefinitionTerms %>"
-				emailEnabled="<%= dlSettings.getEmailFileEntryUpdatedEnabled() %>"
+				emailEnabled="<%= dlSettings.isEmailFileEntryUpdatedEnabled() %>"
 				emailParam="emailFileEntryUpdated"
 				emailSubject="<%= dlSettings.getEmailFileEntryUpdatedSubjectXml() %>"
 			/>

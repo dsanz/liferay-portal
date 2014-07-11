@@ -1,0 +1,7 @@
+<definition>
+	<command name="sikuliType">
+		<execute selenium="sikuliType" />
+
+		<execute argument1="2000" selenium="pause" />
+	</command>
+</definition>

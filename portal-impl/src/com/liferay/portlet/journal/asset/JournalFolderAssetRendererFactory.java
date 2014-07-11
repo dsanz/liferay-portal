@@ -15,7 +15,6 @@
 package com.liferay.portlet.journal.asset;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.security.permission.PermissionChecker;
@@ -46,7 +45,7 @@ public class JournalFolderAssetRendererFactory
 
 	@Override
 	public AssetRenderer getAssetRenderer(long classPK, int type)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		JournalFolder folder = JournalFolderLocalServiceUtil.getFolder(classPK);
 
@@ -61,6 +60,11 @@ public class JournalFolderAssetRendererFactory
 	@Override
 	public String getClassName() {
 		return JournalFolder.class.getName();
+	}
+
+	@Override
+	public String getIconCssClass() {
+		return "icon-folder-close";
 	}
 
 	@Override

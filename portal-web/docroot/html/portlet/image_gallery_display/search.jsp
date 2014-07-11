@@ -42,8 +42,6 @@ else {
 }
 
 String keywords = ParamUtil.getString(request, "keywords");
-
-String[] mediaGalleryMimeTypes = dlSettings.getMediaGalleryMimeTypes();
 %>
 
 <liferay-portlet:renderURL varImpl="searchURL">
@@ -73,12 +71,12 @@ String[] mediaGalleryMimeTypes = dlSettings.getMediaGalleryMimeTypes();
 	portletURL.setParameter("searchFolderIds", String.valueOf(searchFolderIds));
 	portletURL.setParameter("keywords", keywords);
 
-	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, null, LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false));
+	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, null, LanguageUtil.format(request, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false));
 
 	try {
 		SearchContext searchContext = SearchContextFactory.getInstance(request);
 
-		searchContext.setAttribute("mimeTypes", mediaGalleryMimeTypes);
+		searchContext.setAttribute("mimeTypes", dlPortletInstanceSettings.getMimeTypes());
 		searchContext.setAttribute("paginationType", "more");
 		searchContext.setEnd(searchContainer.getEnd());
 		searchContext.setFolderIds(folderIdsArray);
@@ -124,7 +122,7 @@ String[] mediaGalleryMimeTypes = dlSettings.getMediaGalleryMimeTypes();
 		long folderId = BeanParamUtil.getLong(folder, request, "folderId", defaultFolderId);
 
 		request.setAttribute("view.jsp-folderId", String.valueOf(folderId));
-		request.setAttribute("view.jsp-mediaGalleryMimeTypes", mediaGalleryMimeTypes);
+		request.setAttribute("view.jsp-mediaGalleryMimeTypes", dlPortletInstanceSettings.getMimeTypes());
 		request.setAttribute("view.jsp-searchContainer", searchContainer);
 		%>
 
@@ -145,7 +143,7 @@ if (searchFolderId > 0) {
 	IGUtil.addPortletBreadcrumbEntries(searchFolderId, request, renderResponse);
 }
 
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "search") + ": " + keywords, currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "search") + ": " + keywords, currentURL);
 %>
 
 <%!

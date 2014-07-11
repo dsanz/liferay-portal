@@ -19,17 +19,23 @@
 		</case>
 	</command>
 
-	<command name="click">
-		<case locator-key1="PAGE_DELETE">
-			<execute function="Click#click" />
+	<command name="assertTextEquals">
+		<case locator-key1="SITE_ADMINISTRATION_NAVIGATION">
+			<execute function="AssertTextEquals#assertPartialText" />
 		</case>
 
+		<case locator-key1="PORTAL_LOCALIZATION_MESSAGE_INFO">
+			<execute function="AssertTextEquals#assertPartialText" />
+		</case>
+
+		<case locator-key1="NODE_NAME">
+			<execute function="AssertTextEquals#assertPartialText" />
+		</case>
+	</command>
+
+	<command name="click">
 		<case comparator="contains" locator1="Link to URL" >
 			<execute function="Click#clickAtNonLiferayNavigation" />
-		</case>
-
-		<case comparator="startsWith" locator1="//ul[@class='nav control-panel-bar-secondary nav-pills']//a[contains(.,">
-			<execute function="Click#clickAtAndWait" />
 		</case>
 
 		<case comparator="startsWith" locator1="link" >

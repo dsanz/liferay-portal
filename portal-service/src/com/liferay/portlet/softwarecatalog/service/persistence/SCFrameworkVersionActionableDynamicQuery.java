@@ -15,7 +15,6 @@
 package com.liferay.portlet.softwarecatalog.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 import com.liferay.portlet.softwarecatalog.model.SCFrameworkVersion;
@@ -23,13 +22,13 @@ import com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionLocalServic
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link SCFrameworkVersionLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link SCFrameworkVersionLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class SCFrameworkVersionActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public SCFrameworkVersionActionableDynamicQuery() throws SystemException {
+	public SCFrameworkVersionActionableDynamicQuery() {
 		setBaseLocalService(SCFrameworkVersionLocalServiceUtil.getService());
 		setClass(SCFrameworkVersion.class);
 

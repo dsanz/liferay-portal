@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.CalendarUtil;
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -29,9 +30,10 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portlet.asset.model.AssetCategory;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.impl.AssetEntryImpl;
-import com.liferay.portlet.asset.service.persistence.AssetCategoryFinderUtil;
+import com.liferay.portlet.asset.service.persistence.AssetCategoryUtil;
 import com.liferay.portlet.asset.service.persistence.AssetEntryFinder;
 import com.liferay.portlet.asset.service.persistence.AssetEntryQuery;
 import com.liferay.util.dao.orm.CustomSQLUtil;
@@ -39,6 +41,7 @@ import com.liferay.util.dao.orm.CustomSQLUtil;
 import java.sql.Timestamp;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -58,7 +61,7 @@ public class AssetEntryFinderImpl
 		AssetEntryFinder.class.getName() + ".findByAndTagIds";
 
 	@Override
-	public int countEntries(AssetEntryQuery entryQuery) throws SystemException {
+	public int countEntries(AssetEntryQuery entryQuery) {
 		Session session = null;
 
 		try {
@@ -87,9 +90,7 @@ public class AssetEntryFinderImpl
 	}
 
 	@Override
-	public List<AssetEntry> findEntries(AssetEntryQuery entryQuery)
-		throws SystemException {
-
+	public List<AssetEntry> findEntries(AssetEntryQuery entryQuery) {
 		Session session = null;
 
 		try {
@@ -108,9 +109,7 @@ public class AssetEntryFinderImpl
 		}
 	}
 
-	protected void buildAllCategoriesSQL(long[] categoryIds, StringBundler sb)
-		throws SystemException {
-
+	protected void buildAllCategoriesSQL(long[] categoryIds, StringBundler sb) {
 		String findByAndCategoryIdsSQL = CustomSQLUtil.get(
 			FIND_BY_AND_CATEGORY_IDS);
 
@@ -120,8 +119,7 @@ public class AssetEntryFinderImpl
 			String sql = null;
 
 			if (PropsValues.ASSET_CATEGORIES_SEARCH_HIERARCHICAL) {
-				List<Long> treeCategoryIds = AssetCategoryFinderUtil.findByG_L(
-					categoryIds[i]);
+				List<Long> treeCategoryIds = getSubcategoryIds(categoryIds[i]);
 
 				if (treeCategoryIds.size() > 1) {
 					sql = StringUtil.replace(
@@ -170,9 +168,7 @@ public class AssetEntryFinderImpl
 		sb.append(StringPool.CLOSE_PARENTHESIS);
 	}
 
-	protected void buildAnyCategoriesSQL(long[] categoryIds, StringBundler sb)
-		throws SystemException {
-
+	protected void buildAnyCategoriesSQL(long[] categoryIds, StringBundler sb) {
 		String sql = CustomSQLUtil.get(FIND_BY_AND_CATEGORY_IDS);
 
 		String categoryIdsString = null;
@@ -181,8 +177,7 @@ public class AssetEntryFinderImpl
 			List<Long> categoryIdsList = new ArrayList<Long>();
 
 			for (long categoryId : categoryIds) {
-				categoryIdsList.addAll(
-					AssetCategoryFinderUtil.findByG_L(categoryId));
+				categoryIdsList.addAll(getSubcategoryIds(categoryId));
 			}
 
 			if (categoryIdsList.isEmpty()) {
@@ -219,8 +214,7 @@ public class AssetEntryFinderImpl
 	}
 
 	protected SQLQuery buildAssetQuerySQL(
-			AssetEntryQuery entryQuery, boolean count, Session session)
-		throws SystemException {
+		AssetEntryQuery entryQuery, boolean count, Session session) {
 
 		StringBundler sb = new StringBundler(64);
 
@@ -468,8 +462,7 @@ public class AssetEntryFinderImpl
 	}
 
 	protected void buildNotAllCategoriesSQL(
-			long[] categoryIds, StringBundler sb)
-		throws SystemException {
+		long[] categoryIds, StringBundler sb) {
 
 		String findByAndCategoryIdsSQL = CustomSQLUtil.get(
 			FIND_BY_AND_CATEGORY_IDS);
@@ -482,8 +475,7 @@ public class AssetEntryFinderImpl
 			String sql = null;
 
 			if (PropsValues.ASSET_CATEGORIES_SEARCH_HIERARCHICAL) {
-				List<Long> treeCategoryIds = AssetCategoryFinderUtil.findByG_L(
-					categoryIds[i]);
+				List<Long> treeCategoryIds = getSubcategoryIds(categoryIds[i]);
 
 				if (treeCategoryIds.size() > 1) {
 					sql = StringUtil.replace(
@@ -530,8 +522,7 @@ public class AssetEntryFinderImpl
 	}
 
 	protected void buildNotAnyCategoriesSQL(
-			long[] notCategoryIds, StringBundler sb)
-		throws SystemException {
+		long[] notCategoryIds, StringBundler sb) {
 
 		sb.append(" AND (NOT ");
 
@@ -543,8 +534,7 @@ public class AssetEntryFinderImpl
 			List<Long> notCategoryIdsList = new ArrayList<Long>();
 
 			for (long notCategoryId : notCategoryIds) {
-				notCategoryIdsList.addAll(
-					AssetCategoryFinderUtil.findByG_L(notCategoryId));
+				notCategoryIdsList.addAll(getSubcategoryIds(notCategoryId));
 			}
 
 			notCategoryIdsString = StringUtil.merge(notCategoryIdsList);
@@ -631,6 +621,19 @@ public class AssetEntryFinderImpl
 		sb.append(StringPool.CLOSE_PARENTHESIS);
 
 		return sb.toString();
+	}
+
+	protected List<Long> getSubcategoryIds(long parentCategoryId) {
+		AssetCategory parentAssetCategory = AssetCategoryUtil.fetchByPrimaryKey(
+			parentCategoryId);
+
+		if (parentAssetCategory == null) {
+			return Collections.emptyList();
+		}
+
+		return ListUtil.toList(
+			AssetCategoryUtil.getDescendants(parentAssetCategory),
+			AssetCategory.CATEGORY_ID_ACCESSOR);
 	}
 
 	protected String getTagIds(long[] tagIds) {

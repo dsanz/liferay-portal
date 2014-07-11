@@ -30,6 +30,31 @@ public class CountryServiceWrapper implements CountryService,
 		_countryService = countryService;
 	}
 
+	@Override
+	public com.liferay.portal.model.Country addCountry(java.lang.String name,
+		java.lang.String a2, java.lang.String a3, java.lang.String number,
+		java.lang.String idd, boolean active)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _countryService.addCountry(name, a2, a3, number, idd, active);
+	}
+
+	@Override
+	public com.liferay.portal.model.Country fetchCountry(long countryId) {
+		return _countryService.fetchCountry(countryId);
+	}
+
+	@Override
+	public com.liferay.portal.model.Country fetchCountryByA2(
+		java.lang.String a2) {
+		return _countryService.fetchCountryByA2(a2);
+	}
+
+	@Override
+	public com.liferay.portal.model.Country fetchCountryByA3(
+		java.lang.String a3) {
+		return _countryService.fetchCountryByA3(a3);
+	}
+
 	/**
 	* Returns the Spring bean ID for this bean.
 	*
@@ -40,6 +65,42 @@ public class CountryServiceWrapper implements CountryService,
 		return _countryService.getBeanIdentifier();
 	}
 
+	@Override
+	public java.util.List<com.liferay.portal.model.Country> getCountries() {
+		return _countryService.getCountries();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Country> getCountries(
+		boolean active) {
+		return _countryService.getCountries(active);
+	}
+
+	@Override
+	public com.liferay.portal.model.Country getCountry(long countryId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _countryService.getCountry(countryId);
+	}
+
+	@Override
+	public com.liferay.portal.model.Country getCountryByA2(java.lang.String a2)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _countryService.getCountryByA2(a2);
+	}
+
+	@Override
+	public com.liferay.portal.model.Country getCountryByA3(java.lang.String a3)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _countryService.getCountryByA3(a3);
+	}
+
+	@Override
+	public com.liferay.portal.model.Country getCountryByName(
+		java.lang.String name)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _countryService.getCountryByName(name);
+	}
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -48,77 +109,6 @@ public class CountryServiceWrapper implements CountryService,
 	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_countryService.setBeanIdentifier(beanIdentifier);
-	}
-
-	@Override
-	public com.liferay.portal.model.Country addCountry(java.lang.String name,
-		java.lang.String a2, java.lang.String a3, java.lang.String number,
-		java.lang.String idd, boolean active)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _countryService.addCountry(name, a2, a3, number, idd, active);
-	}
-
-	@Override
-	public com.liferay.portal.model.Country fetchCountry(long countryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _countryService.fetchCountry(countryId);
-	}
-
-	@Override
-	public com.liferay.portal.model.Country fetchCountryByA2(
-		java.lang.String a2)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _countryService.fetchCountryByA2(a2);
-	}
-
-	@Override
-	public com.liferay.portal.model.Country fetchCountryByA3(
-		java.lang.String a3)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _countryService.fetchCountryByA3(a3);
-	}
-
-	@Override
-	public java.util.List<com.liferay.portal.model.Country> getCountries()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _countryService.getCountries();
-	}
-
-	@Override
-	public java.util.List<com.liferay.portal.model.Country> getCountries(
-		boolean active)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _countryService.getCountries(active);
-	}
-
-	@Override
-	public com.liferay.portal.model.Country getCountry(long countryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _countryService.getCountry(countryId);
-	}
-
-	@Override
-	public com.liferay.portal.model.Country getCountryByA2(java.lang.String a2)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _countryService.getCountryByA2(a2);
-	}
-
-	@Override
-	public com.liferay.portal.model.Country getCountryByA3(java.lang.String a3)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _countryService.getCountryByA3(a3);
-	}
-
-	@Override
-	public com.liferay.portal.model.Country getCountryByName(
-		java.lang.String name)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _countryService.getCountryByName(name);
 	}
 
 	/**

@@ -29,7 +29,7 @@ long parentCategoryId = BeanParamUtil.getLong(category, request, "parentCategory
 <liferay-ui:header
 	backURL="<%= redirect %>"
 	localizeTitle="<%= (category == null) %>"
-	title='<%= LanguageUtil.format(pageContext, "move-x", category.getName(), false) %>'
+	title='<%= LanguageUtil.format(request, "move-x", category.getName(), false) %>'
 />
 
 <portlet:actionURL var="moveCategoryURL">
@@ -44,30 +44,28 @@ long parentCategoryId = BeanParamUtil.getLong(category, request, "parentCategory
 	<aui:model-context bean="<%= category %>" model="<%= MBCategory.class %>" />
 
 	<aui:fieldset>
-		<aui:field-wrapper label="parent-category[message-board]">
 
-			<%
-			String parentCategoryName = StringPool.BLANK;
+		<%
+		String parentCategoryName = StringPool.BLANK;
 
-			try {
-				MBCategory parentCategory = MBCategoryLocalServiceUtil.getCategory(parentCategoryId);
+		try {
+			MBCategory parentCategory = MBCategoryLocalServiceUtil.getCategory(parentCategoryId);
 
-				parentCategoryName = parentCategory.getName();
-			}
-			catch (NoSuchCategoryException nsce) {
-			}
-			%>
+			parentCategoryName = parentCategory.getName();
+		}
+		catch (NoSuchCategoryException nsce) {
+		}
+		%>
 
-			<div class="input-append">
-				<liferay-ui:input-resource id="parentCategoryName" url="<%= parentCategoryName %>" />
+		<div class="form-group">
+			<aui:input label="parent-category[message-board]" name="parentCategoryName" type="resource" value="<%= parentCategoryName %>" />
 
-				<aui:button name="selectCategoryButton" value="select" />
+			<aui:button name="selectCategoryButton" value="select" />
 
-				<aui:button disabled="<%= (parentCategoryId <= 0) %>" name="removeCategoryButton" onClick='<%= renderResponse.getNamespace() + "removeCategory();" %>' value="remove" />
-			</div>
+			<aui:button disabled="<%= (parentCategoryId <= 0) %>" name="removeCategoryButton" onClick='<%= renderResponse.getNamespace() + "removeCategory();" %>' value="remove" />
+		</div>
 
-			<aui:input label="merge-with-parent-category" name="mergeWithParentCategory" type="checkbox" />
-		</aui:field-wrapper>
+		<aui:input label="merge-with-parent-category" name="mergeWithParentCategory" type="checkbox" />
 	</aui:fieldset>
 
 	<aui:button-row>
@@ -79,9 +77,9 @@ long parentCategoryId = BeanParamUtil.getLong(category, request, "parentCategory
 
 <aui:script>
 	function <portlet:namespace />removeCategory() {
-		document.<portlet:namespace />fm.<portlet:namespace />parentCategoryId.value = "<%= MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID %>";
+		document.<portlet:namespace />fm.<portlet:namespace />parentCategoryId.value = '<%= MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID %>';
 
-		document.getElementById('<portlet:namespace />parentCategoryName').value = "";
+		document.getElementById('<portlet:namespace />parentCategoryName').value = '';
 
 		Liferay.Util.toggleDisabled('#<portlet:namespace />removeCategoryButton', true);
 	}
@@ -91,7 +89,7 @@ long parentCategoryId = BeanParamUtil.getLong(category, request, "parentCategory
 if (category != null) {
 	MBUtil.addPortletBreadcrumbEntries(category, request, renderResponse);
 
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "move"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "move"), currentURL);
 }
 %>
 

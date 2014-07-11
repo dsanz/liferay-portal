@@ -32,31 +32,10 @@ public class ShoppingItemServiceWrapper implements ShoppingItemService,
 		_shoppingItemService = shoppingItemService;
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _shoppingItemService.getBeanIdentifier();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_shoppingItemService.setBeanIdentifier(beanIdentifier);
-	}
-
 	@Override
 	public void addBookItems(long groupId, long categoryId,
 		java.lang.String[] isbns)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_shoppingItemService.addBookItems(groupId, categoryId, isbns);
 	}
 
@@ -74,8 +53,7 @@ public class ShoppingItemServiceWrapper implements ShoppingItemService,
 		java.util.List<com.liferay.portlet.shopping.model.ShoppingItemField> itemFields,
 		java.util.List<com.liferay.portlet.shopping.model.ShoppingItemPrice> itemPrices,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _shoppingItemService.addItem(groupId, categoryId, sku, name,
 			description, properties, fieldsQuantities, requiresShipping,
 			stockQuantity, featured, sale, smallImage, smallImageURL,
@@ -85,53 +63,67 @@ public class ShoppingItemServiceWrapper implements ShoppingItemService,
 
 	@Override
 	public void deleteItem(long itemId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_shoppingItemService.deleteItem(itemId);
+	}
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	@Override
+	public java.lang.String getBeanIdentifier() {
+		return _shoppingItemService.getBeanIdentifier();
 	}
 
 	@Override
 	public int getCategoriesItemsCount(long groupId,
-		java.util.List<java.lang.Long> categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<java.lang.Long> categoryIds) {
 		return _shoppingItemService.getCategoriesItemsCount(groupId, categoryIds);
 	}
 
 	@Override
 	public com.liferay.portlet.shopping.model.ShoppingItem getItem(long itemId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _shoppingItemService.getItem(itemId);
 	}
 
 	@Override
 	public java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> getItems(
-		long groupId, long categoryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, long categoryId) {
 		return _shoppingItemService.getItems(groupId, categoryId);
 	}
 
 	@Override
 	public java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> getItems(
 		long groupId, long categoryId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.shopping.model.ShoppingItem> obc) {
 		return _shoppingItemService.getItems(groupId, categoryId, start, end,
 			obc);
 	}
 
 	@Override
-	public int getItemsCount(long groupId, long categoryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public int getItemsCount(long groupId, long categoryId) {
 		return _shoppingItemService.getItemsCount(groupId, categoryId);
 	}
 
 	@Override
 	public com.liferay.portlet.shopping.model.ShoppingItem[] getItemsPrevAndNext(
-		long itemId, com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		long itemId,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.shopping.model.ShoppingItem> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _shoppingItemService.getItemsPrevAndNext(itemId, obc);
+	}
+
+	/**
+	* Sets the Spring bean ID for this bean.
+	*
+	* @param beanIdentifier the Spring bean ID for this bean
+	*/
+	@Override
+	public void setBeanIdentifier(java.lang.String beanIdentifier) {
+		_shoppingItemService.setBeanIdentifier(beanIdentifier);
 	}
 
 	@Override
@@ -148,8 +140,7 @@ public class ShoppingItemServiceWrapper implements ShoppingItemService,
 		java.util.List<com.liferay.portlet.shopping.model.ShoppingItemField> itemFields,
 		java.util.List<com.liferay.portlet.shopping.model.ShoppingItemPrice> itemPrices,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _shoppingItemService.updateItem(itemId, groupId, categoryId,
 			sku, name, description, properties, fieldsQuantities,
 			requiresShipping, stockQuantity, featured, sale, smallImage,

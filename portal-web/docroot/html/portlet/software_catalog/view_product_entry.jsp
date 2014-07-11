@@ -175,7 +175,7 @@ viewProductEntryURL.setParameter("productEntryId", String.valueOf(productEntryId
 			<td>
 				<c:if test="<%= Validator.isNotNull(latestProductVersion.getDownloadPageURL()) %>">
 					<liferay-ui:icon
-						image="download"
+						iconCssClass="icon-download"
 						message="download-page"
 						url="<%= latestProductVersion.getDownloadPageURL() %>"
 					/>
@@ -183,7 +183,7 @@ viewProductEntryURL.setParameter("productEntryId", String.valueOf(productEntryId
 
 				<c:if test="<%= Validator.isNotNull(latestProductVersion.getDirectDownloadURL()) %>">
 					<liferay-ui:icon
-						image="download"
+						iconCssClass="icon-download"
 						message="direct-download"
 						url="<%= latestProductVersion.getDirectDownloadURL() %>"
 					/>
@@ -195,7 +195,7 @@ viewProductEntryURL.setParameter("productEntryId", String.valueOf(productEntryId
 		<br />
 	</c:when>
 	<c:otherwise>
-		<div class="alert alert-error">
+		<div class="alert alert-danger">
 			<liferay-ui:message key="this-product-does-not-have-any-released-versions" />
 		</div>
 	</c:otherwise>
@@ -213,7 +213,7 @@ List productScreenshots = SCProductScreenshotLocalServiceUtil.getProductScreensh
 			SCProductScreenshot productScreenshot = (SCProductScreenshot)productScreenshots.get(i);
 		%>
 
-			<aui:a href='<%= themeDisplay.getPathImage() + "/software_catalog?img_id=" + productScreenshot.getFullImageId() + "&t=" + WebServerServletTokenUtil.getToken(productScreenshot.getFullImageId()) %>' target="_blank"><img alt="<liferay-ui:message key="screenshot" />" src="<%= themeDisplay.getPathImage() %>/software_catalog?img_id=<%= productScreenshot.getThumbnailId() %>&t=<%= WebServerServletTokenUtil.getToken(productScreenshot.getThumbnailId()) %>" /></aui:a>
+			<aui:a href='<%= themeDisplay.getPathImage() + "/software_catalog?img_id=" + productScreenshot.getFullImageId() + "&t=" + WebServerServletTokenUtil.getToken(productScreenshot.getFullImageId()) %>' target="_blank"><img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="screenshot" />" src="<%= themeDisplay.getPathImage() %>/software_catalog?img_id=<%= productScreenshot.getThumbnailId() %>&t=<%= WebServerServletTokenUtil.getToken(productScreenshot.getThumbnailId()) %>" /></aui:a>
 
 		<%
 		}

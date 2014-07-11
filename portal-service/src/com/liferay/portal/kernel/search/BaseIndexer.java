@@ -19,7 +19,6 @@ import com.liferay.portal.NoSuchModelException;
 import com.liferay.portal.NoSuchRegionException;
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -71,14 +70,12 @@ import com.liferay.portlet.asset.model.AssetTag;
 import com.liferay.portlet.asset.service.AssetCategoryLocalServiceUtil;
 import com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil;
 import com.liferay.portlet.asset.service.AssetTagLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.util.DDMIndexerUtil;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.model.ExpandoColumnConstants;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
 import com.liferay.portlet.expando.util.ExpandoBridgeIndexerUtil;
-import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.ratings.model.RatingsStats;
 import com.liferay.portlet.ratings.service.RatingsStatsLocalServiceUtil;
 import com.liferay.portlet.trash.model.TrashEntry;
@@ -208,28 +205,20 @@ public abstract class BaseIndexer implements Indexer {
 		try {
 			searchContext.setSearchEngineId(getSearchEngineId());
 
-			String[] entryClassNames = getClassNames();
+			resetFullQuery(searchContext);
 
-			if (searchContext.isIncludeAttachments()) {
-				entryClassNames = ArrayUtil.append(
-					entryClassNames, DLFileEntry.class.getName());
-			}
+			String[] fullQueryEntryClassNames =
+				searchContext.getFullQueryEntryClassNames();
 
-			if (searchContext.isIncludeDiscussions()) {
-				entryClassNames = ArrayUtil.append(
-					entryClassNames, MBMessage.class.getName());
-
-				searchContext.setAttribute("discussion", Boolean.TRUE);
-			}
-
-			searchContext.setEntryClassNames(entryClassNames);
-
-			if (searchContext.isIncludeAttachments() ||
-				searchContext.isIncludeDiscussions()) {
-
+			if (ArrayUtil.isNotEmpty(fullQueryEntryClassNames)) {
 				searchContext.setAttribute(
 					"relatedEntryClassNames", getClassNames());
 			}
+
+			String[] entryClassNames = ArrayUtil.append(
+				getClassNames(), fullQueryEntryClassNames);
+
+			searchContext.setEntryClassNames(entryClassNames);
 
 			BooleanQuery contextQuery = BooleanQueryFactoryUtil.create(
 				searchContext);
@@ -459,7 +448,9 @@ public abstract class BaseIndexer implements Indexer {
 	@Override
 	public void reindex(String className, long classPK) throws SearchException {
 		try {
-			if (SearchEngineUtil.isIndexReadOnly() || !isIndexerEnabled()) {
+			if (SearchEngineUtil.isIndexReadOnly() || !isIndexerEnabled() ||
+				(classPK <= 0)) {
+
 				return;
 			}
 
@@ -467,7 +458,7 @@ public abstract class BaseIndexer implements Indexer {
 		}
 		catch (NoSuchModelException nsme) {
 			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to index " + className + " " + classPK);
+				_log.warn("Unable to index " + className + " " + classPK, nsme);
 			}
 		}
 		catch (SearchException se) {
@@ -522,7 +513,7 @@ public abstract class BaseIndexer implements Indexer {
 			QueryConfig queryConfig = searchContext.getQueryConfig();
 
 			if (ArrayUtil.isEmpty(queryConfig.getSelectedFieldNames())) {
-				addDefaultSelectedFieldNames(queryConfig);
+				addDefaultSelectedFieldNames(searchContext);
 			}
 
 			addFacetSelectedFieldNames(searchContext, queryConfig);
@@ -584,9 +575,12 @@ public abstract class BaseIndexer implements Indexer {
 			new IndexerPostProcessor[indexerPostProcessorsList.size()]);
 	}
 
+	@Override
+	public void updateFullQuery(SearchContext searchContext) {
+	}
+
 	protected void addAssetFields(
-			Document document, String className, long classPK)
-		throws SystemException {
+		Document document, String className, long classPK) {
 
 		AssetRendererFactory assetRendererFactory =
 			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
@@ -642,12 +636,21 @@ public abstract class BaseIndexer implements Indexer {
 		document.addKeyword("visible", assetEntry.isVisible());
 	}
 
-	protected void addDefaultSelectedFieldNames(QueryConfig queryConfig) {
+	protected void addDefaultSelectedFieldNames(SearchContext searchContext) {
+		QueryConfig queryConfig = searchContext.getQueryConfig();
+
 		Set<String> selectedFieldNames = null;
 
 		if (!ArrayUtil.isEmpty(getDefaultSelectedFieldNames())) {
 			selectedFieldNames = SetUtil.fromArray(
 				getDefaultSelectedFieldNames());
+
+			if (searchContext.isIncludeAttachments() ||
+				searchContext.isIncludeDiscussions()) {
+
+				selectedFieldNames.add(Field.CLASS_NAME_ID);
+				selectedFieldNames.add(Field.CLASS_PK);
+			}
 		}
 
 		if (!ArrayUtil.isEmpty(getDefaultSelectedLocalizedFieldNames())) {
@@ -1222,8 +1225,8 @@ public abstract class BaseIndexer implements Indexer {
 		}
 	}
 
-	protected void addTrashFields(Document document, TrashedModel trashedModel)
-		throws SystemException {
+	protected void addTrashFields(
+		Document document, TrashedModel trashedModel) {
 
 		TrashEntry trashEntry = null;
 
@@ -1461,16 +1464,14 @@ public abstract class BaseIndexer implements Indexer {
 	}
 
 	protected Document getBaseModelDocument(
-			String portletId, BaseModel<?> baseModel)
-		throws SystemException {
+		String portletId, BaseModel<?> baseModel) {
 
 		return getBaseModelDocument(portletId, baseModel, baseModel);
 	}
 
 	protected Document getBaseModelDocument(
-			String portletId, BaseModel<?> baseModel,
-			BaseModel<?> workflowedBaseModel)
-		throws SystemException {
+		String portletId, BaseModel<?> baseModel,
+		BaseModel<?> workflowedBaseModel) {
 
 		Document document = newDocument();
 
@@ -1692,7 +1693,7 @@ public abstract class BaseIndexer implements Indexer {
 	protected void populateAddresses(
 			Document document, List<Address> addresses, long regionId,
 			long countryId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		List<String> cities = new ArrayList<String>();
 
@@ -1760,6 +1761,14 @@ public abstract class BaseIndexer implements Indexer {
 
 		if (hitsProcessor != null) {
 			hitsProcessor.process(searchContext, hits);
+		}
+	}
+
+	protected void resetFullQuery(SearchContext searchContext) {
+		searchContext.clearFullQueryEntryClassNames();
+
+		for (Indexer indexer : IndexerRegistryUtil.getIndexers()) {
+			indexer.updateFullQuery(searchContext);
 		}
 	}
 

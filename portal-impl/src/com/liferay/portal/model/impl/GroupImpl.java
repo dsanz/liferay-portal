@@ -15,7 +15,6 @@
 package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -24,6 +23,7 @@ import com.liferay.portal.kernel.staging.StagingUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -103,7 +103,7 @@ public class GroupImpl extends GroupBaseImpl {
 	}
 
 	@Override
-	public List<Group> getAncestors() throws PortalException, SystemException {
+	public List<Group> getAncestors() throws PortalException {
 		Group group = null;
 
 		if (isStagingGroup()) {
@@ -125,23 +125,33 @@ public class GroupImpl extends GroupBaseImpl {
 	}
 
 	@Override
-	public List<Group> getChildren(boolean site) throws SystemException {
+	public List<Group> getChildren(boolean site) {
 		return GroupLocalServiceUtil.getGroups(
 			getCompanyId(), getGroupId(), site);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #getChildrenWithLayouts(boolean, int, int, OrderByComparator}
+	 */
+	@Deprecated
 	@Override
-	public List<Group> getChildrenWithLayouts(boolean site, int start, int end)
-		throws SystemException {
+	public List<Group> getChildrenWithLayouts(
+		boolean site, int start, int end) {
 
-		return GroupLocalServiceUtil.getLayoutsGroups(
-			getCompanyId(), getGroupId(), site, start, end);
+		return getChildrenWithLayouts(site, start, end, null);
 	}
 
 	@Override
-	public int getChildrenWithLayoutsCount(boolean site)
-		throws SystemException {
+	public List<Group> getChildrenWithLayouts(
+		boolean site, int start, int end, OrderByComparator<Group> obc) {
 
+		return GroupLocalServiceUtil.getLayoutsGroups(
+			getCompanyId(), getGroupId(), site, start, end, obc);
+	}
+
+	@Override
+	public int getChildrenWithLayoutsCount(boolean site) {
 		return GroupLocalServiceUtil.getLayoutsGroupsCount(
 			getCompanyId(), getGroupId(), site);
 	}
@@ -157,7 +167,7 @@ public class GroupImpl extends GroupBaseImpl {
 	}
 
 	@Override
-	public List<Group> getDescendants(boolean site) throws SystemException {
+	public List<Group> getDescendants(boolean site) {
 		List<Group> descendants = new UniqueList<Group>();
 
 		for (Group group : getChildren(site)) {
@@ -169,35 +179,53 @@ public class GroupImpl extends GroupBaseImpl {
 	}
 
 	@Override
-	public String getDescriptiveName() throws PortalException, SystemException {
+	public String getDescriptiveName() throws PortalException {
 		return getDescriptiveName(LocaleUtil.getDefault());
 	}
 
 	@Override
-	public String getDescriptiveName(Locale locale)
-		throws PortalException, SystemException {
-
+	public String getDescriptiveName(Locale locale) throws PortalException {
 		return GroupLocalServiceUtil.getGroupDescriptiveName(this, locale);
 	}
 
 	@Override
-	public String getIconURL(ThemeDisplay themeDisplay) {
-		String iconURL = themeDisplay.getPathThemeImages() + "/common/";
+	public String getIconCssClass() {
+		String iconCss = "icon-globe";
 
 		if (isCompany()) {
-			iconURL = iconURL.concat("global.png");
+			iconCss = "icon-globe";
 		}
 		else if (isLayout()) {
-			iconURL = iconURL.concat("page.png");
+			iconCss = "icon-file";
 		}
 		else if (isOrganization()) {
-			iconURL = iconURL.concat("organization_icon.png");
+			iconCss = "icon-globe";
 		}
 		else if (isUser()) {
-			iconURL = iconURL.concat("user_icon.png");
+			iconCss = "icon-user";
+		}
+
+		return iconCss;
+	}
+
+	@Override
+	public String getIconURL(ThemeDisplay themeDisplay) {
+		String iconURL = StringPool.BLANK;
+
+		if (isCompany()) {
+			iconURL = "../aui/globe";
+		}
+		else if (isLayout()) {
+			iconURL = "../aui/file";
+		}
+		else if (isOrganization()) {
+			iconURL = "../aui/globe";
+		}
+		else if (isUser()) {
+			iconURL = "../aui/user";
 		}
 		else {
-			iconURL = iconURL.concat("site_icon.png");
+			iconURL = "../aui/globe";
 		}
 
 		return iconURL;
@@ -291,7 +319,7 @@ public class GroupImpl extends GroupBaseImpl {
 	}
 
 	@Override
-	public Group getParentGroup() throws PortalException, SystemException {
+	public Group getParentGroup() throws PortalException {
 		long parentGroupId = getParentGroupId();
 
 		if (parentGroupId <= 0) {
@@ -405,7 +433,7 @@ public class GroupImpl extends GroupBaseImpl {
 
 	@Override
 	public String getScopeDescriptiveName(ThemeDisplay themeDisplay)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (getGroupId() == themeDisplay.getScopeGroupId()) {
 			StringBundler sb = new StringBundler(5);
@@ -540,6 +568,24 @@ public class GroupImpl extends GroupBaseImpl {
 		UnicodeProperties typeSettingsProperties = getTypeSettingsProperties();
 
 		return typeSettingsProperties.getProperty(key);
+	}
+
+	@Override
+	public String getUnambiguousName(String name, Locale locale) {
+		try {
+			StringBundler sb = new StringBundler(5);
+
+			sb.append(name);
+			sb.append(StringPool.SPACE);
+			sb.append(StringPool.OPEN_PARENTHESIS);
+			sb.append(getDescriptiveName(locale));
+			sb.append(StringPool.CLOSE_PARENTHESIS);
+
+			return sb.toString();
+		}
+		catch (Exception e) {
+			return name;
+		}
 	}
 
 	@Override
@@ -740,7 +786,7 @@ public class GroupImpl extends GroupBaseImpl {
 	@Override
 	public boolean isShowSite(
 			PermissionChecker permissionChecker, boolean privateSite)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (!isControlPanel() && !isSite() && !isUser()) {
 			return false;

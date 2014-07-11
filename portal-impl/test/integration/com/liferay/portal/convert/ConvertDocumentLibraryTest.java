@@ -15,7 +15,6 @@
 package com.liferay.portal.convert;
 
 import com.liferay.counter.service.CounterLocalServiceUtil;
-import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
@@ -29,16 +28,17 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Image;
 import com.liferay.portal.model.User;
-import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ImageLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.util.ClassLoaderUtil;
-import com.liferay.portal.util.GroupTestUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.documentlibrary.NoSuchContentException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
@@ -48,15 +48,15 @@ import com.liferay.portlet.documentlibrary.store.DBStore;
 import com.liferay.portlet.documentlibrary.store.FileSystemStore;
 import com.liferay.portlet.documentlibrary.store.Store;
 import com.liferay.portlet.documentlibrary.store.StoreFactory;
-import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
+import com.liferay.portlet.documentlibrary.util.test.DLAppTestUtil;
 import com.liferay.portlet.messageboards.model.MBCategoryConstants;
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.model.MBMessageConstants;
 import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
-import com.liferay.portlet.messageboards.util.MBTestUtil;
+import com.liferay.portlet.messageboards.util.test.MBTestUtil;
 import com.liferay.portlet.wiki.model.WikiNode;
 import com.liferay.portlet.wiki.model.WikiPage;
-import com.liferay.portlet.wiki.util.WikiTestUtil;
+import com.liferay.portlet.wiki.util.test.WikiTestUtil;
 
 import java.io.InputStream;
 
@@ -82,8 +82,6 @@ public class ConvertDocumentLibraryTest {
 
 	@Before
 	public void setUp() throws Exception {
-		FinderCacheUtil.clearCache();
-
 		PropsValues.DL_STORE_IMPL = FileSystemStore.class.getName();
 
 		Store store = (Store)InstanceFactory.newInstance(
@@ -109,15 +107,13 @@ public class ConvertDocumentLibraryTest {
 			ClassLoaderUtil.getPortalClassLoader(), PropsValues.DL_STORE_IMPL);
 
 		StoreFactory.setInstance(store);
-
-		GroupLocalServiceUtil.deleteGroup(_group);
 	}
 
 	@Test
 	public void testMigrateDLWhenFileEntryInFolder() throws Exception {
 		Folder folder = DLAppTestUtil.addFolder(
 			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			ServiceTestUtil.randomString());
+			RandomTestUtil.randomString());
 
 		testMigrateDL(folder.getFolderId());
 	}
@@ -218,8 +214,8 @@ public class ConvertDocumentLibraryTest {
 			MBTestUtil.getInputStreamOVPs(
 				"OSX_Test.docx", getClass(), StringPool.BLANK);
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			_group.getGroupId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
 
 		User user = TestPropsValues.getUser();
 
@@ -235,7 +231,7 @@ public class ConvertDocumentLibraryTest {
 
 		return WikiTestUtil.addPage(
 			wikiNode.getUserId(), _group.getGroupId(), wikiNode.getNodeId(),
-			ServiceTestUtil.randomString(), true);
+			RandomTestUtil.randomString(), true);
 	}
 
 	protected void addWikiPageAttachment(WikiPage wikiPage) throws Exception {
@@ -267,7 +263,7 @@ public class ConvertDocumentLibraryTest {
 	protected void testMigrateDL(long folderId) throws Exception {
 		FileEntry fileEntry = DLAppTestUtil.addFileEntry(
 			_group.getGroupId(), folderId,
-			ServiceTestUtil.randomString() + ".txt");
+			RandomTestUtil.randomString() + ".txt");
 
 		_convertProcess.convert();
 
@@ -286,6 +282,8 @@ public class ConvertDocumentLibraryTest {
 	}
 
 	private ConvertProcess _convertProcess;
+
+	@DeleteAfterTestRun
 	private Group _group;
 
 }

@@ -84,7 +84,7 @@ portletURL.setParameter("fileShortcutId", String.valueOf(fileShortcutId));
 
 	<liferay-ui:header
 		backURL="<%= redirect %>"
-		title='<%= (fileShortcut != null)? LanguageUtil.format(pageContext, "shortcut-to-x", fileShortcut.getToTitle(), false) : "new-file-shortcut" %>'
+		title='<%= (fileShortcut != null)? LanguageUtil.format(request, "shortcut-to-x", fileShortcut.getToTitle(), false) : "new-file-shortcut" %>'
 	/>
 
 	<liferay-ui:error exception="<%= FileShortcutPermissionException.class %>" message="you-do-not-have-permission-to-create-a-shortcut-to-the-selected-document" />
@@ -95,31 +95,25 @@ portletURL.setParameter("fileShortcutId", String.valueOf(fileShortcutId));
 			<liferay-ui:message key="you-can-create-a-shortcut-to-any-document-that-you-have-read-access-for" />
 		</div>
 
-		<aui:field-wrapper label="site">
+		<%
+		String toGroupName = BeanPropertiesUtil.getString(toGroup, "name");
+		%>
 
-			<%
-			String toGroupName = BeanPropertiesUtil.getString(toGroup, "name");
-			%>
+		<div class="form-group">
+			<aui:input label="site" name="toGroupName" type="resource" value="<%= toGroupName %>" />
 
-			<div class="input-append">
-				<liferay-ui:input-resource id="toGroupName" label="name" url="<%= toGroupName %>" />
+			<aui:button name="selectGroupButton" value="select" />
+		</div>
 
-				<aui:button name="selectGroupButton" value="select" />
-			</div>
-		</aui:field-wrapper>
+		<%
+		String toFileEntryTitle = BeanPropertiesUtil.getString(toFileEntry, "title");
+		%>
 
-		<aui:field-wrapper label="document">
+		<div class="form-group">
+			<aui:input label="document" name="toFileEntryTitle" type="resource" url="<%= toFileEntryTitle %>" />
 
-			<%
-			String toFileEntryTitle = BeanPropertiesUtil.getString(toFileEntry, "title");
-			%>
-
-			<div class="input-append">
-				<liferay-ui:input-resource id="toFileEntryTitle" label="title" url="<%= toFileEntryTitle %>" />
-
-				<aui:button disabled="<%= (toGroup == null) %>" name="selectToFileEntryButton" value="select" />
-			</div>
-		</aui:field-wrapper>
+			<aui:button disabled="<%= (toGroup == null) %>" name="selectToFileEntryButton" value="select" />
+		</div>
 
 		<c:if test="<%= fileShortcut == null %>">
 			<aui:field-wrapper label="permissions">
@@ -137,14 +131,6 @@ portletURL.setParameter("fileShortcutId", String.valueOf(fileShortcutId));
 	</aui:fieldset>
 </aui:form>
 
-<portlet:renderURL var="selectGroupURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-	<portlet:param name="struts_action" value="/document_library/select_group" />
-</portlet:renderURL>
-
-<portlet:renderURL var="selectFileEntryURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-	<portlet:param name="struts_action" value="/document_library/select_file_entry" />
-</portlet:renderURL>
-
 <aui:script use="aui-base,escape">
 	var selectToFileEntryButton = A.one('#<portlet:namespace />selectToFileEntryButton');
 
@@ -160,13 +146,18 @@ portletURL.setParameter("fileShortcutId", String.valueOf(fileShortcutId));
 					},
 					id: '<portlet:namespace />selectGroup',
 					title: '<liferay-ui:message arguments="site" key="select-x" />',
+
+					<portlet:renderURL var="selectGroupURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+						<portlet:param name="struts_action" value="/document_library/select_group" />
+					</portlet:renderURL>
+
 					uri: '<%= selectGroupURL.toString() %>'
 				},
 				function(event) {
 					var A = AUI();
 
 					if (document.<portlet:namespace />fm.<portlet:namespace />toGroupId.value != event.groupid) {
-						<portlet:namespace />selectFileEntry("", "");
+						<portlet:namespace />selectFileEntry('', '');
 					}
 
 					document.<portlet:namespace />fm.<portlet:namespace />toGroupId.value = event.groupid;
@@ -192,6 +183,11 @@ portletURL.setParameter("fileShortcutId", String.valueOf(fileShortcutId));
 					},
 					id: <portlet:namespace />createSelectFileEntryId(),
 					title: '<liferay-ui:message arguments="file" key="select-x" />',
+
+					<portlet:renderURL var="selectFileEntryURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+						<portlet:param name="struts_action" value="/document_library/select_file_entry" />
+					</portlet:renderURL>
+
 					uri: <portlet:namespace />createSelectFileEntryURL('<%= selectFileEntryURL.toString() %>')
 				},
 				function(event) {
@@ -215,7 +211,7 @@ portletURL.setParameter("fileShortcutId", String.valueOf(fileShortcutId));
 	}
 
 	function <portlet:namespace />saveFileShortcut() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (fileShortcut == null) ? Constants.ADD : Constants.UPDATE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= (fileShortcut == null) ? Constants.ADD : Constants.UPDATE %>';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
@@ -231,11 +227,11 @@ portletURL.setParameter("fileShortcutId", String.valueOf(fileShortcutId));
 if (fileShortcut != null) {
 	DLUtil.addPortletBreadcrumbEntries(fileShortcut, request, renderResponse);
 
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "edit"), currentURL);
 }
 else {
 	DLUtil.addPortletBreadcrumbEntries(folderId, request, renderResponse);
 
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-file-shortcut"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "add-file-shortcut"), currentURL);
 }
 %>

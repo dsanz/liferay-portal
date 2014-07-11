@@ -22,14 +22,15 @@ import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.RepositoryUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.test.TransactionalTestRule;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.wiki.attachments.WikiAttachmentsTest;
@@ -37,7 +38,7 @@ import com.liferay.portlet.wiki.model.WikiNode;
 import com.liferay.portlet.wiki.model.WikiPage;
 import com.liferay.portlet.wiki.service.WikiNodeLocalServiceUtil;
 import com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil;
-import com.liferay.portlet.wiki.util.WikiTestUtil;
+import com.liferay.portlet.wiki.util.test.WikiTestUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 /**
@@ -53,13 +55,16 @@ import org.junit.runner.RunWith;
 @ExecutionTestListeners(
 	listeners = {
 		MainServletExecutionTestListener.class,
-		SynchronousDestinationExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
+		SynchronousDestinationExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 @Sync
 public class WikiPageStagedModelDataHandlerTest
 	extends BaseWorkflowedStagedModelDataHandlerTestCase {
+
+	@ClassRule
+	public static TransactionalTestRule transactionalTestRule =
+		new TransactionalTestRule();
 
 	@Override
 	protected Map<String, List<StagedModel>> addDependentStagedModelsMap(
@@ -87,13 +92,13 @@ public class WikiPageStagedModelDataHandlerTest
 
 		WikiNode node = (WikiNode)dependentStagedModels.get(0);
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			group.getGroupId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(group.getGroupId());
 
 		WikiPage page = WikiTestUtil.addPage(
 			TestPropsValues.getUserId(), node.getNodeId(),
-			ServiceTestUtil.randomString(), ServiceTestUtil.randomString(),
-			true, serviceContext);
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(), true,
+			serviceContext);
 
 		WikiTestUtil.addWikiAttachment(
 			TestPropsValues.getUserId(), node.getNodeId(), page.getTitle(),

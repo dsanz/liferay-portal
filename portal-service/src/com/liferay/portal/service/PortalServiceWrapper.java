@@ -30,6 +30,11 @@ public class PortalServiceWrapper implements PortalService,
 		_portalService = portalService;
 	}
 
+	@Override
+	public java.lang.String getAutoDeployDirectory() {
+		return _portalService.getAutoDeployDirectory();
+	}
+
 	/**
 	* Returns the Spring bean ID for this bean.
 	*
@@ -38,6 +43,11 @@ public class PortalServiceWrapper implements PortalService,
 	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _portalService.getBeanIdentifier();
+	}
+
+	@Override
+	public int getBuildNumber() {
+		return _portalService.getBuildNumber();
 	}
 
 	/**
@@ -51,59 +61,41 @@ public class PortalServiceWrapper implements PortalService,
 	}
 
 	@Override
-	public java.lang.String getAutoDeployDirectory()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _portalService.getAutoDeployDirectory();
-	}
-
-	@Override
-	public int getBuildNumber() {
-		return _portalService.getBuildNumber();
-	}
-
-	@Override
-	public void testAddClassName_Rollback(java.lang.String classNameValue)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		_portalService.testAddClassName_Rollback(classNameValue);
-	}
-
-	@Override
-	public void testAddClassName_Success(java.lang.String classNameValue)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		_portalService.testAddClassName_Success(classNameValue);
-	}
-
-	@Override
 	public void testAddClassNameAndTestTransactionPortletBar_PortalRollback(
-		java.lang.String transactionPortletBarText)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String transactionPortletBarText) {
 		_portalService.testAddClassNameAndTestTransactionPortletBar_PortalRollback(transactionPortletBarText);
 	}
 
 	@Override
 	public void testAddClassNameAndTestTransactionPortletBar_PortletRollback(
-		java.lang.String transactionPortletBarText)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String transactionPortletBarText) {
 		_portalService.testAddClassNameAndTestTransactionPortletBar_PortletRollback(transactionPortletBarText);
 	}
 
 	@Override
 	public void testAddClassNameAndTestTransactionPortletBar_Success(
-		java.lang.String transactionPortletBarText)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String transactionPortletBarText) {
 		_portalService.testAddClassNameAndTestTransactionPortletBar_Success(transactionPortletBarText);
 	}
 
 	@Override
-	public void testAutoSyncHibernateSessionStateOnTxCreation()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public void testAddClassName_Rollback(java.lang.String classNameValue) {
+		_portalService.testAddClassName_Rollback(classNameValue);
+	}
+
+	@Override
+	public void testAddClassName_Success(java.lang.String classNameValue) {
+		_portalService.testAddClassName_Success(classNameValue);
+	}
+
+	@Override
+	public void testAutoSyncHibernateSessionStateOnTxCreation() {
 		_portalService.testAutoSyncHibernateSessionStateOnTxCreation();
 	}
 
 	@Override
 	public void testDeleteClassName()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_portalService.testDeleteClassName();
 	}
 
@@ -118,8 +110,7 @@ public class PortalServiceWrapper implements PortalService,
 	}
 
 	@Override
-	public boolean testHasClassName()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public boolean testHasClassName() {
 		return _portalService.testHasClassName();
 	}
 

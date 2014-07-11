@@ -16,7 +16,6 @@ package com.liferay.portlet.asset.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -29,39 +28,40 @@ import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.LayoutTestUtil;
+import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.test.TransactionalTestRule;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.TestPropsValues;
-import com.liferay.portal.util.UserTestUtil;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.LayoutTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
+import com.liferay.portal.util.test.UserTestUtil;
 import com.liferay.portlet.asset.NoSuchTagException;
 import com.liferay.portlet.asset.model.AssetTag;
 import com.liferay.portlet.asset.model.AssetTagConstants;
 import com.liferay.portlet.asset.service.AssetTagLocalServiceUtil;
 import com.liferay.portlet.blogs.model.BlogsEntry;
-import com.liferay.portlet.blogs.util.BlogsTestUtil;
+import com.liferay.portlet.blogs.util.test.BlogsTestUtil;
 
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
  * @author Sergio González
  */
-@ExecutionTestListeners(
-	listeners = {
-		EnvironmentExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class AssetTagFinderTest {
+
+	@ClassRule
+	public static TransactionalTestRule transactionalTestRule =
+		new TransactionalTestRule();
 
 	@Test
 	public void testFilterCountByG_C_N() throws Exception {
@@ -70,7 +70,7 @@ public class AssetTagFinderTest {
 		Group siteGroup = scopeGroup.getParentGroup();
 
 		long classNameId = PortalUtil.getClassNameId(BlogsEntry.class);
-		String assetTagName = ServiceTestUtil.randomString();
+		String assetTagName = RandomTestUtil.randomString();
 
 		int initialScopeGroupAssetTagsCount =
 			AssetTagFinderUtil.filterCountByG_C_N(
@@ -117,7 +117,7 @@ public class AssetTagFinderTest {
 
 		Group siteGroup = scopeGroup.getParentGroup();
 
-		String assetTagName = ServiceTestUtil.randomString();
+		String assetTagName = RandomTestUtil.randomString();
 
 		int initialScopeGroupAssetTagsCount =
 			AssetTagFinderUtil.filterCountByG_N(
@@ -162,7 +162,7 @@ public class AssetTagFinderTest {
 
 		Group siteGroup = scopeGroup.getParentGroup();
 
-		String assetTagName = ServiceTestUtil.randomString();
+		String assetTagName = RandomTestUtil.randomString();
 		String[] assetTagProperties = {
 			"key" + AssetTagConstants.PROPERTY_KEY_VALUE_SEPARATOR + "value"
 		};
@@ -212,7 +212,7 @@ public class AssetTagFinderTest {
 		Group siteGroup = scopeGroup.getParentGroup();
 
 		long classNameId = PortalUtil.getClassNameId(BlogsEntry.class);
-		String assetTagName = ServiceTestUtil.randomString();
+		String assetTagName = RandomTestUtil.randomString();
 
 		List<AssetTag> initialScopeGroupAssetTags =
 			AssetTagFinderUtil.filterFindByG_C_N(
@@ -265,7 +265,7 @@ public class AssetTagFinderTest {
 
 		Group siteGroup = scopeGroup.getParentGroup();
 
-		String assetTagName = ServiceTestUtil.randomString();
+		String assetTagName = RandomTestUtil.randomString();
 
 		addAssetTag(siteGroup.getGroupId(), assetTagName, null);
 
@@ -308,7 +308,7 @@ public class AssetTagFinderTest {
 
 		Group siteGroup = scopeGroup.getParentGroup();
 
-		String assetTagName = ServiceTestUtil.randomString();
+		String assetTagName = RandomTestUtil.randomString();
 		String[] assetTagProperties = {
 			"key" + AssetTagConstants.PROPERTY_KEY_VALUE_SEPARATOR + "value"
 		};
@@ -363,8 +363,8 @@ public class AssetTagFinderTest {
 	protected void addAssetTag(long groupId, String name, String[] properties)
 		throws Exception {
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			groupId);
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(groupId);
 
 		AssetTagLocalServiceUtil.addTag(
 			TestPropsValues.getUserId(), name, properties, serviceContext);
@@ -373,13 +373,13 @@ public class AssetTagFinderTest {
 	protected void addBlogsEntry(long groupId, String assetTagName)
 		throws Exception {
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			groupId);
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(groupId);
 
 		serviceContext.setAssetTagNames(new String[] {assetTagName});
 
 		BlogsTestUtil.addEntry(
-			TestPropsValues.getUserId(), ServiceTestUtil.randomString(), true,
+			TestPropsValues.getUserId(), RandomTestUtil.randomString(), true,
 			serviceContext);
 	}
 
@@ -387,18 +387,18 @@ public class AssetTagFinderTest {
 		Group group = GroupTestUtil.addGroup();
 
 		Layout layout = LayoutTestUtil.addLayout(
-			group.getGroupId(), ServiceTestUtil.randomString());
+			group.getGroupId(), RandomTestUtil.randomString());
 
-		String name = ServiceTestUtil.randomString();
+		String name = RandomTestUtil.randomString();
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			group.getGroupId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(group.getGroupId());
 
 		Group scopeGroup = GroupLocalServiceUtil.addGroup(
 			TestPropsValues.getUserId(), group.getParentGroupId(),
 			Layout.class.getName(), layout.getPlid(),
 			GroupConstants.DEFAULT_LIVE_GROUP_ID, name,
-			ServiceTestUtil.randomString(), GroupConstants.TYPE_SITE_OPEN, true,
+			RandomTestUtil.randomString(), GroupConstants.TYPE_SITE_OPEN, true,
 			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
 			StringPool.SLASH + FriendlyURLNormalizerUtil.normalize(name), false,
 			true, serviceContext);

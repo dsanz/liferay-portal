@@ -15,23 +15,21 @@
 package com.liferay.portal.kernel.nio.intraband.mailbox;
 
 import com.liferay.portal.kernel.io.BigEndianCodec;
-import com.liferay.portal.kernel.nio.intraband.CompletionHandler;
 import com.liferay.portal.kernel.nio.intraband.Datagram;
-import com.liferay.portal.kernel.nio.intraband.DatagramHelper;
-import com.liferay.portal.kernel.nio.intraband.MockIntraband;
-import com.liferay.portal.kernel.nio.intraband.MockRegistrationReference;
-import com.liferay.portal.kernel.nio.intraband.RegistrationReference;
+import com.liferay.portal.kernel.nio.intraband.test.MockIntraband;
+import com.liferay.portal.kernel.nio.intraband.test.MockRegistrationReference;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtilAdvice;
-import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.ThreadUtil;
 import com.liferay.portal.test.AdviseWith;
 import com.liferay.portal.test.AspectJMockingNewJVMJUnitTestRunner;
 
+import java.io.IOException;
+
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 
 import java.nio.ByteBuffer;
 
@@ -133,7 +131,9 @@ public class MailboxUtilTest {
 
 		Assert.assertTrue(reaperThread.isAlive());
 
-		BlockingQueue<Object> overdueMailQueue = getOverdueMailQueue();
+		BlockingQueue<Object> overdueMailQueue =
+			(BlockingQueue<Object>)ReflectionTestUtil.getFieldValue(
+				MailboxUtil.class, "_overdueMailQueue");
 
 		while (!overdueMailQueue.isEmpty());
 
@@ -208,17 +208,11 @@ public class MailboxUtilTest {
 	@AdviseWith(adviceClasses = {PropsUtilAdvice.class})
 	@Test
 	public void testSendMailFail() {
-		MockIntraband mockIntraband = new MockIntraband() {
+		MockIntraband mockIntraband = new MockIntraband();
 
-			@Override
-			protected void doSendDatagram(
-				RegistrationReference registrationReference,
-				Datagram datagram) {
+		IOException iOException = new IOException();
 
-				throw new RuntimeException();
-			}
-
-		};
+		mockIntraband.setIOException(iOException);
 
 		try {
 			MailboxUtil.sendMail(
@@ -228,9 +222,7 @@ public class MailboxUtilTest {
 			Assert.fail();
 		}
 		catch (MailboxException me) {
-			Throwable throwable = me.getCause();
-
-			Assert.assertEquals(RuntimeException.class, throwable.getClass());
+			Assert.assertSame(iOException, me.getCause());
 		}
 	}
 
@@ -242,21 +234,13 @@ public class MailboxUtilTest {
 		MockIntraband mockIntraband = new MockIntraband() {
 
 			@Override
-			protected void doSendDatagram(
-				RegistrationReference registrationReference,
-				Datagram datagram) {
-
+			protected Datagram processDatagram(Datagram datagram) {
 				byte[] data = new byte[8];
 
 				BigEndianCodec.putLong(data, 0, receipt);
 
-				CompletionHandler<?> completionHandler =
-					DatagramHelper.getCompletionHandler(datagram);
-
-				completionHandler.replied(
-					null,
-					Datagram.createResponseDatagram(
-						datagram, ByteBuffer.wrap(data)));
+				return Datagram.createResponseDatagram(
+					datagram, ByteBuffer.wrap(data));
 			}
 
 		};
@@ -297,13 +281,6 @@ public class MailboxUtilTest {
 		Constructor<?> constructor = clazz.getConstructor(long.class);
 
 		return constructor.newInstance(0);
-	}
-
-	protected BlockingQueue<Object> getOverdueMailQueue() throws Exception {
-		Field overdueMailQueueField = ReflectionUtil.getDeclaredField(
-			MailboxUtil.class, "_overdueMailQueue");
-
-		return (BlockingQueue<Object>)overdueMailQueueField.get(null);
 	}
 
 	private static class RecorderUncaughtExceptionHandler

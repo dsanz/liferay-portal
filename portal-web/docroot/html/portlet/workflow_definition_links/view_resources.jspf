@@ -17,7 +17,7 @@
 <%
 long groupId = themeDisplay.getSiteGroupIdOrLiveGroupId();
 
-List<WorkflowHandler> workflowHandlers = null;
+List<WorkflowHandler<?>> workflowHandlers = null;
 
 if (portletName.equals(PortletKeys.WORKFLOW_DEFINITIONS)) {
 	groupId = WorkflowConstants.DEFAULT_GROUP_ID;
@@ -28,12 +28,12 @@ else {
 	workflowHandlers = WorkflowHandlerRegistryUtil.getScopeableWorkflowHandlers();
 }
 
-List<WorkflowHandler> hiddenWorkflowHandlers = new ArrayList<WorkflowHandler>();
+List<WorkflowHandler<?>> hiddenWorkflowHandlers = new ArrayList<WorkflowHandler<?>>();
 
-Iterator<WorkflowHandler> itr = workflowHandlers.iterator();
+Iterator<WorkflowHandler<?>> itr = workflowHandlers.iterator();
 
 while (itr.hasNext()) {
-	WorkflowHandler workflowHandler = itr.next();
+	WorkflowHandler<?> workflowHandler = itr.next();
 
 	if (!workflowHandler.isVisible()) {
 		hiddenWorkflowHandlers.add(workflowHandler);
@@ -77,25 +77,19 @@ portletURL.setParameter("tabs1", "default-configuration");
 			/>
 
 			<liferay-ui:search-container-column-text
-				buffer="buffer"
 				name="resource"
 			>
-
-				<%
-				buffer.append("<img align=\"left\" alt=\"");
-				buffer.append(LanguageUtil.get(locale, "icon"));
-				buffer.append("\" border=\"0\" src=\"");
-				buffer.append(workflowHandler.getIconPath(liferayPortletRequest));
-				buffer.append("\" style=\"margin-right: 5px;\">");
-				buffer.append(ResourceActionsUtil.getModelResource(locale, workflowHandler.getClassName()));
-				%>
-
+				<liferay-ui:icon
+					iconCssClass="<%= workflowHandler.getIconCssClass() %>"
+					label="<%= true %>"
+					message="<%= ResourceActionsUtil.getModelResource(locale, workflowHandler.getClassName()) %>"
+				/>
 			</liferay-ui:search-container-column-text>
 
 			<liferay-ui:search-container-column-text
 				name="workflow"
 			>
-				<aui:select hideLabel="<%= true %>" label="workflow-definition" name='<%= "workflowDefinitionName@" + workflowHandler.getClassName() %>'>
+				<aui:select label="" name='<%= "workflowDefinitionName@" + workflowHandler.getClassName() %>' title="workflow-definition">
 
 					<%
 					WorkflowDefinitionLink workflowDefinitionLink = null;
@@ -117,14 +111,14 @@ portletURL.setParameter("tabs1", "default-configuration");
 						try {
 							WorkflowDefinitionLink defaultWorkflowDefinitionLink = WorkflowDefinitionLinkLocalServiceUtil.getDefaultWorkflowDefinitionLink(company.getCompanyId(), workflowHandler.getClassName(), 0, 0);
 
-							defaultOptionMessage = LanguageUtil.get(pageContext, "default") + StringPool.COLON + StringPool.SPACE + defaultWorkflowDefinitionLink.getWorkflowDefinitionName();
+							defaultOptionMessage = LanguageUtil.get(request, "default") + StringPool.COLON + StringPool.SPACE + defaultWorkflowDefinitionLink.getWorkflowDefinitionName();
 						}
 						catch (NoSuchWorkflowDefinitionLinkException nswdle) {
-							defaultOptionMessage = LanguageUtil.get(pageContext, "default") + StringPool.COLON + StringPool.SPACE + LanguageUtil.get(pageContext, "no-workflow");
+							defaultOptionMessage = LanguageUtil.get(request, "default") + StringPool.COLON + StringPool.SPACE + LanguageUtil.get(request, "no-workflow");
 						}
 					}
 					else {
-						defaultOptionMessage = LanguageUtil.get(pageContext, "no-workflow");
+						defaultOptionMessage = LanguageUtil.get(request, "no-workflow");
 					}
 					%>
 
@@ -180,19 +174,13 @@ portletURL.setParameter("tabs1", "default-configuration");
 			/>
 
 			<liferay-ui:search-container-column-text
-				buffer="buffer"
 				name="resource"
 			>
-
-				<%
-				buffer.append("<img align=\"left\" alt=\"");
-				buffer.append(LanguageUtil.get(locale, "icon"));
-				buffer.append("\" border=\"0\" src=\"");
-				buffer.append(workflowHandler.getIconPath(liferayPortletRequest));
-				buffer.append("\" style=\"margin-right: 5px;\">");
-				buffer.append(ResourceActionsUtil.getModelResource(locale, workflowHandler.getClassName()));
-				%>
-
+				<liferay-ui:icon
+					iconCssClass="<%= workflowHandler.getIconCssClass() %>"
+					label="<%= true %>"
+					message="<%= ResourceActionsUtil.getModelResource(locale, workflowHandler.getClassName()) %>"
+				/>
 			</liferay-ui:search-container-column-text>
 		</liferay-ui:search-container-row>
 

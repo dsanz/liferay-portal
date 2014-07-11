@@ -3,23 +3,33 @@
 <#assign latitude = "">
 <#assign longitude = "">
 
+<#assign coordinatesContainerCssClass = "hide">
+
+<#assign fieldRawValue = paramUtil.getString(request, "${namespacedFieldName}", fieldRawValue)>
+
 <#if (fieldRawValue != "")>
 	<#assign geolocationJSONObject = jsonFactoryUtil.createJSONObject(fieldRawValue)>
 
 	<#assign latitude = geolocationJSONObject.getDouble("latitude")>
 	<#assign longitude = geolocationJSONObject.getDouble("longitude")>
+
+	<#assign coordinatesContainerCssClass = "">
 </#if>
 
-<@aui["field-wrapper"] cssClass="geolocation-field" data=data required=required>
-	<@aui.input inlineField=true label='${languageUtil.get(locale, "latitude")}' name="${namespacedFieldName}Latitude" readonly="readonly" type="text" value="${latitude}" />
-
-	<@aui.input inlineField=true label='${languageUtil.get(locale, "longitude")}' name="${namespacedFieldName}Longitude" readonly="readonly" type="text" value="${longitude}" />
-
+<@aui["field-wrapper"] cssClass="geolocation-field" data=data label=label required=required>
 	<@aui.input name=namespacedFieldName type="hidden" value=fieldRawValue />
 
 	<@aui["button-row"]>
 		<@aui.button onClick="window['${portletNamespace}${namespacedFieldName}SetGeolocation']();" value="geolocate" />
 	</@>
+
+	<p class="${coordinatesContainerCssClass}" id="${portletNamespace}${namespacedFieldName}CoordinatesContainer">
+		<strong><@liferay_ui.message key="location" />:</strong>
+
+		<span id="${portletNamespace}${namespacedFieldName}Coordinates">
+		    <@fmt.formatNumber value=latitude type="NUMBER" />, <@fmt.formatNumber value=longitude type="NUMBER" />
+		</span>
+	</p>
 
 	${fieldStructure.children}
 </@>
@@ -31,13 +41,12 @@
 		function(position) {
 			var A = AUI();
 
-			var latitudeNode = A.one('#${portletNamespace}${namespacedFieldName}Latitude');
+			var coordinatesNode = A.one('#${portletNamespace}${namespacedFieldName}Coordinates');
+			var coordinatesContainerNode = A.one('#${portletNamespace}${namespacedFieldName}CoordinatesContainer');
 
-			latitudeNode.val('<@liferay_ui.message key="loading" />');
+			coordinatesContainerNode.show();
 
-			var longitudeNode = A.one('#${portletNamespace}${namespacedFieldName}Longitude');
-
-			longitudeNode.val('<@liferay_ui.message key="loading" />');
+			coordinatesNode.html('<@liferay_ui.message key="loading" />');
 
 			Liferay.Util.getGeolocation(
 				function(latitude, longitude) {
@@ -52,8 +61,7 @@
 						)
 					);
 
-					latitudeNode.val(latitude);
-					longitudeNode.val(longitude);
+					coordinatesNode.html([latitude, longitude].join(', '));
 				}
 			);
 		},

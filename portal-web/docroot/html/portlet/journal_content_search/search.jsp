@@ -25,8 +25,7 @@
 		</style>
 
 		<%
-		String defaultKeywords = LanguageUtil.get(pageContext, "search") + StringPool.TRIPLE_PERIOD;
-		String unicodeDefaultKeywords = UnicodeFormatter.toString(defaultKeywords);
+		String defaultKeywords = LanguageUtil.get(request, "search") + StringPool.TRIPLE_PERIOD;
 
 		String keywords = ParamUtil.getString(request, "keywords", defaultKeywords);
 		%>
@@ -53,7 +52,7 @@
 			headerNames.add("name");
 			headerNames.add("content");
 
-			SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.format(pageContext, "no-pages-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false));
+			SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.format(request, "no-pages-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false));
 
 			try {
 				Indexer indexer = IndexerRegistryUtil.getIndexer(JournalArticle.class);
@@ -116,14 +115,9 @@
 				}
 			%>
 
-			<%
-			String taglibOnBlur = "if (this.value == '') { this.value = '" + unicodeDefaultKeywords + "'; }";
-			String taglibOnFocus = "if (this.value == '" + unicodeDefaultKeywords + "') { this.value = ''; }";
-			%>
-
-			<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" cssClass="lfr-search-keywords" inlineField="<%= true %>" name="keywords" onBlur="<%= taglibOnBlur %>" onFocus="<%= taglibOnFocus %>" size="30" title="search-web-content" type="text" value="<%= HtmlUtil.escape(keywords) %>" />
-
-			<aui:input align="absmiddle" border="0" cssClass="lfr-search-button" inlineField="<%= true %>" name="search" src='<%= themeDisplay.getPathThemeImages() + "/common/search.png" %>' title="search" type="image" />
+			<div class="form-search">
+				<liferay-ui:input-search name="keywords" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' />
+			</div>
 
 			<div class="search-results">
 				<liferay-ui:search-speed hits="<%= hits %>" searchContainer="<%= searchContainer %>" />

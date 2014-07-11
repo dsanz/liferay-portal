@@ -22,28 +22,29 @@ import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.RoleLocalServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.RoleTestUtil;
+import com.liferay.portal.test.TransactionalTestRule;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.RoleTestUtil;
 
 import java.util.List;
 import java.util.Map;
 
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 /**
  * @author David Mendez Gonzalez
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class RoleStagedModelDataHandlerTest
 	extends BaseStagedModelDataHandlerTestCase {
+
+	@ClassRule
+	public static TransactionalTestRule transactionalTestRule =
+		new TransactionalTestRule();
 
 	@Override
 	protected StagedModel addStagedModel(
@@ -52,7 +53,7 @@ public class RoleStagedModelDataHandlerTest
 		throws Exception {
 
 		return RoleTestUtil.addRole(
-			ServiceTestUtil.randomString(), RoleConstants.TYPE_REGULAR);
+			RandomTestUtil.randomString(), RoleConstants.TYPE_REGULAR);
 	}
 
 	@Override

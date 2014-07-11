@@ -93,8 +93,8 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	public void testIncorrectTabs() throws Exception {
 		test(
 			"IncorrectTabs.testjava",
-			new String[] {"tab:", "tab:", "tab:", "tab:"},
-			new Integer[] {23, 27, 33, 40});
+			new String[] {"tab:", "tab:", "tab:", "tab:", "tab:"},
+			new Integer[] {23, 27, 33, 40, 23});
 	}
 
 	@Test
@@ -184,6 +184,11 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	@Test
 	public void testStaticFinalLog() throws Exception {
 		test("StaticFinalLog.testjava");
+	}
+
+	@Test
+	public void testThrowsSystemException() throws Exception {
+		test("ThrowsSystemException.testjava");
 	}
 
 	@Test

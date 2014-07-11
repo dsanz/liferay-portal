@@ -92,11 +92,9 @@ public class OrganizationFinderImpl
 
 	@Override
 	public int countByKeywords(
-			long companyId, long parentOrganizationId,
-			String parentOrganizationIdComparator, String keywords, String type,
-			Long regionId, Long countryId,
-			LinkedHashMap<String, Object> params)
-		throws SystemException {
+		long companyId, long parentOrganizationId,
+		String parentOrganizationIdComparator, String keywords, String type,
+		Long regionId, Long countryId, LinkedHashMap<String, Object> params) {
 
 		String[] names = null;
 		String[] streets = null;
@@ -121,9 +119,7 @@ public class OrganizationFinderImpl
 	}
 
 	@Override
-	public int countByO_U(long organizationId, long userId)
-		throws SystemException {
-
+	public int countByO_U(long organizationId, long userId) {
 		LinkedHashMap<String, Object> params1 =
 			new LinkedHashMap<String, Object>();
 
@@ -148,12 +144,10 @@ public class OrganizationFinderImpl
 
 	@Override
 	public int countByC_PO_N_T_S_C_Z_R_C(
-			long companyId, long parentOrganizationId,
-			String parentOrganizationIdComparator, String name, String type,
-			String street, String city, String zip, Long regionId,
-			Long countryId, LinkedHashMap<String, Object> params,
-			boolean andOperator)
-		throws SystemException {
+		long companyId, long parentOrganizationId,
+		String parentOrganizationIdComparator, String name, String type,
+		String street, String city, String zip, Long regionId, Long countryId,
+		LinkedHashMap<String, Object> params, boolean andOperator) {
 
 		String[] names = CustomSQLUtil.keywords(name);
 		String[] streets = CustomSQLUtil.keywords(street);
@@ -168,12 +162,11 @@ public class OrganizationFinderImpl
 
 	@Override
 	public int countByC_PO_N_T_S_C_Z_R_C(
-			long companyId, long parentOrganizationId,
-			String parentOrganizationIdComparator, String[] names, String type,
-			String[] streets, String[] cities, String[] zips, Long regionId,
-			Long countryId, LinkedHashMap<String, Object> params,
-			boolean andOperator)
-		throws SystemException {
+		long companyId, long parentOrganizationId,
+		String parentOrganizationIdComparator, String[] names, String type,
+		String[] streets, String[] cities, String[] zips, Long regionId,
+		Long countryId, LinkedHashMap<String, Object> params,
+		boolean andOperator) {
 
 		names = CustomSQLUtil.keywords(names);
 		streets = CustomSQLUtil.keywords(streets);
@@ -244,7 +237,7 @@ public class OrganizationFinderImpl
 			sql = StringUtil.replace(
 				sql, "[$PARENT_ORGANIZATION_ID_COMPARATOR$]",
 				parentOrganizationIdComparator.equals(StringPool.EQUAL) ?
-				StringPool.EQUAL : StringPool.NOT_EQUAL);
+					StringPool.EQUAL : StringPool.NOT_EQUAL);
 			sql = CustomSQLUtil.replaceAndOperator(sql, andOperator);
 
 			SQLQuery q = session.createSynchronizedSQLQuery(sql);
@@ -302,11 +295,10 @@ public class OrganizationFinderImpl
 
 	@Override
 	public List<Organization> findByKeywords(
-			long companyId, long parentOrganizationId,
-			String parentOrganizationIdComparator, String keywords, String type,
-			Long regionId, Long countryId, LinkedHashMap<String, Object> params,
-			int start, int end, OrderByComparator obc)
-		throws SystemException {
+		long companyId, long parentOrganizationId,
+		String parentOrganizationIdComparator, String keywords, String type,
+		Long regionId, Long countryId, LinkedHashMap<String, Object> params,
+		int start, int end, OrderByComparator<Organization> obc) {
 
 		String[] names = null;
 		String[] streets = null;
@@ -331,7 +323,7 @@ public class OrganizationFinderImpl
 	}
 
 	@Override
-	public List<Organization> findByNoAssets() throws SystemException {
+	public List<Organization> findByNoAssets() {
 		Session session = null;
 
 		try {
@@ -355,9 +347,8 @@ public class OrganizationFinderImpl
 
 	@Override
 	public List<Long> findByC_P(
-			long companyId, long parentOrganizationId,
-			long previousOrganizationId, int size)
-		throws SystemException {
+		long companyId, long parentOrganizationId, long previousOrganizationId,
+		int size) {
 
 		Session session = null;
 
@@ -396,12 +387,11 @@ public class OrganizationFinderImpl
 
 	@Override
 	public List<Organization> findByC_PO_N_T_S_C_Z_R_C(
-			long companyId, long parentOrganizationId,
-			String parentOrganizationIdComparator, String name, String type,
-			String street, String city, String zip, Long regionId,
-			Long countryId, LinkedHashMap<String, Object> params,
-			boolean andOperator, int start, int end, OrderByComparator obc)
-		throws SystemException {
+		long companyId, long parentOrganizationId,
+		String parentOrganizationIdComparator, String name, String type,
+		String street, String city, String zip, Long regionId, Long countryId,
+		LinkedHashMap<String, Object> params, boolean andOperator, int start,
+		int end, OrderByComparator<Organization> obc) {
 
 		String[] names = CustomSQLUtil.keywords(name);
 		String[] streets = CustomSQLUtil.keywords(street);
@@ -416,12 +406,12 @@ public class OrganizationFinderImpl
 
 	@Override
 	public List<Organization> findByC_PO_N_T_S_C_Z_R_C(
-			long companyId, long parentOrganizationId,
-			String parentOrganizationIdComparator, String[] names, String type,
-			String[] streets, String[] cities, String[] zips, Long regionId,
-			Long countryId, LinkedHashMap<String, Object> params,
-			boolean andOperator, int start, int end, OrderByComparator obc)
-		throws SystemException {
+		long companyId, long parentOrganizationId,
+		String parentOrganizationIdComparator, String[] names, String type,
+		String[] streets, String[] cities, String[] zips, Long regionId,
+		Long countryId, LinkedHashMap<String, Object> params,
+		boolean andOperator, int start, int end,
+		OrderByComparator<Organization> obc) {
 
 		names = CustomSQLUtil.keywords(names);
 		streets = CustomSQLUtil.keywords(streets);
@@ -472,7 +462,7 @@ public class OrganizationFinderImpl
 		sql = StringUtil.replace(
 			sql, "[$PARENT_ORGANIZATION_ID_COMPARATOR$]",
 			parentOrganizationIdComparator.equals(StringPool.EQUAL) ?
-			StringPool.EQUAL : StringPool.NOT_EQUAL);
+				StringPool.EQUAL : StringPool.NOT_EQUAL);
 
 		if (regionId == null) {
 			sql = StringUtil.replace(sql, _REGION_ID_SQL, StringPool.BLANK);

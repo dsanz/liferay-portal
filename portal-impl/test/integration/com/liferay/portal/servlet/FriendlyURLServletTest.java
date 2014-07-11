@@ -16,18 +16,18 @@ package com.liferay.portal.servlet;
 
 import com.liferay.portal.NoSuchGroupException;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
-import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.LayoutTestUtil;
 import com.liferay.portal.util.Portal;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.LayoutTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
 
 import java.util.Collections;
 
@@ -45,20 +45,18 @@ import org.testng.Assert;
 /**
  * @author László Csontos
  */
-@ExecutionTestListeners(
-	listeners = {
-		MainServletExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class FriendlyURLServletTest {
 
 	@Before
 	public void setUp() throws Exception {
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext();
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
 
 		ServiceContextThreadLocal.pushServiceContext(serviceContext);
+
+		_group = GroupTestUtil.addGroup();
 	}
 
 	@After
@@ -68,13 +66,11 @@ public class FriendlyURLServletTest {
 
 	@Test
 	public void testGetRedirectWithExistentSite() throws Exception {
-		Group group = GroupTestUtil.addGroup();
-
 		Layout layout = LayoutTestUtil.addLayout(
-			group.getGroupId(), ServiceTestUtil.randomString());
+			_group.getGroupId(), RandomTestUtil.randomString());
 
 		testGetRedirect(
-			getPath(group, layout), Portal.PATH_MAIN,
+			getPath(_group, layout), Portal.PATH_MAIN,
 			new Object[] {getURL(layout), false});
 	}
 
@@ -87,8 +83,8 @@ public class FriendlyURLServletTest {
 	}
 
 	@Test(expected = NoSuchGroupException.class)
-	public void testGetRedirectWithNonExistentSite() throws Exception {
-		testGetRedirect("/non-existent-site/home", Portal.PATH_MAIN, null);
+	public void testGetRedirectWithNonexistentSite() throws Exception {
+		testGetRedirect("/nonexistent-site/home", Portal.PATH_MAIN, null);
 	}
 
 	protected String getPath(Group group, Layout layout) {
@@ -111,6 +107,10 @@ public class FriendlyURLServletTest {
 	}
 
 	private FriendlyURLServlet _friendlyURLServlet = new FriendlyURLServlet();
+
+	@DeleteAfterTestRun
+	private Group _group;
+
 	private HttpServletRequest _request = new MockHttpServletRequest();
 
 }

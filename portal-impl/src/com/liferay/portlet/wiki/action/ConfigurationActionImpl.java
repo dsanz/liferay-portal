@@ -14,13 +14,9 @@
 
 package com.liferay.portlet.wiki.action;
 
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.portlet.SettingsConfigurationAction;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.settings.Settings;
-import com.liferay.portlet.wiki.WikiSettings;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -38,18 +34,8 @@ public class ConfigurationActionImpl extends SettingsConfigurationAction {
 		throws Exception {
 
 		validateDisplaySettings(actionRequest);
-		validateEmail(actionRequest, "emailPageAdded");
-		validateEmail(actionRequest, "emailPageUpdated");
-		validateEmailFrom(actionRequest);
 
 		super.processAction(portletConfig, actionRequest, actionResponse);
-	}
-
-	@Override
-	protected Settings getSettings(ActionRequest actionRequest)
-		throws PortalException, SystemException {
-
-		return new WikiSettings(super.getSettings(actionRequest));
 	}
 
 	protected void validateDisplaySettings(ActionRequest actionRequest) {

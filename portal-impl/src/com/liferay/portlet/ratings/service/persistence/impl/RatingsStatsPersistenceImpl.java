@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -45,7 +44,12 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The persistence implementation for the ratings stats service.
@@ -98,11 +102,10 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 * @param classPK the class p k
 	 * @return the matching ratings stats
 	 * @throws com.liferay.portlet.ratings.NoSuchStatsException if a matching ratings stats could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public RatingsStats findByC_C(long classNameId, long classPK)
-		throws NoSuchStatsException, SystemException {
+		throws NoSuchStatsException {
 		RatingsStats ratingsStats = fetchByC_C(classNameId, classPK);
 
 		if (ratingsStats == null) {
@@ -134,11 +137,9 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 * @param classNameId the class name ID
 	 * @param classPK the class p k
 	 * @return the matching ratings stats, or <code>null</code> if a matching ratings stats could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public RatingsStats fetchByC_C(long classNameId, long classPK)
-		throws SystemException {
+	public RatingsStats fetchByC_C(long classNameId, long classPK) {
 		return fetchByC_C(classNameId, classPK, true);
 	}
 
@@ -149,11 +150,10 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 * @param classPK the class p k
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching ratings stats, or <code>null</code> if a matching ratings stats could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public RatingsStats fetchByC_C(long classNameId, long classPK,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { classNameId, classPK };
 
 		Object result = null;
@@ -241,11 +241,10 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 * @param classNameId the class name ID
 	 * @param classPK the class p k
 	 * @return the ratings stats that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public RatingsStats removeByC_C(long classNameId, long classPK)
-		throws NoSuchStatsException, SystemException {
+		throws NoSuchStatsException {
 		RatingsStats ratingsStats = findByC_C(classNameId, classPK);
 
 		return remove(ratingsStats);
@@ -257,11 +256,9 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 * @param classNameId the class name ID
 	 * @param classPK the class p k
 	 * @return the number of matching ratings statses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByC_C(long classNameId, long classPK)
-		throws SystemException {
+	public int countByC_C(long classNameId, long classPK) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_C_C;
 
 		Object[] finderArgs = new Object[] { classNameId, classPK };
@@ -477,11 +474,9 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 * @param statsId the primary key of the ratings stats
 	 * @return the ratings stats that was removed
 	 * @throws com.liferay.portlet.ratings.NoSuchStatsException if a ratings stats with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public RatingsStats remove(long statsId)
-		throws NoSuchStatsException, SystemException {
+	public RatingsStats remove(long statsId) throws NoSuchStatsException {
 		return remove((Serializable)statsId);
 	}
 
@@ -491,11 +486,10 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 * @param primaryKey the primary key of the ratings stats
 	 * @return the ratings stats that was removed
 	 * @throws com.liferay.portlet.ratings.NoSuchStatsException if a ratings stats with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public RatingsStats remove(Serializable primaryKey)
-		throws NoSuchStatsException, SystemException {
+		throws NoSuchStatsException {
 		Session session = null;
 
 		try {
@@ -527,8 +521,7 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	}
 
 	@Override
-	protected RatingsStats removeImpl(RatingsStats ratingsStats)
-		throws SystemException {
+	protected RatingsStats removeImpl(RatingsStats ratingsStats) {
 		ratingsStats = toUnwrappedModel(ratingsStats);
 
 		Session session = null;
@@ -561,8 +554,7 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 
 	@Override
 	public RatingsStats updateImpl(
-		com.liferay.portlet.ratings.model.RatingsStats ratingsStats)
-		throws SystemException {
+		com.liferay.portlet.ratings.model.RatingsStats ratingsStats) {
 		ratingsStats = toUnwrappedModel(ratingsStats);
 
 		boolean isNew = ratingsStats.isNew();
@@ -632,11 +624,10 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 * @param primaryKey the primary key of the ratings stats
 	 * @return the ratings stats
 	 * @throws com.liferay.portlet.ratings.NoSuchStatsException if a ratings stats with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public RatingsStats findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchStatsException, SystemException {
+		throws NoSuchStatsException {
 		RatingsStats ratingsStats = fetchByPrimaryKey(primaryKey);
 
 		if (ratingsStats == null) {
@@ -657,11 +648,10 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 * @param statsId the primary key of the ratings stats
 	 * @return the ratings stats
 	 * @throws com.liferay.portlet.ratings.NoSuchStatsException if a ratings stats with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public RatingsStats findByPrimaryKey(long statsId)
-		throws NoSuchStatsException, SystemException {
+		throws NoSuchStatsException {
 		return findByPrimaryKey((Serializable)statsId);
 	}
 
@@ -670,11 +660,9 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 *
 	 * @param primaryKey the primary key of the ratings stats
 	 * @return the ratings stats, or <code>null</code> if a ratings stats with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public RatingsStats fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public RatingsStats fetchByPrimaryKey(Serializable primaryKey) {
 		RatingsStats ratingsStats = (RatingsStats)EntityCacheUtil.getResult(RatingsStatsModelImpl.ENTITY_CACHE_ENABLED,
 				RatingsStatsImpl.class, primaryKey);
 
@@ -718,22 +706,111 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 *
 	 * @param statsId the primary key of the ratings stats
 	 * @return the ratings stats, or <code>null</code> if a ratings stats with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public RatingsStats fetchByPrimaryKey(long statsId)
-		throws SystemException {
+	public RatingsStats fetchByPrimaryKey(long statsId) {
 		return fetchByPrimaryKey((Serializable)statsId);
+	}
+
+	@Override
+	public Map<Serializable, RatingsStats> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, RatingsStats> map = new HashMap<Serializable, RatingsStats>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			RatingsStats ratingsStats = fetchByPrimaryKey(primaryKey);
+
+			if (ratingsStats != null) {
+				map.put(primaryKey, ratingsStats);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			RatingsStats ratingsStats = (RatingsStats)EntityCacheUtil.getResult(RatingsStatsModelImpl.ENTITY_CACHE_ENABLED,
+					RatingsStatsImpl.class, primaryKey);
+
+			if (ratingsStats == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, ratingsStats);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_RATINGSSTATS_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (RatingsStats ratingsStats : (List<RatingsStats>)q.list()) {
+				map.put(ratingsStats.getPrimaryKeyObj(), ratingsStats);
+
+				cacheResult(ratingsStats);
+
+				uncachedPrimaryKeys.remove(ratingsStats.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(RatingsStatsModelImpl.ENTITY_CACHE_ENABLED,
+					RatingsStatsImpl.class, primaryKey, _nullRatingsStats);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the ratings statses.
 	 *
 	 * @return the ratings statses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<RatingsStats> findAll() throws SystemException {
+	public List<RatingsStats> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -747,11 +824,9 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 * @param start the lower bound of the range of ratings statses
 	 * @param end the upper bound of the range of ratings statses (not inclusive)
 	 * @return the range of ratings statses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<RatingsStats> findAll(int start, int end)
-		throws SystemException {
+	public List<RatingsStats> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -766,11 +841,10 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 * @param end the upper bound of the range of ratings statses (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of ratings statses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<RatingsStats> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<RatingsStats> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -852,10 +926,9 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	/**
 	 * Removes all the ratings statses from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (RatingsStats ratingsStats : findAll()) {
 			remove(ratingsStats);
 		}
@@ -865,10 +938,9 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	 * Returns the number of ratings statses.
 	 *
 	 * @return the number of ratings statses
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -932,6 +1004,7 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	}
 
 	private static final String _SQL_SELECT_RATINGSSTATS = "SELECT ratingsStats FROM RatingsStats ratingsStats";
+	private static final String _SQL_SELECT_RATINGSSTATS_WHERE_PKS_IN = "SELECT ratingsStats FROM RatingsStats ratingsStats WHERE statsId IN (";
 	private static final String _SQL_SELECT_RATINGSSTATS_WHERE = "SELECT ratingsStats FROM RatingsStats ratingsStats WHERE ";
 	private static final String _SQL_COUNT_RATINGSSTATS = "SELECT COUNT(ratingsStats) FROM RatingsStats ratingsStats";
 	private static final String _SQL_COUNT_RATINGSSTATS_WHERE = "SELECT COUNT(ratingsStats) FROM RatingsStats ratingsStats WHERE ";

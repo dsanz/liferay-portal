@@ -14,7 +14,6 @@
 
 package com.liferay.portlet.assetpublisher.action;
 
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.portlet.DefaultConfigurationAction;
@@ -52,6 +51,8 @@ import com.liferay.portlet.asset.AssetTagException;
 import com.liferay.portlet.asset.DuplicateQueryRuleException;
 import com.liferay.portlet.asset.model.AssetQueryRule;
 import com.liferay.portlet.asset.model.AssetRendererFactory;
+import com.liferay.portlet.asset.model.ClassType;
+import com.liferay.portlet.asset.model.ClassTypeReader;
 import com.liferay.portlet.asset.service.AssetTagLocalServiceUtil;
 import com.liferay.portlet.assetpublisher.util.AssetPublisher;
 import com.liferay.portlet.assetpublisher.util.AssetPublisherUtil;
@@ -68,7 +69,6 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -88,9 +88,8 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 
 	@Override
 	public void postProcess(
-			long companyId, PortletRequest portletRequest,
-			PortletPreferences portletPreferences)
-		throws SystemException {
+		long companyId, PortletRequest portletRequest,
+		PortletPreferences portletPreferences) {
 
 		String languageId = LocaleUtil.toLanguageId(
 			LocaleUtil.getSiteDefault());
@@ -359,7 +358,10 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
 				className);
 
-		Map<Long, String> classTypes = assetRendererFactory.getClassTypes(
+		ClassTypeReader classTypeReader =
+			assetRendererFactory.getClassTypeReader();
+
+		List<ClassType> classTypes = classTypeReader.getAvailableClassTypes(
 			PortalUtil.getCurrentAndAncestorSiteGroupIds(
 				themeDisplay.getSiteGroupId()),
 			themeDisplay.getLocale());

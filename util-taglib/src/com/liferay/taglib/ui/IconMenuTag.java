@@ -15,9 +15,6 @@
 package com.liferay.taglib.ui;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.servlet.PortalIncludeUtil;
-import com.liferay.portal.kernel.servlet.taglib.BaseBodyTagSupport;
-import com.liferay.portal.kernel.servlet.taglib.FileAvailabilityUtil;
 import com.liferay.portal.kernel.servlet.taglib.aui.ScriptData;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.IntegerWrapper;
@@ -30,7 +27,10 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.taglib.BaseBodyTagSupport;
+import com.liferay.taglib.FileAvailabilityUtil;
 import com.liferay.taglib.aui.ScriptTag;
+import com.liferay.taglib.util.PortalIncludeUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
@@ -125,7 +125,7 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 		}
 
 		if (_icon == null) {
-			_icon = themeDisplay.getPathThemeImages() + "/common/tool.png";
+			_icon = "../aui/cog";
 		}
 
 		if (Validator.isNull(_id)) {
@@ -307,7 +307,7 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 					}
 
 					if (_extended) {
-						jspWriter.write(" btn");
+						jspWriter.write(" btn btn-default");
 					}
 
 					if (_select) {
@@ -321,7 +321,7 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 					String message = _message;
 
 					if (_localizeMessage) {
-						message = LanguageUtil.get(pageContext, _message);
+						message = LanguageUtil.get(request, _message);
 					}
 
 					jspWriter.write("\" href=\"javascript:;\" id=\"");
@@ -432,7 +432,7 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 	private static final String _AUI_PATH = "../aui/";
 
 	private static final int _DEFAULT_MAX_DISPLAY_ITEMS = GetterUtil.getInteger(
-		PropsUtil.get(PropsKeys.ICON_MENU_MAX_DISPLAY_ITEMS));
+		PropsUtil.get(PropsKeys.MENU_MAX_DISPLAY_ITEMS));
 
 	private static final String _END_PAGE = "/html/taglib/ui/icon_menu/end.jsp";
 

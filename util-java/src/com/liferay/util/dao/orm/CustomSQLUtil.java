@@ -15,6 +15,7 @@
 package com.liferay.util.dao.orm;
 
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
+import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -36,12 +37,12 @@ public class CustomSQLUtil {
 		return _instance._customSQL.get(id);
 	}
 
-	public static String get(String id, QueryDefinition queryDefinition) {
+	public static String get(String id, QueryDefinition<?> queryDefinition) {
 		return _instance._customSQL.get(id, queryDefinition);
 	}
 
 	public static String get(
-		String id, QueryDefinition queryDefinition, String tableName) {
+		String id, QueryDefinition<?> queryDefinition, String tableName) {
 
 		return _instance._customSQL.get(id, queryDefinition, tableName);
 	}
@@ -76,6 +77,18 @@ public class CustomSQLUtil {
 
 	public static String[] keywords(String keywords, boolean lowerCase) {
 		return _instance._customSQL.keywords(keywords, lowerCase);
+	}
+
+	public static String[] keywords(
+		String keywords, boolean lowerCase, WildcardMode wildcardMode) {
+
+		return _instance._customSQL.keywords(keywords, lowerCase, wildcardMode);
+	}
+
+	public static String[] keywords(
+		String keywords, WildcardMode wildcardMode) {
+
+		return _instance._customSQL.keywords(keywords, wildcardMode);
 	}
 
 	public static String[] keywords(String[] keywordsArray) {
@@ -130,7 +143,7 @@ public class CustomSQLUtil {
 			sql, field, operator, last, values);
 	}
 
-	public static String replaceOrderBy(String sql, OrderByComparator obc) {
+	public static String replaceOrderBy(String sql, OrderByComparator<?> obc) {
 		return _instance._customSQL.replaceOrderBy(sql, obc);
 	}
 

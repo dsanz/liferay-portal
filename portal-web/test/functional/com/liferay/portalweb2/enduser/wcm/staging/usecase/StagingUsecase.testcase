@@ -44,12 +44,147 @@
 		<echo message="override" />
 	</command>
 
+	<command known-issues="LPS-46486" name="ActivateInitialStagingWithWikiAttachment" priority="4">
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Wiki" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="WikiPage#addPG">
+			<var name="wikiPageContent" value="Wiki Page Content" />
+			<var name="wikiPageTitle" value="Wiki Page Title" />
+		</execute>
+
+		<execute macro="WikiPage#addAttachmentPG">
+			<var name="attachmentFileName" value="Document_1.jpg" />
+			<var name="wikiPageTitle" value="Wiki Page Title" />
+		</execute>
+
+		<execute macro="Page#gotoConfigurationCP">
+			<var name="portletName" value="Site Settings" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#activateStagingCP">
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="WikiPage#viewAttachmentPG">
+			<var name="attachmentFileName" value="Document_1.jpg" />
+			<var name="wikiPageTitle" value="Wiki Page Title" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="WikiPage#viewAttachmentPG">
+			<var name="attachmentFileName" value="Document_1.jpg" />
+			<var name="wikiPageTitle" value="Wiki Page Title" />
+		</execute>
+	</command>
+
 	<command name="ActivateRemoteStaging" priority="5">
 		<echo message="override" />
 	</command>
 
 	<command name="ActivateStaging" priority="5">
 		<echo message="override" />
+	</command>
+
+	<command name="ActivateStagingPageVersioningWithCustomDefaultLanguage" priority="5">
+		<execute macro="Page#gotoConfigurationCP">
+			<var name="portletName" value="Site Settings" />
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="Site#configureCurrentLanguagesCP">
+			<var name="currentSiteLanguages" value="English (United States)" />
+			<var name="defaultSiteLanguage" value="English (United States)" />
+			<var name="displaySettings" value="Display Settings" />
+		</execute>
+
+		<execute macro="Page#gotoConfigurationCP">
+			<var name="portletName" value="Site Settings" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#activateStagingCP">
+			<var name="pageVersioningEnabled" value="true" />
+			<var name="siteName" value="Site Name" />
+		</execute>
+	</command>
+
+	<command name="ActivateStagingWithWebContentLinkingDMImage" priority="5">
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Documents and Media" />
+			<var name="siteName" value="Liferay" />
+		</execute>
+
+		<execute macro="DMDocument#addCP">
+			<var name="dmDocumentDescription" value="DM Document Description" />
+			<var name="dmDocumentFile" value="Document_1.jpg" />
+			<var name="dmDocumentTitle" value="DM Document Title" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+			<var name="siteScopeName" value="Site Name" />
+		</execute>
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="Web Content Content" />
+			<var name="webContentTitle" value="Web Content Title" />
+		</execute>
+
+		<execute macro="Page#gotoContentCP">
+			<var name="portletName" value="Web Content" />
+			<var name="siteScopeName" value="Site Name" />
+		</execute>
+
+		<execute macro="WebContent#gotoEditCP">
+			<var name="webContentTitle" value="Web Content Title" />
+		</execute>
+
+		<execute macro="DMDocument#linkImage">
+			<var name="documentName" value="DM Document Title" />
+			<var name="navButton" value="Documents" />
+			<var name="siteName" value="Liferay" />
+		</execute>
+
+		<execute macro="WebContent#publishBasicCP" />
+
+		<execute macro="Page#gotoConfigurationCP">
+			<var name="portletName" value="Site Settings" />
+			<var name="siteScopeName" value="Site Name" />
+		</execute>
+
+		<execute macro="Staging#activateStagingCP">
+			<var name="pageVersioningEnabled" value="true" />
+			<var name="siteName" value="Site Name" />
+		</execute>
 	</command>
 
 	<command name="AddDMDocumentStagingLocalLive" priority="5">
@@ -72,6 +207,10 @@
 		<echo message="override" />
 	</command>
 
+	<command name="AssertExportApplications" priority="5">
+		<echo message="override" />
+	</command>
+
 	<command name="AssertNoEditLink" priority="4">
 		<echo message="override" />
 	</command>
@@ -88,11 +227,75 @@
 		<echo message="override" />
 	</command>
 
+	<command name="EnableAndDeleteSitePageVariationPage" priority="5">
+		<execute macro="Page#gotoConfigurationCP">
+			<var name="portletName" value="Site Settings" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#activateStagingCP">
+			<var name="pageVersioningEnabled" value="true" />
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#addSitePagesVariationPG">
+			<var name="copySitePagesVariationName" value="Main Variation" />
+			<var name="sitePagesVariationName" value="Test Site Pages Variation" />
+		</execute>
+
+		<execute macro="Page#addPG">
+			<var name="pageName" value="Test Page Name" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page Name" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#markAsReadyForPublication" />
+
+		<execute macro="Staging#changeSitePageVariationPG">
+			<var name="sitePagesVariationMenulistName" value="Main Variation" />
+			<var name="sitePagesVariationName" value="Test Site Pages Variation" />
+		</execute>
+
+		<execute action="Home#refresh" />
+
+		<execute macro="Staging#enablePageInSitePagesVariation">
+			<var name="pageName" value="Test Page Name" />
+			<var name="sitePagesVariationName" value="main-variation" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Page#deletePG">
+			<var name="pageName" value="Test Page Name" />
+		</execute>
+	</command>
+
 	<command name="LayoutScope" priority="5">
 		<echo message="override" />
 	</command>
 
-	<command name="PublishCustomPortletTitle" priority="5">
+	<command known-issues="LPS-47429" name="PublishCustomPortletTitle" priority="5">
 		<execute test-case="super#AddSitePagesVariation" />
 
 		<var name="portletName" value="Sites Directory" />
@@ -262,7 +465,7 @@
 		</execute>
 	</command>
 
-	<command name="StagingBlogs" known-issues="LPS-45854" priority="4">
+	<command known-issues="LPS-45854" name="StagingBlogs" priority="4">
 		<execute macro="Page#gotoConfigurationCP">
 			<var name="portletName" value="Site Settings" />
 			<var name="siteName" value="Site Name" />
@@ -336,6 +539,11 @@
 			<var name="entryTitle" value="Blogs Entry Title 1" />
 		</execute>
 
+		<execute macro="BlogsEntry#gotoPG">
+			<var name="entryContent" value="Blogs Entry Content 1" />
+			<var name="entryTitle" value="Blogs Entry Title 1" />
+		</execute>
+
 		<execute macro="BlogsEntry#viewPG">
 			<var name="entryContent" value="Blogs Entry Content 1" />
 			<var name="entryTitle" value="Blogs Entry Title 1" />
@@ -358,6 +566,11 @@
 			<var name="pageName" value="Blogs Page 1" />
 			<var name="siteName" value="Site Name" />
 			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="BlogsEntry#gotoPG">
+			<var name="entryContent" value="Blogs Entry Content 1" />
+			<var name="entryTitle" value="Blogs Entry Title 1" />
 		</execute>
 
 		<execute macro="BlogsEntry#viewPG">
@@ -433,6 +646,11 @@
 			<var name="pageName" value="Blogs Page 2" />
 			<var name="siteName" value="Site Name" />
 			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="BlogsEntry#gotoPG">
+			<var name="entryContent" value="Blogs Entry Content 2" />
+			<var name="entryTitle" value="Blogs Entry Title 2" />
 		</execute>
 
 		<execute macro="BlogsEntry#viewPG">
@@ -637,7 +855,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_DOCUMENTS_AND_MEDIA_DOCUMENT_ACTION_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_DOCUMENTS_AND_MEDIA_RESOURCE_PERMISSIONS_DOCUMENT_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="permissionNavigationKey" value="SITE_ADMIN_CONTENT_DOCUMENTS_AND_MEDIA" />
 			<var name="permissionNavigationValue" value="Documents and Media" />
@@ -883,7 +1101,7 @@
 		</execute>
 	</command>
 
-	<command name="StagingDemoLocalLive3" known-issues="LPS-43693" priority="5">
+	<command known-issues="LPS-43693" name="StagingDemoLocalLive3" priority="5">
 		<var name="pageName" value="Home" />
 		<var name="roleName" value="Staging Admin" />
 		<var name="siteName" value="Community Site Name" />
@@ -1211,7 +1429,7 @@
 		</execute>
 	</command>
 
-	<command name="StagingDemoLocalLive4" known-issues="LPS-43693" priority="5">
+	<command known-issues="LPS-43693" name="StagingDemoLocalLive4" priority="5">
 		<var name="pageName" value="Home" />
 		<var name="roleName" value="Staging Admin" />
 		<var name="siteName" value="Community Site Name" />
@@ -1473,9 +1691,8 @@
 			<var name="workflowResourceKey" value="RESOURCE_TABLE_PAGE_REVISION_SELECT" />
 		</execute>
 
-		<execute macro="Workflow#configureSiteWorkflow">
+		<execute macro="Workflow#configureWebContentWorkflow">
 			<var name="workflowDefinition" value="Single Approver (Version 1)" />
-			<var name="workflowResourceKey" value="RESOURCE_TABLE_WEB_CONTENT_SELECT" />
 		</execute>
 
 		<execute macro="Page#gotoConfigurationCP">
@@ -1642,6 +1859,11 @@
 			<var name="siteURL" value="true" />
 		</execute>
 
+		<execute macro="BlogsEntry#gotoPG">
+			<var name="entryContent" value="Blogs Entry Content 2" />
+			<var name="entryTitle" value="Blogs Entry Title 2" />
+		</execute>
+
 		<execute macro="BlogsEntry#viewPG">
 			<var name="entryContent" value="Blogs Entry Content 2" />
 			<var name="entryTitle" value="Blogs Entry Title 2" />
@@ -1687,9 +1909,8 @@
 			<var name="workflowResourceKey" value="RESOURCE_TABLE_PAGE_REVISION_SELECT" />
 		</execute>
 
-		<execute macro="Workflow#configureSiteWorkflow">
+		<execute macro="Workflow#configureWebContentWorkflow">
 			<var name="workflowDefinition" value="Single Approver (Version 1)" />
-			<var name="workflowResourceKey" value="RESOURCE_TABLE_WEB_CONTENT_SELECT" />
 		</execute>
 
 		<execute macro="Page#gotoCP">
@@ -1706,7 +1927,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_PAGES_SITE_PAGES_SITE_GENERAL_PERMISSIONS_ACTION" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_PAGES_SITE_PAGES_GENERAL_PERMISSIONS_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="permissionNavigationKey" value="SITE_ADMIN_PAGES_SITE_PAGES" />
 			<var name="permissionNavigationValue" value="Site Pages" />
@@ -1718,7 +1939,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_PAGES_SITE_PAGES_SITE_RESOURCE_PERMISSIONS_SITE_ACTION" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_SITE_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="permissionNavigationKey" value="SITE_ADMIN_PAGES_SITE_PAGES" />
 			<var name="permissionNavigationValue" value="Site Pages" />
@@ -1730,7 +1951,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_PAGES_SITE_PAGES_SITE_RESOURCE_PERMISSIONS_PAGE_ACTION" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_PAGE_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="permissionNavigationKey" value="SITE_ADMIN_PAGES_SITE_PAGES" />
 			<var name="permissionNavigationValue" value="Site Pages" />
@@ -1742,7 +1963,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_PAGES_SITE_PAGES_SITE_RESOURCE_PERMISSIONS_PAGE_VARIATION_ACTION" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_PAGE_VARIATION_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="permissionNavigationKey" value="SITE_ADMIN_PAGES_SITE_PAGES" />
 			<var name="permissionNavigationValue" value="Site Pages" />
@@ -1754,7 +1975,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_PAGES_SITE_PAGES_SITE_RESOURCE_PERMISSIONS_SITE_PAGES_VARIATION_ACTION" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_SITE_PAGES_VARIATION_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="permissionNavigationKey" value="SITE_ADMIN_PAGES_SITE_PAGES" />
 			<var name="permissionNavigationValue" value="Site Pages" />
@@ -1859,7 +2080,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_WEB_CONTENT_DISPLAY_APPLICATIONS_PERMISSIONS_ACTION" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_APPLICATIONS_WEB_CONTENT_DISPLAY_APPLICATIONS_PERMISSIONS_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="permissionNavigationKey" value="SITE_ADMIN_APPLICATIONS_WEB_CONTENT_DISPLAY" />
 			<var name="permissionNavigationValue" value="Web Content Display" />
@@ -2175,7 +2396,7 @@
 		<execute macro="Page#viewCustomLogoPG" />
 	</command>
 
-	<command name="StagingOnlyApprovedPublishToLive" known-issues="LPS-44150" priority="5">
+	<command known-issues="LPS-44150" name="StagingOnlyApprovedPublishToLive" priority="5">
 		<property name="web.plugins.includes" value="kaleo-web" />
 
 		<execute macro="Page#gotoPG">
@@ -2580,7 +2801,7 @@
 		</execute>
 	</command>
 
-	<command name="StagingPublishPage" known-issues="LPS-46018" priority="4">
+	<command known-issues="LPS-46018" name="StagingPublishPage" priority="4">
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Sites" />
 		</execute>
@@ -2753,7 +2974,7 @@
 		<echo message="override" />
 	</command>
 
-	<command name="StagingRemoteDMViaGlobalScope" priority="5">
+	<command known-issues="LIFERAYQA-8936" name="StagingRemoteDMViaGlobalScope" priority="5">
 		<property name="custom.properties" value="tunneling.servlet.shared.secret=1234567890123456$${line.separator}auth.verifier.TunnelingServletAuthVerifier.hosts.allowed=" />
 
 		<var name="siteID" value="${siteID}" />
@@ -2881,7 +3102,7 @@
 		</execute>
 	</command>
 
-	<command name="StagingRemoteLiveWebContent" priority="5">
+	<command known-issues="LPS-46086" name="StagingRemoteLiveWebContent" priority="5">
 		<property name="custom.properties" value="tunneling.servlet.shared.secret=1234567890123456$${line.separator}auth.verifier.TunnelingServletAuthVerifier.hosts.allowed=" />
 
 		<execute macro="Staging#remoteStagingSetUp">
@@ -3069,7 +3290,7 @@
 
 		<execute action="PGStaging#click" locator-key1="HISTORY_BUTTON" />
 
-		<var name="historyVersion" path="PGStaging" locator-key="HISTORY_VERSION" />
+		<var locator-key="HISTORY_VERSION" name="historyVersion" path="PGStaging" />
 
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="Staging Test Page" />
@@ -3159,5 +3380,538 @@
 		</execute>
 
 		<execute macro="Staging#publishToLiveNow" />
+	</command>
+
+	<command known-issues="LPS-46468" name="StagingWithPublishTemplate" priority="5" >
+		<execute macro="Page#gotoConfigurationCP">
+			<var name="portletName" value="Site Settings" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#activateStagingCP">
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Sites" />
+		</execute>
+
+		<execute macro="SitePage#addCP">
+			<var name="siteName" value="Site Name" />
+			<var name="sitePageName" value="Test Page 1" />
+			<var name="sitePagePrivacy" value="Public" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Sites" />
+		</execute>
+
+		<execute macro="SitePage#addCP">
+			<var name="siteName" value="Site Name" />
+			<var name="sitePageName" value="Test Page 2" />
+			<var name="sitePagePrivacy" value="Public" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Sites" />
+		</execute>
+
+		<execute macro="SitePage#addCP">
+			<var name="siteName" value="Site Name" />
+			<var name="sitePageName" value="Test Page 3" />
+			<var name="sitePagePrivacy" value="Public" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 1" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Blogs" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 1" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Documents and Media" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 1" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Web Content Display" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 2" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Asset Publisher" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 3" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Asset Publisher" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 1" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="DMDocument#addPG">
+			<var name="dmDocumentDescription" value="DM Document Description" />
+			<var name="dmDocumentTitle" value="DM Document Title" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 1" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="WebContent#addPGViaWCD">
+			<var name="webContentContent" value="Web Content Content" />
+			<var name="webContentTitle" value="Web Content Title" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 1" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="BlogsEntry#addPG">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 1" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#gotoPublishToLive" />
+
+		<execute macro="Staging#addPublishTemplate">
+			<var name="publishTemplateDescription" value="Publish Template Description" />
+			<var name="publishTemplateName" value="Publish Template Name" />
+		</execute>
+
+		<execute macro="Staging#configurePublishToLive">
+			<var name="applicationName" value="Documents and Media" />
+			<var name="checkPageName" value="Test Page 1,Test Page 2" />
+			<var name="contentName" value="Blogs" />
+			<var name="uncheckApplication" value="true" />
+			<var name="uncheckContent" value="true" />
+		</execute>
+
+		<execute macro="Staging#savePublishTemplate">
+			<var name="publishTemplateDescription" value="Publish Template Description" />
+			<var name="publishTemplateName" value="Publish Template Name" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 1" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#gotoPublishToLive" />
+
+		<execute macro="Staging#publishToLivePublishTemplate">
+			<var name="publishTemplateName" value="Publish Template Name" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 1" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Page#viewSpecificPG">
+			<var name="pageNameList" value="Test Page 1,Test Page 2" />
+		</execute>
+
+		<execute macro="WebContent#viewPGViaWCD">
+			<var name="webContentContent" value="Web Content Content" />
+		</execute>
+
+		<execute macro="Portlet#viewSpecificPG">
+			<var name="portletName" value="Blogs" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 2" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="WebContent#viewPGViaAP">
+			<var name="webContentContent" value="Web Content Content" />
+			<var name="webContentTitle" value="Web Content Title" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page 2" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="DMDocument#viewPGViaAP">
+			<var name="dmDocumentDescription" value="DM Document Description" />
+			<var name="dmDocumentTitle" value="DM Document Title" />
+		</execute>
+	</command>
+
+	<command name="StagingWithPublishTemplateSmoke" priority="5">
+		<execute macro="Page#gotoConfigurationCP">
+			<var name="portletName" value="Site Settings" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#activateStagingCP">
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Web Content Display" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="WebContent#addPGViaWCD">
+			<var name="webContentContent" value="Web Content Content" />
+			<var name="webContentTitle" value="Web Content Title" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#gotoPublishToLive" />
+
+		<execute macro="Staging#addPublishTemplate">
+			<var name="publishTemplateDescription" value="Publish Template Description" />
+			<var name="publishTemplateName" value="Publish Template Name" />
+		</execute>
+
+		<execute macro="Staging#savePublishTemplate">
+			<var name="publishTemplateDescription" value="Publish Template Description" />
+			<var name="publishTemplateName" value="Publish Template Name" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#gotoPublishToLive" />
+
+		<execute macro="Staging#publishToLivePublishTemplate">
+			<var name="publishTemplateName" value="Publish Template Name" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="WebContent#viewPGViaWCD">
+			<var name="webContentContent" value="Web Content Content" />
+		</execute>
+	</command>
+
+	<command name="ViewHistoryVersionWithDeletedUser" priority="4">
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#addCP">
+			<var name="userEmailAddress" value="userea@liferay.com" />
+			<var name="userFirstName" value="userfn" />
+			<var name="userLastName" value="userln" />
+			<var name="userScreenName" value="usersn" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="User#editPasswordCP">
+			<var name="password" value="password" />
+			<var name="userEmailAddress" value="userea@liferay.com" />
+			<var name="userScreenName" value="usersn" />
+		</execute>
+
+		<execute macro="Page#gotoUsersCP">
+			<var name="portletName" value="Site Memberships" />
+			<var name="siteScopeName" value="Site Name" />
+		</execute>
+
+		<execute macro="Site#addMemberCP">
+			<var name="siteName" value="Site Name" />
+			<var name="siteScopeName" value="Site Name" />
+			<var name="userFirstName" value="userfn" />
+			<var name="userLastName" value="userln" />
+			<var name="userScreenName" value="usersn" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#assignSiteRoleCP">
+			<var name="siteRoleName" value="Site Administrator" />
+			<var name="userScreenName" value="usersn" />
+		</execute>
+
+		<execute macro="Page#gotoConfigurationCP">
+			<var name="portletName" value="Site Settings" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#activateStagingCP">
+			<var name="pageVersioningEnabled" value="true" />
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="User#logoutAndLoginPG">
+			<var name="userLoginEmailAddress" value="userea@liferay.com" />
+			<var name="userLoginFullName" value="userfn userln" />
+		</execute>
+
+		<execute macro="Page#addPG">
+			<var name="pageName" value="Test Page Name" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page Name" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#addPageVariationPG">
+			<var name="pageVariationName" value="Test Page Variation Name" />
+		</execute>
+
+		<execute macro="User#logoutAndLoginPG">
+			<var name="userLoginEmailAddress" value="test@liferay.com" />
+			<var name="userLoginFullName" value="test test" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#deleteCP">
+			<var name="userFirstName" value="userfn" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page Name" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<if>
+			<condition action="PGStaging#isElementNotPresent" locator-key1="STAGING_MENULIST_PUBLISH_TO_LIVE_NOW" />
+			<then>
+				<execute action="PGStaging#assertClick" locator-key1="STAGING_DROP_DOWN_BUTTON" value1="Staging" />
+			</then>
+		</if>
+
+		<execute action="PGStaging#click" locator-key1="HISTORY_BUTTON" />
+
+		<var locator-key="HISTORY_VERSION" name="historyVersion" path="PGStaging" />
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Test Page Name" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#viewHistoryVersionPG" />
+	</command>
+
+	<command name="ViewPageOrderWithStaging" priority="4">
+		<execute macro="Page#gotoConfigurationCP">
+			<var name="portletName" value="Site Settings" />
+		</execute>
+
+		<execute macro="Staging#activateStagingCP">
+			<var name="siteName" value="Liferay" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Sites" />
+		</execute>
+
+		<execute macro="SitePage#addCP">
+			<var name="siteName" value="Liferay" />
+			<var name="sitePageName" value="Test Page 1" />
+			<var name="sitePagePrivacy" value="Public" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Sites" />
+		</execute>
+
+		<execute macro="SitePage#addCP">
+			<var name="siteName" value="Liferay" />
+			<var name="sitePageName" value="Test Page 2" />
+			<var name="sitePagePrivacy" value="Public" />
+		</execute>
+
+		<execute macro="Page#gotoPagesCP">
+			<var name="portletName" value="Site Pages" />
+		</execute>
+
+		<execute macro="SitePage#viewPagesOrderCP">
+			<var name="pageName1" value="Welcome" />
+			<var name="pageName2" value="Test Page 1" />
+			<var name="pageName3" value="Test Page 2" />
+		</execute>
+
+		<execute macro="Staging#publishToLiveNow" />
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Welcome" />
+		</execute>
+
+		<execute macro="Page#viewPageOrderStagingLivePG">
+			<var name="pageName1" value="Welcome" />
+			<var name="pageName2" value="Test Page 1" />
+			<var name="pageName3" value="Test Page 2" />
+		</execute>
+	</command>
+
+	<command name="ViewPublishDMWithModifiedTitle" priority="4">
+		<execute macro="Page#gotoConfigurationCP">
+			<var name="portletName" value="Site Settings" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#activateStagingCP">
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Asset Publisher" />
+		</execute>
+
+		<execute macro="DMDocument#addPGViaAP">
+			<var name="dmDocumentDescription" value="DM Document Description" />
+			<var name="dmDocumentFile" value="Document_1.doc" />
+			<var name="dmDocumentTitle" value="DM Document Title" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#publishToLiveNow" />
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="DMDocument#editPGViaAP">
+			<var name="assetTitle" value="DM Document Title" />
+			<var name="dmDocumentTitleEdit" value="DM Document Title Edit" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="pageStaging" value="true" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="Staging#publishToLiveNow" />
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="true" />
+		</execute>
+
+		<execute macro="DMDocument#viewPGViaAP">
+			<var name="dmDocumentDescription" value="DM Document Description" />
+			<var name="dmDocumentTitle" value="DM Document Title Edit" />
+		</execute>
 	</command>
 </definition>

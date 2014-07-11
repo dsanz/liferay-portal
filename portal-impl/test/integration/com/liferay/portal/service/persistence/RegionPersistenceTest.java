@@ -31,12 +31,12 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.Region;
 import com.liferay.portal.model.impl.RegionModelImpl;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -47,6 +47,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,7 +97,7 @@ public class RegionPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		Region region = _persistence.create(pk);
 
@@ -123,19 +124,19 @@ public class RegionPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		Region newRegion = _persistence.create(pk);
 
-		newRegion.setMvccVersion(ServiceTestUtil.nextLong());
+		newRegion.setMvccVersion(RandomTestUtil.nextLong());
 
-		newRegion.setCountryId(ServiceTestUtil.nextLong());
+		newRegion.setCountryId(RandomTestUtil.nextLong());
 
-		newRegion.setRegionCode(ServiceTestUtil.randomString());
+		newRegion.setRegionCode(RandomTestUtil.randomString());
 
-		newRegion.setName(ServiceTestUtil.randomString());
+		newRegion.setName(RandomTestUtil.randomString());
 
-		newRegion.setActive(ServiceTestUtil.randomBoolean());
+		newRegion.setActive(RandomTestUtil.randomBoolean());
 
 		_persistence.update(newRegion);
 
@@ -156,7 +157,7 @@ public class RegionPersistenceTest {
 	@Test
 	public void testCountByCountryId() {
 		try {
-			_persistence.countByCountryId(ServiceTestUtil.nextLong());
+			_persistence.countByCountryId(RandomTestUtil.nextLong());
 
 			_persistence.countByCountryId(0L);
 		}
@@ -168,9 +169,9 @@ public class RegionPersistenceTest {
 	@Test
 	public void testCountByActive() {
 		try {
-			_persistence.countByActive(ServiceTestUtil.randomBoolean());
+			_persistence.countByActive(RandomTestUtil.randomBoolean());
 
-			_persistence.countByActive(ServiceTestUtil.randomBoolean());
+			_persistence.countByActive(RandomTestUtil.randomBoolean());
 		}
 		catch (Exception e) {
 			Assert.fail(e.getMessage());
@@ -180,7 +181,7 @@ public class RegionPersistenceTest {
 	@Test
 	public void testCountByC_R() {
 		try {
-			_persistence.countByC_R(ServiceTestUtil.nextLong(), StringPool.BLANK);
+			_persistence.countByC_R(RandomTestUtil.nextLong(), StringPool.BLANK);
 
 			_persistence.countByC_R(0L, StringPool.NULL);
 
@@ -194,10 +195,10 @@ public class RegionPersistenceTest {
 	@Test
 	public void testCountByC_A() {
 		try {
-			_persistence.countByC_A(ServiceTestUtil.nextLong(),
-				ServiceTestUtil.randomBoolean());
+			_persistence.countByC_A(RandomTestUtil.nextLong(),
+				RandomTestUtil.randomBoolean());
 
-			_persistence.countByC_A(0L, ServiceTestUtil.randomBoolean());
+			_persistence.countByC_A(0L, RandomTestUtil.randomBoolean());
 		}
 		catch (Exception e) {
 			Assert.fail(e.getMessage());
@@ -215,7 +216,7 @@ public class RegionPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -237,7 +238,7 @@ public class RegionPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<Region> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("Region", "mvccVersion",
 			true, "regionId", true, "countryId", true, "regionCode", true,
 			"name", true, "active", true);
@@ -254,11 +255,89 @@ public class RegionPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		Region missingRegion = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingRegion);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		Region newRegion1 = addRegion();
+		Region newRegion2 = addRegion();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newRegion1.getPrimaryKey());
+		primaryKeys.add(newRegion2.getPrimaryKey());
+
+		Map<Serializable, Region> regions = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, regions.size());
+		Assert.assertEquals(newRegion1, regions.get(newRegion1.getPrimaryKey()));
+		Assert.assertEquals(newRegion2, regions.get(newRegion2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, Region> regions = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(regions.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		Region newRegion = addRegion();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newRegion.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, Region> regions = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, regions.size());
+		Assert.assertEquals(newRegion, regions.get(newRegion.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, Region> regions = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(regions.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		Region newRegion = addRegion();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newRegion.getPrimaryKey());
+
+		Map<Serializable, Region> regions = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, regions.size());
+		Assert.assertEquals(newRegion, regions.get(newRegion.getPrimaryKey()));
 	}
 
 	@Test
@@ -287,7 +366,7 @@ public class RegionPersistenceTest {
 				Region.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("regionId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<Region> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -326,7 +405,7 @@ public class RegionPersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("regionId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("regionId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -353,19 +432,19 @@ public class RegionPersistenceTest {
 	}
 
 	protected Region addRegion() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		Region region = _persistence.create(pk);
 
-		region.setMvccVersion(ServiceTestUtil.nextLong());
+		region.setMvccVersion(RandomTestUtil.nextLong());
 
-		region.setCountryId(ServiceTestUtil.nextLong());
+		region.setCountryId(RandomTestUtil.nextLong());
 
-		region.setRegionCode(ServiceTestUtil.randomString());
+		region.setRegionCode(RandomTestUtil.randomString());
 
-		region.setName(ServiceTestUtil.randomString());
+		region.setName(RandomTestUtil.randomString());
 
-		region.setActive(ServiceTestUtil.randomBoolean());
+		region.setActive(RandomTestUtil.randomBoolean());
 
 		_persistence.update(region);
 

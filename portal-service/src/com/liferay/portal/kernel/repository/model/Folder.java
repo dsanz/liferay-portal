@@ -15,7 +15,6 @@
 package com.liferay.portal.kernel.repository.model;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.Accessor;
 import com.liferay.portal.security.permission.PermissionChecker;
 
@@ -50,13 +49,11 @@ public interface Folder extends RepositoryModel<Folder> {
 
 	public boolean containsPermission(
 			PermissionChecker permissionChecker, String actionId)
-		throws PortalException, SystemException;
+		throws PortalException;
 
-	public List<Long> getAncestorFolderIds()
-		throws PortalException, SystemException;
+	public List<Long> getAncestorFolderIds() throws PortalException;
 
-	public List<Folder> getAncestors()
-		throws PortalException, SystemException;
+	public List<Folder> getAncestors() throws PortalException;
 
 	@Override
 	public long getCompanyId();
@@ -78,7 +75,7 @@ public interface Folder extends RepositoryModel<Folder> {
 
 	public String getName();
 
-	public Folder getParentFolder() throws PortalException, SystemException;
+	public Folder getParentFolder() throws PortalException;
 
 	public long getParentFolderId();
 
@@ -91,7 +88,7 @@ public interface Folder extends RepositoryModel<Folder> {
 	public String getUserName();
 
 	@Override
-	public String getUserUuid() throws SystemException;
+	public String getUserUuid();
 
 	@Override
 	public String getUuid();

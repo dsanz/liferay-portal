@@ -24,47 +24,39 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  */
 @ProviderType
 public class SocialActivitySetFinderUtil {
-	public static int countByRelation(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByRelation(long userId) {
 		return getFinder().countByRelation(userId);
 	}
 
-	public static int countByRelationType(long userId, int type)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByRelationType(long userId, int type) {
 		return getFinder().countByRelationType(userId, type);
 	}
 
-	public static int countByUser(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByUser(long userId) {
 		return getFinder().countByUser(userId);
 	}
 
-	public static int countByUserGroups(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByUserGroups(long userId) {
 		return getFinder().countByUserGroups(userId);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivitySet> findByRelation(
-		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId, int start, int end) {
 		return getFinder().findByRelation(userId, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivitySet> findByRelationType(
-		long userId, int type, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId, int type, int start, int end) {
 		return getFinder().findByRelationType(userId, type, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivitySet> findByUser(
-		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId, int start, int end) {
 		return getFinder().findByUser(userId, start, end);
 	}
 
 	public static java.util.List<com.liferay.portlet.social.model.SocialActivitySet> findByUserGroups(
-		long userId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId, int start, int end) {
 		return getFinder().findByUserGroups(userId, start, end);
 	}
 

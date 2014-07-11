@@ -36,13 +36,20 @@ public class PortletItemLocalServiceWrapper implements PortletItemLocalService,
 	*
 	* @param portletItem the portlet item
 	* @return the portlet item that was added
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portal.model.PortletItem addPortletItem(
-		com.liferay.portal.model.PortletItem portletItem)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.model.PortletItem portletItem) {
 		return _portletItemLocalService.addPortletItem(portletItem);
+	}
+
+	@Override
+	public com.liferay.portal.model.PortletItem addPortletItem(long userId,
+		long groupId, java.lang.String name, java.lang.String portletId,
+		java.lang.String className)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _portletItemLocalService.addPortletItem(userId, groupId, name,
+			portletId, className);
 	}
 
 	/**
@@ -58,19 +65,13 @@ public class PortletItemLocalServiceWrapper implements PortletItemLocalService,
 	}
 
 	/**
-	* Deletes the portlet item with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param portletItemId the primary key of the portlet item
-	* @return the portlet item that was removed
-	* @throws PortalException if a portlet item with the primary key could not be found
-	* @throws SystemException if a system exception occurred
+	* @throws PortalException
 	*/
 	@Override
-	public com.liferay.portal.model.PortletItem deletePortletItem(
-		long portletItemId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _portletItemLocalService.deletePortletItem(portletItemId);
+	public com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _portletItemLocalService.deletePersistedModel(persistedModel);
 	}
 
 	/**
@@ -78,13 +79,25 @@ public class PortletItemLocalServiceWrapper implements PortletItemLocalService,
 	*
 	* @param portletItem the portlet item
 	* @return the portlet item that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portal.model.PortletItem deletePortletItem(
-		com.liferay.portal.model.PortletItem portletItem)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.model.PortletItem portletItem) {
 		return _portletItemLocalService.deletePortletItem(portletItem);
+	}
+
+	/**
+	* Deletes the portlet item with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param portletItemId the primary key of the portlet item
+	* @return the portlet item that was removed
+	* @throws PortalException if a portlet item with the primary key could not be found
+	*/
+	@Override
+	public com.liferay.portal.model.PortletItem deletePortletItem(
+		long portletItemId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _portletItemLocalService.deletePortletItem(portletItemId);
 	}
 
 	@Override
@@ -97,13 +110,10 @@ public class PortletItemLocalServiceWrapper implements PortletItemLocalService,
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _portletItemLocalService.dynamicQuery(dynamicQuery);
 	}
 
@@ -118,13 +128,11 @@ public class PortletItemLocalServiceWrapper implements PortletItemLocalService,
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return _portletItemLocalService.dynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -140,15 +148,12 @@ public class PortletItemLocalServiceWrapper implements PortletItemLocalService,
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator) {
 		return _portletItemLocalService.dynamicQuery(dynamicQuery, start, end,
 			orderByComparator);
 	}
@@ -158,12 +163,10 @@ public class PortletItemLocalServiceWrapper implements PortletItemLocalService,
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _portletItemLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
@@ -173,97 +176,24 @@ public class PortletItemLocalServiceWrapper implements PortletItemLocalService,
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
 		return _portletItemLocalService.dynamicQueryCount(dynamicQuery,
 			projection);
 	}
 
 	@Override
 	public com.liferay.portal.model.PortletItem fetchPortletItem(
-		long portletItemId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long portletItemId) {
 		return _portletItemLocalService.fetchPortletItem(portletItemId);
 	}
 
-	/**
-	* Returns the portlet item with the primary key.
-	*
-	* @param portletItemId the primary key of the portlet item
-	* @return the portlet item
-	* @throws PortalException if a portlet item with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
 	@Override
-	public com.liferay.portal.model.PortletItem getPortletItem(
-		long portletItemId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _portletItemLocalService.getPortletItem(portletItemId);
-	}
-
-	@Override
-	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
 		return _portletItemLocalService.getActionableDynamicQuery();
-	}
-
-	@Override
-	public com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _portletItemLocalService.getPersistedModel(primaryKeyObj);
-	}
-
-	/**
-	* Returns a range of all the portlet items.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PortletItemModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
-	* </p>
-	*
-	* @param start the lower bound of the range of portlet items
-	* @param end the upper bound of the range of portlet items (not inclusive)
-	* @return the range of portlet items
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public java.util.List<com.liferay.portal.model.PortletItem> getPortletItems(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _portletItemLocalService.getPortletItems(start, end);
-	}
-
-	/**
-	* Returns the number of portlet items.
-	*
-	* @return the number of portlet items
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public int getPortletItemsCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _portletItemLocalService.getPortletItemsCount();
-	}
-
-	/**
-	* Updates the portlet item in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param portletItem the portlet item
-	* @return the portlet item that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public com.liferay.portal.model.PortletItem updatePortletItem(
-		com.liferay.portal.model.PortletItem portletItem)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _portletItemLocalService.updatePortletItem(portletItem);
 	}
 
 	/**
@@ -276,6 +206,76 @@ public class PortletItemLocalServiceWrapper implements PortletItemLocalService,
 		return _portletItemLocalService.getBeanIdentifier();
 	}
 
+	@Override
+	public com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _portletItemLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	@Override
+	public com.liferay.portal.model.PortletItem getPortletItem(long groupId,
+		java.lang.String name, java.lang.String portletId,
+		java.lang.String className)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _portletItemLocalService.getPortletItem(groupId, name,
+			portletId, className);
+	}
+
+	/**
+	* Returns the portlet item with the primary key.
+	*
+	* @param portletItemId the primary key of the portlet item
+	* @return the portlet item
+	* @throws PortalException if a portlet item with the primary key could not be found
+	*/
+	@Override
+	public com.liferay.portal.model.PortletItem getPortletItem(
+		long portletItemId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _portletItemLocalService.getPortletItem(portletItemId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.PortletItem> getPortletItems(
+		long groupId, java.lang.String className) {
+		return _portletItemLocalService.getPortletItems(groupId, className);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.PortletItem> getPortletItems(
+		long groupId, java.lang.String portletId, java.lang.String className) {
+		return _portletItemLocalService.getPortletItems(groupId, portletId,
+			className);
+	}
+
+	/**
+	* Returns a range of all the portlet items.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PortletItemModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param start the lower bound of the range of portlet items
+	* @param end the upper bound of the range of portlet items (not inclusive)
+	* @return the range of portlet items
+	*/
+	@Override
+	public java.util.List<com.liferay.portal.model.PortletItem> getPortletItems(
+		int start, int end) {
+		return _portletItemLocalService.getPortletItems(start, end);
+	}
+
+	/**
+	* Returns the number of portlet items.
+	*
+	* @return the number of portlet items
+	*/
+	@Override
+	public int getPortletItemsCount() {
+		return _portletItemLocalService.getPortletItemsCount();
+	}
+
 	/**
 	* Sets the Spring bean ID for this bean.
 	*
@@ -286,47 +286,23 @@ public class PortletItemLocalServiceWrapper implements PortletItemLocalService,
 		_portletItemLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
+	/**
+	* Updates the portlet item in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param portletItem the portlet item
+	* @return the portlet item that was updated
+	*/
 	@Override
-	public com.liferay.portal.model.PortletItem addPortletItem(long userId,
-		long groupId, java.lang.String name, java.lang.String portletId,
-		java.lang.String className)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _portletItemLocalService.addPortletItem(userId, groupId, name,
-			portletId, className);
-	}
-
-	@Override
-	public com.liferay.portal.model.PortletItem getPortletItem(long groupId,
-		java.lang.String name, java.lang.String portletId,
-		java.lang.String className)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _portletItemLocalService.getPortletItem(groupId, name,
-			portletId, className);
-	}
-
-	@Override
-	public java.util.List<com.liferay.portal.model.PortletItem> getPortletItems(
-		long groupId, java.lang.String className)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _portletItemLocalService.getPortletItems(groupId, className);
-	}
-
-	@Override
-	public java.util.List<com.liferay.portal.model.PortletItem> getPortletItems(
-		long groupId, java.lang.String portletId, java.lang.String className)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _portletItemLocalService.getPortletItems(groupId, portletId,
-			className);
+	public com.liferay.portal.model.PortletItem updatePortletItem(
+		com.liferay.portal.model.PortletItem portletItem) {
+		return _portletItemLocalService.updatePortletItem(portletItem);
 	}
 
 	@Override
 	public com.liferay.portal.model.PortletItem updatePortletItem(long userId,
 		long groupId, java.lang.String name, java.lang.String portletId,
 		java.lang.String className)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _portletItemLocalService.updatePortletItem(userId, groupId,
 			name, portletId, className);
 	}

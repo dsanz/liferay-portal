@@ -102,7 +102,7 @@ if ((classNameId == 0) && (classPK == 0) && !PortalPermissionUtil.contains(permi
 
 			// Type
 
-			row.addText(LanguageUtil.get(pageContext, entry.getType()), rowURL);
+			row.addText(LanguageUtil.get(request, entry.getType()), rowURL);
 
 			// Modified date
 
@@ -118,7 +118,7 @@ if ((classNameId == 0) && (classPK == 0) && !PortalPermissionUtil.contains(permi
 
 			// Action
 
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/announcements/view_manage_entries_entry_action.jsp");
+			row.addJSP("/html/portlet/announcements/view_manage_entries_entry_action.jsp", "entry-action");
 
 			// Add result row
 
@@ -136,7 +136,7 @@ if ((classNameId == 0) && (classPK == 0) && !PortalPermissionUtil.contains(permi
 	}
 
 	function <portlet:namespace />selectDistributionScope(distributionScope) {
-		var url = "<%= portletURL.toString() %>&<portlet:namespace />distributionScope=" + distributionScope;
+		var url = '<%= portletURL.toString() %>&<portlet:namespace />distributionScope=' + distributionScope;
 
 		submitForm(document.<portlet:namespace />fm, url);
 	}

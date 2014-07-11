@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -31,12 +30,14 @@ import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.search.BaseSearchTestCase;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.SearchContextTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
@@ -44,13 +45,13 @@ import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryTypeLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
+import com.liferay.portlet.documentlibrary.util.test.DLAppTestUtil;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil;
 import com.liferay.portlet.dynamicdatamapping.storage.Field;
 import com.liferay.portlet.dynamicdatamapping.storage.Fields;
 import com.liferay.portlet.dynamicdatamapping.util.DDMIndexerUtil;
-import com.liferay.portlet.dynamicdatamapping.util.DDMStructureTestUtil;
+import com.liferay.portlet.dynamicdatamapping.util.test.DDMStructureTestUtil;
 
 import java.io.File;
 import java.io.InputStream;
@@ -75,16 +76,21 @@ public class DLFileEntrySearchTest extends BaseSearchTestCase {
 	@Ignore()
 	@Override
 	@Test
+	public void testLocalizedSearch() throws Exception {
+	}
+
+	@Ignore()
+	@Override
+	@Test
 	public void testSearchAttachments() throws Exception {
 	}
 
 	@Test
-	@Transactional
 	public void testSearchTikaRawMetadata() throws Exception {
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			group.getGroupId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(group.getGroupId());
 
-		SearchContext searchContext = ServiceTestUtil.getSearchContext(
+		SearchContext searchContext = SearchContextTestUtil.getSearchContext(
 			group.getGroupId());
 
 		int initialBaseModelsSearchCount = searchBaseModelsCount(
@@ -125,10 +131,12 @@ public class DLFileEntrySearchTest extends BaseSearchTestCase {
 			ServiceContext serviceContext)
 		throws Exception {
 
-		String xsd = DDMStructureTestUtil.getSampleStructureXSD("name");
+		String definition = DDMStructureTestUtil.getSampleStructureDefinition(
+			"name");
 
 		_ddmStructure = DDMStructureTestUtil.addStructure(
-			serviceContext.getScopeGroupId(), DLFileEntry.class.getName(), xsd);
+			serviceContext.getScopeGroupId(), DLFileEntry.class.getName(),
+			definition);
 
 		DLFileEntryType dlFileEntryType =
 			DLFileEntryTypeLocalServiceUtil.addFileEntryType(
@@ -215,7 +223,7 @@ public class DLFileEntrySearchTest extends BaseSearchTestCase {
 
 		Folder folder = DLAppTestUtil.addFolder(
 			(Long)parentBaseModel.getPrimaryKeyObj(),
-			ServiceTestUtil.randomString(_FOLDER_NAME_MAX_LENGTH),
+			RandomTestUtil.randomString(_FOLDER_NAME_MAX_LENGTH),
 			serviceContext);
 
 		return (DLFolder)folder.getModel();
@@ -228,7 +236,7 @@ public class DLFileEntrySearchTest extends BaseSearchTestCase {
 
 		Folder folder = DLAppTestUtil.addFolder(
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			ServiceTestUtil.randomString(_FOLDER_NAME_MAX_LENGTH),
+			RandomTestUtil.randomString(_FOLDER_NAME_MAX_LENGTH),
 			serviceContext);
 
 		return (DLFolder)folder.getModel();
@@ -291,12 +299,13 @@ public class DLFileEntrySearchTest extends BaseSearchTestCase {
 	protected void updateDDMStructure(ServiceContext serviceContext)
 		throws Exception {
 
-		String xsd = DDMStructureTestUtil.getSampleStructureXSD("title");
+		String definition = DDMStructureTestUtil.getSampleStructureDefinition(
+			"title");
 
 		DDMStructureLocalServiceUtil.updateStructure(
 			_ddmStructure.getStructureId(),
 			_ddmStructure.getParentStructureId(), _ddmStructure.getNameMap(),
-			_ddmStructure.getDescriptionMap(), xsd, serviceContext);
+			_ddmStructure.getDescriptionMap(), definition, serviceContext);
 	}
 
 	private static final int _FOLDER_NAME_MAX_LENGTH = 100;

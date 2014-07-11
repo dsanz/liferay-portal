@@ -18,7 +18,6 @@ import com.liferay.portal.DuplicateLockException;
 import com.liferay.portal.InvalidLockException;
 import com.liferay.portal.NoSuchLockException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -52,6 +51,7 @@ import com.liferay.portlet.asset.service.AssetLinkLocalServiceUtil;
 import com.liferay.portlet.asset.service.AssetTagLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.DuplicateFileException;
 import com.liferay.portlet.documentlibrary.DuplicateFolderNameException;
+import com.liferay.portlet.documentlibrary.FileSizeException;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
 import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
@@ -739,11 +739,14 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 
 			return HttpServletResponse.SC_CREATED;
 		}
-		catch (PrincipalException pe) {
-			return HttpServletResponse.SC_FORBIDDEN;
+		catch (FileSizeException fse) {
+			return HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE;
 		}
 		catch (NoSuchFolderException nsfe) {
 			return HttpServletResponse.SC_CONFLICT;
+		}
+		catch (PrincipalException pe) {
+			return HttpServletResponse.SC_FORBIDDEN;
 		}
 		catch (PortalException pe) {
 			if (_log.isWarnEnabled()) {
@@ -1000,8 +1003,7 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 	}
 
 	protected void populateServiceContext(
-			ServiceContext serviceContext, FileEntry fileEntry)
-		throws SystemException {
+		ServiceContext serviceContext, FileEntry fileEntry) {
 
 		String className = DLFileEntryConstants.getClassName();
 

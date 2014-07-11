@@ -32,7 +32,7 @@ if (Validator.isNotNull(strutsAction)) {
 WikiNode node = (WikiNode)request.getAttribute(WebKeys.WIKI_NODE);
 WikiPage wikiPage = (WikiPage)request.getAttribute(WebKeys.WIKI_PAGE);
 
-List<WikiNode> nodes = WikiUtil.getNodes(allNodes, hiddenNodes, permissionChecker);
+List<WikiNode> nodes = WikiUtil.getNodes(wikiConfigurationDisplayContext.getAllNodes(), wikiPortletInstanceSettings.getHiddenNodes(), permissionChecker);
 
 boolean print = ParamUtil.getString(request, "viewMode").equals(Constants.PRINT);
 
@@ -95,7 +95,7 @@ if (categoryId > 0) {
 	</c:if>
 
 	<aui:nav-bar>
-		<aui:nav>
+		<aui:nav cssClass="navbar-nav">
 
 			<%
 			PortletURL frontPageURL = PortletURLUtil.clone(portletURL, renderResponse);
@@ -151,8 +151,8 @@ if (categoryId > 0) {
 			<portlet:param name="struts_action" value="/wiki/search" />
 		</liferay-portlet:renderURL>
 
-		<aui:nav-bar-search cssClass="pull-right">
-			<div class="form-search">
+		<aui:nav-bar-search>
+			<div class="col-xs-12 form-search">
 				<aui:form action="<%= searchURL %>" method="get" name="searchFm">
 					<liferay-portlet:renderURLParams varImpl="searchURL" />
 					<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />

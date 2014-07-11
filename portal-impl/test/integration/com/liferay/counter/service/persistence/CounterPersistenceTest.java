@@ -29,11 +29,11 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
-import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -44,6 +44,7 @@ import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -93,7 +94,7 @@ public class CounterPersistenceTest {
 
 	@Test
 	public void testCreate() throws Exception {
-		String pk = ServiceTestUtil.randomString();
+		String pk = RandomTestUtil.randomString();
 
 		Counter counter = _persistence.create(pk);
 
@@ -120,11 +121,11 @@ public class CounterPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		String pk = ServiceTestUtil.randomString();
+		String pk = RandomTestUtil.randomString();
 
 		Counter newCounter = _persistence.create(pk);
 
-		newCounter.setCurrentId(ServiceTestUtil.nextLong());
+		newCounter.setCurrentId(RandomTestUtil.nextLong());
 
 		_persistence.update(newCounter);
 
@@ -146,7 +147,7 @@ public class CounterPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		String pk = ServiceTestUtil.randomString();
+		String pk = RandomTestUtil.randomString();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -168,7 +169,7 @@ public class CounterPersistenceTest {
 		}
 	}
 
-	protected OrderByComparator getOrderByComparator() {
+	protected OrderByComparator<Counter> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("Counter", "name", true,
 			"currentId", true);
 	}
@@ -184,11 +185,91 @@ public class CounterPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		String pk = ServiceTestUtil.randomString();
+		String pk = RandomTestUtil.randomString();
 
 		Counter missingCounter = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingCounter);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		Counter newCounter1 = addCounter();
+		Counter newCounter2 = addCounter();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newCounter1.getPrimaryKey());
+		primaryKeys.add(newCounter2.getPrimaryKey());
+
+		Map<Serializable, Counter> counters = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, counters.size());
+		Assert.assertEquals(newCounter1,
+			counters.get(newCounter1.getPrimaryKey()));
+		Assert.assertEquals(newCounter2,
+			counters.get(newCounter2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		String pk1 = RandomTestUtil.randomString();
+
+		String pk2 = RandomTestUtil.randomString();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, Counter> counters = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(counters.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		Counter newCounter = addCounter();
+
+		String pk = RandomTestUtil.randomString();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newCounter.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, Counter> counters = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, counters.size());
+		Assert.assertEquals(newCounter, counters.get(newCounter.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, Counter> counters = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(counters.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		Counter newCounter = addCounter();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newCounter.getPrimaryKey());
+
+		Map<Serializable, Counter> counters = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, counters.size());
+		Assert.assertEquals(newCounter, counters.get(newCounter.getPrimaryKey()));
 	}
 
 	@Test
@@ -216,7 +297,7 @@ public class CounterPersistenceTest {
 				Counter.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("name",
-				ServiceTestUtil.randomString()));
+				RandomTestUtil.randomString()));
 
 		List<Counter> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -255,7 +336,7 @@ public class CounterPersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("name"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("name",
-				new Object[] { ServiceTestUtil.randomString() }));
+				new Object[] { RandomTestUtil.randomString() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -263,11 +344,11 @@ public class CounterPersistenceTest {
 	}
 
 	protected Counter addCounter() throws Exception {
-		String pk = ServiceTestUtil.randomString();
+		String pk = RandomTestUtil.randomString();
 
 		Counter counter = _persistence.create(pk);
 
-		counter.setCurrentId(ServiceTestUtil.nextLong());
+		counter.setCurrentId(RandomTestUtil.nextLong());
 
 		_persistence.update(counter);
 

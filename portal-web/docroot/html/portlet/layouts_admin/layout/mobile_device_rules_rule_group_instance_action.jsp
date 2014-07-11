@@ -30,7 +30,7 @@ MDRRuleGroupInstance mdrRuleGroupInstance = (MDRRuleGroupInstance)row.getObject(
 MDRRuleGroup mdrRuleGroup = MDRRuleGroupLocalServiceUtil.getMDRRuleGroup(mdrRuleGroupInstance.getRuleGroupId());
 %>
 
-<liferay-ui:icon-menu>
+<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>">
 	<c:if test="<%= MDRRuleGroupInstancePermissionUtil.contains(permissionChecker, mdrRuleGroupInstance.getRuleGroupInstanceId(), ActionKeys.UPDATE) %>">
 		<liferay-portlet:renderURL portletName="<%= PortletKeys.MOBILE_DEVICE_SITE_ADMIN %>" varImpl="viewRuleGroupInstanceActionsURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
 			<portlet:param name="struts_action" value="/mobile_device_rules/view_actions" />
@@ -43,7 +43,7 @@ MDRRuleGroup mdrRuleGroup = MDRRuleGroupLocalServiceUtil.getMDRRuleGroup(mdrRule
 		String taglibActionHandler = liferayPortletResponse.getNamespace() + "mobileDeviceActionHandler('" + viewRuleGroupInstanceActionsURL.toString() + "');";
 		%>
 
-		<liferay-ui:icon image="manage_nodes" message="manage-actions" onClick="<%= taglibActionHandler %>" url="javascript:;" />
+		<liferay-ui:icon iconCssClass="icon-cog" message="manage-actions" onClick="<%= taglibActionHandler %>" url="javascript:;" />
 	</c:if>
 
 	<c:if test="<%= MDRRuleGroupInstancePermissionUtil.contains(permissionChecker, mdrRuleGroupInstance.getRuleGroupInstanceId(), ActionKeys.PERMISSIONS) %>">
@@ -55,7 +55,7 @@ MDRRuleGroup mdrRuleGroup = MDRRuleGroupLocalServiceUtil.getMDRRuleGroup(mdrRule
 			windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 		/>
 
-		<liferay-ui:icon image="permissions" url="<%= permissionsURL %>" useDialog="<%= true %>" />
+		<liferay-ui:icon iconCssClass="icon-lock" message="permissions" url="<%= permissionsURL %>" useDialog="<%= true %>" />
 	</c:if>
 
 	<c:if test="<%= MDRRuleGroupInstancePermissionUtil.contains(permissionChecker, mdrRuleGroupInstance.getRuleGroupInstanceId(), ActionKeys.DELETE) %>">

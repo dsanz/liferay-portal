@@ -25,18 +25,18 @@ import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.search.BaseSearchTestCase;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.service.MBCategoryServiceUtil;
 import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
 import com.liferay.portlet.messageboards.service.MBThreadServiceUtil;
-import com.liferay.portlet.messageboards.util.MBTestUtil;
+import com.liferay.portlet.messageboards.util.test.MBTestUtil;
 
 import java.io.InputStream;
 
@@ -58,6 +58,12 @@ import org.junit.runner.RunWith;
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 @Sync
 public class MBMessageSearchTest extends BaseSearchTestCase {
+
+	@Ignore()
+	@Override
+	@Test
+	public void testLocalizedSearch() throws Exception {
+	}
 
 	@Ignore()
 	@Override
@@ -119,8 +125,8 @@ public class MBMessageSearchTest extends BaseSearchTestCase {
 			existingFiles.add(fileEntry.getTitle());
 		}
 
-		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
-			message.getGroupId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(message.getGroupId());
 
 		List<ObjectValuePair<String, InputStream>> inputStreamOVPs =
 			MBTestUtil.getInputStreamOVPs(
@@ -141,7 +147,8 @@ public class MBMessageSearchTest extends BaseSearchTestCase {
 		MBCategory category = (MBCategory)parentBaseModel;
 
 		return MBTestUtil.addMessage(
-			category.getCategoryId(), keywords, approved, serviceContext);
+			category.getGroupId(), category.getCategoryId(), keywords, approved,
+			serviceContext);
 	}
 
 	@Override

@@ -18,7 +18,7 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.security.lang.DoPrivilegedUtil;
 import com.liferay.portal.security.pacl.PACLExecutionTestListener;
 import com.liferay.portal.security.pacl.PACLIntegrationJUnitTestRunner;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.model.impl.ExpandoBridgeImpl;
 

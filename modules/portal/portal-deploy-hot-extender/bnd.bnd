@@ -1,0 +1,4 @@
+Bundle-Activator: ${classes;IMPLEMENTS;org.osgi.framework.BundleActivator}
+Bundle-Name: Liferay Portal Deploy Hot Extender
+Bundle-Version: ${plugin.full.version}
+Include-Resource: classes

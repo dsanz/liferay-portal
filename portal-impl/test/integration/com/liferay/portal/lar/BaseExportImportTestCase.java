@@ -15,19 +15,18 @@
 package com.liferay.portal.lar;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
 import com.liferay.portal.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.StagedModel;
-import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.LayoutTestUtil;
+import com.liferay.portal.test.DeleteAfterTestRun;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.LayoutTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import java.io.File;
 
@@ -48,7 +47,7 @@ public class BaseExportImportTestCase {
 		importedGroup = GroupTestUtil.addGroup();
 
 		layout = LayoutTestUtil.addLayout(
-			group.getGroupId(), ServiceTestUtil.randomString());
+			group.getGroupId(), RandomTestUtil.randomString());
 
 		// Delete and readd to ensure a different layout ID (not ID or UUID).
 		// See LPS-32132.
@@ -56,15 +55,11 @@ public class BaseExportImportTestCase {
 		LayoutLocalServiceUtil.deleteLayout(layout, true, new ServiceContext());
 
 		layout = LayoutTestUtil.addLayout(
-			group.getGroupId(), ServiceTestUtil.randomString());
+			group.getGroupId(), RandomTestUtil.randomString());
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		GroupLocalServiceUtil.deleteGroup(group);
-
-		GroupLocalServiceUtil.deleteGroup(importedGroup);
-
 		if ((larFile != null) && larFile.exists()) {
 			FileUtil.delete(larFile);
 		}
@@ -148,20 +143,24 @@ public class BaseExportImportTestCase {
 
 	@SuppressWarnings("unused")
 	protected StagedModel getStagedModel(String uuid, long groupId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return null;
 	}
 
 	@SuppressWarnings("unused")
 	protected String getStagedModelUuid(StagedModel stagedModel)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return stagedModel.getUuid();
 	}
 
+	@DeleteAfterTestRun
 	protected Group group;
+
+	@DeleteAfterTestRun
 	protected Group importedGroup;
+
 	protected Layout importedLayout;
 	protected File larFile;
 	protected Layout layout;

@@ -29,7 +29,7 @@ DDMStructure ddmStructure = (DDMStructure)request.getAttribute(WebKeys.DYNAMIC_D
 
 long ddmStructureId = BeanParamUtil.getLong(ddmStructure, request, "structureId");
 
-String script = BeanParamUtil.getString(ddmStructure, request, "xsd");
+String script = BeanParamUtil.getString(ddmStructure, request, "definition");
 
 JSONArray scriptJSONArray = null;
 
@@ -54,7 +54,7 @@ String scopeAvailableFields = ParamUtil.getString(request, "scopeAvailableFields
 
 <liferay-util:buffer var="removeStructureIcon">
 	<liferay-ui:icon
-		image="unlink"
+		iconCssClass="icon-remove"
 		label="<%= true %>"
 		message="remove"
 	/>
@@ -69,7 +69,7 @@ String scopeAvailableFields = ParamUtil.getString(request, "scopeAvailableFields
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="fileEntryTypeId" type="hidden" value="<%= fileEntryTypeId %>" />
 	<aui:input name="ddmStructureId" type="hidden" value="<%= ddmStructureId %>" />
-	<aui:input name="xsd" type="hidden" />
+	<aui:input name="definition" type="hidden" />
 
 	<liferay-ui:header
 		backURL="<%= redirect %>"
@@ -134,7 +134,7 @@ String scopeAvailableFields = ParamUtil.getString(request, "scopeAvailableFields
 				cssClass="modify-link select-metadata"
 				iconCssClass="icon-search"
 				label="<%= true %>"
-				linkCssClass="btn"
+				linkCssClass="btn btn-default"
 				message="select-metadata-set"
 				url='<%= "javascript:" + renderResponse.getNamespace() + "openDDMStructureSelector();" %>'
 			/>
@@ -167,11 +167,11 @@ String scopeAvailableFields = ParamUtil.getString(request, "scopeAvailableFields
 				},
 				eventName: '<portlet:namespace />selectDDMStructure',
 				refererPortletName: '<%= PortletKeys.DOCUMENT_LIBRARY %>',
-				showGlobalScope: true,
+				showAncestorScopes: true,
 				showManageTemplates: false,
 				showToolbar: true,
 				struts_action: '/dynamic_data_mapping/select_structure',
-				title: '<%= UnicodeLanguageUtil.get(pageContext, "metadata-sets") %>'
+				title: '<%= UnicodeLanguageUtil.get(request, "metadata-sets") %>'
 			},
 			function(event) {
 				var A = AUI();
@@ -191,7 +191,7 @@ String scopeAvailableFields = ParamUtil.getString(request, "scopeAvailableFields
 		window,
 		'<portlet:namespace />saveStructure',
 		function() {
-			document.<portlet:namespace />fm.<portlet:namespace />xsd.value = window.<portlet:namespace />formBuilder.getContentXSD();
+			document.<portlet:namespace />fm.<portlet:namespace />definition.value = window.<portlet:namespace />formBuilder.getContentDefinition();
 
 			submitForm(document.<portlet:namespace />fm);
 		},
@@ -217,9 +217,9 @@ String scopeAvailableFields = ParamUtil.getString(request, "scopeAvailableFields
 
 <%
 if (fileEntryType == null) {
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-document-type"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "add-document-type"), currentURL);
 }
 else {
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit-document-type"), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "edit-document-type"), currentURL);
 }
 %>

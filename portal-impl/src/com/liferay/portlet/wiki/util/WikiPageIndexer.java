@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.BaseIndexer;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
@@ -256,7 +255,7 @@ public class WikiPageIndexer extends BaseIndexer {
 	protected void doReindex(Object obj) throws Exception {
 		WikiPage page = (WikiPage)obj;
 
-		if (!page.isApproved() && !page.isInTrash()) {
+		if (!page.isHead() || (!page.isApproved() && !page.isInTrash())) {
 			return;
 		}
 
@@ -272,7 +271,8 @@ public class WikiPageIndexer extends BaseIndexer {
 
 	@Override
 	protected void doReindex(String className, long classPK) throws Exception {
-		WikiPage page = WikiPageLocalServiceUtil.getPage(classPK);
+		WikiPage page = WikiPageLocalServiceUtil.getPage(
+			classPK, (Boolean)null);
 
 		doReindex(page);
 	}
@@ -289,9 +289,7 @@ public class WikiPageIndexer extends BaseIndexer {
 		return PORTLET_ID;
 	}
 
-	protected void reindexNodes(final long companyId)
-		throws PortalException, SystemException {
-
+	protected void reindexNodes(final long companyId) throws PortalException {
 		ActionableDynamicQuery actionableDynamicQuery =
 			WikiNodeLocalServiceUtil.getActionableDynamicQuery();
 
@@ -301,7 +299,7 @@ public class WikiPageIndexer extends BaseIndexer {
 
 				@Override
 				public void performAction(Object object)
-					throws PortalException, SystemException {
+					throws PortalException {
 
 					WikiNode node = (WikiNode)object;
 
@@ -315,7 +313,7 @@ public class WikiPageIndexer extends BaseIndexer {
 	}
 
 	protected void reindexPages(long companyId, long groupId, final long nodeId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		final ActionableDynamicQuery actionableDynamicQuery =
 			WikiPageLocalServiceUtil.getActionableDynamicQuery();

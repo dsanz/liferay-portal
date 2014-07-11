@@ -26,7 +26,7 @@ Map<String, Serializable> workflowContext = workflowInstance.getWorkflowContext(
 String className = (String)workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_NAME);
 long classPK = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_PK));
 
-WorkflowHandler workflowHandler = WorkflowHandlerRegistryUtil.getWorkflowHandler(className);
+WorkflowHandler<?> workflowHandler = WorkflowHandlerRegistryUtil.getWorkflowHandler(className);
 
 AssetRenderer assetRenderer = workflowHandler.getAssetRenderer(classPK);
 AssetRendererFactory assetRendererFactory = workflowHandler.getAssetRendererFactory();
@@ -37,7 +37,7 @@ if (assetRenderer != null) {
 	assetEntry = assetRendererFactory.getAssetEntry(assetRendererFactory.getClassName(), assetRenderer.getClassPK());
 }
 
-String headerTitle = LanguageUtil.get(pageContext, workflowInstance.getWorkflowDefinitionName());
+String headerTitle = LanguageUtil.get(request, workflowInstance.getWorkflowDefinitionName());
 
 if (assetEntry != null) {
 	headerTitle = headerTitle.concat(StringPool.COLON + StringPool.SPACE + assetRenderer.getTitle(locale));
@@ -74,36 +74,32 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 	<aui:col cssClass="lfr-asset-column lfr-asset-column-details" width="<%= 75 %>">
 		<aui:row>
 			<aui:col width="<%= 60 %>">
-				<div class="lfr-asset-status">
-					<aui:field-wrapper label="state">
-						<liferay-ui:input-resource url="<%= LanguageUtil.get(pageContext, workflowInstance.getState()) %>" />
-					</aui:field-wrapper>
-				</div>
+				<aui:input name="state" type="resource" value="<%= LanguageUtil.get(request, workflowInstance.getState()) %>" />
 			</aui:col>
 
 			<aui:col width="<%= 33 %>">
-				<div class="lfr-asset-date">
-					<aui:field-wrapper label="end-date">
-						<liferay-ui:input-resource url='<%= (workflowInstance.getEndDate() == null) ? LanguageUtil.get(pageContext, "never") : dateFormatDateTime.format(workflowInstance.getEndDate()) %>' />
-					</aui:field-wrapper>
-				</div>
+				<aui:input name="endDate" type="resource" value='<%= (workflowInstance.getEndDate() == null) ? LanguageUtil.get(request, "never") : dateFormatDateTime.format(workflowInstance.getEndDate()) %>' />
 			</aui:col>
 		</aui:row>
 
 		<liferay-ui:panel-container cssClass="task-panel-container" extended="<%= true %>" id="preview">
 
 			<c:if test="<%= assetRenderer != null %>">
-				<liferay-ui:panel defaultState="open" title='<%= LanguageUtil.format(pageContext, "preview-of-x", ResourceActionsUtil.getModelResource(locale, className), false) %>'>
+				<liferay-ui:panel defaultState="open" title='<%= LanguageUtil.format(request, "preview-of-x", ResourceActionsUtil.getModelResource(locale, className), false) %>'>
 					<div class="task-content-actions">
 						<liferay-ui:icon-list>
 							<c:if test="<%= assetRenderer.hasViewPermission(permissionChecker) %>">
-								<liferay-ui:icon image="view" message="view[action]" method="get" url="<%= viewFullContentURL.toString() %>" />
+								<liferay-ui:icon iconCssClass="icon-search" message="view[action]" method="get" url="<%= viewFullContentURL.toString() %>" />
 							</c:if>
 						</liferay-ui:icon-list>
 					</div>
 
 					<h3 class="task-content-title">
-						<img alt="" src="<%= workflowHandler.getIconPath(liferayPortletRequest) %>" /> <%= HtmlUtil.escape(workflowHandler.getTitle(classPK, locale)) %>
+						<liferay-ui:icon
+							iconCssClass="<%= workflowHandler.getIconCssClass() %>"
+							label="<%= true %>"
+							message="<%= HtmlUtil.escape(workflowHandler.getTitle(classPK, locale)) %>"
+						/>
 					</h3>
 
 					<%
@@ -171,43 +167,26 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 							/>
 
 							<liferay-ui:search-container-column-text
-								buffer="buffer"
 								name="task"
 							>
-
-								<%
-								buffer.append("<span class=\"task-name\" id=\"");
-								buffer.append(workflowTask.getWorkflowTaskId());
-								buffer.append("\">");
-								buffer.append(LanguageUtil.get(pageContext, HtmlUtil.escape(workflowTask.getName())));
-								buffer.append("</span>");
-								%>
-
+								<span class="task-name" id="<%= workflowTask.getWorkflowTaskId() %>">
+									<liferay-ui:message key="<%= HtmlUtil.escape(workflowTask.getName()) %>" />
+								</span>
 							</liferay-ui:search-container-column-text>
 
 							<liferay-ui:search-container-column-text
-								buffer="buffer"
 								name="due-date"
-							>
-
-								<%
-								if (workflowTask.getDueDate() == null) {
-									buffer.append(LanguageUtil.get(pageContext, "never"));
-								}
-								else {
-									buffer.append(dateFormatDateTime.format(workflowTask.getDueDate()));
-								}
-								%>
-
-							</liferay-ui:search-container-column-text>
+								value='<%= (workflowTask.getDueDate() == null) ? LanguageUtil.get(request, "never") : dateFormatDateTime.format(workflowTask.getDueDate()) %>'
+							/>
 
 							<liferay-ui:search-container-column-text
 								name="completed"
-								value='<%= workflowTask.isCompleted() ? LanguageUtil.get(pageContext, "yes") : LanguageUtil.get(pageContext, "no") %>'
+								value='<%= workflowTask.isCompleted() ? LanguageUtil.get(request, "yes") : LanguageUtil.get(request, "no") %>'
 							/>
 
 							<liferay-ui:search-container-column-jsp
 								align="right"
+								cssClass="entry-action"
 								path="/html/portlet/workflow_instances/workflow_task_action.jsp"
 							/>
 						</liferay-ui:search-container-row>

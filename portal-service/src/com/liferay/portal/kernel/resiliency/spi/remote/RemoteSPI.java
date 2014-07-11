@@ -18,11 +18,12 @@ import com.liferay.portal.kernel.deploy.hot.DependencyManagementThreadLocal;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.nio.intraband.RegistrationReference;
+import com.liferay.portal.kernel.nio.intraband.rpc.IntrabandRPCUtil;
 import com.liferay.portal.kernel.nio.intraband.welder.Welder;
 import com.liferay.portal.kernel.nio.intraband.welder.WelderFactoryUtil;
 import com.liferay.portal.kernel.process.ProcessCallable;
 import com.liferay.portal.kernel.process.ProcessException;
-import com.liferay.portal.kernel.process.ProcessExecutor;
+import com.liferay.portal.kernel.process.ProcessLauncher;
 import com.liferay.portal.kernel.process.log.ProcessOutputStream;
 import com.liferay.portal.kernel.resiliency.mpi.MPI;
 import com.liferay.portal.kernel.resiliency.mpi.MPIHelperUtil;
@@ -46,6 +47,9 @@ import java.rmi.server.UnicastRemoteObject;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Shuyang Zhou
@@ -67,23 +71,29 @@ public abstract class RemoteSPI implements ProcessCallable<SPI>, Remote, SPI {
 	@Override
 	public SPI call() throws ProcessException {
 		try {
-			ProcessExecutor.ProcessContext.attach(
+			SPIShutdownHook spiShutdownHook = new SPIShutdownHook();
+
+			ProcessLauncher.ProcessContext.attach(
 				spiConfiguration.getSPIId(), spiConfiguration.getPingInterval(),
-				new SPIShutdownHook());
+				spiShutdownHook);
+
+			Runtime runtime = Runtime.getRuntime();
+
+			runtime.addShutdownHook(spiShutdownHook);
 
 			SPI spi = (SPI)UnicastRemoteObject.exportObject(this, 0);
 
 			RegisterCallback registerCallback = new RegisterCallback(uuid, spi);
 
 			ProcessOutputStream processOutputStream =
-				ProcessExecutor.ProcessContext.getProcessOutputStream();
+				ProcessLauncher.ProcessContext.getProcessOutputStream();
 
 			processOutputStream.writeProcessCallable(registerCallback);
 
 			registrationReference = welder.weld(MPIHelperUtil.getIntraband());
 
 			ConcurrentMap<String, Object> attributes =
-				ProcessExecutor.ProcessContext.getAttributes();
+				ProcessLauncher.ProcessContext.getAttributes();
 
 			attributes.put(SPI.SPI_INSTANCE_PUBLICATION_KEY, this);
 
@@ -94,6 +104,20 @@ public abstract class RemoteSPI implements ProcessCallable<SPI>, Remote, SPI {
 		}
 		catch (IOException ioe) {
 			throw new ProcessException(ioe);
+		}
+	}
+
+	@Override
+	public void destroy() throws RemoteException {
+		try {
+			doDestroy();
+
+			if (countDownLatch != null) {
+				countDownLatch.countDown();
+			}
+		}
+		finally {
+			UnicastRemoteObject.unexportObject(RemoteSPI.this, true);
 		}
 	}
 
@@ -135,6 +159,9 @@ public abstract class RemoteSPI implements ProcessCallable<SPI>, Remote, SPI {
 		return true;
 	}
 
+	protected abstract void doDestroy() throws RemoteException;
+
+	protected transient CountDownLatch countDownLatch;
 	protected final MPI mpi;
 	protected RegistrationReference registrationReference;
 	protected transient volatile SPIAgent spiAgent;
@@ -168,10 +195,110 @@ public abstract class RemoteSPI implements ProcessCallable<SPI>, Remote, SPI {
 
 	}
 
-	protected class SPIShutdownHook implements ProcessExecutor.ShutdownHook {
+	protected static class UnregisterSPIProcessCallable
+		implements ProcessCallable<Boolean> {
+
+		public UnregisterSPIProcessCallable(
+			String spiProviderName, String spiId) {
+
+			_spiProviderName = spiProviderName;
+			_spiId = spiId;
+		}
+
+		@Override
+		public Boolean call() {
+			SPI spi = MPIHelperUtil.getSPI(_spiProviderName, _spiId);
+
+			if (spi != null) {
+				return MPIHelperUtil.unregisterSPI(spi);
+			}
+
+			return false;
+		}
+
+		private static final long serialVersionUID = 1L;
+
+		private String _spiId;
+		private String _spiProviderName;
+
+	}
+
+	protected class SPIShutdownHook
+		extends Thread implements ProcessLauncher.ShutdownHook {
+
+		public SPIShutdownHook() {
+			setDaemon(true);
+			setName(SPIShutdownHook.class.getSimpleName());
+		}
+
+		@Override
+		public void run() {
+			if (countDownLatch.getCount() == 0) {
+				return;
+			}
+
+			boolean unregistered = false;
+
+			try {
+				Future<Boolean> future = IntrabandRPCUtil.execute(
+					registrationReference,
+					new UnregisterSPIProcessCallable(
+						getSPIProviderName(), spiConfiguration.getSPIId()));
+
+				unregistered = future.get();
+			}
+			catch (Exception e) {
+				if (_log.isWarnEnabled()) {
+					_log.warn("Unable to unregister SPI from MPI", e);
+				}
+			}
+
+			if (unregistered || !waitForMPI()) {
+				doShutdown();
+			}
+		}
 
 		@Override
 		public boolean shutdown(int shutdownCode, Throwable shutdownThrowable) {
+			Runtime runtime = Runtime.getRuntime();
+
+			runtime.removeShutdownHook(this);
+
+			doShutdown();
+
+			return true;
+		}
+
+		private boolean waitForMPI() {
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					"Wait up to " + spiConfiguration.getShutdownTimeout() +
+						" ms for MPI shutdown request");
+			}
+
+			try {
+				if (countDownLatch.await(
+						spiConfiguration.getShutdownTimeout(),
+						TimeUnit.MILLISECONDS)) {
+
+					if (_log.isInfoEnabled()) {
+						_log.info("MPI shutdown request received");
+					}
+
+					return true;
+				}
+			}
+			catch (InterruptedException ie) {
+			}
+
+			if (_log.isInfoEnabled()) {
+				_log.info("Proceed with SPI shutdown");
+			}
+
+			return false;
+		}
+
+		private void doShutdown() {
 			try {
 				RemoteSPI.this.stop();
 			}
@@ -185,8 +312,6 @@ public abstract class RemoteSPI implements ProcessCallable<SPI>, Remote, SPI {
 			catch (RemoteException re) {
 				_log.error("Unable to destroy SPI", re);
 			}
-
-			return true;
 		}
 
 	}
@@ -237,6 +362,8 @@ public abstract class RemoteSPI implements ProcessCallable<SPI>, Remote, SPI {
 		// Log4j log file postfix
 
 		System.setProperty("spi.id", "-" + spiConfiguration.getSPIId());
+
+		countDownLatch = new CountDownLatch(1);
 	}
 
 	private void writeObject(ObjectOutputStream objectOutputStream)

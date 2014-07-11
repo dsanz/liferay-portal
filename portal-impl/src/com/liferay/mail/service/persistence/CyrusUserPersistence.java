@@ -16,7 +16,6 @@ package com.liferay.mail.service.persistence;
 
 import com.liferay.mail.NoSuchCyrusUserException;
 import com.liferay.mail.model.CyrusUser;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.Dummy;
 import com.liferay.portal.service.persistence.BasePersistence;
 
@@ -26,11 +25,10 @@ import com.liferay.portal.service.persistence.BasePersistence;
 public interface CyrusUserPersistence extends BasePersistence<Dummy> {
 
 	public CyrusUser findByPrimaryKey(long userId)
-		throws NoSuchCyrusUserException, SystemException;
+		throws NoSuchCyrusUserException;
 
-	public void remove(long userId)
-		throws NoSuchCyrusUserException, SystemException;
+	public void remove(long userId) throws NoSuchCyrusUserException;
 
-	public void update(CyrusUser user) throws SystemException;
+	public void update(CyrusUser user);
 
 }

@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -48,7 +47,12 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The persistence implementation for the trash entry service.
@@ -109,11 +113,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 *
 	 * @param groupId the group ID
 	 * @return the matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<TrashEntry> findByGroupId(long groupId)
-		throws SystemException {
+	public List<TrashEntry> findByGroupId(long groupId) {
 		return findByGroupId(groupId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -128,11 +130,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param start the lower bound of the range of trash entries
 	 * @param end the upper bound of the range of trash entries (not inclusive)
 	 * @return the range of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<TrashEntry> findByGroupId(long groupId, int start, int end)
-		throws SystemException {
+	public List<TrashEntry> findByGroupId(long groupId, int start, int end) {
 		return findByGroupId(groupId, start, end, null);
 	}
 
@@ -148,11 +148,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param end the upper bound of the range of trash entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<TrashEntry> findByGroupId(long groupId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<TrashEntry> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -255,12 +254,11 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry findByGroupId_First(long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchEntryException, SystemException {
+		OrderByComparator<TrashEntry> orderByComparator)
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = fetchByGroupId_First(groupId, orderByComparator);
 
 		if (trashEntry != null) {
@@ -285,11 +283,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param groupId the group ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching trash entry, or <code>null</code> if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry fetchByGroupId_First(long groupId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<TrashEntry> orderByComparator) {
 		List<TrashEntry> list = findByGroupId(groupId, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -306,12 +303,11 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry findByGroupId_Last(long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchEntryException, SystemException {
+		OrderByComparator<TrashEntry> orderByComparator)
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = fetchByGroupId_Last(groupId, orderByComparator);
 
 		if (trashEntry != null) {
@@ -336,11 +332,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param groupId the group ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching trash entry, or <code>null</code> if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry fetchByGroupId_Last(long groupId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<TrashEntry> orderByComparator) {
 		int count = countByGroupId(groupId);
 
 		if (count == 0) {
@@ -365,12 +360,11 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a trash entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry[] findByGroupId_PrevAndNext(long entryId, long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchEntryException, SystemException {
+		OrderByComparator<TrashEntry> orderByComparator)
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = findByPrimaryKey(entryId);
 
 		Session session = null;
@@ -400,7 +394,7 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 
 	protected TrashEntry getByGroupId_PrevAndNext(Session session,
 		TrashEntry trashEntry, long groupId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<TrashEntry> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -507,10 +501,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * Removes all the trash entries where groupId = &#63; from the database.
 	 *
 	 * @param groupId the group ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByGroupId(long groupId) throws SystemException {
+	public void removeByGroupId(long groupId) {
 		for (TrashEntry trashEntry : findByGroupId(groupId, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null)) {
 			remove(trashEntry);
@@ -522,10 +515,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 *
 	 * @param groupId the group ID
 	 * @return the number of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByGroupId(long groupId) throws SystemException {
+	public int countByGroupId(long groupId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_GROUPID;
 
 		Object[] finderArgs = new Object[] { groupId };
@@ -598,11 +590,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 *
 	 * @param companyId the company ID
 	 * @return the matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<TrashEntry> findByCompanyId(long companyId)
-		throws SystemException {
+	public List<TrashEntry> findByCompanyId(long companyId) {
 		return findByCompanyId(companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			null);
 	}
@@ -618,11 +608,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param start the lower bound of the range of trash entries
 	 * @param end the upper bound of the range of trash entries (not inclusive)
 	 * @return the range of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<TrashEntry> findByCompanyId(long companyId, int start, int end)
-		throws SystemException {
+	public List<TrashEntry> findByCompanyId(long companyId, int start, int end) {
 		return findByCompanyId(companyId, start, end, null);
 	}
 
@@ -638,11 +626,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param end the upper bound of the range of trash entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<TrashEntry> findByCompanyId(long companyId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<TrashEntry> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -745,12 +732,11 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry findByCompanyId_First(long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchEntryException, SystemException {
+		OrderByComparator<TrashEntry> orderByComparator)
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = fetchByCompanyId_First(companyId,
 				orderByComparator);
 
@@ -776,11 +762,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching trash entry, or <code>null</code> if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry fetchByCompanyId_First(long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<TrashEntry> orderByComparator) {
 		List<TrashEntry> list = findByCompanyId(companyId, 0, 1,
 				orderByComparator);
 
@@ -798,12 +783,11 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry findByCompanyId_Last(long companyId,
-		OrderByComparator orderByComparator)
-		throws NoSuchEntryException, SystemException {
+		OrderByComparator<TrashEntry> orderByComparator)
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = fetchByCompanyId_Last(companyId,
 				orderByComparator);
 
@@ -829,11 +813,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching trash entry, or <code>null</code> if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry fetchByCompanyId_Last(long companyId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<TrashEntry> orderByComparator) {
 		int count = countByCompanyId(companyId);
 
 		if (count == 0) {
@@ -858,12 +841,11 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a trash entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry[] findByCompanyId_PrevAndNext(long entryId,
-		long companyId, OrderByComparator orderByComparator)
-		throws NoSuchEntryException, SystemException {
+		long companyId, OrderByComparator<TrashEntry> orderByComparator)
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = findByPrimaryKey(entryId);
 
 		Session session = null;
@@ -893,7 +875,7 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 
 	protected TrashEntry getByCompanyId_PrevAndNext(Session session,
 		TrashEntry trashEntry, long companyId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<TrashEntry> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -1000,10 +982,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * Removes all the trash entries where companyId = &#63; from the database.
 	 *
 	 * @param companyId the company ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByCompanyId(long companyId) throws SystemException {
+	public void removeByCompanyId(long companyId) {
 		for (TrashEntry trashEntry : findByCompanyId(companyId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(trashEntry);
@@ -1015,10 +996,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 *
 	 * @param companyId the company ID
 	 * @return the number of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByCompanyId(long companyId) throws SystemException {
+	public int countByCompanyId(long companyId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_COMPANYID;
 
 		Object[] finderArgs = new Object[] { companyId };
@@ -1084,11 +1064,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param groupId the group ID
 	 * @param createDate the create date
 	 * @return the matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<TrashEntry> findByG_LtCD(long groupId, Date createDate)
-		throws SystemException {
+	public List<TrashEntry> findByG_LtCD(long groupId, Date createDate) {
 		return findByG_LtCD(groupId, createDate, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -1105,11 +1083,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param start the lower bound of the range of trash entries
 	 * @param end the upper bound of the range of trash entries (not inclusive)
 	 * @return the range of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<TrashEntry> findByG_LtCD(long groupId, Date createDate,
-		int start, int end) throws SystemException {
+		int start, int end) {
 		return findByG_LtCD(groupId, createDate, start, end, null);
 	}
 
@@ -1126,12 +1103,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param end the upper bound of the range of trash entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<TrashEntry> findByG_LtCD(long groupId, Date createDate,
-		int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		int start, int end, OrderByComparator<TrashEntry> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1248,12 +1223,11 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry findByG_LtCD_First(long groupId, Date createDate,
-		OrderByComparator orderByComparator)
-		throws NoSuchEntryException, SystemException {
+		OrderByComparator<TrashEntry> orderByComparator)
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = fetchByG_LtCD_First(groupId, createDate,
 				orderByComparator);
 
@@ -1283,11 +1257,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param createDate the create date
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching trash entry, or <code>null</code> if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry fetchByG_LtCD_First(long groupId, Date createDate,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<TrashEntry> orderByComparator) {
 		List<TrashEntry> list = findByG_LtCD(groupId, createDate, 0, 1,
 				orderByComparator);
 
@@ -1306,12 +1279,11 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry findByG_LtCD_Last(long groupId, Date createDate,
-		OrderByComparator orderByComparator)
-		throws NoSuchEntryException, SystemException {
+		OrderByComparator<TrashEntry> orderByComparator)
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = fetchByG_LtCD_Last(groupId, createDate,
 				orderByComparator);
 
@@ -1341,11 +1313,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param createDate the create date
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching trash entry, or <code>null</code> if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry fetchByG_LtCD_Last(long groupId, Date createDate,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<TrashEntry> orderByComparator) {
 		int count = countByG_LtCD(groupId, createDate);
 
 		if (count == 0) {
@@ -1371,12 +1342,11 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a trash entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry[] findByG_LtCD_PrevAndNext(long entryId, long groupId,
-		Date createDate, OrderByComparator orderByComparator)
-		throws NoSuchEntryException, SystemException {
+		Date createDate, OrderByComparator<TrashEntry> orderByComparator)
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = findByPrimaryKey(entryId);
 
 		Session session = null;
@@ -1406,7 +1376,7 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 
 	protected TrashEntry getByG_LtCD_PrevAndNext(Session session,
 		TrashEntry trashEntry, long groupId, Date createDate,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<TrashEntry> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -1529,11 +1499,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 *
 	 * @param groupId the group ID
 	 * @param createDate the create date
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByG_LtCD(long groupId, Date createDate)
-		throws SystemException {
+	public void removeByG_LtCD(long groupId, Date createDate) {
 		for (TrashEntry trashEntry : findByG_LtCD(groupId, createDate,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(trashEntry);
@@ -1546,11 +1514,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param groupId the group ID
 	 * @param createDate the create date
 	 * @return the number of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByG_LtCD(long groupId, Date createDate)
-		throws SystemException {
+	public int countByG_LtCD(long groupId, Date createDate) {
 		FinderPath finderPath = FINDER_PATH_WITH_PAGINATION_COUNT_BY_G_LTCD;
 
 		Object[] finderArgs = new Object[] { groupId, createDate };
@@ -1640,11 +1606,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
 	 * @return the matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<TrashEntry> findByG_C(long groupId, long classNameId)
-		throws SystemException {
+	public List<TrashEntry> findByG_C(long groupId, long classNameId) {
 		return findByG_C(groupId, classNameId, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -1661,11 +1625,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param start the lower bound of the range of trash entries
 	 * @param end the upper bound of the range of trash entries (not inclusive)
 	 * @return the range of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<TrashEntry> findByG_C(long groupId, long classNameId,
-		int start, int end) throws SystemException {
+		int start, int end) {
 		return findByG_C(groupId, classNameId, start, end, null);
 	}
 
@@ -1682,12 +1645,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param end the upper bound of the range of trash entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<TrashEntry> findByG_C(long groupId, long classNameId,
-		int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		int start, int end, OrderByComparator<TrashEntry> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1800,12 +1761,11 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry findByG_C_First(long groupId, long classNameId,
-		OrderByComparator orderByComparator)
-		throws NoSuchEntryException, SystemException {
+		OrderByComparator<TrashEntry> orderByComparator)
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = fetchByG_C_First(groupId, classNameId,
 				orderByComparator);
 
@@ -1835,11 +1795,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param classNameId the class name ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching trash entry, or <code>null</code> if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry fetchByG_C_First(long groupId, long classNameId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<TrashEntry> orderByComparator) {
 		List<TrashEntry> list = findByG_C(groupId, classNameId, 0, 1,
 				orderByComparator);
 
@@ -1858,12 +1817,11 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry findByG_C_Last(long groupId, long classNameId,
-		OrderByComparator orderByComparator)
-		throws NoSuchEntryException, SystemException {
+		OrderByComparator<TrashEntry> orderByComparator)
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = fetchByG_C_Last(groupId, classNameId,
 				orderByComparator);
 
@@ -1893,11 +1851,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param classNameId the class name ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching trash entry, or <code>null</code> if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry fetchByG_C_Last(long groupId, long classNameId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<TrashEntry> orderByComparator) {
 		int count = countByG_C(groupId, classNameId);
 
 		if (count == 0) {
@@ -1923,12 +1880,11 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a trash entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry[] findByG_C_PrevAndNext(long entryId, long groupId,
-		long classNameId, OrderByComparator orderByComparator)
-		throws NoSuchEntryException, SystemException {
+		long classNameId, OrderByComparator<TrashEntry> orderByComparator)
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = findByPrimaryKey(entryId);
 
 		Session session = null;
@@ -1958,7 +1914,7 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 
 	protected TrashEntry getByG_C_PrevAndNext(Session session,
 		TrashEntry trashEntry, long groupId, long classNameId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<TrashEntry> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -2070,11 +2026,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByG_C(long groupId, long classNameId)
-		throws SystemException {
+	public void removeByG_C(long groupId, long classNameId) {
 		for (TrashEntry trashEntry : findByG_C(groupId, classNameId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(trashEntry);
@@ -2087,11 +2041,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
 	 * @return the number of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByG_C(long groupId, long classNameId)
-		throws SystemException {
+	public int countByG_C(long groupId, long classNameId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_G_C;
 
 		Object[] finderArgs = new Object[] { groupId, classNameId };
@@ -2160,11 +2112,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param classPK the class p k
 	 * @return the matching trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry findByC_C(long classNameId, long classPK)
-		throws NoSuchEntryException, SystemException {
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = fetchByC_C(classNameId, classPK);
 
 		if (trashEntry == null) {
@@ -2196,11 +2147,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param classNameId the class name ID
 	 * @param classPK the class p k
 	 * @return the matching trash entry, or <code>null</code> if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public TrashEntry fetchByC_C(long classNameId, long classPK)
-		throws SystemException {
+	public TrashEntry fetchByC_C(long classNameId, long classPK) {
 		return fetchByC_C(classNameId, classPK, true);
 	}
 
@@ -2211,11 +2160,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param classPK the class p k
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching trash entry, or <code>null</code> if a matching trash entry could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry fetchByC_C(long classNameId, long classPK,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { classNameId, classPK };
 
 		Object result = null;
@@ -2303,11 +2251,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param classNameId the class name ID
 	 * @param classPK the class p k
 	 * @return the trash entry that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry removeByC_C(long classNameId, long classPK)
-		throws NoSuchEntryException, SystemException {
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = findByC_C(classNameId, classPK);
 
 		return remove(trashEntry);
@@ -2319,11 +2266,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param classNameId the class name ID
 	 * @param classPK the class p k
 	 * @return the number of matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByC_C(long classNameId, long classPK)
-		throws SystemException {
+	public int countByC_C(long classNameId, long classPK) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_C_C;
 
 		Object[] finderArgs = new Object[] { classNameId, classPK };
@@ -2537,11 +2482,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param entryId the primary key of the trash entry
 	 * @return the trash entry that was removed
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a trash entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public TrashEntry remove(long entryId)
-		throws NoSuchEntryException, SystemException {
+	public TrashEntry remove(long entryId) throws NoSuchEntryException {
 		return remove((Serializable)entryId);
 	}
 
@@ -2551,11 +2494,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param primaryKey the primary key of the trash entry
 	 * @return the trash entry that was removed
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a trash entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry remove(Serializable primaryKey)
-		throws NoSuchEntryException, SystemException {
+		throws NoSuchEntryException {
 		Session session = null;
 
 		try {
@@ -2587,8 +2529,7 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	}
 
 	@Override
-	protected TrashEntry removeImpl(TrashEntry trashEntry)
-		throws SystemException {
+	protected TrashEntry removeImpl(TrashEntry trashEntry) {
 		trashEntry = toUnwrappedModel(trashEntry);
 
 		Session session = null;
@@ -2621,8 +2562,7 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 
 	@Override
 	public TrashEntry updateImpl(
-		com.liferay.portlet.trash.model.TrashEntry trashEntry)
-		throws SystemException {
+		com.liferay.portlet.trash.model.TrashEntry trashEntry) {
 		trashEntry = toUnwrappedModel(trashEntry);
 
 		boolean isNew = trashEntry.isNew();
@@ -2757,11 +2697,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param primaryKey the primary key of the trash entry
 	 * @return the trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a trash entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchEntryException, SystemException {
+		throws NoSuchEntryException {
 		TrashEntry trashEntry = fetchByPrimaryKey(primaryKey);
 
 		if (trashEntry == null) {
@@ -2782,11 +2721,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param entryId the primary key of the trash entry
 	 * @return the trash entry
 	 * @throws com.liferay.portlet.trash.NoSuchEntryException if a trash entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public TrashEntry findByPrimaryKey(long entryId)
-		throws NoSuchEntryException, SystemException {
+		throws NoSuchEntryException {
 		return findByPrimaryKey((Serializable)entryId);
 	}
 
@@ -2795,11 +2733,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 *
 	 * @param primaryKey the primary key of the trash entry
 	 * @return the trash entry, or <code>null</code> if a trash entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public TrashEntry fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public TrashEntry fetchByPrimaryKey(Serializable primaryKey) {
 		TrashEntry trashEntry = (TrashEntry)EntityCacheUtil.getResult(TrashEntryModelImpl.ENTITY_CACHE_ENABLED,
 				TrashEntryImpl.class, primaryKey);
 
@@ -2843,21 +2779,111 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 *
 	 * @param entryId the primary key of the trash entry
 	 * @return the trash entry, or <code>null</code> if a trash entry with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public TrashEntry fetchByPrimaryKey(long entryId) throws SystemException {
+	public TrashEntry fetchByPrimaryKey(long entryId) {
 		return fetchByPrimaryKey((Serializable)entryId);
+	}
+
+	@Override
+	public Map<Serializable, TrashEntry> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, TrashEntry> map = new HashMap<Serializable, TrashEntry>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			TrashEntry trashEntry = fetchByPrimaryKey(primaryKey);
+
+			if (trashEntry != null) {
+				map.put(primaryKey, trashEntry);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			TrashEntry trashEntry = (TrashEntry)EntityCacheUtil.getResult(TrashEntryModelImpl.ENTITY_CACHE_ENABLED,
+					TrashEntryImpl.class, primaryKey);
+
+			if (trashEntry == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, trashEntry);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_TRASHENTRY_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (TrashEntry trashEntry : (List<TrashEntry>)q.list()) {
+				map.put(trashEntry.getPrimaryKeyObj(), trashEntry);
+
+				cacheResult(trashEntry);
+
+				uncachedPrimaryKeys.remove(trashEntry.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(TrashEntryModelImpl.ENTITY_CACHE_ENABLED,
+					TrashEntryImpl.class, primaryKey, _nullTrashEntry);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the trash entries.
 	 *
 	 * @return the trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<TrashEntry> findAll() throws SystemException {
+	public List<TrashEntry> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -2871,11 +2897,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param start the lower bound of the range of trash entries
 	 * @param end the upper bound of the range of trash entries (not inclusive)
 	 * @return the range of trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<TrashEntry> findAll(int start, int end)
-		throws SystemException {
+	public List<TrashEntry> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -2890,11 +2914,10 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * @param end the upper bound of the range of trash entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<TrashEntry> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<TrashEntry> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -2976,10 +2999,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	/**
 	 * Removes all the trash entries from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (TrashEntry trashEntry : findAll()) {
 			remove(trashEntry);
 		}
@@ -2989,10 +3011,9 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	 * Returns the number of trash entries.
 	 *
 	 * @return the number of trash entries
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -3056,6 +3077,7 @@ public class TrashEntryPersistenceImpl extends BasePersistenceImpl<TrashEntry>
 	}
 
 	private static final String _SQL_SELECT_TRASHENTRY = "SELECT trashEntry FROM TrashEntry trashEntry";
+	private static final String _SQL_SELECT_TRASHENTRY_WHERE_PKS_IN = "SELECT trashEntry FROM TrashEntry trashEntry WHERE entryId IN (";
 	private static final String _SQL_SELECT_TRASHENTRY_WHERE = "SELECT trashEntry FROM TrashEntry trashEntry WHERE ";
 	private static final String _SQL_COUNT_TRASHENTRY = "SELECT COUNT(trashEntry) FROM TrashEntry trashEntry";
 	private static final String _SQL_COUNT_TRASHENTRY_WHERE = "SELECT COUNT(trashEntry) FROM TrashEntry trashEntry WHERE ";

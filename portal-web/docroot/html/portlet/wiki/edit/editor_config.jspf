@@ -34,11 +34,18 @@ Map<String,String> fileBrowserParams = new HashMap();
 
 fileBrowserParams.put("attachmentURLPrefix", attachmentURLPrefix);
 
-if (format.equals("html")) {
-	fileBrowserParams.put("Types", "Document,Page,Attachment");
+if (wikiPage.isNew()) {
+	if (format.equals("html")) {
+		fileBrowserParams.put("tabs1Names", "documents,pages");
+	}
 }
 else {
-	fileBrowserParams.put("Type", "Attachment");
+	if (format.equals("html")) {
+		fileBrowserParams.put("tabs1Names", "documents,pages,attachments");
+	}
+	else {
+		fileBrowserParams.put("tabs1Names", "attachments");
+	}
 }
 
 fileBrowserParams.put("wikiPageResourcePrimKey", String.valueOf(resourcePrimKey));

@@ -35,7 +35,7 @@
 	<command name="tearDownDocumentViewPG">
 		<execute macro="SOUser#firstLoginPG" />
 
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
 		<execute action="SODashboard#click" locator-key1="NAVIGATION_MY_DOCUMENTS" value1="My Documents" />
 
@@ -46,7 +46,7 @@
 	<command name="tearDownPG">
 		<execute macro="SODocuments#tearDownDocumentViewPG" />
 
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
 		<execute action="SODashboard#click" locator-key1="NAVIGATION_MY_DOCUMENTS" value1="My Documents" />
 
@@ -79,7 +79,7 @@
 		<if>
 			<equals arg1="${workflow}" arg2="Draft" />
 			<then>
-				<var name="currentUser" path="Dockbar" locator-key="USER_NAME" />
+				<var locator-key="USER_NAME" name="currentUser" path="Dockbar" />
 
 				<if>
 					<equals arg1="${dmDocumentUploader}" arg2="${currentUser}" />
@@ -94,68 +94,7 @@
 			<elseif>
 				<equals arg1="${workflow}" arg2="Checkedout" />
 				<then>
-					<var name="currentUser" path="Dockbar" locator-key="USER_NAME" />
-
-					<execute action="PGDocumentsandmedia#assertElementPresent" locator-key1="ENTRY_ICON_DOCUMENT_LOCKED_ICON" />
-
-					<if>
-						<equals arg1="${dmDocumentUploader}" arg2="${currentUser}" />
-						<then>
-							<execute action="PGDocumentsandmedia#assertTextEquals" locator-key1="ENTRY_ICON_DOCUMENT_STATUS" value1="Draft" />
-						</then>
-						<else>
-							<execute action="PGDocumentsandmedia#assertTextNotPresent" value1="Draft" />
-						</else>
-					</if>
-				</then>
-			</elseif>
-		</if>
-
-		<execute action="PGDocumentsandmedia#assertTextEquals" locator-key1="ENTRY_ICON_DOCUMENT_TITLE" value1="${dmDocumentTitle}" />
-		<execute action="PGDocumentsandmedia#click" locator-key1="TOOLBAR_DISPLAY_STYLE" />
-		<execute action="PGDocumentsandmedia#click" locator-key1="DISPLAY_STYLE_MENULIST_DESCRIPTIVE" />
-
-		<var name="key_dmDocumentTitle" value="${dmDocumentTitle}" />
-
-		<execute action="PGDocumentsandmedia#assertElementPresent" locator-key1="ENTRY_ICON_DOCUMENT_THUMBNAIL" />
-
-		<if>
-			<equals arg1="${workflow}" arg2="Draft" />
-			<then>
-				<var name="currentUser" path="Dockbar" locator-key="USER_NAME" />
-
-				<if>
-					<equals arg1="${dmDocumentUploader}" arg2="${currentUser}" />
-					<then>
-						<execute action="PGDocumentsandmedia#assertTextEquals" locator-key1="ENTRY_ICON_DOCUMENT_STATUS" value1="Draft" />
-					</then>
-					<else>
-						<execute action="PGDocumentsandmedia#assertTextNotPresent" value1="Draft" />
-					</else>
-				</if>
-			</then>
-			<elseif>
-				<equals arg1="${workflow}" arg2="Checkedout" />
-				<then>
-					<var name="currentUser" path="Dockbar" locator-key="USER_NAME" />
-
-					<execute action="PGDocumentsandmedia#assertElementPresent" locator-key1="ENTRY_ICON_DOCUMENT_LOCKED_ICON" />
-
-					<if>
-						<equals arg1="${dmDocumentUploader}" arg2="${currentUser}" />
-						<then>
-							<execute action="PGDocumentsandmedia#assertTextEquals" locator-key1="ENTRY_ICON_DOCUMENT_STATUS" value1="Draft" />
-						</then>
-						<else>
-							<execute action="PGDocumentsandmedia#assertTextNotPresent" value1="Draft" />
-						</else>
-					</if>
-				</then>
-			</elseif>
-			<elseif>
-				<equals arg1="${workflow}" arg2="Locked" />
-				<then>
-					<var name="currentUser" path="Dockbar" locator-key="USER_NAME" />
+					<var locator-key="USER_NAME" name="currentUser" path="Dockbar" />
 
 					<execute action="PGDocumentsandmedia#assertElementPresent" locator-key1="ENTRY_ICON_DOCUMENT_LOCKED_ICON" />
 
@@ -179,7 +118,7 @@
 		<if>
 			<equals arg1="${workflow}" arg2="Draft" />
 			<then>
-				<var name="currentUser" path="Dockbar" locator-key="USER_NAME" />
+				<var locator-key="USER_NAME" name="currentUser" path="Dockbar" />
 
 				<if>
 					<equals arg1="${dmDocumentUploader}" arg2="${currentUser}" />
@@ -194,7 +133,7 @@
 			<elseif>
 				<equals arg1="${workflow}" arg2="Checkedout" />
 				<then>
-					<var name="currentUser" path="Dockbar" locator-key="USER_NAME" />
+					<var locator-key="USER_NAME" name="currentUser" path="Dockbar" />
 
 					<if>
 						<equals arg1="${dmDocumentUploader}" arg2="${currentUser}" />
@@ -219,6 +158,67 @@
 
 		<execute action="PGDocumentsandmedia#assertTextEquals" locator-key1="ENTRY_LIST_DOCUMENT_TITLE" value1="${dmDocumentTitle}" />
 		<execute action="PGDocumentsandmedia#click" locator-key1="TOOLBAR_DISPLAY_STYLE" />
+		<execute action="PGDocumentsandmedia#click" locator-key1="DISPLAY_STYLE_MENULIST_DESCRIPTIVE" />
+
+		<var name="key_dmDocumentTitle" value="${dmDocumentTitle}" />
+
+		<execute action="PGDocumentsandmedia#assertElementPresent" locator-key1="ENTRY_ICON_DOCUMENT_THUMBNAIL" />
+
+		<if>
+			<equals arg1="${workflow}" arg2="Draft" />
+			<then>
+				<var locator-key="USER_NAME" name="currentUser" path="Dockbar" />
+
+				<if>
+					<equals arg1="${dmDocumentUploader}" arg2="${currentUser}" />
+					<then>
+						<execute action="PGDocumentsandmedia#assertTextEquals" locator-key1="ENTRY_ICON_DOCUMENT_STATUS" value1="Draft" />
+					</then>
+					<else>
+						<execute action="PGDocumentsandmedia#assertTextNotPresent" value1="Draft" />
+					</else>
+				</if>
+			</then>
+			<elseif>
+				<equals arg1="${workflow}" arg2="Checkedout" />
+				<then>
+					<var locator-key="USER_NAME" name="currentUser" path="Dockbar" />
+
+					<execute action="PGDocumentsandmedia#assertElementPresent" locator-key1="ENTRY_ICON_DOCUMENT_LOCKED_ICON" />
+
+					<if>
+						<equals arg1="${dmDocumentUploader}" arg2="${currentUser}" />
+						<then>
+							<execute action="PGDocumentsandmedia#assertTextEquals" locator-key1="ENTRY_ICON_DOCUMENT_STATUS" value1="Draft" />
+						</then>
+						<else>
+							<execute action="PGDocumentsandmedia#assertTextNotPresent" value1="Draft" />
+						</else>
+					</if>
+				</then>
+			</elseif>
+			<elseif>
+				<equals arg1="${workflow}" arg2="Locked" />
+				<then>
+					<var locator-key="USER_NAME" name="currentUser" path="Dockbar" />
+
+					<execute action="PGDocumentsandmedia#assertElementPresent" locator-key1="ENTRY_ICON_DOCUMENT_LOCKED_ICON" />
+
+					<if>
+						<equals arg1="${dmDocumentUploader}" arg2="${currentUser}" />
+						<then>
+							<execute action="PGDocumentsandmedia#assertTextEquals" locator-key1="ENTRY_ICON_DOCUMENT_STATUS" value1="Draft" />
+						</then>
+						<else>
+							<execute action="PGDocumentsandmedia#assertTextNotPresent" value1="Draft" />
+						</else>
+					</if>
+				</then>
+			</elseif>
+		</if>
+
+		<execute action="PGDocumentsandmedia#assertTextEquals" locator-key1="ENTRY_ICON_DOCUMENT_TITLE" value1="${dmDocumentTitle}" />
+		<execute action="PGDocumentsandmedia#click" locator-key1="TOOLBAR_DISPLAY_STYLE" />
 		<execute action="PGDocumentsandmedia#click" locator-key1="DISPLAY_STYLE_MENULIST_ICON" />
 		<execute action="PGDocumentsandmedia#assertTextPresent" locator-key1="BREADCRUMB_HOME" value1="Home" />
 
@@ -228,7 +228,7 @@
 				<equals arg1="${workflow}" arg2="Checkedout" />
 			</or>
 			<then>
-				<var name="currentUser" path="Dockbar" locator-key="USER_NAME" />
+				<var locator-key="USER_NAME" name="currentUser" path="Dockbar" />
 
 				<if>
 					<equals arg1="${dmDocumentUploader}" arg2="${currentUser}" />

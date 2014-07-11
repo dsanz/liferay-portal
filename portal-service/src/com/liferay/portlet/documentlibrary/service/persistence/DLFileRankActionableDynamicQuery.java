@@ -15,7 +15,6 @@
 package com.liferay.portlet.documentlibrary.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 import com.liferay.portlet.documentlibrary.model.DLFileRank;
@@ -23,13 +22,13 @@ import com.liferay.portlet.documentlibrary.service.DLFileRankLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link DLFileRankLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link DLFileRankLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class DLFileRankActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public DLFileRankActionableDynamicQuery() throws SystemException {
+	public DLFileRankActionableDynamicQuery() {
 		setBaseLocalService(DLFileRankLocalServiceUtil.getService());
 		setClass(DLFileRank.class);
 

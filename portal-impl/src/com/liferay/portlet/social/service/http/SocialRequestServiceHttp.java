@@ -55,8 +55,7 @@ public class SocialRequestServiceHttp {
 	public static com.liferay.portlet.social.model.SocialRequest updateRequest(
 		HttpPrincipal httpPrincipal, long requestId, int status,
 		com.liferay.portal.theme.ThemeDisplay themeDisplay)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(SocialRequestServiceUtil.class,
 					"updateRequest", _updateRequestParameterTypes0);
@@ -72,10 +71,6 @@ public class SocialRequestServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);

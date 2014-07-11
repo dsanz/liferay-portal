@@ -20,7 +20,7 @@
 WikiPage wikiPage = (WikiPage)request.getAttribute(WebKeys.WIKI_PAGE);
 
 double sourceVersion = ParamUtil.getDouble(request, "sourceVersion");
-String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectVersion");
+String eventName = ParamUtil.getString(request, "eventName", renderResponse.getNamespace() + "selectVersionFm");
 
 PortletURL portletURL = renderResponse.createRenderURL();
 

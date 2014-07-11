@@ -32,18 +32,29 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 		_mbBanLocalService = mbBanLocalService;
 	}
 
+	@Override
+	public com.liferay.portlet.messageboards.model.MBBan addBan(long userId,
+		long banUserId, com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _mbBanLocalService.addBan(userId, banUserId, serviceContext);
+	}
+
 	/**
 	* Adds the message boards ban to the database. Also notifies the appropriate model listeners.
 	*
 	* @param mbBan the message boards ban
 	* @return the message boards ban that was added
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBBan addMBBan(
-		com.liferay.portlet.messageboards.model.MBBan mbBan)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.messageboards.model.MBBan mbBan) {
 		return _mbBanLocalService.addMBBan(mbBan);
+	}
+
+	@Override
+	public void checkBan(long groupId, long banUserId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_mbBanLocalService.checkBan(groupId, banUserId);
 	}
 
 	/**
@@ -57,18 +68,43 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 		return _mbBanLocalService.createMBBan(banId);
 	}
 
+	@Override
+	public void deleteBan(com.liferay.portlet.messageboards.model.MBBan ban) {
+		_mbBanLocalService.deleteBan(ban);
+	}
+
+	@Override
+	public void deleteBan(long banId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_mbBanLocalService.deleteBan(banId);
+	}
+
+	@Override
+	public void deleteBan(long banUserId,
+		com.liferay.portal.service.ServiceContext serviceContext) {
+		_mbBanLocalService.deleteBan(banUserId, serviceContext);
+	}
+
+	@Override
+	public void deleteBansByBanUserId(long banUserId) {
+		_mbBanLocalService.deleteBansByBanUserId(banUserId);
+	}
+
+	@Override
+	public void deleteBansByGroupId(long groupId) {
+		_mbBanLocalService.deleteBansByGroupId(groupId);
+	}
+
 	/**
 	* Deletes the message boards ban with the primary key from the database. Also notifies the appropriate model listeners.
 	*
 	* @param banId the primary key of the message boards ban
 	* @return the message boards ban that was removed
 	* @throws PortalException if a message boards ban with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBBan deleteMBBan(long banId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _mbBanLocalService.deleteMBBan(banId);
 	}
 
@@ -77,13 +113,21 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	*
 	* @param mbBan the message boards ban
 	* @return the message boards ban that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBBan deleteMBBan(
-		com.liferay.portlet.messageboards.model.MBBan mbBan)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.messageboards.model.MBBan mbBan) {
 		return _mbBanLocalService.deleteMBBan(mbBan);
+	}
+
+	/**
+	* @throws PortalException
+	*/
+	@Override
+	public com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _mbBanLocalService.deletePersistedModel(persistedModel);
 	}
 
 	@Override
@@ -96,13 +140,10 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _mbBanLocalService.dynamicQuery(dynamicQuery);
 	}
 
@@ -117,13 +158,11 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return _mbBanLocalService.dynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -139,15 +178,12 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator) {
 		return _mbBanLocalService.dynamicQuery(dynamicQuery, start, end,
 			orderByComparator);
 	}
@@ -157,12 +193,10 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _mbBanLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
@@ -172,19 +206,21 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
 		return _mbBanLocalService.dynamicQueryCount(dynamicQuery, projection);
 	}
 
 	@Override
-	public com.liferay.portlet.messageboards.model.MBBan fetchMBBan(long banId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public void expireBans() {
+		_mbBanLocalService.expireBans();
+	}
+
+	@Override
+	public com.liferay.portlet.messageboards.model.MBBan fetchMBBan(long banId) {
 		return _mbBanLocalService.fetchMBBan(banId);
 	}
 
@@ -194,12 +230,10 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	* @param uuid the message boards ban's UUID
 	* @param companyId the primary key of the company
 	* @return the matching message boards ban, or <code>null</code> if a matching message boards ban could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBBan fetchMBBanByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long companyId) {
 		return _mbBanLocalService.fetchMBBanByUuidAndCompanyId(uuid, companyId);
 	}
 
@@ -209,13 +243,43 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	* @param uuid the message boards ban's UUID
 	* @param groupId the primary key of the group
 	* @return the matching message boards ban, or <code>null</code> if a matching message boards ban could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBBan fetchMBBanByUuidAndGroupId(
-		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long groupId) {
 		return _mbBanLocalService.fetchMBBanByUuidAndGroupId(uuid, groupId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
+		return _mbBanLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.messageboards.model.MBBan> getBans(
+		long groupId, int start, int end) {
+		return _mbBanLocalService.getBans(groupId, start, end);
+	}
+
+	@Override
+	public int getBansCount(long groupId) {
+		return _mbBanLocalService.getBansCount(groupId);
+	}
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	@Override
+	public java.lang.String getBeanIdentifier() {
+		return _mbBanLocalService.getBeanIdentifier();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext) {
+		return _mbBanLocalService.getExportActionableDynamicQuery(portletDataContext);
 	}
 
 	/**
@@ -224,34 +288,11 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	* @param banId the primary key of the message boards ban
 	* @return the message boards ban
 	* @throws PortalException if a message boards ban with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBBan getMBBan(long banId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _mbBanLocalService.getMBBan(banId);
-	}
-
-	@Override
-	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mbBanLocalService.getActionableDynamicQuery();
-	}
-
-	@Override
-	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mbBanLocalService.getExportActionableDynamicQuery(portletDataContext);
-	}
-
-	@Override
-	public com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _mbBanLocalService.getPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -261,13 +302,11 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	* @param companyId the primary key of the company
 	* @return the matching message boards ban
 	* @throws PortalException if a matching message boards ban could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBBan getMBBanByUuidAndCompanyId(
 		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _mbBanLocalService.getMBBanByUuidAndCompanyId(uuid, companyId);
 	}
 
@@ -278,13 +317,11 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	* @param groupId the primary key of the group
 	* @return the matching message boards ban
 	* @throws PortalException if a matching message boards ban could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portlet.messageboards.model.MBBan getMBBanByUuidAndGroupId(
 		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _mbBanLocalService.getMBBanByUuidAndGroupId(uuid, groupId);
 	}
 
@@ -298,12 +335,10 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	* @param start the lower bound of the range of message boards bans
 	* @param end the upper bound of the range of message boards bans (not inclusive)
 	* @return the range of message boards bans
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public java.util.List<com.liferay.portlet.messageboards.model.MBBan> getMBBans(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int start, int end) {
 		return _mbBanLocalService.getMBBans(start, end);
 	}
 
@@ -311,36 +346,22 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	* Returns the number of message boards bans.
 	*
 	* @return the number of message boards bans
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	public int getMBBansCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public int getMBBansCount() {
 		return _mbBanLocalService.getMBBansCount();
 	}
 
-	/**
-	* Updates the message boards ban in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param mbBan the message boards ban
-	* @return the message boards ban that was updated
-	* @throws SystemException if a system exception occurred
-	*/
 	@Override
-	public com.liferay.portlet.messageboards.model.MBBan updateMBBan(
-		com.liferay.portlet.messageboards.model.MBBan mbBan)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mbBanLocalService.updateMBBan(mbBan);
+	public com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _mbBanLocalService.getPersistedModel(primaryKeyObj);
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _mbBanLocalService.getBeanIdentifier();
+	public boolean hasBan(long groupId, long banUserId) {
+		return _mbBanLocalService.hasBan(groupId, banUserId);
 	}
 
 	/**
@@ -353,76 +374,16 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 		_mbBanLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
+	/**
+	* Updates the message boards ban in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param mbBan the message boards ban
+	* @return the message boards ban that was updated
+	*/
 	@Override
-	public com.liferay.portlet.messageboards.model.MBBan addBan(long userId,
-		long banUserId, com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _mbBanLocalService.addBan(userId, banUserId, serviceContext);
-	}
-
-	@Override
-	public void checkBan(long groupId, long banUserId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_mbBanLocalService.checkBan(groupId, banUserId);
-	}
-
-	@Override
-	public void deleteBan(long banId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_mbBanLocalService.deleteBan(banId);
-	}
-
-	@Override
-	public void deleteBan(long banUserId,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		_mbBanLocalService.deleteBan(banUserId, serviceContext);
-	}
-
-	@Override
-	public void deleteBan(com.liferay.portlet.messageboards.model.MBBan ban)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		_mbBanLocalService.deleteBan(ban);
-	}
-
-	@Override
-	public void deleteBansByBanUserId(long banUserId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		_mbBanLocalService.deleteBansByBanUserId(banUserId);
-	}
-
-	@Override
-	public void deleteBansByGroupId(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		_mbBanLocalService.deleteBansByGroupId(groupId);
-	}
-
-	@Override
-	public void expireBans()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		_mbBanLocalService.expireBans();
-	}
-
-	@Override
-	public java.util.List<com.liferay.portlet.messageboards.model.MBBan> getBans(
-		long groupId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mbBanLocalService.getBans(groupId, start, end);
-	}
-
-	@Override
-	public int getBansCount(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mbBanLocalService.getBansCount(groupId);
-	}
-
-	@Override
-	public boolean hasBan(long groupId, long banUserId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _mbBanLocalService.hasBan(groupId, banUserId);
+	public com.liferay.portlet.messageboards.model.MBBan updateMBBan(
+		com.liferay.portlet.messageboards.model.MBBan mbBan) {
+		return _mbBanLocalService.updateMBBan(mbBan);
 	}
 
 	/**

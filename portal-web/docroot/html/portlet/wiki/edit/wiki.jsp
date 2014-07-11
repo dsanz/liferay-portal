@@ -32,9 +32,9 @@ boolean showSyntaxHelp = ((toggleValue != null) && toggleValue.equals("block"));
 <div align="right">
 	<liferay-ui:toggle
 		defaultShowContent="<%= false %>"
-		hideMessage='<%= LanguageUtil.get(pageContext, "hide-syntax-help") + " &raquo;" %>'
+		hideMessage='<%= LanguageUtil.get(request, "hide-syntax-help") + " &raquo;" %>'
 		id="<%= toggleId %>"
-		showMessage='<%= "&laquo; " + LanguageUtil.get(pageContext, "show-syntax-help") %>'
+		showMessage='<%= "&laquo; " + LanguageUtil.get(request, "show-syntax-help") %>'
 	/>
 </div>
 
@@ -82,14 +82,14 @@ boolean showSyntaxHelp = ((toggleValue != null) && toggleValue.equals("block"));
 
 <aui:script>
 	function <portlet:namespace />initEditor() {
-		return "<%= UnicodeFormatter.toString(content) %>";
+		return '<%= UnicodeFormatter.toString(content) %>';
 	}
 </aui:script>
 
 <aui:script use="aui-base">
-	var CSS_EDITOR_WIDTH = 'span8';
+	var CSS_EDITOR_WIDTH = 'col-md-8';
 
-	var CSS_EDITOR_WIDTH_EXPANDED = 'span12';
+	var CSS_EDITOR_WIDTH_EXPANDED = 'col-md-12';
 
 	Liferay.on(
 		'toggle:stateChange',

@@ -30,6 +30,22 @@ public class LayoutBranchServiceWrapper implements LayoutBranchService,
 		_layoutBranchService = layoutBranchService;
 	}
 
+	@Override
+	public com.liferay.portal.model.LayoutBranch addLayoutBranch(
+		long layoutRevisionId, java.lang.String name,
+		java.lang.String description, boolean master,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _layoutBranchService.addLayoutBranch(layoutRevisionId, name,
+			description, master, serviceContext);
+	}
+
+	@Override
+	public void deleteLayoutBranch(long layoutBranchId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_layoutBranchService.deleteLayoutBranch(layoutBranchId);
+	}
+
 	/**
 	* Returns the Spring bean ID for this bean.
 	*
@@ -51,30 +67,11 @@ public class LayoutBranchServiceWrapper implements LayoutBranchService,
 	}
 
 	@Override
-	public com.liferay.portal.model.LayoutBranch addLayoutBranch(
-		long layoutRevisionId, java.lang.String name,
-		java.lang.String description, boolean master,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _layoutBranchService.addLayoutBranch(layoutRevisionId, name,
-			description, master, serviceContext);
-	}
-
-	@Override
-	public void deleteLayoutBranch(long layoutBranchId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_layoutBranchService.deleteLayoutBranch(layoutBranchId);
-	}
-
-	@Override
 	public com.liferay.portal.model.LayoutBranch updateLayoutBranch(
 		long layoutBranchId, java.lang.String name,
 		java.lang.String description,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _layoutBranchService.updateLayoutBranch(layoutBranchId, name,
 			description, serviceContext);
 	}

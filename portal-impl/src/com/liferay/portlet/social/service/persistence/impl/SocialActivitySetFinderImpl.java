@@ -61,7 +61,7 @@ public class SocialActivitySetFinderImpl
 		SocialActivitySetFinder.class.getName() + ".findByUserGroups";
 
 	@Override
-	public int countByRelation(long userId) throws SystemException {
+	public int countByRelation(long userId) {
 		Session session = null;
 
 		try {
@@ -98,9 +98,7 @@ public class SocialActivitySetFinderImpl
 	}
 
 	@Override
-	public int countByRelationType(long userId, int type)
-		throws SystemException {
-
+	public int countByRelationType(long userId, int type) {
 		Session session = null;
 
 		try {
@@ -138,7 +136,7 @@ public class SocialActivitySetFinderImpl
 	}
 
 	@Override
-	public int countByUser(long userId) throws SystemException {
+	public int countByUser(long userId) {
 		Session session = null;
 
 		try {
@@ -179,7 +177,7 @@ public class SocialActivitySetFinderImpl
 	}
 
 	@Override
-	public int countByUserGroups(long userId) throws SystemException {
+	public int countByUserGroups(long userId) {
 		Session session = null;
 
 		try {
@@ -219,8 +217,7 @@ public class SocialActivitySetFinderImpl
 
 	@Override
 	public List<SocialActivitySet> findByRelation(
-			long userId, int start, int end)
-		throws SystemException {
+		long userId, int start, int end) {
 
 		Session session = null;
 
@@ -250,8 +247,7 @@ public class SocialActivitySetFinderImpl
 
 	@Override
 	public List<SocialActivitySet> findByRelationType(
-			long userId, int type, int start, int end)
-		throws SystemException {
+		long userId, int type, int start, int end) {
 
 		Session session = null;
 
@@ -281,9 +277,7 @@ public class SocialActivitySetFinderImpl
 	}
 
 	@Override
-	public List<SocialActivitySet> findByUser(long userId, int start, int end)
-		throws SystemException {
-
+	public List<SocialActivitySet> findByUser(long userId, int start, int end) {
 		Session session = null;
 
 		try {
@@ -316,8 +310,7 @@ public class SocialActivitySetFinderImpl
 
 	@Override
 	public List<SocialActivitySet> findByUserGroups(
-			long userId, int start, int end)
-		throws SystemException {
+		long userId, int start, int end) {
 
 		Session session = null;
 

@@ -29,8 +29,7 @@ import java.util.Map;
 @ProviderType
 public interface Deployer {
 
-	public void addExtJar(List<String> jars, String resource)
-		throws Exception;
+	public void addExtJar(List<String> jars, String resource) throws Exception;
 
 	public void addRequiredJar(List<String> jars, String resource)
 		throws Exception;
@@ -87,8 +86,6 @@ public interface Deployer {
 	public void setPortletTaglibDTD(String portletTaglibDTD);
 
 	public void setSecurityTaglibDTD(String securityTaglibDTD);
-
-	public void setStagingTaglibDTD(String stagingTaglibDTD);
 
 	public void setThemeTaglibDTD(String themeTaglibDTD);
 

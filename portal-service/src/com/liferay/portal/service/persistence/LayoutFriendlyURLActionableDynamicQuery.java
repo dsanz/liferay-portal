@@ -15,20 +15,19 @@
 package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.model.LayoutFriendlyURL;
 import com.liferay.portal.service.LayoutFriendlyURLLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link LayoutFriendlyURLLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link LayoutFriendlyURLLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class LayoutFriendlyURLActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public LayoutFriendlyURLActionableDynamicQuery() throws SystemException {
+	public LayoutFriendlyURLActionableDynamicQuery() {
 		setBaseLocalService(LayoutFriendlyURLLocalServiceUtil.getService());
 		setClass(LayoutFriendlyURL.class);
 

@@ -14,22 +14,25 @@
 
 package com.liferay.portal.util;
 
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ServiceBeanMethodInvocationFactoryUtil;
 import com.liferay.portal.model.EmailAddress;
 import com.liferay.portal.service.EmailAddressLocalServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.EmailAddressUtil;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 
 import java.lang.reflect.Method;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,17 +42,9 @@ import org.junit.runner.RunWith;
  * @author Wesley Gong
  * @see    OrderByComparatorFactoryImplTest
  */
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class ServiceBeanMethodInvocationFactoryImplTest {
-
-	@After
-	public void tearDown() throws Exception {
-		for (EmailAddress emailAddress : _emailAddresses) {
-			EmailAddressLocalServiceUtil.deleteEmailAddress(emailAddress);
-		}
-
-		_emailAddresses.clear();
-	}
 
 	@Test
 	public void testRollback() throws Exception {
@@ -98,7 +93,7 @@ public class ServiceBeanMethodInvocationFactoryImplTest {
 	}
 
 	protected EmailAddress newEmailAddress(String address) throws Exception {
-		long emailAddressId = ServiceTestUtil.nextLong();
+		long emailAddressId = RandomTestUtil.nextLong();
 
 		EmailAddress emailAddress = EmailAddressUtil.create(emailAddressId);
 
@@ -122,6 +117,7 @@ public class ServiceBeanMethodInvocationFactoryImplTest {
 		}
 	}
 
+	@DeleteAfterTestRun
 	private Set<EmailAddress> _emailAddresses = new HashSet<EmailAddress>();
 
 }

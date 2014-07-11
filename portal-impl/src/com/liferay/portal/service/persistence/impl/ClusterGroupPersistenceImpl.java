@@ -22,13 +22,13 @@ import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.ClusterGroup;
@@ -42,7 +42,12 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The persistence implementation for the cluster group service.
@@ -183,11 +188,10 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 	 * @param clusterGroupId the primary key of the cluster group
 	 * @return the cluster group that was removed
 	 * @throws com.liferay.portal.NoSuchClusterGroupException if a cluster group with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ClusterGroup remove(long clusterGroupId)
-		throws NoSuchClusterGroupException, SystemException {
+		throws NoSuchClusterGroupException {
 		return remove((Serializable)clusterGroupId);
 	}
 
@@ -197,11 +201,10 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 	 * @param primaryKey the primary key of the cluster group
 	 * @return the cluster group that was removed
 	 * @throws com.liferay.portal.NoSuchClusterGroupException if a cluster group with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ClusterGroup remove(Serializable primaryKey)
-		throws NoSuchClusterGroupException, SystemException {
+		throws NoSuchClusterGroupException {
 		Session session = null;
 
 		try {
@@ -233,8 +236,7 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 	}
 
 	@Override
-	protected ClusterGroup removeImpl(ClusterGroup clusterGroup)
-		throws SystemException {
+	protected ClusterGroup removeImpl(ClusterGroup clusterGroup) {
 		clusterGroup = toUnwrappedModel(clusterGroup);
 
 		Session session = null;
@@ -267,8 +269,7 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 
 	@Override
 	public ClusterGroup updateImpl(
-		com.liferay.portal.model.ClusterGroup clusterGroup)
-		throws SystemException {
+		com.liferay.portal.model.ClusterGroup clusterGroup) {
 		clusterGroup = toUnwrappedModel(clusterGroup);
 
 		boolean isNew = clusterGroup.isNew();
@@ -334,11 +335,10 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 	 * @param primaryKey the primary key of the cluster group
 	 * @return the cluster group
 	 * @throws com.liferay.portal.NoSuchClusterGroupException if a cluster group with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ClusterGroup findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchClusterGroupException, SystemException {
+		throws NoSuchClusterGroupException {
 		ClusterGroup clusterGroup = fetchByPrimaryKey(primaryKey);
 
 		if (clusterGroup == null) {
@@ -359,11 +359,10 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 	 * @param clusterGroupId the primary key of the cluster group
 	 * @return the cluster group
 	 * @throws com.liferay.portal.NoSuchClusterGroupException if a cluster group with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public ClusterGroup findByPrimaryKey(long clusterGroupId)
-		throws NoSuchClusterGroupException, SystemException {
+		throws NoSuchClusterGroupException {
 		return findByPrimaryKey((Serializable)clusterGroupId);
 	}
 
@@ -372,11 +371,9 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 	 *
 	 * @param primaryKey the primary key of the cluster group
 	 * @return the cluster group, or <code>null</code> if a cluster group with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ClusterGroup fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public ClusterGroup fetchByPrimaryKey(Serializable primaryKey) {
 		ClusterGroup clusterGroup = (ClusterGroup)EntityCacheUtil.getResult(ClusterGroupModelImpl.ENTITY_CACHE_ENABLED,
 				ClusterGroupImpl.class, primaryKey);
 
@@ -420,22 +417,111 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 	 *
 	 * @param clusterGroupId the primary key of the cluster group
 	 * @return the cluster group, or <code>null</code> if a cluster group with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public ClusterGroup fetchByPrimaryKey(long clusterGroupId)
-		throws SystemException {
+	public ClusterGroup fetchByPrimaryKey(long clusterGroupId) {
 		return fetchByPrimaryKey((Serializable)clusterGroupId);
+	}
+
+	@Override
+	public Map<Serializable, ClusterGroup> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, ClusterGroup> map = new HashMap<Serializable, ClusterGroup>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			ClusterGroup clusterGroup = fetchByPrimaryKey(primaryKey);
+
+			if (clusterGroup != null) {
+				map.put(primaryKey, clusterGroup);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			ClusterGroup clusterGroup = (ClusterGroup)EntityCacheUtil.getResult(ClusterGroupModelImpl.ENTITY_CACHE_ENABLED,
+					ClusterGroupImpl.class, primaryKey);
+
+			if (clusterGroup == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, clusterGroup);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_CLUSTERGROUP_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (ClusterGroup clusterGroup : (List<ClusterGroup>)q.list()) {
+				map.put(clusterGroup.getPrimaryKeyObj(), clusterGroup);
+
+				cacheResult(clusterGroup);
+
+				uncachedPrimaryKeys.remove(clusterGroup.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(ClusterGroupModelImpl.ENTITY_CACHE_ENABLED,
+					ClusterGroupImpl.class, primaryKey, _nullClusterGroup);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the cluster groups.
 	 *
 	 * @return the cluster groups
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ClusterGroup> findAll() throws SystemException {
+	public List<ClusterGroup> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -449,11 +535,9 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 	 * @param start the lower bound of the range of cluster groups
 	 * @param end the upper bound of the range of cluster groups (not inclusive)
 	 * @return the range of cluster groups
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<ClusterGroup> findAll(int start, int end)
-		throws SystemException {
+	public List<ClusterGroup> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -468,11 +552,10 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 	 * @param end the upper bound of the range of cluster groups (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of cluster groups
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<ClusterGroup> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<ClusterGroup> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -554,10 +637,9 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 	/**
 	 * Removes all the cluster groups from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (ClusterGroup clusterGroup : findAll()) {
 			remove(clusterGroup);
 		}
@@ -567,10 +649,9 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 	 * Returns the number of cluster groups.
 	 *
 	 * @return the number of cluster groups
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -634,6 +715,7 @@ public class ClusterGroupPersistenceImpl extends BasePersistenceImpl<ClusterGrou
 	}
 
 	private static final String _SQL_SELECT_CLUSTERGROUP = "SELECT clusterGroup FROM ClusterGroup clusterGroup";
+	private static final String _SQL_SELECT_CLUSTERGROUP_WHERE_PKS_IN = "SELECT clusterGroup FROM ClusterGroup clusterGroup WHERE clusterGroupId IN (";
 	private static final String _SQL_COUNT_CLUSTERGROUP = "SELECT COUNT(clusterGroup) FROM ClusterGroup clusterGroup";
 	private static final String _ORDER_BY_ENTITY_ALIAS = "clusterGroup.";
 	private static final String _NO_SUCH_ENTITY_WITH_PRIMARY_KEY = "No ClusterGroup exists with the primary key ";

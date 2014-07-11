@@ -14,24 +14,26 @@
 
 package com.liferay.portal.lar;
 
-import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutPrototype;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.ServiceContextThreadLocal;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.CompanyUtil;
-import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.LayoutTestUtil;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.LayoutTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.journal.model.JournalArticle;
-import com.liferay.portlet.journal.util.JournalTestUtil;
+import com.liferay.portlet.journal.util.test.JournalTestUtil;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,10 +50,8 @@ public abstract class BasePrototypePropagationTestCase {
 
 	@Before
 	public void setUp() throws Exception {
-		FinderCacheUtil.clearCache();
-
 		ServiceContextThreadLocal.pushServiceContext(
-			ServiceTestUtil.getServiceContext());
+			ServiceContextTestUtil.getServiceContext());
 
 		// Group
 
@@ -69,7 +69,7 @@ public abstract class BasePrototypePropagationTestCase {
 		// Layout prototype
 
 		layoutPrototype = LayoutTestUtil.addLayoutPrototype(
-			ServiceTestUtil.randomString());
+			RandomTestUtil.randomString());
 
 		layoutPrototypeLayout = layoutPrototype.getLayout();
 
@@ -154,6 +154,10 @@ public abstract class BasePrototypePropagationTestCase {
 				initialPortletCount, LayoutTestUtil.getPortlets(layout).size());
 		}
 
+		prototypeLayout = updateModifiedDate(
+			prototypeLayout,
+			new Date(System.currentTimeMillis() + Time.MINUTE));
+
 		layout = propagateChanges(layout);
 
 		if (linkEnabled) {
@@ -192,26 +196,22 @@ public abstract class BasePrototypePropagationTestCase {
 
 		setLinkEnabled(linkEnabled);
 
-		PortletPreferences layoutSetPrototypePortletPreferences =
-			LayoutTestUtil.getPortletPreferences(
-				prototypeLayout, journalContentPortletId);
-
 		MergeLayoutPrototypesThreadLocal.clearMergeComplete();
 
-		layoutSetPrototypePortletPreferences.setValue(
-			"articleId", StringPool.BLANK);
+		Map<String, String> portletPreferencesMap =
+			new HashMap<String, String>();
 
-		layoutSetPrototypePortletPreferences.setValue(
+		portletPreferencesMap.put("articleId", StringPool.BLANK);
+		portletPreferencesMap.put(
 			"showAvailableLocales", Boolean.FALSE.toString());
 
 		if (globalScope) {
-			layoutSetPrototypePortletPreferences.setValue(
-				"groupId", String.valueOf(globalGroupId));
-			layoutSetPrototypePortletPreferences.setValue(
-				"lfrScopeType", "company");
+			portletPreferencesMap.put("groupId", String.valueOf(globalGroupId));
+			portletPreferencesMap.put("lfrScopeType", "company");
 		}
 
-		layoutSetPrototypePortletPreferences.store();
+		LayoutTestUtil.updateLayoutPortletPreferences(
+			prototypeLayout, journalContentPortletId, portletPreferencesMap);
 
 		layout = propagateChanges(layout);
 
@@ -254,6 +254,16 @@ public abstract class BasePrototypePropagationTestCase {
 
 	protected abstract void setLinkEnabled(boolean linkEnabled)
 		throws Exception;
+
+	protected Layout updateModifiedDate(Layout layout, Date date)
+		throws Exception {
+
+		layout = LayoutLocalServiceUtil.getLayout(layout.getPlid());
+
+		layout.setModifiedDate(date);
+
+		return LayoutLocalServiceUtil.updateLayout(layout);
+	}
 
 	protected long globalGroupId;
 	protected JournalArticle globalJournalArticle;

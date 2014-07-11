@@ -272,7 +272,8 @@ public class DataFactory {
 		initRoleModels();
 		initUserNames();
 		initUserModels();
-		initVirtualHostModel();
+		initVirtualHostModel(
+			properties.getProperty("sample.sql.virtual.hostname"));
 	}
 
 	public AccountModel getAccountModel() {
@@ -987,12 +988,12 @@ public class DataFactory {
 		unsyncBufferedReader.close();
 	}
 
-	public void initVirtualHostModel() {
+	public void initVirtualHostModel(String hostname) {
 		_virtualHostModel = new VirtualHostModelImpl();
 
 		_virtualHostModel.setVirtualHostId(_counter.get());
 		_virtualHostModel.setCompanyId(_companyId);
-		_virtualHostModel.setHostname("localhost");
+		_virtualHostModel.setHostname(hostname);
 	}
 
 	public AssetEntryModel newAssetEntryModel(BlogsEntryModel blogsEntryModel) {
@@ -2483,6 +2484,7 @@ public class DataFactory {
 		blogsEntryModel.setCreateDate(new Date());
 		blogsEntryModel.setModifiedDate(new Date());
 		blogsEntryModel.setTitle("Test Blog " + index);
+		blogsEntryModel.setDeckTitle("Subtitle of Test Blog " + index);
 		blogsEntryModel.setUrlTitle("testblog" + index);
 		blogsEntryModel.setContent("This is test blog " + index + ".");
 		blogsEntryModel.setDisplayDate(new Date());
@@ -2526,7 +2528,7 @@ public class DataFactory {
 
 	protected DDMStructureModel newDDMStructureModel(
 		long groupId, long userId, long classNameId, String structureKey,
-		String xsd) {
+		String definition) {
 
 		DDMStructureModel dDMStructureModel = new DDMStructureModelImpl();
 
@@ -2551,7 +2553,7 @@ public class DataFactory {
 
 		dDMStructureModel.setName(sb.toString());
 
-		dDMStructureModel.setXsd(xsd);
+		dDMStructureModel.setDefinition(definition);
 		dDMStructureModel.setStorageType("xml");
 
 		return dDMStructureModel;

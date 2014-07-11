@@ -36,13 +36,23 @@ public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService
 	*
 	* @param clusterGroup the cluster group
 	* @return the cluster group that was added
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portal.model.ClusterGroup addClusterGroup(
-		com.liferay.portal.model.ClusterGroup clusterGroup)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.model.ClusterGroup clusterGroup) {
 		return _clusterGroupLocalService.addClusterGroup(clusterGroup);
+	}
+
+	@Override
+	public com.liferay.portal.model.ClusterGroup addClusterGroup(
+		java.lang.String name, java.util.List<java.lang.String> clusterNodeIds) {
+		return _clusterGroupLocalService.addClusterGroup(name, clusterNodeIds);
+	}
+
+	@Override
+	public com.liferay.portal.model.ClusterGroup addWholeClusterGroup(
+		java.lang.String name) {
+		return _clusterGroupLocalService.addWholeClusterGroup(name);
 	}
 
 	/**
@@ -58,33 +68,39 @@ public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService
 	}
 
 	/**
+	* Deletes the cluster group from the database. Also notifies the appropriate model listeners.
+	*
+	* @param clusterGroup the cluster group
+	* @return the cluster group that was removed
+	*/
+	@Override
+	public com.liferay.portal.model.ClusterGroup deleteClusterGroup(
+		com.liferay.portal.model.ClusterGroup clusterGroup) {
+		return _clusterGroupLocalService.deleteClusterGroup(clusterGroup);
+	}
+
+	/**
 	* Deletes the cluster group with the primary key from the database. Also notifies the appropriate model listeners.
 	*
 	* @param clusterGroupId the primary key of the cluster group
 	* @return the cluster group that was removed
 	* @throws PortalException if a cluster group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public com.liferay.portal.model.ClusterGroup deleteClusterGroup(
 		long clusterGroupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _clusterGroupLocalService.deleteClusterGroup(clusterGroupId);
 	}
 
 	/**
-	* Deletes the cluster group from the database. Also notifies the appropriate model listeners.
-	*
-	* @param clusterGroup the cluster group
-	* @return the cluster group that was removed
-	* @throws SystemException if a system exception occurred
+	* @throws PortalException
 	*/
 	@Override
-	public com.liferay.portal.model.ClusterGroup deleteClusterGroup(
-		com.liferay.portal.model.ClusterGroup clusterGroup)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _clusterGroupLocalService.deleteClusterGroup(clusterGroup);
+	public com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _clusterGroupLocalService.deletePersistedModel(persistedModel);
 	}
 
 	@Override
@@ -97,13 +113,10 @@ public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _clusterGroupLocalService.dynamicQuery(dynamicQuery);
 	}
 
@@ -118,13 +131,11 @@ public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return _clusterGroupLocalService.dynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -140,15 +151,12 @@ public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
+	public <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator) {
 		return _clusterGroupLocalService.dynamicQuery(dynamicQuery, start, end,
 			orderByComparator);
 	}
@@ -158,12 +166,10 @@ public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _clusterGroupLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
@@ -173,97 +179,24 @@ public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	@Override
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
 		return _clusterGroupLocalService.dynamicQueryCount(dynamicQuery,
 			projection);
 	}
 
 	@Override
 	public com.liferay.portal.model.ClusterGroup fetchClusterGroup(
-		long clusterGroupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long clusterGroupId) {
 		return _clusterGroupLocalService.fetchClusterGroup(clusterGroupId);
 	}
 
-	/**
-	* Returns the cluster group with the primary key.
-	*
-	* @param clusterGroupId the primary key of the cluster group
-	* @return the cluster group
-	* @throws PortalException if a cluster group with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
 	@Override
-	public com.liferay.portal.model.ClusterGroup getClusterGroup(
-		long clusterGroupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _clusterGroupLocalService.getClusterGroup(clusterGroupId);
-	}
-
-	@Override
-	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
 		return _clusterGroupLocalService.getActionableDynamicQuery();
-	}
-
-	@Override
-	public com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _clusterGroupLocalService.getPersistedModel(primaryKeyObj);
-	}
-
-	/**
-	* Returns a range of all the cluster groups.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ClusterGroupModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
-	* </p>
-	*
-	* @param start the lower bound of the range of cluster groups
-	* @param end the upper bound of the range of cluster groups (not inclusive)
-	* @return the range of cluster groups
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public java.util.List<com.liferay.portal.model.ClusterGroup> getClusterGroups(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _clusterGroupLocalService.getClusterGroups(start, end);
-	}
-
-	/**
-	* Returns the number of cluster groups.
-	*
-	* @return the number of cluster groups
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public int getClusterGroupsCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _clusterGroupLocalService.getClusterGroupsCount();
-	}
-
-	/**
-	* Updates the cluster group in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param clusterGroup the cluster group
-	* @return the cluster group that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public com.liferay.portal.model.ClusterGroup updateClusterGroup(
-		com.liferay.portal.model.ClusterGroup clusterGroup)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _clusterGroupLocalService.updateClusterGroup(clusterGroup);
 	}
 
 	/**
@@ -277,6 +210,54 @@ public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService
 	}
 
 	/**
+	* Returns the cluster group with the primary key.
+	*
+	* @param clusterGroupId the primary key of the cluster group
+	* @return the cluster group
+	* @throws PortalException if a cluster group with the primary key could not be found
+	*/
+	@Override
+	public com.liferay.portal.model.ClusterGroup getClusterGroup(
+		long clusterGroupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _clusterGroupLocalService.getClusterGroup(clusterGroupId);
+	}
+
+	/**
+	* Returns a range of all the cluster groups.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ClusterGroupModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param start the lower bound of the range of cluster groups
+	* @param end the upper bound of the range of cluster groups (not inclusive)
+	* @return the range of cluster groups
+	*/
+	@Override
+	public java.util.List<com.liferay.portal.model.ClusterGroup> getClusterGroups(
+		int start, int end) {
+		return _clusterGroupLocalService.getClusterGroups(start, end);
+	}
+
+	/**
+	* Returns the number of cluster groups.
+	*
+	* @return the number of cluster groups
+	*/
+	@Override
+	public int getClusterGroupsCount() {
+		return _clusterGroupLocalService.getClusterGroupsCount();
+	}
+
+	@Override
+	public com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _clusterGroupLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
 	* Sets the Spring bean ID for this bean.
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
@@ -286,18 +267,16 @@ public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService
 		_clusterGroupLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
+	/**
+	* Updates the cluster group in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param clusterGroup the cluster group
+	* @return the cluster group that was updated
+	*/
 	@Override
-	public com.liferay.portal.model.ClusterGroup addClusterGroup(
-		java.lang.String name, java.util.List<java.lang.String> clusterNodeIds)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _clusterGroupLocalService.addClusterGroup(name, clusterNodeIds);
-	}
-
-	@Override
-	public com.liferay.portal.model.ClusterGroup addWholeClusterGroup(
-		java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _clusterGroupLocalService.addWholeClusterGroup(name);
+	public com.liferay.portal.model.ClusterGroup updateClusterGroup(
+		com.liferay.portal.model.ClusterGroup clusterGroup) {
+		return _clusterGroupLocalService.updateClusterGroup(clusterGroup);
 	}
 
 	/**

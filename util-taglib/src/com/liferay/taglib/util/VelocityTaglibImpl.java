@@ -16,8 +16,7 @@ package com.liferay.taglib.util;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.servlet.DirectRequestDispatcherFactoryUtil;
-import com.liferay.portal.kernel.servlet.PipingPageContext;
-import com.liferay.portal.kernel.servlet.taglib.TagSupport;
+import com.liferay.portal.kernel.servlet.JSPSupportServlet;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.util.HttpUtil;
@@ -26,6 +25,7 @@ import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.taglib.TagSupport;
 import com.liferay.taglib.aui.ColumnTag;
 import com.liferay.taglib.aui.LayoutTag;
 import com.liferay.taglib.portlet.ActionURLTag;
@@ -46,7 +46,7 @@ import com.liferay.taglib.portletext.IconRefreshTag;
 import com.liferay.taglib.portletext.RuntimeTag;
 import com.liferay.taglib.security.DoAsURLTag;
 import com.liferay.taglib.security.PermissionsURLTag;
-import com.liferay.taglib.staging.MenuTag;
+import com.liferay.taglib.servlet.PipingPageContext;
 import com.liferay.taglib.theme.LayoutIconTag;
 import com.liferay.taglib.theme.MetaTagsTag;
 import com.liferay.taglib.theme.WrapPortletTag;
@@ -83,6 +83,7 @@ import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.jsp.JspFactory;
 import javax.servlet.jsp.PageContext;
 
 /**
@@ -96,10 +97,9 @@ public class VelocityTaglibImpl implements VelocityTaglib {
 
 	public VelocityTaglibImpl(
 		ServletContext servletContext, HttpServletRequest request,
-		HttpServletResponse response, PageContext pageContext,
-		Template template) {
+		HttpServletResponse response, Template template) {
 
-		init(servletContext, request, response, pageContext, template);
+		init(servletContext, request, response, template);
 	}
 
 	@Override
@@ -449,6 +449,11 @@ public class VelocityTaglibImpl implements VelocityTaglib {
 	}
 
 	@Override
+	public PageContext getPageContext() {
+		return _pageContext;
+	}
+
+	@Override
 	public PngImageTag getPngImageTag() throws Exception {
 		PngImageTag pngImageTag = new PngImageTag();
 
@@ -720,7 +725,8 @@ public class VelocityTaglibImpl implements VelocityTaglib {
 
 	@Override
 	public void language(
-			String formName, String formAction, String name, int displayStyle)
+			String formName, String formAction, String name,
+			String displayStyle)
 		throws Exception {
 
 		LanguageTag languageTag = new LanguageTag();
@@ -738,7 +744,7 @@ public class VelocityTaglibImpl implements VelocityTaglib {
 	@Override
 	public void language(
 			String formName, String formAction, String name,
-			String[] languageIds, int displayStyle)
+			String[] languageIds, String displayStyle)
 		throws Exception {
 
 		LanguageTag languageTag = new LanguageTag();
@@ -1184,21 +1190,11 @@ public class VelocityTaglibImpl implements VelocityTaglib {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link #stagingMenu}
+	 * @deprecated As of 7.0.0, with no direct replacement
 	 */
 	@Deprecated
 	@Override
 	public void staging() throws Exception {
-		stagingMenu();
-	}
-
-	@Override
-	public void stagingMenu() throws Exception {
-		MenuTag menuTag = new MenuTag();
-
-		setUp(menuTag);
-
-		menuTag.runTag();
 	}
 
 	@Override
@@ -1223,14 +1219,18 @@ public class VelocityTaglibImpl implements VelocityTaglib {
 
 	protected VelocityTaglibImpl init(
 		ServletContext servletContext, HttpServletRequest request,
-		HttpServletResponse response, PageContext pageContext,
-		Template template) {
+		HttpServletResponse response, Template template) {
 
 		_servletContext = servletContext;
 		_request = request;
 		_response = response;
-		_pageContext = pageContext;
 		_template = template;
+
+		JspFactory jspFactory = JspFactory.getDefaultFactory();
+
+		_pageContext = jspFactory.getPageContext(
+			new JSPSupportServlet(_servletContext), _request, _response, null,
+			false, 0, false);
 
 		return this;
 	}

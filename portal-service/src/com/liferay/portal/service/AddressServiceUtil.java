@@ -42,6 +42,52 @@ public class AddressServiceUtil {
 	 */
 
 	/**
+	* @deprecated As of 6.2.0, replaced by {@link #addAddress(String, long,
+	String, String, String, String, String, long, long, int,
+	boolean, boolean, ServiceContext)}
+	*/
+	@Deprecated
+	public static com.liferay.portal.model.Address addAddress(
+		java.lang.String className, long classPK, java.lang.String street1,
+		java.lang.String street2, java.lang.String street3,
+		java.lang.String city, java.lang.String zip, long regionId,
+		long countryId, int typeId, boolean mailing, boolean primary)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .addAddress(className, classPK, street1, street2, street3,
+			city, zip, regionId, countryId, typeId, mailing, primary);
+	}
+
+	public static com.liferay.portal.model.Address addAddress(
+		java.lang.String className, long classPK, java.lang.String street1,
+		java.lang.String street2, java.lang.String street3,
+		java.lang.String city, java.lang.String zip, long regionId,
+		long countryId, int typeId, boolean mailing, boolean primary,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .addAddress(className, classPK, street1, street2, street3,
+			city, zip, regionId, countryId, typeId, mailing, primary,
+			serviceContext);
+	}
+
+	public static void deleteAddress(long addressId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteAddress(addressId);
+	}
+
+	public static com.liferay.portal.model.Address getAddress(long addressId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getAddress(addressId);
+	}
+
+	public static java.util.List<com.liferay.portal.model.Address> getAddresses(
+		java.lang.String className, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getAddresses(className, classPK);
+	}
+
+	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
@@ -59,64 +105,12 @@ public class AddressServiceUtil {
 		getService().setBeanIdentifier(beanIdentifier);
 	}
 
-	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addAddress(String, long,
-	String, String, String, String, String, long, long, int,
-	boolean, boolean, ServiceContext)}
-	*/
-	@Deprecated
-	public static com.liferay.portal.model.Address addAddress(
-		java.lang.String className, long classPK, java.lang.String street1,
-		java.lang.String street2, java.lang.String street3,
-		java.lang.String city, java.lang.String zip, long regionId,
-		long countryId, int typeId, boolean mailing, boolean primary)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .addAddress(className, classPK, street1, street2, street3,
-			city, zip, regionId, countryId, typeId, mailing, primary);
-	}
-
-	public static com.liferay.portal.model.Address addAddress(
-		java.lang.String className, long classPK, java.lang.String street1,
-		java.lang.String street2, java.lang.String street3,
-		java.lang.String city, java.lang.String zip, long regionId,
-		long countryId, int typeId, boolean mailing, boolean primary,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .addAddress(className, classPK, street1, street2, street3,
-			city, zip, regionId, countryId, typeId, mailing, primary,
-			serviceContext);
-	}
-
-	public static void deleteAddress(long addressId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteAddress(addressId);
-	}
-
-	public static com.liferay.portal.model.Address getAddress(long addressId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getAddress(addressId);
-	}
-
-	public static java.util.List<com.liferay.portal.model.Address> getAddresses(
-		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getAddresses(className, classPK);
-	}
-
 	public static com.liferay.portal.model.Address updateAddress(
 		long addressId, java.lang.String street1, java.lang.String street2,
 		java.lang.String street3, java.lang.String city, java.lang.String zip,
 		long regionId, long countryId, int typeId, boolean mailing,
 		boolean primary)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updateAddress(addressId, street1, street2, street3, city,
 			zip, regionId, countryId, typeId, mailing, primary);

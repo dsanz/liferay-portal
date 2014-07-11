@@ -15,20 +15,19 @@
 package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
- * @deprecated As of 7.0.0, replaced by {@link OrganizationLocalServiceUtil#getExportActionableDynamicQuery()}
+ * @deprecated As of 7.0.0, replaced by {@link OrganizationLocalServiceUtil#getActionableDynamicQuery()}
  * @generated
  */
 @Deprecated
 public abstract class OrganizationActionableDynamicQuery
 	extends BaseActionableDynamicQuery {
-	public OrganizationActionableDynamicQuery() throws SystemException {
+	public OrganizationActionableDynamicQuery() {
 		setBaseLocalService(OrganizationLocalServiceUtil.getService());
 		setClass(Organization.class);
 

@@ -23,37 +23,41 @@ String eventName = ParamUtil.getString(request, "eventName", liferayPortletRespo
 
 AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(className);
 
+ClassTypeReader classTypeReader = assetRendererFactory.getClassTypeReader();
+
+ClassType classType = classTypeReader.getClassType(classTypeId, locale);
+
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("struts_action", "/asset_publisher/select_structure_field");
-portletURL.setParameter("portletResource", portletResource);
+portletURL.setParameter("portletResource", assetPublisherDisplayContext.getPortletResource());
 portletURL.setParameter("className", className);
 portletURL.setParameter("classTypeId", String.valueOf(classTypeId));
 %>
 
-<div class="alert alert-error hide" id="<portlet:namespace />message">
-	<span class="error-message"><%= LanguageUtil.get(pageContext, "the-field-value-is-invalid") %></span>
+<div class="alert alert-danger hide" id="<portlet:namespace />message">
+	<span class="error-message"><%= LanguageUtil.get(request, "the-field-value-is-invalid") %></span>
 </div>
 
 <div id="<portlet:namespace />selectDDMStructureFieldForm">
 	<liferay-ui:search-container
 		iteratorURL="<%= portletURL %>"
-		total="<%= assetRendererFactory.getClassTypeFieldNamesCount(classTypeId, locale) %>"
+		total="<%= classType.getClassTypeFieldsCount() %>"
 	>
 		<liferay-ui:search-container-results
-			results="<%= assetRendererFactory.getClassTypeFieldNames(classTypeId, locale, searchContainer.getStart(), searchContainer.getEnd()) %>"
+			results="<%= classType.getClassTypeFields(searchContainer.getStart(), searchContainer.getEnd()) %>"
 		/>
 
 		<liferay-ui:search-container-row
-			className="com.liferay.portal.kernel.util.Tuple"
+			className="com.liferay.portlet.asset.model.ClassTypeField"
 			modelVar="field"
 		>
 
 			<%
-			String label = (String)field.getObject(0);
-			String name = (String)field.getObject(1);
-			String fieldType = (String)field.getObject(2);
-			long ddmStructureId = GetterUtil.getLong(field.getObject(3));
+			String label = field.getLabel();
+			String name = field.getName();
+			String fieldType = field.getType();
+			long ddmStructureId = field.getClassTypeId();
 			%>
 
 			<liferay-ui:search-container-column-text>
@@ -69,7 +73,7 @@ portletURL.setParameter("classTypeId", String.valueOf(classTypeId));
 			>
 				<liferay-portlet:resourceURL portletConfiguration="true" var="structureFieldURL">
 					<portlet:param name="<%= Constants.CMD %>" value="getFieldValue" />
-					<portlet:param name="portletResource" value="<%= portletResource %>" />
+					<portlet:param name="portletResource" value="<%= assetPublisherDisplayContext.getPortletResource() %>" />
 					<portlet:param name="structureId" value="<%= String.valueOf(ddmStructureId) %>" />
 					<portlet:param name="name" value="<%= name %>" />
 					<portlet:param name="fieldsNamespace" value="<%= fieldsNamespace %>" />
@@ -142,7 +146,7 @@ portletURL.setParameter("classTypeId", String.valueOf(classTypeId));
 		A.io.request(
 			form.attr('action'),
 			{
-				dataType: 'json',
+				dataType: 'JSON',
 				form: {
 					id: form
 				},
@@ -190,7 +194,7 @@ portletURL.setParameter("classTypeId", String.valueOf(classTypeId));
 		'form'
 	);
 
-	A.one('#<portlet:namespace />tuplesSearchContainer').delegate(
+	A.one('#<portlet:namespace />classTypeFieldsSearchContainer').delegate(
 		'click',
 		function(event) {
 			var target = event.currentTarget;

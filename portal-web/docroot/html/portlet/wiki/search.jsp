@@ -60,7 +60,7 @@ portletURL.setParameter("keywords", keywords);
 	</div>
 
 	<liferay-ui:search-container
-		emptyResultsMessage='<%= LanguageUtil.format(pageContext, "no-pages-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>'
+		emptyResultsMessage='<%= LanguageUtil.format(request, "no-pages-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>'
 		iteratorURL="<%= portletURL %>"
 	>
 
@@ -117,9 +117,7 @@ portletURL.setParameter("keywords", keywords);
 			</portlet:renderURL>
 
 			<liferay-ui:app-view-search-entry
-				containerIcon="all_pages"
 				containerName="<%= curNode.getName() %>"
-				containerType='<%= LanguageUtil.get(locale, "wiki-node") %>'
 				cssClass='<%= MathUtil.isEven(index) ? "search" : "search alt" %>'
 				description="<%= (summary != null) ? summary.getContent() : wikiPage.getSummary() %>"
 				fileEntryTuples="<%= searchResult.getFileEntryTuples() %>"

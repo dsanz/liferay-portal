@@ -805,6 +805,22 @@ public class ArrayUtil {
 		return true;
 	}
 
+	public static <T> int count(T[] array, PredicateFilter<T> predicateFilter) {
+		if (isEmpty(array)) {
+			return 0;
+		}
+
+		int count = 0;
+
+		for (T t : array) {
+			if (predicateFilter.filter(t)) {
+				count++;
+			}
+		}
+
+		return count;
+	}
+
 	public static String[] distinct(String[] array) {
 		return distinct(array, null);
 	}
@@ -830,6 +846,22 @@ public class ArrayUtil {
 		}
 
 		return set.toArray(new String[set.size()]);
+	}
+
+	public static <T> boolean exists(
+		T[] array, PredicateFilter<T> predicateFilter) {
+
+		if (isEmpty(array)) {
+			return false;
+		}
+
+		for (T t : array) {
+			if (predicateFilter.filter(t)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public static boolean[] filter(
@@ -1721,6 +1753,26 @@ public class ArrayUtil {
 		return newArray;
 	}
 
+	public static Long[] toLongArray(int[] array) {
+		Long[] newArray = new Long[array.length];
+
+		for (int i = 0; i < array.length; i++) {
+			newArray[i] = (long)array[i];
+		}
+
+		return newArray;
+	}
+
+	public static Long[] toLongArray(long[] array) {
+		Long[] newArray = new Long[array.length];
+
+		for (int i = 0; i < array.length; i++) {
+			newArray[i] = array[i];
+		}
+
+		return newArray;
+	}
+
 	public static Long[] toLongArray(Object[] array) {
 		Long[] newArray = new Long[array.length];
 
@@ -1877,6 +1929,33 @@ public class ArrayUtil {
 
 		for (int i = 0; i < array.length; i++) {
 			newArray[i] = String.valueOf(array[i]);
+		}
+
+		return newArray;
+	}
+
+	public static String[] toStringArray(Collection<String> collection) {
+		String[] newArray = new String[collection.size()];
+
+		if (collection instanceof List) {
+			List<String> list = (List<String>)collection;
+
+			for (int i = 0; i < list.size(); i++) {
+				String value = list.get(i);
+
+				newArray[i] = String.valueOf(value);
+			}
+		}
+		else {
+			int i = 0;
+
+			Iterator<String> iterator = collection.iterator();
+
+			while (iterator.hasNext()) {
+				String value = iterator.next();
+
+				newArray[i++] = String.valueOf(value);
+			}
 		}
 
 		return newArray;

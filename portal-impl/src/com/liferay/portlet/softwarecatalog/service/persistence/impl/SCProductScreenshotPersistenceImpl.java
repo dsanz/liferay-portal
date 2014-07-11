@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -45,7 +44,12 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The persistence implementation for the s c product screenshot service.
@@ -111,11 +115,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 *
 	 * @param productEntryId the product entry ID
 	 * @return the matching s c product screenshots
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<SCProductScreenshot> findByProductEntryId(long productEntryId)
-		throws SystemException {
+	public List<SCProductScreenshot> findByProductEntryId(long productEntryId) {
 		return findByProductEntryId(productEntryId, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	}
@@ -131,11 +133,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param start the lower bound of the range of s c product screenshots
 	 * @param end the upper bound of the range of s c product screenshots (not inclusive)
 	 * @return the range of matching s c product screenshots
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductScreenshot> findByProductEntryId(long productEntryId,
-		int start, int end) throws SystemException {
+		int start, int end) {
 		return findByProductEntryId(productEntryId, start, end, null);
 	}
 
@@ -151,12 +152,11 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param end the upper bound of the range of s c product screenshots (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching s c product screenshots
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductScreenshot> findByProductEntryId(long productEntryId,
-		int start, int end, OrderByComparator orderByComparator)
-		throws SystemException {
+		int start, int end,
+		OrderByComparator<SCProductScreenshot> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -263,12 +263,11 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching s c product screenshot
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductScreenshotException if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot findByProductEntryId_First(long productEntryId,
-		OrderByComparator orderByComparator)
-		throws NoSuchProductScreenshotException, SystemException {
+		OrderByComparator<SCProductScreenshot> orderByComparator)
+		throws NoSuchProductScreenshotException {
 		SCProductScreenshot scProductScreenshot = fetchByProductEntryId_First(productEntryId,
 				orderByComparator);
 
@@ -294,12 +293,11 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param productEntryId the product entry ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching s c product screenshot, or <code>null</code> if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot fetchByProductEntryId_First(
-		long productEntryId, OrderByComparator orderByComparator)
-		throws SystemException {
+		long productEntryId,
+		OrderByComparator<SCProductScreenshot> orderByComparator) {
 		List<SCProductScreenshot> list = findByProductEntryId(productEntryId,
 				0, 1, orderByComparator);
 
@@ -317,12 +315,11 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching s c product screenshot
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductScreenshotException if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot findByProductEntryId_Last(long productEntryId,
-		OrderByComparator orderByComparator)
-		throws NoSuchProductScreenshotException, SystemException {
+		OrderByComparator<SCProductScreenshot> orderByComparator)
+		throws NoSuchProductScreenshotException {
 		SCProductScreenshot scProductScreenshot = fetchByProductEntryId_Last(productEntryId,
 				orderByComparator);
 
@@ -348,11 +345,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param productEntryId the product entry ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching s c product screenshot, or <code>null</code> if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot fetchByProductEntryId_Last(long productEntryId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<SCProductScreenshot> orderByComparator) {
 		int count = countByProductEntryId(productEntryId);
 
 		if (count == 0) {
@@ -377,13 +373,12 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next s c product screenshot
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductScreenshotException if a s c product screenshot with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot[] findByProductEntryId_PrevAndNext(
 		long productScreenshotId, long productEntryId,
-		OrderByComparator orderByComparator)
-		throws NoSuchProductScreenshotException, SystemException {
+		OrderByComparator<SCProductScreenshot> orderByComparator)
+		throws NoSuchProductScreenshotException {
 		SCProductScreenshot scProductScreenshot = findByPrimaryKey(productScreenshotId);
 
 		Session session = null;
@@ -414,7 +409,8 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 
 	protected SCProductScreenshot getByProductEntryId_PrevAndNext(
 		Session session, SCProductScreenshot scProductScreenshot,
-		long productEntryId, OrderByComparator orderByComparator,
+		long productEntryId,
+		OrderByComparator<SCProductScreenshot> orderByComparator,
 		boolean previous) {
 		StringBundler query = null;
 
@@ -522,11 +518,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * Removes all the s c product screenshots where productEntryId = &#63; from the database.
 	 *
 	 * @param productEntryId the product entry ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByProductEntryId(long productEntryId)
-		throws SystemException {
+	public void removeByProductEntryId(long productEntryId) {
 		for (SCProductScreenshot scProductScreenshot : findByProductEntryId(
 				productEntryId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(scProductScreenshot);
@@ -538,11 +532,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 *
 	 * @param productEntryId the product entry ID
 	 * @return the number of matching s c product screenshots
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByProductEntryId(long productEntryId)
-		throws SystemException {
+	public int countByProductEntryId(long productEntryId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_PRODUCTENTRYID;
 
 		Object[] finderArgs = new Object[] { productEntryId };
@@ -604,11 +596,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param thumbnailId the thumbnail ID
 	 * @return the matching s c product screenshot
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductScreenshotException if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot findByThumbnailId(long thumbnailId)
-		throws NoSuchProductScreenshotException, SystemException {
+		throws NoSuchProductScreenshotException {
 		SCProductScreenshot scProductScreenshot = fetchByThumbnailId(thumbnailId);
 
 		if (scProductScreenshot == null) {
@@ -636,11 +627,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 *
 	 * @param thumbnailId the thumbnail ID
 	 * @return the matching s c product screenshot, or <code>null</code> if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public SCProductScreenshot fetchByThumbnailId(long thumbnailId)
-		throws SystemException {
+	public SCProductScreenshot fetchByThumbnailId(long thumbnailId) {
 		return fetchByThumbnailId(thumbnailId, true);
 	}
 
@@ -650,11 +639,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param thumbnailId the thumbnail ID
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching s c product screenshot, or <code>null</code> if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot fetchByThumbnailId(long thumbnailId,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { thumbnailId };
 
 		Object result = null;
@@ -742,11 +730,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 *
 	 * @param thumbnailId the thumbnail ID
 	 * @return the s c product screenshot that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot removeByThumbnailId(long thumbnailId)
-		throws NoSuchProductScreenshotException, SystemException {
+		throws NoSuchProductScreenshotException {
 		SCProductScreenshot scProductScreenshot = findByThumbnailId(thumbnailId);
 
 		return remove(scProductScreenshot);
@@ -757,10 +744,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 *
 	 * @param thumbnailId the thumbnail ID
 	 * @return the number of matching s c product screenshots
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByThumbnailId(long thumbnailId) throws SystemException {
+	public int countByThumbnailId(long thumbnailId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_THUMBNAILID;
 
 		Object[] finderArgs = new Object[] { thumbnailId };
@@ -822,11 +808,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param fullImageId the full image ID
 	 * @return the matching s c product screenshot
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductScreenshotException if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot findByFullImageId(long fullImageId)
-		throws NoSuchProductScreenshotException, SystemException {
+		throws NoSuchProductScreenshotException {
 		SCProductScreenshot scProductScreenshot = fetchByFullImageId(fullImageId);
 
 		if (scProductScreenshot == null) {
@@ -854,11 +839,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 *
 	 * @param fullImageId the full image ID
 	 * @return the matching s c product screenshot, or <code>null</code> if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public SCProductScreenshot fetchByFullImageId(long fullImageId)
-		throws SystemException {
+	public SCProductScreenshot fetchByFullImageId(long fullImageId) {
 		return fetchByFullImageId(fullImageId, true);
 	}
 
@@ -868,11 +851,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param fullImageId the full image ID
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching s c product screenshot, or <code>null</code> if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot fetchByFullImageId(long fullImageId,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { fullImageId };
 
 		Object result = null;
@@ -960,11 +942,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 *
 	 * @param fullImageId the full image ID
 	 * @return the s c product screenshot that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot removeByFullImageId(long fullImageId)
-		throws NoSuchProductScreenshotException, SystemException {
+		throws NoSuchProductScreenshotException {
 		SCProductScreenshot scProductScreenshot = findByFullImageId(fullImageId);
 
 		return remove(scProductScreenshot);
@@ -975,10 +956,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 *
 	 * @param fullImageId the full image ID
 	 * @return the number of matching s c product screenshots
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByFullImageId(long fullImageId) throws SystemException {
+	public int countByFullImageId(long fullImageId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_FULLIMAGEID;
 
 		Object[] finderArgs = new Object[] { fullImageId };
@@ -1043,11 +1023,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param priority the priority
 	 * @return the matching s c product screenshot
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductScreenshotException if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot findByP_P(long productEntryId, int priority)
-		throws NoSuchProductScreenshotException, SystemException {
+		throws NoSuchProductScreenshotException {
 		SCProductScreenshot scProductScreenshot = fetchByP_P(productEntryId,
 				priority);
 
@@ -1080,11 +1059,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param productEntryId the product entry ID
 	 * @param priority the priority
 	 * @return the matching s c product screenshot, or <code>null</code> if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public SCProductScreenshot fetchByP_P(long productEntryId, int priority)
-		throws SystemException {
+	public SCProductScreenshot fetchByP_P(long productEntryId, int priority) {
 		return fetchByP_P(productEntryId, priority, true);
 	}
 
@@ -1095,11 +1072,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param priority the priority
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching s c product screenshot, or <code>null</code> if a matching s c product screenshot could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot fetchByP_P(long productEntryId, int priority,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { productEntryId, priority };
 
 		Object result = null;
@@ -1194,11 +1170,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param productEntryId the product entry ID
 	 * @param priority the priority
 	 * @return the s c product screenshot that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot removeByP_P(long productEntryId, int priority)
-		throws NoSuchProductScreenshotException, SystemException {
+		throws NoSuchProductScreenshotException {
 		SCProductScreenshot scProductScreenshot = findByP_P(productEntryId,
 				priority);
 
@@ -1211,11 +1186,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param productEntryId the product entry ID
 	 * @param priority the priority
 	 * @return the number of matching s c product screenshots
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByP_P(long productEntryId, int priority)
-		throws SystemException {
+	public int countByP_P(long productEntryId, int priority) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_P_P;
 
 		Object[] finderArgs = new Object[] { productEntryId, priority };
@@ -1516,11 +1489,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param productScreenshotId the primary key of the s c product screenshot
 	 * @return the s c product screenshot that was removed
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductScreenshotException if a s c product screenshot with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot remove(long productScreenshotId)
-		throws NoSuchProductScreenshotException, SystemException {
+		throws NoSuchProductScreenshotException {
 		return remove((Serializable)productScreenshotId);
 	}
 
@@ -1530,11 +1502,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param primaryKey the primary key of the s c product screenshot
 	 * @return the s c product screenshot that was removed
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductScreenshotException if a s c product screenshot with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot remove(Serializable primaryKey)
-		throws NoSuchProductScreenshotException, SystemException {
+		throws NoSuchProductScreenshotException {
 		Session session = null;
 
 		try {
@@ -1567,7 +1538,7 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 
 	@Override
 	protected SCProductScreenshot removeImpl(
-		SCProductScreenshot scProductScreenshot) throws SystemException {
+		SCProductScreenshot scProductScreenshot) {
 		scProductScreenshot = toUnwrappedModel(scProductScreenshot);
 
 		Session session = null;
@@ -1600,8 +1571,7 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 
 	@Override
 	public SCProductScreenshot updateImpl(
-		com.liferay.portlet.softwarecatalog.model.SCProductScreenshot scProductScreenshot)
-		throws SystemException {
+		com.liferay.portlet.softwarecatalog.model.SCProductScreenshot scProductScreenshot) {
 		scProductScreenshot = toUnwrappedModel(scProductScreenshot);
 
 		boolean isNew = scProductScreenshot.isNew();
@@ -1698,11 +1668,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param primaryKey the primary key of the s c product screenshot
 	 * @return the s c product screenshot
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductScreenshotException if a s c product screenshot with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchProductScreenshotException, SystemException {
+		throws NoSuchProductScreenshotException {
 		SCProductScreenshot scProductScreenshot = fetchByPrimaryKey(primaryKey);
 
 		if (scProductScreenshot == null) {
@@ -1723,11 +1692,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param productScreenshotId the primary key of the s c product screenshot
 	 * @return the s c product screenshot
 	 * @throws com.liferay.portlet.softwarecatalog.NoSuchProductScreenshotException if a s c product screenshot with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public SCProductScreenshot findByPrimaryKey(long productScreenshotId)
-		throws NoSuchProductScreenshotException, SystemException {
+		throws NoSuchProductScreenshotException {
 		return findByPrimaryKey((Serializable)productScreenshotId);
 	}
 
@@ -1736,11 +1704,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 *
 	 * @param primaryKey the primary key of the s c product screenshot
 	 * @return the s c product screenshot, or <code>null</code> if a s c product screenshot with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public SCProductScreenshot fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public SCProductScreenshot fetchByPrimaryKey(Serializable primaryKey) {
 		SCProductScreenshot scProductScreenshot = (SCProductScreenshot)EntityCacheUtil.getResult(SCProductScreenshotModelImpl.ENTITY_CACHE_ENABLED,
 				SCProductScreenshotImpl.class, primaryKey);
 
@@ -1785,22 +1751,113 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 *
 	 * @param productScreenshotId the primary key of the s c product screenshot
 	 * @return the s c product screenshot, or <code>null</code> if a s c product screenshot with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public SCProductScreenshot fetchByPrimaryKey(long productScreenshotId)
-		throws SystemException {
+	public SCProductScreenshot fetchByPrimaryKey(long productScreenshotId) {
 		return fetchByPrimaryKey((Serializable)productScreenshotId);
+	}
+
+	@Override
+	public Map<Serializable, SCProductScreenshot> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, SCProductScreenshot> map = new HashMap<Serializable, SCProductScreenshot>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			SCProductScreenshot scProductScreenshot = fetchByPrimaryKey(primaryKey);
+
+			if (scProductScreenshot != null) {
+				map.put(primaryKey, scProductScreenshot);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			SCProductScreenshot scProductScreenshot = (SCProductScreenshot)EntityCacheUtil.getResult(SCProductScreenshotModelImpl.ENTITY_CACHE_ENABLED,
+					SCProductScreenshotImpl.class, primaryKey);
+
+			if (scProductScreenshot == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, scProductScreenshot);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_SCPRODUCTSCREENSHOT_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (SCProductScreenshot scProductScreenshot : (List<SCProductScreenshot>)q.list()) {
+				map.put(scProductScreenshot.getPrimaryKeyObj(),
+					scProductScreenshot);
+
+				cacheResult(scProductScreenshot);
+
+				uncachedPrimaryKeys.remove(scProductScreenshot.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(SCProductScreenshotModelImpl.ENTITY_CACHE_ENABLED,
+					SCProductScreenshotImpl.class, primaryKey,
+					_nullSCProductScreenshot);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the s c product screenshots.
 	 *
 	 * @return the s c product screenshots
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<SCProductScreenshot> findAll() throws SystemException {
+	public List<SCProductScreenshot> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -1814,11 +1871,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param start the lower bound of the range of s c product screenshots
 	 * @param end the upper bound of the range of s c product screenshots (not inclusive)
 	 * @return the range of s c product screenshots
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<SCProductScreenshot> findAll(int start, int end)
-		throws SystemException {
+	public List<SCProductScreenshot> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -1833,11 +1888,10 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * @param end the upper bound of the range of s c product screenshots (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of s c product screenshots
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<SCProductScreenshot> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<SCProductScreenshot> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1919,10 +1973,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	/**
 	 * Removes all the s c product screenshots from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (SCProductScreenshot scProductScreenshot : findAll()) {
 			remove(scProductScreenshot);
 		}
@@ -1932,10 +1985,9 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	 * Returns the number of s c product screenshots.
 	 *
 	 * @return the number of s c product screenshots
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -1999,6 +2051,7 @@ public class SCProductScreenshotPersistenceImpl extends BasePersistenceImpl<SCPr
 	}
 
 	private static final String _SQL_SELECT_SCPRODUCTSCREENSHOT = "SELECT scProductScreenshot FROM SCProductScreenshot scProductScreenshot";
+	private static final String _SQL_SELECT_SCPRODUCTSCREENSHOT_WHERE_PKS_IN = "SELECT scProductScreenshot FROM SCProductScreenshot scProductScreenshot WHERE productScreenshotId IN (";
 	private static final String _SQL_SELECT_SCPRODUCTSCREENSHOT_WHERE = "SELECT scProductScreenshot FROM SCProductScreenshot scProductScreenshot WHERE ";
 	private static final String _SQL_COUNT_SCPRODUCTSCREENSHOT = "SELECT COUNT(scProductScreenshot) FROM SCProductScreenshot scProductScreenshot";
 	private static final String _SQL_COUNT_SCPRODUCTSCREENSHOT_WHERE = "SELECT COUNT(scProductScreenshot) FROM SCProductScreenshot scProductScreenshot WHERE ";

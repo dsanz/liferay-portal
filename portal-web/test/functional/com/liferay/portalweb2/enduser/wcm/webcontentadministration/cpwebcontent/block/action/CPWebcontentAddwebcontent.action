@@ -3,22 +3,20 @@
 		<case locator-key1="MENU_CONTENT">
 			<execute function="AssertClick#assertPartialTextClickAt" />
 		</case>
+	</command>
 
-		<case locator-key1="PUBLISH_BUTTON">
-			<execute function="AssertClick#assertTextClickAtAndWait" />
-		</case>
-
-		<case locator-key1="SAVE_AS_DRAFT_BUTTON">
-			<execute function="AssertClick#assertTextClickAtAndWait" />
-		</case>
-
-		<case locator-key1="SUBMIT_FOR_PUBLICATION_BUTTON">
-			<execute function="AssertClick#assertTextClickAtAndWait" />
+	<command name="assertTextEquals">
+		<case locator-key1="CONTENT_FIELD">
+			<execute function="AssertTextEquals#assertCKEditorText" />
 		</case>
 	</command>
 
 	<command name="type">
 		<case locator-key1="CONTENT_FIELD">
+			<execute function="Type#typeFrame" />
+		</case>
+
+		<case locator-key1="HTML_FIELD">
 			<execute function="Type#typeFrame" />
 		</case>
 	</command>

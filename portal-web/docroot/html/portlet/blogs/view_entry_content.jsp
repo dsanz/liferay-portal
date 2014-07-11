@@ -34,7 +34,7 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 				%>
 
 				<c:if test="<%= !entry.isApproved() %>">
-					<h3>
+					<h3 class="icon-file-alt">
 						<liferay-ui:message key='<%= entry.isPending() ? "pending-approval" : WorkflowConstants.getStatusLabel(entry.getStatus()) %>' />
 					</h3>
 				</c:if>
@@ -51,7 +51,17 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 					</div>
 				</c:if>
 
-				<div class="entry-date">
+				<%
+				String deckTitle = entry.getDeckTitle();
+				%>
+
+				<c:if test="<%= Validator.isNotNull(deckTitle) %>">
+					<div class="entry-deck-title">
+						<p><%= HtmlUtil.escape(deckTitle) %></p>
+					</div>
+				</c:if>
+
+				<div class="entry-date icon-calendar">
 					<span class="hide-accessible"><liferay-ui:message key="published-date" /></span>
 
 					<%= dateFormatDateTime.format(entry.getDisplayDate()) %>
@@ -63,12 +73,12 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 				<portlet:param name="urlTitle" value="<%= entry.getUrlTitle() %>" />
 			</portlet:renderURL>
 
-			<c:if test='<%= enableSocialBookmarks && socialBookmarksDisplayPosition.equals("top") %>'>
+			<c:if test='<%= blogsPortletInstanceSettings.isEnableSocialBookmarks() && blogsPortletInstanceSettings.getSocialBookmarksDisplayPosition().equals("top") %>'>
 				<liferay-ui:social-bookmarks
-					displayStyle="<%= socialBookmarksDisplayStyle %>"
+					displayStyle="<%= blogsPortletInstanceSettings.getSocialBookmarksDisplayStyle() %>"
 					target="_blank"
 					title="<%= entry.getTitle() %>"
-					types="<%= socialBookmarksTypes %>"
+					types="<%= blogsPortletInstanceSettings.getSocialBookmarksTypes() %>"
 					url="<%= PortalUtil.getCanonicalURL(bookmarkURL.toString(), themeDisplay, layout) %>"
 				/>
 			</c:if>
@@ -85,8 +95,9 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 							</portlet:renderURL>
 
 							<liferay-ui:icon
-								image="edit"
+								iconCssClass="icon-edit"
 								label="<%= true %>"
+								message="edit"
 								url="<%= editEntryURL %>"
 							/>
 						</li>
@@ -103,8 +114,9 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 							/>
 
 							<liferay-ui:icon
-								image="permissions"
+								iconCssClass="icon-lock"
 								label="<%= true %>"
+								message="permissions"
 								method="get"
 								url="<%= permissionsEntryURL %>"
 								useDialog="<%= true %>"
@@ -137,7 +149,7 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 
 			<div class="entry-body">
 				<c:choose>
-					<c:when test='<%= displayStyle.equals(BlogsUtil.DISPLAY_STYLE_ABSTRACT) && !strutsAction.equals("/blogs/view_entry") %>'>
+					<c:when test='<%= blogsPortletInstanceSettings.getDisplayStyle().equals(BlogsUtil.DISPLAY_STYLE_ABSTRACT) && !strutsAction.equals("/blogs/view_entry") %>'>
 						<c:if test="<%= entry.isSmallImage() %>">
 							<div class="asset-small-image">
 								<img alt="" class="asset-small-image" src="<%= HtmlUtil.escape(entry.getEntryImageURL(themeDisplay)) %>" width="150" />
@@ -158,7 +170,7 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 
 						<aui:a href="<%= viewEntryURL %>"><liferay-ui:message arguments='<%= new Object[] {"hide-accessible", HtmlUtil.escape(entry.getTitle())} %>' key="read-more-x-about-x" translateArguments="<%= false %>" /> &raquo;</aui:a>
 					</c:when>
-					<c:when test='<%= displayStyle.equals(BlogsUtil.DISPLAY_STYLE_FULL_CONTENT) || strutsAction.equals("/blogs/view_entry") %>'>
+					<c:when test='<%= blogsPortletInstanceSettings.getDisplayStyle().equals(BlogsUtil.DISPLAY_STYLE_FULL_CONTENT) || strutsAction.equals("/blogs/view_entry") %>'>
 
 						<%
 						String entryContentId = "blogs-entry-content-" + entry.getEntryId();
@@ -194,14 +206,14 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 							/>
 						</c:if>
 					</c:when>
-					<c:when test='<%= displayStyle.equals(BlogsUtil.DISPLAY_STYLE_TITLE) && !strutsAction.equals("/blogs/view_entry") %>'>
+					<c:when test='<%= blogsPortletInstanceSettings.getDisplayStyle().equals(BlogsUtil.DISPLAY_STYLE_TITLE) && !strutsAction.equals("/blogs/view_entry") %>'>
 						<aui:a href="<%= viewEntryURL %>"><liferay-ui:message arguments='<%= new Object[] {"hide-accessible", HtmlUtil.escape(entry.getTitle())} %>' key="read-more-x-about-x" translateArguments="<%= false %>" /> &raquo;</aui:a>
 					</c:when>
 				</c:choose>
 			</div>
 
 			<div class="entry-footer">
-				<div class="entry-author">
+				<div class="entry-author icon-user">
 					<liferay-ui:message key="written-by" /> <%= HtmlUtil.escape(PortalUtil.getUserName(entry)) %>
 				</div>
 
@@ -219,7 +231,7 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 						</span>
 					</c:if>
 
-					<c:if test="<%= enableComments %>">
+					<c:if test="<%= blogsPortletInstanceSettings.isEnableComments() %>">
 						<span class="comments">
 
 							<%
@@ -240,7 +252,7 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 					</c:if>
 				</div>
 
-				<c:if test="<%= enableFlags %>">
+				<c:if test="<%= blogsPortletInstanceSettings.isEnableFlags() %>">
 					<liferay-ui:flags
 						className="<%= BlogsEntry.class.getName() %>"
 						classPK="<%= entry.getEntryId() %>"
@@ -265,8 +277,8 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 					/>
 				</span>
 
-				<c:if test='<%= displayStyle.equals(BlogsUtil.DISPLAY_STYLE_FULL_CONTENT) || strutsAction.equals("/blogs/view_entry") %>'>
-					<c:if test="<%= enableRelatedAssets %>">
+				<c:if test='<%= blogsPortletInstanceSettings.getDisplayStyle().equals(BlogsUtil.DISPLAY_STYLE_FULL_CONTENT) || strutsAction.equals("/blogs/view_entry") %>'>
+					<c:if test="<%= blogsPortletInstanceSettings.isEnableRelatedAssets() %>">
 						<div class="entry-links">
 							<liferay-ui:asset-links
 								assetEntryId="<%= (assetEntry != null) ? assetEntry.getEntryId() : 0 %>"
@@ -276,20 +288,20 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 						</div>
 					</c:if>
 
-					<c:if test="<%= enableRatings %>">
+					<c:if test="<%= blogsPortletInstanceSettings.isEnableRatings() %>">
 						<liferay-ui:ratings
 							className="<%= BlogsEntry.class.getName() %>"
 							classPK="<%= entry.getEntryId() %>"
 						/>
 					</c:if>
 
-					<c:if test='<%= enableSocialBookmarks && socialBookmarksDisplayPosition.equals("bottom") %>'>
+					<c:if test='<%= blogsPortletInstanceSettings.isEnableSocialBookmarks() && blogsPortletInstanceSettings.getSocialBookmarksDisplayPosition().equals("bottom") %>'>
 						<liferay-ui:social-bookmarks
 							contentId="<%= String.valueOf(entry.getEntryId()) %>"
-							displayStyle="<%= socialBookmarksDisplayStyle %>"
+							displayStyle="<%= blogsPortletInstanceSettings.getSocialBookmarksDisplayStyle() %>"
 							target="_blank"
 							title="<%= entry.getTitle() %>"
-							types="<%= socialBookmarksTypes %>"
+							types="<%= blogsPortletInstanceSettings.getSocialBookmarksTypes() %>"
 							url="<%= PortalUtil.getCanonicalURL(bookmarkURL.toString(), themeDisplay, layout) %>"
 						/>
 					</c:if>

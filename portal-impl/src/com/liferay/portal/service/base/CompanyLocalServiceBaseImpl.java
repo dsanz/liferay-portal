@@ -89,11 +89,10 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param company the company
 	 * @return the company that was added
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public Company addCompany(Company company) throws SystemException {
+	public Company addCompany(Company company) {
 		company.setNew(true);
 
 		return companyPersistence.update(company);
@@ -116,12 +115,10 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param companyId the primary key of the company
 	 * @return the company that was removed
 	 * @throws PortalException if a company with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public Company deleteCompany(long companyId)
-		throws PortalException, SystemException {
+	public Company deleteCompany(long companyId) throws PortalException {
 		return companyPersistence.remove(companyId);
 	}
 
@@ -130,11 +127,10 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param company the company
 	 * @return the company that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public Company deleteCompany(Company company) throws SystemException {
+	public Company deleteCompany(Company company) {
 		return companyPersistence.remove(company);
 	}
 
@@ -151,12 +147,9 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery) {
 		return companyPersistence.findWithDynamicQuery(dynamicQuery);
 	}
 
@@ -171,12 +164,10 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param start the lower bound of the range of model instances
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @return the range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end) {
 		return companyPersistence.findWithDynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -192,12 +183,10 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end, OrderByComparator<T> orderByComparator) {
 		return companyPersistence.findWithDynamicQuery(dynamicQuery, start,
 			end, orderByComparator);
 	}
@@ -207,11 +196,9 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public long dynamicQueryCount(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public long dynamicQueryCount(DynamicQuery dynamicQuery) {
 		return companyPersistence.countWithDynamicQuery(dynamicQuery);
 	}
 
@@ -221,16 +208,15 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param dynamicQuery the dynamic query
 	 * @param projection the projection to apply to the query
 	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public long dynamicQueryCount(DynamicQuery dynamicQuery,
-		Projection projection) throws SystemException {
+		Projection projection) {
 		return companyPersistence.countWithDynamicQuery(dynamicQuery, projection);
 	}
 
 	@Override
-	public Company fetchCompany(long companyId) throws SystemException {
+	public Company fetchCompany(long companyId) {
 		return companyPersistence.fetchByPrimaryKey(companyId);
 	}
 
@@ -240,17 +226,14 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param companyId the primary key of the company
 	 * @return the company
 	 * @throws PortalException if a company with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Company getCompany(long companyId)
-		throws PortalException, SystemException {
+	public Company getCompany(long companyId) throws PortalException {
 		return companyPersistence.findByPrimaryKey(companyId);
 	}
 
 	@Override
-	public ActionableDynamicQuery getActionableDynamicQuery()
-		throws SystemException {
+	public ActionableDynamicQuery getActionableDynamicQuery() {
 		ActionableDynamicQuery actionableDynamicQuery = new DefaultActionableDynamicQuery();
 
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.CompanyLocalServiceUtil.getService());
@@ -263,8 +246,7 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	protected void initActionableDynamicQuery(
-		ActionableDynamicQuery actionableDynamicQuery)
-		throws SystemException {
+		ActionableDynamicQuery actionableDynamicQuery) {
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.CompanyLocalServiceUtil.getService());
 		actionableDynamicQuery.setClass(Company.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
@@ -272,9 +254,18 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 		actionableDynamicQuery.setPrimaryKeyPropertyName("companyId");
 	}
 
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
+		throws PortalException {
+		return companyLocalService.deleteCompany((Company)persistedModel);
+	}
+
 	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return companyPersistence.findByPrimaryKey(primaryKeyObj);
 	}
 
@@ -288,11 +279,9 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param start the lower bound of the range of companies
 	 * @param end the upper bound of the range of companies (not inclusive)
 	 * @return the range of companies
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Company> getCompanies(int start, int end)
-		throws SystemException {
+	public List<Company> getCompanies(int start, int end) {
 		return companyPersistence.findAll(start, end);
 	}
 
@@ -300,10 +289,9 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * Returns the number of companies.
 	 *
 	 * @return the number of companies
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getCompaniesCount() throws SystemException {
+	public int getCompaniesCount() {
 		return companyPersistence.countAll();
 	}
 
@@ -312,11 +300,10 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param company the company
 	 * @return the company that was updated
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public Company updateCompany(Company company) throws SystemException {
+	public Company updateCompany(Company company) {
 		return companyPersistence.update(company);
 	}
 
@@ -1319,7 +1306,7 @@ public abstract class CompanyLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param sql the sql query
 	 */
-	protected void runSQL(String sql) throws SystemException {
+	protected void runSQL(String sql) {
 		try {
 			DataSource dataSource = companyPersistence.getDataSource();
 

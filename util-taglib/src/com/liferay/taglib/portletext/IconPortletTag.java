@@ -14,12 +14,15 @@
 
 package com.liferay.taglib.portletext;
 
-import com.liferay.portal.kernel.servlet.taglib.FileAvailabilityUtil;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.taglib.FileAvailabilityUtil;
 import com.liferay.taglib.ui.IconTag;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,8 +50,8 @@ public class IconPortletTag extends IconTag {
 			return _PAGE;
 		}
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)pageContext.getAttribute(
-			"themeDisplay");
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
 		String message = null;
 		String src = null;
@@ -57,7 +60,14 @@ public class IconPortletTag extends IconTag {
 			message = PortalUtil.getPortletTitle(
 				_portlet, pageContext.getServletContext(),
 				themeDisplay.getLocale());
-			src = _portlet.getStaticResourcePath().concat(_portlet.getIcon());
+
+			if (Validator.isNotNull(_portlet.getIcon())) {
+				src = _portlet.getStaticResourcePath().concat(
+					_portlet.getIcon());
+			}
+			else {
+				src = themeDisplay.getPathContext() + "/html/icons/default.png";
+			}
 		}
 		else {
 			PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
@@ -71,7 +81,7 @@ public class IconPortletTag extends IconTag {
 		}
 
 		setAlt(StringPool.BLANK);
-		setMessage(message);
+		setMessage(HtmlUtil.escape(message));
 		setSrc(src);
 
 		return super.getPage();

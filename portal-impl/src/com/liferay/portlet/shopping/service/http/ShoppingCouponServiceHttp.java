@@ -62,8 +62,7 @@ public class ShoppingCouponServiceHttp {
 		java.lang.String limitSkus, double minOrder, double discount,
 		java.lang.String discountType,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class,
 					"addCoupon", _addCouponParameterTypes0);
@@ -85,10 +84,6 @@ public class ShoppingCouponServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -103,8 +98,7 @@ public class ShoppingCouponServiceHttp {
 
 	public static void deleteCoupon(HttpPrincipal httpPrincipal, long groupId,
 		long couponId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class,
 					"deleteCoupon", _deleteCouponParameterTypes1);
@@ -120,10 +114,6 @@ public class ShoppingCouponServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -136,8 +126,7 @@ public class ShoppingCouponServiceHttp {
 
 	public static com.liferay.portlet.shopping.model.ShoppingCoupon getCoupon(
 		HttpPrincipal httpPrincipal, long groupId, long couponId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class,
 					"getCoupon", _getCouponParameterTypes2);
@@ -153,10 +142,6 @@ public class ShoppingCouponServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -175,8 +160,7 @@ public class ShoppingCouponServiceHttp {
 		HttpPrincipal httpPrincipal, long groupId, long companyId,
 		java.lang.String code, boolean active, java.lang.String discountType,
 		boolean andOperator, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class,
 					"search", _searchParameterTypes3);
@@ -193,10 +177,6 @@ public class ShoppingCouponServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -220,8 +200,7 @@ public class ShoppingCouponServiceHttp {
 		java.lang.String limitCategories, java.lang.String limitSkus,
 		double minOrder, double discount, java.lang.String discountType,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class,
 					"updateCoupon", _updateCouponParameterTypes4);
@@ -241,10 +220,6 @@ public class ShoppingCouponServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);

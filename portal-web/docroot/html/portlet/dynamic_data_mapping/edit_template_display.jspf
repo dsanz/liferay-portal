@@ -26,11 +26,11 @@ if (Validator.isNotNull(scriptContent)) {
 
 <liferay-ui:panel-container extended="<%= false %>" id="templateScriptContainer" persistState="<%= true %>">
 	<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" id="templateScriptSectionPanel" persistState="<%= true %>" title="script">
-		<div class="control-group lfr-template-editor-container">
+		<div class="form-group lfr-template-editor-container">
 			<c:if test="<%= DDMTemplateHelperUtil.isAutocompleteEnabled(language) %>">
 				<div class="lfr-template-palette-container pull-left" id="<portlet:namespace />templatePaletteContainer">
 					<div class="search" id="<portlet:namespace />paletteSearchContainer">
-						<input class="field search-query span12" id="<portlet:namespace />paletteSearch" placeholder='<%= LanguageUtil.get(pageContext, "search") %>' type="text">
+						<input class="col-md-12 field search-query" id="<portlet:namespace />paletteSearch" placeholder='<%= LanguageUtil.get(request, "search") %>' type="text">
 					</div>
 
 					<div class="lfr-template-palette" id="<portlet:namespace />paletteDataContainer">
@@ -47,13 +47,7 @@ if (Validator.isNotNull(scriptContent)) {
 								}
 							%>
 
-								<div class="palette-section">
-									<div class="palette-item-header toggler-header-expanded">
-										<span class="palette-item-header-icon"></span>
-
-										<span><liferay-ui:message key="<%= templateVariableGroup.getLabel() %>" /></span>
-									</div>
-
+								<liferay-ui:panel collapsible="<%= true %>" cssClass="palette-section" extended="<%= false %>" id="<%= templateVariableGroup.getLabel() %>" title="<%= templateVariableGroup.getLabel() %>">
 									<ul class="palette-item-content">
 
 										<%
@@ -62,7 +56,7 @@ if (Validator.isNotNull(scriptContent)) {
 										%>
 
 											<li class="palette-item-container">
-												<span class="palette-item" data-content1="<%= HtmlUtil.escapeAttribute(dataContentArray[0]) %>" <c:if test="<%= Validator.isNotNull(dataContentArray[1]) %>">data-content2="<%= HtmlUtil.escapeAttribute(dataContentArray[1]) %>"</c:if> <c:if test="<%= Validator.isNotNull(dataContentArray[2]) %>">data-content3="<%= HtmlUtil.escapeAttribute(dataContentArray[2]) %>"</c:if> data-title="<%= HtmlUtil.escapeAttribute(_getPaletteItemTitle(pageContext, templateVariableDefinition)) %>">
+												<span class="palette-item" data-content1="<%= HtmlUtil.escapeAttribute(dataContentArray[0]) %>" <c:if test="<%= Validator.isNotNull(dataContentArray[1]) %>">data-content2="<%= HtmlUtil.escapeAttribute(dataContentArray[1]) %>"</c:if> <c:if test="<%= Validator.isNotNull(dataContentArray[2]) %>">data-content3="<%= HtmlUtil.escapeAttribute(dataContentArray[2]) %>"</c:if> data-title="<%= HtmlUtil.escapeAttribute(_getPaletteItemTitle(request, templateVariableDefinition)) %>">
 													<liferay-ui:message key="<%= templateVariableDefinition.getLabel() %>" /><c:if test="<%= templateVariableDefinition.isCollection() || templateVariableDefinition.isRepeatable() %>">*</c:if>
 												</span>
 											</li>
@@ -72,7 +66,7 @@ if (Validator.isNotNull(scriptContent)) {
 										%>
 
 									</ul>
-								</div>
+								</liferay-ui:panel>
 
 							<%
 							}
@@ -161,7 +155,7 @@ if (Validator.isNotNull(scriptContent)) {
 				var results = [];
 
 				paletteItems.each(
-					function(item, index, collection) {
+					function(item, index) {
 						results.push(
 							{
 								node: item.ancestor(),
@@ -176,7 +170,7 @@ if (Validator.isNotNull(scriptContent)) {
 
 			var getNoResultsNode = function() {
 				if (!noResultsNode) {
-					noResultsNode = A.Node.create('<div class="alert"><%= UnicodeLanguageUtil.get(pageContext, "there-are-no-results") %></div>');
+					noResultsNode = A.Node.create('<div class="alert"><%= UnicodeLanguageUtil.get(request, "there-are-no-results") %></div>');
 				}
 
 				return noResultsNode;
@@ -202,14 +196,14 @@ if (Validator.isNotNull(scriptContent)) {
 				'results',
 				function(event) {
 					paletteItems.each(
-						function(item, index, collection) {
+						function(item, index) {
 							item.ancestor().addClass('hide');
 						}
 					);
 
 					AArray.each(
 						event.results,
-						function(item, index, collection) {
+						function(item, index) {
 							item.raw.node.removeClass('hide');
 						}
 					);
@@ -217,7 +211,7 @@ if (Validator.isNotNull(scriptContent)) {
 					var foundVisibleSection;
 
 					paletteSectionsNode.each(
-						function(item, index, collection) {
+						function(item, index) {
 							var visibleItem = item.one('.palette-item-container:not(.hide)');
 
 							if (visibleItem) {
@@ -499,7 +493,15 @@ private String[] _getDataContentArray(TemplateVariableDefinition templateVariabl
 
 	String dataType = templateVariableDefinition.getDataType();
 
-	if (Validator.isNull(dataType)) {
+	if (templateVariableDefinition.isCollection()) {
+		TemplateVariableDefinition itemTemplateVariableDefinition = templateVariableDefinition.getItemTemplateVariableDefinition();
+
+		String[] listCodeArray = _getListCodeArray(templateVariableDefinition.getName(), itemTemplateVariableDefinition.getName(), itemTemplateVariableDefinition.getAccessor(), language);
+
+		dataContentArray[0] = listCodeArray[0];
+		dataContentArray[1] = listCodeArray[1];
+	}
+	else if (Validator.isNull(dataType)) {
 		dataContentArray[0] = _getVariableReferenceCode(templateVariableDefinition.getName(), templateVariableDefinition.getAccessor(), language);
 	}
 	else if (dataType.equals("service-locator")) {
@@ -509,14 +511,6 @@ private String[] _getDataContentArray(TemplateVariableDefinition templateVariabl
 
 		dataContentArray[0] = _getVariableAssignmentCode(variableName, "serviceLocator.findService(\"" + templateVariableDefinition.getName() + "\")", language);
 		dataContentArray[1] = _getVariableReferenceCode(variableName, null, language);
-	}
-	else if (templateVariableDefinition.isCollection()) {
-		TemplateVariableDefinition itemTemplateVariableDefinition = templateVariableDefinition.getItemTemplateVariableDefinition();
-
-		String[] listCodeArray = _getListCodeArray(templateVariableDefinition.getName(), itemTemplateVariableDefinition.getName(), itemTemplateVariableDefinition.getAccessor(), language);
-
-		dataContentArray[0] = listCodeArray[0];
-		dataContentArray[1] = listCodeArray[1];
 	}
 	else {
 		try {
@@ -546,7 +540,7 @@ private String[] _getListCodeArray(
 	return listCodeArray;
 }
 
-private String _getPaletteItemTitle(PageContext pageContext, String label, Class<?> clazz) {
+private String _getPaletteItemTitle(HttpServletRequest request, String label, Class<?> clazz) {
 	StringBundler sb = new StringBundler(10);
 
 	if (clazz == null) {
@@ -556,7 +550,7 @@ private String _getPaletteItemTitle(PageContext pageContext, String label, Class
 	String className = clazz.getName();
 
 	sb.append("<br />");
-	sb.append(LanguageUtil.get(pageContext, label));
+	sb.append(LanguageUtil.get(request, label));
 	sb.append(StringPool.COLON);
 	sb.append("&nbsp;");
 
@@ -582,41 +576,41 @@ private String _getPaletteItemTitle(PageContext pageContext, String label, Class
 	return sb.toString();
 }
 
-private String _getPaletteItemTitle(PageContext pageContext, TemplateVariableDefinition templateVariableDefinition) {
+private String _getPaletteItemTitle(HttpServletRequest request, TemplateVariableDefinition templateVariableDefinition) {
 	StringBundler sb = new StringBundler(12);
 
 	String help = templateVariableDefinition.getHelp();
 
 	if (Validator.isNotNull(help)) {
 		sb.append("<p>");
-		sb.append(LanguageUtil.get(pageContext, help));
+		sb.append(LanguageUtil.get(request, help));
 		sb.append("</p>");
 	}
 
 	if (templateVariableDefinition.isCollection()) {
 		sb.append("<p><i>*");
-		sb.append(LanguageUtil.get(pageContext, "this-is-a-collection-of-fields"));
+		sb.append(LanguageUtil.get(request, "this-is-a-collection-of-fields"));
 		sb.append("</i></p>");
 	}
 	else if (templateVariableDefinition.isRepeatable()) {
 		sb.append("<p><i>*");
-		sb.append(LanguageUtil.get(pageContext, "this-is-a-repeatable-field"));
+		sb.append(LanguageUtil.get(request, "this-is-a-repeatable-field"));
 		sb.append("</i></p>");
 	}
 
 	if (!Validator.equals(templateVariableDefinition.getDataType(), "service-locator")) {
-		sb.append(LanguageUtil.get(pageContext, "variable"));
+		sb.append(LanguageUtil.get(request, "variable"));
 		sb.append(StringPool.COLON);
 		sb.append("&nbsp;");
 		sb.append(templateVariableDefinition.getName());
 	}
 
-	sb.append(_getPaletteItemTitle(pageContext, "class", templateVariableDefinition.getClazz()));
+	sb.append(_getPaletteItemTitle(request, "class", templateVariableDefinition.getClazz()));
 
 	if (templateVariableDefinition.isCollection()) {
 		TemplateVariableDefinition itemTemplateVariableDefinition = templateVariableDefinition.getItemTemplateVariableDefinition();
 
-		sb.append(_getPaletteItemTitle(pageContext, "items-class", itemTemplateVariableDefinition.getClazz()));
+		sb.append(_getPaletteItemTitle(request, "items-class", itemTemplateVariableDefinition.getClazz()));
 	}
 
 	return sb.toString();

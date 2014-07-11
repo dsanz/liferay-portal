@@ -5,7 +5,7 @@
 	&.display-icon {
 		display: inline-block;
 		float: left;
-		height: 160px;
+		height: 180px;
 		margin: 5px;
 		padding: 10px 0;
 		position: relative;
@@ -13,7 +13,7 @@
 		width: 200px;
 
 		@include respond-to(phone, tablet) {
-			height: 210px;
+			height: 230px;
 		}
 
 		.entry-title {
@@ -90,11 +90,6 @@
 		img {
 			margin: 4px;
 		}
-	}
-
-	&.display-list.locked {
-		background: url(@theme_image_path@/common/lock.png) no-repeat 100% 50%;
-		padding-right: 20px;
 	}
 
 	.categories {

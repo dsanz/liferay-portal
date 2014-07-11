@@ -24,18 +24,16 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  */
 @ProviderType
 public class AssetTagPropertyKeyFinderUtil {
-	public static int countByGroupId(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByGroupId(long groupId) {
 		return getFinder().countByGroupId(groupId);
 	}
 
-	public static java.lang.String[] findByGroupId(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static java.lang.String[] findByGroupId(long groupId) {
 		return getFinder().findByGroupId(groupId);
 	}
 
 	public static java.lang.String[] findByGroupId(long groupId, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return getFinder().findByGroupId(groupId, start, end);
 	}
 

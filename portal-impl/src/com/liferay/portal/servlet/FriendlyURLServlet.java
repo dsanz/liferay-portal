@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
@@ -99,15 +100,9 @@ public class FriendlyURLServlet extends HttpServlet {
 
 		String redirect = mainPath;
 
-		String pathInfo = request.getPathInfo();
+		String pathInfo = getPathInfo(request);
 
-		String friendlyURL = _friendlyURLPathPrefix;
-
-		if (Validator.isNotNull(pathInfo)) {
-			friendlyURL = friendlyURL.concat(pathInfo);
-		}
-
-		request.setAttribute(WebKeys.FRIENDLY_URL, friendlyURL);
+		request.setAttribute(WebKeys.FRIENDLY_URL, getFriendlyURL(pathInfo));
 
 		Object[] redirectArray = null;
 
@@ -170,6 +165,25 @@ public class FriendlyURLServlet extends HttpServlet {
 				response.sendRedirect(redirect);
 			}
 		}
+	}
+
+	protected String getFriendlyURL(String pathInfo) {
+		String friendlyURL = _friendlyURLPathPrefix;
+
+		if (Validator.isNotNull(pathInfo)) {
+			friendlyURL = friendlyURL.concat(pathInfo);
+		}
+
+		return friendlyURL;
+	}
+
+	protected String getPathInfo(HttpServletRequest request) {
+		String requestURI = request.getRequestURI();
+
+		String contextPath = request.getContextPath();
+
+		return requestURI.substring(
+			contextPath.length() + _friendlyURLPathPrefix.length());
 	}
 
 	protected Object[] getRedirect(
@@ -304,7 +318,8 @@ public class FriendlyURLServlet extends HttpServlet {
 
 				Locale locale = PortalUtil.getLocale(request);
 
-				if (!layoutFriendlyURLCompositeFriendlyURL.equals(
+				if (!StringUtil.equalsIgnoreCase(
+						layoutFriendlyURLCompositeFriendlyURL,
 						layout.getFriendlyURL(locale))) {
 
 					Locale originalLocale = setAlternativeLayoutFriendlyURL(

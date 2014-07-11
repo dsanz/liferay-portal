@@ -69,62 +69,51 @@ public class AssetTagFinderImpl
 		AssetTagFinder.class.getName() + ".findByG_N_S_E";
 
 	@Override
-	public int countByG_C_N(long groupId, long classNameId, String name)
-		throws SystemException {
-
+	public int countByG_C_N(long groupId, long classNameId, String name) {
 		return doCountByG_C_N(groupId, classNameId, name, false);
 	}
 
 	@Override
-	public int countByG_N_P(long groupId, String name, String[] tagProperties)
-		throws SystemException {
-
+	public int countByG_N_P(long groupId, String name, String[] tagProperties) {
 		return doCountByG_N_P(groupId, name, tagProperties, false);
 	}
 
 	@Override
-	public int filterCountByG_N(long groupId, String name)
-		throws SystemException {
-
+	public int filterCountByG_N(long groupId, String name) {
 		return doCountByG_N(groupId, name, true);
 	}
 
 	@Override
-	public int filterCountByG_C_N(long groupId, long classNameId, String name)
-		throws SystemException {
-
+	public int filterCountByG_C_N(long groupId, long classNameId, String name) {
 		return doCountByG_C_N(groupId, classNameId, name, true);
 	}
 
 	@Override
 	public int filterCountByG_N_P(
-			long groupId, String name, String[] tagProperties)
-		throws SystemException {
+		long groupId, String name, String[] tagProperties) {
 
 		return doCountByG_N_P(groupId, name, tagProperties, true);
 	}
 
 	@Override
 	public AssetTag filterFindByG_N(long groupId, String name)
-		throws NoSuchTagException, SystemException {
+		throws NoSuchTagException {
 
 		return doFindByG_N(groupId, name, true);
 	}
 
 	@Override
 	public List<AssetTag> filterFindByG_C_N(
-			long groupId, long classNameId, String name, int start, int end,
-			OrderByComparator obc)
-		throws SystemException {
+		long groupId, long classNameId, String name, int start, int end,
+		OrderByComparator<AssetTag> obc) {
 
 		return doFindByG_C_N(groupId, classNameId, name, start, end, obc, true);
 	}
 
 	@Override
 	public List<AssetTag> filterFindByG_N_P(
-			long[] groupIds, String name, String[] tagProperties, int start,
-			int end, OrderByComparator obc)
-		throws SystemException {
+		long[] groupIds, String name, String[] tagProperties, int start,
+		int end, OrderByComparator<AssetTag> obc) {
 
 		return doFindByG_N_P(
 			groupIds, name, tagProperties, start, end, obc, true);
@@ -132,16 +121,15 @@ public class AssetTagFinderImpl
 
 	@Override
 	public AssetTag findByG_N(long groupId, String name)
-		throws NoSuchTagException, SystemException {
+		throws NoSuchTagException {
 
 		return doFindByG_N(groupId, name, false);
 	}
 
 	@Override
 	public List<AssetTag> findByG_C_N(
-			long groupId, long classNameId, String name, int start, int end,
-			OrderByComparator obc)
-		throws SystemException {
+		long groupId, long classNameId, String name, int start, int end,
+		OrderByComparator<AssetTag> obc) {
 
 		return doFindByG_C_N(
 			groupId, classNameId, name, start, end, obc, false);
@@ -149,9 +137,8 @@ public class AssetTagFinderImpl
 
 	@Override
 	public List<AssetTag> findByG_N_P(
-			long[] groupIds, String name, String[] tagProperties, int start,
-			int end, OrderByComparator obc)
-		throws SystemException {
+		long[] groupIds, String name, String[] tagProperties, int start,
+		int end, OrderByComparator<AssetTag> obc) {
 
 		return doFindByG_N_P(
 			groupIds, name, tagProperties, start, end, obc, false);
@@ -159,9 +146,8 @@ public class AssetTagFinderImpl
 
 	@Override
 	public List<AssetTag> findByG_N_S_E(
-			long groupId, String name, int startPeriod, int endPeriod,
-			int periodLength)
-		throws SystemException {
+		long groupId, String name, int startPeriod, int endPeriod,
+		int periodLength) {
 
 		Session session = null;
 
@@ -207,8 +193,7 @@ public class AssetTagFinderImpl
 	}
 
 	protected int doCountByG_N(
-			long groupId, String name, boolean inlineSQLHelper)
-		throws SystemException {
+		long groupId, String name, boolean inlineSQLHelper) {
 
 		Session session = null;
 
@@ -256,9 +241,7 @@ public class AssetTagFinderImpl
 	}
 
 	protected int doCountByG_C_N(
-			long groupId, long classNameId, String name,
-			boolean inlineSQLHelper)
-		throws SystemException {
+		long groupId, long classNameId, String name, boolean inlineSQLHelper) {
 
 		Session session = null;
 
@@ -308,9 +291,8 @@ public class AssetTagFinderImpl
 	}
 
 	protected int doCountByG_N_P(
-			long groupId, String name, String[] tagProperties,
-			boolean inlineSQLHelper)
-		throws SystemException {
+		long groupId, String name, String[] tagProperties,
+		boolean inlineSQLHelper) {
 
 		Session session = null;
 
@@ -363,7 +345,7 @@ public class AssetTagFinderImpl
 
 	protected AssetTag doFindByG_N(
 			long groupId, String name, boolean inlineSQLHelper)
-		throws NoSuchTagException, SystemException {
+		throws NoSuchTagException {
 
 		name = StringUtil.toLowerCase(name.trim());
 
@@ -417,9 +399,8 @@ public class AssetTagFinderImpl
 	}
 
 	protected List<AssetTag> doFindByG_C_N(
-			long groupId, long classNameId, String name, int start, int end,
-			OrderByComparator obc, boolean inlineSQLHelper)
-		throws SystemException {
+		long groupId, long classNameId, String name, int start, int end,
+		OrderByComparator<AssetTag> obc, boolean inlineSQLHelper) {
 
 		Session session = null;
 
@@ -461,9 +442,8 @@ public class AssetTagFinderImpl
 	}
 
 	protected List<AssetTag> doFindByG_N_P(
-			long[] groupIds, String name, String[] tagProperties, int start,
-			int end, OrderByComparator obc, boolean inlineSQLHelper)
-		throws SystemException {
+		long[] groupIds, String name, String[] tagProperties, int start,
+		int end, OrderByComparator<AssetTag> obc, boolean inlineSQLHelper) {
 
 		Session session = null;
 

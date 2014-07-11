@@ -40,27 +40,27 @@
 </tr>
 <tr>
 	<td>ASSIGN_TO_ME</td>
-	<td>//div[@class='lfr-asset-assigned']/div/span[contains(@class,'task-assign-to-me-link')]</td>
+	<td>//div[@class='lfr-asset-assigned']/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>STATE</td>
-	<td>//div[@class='lfr-asset-status']//input</td>
+	<td>//div/label[contains(.,'State')]/../input</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CREATE_DATE</td>
-	<td>//div[@class='lfr-asset-date']//input</td>
+	<td>//div/label[contains(.,'Create Date')]/../input</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DUE_DATE</td>
-	<td>//div[@class='lfr-asset-due-date']//input</td>
+	<td>//div/label[contains(.,'Due Date')]/../input</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DUE_DATE_CHANGE</td>
-	<td>//div[@class='lfr-asset-due-date']/div/span[contains(@class,'task-due-date-link')]</td>
+	<td>//div/label[contains(.,'Due Date')]/../../span//span</td>
 	<td></td>
 </tr>
 <tr>
@@ -99,19 +99,19 @@
 	<td></td>
 	<td></td>
 </tr>
-<!--PANEL-->
+<!--DIALOG_BOX-->
 <tr>
-	<td>PANEL_COMMENT_FIELD</td>
+	<td>DIALOG_BOX_FIELD</td>
 	<td>//textarea[@id='_153_comment']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>PANEL_OK_BUTTON</td>
+	<td>DIALOG_BOX_OK_BUTTON</td>
 	<td>//button[.='OK']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>PANEL_CANCEL_BUTTON</td>
+	<td>DIALOG_BOX_CANCEL_BUTTON</td>
 	<td>//button[.='Cancel']</td>
 	<td></td>
 </tr>
@@ -123,7 +123,7 @@
 <!--PREVIEW-->
 <tr>
 	<td>PREVIEW</td>
-	<td>//div[@class='accordion-toggle' and contains(.,'Preview')]</td>
+	<td>//div[@class='panel-toggle' and contains(.,'Preview')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -133,7 +133,7 @@
 </tr>
 <tr>
 	<td>PREVIEW_CONTENT</td>
-	<td>xpath=(//div[@class='accordion-inner'])</td>
+	<td>//div[@class='panel-body']</td>
 	<td></td>
 </tr>
 <tr>
@@ -144,22 +144,22 @@
 <!--ACTIVITIES-->
 <tr>
 	<td>ACTIVITIES</td>
-	<td>//div[@class='accordion-toggle' and contains(.,'Activities')]</td>
+	<td>//div[@class='panel-toggle' and contains(.,'Activities')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ACTIVITIES_DATE_1</td>
-	<td>xpath=(//div[@class='task-activity task-type-1']/div[@class='task-activity-date'])[1]</td>
+	<td>xpath=(//div[@class='task-activity']/div[1])[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ACTIVITIES_TEXT_1_LINE_A</td>
-	<td>xpath=(//div[@class='task-activity task-type-1']/div[2])[1]</td>
+	<td>xpath=(//div[@class='task-activity']/div[2])[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ACTIVITIES_TEXT_1_LINE_B</td>
-	<td>xpath=(//div[@class='task-activity task-type-1']/div[3])[1]</td>
+	<td>xpath=(//div[@class='task-activity']/div[3])[1]</td>
 	<td></td>
 </tr>
 <tr>
@@ -170,7 +170,7 @@
 <!--COMMENTS-->
 <tr>
 	<td>COMMENTS</td>
-	<td>//div[@class='accordion-toggle' and contains(.,'Comments')]</td>
+	<td>//div[@class='panel-toggle' and contains(.,'Comments')]</td>
 	<td></td>
 </tr>
 <tr>

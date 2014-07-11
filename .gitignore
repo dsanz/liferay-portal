@@ -10,7 +10,6 @@
 .sass_cache_*.css
 _sass_cache_*.css
 cobertura.ser
-log
 
 **/.sonar
 
@@ -39,6 +38,9 @@ log
 /svn-revision
 /test.*.properties
 /WEB-INF
+
+/.ivy/cache/com.liferay-*.xml
+/.ivy/cache/resolved-*
 
 /benchmarks/*.csv
 /benchmarks/*.sql
@@ -116,6 +118,13 @@ log
 /portal-service/test-results
 /portal-service/woven-classes
 
+/portal-test/*.iml
+/portal-test/*.ipr
+/portal-test/*.iws
+/portal-test/classes
+/portal-test/portal-test*.asc
+/portal-test/portal-test*.jar
+
 /portal-web/*.iml
 /portal-web/*.ipr
 /portal-web/*.iws
@@ -145,7 +154,6 @@ log
 
 /portal-web/docroot/html/js/editor/ckeditor
 /portal-web/docroot/html/js/editor/codepress
-/portal-web/docroot/html/js/editor/fckeditor
 /portal-web/docroot/html/js/editor/tiny_mce
 
 /portal-web/docroot/html/themes/_unstyled/css/aui
@@ -234,6 +242,8 @@ log
 /tools/maven/*.asc
 
 /tools/liferay-doclet
+
+/tools/sdk
 
 /tools/selenium/*.exe
 /tools/selenium/extensions/ide.*.js

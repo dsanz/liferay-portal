@@ -19,17 +19,6 @@
 		font-weight: bold;
 	}
 
-	.lfr-asset-assigned, .lfr-asset-due-date, .task-type-1, .task-type-2, .task-type-3, .lfr-asset-date, .lfr-asset-status {
-		background: url() no-repeat 0 50%;
-	}
-
-	.lfr-asset-assigned {
-		background-image: url(@theme_image_path@/common/assign.png);
-		margin-right: 10px;
-		padding-left: 25px;
-		padding-right: 10px;
-	}
-
 	h3.task-content-title {
 		border-bottom: 1px solid #DDD;
 		margin-top: 0;
@@ -43,40 +32,6 @@
 		float: right;
 	}
 
-	.lfr-asset-date {
-		background: url(@theme_image_path@/common/date.png) no-repeat 0 50%;
-	}
-
-	.lfr-asset-due-date {
-		background-image: url(@theme_image_path@/common/time.png);
-		padding-left: 25px;
-	}
-
-	.task-type-1 {
-		background-image: url(@theme_image_path@/common/assign.png);
-	}
-
-	.task-type-2 {
-		background-image: url(@theme_image_path@/common/time.png);
-	}
-
-	.task-type-3 {
-		background-image: url(@theme_image_path@/common/recent_changes.png);
-	}
-
-	.lfr-asset-date {
-		margin-right: 10px;
-		overflow: auto;
-		padding-left: 25px;
-		padding-right: 10px;
-	}
-
-	.lfr-asset-status {
-		background-image: url(@theme_image_path@/common/recent_changes.png);
-		padding-left: 25px;
-		padding-right: 10px;
-	}
-
 	.asset-metadata {
 		background-color: #EFEFEF;
 		border-top: 1px solid #DDD;
@@ -84,45 +39,17 @@
 		padding: 0.5em;
 
 		span {
-			display: inline;
+			display: inline-block;
 		}
 	}
 
 	.metadata-author {
-		background: url(@theme_image_path@/portlet/edit_guest.png) no-repeat 0 0;
 		font-weight: bold;
 		margin-right: 10px;
-		padding-bottom: 5px;
-		padding-left: 25px;
 	}
 
 	.metadata-entry {
-		clear: both;
 		color: #999;
-		display: block;
-	}
-
-	.metadata-modified-date, .metadata-create-date, .metadata-publish-date, .metadata-expiration-date {
-		background: url(@theme_image_path@/common/date.png) no-repeat 0 0;
-		color: #999;
-		margin-bottom: 1em;
-		padding-left: 25px;
-	}
-
-	.metadata-priority {
-		background: url(@theme_image_path@/common/top.png) no-repeat 0 20%;
-		margin-right: 10px;
-		padding-left: 25px;
-	}
-
-	.metadata-view-count {
-		margin-right: 10px;
-	}
-
-	.vertical-separator {
-		border-right: 1px solid #CCC;
-		margin: 0 10px;
-		padding-top: 0.1em;
 	}
 }
 

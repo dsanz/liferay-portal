@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="definitions"/>
-	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="osgi/bootstrap/src"/>
-	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="osgi/modules/registry/registry-api/src/main/java"/>
-	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="osgi/modules/registry/registry-impl/src/main/java"/>
-	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="osgi/modules/registry/registry-test/src/main/java"/>
+	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="modules/core/registry-api/src"/>
 	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="portal-impl/src"/>
 	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="portal-impl/test/integration"/>
 	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="portal-impl/test/unit"/>
@@ -12,6 +9,7 @@
 	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="portal-service/src"/>
 	<!--<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="portal-service/test/integration"/>-->
 	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="portal-service/test/unit"/>
+	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="portal-test/src"/>
 	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="portal-web/test/functional"/>
 	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="support-tomcat/src"/>
 	<classpathentry excluding="**/.svn/**|.svn/" kind="src" path="util-bridges/src"/>
@@ -28,8 +26,10 @@
 	<classpathentry kind="lib" path="lib/development/ant-ext.jar"/>
 	<classpathentry kind="lib" path="lib/development/ant-installer.jar"/>
 	<classpathentry kind="lib" path="lib/development/antelope.jar"/>
+	<classpathentry kind="lib" path="lib/development/appium.jar"/>
 	<classpathentry kind="lib" path="lib/development/catalina.jar"/>
 	<classpathentry kind="lib" path="lib/development/cobertura.jar"/>
+	<classpathentry kind="lib" path="lib/development/com.liferay.ant.bnd.jar"/>
 	<classpathentry kind="lib" path="lib/development/deployment.jar"/>
 	<classpathentry kind="lib" path="lib/development/derby.jar"/>
 	<classpathentry kind="lib" path="lib/development/derbytools.jar"/>
@@ -57,6 +57,7 @@
 	<classpathentry kind="lib" path="lib/development/jndi.jar"/>
 	<classpathentry kind="lib" path="lib/development/jsch.jar"/>
 	<classpathentry kind="lib" path="lib/development/jserrorcollector.jar"/>
+	<classpathentry kind="lib" path="lib/development/jsonassert.jar"/>
 	<classpathentry kind="lib" path="lib/development/jsp-api.jar"/>
 	<classpathentry kind="lib" path="lib/development/jta.jar"/>
 	<classpathentry kind="lib" path="lib/development/junit.jar"/>
@@ -90,7 +91,6 @@
 	<classpathentry kind="lib" path="lib/development/spring-test.jar"/>
 	<classpathentry kind="lib" path="lib/development/tomcat-coyote.jar"/>
 	<classpathentry kind="lib" path="lib/development/xmltask.jar"/>
-	<classpathentry kind="lib" path="lib/global/portal-settings-shared.jar"/>
 	<classpathentry kind="lib" path="lib/global/portlet.jar"/>
 	<classpathentry kind="lib" path="lib/portal/abdera.jar"/>
 	<classpathentry kind="lib" path="lib/portal/alloy-taglib.jar"/>
@@ -129,6 +129,8 @@
 	<classpathentry kind="lib" path="lib/portal/commons-beanutils.jar"/>
 	<classpathentry kind="lib" path="lib/portal/commons-codec.jar"/>
 	<classpathentry kind="lib" path="lib/portal/commons-collections.jar"/>
+	<classpathentry kind="lib" path="lib/portal/commons-compiler.jar"/>
+	<classpathentry kind="lib" path="lib/portal/commons-compiler-jdk.jar"/>
 	<classpathentry kind="lib" path="lib/portal/commons-compress.jar"/>
 	<classpathentry kind="lib" path="lib/portal/commons-configuration.jar"/>
 	<classpathentry kind="lib" path="lib/portal/commons-dbcp.jar"/>
@@ -182,6 +184,7 @@
 	<classpathentry kind="lib" path="lib/portal/jai_core.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jakarta-regexp.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jamwiki-core.jar"/>
+	<classpathentry kind="lib" path="lib/portal/janino.jar"/>
 	<classpathentry kind="lib" path="lib/portal/java-diff.jar"/>
 	<classpathentry kind="lib" path="lib/portal/javassist.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jaxb-impl.jar"/>
@@ -206,6 +209,7 @@
 	<classpathentry kind="lib" path="lib/portal/jrcs-diff.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jruby.jar"/>
 	<classpathentry kind="lib" path="lib/portal/json-java.jar"/>
+	<classpathentry kind="lib" path="lib/portal/json-schema-validator.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jsonrpc.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jspwiki.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jsqlparser.jar"/>
@@ -248,9 +252,7 @@
 	<classpathentry kind="lib" path="lib/portal/poi-ooxml.jar"/>
 	<classpathentry kind="lib" path="lib/portal/poi-ooxml-schemas.jar"/>
 	<classpathentry kind="lib" path="lib/portal/poi-scratchpad.jar"/>
-	<classpathentry kind="lib" path="lib/portal/portal-ant-shared.jar"/>
 	<classpathentry kind="lib" path="lib/portal/portal-client.jar"/>
-	<classpathentry kind="lib" path="lib/portal/portal-settings-impl-shared.jar"/>
 	<classpathentry kind="lib" path="lib/portal/portals-bridges.jar"/>
 	<classpathentry kind="lib" path="lib/portal/portletbridge-core.jar"/>
 	<classpathentry kind="lib" path="lib/portal/portletbridge-portlet.jar"/>
@@ -318,7 +320,6 @@
 	<classpathentry kind="lib" path="lib/portal/xstream.jar"/>
 	<classpathentry kind="lib" path="lib/portal/xuggle-xuggler-noarch.jar"/>
 	<classpathentry kind="lib" path="lib/portal/xz.jar"/>
-	<classpathentry kind="lib" path="osgi/lib/common/core/osgi.cmpn.jar"/>
-	<classpathentry kind="lib" path="osgi/lib/common/core/osgi.core.jar"/>
+	<classpathentry kind="lib" path="modules/core/registry-impl/lib/org.eclipse.osgi.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

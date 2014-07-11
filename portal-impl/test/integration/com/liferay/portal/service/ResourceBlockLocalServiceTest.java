@@ -19,8 +19,11 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.model.PermissionedModel;
 import com.liferay.portal.model.ResourceBlockPermissionsContainer;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.test.log.ExpectedLog;
+import com.liferay.portal.test.log.ExpectedLogs;
+import com.liferay.portal.test.log.ExpectedType;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -34,6 +37,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 
+import org.hibernate.util.JDBCExceptionReporter;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +48,7 @@ import org.junit.runner.RunWith;
  * @author Connor McKay
  * @author Shuyang Zhou
  */
-@ExecutionTestListeners(listeners = {EnvironmentExecutionTestListener.class})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class ResourceBlockLocalServiceTest {
 
@@ -64,6 +69,19 @@ public class ResourceBlockLocalServiceTest {
 		DataAccess.cleanUp(connection, preparedStatement);
 	}
 
+	@ExpectedLogs(
+		expectedLogs = {
+			@ExpectedLog(
+				expectedLog =
+					"Deadlock found when trying to get lock; try restarting " +
+						"transaction",
+				expectedType = ExpectedType.EXACT),
+			@ExpectedLog(
+				expectedLog = "Duplicate entry ",
+				expectedType = ExpectedType.PREFIX)
+		},
+		level = "ERROR", loggerClass = JDBCExceptionReporter.class
+	)
 	@Test
 	public void testConcurrentAccessing() throws Exception {
 		PermissionedModel permissionedModel = new MockPermissionedModel();
@@ -133,6 +151,19 @@ public class ResourceBlockLocalServiceTest {
 		_assertNoSuchResourceBlock(_RESOURCE_BLOCK_ID);
 	}
 
+	@ExpectedLogs(
+		expectedLogs = {
+			@ExpectedLog(
+				expectedLog =
+					"Deadlock found when trying to get lock; try restarting " +
+						"transaction",
+				expectedType = ExpectedType.EXACT),
+			@ExpectedLog(
+				expectedLog = "Duplicate entry ",
+				expectedType = ExpectedType.PREFIX)
+		},
+		level = "ERROR", loggerClass = JDBCExceptionReporter.class
+	)
 	@Test
 	public void testConcurrentUpdateResourceBlockId() throws Exception {
 		PermissionedModel permissionedModel = new MockPermissionedModel();

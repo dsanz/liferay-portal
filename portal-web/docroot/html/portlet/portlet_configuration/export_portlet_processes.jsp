@@ -35,7 +35,7 @@ else {
 	orderByType = portalPreferences.getValue(PortletKeys.BACKGROUND_TASK, "entries-order-by-type", "desc");
 }
 
-OrderByComparator orderByComparator = BackgroundTaskComparatorFactoryUtil.getBackgroundTaskOrderByComparator(orderByCol, orderByType);
+OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFactoryUtil.getBackgroundTaskOrderByComparator(orderByCol, orderByType);
 %>
 
 <liferay-ui:search-container
@@ -110,10 +110,10 @@ OrderByComparator orderByComparator = BackgroundTaskComparatorFactoryUtil.getBac
 						%>
 
 						<liferay-ui:icon
-							image="download"
+							iconCssClass="icon-download"
 							label="<%= true %>"
 							message="<%= sb.toString() %>"
-							url="<%= PortletFileRepositoryUtil.getPortletFileEntryURL(themeDisplay, fileEntry, StringPool.BLANK) %>"
+							url="<%= PortletFileRepositoryUtil.getDownloadPortletFileEntryURL(themeDisplay, fileEntry, StringPool.BLANK) %>"
 						/>
 
 					<%
@@ -128,7 +128,7 @@ OrderByComparator orderByComparator = BackgroundTaskComparatorFactoryUtil.getBac
 					%>
 
 					<liferay-ui:icon
-						image="download"
+						iconCssClass="icon-download"
 						label="<%= true %>"
 						message='<%= HtmlUtil.escape(MapUtil.getString(taskContextMap, "fileName")) %>'
 					/>
@@ -139,15 +139,16 @@ OrderByComparator orderByComparator = BackgroundTaskComparatorFactoryUtil.getBac
 
 		<liferay-ui:search-container-column-text>
 			<c:if test="<%= !backgroundTask.isInProgress() %>">
+
+				<%
+				Date completionDate = backgroundTask.getCompletionDate();
+				%>
+
 				<portlet:actionURL var="deleteBackgroundTaskURL">
 					<portlet:param name="struts_action" value="/group_pages/delete_background_task" />
 					<portlet:param name="redirect" value="<%= portletURL.toString() %>" />
 					<portlet:param name="backgroundTaskId" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
 				</portlet:actionURL>
-
-				<%
-				Date completionDate = backgroundTask.getCompletionDate();
-				%>
 
 				<liferay-ui:icon-delete
 					label="true"

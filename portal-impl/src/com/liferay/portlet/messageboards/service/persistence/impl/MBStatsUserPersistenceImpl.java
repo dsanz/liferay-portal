@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -45,7 +44,12 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The persistence implementation for the message boards stats user service.
@@ -106,11 +110,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 *
 	 * @param groupId the group ID
 	 * @return the matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<MBStatsUser> findByGroupId(long groupId)
-		throws SystemException {
+	public List<MBStatsUser> findByGroupId(long groupId) {
 		return findByGroupId(groupId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -125,11 +127,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param start the lower bound of the range of message boards stats users
 	 * @param end the upper bound of the range of message boards stats users (not inclusive)
 	 * @return the range of matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<MBStatsUser> findByGroupId(long groupId, int start, int end)
-		throws SystemException {
+	public List<MBStatsUser> findByGroupId(long groupId, int start, int end) {
 		return findByGroupId(groupId, start, end, null);
 	}
 
@@ -145,11 +145,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param end the upper bound of the range of message boards stats users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<MBStatsUser> findByGroupId(long groupId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -252,12 +251,11 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching message boards stats user
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser findByGroupId_First(long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchStatsUserException, SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator)
+		throws NoSuchStatsUserException {
 		MBStatsUser mbStatsUser = fetchByGroupId_First(groupId,
 				orderByComparator);
 
@@ -283,11 +281,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param groupId the group ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching message boards stats user, or <code>null</code> if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser fetchByGroupId_First(long groupId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator) {
 		List<MBStatsUser> list = findByGroupId(groupId, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -304,12 +301,11 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching message boards stats user
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser findByGroupId_Last(long groupId,
-		OrderByComparator orderByComparator)
-		throws NoSuchStatsUserException, SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator)
+		throws NoSuchStatsUserException {
 		MBStatsUser mbStatsUser = fetchByGroupId_Last(groupId, orderByComparator);
 
 		if (mbStatsUser != null) {
@@ -334,11 +330,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param groupId the group ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching message boards stats user, or <code>null</code> if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser fetchByGroupId_Last(long groupId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator) {
 		int count = countByGroupId(groupId);
 
 		if (count == 0) {
@@ -363,12 +358,11 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next message boards stats user
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a message boards stats user with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser[] findByGroupId_PrevAndNext(long statsUserId,
-		long groupId, OrderByComparator orderByComparator)
-		throws NoSuchStatsUserException, SystemException {
+		long groupId, OrderByComparator<MBStatsUser> orderByComparator)
+		throws NoSuchStatsUserException {
 		MBStatsUser mbStatsUser = findByPrimaryKey(statsUserId);
 
 		Session session = null;
@@ -398,7 +392,7 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 
 	protected MBStatsUser getByGroupId_PrevAndNext(Session session,
 		MBStatsUser mbStatsUser, long groupId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<MBStatsUser> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -505,10 +499,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * Removes all the message boards stats users where groupId = &#63; from the database.
 	 *
 	 * @param groupId the group ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByGroupId(long groupId) throws SystemException {
+	public void removeByGroupId(long groupId) {
 		for (MBStatsUser mbStatsUser : findByGroupId(groupId,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(mbStatsUser);
@@ -520,10 +513,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 *
 	 * @param groupId the group ID
 	 * @return the number of matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByGroupId(long groupId) throws SystemException {
+	public int countByGroupId(long groupId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_GROUPID;
 
 		Object[] finderArgs = new Object[] { groupId };
@@ -595,11 +587,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 *
 	 * @param userId the user ID
 	 * @return the matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<MBStatsUser> findByUserId(long userId)
-		throws SystemException {
+	public List<MBStatsUser> findByUserId(long userId) {
 		return findByUserId(userId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -614,11 +604,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param start the lower bound of the range of message boards stats users
 	 * @param end the upper bound of the range of message boards stats users (not inclusive)
 	 * @return the range of matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<MBStatsUser> findByUserId(long userId, int start, int end)
-		throws SystemException {
+	public List<MBStatsUser> findByUserId(long userId, int start, int end) {
 		return findByUserId(userId, start, end, null);
 	}
 
@@ -634,11 +622,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param end the upper bound of the range of message boards stats users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<MBStatsUser> findByUserId(long userId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -741,12 +728,11 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching message boards stats user
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser findByUserId_First(long userId,
-		OrderByComparator orderByComparator)
-		throws NoSuchStatsUserException, SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator)
+		throws NoSuchStatsUserException {
 		MBStatsUser mbStatsUser = fetchByUserId_First(userId, orderByComparator);
 
 		if (mbStatsUser != null) {
@@ -771,11 +757,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param userId the user ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching message boards stats user, or <code>null</code> if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser fetchByUserId_First(long userId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator) {
 		List<MBStatsUser> list = findByUserId(userId, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -792,12 +777,11 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching message boards stats user
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser findByUserId_Last(long userId,
-		OrderByComparator orderByComparator)
-		throws NoSuchStatsUserException, SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator)
+		throws NoSuchStatsUserException {
 		MBStatsUser mbStatsUser = fetchByUserId_Last(userId, orderByComparator);
 
 		if (mbStatsUser != null) {
@@ -822,11 +806,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param userId the user ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching message boards stats user, or <code>null</code> if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser fetchByUserId_Last(long userId,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator) {
 		int count = countByUserId(userId);
 
 		if (count == 0) {
@@ -851,12 +834,11 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next message boards stats user
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a message boards stats user with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser[] findByUserId_PrevAndNext(long statsUserId,
-		long userId, OrderByComparator orderByComparator)
-		throws NoSuchStatsUserException, SystemException {
+		long userId, OrderByComparator<MBStatsUser> orderByComparator)
+		throws NoSuchStatsUserException {
 		MBStatsUser mbStatsUser = findByPrimaryKey(statsUserId);
 
 		Session session = null;
@@ -886,7 +868,7 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 
 	protected MBStatsUser getByUserId_PrevAndNext(Session session,
 		MBStatsUser mbStatsUser, long userId,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<MBStatsUser> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -993,10 +975,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * Removes all the message boards stats users where userId = &#63; from the database.
 	 *
 	 * @param userId the user ID
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByUserId(long userId) throws SystemException {
+	public void removeByUserId(long userId) {
 		for (MBStatsUser mbStatsUser : findByUserId(userId, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null)) {
 			remove(mbStatsUser);
@@ -1008,10 +989,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 *
 	 * @param userId the user ID
 	 * @return the number of matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByUserId(long userId) throws SystemException {
+	public int countByUserId(long userId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_USERID;
 
 		Object[] finderArgs = new Object[] { userId };
@@ -1075,11 +1055,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param userId the user ID
 	 * @return the matching message boards stats user
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser findByG_U(long groupId, long userId)
-		throws NoSuchStatsUserException, SystemException {
+		throws NoSuchStatsUserException {
 		MBStatsUser mbStatsUser = fetchByG_U(groupId, userId);
 
 		if (mbStatsUser == null) {
@@ -1111,11 +1090,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param groupId the group ID
 	 * @param userId the user ID
 	 * @return the matching message boards stats user, or <code>null</code> if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public MBStatsUser fetchByG_U(long groupId, long userId)
-		throws SystemException {
+	public MBStatsUser fetchByG_U(long groupId, long userId) {
 		return fetchByG_U(groupId, userId, true);
 	}
 
@@ -1126,11 +1103,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param userId the user ID
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching message boards stats user, or <code>null</code> if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser fetchByG_U(long groupId, long userId,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { groupId, userId };
 
 		Object result = null;
@@ -1218,11 +1194,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param groupId the group ID
 	 * @param userId the user ID
 	 * @return the message boards stats user that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser removeByG_U(long groupId, long userId)
-		throws NoSuchStatsUserException, SystemException {
+		throws NoSuchStatsUserException {
 		MBStatsUser mbStatsUser = findByG_U(groupId, userId);
 
 		return remove(mbStatsUser);
@@ -1234,10 +1209,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param groupId the group ID
 	 * @param userId the user ID
 	 * @return the number of matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByG_U(long groupId, long userId) throws SystemException {
+	public int countByG_U(long groupId, long userId) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_G_U;
 
 		Object[] finderArgs = new Object[] { groupId, userId };
@@ -1315,11 +1289,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param userId the user ID
 	 * @param messageCount the message count
 	 * @return the matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<MBStatsUser> findByG_NotU_NotM(long groupId, long userId,
-		int messageCount) throws SystemException {
+		int messageCount) {
 		return findByG_NotU_NotM(groupId, userId, messageCount,
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
@@ -1337,11 +1310,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param start the lower bound of the range of message boards stats users
 	 * @param end the upper bound of the range of message boards stats users (not inclusive)
 	 * @return the range of matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<MBStatsUser> findByG_NotU_NotM(long groupId, long userId,
-		int messageCount, int start, int end) throws SystemException {
+		int messageCount, int start, int end) {
 		return findByG_NotU_NotM(groupId, userId, messageCount, start, end, null);
 	}
 
@@ -1359,12 +1331,11 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param end the upper bound of the range of message boards stats users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<MBStatsUser> findByG_NotU_NotM(long groupId, long userId,
 		int messageCount, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1475,12 +1446,11 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching message boards stats user
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser findByG_NotU_NotM_First(long groupId, long userId,
-		int messageCount, OrderByComparator orderByComparator)
-		throws NoSuchStatsUserException, SystemException {
+		int messageCount, OrderByComparator<MBStatsUser> orderByComparator)
+		throws NoSuchStatsUserException {
 		MBStatsUser mbStatsUser = fetchByG_NotU_NotM_First(groupId, userId,
 				messageCount, orderByComparator);
 
@@ -1514,12 +1484,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param messageCount the message count
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching message boards stats user, or <code>null</code> if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser fetchByG_NotU_NotM_First(long groupId, long userId,
-		int messageCount, OrderByComparator orderByComparator)
-		throws SystemException {
+		int messageCount, OrderByComparator<MBStatsUser> orderByComparator) {
 		List<MBStatsUser> list = findByG_NotU_NotM(groupId, userId,
 				messageCount, 0, 1, orderByComparator);
 
@@ -1539,12 +1507,11 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching message boards stats user
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser findByG_NotU_NotM_Last(long groupId, long userId,
-		int messageCount, OrderByComparator orderByComparator)
-		throws NoSuchStatsUserException, SystemException {
+		int messageCount, OrderByComparator<MBStatsUser> orderByComparator)
+		throws NoSuchStatsUserException {
 		MBStatsUser mbStatsUser = fetchByG_NotU_NotM_Last(groupId, userId,
 				messageCount, orderByComparator);
 
@@ -1578,12 +1545,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param messageCount the message count
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching message boards stats user, or <code>null</code> if a matching message boards stats user could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser fetchByG_NotU_NotM_Last(long groupId, long userId,
-		int messageCount, OrderByComparator orderByComparator)
-		throws SystemException {
+		int messageCount, OrderByComparator<MBStatsUser> orderByComparator) {
 		int count = countByG_NotU_NotM(groupId, userId, messageCount);
 
 		if (count == 0) {
@@ -1610,13 +1575,12 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next message boards stats user
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a message boards stats user with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser[] findByG_NotU_NotM_PrevAndNext(long statsUserId,
 		long groupId, long userId, int messageCount,
-		OrderByComparator orderByComparator)
-		throws NoSuchStatsUserException, SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator)
+		throws NoSuchStatsUserException {
 		MBStatsUser mbStatsUser = findByPrimaryKey(statsUserId);
 
 		Session session = null;
@@ -1646,7 +1610,7 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 
 	protected MBStatsUser getByG_NotU_NotM_PrevAndNext(Session session,
 		MBStatsUser mbStatsUser, long groupId, long userId, int messageCount,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<MBStatsUser> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -1763,11 +1727,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param groupId the group ID
 	 * @param userId the user ID
 	 * @param messageCount the message count
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByG_NotU_NotM(long groupId, long userId, int messageCount)
-		throws SystemException {
+	public void removeByG_NotU_NotM(long groupId, long userId, int messageCount) {
 		for (MBStatsUser mbStatsUser : findByG_NotU_NotM(groupId, userId,
 				messageCount, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(mbStatsUser);
@@ -1781,11 +1743,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param userId the user ID
 	 * @param messageCount the message count
 	 * @return the number of matching message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByG_NotU_NotM(long groupId, long userId, int messageCount)
-		throws SystemException {
+	public int countByG_NotU_NotM(long groupId, long userId, int messageCount) {
 		FinderPath finderPath = FINDER_PATH_WITH_PAGINATION_COUNT_BY_G_NOTU_NOTM;
 
 		Object[] finderArgs = new Object[] { groupId, userId, messageCount };
@@ -2005,11 +1965,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param statsUserId the primary key of the message boards stats user
 	 * @return the message boards stats user that was removed
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a message boards stats user with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public MBStatsUser remove(long statsUserId)
-		throws NoSuchStatsUserException, SystemException {
+	public MBStatsUser remove(long statsUserId) throws NoSuchStatsUserException {
 		return remove((Serializable)statsUserId);
 	}
 
@@ -2019,11 +1977,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param primaryKey the primary key of the message boards stats user
 	 * @return the message boards stats user that was removed
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a message boards stats user with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser remove(Serializable primaryKey)
-		throws NoSuchStatsUserException, SystemException {
+		throws NoSuchStatsUserException {
 		Session session = null;
 
 		try {
@@ -2055,8 +2012,7 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	}
 
 	@Override
-	protected MBStatsUser removeImpl(MBStatsUser mbStatsUser)
-		throws SystemException {
+	protected MBStatsUser removeImpl(MBStatsUser mbStatsUser) {
 		mbStatsUser = toUnwrappedModel(mbStatsUser);
 
 		Session session = null;
@@ -2089,8 +2045,7 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 
 	@Override
 	public MBStatsUser updateImpl(
-		com.liferay.portlet.messageboards.model.MBStatsUser mbStatsUser)
-		throws SystemException {
+		com.liferay.portlet.messageboards.model.MBStatsUser mbStatsUser) {
 		mbStatsUser = toUnwrappedModel(mbStatsUser);
 
 		boolean isNew = mbStatsUser.isNew();
@@ -2197,11 +2152,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param primaryKey the primary key of the message boards stats user
 	 * @return the message boards stats user
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a message boards stats user with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchStatsUserException, SystemException {
+		throws NoSuchStatsUserException {
 		MBStatsUser mbStatsUser = fetchByPrimaryKey(primaryKey);
 
 		if (mbStatsUser == null) {
@@ -2222,11 +2176,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param statsUserId the primary key of the message boards stats user
 	 * @return the message boards stats user
 	 * @throws com.liferay.portlet.messageboards.NoSuchStatsUserException if a message boards stats user with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public MBStatsUser findByPrimaryKey(long statsUserId)
-		throws NoSuchStatsUserException, SystemException {
+		throws NoSuchStatsUserException {
 		return findByPrimaryKey((Serializable)statsUserId);
 	}
 
@@ -2235,11 +2188,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 *
 	 * @param primaryKey the primary key of the message boards stats user
 	 * @return the message boards stats user, or <code>null</code> if a message boards stats user with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public MBStatsUser fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public MBStatsUser fetchByPrimaryKey(Serializable primaryKey) {
 		MBStatsUser mbStatsUser = (MBStatsUser)EntityCacheUtil.getResult(MBStatsUserModelImpl.ENTITY_CACHE_ENABLED,
 				MBStatsUserImpl.class, primaryKey);
 
@@ -2283,22 +2234,111 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 *
 	 * @param statsUserId the primary key of the message boards stats user
 	 * @return the message boards stats user, or <code>null</code> if a message boards stats user with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public MBStatsUser fetchByPrimaryKey(long statsUserId)
-		throws SystemException {
+	public MBStatsUser fetchByPrimaryKey(long statsUserId) {
 		return fetchByPrimaryKey((Serializable)statsUserId);
+	}
+
+	@Override
+	public Map<Serializable, MBStatsUser> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, MBStatsUser> map = new HashMap<Serializable, MBStatsUser>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			MBStatsUser mbStatsUser = fetchByPrimaryKey(primaryKey);
+
+			if (mbStatsUser != null) {
+				map.put(primaryKey, mbStatsUser);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			MBStatsUser mbStatsUser = (MBStatsUser)EntityCacheUtil.getResult(MBStatsUserModelImpl.ENTITY_CACHE_ENABLED,
+					MBStatsUserImpl.class, primaryKey);
+
+			if (mbStatsUser == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, mbStatsUser);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_MBSTATSUSER_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (MBStatsUser mbStatsUser : (List<MBStatsUser>)q.list()) {
+				map.put(mbStatsUser.getPrimaryKeyObj(), mbStatsUser);
+
+				cacheResult(mbStatsUser);
+
+				uncachedPrimaryKeys.remove(mbStatsUser.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(MBStatsUserModelImpl.ENTITY_CACHE_ENABLED,
+					MBStatsUserImpl.class, primaryKey, _nullMBStatsUser);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the message boards stats users.
 	 *
 	 * @return the message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<MBStatsUser> findAll() throws SystemException {
+	public List<MBStatsUser> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -2312,11 +2352,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param start the lower bound of the range of message boards stats users
 	 * @param end the upper bound of the range of message boards stats users (not inclusive)
 	 * @return the range of message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<MBStatsUser> findAll(int start, int end)
-		throws SystemException {
+	public List<MBStatsUser> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -2331,11 +2369,10 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * @param end the upper bound of the range of message boards stats users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<MBStatsUser> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<MBStatsUser> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -2417,10 +2454,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	/**
 	 * Removes all the message boards stats users from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (MBStatsUser mbStatsUser : findAll()) {
 			remove(mbStatsUser);
 		}
@@ -2430,10 +2466,9 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	 * Returns the number of message boards stats users.
 	 *
 	 * @return the number of message boards stats users
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -2497,6 +2532,7 @@ public class MBStatsUserPersistenceImpl extends BasePersistenceImpl<MBStatsUser>
 	}
 
 	private static final String _SQL_SELECT_MBSTATSUSER = "SELECT mbStatsUser FROM MBStatsUser mbStatsUser";
+	private static final String _SQL_SELECT_MBSTATSUSER_WHERE_PKS_IN = "SELECT mbStatsUser FROM MBStatsUser mbStatsUser WHERE statsUserId IN (";
 	private static final String _SQL_SELECT_MBSTATSUSER_WHERE = "SELECT mbStatsUser FROM MBStatsUser mbStatsUser WHERE ";
 	private static final String _SQL_COUNT_MBSTATSUSER = "SELECT COUNT(mbStatsUser) FROM MBStatsUser mbStatsUser";
 	private static final String _SQL_COUNT_MBSTATSUSER_WHERE = "SELECT COUNT(mbStatsUser) FROM MBStatsUser mbStatsUser WHERE ";

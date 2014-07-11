@@ -49,7 +49,7 @@
 
 				sb.append(StringPool.SPACE);
 				sb.append(StringPool.OPEN_PARENTHESIS);
-				sb.append(LanguageUtil.get(pageContext, HtmlUtil.escape(workflowStatus)));
+				sb.append(LanguageUtil.get(request, HtmlUtil.escape(workflowStatus)));
 				sb.append(StringPool.CLOSE_PARENTHESIS);
 
 				additionalText = sb.toString();
@@ -60,7 +60,7 @@
 	}
 	%>
 
-	<span class="<%= showIcon ? "workflow-status workflow-status-icon" : "workflow-status" %>">
+	<span class="<%= showIcon ? "icon-file-alt workflow-status" : "workflow-status" %>">
 		<c:if test="<%= showLabel %>">
 			<span class="workflow-label"><liferay-ui:message key="status" />:</span>
 		</c:if>

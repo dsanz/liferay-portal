@@ -1,0 +1,88 @@
+diff --git a/org/apache/commons/fileupload/FileUploadBase.java b/org/apache/commons/fileupload/FileUploadBase.java
+index 4980ac1..2a14298 100644
+--- a/org/apache/commons/fileupload/FileUploadBase.java
++++ b/org/apache/commons/fileupload/FileUploadBase.java
+@@ -1,3 +1,4 @@
++/* @generated */
+ /*
+  * Licensed to the Apache Software Foundation (ASF) under one or more
+  * contributor license agreements.  See the NOTICE file distributed with
+@@ -958,7 +959,12 @@ public abstract class FileUploadBase {
+ 
+             notifier = new MultipartStream.ProgressNotifier(listener,
+                     ctx.getContentLength());
+-            multi = new MultipartStream(input, boundary, notifier);
++            try {
++                multi = new MultipartStream(input, boundary, notifier);
++            }  catch (IllegalArgumentException iae) {
++                throw new InvalidContentTypeException(
++                    "The boundary specified in the " + CONTENT_TYPE + " header is too long", iae);
++            }
+             multi.setHeaderEncoding(charEncoding);
+ 
+             skipPreamble = true;
+@@ -1129,7 +1135,7 @@ public abstract class FileUploadBase {
+          * detail message.
+          */
+         public InvalidContentTypeException() {
+-            // Nothing to do.
++            super();
+         }
+ 
+         /**
+@@ -1141,6 +1147,10 @@ public abstract class FileUploadBase {
+         public InvalidContentTypeException(String message) {
+             super(message);
+         }
++
++        public InvalidContentTypeException(String msg, Throwable cause) {
++            super(msg, cause);
++        }
+     }
+ 
+     /**
+diff --git a/org/apache/commons/fileupload/MultipartStream.java b/org/apache/commons/fileupload/MultipartStream.java
+index cc2b7b2..a30cb9a 100644
+--- a/org/apache/commons/fileupload/MultipartStream.java
++++ b/org/apache/commons/fileupload/MultipartStream.java
+@@ -1,3 +1,4 @@
++/* @generated */
+ /*
+  * Licensed to the Apache Software Foundation (ASF) under one or more
+  * contributor license agreements.  See the NOTICE file distributed with
+@@ -319,8 +320,7 @@ public class MultipartStream {
+      * @param pNotifier The notifier, which is used for calling the
+      *                  progress listener, if any.
+      *
+-     * @see #MultipartStream(InputStream, byte[],
+-     *     MultipartStream.ProgressNotifier)
++     * @throws IllegalArgumentException If the buffer size is too small
+      */
+     MultipartStream(InputStream input,
+             byte[] boundary,
+@@ -333,9 +333,14 @@ public class MultipartStream {
+ 
+         // We prepend CR/LF to the boundary to chop trailng CR/LF from
+         // body-data tokens.
+-        this.boundary = new byte[boundary.length + BOUNDARY_PREFIX.length];
+         this.boundaryLength = boundary.length + BOUNDARY_PREFIX.length;
++        if (bufSize < this.boundaryLength + 1) {
++            throw new IllegalArgumentException(
++                    "The buffer size specified for the MultipartStream is too small");
++        }
++        this.boundary = new byte[this.boundaryLength];
+         this.keepRegion = this.boundary.length;
++
+         System.arraycopy(BOUNDARY_PREFIX, 0, this.boundary, 0,
+                 BOUNDARY_PREFIX.length);
+         System.arraycopy(boundary, 0, this.boundary, BOUNDARY_PREFIX.length,
+@@ -355,8 +360,7 @@ public class MultipartStream {
+      * @param pNotifier An object for calling the progress listener, if any.
+      *
+      *
+-     * @see #MultipartStream(InputStream, byte[], int,
+-     *     MultipartStream.ProgressNotifier)
++     * @see #MultipartStream(InputStream, byte[], int, ProgressNotifier)
+      */
+     MultipartStream(InputStream input,
+             byte[] boundary,

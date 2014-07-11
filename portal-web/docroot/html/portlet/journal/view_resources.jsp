@@ -25,10 +25,9 @@ JournalFolder folder = (JournalFolder)request.getAttribute(WebKeys.JOURNAL_FOLDE
 long folderId = ParamUtil.getLong(request, "folderId", JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 if ((folder == null) && (folderId != JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
-	try {
-		folder = JournalFolderLocalServiceUtil.getFolder(folderId);
-	}
-	catch (NoSuchFolderException nsfe) {
+	folder = JournalFolderLocalServiceUtil.fetchFolder(folderId);
+
+	if (folder == null) {
 		folderId = JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID;
 	}
 }
@@ -79,6 +78,10 @@ request.setAttribute("view.jsp-folderId", String.valueOf(folderId));
 		<div id="<portlet:namespace />entries">
 			<liferay-util:include page="/html/portlet/journal/view_entries.jsp" />
 		</div>
+
+		<span id="<portlet:namespace />addButton">
+			<liferay-util:include page="/html/portlet/journal/add_button.jsp" />
+		</span>
 
 		<span id="<portlet:namespace />sortButton">
 			<liferay-util:include page="/html/portlet/journal/sort_button.jsp" />

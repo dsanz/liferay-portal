@@ -17,6 +17,8 @@ package com.liferay.portal.kernel.nio.intraband;
 import com.liferay.portal.kernel.io.BigEndianCodec;
 import com.liferay.portal.kernel.nio.intraband.BaseIntraband.SendSyncDatagramCompletionHandler;
 import com.liferay.portal.kernel.nio.intraband.CompletionHandler.CompletionType;
+import com.liferay.portal.kernel.nio.intraband.test.MockIntraband;
+import com.liferay.portal.kernel.nio.intraband.test.MockRegistrationReference;
 import com.liferay.portal.kernel.test.CaptureHandler;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
@@ -1509,33 +1511,22 @@ public class BaseIntrabandTest {
 
 		// Datagram writing IOException
 
-		final IOException expectedIOException = new IOException(
-			"Force to fail");
+		IOException ioException = new IOException();
 
-		Intraband intraband = new MockIntraband(_DEFAULT_TIMEOUT) {
-
-			@Override
-			protected void doSendDatagram(
-				RegistrationReference registrationReference,
-				Datagram datagram) {
-
-				CompletionHandler<Object> completionHandler =
-					datagram.completionHandler;
-
-				completionHandler.failed(null, expectedIOException);
-			}
-
-		};
+		_mockIntraband.setIOException(ioException);
 
 		try {
-			intraband.sendSyncDatagram(
+			_mockIntraband.sendSyncDatagram(
 				new MockRegistrationReference(_mockIntraband),
 				Datagram.createRequestDatagram(_type, _data));
 
 			Assert.fail();
 		}
 		catch (IOException ioe) {
-			Assert.assertSame(expectedIOException, ioe);
+			Assert.assertSame(ioException, ioe);
+		}
+		finally {
+			_mockIntraband.setIOException(null);
 		}
 
 		// Replied
@@ -1543,17 +1534,11 @@ public class BaseIntrabandTest {
 		final Datagram expectedDatagram = Datagram.createResponseDatagram(
 			requestDatagram, _data);
 
-		intraband = new MockIntraband(_DEFAULT_TIMEOUT) {
+		Intraband intraband = new MockIntraband(_DEFAULT_TIMEOUT) {
 
 			@Override
-			protected void doSendDatagram(
-				RegistrationReference registrationReference,
-				Datagram datagram) {
-
-				CompletionHandler<Object> completionHandler =
-					datagram.completionHandler;
-
-				completionHandler.replied(null, expectedDatagram);
+			protected Datagram processDatagram(Datagram datagram) {
+				return expectedDatagram;
 			}
 
 		};

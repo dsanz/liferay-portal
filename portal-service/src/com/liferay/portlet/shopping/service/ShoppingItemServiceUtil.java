@@ -40,29 +40,9 @@ public class ShoppingItemServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portlet.shopping.service.impl.ShoppingItemServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
-
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
-	}
-
 	public static void addBookItems(long groupId, long categoryId,
 		java.lang.String[] isbns)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().addBookItems(groupId, categoryId, isbns);
 	}
 
@@ -79,8 +59,7 @@ public class ShoppingItemServiceUtil {
 		java.util.List<com.liferay.portlet.shopping.model.ShoppingItemField> itemFields,
 		java.util.List<com.liferay.portlet.shopping.model.ShoppingItemPrice> itemPrices,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .addItem(groupId, categoryId, sku, name, description,
 			properties, fieldsQuantities, requiresShipping, stockQuantity,
@@ -90,47 +69,58 @@ public class ShoppingItemServiceUtil {
 	}
 
 	public static void deleteItem(long itemId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().deleteItem(itemId);
 	}
 
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public static java.lang.String getBeanIdentifier() {
+		return getService().getBeanIdentifier();
+	}
+
 	public static int getCategoriesItemsCount(long groupId,
-		java.util.List<java.lang.Long> categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.util.List<java.lang.Long> categoryIds) {
 		return getService().getCategoriesItemsCount(groupId, categoryIds);
 	}
 
 	public static com.liferay.portlet.shopping.model.ShoppingItem getItem(
-		long itemId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		long itemId) throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getItem(itemId);
 	}
 
 	public static java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> getItems(
-		long groupId, long categoryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, long categoryId) {
 		return getService().getItems(groupId, categoryId);
 	}
 
 	public static java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> getItems(
 		long groupId, long categoryId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.shopping.model.ShoppingItem> obc) {
 		return getService().getItems(groupId, categoryId, start, end, obc);
 	}
 
-	public static int getItemsCount(long groupId, long categoryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getItemsCount(long groupId, long categoryId) {
 		return getService().getItemsCount(groupId, categoryId);
 	}
 
 	public static com.liferay.portlet.shopping.model.ShoppingItem[] getItemsPrevAndNext(
-		long itemId, com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		long itemId,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.shopping.model.ShoppingItem> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getItemsPrevAndNext(itemId, obc);
+	}
+
+	/**
+	* Sets the Spring bean ID for this bean.
+	*
+	* @param beanIdentifier the Spring bean ID for this bean
+	*/
+	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
+		getService().setBeanIdentifier(beanIdentifier);
 	}
 
 	public static com.liferay.portlet.shopping.model.ShoppingItem updateItem(
@@ -146,8 +136,7 @@ public class ShoppingItemServiceUtil {
 		java.util.List<com.liferay.portlet.shopping.model.ShoppingItemField> itemFields,
 		java.util.List<com.liferay.portlet.shopping.model.ShoppingItemPrice> itemPrices,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updateItem(itemId, groupId, categoryId, sku, name,
 			description, properties, fieldsQuantities, requiresShipping,

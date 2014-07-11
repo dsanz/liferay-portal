@@ -15,7 +15,6 @@
 package com.liferay.portal.repository.cmis.model;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -98,8 +97,7 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 
 	@Override
 	public boolean containsPermission(
-			PermissionChecker permissionChecker, String actionId)
-		throws SystemException {
+		PermissionChecker permissionChecker, String actionId) {
 
 		return containsPermission(_document, actionId);
 	}
@@ -172,16 +170,12 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 	}
 
 	@Override
-	public FileVersion getFileVersion()
-		throws PortalException, SystemException {
-
+	public FileVersion getFileVersion() throws PortalException {
 		return getLatestFileVersion();
 	}
 
 	@Override
-	public FileVersion getFileVersion(String version)
-		throws PortalException, SystemException {
-
+	public FileVersion getFileVersion(String version) throws PortalException {
 		if (Validator.isNull(version)) {
 			return getFileVersion();
 		}
@@ -199,9 +193,7 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 	}
 
 	@Override
-	public List<FileVersion> getFileVersions(int status)
-		throws SystemException {
-
+	public List<FileVersion> getFileVersions(int status) {
 		try {
 			List<Document> documents = getAllVersions();
 
@@ -277,9 +269,12 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 	}
 
 	@Override
-	public FileVersion getLatestFileVersion()
-		throws PortalException, SystemException {
+	public String getIconCssClass() {
+		return DLUtil.getFileIconCssClass(getExtension());
+	}
 
+	@Override
+	public FileVersion getLatestFileVersion() throws PortalException {
 		if (_latestFileVersion != null) {
 			return _latestFileVersion;
 		}
@@ -302,7 +297,7 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 
 	@Override
 	public FileVersion getLatestFileVersion(boolean trusted)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getLatestFileVersion();
 	}

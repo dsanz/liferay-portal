@@ -14,7 +14,7 @@
 
 <body class="${css_class}">
 
-<@liferay.quick_access contentId="#main-content" />
+<@liferay.quick_access content_id="#main-content" />
 
 ${theme.include(body_top_include)}
 
@@ -31,7 +31,7 @@ ${theme.include(body_top_include)}
 				</a>
 
 				<#if show_site_name>
-					<span class="site-name" title="<@liferay.language_format objects="${site_name}" key="go-to-x" />">
+					<span class="site-name" title="<@liferay.language_format arguments="${site_name}" key="go-to-x" />">
 						${site_name}
 					</span>
 				</#if>
@@ -39,7 +39,7 @@ ${theme.include(body_top_include)}
 		</div>
 
 		<#if !is_signed_in>
-			<a href="${sign_in_url}" data-redirect="${is_login_redirect_required?string}" id="sign-in" rel="nofollow">${sign_in_text}</a>
+			<a data-redirect="${is_login_redirect_required?string}" href="${sign_in_url}" id="sign-in" rel="nofollow">${sign_in_text}</a>
 		</#if>
 
 		<#if has_navigation || is_signed_in>
@@ -51,8 +51,6 @@ ${theme.include(body_top_include)}
 		<h1 class="hide-accessible">${the_title}</h1>
 
 		<nav id="breadcrumbs">
-			<h1 class="hide-accessible"><@liferay.language key="breadcrumbs" /></h1>
-
 			<@liferay.breadcrumbs />
 		</nav>
 

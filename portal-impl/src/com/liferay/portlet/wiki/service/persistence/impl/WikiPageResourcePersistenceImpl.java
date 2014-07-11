@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -48,7 +47,11 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -112,11 +115,9 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 *
 	 * @param uuid the uuid
 	 * @return the matching wiki page resources
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<WikiPageResource> findByUuid(String uuid)
-		throws SystemException {
+	public List<WikiPageResource> findByUuid(String uuid) {
 		return findByUuid(uuid, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -131,11 +132,9 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param start the lower bound of the range of wiki page resources
 	 * @param end the upper bound of the range of wiki page resources (not inclusive)
 	 * @return the range of matching wiki page resources
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<WikiPageResource> findByUuid(String uuid, int start, int end)
-		throws SystemException {
+	public List<WikiPageResource> findByUuid(String uuid, int start, int end) {
 		return findByUuid(uuid, start, end, null);
 	}
 
@@ -151,11 +150,10 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param end the upper bound of the range of wiki page resources (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching wiki page resources
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<WikiPageResource> findByUuid(String uuid, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<WikiPageResource> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -272,12 +270,11 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching wiki page resource
 	 * @throws com.liferay.portlet.wiki.NoSuchPageResourceException if a matching wiki page resource could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPageResource findByUuid_First(String uuid,
-		OrderByComparator orderByComparator)
-		throws NoSuchPageResourceException, SystemException {
+		OrderByComparator<WikiPageResource> orderByComparator)
+		throws NoSuchPageResourceException {
 		WikiPageResource wikiPageResource = fetchByUuid_First(uuid,
 				orderByComparator);
 
@@ -303,11 +300,10 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching wiki page resource, or <code>null</code> if a matching wiki page resource could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPageResource fetchByUuid_First(String uuid,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<WikiPageResource> orderByComparator) {
 		List<WikiPageResource> list = findByUuid(uuid, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -324,12 +320,11 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching wiki page resource
 	 * @throws com.liferay.portlet.wiki.NoSuchPageResourceException if a matching wiki page resource could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPageResource findByUuid_Last(String uuid,
-		OrderByComparator orderByComparator)
-		throws NoSuchPageResourceException, SystemException {
+		OrderByComparator<WikiPageResource> orderByComparator)
+		throws NoSuchPageResourceException {
 		WikiPageResource wikiPageResource = fetchByUuid_Last(uuid,
 				orderByComparator);
 
@@ -355,11 +350,10 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param uuid the uuid
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching wiki page resource, or <code>null</code> if a matching wiki page resource could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPageResource fetchByUuid_Last(String uuid,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<WikiPageResource> orderByComparator) {
 		int count = countByUuid(uuid);
 
 		if (count == 0) {
@@ -384,12 +378,11 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next wiki page resource
 	 * @throws com.liferay.portlet.wiki.NoSuchPageResourceException if a wiki page resource with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPageResource[] findByUuid_PrevAndNext(long resourcePrimKey,
-		String uuid, OrderByComparator orderByComparator)
-		throws NoSuchPageResourceException, SystemException {
+		String uuid, OrderByComparator<WikiPageResource> orderByComparator)
+		throws NoSuchPageResourceException {
 		WikiPageResource wikiPageResource = findByPrimaryKey(resourcePrimKey);
 
 		Session session = null;
@@ -419,7 +412,7 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 
 	protected WikiPageResource getByUuid_PrevAndNext(Session session,
 		WikiPageResource wikiPageResource, String uuid,
-		OrderByComparator orderByComparator, boolean previous) {
+		OrderByComparator<WikiPageResource> orderByComparator, boolean previous) {
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
@@ -540,10 +533,9 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * Removes all the wiki page resources where uuid = &#63; from the database.
 	 *
 	 * @param uuid the uuid
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeByUuid(String uuid) throws SystemException {
+	public void removeByUuid(String uuid) {
 		for (WikiPageResource wikiPageResource : findByUuid(uuid,
 				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
 			remove(wikiPageResource);
@@ -555,10 +547,9 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 *
 	 * @param uuid the uuid
 	 * @return the number of matching wiki page resources
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByUuid(String uuid) throws SystemException {
+	public int countByUuid(String uuid) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_UUID;
 
 		Object[] finderArgs = new Object[] { uuid };
@@ -638,11 +629,10 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param title the title
 	 * @return the matching wiki page resource
 	 * @throws com.liferay.portlet.wiki.NoSuchPageResourceException if a matching wiki page resource could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPageResource findByN_T(long nodeId, String title)
-		throws NoSuchPageResourceException, SystemException {
+		throws NoSuchPageResourceException {
 		WikiPageResource wikiPageResource = fetchByN_T(nodeId, title);
 
 		if (wikiPageResource == null) {
@@ -674,11 +664,9 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param nodeId the node ID
 	 * @param title the title
 	 * @return the matching wiki page resource, or <code>null</code> if a matching wiki page resource could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public WikiPageResource fetchByN_T(long nodeId, String title)
-		throws SystemException {
+	public WikiPageResource fetchByN_T(long nodeId, String title) {
 		return fetchByN_T(nodeId, title, true);
 	}
 
@@ -689,11 +677,10 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param title the title
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching wiki page resource, or <code>null</code> if a matching wiki page resource could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPageResource fetchByN_T(long nodeId, String title,
-		boolean retrieveFromCache) throws SystemException {
+		boolean retrieveFromCache) {
 		Object[] finderArgs = new Object[] { nodeId, title };
 
 		Object result = null;
@@ -796,11 +783,10 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param nodeId the node ID
 	 * @param title the title
 	 * @return the wiki page resource that was removed
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPageResource removeByN_T(long nodeId, String title)
-		throws NoSuchPageResourceException, SystemException {
+		throws NoSuchPageResourceException {
 		WikiPageResource wikiPageResource = findByN_T(nodeId, title);
 
 		return remove(wikiPageResource);
@@ -812,10 +798,9 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param nodeId the node ID
 	 * @param title the title
 	 * @return the number of matching wiki page resources
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByN_T(long nodeId, String title) throws SystemException {
+	public int countByN_T(long nodeId, String title) {
 		FinderPath finderPath = FINDER_PATH_COUNT_BY_N_T;
 
 		Object[] finderArgs = new Object[] { nodeId, title };
@@ -1054,11 +1039,10 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param resourcePrimKey the primary key of the wiki page resource
 	 * @return the wiki page resource that was removed
 	 * @throws com.liferay.portlet.wiki.NoSuchPageResourceException if a wiki page resource with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPageResource remove(long resourcePrimKey)
-		throws NoSuchPageResourceException, SystemException {
+		throws NoSuchPageResourceException {
 		return remove((Serializable)resourcePrimKey);
 	}
 
@@ -1068,11 +1052,10 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param primaryKey the primary key of the wiki page resource
 	 * @return the wiki page resource that was removed
 	 * @throws com.liferay.portlet.wiki.NoSuchPageResourceException if a wiki page resource with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPageResource remove(Serializable primaryKey)
-		throws NoSuchPageResourceException, SystemException {
+		throws NoSuchPageResourceException {
 		Session session = null;
 
 		try {
@@ -1104,8 +1087,7 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	}
 
 	@Override
-	protected WikiPageResource removeImpl(WikiPageResource wikiPageResource)
-		throws SystemException {
+	protected WikiPageResource removeImpl(WikiPageResource wikiPageResource) {
 		wikiPageResource = toUnwrappedModel(wikiPageResource);
 
 		Session session = null;
@@ -1138,8 +1120,7 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 
 	@Override
 	public WikiPageResource updateImpl(
-		com.liferay.portlet.wiki.model.WikiPageResource wikiPageResource)
-		throws SystemException {
+		com.liferay.portlet.wiki.model.WikiPageResource wikiPageResource) {
 		wikiPageResource = toUnwrappedModel(wikiPageResource);
 
 		boolean isNew = wikiPageResource.isNew();
@@ -1235,11 +1216,10 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param primaryKey the primary key of the wiki page resource
 	 * @return the wiki page resource
 	 * @throws com.liferay.portlet.wiki.NoSuchPageResourceException if a wiki page resource with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPageResource findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchPageResourceException, SystemException {
+		throws NoSuchPageResourceException {
 		WikiPageResource wikiPageResource = fetchByPrimaryKey(primaryKey);
 
 		if (wikiPageResource == null) {
@@ -1260,11 +1240,10 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param resourcePrimKey the primary key of the wiki page resource
 	 * @return the wiki page resource
 	 * @throws com.liferay.portlet.wiki.NoSuchPageResourceException if a wiki page resource with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public WikiPageResource findByPrimaryKey(long resourcePrimKey)
-		throws NoSuchPageResourceException, SystemException {
+		throws NoSuchPageResourceException {
 		return findByPrimaryKey((Serializable)resourcePrimKey);
 	}
 
@@ -1273,11 +1252,9 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 *
 	 * @param primaryKey the primary key of the wiki page resource
 	 * @return the wiki page resource, or <code>null</code> if a wiki page resource with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public WikiPageResource fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
+	public WikiPageResource fetchByPrimaryKey(Serializable primaryKey) {
 		WikiPageResource wikiPageResource = (WikiPageResource)EntityCacheUtil.getResult(WikiPageResourceModelImpl.ENTITY_CACHE_ENABLED,
 				WikiPageResourceImpl.class, primaryKey);
 
@@ -1322,22 +1299,112 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 *
 	 * @param resourcePrimKey the primary key of the wiki page resource
 	 * @return the wiki page resource, or <code>null</code> if a wiki page resource with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public WikiPageResource fetchByPrimaryKey(long resourcePrimKey)
-		throws SystemException {
+	public WikiPageResource fetchByPrimaryKey(long resourcePrimKey) {
 		return fetchByPrimaryKey((Serializable)resourcePrimKey);
+	}
+
+	@Override
+	public Map<Serializable, WikiPageResource> fetchByPrimaryKeys(
+		Set<Serializable> primaryKeys) {
+		if (primaryKeys.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		Map<Serializable, WikiPageResource> map = new HashMap<Serializable, WikiPageResource>();
+
+		if (primaryKeys.size() == 1) {
+			Iterator<Serializable> iterator = primaryKeys.iterator();
+
+			Serializable primaryKey = iterator.next();
+
+			WikiPageResource wikiPageResource = fetchByPrimaryKey(primaryKey);
+
+			if (wikiPageResource != null) {
+				map.put(primaryKey, wikiPageResource);
+			}
+
+			return map;
+		}
+
+		Set<Serializable> uncachedPrimaryKeys = null;
+
+		for (Serializable primaryKey : primaryKeys) {
+			WikiPageResource wikiPageResource = (WikiPageResource)EntityCacheUtil.getResult(WikiPageResourceModelImpl.ENTITY_CACHE_ENABLED,
+					WikiPageResourceImpl.class, primaryKey);
+
+			if (wikiPageResource == null) {
+				if (uncachedPrimaryKeys == null) {
+					uncachedPrimaryKeys = new HashSet<Serializable>();
+				}
+
+				uncachedPrimaryKeys.add(primaryKey);
+			}
+			else {
+				map.put(primaryKey, wikiPageResource);
+			}
+		}
+
+		if (uncachedPrimaryKeys == null) {
+			return map;
+		}
+
+		StringBundler query = new StringBundler((uncachedPrimaryKeys.size() * 2) +
+				1);
+
+		query.append(_SQL_SELECT_WIKIPAGERESOURCE_WHERE_PKS_IN);
+
+		for (Serializable primaryKey : uncachedPrimaryKeys) {
+			query.append(String.valueOf(primaryKey));
+
+			query.append(StringPool.COMMA);
+		}
+
+		query.setIndex(query.index() - 1);
+
+		query.append(StringPool.CLOSE_PARENTHESIS);
+
+		String sql = query.toString();
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			Query q = session.createQuery(sql);
+
+			for (WikiPageResource wikiPageResource : (List<WikiPageResource>)q.list()) {
+				map.put(wikiPageResource.getPrimaryKeyObj(), wikiPageResource);
+
+				cacheResult(wikiPageResource);
+
+				uncachedPrimaryKeys.remove(wikiPageResource.getPrimaryKeyObj());
+			}
+
+			for (Serializable primaryKey : uncachedPrimaryKeys) {
+				EntityCacheUtil.putResult(WikiPageResourceModelImpl.ENTITY_CACHE_ENABLED,
+					WikiPageResourceImpl.class, primaryKey,
+					_nullWikiPageResource);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		return map;
 	}
 
 	/**
 	 * Returns all the wiki page resources.
 	 *
 	 * @return the wiki page resources
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<WikiPageResource> findAll() throws SystemException {
+	public List<WikiPageResource> findAll() {
 		return findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -1351,11 +1418,9 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param start the lower bound of the range of wiki page resources
 	 * @param end the upper bound of the range of wiki page resources (not inclusive)
 	 * @return the range of wiki page resources
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<WikiPageResource> findAll(int start, int end)
-		throws SystemException {
+	public List<WikiPageResource> findAll(int start, int end) {
 		return findAll(start, end, null);
 	}
 
@@ -1370,11 +1435,10 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * @param end the upper bound of the range of wiki page resources (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of wiki page resources
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<WikiPageResource> findAll(int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<WikiPageResource> orderByComparator) {
 		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
@@ -1456,10 +1520,9 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	/**
 	 * Removes all the wiki page resources from the database.
 	 *
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void removeAll() throws SystemException {
+	public void removeAll() {
 		for (WikiPageResource wikiPageResource : findAll()) {
 			remove(wikiPageResource);
 		}
@@ -1469,10 +1532,9 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	 * Returns the number of wiki page resources.
 	 *
 	 * @return the number of wiki page resources
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countAll() throws SystemException {
+	public int countAll() {
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_ALL,
 				FINDER_ARGS_EMPTY, this);
 
@@ -1541,6 +1603,7 @@ public class WikiPageResourcePersistenceImpl extends BasePersistenceImpl<WikiPag
 	}
 
 	private static final String _SQL_SELECT_WIKIPAGERESOURCE = "SELECT wikiPageResource FROM WikiPageResource wikiPageResource";
+	private static final String _SQL_SELECT_WIKIPAGERESOURCE_WHERE_PKS_IN = "SELECT wikiPageResource FROM WikiPageResource wikiPageResource WHERE resourcePrimKey IN (";
 	private static final String _SQL_SELECT_WIKIPAGERESOURCE_WHERE = "SELECT wikiPageResource FROM WikiPageResource wikiPageResource WHERE ";
 	private static final String _SQL_COUNT_WIKIPAGERESOURCE = "SELECT COUNT(wikiPageResource) FROM WikiPageResource wikiPageResource";
 	private static final String _SQL_COUNT_WIKIPAGERESOURCE_WHERE = "SELECT COUNT(wikiPageResource) FROM WikiPageResource wikiPageResource WHERE ";

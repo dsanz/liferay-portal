@@ -50,7 +50,7 @@ if (threadId > 0) {
 			}
 		}
 
-		parentAuthor = curParentMessage.isAnonymous() ? LanguageUtil.get(pageContext, "anonymous") : HtmlUtil.escape(PortalUtil.getUserName(curParentMessage));
+		parentAuthor = curParentMessage.isAnonymous() ? LanguageUtil.get(request, "anonymous") : HtmlUtil.escape(PortalUtil.getUserName(curParentMessage));
 	}
 	catch (Exception e) {
 	}
@@ -83,21 +83,21 @@ if (curParentMessage != null) {
 	MBUtil.addPortletBreadcrumbEntries(curParentMessage, request, renderResponse);
 
 	if (!layout.isTypeControlPanel()) {
-		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "reply"), currentURL);
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "reply"), currentURL);
 	}
 }
 else if (message != null) {
 	MBUtil.addPortletBreadcrumbEntries(message, request, renderResponse);
 
 	if (!layout.isTypeControlPanel()) {
-		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "edit"), currentURL);
 	}
 }
 else {
 	MBUtil.addPortletBreadcrumbEntries(categoryId, request, renderResponse);
 
 	if (!layout.isTypeControlPanel()) {
-		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-message"), currentURL);
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "add-message"), currentURL);
 	}
 }
 %>
@@ -109,7 +109,7 @@ else {
 <liferay-ui:header
 	backURL="<%= redirect %>"
 	localizeTitle="<%= (message == null) %>"
-	title='<%= (curParentMessage != null) ? LanguageUtil.format(pageContext, "reply-to-x", curParentMessage.getSubject(), false) : (message == null) ? "add-message" : LanguageUtil.format(pageContext, "edit-x", message.getSubject(), false) %>'
+	title='<%= (curParentMessage != null) ? LanguageUtil.format(request, "reply-to-x", curParentMessage.getSubject(), false) : (message == null) ? "add-message" : LanguageUtil.format(request, "edit-x", message.getSubject(), false) %>'
 />
 
 <c:if test="<%= preview %>">
@@ -187,6 +187,10 @@ else {
 	<liferay-ui:error exception="<%= CaptchaTextException.class %>" message="text-verification-failed" />
 	<liferay-ui:error exception="<%= DuplicateFileException.class %>" message="please-enter-a-unique-document-name" />
 
+	<liferay-ui:error exception="<%= LiferayFileItemException.class %>">
+		<liferay-ui:message arguments="<%= TextFormatter.formatStorageSize(LiferayFileItem.THRESHOLD_SIZE, locale) %>" key="please-enter-valid-content-with-valid-content-size-no-larger-than-x" translateArguments="<%= false %>" />
+	</liferay-ui:error>
+
 	<liferay-ui:error exception="<%= FileExtensionException.class %>">
 		<liferay-ui:message key="document-names-must-end-with-one-of-the-following-extensions" /><%= StringUtil.merge(PrefsPropsUtil.getStringArray(PropsKeys.DL_FILE_EXTENSIONS, StringPool.COMMA), StringPool.COMMA_AND_SPACE) %>.
 	</liferay-ui:error>
@@ -218,7 +222,7 @@ else {
 
 	<aui:fieldset>
 		<c:if test="<%= message != null %>">
-			<aui:workflow-status status="<%= message.getStatus() %>" />
+			<aui:workflow-status showIcon="<%= false %>" showLabel="<%= false %>" status="<%= message.getStatus() %>" />
 		</c:if>
 
 		<aui:input autoFocus="<%= (windowState.equals(WindowState.MAXIMIZED) && !themeDisplay.isFacebook()) %>" name="subject" value="<%= subject %>" />
@@ -344,14 +348,20 @@ else {
 								<span id="<portlet:namespace />existingFile<%= i + 1 %>">
 									<aui:input id='<%= "existingPath" + (i + 1) %>' name='<%= "existingPath" + (i + 1) %>' type="hidden" value="<%= fileEntry.getFileEntryId() %>" />
 
+									<%
+									AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(DLFileEntry.class.getName());
+
+									AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(fileEntry.getFileEntryId());
+									%>
+
 									<liferay-ui:icon
-										image='<%= "../file_system/small/" + DLUtil.getFileIcon(fileEntry.getExtension()) %>'
+										iconCssClass="<%= assetRenderer.getIconCssClass() %>"
 										label="<%= true %>"
 										message="<%= fileEntry.getTitle() %>"
 									/>
 								</span>
 
-								<aui:input cssClass="hide" hideLabel="<%= true %>" label="message-attachment" name='<%= "msgFile" + (i + 1) %>' size="70" type="file" />
+								<aui:input cssClass="hide" label="" name='<%= "msgFile" + (i + 1) %>' size="70" title="message-attachment" type="file" />
 
 								<liferay-ui:icon-delete
 									id='<%= "removeExisting" + (i + 1) %>'
@@ -396,7 +406,7 @@ else {
 				%>
 
 					<div>
-						<aui:input hideLabel="<%= true %>" label="message-attachment" name='<%= "msgFile" + i %>' size="70" type="file" />
+						<aui:input label="" name='<%= "msgFile" + i %>' size="70" title="message-attachment" type="file" />
 					</div>
 
 				<%
@@ -462,7 +472,7 @@ else {
 
 		<c:if test="<%= (message != null) && message.isApproved() && WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(message.getCompanyId(), message.getGroupId(), MBMessage.class.getName()) %>">
 			<div class="alert alert-info">
-				<%= LanguageUtil.format(pageContext, "this-x-is-approved.-publishing-these-changes-will-cause-it-to-be-unpublished-and-go-through-the-approval-process-again", ResourceActionsUtil.getModelResource(locale, MBMessage.class.getName()), false) %>
+				<%= LanguageUtil.format(request, "this-x-is-approved.-publishing-these-changes-will-cause-it-to-be-unpublished-and-go-through-the-approval-process-again", ResourceActionsUtil.getModelResource(locale, MBMessage.class.getName()), false) %>
 			</div>
 		</c:if>
 
@@ -521,7 +531,7 @@ else {
 	}
 
 	function <portlet:namespace />saveMessage(draft) {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (message == null) ? Constants.ADD : Constants.UPDATE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= (message == null) ? Constants.ADD : Constants.UPDATE %>';
 		document.<portlet:namespace />fm.<portlet:namespace />body.value = <portlet:namespace />getHTML();
 
 		if (!draft) {
@@ -535,10 +545,10 @@ else {
 	function <portlet:namespace />selectCategory(categoryId, categoryName) {
 		document.<portlet:namespace />fm.<portlet:namespace />mbCategoryId.value = categoryId;
 
-		var nameEl = document.getElementById("<portlet:namespace />categoryName");
+		var nameEl = document.getElementById('<portlet:namespace />categoryName');
 
-		nameEl.href = "<portlet:renderURL><portlet:param name="struts_action" value="/message_boards/view" /></portlet:renderURL>&<portlet:namespace />mbCategoryId=" + categoryId;
-		nameEl.innerHTML = categoryName + "&nbsp;";
+		nameEl.href = '<portlet:renderURL><portlet:param name="struts_action" value="/message_boards/view" /></portlet:renderURL>&<portlet:namespace />mbCategoryId=' + categoryId;
+		nameEl.innerHTML = categoryName + '&nbsp;';
 	}
 
 	<c:choose>
@@ -558,13 +568,13 @@ else {
 						removeExisting.hide();
 						undoFile.show();
 
-						existingPath.set('value', '');
+						existingPath.attr('value', '');
 					}
 					else {
 						removeExisting.show();
 						undoFile.hide();
 
-						existingPath.set('value', undoPath.get('value'));
+						existingPath.attr('value', undoPath.get('value'));
 					}
 				},
 				['aui-base']

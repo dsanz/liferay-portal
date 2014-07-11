@@ -264,6 +264,11 @@ public class ArrayUtil_IW {
 		return ArrayUtil.containsAll(array1, array2);
 	}
 
+	public <T> int count(T[] array,
+		com.liferay.portal.kernel.util.PredicateFilter<T> predicateFilter) {
+		return ArrayUtil.count(array, predicateFilter);
+	}
+
 	public java.lang.String[] distinct(java.lang.String[] array) {
 		return ArrayUtil.distinct(array);
 	}
@@ -271,6 +276,11 @@ public class ArrayUtil_IW {
 	public java.lang.String[] distinct(java.lang.String[] array,
 		java.util.Comparator<java.lang.String> comparator) {
 		return ArrayUtil.distinct(array, comparator);
+	}
+
+	public <T> boolean exists(T[] array,
+		com.liferay.portal.kernel.util.PredicateFilter<T> predicateFilter) {
+		return ArrayUtil.exists(array, predicateFilter);
 	}
 
 	public boolean[] filter(boolean[] array,
@@ -596,6 +606,14 @@ public class ArrayUtil_IW {
 		return ArrayUtil.toLongArray(collection);
 	}
 
+	public java.lang.Long[] toLongArray(int[] array) {
+		return ArrayUtil.toLongArray(array);
+	}
+
+	public java.lang.Long[] toLongArray(long[] array) {
+		return ArrayUtil.toLongArray(array);
+	}
+
 	public java.lang.Long[] toLongArray(java.lang.Object[] array) {
 		return ArrayUtil.toLongArray(array);
 	}
@@ -648,6 +666,11 @@ public class ArrayUtil_IW {
 
 	public java.lang.String[] toStringArray(char[] array) {
 		return ArrayUtil.toStringArray(array);
+	}
+
+	public java.lang.String[] toStringArray(
+		java.util.Collection<java.lang.String> collection) {
+		return ArrayUtil.toStringArray(collection);
 	}
 
 	public java.lang.String[] toStringArray(java.util.Date[] array,

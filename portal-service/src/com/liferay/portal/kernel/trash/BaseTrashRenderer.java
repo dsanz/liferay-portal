@@ -30,6 +30,11 @@ import javax.portlet.RenderResponse;
 public abstract class BaseTrashRenderer implements TrashRenderer {
 
 	@Override
+	public String getIconCssClass() {
+		return "icon-file";
+	}
+
+	@Override
 	public String getIconPath(PortletRequest portletRequest) {
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);

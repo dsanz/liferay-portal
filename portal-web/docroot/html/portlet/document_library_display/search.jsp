@@ -45,6 +45,8 @@ else {
 String keywords = ParamUtil.getString(request, "keywords");
 
 int mountFoldersCount = DLAppServiceUtil.getMountFoldersCount(scopeGroupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+DLActionsDisplayContext dlActionsDisplayContext = new DLActionsDisplayContext(request, dlPortletInstanceSettings);
 %>
 
 <liferay-portlet:renderURL varImpl="searchURL">
@@ -123,7 +125,7 @@ int mountFoldersCount = DLAppServiceUtil.getMountFoldersCount(scopeGroupId, DLFo
 	%>
 
 	<liferay-ui:search-container
-		emptyResultsMessage='<%= LanguageUtil.format(pageContext, "no-documents-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>'
+		emptyResultsMessage='<%= LanguageUtil.format(request, "no-documents-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>'
 		iteratorURL="<%= portletURL %>"
 	>
 
@@ -185,7 +187,7 @@ int mountFoldersCount = DLAppServiceUtil.getMountFoldersCount(scopeGroupId, DLFo
 					</portlet:renderURL>
 
 					<liferay-ui:app-view-search-entry
-						actionJsp='<%= (showActions) ? "/html/portlet/document_library/file_entry_action.jsp" : StringPool.BLANK %>'
+						actionJsp='<%= (dlActionsDisplayContext.isShowActions()) ? "/html/portlet/document_library/file_entry_action.jsp" : StringPool.BLANK %>'
 						containerName="<%= DLUtil.getAbsolutePath(renderRequest, fileEntry.getFolderId()) %>"
 						cssClass='<%= MathUtil.isEven(index) ? "search" : "search alt" %>'
 						description="<%= (summary != null) ? summary.getContent() : fileEntry.getDescription() %>"
@@ -217,7 +219,7 @@ int mountFoldersCount = DLAppServiceUtil.getMountFoldersCount(scopeGroupId, DLFo
 					</portlet:renderURL>
 
 					<liferay-ui:app-view-search-entry
-						actionJsp='<%= (showActions) ? "/html/portlet/document_library/folder_action.jsp" : StringPool.BLANK %>'
+						actionJsp='<%= (dlActionsDisplayContext.isShowActions()) ? "/html/portlet/document_library/folder_action.jsp" : StringPool.BLANK %>'
 						containerName="<%= DLUtil.getAbsolutePath(renderRequest, folder.getParentFolderId()) %>"
 						cssClass='<%= MathUtil.isEven(index) ? "search" : "search alt" %>'
 						description="<%= (summary != null) ? summary.getContent() : folder.getDescription() %>"
@@ -239,5 +241,5 @@ if (searchFolderId > 0) {
 	DLUtil.addPortletBreadcrumbEntries(searchFolderId, request, renderResponse);
 }
 
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "search") + ": " + keywords, currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "search") + ": " + keywords, currentURL);
 %>

@@ -40,6 +40,18 @@ public class MembershipRequestServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to {@link com.liferay.portal.service.impl.MembershipRequestServiceImpl} and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static com.liferay.portal.model.MembershipRequest addMembershipRequest(
+		long groupId, java.lang.String comments,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .addMembershipRequest(groupId, comments, serviceContext);
+	}
+
+	public static void deleteMembershipRequests(long groupId, int statusId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteMembershipRequests(groupId, statusId);
+	}
 
 	/**
 	* Returns the Spring bean ID for this bean.
@@ -48,6 +60,12 @@ public class MembershipRequestServiceUtil {
 	*/
 	public static java.lang.String getBeanIdentifier() {
 		return getService().getBeanIdentifier();
+	}
+
+	public static com.liferay.portal.model.MembershipRequest getMembershipRequest(
+		long membershipRequestId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getMembershipRequest(membershipRequestId);
 	}
 
 	/**
@@ -59,33 +77,10 @@ public class MembershipRequestServiceUtil {
 		getService().setBeanIdentifier(beanIdentifier);
 	}
 
-	public static com.liferay.portal.model.MembershipRequest addMembershipRequest(
-		long groupId, java.lang.String comments,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .addMembershipRequest(groupId, comments, serviceContext);
-	}
-
-	public static void deleteMembershipRequests(long groupId, int statusId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteMembershipRequests(groupId, statusId);
-	}
-
-	public static com.liferay.portal.model.MembershipRequest getMembershipRequest(
-		long membershipRequestId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getMembershipRequest(membershipRequestId);
-	}
-
 	public static void updateStatus(long membershipRequestId,
 		java.lang.String reviewComments, int statusId,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		getService()
 			.updateStatus(membershipRequestId, reviewComments, statusId,
 			serviceContext);

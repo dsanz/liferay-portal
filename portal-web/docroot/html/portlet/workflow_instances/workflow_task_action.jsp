@@ -24,7 +24,7 @@ ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_
 WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 %>
 
-<liferay-ui:icon-menu>
+<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>">
 	<c:if test="<%= portletName.equals(PortletKeys.WORKFLOW_DEFINITIONS) && !workflowTask.isCompleted() && !_isAssignedToUser(workflowTask, user) %>">
 		<portlet:actionURL var="assignToMeURL">
 			<portlet:param name="struts_action" value="/workflow_instances/edit_workflow_instance_task" />
@@ -36,7 +36,7 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 
 		<liferay-ui:icon
 			cssClass='<%= "workflow-task-" + randomId + " task-assign-to-me-link" %>'
-			image="assign"
+			iconCssClass="icon-signin"
 			message="assign-to-me"
 			method="get"
 			url="<%= assignToMeURL %>"
@@ -70,7 +70,7 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 
 			<liferay-ui:icon
 				cssClass='<%= "workflow-task-" + randomId + " task-change-status-link" %>'
-				image="../aui/random"
+				iconCssClass="icon-random"
 				message="<%= message %>"
 				method="get"
 				url="<%= editURL %>"
@@ -110,7 +110,7 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 					toolbars: {
 						footer: [
 							{
-								label: '<%= UnicodeLanguageUtil.get(pageContext, "ok") %>',
+								label: '<%= UnicodeLanguageUtil.get(request, "ok") %>',
 								on: {
 									click: function() {
 										submitForm(form);
@@ -118,7 +118,7 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 								}
 							},
 							{
-								label: '<%= UnicodeLanguageUtil.get(pageContext, "cancel") %>',
+								label: '<%= UnicodeLanguageUtil.get(request, "cancel") %>',
 								on: {
 									click: function() {
 										dialog.hide();

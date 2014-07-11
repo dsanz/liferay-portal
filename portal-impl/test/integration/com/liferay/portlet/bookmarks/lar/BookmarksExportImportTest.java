@@ -15,20 +15,17 @@
 package com.liferay.portlet.bookmarks.lar;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.lar.BasePortletExportImportTestCase;
 import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.test.TransactionalCallbackAwareExecutionTestListener;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.service.BookmarksEntryLocalServiceUtil;
-import com.liferay.portlet.bookmarks.util.BookmarksTestUtil;
+import com.liferay.portlet.bookmarks.util.test.BookmarksTestUtil;
 
 import java.util.Map;
 
@@ -40,12 +37,10 @@ import org.junit.runner.RunWith;
 @ExecutionTestListeners(
 	listeners = {
 		MainServletExecutionTestListener.class,
-		SynchronousDestinationExecutionTestListener.class,
-		TransactionalCallbackAwareExecutionTestListener.class
+		SynchronousDestinationExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 @Sync
-@Transactional
 public class BookmarksExportImportTest extends BasePortletExportImportTestCase {
 
 	@Override
@@ -88,7 +83,7 @@ public class BookmarksExportImportTest extends BasePortletExportImportTestCase {
 
 	@Override
 	protected StagedModel getStagedModel(String uuid, long groupId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return BookmarksEntryLocalServiceUtil.getBookmarksEntryByUuidAndGroupId(
 			uuid, groupId);

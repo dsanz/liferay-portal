@@ -128,16 +128,17 @@ if (summary != null) {
 		</span>
 
 		<span class="asset-entry-title">
-			<a href="<%= viewURL %>">
-				<c:if test="<%= assetRenderer != null %>">
-					<img alt="" src="<%= assetRenderer.getIconPath(renderRequest) %>" />
-				</c:if>
-
+			<a class="<%= (assetRenderer != null) ? assetRenderer.getIconCssClass() : StringPool.BLANK %>" href="<%= viewURL %>">
 				<%= summary.getHighlightedTitle() %>
 			</a>
 
 			<c:if test="<%= Validator.isNotNull(downloadURL) %>">
-				<liferay-ui:icon image="../arrows/01_down" label="<%= false %>" message='<%= LanguageUtil.format(pageContext, "download-x", HtmlUtil.escape(summary.getTitle()), false) %>' url="<%= downloadURL %>" />
+				<liferay-ui:icon
+					iconCssClass="icon-download-alt"
+					label="<%= false %>"
+					message='<%= LanguageUtil.format(request, "download-x", HtmlUtil.escape(summary.getTitle()), false) %>'
+					url="<%= downloadURL %>"
+				/>
 			</c:if>
 		</span>
 
@@ -206,14 +207,12 @@ if (summary != null) {
 
 							PortletURL categoryURL = PortletURLUtil.clone(portletURL, renderResponse);
 
-							categoryURL.setParameter(Field.ASSET_CATEGORY_TITLES, assetCategory.getTitle(LocaleUtil.getDefault()));
+							categoryURL.setParameter(Field.ASSET_CATEGORY_IDS, String.valueOf(assetCategory.getCategoryId()));
 						%>
 
 							<c:if test="<%= i == 0 %>">
 								<div class="taglib-asset-categories-summary">
-									<span class="asset-vocabulary">
-										<%= HtmlUtil.escape(assetVocabulary.getTitle(locale)) %>:
-									</span>
+									<%= HtmlUtil.escape(assetVocabulary.getTitle(locale)) %>:
 							</c:if>
 
 							<a class="asset-category" href="<%= categoryURL.toString() %>">

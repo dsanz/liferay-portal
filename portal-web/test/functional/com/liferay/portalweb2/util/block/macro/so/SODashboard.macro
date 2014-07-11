@@ -1,6 +1,8 @@
 <definition>
 	<command name="addWhatsHappeningEntry">
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
+
+		<execute macro="SODashboard#configureWhatsHappeningDisplayPG" />
 
 		<if>
 			<condition action="SODashboard#isElementNotPresent" locator-key1="WHATS_HAPPENING_ENTRY_CONTENT" />
@@ -35,7 +37,9 @@
 	</command>
 
 	<command name="addWhatsHappeningEntryInvalid">
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
+
+		<execute macro="SODashboard#configureWhatsHappeningDisplayPG" />
 
 		<if>
 			<condition action="SODashboard#isElementNotPresent" locator-key1="WHATS_HAPPENING_ENTRY_CONTENT" />
@@ -68,7 +72,7 @@
 		<execute action="SODashboard#click" locator-key1="WHATS_HAPPENING_POST_BUTTON" />
 		<execute action="SODashboard#pause" value1="1000" />
 
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
 		<if>
 			<condition action="SODashboard#isElementNotPresent" locator-key1="WHATS_HAPPENING_ENTRY_CONTENT" />
@@ -80,8 +84,57 @@
 		<execute action="SODashboard#assertTextNotPresent" value1="${whatsHappeningEntryContent}" />
 	</command>
 
+	<command name="configureWhatsHappeningDisplayPG">
+		<if>
+			<condition action="SODashboard#isElementNotPresent" locator-key1="WHATS_HAPPENING" />
+			<then>
+				<if>
+					<condition action="SOUserBar#isElementNotPresent" locator-key1="VISIBLE_PAGE_CONTROLS" />
+					<then>
+						<execute action="SOUserBar#click" locator-key1="TOGGLE_DOCKBAR" />
+					</then>
+				</if>
+
+				<if>
+					<condition action="SOUserBar#isElementPresent" locator-key1="EDIT_CONTROLS_NOT_FLAGGED" />
+					<then>
+						<execute action="Dockbar#mouseOver" locator-key1="EDIT_CONTROLS" />
+						<execute action="Dockbar#click" locator-key1="EDIT_CONTROLS" />
+					</then>
+				</if>
+
+				<execute action="SODashboard#makeVisible" locator-key1="WHATS_HAPPENING_OPTIONS" />
+				<execute action="SODashboard#click" locator-key1="WHATS_HAPPENING_OPTIONS_LINK" />
+
+				<execute action="BasePortlet#click" locator-key1="OPTIONS_MENULIST_CONFIGURATION" />
+
+				<execute action="SODashboardWhatsHappeningConfiguration#selectFrame" locator-key1="CONFIGURATION_IFRAME" />
+				<execute action="SODashboardWhatsHappeningConfiguration#check" locator-key1="DISPLAY_SETTINGS_DISPLAY_MOST_RECENT_STATUS_CHECKBOX" />
+				<execute action="SODashboardWhatsHappeningConfiguration#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
+				<execute action="SODashboardWhatsHappeningConfiguration#assertTextEquals" locator-key1="SUCCESS_MESSAGE" value1="You have successfully updated the setup." />
+				<execute action="SODashboardWhatsHappeningConfiguration#selectFrameTop" />
+				<execute action="SODashboardWhatsHappeningConfiguration#click" locator-key1="CLOSE_BUTTON" />
+
+				<if>
+					<condition action="SOUserBar#isElementNotPresent" locator-key1="VISIBLE_PAGE_CONTROLS" />
+					<then>
+						<execute action="SOUserBar#click" locator-key1="TOGGLE_DOCKBAR" />
+					</then>
+				</if>
+
+				<if>
+					<condition action="SOUserBar#isElementNotPresent" locator-key1="EDIT_CONTROLS_NOT_FLAGGED" />
+					<then>
+						<execute action="Dockbar#mouseOver" locator-key1="EDIT_CONTROLS" />
+						<execute action="Dockbar#click" locator-key1="EDIT_CONTROLS" />
+					</then>
+				</if>
+			</then>
+		</if>
+	</command>
+
 	<command name="tearDownCP">
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
 		<execute action="Dockbar#assertClick" locator-key1="ADMIN" value1="Admin" />
 		<execute action="Dockbar#assertClick" locator-key1="ADMIN_SITE_ADMINISTRATION_PAGES" value1="Pages" />
@@ -101,7 +154,7 @@
 	</command>
 
 	<command name="tearDownPG">
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
 		<if>
 			<condition action="SOUserBar#isElementNotPresent" locator-key1="VISIBLE_PAGE_CONTROLS" />
@@ -145,6 +198,9 @@
 
 		<execute action="SOUserBar#selectFrameTop" />
 		<execute action="SOUserBar#click" locator-key1="GO_TO" />
+		<execute action="SOUserBar#select" locator-key1="GO_TO_SITE_CATEGORY_SELECT" value1="All Sites" />
+		<execute action="SOUserBar#selectFrameTop" />
+		<execute action="SOUserBar#click" locator-key1="GO_TO" />
 		<execute action="SOUserBar#assertElementPresent" locator-key1="GO_TO_SEARCH_FIELD" />
 
 		<var name="key_siteName" value="${siteName}" />
@@ -153,6 +209,8 @@
 	</command>
 
 	<command name="viewLinkHome">
+		<execute macro="SODashboard#configureWhatsHappeningDisplayPG" />
+
 		<execute action="SODashboard#assertTextEquals" locator-key1="WHATS_HAPPENING_CONTENT_FIELD" value1="Update your status..." />
 		<execute action="SODashboard#assertTextEquals" locator-key1="WHATS_HAPPENING_INFO_MESSAGE" value1="You do not have any microblog entries." />
 
@@ -179,6 +237,9 @@
 
 		<execute action="SOUserBar#selectFrameTop" />
 		<execute action="SOUserBar#click" locator-key1="GO_TO" />
+		<execute action="SOUserBar#select" locator-key1="GO_TO_SITE_CATEGORY_SELECT" value1="All Sites" />
+		<execute action="SOUserBar#selectFrameTop" />
+		<execute action="SOUserBar#click" locator-key1="GO_TO" />
 		<execute action="SOUserBar#assertElementPresent" locator-key1="GO_TO_SEARCH_FIELD" />
 
 		<var name="key_siteName" value="${siteName}" />
@@ -192,6 +253,9 @@
 
 		<var name="siteName" value="Liferay" />
 
+		<execute action="SOUserBar#selectFrameTop" />
+		<execute action="SOUserBar#click" locator-key1="GO_TO" />
+		<execute action="SOUserBar#select" locator-key1="GO_TO_SITE_CATEGORY_SELECT" value1="All Sites" />
 		<execute action="SOUserBar#selectFrameTop" />
 		<execute action="SOUserBar#click" locator-key1="GO_TO" />
 		<execute action="SOUserBar#assertElementPresent" locator-key1="GO_TO_SEARCH_FIELD" />
@@ -217,6 +281,9 @@
 
 		<execute action="SOUserBar#selectFrameTop" />
 		<execute action="SOUserBar#click" locator-key1="GO_TO" />
+		<execute action="SOUserBar#select" locator-key1="GO_TO_SITE_CATEGORY_SELECT" value1="All Sites" />
+		<execute action="SOUserBar#selectFrameTop" />
+		<execute action="SOUserBar#click" locator-key1="GO_TO" />
 		<execute action="SOUserBar#assertElementPresent" locator-key1="GO_TO_SEARCH_FIELD" />
 
 		<var name="key_siteName" value="${siteName}" />
@@ -233,6 +300,9 @@
 
 		<var name="siteName" value="Liferay" />
 
+		<execute action="SOUserBar#selectFrameTop" />
+		<execute action="SOUserBar#click" locator-key1="GO_TO" />
+		<execute action="SOUserBar#select" locator-key1="GO_TO_SITE_CATEGORY_SELECT" value1="All Sites" />
 		<execute action="SOUserBar#selectFrameTop" />
 		<execute action="SOUserBar#click" locator-key1="GO_TO" />
 		<execute action="SOUserBar#assertElementPresent" locator-key1="GO_TO_SEARCH_FIELD" />
@@ -253,6 +323,9 @@
 
 		<execute action="SOUserBar#selectFrameTop" />
 		<execute action="SOUserBar#click" locator-key1="GO_TO" />
+		<execute action="SOUserBar#select" locator-key1="GO_TO_SITE_CATEGORY_SELECT" value1="All Sites" />
+		<execute action="SOUserBar#selectFrameTop" />
+		<execute action="SOUserBar#click" locator-key1="GO_TO" />
 		<execute action="SOUserBar#assertElementPresent" locator-key1="GO_TO_SEARCH_FIELD" />
 
 		<var name="key_siteName" value="${siteName}" />
@@ -261,25 +334,72 @@
 	</command>
 
 	<command name="viewTodaysEvent">
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
 		<var name="key_eventTitle" value="${eventTitle}" />
 
 		<execute action="SODashboard#assertTextEquals" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_TITLE" value1="${eventTitle}" />
 		<execute action="SODashboard#assertTextEquals" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_CREATOR" value1="${userName}" />
-		<execute action="SODashboard#assertElementPresent" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_TIME" />
+
+		<if>
+			<isset var="startDateTime" />
+			<then>
+				<execute action="SODashboard#assertElementPresent" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_TIME" value1="${startDateTime}" />
+			</then>
+			<elseif>
+				<equals arg1="${allDayEvent}" arg2="true" />
+				<then>
+					<execute action="SODashboard#assertElementNotPresent" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_TIME" />
+				</then>
+			</elseif>
+			<else>
+				<execute action="SODashboard#assertElementPresent" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_TIME" />
+			</else>
+		</if>
+
 		<execute action="SODashboard#click" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_TITLE" />
 
 		<execute action="PGCalendarVieweventdetails#assertTextEquals" locator-key1="EVENT_TITLE" value1="${eventTitle}" />
-		<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="START_DATE_FIELD" />
-		<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="END_DATE_FIELD" />
+
+		<if>
+			<isset var="startDateTime" />
+			<then>
+				<execute action="PGCalendarVieweventdetails#assertTextEquals" locator-key1="START_DATE_FIELD" value1="${startDateTime}" />
+			</then>
+			<elseif>
+				<equals arg1="${allDayEvent}" arg2="true" />
+				<then>
+					<execute action="PGCalendarVieweventdetails#assertTextEquals" locator-key1="START_DATE_FIELD" value1="12:00 AM" />
+				</then>
+			</elseif>
+			<else>
+				<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="START_DATE_FIELD" />
+			</else>
+		</if>
+
+		<if>
+			<isset var="endDateTime" />
+			<then>
+				<execute action="PGCalendarVieweventdetails#assertTextEquals" locator-key1="END_DATE_FIELD" value1="${endDateTime}" />
+			</then>
+			<elseif>
+				<equals arg1="${allDayEvent}" arg2="true" />
+				<then>
+					<execute action="PGCalendarVieweventdetails#assertTextEquals" locator-key1="END_DATE_FIELD" value1="11:59 PM" />
+				</then>
+			</elseif>
+			<else>
+				<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="END_DATE_FIELD" />
+			</else>
+		</if>
+
 		<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="RESOURCES_FIELD" />
 		<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="MAYBE_BUTTON" />
 		<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="DECLINE_BUTTON" />
 	</command>
 
 	<command name="viewTodaysEventDeletedEvent">
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
 		<var name="key_eventTitle" value="${eventTitle}" />
 
@@ -300,24 +420,77 @@
 	</command>
 
 	<command name="viewTodaysEventSiteEvent">
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
 		<var name="key_eventTitle" value="${eventTitle}" />
 
 		<execute action="SODashboard#assertTextEquals" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_TITLE" value1="${eventTitle}" />
-		<execute action="SODashboard#assertElementPresent" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_TIME" />
+
+		<if>
+			<isset var="startDateTime" />
+			<then>
+				<execute action="SODashboard#assertElementPresent" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_TIME" value1="${startDateTime}" />
+			</then>
+			<elseif>
+				<equals arg1="${allDayEvent}" arg2="true" />
+				<then>
+					<execute action="SODashboard#assertElementNotPresent" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_TIME" />
+				</then>
+			</elseif>
+			<else>
+				<execute action="SODashboard#assertElementPresent" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_TIME" />
+			</else>
+		</if>
+
 		<execute action="SODashboard#click" locator-key1="EVENTS_DISPLAY_TODAYS_EVENTS_EVENT_TITLE" />
 
 		<execute action="PGCalendarVieweventdetails#assertTextEquals" locator-key1="EVENT_TITLE" value1="${eventTitle}" />
-		<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="START_DATE_FIELD" />
-		<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="END_DATE_FIELD" />
+
+		<if>
+			<isset var="startDateTime" />
+			<then>
+				<execute action="PGCalendarVieweventdetails#assertTextEquals" locator-key1="START_DATE_FIELD" value1="${startDateTime}" />
+			</then>
+			<elseif>
+				<equals arg1="${allDayEvent}" arg2="true" />
+				<then>
+					<execute action="PGCalendarVieweventdetails#assertTextEquals" locator-key1="START_DATE_FIELD" value1="12:00 AM" />
+				</then>
+			</elseif>
+			<else>
+				<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="START_DATE_FIELD" />
+			</else>
+		</if>
+
+		<if>
+			<isset var="endDateTime" />
+			<then>
+				<execute action="PGCalendarVieweventdetails#assertTextEquals" locator-key1="END_DATE_FIELD" value1="${endDateTime}" />
+			</then>
+			<elseif>
+				<equals arg1="${allDayEvent}" arg2="true" />
+				<then>
+					<execute action="PGCalendarVieweventdetails#assertTextEquals" locator-key1="END_DATE_FIELD" value1="11:59 PM" />
+				</then>
+			</elseif>
+			<else>
+				<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="END_DATE_FIELD" />
+			</else>
+		</if>
+
 		<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="RESOURCES_FIELD" />
-		<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="MAYBE_BUTTON" />
-		<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="DECLINE_BUTTON" />
+
+		<if>
+			<equals arg1="${schedulerEventDialogBox}" arg2="true" />
+			<then>
+				<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="MAYBE_BUTTON" />
+				<execute action="PGCalendarVieweventdetails#assertElementPresent" locator-key1="DECLINE_BUTTON" />
+			</then>
+		</if>
 	</command>
 
 	<command name="viewUpcomingEvent">
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
 		<var name="key_eventTitle" value="${eventTitle}" />
 
@@ -335,9 +508,9 @@
 	</command>
 
 	<command name="viewUpcomingTask">
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
-		<var name="currentUser" path="Dockbar" locator-key="USER_NAME" />
+		<var locator-key="USER_NAME" name="currentUser" path="Dockbar" />
 		<var name="key_taskDescription" value="${taskDescription}" />
 
 		<if>
@@ -372,7 +545,7 @@
 			</else>
 		</if>
 
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
 		<execute action="SODashboard#assertClick" locator-key1="VIEW_ALL_TASKS_LINK" value1="View All Tasks" />
 
@@ -382,7 +555,7 @@
 	<command name="viewUpcomingTaskNone">
 		<var name="key_taskDescription" value="${taskDescription}" />
 
-		<execute action="SOUserBar#click" locator-key1="DASHBOARD" />
+		<execute macro="SOUserBar#gotoDashboardPG" />
 
 		<execute action="SODashboard#assertTextEquals" locator-key1="VIEW_ALL_TASKS_LINK" value1="View All Tasks" />
 		<execute action="SODashboard#assertElementNotPresent" locator-key1="TASK_DESCRIPTION_HIGH" />

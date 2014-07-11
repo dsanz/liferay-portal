@@ -14,37 +14,63 @@
  */
 --%>
 
-<%
+<liferay-ui:search-container-column-text
+	name="id"
+	value="<%= String.valueOf(curFolder.getFolderId()) %>"
+/>
 
-// Article id
+<liferay-ui:search-container-column-text
+	name="title"
+>
 
-row.addText(String.valueOf(curFolder.getFolderId()));
+	<%
+	AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(JournalFolder.class.getName());
 
-// Title
+	AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(curFolder.getFolderId());
 
-TextSearchEntry folderTitleTextSearchEntry = new TextSearchEntry();
+	PortletURL rowURL = liferayPortletResponse.createRenderURL();
 
-folderTitleTextSearchEntry.setName(folderTitle);
+	rowURL.setParameter("struts_action", "/journal/view");
+	rowURL.setParameter("redirect", currentURL);
+	rowURL.setParameter("groupId", String.valueOf(curFolder.getGroupId()));
+	rowURL.setParameter("folderId", String.valueOf(curFolder.getFolderId()));
+	rowURL.setParameter("displayStyle", displayStyle);
+	%>
 
-row.addSearchEntry(folderTitleTextSearchEntry);
+	<liferay-ui:icon
+		iconCssClass="<%= assetRenderer.getIconCssClass() %>"
+		label="<%= true %>"
+		message="<%= HtmlUtil.escape(curFolder.getName()) %>"
+		url="<%= rowURL.toString() %>"
+	/>
+</liferay-ui:search-container-column-text>
 
-// Status
+<liferay-ui:search-container-column-text
+	name="status"
+	value="--"
+/>
 
-row.addText("--");
+<liferay-ui:search-container-column-date
+	name="modified-date"
+	value="<%= curFolder.getModifiedDate() %>"
+/>
 
-// Modified date
+<liferay-ui:search-container-column-text
+	name="display-date"
+	value="--"
+/>
 
-row.addDate(curFolder.getModifiedDate());
+<liferay-ui:search-container-column-text
+	name="author"
+	value="<%= PortalUtil.getUserName(curFolder) %>"
+/>
 
-// Display date
+<liferay-ui:search-container-column-text
+	name="type"
+	value="--"
+/>
 
-row.addText("--");
-
-// Author
-
-row.addText(PortalUtil.getUserName(curFolder));
-
-// Action
-
-row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/journal/folder_action.jsp");
-%>
+<liferay-ui:search-container-column-jsp
+	cssClass="entry-action"
+	path="/html/portlet/journal/folder_action.jsp"
+/>

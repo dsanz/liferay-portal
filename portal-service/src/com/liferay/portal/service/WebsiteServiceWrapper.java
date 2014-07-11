@@ -31,6 +31,36 @@ public class WebsiteServiceWrapper implements WebsiteService,
 	}
 
 	/**
+	* @deprecated As of 6.2.0, replaced by {@link #addWebsite(String, long,
+	String, int, boolean, ServiceContext)}
+	*/
+	@Deprecated
+	@Override
+	public com.liferay.portal.model.Website addWebsite(
+		java.lang.String className, long classPK, java.lang.String url,
+		int typeId, boolean primary)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _websiteService.addWebsite(className, classPK, url, typeId,
+			primary);
+	}
+
+	@Override
+	public com.liferay.portal.model.Website addWebsite(
+		java.lang.String className, long classPK, java.lang.String url,
+		int typeId, boolean primary,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _websiteService.addWebsite(className, classPK, url, typeId,
+			primary, serviceContext);
+	}
+
+	@Override
+	public void deleteWebsite(long websiteId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_websiteService.deleteWebsite(websiteId);
+	}
+
+	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
@@ -38,6 +68,19 @@ public class WebsiteServiceWrapper implements WebsiteService,
 	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _websiteService.getBeanIdentifier();
+	}
+
+	@Override
+	public com.liferay.portal.model.Website getWebsite(long websiteId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _websiteService.getWebsite(websiteId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Website> getWebsites(
+		java.lang.String className, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _websiteService.getWebsites(className, classPK);
 	}
 
 	/**
@@ -50,59 +93,10 @@ public class WebsiteServiceWrapper implements WebsiteService,
 		_websiteService.setBeanIdentifier(beanIdentifier);
 	}
 
-	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addWebsite(String, long,
-	String, int, boolean, ServiceContext)}
-	*/
-	@Deprecated
-	@Override
-	public com.liferay.portal.model.Website addWebsite(
-		java.lang.String className, long classPK, java.lang.String url,
-		int typeId, boolean primary)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _websiteService.addWebsite(className, classPK, url, typeId,
-			primary);
-	}
-
-	@Override
-	public com.liferay.portal.model.Website addWebsite(
-		java.lang.String className, long classPK, java.lang.String url,
-		int typeId, boolean primary,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _websiteService.addWebsite(className, classPK, url, typeId,
-			primary, serviceContext);
-	}
-
-	@Override
-	public void deleteWebsite(long websiteId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_websiteService.deleteWebsite(websiteId);
-	}
-
-	@Override
-	public com.liferay.portal.model.Website getWebsite(long websiteId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _websiteService.getWebsite(websiteId);
-	}
-
-	@Override
-	public java.util.List<com.liferay.portal.model.Website> getWebsites(
-		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _websiteService.getWebsites(className, classPK);
-	}
-
 	@Override
 	public com.liferay.portal.model.Website updateWebsite(long websiteId,
 		java.lang.String url, int typeId, boolean primary)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _websiteService.updateWebsite(websiteId, url, typeId, primary);
 	}
 

@@ -14,7 +14,6 @@
 
 package com.liferay.portal.tools;
 
-import com.liferay.portal.ant.Wsdl2JavaTask;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.FileUtil;
@@ -24,6 +23,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.util.ant.Wsdl2JavaTask;
 
 import java.io.File;
 

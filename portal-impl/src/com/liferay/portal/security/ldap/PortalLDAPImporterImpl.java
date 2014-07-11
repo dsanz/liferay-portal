@@ -1155,7 +1155,7 @@ public class PortalLDAPImporterImpl implements PortalLDAPImporter {
 	protected void updateLDAPUser(
 			User ldapUser, Contact ldapContact, User user,
 			Properties userMappings, Properties contactMappings)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Contact contact = user.getContact();
 
@@ -1250,7 +1250,9 @@ public class PortalLDAPImporterImpl implements PortalLDAPImporter {
 			}
 		}
 
-		if (Validator.isNull(ldapUser.getScreenName())) {
+		if (Validator.isNull(ldapUser.getScreenName()) ||
+			ldapUser.isAutoScreenName()) {
+
 			ldapUser.setScreenName(user.getScreenName());
 		}
 

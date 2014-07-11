@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.ManifestSummary;
 import com.liferay.portal.kernel.lar.PortletDataContext;
@@ -44,6 +43,10 @@ import java.util.Set;
  * @author Zsolt Berentey
  */
 public class DeletionSystemEventExporter {
+
+	public static DeletionSystemEventExporter getInstance() {
+		return _instance;
+	}
 
 	public void exportDeletionSystemEvents(
 			PortletDataContext portletDataContext)
@@ -146,7 +149,7 @@ public class DeletionSystemEventExporter {
 			final PortletDataContext portletDataContext,
 			final Element rootElement,
 			final Set<StagedModelType> deletionSystemEventStagedModelTypes)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ActionableDynamicQuery actionableDynamicQuery =
 			SystemEventLocalServiceUtil.getActionableDynamicQuery();
@@ -211,5 +214,11 @@ public class DeletionSystemEventExporter {
 				systemEvent.getClassNameId(),
 				systemEvent.getReferrerClassNameId()));
 	}
+
+	private DeletionSystemEventExporter() {
+	}
+
+	private static DeletionSystemEventExporter _instance =
+		new DeletionSystemEventExporter();
 
 }

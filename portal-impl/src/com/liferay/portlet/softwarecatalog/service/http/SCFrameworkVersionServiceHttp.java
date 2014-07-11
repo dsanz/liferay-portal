@@ -56,8 +56,7 @@ public class SCFrameworkVersionServiceHttp {
 		HttpPrincipal httpPrincipal, java.lang.String name,
 		java.lang.String url, boolean active, int priority,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(SCFrameworkVersionServiceUtil.class,
 					"addFrameworkVersion", _addFrameworkVersionParameterTypes0);
@@ -75,10 +74,6 @@ public class SCFrameworkVersionServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -93,8 +88,7 @@ public class SCFrameworkVersionServiceHttp {
 
 	public static void deleteFrameworkVersion(HttpPrincipal httpPrincipal,
 		long frameworkVersionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(SCFrameworkVersionServiceUtil.class,
 					"deleteFrameworkVersion",
@@ -111,10 +105,6 @@ public class SCFrameworkVersionServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -127,8 +117,7 @@ public class SCFrameworkVersionServiceHttp {
 
 	public static com.liferay.portlet.softwarecatalog.model.SCFrameworkVersion getFrameworkVersion(
 		HttpPrincipal httpPrincipal, long frameworkVersionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(SCFrameworkVersionServiceUtil.class,
 					"getFrameworkVersion", _getFrameworkVersionParameterTypes2);
@@ -146,10 +135,6 @@ public class SCFrameworkVersionServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -163,8 +148,7 @@ public class SCFrameworkVersionServiceHttp {
 	}
 
 	public static java.util.List<com.liferay.portlet.softwarecatalog.model.SCFrameworkVersion> getFrameworkVersions(
-		HttpPrincipal httpPrincipal, long groupId, boolean active)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		HttpPrincipal httpPrincipal, long groupId, boolean active) {
 		try {
 			MethodKey methodKey = new MethodKey(SCFrameworkVersionServiceUtil.class,
 					"getFrameworkVersions", _getFrameworkVersionsParameterTypes3);
@@ -178,10 +162,6 @@ public class SCFrameworkVersionServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception e) {
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -196,7 +176,7 @@ public class SCFrameworkVersionServiceHttp {
 
 	public static java.util.List<com.liferay.portlet.softwarecatalog.model.SCFrameworkVersion> getFrameworkVersions(
 		HttpPrincipal httpPrincipal, long groupId, boolean active, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		try {
 			MethodKey methodKey = new MethodKey(SCFrameworkVersionServiceUtil.class,
 					"getFrameworkVersions", _getFrameworkVersionsParameterTypes4);
@@ -210,10 +190,6 @@ public class SCFrameworkVersionServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception e) {
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -230,8 +206,7 @@ public class SCFrameworkVersionServiceHttp {
 		HttpPrincipal httpPrincipal, long frameworkVersionId,
 		java.lang.String name, java.lang.String url, boolean active,
 		int priority)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(SCFrameworkVersionServiceUtil.class,
 					"updateFrameworkVersion",
@@ -248,10 +223,6 @@ public class SCFrameworkVersionServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);

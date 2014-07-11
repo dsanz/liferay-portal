@@ -19,9 +19,6 @@
 <%@ page import="com.liferay.portal.NoSuchModelException" %><%@
 page import="com.liferay.portal.kernel.sanitizer.SanitizerException" %><%@
 page import="com.liferay.portal.kernel.sanitizer.SanitizerUtil" %><%@
-page import="com.liferay.portlet.documentlibrary.DuplicateFileException" %><%@
-page import="com.liferay.portlet.documentlibrary.FileNameException" %><%@
-page import="com.liferay.portlet.documentlibrary.antivirus.AntivirusScannerException" %><%@
 page import="com.liferay.portlet.social.model.SocialActivity" %><%@
 page import="com.liferay.portlet.social.model.SocialActivityConstants" %><%@
 page import="com.liferay.portlet.social.service.SocialActivityLocalServiceUtil" %><%@
@@ -37,7 +34,9 @@ page import="com.liferay.portlet.wiki.PageTitleException" %><%@
 page import="com.liferay.portlet.wiki.PageVersionException" %><%@
 page import="com.liferay.portlet.wiki.RequiredNodeException" %><%@
 page import="com.liferay.portlet.wiki.WikiFormatException" %><%@
+page import="com.liferay.portlet.wiki.WikiPortletInstanceSettings" %><%@
 page import="com.liferay.portlet.wiki.WikiSettings" %><%@
+page import="com.liferay.portlet.wiki.context.WikiConfigurationDisplayContext" %><%@
 page import="com.liferay.portlet.wiki.importers.WikiImporterKeys" %><%@
 page import="com.liferay.portlet.wiki.model.WikiNode" %><%@
 page import="com.liferay.portlet.wiki.model.WikiPage" %><%@
@@ -60,33 +59,16 @@ page import="com.liferay.portlet.wiki.util.WikiUtil" %><%@
 page import="com.liferay.portlet.wiki.util.comparator.PageVersionComparator" %>
 
 <%
-WikiSettings wikiSettings = WikiUtil.getWikiSettings(scopeGroupId);
+String portletId = portletDisplay.getId();
 
-String displayStyle = wikiSettings.getDisplayStyle();
-long displayStyleGroupId = wikiSettings.getDisplayStyleGroupId(themeDisplay.getScopeGroupId());
-boolean enableRelatedAssets = wikiSettings.getEnableRelatedAssets();
-boolean enablePageRatings = wikiSettings.getEnablePageRatings();
-boolean enableComments = wikiSettings.getEnableComments();
-boolean enableCommentRatings = wikiSettings.getEnableCommentRatings();
-
-List<WikiNode> allNodes = WikiNodeServiceUtil.getNodes(scopeGroupId);
-List<String> allNodeNames = WikiUtil.getNodeNames(allNodes);
-
-String[] visibleNodes = wikiSettings.getVisibleNodes();
-
-if (ArrayUtil.isNotEmpty(visibleNodes)) {
-	allNodes = WikiUtil.orderNodes(allNodes, visibleNodes);
-}
-else {
-	visibleNodes = allNodeNames.toArray(new String[allNodeNames.size()]);
+if (portletId.equals(PortletKeys.PORTLET_CONFIGURATION)) {
+	 portletId = ParamUtil.getString(request, "portletResource");
 }
 
-String[] hiddenNodes = wikiSettings.getHiddenNodes();
+WikiPortletInstanceSettings wikiPortletInstanceSettings = WikiPortletInstanceSettings.getInstance(layout, portletId);
+WikiSettings wikiSettings = WikiSettings.getInstance(scopeGroupId);
 
-boolean enableRSS = wikiSettings.getEnableRSS();
-int rssDelta = wikiSettings.getRssDelta();
-String rssDisplayStyle = wikiSettings.getRssDisplayStyle();
-String rssFeedType = wikiSettings.getRssFeedType();
+WikiConfigurationDisplayContext wikiConfigurationDisplayContext = new WikiConfigurationDisplayContext(request, wikiPortletInstanceSettings);
 
 Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
 %>

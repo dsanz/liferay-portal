@@ -15,20 +15,19 @@
 package com.liferay.portlet.dynamicdatamapping.service;
 
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
+import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecord;
 import com.liferay.portlet.dynamicdatamapping.RequiredStructureException;
+import com.liferay.portlet.dynamicdatamapping.StructureDefinitionException;
 import com.liferay.portlet.dynamicdatamapping.StructureDuplicateElementException;
 import com.liferay.portlet.dynamicdatamapping.StructureDuplicateStructureKeyException;
 import com.liferay.portlet.dynamicdatamapping.StructureNameException;
-import com.liferay.portlet.dynamicdatamapping.StructureXsdException;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructureConstants;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
@@ -43,70 +42,30 @@ import org.junit.runner.RunWith;
 /**
  * @author Eduardo Garcia
  */
-@ExecutionTestListeners(
-	listeners = {
-		EnvironmentExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class DDMStructureServiceTest extends BaseDDMServiceTestCase {
 
 	@Test
-	public void testAddStructureWithDuplicateKey() throws Exception {
-		String structureKey = ServiceTestUtil.randomString();
-		String storageType = StorageType.XML.getValue();
-
-		try {
-			addStructure(
-				_classNameId, structureKey, "Test Structure 1",
-				getTestStructureXsd(storageType), storageType,
-				DDMStructureConstants.TYPE_DEFAULT);
-
-			addStructure(
-				_classNameId, structureKey, "Test Structure 2",
-				getTestStructureXsd(storageType), storageType,
-				DDMStructureConstants.TYPE_DEFAULT);
-
-			Assert.fail();
-		}
-		catch (StructureDuplicateStructureKeyException sdske) {
-		}
-	}
-
-	@Test
-	public void testAddStructureWithoutName() throws Exception {
-		String storageType = StorageType.XML.getValue();
-
-		try {
-			addStructure(
-				_classNameId, null, StringPool.BLANK,
-				getTestStructureXsd(storageType), storageType,
-				DDMStructureConstants.TYPE_DEFAULT);
-
-			Assert.fail();
-		}
-		catch (StructureNameException sne) {
-		}
-	}
-
-	@Test
-	public void testAddStructureWithoutXsd() throws Exception {
-		try {
-			addStructure(
-				_classNameId, null, "Test Structure", StringPool.BLANK,
-				StorageType.XML.getValue(), DDMStructureConstants.TYPE_DEFAULT);
-
-			Assert.fail();
-		}
-		catch (StructureXsdException sxe) {
-		}
-	}
-
-	@Test
-	public void testAddStructureWithXsdContainingDuplicateElementName()
+	public void testAddStructureMissingRequiredElementAttribute()
 		throws Exception {
 
+		String storageType = StorageType.XML.getValue();
+
+		try {
+			addStructure(
+				_classNameId, null, "Test Structure",
+				readText("ddm-structure-required-element-attribute.xsd"),
+				storageType, DDMStructureConstants.TYPE_DEFAULT);
+
+			Assert.fail();
+		}
+		catch (StructureDefinitionException sde) {
+		}
+	}
+
+	@Test
+	public void testAddStructureWithDuplicateElementName() throws Exception {
 		String storageType = StorageType.XML.getValue();
 
 		try {
@@ -122,7 +81,7 @@ public class DDMStructureServiceTest extends BaseDDMServiceTestCase {
 	}
 
 	@Test
-	public void testAddStructureWithXsdContainingDuplicateElementNameInParent()
+	public void testAddStructureWithDuplicateElementNameInParent()
 		throws Exception {
 
 		String storageType = StorageType.XML.getValue();
@@ -146,9 +105,29 @@ public class DDMStructureServiceTest extends BaseDDMServiceTestCase {
 	}
 
 	@Test
-	public void testAddStructureWithXsdContainingInvalidElementAttribute()
-		throws Exception {
+	public void testAddStructureWithDuplicateKey() throws Exception {
+		String structureKey = RandomTestUtil.randomString();
+		String storageType = StorageType.XML.getValue();
 
+		try {
+			addStructure(
+				_classNameId, structureKey, "Test Structure 1",
+				getTestStructureDefinition(storageType), storageType,
+				DDMStructureConstants.TYPE_DEFAULT);
+
+			addStructure(
+				_classNameId, structureKey, "Test Structure 2",
+				getTestStructureDefinition(storageType), storageType,
+				DDMStructureConstants.TYPE_DEFAULT);
+
+			Assert.fail();
+		}
+		catch (StructureDuplicateStructureKeyException sdske) {
+		}
+	}
+
+	@Test
+	public void testAddStructureWithInvalidElementAttribute() throws Exception {
 		String storageType = StorageType.XML.getValue();
 
 		try {
@@ -159,25 +138,36 @@ public class DDMStructureServiceTest extends BaseDDMServiceTestCase {
 
 			Assert.fail();
 		}
-		catch (StructureXsdException sxe) {
+		catch (StructureDefinitionException sde) {
 		}
 	}
 
 	@Test
-	public void testAddStructureWithXsdMissingRequiredElementAttribute()
-		throws Exception {
+	public void testAddStructureWithoutDefinition() throws Exception {
+		try {
+			addStructure(
+				_classNameId, null, "Test Structure", StringPool.BLANK,
+				StorageType.XML.getValue(), DDMStructureConstants.TYPE_DEFAULT);
 
+			Assert.fail();
+		}
+		catch (StructureDefinitionException sde) {
+		}
+	}
+
+	@Test
+	public void testAddStructureWithoutName() throws Exception {
 		String storageType = StorageType.XML.getValue();
 
 		try {
 			addStructure(
-				_classNameId, null, "Test Structure",
-				readText("ddm-structure-required-element-attribute.xsd"),
-				storageType, DDMStructureConstants.TYPE_DEFAULT);
+				_classNameId, null, StringPool.BLANK,
+				getTestStructureDefinition(storageType), storageType,
+				DDMStructureConstants.TYPE_DEFAULT);
 
 			Assert.fail();
 		}
-		catch (StructureXsdException sxe) {
+		catch (StructureNameException sne) {
 		}
 	}
 
@@ -188,7 +178,8 @@ public class DDMStructureServiceTest extends BaseDDMServiceTestCase {
 		DDMStructure copyStructure = copyStructure(structure);
 
 		Assert.assertEquals(structure.getGroupId(), copyStructure.getGroupId());
-		Assert.assertEquals(structure.getXsd(), copyStructure.getXsd());
+		Assert.assertEquals(
+			structure.getDefinition(), copyStructure.getDefinition());
 		Assert.assertEquals(
 			structure.getStorageType(), copyStructure.getStorageType());
 		Assert.assertEquals(structure.getType(), copyStructure.getType());
@@ -320,7 +311,7 @@ public class DDMStructureServiceTest extends BaseDDMServiceTestCase {
 		return DDMStructureLocalServiceUtil.copyStructure(
 			structure.getUserId(), structure.getStructureId(),
 			structure.getNameMap(), structure.getDescriptionMap(),
-			ServiceTestUtil.getServiceContext(group.getGroupId()));
+			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
 	}
 
 	protected DDMStructure updateStructure(DDMStructure structure)
@@ -329,8 +320,8 @@ public class DDMStructureServiceTest extends BaseDDMServiceTestCase {
 		return DDMStructureLocalServiceUtil.updateStructure(
 			structure.getStructureId(), structure.getParentStructureId(),
 			structure.getNameMap(), structure.getDescriptionMap(),
-			structure.getXsd(),
-			ServiceTestUtil.getServiceContext(group.getGroupId()));
+			structure.getDefinition(),
+			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
 	}
 
 	private long _classNameId = PortalUtil.getClassNameId(DDLRecord.class);

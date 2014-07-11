@@ -20,8 +20,9 @@
 String[] configurationSections = PropsValues.COMPANY_SETTINGS_FORM_CONFIGURATION;
 String[] identificationSections = PropsValues.COMPANY_SETTINGS_FORM_IDENTIFICATION;
 String[] miscellaneousSections = PropsValues.COMPANY_SETTINGS_FORM_MISCELLANEOUS;
+String[] socialSections = PropsValues.COMPANY_SETTINGS_FORM_SOCIAL;
 
-String[][] categorySections = {configurationSections, identificationSections, miscellaneousSections};
+String[][] categorySections = {configurationSections, identificationSections, miscellaneousSections, socialSections};
 
 PortletURL portletURL = renderResponse.createRenderURL();
 
@@ -49,7 +50,7 @@ request.setAttribute("websites.classPK", company.getAccountId());
 	<liferay-util:buffer var="htmlTop">
 		<div class="company-info">
 			<p class="float-container">
-				<img alt="<liferay-ui:message key="logo" />" class="company-logo" src="<%= themeDisplay.getPathImage() %>/company_logo?img_id=<%= company.getLogoId() %>&t=<%= WebServerServletTokenUtil.getToken(company.getLogoId()) %>" /><br />
+				<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="logo" />" class="company-logo" src="<%= themeDisplay.getPathImage() %>/company_logo?img_id=<%= company.getLogoId() %>&t=<%= WebServerServletTokenUtil.getToken(company.getLogoId()) %>" /><br />
 
 				<span class="company-name"><%= HtmlUtil.escape(company.getName()) %></span>
 			</p>
@@ -67,16 +68,16 @@ request.setAttribute("websites.classPK", company.getAccountId());
 
 <aui:script>
 	function <portlet:namespace />saveCompany() {
-		document.<portlet:namespace />fm.method = "post";
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.UPDATE %>";
+		document.<portlet:namespace />fm.method = 'post';
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.UPDATE %>';
 
 		<portlet:namespace />saveLdap();
 		<portlet:namespace />saveLocales();
 
-		submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/portal_settings/edit_company" /></portlet:actionURL>");
+		submitForm(document.<portlet:namespace />fm, '<portlet:actionURL><portlet:param name="struts_action" value="/portal_settings/edit_company" /></portlet:actionURL>');
 	}
 </aui:script>
 
 <%!
-private static final String[] _CATEGORY_NAMES = {"configuration", "identification", "miscellaneous"};
+private static final String[] _CATEGORY_NAMES = {"configuration", "identification", "miscellaneous", "social"};
 %>

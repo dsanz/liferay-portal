@@ -33,6 +33,27 @@ public class PollsQuestionServiceWrapper implements PollsQuestionService,
 		_pollsQuestionService = pollsQuestionService;
 	}
 
+	@Override
+	public com.liferay.portlet.polls.model.PollsQuestion addQuestion(
+		java.util.Map<java.util.Locale, java.lang.String> titleMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
+		int expirationDateHour, int expirationDateMinute, boolean neverExpire,
+		java.util.List<com.liferay.portlet.polls.model.PollsChoice> choices,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _pollsQuestionService.addQuestion(titleMap, descriptionMap,
+			expirationDateMonth, expirationDateDay, expirationDateYear,
+			expirationDateHour, expirationDateMinute, neverExpire, choices,
+			serviceContext);
+	}
+
+	@Override
+	public void deleteQuestion(long questionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_pollsQuestionService.deleteQuestion(questionId);
+	}
+
 	/**
 	* Returns the Spring bean ID for this bean.
 	*
@@ -41,6 +62,13 @@ public class PollsQuestionServiceWrapper implements PollsQuestionService,
 	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _pollsQuestionService.getBeanIdentifier();
+	}
+
+	@Override
+	public com.liferay.portlet.polls.model.PollsQuestion getQuestion(
+		long questionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _pollsQuestionService.getQuestion(questionId);
 	}
 
 	/**
@@ -54,37 +82,6 @@ public class PollsQuestionServiceWrapper implements PollsQuestionService,
 	}
 
 	@Override
-	public com.liferay.portlet.polls.model.PollsQuestion addQuestion(
-		java.util.Map<java.util.Locale, java.lang.String> titleMap,
-		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
-		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
-		int expirationDateHour, int expirationDateMinute, boolean neverExpire,
-		java.util.List<com.liferay.portlet.polls.model.PollsChoice> choices,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _pollsQuestionService.addQuestion(titleMap, descriptionMap,
-			expirationDateMonth, expirationDateDay, expirationDateYear,
-			expirationDateHour, expirationDateMinute, neverExpire, choices,
-			serviceContext);
-	}
-
-	@Override
-	public void deleteQuestion(long questionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_pollsQuestionService.deleteQuestion(questionId);
-	}
-
-	@Override
-	public com.liferay.portlet.polls.model.PollsQuestion getQuestion(
-		long questionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _pollsQuestionService.getQuestion(questionId);
-	}
-
-	@Override
 	public com.liferay.portlet.polls.model.PollsQuestion updateQuestion(
 		long questionId,
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
@@ -93,8 +90,7 @@ public class PollsQuestionServiceWrapper implements PollsQuestionService,
 		int expirationDateHour, int expirationDateMinute, boolean neverExpire,
 		java.util.List<com.liferay.portlet.polls.model.PollsChoice> choices,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _pollsQuestionService.updateQuestion(questionId, titleMap,
 			descriptionMap, expirationDateMonth, expirationDateDay,
 			expirationDateYear, expirationDateHour, expirationDateMinute,

@@ -35,34 +35,7 @@ import java.util.Set;
  */
 public class JSONWebServiceNaming {
 
-	public String convertClassNameToPath(Class<?> clazz) {
-		String className = clazz.getSimpleName();
-
-		className = StringUtil.replace(className, "Impl", StringPool.BLANK);
-		className = StringUtil.replace(className, "Service", StringPool.BLANK);
-
-		return StringUtil.toLowerCase(className);
-	}
-
-	public String convertImplClassNameToUtilClassName(
-		Class<?> implementationClass) {
-
-		String implementationClassName = implementationClass.getName();
-
-		if (implementationClassName.endsWith("Impl")) {
-			implementationClassName = implementationClassName.substring(
-				0, implementationClassName.length() - 4);
-		}
-
-		String utilClassName = implementationClassName + "Util";
-
-		utilClassName = StringUtil.replace(
-			utilClassName, ".impl.", StringPool.PERIOD);
-
-		return utilClassName;
-	}
-
-	public String convertMethodNameToHttpMethod(Method method) {
+	public String convertMethodToHttpMethod(Method method) {
 		String methodName = method.getName();
 
 		String methodNamePrefix = getMethodNamePrefix(methodName);
@@ -74,8 +47,44 @@ public class JSONWebServiceNaming {
 		return HttpMethods.POST;
 	}
 
-	public String convertMethodNameToPath(Method method) {
+	public String convertMethodToPath(Method method) {
 		return CamelCaseUtil.fromCamelCase(method.getName());
+	}
+
+	public String convertModelClassToImplClassName(Class<?> clazz) {
+		String className = clazz.getName();
+
+		className =
+			StringUtil.replace(className, ".model.", ".model.impl.") +
+				"ModelImpl";
+
+		return className;
+	}
+
+	public String convertServiceClassToPath(Class<?> clazz) {
+		String className = convertServiceClassToSimpleName(clazz);
+
+		return StringUtil.toLowerCase(className);
+	}
+
+	public String convertServiceClassToSimpleName(Class<?> clazz) {
+		String className = clazz.getSimpleName();
+
+		className = StringUtil.replace(className, "Impl", StringPool.BLANK);
+		className = StringUtil.replace(className, "Service", StringPool.BLANK);
+
+		return className;
+	}
+
+	public String convertServiceImplClassToUtilClassName(Class<?> clazz) {
+		String className = clazz.getName();
+
+		if (className.endsWith("Impl")) {
+			className = className.substring(0, className.length() - 4);
+		}
+
+		return StringUtil.replace(
+			className + "Util", ".impl.", StringPool.PERIOD);
 	}
 
 	public boolean isIncludedMethod(Method method) {
@@ -85,7 +94,7 @@ public class JSONWebServiceNaming {
 			return false;
 		}
 
-		if (excludedTypes == null) {
+		if (excludedTypesNames == null) {
 			return true;
 		}
 
@@ -96,8 +105,12 @@ public class JSONWebServiceNaming {
 				parameterType = parameterType.getComponentType();
 			}
 
-			if (excludedTypes.contains(parameterType)) {
-				return false;
+			String parameterTypeName = parameterType.getName();
+
+			for (String excludedTypesName : excludedTypesNames) {
+				if (parameterTypeName.startsWith(excludedTypesName)) {
+					return false;
+				}
 			}
 		}
 
@@ -107,8 +120,12 @@ public class JSONWebServiceNaming {
 			returnType = returnType.getComponentType();
 		}
 
-		if (excludedTypes.contains(returnType)) {
-			return false;
+		String returnTypeName = returnType.getName();
+
+		for (String excludedTypesName : excludedTypesNames) {
+			if (excludedTypesName.startsWith(returnTypeName)) {
+				return false;
+			}
 		}
 
 		return true;
@@ -170,8 +187,8 @@ public class JSONWebServiceNaming {
 		new String[] {"getBeanIdentifier", "setBeanIdentifier"});
 	protected String[] excludedPaths = PropsUtil.getArray(
 		PropsKeys.JSONWS_WEB_SERVICE_PATHS_EXCLUDES);
-	protected Set<Class<?>> excludedTypes = SetUtil.fromArray(
-		new Class<?>[] {InputStream.class, OutputStream.class});
+	protected String[] excludedTypesNames =
+		{InputStream.class.getName(), OutputStream.class.getName(), "javax."};
 	protected String[] includedPaths = PropsUtil.getArray(
 		PropsKeys.JSONWS_WEB_SERVICE_PATHS_INCLUDES);
 	protected Set<String> invalidHttpMethods = SetUtil.fromArray(

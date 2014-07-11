@@ -31,8 +31,6 @@ double version = ParamUtil.getDouble(request, "version");
 			type = null;
 		}
 
-		String status = "approved";
-
 		PortletURL portletURL = renderResponse.createRenderURL();
 
 		portletURL.setParameter("struts_action", "/journal_articles/view");
@@ -75,7 +73,7 @@ double version = ParamUtil.getDouble(request, "version");
 		}
 
 		searchTerms.setDisplayDateLT(new Date());
-		searchTerms.setStatus(status);
+		searchTerms.setStatus(WorkflowConstants.STATUS_APPROVED);
 		searchTerms.setVersion(version);
 		searchTerms.setAdvancedSearch(true);
 
@@ -267,7 +265,7 @@ double version = ParamUtil.getDouble(request, "version");
 					</c:if>
 				</c:when>
 				<c:otherwise>
-					<div class="alert alert-error">
+					<div class="alert alert-danger">
 						<liferay-ui:message key="this-content-has-expired-or-you-do-not-have-the-required-permissions-to-access-it" />
 					</div>
 				</c:otherwise>
@@ -277,8 +275,8 @@ double version = ParamUtil.getDouble(request, "version");
 		} catch (NoSuchArticleException nsae) {
 		%>
 
-			<div class="alert alert-error">
-				<%= LanguageUtil.get(pageContext, "the-selected-web-content-no-longer-exists") %>
+			<div class="alert alert-danger">
+				<%= LanguageUtil.get(request, "the-selected-web-content-no-longer-exists") %>
 			</div>
 
 		<%

@@ -18,7 +18,6 @@ import com.liferay.portal.LocaleException;
 import com.liferay.portal.NoSuchModelException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.trash.TrashHandler;
@@ -642,7 +641,7 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	}
 
 	@Override
-	public String getUserUuid() throws SystemException {
+	public String getUserUuid() {
 		try {
 			User user = UserLocalServiceUtil.getUserById(getUserId());
 
@@ -1352,7 +1351,7 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	}
 
 	@Override
-	public String getStatusByUserUuid() throws SystemException {
+	public String getStatusByUserUuid() {
 		try {
 			User user = UserLocalServiceUtil.getUserById(getStatusByUserId());
 
@@ -1411,7 +1410,7 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	}
 
 	@Override
-	public TrashEntry getTrashEntry() throws PortalException, SystemException {
+	public TrashEntry getTrashEntry() throws PortalException {
 		if (!isInTrash()) {
 			return null;
 		}
@@ -1502,7 +1501,7 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	}
 
 	@Override
-	public boolean isInTrashExplicitly() throws SystemException {
+	public boolean isInTrashExplicitly() {
 		if (!isInTrash()) {
 			return false;
 		}
@@ -1515,6 +1514,22 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 		}
 
 		return false;
+	}
+
+	@Override
+	public boolean isInTrashImplicitly() {
+		if (!isInTrash()) {
+			return false;
+		}
+
+		TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(),
+				getTrashEntryClassPK());
+
+		if (trashEntry != null) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -1660,19 +1675,28 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 			return StringPool.BLANK;
 		}
 
-		return LocalizationUtil.getDefaultLanguageId(xml);
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
+
+		return LocalizationUtil.getDefaultLanguageId(xml, defaultLocale);
 	}
 
 	@Override
 	public void prepareLocalizedFieldsForImport() throws LocaleException {
-		prepareLocalizedFieldsForImport(null);
+		Locale defaultLocale = LocaleUtil.fromLanguageId(getDefaultLanguageId());
+
+		Locale[] availableLocales = LocaleUtil.fromLanguageIds(getAvailableLanguageIds());
+
+		Locale defaultImportLocale = LocalizationUtil.getDefaultImportLocale(JournalArticle.class.getName(),
+				getPrimaryKey(), defaultLocale, availableLocales);
+
+		prepareLocalizedFieldsForImport(defaultImportLocale);
 	}
 
 	@Override
 	@SuppressWarnings("unused")
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException {
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String modelDefaultLanguageId = getDefaultLanguageId();
 

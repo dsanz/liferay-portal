@@ -46,12 +46,58 @@ public class PollsQuestionLocalServiceUtil {
 	*
 	* @param pollsQuestion the polls question
 	* @return the polls question that was added
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.polls.model.PollsQuestion addPollsQuestion(
-		com.liferay.portlet.polls.model.PollsQuestion pollsQuestion)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.polls.model.PollsQuestion pollsQuestion) {
 		return getService().addPollsQuestion(pollsQuestion);
+	}
+
+	public static com.liferay.portlet.polls.model.PollsQuestion addQuestion(
+		long userId,
+		java.util.Map<java.util.Locale, java.lang.String> titleMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
+		int expirationDateHour, int expirationDateMinute, boolean neverExpire,
+		java.util.List<com.liferay.portlet.polls.model.PollsChoice> choices,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .addQuestion(userId, titleMap, descriptionMap,
+			expirationDateMonth, expirationDateDay, expirationDateYear,
+			expirationDateHour, expirationDateMinute, neverExpire, choices,
+			serviceContext);
+	}
+
+	public static void addQuestionResources(
+		com.liferay.portlet.polls.model.PollsQuestion question,
+		boolean addGroupPermissions, boolean addGuestPermissions)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService()
+			.addQuestionResources(question, addGroupPermissions,
+			addGuestPermissions);
+	}
+
+	public static void addQuestionResources(
+		com.liferay.portlet.polls.model.PollsQuestion question,
+		java.lang.String[] groupPermissions, java.lang.String[] guestPermissions)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService()
+			.addQuestionResources(question, groupPermissions, guestPermissions);
+	}
+
+	public static void addQuestionResources(long questionId,
+		boolean addGroupPermissions, boolean addGuestPermissions)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService()
+			.addQuestionResources(questionId, addGroupPermissions,
+			addGuestPermissions);
+	}
+
+	public static void addQuestionResources(long questionId,
+		java.lang.String[] groupPermissions, java.lang.String[] guestPermissions)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService()
+			.addQuestionResources(questionId, groupPermissions, guestPermissions);
 	}
 
 	/**
@@ -66,18 +112,12 @@ public class PollsQuestionLocalServiceUtil {
 	}
 
 	/**
-	* Deletes the polls question with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param questionId the primary key of the polls question
-	* @return the polls question that was removed
-	* @throws PortalException if a polls question with the primary key could not be found
-	* @throws SystemException if a system exception occurred
+	* @throws PortalException
 	*/
-	public static com.liferay.portlet.polls.model.PollsQuestion deletePollsQuestion(
-		long questionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().deletePollsQuestion(questionId);
+	public static com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deletePersistedModel(persistedModel);
 	}
 
 	/**
@@ -85,12 +125,39 @@ public class PollsQuestionLocalServiceUtil {
 	*
 	* @param pollsQuestion the polls question
 	* @return the polls question that was removed
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.polls.model.PollsQuestion deletePollsQuestion(
-		com.liferay.portlet.polls.model.PollsQuestion pollsQuestion)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.polls.model.PollsQuestion pollsQuestion) {
 		return getService().deletePollsQuestion(pollsQuestion);
+	}
+
+	/**
+	* Deletes the polls question with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param questionId the primary key of the polls question
+	* @return the polls question that was removed
+	* @throws PortalException if a polls question with the primary key could not be found
+	*/
+	public static com.liferay.portlet.polls.model.PollsQuestion deletePollsQuestion(
+		long questionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().deletePollsQuestion(questionId);
+	}
+
+	public static void deleteQuestion(
+		com.liferay.portlet.polls.model.PollsQuestion question)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteQuestion(question);
+	}
+
+	public static void deleteQuestion(long questionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteQuestion(questionId);
+	}
+
+	public static void deleteQuestions(long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().deleteQuestions(groupId);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
@@ -102,12 +169,9 @@ public class PollsQuestionLocalServiceUtil {
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return getService().dynamicQuery(dynamicQuery);
 	}
 
@@ -122,12 +186,10 @@ public class PollsQuestionLocalServiceUtil {
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
+	public static <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return getService().dynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -143,14 +205,11 @@ public class PollsQuestionLocalServiceUtil {
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
-	@SuppressWarnings("rawtypes")
-	public static java.util.List dynamicQuery(
+	public static <T> java.util.List<T> dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator) {
 		return getService()
 				   .dynamicQuery(dynamicQuery, start, end, orderByComparator);
 	}
@@ -160,11 +219,9 @@ public class PollsQuestionLocalServiceUtil {
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public static long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
@@ -174,18 +231,15 @@ public class PollsQuestionLocalServiceUtil {
 	* @param dynamicQuery the dynamic query
 	* @param projection the projection to apply to the query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
 	public static long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
-		com.liferay.portal.kernel.dao.orm.Projection projection)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
 		return getService().dynamicQueryCount(dynamicQuery, projection);
 	}
 
 	public static com.liferay.portlet.polls.model.PollsQuestion fetchPollsQuestion(
-		long questionId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long questionId) {
 		return getService().fetchPollsQuestion(questionId);
 	}
 
@@ -195,11 +249,9 @@ public class PollsQuestionLocalServiceUtil {
 	* @param uuid the polls question's UUID
 	* @param companyId the primary key of the company
 	* @return the matching polls question, or <code>null</code> if a matching polls question could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.polls.model.PollsQuestion fetchPollsQuestionByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long companyId) {
 		return getService().fetchPollsQuestionByUuidAndCompanyId(uuid, companyId);
 	}
 
@@ -209,12 +261,34 @@ public class PollsQuestionLocalServiceUtil {
 	* @param uuid the polls question's UUID
 	* @param groupId the primary key of the group
 	* @return the matching polls question, or <code>null</code> if a matching polls question could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.polls.model.PollsQuestion fetchPollsQuestionByUuidAndGroupId(
-		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String uuid, long groupId) {
 		return getService().fetchPollsQuestionByUuidAndGroupId(uuid, groupId);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
+		return getService().getActionableDynamicQuery();
+	}
+
+	/**
+	* Returns the Spring bean ID for this bean.
+	*
+	* @return the Spring bean ID for this bean
+	*/
+	public static java.lang.String getBeanIdentifier() {
+		return getService().getBeanIdentifier();
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext) {
+		return getService().getExportActionableDynamicQuery(portletDataContext);
+	}
+
+	public static com.liferay.portal.model.PersistedModel getPersistedModel(
+		java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -223,31 +297,11 @@ public class PollsQuestionLocalServiceUtil {
 	* @param questionId the primary key of the polls question
 	* @return the polls question
 	* @throws PortalException if a polls question with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.polls.model.PollsQuestion getPollsQuestion(
 		long questionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getPollsQuestion(questionId);
-	}
-
-	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getActionableDynamicQuery();
-	}
-
-	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
-		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getExportActionableDynamicQuery(portletDataContext);
-	}
-
-	public static com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getPersistedModel(primaryKeyObj);
 	}
 
 	/**
@@ -257,12 +311,10 @@ public class PollsQuestionLocalServiceUtil {
 	* @param companyId the primary key of the company
 	* @return the matching polls question
 	* @throws PortalException if a matching polls question could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.polls.model.PollsQuestion getPollsQuestionByUuidAndCompanyId(
 		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getPollsQuestionByUuidAndCompanyId(uuid, companyId);
 	}
 
@@ -273,12 +325,10 @@ public class PollsQuestionLocalServiceUtil {
 	* @param groupId the primary key of the group
 	* @return the matching polls question
 	* @throws PortalException if a matching polls question could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.polls.model.PollsQuestion getPollsQuestionByUuidAndGroupId(
 		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getPollsQuestionByUuidAndGroupId(uuid, groupId);
 	}
 
@@ -292,11 +342,9 @@ public class PollsQuestionLocalServiceUtil {
 	* @param start the lower bound of the range of polls questions
 	* @param end the upper bound of the range of polls questions (not inclusive)
 	* @return the range of polls questions
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.polls.model.PollsQuestion> getPollsQuestions(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int start, int end) {
 		return getService().getPollsQuestions(start, end);
 	}
 
@@ -304,33 +352,29 @@ public class PollsQuestionLocalServiceUtil {
 	* Returns the number of polls questions.
 	*
 	* @return the number of polls questions
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int getPollsQuestionsCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int getPollsQuestionsCount() {
 		return getService().getPollsQuestionsCount();
 	}
 
-	/**
-	* Updates the polls question in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param pollsQuestion the polls question
-	* @return the polls question that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.polls.model.PollsQuestion updatePollsQuestion(
-		com.liferay.portlet.polls.model.PollsQuestion pollsQuestion)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().updatePollsQuestion(pollsQuestion);
+	public static com.liferay.portlet.polls.model.PollsQuestion getQuestion(
+		long questionId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getQuestion(questionId);
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
+	public static java.util.List<com.liferay.portlet.polls.model.PollsQuestion> getQuestions(
+		long groupId) {
+		return getService().getQuestions(groupId);
+	}
+
+	public static java.util.List<com.liferay.portlet.polls.model.PollsQuestion> getQuestions(
+		long groupId, int start, int end) {
+		return getService().getQuestions(groupId, start, end);
+	}
+
+	public static int getQuestionsCount(long groupId) {
+		return getService().getQuestionsCount(groupId);
 	}
 
 	/**
@@ -342,100 +386,15 @@ public class PollsQuestionLocalServiceUtil {
 		getService().setBeanIdentifier(beanIdentifier);
 	}
 
-	public static com.liferay.portlet.polls.model.PollsQuestion addQuestion(
-		long userId,
-		java.util.Map<java.util.Locale, java.lang.String> titleMap,
-		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
-		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
-		int expirationDateHour, int expirationDateMinute, boolean neverExpire,
-		java.util.List<com.liferay.portlet.polls.model.PollsChoice> choices,
-		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .addQuestion(userId, titleMap, descriptionMap,
-			expirationDateMonth, expirationDateDay, expirationDateYear,
-			expirationDateHour, expirationDateMinute, neverExpire, choices,
-			serviceContext);
-	}
-
-	public static void addQuestionResources(long questionId,
-		boolean addGroupPermissions, boolean addGuestPermissions)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService()
-			.addQuestionResources(questionId, addGroupPermissions,
-			addGuestPermissions);
-	}
-
-	public static void addQuestionResources(long questionId,
-		java.lang.String[] groupPermissions, java.lang.String[] guestPermissions)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService()
-			.addQuestionResources(questionId, groupPermissions, guestPermissions);
-	}
-
-	public static void addQuestionResources(
-		com.liferay.portlet.polls.model.PollsQuestion question,
-		boolean addGroupPermissions, boolean addGuestPermissions)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService()
-			.addQuestionResources(question, addGroupPermissions,
-			addGuestPermissions);
-	}
-
-	public static void addQuestionResources(
-		com.liferay.portlet.polls.model.PollsQuestion question,
-		java.lang.String[] groupPermissions, java.lang.String[] guestPermissions)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService()
-			.addQuestionResources(question, groupPermissions, guestPermissions);
-	}
-
-	public static void deleteQuestion(long questionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteQuestion(questionId);
-	}
-
-	public static void deleteQuestion(
-		com.liferay.portlet.polls.model.PollsQuestion question)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteQuestion(question);
-	}
-
-	public static void deleteQuestions(long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		getService().deleteQuestions(groupId);
-	}
-
-	public static com.liferay.portlet.polls.model.PollsQuestion getQuestion(
-		long questionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getQuestion(questionId);
-	}
-
-	public static java.util.List<com.liferay.portlet.polls.model.PollsQuestion> getQuestions(
-		long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getQuestions(groupId);
-	}
-
-	public static java.util.List<com.liferay.portlet.polls.model.PollsQuestion> getQuestions(
-		long groupId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getQuestions(groupId, start, end);
-	}
-
-	public static int getQuestionsCount(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getQuestionsCount(groupId);
+	/**
+	* Updates the polls question in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	*
+	* @param pollsQuestion the polls question
+	* @return the polls question that was updated
+	*/
+	public static com.liferay.portlet.polls.model.PollsQuestion updatePollsQuestion(
+		com.liferay.portlet.polls.model.PollsQuestion pollsQuestion) {
+		return getService().updatePollsQuestion(pollsQuestion);
 	}
 
 	public static com.liferay.portlet.polls.model.PollsQuestion updateQuestion(
@@ -446,8 +405,7 @@ public class PollsQuestionLocalServiceUtil {
 		int expirationDateHour, int expirationDateMinute, boolean neverExpire,
 		java.util.List<com.liferay.portlet.polls.model.PollsChoice> choices,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updateQuestion(userId, questionId, titleMap,
 			descriptionMap, expirationDateMonth, expirationDateDay,
