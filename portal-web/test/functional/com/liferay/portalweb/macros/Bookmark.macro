@@ -341,7 +341,7 @@
 		<execute function="Click" locator1="PGBookmarksSubfolder#BOOKMARK_TABLE_DROPDOWN" />
 
 		<execute function="AssertClick" locator1="PGBookmarksSubfolder#FOLDER_MENU_MOVE_TO_THE_RECYCLE_BIN" value1="Move to the Recycle Bin" />
-		<execute function="AssertTextEquals" locator1="PGBookmarksSubfolder#SUCCESS_MESSAGE_RECYCLE_BIN" value1="moved to the Recycle Bin. Undo" />
+		<execute function="AssertTextEquals#assertPartialText" locator1="PGBookmarksSubfolder#SUCCESS_MESSAGE_RECYCLE_BIN" value1="moved to the Recycle Bin. Undo" />
 	</command>
 
 	<command name="searchCP">
@@ -440,6 +440,21 @@
 
 		<execute function="AssertTextEquals" locator1="CPBookmarks#BOOKMARKS_TABLE_NAME" value1="${bookmarkName}" />
 		<execute function="AssertTextEquals" locator1="CPBookmarks#BOOKMARKS_TABLE_URL" value1="${bookmarkURL}" />
+	</command>
+
+	<command name="viewNoCategoryCP">
+		<execute function="AssertClick" locator1="CPBookmarks#FOLDER_MENU_ADD_BOOKMARK" value1="Add Bookmark" />
+
+		<if>
+			<condition function="IsNotVisible" locator1="CPBookmarksAddbookmark#CATEGORIZATION_TAGS" />
+			<then>
+				<execute function="Click#clickAt" locator1="CPBookmarksAddbookmark#CATEGORIZATION_DROPDOWN" />
+			</then>
+		</if>
+
+		<var name="key_vocabularyName" value="${vocabularyName}" />
+
+		<execute function="AssertElementNotPresent" locator1="CPBookmarksAddbookmark#CATEGORIZATION_SELECT" />
 	</command>
 
 	<command name="viewNoPG">

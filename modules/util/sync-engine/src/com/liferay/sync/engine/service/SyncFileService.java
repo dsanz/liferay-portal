@@ -20,10 +20,9 @@ import com.liferay.sync.engine.model.ModelListener;
 import com.liferay.sync.engine.model.SyncFile;
 import com.liferay.sync.engine.model.SyncFileModelListener;
 import com.liferay.sync.engine.service.persistence.SyncFilePersistence;
+import com.liferay.sync.engine.util.FileKeyUtil;
 import com.liferay.sync.engine.util.FileUtil;
 import com.liferay.sync.engine.util.IODeltaUtil;
-
-import java.io.IOException;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -123,8 +122,9 @@ public class SyncFileService {
 
 		_syncFilePersistence.create(syncFile);
 
-		FileUtil.writeFileKey(
-			Paths.get(filePathName), String.valueOf(syncFile.getSyncFileId()));
+		FileKeyUtil.writeFileKey(
+			Paths.get(filePathName), String.valueOf(syncFile.getSyncFileId()),
+			true);
 
 		IODeltaUtil.checksums(syncFile);
 
@@ -571,10 +571,8 @@ public class SyncFileService {
 
 		// Local sync file
 
-		if (FileUtil.getFileKey(filePath) != syncFile.getSyncFileId()) {
-			FileUtil.writeFileKey(
-				filePath, String.valueOf(syncFile.getSyncFileId()));
-		}
+		FileKeyUtil.writeFileKey(
+			filePath, String.valueOf(syncFile.getSyncFileId()), true);
 
 		Path deltaFilePath = null;
 
@@ -670,12 +668,7 @@ public class SyncFileService {
 
 				@Override
 				public void run() {
-					try {
-						Files.deleteIfExists(filePath);
-					}
-					catch (IOException ioe) {
-						_logger.error(ioe.getMessage(), ioe);
-					}
+					FileUtil.deleteFile(filePath);
 				}
 
 			};

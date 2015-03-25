@@ -3682,7 +3682,6 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		subscriptionSender.setLocalizedSubjectMap(localizedSubjectMap);
 		subscriptionSender.setMailId("user", user.getUserId());
 		subscriptionSender.setServiceContext(serviceContext);
-		subscriptionSender.setUserId(user.getUserId());
 
 		subscriptionSender.addRuntimeSubscribers(toAddress, toName);
 
@@ -6088,12 +6087,9 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		}
 
 		for (String key : params.keySet()) {
-			if (!key.equals("inherit") &&
-				!key.equals("usersGroups") &&
-				!key.equals("usersOrgs") &&
-				!key.equals("usersOrgsCount") &&
-				!key.equals("usersRoles") &&
-				!key.equals("usersTeams") &&
+			if (!key.equals("inherit") && !key.equals("usersGroups") &&
+				!key.equals("usersOrgs") && !key.equals("usersOrgsCount") &&
+				!key.equals("usersRoles") && !key.equals("usersTeams") &&
 				!key.equals("usersUserGroups")) {
 
 				return true;
@@ -6160,7 +6156,6 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		subscriptionSender.setLocalizedSubjectMap(localizedSubjectMap);
 		subscriptionSender.setMailId("user", user.getUserId());
 		subscriptionSender.setServiceContext(serviceContext);
-		subscriptionSender.setUserId(user.getUserId());
 
 		subscriptionSender.addRuntimeSubscribers(toAddress, toName);
 
@@ -6270,7 +6265,6 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		subscriptionSender.setLocalizedSubjectMap(localizedSubjectMap);
 		subscriptionSender.setMailId("user", user.getUserId());
 		subscriptionSender.setServiceContext(serviceContext);
-		subscriptionSender.setUserId(user.getUserId());
 
 		subscriptionSender.addRuntimeSubscribers(toAddress, toName);
 

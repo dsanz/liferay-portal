@@ -39,35 +39,17 @@ if (SessionMessages.contains(portletRequest, portletDisplay.getId() + SessionMes
 
 			trashedEntriesCount = primaryKeys.length;
 		}
-
-		String restoreNamespace = namespace;
-
-		if (Validator.isNull(portletURL)) {
-			long controlPanelPlid = PortalUtil.getControlPanelPlid(themeDisplay.getCompanyId());
-
-			PortletURL restoreURL = PortletURLFactoryUtil.create(request, PortletKeys.TRASH, controlPanelPlid, PortletRequest.ACTION_PHASE);
-
-			restoreURL.setParameter("struts_action", "/trash/edit_entry");
-			restoreURL.setParameter(Constants.CMD, Constants.RESTORE);
-			restoreURL.setParameter("redirect", redirect);
-			restoreURL.setWindowState(WindowState.MAXIMIZED);
-
-			portletURL = restoreURL.toString();
-
-			restoreNamespace = PortalUtil.getPortletNamespace(PortletKeys.TRASH);
-		}
 %>
 
 		<div class="alert alert-success taglib-trash-undo">
-			<aui:form action="<%= portletURL %>" name="undoForm" portletNamespace="<%= restoreNamespace %>">
+			<aui:form action="<%= portletURL %>" name="undoForm">
 				<liferay-util:buffer var="trashLink">
 					<c:choose>
 						<c:when test="<%= themeDisplay.isShowSiteAdministrationIcon() %>">
-							<liferay-portlet:renderURL plid="<%= PortalUtil.getControlPanelPlid(company.getCompanyId()) %>" portletName="<%= PortletKeys.TRASH %>" varImpl="trashURL" windowState="<%= WindowState.NORMAL.toString() %>">
-								<portlet:param name="struts_action" value="/trash/view" />
-							</liferay-portlet:renderURL>
 
 							<%
+							PortletURL trashURL = TrashUtil.getViewURL(request);
+
 							String trashURLString = HttpUtil.setParameter(trashURL.toString(), "doAsGroupId", String.valueOf(themeDisplay.getScopeGroupId()));
 
 							if (!layout.isTypeControlPanel() || Validator.isNull(themeDisplay.getControlPanelCategory())) {
@@ -125,13 +107,10 @@ if (SessionMessages.contains(portletRequest, portletDisplay.getId() + SessionMes
 						<liferay-util:buffer var="trashEntityLink">
 							<c:choose>
 								<c:when test="<%= !Validator.equals(cmd, Constants.REMOVE) && themeDisplay.isShowSiteAdministrationIcon() && Validator.isNotNull(className) && Validator.isNotNull(title) && Validator.isNotNull(primaryKeys[0]) %>">
-									<liferay-portlet:renderURL plid="<%= PortalUtil.getControlPanelPlid(company.getCompanyId()) %>" portletName="<%= PortletKeys.TRASH %>" varImpl="trashURL" windowState="<%= WindowState.NORMAL.toString() %>">
-										<portlet:param name="struts_action" value="/trash/view_content" />
-										<portlet:param name="redirect" value="<%= currentURL %>" />
-										<portlet:param name="trashEntryId" value="<%= String.valueOf(primaryKeys[0]) %>" />
-									</liferay-portlet:renderURL>
 
 									<%
+									PortletURL trashURL = TrashUtil.getViewContentURL(request, GetterUtil.getLong(primaryKeys[0]));
+
 									String trashURLString = HttpUtil.setParameter(trashURL.toString(), "doAsGroupId", String.valueOf(themeDisplay.getScopeGroupId()));
 
 									if (Validator.isNull(themeDisplay.getControlPanelCategory())) {
@@ -158,7 +137,7 @@ if (SessionMessages.contains(portletRequest, portletDisplay.getId() + SessionMes
 					</c:otherwise>
 				</c:choose>
 
-				<a class="btn btn-primary btn-sm trash-undo-link" href="javascript:;" id="<%= restoreNamespace %>undo"><liferay-ui:message key="undo" /></a>
+				<a class="btn btn-primary btn-sm trash-undo-link" href="javascript:;" id="<portlet:namespace />undo"><liferay-ui:message key="undo" /></a>
 
 				<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 
@@ -182,10 +161,10 @@ if (SessionMessages.contains(portletRequest, portletDisplay.getId() + SessionMes
 		</div>
 
 		<aui:script sandbox="<%= true %>">
-			$('#<%= restoreNamespace %>undo').on(
+			$('#<portlet:namespace />undo').on(
 				'click',
 				function(event) {
-					submitForm(document.<%= restoreNamespace %>undoForm);
+					submitForm(document.<portlet:namespace />undoForm);
 				}
 			);
 		</aui:script>

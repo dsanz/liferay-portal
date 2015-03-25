@@ -338,7 +338,7 @@
 		</execute>
 
 		<execute macro="WebContent#viewCP">
-			<var name="expirationDate" value="${expirationDate}" />
+			<var name="expirationDate" value="01/02/3000" />
 			<var name="webContentContent" value="WC WebContent Content" />
 			<var name="webContentTitle" value="WC WebContent Title" />
 		</execute>
@@ -1098,6 +1098,7 @@
 		</execute>
 
 		<execute macro="Page#gotoContentCP">
+			<var name="nonAdminUser" value="true" />
 			<var name="portletName" value="Web Content" />
 		</execute>
 

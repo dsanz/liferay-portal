@@ -273,6 +273,15 @@
 		<execute function="AssertTextEquals" locator1="CPContenttargetingAddusersegment#INFO_MESSAGE" value1="No User Segments were found" />
 	</command>
 
+	<command name="editGenderRule">
+		<var name="key_userSegment" value="${userSegmentName}" />
+
+		<execute function="Click" locator1="CPContenttargetingEditusersegment#USER_SEGMENT_TABLE_ACTIONS" />
+		<execute function="Click" locator1="CPContenttargetingEditusersegment#USER_SEGMENT_TABLE_ACTIONS_MENULIST_EDIT" />
+
+		<execute function="Click" locator1="CPContenttargetingAddusersegment#USER_SEGMENT_RULE_USER_ATTRIBUTES_GENDER_${genderRadioPath}_RADIO" />
+	</command>
+
 	<command name="editUserSegmentCP">
 		<var name="key_userSegment" value="${userSegmentName}" />
 
@@ -319,6 +328,15 @@
 
 		<execute function="AssertTextEquals" locator1="CPContenttargeting#USER_SEGMENT_TABLE_NAME" value1="${userSegmentName}" />
 		<execute function="AssertTextEquals" locator1="CPContenttargeting#USER_SEGMENT_TABLE_DESCRIPTION" value1="${userSegmentDescription}" />
+	</command>
+
+	<command name="viewImportContentVisitedRuleEmpty">
+		<var name="key_userSegment" value="${userSegmentName}" />
+
+		<execute function="Click" locator1="CPContenttargetingEditusersegment#USER_SEGMENT_TABLE_ACTIONS" />
+		<execute function="Click" locator1="CPContenttargetingEditusersegment#USER_SEGMENT_TABLE_ACTIONS_MENULIST_EDIT" />
+
+		<execute function="AssertElementNotPresent#assertNotVisible" locator1="CPContenttargetingEditusersegment#USER_SEGMENT_RULE_CONTENT_VISITED_CONTENT_TITLE" />
 	</command>
 
 	<command name="viewNotPresentCP">

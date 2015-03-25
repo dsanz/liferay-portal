@@ -722,7 +722,7 @@ public class JournalConverterUtilTest extends BaseDDMServiceTestCase {
 		field.setDDMStructureId(ddmStructureId);
 		field.setName("multi-list");
 
-		field.addValue(_enLocale, "[\"a\",\"b\"]");
+		field.addValue(_enLocale, "[\"a\"]");
 
 		return field;
 	}
@@ -899,7 +899,7 @@ public class JournalConverterUtilTest extends BaseDDMServiceTestCase {
 				String.valueOf(privateLayout.getLayoutId()),
 				String.valueOf(privateUserLayout.getLayoutId()),
 				String.valueOf(publicLayout.getLayoutId()),
-				String.valueOf(publicUserLayout.getLayoutId()),
+				String.valueOf(publicUserLayout.getLayoutId())
 			});
 	}
 

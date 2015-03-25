@@ -14,6 +14,7 @@
 
 package com.liferay.portal.security.exportimport.bundle.userexporterutil;
 
+import com.liferay.portal.kernel.util.StackTraceUtil;
 import com.liferay.portal.model.Contact;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.exportimport.UserExporter;
@@ -40,27 +41,21 @@ public class TestUserExporter implements UserExporter {
 	public void exportUser(
 		Contact contact, Map<String, Serializable> contactExpandoAttributes) {
 
-		_atomicReference.set(
-			TestUserExporter.class.getName() + "#exportUser(" +
-				Contact.class.getName() + ", " + Map.class.getName() + ")");
+		_atomicReference.set(StackTraceUtil.getCallerKey());
 	}
 
 	@Override
 	public void exportUser(
 		long userId, long userGroupId, UserOperation userOperation) {
 
-		_atomicReference.set(
-			TestUserExporter.class.getName() + "#exportUser(long, long, " +
-				UserOperation.class.getName() + ")");
+		_atomicReference.set(StackTraceUtil.getCallerKey());
 	}
 
 	@Override
 	public void exportUser(
 		User user, Map<String, Serializable> userExpandoAttributes) {
 
-		_atomicReference.set(
-			TestUserExporter.class.getName() + "#exportUser(" +
-				User.class.getName() + ", " + Map.class.getName() + ")");
+		_atomicReference.set(StackTraceUtil.getCallerKey());
 	}
 
 	@Reference(target = "(test=AtomicState)")

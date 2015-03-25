@@ -37,6 +37,8 @@ import com.liferay.sync.engine.service.SyncWatchEventService;
 import com.liferay.sync.engine.service.persistence.SyncAccountPersistence;
 import com.liferay.sync.engine.upgrade.util.UpgradeUtil;
 import com.liferay.sync.engine.util.ConnectionRetryUtil;
+import com.liferay.sync.engine.util.FileKeyUtil;
+import com.liferay.sync.engine.util.FileLockRetryUtil;
 import com.liferay.sync.engine.util.FileUtil;
 import com.liferay.sync.engine.util.LoggerUtil;
 import com.liferay.sync.engine.util.OSDetector;
@@ -175,7 +177,7 @@ public class SyncEngine {
 		SyncFile syncFile = SyncFileService.fetchSyncFile(
 			syncAccount.getFilePathName());
 
-		if (FileUtil.getFileKey(filePath) != syncFile.getSyncFileId()) {
+		if (!FileKeyUtil.hasFileKey(filePath, syncFile.getSyncFileId())) {
 			syncAccount.setActive(false);
 			syncAccount.setUiEvent(
 				SyncAccount.UI_EVENT_SYNC_ACCOUNT_FOLDER_MISSING);
@@ -244,6 +246,8 @@ public class SyncEngine {
 
 		UpgradeUtil.upgrade();
 
+		FileLockRetryUtil.init();
+
 		for (SyncAccount syncAccount : SyncAccountService.findAll()) {
 			scheduleSyncAccountTasks(syncAccount.getSyncAccountId());
 		}
@@ -266,6 +270,8 @@ public class SyncEngine {
 		_executorService.shutdownNow();
 		_localEventsScheduledExecutorService.shutdownNow();
 		_remoteEventsScheduledExecutorService.shutdownNow();
+
+		FileLockRetryUtil.shutdown();
 
 		SyncAccountPersistence syncAccountPersistence =
 			SyncAccountService.getSyncAccountPersistence();

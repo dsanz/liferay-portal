@@ -786,17 +786,15 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 				 PortalUtil.isSystemGroup(group.getGroupKey())) &&
 				!CompanyThreadLocal.isDeleteInProcess()) {
 
-				throw new RequiredGroupException(
-					String.valueOf(group.getGroupId()),
-					RequiredGroupException.SYSTEM_GROUP);
+				throw new RequiredGroupException.MustNotDeleteSystemGroup(
+					group.getGroupId());
 			}
 
 			if (groupPersistence.countByC_P_S(
 					group.getCompanyId(), group.getGroupId(), true) > 0) {
 
-				throw new RequiredGroupException(
-					String.valueOf(group.getGroupId()),
-					RequiredGroupException.PARENT_GROUP);
+				throw new RequiredGroupException.MustNotDeleteGroupThatHasChild(
+					group.getGroupId());
 			}
 
 			List<BackgroundTask> backgroundTasks =
@@ -3342,9 +3340,8 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 		if (PortalUtil.isSystemGroup(group.getGroupKey()) &&
 			!groupKey.equals(group.getGroupKey())) {
 
-			throw new RequiredGroupException(
-				String.valueOf(group.getGroupId()),
-				RequiredGroupException.SYSTEM_GROUP);
+			throw new RequiredGroupException.MustNotDeleteSystemGroup(
+				group.getGroupId());
 		}
 
 		validateFriendlyURL(
@@ -4627,8 +4624,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 		}
 
 		if (groupId == parentGroupId) {
-			throw new GroupParentException(
-				GroupParentException.SELF_DESCENDANT);
+			throw new GroupParentException.MustNotBeOwnParent(groupId);
 		}
 
 		Group group = groupPersistence.fetchByPrimaryKey(groupId);
@@ -4643,19 +4639,19 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			// Prevent circular groupal references
 
 			if (isParentGroup(groupId, parentGroupId)) {
-				throw new GroupParentException(
-					GroupParentException.CHILD_DESCENDANT);
+				throw new GroupParentException.MustNotHaveChildParent(
+					groupId, parentGroupId);
 			}
 		}
 
 		Group parentGroup = groupPersistence.findByPrimaryKey(parentGroupId);
 
 		if (group.isStagingGroup()) {
-			Group stagingGroup = parentGroup.getStagingGroup();
+			long stagingGroupId = parentGroup.getStagingGroup().getGroupId();
 
-			if (groupId == stagingGroup.getGroupId()) {
-				throw new GroupParentException(
-					GroupParentException.STAGING_DESCENDANT);
+			if (groupId == stagingGroupId) {
+				throw new GroupParentException.MustNotHaveStagingParent(
+					groupId, stagingGroupId);
 			}
 		}
 	}

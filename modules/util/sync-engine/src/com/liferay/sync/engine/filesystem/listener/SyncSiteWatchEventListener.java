@@ -25,6 +25,7 @@ import com.liferay.sync.engine.service.SyncFileService;
 import com.liferay.sync.engine.service.SyncSiteService;
 import com.liferay.sync.engine.service.SyncWatchEventService;
 import com.liferay.sync.engine.util.FileUtil;
+import com.liferay.sync.engine.util.MSOfficeFileUtil;
 
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -100,24 +101,25 @@ public class SyncSiteWatchEventListener extends BaseWatchEventListener {
 			}
 
 			String previousEventType = null;
-
 			Path previousFilePath = null;
+			long previousRepositoryId = 0;
 
 			SyncWatchEvent lastSyncWatchEvent =
 				SyncWatchEventService.getLastSyncWatchEvent(getSyncAccountId());
 
 			if (lastSyncWatchEvent != null) {
 				previousEventType = lastSyncWatchEvent.getEventType();
-
 				previousFilePath = Paths.get(
 					lastSyncWatchEvent.getFilePathName());
+				previousRepositoryId = getRepositoryId(previousFilePath);
 			}
 
 			String fileType = getFileType(eventType, filePath);
 
 			if ((lastSyncWatchEvent == null) ||
 				!previousEventType.equals(
-					SyncWatchEvent.EVENT_TYPE_RENAME_FROM)) {
+					SyncWatchEvent.EVENT_TYPE_RENAME_FROM) ||
+				(previousRepositoryId != repositoryId)) {
 
 				eventType = SyncWatchEvent.EVENT_TYPE_CREATE;
 
@@ -140,10 +142,8 @@ public class SyncSiteWatchEventListener extends BaseWatchEventListener {
 				}
 			}
 			else if (parentFilePath.equals(previousFilePath.getParent())) {
-				String fileName = String.valueOf(filePath.getFileName());
-
-				if (FileUtil.isOfficeTempFile(fileName, filePath) &&
-					!Files.exists(filePath)) {
+				if (MSOfficeFileUtil.isTempRenamedFile(filePath) &&
+					MSOfficeFileUtil.isExcelFile(previousFilePath)) {
 
 					SyncWatchEventService.deleteSyncWatchEvent(
 						lastSyncWatchEvent.getSyncWatchEventId());

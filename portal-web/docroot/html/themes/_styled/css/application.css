@@ -228,10 +228,6 @@
 	.yui3-widget-hd {
 		height: 38px;
 	}
-
-	.lfr-portlet-item {
-		border-width: 0;
-	}
 }
 
 .underlay-hidden {
@@ -1098,44 +1094,6 @@ input.switch {
 .yui3-color-picker-popover {
 	.palette-container {
 		border-collapse: separate;
-	}
-}
-
-.ie {
-	& input.cke_dialog_ui_input_text {
-		height: auto;
-	}
-
-	.proxy.not-intersecting .forbidden-action {
-		right: 2px;
-		top: 2px;
-	}
-}
-
-.ie7 {
-	.menu-content li {
-		z-index: 10;
-	}
-
-	.paginator-link {
-		color: transparent;
-		font-size: 0;
-		overflow: hidden;
-		text-indent: 0;
-		vertical-align: middle;
-	}
-
-	.paginator-page-link {
-		color: #1F1E1E;
-		font-size: 1em;
-		height: auto;
-		line-height: 1.4;
-		overflow: visible;
-		text-indent: 0;
-	}
-
-	.paginator-current-page {
-		color: #FFF;
 	}
 }
 

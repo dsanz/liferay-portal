@@ -17,7 +17,6 @@ package com.liferay.portlet.asset.service.persistence;
 import com.liferay.portal.kernel.cache.Lifecycle;
 import com.liferay.portal.kernel.cache.ThreadLocalCache;
 import com.liferay.portal.kernel.cache.ThreadLocalCacheManager;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -554,9 +553,8 @@ public class AssetEntryQueryTest {
 	}
 
 	protected AssetEntryQuery buildAssetEntryQuery(
-			long groupId, long[] assetCategoryIds, String[] assetTagNames,
-			boolean any, boolean not)
-		throws PortalException {
+		long groupId, long[] assetCategoryIds, String[] assetTagNames,
+		boolean any, boolean not) {
 
 		AssetEntryQuery assetEntryQuery = new AssetEntryQuery();
 
@@ -673,12 +671,12 @@ public class AssetEntryQueryTest {
 			TestPropsValues.getUserId(), StringUtil.randomString(),
 			StringPool.BLANK, StringUtil.randomString(),
 			RandomTestUtil.randomString(), 1, 1, 1965, 0, 0, true, true, null,
-			null, null, serviceContext);
+			StringPool.BLANK, null, null, serviceContext);
 
 		BlogsEntry blogsEntry2 = BlogsEntryLocalServiceUtil.addEntry(
 			TestPropsValues.getUserId(), title, StringPool.BLANK, description,
 			RandomTestUtil.randomString(), 1, 1, 1965, 0, 0, true, true, null,
-			null, null, serviceContext);
+			StringPool.BLANK, null, null, serviceContext);
 
 		threadLocalCache.removeAll();
 
@@ -737,7 +735,7 @@ public class AssetEntryQueryTest {
 		BlogsEntryLocalServiceUtil.addEntry(
 			TestPropsValues.getUserId(), title1, StringPool.BLANK,
 			StringPool.BLANK, RandomTestUtil.randomString(), 1, 1, 1965, 0, 0,
-			true, true, null, null, null, serviceContext);
+			true, true, null, StringPool.BLANK, null, null, serviceContext);
 
 		if (assetCategoryIds2 != null) {
 			serviceContext.setAssetCategoryIds(assetCategoryIds2);
@@ -750,7 +748,7 @@ public class AssetEntryQueryTest {
 		BlogsEntryLocalServiceUtil.addEntry(
 			TestPropsValues.getUserId(), title2, StringPool.BLANK,
 			StringPool.BLANK, RandomTestUtil.randomString(), 1, 1, 1965, 0, 0,
-			true, true, null, null, null, serviceContext);
+			true, true, null, StringPool.BLANK, null, null, serviceContext);
 
 		threadLocalCache.removeAll();
 
@@ -789,12 +787,12 @@ public class AssetEntryQueryTest {
 			TestPropsValues.getUserId(), StringUtil.randomString(),
 			StringPool.BLANK, StringUtil.randomString(),
 			RandomTestUtil.randomString(), 1, 1, 1965, 0, 0, true, true, null,
-			null, null, serviceContext);
+			StringPool.BLANK, null, null, serviceContext);
 
 		BlogsEntryLocalServiceUtil.addEntry(
 			TestPropsValues.getUserId(), title, StringPool.BLANK, description,
 			RandomTestUtil.randomString(), 1, 1, 1965, 0, 0, true, true, null,
-			null, null, serviceContext);
+			StringPool.BLANK, null, null, serviceContext);
 
 		threadLocalCache.removeAll();
 

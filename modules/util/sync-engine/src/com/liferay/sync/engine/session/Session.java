@@ -56,8 +56,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -72,6 +72,8 @@ import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +83,27 @@ import org.slf4j.LoggerFactory;
  * @author Dennis Ju
  */
 public class Session {
+
+	public static HttpClient getAnonymousHttpClient() {
+		if (_anonymousHttpClient != null) {
+			return _anonymousHttpClient;
+		}
+
+		HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+
+		RequestConfig.Builder builder = RequestConfig.custom();
+
+		builder.setConnectTimeout(PropsValues.SYNC_HTTP_CONNECTION_TIMEOUT);
+
+		httpClientBuilder.setDefaultRequestConfig(builder.build());
+		httpClientBuilder.setMaxConnPerRoute(1000);
+		httpClientBuilder.setMaxConnTotal(1000);
+		httpClientBuilder.setRoutePlanner(getHttpRoutePlanner());
+
+		_anonymousHttpClient = httpClientBuilder.build();
+
+		return _anonymousHttpClient;
+	}
 
 	public static HttpRoutePlanner getHttpRoutePlanner() {
 		if (_httpRoutePlanner != null) {
@@ -166,6 +189,73 @@ public class Session {
 			runnable, 0, 1000, TimeUnit.MILLISECONDS);
 	}
 
+	public void asynchronousExecute(
+			final HttpGet httpGet, final Handler<Void> handler)
+		throws Exception {
+
+		Runnable runnable = new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					execute(httpGet, handler);
+				}
+				catch (Exception e) {
+					handler.handleException(e);
+				}
+			}
+
+		};
+
+		_executorService.execute(runnable);
+	}
+
+	public void asynchronousExecute(
+			final HttpPost httpPost, final Map<String, Object> parameters,
+			final Handler<Void> handler)
+		throws Exception {
+
+		Runnable runnable = new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					execute(httpPost, parameters, handler);
+				}
+				catch (Exception e) {
+					handler.handleException(e);
+				}
+			}
+
+		};
+
+		_executorService.execute(runnable);
+	}
+
+	public HttpResponse execute(
+			HttpPost httpPost, Map<String, Object> parameters)
+		throws Exception {
+
+		httpPost.setHeader("Sync-JWT", _token);
+
+		_buildHttpPostBody(httpPost, parameters);
+
+		return _httpClient.execute(_httpHost, httpPost, getBasicHttpContext());
+	}
+
+	public <T> T execute(
+			HttpPost httpPost, Map<String, Object> parameters,
+			Handler<? extends T> handler)
+		throws Exception {
+
+		httpPost.setHeader("Sync-JWT", _token);
+
+		_buildHttpPostBody(httpPost, parameters);
+
+		return _httpClient.execute(
+			_httpHost, httpPost, handler, getBasicHttpContext());
+	}
+
 	public HttpResponse execute(HttpRequest httpRequest) throws Exception {
 		return execute(httpRequest, getBasicHttpContext());
 	}
@@ -194,96 +284,6 @@ public class Session {
 		httpRequest.setHeader("Sync-JWT", _token);
 
 		return _httpClient.execute(_httpHost, httpRequest, httpContext);
-	}
-
-	public void executeAsynchronousGet(
-			final String urlPath, final Handler<Void> handler)
-		throws Exception {
-
-		Runnable runnable = new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					executeGet(urlPath, handler);
-				}
-				catch (Exception e) {
-					handler.handleException(e);
-				}
-			}
-
-		};
-
-		_executorService.execute(runnable);
-	}
-
-	public void executeAsynchronousPost(
-			final String urlPath, final Map<String, Object> parameters,
-			final Handler<Void> handler)
-		throws Exception {
-
-		Runnable runnable = new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					executePost(urlPath, parameters, handler);
-				}
-				catch (Exception e) {
-					handler.handleException(e);
-				}
-			}
-
-		};
-
-		_executorService.execute(runnable);
-	}
-
-	public HttpResponse executeGet(String urlPath) throws Exception {
-		HttpGet httpGet = new HttpGet(urlPath);
-
-		httpGet.setHeader("Sync-JWT", _token);
-
-		return _httpClient.execute(_httpHost, httpGet, getBasicHttpContext());
-	}
-
-	public <T> T executeGet(String urlPath, Handler<? extends T> handler)
-		throws Exception {
-
-		HttpGet httpGet = new HttpGet(urlPath);
-
-		httpGet.setHeader("Sync-JWT", _token);
-
-		return _httpClient.execute(
-			_httpHost, httpGet, handler, getBasicHttpContext());
-	}
-
-	public HttpResponse executePost(
-			String urlPath, Map<String, Object> parameters)
-		throws Exception {
-
-		HttpPost httpPost = new HttpPost(urlPath);
-
-		httpPost.setHeader("Sync-JWT", _token);
-
-		_buildHttpPostBody(httpPost, parameters);
-
-		return _httpClient.execute(_httpHost, httpPost, getBasicHttpContext());
-	}
-
-	public <T> T executePost(
-			String urlPath, Map<String, Object> parameters,
-			Handler<? extends T> handler)
-		throws Exception {
-
-		HttpPost httpPost = new HttpPost(urlPath);
-
-		httpPost.setHeader("Sync-JWT", _token);
-
-		_buildHttpPostBody(httpPost, parameters);
-
-		return _httpClient.execute(
-			_httpHost, httpPost, handler, getBasicHttpContext());
 	}
 
 	public BasicHttpContext getBasicHttpContext() {
@@ -433,18 +433,16 @@ public class Session {
 				Charset.forName("UTF-8")));
 	}
 
-	@SuppressWarnings("deprecation")
 	private SSLConnectionSocketFactory _getTrustingSSLSocketFactory()
 		throws Exception {
 
-		SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
+		SSLContextBuilder sslContextBuilder = SSLContexts.custom();
 
 		sslContextBuilder.loadTrustMaterial(
 			null, new TrustSelfSignedStrategy());
 
 		return new SSLConnectionSocketFactory(
-			sslContextBuilder.build(),
-			SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+			sslContextBuilder.build(), new NoopHostnameVerifier());
 	}
 
 	private HttpEntity _getURLEncodedFormEntity(Map<String, Object> parameters)
@@ -465,6 +463,7 @@ public class Session {
 	private static final Logger _logger = LoggerFactory.getLogger(
 		Session.class);
 
+	private static HttpClient _anonymousHttpClient;
 	private static HttpRoutePlanner _httpRoutePlanner;
 	private static final ScheduledExecutorService _scheduledExecutorService =
 		Executors.newSingleThreadScheduledExecutor();

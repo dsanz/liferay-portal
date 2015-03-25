@@ -774,7 +774,9 @@
 
 		<execute macro="Staging#viewStagingLocalLivePG" />
 
-		<execute macro="Staging#publishToLiveNow" />
+		<execute macro="Staging#gotoPublishToLive" />
+
+		<execute macro="Staging#publishToLive" />
 
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="Staging Test Page" />
@@ -796,38 +798,6 @@
 			<var name="expireContent" value="true" />
 			<var name="webContentContent" value="WC WebContent Content" />
 			<var name="webContentTitle" value="WC WebContent Title" />
-		</execute>
-	</command>
-
-	<command name="ViewCustomTextFieldWidth" priority="3">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Web Content" />
-		</execute>
-
-		<execute macro="WebContentStructures#addCP">
-			<var name="structureDescription" value="WC Structure Description" />
-			<var name="structureFieldNames" value="Text" />
-			<var name="structureName" value="WC Structure Name" />
-		</execute>
-
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Web Content" />
-		</execute>
-
-		<execute macro="WebContentStructures#editFieldSettingCP">
-			<var name="structureFieldNames" value="Text" />
-			<var name="structureName" value="WC Structure Name" />
-			<var name="width" value="true" />
-			<var name="widthSize" value="large" />
-		</execute>
-
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Web Content" />
-		</execute>
-
-		<execute macro="WebContent#viewTextFieldWidth">
-			<var name="structureName" value="WC Structure Name" />
-			<var name="widthSize" value="large" />
 		</execute>
 	</command>
 

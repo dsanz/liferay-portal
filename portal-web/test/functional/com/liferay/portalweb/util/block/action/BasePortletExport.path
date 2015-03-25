@@ -19,6 +19,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EXPORT_IMPORT_IFRAME</td>
+	<td>//iframe[contains(@id,'configurationIframeDialog')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EXPORT_FILE_NAME</td>
 	<td>//input[@id='_86_exportFileName']</td>
 	<td></td>
@@ -201,12 +206,12 @@
 </tr>
 <tr>
 	<td>APPLICATION_CONFIGURATION_CHOOSE_APPLICATION_SUBAPPLICATION_CHECKBOX</td>
-	<td>//div[contains(@class,'widget-content-expanded') and contains(.,'${mainApplication}')]//div[contains(@class,'modal-body')]//input[@data-name='${key_subApplication}']</td>
+	<td>//div[contains(@class,'widget-content-expanded') and contains(.,'${key_applicationName}')]//div[contains(@class,'modal-body')]//input[@data-name='${key_subApplication}']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>APPLICATION_CONFIGURATION_CHOOSE_APPLICATION_SUBAPPLICATION_OK_BUTTON</td>
-	<td>//div[contains(@class,'widget-content-expanded') and contains(.,'${mainApplication}')]//button[contains(.,'OK')]</td>
+	<td>//div[contains(@class,'widget-content-expanded') and contains(.,'${key_applicationName}')]//button[contains(.,'OK')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -231,8 +236,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>CONTENT_CHOOSE_CONTENT_DELETION_CHECKBOX</td>
-	<td>//label[contains(.,'1 Deletions')]/input[2]</td>
+	<td>CONTENT_CHOOSE_CONTENT_EXTRA_CHANGE_LINK</td>
+	<td>//fieldset[@class='fieldset content-options']/div/a[contains(.,'Change')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_CHOOSE_CONTENT_EXTRA_CHANGE_LINK_DELETIONS_CHECKBOX</td>
+	<td>//input[@id='_156_DELETIONSCheckbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_CHOOSE_CONTENT_CONTENT_CHANGE_LINK</td>
+	<td>//a[@data-portlettitle='${key_contentName}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -247,7 +262,12 @@
 </tr>
 <tr>
 	<td>CONTENT_CHOOSE_CONTENT_SUBCONTENT_CHECKBOX</td>
-	<td>//input[@data-name='${key_subContent}']</td>
+	<td>//div[contains(@class,'widget-content-expanded') and contains(.,'${key_contentName}')]//div[contains(@class,'modal-body')]//input[contains(@data-name,'${key_subContent}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_CHOOSE_CONTENT_SUB_SUBCONTENT_CHECKBOX</td>
+	<td>//div[contains(@class,'widget-content-expanded') and contains(.,'${key_contentName}')]//div[contains(@class,'modal-body')]//ul/li[@class='handler-control' and contains(.,'${key_subContent}')]//input[contains(@data-name,'${key_subSubContent}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -312,6 +332,11 @@
 <tr>
 	<td>PERMISSIONS_CHECKBOX</td>
 	<td>//input[@id='_156_PERMISSIONS']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_CHOOSE_CONTENT_CONTENT_CHANGE_LINK</td>
+	<td>//a[@data-portlettitle='${key_contentName}']</td>
 	<td></td>
 </tr>
 </tbody>

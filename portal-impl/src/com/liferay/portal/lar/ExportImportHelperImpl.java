@@ -280,7 +280,7 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 			exportPortletControlsMap.get(PortletDataHandlerKeys.PORTLET_DATA),
 			exportPortletControlsMap.get(PortletDataHandlerKeys.PORTLET_SETUP),
 			exportPortletControlsMap.get(
-				PortletDataHandlerKeys.PORTLET_USER_PREFERENCES),
+				PortletDataHandlerKeys.PORTLET_USER_PREFERENCES)
 		};
 	}
 
@@ -355,7 +355,7 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 			importPortletControlsMap.get(PortletDataHandlerKeys.PORTLET_DATA),
 			importPortletControlsMap.get(PortletDataHandlerKeys.PORTLET_SETUP),
 			importPortletControlsMap.get(
-				PortletDataHandlerKeys.PORTLET_USER_PREFERENCES),
+				PortletDataHandlerKeys.PORTLET_USER_PREFERENCES)
 		};
 	}
 
@@ -1032,7 +1032,7 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 					else if (urlSBString.contains(
 								DATA_HANDLER_PRIVATE_LAYOUT_SET_SECURE_URL) ||
 							 urlSBString.contains(
-								DATA_HANDLER_PRIVATE_LAYOUT_SET_URL)) {
+								 DATA_HANDLER_PRIVATE_LAYOUT_SET_URL)) {
 
 						layoutSet = group.getPrivateLayoutSet();
 					}

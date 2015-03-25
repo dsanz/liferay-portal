@@ -2314,7 +2314,7 @@ public class BaseDeployer implements AutoDeployer, Deployer {
 		double webXmlVersion = GetterUtil.getDouble(
 			rootElement.attributeValue("version"), 2.3);
 
-		if (!PropsValues.TCK_URL && (webXmlVersion <= 2.3)) {
+		if (webXmlVersion <= 2.3) {
 			throw new AutoDeployException(
 				webXml.getName() +
 					" must be updated to the Servlet 2.4 specification");
