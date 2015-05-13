@@ -7519,7 +7519,11 @@ public class JournalArticleLocalServiceImpl
 			classNameLocalService.getClassNameId(JournalArticle.class),
 			ddmStructureKey, true);
 
-		validateDDMStructureFields(ddmStructure, classNameId, content);
+		Locale[] contentLocales = LocaleUtil.fromLanguageIds(
+			LocalizationUtil.getAvailableLanguageIds(content));
+
+		validateDDMStructureFields(
+			ddmStructure, classNameId, content, contentLocales);
 
 		if (Validator.isNotNull(ddmTemplateKey)) {
 			DDMTemplate ddmTemplate = ddmTemplateLocalService.getTemplate(
@@ -7646,28 +7650,8 @@ public class JournalArticleLocalServiceImpl
 	}
 
 	protected void validateDDMStructureFields(
-			DDMStructure ddmStructure, long classNameId,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		Fields fields = DDMUtil.getFields(
-			ddmStructure.getStructureId(), serviceContext);
-
-		validateDDMStructureFields(ddmStructure, classNameId, fields);
-	}
-
-	protected void validateDDMStructureFields(
-			DDMStructure ddmStructure, long classNameId,
-			String content)
-		throws PortalException {
-
-		Fields fields = DDMXMLUtil.getFields(ddmStructure, content);
-
-		validateDDMStructureFields(ddmStructure, classNameId, fields);
-	}
-
-	protected void validateDDMStructureFields(
-				DDMStructure ddmStructure, long classNameId, Fields fields)
+			DDMStructure ddmStructure, long classNameId, Fields fields,
+			Locale[] locales)
 		throws PortalException {
 
 		for (com.liferay.portlet.dynamicdatamapping.storage.Field field :
@@ -7677,13 +7661,37 @@ public class JournalArticleLocalServiceImpl
 				throw new StorageFieldNameException();
 			}
 
-			if (ddmStructure.getFieldRequired(field.getName()) &&
-				Validator.isNull(field.getValue()) &&
-				(classNameId == JournalArticleConstants.CLASSNAME_ID_DEFAULT)) {
+			for (Locale locale : locales) {
+				if (ddmStructure.getFieldRequired(field.getName()) &&
+					Validator.isNull(field.getValue(locale)) &&
+					(classNameId ==
+						JournalArticleConstants.CLASSNAME_ID_DEFAULT)) {
 
-				throw new StorageFieldRequiredException();
+					throw new StorageFieldRequiredException();
+				}
 			}
 		}
+	}
+
+	protected void validateDDMStructureFields(
+			DDMStructure ddmStructure, long classNameId,
+			ServiceContext serviceContext, Locale[] locales)
+		throws PortalException {
+
+		Fields fields = DDMUtil.getFields(
+			ddmStructure.getStructureId(), serviceContext);
+
+		validateDDMStructureFields(ddmStructure, classNameId, fields, locales);
+	}
+
+	protected void validateDDMStructureFields(
+			DDMStructure ddmStructure, long classNameId, String content,
+			Locale[] locales)
+		throws PortalException {
+
+		Fields fields = DDMXMLUtil.getFields(ddmStructure, content);
+
+		validateDDMStructureFields(ddmStructure, classNameId, fields, locales);
 	}
 
 	protected void validateDDMStructureId(
