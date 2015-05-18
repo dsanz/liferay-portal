@@ -114,7 +114,22 @@ public class JournalArticleServiceTest {
 
 		testAddArticleRequiredFields(
 			"test-ddm-structure-html-required-field.xml",
-			"test-journal-content-html-empty-required-field.xml", requiredFields);
+			"test-journal-content-html-empty-required-field.xml",
+			requiredFields);
+	}
+
+	@Test(expected = StorageFieldRequiredException.class)
+	public void testAddArticleWithEmptyTranslatedRequiredHTMLField()
+		throws Exception {
+
+		Map<String, String> requiredFields = new HashMap<>();
+
+		requiredFields.put("HTML2030", "<p>Only one translation</p>");
+
+		testAddArticleRequiredFields(
+			"test-ddm-structure-html-required-field.xml",
+			"test-journal-content-html-empty-translated-required-field.xml",
+			requiredFields);
 	}
 
 	@Test
@@ -127,6 +142,22 @@ public class JournalArticleServiceTest {
 			"test-ddm-structure-html-required-field.xml",
 			"test-journal-content-html-required-field.xml", requiredFields);
 	}
+
+	@Test
+	public void testAddArticleWithNotEmptyTranslatedRequiredHTMLField()
+		throws Exception {
+
+		Map<String, String> requiredFields = new HashMap<>();
+
+		requiredFields.put("HTML2030", "<p>One translation</p>");
+		// requiredFields map does not support localized field values
+
+		testAddArticleRequiredFields(
+			"test-ddm-structure-html-required-field.xml",
+			"test-journal-content-html-translated-required-field.xml",
+			requiredFields);
+	}
+
 
 	@Test(expected = StructureDefinitionException.class)
 	public void testCheckArticleWithInvalidStructure() throws Exception {

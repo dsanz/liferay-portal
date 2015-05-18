@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<root available-locales="en_US,es_ES" default-locale="en_US">
+	<dynamic-element name="HTML2030" index="0" type="text_area" index-type="keyword">
+		<dynamic-content language-id="en_US"><![CDATA[<p>Only one translation</p>]]></dynamic-content>
+		<dynamic-content language-id="es_ES"><![CDATA[]]></dynamic-content>
+	</dynamic-element>
+</root>
