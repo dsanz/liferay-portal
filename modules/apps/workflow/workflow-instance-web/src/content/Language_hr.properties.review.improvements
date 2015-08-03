@@ -1,0 +1,10 @@
+an-error-occurred-while-retrieving-the-list-of-instances=Došlo je do pogreške prilikom dohvaćanja popisa zahtjeva za objavu. Molimo kontaktirajte administratora.
+javax.portlet.title.com_liferay_workflow_instance_web_portlet_MyWorkflowInstancePortlet=My Submissions (Automatic Copy)
+javax.portlet.title.com_liferay_workflow_instance_web_portlet_WorkflowInstancePortlet=Submissions (Automatic Copy)
+tasks=Zadaci
+there-are-no-completed-instances=Nema završena objavljivanja zahtjeva.
+there-are-no-completed-instances-started-by-me=Nema završeni radovi zatražio mene.
+there-are-no-pending-instances=Nema tijeku objavljivanja zahtjeva.
+there-are-no-pending-instances-started-by-me=Nema tijeku radovi zatražio mene.
+there-are-no-tasks=Nema zadataka.
+withdraw-submission=Povuci Prijava
