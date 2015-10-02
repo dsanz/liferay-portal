@@ -1,0 +1,16 @@
+add-to-shopping-cart=增加到購物車
+category.shopping=購物
+continue-shopping=繼續購物
+in-the-case-where-a-customer-completes-an-order-that-contains-items-from-many-suppliers=在一個案例中一個顧客完成訂單包含項目從許多供應商：顧客將會收到一個正式通知電子郵件，每個供應商將收到一個確認電子郵件包含屬於他們供應商的項目內容，並且所有購物管理員將會收到給顧客、供應商收到電子郵件的複本。
+javax.portlet.long-title.197=購物
+javax.portlet.long-title.197_WAR_shoppingweb=購物 (Automatic Translation)
+javax.portlet.title.34_WAR_shoppingweb=購物
+javax.portlet.title.197_WAR_shoppingweb=購物
+model.resource.com.liferay.portlet.shopping=購物
+model.resource.com.liferay.portlet.shopping.model.ShoppingCategory=購物類別
+model.resource.com.liferay.portlet.shopping.model.ShoppingItem=購物項目
+model.resource.com.liferay.portlet.shopping.model.ShoppingOrder=購物訂單
+shopping=購物
+shopping-cart=購物車
+shopping-cart-images=購物車圖片
+show-shopping=顯示購物

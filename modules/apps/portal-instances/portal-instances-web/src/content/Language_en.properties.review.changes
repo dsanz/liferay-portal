@@ -1,0 +1,8 @@
+javax.portlet.description.135=Τα Portal Instances επιτρέπουν την εκτέλεση πολλαπλών instances στον ίδιο server. Τα δεδομένα του κάθε instance είναι ξεχωριστά από αυτά όλων των υπόλοιπων instances.
+mail-domain=Mail Domain
+new-portal-instance=New Portal Instance
+please-enter-a-valid-mail-domain=Please enter a valid mail domain.
+please-enter-a-valid-virtual-host=Please enter a valid virtual host.
+please-enter-a-valid-web-id=Please enter a valid web ID.
+virtual-host=Virtual Host
+web-id=Web ID
