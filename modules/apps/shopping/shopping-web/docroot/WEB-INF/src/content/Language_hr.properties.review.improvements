@@ -1,0 +1,16 @@
+add-to-shopping-cart=Dodaj u košaricu
+category.shopping=Kupovina
+continue-shopping=Continue Shopping (Automatic Copy)
+in-the-case-where-a-customer-completes-an-order-that-contains-items-from-many-suppliers=U slučaju kada kupac zaključi narudžbu koja sadrži artikle od više dobavljača: kupac će primiti uobičajenu e-poštu potvrde, svaki dobavljač će primiti e-poštu potvrde s podskupom artikala koji mu pripadaju, a svi administratori kupovine će primiti kopije e-pošta koje su dobili kupac i dobavljači.
+javax.portlet.long-title.197=Kupovina
+javax.portlet.long-title.197_WAR_shoppingweb=Shopping (Automatic Copy)
+javax.portlet.title.34_WAR_shoppingweb=Kupovina
+javax.portlet.title.197_WAR_shoppingweb=Kupovina
+model.resource.com.liferay.portlet.shopping=Prodajni katalog
+model.resource.com.liferay.portlet.shopping.model.ShoppingCategory=Kategorija kupovine
+model.resource.com.liferay.portlet.shopping.model.ShoppingItem=Artikl
+model.resource.com.liferay.portlet.shopping.model.ShoppingOrder=Kupovna narudžba
+shopping=Kupovina
+shopping-cart=Košarica za kupovinu
+shopping-cart-images=Košarica Slike
+show-shopping=Prikaži kupovinu
