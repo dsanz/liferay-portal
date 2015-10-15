@@ -80,10 +80,6 @@ public class CalendarResourceUtil {
 
 		Group group = GroupLocalServiceUtil.getGroup(groupId);
 
-		if (group.isUser()) {
-			return null;
-		}
-
 		CalendarResource calendarResource =
 			CalendarResourceLocalServiceUtil.fetchCalendarResource(
 				PortalUtil.getClassNameId(Group.class), groupId);
