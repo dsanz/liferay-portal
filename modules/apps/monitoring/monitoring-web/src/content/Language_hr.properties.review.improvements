@@ -1,0 +1,14 @@
+accessed-urls=URL-ovi kojima je pristupljeno
+browser-os-type=Vrsta preglednika/OS-a
+display-of-live-session-data-is-disabled=Prikaz podataka aktivne sjednice je onemogućen. Kako biste omogućili, postavite svojstvo portala <strong>{0}</strong> kao istinito.
+javax.portlet.description.com_liferay_monitoring_web_portlet_MonitoringPortlet=Monitoring lets you see all of the live sessions in the portal. For performance reasons, this setting is generally turned off in production. (Automatic Copy)
+javax.portlet.title.com_liferay_monitoring_web_portlet_MonitoringPortlet=Nadzor
+kill-session=Zaustavi sjednicu
+last-request=Posljednji zahtjev
+live-session=Aktivna sjednica
+live-sessions=Aktivne sjednice
+num-of-hits=# pogodaka
+session-attributes=Atributi sesije
+session-id=ID sesije
+session-id-could-not-be-found=Session ID could not be found. (Automatic Copy)
+there-are-no-live-sessions=Nema aktivnih sesija.
