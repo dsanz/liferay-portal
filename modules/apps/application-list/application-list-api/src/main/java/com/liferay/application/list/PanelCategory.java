@@ -30,4 +30,8 @@ public interface PanelCategory extends PanelEntry {
 			HttpServletRequest request, HttpServletResponse response)
 		throws IOException;
 
+	public boolean includeHeader(
+			HttpServletRequest request, HttpServletResponse response)
+		throws IOException;
+
 }
