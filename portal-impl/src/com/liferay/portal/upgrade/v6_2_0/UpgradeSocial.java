@@ -29,9 +29,14 @@ import com.liferay.portlet.documentlibrary.social.DLActivityKeys;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -123,6 +128,146 @@ public class UpgradeSocial extends UpgradeProcess {
 
 				return modifiedDate;
 			}
+		}
+	}
+
+	protected Map<Long, String> generateExtraData(
+			ExtraDataGenerator extraDataGenerator)
+		throws Exception {
+
+		Map<Long, String> extraDataMap = new HashMap<Long, String>();
+
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			StringBundler sb = new StringBundler(4);
+
+			sb.append("select activityId, groupId, companyId, userId, ");
+			sb.append("classNameId, classPK, type_, extraData ");
+			sb.append("from SocialActivity where ");
+			sb.append(extraDataGenerator.getActivityQueryWhereClause());
+
+			ps = con.prepareStatement(sb.toString());
+
+			extraDataGenerator.setActivityQueryParameters(ps);
+
+			rs = ps.executeQuery();
+
+			while (rs.next()) {
+				long activityId = rs.getLong("activityId");
+				long classNameId = rs.getLong("classNameId");
+				long classPK = rs.getLong("classPK");
+				long companyId = rs.getLong("companyId");
+				String extraData = rs.getString("extraData");
+				long groupId = rs.getLong("groupId");
+				int type = rs.getInt("type_");
+				long userId = rs.getLong("userId");
+
+				String newExtraData = generateExtraDataForActivity(
+					extraDataGenerator, groupId, companyId, userId, classNameId,
+					classPK, type, extraData);
+
+				if (newExtraData != null) {
+					extraDataMap.put(activityId, newExtraData);
+				}
+			}
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
+		}
+		return extraDataMap;
+	}
+
+	protected String generateExtraDataForActivity(
+			ExtraDataGenerator extraDataGenerator, long companyId, long groupId,
+			long userId, long classNameId, long classPK, int type,
+			String extraData)
+		throws Exception {
+
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		String result = null;
+
+		try {
+			if (extraDataGenerator != null) {
+				con = DataAccess.getUpgradeOptimizedConnection();
+
+				ps = con.prepareStatement(extraDataGenerator.getEntityQuery());
+
+				extraDataGenerator.setEntityQueryParameters(
+					ps, groupId, companyId, userId, classNameId, classPK, type);
+
+				rs = ps.executeQuery();
+
+				JSONObject extraDataJSONObject = null;
+
+				while (rs.next()) {
+					extraDataJSONObject =
+						extraDataGenerator.getExtraData(rs, extraData);
+				}
+
+				result = extraDataJSONObject.toString();
+			}
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
+		}
+
+		return result;
+	}
+
+	protected void updateActivities() throws Exception {
+		for (ExtraDataGenerator extraDataGenerator : _extraDataGenerators) {
+			updateActivities(extraDataGenerator);
+		}
+	}
+
+	protected void updateActivities(ExtraDataGenerator extraDataGenerator)
+			throws Exception {
+
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		Map<Long, String> extraDataMap = generateExtraData(extraDataGenerator);
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			StringBundler sb = new StringBundler(2);
+
+			sb.append("update SocialActivity set extraData = ? ");
+			sb.append("where activityId = ?");
+
+			String updateActivityQuery = sb.toString();
+
+			for (Map.Entry<Long, String> entry : extraDataMap.entrySet()) {
+				long activityId = entry.getKey();
+				String extraData = entry.getValue();
+				try {
+					ps = con.prepareStatement(updateActivityQuery);
+
+					ps.setString(1, extraData);
+					ps.setLong(2, activityId);
+
+					ps.executeUpdate();
+				}
+				catch (Exception e) {
+					if (_log.isWarnEnabled()) {
+						_log.warn("Unable to update activity " + activityId, e);
+					}
+				}
+			}
+		}
+
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
 		}
 	}
 
@@ -299,6 +444,52 @@ public class UpgradeSocial extends UpgradeProcess {
 		}
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(UpgradeSocial.class);
+	protected Map<Long, String> _extraDataMap = new HashMap<Long, String>();
 
+	protected static final List<ExtraDataGenerator>
+		_extraDataGenerators = new ArrayList<ExtraDataGenerator>();
+
+	protected interface ExtraDataGenerator {
+		/**
+		 * Returns the "where" clause in SocialActivity query to select the
+		 * activities for which this generator will generate extra data
+		 */
+		public String getActivityQueryWhereClause();
+
+		/**
+		 * Returns the query on any model entity which the selected activities
+		 * refer to. Extra data will be generated from these entities
+		 */
+		public String getEntityQuery();
+
+		/**
+		 * Given a result from the #getEntityQuery() and the original extra
+		 * data in the SocialActivity tuple pointing to that entity, computes
+		 * the extra data that will be persisted in the SocialActivity tuple as
+		 * a result of the upgrade process.
+		 *
+		 * @return JSONObject containing the extra data
+		 */
+		public JSONObject getExtraData(
+				ResultSet entityResultSet, String extraData)
+			throws SQLException;
+
+		/**
+		 * Sets parameters required to run the activity query returned by
+		 * #getActivityQueryWhereClause() in this generator
+		 */
+		public void setActivityQueryParameters(PreparedStatement ps)
+			throws SQLException;
+
+		/**
+		 * Sets parameters required to run the entity query returned by
+		 * #getEntityQueryWhereClause() in this generator
+		 */
+		public void setEntityQueryParameters(PreparedStatement ps,
+				long companyId, long groupId, long userId, long classNameId,
+				long classPK, int type)
+			throws SQLException;
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(UpgradeSocial.class);
 }
