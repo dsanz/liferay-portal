@@ -25,12 +25,12 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.trash.service.TrashEntryService;
 import com.liferay.portlet.trash.util.TrashUtil;
 import com.liferay.wiki.constants.WikiPortletKeys;
@@ -285,8 +285,8 @@ public class EditNodeMVCActionCommand extends BaseMVCActionCommand {
 		wikiPortletInstanceOverriddenConfiguration.store();
 	}
 
-	private TrashEntryService _trashEntryService;
-	private WikiNodeLocalService _wikiNodeLocalService;
-	private WikiNodeService _wikiNodeService;
+	private volatile TrashEntryService _trashEntryService;
+	private volatile WikiNodeLocalService _wikiNodeLocalService;
+	private volatile WikiNodeService _wikiNodeService;
 
 }

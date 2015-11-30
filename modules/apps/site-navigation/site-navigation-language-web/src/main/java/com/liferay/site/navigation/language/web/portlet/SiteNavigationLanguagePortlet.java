@@ -67,13 +67,13 @@ public class SiteNavigationLanguagePortlet extends MVCPortlet {
 		super.doDispatch(renderRequest, renderResponse);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setPortletDisplayTemplate(
 		PortletDisplayTemplate portletDisplayTemplate) {
 
 		_portletDisplayTemplate = portletDisplayTemplate;
 	}
 
-	private PortletDisplayTemplate _portletDisplayTemplate;
+	private volatile PortletDisplayTemplate _portletDisplayTemplate;
 
 }

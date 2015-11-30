@@ -14,7 +14,7 @@
 
 package com.liferay.bookmarks.web.application.list;
 
-import com.liferay.application.list.BaseControlPanelEntryPanelApp;
+import com.liferay.application.list.BasePanelApp;
 import com.liferay.application.list.PanelApp;
 import com.liferay.application.list.constants.PanelCategoryKeys;
 import com.liferay.bookmarks.constants.BookmarksPortletKeys;
@@ -34,13 +34,14 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = PanelApp.class
 )
-public class BookmarksPanelApp extends BaseControlPanelEntryPanelApp {
+public class BookmarksPanelApp extends BasePanelApp {
 
 	@Override
 	public String getPortletId() {
 		return BookmarksPortletKeys.BOOKMARKS_ADMIN;
 	}
 
+	@Override
 	@Reference(
 		target = "(javax.portlet.name=" + BookmarksPortletKeys.BOOKMARKS_ADMIN + ")",
 		unbind = "-"

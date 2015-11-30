@@ -19,6 +19,8 @@ import com.liferay.application.list.PanelCategoryRegistry;
 import com.liferay.application.list.constants.ApplicationListWebKeys;
 import com.liferay.application.list.display.context.logic.PanelCategoryHelper;
 import com.liferay.marketplace.app.manager.web.constants.MarketplaceAppManagerPortletKeys;
+import com.liferay.marketplace.bundle.BundleManagerUtil;
+import com.liferay.marketplace.exception.FileExtensionException;
 import com.liferay.marketplace.service.AppService;
 import com.liferay.portal.kernel.deploy.DeployManagerUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
@@ -70,6 +72,7 @@ import javax.portlet.RenderResponse;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.framework.Bundle;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -80,7 +83,7 @@ import org.osgi.service.component.annotations.Reference;
 @Component(
 	immediate = true,
 	property = {
-		"com.liferay.portlet.css-class-wrapper=marketplace-portlet",
+		"com.liferay.portlet.css-class-wrapper=marketplace-app-manager-portlet",
 		"com.liferay.portlet.display-category=category.hidden",
 		"com.liferay.portlet.header-portlet-css=/css/main.css",
 		"com.liferay.portlet.icon=/icons/icon.png",
@@ -101,65 +104,94 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class MarketplaceAppManagerPortlet extends MVCPortlet {
 
-	public void installApp(
+	public void activateBundles(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		long[] bundleIds = StringUtil.split(
+			ParamUtil.getString(actionRequest, "bundleIds"), 0L);
+
+		List<Bundle> bundles = BundleManagerUtil.getInstalledBundles();
+
+		for (Bundle bundle : bundles) {
+			if (ArrayUtil.contains(bundleIds, bundle.getBundleId())) {
+				bundle.start();
+			}
+		}
+	}
+
+	public void deactivateBundles(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		long[] bundleIds = StringUtil.split(
+			ParamUtil.getString(actionRequest, "bundleIds"), 0L);
+
+		List<Bundle> bundles = BundleManagerUtil.getInstalledBundles();
+
+		for (Bundle bundle : bundles) {
+			if (ArrayUtil.contains(bundleIds, bundle.getBundleId())) {
+				bundle.stop();
+			}
+		}
+	}
+
+	public void installLocalApp(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
 		UploadPortletRequest uploadPortletRequest =
 			PortalUtil.getUploadPortletRequest(actionRequest);
 
-		String installMethod = ParamUtil.getString(
-			uploadPortletRequest, "installMethod");
+		String fileName = GetterUtil.getString(
+			uploadPortletRequest.getFileName("file"));
 
-		if (installMethod.equals("local")) {
-			String fileName = GetterUtil.getString(
-				uploadPortletRequest.getFileName("file"));
+		File file = uploadPortletRequest.getFile("file");
 
-			File file = uploadPortletRequest.getFile("file");
+		byte[] bytes = FileUtil.getBytes(file);
 
-			byte[] bytes = FileUtil.getBytes(file);
+		if (ArrayUtil.isEmpty(bytes)) {
+			SessionErrors.add(actionRequest, UploadException.class.getName());
+		}
+		else if (!fileName.endsWith(".jar") && !fileName.endsWith(".lpkg") &&
+				 !fileName.endsWith(".war")) {
 
-			if (ArrayUtil.isEmpty(bytes)) {
-				SessionErrors.add(
-					actionRequest, UploadException.class.getName());
-			}
-			else {
-				String deployDir = PrefsPropsUtil.getString(
-					PropsKeys.AUTO_DEPLOY_DEPLOY_DIR);
-
-				FileUtil.copyFile(
-					file.toString(), deployDir + StringPool.SLASH + fileName);
-
-				SessionMessages.add(actionRequest, "pluginUploaded");
-			}
+			throw new FileExtensionException();
 		}
 		else {
-			try {
-				String url = ParamUtil.getString(uploadPortletRequest, "url");
+			String deployDir = PrefsPropsUtil.getString(
+				PropsKeys.AUTO_DEPLOY_DEPLOY_DIR);
 
-				URL urlObj = new URL(url);
+			FileUtil.copyFile(
+				file.toString(), deployDir + StringPool.SLASH + fileName);
 
-				String host = urlObj.getHost();
-
-				if (host.endsWith("sf.net") ||
-					host.endsWith("sourceforge.net")) {
-
-					doInstallSourceForgeApp(
-						urlObj.getPath(), uploadPortletRequest, actionRequest);
-				}
-				else {
-					doInstallRemoteApp(
-						url, uploadPortletRequest, actionRequest, true);
-				}
-			}
-			catch (MalformedURLException murle) {
-				SessionErrors.add(actionRequest, "invalidUrl", murle);
-			}
+			SessionMessages.add(actionRequest, "pluginUploaded");
 		}
 
-		String redirect = ParamUtil.getString(uploadPortletRequest, "redirect");
+		sendRedirect(actionRequest, actionResponse);
+	}
 
-		actionResponse.sendRedirect(redirect);
+	public void installRemoteApp(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		try {
+			String url = ParamUtil.getString(actionRequest, "url");
+
+			URL urlObj = new URL(url);
+
+			String host = urlObj.getHost();
+
+			if (host.endsWith("sf.net") || host.endsWith("sourceforge.net")) {
+				doInstallSourceForgeApp(urlObj.getPath(), actionRequest);
+			}
+			else {
+				doInstallRemoteApp(url, actionRequest, true);
+			}
+		}
+		catch (MalformedURLException murle) {
+			SessionErrors.add(actionRequest, "invalidURL", murle);
+		}
 	}
 
 	public void uninstallApp(
@@ -181,6 +213,22 @@ public class MarketplaceAppManagerPortlet extends MVCPortlet {
 		}
 
 		SessionMessages.add(actionRequest, "triggeredPortletUndeploy");
+	}
+
+	public void uninstallBundles(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		long[] bundleIds = StringUtil.split(
+			ParamUtil.getString(actionRequest, "bundleIds"), 0L);
+
+		List<Bundle> bundles = BundleManagerUtil.getInstalledBundles();
+
+		for (Bundle bundle : bundles) {
+			if (ArrayUtil.contains(bundleIds, bundle.getBundleId())) {
+				bundle.uninstall();
+			}
+		}
 	}
 
 	public void updatePluginSetting(
@@ -306,14 +354,13 @@ public class MarketplaceAppManagerPortlet extends MVCPortlet {
 	}
 
 	protected int doInstallRemoteApp(
-			String url, UploadPortletRequest uploadPortletRequest,
-			ActionRequest actionRequest, boolean failOnError)
+			String url, ActionRequest actionRequest, boolean failOnError)
 		throws Exception {
 
 		int responseCode = HttpServletResponse.SC_OK;
 
 		String deploymentContext = ParamUtil.getString(
-			uploadPortletRequest, "deploymentContext");
+			actionRequest, "deploymentContext");
 
 		try {
 			String fileName = null;
@@ -377,8 +424,7 @@ public class MarketplaceAppManagerPortlet extends MVCPortlet {
 	}
 
 	protected void doInstallSourceForgeApp(
-			String path, UploadPortletRequest uploadPortletRequest,
-			ActionRequest actionRequest)
+			String path, ActionRequest actionRequest)
 		throws Exception {
 
 		String[] sourceForgeMirrors = PropsUtil.getArray(
@@ -395,7 +441,7 @@ public class MarketplaceAppManagerPortlet extends MVCPortlet {
 				}
 
 				int responseCode = doInstallRemoteApp(
-					url, uploadPortletRequest, actionRequest, failOnError);
+					url, actionRequest, failOnError);
 
 				if (responseCode == HttpServletResponse.SC_OK) {
 					return;
@@ -445,11 +491,11 @@ public class MarketplaceAppManagerPortlet extends MVCPortlet {
 
 	private static final String _DEPLOY_TO_PREFIX = "DEPLOY_TO__";
 
-	private AppService _appService;
-	private PanelAppRegistry _panelAppRegistry;
-	private PanelCategoryRegistry _panelCategoryRegistry;
-	private PluginSettingLocalService _pluginSettingLocalService;
-	private PluginSettingService _pluginSettingService;
-	private PortletService _portletService;
+	private volatile AppService _appService;
+	private volatile PanelAppRegistry _panelAppRegistry;
+	private volatile PanelCategoryRegistry _panelCategoryRegistry;
+	private volatile PluginSettingLocalService _pluginSettingLocalService;
+	private volatile PluginSettingService _pluginSettingService;
+	private volatile PortletService _portletService;
 
 }

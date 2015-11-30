@@ -53,6 +53,10 @@ entriesChecker.setCssClass("entry-selector");
 
 articleSearchContainer.setRowChecker(entriesChecker);
 
+EntriesMover entriesMover = new EntriesMover(scopeGroupId);
+
+articleSearchContainer.setRowMover(entriesMover);
+
 ArticleDisplayTerms displayTerms = (ArticleDisplayTerms)articleSearchContainer.getDisplayTerms();
 %>
 
@@ -208,9 +212,12 @@ request.setAttribute("view_entries.jsp-entryEnd", String.valueOf(articleSearchCo
 
 <%
 String displayStyle = journalDisplayContext.getDisplayStyle();
+
+String searchContainerId = ParamUtil.getString(request, "searchContainerId");
 %>
 
 <liferay-ui:search-container
+	id="<%= searchContainerId %>"
 	searchContainer="<%= articleSearchContainer %>"
 	total="<%= total %>"
 	totalVar="articleSearchContainerTotal"
@@ -222,7 +229,7 @@ String displayStyle = journalDisplayContext.getDisplayStyle();
 
 	<liferay-ui:search-container-row
 		className="Object"
-		cssClass="entry-display-style selectable"
+		cssClass="entry-display-style"
 		modelVar="object"
 	>
 
@@ -293,31 +300,33 @@ String displayStyle = journalDisplayContext.getDisplayStyle();
 					<c:when test='<%= displayStyle.equals("icon") %>'>
 
 						<%
-						row.setCssClass("col-md-2 col-sm-4 col-xs-6");
+						row.setCssClass("col-md-2 col-sm-4 col-xs-6 " + row.getCssClass());
 						%>
 
 						<liferay-ui:search-container-column-text>
 
 							<%
 							String articleImageURL = curArticle.getArticleImageURL(themeDisplay);
-
-							User userDisplay = UserLocalServiceUtil.fetchUserById(curArticle.getUserId());
 							%>
 
 							<liferay-frontend:vertical-card
 								actionJsp='<%= journalDisplayContext.isShowEditActions() ? "/article_action.jsp" : null %>'
 								actionJspServletContext="<%= application %>"
-								cssClass="entry-display-style"
 								imageUrl='<%= Validator.isNotNull(articleImageURL) ? articleImageURL : themeDisplay.getPathThemeImages() + "/file_system/large/article.png" %>'
 								resultRow="<%= row %>"
 								rowChecker="<%= entriesChecker %>"
-								smallImageCSSClass="user-icon user-icon-lg"
-								smallImageUrl="<%= userDisplay != null ? userDisplay.getPortraitURL(themeDisplay) : UserConstants.getPortraitURL(themeDisplay.getPathImage(), true, 0, null) %>"
 								title="<%= curArticle.getTitle(locale) %>"
 								url="<%= rowURL != null ? rowURL.toString() : null %>"
 							>
+								<liferay-frontend:vertical-card-sticker-bottom>
+									<liferay-ui:user-portrait
+										cssClass="sticker sticker-bottom"
+										userId="<%= curArticle.getUserId() %>"
+									/>
+								</liferay-frontend:vertical-card-sticker-bottom>
+
 								<liferay-frontend:vertical-card-header>
-									<%= LanguageUtil.format(request, "x-ago-by-x", new String[] {LanguageUtil.getTimeDescription(locale, System.currentTimeMillis() - curArticle.getModifiedDate().getTime(), true), HtmlUtil.escape(curArticle.getUserName())}, false) %>
+									<liferay-ui:message arguments="<%= new String[] {LanguageUtil.getTimeDescription(locale, System.currentTimeMillis() - curArticle.getModifiedDate().getTime(), true), HtmlUtil.escape(curArticle.getUserName())} %>" key="x-ago-by-x" translateArguments="<%= false %>" />
 								</liferay-frontend:vertical-card-header>
 
 								<liferay-frontend:vertical-card-footer>
@@ -434,7 +443,7 @@ String displayStyle = journalDisplayContext.getDisplayStyle();
 					<c:when test='<%= displayStyle.equals("icon") %>'>
 
 						<%
-						row.setCssClass("col-md-3 col-sm-4 col-xs-12");
+						row.setCssClass("col-md-3 col-sm-4 col-xs-12 " + row.getCssClass());
 						%>
 
 						<liferay-ui:search-container-column-text colspan="<%= 2 %>">

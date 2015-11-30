@@ -26,6 +26,11 @@ long groupId = BeanParamUtil.getLong(recordSet, request, "groupId", scopeGroupId
 long ddmStructureId = BeanParamUtil.getLong(recordSet, request, "DDMStructureId");
 String name = BeanParamUtil.getString(recordSet, request, "name");
 String description = BeanParamUtil.getString(recordSet, request, "description");
+
+portletDisplay.setShowBackIcon(true);
+portletDisplay.setURLBack(redirect);
+
+renderResponse.setTitle((recordSet == null) ? LanguageUtil.get(request, "new-form") : recordSet.getName(locale));
 %>
 
 <portlet:actionURL name="addRecordSet" var="addRecordSetURL">
@@ -42,21 +47,41 @@ String description = BeanParamUtil.getString(recordSet, request, "description");
 		<aui:input name="recordSetId" type="hidden" value="<%= recordSetId %>" />
 		<aui:input name="groupId" type="hidden" value="<%= groupId %>" />
 		<aui:input name="ddmStructureId" type="hidden" value="<%= ddmStructureId %>" />
+		<aui:input name="publish" type="hidden" />
 
 		<liferay-ui:error exception="<%= RecordSetNameException.class %>" message="please-enter-a-valid-form-name" />
 		<liferay-ui:error exception="<%= StructureDefinitionException .class %>" message="please-enter-a-valid-form-definition" />
 		<liferay-ui:error exception="<%= StructureLayoutException .class %>" message="please-enter-a-valid-form-layout" />
+		<liferay-ui:error exception="<%= StructureNameException .class %>" message="please-enter-a-valid-form-name" />
+
+		<c:if test="<%= ddlFormAdminDisplayContext.isRecordSetPublished() %>">
+			<div class="alert alert-success ddl-form-alert">
+				<div class="container-fluid-1280">
+					<button class="close" type="button">
+						<span aria-hidden="true">&times;</span>
+						<span class="sr-only"><liferay-ui:message key="close" /></span>
+					</button>
+
+					<liferay-util:buffer var="publishedLink">
+						<a href="<%= ddlFormAdminDisplayContext.getRecordSetLayoutURL() %>" target="_blank"><%= ddlFormAdminDisplayContext.getRecordSetLayoutURL() %></a>
+						<span class="icon-external-link"></span>
+					</liferay-util:buffer>
+
+					<liferay-ui:message arguments="<%= new Object[] {publishedLink} %>" key="form-published-at-x" />
+				</div>
+			</div>
+		</c:if>
 
 		<aui:fieldset cssClass="ddl-form-basic-info">
 			<div class="container-fluid-1280">
 				<h1>
-					<liferay-ui:input-editor contents="<%= HtmlUtil.escape(LocalizationUtil.getLocalization(name, themeDisplay.getLanguageId())) %>" cssClass="ddl-form-name" editorName="alloyeditor" name="nameEditor" placeholder="form-name" showSource="<%= false %>" />
+					<liferay-ui:input-editor contents="<%= HtmlUtil.escape(LocalizationUtil.getLocalization(name, themeDisplay.getLanguageId())) %>" cssClass="ddl-form-name" editorName="alloyeditor" name="nameEditor" placeholder="untitled-form" showSource="<%= false %>" />
 				</h1>
 
 				<aui:input name="name" type="hidden" />
 
 				<h2>
-					<liferay-ui:input-editor contents="<%= HtmlUtil.escape(LocalizationUtil.getLocalization(description, themeDisplay.getLanguageId())) %>" cssClass="ddl-form-description" editorName="alloyeditor" name="descriptionEditor" placeholder="short-description" showSource="<%= false %>" />
+					<liferay-ui:input-editor contents="<%= HtmlUtil.escape(LocalizationUtil.getLocalization(description, themeDisplay.getLanguageId())) %>" cssClass="ddl-form-description" editorName="alloyeditor" name="descriptionEditor" placeholder="form-description" showSource="<%= false %>" />
 				</h2>
 
 				<aui:input name="description" type="hidden" />
@@ -74,7 +99,20 @@ String description = BeanParamUtil.getString(recordSet, request, "description");
 
 		<div class="container-fluid-1280">
 			<aui:button-row cssClass="ddl-form-builder-buttons">
-				<aui:button cssClass="btn-lg" id="submit" label="save" primary="<%= true %>" type="submit" />
+				<aui:button cssClass="btn-lg ddl-button" disabled="<%= true %>" id="submit" primary="<%= true %>" type="submit" value="save">
+					<c:choose>
+						<c:when test="<%= !ddlFormAdminDisplayContext.isRecordSetPublished() %>">
+							<li>
+								<aui:a cssClass="ddl-button publish save" href="javascript:;"><%= LanguageUtil.get(request, "save-and-publish-live-page") %></aui:a>
+							</li>
+						</c:when>
+						<c:otherwise>
+							<li>
+								<aui:a cssClass="ddl-button save unpublish" href="javascript:;"><%= LanguageUtil.get(request, "save-and-unpublish-live-page") %></aui:a>
+							</li>
+						</c:otherwise>
+					</c:choose>
+				</aui:button>
 
 				<aui:button cssClass="btn-lg" href="<%= redirect %>" name="cancelButton" type="cancel" />
 			</aui:button-row>

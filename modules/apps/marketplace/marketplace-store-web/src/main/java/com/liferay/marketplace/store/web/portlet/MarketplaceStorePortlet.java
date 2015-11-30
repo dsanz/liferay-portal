@@ -391,23 +391,23 @@ public class MarketplaceStorePortlet extends RemoteMVCPortlet {
 			});
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setAppLocalService(AppLocalService appLocalService) {
 		_appLocalService = appLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setAppService(AppService appService) {
 		_appService = appService;
 	}
 
 	@Override
-	@Reference
+	@Reference(unbind = "-")
 	protected void setOAuthManager(OAuthManager oAuthManager) {
 		super.setOAuthManager(oAuthManager);
 	}
 
-	private AppLocalService _appLocalService;
-	private AppService _appService;
+	private volatile AppLocalService _appLocalService;
+	private volatile AppService _appService;
 
 }

@@ -26,7 +26,7 @@ String referringPortletResource = ParamUtil.getString(request, "referringPortlet
 
 boolean changeStructure = GetterUtil.getBoolean(ParamUtil.getString(request, "changeStructure"));
 
-JournalArticle article = ActionUtil.getArticle(request);
+JournalArticle article = journalDisplayContext.getArticle();
 
 long groupId = BeanParamUtil.getLong(article, request, "groupId", scopeGroupId);
 
@@ -58,7 +58,7 @@ else if (Validator.isNotNull(ddmStructureKey)) {
 
 String ddmTemplateKey = ParamUtil.getString(request, "ddmTemplateKey");
 
-if ((ddmTemplateKey == null) && (article != null)) {
+if (Validator.isNull(ddmTemplateKey) && (article != null)) {
 	ddmTemplateKey = article.getDDMTemplateKey();
 }
 
@@ -89,13 +89,13 @@ if (article != null) {
 
 boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
 
-String[] mainSections = JournalWebConfigurationValues.JOURNAL_ARTICLE_FORM_ADD;
+String[] mainSections = journalWebConfiguration.journalArticleFormAdd();
 
 if (classNameId > JournalArticleConstants.CLASSNAME_ID_DEFAULT) {
-	mainSections = JournalWebConfigurationValues.JOURNAL_ARTICLE_FORM_DEFAULT_VALUES;
+	mainSections = journalWebConfiguration.journalArticleFormDefaultValues();
 }
 else if ((article != null) && (article.getId() > 0)) {
-	mainSections = JournalWebConfigurationValues.JOURNAL_ARTICLE_FORM_UPDATE;
+	mainSections = journalWebConfiguration.journalArticleFormUpdate();
 }
 
 String[][] categorySections = {mainSections};
@@ -205,7 +205,7 @@ request.setAttribute("edit_article.jsp-changeStructure", changeStructure);
 
 					long inheritedWorkflowDDMStructuresFolderId = JournalFolderLocalServiceUtil.getInheritedWorkflowFolderId(folderId);
 
-					boolean workflowEnabled = WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(themeDisplay.getCompanyId(), groupId, JournalFolder.class.getName(), folderId, ddmStructure.getStructureId()) || WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(themeDisplay.getCompanyId(), groupId, JournalFolder.class.getName(), inheritedWorkflowDDMStructuresFolderId, JournalArticleConstants.DDM_STRUCTURE_ID_ALL);
+					boolean workflowEnabled = WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(themeDisplay.getCompanyId(), groupId, JournalFolder.class.getName(), folderId, ddmStructure.getStructureId()) || WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(themeDisplay.getCompanyId(), groupId, JournalFolder.class.getName(), inheritedWorkflowDDMStructuresFolderId, ddmStructure.getStructureId()) || WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(themeDisplay.getCompanyId(), groupId, JournalFolder.class.getName(), inheritedWorkflowDDMStructuresFolderId, JournalArticleConstants.DDM_STRUCTURE_ID_ALL);
 
 					if ((article != null) && (version > 0)) {
 						approved = article.isApproved();

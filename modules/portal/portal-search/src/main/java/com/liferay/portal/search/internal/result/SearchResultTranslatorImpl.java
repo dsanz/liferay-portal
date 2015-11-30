@@ -42,7 +42,7 @@ import org.osgi.service.component.annotations.Reference;
 @Component(immediate = true, service = SearchResultTranslator.class)
 public class SearchResultTranslatorImpl implements SearchResultTranslator {
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setSearchResultManager(
 		SearchResultManager searchResultManager) {
 
@@ -99,6 +99,6 @@ public class SearchResultTranslatorImpl implements SearchResultTranslator {
 	private static final Log _log = LogFactoryUtil.getLog(
 		SearchResultTranslatorImpl.class);
 
-	private SearchResultManager _searchResultManager;
+	private volatile SearchResultManager _searchResultManager;
 
 }

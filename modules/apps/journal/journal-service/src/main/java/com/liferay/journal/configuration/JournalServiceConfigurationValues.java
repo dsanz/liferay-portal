@@ -25,131 +25,6 @@ public class JournalServiceConfigurationValues {
 		JournalServiceConfigurationUtil.getArray(
 			JournalServiceConfigurationKeys.CHAR_BLACKLIST);
 
-	public static final String EMAIL_ARTICLE_ADDED_BODY =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.EMAIL_ARTICLE_ADDED_BODY);
-
-	public static final boolean EMAIL_ARTICLE_ADDED_ENABLED =
-		GetterUtil.getBoolean(
-			JournalServiceConfigurationUtil.get(
-				JournalServiceConfigurationKeys.EMAIL_ARTICLE_ADDED_ENABLED));
-
-	public static final String EMAIL_ARTICLE_ADDED_SUBJECT =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.EMAIL_ARTICLE_ADDED_SUBJECT);
-
-	public static final String EMAIL_ARTICLE_APPROVAL_DENIED_BODY =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.EMAIL_ARTICLE_APPROVAL_DENIED_BODY);
-
-	public static final boolean EMAIL_ARTICLE_APPROVAL_DENIED_ENABLED =
-		GetterUtil.getBoolean(
-			JournalServiceConfigurationUtil.get(
-				JournalServiceConfigurationKeys.
-					EMAIL_ARTICLE_APPROVAL_DENIED_ENABLED));
-
-	public static final String EMAIL_ARTICLE_APPROVAL_DENIED_SUBJECT =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.
-				EMAIL_ARTICLE_APPROVAL_DENIED_SUBJECT);
-
-	public static final String EMAIL_ARTICLE_APPROVAL_GRANTED_BODY =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.
-				EMAIL_ARTICLE_APPROVAL_GRANTED_BODY);
-
-	public static final boolean EMAIL_ARTICLE_APPROVAL_GRANTED_ENABLED =
-		GetterUtil.getBoolean(
-			JournalServiceConfigurationUtil.get(
-				JournalServiceConfigurationKeys.
-					EMAIL_ARTICLE_APPROVAL_GRANTED_ENABLED));
-
-	public static final String EMAIL_ARTICLE_APPROVAL_GRANTED_SUBJECT =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.
-				EMAIL_ARTICLE_APPROVAL_GRANTED_SUBJECT);
-
-	public static final String EMAIL_ARTICLE_APPROVAL_REQUESTED_BODY =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.
-				EMAIL_ARTICLE_APPROVAL_REQUESTED_BODY);
-
-	public static final boolean EMAIL_ARTICLE_APPROVAL_REQUESTED_ENABLED =
-		GetterUtil.getBoolean(
-			JournalServiceConfigurationUtil.get(
-				JournalServiceConfigurationKeys.
-					EMAIL_ARTICLE_APPROVAL_REQUESTED_ENABLED));
-
-	public static final String EMAIL_ARTICLE_APPROVAL_REQUESTED_SUBJECT =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.
-				EMAIL_ARTICLE_APPROVAL_REQUESTED_SUBJECT);
-
-	public static final String EMAIL_ARTICLE_MOVED_FROM_FOLDER_BODY =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.
-				EMAIL_ARTICLE_MOVED_FROM_FOLDER_BODY);
-
-	public static final boolean EMAIL_ARTICLE_MOVED_FROM_FOLDER_ENABLED =
-		GetterUtil.getBoolean(
-			JournalServiceConfigurationUtil.get(
-				JournalServiceConfigurationKeys.
-					EMAIL_ARTICLE_MOVED_FROM_FOLDER_ENABLED));
-
-	public static final String EMAIL_ARTICLE_MOVED_FROM_FOLDER_SUBJECT =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.
-				EMAIL_ARTICLE_MOVED_FROM_FOLDER_SUBJECT);
-
-	public static final String EMAIL_ARTICLE_MOVED_TO_FOLDER_BODY =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.EMAIL_ARTICLE_MOVED_TO_FOLDER_BODY);
-
-	public static final boolean EMAIL_ARTICLE_MOVED_TO_FOLDER_ENABLED =
-		GetterUtil.getBoolean(
-			JournalServiceConfigurationUtil.get(
-				JournalServiceConfigurationKeys.
-					EMAIL_ARTICLE_MOVED_TO_FOLDER_ENABLED));
-
-	public static final String EMAIL_ARTICLE_MOVED_TO_FOLDER_SUBJECT =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.
-				EMAIL_ARTICLE_MOVED_TO_FOLDER_SUBJECT);
-
-	public static final String EMAIL_ARTICLE_REVIEW_BODY =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.EMAIL_ARTICLE_REVIEW_BODY);
-
-	public static final boolean EMAIL_ARTICLE_REVIEW_ENABLED =
-		GetterUtil.getBoolean(
-			JournalServiceConfigurationUtil.get(
-				JournalServiceConfigurationKeys.EMAIL_ARTICLE_REVIEW_ENABLED));
-
-	public static final String EMAIL_ARTICLE_REVIEW_SUBJECT =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.EMAIL_ARTICLE_REVIEW_SUBJECT);
-
-	public static final String EMAIL_ARTICLE_UPDATED_BODY =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.EMAIL_ARTICLE_UPDATED_BODY);
-
-	public static final boolean EMAIL_ARTICLE_UPDATED_ENABLED =
-		GetterUtil.getBoolean(
-			JournalServiceConfigurationUtil.get(
-				JournalServiceConfigurationKeys.EMAIL_ARTICLE_UPDATED_ENABLED));
-
-	public static final String EMAIL_ARTICLE_UPDATED_SUBJECT =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.EMAIL_ARTICLE_UPDATED_SUBJECT);
-
-	public static final String EMAIL_FROM_ADDRESS =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.EMAIL_FROM_ADDRESS);
-
-	public static final String EMAIL_FROM_NAME =
-		JournalServiceConfigurationUtil.get(
-			JournalServiceConfigurationKeys.EMAIL_FROM_NAME);
-
 	public static final int JOURNAL_ARTICLE_CHECK_INTERVAL =
 		GetterUtil.getInteger(
 			JournalServiceConfigurationUtil.get(
@@ -208,9 +83,22 @@ public class JournalServiceConfigurationValues {
 		JournalServiceConfigurationUtil.get(
 			JournalServiceConfigurationKeys.LAR_CREATION_STRATEGY);
 
+	public static final Boolean PUBLISH_TO_LIVE_BY_DEFAULT =
+		GetterUtil.getBoolean(
+			JournalServiceConfigurationUtil.get(
+				JournalServiceConfigurationKeys.PUBLISH_TO_LIVE_BY_DEFAULT));
+
+	public static final Boolean PUBLISH_VERSION_HISTORY_BY_DEFAULT =
+		GetterUtil.getBoolean(
+			JournalServiceConfigurationUtil.get(
+				JournalServiceConfigurationKeys.
+					PUBLISH_VERSION_HISTORY_BY_DEFAULT));
+
 	public static final boolean SYNC_CONTENT_SEARCH_ON_STARTUP =
 		GetterUtil.getBoolean(
-			JournalServiceConfigurationKeys.SYNC_CONTENT_SEARCH_ON_STARTUP);
+			JournalServiceConfigurationUtil.get(
+				JournalServiceConfigurationKeys.
+					SYNC_CONTENT_SEARCH_ON_STARTUP));
 
 	public static final long TERMS_OF_USE_JOURNAL_ARTICLE_GROUP_ID =
 		GetterUtil.getLong(

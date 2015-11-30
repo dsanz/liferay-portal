@@ -57,13 +57,14 @@ public class ThemeAdminPortalWebResources implements PortalWebResources {
 	}
 
 	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.frontend.theme.admin.web)"
+		target = "(osgi.web.symbolicname=com.liferay.frontend.theme.admin.web)",
+		unbind = "-"
 	)
 	protected void setServletContext(ServletContext servletContext) {
 		_servletContext = servletContext;
 	}
 
 	private Bundle _bundle;
-	private ServletContext _servletContext;
+	private volatile ServletContext _servletContext;
 
 }

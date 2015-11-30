@@ -1,6 +1,13 @@
 import com.liferay.gradle.util.FileUtil
 
 buildscript {
+	dependencies {
+		classpath group: "com.liferay", name: "com.liferay.gradle.plugins", version: "1.0.40"
+		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.alloy.taglib", version: "1.0.1"
+		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.cache", version: "1.0.1"
+		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.maven.plugin.builder", version: "1.0.2"
+	}
+
 	repositories {
 		if (!Boolean.getBoolean("maven.local.ignore")) {
 			mavenLocal()
@@ -10,12 +17,6 @@ buildscript {
 			url System.properties["repository.url"] ?: "http://cdn.repository.liferay.com/nexus/content/groups/public"
 		}
 	}
-
-	dependencies {
-		classpath group: "com.liferay", name: "com.liferay.gradle.plugins", version: "1.0.23"
-		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.cache", version: "1.0.1"
-		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.maven.plugin.builder", version: "1.0.2"
-	}
 }
 
 buildDir = new File(rootDir.parentFile, "build")
@@ -23,9 +24,7 @@ buildDir = new File(rootDir.parentFile, "build")
 gradle.beforeProject {
 	Project project ->
 
-	File buildGradleFile = project.file("build.gradle")
-
-	if (buildGradleFile.exists() && project.parent) {
+	if (FileUtil.exists(project, "bnd.bnd") && FileUtil.exists(project, "build.gradle") && project.parent) {
 		project.apply from: rootProject.file("build-module.gradle")
 	}
 }
@@ -33,20 +32,10 @@ gradle.beforeProject {
 gradle.taskGraph.useFilter {
 	Task task ->
 
-	if (task.name == "buildService") {
-		if (!FileUtil.exists(task.project, "service.xml")) {
-			return false
-		}
-	}
-	else if (task.name == "compileJSP") {
-		FileTree jspFileTree = fileTree(dir: task.project.projectDir, excludes: ["**/custom_jsps/**/*", "**/dependencies/**/*"], includes: ["docroot/**/*.jsp", "src/META-INF/resources/**/*.jsp"])
+	if (task.name == "compileJSP") {
+		FileTree jspFileTree = fileTree(dir: task.project.projectDir, excludes: ["**/custom_jsps/**/*", "**/dependencies/**/*"], includes: ["docroot/**/*.jsp", "src/main/resources/META-INF/resources/**/*.jsp"])
 
 		if (jspFileTree.empty) {
-			return false
-		}
-	}
-	else if (task.name == "configJSModules") {
-		if (!FileUtil.exists(task.project, "bower.json")) {
 			return false
 		}
 	}
@@ -57,13 +46,6 @@ gradle.taskGraph.useFilter {
 	}
 	else if (task.name == "testIntegration") {
 		if (!_hasTestClasses(task.project, "src/testIntegration/java") && !_hasTestClasses(task.project, "test/integration")) {
-			return false
-		}
-	}
-	else if (task.name == "transpileJS") {
-		FileTree esJsFileTree = fileTree(dir: task.project.projectDir, exclude: "**/samples/**", include: "src/**/*.es.js")
-
-		if (esJsFileTree.empty) {
 			return false
 		}
 	}

@@ -59,12 +59,11 @@ PanelCategory panelCategory = (PanelCategory)request.getAttribute(ApplicationLis
 
 							data.put("navigation", Boolean.TRUE.toString());
 
-							PortletURL portletURL = PortalUtil.getControlPanelPortletURL(request, curSite, themeDisplay.getPpid(), 0, PortletRequest.RENDER_PHASE);
+							PortletURL portletURL = PortalUtil.getControlPanelPortletURL(request, curSite, themeDisplay.getPpid(), 0, 0, PortletRequest.RENDER_PHASE);
 							%>
 
 							<liferay-ui:icon
 								data="<%= data %>"
-								iconCssClass="<%= curSite.getIconCssClass() %>"
 								message="default-scope"
 								url="<%= portletURL.toString() %>"
 							/>
@@ -73,12 +72,11 @@ PanelCategory panelCategory = (PanelCategory)request.getAttribute(ApplicationLis
 							for (Layout curScopeLayout : scopeLayouts) {
 								Group scopeGroup = curScopeLayout.getScopeGroup();
 
-								portletURL = PortalUtil.getControlPanelPortletURL(request, scopeGroup, themeDisplay.getPpid(), 0, PortletRequest.RENDER_PHASE);
+								portletURL = PortalUtil.getControlPanelPortletURL(request, scopeGroup, themeDisplay.getPpid(), 0, 0, PortletRequest.RENDER_PHASE);
 							%>
 
 								<liferay-ui:icon
 									data="<%= data %>"
-									iconCssClass="<%= scopeGroup.getIconCssClass() %>"
 									message="<%= HtmlUtil.escape(curScopeLayout.getName(locale)) %>"
 									url="<%= portletURL.toString() %>"
 								/>

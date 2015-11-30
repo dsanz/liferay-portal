@@ -198,13 +198,13 @@ Map<String, ThemeSetting> configurableSettings = selTheme.getConfigurableSetting
 		<div class="float-container lfr-available-themes" id="<%= device %>availableThemes">
 			<legend>
 				<span class="header-title">
-					<%= LanguageUtil.format(request, "available-themes-x", (themes.size() - 1), false) %>
+					<liferay-ui:message arguments="<%= themes.size() - 1 %>" key="available-themes-x" translateArguments="<%= false %>" />
 				</span>
 
 				<c:if test="<%= permissionChecker.isOmniadmin() && PortletLocalServiceUtil.hasPortlet(themeDisplay.getCompanyId(), PortletKeys.MARKETPLACE_STORE) && PrefsPropsUtil.getBoolean(PropsKeys.AUTO_DEPLOY_ENABLED, PropsValues.AUTO_DEPLOY_ENABLED) %>">
 
 					<%
-					PortletURL marketplaceURL = PortalUtil.getControlPanelPortletURL(request, PortletKeys.MARKETPLACE_STORE, 0, PortletRequest.RENDER_PHASE);
+					PortletURL marketplaceURL = PortalUtil.getControlPanelPortletURL(request, PortletKeys.MARKETPLACE_STORE, PortletRequest.RENDER_PHASE);
 					%>
 
 					<liferay-ui:icon

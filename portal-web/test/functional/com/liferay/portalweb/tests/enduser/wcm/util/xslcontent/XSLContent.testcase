@@ -2,7 +2,17 @@
 	<property name="testray.main.component.name" value="XSL" />
 
 	<set-up>
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
+
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="SignIn#signInPortalInstanceSetUp" />
+			</then>
+		</if>
+
 		<execute macro="User#firstLoginPG" />
+
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Sites" />
 		</execute>
@@ -16,9 +26,9 @@
 		</execute>
 
 		<execute macro="SitePage#addCP">
+			<var name="page" value="Public Pages" />
 			<var name="siteName" value="Site Name" />
 			<var name="sitePageName" value="Test Page Name" />
-			<var name="sitePagePrivacy" value="Public" />
 		</execute>
 
 		<execute macro="Page#gotoPG">
@@ -32,19 +42,29 @@
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelSystem">
-			<var name="portlet" value="Configuration Admin" />
+			<var name="portlet" value="System Settings" />
 		</execute>
 
 		<execute macro="XSLContent#configureConfigurationAdminXSL" />
 	</set-up>
 
 	<tear-down>
-		<execute macro="User#logoutAndLoginPG">
-			<var name="userLoginEmailAddress" value="test@liferay.com" />
-			<var name="userLoginFullName" value="Test Test" />
-		</execute>
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
 
-		<execute macro="Site#tearDownCP" />
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="PortalInstances#tearDownCP" />
+			</then>
+			<else>
+				<execute macro="User#logoutAndLoginPG">
+					<var name="userLoginEmailAddress" value="test@liferay.com" />
+					<var name="userLoginFullName" value="Test Test" />
+				</execute>
+
+				<execute macro="Site#tearDownCP" />
+			</else>
+		</if>
 	</tear-down>
 
 	<command name="AddXSL" priority="4">
@@ -59,6 +79,15 @@
 			<var name="dmDocumentTitle" value="Test XML Title" />
 		</execute>
 
+		<execute macro="PermissionsInline#gotoDMDocumentCP">
+			<var name="dmDocumentTitle" value="Test XML Title" />
+		</execute>
+
+		<execute macro="PermissionsInline#addOrRemoveViewPermissionFromAllRoles">
+			<var name="addOrRemoveViewPermission" value="Add" />
+			<var name="roleList" value="Guest" />
+		</execute>
+
 		<execute macro="Page#gotoContentCP">
 			<var name="portletName" value="Documents and Media" />
 			<var name="siteScopeName" value="Site Name" />
@@ -68,6 +97,15 @@
 			<var name="dmDocumentDescription" value="Test XSL Description" />
 			<var name="dmDocumentFile" value="test.xsl" />
 			<var name="dmDocumentTitle" value="Test XSL Title" />
+		</execute>
+
+		<execute macro="PermissionsInline#gotoDMDocumentCP">
+			<var name="dmDocumentTitle" value="Test XSL Title" />
+		</execute>
+
+		<execute macro="PermissionsInline#addOrRemoveViewPermissionFromAllRoles">
+			<var name="addOrRemoveViewPermission" value="Add" />
+			<var name="roleList" value="Guest" />
 		</execute>
 
 		<execute macro="Page#gotoContentCP">
@@ -82,7 +120,7 @@
 
 		<execute function="Pause" locator1="5000" />
 
-		<var method="selenium#getValue('//input[contains(@id,\'url\')]')" name="valueName" />
+		<var method="selenium#getElementValue('//input[contains(@id,\'url\')]')" name="valueName" />
 
 		<echo message="value name ${valueName}" />
 
@@ -102,7 +140,7 @@
 
 		<execute function="Pause" locator1="5000" />
 
-		<var method="selenium#getValue('//input[contains(@id,\'url\')]')" name="valueName" />
+		<var method="selenium#getElementValue('//input[contains(@id,\'url\')]')" name="valueName" />
 
 		<echo message="value name ${valueName}" />
 
@@ -165,6 +203,15 @@
 			<var name="dmDocumentTitle" value="Test Corrupt XML Title" />
 		</execute>
 
+		<execute macro="PermissionsInline#gotoDMDocumentCP">
+			<var name="dmDocumentTitle" value="Test Corrupt XML Title" />
+		</execute>
+
+		<execute macro="PermissionsInline#addOrRemoveViewPermissionFromAllRoles">
+			<var name="addOrRemoveViewPermission" value="Add" />
+			<var name="roleList" value="Guest" />
+		</execute>
+
 		<execute macro="Page#gotoContentCP">
 			<var name="portletName" value="Documents and Media" />
 			<var name="siteScopeName" value="Site Name" />
@@ -174,6 +221,15 @@
 			<var name="dmDocumentDescription" value="Test XSL Description" />
 			<var name="dmDocumentFile" value="test.xsl" />
 			<var name="dmDocumentTitle" value="Test XSL Title" />
+		</execute>
+
+		<execute macro="PermissionsInline#gotoDMDocumentCP">
+			<var name="dmDocumentTitle" value="Test XSL Title" />
+		</execute>
+
+		<execute macro="PermissionsInline#addOrRemoveViewPermissionFromAllRoles">
+			<var name="addOrRemoveViewPermission" value="Add" />
+			<var name="roleList" value="Guest" />
 		</execute>
 
 		<execute macro="Page#gotoContentCP">
@@ -188,7 +244,7 @@
 
 		<execute function="Pause" locator1="5000" />
 
-		<var method="selenium#getValue('//input[contains(@id,\'url\')]')" name="valueName" />
+		<var method="selenium#getElementValue('//input[contains(@id,\'url\')]')" name="valueName" />
 
 		<echo message="value name ${valueName}" />
 
@@ -208,7 +264,7 @@
 
 		<execute function="Pause" locator1="5000" />
 
-		<var method="selenium#getValue('//input[contains(@id,\'url\')]')" name="valueName" />
+		<var method="selenium#getElementValue('//input[contains(@id,\'url\')]')" name="valueName" />
 
 		<echo message="value name ${valueName}" />
 
@@ -259,6 +315,15 @@
 			<var name="dmDocumentTitle" value="Test XML Title" />
 		</execute>
 
+		<execute macro="PermissionsInline#gotoDMDocumentCP">
+			<var name="dmDocumentTitle" value="Test XML Title" />
+		</execute>
+
+		<execute macro="PermissionsInline#addOrRemoveViewPermissionFromAllRoles">
+			<var name="addOrRemoveViewPermission" value="Add" />
+			<var name="roleList" value="Guest" />
+		</execute>
+
 		<execute macro="Page#gotoContentCP">
 			<var name="portletName" value="Documents and Media" />
 			<var name="siteScopeName" value="Site Name" />
@@ -268,6 +333,15 @@
 			<var name="dmDocumentDescription" value="Test XSL Description" />
 			<var name="dmDocumentFile" value="test_corrupt.xsl" />
 			<var name="dmDocumentTitle" value="Test Corrupt XSL Title" />
+		</execute>
+
+		<execute macro="PermissionsInline#gotoDMDocumentCP">
+			<var name="dmDocumentTitle" value="Test Corrupt XSL Title" />
+		</execute>
+
+		<execute macro="PermissionsInline#addOrRemoveViewPermissionFromAllRoles">
+			<var name="addOrRemoveViewPermission" value="Add" />
+			<var name="roleList" value="Guest" />
 		</execute>
 
 		<execute macro="Page#gotoContentCP">
@@ -282,7 +356,7 @@
 
 		<execute function="Pause" locator1="5000" />
 
-		<var method="selenium#getValue('//input[contains(@id,\'url\')]')" name="valueName" />
+		<var method="selenium#getElementValue('//input[contains(@id,\'url\')]')" name="valueName" />
 
 		<echo message="value name ${valueName}" />
 
@@ -302,7 +376,7 @@
 
 		<execute function="Pause" locator1="5000" />
 
-		<var method="selenium#getValue('//input[contains(@id,\'url\')]')" name="valueName" />
+		<var method="selenium#getElementValue('//input[contains(@id,\'url\')]')" name="valueName" />
 
 		<echo message="value name ${valueName}" />
 
@@ -351,6 +425,15 @@
 			<var name="dmDocumentTitle" value="Test XML Title" />
 		</execute>
 
+		<execute macro="PermissionsInline#gotoDMDocumentCP">
+			<var name="dmDocumentTitle" value="Test XML Title" />
+		</execute>
+
+		<execute macro="PermissionsInline#addOrRemoveViewPermissionFromAllRoles">
+			<var name="addOrRemoveViewPermission" value="Add" />
+			<var name="roleList" value="Guest" />
+		</execute>
+
 		<execute macro="Page#gotoContentCP">
 			<var name="portletName" value="Documents and Media" />
 			<var name="siteScopeName" value="Site Name" />
@@ -360,6 +443,15 @@
 			<var name="dmDocumentDescription" value="Test XSL Description" />
 			<var name="dmDocumentFile" value="test_version.xsl" />
 			<var name="dmDocumentTitle" value="Test XSL Title" />
+		</execute>
+
+		<execute macro="PermissionsInline#gotoDMDocumentCP">
+			<var name="dmDocumentTitle" value="Test XSL Title" />
+		</execute>
+
+		<execute macro="PermissionsInline#addOrRemoveViewPermissionFromAllRoles">
+			<var name="addOrRemoveViewPermission" value="Add" />
+			<var name="roleList" value="Guest" />
 		</execute>
 
 		<execute macro="Page#gotoContentCP">
@@ -374,7 +466,7 @@
 
 		<execute function="Pause" locator1="5000" />
 
-		<var method="selenium#getValue('//input[contains(@id,\'url\')]')" name="valueName" />
+		<var method="selenium#getElementValue('//input[contains(@id,\'url\')]')" name="valueName" />
 
 		<echo message="value name ${valueName}" />
 
@@ -394,7 +486,7 @@
 
 		<execute function="Pause" locator1="5000" />
 
-		<var method="selenium#getValue('//input[contains(@id,\'url\')]')" name="valueName" />
+		<var method="selenium#getElementValue('//input[contains(@id,\'url\')]')" name="valueName" />
 
 		<echo message="value name ${valueName}" />
 

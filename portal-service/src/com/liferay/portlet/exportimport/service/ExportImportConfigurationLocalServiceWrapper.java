@@ -104,12 +104,10 @@ public class ExportImportConfigurationLocalServiceWrapper
 	*
 	* @param exportImportConfiguration the export import configuration
 	* @return the export import configuration that was removed
-	* @throws PortalException
 	*/
 	@Override
 	public com.liferay.portlet.exportimport.model.ExportImportConfiguration deleteExportImportConfiguration(
-		com.liferay.portlet.exportimport.model.ExportImportConfiguration exportImportConfiguration)
-		throws com.liferay.portal.kernel.exception.PortalException {
+		com.liferay.portlet.exportimport.model.ExportImportConfiguration exportImportConfiguration) {
 		return _exportImportConfigurationLocalService.deleteExportImportConfiguration(exportImportConfiguration);
 	}
 
@@ -128,8 +126,7 @@ public class ExportImportConfigurationLocalServiceWrapper
 	}
 
 	@Override
-	public void deleteExportImportConfigurations(long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException {
+	public void deleteExportImportConfigurations(long groupId) {
 		_exportImportConfigurationLocalService.deleteExportImportConfigurations(groupId);
 	}
 
@@ -241,16 +238,6 @@ public class ExportImportConfigurationLocalServiceWrapper
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _exportImportConfigurationLocalService.getBeanIdentifier();
-	}
-
-	/**
 	* Returns the export import configuration with the primary key.
 	*
 	* @param exportImportConfigurationId the primary key of the export import configuration
@@ -326,6 +313,21 @@ public class ExportImportConfigurationLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _exportImportConfigurationLocalService.getIndexableActionableDynamicQuery();
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	@Override
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _exportImportConfigurationLocalService.getOSGiServiceIdentifier();
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -365,16 +367,6 @@ public class ExportImportConfigurationLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return _exportImportConfigurationLocalService.searchExportImportConfigurations(companyId,
 			groupId, type, name, description, andSearch, start, end, sort);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_exportImportConfigurationLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

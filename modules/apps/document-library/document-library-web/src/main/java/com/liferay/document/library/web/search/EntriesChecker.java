@@ -14,8 +14,8 @@
 
 package com.liferay.document.library.web.search;
 
-import com.liferay.document.library.web.constants.DLPortletKeys;
 import com.liferay.portal.NoSuchRepositoryEntryException;
+import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.RowChecker;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
-import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
 import com.liferay.portlet.documentlibrary.NoSuchFileShortcutException;
@@ -43,7 +42,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @author Sergio González
  */
-public class EntriesChecker extends RowChecker {
+public class EntriesChecker extends EmptyOnClickRowChecker {
 
 	public EntriesChecker(
 		LiferayPortletRequest liferayPortletRequest,
@@ -58,35 +57,15 @@ public class EntriesChecker extends RowChecker {
 				WebKeys.THEME_DISPLAY);
 
 		_permissionChecker = themeDisplay.getPermissionChecker();
-
-		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
-
-		String portletName = portletDisplay.getPortletName();
-
-		if (portletName.equals(DLPortletKeys.DOCUMENT_LIBRARY_DISPLAY)) {
-			_documentLibraryDisplayPortlet = true;
-		}
-		else {
-			_documentLibraryDisplayPortlet = false;
-		}
 	}
 
 	@Override
 	public String getAllRowsCheckBox() {
-		if (_documentLibraryDisplayPortlet) {
-			return getAllRowsCheckbox(null, getAllRowIds(), getEntryRowIds());
-		}
-
 		return null;
 	}
 
 	@Override
 	public String getAllRowsCheckBox(HttpServletRequest request) {
-		if (_documentLibraryDisplayPortlet) {
-			return getAllRowsCheckbox(
-				request, getAllRowIds(), getEntryRowIds());
-		}
-
 		return null;
 	}
 
@@ -186,18 +165,9 @@ public class EntriesChecker extends RowChecker {
 
 		String checkBoxRowIds = getEntryRowIds();
 
-		String checkBoxAllRowIds = StringPool.BLANK;
-		String checkBoxPostOnClick = StringPool.BLANK;
-
-		if (_documentLibraryDisplayPortlet) {
-			checkBoxAllRowIds = "'" + getAllRowIds() + "'";
-		}
-		else {
-			checkBoxAllRowIds = "'#" + getAllRowIds() + "'";
-			checkBoxPostOnClick =
-				_liferayPortletResponse.getNamespace() +
-					"toggleActionsButton();";
-		}
+		String checkBoxAllRowIds = "'#" + getAllRowIds() + "'";
+		String checkBoxPostOnClick =
+			_liferayPortletResponse.getNamespace() + "toggleActionsButton();";
 
 		return getRowCheckBox(
 			request, checked, disabled,
@@ -225,7 +195,6 @@ public class EntriesChecker extends RowChecker {
 		return sb.toString();
 	}
 
-	private final boolean _documentLibraryDisplayPortlet;
 	private final LiferayPortletResponse _liferayPortletResponse;
 	private final PermissionChecker _permissionChecker;
 

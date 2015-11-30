@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.pwd.PasswordEncryptorUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
@@ -32,7 +33,6 @@ import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
 import com.liferay.registry.ServiceReference;
@@ -162,7 +162,8 @@ public class AutoLoginFilter extends BasePortalFilter {
 			}
 
 			processFilter(
-				AutoLoginFilter.class, request, response, filterChain);
+				AutoLoginFilter.class.getName(), request, response,
+				filterChain);
 
 			return;
 		}
@@ -183,7 +184,8 @@ public class AutoLoginFilter extends BasePortalFilter {
 			}
 
 			processFilter(
-				AutoLoginFilter.class, request, response, filterChain);
+				AutoLoginFilter.class.getName(), request, response,
+				filterChain);
 
 			return;
 		}
@@ -263,7 +265,8 @@ public class AutoLoginFilter extends BasePortalFilter {
 			}
 		}
 
-		processFilter(AutoLoginFilter.class, request, response, filterChain);
+		processFilter(
+			AutoLoginFilter.class.getName(), request, response, filterChain);
 	}
 
 	private static final String _PATH_CHAT_LATEST = "/-/chat/latest";

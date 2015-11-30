@@ -78,7 +78,15 @@ AUI.add(
 
 				var builder = instance.get('builder');
 
-				return builder._fieldSettingsModal;
+				var settingsModal = builder._fieldSettingsModal;
+
+				if (!instance._settingsModalEventHandlers) {
+					instance._settingsModalEventHandlers = [
+						settingsModal._modal.on('xyChange', instance._onSettingsModalXYChange)
+					];
+				}
+
+				return settingsModal;
 			},
 
 			renderSettingsPanel: function() {
@@ -86,17 +94,25 @@ AUI.add(
 
 				var settingsForm = instance.get('settingsForm');
 
-				settingsForm.render();
-
 				instance._updateSettingsFormValues();
+
+				settingsForm.render();
 
 				var settingsModal = instance.getSettingsModal();
 
-				settingsModal._modal.get('boundingBox').addClass(CSS_FIELD_SETTINGS_MODAL);
+				var settingsModalBoundingBox = settingsModal._modal.get('boundingBox');
 
-				var builder = instance.get('builder');
+				settingsModalBoundingBox.addClass(CSS_FIELD_SETTINGS_MODAL);
 
-				settingsModal._modal.render(builder.get('boundingBox'));
+				var settingsModalToolbar = settingsModal._modal.getToolbar('footer');
+
+				settingsModalToolbar.item(0).set('cssClass', 'btn-lg btn-primary');
+				settingsModalToolbar.item(1).set('cssClass', 'btn-lg btn-link');
+
+				var portletNode = A.one('#p_p_id' + instance.get('portletNamespace'));
+
+				settingsModal._modal.set('centered', portletNode);
+				settingsModal._modal.set('zIndex', Liferay.zIndex.OVERLAY);
 			},
 
 			saveSettings: function() {
@@ -135,6 +151,12 @@ AUI.add(
 				settingsForm.submit(callback);
 
 				return false;
+			},
+
+			_onSettingsModalXYChange: function(event) {
+				var xy = event.newVal;
+
+				xy[1] = Math.max(90, xy[1]);
 			},
 
 			_renderFormBuilderField: function() {

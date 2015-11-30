@@ -27,18 +27,13 @@ taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %><%@
 taglib uri="http://liferay.com/tld/util" prefix="liferay-util" %>
 
-<%@ page import="com.liferay.counter.service.CounterLocalServiceUtil" %><%@
-page import="com.liferay.portal.AccountNameException" %><%@
+<%@ page import="com.liferay.portal.AccountNameException" %><%@
 page import="com.liferay.portal.CompanyMxException" %><%@
 page import="com.liferay.portal.CompanyVirtualHostException" %><%@
 page import="com.liferay.portal.LocaleException" %><%@
 page import="com.liferay.portal.facebook.FacebookConnectUtil" %><%@
 page import="com.liferay.portal.kernel.language.LanguageUtil" %><%@
 page import="com.liferay.portal.kernel.language.UnicodeLanguageUtil" %><%@
-page import="com.liferay.portal.kernel.ldap.DuplicateLDAPServerNameException" %><%@
-page import="com.liferay.portal.kernel.ldap.LDAPFilterException" %><%@
-page import="com.liferay.portal.kernel.ldap.LDAPServerNameException" %><%@
-page import="com.liferay.portal.kernel.ldap.LDAPUtil" %><%@
 page import="com.liferay.portal.kernel.portlet.LiferayWindowState" %><%@
 page import="com.liferay.portal.kernel.portlet.PortletProvider" %><%@
 page import="com.liferay.portal.kernel.portlet.PortletProviderUtil" %><%@
@@ -55,19 +50,14 @@ page import="com.liferay.portal.kernel.util.LocaleUtil" %><%@
 page import="com.liferay.portal.kernel.util.LocalizationUtil" %><%@
 page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
 page import="com.liferay.portal.kernel.util.PrefsParamUtil" %><%@
-page import="com.liferay.portal.kernel.util.PropertiesUtil" %><%@
 page import="com.liferay.portal.kernel.util.PropsKeys" %><%@
 page import="com.liferay.portal.kernel.util.SetUtil" %><%@
-page import="com.liferay.portal.kernel.util.StringBundler" %><%@
 page import="com.liferay.portal.kernel.util.StringPool" %><%@
 page import="com.liferay.portal.kernel.util.StringUtil" %><%@
 page import="com.liferay.portal.kernel.util.TextFormatter" %><%@
-page import="com.liferay.portal.kernel.util.UnicodeProperties" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.model.*" %><%@
 page import="com.liferay.portal.model.impl.*" %><%@
-page import="com.liferay.portal.security.ldap.LDAPSettingsUtil" %><%@
-page import="com.liferay.portal.security.ldap.PortalLDAPUtil" %><%@
 page import="com.liferay.portal.security.permission.ResourceActionsUtil" %><%@
 page import="com.liferay.portal.security.sso.OpenSSOUtil" %><%@
 page import="com.liferay.portal.service.*" %><%@
@@ -75,7 +65,6 @@ page import="com.liferay.portal.settings.web.constants.PortalSettingsWebKeys" %>
 page import="com.liferay.portal.util.Portal" %><%@
 page import="com.liferay.portal.util.PortalUtil" %><%@
 page import="com.liferay.portal.util.PrefsPropsUtil" %><%@
-page import="com.liferay.portal.util.PropsUtil" %><%@
 page import="com.liferay.portal.util.PropsValues" %><%@
 page import="com.liferay.portal.util.TermsOfUseContentProvider" %><%@
 page import="com.liferay.portal.util.TermsOfUseContentProviderRegistryUtil" %><%@
@@ -97,13 +86,7 @@ page import="java.util.Collection" %><%@
 page import="java.util.List" %><%@
 page import="java.util.Locale" %><%@
 page import="java.util.Map" %><%@
-page import="java.util.Properties" %><%@
 page import="java.util.Set" %>
-
-<%@ page import="javax.naming.directory.Attribute" %><%@
-page import="javax.naming.directory.Attributes" %><%@
-page import="javax.naming.directory.SearchResult" %><%@
-page import="javax.naming.ldap.LdapContext" %>
 
 <%@ page import="javax.portlet.PortletPreferences" %><%@
 page import="javax.portlet.PortletURL" %><%@

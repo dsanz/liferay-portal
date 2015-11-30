@@ -57,7 +57,7 @@ public class ConfigurationSynchronousConfigurationListener
 		_clusterLink.sendMulticastMessage(message, Priority.LEVEL10);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setClusterLink(ClusterLink clusterLink) {
 		_clusterLink = clusterLink;
 	}
@@ -69,6 +69,6 @@ public class ConfigurationSynchronousConfigurationListener
 	protected void setDestination(Destination destination) {
 	}
 
-	private ClusterLink _clusterLink;
+	private volatile ClusterLink _clusterLink;
 
 }

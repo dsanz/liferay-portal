@@ -122,21 +122,21 @@ public class JournalArticleSitemapURLProvider implements SitemapURLProvider {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJournalArticleService(
 		JournalArticleService journalArticleService) {
 
 		_journalArticleService = journalArticleService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setLayoutSetLocalService(
 		LayoutSetLocalService layoutSetLocalService) {
 
 		_layoutSetLocalService = layoutSetLocalService;
 	}
 
-	private JournalArticleService _journalArticleService;
-	private LayoutSetLocalService _layoutSetLocalService;
+	private volatile JournalArticleService _journalArticleService;
+	private volatile LayoutSetLocalService _layoutSetLocalService;
 
 }

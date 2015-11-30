@@ -1320,6 +1320,40 @@
 				(lower(Team.description) LIKE ? OR ? IS NULL)
 		]]>
 	</sql>
+	<sql id="com.liferay.portal.service.persistence.TeamFinder.findByG_U">
+		<![CDATA[
+			SELECT
+				DISTINCT {Team.*}
+			FROM
+				Team
+			WHERE
+				Team.groupId = ? AND
+				(
+					Team.teamId IN
+						(
+							SELECT
+								UserGroups_Teams.teamId
+							FROM
+								Users_UserGroups, UserGroups_Teams
+							WHERE
+								Users_UserGroups.userId = ?
+							AND
+								Users_UserGroups.userGroupId = UserGroups_Teams.userGroupId
+						) OR
+					Team.teamId IN
+						(
+							SELECT
+								Users_Teams.teamId
+							FROM
+								User_, Users_Teams
+							WHERE
+								User_.userId = ?
+							AND
+								User_.userId = Users_Teams.userId
+						)
+				)
+		]]>
+	</sql>
 	<sql id="com.liferay.portal.service.persistence.TeamFinder.findByG_N_D">
 		<![CDATA[
 			SELECT
@@ -1477,6 +1511,25 @@
 					(Groups_Orgs.organizationId = Users_Orgs.organizationId)
 			WHERE
 				Groups_Orgs.groupId IN [$GROUP_ID$] AND
+				(User_.companyId = ?) AND
+				(User_.defaultUser = ?) AND
+				(User_.status = ?)
+		]]>
+	</sql>
+	<sql id="com.liferay.portal.service.persistence.UserFinder.findByUsersOrgsGroup">
+		<![CDATA[
+			SELECT
+				User_.userId, groupId
+			FROM
+				User_
+			INNER JOIN
+				Users_Orgs ON
+					(Users_Orgs.userId = User_.userId)
+			INNER JOIN
+				Group_ ON
+					(Group_.classPK = Users_Orgs.organizationId)
+			WHERE
+				Group_.groupId IN [$GROUP_ID$] AND
 				(User_.companyId = ?) AND
 				(User_.defaultUser = ?) AND
 				(User_.status = ?)

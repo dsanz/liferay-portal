@@ -19,6 +19,7 @@ import com.liferay.dynamic.data.lists.constants.DDLPortletKeys;
 import com.liferay.dynamic.data.lists.model.DDLRecord;
 import com.liferay.dynamic.data.lists.model.DDLRecordVersion;
 import com.liferay.dynamic.data.lists.service.DDLRecordLocalService;
+import com.liferay.dynamic.data.lists.service.DDLRecordVersionLocalService;
 import com.liferay.dynamic.data.lists.service.permission.DDLRecordPermission;
 import com.liferay.dynamic.data.lists.service.permission.DDLRecordSetPermission;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -65,19 +66,27 @@ public class DDLRecordAssetRendererFactory
 	public AssetRenderer<DDLRecord> getAssetRenderer(long classPK, int type)
 		throws PortalException {
 
-		DDLRecord record = _ddlRecordLocalService.getRecord(classPK);
+		DDLRecord record = _ddlRecordLocalService.fetchDDLRecord(classPK);
 
 		DDLRecordVersion recordVersion = null;
 
-		if (type == TYPE_LATEST) {
-			recordVersion = record.getLatestRecordVersion();
-		}
-		else if (type == TYPE_LATEST_APPROVED) {
-			recordVersion = record.getRecordVersion();
+		if (record == null) {
+			recordVersion = _ddlRecordVersionLocalService.getRecordVersion(
+				classPK);
+
+			record = recordVersion.getRecord();
 		}
 		else {
-			throw new IllegalArgumentException(
-				"Unknown asset renderer type " + type);
+			if (type == TYPE_LATEST) {
+				recordVersion = record.getLatestRecordVersion();
+			}
+			else if (type == TYPE_LATEST_APPROVED) {
+				recordVersion = record.getRecordVersion();
+			}
+			else {
+				throw new IllegalArgumentException(
+					"Unknown asset renderer type " + type);
+			}
 		}
 
 		DDLRecordAssetRenderer ddlRecordAssetRenderer =
@@ -115,7 +124,7 @@ public class DDLRecordAssetRendererFactory
 		LiferayPortletResponse liferayPortletResponse, long classTypeId) {
 
 		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
-			liferayPortletRequest, DDLPortletKeys.DYNAMIC_DATA_LISTS, 0,
+			liferayPortletRequest, DDLPortletKeys.DYNAMIC_DATA_LISTS,
 			PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter("mvcPath", "/edit_record.jsp");
@@ -169,7 +178,15 @@ public class DDLRecordAssetRendererFactory
 		_ddlRecordLocalService = ddlRecordLocalService;
 	}
 
-	private DDLRecordLocalService _ddlRecordLocalService;
-	private ServletContext _servletContext;
+	@Reference(unbind = "-")
+	protected void setDDLRecordVersionLocalService(
+		DDLRecordVersionLocalService ddlRecordVersionLocalService) {
+
+		_ddlRecordVersionLocalService = ddlRecordVersionLocalService;
+	}
+
+	private volatile DDLRecordLocalService _ddlRecordLocalService;
+	private volatile DDLRecordVersionLocalService _ddlRecordVersionLocalService;
+	private volatile ServletContext _servletContext;
 
 }

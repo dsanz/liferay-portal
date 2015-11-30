@@ -81,6 +81,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>RECORD_TABLE_COLUMN_TWO_RECORD_1_VIEW</td>
+	<td>xpath=(//div[contains(@id,'ocerSearchContainer')]//tr/td[2]/span)</td>
+	<td></td>
+</tr>
+<tr>
 	<td>RECORD_TABLE_COLUMN_ONE_PREVIEW_1</td>
 	<td>xpath=(//div[contains(@id,'ocerSearchContainer')]//tr/td[1]/a[contains(.,'Preview')])</td>
 	<td></td>
@@ -112,7 +117,7 @@
 </tr>
 <tr>
 	<td>RECORD_TABLE_PREVIEW</td>
-	<td>//div/div/div[contains(.,'${key_ddlRecordFieldData}')]</td>
+	<td>//div[contains(@class,'modal-body')]/p</td>
 	<td></td>
 </tr>
 <tr>

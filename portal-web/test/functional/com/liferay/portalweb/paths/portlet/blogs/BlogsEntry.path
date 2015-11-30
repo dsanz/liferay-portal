@@ -25,7 +25,7 @@
 </tr>
 <tr>
 	<td>TITLE</td>
-	<td>//div[contains(@class,'entry-title')]//h1[contains(.,'${key_entryTitle}')] | //div[contains(@class,'entry-title')]//h2[contains(.,'${key_entryTitle}')] | //div[@class='entry-title']</td>
+	<td>//div[contains(@class,'entry-title')]//h1[contains(.,'${key_entryTitle}')] | //div[contains(@class,'entry-title')]//h2[contains(.,'${key_entryTitle}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -65,7 +65,7 @@
 </tr>
 <tr>
 	<td>CONTENT</td>
-	<td>//div[@class='entry-content'] | //div[contains(@class,'entry-body')]//p[contains(.,'${key_entryContent}')]</td>
+	<td>//div[contains(@class,'entry-body')]//p[contains(.,'${key_entryContent}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -76,6 +76,21 @@
 <tr>
 	<td>CONTENT_GENERIC</td>
 	<td>//div[contains(@class,'entry-body')]/p</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_INLINE_IMAGE</td>
+	<td>//div[contains(@class,'entry-body')]//img[contains(@src,'${key_uploadFileName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_HTML_BOLD</td>
+	<td>//div[contains(@class,'entry-content')]//b</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_HTML_ITALICS</td>
+	<td>//div[contains(@class,'entry-content')]//i</td>
 	<td></td>
 </tr>
 <tr>

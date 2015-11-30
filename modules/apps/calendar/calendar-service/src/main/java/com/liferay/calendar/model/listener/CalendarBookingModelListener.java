@@ -44,13 +44,13 @@ public class CalendarBookingModelListener
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setCalEventLocalService(
 		CalEventLocalService calEventLocalService) {
 
 		_calEventLocalService = calEventLocalService;
 	}
 
-	private CalEventLocalService _calEventLocalService;
+	private volatile CalEventLocalService _calEventLocalService;
 
 }

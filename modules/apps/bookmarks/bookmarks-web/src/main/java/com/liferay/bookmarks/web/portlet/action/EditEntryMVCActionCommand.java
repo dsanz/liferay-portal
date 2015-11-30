@@ -29,13 +29,13 @@ import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.asset.AssetCategoryException;
 import com.liferay.portlet.asset.AssetTagException;
 import com.liferay.portlet.trash.service.TrashEntryService;
@@ -153,7 +153,7 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 							entry.getEntryId());
 					}
 
-					actionResponse.sendRedirect(redirect);
+					actionRequest.setAttribute(WebKeys.REDIRECT, redirect);
 				}
 			}
 		}
@@ -259,7 +259,7 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 		return entry;
 	}
 
-	private BookmarksEntryService _bookmarksEntryService;
-	private TrashEntryService _trashEntryService;
+	private volatile BookmarksEntryService _bookmarksEntryService;
+	private volatile TrashEntryService _trashEntryService;
 
 }

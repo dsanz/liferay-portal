@@ -20,9 +20,22 @@ import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Portlet;
+import com.liferay.portal.model.User;
+import com.liferay.portal.model.UserNotificationDeliveryConstants;
 import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.service.UserNotificationEventLocalService;
+import com.liferay.portal.util.PortalUtil;
+import com.liferay.portlet.ControlPanelEntry;
+
+import java.io.IOException;
 
 import java.util.Locale;
+
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletURL;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Adolfo Pérez
@@ -44,8 +57,29 @@ public abstract class BasePanelApp implements PanelApp {
 				getPortletId());
 	}
 
+	@Override
+	public int getNotificationsCount(User user) {
+		if (_userNotificationEventLocalService == null) {
+			return 0;
+		}
+
+		return _userNotificationEventLocalService.
+			getUserNotificationEventsCount(
+				user.getUserId(), _portlet.getPortletId(),
+				UserNotificationDeliveryConstants.TYPE_WEBSITE, false);
+	}
+
 	public Portlet getPortlet() {
 		return _portlet;
+	}
+
+	@Override
+	public PortletURL getPortletURL(HttpServletRequest request)
+		throws PortalException {
+
+		return PortalUtil.getControlPanelPortletURL(
+			request, getGroup(request), getPortletId(), 0, 0,
+			PortletRequest.RENDER_PHASE);
 	}
 
 	@Override
@@ -53,7 +87,30 @@ public abstract class BasePanelApp implements PanelApp {
 			PermissionChecker permissionChecker, Group group)
 		throws PortalException {
 
-		return true;
+		try {
+			ControlPanelEntry controlPanelEntry = getControlPanelEntry();
+
+			if (controlPanelEntry == null) {
+				return true;
+			}
+
+			return controlPanelEntry.hasAccessPermission(
+				permissionChecker, group, getPortlet());
+		}
+		catch (PortalException | RuntimeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new PortalException(e);
+		}
+	}
+
+	@Override
+	public boolean include(
+			HttpServletRequest request, HttpServletResponse response)
+		throws IOException {
+
+		return false;
 	}
 
 	@Override
@@ -61,6 +118,28 @@ public abstract class BasePanelApp implements PanelApp {
 		_portlet = portlet;
 	}
 
+	protected ControlPanelEntry getControlPanelEntry() {
+		Portlet portlet = getPortlet();
+
+		if (portlet == null) {
+			return null;
+		}
+
+		return portlet.getControlPanelEntryInstance();
+	}
+
+	protected Group getGroup(HttpServletRequest request) {
+		return null;
+	}
+
+	protected void setUserNotificationEventLocalService(
+		UserNotificationEventLocalService userNotificationEventLocalService) {
+
+		_userNotificationEventLocalService = userNotificationEventLocalService;
+	}
+
 	private Portlet _portlet;
+	private UserNotificationEventLocalService
+		_userNotificationEventLocalService;
 
 }

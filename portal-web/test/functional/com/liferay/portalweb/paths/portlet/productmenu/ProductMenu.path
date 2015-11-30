@@ -39,6 +39,21 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PRIVATE_PAGES</td>
+	<td>//div[contains(@id,'privateLayoutsTreeOutput')]//span[contains(.,'Private Pages')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PUBLIC_PAGES</td>
+	<td>//div[contains(@id,'publicLayoutsTreeOutput')]//span[contains(.,'Public Pages')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGES</td>
+	<td>//div[@class='list-group-item']//span[contains(.,'${key_page}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PORTLET</td>
 	<td>//div[@class='list-group-item']//li/a[contains(.,'${key_portlet}')]</td>
 	<td></td>
@@ -46,6 +61,16 @@
 <tr>
 	<td>SITE</td>
 	<td>//div[contains(@id,'sites')]/ul/li/a[contains(.,'${key_site}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRIVATE_SITE_LINK</td>
+	<td>//div[contains(@id,'my_sites')]//a[contains(@id,'PrivateSiteLink') and contains(.,'${key_site}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PUBLIC_SITE_LINK</td>
+	<td>//div[contains(@id,'my_sites')]//a[contains(@id,'PublicSiteLink') and contains(.,'${key_site}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -85,8 +110,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>PRODUCT_MENU_TABS_MY_SPACE_NAVIGATION</td>
-	<td>//div[contains(.,'My Space')]/../div[contains(@class,'tab-text')]</td>
+	<td>PRODUCT_MENU_TABS_USER_NAVIGATION</td>
+	<td>//div[contains(@class,'user-tab')]//div[contains(@class,'user-icon')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -121,13 +146,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PRODUCT_MENU_PANEL_SCOPE</td>
+	<td>//div[contains(@class,'nav-equal-height-heading')]/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRODUCT_MENU_PANEL_SCOPE_COG</td>
+	<td>//div[contains(@class,'nav-equal-height-heading')]//i[contains(@class,'icon-cog')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PRODUCT_MENU_PANEL_MENU_ITEM</td>
-	<td>//div[contains(@class,'active')]//a[.='${key_portletName}']</td>
+	<td>//div[@class='list-group-item']//li/a[contains(.,'${key_portletName}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PRODUCT_MENU_PANEL_MENU_ITEM_2</td>
-	<td>xpath=(//div[contains(@class,'active')]//a[.='${key_portletName}'])[2]</td>
+	<td>xpath=(//div[@class='list-group-item']//li/a[contains(.,'${key_portletName}')])[2]</td>
 	<td></td>
 </tr>
 <tr>

@@ -326,16 +326,6 @@ public class CalEventLocalServiceWrapper implements CalEventLocalService,
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _calEventLocalService.getBeanIdentifier();
-	}
-
-	/**
 	* Returns the cal event with the primary key.
 	*
 	* @param eventId the primary key of the cal event
@@ -486,8 +476,23 @@ public class CalEventLocalServiceWrapper implements CalEventLocalService,
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _calEventLocalService.getIndexableActionableDynamicQuery();
+	}
+
+	@Override
 	public java.util.List<com.liferay.portlet.calendar.model.CalEvent> getNoAssetEvents() {
 		return _calEventLocalService.getNoAssetEvents();
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	@Override
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _calEventLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -531,16 +536,6 @@ public class CalEventLocalServiceWrapper implements CalEventLocalService,
 		java.io.InputStream inputStream)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		_calEventLocalService.importICal4j(userId, groupId, inputStream);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_calEventLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	@Override

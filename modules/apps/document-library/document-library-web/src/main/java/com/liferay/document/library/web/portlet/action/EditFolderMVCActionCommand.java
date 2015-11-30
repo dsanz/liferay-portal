@@ -33,7 +33,7 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.kernel.zip.ZipWriterFactoryUtil;
@@ -42,7 +42,7 @@ import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.WebKeys;
+import com.liferay.portlet.documentlibrary.DuplicateFileEntryException;
 import com.liferay.portlet.documentlibrary.DuplicateFileException;
 import com.liferay.portlet.documentlibrary.DuplicateFolderNameException;
 import com.liferay.portlet.documentlibrary.FolderNameException;
@@ -80,7 +80,6 @@ import org.osgi.service.component.annotations.Reference;
 	property = {
 		"javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY,
 		"javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY_ADMIN,
-		"javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY_DISPLAY,
 		"javax.portlet.name=" + DLPortletKeys.MEDIA_GALLERY_DISPLAY,
 		"mvc.command.name=/document_library/edit_folder"
 	},
@@ -120,8 +119,8 @@ public class EditFolderMVCActionCommand extends BaseMVCActionCommand {
 			deleteFolderIds = new long[] {folderId};
 		}
 		else {
-			deleteFolderIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "folderIds"), 0L);
+			deleteFolderIds = ParamUtil.getLongValues(
+				actionRequest, "rowIdsFolder");
 		}
 
 		List<TrashedModel> trashedModels = new ArrayList<>();
@@ -182,8 +181,9 @@ public class EditFolderMVCActionCommand extends BaseMVCActionCommand {
 			actionResponse.setRenderParameter(
 				"mvcPath", "/document_library/error.jsp");
 		}
-		catch (DuplicateFileException | DuplicateFolderNameException |
-			   FolderNameException | RequiredFileEntryTypeException e) {
+		catch (DuplicateFileEntryException | DuplicateFileException |
+			   DuplicateFolderNameException | FolderNameException |
+			   RequiredFileEntryTypeException e) {
 
 			SessionErrors.add(actionRequest, e.getClass());
 		}
@@ -333,6 +333,6 @@ public class EditFolderMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	private DLAppService _dlAppService;
+	private volatile DLAppService _dlAppService;
 
 }

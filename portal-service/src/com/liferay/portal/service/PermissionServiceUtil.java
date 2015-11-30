@@ -47,9 +47,6 @@ public class PermissionServiceUtil {
 	* @param groupId the primary key of the group
 	* @param name the service name
 	* @param primKey the primary key of the service
-	* @throws PortalException if the group did not have permission to the
-	service, if a group with the primary key could not be found or if
-	the permission information was invalid
 	*/
 	public static void checkPermission(long groupId, java.lang.String name,
 		long primKey)
@@ -63,9 +60,6 @@ public class PermissionServiceUtil {
 	* @param groupId the primary key of the group
 	* @param name the service name
 	* @param primKey the primary key of the service
-	* @throws PortalException if the group did not have permission to the
-	service, if a group with the primary key could not be found or if
-	the permission information was invalid
 	*/
 	public static void checkPermission(long groupId, java.lang.String name,
 		java.lang.String primKey)
@@ -74,21 +68,12 @@ public class PermissionServiceUtil {
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
 	}
 
 	public static PermissionService getService() {

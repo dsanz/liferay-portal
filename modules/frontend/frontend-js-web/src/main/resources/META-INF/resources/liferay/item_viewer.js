@@ -33,6 +33,8 @@ AUI.add(
 
 		var CSS_LOADING_ICON = A.getClassName(CSS_IMAGE_VIEWER_BASE, 'loading', 'icon');
 
+		var CSS_PREVIEW_TIMEOUT_MESSAGE = 'preview-timeout-message';
+
 		var CSS_SIDENAV_CONTAINER = 'sidenav-container';
 
 		var CSS_SIDENAV_MENU_SLIDER = 'sidenav-menu-slider';
@@ -44,6 +46,10 @@ AUI.add(
 		var STR_DOT = '.';
 
 		var STR_RENDER_CONTROLS = 'renderControls';
+
+		var STR_RENDER_SIDEBAR = 'renderSidebar';
+
+		var STR_SRC_NODE = 'srcNode';
 
 		var TPL_CLOSE = '<button class="close image-viewer-base-control image-viewer-close lfr-item-viewer-close" type="button"><span class="glyphicon glyphicon-chevron-left ' + CSS_ICON_MONOSPACED + '"></span><span>{0}</span></button>';
 
@@ -77,7 +83,17 @@ AUI.add(
 						value: false
 					},
 
+					previewTimeout: {
+						validator: Lang.isNumber,
+						value: 5000
+					},
+
 					renderControls: {
+						validator: Lang.isBoolean,
+						value: true
+					},
+
+					renderSidebar: {
 						validator: Lang.isBoolean,
 						value: true
 					},
@@ -115,7 +131,8 @@ AUI.add(
 								'<div class="sidebar-body"><div class="tab-content"></div></div>' +
 							'</div>' +
 						'</div>' +
-						'<span class="glyphicon glyphicon-time ' + CSS_LOADING_ICON + '"></span>' +
+						'<span class="glyphicon glyphicon-time text-muted ' + CSS_LOADING_ICON + '"></span>' +
+						'<p class="fade preview-timeout-message text-muted">' + Liferay.Language.get('preview-image-is-taking-longer-than-expected') + '</p>' +
 					'</div>',
 
 					initializer: function() {
@@ -127,7 +144,10 @@ AUI.add(
 						);
 
 						instance._displacedMethodHandles = [
+							instance.after('visibleChange', instance._destroyPreviewTimer, instance),
 							Do.after('_afterBindUI', instance, 'bindUI', instance),
+							Do.after('_afterGetCurrentImage', instance, '_getCurrentImage', instance),
+							Do.after('_afterShow', instance, 'show', instance),
 							Do.after('_afterShowCurrentImage', instance, '_showCurrentImage', instance),
 							Do.after('_bindSidebarEvents', instance, '_afterLinksChange', instance),
 							Do.before('_beforeOnClickControl', instance, '_onClickControl', instance),
@@ -165,6 +185,29 @@ AUI.add(
 						instance._bindSidebarEvents();
 					},
 
+					_afterGetCurrentImage: function(event) {
+						var instance = this;
+
+						if (instance._showPreviewError) {
+							return new Do.AlterReturn(
+								'Return error message node',
+								instance.get(STR_SRC_NODE).one(STR_DOT + CSS_PREVIEW_TIMEOUT_MESSAGE)
+							);
+						}
+					},
+
+					_afterShow: function() {
+						var instance = this;
+
+						instance._showPreviewError = false;
+
+						instance._timer = A.later(
+							instance.get('previewTimeout'),
+							instance,
+							instance._showPreviewErrorMessage
+						);
+					},
+
 					_afterShowCurrentImage: function() {
 						var instance = this;
 
@@ -196,25 +239,36 @@ AUI.add(
 					_bindSidebarEvents: function() {
 						var instance = this;
 
-						var sidebarNode = AUI.$(STR_DOT + CSS_SIDENAV_CONTAINER);
+						if (instance.get(STR_RENDER_SIDEBAR)) {
+							var sidebarNode = AUI.$(STR_DOT + CSS_SIDENAV_CONTAINER);
 
-						sidebarNode.sideNavigation(
-							{
-								content: sidebarNode.find('.image-viewer-base-image'),
-								equalHeight: false,
-								position: 'right',
-								toggler: instance._infoIconEl.getDOMNode(),
-								useDelegate: false,
-								width: '300px'
-							}
-						);
+							sidebarNode.sideNavigation(
+								{
+									content: sidebarNode.find('.image-viewer-base-image'),
+									equalHeight: false,
+									position: 'right',
+									toggler: instance._infoIconEl.getDOMNode(),
+									useDelegate: false,
+									width: '300px'
+								}
+							);
+						}
+					},
+
+					_destroyPreviewTimer: function() {
+						var instance = this;
+
+						if (instance._timer) {
+							instance._timer.cancel();
+							instance._timer = null;
+						}
 					},
 
 					_getImageInfoNodes: function() {
 						var instance = this;
 
 						if (!instance._imageInfoNodes) {
-							instance._imageInfoNodes = instance.get('srcNode').all(STR_DOT + CSS_IMAGE_INFO);
+							instance._imageInfoNodes = instance.get(STR_SRC_NODE).all(STR_DOT + CSS_IMAGE_INFO);
 						}
 
 						return instance._imageInfoNodes;
@@ -314,11 +368,13 @@ AUI.add(
 							container.append(instance.get('controlNext'));
 						}
 
-						var infoIconEl = A.Node.create(TPL_INFO_ICON);
+						if (instance.get(STR_RENDER_SIDEBAR)) {
+							var infoIconEl = A.Node.create(TPL_INFO_ICON);
 
-						container.append(infoIconEl);
+							container.append(infoIconEl);
 
-						instance._infoIconEl = infoIconEl;
+							instance._infoIconEl = infoIconEl;
+						}
 					},
 
 					_setLinks: function(val) {
@@ -349,6 +405,16 @@ AUI.add(
 						}
 
 						return links;
+					},
+
+					_showPreviewErrorMessage: function() {
+						var instance = this;
+
+						instance._showPreviewError = true;
+
+						instance.get(STR_SRC_NODE).one('.' + CSS_LOADING_ICON).hide();
+
+						instance.fire('animate');
 					},
 
 					_syncCaptionUI: function() {

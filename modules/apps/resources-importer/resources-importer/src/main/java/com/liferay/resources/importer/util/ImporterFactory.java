@@ -14,12 +14,13 @@
 
 package com.liferay.resources.importer.util;
 
+import com.liferay.journal.util.JournalConverter;
 import com.liferay.portal.kernel.deploy.DeployManagerUtil;
 import com.liferay.portal.kernel.plugin.PluginPackage;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.service.GroupLocalServiceUtil;
+import com.liferay.portal.service.GroupLocalService;
 
 import java.net.URL;
 import java.net.URLConnection;
@@ -28,9 +29,13 @@ import java.util.Set;
 
 import javax.servlet.ServletContext;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Michael C. Han
  */
+@Component(service = ImporterFactory.class)
 public class ImporterFactory {
 
 	public static final String RESOURCES_DIR =
@@ -38,10 +43,6 @@ public class ImporterFactory {
 
 	public static final String TEMPLATES_DIR =
 		"/WEB-INF/classes/templates-importer/";
-
-	public static ImporterFactory getInstance() {
-		return _instance;
-	}
 
 	public Importer createImporter(
 			long companyId, ServletContext servletContext,
@@ -95,19 +96,22 @@ public class ImporterFactory {
 		else if ((resourcePaths != null) && !resourcePaths.isEmpty()) {
 			importer = getResourceImporter();
 
+			importer.setJournalConverter(_journalConverter);
 			importer.setResourcesDir(RESOURCES_DIR);
 		}
 		else if ((templatePaths != null) && !templatePaths.isEmpty()) {
 			importer = getResourceImporter();
 
-			Group group = GroupLocalServiceUtil.getCompanyGroup(companyId);
+			Group group = _groupLocalService.getCompanyGroup(companyId);
 
 			importer.setGroupId(group.getGroupId());
+			importer.setJournalConverter(_journalConverter);
 			importer.setResourcesDir(TEMPLATES_DIR);
 		}
 		else if (Validator.isNotNull(resourcesDir)) {
 			importer = getFileSystemImporter();
 
+			importer.setJournalConverter(_journalConverter);
 			importer.setResourcesDir(resourcesDir);
 		}
 
@@ -172,6 +176,17 @@ public class ImporterFactory {
 		return new ResourceImporter();
 	}
 
-	private static final ImporterFactory _instance = new ImporterFactory();
+	@Reference(unbind = "-")
+	protected void setGroupLocalService(GroupLocalService groupLocalService) {
+		_groupLocalService = groupLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setJournalConverter(JournalConverter journalConverter) {
+		_journalConverter = journalConverter;
+	}
+
+	private volatile GroupLocalService _groupLocalService;
+	private volatile JournalConverter _journalConverter;
 
 }

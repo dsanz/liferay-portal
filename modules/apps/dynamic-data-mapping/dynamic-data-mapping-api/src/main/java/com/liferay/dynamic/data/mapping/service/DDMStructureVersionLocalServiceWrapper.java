@@ -192,16 +192,6 @@ public class DDMStructureVersionLocalServiceWrapper
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _ddmStructureVersionLocalService.getBeanIdentifier();
-	}
-
-	/**
 	* Returns the d d m structure version with the primary key.
 	*
 	* @param structureVersionId the primary key of the d d m structure version
@@ -244,10 +234,25 @@ public class DDMStructureVersionLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _ddmStructureVersionLocalService.getIndexableActionableDynamicQuery();
+	}
+
+	@Override
 	public com.liferay.dynamic.data.mapping.model.DDMStructureVersion getLatestStructureVersion(
 		long structureId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return _ddmStructureVersionLocalService.getLatestStructureVersion(structureId);
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	@Override
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _ddmStructureVersionLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -289,16 +294,6 @@ public class DDMStructureVersionLocalServiceWrapper
 	@Override
 	public int getStructureVersionsCount(long structureId) {
 		return _ddmStructureVersionLocalService.getStructureVersionsCount(structureId);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_ddmStructureVersionLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

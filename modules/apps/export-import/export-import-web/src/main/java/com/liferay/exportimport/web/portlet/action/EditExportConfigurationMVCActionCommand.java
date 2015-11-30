@@ -178,9 +178,7 @@ public class EditExportConfigurationMVCActionCommand
 				addSessionMessages(actionRequest);
 			}
 
-			String redirect = ParamUtil.getString(actionRequest, "redirect");
-
-			sendRedirect(actionRequest, actionResponse, redirect);
+			sendRedirect(actionRequest, actionResponse);
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -220,21 +218,21 @@ public class EditExportConfigurationMVCActionCommand
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setExportImportConfigurationService(
 		ExportImportConfigurationService exportImportConfigurationService) {
 
 		_exportImportConfigurationService = exportImportConfigurationService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setExportImportService(
 		ExportImportService exportImportService) {
 
 		_exportImportService = exportImportService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setTrashEntryService(TrashEntryService trashEntryService) {
 		_trashEntryService = trashEntryService;
 	}
@@ -259,8 +257,9 @@ public class EditExportConfigurationMVCActionCommand
 	private static final Log _log = LogFactoryUtil.getLog(
 		EditExportConfigurationMVCActionCommand.class);
 
-	private ExportImportConfigurationService _exportImportConfigurationService;
-	private ExportImportService _exportImportService;
-	private TrashEntryService _trashEntryService;
+	private volatile ExportImportConfigurationService
+		_exportImportConfigurationService;
+	private volatile ExportImportService _exportImportService;
+	private volatile TrashEntryService _trashEntryService;
 
 }

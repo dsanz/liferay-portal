@@ -60,12 +60,12 @@ public class ContactModelListener extends BaseModelListener<Contact> {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setUserExporter(UserExporter userExporter) {
 		_userExporter = userExporter;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setUserLocalService(UserLocalService userLocalService) {
 		_userLocalService = userLocalService;
 	}
@@ -94,7 +94,7 @@ public class ContactModelListener extends BaseModelListener<Contact> {
 		_userExporter.exportUser(contact, expandoBridgeAttributes);
 	}
 
-	private UserExporter _userExporter;
-	private UserLocalService _userLocalService;
+	private volatile UserExporter _userExporter;
+	private volatile UserLocalService _userLocalService;
 
 }

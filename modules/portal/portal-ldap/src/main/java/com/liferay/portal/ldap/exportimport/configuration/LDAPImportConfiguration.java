@@ -16,14 +16,16 @@ package com.liferay.portal.ldap.exportimport.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
 
+import com.liferay.configuration.admin.ConfigurationAdmin;
 import com.liferay.portal.ldap.configuration.CompanyScopedConfiguration;
 
 /**
  * @author Michael C. Han
  */
+@ConfigurationAdmin(category = "platform")
 @Meta.OCD(
 	factory = true,
-	id = "com.liferay.portal.ldap.exportimport.configuration..LDAPImportConfiguration",
+	id = "com.liferay.portal.ldap.exportimport.configuration.LDAPImportConfiguration",
 	localization = "content/Language"
 )
 public interface LDAPImportConfiguration extends CompanyScopedConfiguration {
@@ -40,9 +42,6 @@ public interface LDAPImportConfiguration extends CompanyScopedConfiguration {
 
 	@Meta.AD(deflt = "true", required = false)
 	public boolean importGroupCacheEnabled();
-
-	@Meta.AD(deflt = "true", required = false)
-	public boolean importGroupSearchFilterEnabled();
 
 	@Meta.AD(deflt = "10", required = false)
 	public int importInterval();
@@ -70,8 +69,5 @@ public interface LDAPImportConfiguration extends CompanyScopedConfiguration {
 		required = false
 	)
 	public String importUserSyncStrategy();
-
-	@Meta.AD(deflt = "", required = false)
-	public String[] userIgnoreAttributes();
 
 }

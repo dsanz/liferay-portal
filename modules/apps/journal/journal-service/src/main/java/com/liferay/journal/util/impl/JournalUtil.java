@@ -69,6 +69,7 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Attribute;
 import com.liferay.portal.kernel.xml.Document;
@@ -91,7 +92,6 @@ import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsUtil;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portal.webserver.WebServerServletTokenUtil;
 import com.liferay.portlet.asset.service.AssetTagLocalServiceUtil;
 import com.liferay.util.FiniteUniqueStack;
@@ -109,7 +109,6 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.regex.Pattern;
 
-import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletSession;
 import javax.portlet.PortletURL;
@@ -510,8 +509,33 @@ public class JournalUtil {
 		PortletRequest portletRequest, String emailFromAddress,
 		String emailFromName) {
 
+		return getEmailDefinitionTerms(
+			portletRequest, emailFromAddress, emailFromName, StringPool.BLANK);
+	}
+
+	public static Map<String, String> getEmailDefinitionTerms(
+		PortletRequest portletRequest, String emailFromAddress,
+		String emailFromName, String emailType) {
+
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
+
+		String fromAddress = HtmlUtil.escape(emailFromAddress);
+		String fromName = HtmlUtil.escape(emailFromName);
+		String toAddress = LanguageUtil.get(
+			themeDisplay.getLocale(), "the-address-of-the-email-recipient");
+		String toName = LanguageUtil.get(
+			themeDisplay.getLocale(), "the-name-of-the-email-recipient");
+
+		if (emailType.equals("requested")) {
+			toName = fromName;
+			toAddress = fromAddress;
+
+			fromName = LanguageUtil.get(
+				themeDisplay.getLocale(), "the-name-of-the-email-sender");
+			fromAddress = LanguageUtil.get(
+				themeDisplay.getLocale(), "the-address-of-the-email-sender");
+		}
 
 		Map<String, String> definitionTerms = new LinkedHashMap<>();
 
@@ -538,9 +562,8 @@ public class JournalUtil {
 			"[$ARTICLE_VERSION$]",
 			LanguageUtil.get(
 				themeDisplay.getLocale(), "the-web-content-version"));
-		definitionTerms.put(
-			"[$FROM_ADDRESS$]", HtmlUtil.escape(emailFromAddress));
-		definitionTerms.put("[$FROM_NAME$]", HtmlUtil.escape(emailFromName));
+		definitionTerms.put("[$FROM_ADDRESS$]", fromAddress);
+		definitionTerms.put("[$FROM_NAME$]", fromName);
 
 		Company company = themeDisplay.getCompany();
 
@@ -551,33 +574,10 @@ public class JournalUtil {
 		definitionTerms.put(
 			"[$PORTLET_NAME$]", HtmlUtil.escape(portletDisplay.getTitle()));
 
-		definitionTerms.put(
-			"[$TO_ADDRESS$]",
-			LanguageUtil.get(
-				themeDisplay.getLocale(),
-				"the-address-of-the-email-recipient"));
-		definitionTerms.put(
-			"[$TO_NAME$]",
-			LanguageUtil.get(
-				themeDisplay.getLocale(), "the-name-of-the-email-recipient"));
+		definitionTerms.put("[$TO_ADDRESS$]", toAddress);
+		definitionTerms.put("[$TO_NAME$]", toName);
 
 		return definitionTerms;
-	}
-
-	public static String getEmailFromAddress(
-		PortletPreferences preferences, long companyId) {
-
-		return PortalUtil.getEmailFromAddress(
-			preferences, companyId,
-			JournalServiceConfigurationValues.EMAIL_FROM_ADDRESS);
-	}
-
-	public static String getEmailFromName(
-		PortletPreferences preferences, long companyId) {
-
-		return PortalUtil.getEmailFromName(
-			preferences, companyId,
-			JournalServiceConfigurationValues.EMAIL_FROM_NAME);
 	}
 
 	public static String getJournalControlPanelLink(

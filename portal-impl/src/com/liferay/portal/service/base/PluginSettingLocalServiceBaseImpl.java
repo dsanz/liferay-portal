@@ -17,7 +17,6 @@ package com.liferay.portal.service.base;
 import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.BeanReference;
-import com.liferay.portal.kernel.bean.IdentifiableBean;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
@@ -26,9 +25,11 @@ import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DefaultActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -65,7 +66,7 @@ import javax.sql.DataSource;
 @ProviderType
 public abstract class PluginSettingLocalServiceBaseImpl
 	extends BaseLocalServiceImpl implements PluginSettingLocalService,
-		IdentifiableBean {
+		IdentifiableOSGiService {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -229,19 +230,33 @@ public abstract class PluginSettingLocalServiceBaseImpl
 		ActionableDynamicQuery actionableDynamicQuery = new DefaultActionableDynamicQuery();
 
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.PluginSettingLocalServiceUtil.getService());
-		actionableDynamicQuery.setClass(PluginSetting.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
+		actionableDynamicQuery.setModelClass(PluginSetting.class);
 
 		actionableDynamicQuery.setPrimaryKeyPropertyName("pluginSettingId");
 
 		return actionableDynamicQuery;
 	}
 
+	@Override
+	public IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery = new IndexableActionableDynamicQuery();
+
+		indexableActionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.PluginSettingLocalServiceUtil.getService());
+		indexableActionableDynamicQuery.setClassLoader(getClassLoader());
+		indexableActionableDynamicQuery.setModelClass(PluginSetting.class);
+
+		indexableActionableDynamicQuery.setPrimaryKeyPropertyName(
+			"pluginSettingId");
+
+		return indexableActionableDynamicQuery;
+	}
+
 	protected void initActionableDynamicQuery(
 		ActionableDynamicQuery actionableDynamicQuery) {
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portal.service.PluginSettingLocalServiceUtil.getService());
-		actionableDynamicQuery.setClass(PluginSetting.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
+		actionableDynamicQuery.setModelClass(PluginSetting.class);
 
 		actionableDynamicQuery.setPrimaryKeyPropertyName("pluginSettingId");
 	}
@@ -316,25 +331,6 @@ public abstract class PluginSettingLocalServiceBaseImpl
 	public void setPluginSettingLocalService(
 		PluginSettingLocalService pluginSettingLocalService) {
 		this.pluginSettingLocalService = pluginSettingLocalService;
-	}
-
-	/**
-	 * Returns the plugin setting remote service.
-	 *
-	 * @return the plugin setting remote service
-	 */
-	public com.liferay.portal.service.PluginSettingService getPluginSettingService() {
-		return pluginSettingService;
-	}
-
-	/**
-	 * Sets the plugin setting remote service.
-	 *
-	 * @param pluginSettingService the plugin setting remote service
-	 */
-	public void setPluginSettingService(
-		com.liferay.portal.service.PluginSettingService pluginSettingService) {
-		this.pluginSettingService = pluginSettingService;
 	}
 
 	/**
@@ -414,25 +410,6 @@ public abstract class PluginSettingLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the role remote service.
-	 *
-	 * @return the role remote service
-	 */
-	public com.liferay.portal.service.RoleService getRoleService() {
-		return roleService;
-	}
-
-	/**
-	 * Sets the role remote service.
-	 *
-	 * @param roleService the role remote service
-	 */
-	public void setRoleService(
-		com.liferay.portal.service.RoleService roleService) {
-		this.roleService = roleService;
-	}
-
-	/**
 	 * Returns the role persistence.
 	 *
 	 * @return the role persistence
@@ -488,25 +465,6 @@ public abstract class PluginSettingLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the theme remote service.
-	 *
-	 * @return the theme remote service
-	 */
-	public com.liferay.portal.service.ThemeService getThemeService() {
-		return themeService;
-	}
-
-	/**
-	 * Sets the theme remote service.
-	 *
-	 * @param themeService the theme remote service
-	 */
-	public void setThemeService(
-		com.liferay.portal.service.ThemeService themeService) {
-		this.themeService = themeService;
-	}
-
-	/**
 	 * Returns the user local service.
 	 *
 	 * @return the user local service
@@ -523,25 +481,6 @@ public abstract class PluginSettingLocalServiceBaseImpl
 	public void setUserLocalService(
 		com.liferay.portal.service.UserLocalService userLocalService) {
 		this.userLocalService = userLocalService;
-	}
-
-	/**
-	 * Returns the user remote service.
-	 *
-	 * @return the user remote service
-	 */
-	public com.liferay.portal.service.UserService getUserService() {
-		return userService;
-	}
-
-	/**
-	 * Sets the user remote service.
-	 *
-	 * @param userService the user remote service
-	 */
-	public void setUserService(
-		com.liferay.portal.service.UserService userService) {
-		this.userService = userService;
 	}
 
 	/**
@@ -591,23 +530,13 @@ public abstract class PluginSettingLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the Spring bean ID for this bean.
+	 * Returns the OSGi service identifier.
 	 *
-	 * @return the Spring bean ID for this bean
+	 * @return the OSGi service identifier
 	 */
 	@Override
-	public String getBeanIdentifier() {
-		return _beanIdentifier;
-	}
-
-	/**
-	 * Sets the Spring bean ID for this bean.
-	 *
-	 * @param beanIdentifier the Spring bean ID for this bean
-	 */
-	@Override
-	public void setBeanIdentifier(String beanIdentifier) {
-		_beanIdentifier = beanIdentifier;
+	public String getOSGiServiceIdentifier() {
+		return PluginSettingLocalService.class.getName();
 	}
 
 	protected Class<?> getModelClass() {
@@ -644,8 +573,6 @@ public abstract class PluginSettingLocalServiceBaseImpl
 
 	@BeanReference(type = com.liferay.portal.service.PluginSettingLocalService.class)
 	protected PluginSettingLocalService pluginSettingLocalService;
-	@BeanReference(type = com.liferay.portal.service.PluginSettingService.class)
-	protected com.liferay.portal.service.PluginSettingService pluginSettingService;
 	@BeanReference(type = PluginSettingPersistence.class)
 	protected PluginSettingPersistence pluginSettingPersistence;
 	@BeanReference(type = com.liferay.counter.service.CounterLocalService.class)
@@ -654,25 +581,18 @@ public abstract class PluginSettingLocalServiceBaseImpl
 	protected com.liferay.portal.service.LayoutTemplateLocalService layoutTemplateLocalService;
 	@BeanReference(type = com.liferay.portal.service.RoleLocalService.class)
 	protected com.liferay.portal.service.RoleLocalService roleLocalService;
-	@BeanReference(type = com.liferay.portal.service.RoleService.class)
-	protected com.liferay.portal.service.RoleService roleService;
 	@BeanReference(type = RolePersistence.class)
 	protected RolePersistence rolePersistence;
 	@BeanReference(type = RoleFinder.class)
 	protected RoleFinder roleFinder;
 	@BeanReference(type = com.liferay.portal.service.ThemeLocalService.class)
 	protected com.liferay.portal.service.ThemeLocalService themeLocalService;
-	@BeanReference(type = com.liferay.portal.service.ThemeService.class)
-	protected com.liferay.portal.service.ThemeService themeService;
 	@BeanReference(type = com.liferay.portal.service.UserLocalService.class)
 	protected com.liferay.portal.service.UserLocalService userLocalService;
-	@BeanReference(type = com.liferay.portal.service.UserService.class)
-	protected com.liferay.portal.service.UserService userService;
 	@BeanReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
 	@BeanReference(type = UserFinder.class)
 	protected UserFinder userFinder;
 	@BeanReference(type = PersistedModelLocalServiceRegistry.class)
 	protected PersistedModelLocalServiceRegistry persistedModelLocalServiceRegistry;
-	private String _beanIdentifier;
 }

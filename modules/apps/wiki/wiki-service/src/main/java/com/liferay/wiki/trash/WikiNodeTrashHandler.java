@@ -151,6 +151,10 @@ public class WikiNodeTrashHandler extends BaseWikiTrashHandler {
 			classPK, true, WorkflowConstants.STATUS_IN_TRASH, start, end);
 
 		for (WikiPage page : pages) {
+			if (page.isInTrashExplicitly()) {
+				continue;
+			}
+
 			WikiPage redirectPage = page.getRedirectPage();
 
 			if ((redirectPage != null) && redirectPage.isInTrash()) {
@@ -227,7 +231,7 @@ public class WikiNodeTrashHandler extends BaseWikiTrashHandler {
 
 		if (plid == LayoutConstants.DEFAULT_PLID) {
 			portletURL = PortalUtil.getControlPanelPortletURL(
-				portletRequest, WikiPortletKeys.WIKI_ADMIN, 0,
+				portletRequest, WikiPortletKeys.WIKI_ADMIN,
 				PortletRequest.RENDER_PHASE);
 		}
 		else {
@@ -267,7 +271,7 @@ public class WikiNodeTrashHandler extends BaseWikiTrashHandler {
 		_wikiPageLocalService = wikiPageLocalService;
 	}
 
-	private WikiNodeLocalService _wikiNodeLocalService;
-	private WikiPageLocalService _wikiPageLocalService;
+	private volatile WikiNodeLocalService _wikiNodeLocalService;
+	private volatile WikiPageLocalService _wikiPageLocalService;
 
 }

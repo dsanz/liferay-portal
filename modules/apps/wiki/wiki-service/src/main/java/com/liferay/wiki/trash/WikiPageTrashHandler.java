@@ -317,7 +317,7 @@ public class WikiPageTrashHandler extends BaseWikiTrashHandler {
 
 	@Override
 	public boolean isMovable() {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -427,7 +427,7 @@ public class WikiPageTrashHandler extends BaseWikiTrashHandler {
 
 		if (plid == LayoutConstants.DEFAULT_PLID) {
 			portletURL = PortalUtil.getControlPanelPortletURL(
-				portletRequest, WikiPortletKeys.WIKI_ADMIN, 0,
+				portletRequest, WikiPortletKeys.WIKI_ADMIN,
 				PortletRequest.RENDER_PHASE);
 		}
 		else {
@@ -475,8 +475,8 @@ public class WikiPageTrashHandler extends BaseWikiTrashHandler {
 		_wikiPageService = wikiPageService;
 	}
 
-	private WikiPageLocalService _wikiPageLocalService;
-	private WikiPageResourceLocalService _wikiPageResourceLocalService;
-	private WikiPageService _wikiPageService;
+	private volatile WikiPageLocalService _wikiPageLocalService;
+	private volatile WikiPageResourceLocalService _wikiPageResourceLocalService;
+	private volatile WikiPageService _wikiPageService;
 
 }

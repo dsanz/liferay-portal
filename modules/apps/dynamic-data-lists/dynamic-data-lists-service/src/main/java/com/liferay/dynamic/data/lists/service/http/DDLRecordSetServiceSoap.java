@@ -279,5 +279,20 @@ public class DDLRecordSetServiceSoap {
 		}
 	}
 
+	public static com.liferay.dynamic.data.lists.model.DDLRecordSetSoap updateRecordSet(
+		long recordSetId, java.lang.String settings) throws RemoteException {
+		try {
+			com.liferay.dynamic.data.lists.model.DDLRecordSet returnValue = DDLRecordSetServiceUtil.updateRecordSet(recordSetId,
+					settings);
+
+			return com.liferay.dynamic.data.lists.model.DDLRecordSetSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	private static Log _log = LogFactoryUtil.getLog(DDLRecordSetServiceSoap.class);
 }

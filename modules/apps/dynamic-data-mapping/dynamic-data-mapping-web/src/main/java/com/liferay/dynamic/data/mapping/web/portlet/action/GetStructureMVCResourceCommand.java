@@ -65,16 +65,16 @@ public class GetStructureMVCResourceCommand extends BaseMVCResourceCommand {
 
 		ServletResponseUtil.sendFile(
 			httpServletRequest, httpServletResponse, null,
-			definition.getBytes(), ContentTypes.TEXT_XML_UTF8);
+			definition.getBytes(), ContentTypes.APPLICATION_JSON);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMStructureService(
 		DDMStructureService ddmStructureService) {
 
 		_ddmStructureService = ddmStructureService;
 	}
 
-	private DDMStructureService _ddmStructureService;
+	private volatile DDMStructureService _ddmStructureService;
 
 }

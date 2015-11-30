@@ -103,7 +103,7 @@ public class CommentsContentMetadataAssetAddonEntry
 		return super.isEnabled();
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setCommentRatingsContentMetadataAssetAddonEntry(
 		CommentRatingsContentMetadataAssetAddonEntry
 			commentRatingsContentMetadataAssetAddonEntry) {
@@ -121,7 +121,7 @@ public class CommentsContentMetadataAssetAddonEntry
 		super.setServletContext(servletContext);
 	}
 
-	private CommentRatingsContentMetadataAssetAddonEntry
+	private volatile CommentRatingsContentMetadataAssetAddonEntry
 		_commentRatingsContentMetadataAssetAddonEntry;
 
 }

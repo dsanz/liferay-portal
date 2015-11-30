@@ -18,6 +18,8 @@ import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationExceptio
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationResult;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluator;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormFieldEvaluationResult;
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldRenderer;
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRendererConstants;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingException;
@@ -26,14 +28,13 @@ import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.model.UnlocalizedValue;
 import com.liferay.dynamic.data.mapping.model.Value;
-import com.liferay.dynamic.data.mapping.registry.DDMFormFieldRenderer;
-import com.liferay.dynamic.data.mapping.registry.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -104,6 +105,8 @@ public class DDMFormRendererHelper {
 		ddmFormFieldRenderingContext.setName(StringPool.BLANK);
 		ddmFormFieldRenderingContext.setPortletNamespace(
 			_ddmFormRenderingContext.getPortletNamespace());
+		ddmFormFieldRenderingContext.setReadOnly(
+			_ddmFormRenderingContext.isReadOnly());
 		ddmFormFieldRenderingContext.setValue(StringPool.BLANK);
 
 		return ddmFormFieldRenderingContext;
@@ -157,8 +160,8 @@ public class DDMFormRendererHelper {
 	protected Value createDefaultValue(DDMFormField ddmFormField) {
 		LocalizedValue predefinedValue = ddmFormField.getPredefinedValue();
 
-		String defaultValueString = predefinedValue.getString(
-			_ddmFormRenderingContext.getLocale());
+		String defaultValueString = GetterUtil.getString(
+			predefinedValue.getString(_ddmFormRenderingContext.getLocale()));
 
 		if (ddmFormField.isLocalizable()) {
 			return createDefaultLocalizedValue(defaultValueString);
@@ -476,10 +479,9 @@ public class DDMFormRendererHelper {
 	}
 
 	protected String wrapDDMFormFieldHTML(String ddmFormFieldHTML) {
-		StringBundler sb = new StringBundler(4);
+		StringBundler sb = new StringBundler(3);
 
-		sb.append("<div class=\"lfr-ddm-form-field-container");
-		sb.append("\">");
+		sb.append("<div class=\"lfr-ddm-form-field-container\">");
 		sb.append(ddmFormFieldHTML);
 		sb.append("</div>");
 

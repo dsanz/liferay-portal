@@ -67,9 +67,6 @@ public interface SocialRequestLocalService extends BaseLocalService,
 	* @param extraData the extra data regarding the request
 	* @param receiverUserId the primary key of the user receiving the request
 	* @return the social request
-	* @throws PortalException if the users could not be found, if the users
-	were not from the same company, or if either of the users was the
-	default user
 	*/
 	public com.liferay.portlet.social.model.SocialRequest addRequest(
 		long userId, long groupId, java.lang.String className, long classPK,
@@ -123,7 +120,6 @@ public interface SocialRequestLocalService extends BaseLocalService,
 	* database.
 	*
 	* @param requestId the primary key of the social request
-	* @throws PortalException if the social request could not be found
 	*/
 	public void deleteRequest(long requestId) throws PortalException;
 
@@ -240,12 +236,15 @@ public interface SocialRequestLocalService extends BaseLocalService,
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
-	public java.lang.String getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier();
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -494,13 +493,6 @@ public interface SocialRequestLocalService extends BaseLocalService,
 		long classPK, int type, int status);
 
 	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
-
-	/**
 	* Updates the social request replacing its status.
 	*
 	* <p>
@@ -517,7 +509,6 @@ public interface SocialRequestLocalService extends BaseLocalService,
 	* @param status the new status
 	* @param themeDisplay the theme display
 	* @return the updated social request
-	* @throws PortalException if the social request could not be found
 	*/
 	public com.liferay.portlet.social.model.SocialRequest updateRequest(
 		long requestId, int status,

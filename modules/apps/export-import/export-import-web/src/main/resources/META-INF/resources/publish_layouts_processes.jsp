@@ -17,6 +17,8 @@
 <%@ include file="/init.jsp" %>
 
 <%
+String cmd = ParamUtil.getString(request, Constants.CMD);
+
 String closeRedirect = ParamUtil.getString(request, "closeRedirect");
 
 long groupId = ParamUtil.getLong(request, "groupId");
@@ -29,6 +31,7 @@ boolean quickPublish = ParamUtil.getBoolean(request, "quickPublish");
 PortletURL renderURL = liferayPortletResponse.createRenderURL();
 
 renderURL.setParameter("mvcRenderCommandName", "publishLayouts");
+renderURL.setParameter(Constants.CMD, cmd);
 renderURL.setParameter("tabs2", "current-and-previous");
 renderURL.setParameter("closeRedirect", closeRedirect);
 renderURL.setParameter("groupId", String.valueOf(groupId));
@@ -113,8 +116,15 @@ String taskExecutorClassName = localPublishing ? BackgroundTaskExecutorNames.LAY
 				</c:if>
 
 				<strong class="label label-default">
+
+					<%
+					long exportImportConfigurationId = MapUtil.getLong(backgroundTask.getTaskContextMap(), "exportImportConfigurationId");
+
+					ExportImportConfiguration exportImportConfiguration = ExportImportConfigurationLocalServiceUtil.getExportImportConfiguration(exportImportConfigurationId);
+					%>
+
 					<c:choose>
-						<c:when test='<%= MapUtil.getBoolean(backgroundTask.getTaskContextMap(), "privateLayout") %>'>
+						<c:when test='<%= MapUtil.getBoolean(exportImportConfiguration.getSettingsMap(), "privateLayout") %>'>
 							<liferay-ui:message key="private-pages" />
 						</c:when>
 						<c:otherwise>
@@ -174,7 +184,7 @@ String taskExecutorClassName = localPublishing ? BackgroundTaskExecutorNames.LAY
 		</c:if>
 	</liferay-ui:search-container-row>
 
-	<liferay-ui:search-iterator />
+	<liferay-ui:search-iterator markupView="lexicon" />
 </liferay-ui:search-container>
 
 <%

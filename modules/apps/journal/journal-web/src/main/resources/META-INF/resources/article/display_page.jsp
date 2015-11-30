@@ -17,7 +17,7 @@
 <%@ include file="/init.jsp" %>
 
 <%
-JournalArticle article = ActionUtil.getArticle(request);
+JournalArticle article = journalDisplayContext.getArticle();
 
 long groupId = BeanParamUtil.getLong(article, request, "groupId", scopeGroupId);
 
@@ -102,7 +102,9 @@ boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_artic
 			%>
 
 			<c:if test="<%= Validator.isNotNull(urlViewInContext) %>">
-				<a href="<%= urlViewInContext %>" target="blank"><%= LanguageUtil.format(request, "view-content-in-x", HtmlUtil.escape(defaultDisplayLayout.getName(locale)), false) %></a>
+				<a href="<%= urlViewInContext %>" target="blank">
+					<liferay-ui:message arguments="<%= HtmlUtil.escape(defaultDisplayLayout.getName(locale)) %>" key="view-content-in-x" translateArguments="<%= false %>" />
+				</a>
 			</c:if>
 		</c:if>
 

@@ -64,7 +64,8 @@ public class JournalArticleTermsOfUseContentProvider
 	}
 
 	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.journal.terms.of.use)"
+		target = "(osgi.web.symbolicname=com.liferay.journal.terms.of.use)",
+		unbind = "-"
 	)
 	protected void setServletContext(ServletContext servletContext) {
 		_servletContext = servletContext;
@@ -74,6 +75,6 @@ public class JournalArticleTermsOfUseContentProvider
 
 	private static final String _JSP_PATH_VIEW = "/view.jsp";
 
-	private ServletContext _servletContext;
+	private volatile ServletContext _servletContext;
 
 }

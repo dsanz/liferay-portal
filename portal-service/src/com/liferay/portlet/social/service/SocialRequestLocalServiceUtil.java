@@ -60,9 +60,6 @@ public class SocialRequestLocalServiceUtil {
 	* @param extraData the extra data regarding the request
 	* @param receiverUserId the primary key of the user receiving the request
 	* @return the social request
-	* @throws PortalException if the users could not be found, if the users
-	were not from the same company, or if either of the users was the
-	default user
 	*/
 	public static com.liferay.portlet.social.model.SocialRequest addRequest(
 		long userId, long groupId, java.lang.String className, long classPK,
@@ -128,7 +125,6 @@ public class SocialRequestLocalServiceUtil {
 	* database.
 	*
 	* @param requestId the primary key of the social request
-	* @throws PortalException if the social request could not be found
 	*/
 	public static void deleteRequest(long requestId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -271,13 +267,17 @@ public class SocialRequestLocalServiceUtil {
 		return getService().getActionableDynamicQuery();
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return getService().getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
 	}
 
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
@@ -552,15 +552,6 @@ public class SocialRequestLocalServiceUtil {
 	}
 
 	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
-	}
-
-	/**
 	* Updates the social request replacing its status.
 	*
 	* <p>
@@ -577,7 +568,6 @@ public class SocialRequestLocalServiceUtil {
 	* @param status the new status
 	* @param themeDisplay the theme display
 	* @return the updated social request
-	* @throws PortalException if the social request could not be found
 	*/
 	public static com.liferay.portlet.social.model.SocialRequest updateRequest(
 		long requestId, int status,

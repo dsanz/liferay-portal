@@ -70,6 +70,10 @@ public interface PortletPreferencesFactory {
 	public PortletPreferences getLayoutPortletSetup(
 		Layout layout, String portletId, String defaultPreferences);
 
+	public PortletPreferences getLayoutPortletSetup(
+		long companyId, long ownerId, int ownerType, long plid,
+		String portletId, String defaultPreferences);
+
 	public PortalPreferences getPortalPreferences(HttpServletRequest request);
 
 	public PortalPreferences getPortalPreferences(
@@ -154,6 +158,9 @@ public interface PortletPreferencesFactory {
 
 	public PortletPreferences getStrictPortletSetup(
 		Layout layout, String portletId);
+
+	public PortletPreferences getStrictPortletSetup(
+		long companyId, long groupId, String portletId);
 
 	public PortletPreferences strictFromXML(
 		long companyId, long ownerId, int ownerType, long plid,

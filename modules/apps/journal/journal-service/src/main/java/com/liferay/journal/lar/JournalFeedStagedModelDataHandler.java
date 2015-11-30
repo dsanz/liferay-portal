@@ -309,14 +309,14 @@ public class JournalFeedStagedModelDataHandler
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMStructureLocalService(
 		DDMStructureLocalService ddmStructureLocalService) {
 
 		_ddmStructureLocalService = ddmStructureLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMTemplateLocalService(
 		DDMTemplateLocalService ddmTemplateLocalService) {
 
@@ -332,7 +332,7 @@ public class JournalFeedStagedModelDataHandler
 			journalFeedExportImportContentProcessor;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJournalFeedLocalService(
 		JournalFeedLocalService journalFeedLocalService) {
 
@@ -342,10 +342,10 @@ public class JournalFeedStagedModelDataHandler
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalFeedStagedModelDataHandler.class);
 
-	private DDMStructureLocalService _ddmStructureLocalService;
-	private DDMTemplateLocalService _ddmTemplateLocalService;
-	private JournalFeedExportImportContentProcessor
+	private volatile DDMStructureLocalService _ddmStructureLocalService;
+	private volatile DDMTemplateLocalService _ddmTemplateLocalService;
+	private volatile JournalFeedExportImportContentProcessor
 		_journalFeedExportImportContentProcessor;
-	private JournalFeedLocalService _journalFeedLocalService;
+	private volatile JournalFeedLocalService _journalFeedLocalService;
 
 }

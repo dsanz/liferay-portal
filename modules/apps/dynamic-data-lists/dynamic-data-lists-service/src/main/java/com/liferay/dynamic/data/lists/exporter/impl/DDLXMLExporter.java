@@ -125,35 +125,36 @@ public class DDLXMLExporter extends BaseDDLExporter {
 		return xml.getBytes();
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDLRecordLocalService(
 		DDLRecordLocalService ddlRecordLocalService) {
 
 		_ddlRecordLocalService = ddlRecordLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDLRecordSetService(
 		DDLRecordSetService ddlRecordSetService) {
 
 		_ddlRecordSetService = ddlRecordSetService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMFormValuesToFieldsConverter(
 		DDMFormValuesToFieldsConverter ddmFormValuesToFieldsConverter) {
 
 		_ddmFormValuesToFieldsConverter = ddmFormValuesToFieldsConverter;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setStorageEngine(StorageEngine storageEngine) {
 		_storageEngine = storageEngine;
 	}
 
-	private DDLRecordLocalService _ddlRecordLocalService;
-	private DDLRecordSetService _ddlRecordSetService;
-	private DDMFormValuesToFieldsConverter _ddmFormValuesToFieldsConverter;
-	private StorageEngine _storageEngine;
+	private volatile DDLRecordLocalService _ddlRecordLocalService;
+	private volatile DDLRecordSetService _ddlRecordSetService;
+	private volatile DDMFormValuesToFieldsConverter
+		_ddmFormValuesToFieldsConverter;
+	private volatile StorageEngine _storageEngine;
 
 }

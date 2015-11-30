@@ -67,10 +67,6 @@ public class ResourcePermissionServiceWrapper
 	* @param primKey the primary key
 	* @param roleId the primary key of the role
 	* @param actionId the action ID
-	* @throws PortalException if the user did not have permission to add
-	resource permissions, or if scope was set to individual scope or
-	if a role with the primary key or a resource action with the name
-	and action ID could not be found
 	*/
 	@Override
 	public void addResourcePermission(long groupId, long companyId,
@@ -82,13 +78,13 @@ public class ResourcePermissionServiceWrapper
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _resourcePermissionService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _resourcePermissionService.getOSGiServiceIdentifier();
 	}
 
 	/**
@@ -110,9 +106,6 @@ public class ResourcePermissionServiceWrapper
 	* @param primKey the primary key
 	* @param roleId the primary key of the role
 	* @param actionId the action ID
-	* @throws PortalException if the user did not have permission to remove
-	resource permissions, or if a role with the primary key or a
-	resource action with the name and action ID could not be found
 	*/
 	@Override
 	public void removeResourcePermission(long groupId, long companyId,
@@ -136,9 +129,6 @@ public class ResourcePermissionServiceWrapper
 	* @param scope the scope
 	* @param roleId the primary key of the role
 	* @param actionId the action ID
-	* @throws PortalException if the user did not have permission to remove
-	resource permissions, or if a role with the primary key or a
-	resource action with the name and action ID could not be found
 	*/
 	@Override
 	public void removeResourcePermissions(long groupId, long companyId,
@@ -146,16 +136,6 @@ public class ResourcePermissionServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 		_resourcePermissionService.removeResourcePermissions(groupId,
 			companyId, name, scope, roleId, actionId);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_resourcePermissionService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**
@@ -181,9 +161,6 @@ public class ResourcePermissionServiceWrapper
 	* @param primKey the primary key
 	* @param roleId the primary key of the role
 	* @param actionIds the action IDs of the actions
-	* @throws PortalException if the user did not have permission to set
-	resource permissions, or if a role with the primary key or a
-	resource action with the name and action ID could not be found
 	*/
 	@Override
 	public void setIndividualResourcePermissions(long groupId, long companyId,
@@ -216,9 +193,6 @@ public class ResourcePermissionServiceWrapper
 	portlet ID
 	* @param primKey the primary key
 	* @param roleIdsToActionIds a map of role IDs to action IDs of the actions
-	* @throws PortalException if the user did not have permission to set
-	resource permissions, or if a role with the primary key or a
-	resource action with the name and action ID could not be found
 	*/
 	@Override
 	public void setIndividualResourcePermissions(long groupId, long companyId,

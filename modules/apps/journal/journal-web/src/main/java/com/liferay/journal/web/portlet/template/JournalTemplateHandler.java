@@ -24,10 +24,7 @@ import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.service.JournalArticleService;
-import com.liferay.journal.util.JournalContentUtil;
-import com.liferay.journal.web.configuration.JournalWebConfigurationUtil;
-import com.liferay.journal.web.configuration.JournalWebConfigurationValues;
-import com.liferay.portal.kernel.configuration.Filter;
+import com.liferay.journal.util.JournalContent;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -45,6 +42,7 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Jorge Ferrer
@@ -66,8 +64,11 @@ public class JournalTemplateHandler extends BaseDDMTemplateHandler {
 		Map<String, Object> contextObjects = new HashMap<>();
 
 		try {
-			contextObjects.put(
-				"journalContentUtil", JournalContentUtil.getJournalContent());
+			contextObjects.put("journalContent", _journalContent);
+
+			// Deprecated
+
+			contextObjects.put("journalContentUtil", _journalContent);
 		}
 		catch (SecurityException se) {
 			_log.error(se, se);
@@ -95,14 +96,7 @@ public class JournalTemplateHandler extends BaseDDMTemplateHandler {
 
 	@Override
 	public String getTemplatesHelpPath(String language) {
-		return JournalWebConfigurationUtil.get(
-			getTemplatesHelpPropertyKey(), new Filter(language));
-	}
-
-	@Override
-	public String getTemplatesHelpPropertyKey() {
-		return JournalWebConfigurationValues.
-			JOURNAL_ARTICLE_TEMPLATE_LANGUAGE_CONTENT;
+		return _templatesHelpPaths.get(language);
 	}
 
 	@Override
@@ -119,8 +113,7 @@ public class JournalTemplateHandler extends BaseDDMTemplateHandler {
 			new TemplateVariableGroup("journal-util", restrictedVariables);
 
 		journalUtilTemplateVariableGroup.addVariable(
-			"journal-content-util", JournalContentUtil.class,
-			"journalContentUtil");
+			"journal-content", JournalContent.class, "journalContent");
 
 		templateVariableGroups.put(
 			"journal-util", journalUtilTemplateVariableGroup);
@@ -147,9 +140,33 @@ public class JournalTemplateHandler extends BaseDDMTemplateHandler {
 		return _templateVariableCodeHandler;
 	}
 
+	@Reference(unbind = "-")
+	protected void setJournalContent(JournalContent journalContent) {
+		_journalContent = journalContent;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalTemplateHandler.class);
 
+	private static final Map<String, String> _templatesHelpPaths =
+		new HashMap<>();
+
+	static {
+		_templatesHelpPaths.put(
+			"css",
+			"com/liferay/journal/web/portlet/template/dependencies" +
+				"/template.css");
+		_templatesHelpPaths.put(
+			"ftl",
+			"com/liferay/journal/web/portlet/template/dependencies" +
+				"/template.ftl");
+		_templatesHelpPaths.put(
+			"vm",
+			"com/liferay/journal/web/portlet/template/dependencies" +
+				"/template.vm");
+	}
+
+	private volatile JournalContent _journalContent;
 	private final TemplateVariableCodeHandler _templateVariableCodeHandler =
 		new DDMTemplateVariableCodeHandler(
 			JournalTemplateHandler.class.getClassLoader(),

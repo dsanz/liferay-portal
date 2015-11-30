@@ -15,6 +15,7 @@
 package com.liferay.application.list.taglib.servlet.taglib;
 
 import com.liferay.application.list.PanelApp;
+import com.liferay.application.list.constants.ApplicationListWebKeys;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -24,6 +25,9 @@ import com.liferay.portal.model.Portlet;
 import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.taglib.servlet.PipingServletResponse;
+
+import java.io.IOException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,11 +35,40 @@ import java.util.Map;
 import javax.portlet.PortletURL;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.jsp.JspException;
 
 /**
  * @author Adolfo Pérez
  */
 public class PanelAppTag extends BasePanelTag {
+
+	@Override
+	public int doEndTag() throws JspException {
+		if (_panelApp != null) {
+			request.setAttribute(ApplicationListWebKeys.PANEL_APP, _panelApp);
+
+			try {
+				boolean include = _panelApp.include(
+					request, new PipingServletResponse(pageContext));
+
+				if (include) {
+					doClearTag();
+
+					return EVAL_PAGE;
+				}
+			}
+			catch (IOException ioe) {
+				_log.error(ioe, ioe);
+			}
+		}
+
+		return super.doEndTag();
+	}
+
+	@Override
+	public int doStartTag() throws JspException {
+		return EVAL_BODY_INCLUDE;
+	}
 
 	public void setActive(Boolean active) {
 		_active = active;
@@ -102,14 +135,6 @@ public class PanelAppTag extends BasePanelTag {
 			_data.put("navigation", true);
 		}
 
-		request.setAttribute("liferay-application-list:panel-app:data", _data);
-
-		if (Validator.isNull(_id)) {
-			_id = "portlet_" + _panelApp.getPortletId();
-		}
-
-		request.setAttribute("liferay-application-list:panel-app:id", _id);
-
 		if (Validator.isNull(_label) && (_panelApp != null)) {
 			Portlet portlet = PortletLocalServiceUtil.getPortletById(
 				themeDisplay.getCompanyId(), _panelApp.getPortletId());
@@ -118,8 +143,31 @@ public class PanelAppTag extends BasePanelTag {
 				portlet, servletContext, themeDisplay.getLocale());
 		}
 
+		if (!_data.containsKey("title")) {
+			_data.put("title", _label);
+		}
+
+		request.setAttribute("liferay-application-list:panel-app:data", _data);
+
+		if (Validator.isNull(_id)) {
+			_id = "portlet_" + _panelApp.getPortletId();
+		}
+
+		request.setAttribute("liferay-application-list:panel-app:id", _id);
+
 		request.setAttribute(
 			"liferay-application-list:panel-app:label", _label);
+
+		int notificationsCount = 0;
+
+		if (_panelApp != null) {
+			notificationsCount = _panelApp.getNotificationsCount(
+				themeDisplay.getUser());
+		}
+
+		request.setAttribute(
+			"liferay-application-list:panel-app:notificationsCount",
+			notificationsCount);
 
 		request.setAttribute(
 			"liferay-application-list:panel-app:panelApp", _panelApp);

@@ -45,21 +45,22 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJournalArticleLocalService(
 		JournalArticleLocalService journalArticleLocalService) {
 
 		_journalArticleLocalService = journalArticleLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJournalContentSearchLocalService(
 		JournalContentSearchLocalService journalContentSearchLocalService) {
 
 		_journalContentSearchLocalService = journalContentSearchLocalService;
 	}
 
-	private JournalArticleLocalService _journalArticleLocalService;
-	private JournalContentSearchLocalService _journalContentSearchLocalService;
+	private volatile JournalArticleLocalService _journalArticleLocalService;
+	private volatile JournalContentSearchLocalService
+		_journalContentSearchLocalService;
 
 }

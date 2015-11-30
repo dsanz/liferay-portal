@@ -19,6 +19,7 @@ import com.liferay.mobile.device.rules.service.MDRActionLocalService;
 import com.liferay.mobile.device.rules.service.MDRActionService;
 import com.liferay.mobile.device.rules.service.MDRRuleGroupInstanceLocalService;
 import com.liferay.mobile.device.rules.service.MDRRuleGroupInstanceService;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.service.GroupLocalService;
 import com.liferay.portal.service.GroupService;
@@ -32,7 +33,6 @@ import com.liferay.portal.service.LayoutSetService;
 import com.liferay.portal.service.PortletLocalService;
 import com.liferay.portal.service.ThemeLocalService;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalService;
 
 import javax.portlet.Portlet;
@@ -49,7 +49,6 @@ import org.osgi.service.component.annotations.Reference;
 	property = {
 		"com.liferay.portlet.add-default-resource=true",
 		"com.liferay.portlet.css-class-wrapper=portlet-layouts-admin",
-		"com.liferay.portlet.header-portlet-css=/css/main.css",
 		"com.liferay.portlet.icon=/icons/group_pages.png",
 		"com.liferay.portlet.preferences-owned-by-group=true",
 		"com.liferay.portlet.private-request-attributes=false",
@@ -63,6 +62,9 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + LayoutAdminPortletKeys.GROUP_PAGES,
 		"javax.portlet.resource-bundle=content.Language",
+		"javax.portlet.supported-public-render-parameter=layoutSetBranchId",
+		"javax.portlet.supported-public-render-parameter=privateLayout",
+		"javax.portlet.supported-public-render-parameter=selPlid",
 		"javax.portlet.supports.mime-type=text/html"
 	},
 	service = {Portlet.class}

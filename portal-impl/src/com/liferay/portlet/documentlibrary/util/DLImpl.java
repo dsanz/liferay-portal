@@ -221,7 +221,7 @@ public class DLImpl implements DL {
 			FileEntry.class.getName(), PortletProvider.Action.MANAGE);
 
 		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
-			portletRequest, portletId, 0, PortletRequest.RENDER_PHASE);
+			portletRequest, portletId, PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter(
 			"mvcRenderCommandName", "/document_library/view_file_entry");
@@ -238,7 +238,7 @@ public class DLImpl implements DL {
 			Folder.class.getName(), PortletProvider.Action.MANAGE);
 
 		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
-			portletRequest, portletId, 0, PortletRequest.RENDER_PHASE);
+			portletRequest, portletId, PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter(
 			"mvcRenderCommandName", "/document_library/view");
@@ -468,48 +468,6 @@ public class DLImpl implements DL {
 	@Override
 	public String getFileIconCssClass(String extension) {
 		return "icon-file-alt";
-	}
-
-	@Override
-	public String getFileName(
-		long groupId, long folderId, String tempFileName) {
-
-		String extension = FileUtil.getExtension(tempFileName);
-
-		int pos = tempFileName.lastIndexOf(TEMP_RANDOM_SUFFIX);
-
-		if (pos != -1) {
-			tempFileName = tempFileName.substring(0, pos);
-
-			if (Validator.isNotNull(extension)) {
-				tempFileName = tempFileName + StringPool.PERIOD + extension;
-			}
-		}
-
-		while (true) {
-			try {
-				DLAppLocalServiceUtil.getFileEntry(
-					groupId, folderId, tempFileName);
-
-				StringBundler sb = new StringBundler(5);
-
-				sb.append(FileUtil.stripExtension(tempFileName));
-				sb.append(StringPool.DASH);
-				sb.append(StringUtil.randomString());
-
-				if (Validator.isNotNull(extension)) {
-					sb.append(StringPool.PERIOD);
-					sb.append(extension);
-				}
-
-				tempFileName = sb.toString();
-			}
-			catch (Exception e) {
-				break;
-			}
-		}
-
-		return tempFileName;
 	}
 
 	@Override
@@ -864,6 +822,28 @@ public class DLImpl implements DL {
 	}
 
 	@Override
+	public String getUniqueFileName(
+		long groupId, long folderId, String fileName) {
+
+		String uniqueFileName = fileName;
+
+		for (int i = 1;; i++) {
+			try {
+				DLAppLocalServiceUtil.getFileEntry(
+					groupId, folderId, uniqueFileName);
+
+				uniqueFileName = FileUtil.appendParentheticalSuffix(
+					fileName, String.valueOf(i));
+			}
+			catch (Exception e) {
+				break;
+			}
+		}
+
+		return uniqueFileName;
+	}
+
+	@Override
 	public String getWebDavURL(
 			ThemeDisplay themeDisplay, Folder folder, FileEntry fileEntry)
 		throws PortalException {
@@ -1136,7 +1116,7 @@ public class DLImpl implements DL {
 			(plid == LayoutConstants.DEFAULT_PLID)) {
 
 			portletURL = PortalUtil.getControlPanelPortletURL(
-				request, portletId, 0, PortletRequest.RENDER_PHASE);
+				request, portletId, PortletRequest.RENDER_PHASE);
 		}
 		else {
 			portletURL = PortletURLFactoryUtil.create(

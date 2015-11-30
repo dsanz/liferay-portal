@@ -79,7 +79,7 @@ public class PortalExecutorManagerImpl implements PortalExecutorManager {
 		return previousThreadPoolExecutor;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setPortalExecutorFactory(
 		PortalExecutorFactory portalExecutorFactory) {
 
@@ -125,7 +125,7 @@ public class PortalExecutorManagerImpl implements PortalExecutorManager {
 
 	}
 
-	private PortalExecutorFactory _portalExecutorFactory;
+	private volatile PortalExecutorFactory _portalExecutorFactory;
 	private final ConcurrentMap<String, ThreadPoolExecutor>
 		_threadPoolExecutors = new ConcurrentHashMap<>();
 

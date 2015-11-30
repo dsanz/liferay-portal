@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.blogs.constants.BlogsConstants;
 import com.liferay.portlet.blogs.model.BlogsEntry;
-import com.liferay.portlet.blogs.model.impl.BlogsEntryImpl;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalService;
 import com.liferay.portlet.blogs.service.BlogsStatsUserLocalService;
 import com.liferay.portlet.blogs.service.permission.BlogsPermission;
@@ -31,12 +30,12 @@ import com.liferay.portlet.exportimport.lar.PortletDataHandlerBoolean;
 import com.liferay.portlet.exportimport.lar.PortletDataHandlerControl;
 import com.liferay.portlet.exportimport.lar.StagedModelDataHandlerUtil;
 import com.liferay.portlet.exportimport.lar.StagedModelType;
-import com.liferay.portlet.exportimport.xstream.XStreamAliasRegistryUtil;
 
 import java.util.List;
 
 import javax.portlet.PortletPreferences;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -57,7 +56,13 @@ public class BlogsPortletDataHandler extends BasePortletDataHandler {
 
 	public static final String NAMESPACE = "blogs";
 
-	public BlogsPortletDataHandler() {
+	@Override
+	public String getServiceName() {
+		return BlogsConstants.SERVICE_NAME;
+	}
+
+	@Activate
+	protected void activate() {
 		setDeletionSystemEventStagedModelTypes(
 			new StagedModelType(BlogsEntry.class));
 		setExportControls(
@@ -69,13 +74,6 @@ public class BlogsPortletDataHandler extends BasePortletDataHandler {
 				},
 				BlogsEntry.class.getName()));
 		setPublishToLiveByDefault(PropsValues.BLOGS_PUBLISH_TO_LIVE_BY_DEFAULT);
-
-		XStreamAliasRegistryUtil.register(BlogsEntryImpl.class, "BlogsEntry");
-	}
-
-	@Override
-	public String getServiceName() {
-		return BlogsConstants.SERVICE_NAME;
 	}
 
 	@Override
@@ -178,7 +176,7 @@ public class BlogsPortletDataHandler extends BasePortletDataHandler {
 		_blogsStatsUserLocalService = blogsStatsUserLocalService;
 	}
 
-	private BlogsEntryLocalService _blogsEntryLocalService;
-	private BlogsStatsUserLocalService _blogsStatsUserLocalService;
+	private volatile BlogsEntryLocalService _blogsEntryLocalService;
+	private volatile BlogsStatsUserLocalService _blogsStatsUserLocalService;
 
 }

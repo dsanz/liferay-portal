@@ -16,7 +16,17 @@ package com.liferay.portal.ldap.configuration;
 
 import aQute.bnd.annotation.metatype.Configurable;
 
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.ldap.constants.LDAPConstants;
+
+import java.io.IOException;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
@@ -28,41 +38,153 @@ import org.osgi.service.cm.Configuration;
  * @author Michael C. Han
  */
 public abstract class CompanyScopedConfigurationProvider
-	<T extends CompanyScopedConfiguration> implements ConfigurationProvider<T> {
+	<T extends CompanyScopedConfiguration>
+	extends BaseConfigurationProvider<T> implements ConfigurationProvider<T> {
+
+	@Override
+	public boolean delete(long companyId) {
+		Configuration configuration = _configurations.get(companyId);
+
+		if (configuration == null) {
+			return false;
+		}
+
+		try {
+			configuration.delete();
+		}
+		catch (IOException ioe) {
+			throw new SystemException(ioe);
+		}
+
+		return true;
+	}
+
+	@Override
+	public boolean delete(long companyId, long index) {
+		return delete(companyId);
+	}
 
 	@Override
 	public T getConfiguration(long companyId) {
-		T t = _configurations.get(companyId);
+		return getConfiguration(companyId, true);
+	}
 
-		if (t == null) {
-			t = _configurations.get(0L);
+	@Override
+	public T getConfiguration(long companyId, boolean useDefault) {
+		Dictionary<String, Object> properties = getConfigurationProperties(
+			companyId, useDefault);
+
+		if (properties == null) {
+			return null;
 		}
 
-		if (t == null) {
-			Class<?> clazz = getMetatype();
+		T configurable = Configurable.createConfigurable(
+			getMetatype(), properties);
 
-			throw new IllegalArgumentException(
-				"No instance of " + clazz.getName() + " for company " +
-					companyId);
-		}
-
-		return t;
+		return configurable;
 	}
 
 	@Override
 	public T getConfiguration(long companyId, long index) {
-		return getConfiguration(companyId);
+		return getConfiguration(companyId, true);
+	}
+
+	@Override
+	public T getConfiguration(long companyId, long index, boolean useDefault) {
+		return getConfiguration(companyId, useDefault);
+	}
+
+	@Override
+	public Dictionary<String, Object> getConfigurationProperties(
+		long companyId) {
+
+		return getConfigurationProperties(companyId, true);
+	}
+
+	@Override
+	public Dictionary<String, Object> getConfigurationProperties(
+		long companyId, boolean useDefault) {
+
+		Configuration configuration = _configurations.get(companyId);
+
+		if (useDefault && (configuration == null)) {
+			return new HashMapDictionary<>();
+		}
+
+		if (configuration == null) {
+			return null;
+		}
+
+		Dictionary<String, Object> properties = configuration.getProperties();
+
+		return properties;
+	}
+
+	@Override
+	public Dictionary<String, Object> getConfigurationProperties(
+		long companyId, long index) {
+
+		return getConfigurationProperties(companyId, index, true);
+	}
+
+	@Override
+	public Dictionary<String, Object> getConfigurationProperties(
+		long companyId, long index, boolean useDefault) {
+
+		return getConfigurationProperties(companyId, useDefault);
 	}
 
 	@Override
 	public List<T> getConfigurations(long companyId) {
-		List<T> configurations = new ArrayList<>();
+		return getConfigurations(companyId, true);
+	}
 
-		T t = getConfiguration(companyId);
+	@Override
+	public List<T> getConfigurations(long companyId, boolean useDefault) {
+		List<Dictionary<String, Object>> configurationsProperties =
+			getConfigurationsProperties(companyId);
 
-		configurations.add(t);
+		List<T> configurables = new ArrayList<>(
+			configurationsProperties.size());
 
-		return configurations;
+		if (ListUtil.isEmpty(configurationsProperties) && useDefault) {
+			T configurable = Configurable.createConfigurable(
+				getMetatype(), new HashMapDictionary<>());
+
+			configurables.add(configurable);
+		}
+		else if (ListUtil.isNotEmpty(configurationsProperties)) {
+			for (Dictionary<String, Object> configurationProperties :
+					configurationsProperties) {
+
+				T configurable = Configurable.createConfigurable(
+					getMetatype(), configurationProperties);
+
+				configurables.add(configurable);
+			}
+		}
+
+		return configurables;
+	}
+
+	@Override
+	public List<Dictionary<String, Object>> getConfigurationsProperties(
+		long companyId) {
+
+		Configuration configuration = _configurations.get(companyId);
+
+		if (configuration == null) {
+			return Collections.emptyList();
+		}
+
+		List<Dictionary<String, Object>> configurationsProperties =
+			new ArrayList<>();
+
+		Dictionary<String, Object> properties = configuration.getProperties();
+
+		configurationsProperties.add(properties);
+
+		return configurationsProperties;
 	}
 
 	@Override
@@ -71,28 +193,70 @@ public abstract class CompanyScopedConfigurationProvider
 
 		Dictionary<String, Object> properties = configuration.getProperties();
 
+		if (properties == null) {
+			properties = new HashMapDictionary<>();
+		}
+
 		T configurable = Configurable.createConfigurable(
 			getMetatype(), properties);
 
 		long companyId = configurable.companyId();
 
-		_configurations.put(companyId, configurable);
+		_companyIds.put(configuration.getPid(), companyId);
+
+		_configurations.put(companyId, configuration);
 	}
 
 	@Override
 	public synchronized void unregisterConfiguration(
 		Configuration configuration) {
 
-		Dictionary<String, Object> properties = configuration.getProperties();
+		String pid = configuration.getPid();
 
-		T configurable = Configurable.createConfigurable(
-			getMetatype(), properties);
+		Long companyId = _companyIds.get(pid);
 
-		long companyId = configurable.companyId();
-
-		_configurations.remove(companyId);
+		if (companyId != null) {
+			_configurations.remove(companyId);
+		}
 	}
 
-	private final Map<Long, T> _configurations = new HashMap<>();
+	@Override
+	public void updateProperties(
+		long companyId, Dictionary<String, Object> properties) {
+
+		if (properties == null) {
+			properties = new HashMapDictionary<>();
+		}
+
+		Configuration configuration = _configurations.get(companyId);
+
+		try {
+			if (configuration == null) {
+				if (Validator.isNull(factoryPid)) {
+					factoryPid = getMetatypeId();
+				}
+
+				configuration = configurationAdmin.createFactoryConfiguration(
+					factoryPid, StringPool.QUESTION);
+			}
+
+			properties.put(LDAPConstants.COMPANY_ID, companyId);
+
+			configuration.update(properties);
+		}
+		catch (IOException ioe) {
+			throw new SystemException("Unable to update configuration", ioe);
+		}
+	}
+
+	@Override
+	public void updateProperties(
+		long companyId, long index, Dictionary<String, Object> properties) {
+
+		updateProperties(companyId, properties);
+	}
+
+	private final Map<String, Long> _companyIds = new HashMap<>();
+	private final Map<Long, Configuration> _configurations = new HashMap<>();
 
 }

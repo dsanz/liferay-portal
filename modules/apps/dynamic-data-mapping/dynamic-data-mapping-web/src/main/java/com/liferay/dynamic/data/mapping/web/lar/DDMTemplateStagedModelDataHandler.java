@@ -142,51 +142,6 @@ public class DDMTemplateStagedModelDataHandler
 	}
 
 	@Override
-	public void importMissingReference(
-			PortletDataContext portletDataContext, Element referenceElement)
-		throws PortletDataException {
-
-		importMissingGroupReference(portletDataContext, referenceElement);
-
-		String uuid = referenceElement.attributeValue("uuid");
-
-		Map<Long, Long> groupIds =
-			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
-				Group.class);
-
-		long groupId = GetterUtil.getLong(
-			referenceElement.attributeValue("group-id"));
-
-		groupId = MapUtil.getLong(groupIds, groupId);
-
-		long classNameId = PortalUtil.getClassNameId(
-			referenceElement.attributeValue("referenced-class-name"));
-		String templateKey = referenceElement.attributeValue("template-key");
-		boolean preloaded = GetterUtil.getBoolean(
-			referenceElement.attributeValue("preloaded"));
-
-		DDMTemplate existingTemplate = null;
-
-		existingTemplate = fetchExistingTemplate(
-			uuid, groupId, classNameId, templateKey, preloaded);
-
-		Map<Long, Long> templateIds =
-			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
-				DDMTemplate.class);
-
-		long templateId = GetterUtil.getLong(
-			referenceElement.attributeValue("class-pk"));
-
-		templateIds.put(templateId, existingTemplate.getTemplateId());
-
-		Map<String, String> templateKeys =
-			(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(
-				DDMTemplate.class + ".ddmTemplateKey");
-
-		templateKeys.put(templateKey, existingTemplate.getTemplateKey());
-	}
-
-	@Override
 	public boolean validateReference(
 		PortletDataContext portletDataContext, Element referenceElement) {
 
@@ -286,6 +241,51 @@ public class DDMTemplateStagedModelDataHandler
 		portletDataContext.addClassedModel(
 			templateElement, ExportImportPathUtil.getModelPath(template),
 			template);
+	}
+
+	@Override
+	protected void doImportMissingReference(
+			PortletDataContext portletDataContext, Element referenceElement)
+		throws PortletDataException {
+
+		importMissingGroupReference(portletDataContext, referenceElement);
+
+		String uuid = referenceElement.attributeValue("uuid");
+
+		Map<Long, Long> groupIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				Group.class);
+
+		long groupId = GetterUtil.getLong(
+			referenceElement.attributeValue("group-id"));
+
+		groupId = MapUtil.getLong(groupIds, groupId);
+
+		long classNameId = PortalUtil.getClassNameId(
+			referenceElement.attributeValue("referenced-class-name"));
+		String templateKey = referenceElement.attributeValue("template-key");
+		boolean preloaded = GetterUtil.getBoolean(
+			referenceElement.attributeValue("preloaded"));
+
+		DDMTemplate existingTemplate = null;
+
+		existingTemplate = fetchExistingTemplate(
+			uuid, groupId, classNameId, templateKey, preloaded);
+
+		Map<Long, Long> templateIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				DDMTemplate.class);
+
+		long templateId = GetterUtil.getLong(
+			referenceElement.attributeValue("class-pk"));
+
+		templateIds.put(templateId, existingTemplate.getTemplateId());
+
+		Map<String, String> templateKeys =
+			(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(
+				DDMTemplate.class + ".ddmTemplateKey");
+
+		templateKeys.put(templateKey, existingTemplate.getTemplateKey());
 	}
 
 	@Override
@@ -466,11 +466,11 @@ public class DDMTemplateStagedModelDataHandler
 		_userLocalService = userLocalService;
 	}
 
-	private DDMStructureLocalService _ddmStructureLocalService;
-	private DDMTemplateExportImportContentProcessor
+	private volatile DDMStructureLocalService _ddmStructureLocalService;
+	private volatile DDMTemplateExportImportContentProcessor
 		_ddmTemplateExportImportContentProcessor;
-	private DDMTemplateLocalService _ddmTemplateLocalService;
-	private ImageLocalService _imageLocalService;
-	private UserLocalService _userLocalService;
+	private volatile DDMTemplateLocalService _ddmTemplateLocalService;
+	private volatile ImageLocalService _imageLocalService;
+	private volatile UserLocalService _userLocalService;
 
 }

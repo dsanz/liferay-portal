@@ -14,11 +14,12 @@
 
 package com.liferay.journal.content.web.portlet;
 
+import com.liferay.journal.constants.JournalWebKeys;
 import com.liferay.journal.content.web.constants.JournalContentPortletKeys;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleDisplay;
 import com.liferay.journal.service.JournalArticleLocalService;
-import com.liferay.journal.util.JournalContentUtil;
+import com.liferay.journal.util.JournalContent;
 import com.liferay.journal.web.util.ExportArticleUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.PortletRequestModel;
@@ -116,7 +117,11 @@ public class JournalContentPortlet extends MVCPortlet {
 
 				double version = article.getVersion();
 
-				articleDisplay = JournalContentUtil.getDisplay(
+				if (Validator.isNull(ddmTemplateKey)) {
+					ddmTemplateKey = article.getDDMTemplateKey();
+				}
+
+				articleDisplay = _journalContent.getDisplay(
 					articleGroupId, articleId, version, ddmTemplateKey,
 					viewMode, languageId, page,
 					new PortletRequestModel(renderRequest, renderResponse),
@@ -125,7 +130,7 @@ public class JournalContentPortlet extends MVCPortlet {
 			catch (Exception e) {
 				renderRequest.removeAttribute(WebKeys.JOURNAL_ARTICLE);
 
-				articleDisplay = JournalContentUtil.getDisplay(
+				articleDisplay = _journalContent.getDisplay(
 					articleGroupId, articleId, ddmTemplateKey, viewMode,
 					languageId, page,
 					new PortletRequestModel(renderRequest, renderResponse),
@@ -149,6 +154,17 @@ public class JournalContentPortlet extends MVCPortlet {
 	}
 
 	@Override
+	public void render(
+			RenderRequest renderRequest, RenderResponse renderResponse)
+		throws IOException, PortletException {
+
+		renderRequest.setAttribute(
+			JournalWebKeys.JOURNAL_CONTENT, _journalContent);
+
+		super.render(renderRequest, renderResponse);
+	}
+
+	@Override
 	public void serveResource(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws IOException, PortletException {
@@ -157,11 +173,24 @@ public class JournalContentPortlet extends MVCPortlet {
 			resourceRequest.getResourceID());
 
 		if (resourceID.equals("exportArticle")) {
-			ExportArticleUtil.sendFile(resourceRequest, resourceResponse);
+			_exportArticleUtil.sendFile(resourceRequest, resourceResponse);
 		}
 		else {
+			resourceRequest.setAttribute(
+				JournalWebKeys.JOURNAL_CONTENT, _journalContent);
+
 			super.serveResource(resourceRequest, resourceResponse);
 		}
+	}
+
+	@Reference
+	protected void setExportArticleUtil(ExportArticleUtil exportArticleUtil) {
+		_exportArticleUtil = exportArticleUtil;
+	}
+
+	@Reference
+	protected void setJournalContent(JournalContent journalContent) {
+		_journalContent = journalContent;
 	}
 
 	@Reference
@@ -171,12 +200,22 @@ public class JournalContentPortlet extends MVCPortlet {
 		_journalArticleLocalService = journalArticleLocalService;
 	}
 
+	protected void unsetExportArticleUtil(ExportArticleUtil exportArticleUtil) {
+		_exportArticleUtil = exportArticleUtil;
+	}
+
+	protected void unsetJournalContent(JournalContent journalContent) {
+		_journalContent = null;
+	}
+
 	protected void unsetJournalContentSearchLocal(
 		JournalArticleLocalService journalArticleLocalService) {
 
 		_journalArticleLocalService = null;
 	}
 
-	private JournalArticleLocalService _journalArticleLocalService;
+	private volatile ExportArticleUtil _exportArticleUtil;
+	private volatile JournalArticleLocalService _journalArticleLocalService;
+	private volatile JournalContent _journalContent;
 
 }

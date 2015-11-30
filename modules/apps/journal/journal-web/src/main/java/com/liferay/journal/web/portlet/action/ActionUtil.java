@@ -19,7 +19,6 @@ import com.liferay.dynamic.data.mapping.service.DDMStructureServiceUtil;
 import com.liferay.dynamic.data.mapping.storage.Field;
 import com.liferay.dynamic.data.mapping.storage.FieldConstants;
 import com.liferay.dynamic.data.mapping.storage.Fields;
-import com.liferay.dynamic.data.mapping.util.DDMUtil;
 import com.liferay.journal.exception.NoSuchArticleException;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleConstants;
@@ -31,7 +30,6 @@ import com.liferay.journal.service.JournalArticleServiceUtil;
 import com.liferay.journal.service.JournalFeedServiceUtil;
 import com.liferay.journal.service.JournalFolderServiceUtil;
 import com.liferay.journal.service.permission.JournalPermission;
-import com.liferay.journal.util.JournalConverterUtil;
 import com.liferay.journal.util.comparator.ArticleVersionComparator;
 import com.liferay.journal.util.impl.JournalUtil;
 import com.liferay.journal.web.portlet.JournalPortlet;
@@ -51,6 +49,7 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
@@ -62,12 +61,10 @@ import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 
 import java.io.Serializable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -254,7 +251,7 @@ public class ActionUtil {
 	}
 
 	public static JournalArticle getArticle(HttpServletRequest request)
-		throws Exception {
+		throws PortalException {
 
 		String actionName = ParamUtil.getString(
 			request, ActionRequest.ACTION_NAME);
@@ -343,53 +340,6 @@ public class ActionUtil {
 		return article;
 	}
 
-	public static List<JournalArticle> getArticles(HttpServletRequest request)
-		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		List<JournalArticle> articles = new ArrayList<>();
-
-		String[] articleIds = StringUtil.split(
-			ParamUtil.getString(request, "articleIds"));
-
-		for (String articleId : articleIds) {
-			JournalArticle article = JournalArticleServiceUtil.fetchArticle(
-				themeDisplay.getScopeGroupId(), articleId);
-
-			if (article != null) {
-				articles.add(article);
-			}
-		}
-
-		return articles;
-	}
-
-	public static List<JournalArticle> getArticles(
-			PortletRequest portletRequest)
-		throws Exception {
-
-		HttpServletRequest request = PortalUtil.getHttpServletRequest(
-			portletRequest);
-
-		return getArticles(request);
-	}
-
-	public static Object[] getContentAndImages(
-			DDMStructure ddmStructure, ServiceContext serviceContext)
-		throws Exception {
-
-		Fields fields = DDMUtil.getFields(
-			ddmStructure.getStructureId(), serviceContext);
-
-		String content = JournalConverterUtil.getContent(ddmStructure, fields);
-
-		Map<String, byte[]> images = getImages(content, fields);
-
-		return new Object[] {content, images};
-	}
-
 	public static JournalFeed getFeed(HttpServletRequest request)
 		throws Exception {
 
@@ -447,112 +397,7 @@ public class ActionUtil {
 		return getFolder(request);
 	}
 
-	public static List<JournalFolder> getFolders(HttpServletRequest request)
-		throws PortalException {
-
-		long[] folderIds = StringUtil.split(
-			ParamUtil.getString(request, "folderIds"), 0L);
-
-		List<JournalFolder> folders = new ArrayList<>();
-
-		for (long folderId : folderIds) {
-			JournalFolder folder = JournalFolderServiceUtil.fetchFolder(
-				folderId);
-
-			if (folder != null) {
-				folders.add(folder);
-			}
-		}
-
-		return folders;
-	}
-
-	public static List<JournalFolder> getFolders(PortletRequest portletRequest)
-		throws PortalException {
-
-		HttpServletRequest request = PortalUtil.getHttpServletRequest(
-			portletRequest);
-
-		return getFolders(request);
-	}
-
-	public static JournalArticle getPreviewArticle(
-			PortletRequest portletRequest)
-		throws Exception {
-
-		long groupId = ParamUtil.getLong(portletRequest, "groupId");
-		String articleId = ParamUtil.getString(portletRequest, "articleId");
-		double version = ParamUtil.getDouble(
-			portletRequest, "version", JournalArticleConstants.VERSION_DEFAULT);
-
-		JournalArticle article = JournalArticleServiceUtil.getArticle(
-			groupId, articleId, version);
-
-		JournalUtil.addRecentArticle(portletRequest, article);
-
-		return article;
-	}
-
-	public static boolean hasArticle(ActionRequest actionRequest)
-		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		String articleId = ParamUtil.getString(actionRequest, "articleId");
-
-		if (Validator.isNull(articleId)) {
-			String[] articleIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "articleIds"));
-
-			if (articleIds.length <= 0) {
-				return false;
-			}
-
-			articleId = articleIds[0];
-		}
-
-		int pos = articleId.lastIndexOf(JournalPortlet.VERSION_SEPARATOR);
-
-		if (pos != -1) {
-			articleId = articleId.substring(0, pos);
-		}
-
-		JournalArticle article = JournalArticleLocalServiceUtil.fetchArticle(
-			themeDisplay.getScopeGroupId(), articleId);
-
-		if (article == null) {
-			return false;
-		}
-
-		return true;
-	}
-
-	protected static String getElementInstanceId(
-			String content, String fieldName, int index)
-		throws Exception {
-
-		Document document = SAXReaderUtil.read(content);
-
-		String xPathExpression =
-			"//dynamic-element[@name = " +
-				HtmlUtil.escapeXPathAttribute(fieldName) + "]";
-
-		XPath xPath = SAXReaderUtil.createXPath(xPathExpression);
-
-		List<Node> nodes = xPath.selectNodes(document);
-
-		if (index > nodes.size()) {
-			return StringPool.BLANK;
-		}
-
-		Element dynamicElementElement = (Element)nodes.get(index);
-
-		return dynamicElementElement.attributeValue("instance-id");
-	}
-
-	protected static Map<String, byte[]> getImages(
-			String content, Fields fields)
+	public static Map<String, byte[]> getImages(String content, Fields fields)
 		throws Exception {
 
 		Map<String, byte[]> images = new HashMap<>();
@@ -601,6 +446,81 @@ public class ActionUtil {
 		}
 
 		return images;
+	}
+
+	public static JournalArticle getPreviewArticle(
+			PortletRequest portletRequest)
+		throws Exception {
+
+		long groupId = ParamUtil.getLong(portletRequest, "groupId");
+		String articleId = ParamUtil.getString(portletRequest, "articleId");
+		double version = ParamUtil.getDouble(
+			portletRequest, "version", JournalArticleConstants.VERSION_DEFAULT);
+
+		JournalArticle article = JournalArticleServiceUtil.getArticle(
+			groupId, articleId, version);
+
+		JournalUtil.addRecentArticle(portletRequest, article);
+
+		return article;
+	}
+
+	public static boolean hasArticle(ActionRequest actionRequest)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		String articleId = ParamUtil.getString(actionRequest, "articleId");
+
+		if (Validator.isNull(articleId)) {
+			String[] articleIds = StringUtil.split(
+				ParamUtil.getString(actionRequest, "rowIds"));
+
+			if (articleIds.length <= 0) {
+				return false;
+			}
+
+			articleId = articleIds[0];
+		}
+
+		int pos = articleId.lastIndexOf(JournalPortlet.VERSION_SEPARATOR);
+
+		if (pos != -1) {
+			articleId = articleId.substring(0, pos);
+		}
+
+		JournalArticle article = JournalArticleLocalServiceUtil.fetchArticle(
+			themeDisplay.getScopeGroupId(), articleId);
+
+		if (article == null) {
+			return false;
+		}
+
+		return true;
+	}
+
+	protected static String getElementInstanceId(
+			String content, String fieldName, int index)
+		throws Exception {
+
+		Document document = SAXReaderUtil.read(content);
+
+		String xPathExpression =
+			"//dynamic-element[@name = " +
+				HtmlUtil.escapeXPathAttribute(fieldName) + "]";
+
+		XPath xPath = SAXReaderUtil.createXPath(xPathExpression);
+
+		List<Node> nodes = xPath.selectNodes(document);
+
+		if (index > nodes.size()) {
+			return StringPool.BLANK;
+		}
+
+		Element dynamicElementElement = (Element)nodes.get(index);
+
+		return dynamicElementElement.attributeValue("instance-id");
 	}
 
 	protected static String getLanguageId(

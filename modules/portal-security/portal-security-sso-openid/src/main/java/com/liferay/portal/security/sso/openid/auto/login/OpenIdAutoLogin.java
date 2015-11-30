@@ -67,7 +67,7 @@ public class OpenIdAutoLogin extends BaseAutoLogin {
 		return credentials;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setOpenId(OpenId openId) {
 		_openId = openId;
 	}
@@ -77,7 +77,7 @@ public class OpenIdAutoLogin extends BaseAutoLogin {
 		_userLocalService = userLocalService;
 	}
 
-	private OpenId _openId;
-	private UserLocalService _userLocalService;
+	private volatile OpenId _openId;
+	private volatile UserLocalService _userLocalService;
 
 }

@@ -21,11 +21,12 @@ import com.liferay.dynamic.data.lists.model.DDLRecord;
 import com.liferay.dynamic.data.lists.model.DDLRecordSet;
 import com.liferay.dynamic.data.lists.model.DDLRecordVersion;
 import com.liferay.dynamic.data.lists.service.DDLRecordLocalServiceUtil;
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTrackerUtil;
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldValueRenderer;
+import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
-import com.liferay.dynamic.data.mapping.registry.DDMFormFieldTypeServicesTrackerUtil;
-import com.liferay.dynamic.data.mapping.registry.DDMFormFieldValueRenderer;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.StorageEngineUtil;
@@ -44,10 +45,10 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortalPreferences;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.PortletURLUtil;
@@ -149,6 +150,12 @@ public class DDLFormViewRecordsDisplayContext {
 		return _recordSearchContainer;
 	}
 
+	public int getStatus(DDLRecord ddlRecord) throws PortalException {
+		DDLRecordVersion recordVersion = ddlRecord.getRecordVersion();
+
+		return recordVersion.getStatus();
+	}
+
 	public int getTotalColumns() {
 		return _ddmFormFields.size();
 	}
@@ -156,7 +163,9 @@ public class DDLFormViewRecordsDisplayContext {
 	protected void createRecordSearchContainer(DDMStructure ddmStructure) {
 		List<String> headerNames = new ArrayList<>();
 
-		List<DDMFormField> ddmFormfields = ddmStructure.getDDMFormFields(false);
+		DDMForm ddmForm = ddmStructure.getDDMForm();
+
+		List<DDMFormField> ddmFormfields = ddmForm.getDDMFormFields();
 
 		int totalColumns = _MAX_COLUMNS;
 

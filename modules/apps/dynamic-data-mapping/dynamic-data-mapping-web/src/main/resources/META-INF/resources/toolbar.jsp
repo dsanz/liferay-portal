@@ -16,9 +16,13 @@
 
 <%@ include file="/init.jsp" %>
 
+<%
+String searchContainerId = ParamUtil.getString(request, "searchContainerId");
+%>
+
 <liferay-frontend:management-bar
-	checkBoxContainerId="entriesContainer"
 	includeCheckBox="<%= !user.isDefaultUser() %>"
+	searchContainerId="<%= searchContainerId %>"
 >
 	<liferay-frontend:management-bar-filters>
 		<liferay-util:include page="/sort_button.jsp" servletContext="<%= application %>" />
@@ -30,7 +34,7 @@
 		String taglibURL = "javascript:" + renderResponse.getNamespace() + "deleteStructures();";
 		%>
 
-		<aui:a cssClass="btn" href="<%= taglibURL %>" iconCssClass="icon-trash" />
+		<liferay-frontend:management-bar-button href="<%= taglibURL %>" iconCssClass="icon-trash" />
 	</liferay-frontend:management-bar-action-buttons>
 </liferay-frontend:management-bar>
 

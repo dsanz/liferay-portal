@@ -14,10 +14,10 @@
 
 package com.liferay.dynamic.data.mapping.type.checkbox;
 
+import com.liferay.dynamic.data.mapping.form.field.type.BaseDDMFormFieldRenderer;
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldRenderer;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
-import com.liferay.dynamic.data.mapping.registry.BaseDDMFormFieldRenderer;
-import com.liferay.dynamic.data.mapping.registry.DDMFormFieldRenderer;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
@@ -85,9 +85,12 @@ public class CheckboxDDMFormFieldRenderer extends BaseDDMFormFieldRenderer {
 		Template template, DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
-		Locale locale = ddmFormFieldRenderingContext.getLocale();
+		template.put(
+			"showAsSwitcher", ddmFormField.getProperty("showAsSwitcher"));
 
 		LocalizedValue predefinedValue = ddmFormField.getPredefinedValue();
+
+		Locale locale = ddmFormFieldRenderingContext.getLocale();
 
 		String status = getStatus(
 			ddmFormFieldRenderingContext.getValue(),

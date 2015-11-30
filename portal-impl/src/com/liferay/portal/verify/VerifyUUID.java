@@ -16,6 +16,8 @@ package com.liferay.portal.verify;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.concurrent.ThrowableAwareRunnable;
+import com.liferay.portal.kernel.dao.db.DB;
+import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
@@ -77,6 +79,8 @@ public class VerifyUUID extends VerifyProcess {
 			long primKey)
 		throws Exception {
 
+		DB db = DBFactoryUtil.getDB();
+
 		StringBundler sb = new StringBundler(8);
 
 		sb.append("update ");
@@ -88,23 +92,22 @@ public class VerifyUUID extends VerifyProcess {
 		sb.append(" = ");
 		sb.append(primKey);
 
-		runSQL(con, sb.toString());
+		db.runSQL(con, sb.toString());
 	}
 
 	protected void verifyUUID(VerifiableUUIDModel verifiableUUIDModel)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(5);
+		PreparedStatement ps = null;
+		ResultSet rs = null;
 
-		sb.append("select ");
-		sb.append(verifiableUUIDModel.getPrimaryKeyColumnName());
-		sb.append(" from ");
-		sb.append(verifiableUUIDModel.getTableName());
-		sb.append(" where uuid_ is null or uuid_ = ''");
+		try (Connection con = DataAccess.getUpgradeOptimizedConnection()) {
+			ps = con.prepareStatement(
+				"select " + verifiableUUIDModel.getPrimaryKeyColumnName() +
+					" from " + verifiableUUIDModel.getTableName() +
+						" where uuid_ is null or uuid_ = ''");
 
-		try (Connection con = DataAccess.getUpgradeOptimizedConnection();
-			PreparedStatement ps = con.prepareStatement(sb.toString());
-			ResultSet rs = ps.executeQuery()) {
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 				long pk = rs.getLong(
@@ -112,6 +115,9 @@ public class VerifyUUID extends VerifyProcess {
 
 				updateUUID(con, verifiableUUIDModel, pk);
 			}
+		}
+		finally {
+			DataAccess.cleanUp(null, ps, rs);
 		}
 	}
 

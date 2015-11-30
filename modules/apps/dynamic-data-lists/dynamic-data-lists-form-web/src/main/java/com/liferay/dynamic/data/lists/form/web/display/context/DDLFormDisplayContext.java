@@ -19,13 +19,14 @@ import com.liferay.dynamic.data.lists.model.DDLRecordSet;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetLocalServiceUtil;
 import com.liferay.dynamic.data.lists.service.permission.DDLRecordSetPermission;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PrefsParamUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.permission.PortletPermissionUtil;
 import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.WebKeys;
 
 import javax.portlet.RenderRequest;
 
@@ -39,7 +40,7 @@ public class DDLFormDisplayContext {
 
 		_renderRequest = renderRequest;
 
-		if (Validator.isNull(getPortletResource())) {
+		if (Validator.isNotNull(getPortletResource())) {
 			return;
 		}
 
@@ -82,6 +83,12 @@ public class DDLFormDisplayContext {
 
 	public boolean isShowConfigurationIcon() throws PortalException {
 		if (_showConfigurationIcon != null) {
+			return _showConfigurationIcon;
+		}
+
+		if (isFormShared()) {
+			_showConfigurationIcon = false;
+
 			return _showConfigurationIcon;
 		}
 
@@ -135,6 +142,10 @@ public class DDLFormDisplayContext {
 		}
 
 		return _hasViewPermission;
+	}
+
+	protected boolean isFormShared() {
+		return ParamUtil.getBoolean(_renderRequest, "shared");
 	}
 
 	private Boolean _hasViewPermission;

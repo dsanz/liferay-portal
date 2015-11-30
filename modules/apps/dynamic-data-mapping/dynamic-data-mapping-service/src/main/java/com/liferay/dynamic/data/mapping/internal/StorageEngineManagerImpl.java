@@ -86,17 +86,17 @@ public class StorageEngineManagerImpl implements StorageEngineManager {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDM(DDM ddm) {
 		_ddm = ddm;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMBeanTranslator(DDMBeanTranslator ddmBeanTranslator) {
 		_ddmBeanTranslator = ddmBeanTranslator;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setStorageEngine(StorageEngine storageEngine) {
 		_storageEngine = storageEngine;
 	}
@@ -113,8 +113,8 @@ public class StorageEngineManagerImpl implements StorageEngineManager {
 		return portalException;
 	}
 
-	private DDM _ddm;
-	private DDMBeanTranslator _ddmBeanTranslator;
-	private StorageEngine _storageEngine;
+	private volatile DDM _ddm;
+	private volatile DDMBeanTranslator _ddmBeanTranslator;
+	private volatile StorageEngine _storageEngine;
 
 }

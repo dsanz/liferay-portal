@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Attribute;
 import com.liferay.portal.kernel.xml.Document;
+import com.liferay.portal.kernel.xml.DocumentException;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.XPath;
@@ -51,7 +52,6 @@ import com.liferay.util.xml.XMLUtil;
 
 import java.io.Serializable;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -156,7 +156,7 @@ public class JournalConverterImpl implements JournalConverter {
 
 	@Override
 	public Fields getDDMFields(DDMStructure ddmStructure, Document document)
-		throws Exception {
+		throws PortalException {
 
 		Field fieldsDisplayField = new Field(
 			ddmStructure.getStructureId(), DDMImpl.FIELDS_DISPLAY_NAME,
@@ -184,9 +184,14 @@ public class JournalConverterImpl implements JournalConverter {
 
 	@Override
 	public Fields getDDMFields(DDMStructure ddmStructure, String content)
-		throws Exception {
+		throws PortalException {
 
-		return getDDMFields(ddmStructure, SAXReaderUtil.read(content));
+		try {
+			return getDDMFields(ddmStructure, SAXReaderUtil.read(content));
+		}
+		catch (DocumentException de) {
+			throw new PortalException(de);
+		}
 	}
 
 	@Override
@@ -243,7 +248,7 @@ public class JournalConverterImpl implements JournalConverter {
 	protected void addDDMFields(
 			Element dynamicElementElement, DDMStructure ddmStructure,
 			Fields ddmFields, String defaultLanguageId)
-		throws Exception {
+		throws PortalException {
 
 		String name = dynamicElementElement.attributeValue("name");
 		String instanceId = dynamicElementElement.attributeValue("instance-id");
@@ -395,7 +400,7 @@ public class JournalConverterImpl implements JournalConverter {
 	protected Field getField(
 			Element dynamicElementElement, DDMStructure ddmStructure,
 			String defaultLanguageId)
-		throws Exception {
+		throws PortalException {
 
 		Field ddmField = new Field();
 
@@ -456,8 +461,7 @@ public class JournalConverterImpl implements JournalConverter {
 	}
 
 	protected Serializable getFieldValue(
-			String dataType, String type, Element dynamicContentElement)
-		throws Exception {
+		String dataType, String type, Element dynamicContentElement) {
 
 		Serializable serializable = null;
 
@@ -687,12 +691,6 @@ public class JournalConverterImpl implements JournalConverter {
 					"language-id", LocaleUtil.toLanguageId(locale));
 
 				Serializable fieldValue = ddmField.getValue(locale, count);
-
-				if (fieldValue instanceof Date) {
-					Date valueDate = (Date)fieldValue;
-
-					fieldValue = valueDate.getTime();
-				}
 
 				String valueString = String.valueOf(fieldValue);
 
@@ -1054,8 +1052,8 @@ public class JournalConverterImpl implements JournalConverter {
 	private final Map<String, String> _ddmDataTypes;
 	private final Map<String, String> _ddmMetadataAttributes;
 	private final Map<String, String> _ddmTypesToJournalTypes;
-	private DLAppLocalService _dlAppLocalService;
-	private GroupLocalService _groupLocalService;
+	private volatile DLAppLocalService _dlAppLocalService;
+	private volatile GroupLocalService _groupLocalService;
 	private final Map<String, String> _journalTypesToDDMTypes;
 	private final Pattern _oldDocumentLibraryURLPattern = Pattern.compile(
 		"uuid=([^&]+)&groupId=([^&]+)");

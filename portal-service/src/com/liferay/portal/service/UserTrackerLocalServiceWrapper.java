@@ -198,14 +198,19 @@ public class UserTrackerLocalServiceWrapper implements UserTrackerLocalService,
 		return _userTrackerLocalService.getActionableDynamicQuery();
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _userTrackerLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _userTrackerLocalService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _userTrackerLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -260,16 +265,6 @@ public class UserTrackerLocalServiceWrapper implements UserTrackerLocalService,
 	@Override
 	public int getUserTrackersCount() {
 		return _userTrackerLocalService.getUserTrackersCount();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_userTrackerLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

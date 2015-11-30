@@ -21,6 +21,7 @@ import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 
 import java.util.List;
 
@@ -61,5 +62,25 @@ public class DDLRecordSetImpl extends DDLRecordSetBaseImpl {
 	public List<DDLRecord> getRecords() {
 		return DDLRecordLocalServiceUtil.getRecords(getRecordSetId());
 	}
+
+	@Override
+	public UnicodeProperties getSettingsProperties() {
+		if (_settingsProperties == null) {
+			_settingsProperties = new UnicodeProperties(true);
+
+			_settingsProperties.fastLoad(super.getSettings());
+		}
+
+		return _settingsProperties;
+	}
+
+	@Override
+	public String getSettingsProperty(String key, String defaultValue) {
+		UnicodeProperties settingsProperties = getSettingsProperties();
+
+		return settingsProperties.getProperty(key, defaultValue);
+	}
+
+	private UnicodeProperties _settingsProperties;
 
 }

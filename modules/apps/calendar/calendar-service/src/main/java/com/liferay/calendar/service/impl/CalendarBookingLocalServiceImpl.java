@@ -16,7 +16,6 @@ package com.liferay.calendar.service.impl;
 
 import com.liferay.calendar.exception.CalendarBookingDurationException;
 import com.liferay.calendar.exception.CalendarBookingRecurrenceException;
-import com.liferay.calendar.exception.CalendarBookingTitleException;
 import com.liferay.calendar.exporter.CalendarDataFormat;
 import com.liferay.calendar.exporter.CalendarDataHandler;
 import com.liferay.calendar.exporter.CalendarDataHandlerFactory;
@@ -137,7 +136,7 @@ public class CalendarBookingLocalServiceImpl
 
 		Date now = new Date();
 
-		validate(titleMap, startTimeJCalendar, endTimeJCalendar, recurrence);
+		validate(startTimeJCalendar, endTimeJCalendar, recurrence);
 
 		CalendarBooking calendarBooking = calendarBookingPersistence.create(
 			calendarBookingId);
@@ -327,9 +326,9 @@ public class CalendarBookingLocalServiceImpl
 		// Workflow
 
 		workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
-				calendarBooking.getCompanyId(), calendarBooking.getGroupId(),
-				CalendarBooking.class.getName(),
-				calendarBooking.getCalendarBookingId());
+			calendarBooking.getCompanyId(), calendarBooking.getGroupId(),
+			CalendarBooking.class.getName(),
+			calendarBooking.getCalendarBookingId());
 
 		return calendarBooking;
 	}
@@ -591,6 +590,8 @@ public class CalendarBookingLocalServiceImpl
 			long userId, CalendarBooking calendarBooking)
 		throws PortalException {
 
+		// Calendar booking
+
 		if (!calendarBooking.isMasterBooking()) {
 			return calendarBooking;
 		}
@@ -603,6 +604,8 @@ public class CalendarBookingLocalServiceImpl
 			userId, calendarBooking,
 			CalendarBookingWorkflowConstants.STATUS_IN_TRASH, serviceContext);
 
+		// Social
+
 		socialActivityCounterLocalService.disableActivityCounters(
 			CalendarBooking.class.getName(),
 			calendarBooking.getCalendarBookingId());
@@ -613,6 +616,13 @@ public class CalendarBookingLocalServiceImpl
 			calendarBooking.getCalendarBookingId(),
 			SocialActivityConstants.TYPE_MOVE_TO_TRASH,
 			getExtraDataJSON(calendarBooking), 0);
+
+		// Workflow
+
+		workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
+			calendarBooking.getCompanyId(), calendarBooking.getGroupId(),
+			CalendarBooking.class.getName(),
+			calendarBooking.getCalendarBookingId());
 
 		return calendarBooking;
 	}
@@ -633,6 +643,8 @@ public class CalendarBookingLocalServiceImpl
 			long userId, long calendarBookingId)
 		throws PortalException {
 
+		// Calendar booking
+
 		CalendarBooking calendarBooking = getCalendarBooking(calendarBookingId);
 
 		if (!calendarBooking.isMasterBooking()) {
@@ -649,6 +661,8 @@ public class CalendarBookingLocalServiceImpl
 		calendarBookingLocalService.updateStatus(
 			userId, calendarBookingId, trashEntry.getStatus(), serviceContext);
 
+		// Social
+
 		socialActivityCounterLocalService.enableActivityCounters(
 			CalendarBooking.class.getName(), calendarBookingId);
 
@@ -657,6 +671,14 @@ public class CalendarBookingLocalServiceImpl
 			CalendarBooking.class.getName(), calendarBookingId,
 			SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
 			getExtraDataJSON(calendarBooking), 0);
+
+		// Workflow
+
+		WorkflowHandlerRegistryUtil.startWorkflowInstance(
+			calendarBooking.getCompanyId(), calendarBooking.getGroupId(),
+			userId, CalendarBooking.class.getName(),
+			calendarBooking.getCalendarBookingId(), calendarBooking,
+			serviceContext);
 
 		return calendarBooking;
 	}
@@ -805,7 +827,7 @@ public class CalendarBookingLocalServiceImpl
 			firstReminder = originalSecondReminder;
 		}
 
-		validate(titleMap, startTimeJCalendar, endTimeJCalendar, recurrence);
+		validate(startTimeJCalendar, endTimeJCalendar, recurrence);
 
 		calendarBooking.setGroupId(calendar.getGroupId());
 		calendarBooking.setModifiedDate(serviceContext.getModifiedDate(null));
@@ -1283,13 +1305,9 @@ public class CalendarBookingLocalServiceImpl
 	}
 
 	protected void validate(
-			Map<Locale, String> titleMap, java.util.Calendar startTimeJCalendar,
+			java.util.Calendar startTimeJCalendar,
 			java.util.Calendar endTimeJCalendar, String recurrence)
 		throws PortalException {
-
-		if (Validator.isNull(titleMap) || titleMap.isEmpty()) {
-			throw new CalendarBookingTitleException();
-		}
 
 		if (startTimeJCalendar.after(endTimeJCalendar)) {
 			throw new CalendarBookingDurationException();

@@ -31,7 +31,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.lock.DuplicateLockException;
 import com.liferay.portal.kernel.lock.Lock;
-import com.liferay.portal.kernel.lock.LockManagerUtil;
+import com.liferay.portal.kernel.lock.LockManager;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.DestinationNames;
@@ -51,6 +51,7 @@ import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowTask;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManagerUtil;
@@ -74,15 +75,15 @@ import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.security.permission.ResourceActionsUtil;
-import com.liferay.portal.service.GroupLocalServiceUtil;
-import com.liferay.portal.service.LayoutBranchLocalServiceUtil;
-import com.liferay.portal.service.LayoutLocalServiceUtil;
-import com.liferay.portal.service.LayoutRevisionLocalServiceUtil;
-import com.liferay.portal.service.LayoutServiceUtil;
+import com.liferay.portal.service.GroupLocalService;
+import com.liferay.portal.service.LayoutBranchLocalService;
+import com.liferay.portal.service.LayoutLocalService;
+import com.liferay.portal.service.LayoutRevisionLocalService;
+import com.liferay.portal.service.LayoutService;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
-import com.liferay.portal.service.UserLocalServiceUtil;
-import com.liferay.portal.service.WorkflowInstanceLinkLocalServiceUtil;
+import com.liferay.portal.service.UserLocalService;
+import com.liferay.portal.service.WorkflowInstanceLinkLocalService;
 import com.liferay.portal.service.http.ClassNameServiceHttp;
 import com.liferay.portal.service.http.GroupServiceHttp;
 import com.liferay.portal.service.permission.GroupPermissionUtil;
@@ -90,7 +91,6 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortalPreferences;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.documentlibrary.DuplicateFileEntryException;
@@ -116,8 +116,8 @@ import com.liferay.portlet.exportimport.lar.PortletDataHandlerKeys;
 import com.liferay.portlet.exportimport.lar.StagedModelDataHandlerUtil;
 import com.liferay.portlet.exportimport.lar.StagedModelType;
 import com.liferay.portlet.exportimport.model.ExportImportConfiguration;
-import com.liferay.portlet.exportimport.service.ExportImportConfigurationLocalServiceUtil;
-import com.liferay.portlet.exportimport.service.StagingLocalServiceUtil;
+import com.liferay.portlet.exportimport.service.ExportImportConfigurationLocalService;
+import com.liferay.portlet.exportimport.service.StagingLocalService;
 import com.liferay.portlet.exportimport.staging.LayoutStagingUtil;
 import com.liferay.portlet.exportimport.staging.ProxiedLayoutsThreadLocal;
 import com.liferay.portlet.exportimport.staging.Staging;
@@ -142,6 +142,7 @@ import javax.portlet.PortletRequest;
 import javax.servlet.http.HttpServletRequest;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Raymond Augé
@@ -207,7 +208,7 @@ public class StagingImpl implements Staging {
 
 	/**
 	 * @deprecated As of 7.0.0, replaced by {@link
-	 *             StagingLocalServiceUtil#checkDefaultLayoutSetBranches(long,
+	 *             _stagingLocalService#checkDefaultLayoutSetBranches(long,
 	 *             Group, boolean, boolean, boolean, ServiceContext)}
 	 */
 	@Deprecated
@@ -218,7 +219,7 @@ public class StagingImpl implements Staging {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		StagingLocalServiceUtil.checkDefaultLayoutSetBranches(
+		_stagingLocalService.checkDefaultLayoutSetBranches(
 			userId, liveGroup, branchingPublic, branchingPrivate, remote,
 			serviceContext);
 	}
@@ -230,7 +231,7 @@ public class StagingImpl implements Staging {
 		long stagingGroupId = ParamUtil.getLong(
 			portletRequest, "stagingGroupId");
 
-		Group stagingGroup = GroupLocalServiceUtil.getGroup(stagingGroupId);
+		Group stagingGroup = _groupLocalService.getGroup(stagingGroupId);
 
 		long liveGroupId = stagingGroup.getLiveGroupId();
 
@@ -248,12 +249,12 @@ public class StagingImpl implements Staging {
 
 		long plid = ParamUtil.getLong(portletRequest, "plid");
 
-		Layout targetLayout = LayoutLocalServiceUtil.getLayout(plid);
+		Layout targetLayout = _layoutLocalService.getLayout(plid);
 
 		Group stagingGroup = targetLayout.getGroup();
 		Group liveGroup = stagingGroup.getLiveGroup();
 
-		Layout sourceLayout = LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
+		Layout sourceLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
 			targetLayout.getUuid(), liveGroup.getGroupId(),
 			targetLayout.isPrivateLayout());
 
@@ -320,8 +321,8 @@ public class StagingImpl implements Staging {
 		throws PortalException {
 
 		ExportImportConfiguration exportImportConfiguration =
-			ExportImportConfigurationLocalServiceUtil.
-				getExportImportConfiguration(exportImportConfigurationId);
+			_exportImportConfigurationLocalService.getExportImportConfiguration(
+				exportImportConfigurationId);
 
 		copyRemoteLayouts(exportImportConfiguration);
 	}
@@ -353,7 +354,7 @@ public class StagingImpl implements Staging {
 					user.getLocale(), user.getTimeZone());
 
 		ExportImportConfiguration exportImportConfiguration =
-			ExportImportConfigurationLocalServiceUtil.
+			_exportImportConfigurationLocalService.
 				addDraftExportImportConfiguration(
 					user.getUserId(),
 					ExportImportConfigurationConstants.
@@ -390,7 +391,7 @@ public class StagingImpl implements Staging {
 	public void deleteLastImportSettings(Group liveGroup, boolean privateLayout)
 		throws PortalException {
 
-		List<Layout> layouts = LayoutLocalServiceUtil.getLayouts(
+		List<Layout> layouts = _layoutLocalService.getLayouts(
 			liveGroup.getGroupId(), privateLayout);
 
 		for (Layout layout : layouts) {
@@ -413,7 +414,7 @@ public class StagingImpl implements Staging {
 				typeSettingsProperties.remove(key);
 			}
 
-			LayoutLocalServiceUtil.updateLayout(
+			_layoutLocalService.updateLayout(
 				layout.getGroupId(), layout.getPrivateLayout(),
 				layout.getLayoutId(), typeSettingsProperties.toString());
 		}
@@ -434,7 +435,7 @@ public class StagingImpl implements Staging {
 	public void deleteRecentLayoutRevisionId(
 		long userId, long layoutSetBranchId, long plid) {
 
-		User user = UserLocalServiceUtil.fetchUser(userId);
+		User user = _userLocalService.fetchUser(userId);
 
 		PortalPreferences portalPreferences = null;
 
@@ -468,8 +469,7 @@ public class StagingImpl implements Staging {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             com.liferay.portlet.exportimport.service.StagingLocalService#disableStaging(
-	 *             Group, ServiceContext)}
+	 *             StagingLocalService#disableStaging(Group, ServiceContext)}
 	 */
 	@Deprecated
 	@Override
@@ -482,8 +482,7 @@ public class StagingImpl implements Staging {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             com.liferay.portlet.exportimport.service.StagingLocalService#disableStaging(
-	 *             Group, ServiceContext)}
+	 *             StagingLocalService#disableStaging(Group, ServiceContext)}
 	 */
 	@Deprecated
 	@Override
@@ -495,8 +494,8 @@ public class StagingImpl implements Staging {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             com.liferay.portlet.exportimport.service.StagingLocalService#disableStaging(
-	 *             PortletRequest, Group, ServiceContext)}
+	 *             StagingLocalService#disableStaging(PortletRequest, Group,
+	 *             ServiceContext)}
 	 */
 	@Deprecated
 	@Override
@@ -510,8 +509,8 @@ public class StagingImpl implements Staging {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             com.liferay.portlet.exportimport.service.StagingLocalService#disableStaging(
-	 *             PortletRequest, Group, ServiceContext)}
+	 *             StagingLocalService#disableStaging(PortletRequest, Group,
+	 *             ServiceContext)}
 	 */
 	@Deprecated
 	@Override
@@ -520,14 +519,14 @@ public class StagingImpl implements Staging {
 			ServiceContext serviceContext)
 		throws Exception {
 
-		StagingLocalServiceUtil.disableStaging(
+		_stagingLocalService.disableStaging(
 			portletRequest, liveGroup, serviceContext);
 	}
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             com.liferay.portlet.exportimport.service.StagingLocalService#enableLocalStaging(
-	 *             long, Group, boolean, boolean, ServiceContext)}
+	 *             StagingLocalService#enableLocalStaging(long, Group, boolean,
+	 *             boolean, ServiceContext)}
 	 */
 	@Deprecated
 	@Override
@@ -537,16 +536,15 @@ public class StagingImpl implements Staging {
 			ServiceContext serviceContext)
 		throws Exception {
 
-		StagingLocalServiceUtil.enableLocalStaging(
+		_stagingLocalService.enableLocalStaging(
 			userId, liveGroup, branchingPublic, branchingPrivate,
 			serviceContext);
 	}
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             com.liferay.portlet.exportimport.service.StagingLocalService#enableRemoteStaging(
-	 *             long, Group, boolean, boolean, String, int, String, boolean,
-	 *             long, ServiceContext)}
+	 *             StagingLocalService#enableRemoteStaging(long, Group, boolean,
+	 *             boolean, String, int, String, boolean, long, ServiceContext)}
 	 */
 	@Deprecated
 	@Override
@@ -558,7 +556,7 @@ public class StagingImpl implements Staging {
 			ServiceContext serviceContext)
 		throws Exception {
 
-		StagingLocalServiceUtil.enableRemoteStaging(
+		_stagingLocalService.enableRemoteStaging(
 			userId, liveGroup, branchingPublic, branchingPrivate, remoteAddress,
 			remotePort, remotePathContext, secureConnection, remoteGroupId,
 			serviceContext);
@@ -626,7 +624,7 @@ public class StagingImpl implements Staging {
 
 			errorMessageJSONObject.put("name", missingReferenceDisplayName);
 
-			Group group = GroupLocalServiceUtil.fetchGroup(
+			Group group = _groupLocalService.fetchGroup(
 				missingReference.getGroupId());
 
 			if (group != null) {
@@ -960,7 +958,7 @@ public class StagingImpl implements Staging {
 
 	@Override
 	public Group getLiveGroup(long groupId) {
-		Group group = GroupLocalServiceUtil.fetchGroup(groupId);
+		Group group = _groupLocalService.fetchGroup(groupId);
 
 		if (group == null) {
 			return null;
@@ -1082,7 +1080,7 @@ public class StagingImpl implements Staging {
 
 	@Override
 	public Group getStagingGroup(long groupId) {
-		Group group = GroupLocalServiceUtil.fetchGroup(groupId);
+		Group group = _groupLocalService.fetchGroup(groupId);
 
 		if (group == null) {
 			return null;
@@ -1183,7 +1181,7 @@ public class StagingImpl implements Staging {
 		throws PortalException {
 
 		WorkflowInstanceLink workflowInstanceLink =
-			WorkflowInstanceLinkLocalServiceUtil.fetchWorkflowInstanceLink(
+			_workflowInstanceLinkLocalService.fetchWorkflowInstanceLink(
 				layoutRevision.getCompanyId(), layoutRevision.getGroupId(),
 				LayoutRevision.class.getName(),
 				layoutRevision.getLayoutRevisionId());
@@ -1225,9 +1223,8 @@ public class StagingImpl implements Staging {
 
 		if (layoutRevision == null) {
 			try {
-				layoutRevision =
-					LayoutRevisionLocalServiceUtil.getLayoutRevision(
-						layoutSetBranchId, layout.getPlid(), true);
+				layoutRevision = _layoutRevisionLocalService.getLayoutRevision(
+					layoutSetBranchId, layout.getPlid(), true);
 
 				return false;
 			}
@@ -1236,7 +1233,7 @@ public class StagingImpl implements Staging {
 		}
 
 		try {
-			layoutRevision = LayoutRevisionLocalServiceUtil.getLayoutRevision(
+			layoutRevision = _layoutRevisionLocalService.getLayoutRevision(
 				layoutSetBranchId, layout.getPlid(), false);
 		}
 		catch (Exception e) {
@@ -1260,14 +1257,13 @@ public class StagingImpl implements Staging {
 	@Deprecated
 	@Override
 	public void lockGroup(long userId, long groupId) throws PortalException {
-		if (LockManagerUtil.isLocked(Staging.class.getName(), groupId)) {
-			Lock lock = LockManagerUtil.getLock(
-				Staging.class.getName(), groupId);
+		if (_lockManager.isLocked(Staging.class.getName(), groupId)) {
+			Lock lock = _lockManager.getLock(Staging.class.getName(), groupId);
 
 			throw new DuplicateLockException(lock);
 		}
 
-		LockManagerUtil.lock(
+		_lockManager.lock(
 			userId, Staging.class.getName(), String.valueOf(groupId),
 			StagingImpl.class.getName(), false,
 			StagingConstants.LOCK_EXPIRATION_TIME);
@@ -1285,7 +1281,7 @@ public class StagingImpl implements Staging {
 			PortletDataHandlerKeys.DELETE_MISSING_LAYOUTS,
 			new String[] {Boolean.FALSE.toString()});
 
-		Layout layout = LayoutLocalServiceUtil.getLayout(plid);
+		Layout layout = _layoutLocalService.getLayout(plid);
 
 		List<Layout> layouts = new ArrayList<>();
 
@@ -1330,8 +1326,8 @@ public class StagingImpl implements Staging {
 		throws PortalException {
 
 		ExportImportConfiguration exportImportConfiguration =
-			ExportImportConfigurationLocalServiceUtil.
-				getExportImportConfiguration(exportImportConfigurationId);
+			_exportImportConfigurationLocalService.getExportImportConfiguration(
+				exportImportConfigurationId);
 
 		publishLayouts(userId, exportImportConfiguration);
 	}
@@ -1347,7 +1343,7 @@ public class StagingImpl implements Staging {
 			PortletDataHandlerKeys.PERFORM_DIRECT_BINARY_IMPORT,
 			new String[] {Boolean.TRUE.toString()});
 
-		User user = UserLocalServiceUtil.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		Map<String, Serializable> publishLayoutLocalSettingsMap =
 			ExportImportConfigurationSettingsMapFactory.
@@ -1356,7 +1352,7 @@ public class StagingImpl implements Staging {
 					layoutIds, parameterMap);
 
 		ExportImportConfiguration exportImportConfiguration =
-			ExportImportConfigurationLocalServiceUtil.
+			_exportImportConfigurationLocalService.
 				addDraftExportImportConfiguration(
 					userId,
 					ExportImportConfigurationConstants.
@@ -1407,7 +1403,7 @@ public class StagingImpl implements Staging {
 			boolean privateLayout, Map<String, String[]> parameterMap)
 		throws PortalException {
 
-		List<Layout> sourceGroupLayouts = LayoutLocalServiceUtil.getLayouts(
+		List<Layout> sourceGroupLayouts = _layoutLocalService.getLayouts(
 			sourceGroupId, privateLayout);
 
 		publishLayouts(
@@ -1456,8 +1452,8 @@ public class StagingImpl implements Staging {
 		throws PortalException {
 
 		ExportImportConfiguration exportImportConfiguration =
-			ExportImportConfigurationLocalServiceUtil.
-				getExportImportConfiguration(exportImportConfigurationId);
+			_exportImportConfigurationLocalService.getExportImportConfiguration(
+				exportImportConfigurationId);
 
 		publishPortlet(userId, exportImportConfiguration);
 	}
@@ -1469,7 +1465,7 @@ public class StagingImpl implements Staging {
 			Map<String, String[]> parameterMap)
 		throws PortalException {
 
-		User user = UserLocalServiceUtil.getUser(userId);
+		User user = _userLocalService.getUser(userId);
 
 		Map<String, Serializable> publishPortletSettingsMap =
 			ExportImportConfigurationSettingsMapFactory.
@@ -1479,7 +1475,7 @@ public class StagingImpl implements Staging {
 					user.getTimeZone());
 
 		ExportImportConfiguration exportImportConfiguration =
-			ExportImportConfigurationLocalServiceUtil.
+			_exportImportConfigurationLocalService.
 				addDraftExportImportConfiguration(
 					userId,
 					ExportImportConfigurationConstants.TYPE_PUBLISH_PORTLET,
@@ -1520,7 +1516,7 @@ public class StagingImpl implements Staging {
 
 		long plid = ParamUtil.getLong(portletRequest, "plid");
 
-		Layout sourceLayout = LayoutLocalServiceUtil.getLayout(plid);
+		Layout sourceLayout = _layoutLocalService.getLayout(plid);
 
 		Group stagingGroup = null;
 		Group liveGroup = null;
@@ -1530,7 +1526,7 @@ public class StagingImpl implements Staging {
 		long scopeGroupId = PortalUtil.getScopeGroupId(portletRequest);
 
 		if (sourceLayout.isTypeControlPanel()) {
-			stagingGroup = GroupLocalServiceUtil.fetchGroup(scopeGroupId);
+			stagingGroup = _groupLocalService.fetchGroup(scopeGroupId);
 			liveGroup = stagingGroup.getLiveGroup();
 
 			targetLayout = sourceLayout;
@@ -1541,14 +1537,14 @@ public class StagingImpl implements Staging {
 			stagingGroup = sourceLayout.getScopeGroup();
 			liveGroup = stagingGroup.getLiveGroup();
 
-			targetLayout = LayoutLocalServiceUtil.getLayout(
+			targetLayout = _layoutLocalService.getLayout(
 				liveGroup.getClassPK());
 		}
 		else {
 			stagingGroup = sourceLayout.getGroup();
 			liveGroup = stagingGroup.getLiveGroup();
 
-			targetLayout = LayoutLocalServiceUtil.fetchLayoutByUuidAndGroupId(
+			targetLayout = _layoutLocalService.fetchLayoutByUuidAndGroupId(
 				sourceLayout.getUuid(), liveGroup.getGroupId(),
 				sourceLayout.isPrivateLayout());
 		}
@@ -1573,7 +1569,7 @@ public class StagingImpl implements Staging {
 		long stagingGroupId = ParamUtil.getLong(
 			portletRequest, "stagingGroupId");
 
-		Group stagingGroup = GroupLocalServiceUtil.getGroup(stagingGroupId);
+		Group stagingGroup = _groupLocalService.getGroup(stagingGroupId);
 
 		long liveGroupId = stagingGroup.getLiveGroupId();
 
@@ -1592,7 +1588,7 @@ public class StagingImpl implements Staging {
 		long stagingGroupId = ParamUtil.getLong(
 			portletRequest, "stagingGroupId");
 
-		Group stagingGroup = GroupLocalServiceUtil.getGroup(stagingGroupId);
+		Group stagingGroup = _groupLocalService.getGroup(stagingGroupId);
 
 		long liveGroupId = stagingGroup.getLiveGroupId();
 
@@ -1726,7 +1722,7 @@ public class StagingImpl implements Staging {
 	@Deprecated
 	@Override
 	public void unlockGroup(long groupId) {
-		LockManagerUtil.unlock(Staging.class.getName(), groupId);
+		_lockManager.unlock(Staging.class.getName(), groupId);
 	}
 
 	@Override
@@ -1740,7 +1736,7 @@ public class StagingImpl implements Staging {
 		String groupName = getSchedulerGroupName(
 			DestinationNames.LAYOUTS_LOCAL_PUBLISHER, stagingGroupId);
 
-		LayoutServiceUtil.unschedulePublishToLive(
+		_layoutService.unschedulePublishToLive(
 			stagingGroupId, jobName, groupName);
 	}
 
@@ -1751,7 +1747,7 @@ public class StagingImpl implements Staging {
 		long stagingGroupId = ParamUtil.getLong(
 			portletRequest, "stagingGroupId");
 
-		Group stagingGroup = GroupLocalServiceUtil.getGroup(stagingGroupId);
+		Group stagingGroup = _groupLocalService.getGroup(stagingGroupId);
 
 		long liveGroupId = stagingGroup.getLiveGroupId();
 
@@ -1759,8 +1755,7 @@ public class StagingImpl implements Staging {
 		String groupName = getSchedulerGroupName(
 			DestinationNames.LAYOUTS_LOCAL_PUBLISHER, liveGroupId);
 
-		LayoutServiceUtil.unschedulePublishToLive(
-			liveGroupId, jobName, groupName);
+		_layoutService.unschedulePublishToLive(liveGroupId, jobName, groupName);
 	}
 
 	@Override
@@ -1773,8 +1768,7 @@ public class StagingImpl implements Staging {
 		String groupName = getSchedulerGroupName(
 			DestinationNames.LAYOUTS_REMOTE_PUBLISHER, groupId);
 
-		LayoutServiceUtil.unschedulePublishToRemote(
-			groupId, jobName, groupName);
+		_layoutService.unschedulePublishToRemote(groupId, jobName, groupName);
 	}
 
 	@Override
@@ -1906,12 +1900,12 @@ public class StagingImpl implements Staging {
 
 		if (stagingType == StagingConstants.TYPE_NOT_STAGED) {
 			if (liveGroup.hasStagingGroup() || liveGroup.isStagedRemotely()) {
-				StagingLocalServiceUtil.disableStaging(
+				_stagingLocalService.disableStaging(
 					portletRequest, liveGroup, serviceContext);
 			}
 		}
 		else if (stagingType == StagingConstants.TYPE_LOCAL_STAGING) {
-			StagingLocalServiceUtil.enableLocalStaging(
+			_stagingLocalService.enableLocalStaging(
 				userId, liveGroup, branchingPublic, branchingPrivate,
 				serviceContext);
 		}
@@ -1930,7 +1924,7 @@ public class StagingImpl implements Staging {
 			long remoteGroupId = getLong(
 				portletRequest, liveGroup, "remoteGroupId");
 
-			StagingLocalServiceUtil.enableRemoteStaging(
+			_stagingLocalService.enableRemoteStaging(
 				userId, liveGroup, branchingPublic, branchingPrivate,
 				remoteAddress, remotePort, remotePathContext, secureConnection,
 				remoteGroupId, serviceContext);
@@ -2168,11 +2162,11 @@ public class StagingImpl implements Staging {
 
 		if (layoutBranchId > 0) {
 			try {
-				LayoutBranchLocalServiceUtil.getLayoutBranch(layoutBranchId);
+				_layoutBranchLocalService.getLayoutBranch(layoutBranchId);
 			}
 			catch (NoSuchLayoutBranchException nslbe) {
 				LayoutBranch layoutBranch =
-					LayoutBranchLocalServiceUtil.getMasterLayoutBranch(
+					_layoutBranchLocalService.getMasterLayoutBranch(
 						layoutSetBranchId, plid);
 
 				layoutBranchId = layoutBranch.getLayoutBranchId();
@@ -2182,7 +2176,7 @@ public class StagingImpl implements Staging {
 		if (layoutBranchId > 0) {
 			try {
 				LayoutRevision layoutRevision =
-					LayoutRevisionLocalServiceUtil.getLayoutRevision(
+					_layoutRevisionLocalService.getLayoutRevision(
 						layoutSetBranchId, layoutBranchId, plid);
 
 				if (layoutRevision != null) {
@@ -2302,7 +2296,7 @@ public class StagingImpl implements Staging {
 			String description = ParamUtil.getString(
 				portletRequest, "description");
 
-			LayoutServiceUtil.schedulePublishToLive(
+			_layoutService.schedulePublishToLive(
 				sourceGroupId, targetGroupId, privateLayout, layoutIds,
 				parameterMap, groupName, cronText, startCalendar.getTime(),
 				schedulerEndDate, description);
@@ -2335,7 +2329,7 @@ public class StagingImpl implements Staging {
 			ExportImportConfigurationParameterMapFactory.buildParameterMap(
 				portletRequest);
 
-		Group group = GroupLocalServiceUtil.getGroup(groupId);
+		Group group = _groupLocalService.getGroup(groupId);
 
 		UnicodeProperties groupTypeSettingsProperties =
 			group.getTypeSettingsProperties();
@@ -2396,7 +2390,7 @@ public class StagingImpl implements Staging {
 			String description = ParamUtil.getString(
 				portletRequest, "description");
 
-			LayoutServiceUtil.schedulePublishToRemote(
+			_layoutService.schedulePublishToRemote(
 				groupId, privateLayout, layoutIdMap, parameterMap,
 				remoteAddress, remotePort, remotePathContext, secureConnection,
 				remoteGroupId, remotePrivateLayout, null, null, groupName,
@@ -2409,6 +2403,51 @@ public class StagingImpl implements Staging {
 				remoteAddress, remotePort, remotePathContext, secureConnection,
 				remoteGroupId, remotePrivateLayout);
 		}
+	}
+
+	@Reference(unbind = "-")
+	protected void setExportImportConfigurationLocalService(
+		ExportImportConfigurationLocalService
+			exportImportConfigurationLocalService) {
+
+		_exportImportConfigurationLocalService =
+			exportImportConfigurationLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setGroupLocalService(GroupLocalService groupLocalService) {
+		_groupLocalService = groupLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLayoutBranchLocalService(
+		LayoutBranchLocalService layoutBranchLocalService) {
+
+		_layoutBranchLocalService = layoutBranchLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLayoutLocalService(
+		LayoutLocalService layoutLocalService) {
+
+		_layoutLocalService = layoutLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLayoutRevisionLocalService(
+		LayoutRevisionLocalService layoutRevisionLocalService) {
+
+		_layoutRevisionLocalService = layoutRevisionLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLayoutService(LayoutService layoutService) {
+		_layoutService = layoutService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLockManager(LockManager lockManager) {
+		_lockManager = lockManager;
 	}
 
 	protected void setRecentLayoutBranchId(
@@ -2442,13 +2481,12 @@ public class StagingImpl implements Staging {
 
 		try {
 			LayoutRevision layoutRevision =
-				LayoutRevisionLocalServiceUtil.getLayoutRevision(
-					layoutRevisionId);
+				_layoutRevisionLocalService.getLayoutRevision(layoutRevisionId);
 
 			layoutBranchId = layoutRevision.getLayoutBranchId();
 
 			LayoutRevision lastLayoutRevision =
-				LayoutRevisionLocalServiceUtil.getLayoutRevision(
+				_layoutRevisionLocalService.getLayoutRevision(
 					layoutSetBranchId, layoutBranchId, plid);
 
 			if (lastLayoutRevision.getLayoutRevisionId() == layoutRevisionId) {
@@ -2474,6 +2512,25 @@ public class StagingImpl implements Staging {
 
 		setRecentLayoutBranchId(
 			portalPreferences, layoutSetBranchId, plid, layoutBranchId);
+	}
+
+	@Reference(unbind = "-")
+	protected void setStagingLocalService(
+		StagingLocalService stagingLocalService) {
+
+		_stagingLocalService = stagingLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setUserLocalService(UserLocalService userLocalService) {
+		_userLocalService = userLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setWorkflowInstanceLinkLocalService(
+		WorkflowInstanceLinkLocalService workflowInstanceLinkLocalService) {
+
+		_workflowInstanceLinkLocalService = workflowInstanceLinkLocalService;
 	}
 
 	protected void validateRemoteGroup(
@@ -2515,7 +2572,7 @@ public class StagingImpl implements Staging {
 			// group and that they are either both company groups or both not
 			// company groups
 
-			Group group = GroupLocalServiceUtil.getGroup(groupId);
+			Group group = _groupLocalService.getGroup(groupId);
 
 			Group remoteGroup = GroupServiceHttp.getGroup(
 				httpPrincipal, remoteGroupId);
@@ -2628,5 +2685,18 @@ public class StagingImpl implements Staging {
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(StagingImpl.class);
+
+	private volatile ExportImportConfigurationLocalService
+		_exportImportConfigurationLocalService;
+	private volatile GroupLocalService _groupLocalService;
+	private volatile LayoutBranchLocalService _layoutBranchLocalService;
+	private volatile LayoutLocalService _layoutLocalService;
+	private volatile LayoutRevisionLocalService _layoutRevisionLocalService;
+	private volatile LayoutService _layoutService;
+	private volatile LockManager _lockManager;
+	private volatile StagingLocalService _stagingLocalService;
+	private volatile UserLocalService _userLocalService;
+	private volatile WorkflowInstanceLinkLocalService
+		_workflowInstanceLinkLocalService;
 
 }

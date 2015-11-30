@@ -43,7 +43,6 @@ public class TeamLocalServiceWrapper implements TeamLocalService,
 	}
 
 	/**
-	* @throws PortalException
 	* @deprecated As of 7.0.0, replaced by {@link #addTeam(long, long, String,
 	String, ServiceContext)}
 	*/
@@ -327,16 +326,6 @@ public class TeamLocalServiceWrapper implements TeamLocalService,
 		return _teamLocalService.getActionableDynamicQuery();
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _teamLocalService.getBeanIdentifier();
-	}
-
 	@Override
 	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
 		com.liferay.portlet.exportimport.lar.PortletDataContext portletDataContext) {
@@ -347,6 +336,21 @@ public class TeamLocalServiceWrapper implements TeamLocalService,
 	public java.util.List<com.liferay.portal.model.Team> getGroupTeams(
 		long groupId) {
 		return _teamLocalService.getGroupTeams(groupId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _teamLocalService.getIndexableActionableDynamicQuery();
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	@Override
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _teamLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -485,6 +489,12 @@ public class TeamLocalServiceWrapper implements TeamLocalService,
 		return _teamLocalService.getUserGroupTeamsCount(userGroupId);
 	}
 
+	@Override
+	public java.util.List<com.liferay.portal.model.Team> getUserOrUserGroupTeams(
+		long groupId, long userId) {
+		return _teamLocalService.getUserOrUserGroupTeams(groupId, userId);
+	}
+
 	/**
 	* Returns the userIds of the users associated with the team.
 	*
@@ -562,16 +572,6 @@ public class TeamLocalServiceWrapper implements TeamLocalService,
 		java.lang.String description,
 		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params) {
 		return _teamLocalService.searchCount(groupId, name, description, params);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_teamLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	@Override

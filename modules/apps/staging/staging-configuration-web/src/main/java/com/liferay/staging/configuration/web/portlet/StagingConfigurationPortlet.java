@@ -14,11 +14,15 @@
 
 package com.liferay.staging.configuration.web.portlet;
 
+import com.liferay.portal.NoSuchBackgroundTaskException;
+import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManagerUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
+import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.GroupLocalService;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
@@ -67,6 +71,30 @@ import org.osgi.service.component.annotations.Reference;
 	service = Portlet.class
 )
 public class StagingConfigurationPortlet extends MVCPortlet {
+
+	public void deleteBackgroundTask(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws IOException, PortalException {
+
+		try {
+			long backgroundTaskId = ParamUtil.getLong(
+				actionRequest, "backgroundTaskId");
+
+			BackgroundTaskManagerUtil.deleteBackgroundTask(backgroundTaskId);
+
+			sendRedirect(actionRequest, actionResponse);
+		}
+		catch (Exception e) {
+			if (e instanceof NoSuchBackgroundTaskException ||
+				e instanceof PrincipalException) {
+
+				SessionErrors.add(actionRequest, e.getClass());
+			}
+			else {
+				throw e;
+			}
+		}
+	}
 
 	public void editStagingConfiguration(
 			ActionRequest actionRequest, ActionResponse actionResponse)
@@ -129,10 +157,20 @@ public class StagingConfigurationPortlet extends MVCPortlet {
 		String redirect = ParamUtil.getString(actionRequest, "redirect");
 
 		if (!stagedGroup) {
-			PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
-				actionRequest, liveGroup.getStagingGroup(),
-				StagingConfigurationPortletKeys.STAGING_CONFIGURATION, 0,
-				PortletRequest.RENDER_PHASE);
+			PortletURL portletURL = null;
+
+			if (stagingType == StagingConstants.TYPE_LOCAL_STAGING) {
+				portletURL = PortalUtil.getControlPanelPortletURL(
+					actionRequest, liveGroup.getStagingGroup(),
+					StagingConfigurationPortletKeys.STAGING_CONFIGURATION, 0, 0,
+					PortletRequest.RENDER_PHASE);
+			}
+			else if (stagingType == StagingConstants.TYPE_REMOTE_STAGING) {
+				portletURL = PortalUtil.getControlPanelPortletURL(
+					actionRequest, liveGroup,
+					StagingConfigurationPortletKeys.STAGING_CONFIGURATION, 0, 0,
+					PortletRequest.RENDER_PHASE);
+			}
 
 			if (portletURL != null) {
 				redirect = portletURL.toString();
@@ -141,7 +179,7 @@ public class StagingConfigurationPortlet extends MVCPortlet {
 		else if (stagingType == StagingConstants.TYPE_NOT_STAGED) {
 			PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
 				actionRequest, liveGroup,
-				StagingConfigurationPortletKeys.STAGING_CONFIGURATION, 0,
+				StagingConfigurationPortletKeys.STAGING_CONFIGURATION, 0, 0,
 				PortletRequest.RENDER_PHASE);
 
 			if (portletURL != null) {
@@ -176,7 +214,7 @@ public class StagingConfigurationPortlet extends MVCPortlet {
 		_stagingLocalService = null;
 	}
 
-	private GroupLocalService _groupLocalService;
-	private StagingLocalService _stagingLocalService;
+	private volatile GroupLocalService _groupLocalService;
+	private volatile StagingLocalService _stagingLocalService;
 
 }

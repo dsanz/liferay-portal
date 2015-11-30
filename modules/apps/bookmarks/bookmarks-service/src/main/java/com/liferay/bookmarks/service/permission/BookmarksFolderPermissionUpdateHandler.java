@@ -49,13 +49,13 @@ public class BookmarksFolderPermissionUpdateHandler
 		_bookmarksFolderLocalService.updateBookmarksFolder(bookmarksFolder);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setBookmarksFolderLocalService(
 		BookmarksFolderLocalService bookmarksFolderLocalService) {
 
 		_bookmarksFolderLocalService = bookmarksFolderLocalService;
 	}
 
-	private BookmarksFolderLocalService _bookmarksFolderLocalService;
+	private volatile BookmarksFolderLocalService _bookmarksFolderLocalService;
 
 }

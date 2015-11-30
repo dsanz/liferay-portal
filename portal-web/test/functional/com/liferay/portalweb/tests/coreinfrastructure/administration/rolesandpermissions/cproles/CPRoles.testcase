@@ -2,16 +2,37 @@
 	<property name="testray.main.component.name" value="Roles" />
 
 	<set-up>
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
+
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="SignIn#signInPortalInstanceSetUp" />
+			</then>
+		</if>
+
 		<execute macro="User#firstLoginPG" />
 	</set-up>
 
 	<tear-down>
-		<execute macro="User#firstLoginPG" />
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
 
-		<execute macro="Role#tearDownCP" />
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="PortalInstances#tearDownCP" />
+			</then>
+			<else>
+				<execute macro="User#firstLoginPG" />
+
+				<execute macro="Role#tearDownCP" />
+			</else>
+		</if>
 	</tear-down>
 
 	<command name="AddOrganizationRole" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Roles" />
 		</execute>
@@ -32,6 +53,8 @@
 	</command>
 
 	<command name="AddRegularRole" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Roles" />
 		</execute>
@@ -51,6 +74,8 @@
 	</command>
 
 	<command name="AddSiteRole" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Roles" />
 		</execute>
@@ -71,6 +96,8 @@
 	</command>
 
 	<command name="DeleteRegularRole" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Roles" />
 		</execute>

@@ -48,37 +48,37 @@ public class GroupModelListener extends BaseModelListener<Group> {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setShoppingCartLocalService(
 		ShoppingCartLocalService shoppingCartLocalService) {
 
 		_shoppingCartLocalService = shoppingCartLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setShoppingCategoryLocalService(
 		ShoppingCategoryLocalService shoppingCategoryLocalService) {
 
 		_shoppingCategoryLocalService = shoppingCategoryLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setShoppingCouponLocalService(
 		ShoppingCouponLocalService shoppingCouponLocalService) {
 
 		_shoppingCouponLocalService = shoppingCouponLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setShoppingOrderLocalService(
 		ShoppingOrderLocalService shoppingOrderLocalService) {
 
 		_shoppingOrderLocalService = shoppingOrderLocalService;
 	}
 
-	private ShoppingCartLocalService _shoppingCartLocalService;
-	private ShoppingCategoryLocalService _shoppingCategoryLocalService;
-	private ShoppingCouponLocalService _shoppingCouponLocalService;
-	private ShoppingOrderLocalService _shoppingOrderLocalService;
+	private volatile ShoppingCartLocalService _shoppingCartLocalService;
+	private volatile ShoppingCategoryLocalService _shoppingCategoryLocalService;
+	private volatile ShoppingCouponLocalService _shoppingCouponLocalService;
+	private volatile ShoppingOrderLocalService _shoppingOrderLocalService;
 
 }

@@ -111,7 +111,7 @@ public class BlogsEntryAssetRendererFactory
 		LiferayPortletResponse liferayPortletResponse, long classTypeId) {
 
 		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
-			liferayPortletRequest, BlogsPortletKeys.BLOGS, 0,
+			liferayPortletRequest, BlogsPortletKeys.BLOGS,
 			PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter("mvcRenderCommandName", "/blogs/edit_entry");
@@ -179,8 +179,8 @@ public class BlogsEntryAssetRendererFactory
 		_blogsEntryService = blogsEntryService;
 	}
 
-	private BlogsEntryLocalService _blogsEntryLocalService;
-	private BlogsEntryService _blogsEntryService;
-	private ServletContext _servletContext;
+	private volatile BlogsEntryLocalService _blogsEntryLocalService;
+	private volatile BlogsEntryService _blogsEntryService;
+	private volatile ServletContext _servletContext;
 
 }

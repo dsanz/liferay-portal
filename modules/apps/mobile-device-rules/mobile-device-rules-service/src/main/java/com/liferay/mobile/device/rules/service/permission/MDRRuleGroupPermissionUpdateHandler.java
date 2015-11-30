@@ -50,13 +50,13 @@ public class MDRRuleGroupPermissionUpdateHandler
 		_mdrRuleGroupLocalService.updateMDRRuleGroup(mdrRuleGroup);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setMDRRuleGroupLocalService(
 		MDRRuleGroupLocalService mdrRuleGroupLocalService) {
 
 		_mdrRuleGroupLocalService = mdrRuleGroupLocalService;
 	}
 
-	private MDRRuleGroupLocalService _mdrRuleGroupLocalService;
+	private volatile MDRRuleGroupLocalService _mdrRuleGroupLocalService;
 
 }

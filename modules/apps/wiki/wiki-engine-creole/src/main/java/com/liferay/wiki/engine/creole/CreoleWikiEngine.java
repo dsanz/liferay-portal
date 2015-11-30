@@ -156,7 +156,8 @@ public class CreoleWikiEngine extends BaseInputEditorWikiEngine {
 	}
 
 	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.wiki.engine.creole)"
+		target = "(osgi.web.symbolicname=com.liferay.wiki.engine.creole)",
+		unbind = "-"
 	)
 	protected void setServletContext(ServletContext servletContext) {
 		_servletContext = servletContext;
@@ -185,8 +186,9 @@ public class CreoleWikiEngine extends BaseInputEditorWikiEngine {
 	private static final Log _log = LogFactoryUtil.getLog(
 		CreoleWikiEngine.class);
 
-	private ServletContext _servletContext;
-	private WikiGroupServiceConfiguration _wikiGroupServiceConfiguration;
-	private WikiPageLocalService _wikiPageLocalService;
+	private volatile ServletContext _servletContext;
+	private volatile WikiGroupServiceConfiguration
+		_wikiGroupServiceConfiguration;
+	private volatile WikiPageLocalService _wikiPageLocalService;
 
 }

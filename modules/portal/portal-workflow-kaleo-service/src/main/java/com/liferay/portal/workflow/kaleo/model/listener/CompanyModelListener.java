@@ -49,13 +49,13 @@ public class CompanyModelListener extends BaseModelListener<Company> {
 		ApplicationContext applicationContext) {
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setPortalKaleoManager(
 		PortalKaleoManager portalKaleoManager) {
 
 		_portalKaleoManager = portalKaleoManager;
 	}
 
-	private PortalKaleoManager _portalKaleoManager;
+	private volatile PortalKaleoManager _portalKaleoManager;
 
 }

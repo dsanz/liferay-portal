@@ -1,18 +1,20 @@
 import com.liferay.gradle.util.FileUtil
 import com.liferay.gradle.util.copy.StripPathSegmentsAction
 
+configurations {
+	alloyEditor
+}
+
 task buildAlloyEditor(type: Copy)
 
-String alloyEditorVersion = "0.4.0-alpha.1"
+String alloyEditorVersion = "0.7.0"
 
-File editorsDestinationDir = file("tmp/META-INF/resources")
-File editorsSrcDir = file("src/main/resources/META-INF/resources")
-File thirdPartyDir = file("../../../../portal-web/third-party")
+File editorDestinationDir = file("tmp/META-INF/resources")
+File editorSrcDir = file("src/main/resources/META-INF/resources")
 
 buildAlloyEditor {
-	File alloyEditorDestinationDir = new File(editorsDestinationDir, "alloyeditor")
-	File alloyEditorSrcDir = new File(editorsSrcDir, "_diffs")
-	File alloyEditorZipFile = new File(thirdPartyDir, "alloy-editor-${alloyEditorVersion}.zip")
+	File alloyEditorDestinationDir = new File(editorDestinationDir, "alloyeditor")
+	File alloyEditorSrcDir = new File(editorSrcDir, "_diffs")
 
 	doFirst {
 		delete alloyEditorDestinationDir
@@ -33,18 +35,16 @@ buildAlloyEditor {
 
 	duplicatesStrategy = "exclude"
 
-	from(zipTree(alloyEditorZipFile)) {
-		eachFile new StripPathSegmentsAction(1)
-		include "alloy-editor/**"
+	from {
+		zipTree(configurations.alloyEditor.singleFile)
+	} {
+		eachFile new StripPathSegmentsAction(7)
+		include "META-INF/resources/webjars/alloyeditor/${alloyEditorVersion}/dist/alloy-editor/**"
 	}
 
 	from alloyEditorSrcDir
 	includeEmptyDirs = false
 	into alloyEditorDestinationDir
-
-	onlyIf {
-		!FileUtil.isUpToDate(project, alloyEditorZipFile, alloyEditorDestinationDir)
-	}
 }
 
 classes {
@@ -52,6 +52,8 @@ classes {
 }
 
 dependencies {
+	alloyEditor group: "org.webjars.bower", name: "alloyeditor", transitive: false, version: alloyEditorVersion
+
 	compile group: "com.liferay.portal", name: "portal-service", version: liferay.portalVersion
 	compile group: "com.liferay.portal", name: "util-taglib", version: liferay.portalVersion
 	compile group: "javax.portlet", name: "portlet-api", version: "2.0"
@@ -59,6 +61,7 @@ dependencies {
 	compile group: "javax.servlet.jsp", name: "jsp-api", version: "2.1"
 	compile group: "org.osgi", name: "org.osgi.compendium", version: "5.0.0"
 	compile group: "org.osgi", name: "org.osgi.core", version: "5.0.0"
+	compile project(":frontend:frontend-editor:frontend-editor-lang")
 }
 
 liferay {

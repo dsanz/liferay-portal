@@ -139,10 +139,8 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 	}
 
 	public PortletPreferences getPortletInstancePortletPreferences(
-		long companyId, long plid, String portletId) {
-
-		long ownerId = PortletKeys.PREFS_OWNER_ID_DEFAULT;
-		int ownerType = PortletKeys.PREFS_OWNER_TYPE_LAYOUT;
+		long companyId, long ownerId, int ownerType, long plid,
+		String portletId) {
 
 		if (PortletConstants.hasUserId(portletId)) {
 			ownerId = PortletConstants.getUserId(portletId);
@@ -151,6 +149,25 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 
 		return _portletPreferencesLocalService.getStrictPreferences(
 			companyId, ownerId, ownerType, plid, portletId);
+	}
+
+	public PortletPreferences getPortletInstancePortletPreferences(
+		long companyId, long plid, String portletId) {
+
+		return getPortletInstancePortletPreferences(
+			companyId, PortletKeys.PREFS_OWNER_ID_DEFAULT,
+			PortletKeys.PREFS_OWNER_TYPE_LAYOUT, plid, portletId);
+	}
+
+	@Override
+	public Settings getPortletInstancePortletPreferencesSettings(
+		long companyId, long ownerId, int ownerType, long plid,
+		String portletId, Settings parentSettings) {
+
+		return new PortletPreferencesSettings(
+			getPortletInstancePortletPreferences(
+				companyId, ownerId, ownerType, plid, portletId),
+			parentSettings);
 	}
 
 	@Override
@@ -303,8 +320,10 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 		new ConcurrentHashMap<>();
 	private final ConcurrentMap<Class<?>, ConfigurationBeanManagedService>
 		_configurationBeanManagedServices = new ConcurrentHashMap<>();
-	private GroupLocalService _groupLocalService;
-	private PortalPreferencesLocalService _portalPreferencesLocalService;
-	private PortletPreferencesLocalService _portletPreferencesLocalService;
+	private volatile GroupLocalService _groupLocalService;
+	private volatile PortalPreferencesLocalService
+		_portalPreferencesLocalService;
+	private volatile PortletPreferencesLocalService
+		_portletPreferencesLocalService;
 
 }

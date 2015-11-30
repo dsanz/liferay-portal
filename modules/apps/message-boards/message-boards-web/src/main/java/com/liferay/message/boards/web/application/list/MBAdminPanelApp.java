@@ -14,7 +14,7 @@
 
 package com.liferay.message.boards.web.application.list;
 
-import com.liferay.application.list.BaseControlPanelEntryPanelApp;
+import com.liferay.application.list.BasePanelApp;
 import com.liferay.application.list.PanelApp;
 import com.liferay.application.list.constants.PanelCategoryKeys;
 import com.liferay.message.boards.web.constants.MBPortletKeys;
@@ -34,13 +34,14 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = PanelApp.class
 )
-public class MBAdminPanelApp extends BaseControlPanelEntryPanelApp {
+public class MBAdminPanelApp extends BasePanelApp {
 
 	@Override
 	public String getPortletId() {
 		return MBPortletKeys.MESSAGE_BOARDS_ADMIN;
 	}
 
+	@Override
 	@Reference(
 		target = "(javax.portlet.name=" + MBPortletKeys.MESSAGE_BOARDS_ADMIN + ")",
 		unbind = "-"

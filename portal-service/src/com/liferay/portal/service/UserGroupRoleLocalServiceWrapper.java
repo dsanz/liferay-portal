@@ -248,14 +248,19 @@ public class UserGroupRoleLocalServiceWrapper
 		return _userGroupRoleLocalService.getActionableDynamicQuery();
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _userGroupRoleLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _userGroupRoleLocalService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _userGroupRoleLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -377,16 +382,6 @@ public class UserGroupRoleLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return _userGroupRoleLocalService.hasUserGroupRole(userId, groupId,
 			roleName, inherit);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_userGroupRoleLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

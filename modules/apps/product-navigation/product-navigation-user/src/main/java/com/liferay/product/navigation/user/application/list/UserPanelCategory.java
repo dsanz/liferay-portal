@@ -14,16 +14,21 @@
 
 package com.liferay.product.navigation.user.application.list;
 
-import com.liferay.application.list.BasePanelCategory;
+import com.liferay.application.list.BaseJSPPanelCategory;
 import com.liferay.application.list.PanelCategory;
+import com.liferay.application.list.constants.ApplicationListWebKeys;
 import com.liferay.application.list.constants.PanelCategoryKeys;
-import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
+
+import java.io.IOException;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Adolfo Pérez
@@ -36,11 +41,21 @@ import org.osgi.service.component.annotations.Component;
 	},
 	service = PanelCategory.class
 )
-public class UserPanelCategory extends BasePanelCategory {
+public class UserPanelCategory extends BaseJSPPanelCategory {
+
+	@Override
+	public String getHeaderJspPath() {
+		return "/user.jsp";
+	}
 
 	@Override
 	public String getIconCssClass() {
 		return "icon-user";
+	}
+
+	@Override
+	public String getJspPath() {
+		return null;
 	}
 
 	@Override
@@ -50,10 +65,26 @@ public class UserPanelCategory extends BasePanelCategory {
 
 	@Override
 	public String getLabel(Locale locale) {
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			"content.Language", locale, getClass());
+		return null;
+	}
 
-		return LanguageUtil.get(resourceBundle, "my-space");
+	@Override
+	public boolean includeHeader(
+			HttpServletRequest request, HttpServletResponse response)
+		throws IOException {
+
+		request.setAttribute(ApplicationListWebKeys.PANEL_APP, this);
+
+		return super.includeHeader(request, response);
+	}
+
+	@Override
+	@Reference(
+		target = "(osgi.web.symbolicname=com.liferay.product.navigation.user)",
+		unbind = "-"
+	)
+	public void setServletContext(ServletContext servletContext) {
+		super.setServletContext(servletContext);
 	}
 
 }

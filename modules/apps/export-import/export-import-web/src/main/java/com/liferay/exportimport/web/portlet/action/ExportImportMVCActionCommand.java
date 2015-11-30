@@ -44,7 +44,6 @@ import com.liferay.portlet.exportimport.LARFileNameException;
 import com.liferay.portlet.exportimport.LARFileSizeException;
 import com.liferay.portlet.exportimport.LARTypeException;
 import com.liferay.portlet.exportimport.configuration.ExportImportConfigurationConstants;
-import com.liferay.portlet.exportimport.configuration.ExportImportConfigurationParameterMapFactory;
 import com.liferay.portlet.exportimport.configuration.ExportImportConfigurationSettingsMapFactory;
 import com.liferay.portlet.exportimport.lar.ExportImportHelper;
 import com.liferay.portlet.exportimport.lar.ExportImportHelperUtil;
@@ -102,21 +101,17 @@ public class ExportImportMVCActionCommand extends BaseMVCActionCommand {
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
 		if (Validator.isNull(cmd)) {
-			String portletId = PortalUtil.getPortletId(actionRequest);
-
-			Map<String, String[]> parameterMap =
-				ExportImportConfigurationParameterMapFactory.buildParameterMap(
-					actionRequest);
-
 			SessionMessages.add(
-				actionRequest, portletId + "parameterMap", parameterMap);
+				actionRequest,
+				PortalUtil.getPortletId(actionRequest) +
+					SessionMessages.KEY_SUFFIX_FORCE_SEND_REDIRECT);
+
+			hideDefaultSuccessMessage(actionRequest);
 
 			return;
 		}
 
 		try {
-			String redirect = ParamUtil.getString(actionRequest, "redirect");
-
 			if (cmd.equals(Constants.ADD_TEMP)) {
 				_importLayoutsMVCActionCommand.addTempFileEntry(
 					actionRequest,
@@ -127,9 +122,6 @@ public class ExportImportMVCActionCommand extends BaseMVCActionCommand {
 					actionRequest, actionResponse,
 					ExportImportHelper.TEMP_FOLDER_NAME +
 						portlet.getPortletId());
-			}
-			else if (cmd.equals("copy_from_live")) {
-				StagingUtil.copyFromLive(actionRequest, portlet);
 			}
 			else if (cmd.equals(Constants.DELETE_TEMP)) {
 				_importLayoutsMVCActionCommand.deleteTempFileEntry(
@@ -142,7 +134,7 @@ public class ExportImportMVCActionCommand extends BaseMVCActionCommand {
 
 				exportData(actionRequest, portlet);
 
-				sendRedirect(actionRequest, actionResponse, redirect);
+				sendRedirect(actionRequest, actionResponse);
 			}
 			else if (cmd.equals(Constants.IMPORT)) {
 				hideDefaultSuccessMessage(actionRequest);
@@ -158,12 +150,7 @@ public class ExportImportMVCActionCommand extends BaseMVCActionCommand {
 						SessionMessages.KEY_SUFFIX_CLOSE_REFRESH_PORTLET,
 					portlet.getPortletId());
 
-				sendRedirect(actionRequest, actionResponse, redirect);
-			}
-			else if (cmd.equals(Constants.PUBLISH_TO_LIVE)) {
-				hideDefaultSuccessMessage(actionRequest);
-
-				StagingUtil.publishToLive(actionRequest, portlet);
+				sendRedirect(actionRequest, actionResponse);
 			}
 		}
 		catch (Exception e) {
@@ -300,14 +287,14 @@ public class ExportImportMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDLFileEntryLocalService(
 		DLFileEntryLocalService dlFileEntryLocalService) {
 
 		_dlFileEntryLocalService = dlFileEntryLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setExportImportConfigurationLocalService(
 		ExportImportConfigurationLocalService
 			exportImportConfigurationLocalService) {
@@ -316,14 +303,14 @@ public class ExportImportMVCActionCommand extends BaseMVCActionCommand {
 			exportImportConfigurationLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setExportImportService(
 		ExportImportService exportImportService) {
 
 		_exportImportService = exportImportService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setImportLayoutsMVCActionCommand(
 		ImportLayoutsMVCActionCommand importLayoutsMVCActionCommand) {
 
@@ -411,10 +398,11 @@ public class ExportImportMVCActionCommand extends BaseMVCActionCommand {
 	private static final Log _log = LogFactoryUtil.getLog(
 		ExportImportMVCActionCommand.class);
 
-	private DLFileEntryLocalService _dlFileEntryLocalService;
-	private ExportImportConfigurationLocalService
+	private volatile DLFileEntryLocalService _dlFileEntryLocalService;
+	private volatile ExportImportConfigurationLocalService
 		_exportImportConfigurationLocalService;
-	private ExportImportService _exportImportService;
-	private ImportLayoutsMVCActionCommand _importLayoutsMVCActionCommand;
+	private volatile ExportImportService _exportImportService;
+	private volatile ImportLayoutsMVCActionCommand
+		_importLayoutsMVCActionCommand;
 
 }

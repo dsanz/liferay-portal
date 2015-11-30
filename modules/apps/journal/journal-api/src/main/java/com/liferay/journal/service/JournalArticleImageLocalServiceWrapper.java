@@ -268,14 +268,9 @@ public class JournalArticleImageLocalServiceWrapper
 		return _journalArticleImageLocalService.getArticleImagesCount(groupId);
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _journalArticleImageLocalService.getBeanIdentifier();
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _journalArticleImageLocalService.getIndexableActionableDynamicQuery();
 	}
 
 	/**
@@ -320,21 +315,21 @@ public class JournalArticleImageLocalServiceWrapper
 		return _journalArticleImageLocalService.getJournalArticleImagesCount();
 	}
 
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	@Override
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _journalArticleImageLocalService.getOSGiServiceIdentifier();
+	}
+
 	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return _journalArticleImageLocalService.getPersistedModel(primaryKeyObj);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_journalArticleImageLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

@@ -39,6 +39,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Point;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -217,6 +218,45 @@ public class WebDriverHelper {
 		String attribute = attributeLocator.substring(pos + 1);
 
 		return webElement.getAttribute(attribute);
+	}
+
+	public static By getBy(String locator) {
+		if (locator.startsWith("//")) {
+			return By.xpath(locator);
+		}
+		else if (locator.startsWith("class=")) {
+			locator = locator.substring(6);
+
+			return By.className(locator);
+		}
+		else if (locator.startsWith("css=")) {
+			locator = locator.substring(4);
+
+			return By.cssSelector(locator);
+		}
+		else if (locator.startsWith("link=")) {
+			locator = locator.substring(5);
+
+			return By.linkText(locator);
+		}
+		else if (locator.startsWith("name=")) {
+			locator = locator.substring(5);
+
+			return By.name(locator);
+		}
+		else if (locator.startsWith("tag=")) {
+			locator = locator.substring(4);
+
+			return By.tagName(locator);
+		}
+		else if (locator.startsWith("xpath=") || locator.startsWith("xPath=")) {
+			locator = locator.substring(6);
+
+			return By.xpath(locator);
+		}
+		else {
+			return By.id(locator);
+		}
 	}
 
 	public static String getConfirmation(WebDriver webDriver) {
@@ -575,11 +615,7 @@ public class WebDriverHelper {
 			targetURL = url;
 		}
 
-		for (int second = 0;; second++) {
-			if (second >= PropsValues.TIMEOUT_IMPLICIT_WAIT) {
-				break;
-			}
-
+		for (int i = 0; i < 2; i++) {
 			try {
 				webDriver.get(targetURL);
 
@@ -602,6 +638,10 @@ public class WebDriverHelper {
 		WebDriver.Navigation navigation = webDriver.navigate();
 
 		navigation.refresh();
+
+		if (isAlertPresent(webDriver)) {
+			getConfirmation(webDriver);
+		}
 	}
 
 	public static void select(
@@ -841,49 +881,33 @@ public class WebDriverHelper {
 		}
 
 		try {
-			if (locator.startsWith("//")) {
-				return webDriver.findElements(By.xpath(locator));
-			}
-			else if (locator.startsWith("class=")) {
-				locator = locator.substring(6);
+			List<WebElement> webElements = new ArrayList<>();
 
-				return webDriver.findElements(By.className(locator));
-			}
-			else if (locator.startsWith("css=")) {
-				locator = locator.substring(4);
+			for (WebElement webElement :
+					webDriver.findElements(getBy(locator))) {
 
-				return webDriver.findElements(By.cssSelector(locator));
+				webElements.add(new RetryWebElementImpl(locator, webElement));
 			}
-			else if (locator.startsWith("link=")) {
-				locator = locator.substring(5);
 
-				return webDriver.findElements(By.linkText(locator));
-			}
-			else if (locator.startsWith("name=")) {
-				locator = locator.substring(5);
-
-				return webDriver.findElements(By.name(locator));
-			}
-			else if (locator.startsWith("tag=")) {
-				locator = locator.substring(4);
-
-				return webDriver.findElements(By.tagName(locator));
-			}
-			else if (locator.startsWith("xpath=") ||
-					 locator.startsWith("xPath=")) {
-
-				locator = locator.substring(6);
-
-				return webDriver.findElements(By.xpath(locator));
-			}
-			else {
-				return webDriver.findElements(By.id(locator));
-			}
+			return webElements;
 		}
 		finally {
 			if (timeout != null) {
 				setDefaultTimeoutImplicit(webDriver);
 			}
+		}
+	}
+
+	protected static boolean isAlertPresent(WebDriver webDriver) {
+		WebDriverWait webDriverWait = new WebDriverWait(webDriver, 1);
+
+		try {
+			webDriverWait.until(ExpectedConditions.alertIsPresent());
+
+			return true;
+		}
+		catch (TimeoutException te) {
+			return false;
 		}
 	}
 

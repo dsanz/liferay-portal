@@ -25,6 +25,8 @@ import com.liferay.journal.service.JournalArticleResourceLocalService;
 import com.liferay.journal.service.JournalArticleService;
 import com.liferay.journal.service.permission.JournalArticlePermission;
 import com.liferay.journal.service.permission.JournalPermission;
+import com.liferay.journal.util.JournalContent;
+import com.liferay.journal.util.JournalConverter;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
@@ -109,7 +111,7 @@ public class JournalArticleAssetRendererFactory
 		}
 
 		JournalArticleAssetRenderer journalArticleAssetRenderer =
-			new JournalArticleAssetRenderer(article);
+			getJournalArticleAssetRenderer(article);
 
 		journalArticleAssetRenderer.setAssetRendererType(type);
 		journalArticleAssetRenderer.setServletContext(_servletContext);
@@ -126,7 +128,7 @@ public class JournalArticleAssetRendererFactory
 			_journalArticleService.getDisplayArticleByUrlTitle(
 				groupId, urlTitle);
 
-		return new JournalArticleAssetRenderer(article);
+		return getJournalArticleAssetRenderer(article);
 	}
 
 	@Override
@@ -173,7 +175,7 @@ public class JournalArticleAssetRendererFactory
 		LiferayPortletResponse liferayPortletResponse, long classTypeId) {
 
 		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
-			liferayPortletRequest, JournalPortletKeys.JOURNAL, 0,
+			liferayPortletRequest, JournalPortletKeys.JOURNAL,
 			PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter("mvcPath", "/edit_article.jsp");
@@ -261,6 +263,18 @@ public class JournalArticleAssetRendererFactory
 		return themeDisplay.getPathThemeImages() + "/common/history.png";
 	}
 
+	protected JournalArticleAssetRenderer getJournalArticleAssetRenderer(
+		JournalArticle article) {
+
+		JournalArticleAssetRenderer journalArticleAssetRenderer =
+			new JournalArticleAssetRenderer(article);
+
+		journalArticleAssetRenderer.setJournalContent(_journalContent);
+		journalArticleAssetRenderer.setJournalConverter(_journalConverter);
+
+		return journalArticleAssetRenderer;
+	}
+
 	@Reference(unbind = "-")
 	protected void setDDMStructureLocalService(
 		DDMStructureLocalService ddmStructureLocalService) {
@@ -290,11 +304,23 @@ public class JournalArticleAssetRendererFactory
 		_journalArticleService = journalArticleService;
 	}
 
-	private DDMStructureLocalService _ddmStructureLocalService;
-	private JournalArticleLocalService _journalArticleLocalService;
-	private JournalArticleResourceLocalService
+	@Reference(unbind = "-")
+	protected void setJournalContent(JournalContent journalContent) {
+		_journalContent = journalContent;
+	}
+
+	@Reference(unbind = "-")
+	protected void setJournalConverter(JournalConverter journalConverter) {
+		_journalConverter = journalConverter;
+	}
+
+	private volatile DDMStructureLocalService _ddmStructureLocalService;
+	private volatile JournalArticleLocalService _journalArticleLocalService;
+	private volatile JournalArticleResourceLocalService
 		_journalArticleResourceLocalService;
-	private JournalArticleService _journalArticleService;
-	private ServletContext _servletContext;
+	private volatile JournalArticleService _journalArticleService;
+	private volatile JournalContent _journalContent;
+	private volatile JournalConverter _journalConverter;
+	private volatile ServletContext _servletContext;
 
 }

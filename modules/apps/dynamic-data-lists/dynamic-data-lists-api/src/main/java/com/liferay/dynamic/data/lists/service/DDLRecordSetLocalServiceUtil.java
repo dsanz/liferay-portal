@@ -260,15 +260,6 @@ public class DDLRecordSetLocalServiceUtil {
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
-	/**
 	* Returns the d d l record set with the primary key.
 	*
 	* @param recordSetId the primary key of the d d l record set
@@ -355,6 +346,19 @@ public class DDLRecordSetLocalServiceUtil {
 		return getService().getExportActionableDynamicQuery(portletDataContext);
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return getService().getIndexableActionableDynamicQuery();
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
+	}
+
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -415,15 +419,6 @@ public class DDLRecordSetLocalServiceUtil {
 	}
 
 	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
-	}
-
-	/**
 	* Updates the d d l record set in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	*
 	* @param ddlRecordSet the d d l record set
@@ -465,6 +460,12 @@ public class DDLRecordSetLocalServiceUtil {
 		return getService()
 				   .updateRecordSet(recordSetId, ddmStructureId, nameMap,
 			descriptionMap, minDisplayRows, serviceContext);
+	}
+
+	public static com.liferay.dynamic.data.lists.model.DDLRecordSet updateRecordSet(
+		long recordSetId, java.lang.String settings)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().updateRecordSet(recordSetId, settings);
 	}
 
 	public static DDLRecordSetLocalService getService() {

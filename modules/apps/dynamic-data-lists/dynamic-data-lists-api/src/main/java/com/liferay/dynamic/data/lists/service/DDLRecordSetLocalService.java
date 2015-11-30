@@ -220,13 +220,6 @@ public interface DDLRecordSetLocalService extends BaseLocalService,
 	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery();
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
-
-	/**
 	* Returns the d d l record set with the primary key.
 	*
 	* @param recordSetId the primary key of the d d l record set
@@ -302,6 +295,16 @@ public interface DDLRecordSetLocalService extends BaseLocalService,
 	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
 		com.liferay.portlet.exportimport.lar.PortletDataContext portletDataContext);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public java.lang.String getOSGiServiceIdentifier();
+
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
@@ -344,13 +347,6 @@ public interface DDLRecordSetLocalService extends BaseLocalService,
 		java.lang.String description, int scope, boolean andOperator);
 
 	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
-
-	/**
 	* Updates the d d l record set in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	*
 	* @param ddlRecordSet the d d l record set
@@ -380,4 +376,7 @@ public interface DDLRecordSetLocalService extends BaseLocalService,
 		int minDisplayRows,
 		com.liferay.portal.service.ServiceContext serviceContext)
 		throws PortalException;
+
+	public com.liferay.dynamic.data.lists.model.DDLRecordSet updateRecordSet(
+		long recordSetId, java.lang.String settings) throws PortalException;
 }

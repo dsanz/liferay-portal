@@ -94,27 +94,28 @@ public class UpdateRecordMVCActionCommand extends BaseMVCActionCommand {
 			ddmForm, serializedDDMFormValues);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDLRecordService(DDLRecordService ddlRecordService) {
 		_ddlRecordService = ddlRecordService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDLRecordSetService(
 		DDLRecordSetService ddlRecordSetService) {
 
 		_ddlRecordSetService = ddlRecordSetService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMFormValuesJSONDeserializer(
 		DDMFormValuesJSONDeserializer ddmFormValuesJSONDeserializer) {
 
 		_ddmFormValuesJSONDeserializer = ddmFormValuesJSONDeserializer;
 	}
 
-	private DDLRecordService _ddlRecordService;
-	private DDLRecordSetService _ddlRecordSetService;
-	private DDMFormValuesJSONDeserializer _ddmFormValuesJSONDeserializer;
+	private volatile DDLRecordService _ddlRecordService;
+	private volatile DDLRecordSetService _ddlRecordSetService;
+	private volatile DDMFormValuesJSONDeserializer
+		_ddmFormValuesJSONDeserializer;
 
 }

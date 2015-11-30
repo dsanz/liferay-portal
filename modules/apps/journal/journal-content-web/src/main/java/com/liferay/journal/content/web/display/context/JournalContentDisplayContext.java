@@ -19,6 +19,7 @@ import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.service.permission.DDMTemplatePermission;
+import com.liferay.journal.constants.JournalWebKeys;
 import com.liferay.journal.content.asset.addon.entry.common.ContentMetadataAssetAddonEntry;
 import com.liferay.journal.content.asset.addon.entry.common.ContentMetadataAssetAddonEntryTracker;
 import com.liferay.journal.content.asset.addon.entry.common.UserToolAssetAddonEntry;
@@ -29,7 +30,7 @@ import com.liferay.journal.model.JournalArticleDisplay;
 import com.liferay.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.journal.service.permission.JournalArticlePermission;
 import com.liferay.journal.service.permission.JournalPermission;
-import com.liferay.journal.util.JournalContentUtil;
+import com.liferay.journal.util.JournalContent;
 import com.liferay.journal.web.asset.JournalArticleAssetRenderer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -42,6 +43,7 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PredicateFilter;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
@@ -51,7 +53,6 @@ import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetRenderer;
@@ -87,6 +88,19 @@ public class JournalContentDisplayContext {
 		if (Validator.isNull(getPortletResource()) && !isShowArticle()) {
 			portletRequest.setAttribute(
 				WebKeys.PORTLET_CONFIGURATOR_VISIBILITY, Boolean.TRUE);
+		}
+	}
+
+	public void clearCache() throws PortalException {
+		String articleId = getArticleId();
+
+		if (Validator.isNotNull(articleId)) {
+			JournalContent journalContent =
+				(JournalContent)_portletRequest.getAttribute(
+					JournalWebKeys.JOURNAL_CONTENT);
+
+			journalContent.clearCache(
+				getArticleGroupId(), getArticleId(), getDDMTemplateKey());
 		}
 	}
 
@@ -140,7 +154,11 @@ public class JournalContentDisplayContext {
 			WebKeys.THEME_DISPLAY);
 
 		if (article.isApproved()) {
-			_articleDisplay = JournalContentUtil.getDisplay(
+			JournalContent journalContent =
+				(JournalContent) _portletRequest.getAttribute(
+					JournalWebKeys.JOURNAL_CONTENT);
+
+			_articleDisplay = journalContent.getDisplay(
 				article.getGroupId(), article.getArticleId(), null, null,
 				themeDisplay.getLanguageId(), 1,
 				new PortletRequestModel(_portletRequest, _portletResponse),
@@ -270,11 +288,13 @@ public class JournalContentDisplayContext {
 			_portletRequest, "ddmTemplateKey",
 			_journalContentPortletInstanceConfiguration.ddmTemplateKey());
 
-		if (getDDMTemplates().isEmpty()) {
+		if (Validator.isNotNull(_ddmTemplateKey)) {
 			return _ddmTemplateKey;
 		}
 
-		if (Validator.isNull(_ddmTemplateKey)) {
+		List<DDMTemplate> ddmTemplates = getDDMTemplates();
+
+		if (!ddmTemplates.isEmpty()) {
 			JournalArticle article = getArticle();
 
 			_ddmTemplateKey = article.getDDMTemplateKey();

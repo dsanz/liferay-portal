@@ -30,6 +30,7 @@ import com.liferay.portal.upgrade.v7_0_0.util.PortalPreferencesTable;
 import com.liferay.portal.upgrade.v7_0_0.util.RegionTable;
 import com.liferay.portal.upgrade.v7_0_0.util.ReleaseTable;
 import com.liferay.portal.upgrade.v7_0_0.util.ResourceActionTable;
+import com.liferay.portal.upgrade.v7_0_0.util.ServiceComponentTable;
 import com.liferay.portal.upgrade.v7_0_0.util.VirtualHostTable;
 import com.liferay.portal.util.PropsUtil;
 
@@ -119,6 +120,11 @@ public class UpgradeSharding extends UpgradeProcess {
 				ResourceActionTable.TABLE_NAME,
 				ResourceActionTable.TABLE_COLUMNS,
 				ResourceActionTable.TABLE_SQL_CREATE);
+			copyControlTable(
+				sourceConnection, targetConnection,
+				ServiceComponentTable.TABLE_NAME,
+				ServiceComponentTable.TABLE_COLUMNS,
+				ServiceComponentTable.TABLE_SQL_CREATE);
 			copyControlTable(
 				sourceConnection, targetConnection, VirtualHostTable.TABLE_NAME,
 				VirtualHostTable.TABLE_COLUMNS,

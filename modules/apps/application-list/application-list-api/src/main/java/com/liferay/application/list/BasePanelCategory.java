@@ -14,10 +14,12 @@
 
 package com.liferay.application.list;
 
+import com.liferay.application.list.display.context.logic.PanelCategoryHelper;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.User;
 import com.liferay.portal.security.permission.PermissionChecker;
 
 import java.io.IOException;
@@ -50,6 +52,15 @@ public abstract class BasePanelCategory implements PanelCategory {
 	}
 
 	@Override
+	public int getNotificationsCount(
+		PanelCategoryHelper panelCategoryHelper,
+		PermissionChecker permissionChecker, Group group, User user) {
+
+		return panelCategoryHelper.getNotificationsCount(
+			getKey(), permissionChecker, group, user);
+	}
+
+	@Override
 	public boolean hasAccessPermission(
 			PermissionChecker permissionChecker, Group group)
 		throws PortalException {
@@ -64,6 +75,14 @@ public abstract class BasePanelCategory implements PanelCategory {
 
 	@Override
 	public boolean include(
+			HttpServletRequest request, HttpServletResponse response)
+		throws IOException {
+
+		return false;
+	}
+
+	@Override
+	public boolean includeHeader(
 			HttpServletRequest request, HttpServletResponse response)
 		throws IOException {
 

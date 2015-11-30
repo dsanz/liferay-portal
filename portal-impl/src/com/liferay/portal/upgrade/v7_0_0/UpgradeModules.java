@@ -16,6 +16,7 @@ package com.liferay.portal.upgrade.v7_0_0;
 
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.model.ReleaseConstants;
 
 import java.sql.Connection;
@@ -37,24 +38,32 @@ public class UpgradeModules extends UpgradeProcess {
 		try {
 			con = DataAccess.getUpgradeOptimizedConnection();
 
-			ps = con.prepareStatement(
-				"insert into Release_ values  (?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-					"?, ?)");
+			StringBundler sb = new StringBundler(5);
+
+			sb.append("insert into Release_ (mvccVersion, releaseId, ");
+			sb.append("createDate, modifiedDate, servletContextName, ");
+			sb.append("schemaVersion, buildNumber, buildDate, verified, ");
+			sb.append("state_, testString) values (?, ?, ?, ?, ?, ?, ?, ?, ");
+			sb.append("?, ?, ?)");
+
+			String sql = sb.toString();
+
+			ps = con.prepareStatement(sql);
 
 			Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
 			for (String bundleSymbolicName : _bundleSymbolicNames) {
-				ps.setLong(1, increment());
-				ps.setTimestamp(2, timestamp);
+				ps.setLong(1, 0);
+				ps.setLong(2, increment());
 				ps.setTimestamp(3, timestamp);
-				ps.setString(4, bundleSymbolicName);
-				ps.setInt(5, 001);
-				ps.setTimestamp(6, timestamp);
-				ps.setInt(7, 1);
-				ps.setInt(8, 0);
-				ps.setString(9, ReleaseConstants.TEST_STRING);
-				ps.setString(10, "0.0.1");
-				ps.setLong(11, 0);
+				ps.setTimestamp(4, timestamp);
+				ps.setString(5, bundleSymbolicName);
+				ps.setString(6, "0.0.1");
+				ps.setInt(7, 001);
+				ps.setTimestamp(8, timestamp);
+				ps.setBoolean(9, true);
+				ps.setInt(10, 0);
+				ps.setString(11, ReleaseConstants.TEST_STRING);
 
 				ps.addBatch();
 			}
@@ -76,7 +85,6 @@ public class UpgradeModules extends UpgradeProcess {
 		"com.liferay.asset.tags.navigation.web",
 		"com.liferay.blogs.recent.bloggers.web", "com.liferay.blogs.web",
 		"com.liferay.bookmarks.service", "com.liferay.bookmarks.web",
-		"com.liferay.calendar.service", "com.liferay.calendar.web",
 		"com.liferay.comment.page.comments.web",
 		"com.liferay.currency.converter.web", "com.liferay.dictionary.web",
 		"com.liferay.document.library.web",
@@ -101,7 +109,6 @@ public class UpgradeModules extends UpgradeProcess {
 		"com.liferay.plugins.admin.web", "com.liferay.polls.service",
 		"com.liferay.portal.instances.web", "com.liferay.portal.lock.service",
 		"com.liferay.portal.settings.web",
-		"com.liferay.portal.workflow.kaleo.service",
 		"com.liferay.portlet.configuration.web", "com.liferay.portlet.css.web",
 		"com.liferay.quick.note.web.uprade;",
 		"com.liferay.ratings.page.ratings.web", "com.liferay.roles.admin.web",

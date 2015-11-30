@@ -49,13 +49,13 @@ public class BookmarksEntryPermissionUpdateHandler
 		_bookmarksEntryLocalService.updateBookmarksEntry(bookmarksEntry);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setBookmarksEntryLocalService(
 		BookmarksEntryLocalService bookmarksEntryLocalService) {
 
 		_bookmarksEntryLocalService = bookmarksEntryLocalService;
 	}
 
-	private BookmarksEntryLocalService _bookmarksEntryLocalService;
+	private volatile BookmarksEntryLocalService _bookmarksEntryLocalService;
 
 }

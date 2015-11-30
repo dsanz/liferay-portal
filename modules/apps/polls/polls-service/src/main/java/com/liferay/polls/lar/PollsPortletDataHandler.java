@@ -18,9 +18,6 @@ import com.liferay.polls.constants.PollsPortletKeys;
 import com.liferay.polls.model.PollsChoice;
 import com.liferay.polls.model.PollsQuestion;
 import com.liferay.polls.model.PollsVote;
-import com.liferay.polls.model.impl.PollsChoiceImpl;
-import com.liferay.polls.model.impl.PollsQuestionImpl;
-import com.liferay.polls.model.impl.PollsVoteImpl;
 import com.liferay.polls.service.PollsChoiceLocalService;
 import com.liferay.polls.service.PollsQuestionLocalService;
 import com.liferay.polls.service.PollsVoteLocalService;
@@ -35,7 +32,6 @@ import com.liferay.portlet.exportimport.lar.PortletDataHandlerBoolean;
 import com.liferay.portlet.exportimport.lar.PortletDataHandlerControl;
 import com.liferay.portlet.exportimport.lar.StagedModelDataHandlerUtil;
 import com.liferay.portlet.exportimport.lar.StagedModelType;
-import com.liferay.portlet.exportimport.xstream.XStreamAliasRegistryUtil;
 
 import java.util.List;
 
@@ -74,11 +70,6 @@ public class PollsPortletDataHandler extends BasePortletDataHandler {
 				},
 				PollsQuestion.class.getName()));
 		setImportControls(getExportControls());
-
-		XStreamAliasRegistryUtil.register(PollsChoiceImpl.class, "PollsChoice");
-		XStreamAliasRegistryUtil.register(
-			PollsQuestionImpl.class, "PollsQuestion");
-		XStreamAliasRegistryUtil.register(PollsVoteImpl.class, "PollsVote");
 	}
 
 	@Override
@@ -241,8 +232,8 @@ public class PollsPortletDataHandler extends BasePortletDataHandler {
 		_pollsVoteLocalService = pollsVoteLocalService;
 	}
 
-	private PollsChoiceLocalService _pollsChoiceLocalService;
-	private PollsQuestionLocalService _pollsQuestionLocalService;
-	private PollsVoteLocalService _pollsVoteLocalService;
+	private volatile PollsChoiceLocalService _pollsChoiceLocalService;
+	private volatile PollsQuestionLocalService _pollsQuestionLocalService;
+	private volatile PollsVoteLocalService _pollsVoteLocalService;
 
 }

@@ -245,7 +245,8 @@ public class JSPWikiEngine extends BaseInputEditorWikiEngine {
 	}
 
 	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.wiki.engine.jspwiki)"
+		target = "(osgi.web.symbolicname=com.liferay.wiki.engine.jspwiki)",
+		unbind = "-"
 	)
 	protected void setServletContext(ServletContext servletContext) {
 		_servletContext = servletContext;
@@ -365,8 +366,9 @@ public class JSPWikiEngine extends BaseInputEditorWikiEngine {
 	private final Map<Long, LiferayJSPWikiEngine> _engines =
 		new ConcurrentHashMap<>();
 	private Properties _properties = new Properties();
-	private ServletContext _servletContext;
-	private WikiGroupServiceConfiguration _wikiGroupServiceConfiguration;
-	private WikiPageLocalService _wikiPageLocalService;
+	private volatile ServletContext _servletContext;
+	private volatile WikiGroupServiceConfiguration
+		_wikiGroupServiceConfiguration;
+	private volatile WikiPageLocalService _wikiPageLocalService;
 
 }

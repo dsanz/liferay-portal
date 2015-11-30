@@ -192,16 +192,6 @@ public class DDMTemplateVersionLocalServiceWrapper
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _ddmTemplateVersionLocalService.getBeanIdentifier();
-	}
-
-	/**
 	* Returns the d d m template version with the primary key.
 	*
 	* @param templateVersionId the primary key of the d d m template version
@@ -243,10 +233,25 @@ public class DDMTemplateVersionLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _ddmTemplateVersionLocalService.getIndexableActionableDynamicQuery();
+	}
+
+	@Override
 	public com.liferay.dynamic.data.mapping.model.DDMTemplateVersion getLatestTemplateVersion(
 		long templateId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return _ddmTemplateVersionLocalService.getLatestTemplateVersion(templateId);
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	@Override
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _ddmTemplateVersionLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -282,16 +287,6 @@ public class DDMTemplateVersionLocalServiceWrapper
 	@Override
 	public int getTemplateVersionsCount(long templateId) {
 		return _ddmTemplateVersionLocalService.getTemplateVersionsCount(templateId);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_ddmTemplateVersionLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

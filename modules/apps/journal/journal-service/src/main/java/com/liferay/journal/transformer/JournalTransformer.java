@@ -55,6 +55,7 @@ import com.liferay.portal.service.CompanyLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.xsl.XSLTemplateResource;
 import com.liferay.portal.xsl.XSLURIResolver;
+import com.liferay.taglib.servlet.PipingServletResponse;
 
 import java.io.IOException;
 
@@ -178,16 +179,6 @@ public class JournalTransformer {
 			portletRequestModel, script, langType, propagateException);
 	}
 
-	protected void addChildrenTemplateNode(
-		Template template, TemplateNode templateNode) {
-
-		template.put(templateNode.getName(), templateNode);
-
-		for (TemplateNode childTemplateNode : templateNode.getChildren()) {
-			addChildrenTemplateNode(template, childTemplateNode);
-		}
-	}
-
 	protected String doTransform(
 			ThemeDisplay themeDisplay, Map<String, Object> contextObjects,
 			Map<String, String> tokens, String viewMode, String languageId,
@@ -307,7 +298,7 @@ public class JournalTransformer {
 
 					if (templateNodes != null) {
 						for (TemplateNode templateNode : templateNodes) {
-							addChildrenTemplateNode(template, templateNode);
+							template.put(templateNode.getName(), templateNode);
 						}
 					}
 
@@ -373,6 +364,10 @@ public class JournalTransformer {
 					templateManager.addTaglibRequest(
 						template, "Request", request,
 						themeDisplay.getResponse());
+					templateManager.addTaglibTheme(
+						template, "taglibLiferay", request,
+						new PipingServletResponse(
+							themeDisplay.getResponse(), unsyncStringWriter));
 				}
 
 				// Deprecated variables

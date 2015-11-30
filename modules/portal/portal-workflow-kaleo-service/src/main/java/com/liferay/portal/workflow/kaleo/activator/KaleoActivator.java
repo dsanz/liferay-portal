@@ -42,13 +42,13 @@ public class KaleoActivator {
 		ApplicationContext applicationContext) {
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setPortalKaleoManager(
 		PortalKaleoManager portalKaleoManager) {
 
 		_portalKaleoManager = portalKaleoManager;
 	}
 
-	private PortalKaleoManager _portalKaleoManager;
+	private volatile PortalKaleoManager _portalKaleoManager;
 
 }

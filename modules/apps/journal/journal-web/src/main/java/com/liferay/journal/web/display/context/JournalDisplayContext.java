@@ -14,10 +14,17 @@
 
 package com.liferay.journal.web.display.context;
 
+import com.liferay.dynamic.data.mapping.model.DDMStructure;
+import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
+import com.liferay.dynamic.data.mapping.storage.Fields;
+import com.liferay.dynamic.data.mapping.util.FieldsToDDMFormValuesConverterUtil;
 import com.liferay.journal.constants.JournalPortletKeys;
+import com.liferay.journal.constants.JournalWebKeys;
+import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.model.JournalFolderConstants;
-import com.liferay.journal.web.configuration.JournalWebConfigurationValues;
+import com.liferay.journal.util.JournalConverter;
+import com.liferay.journal.web.configuration.JournalWebConfiguration;
 import com.liferay.journal.web.portlet.action.ActionUtil;
 import com.liferay.portal.kernel.bean.BeanParamUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -28,10 +35,10 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PrefsParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortalPreferences;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 
@@ -55,6 +62,49 @@ public class JournalDisplayContext {
 		_portletPreferences = portletPreferences;
 	}
 
+	public JournalArticle getArticle() throws PortalException {
+		if (_article != null) {
+			return _article;
+		}
+
+		_article = ActionUtil.getArticle(_request);
+
+		return _article;
+	}
+
+	public DDMFormValues getDDMFormValues(DDMStructure ddmStructure)
+		throws PortalException {
+
+		if (_ddmFormValues != null) {
+			return _ddmFormValues;
+		}
+
+		JournalArticle article = getArticle();
+
+		if (article == null) {
+			return _ddmFormValues;
+		}
+
+		String content = article.getContent();
+
+		if (Validator.isNull(content)) {
+			return _ddmFormValues;
+		}
+
+		JournalConverter journalConverter = getJournalConverter();
+
+		Fields fields = journalConverter.getDDMFields(ddmStructure, content);
+
+		if (fields == null) {
+			return _ddmFormValues;
+		}
+
+		_ddmFormValues = FieldsToDDMFormValuesConverterUtil.convert(
+			ddmStructure, fields);
+
+		return _ddmFormValues;
+	}
+
 	public String getDisplayStyle() {
 		if (_displayStyle == null) {
 			_displayStyle = getDisplayStyle(_request, getDisplayViews());
@@ -65,17 +115,26 @@ public class JournalDisplayContext {
 
 	public String[] getDisplayViews() {
 		if (_displayViews == null) {
+			JournalWebConfiguration journalWebConfiguration =
+				(JournalWebConfiguration)_request.getAttribute(
+					JournalWebConfiguration.class.getName());
+
 			_displayViews = StringUtil.split(
 				PrefsParamUtil.getString(
 					_portletPreferences, _request, "displayViews",
-					StringUtil.merge(
-						JournalWebConfigurationValues.DISPLAY_VIEWS)));
+					StringUtil.merge(journalWebConfiguration.displayViews())));
 		}
 
 		return _displayViews;
 	}
 
 	public JournalFolder getFolder() throws PortalException {
+		if (_folder != null) {
+			return _folder;
+		}
+
+		_folder = (JournalFolder)_request.getAttribute(WebKeys.JOURNAL_FOLDER);
+
 		if (_folder != null) {
 			return _folder;
 		}
@@ -97,6 +156,11 @@ public class JournalDisplayContext {
 			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 		return _folderId;
+	}
+
+	public JournalConverter getJournalConverter() {
+		return (JournalConverter)_request.getAttribute(
+			JournalWebKeys.JOURNAL_CONVERTER);
 	}
 
 	public String getNavigation() {
@@ -217,9 +281,13 @@ public class JournalDisplayContext {
 		String displayStyle = ParamUtil.getString(request, "displayStyle");
 
 		if (Validator.isNull(displayStyle)) {
+			JournalWebConfiguration journalWebConfiguration =
+				(JournalWebConfiguration)_request.getAttribute(
+					JournalWebConfiguration.class.getName());
+
 			displayStyle = portalPreferences.getValue(
 				JournalPortletKeys.JOURNAL, "display-style",
-				JournalWebConfigurationValues.DEFAULT_DISPLAY_VIEW);
+				journalWebConfiguration.defaultDisplayView());
 		}
 		else {
 			if (ArrayUtil.contains(displayViews, displayStyle)) {
@@ -238,6 +306,8 @@ public class JournalDisplayContext {
 		return displayStyle;
 	}
 
+	private JournalArticle _article;
+	private DDMFormValues _ddmFormValues;
 	private String _displayStyle;
 	private String[] _displayViews;
 	private JournalFolder _folder;

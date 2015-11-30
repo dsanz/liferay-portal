@@ -136,8 +136,8 @@ public class WikiServiceVerifyProcess extends VerifyProcess {
 	}
 
 	protected void verifyResourcedModels() throws Exception {
-		_verifyResourcePermissions.verify(
-			new WikiNodeVerifiableModel(), new WikiPageVerifiableModel());
+		_verifyResourcePermissions.verify(new WikiNodeVerifiableModel());
+		_verifyResourcePermissions.verify(new WikiPageVerifiableModel());
 	}
 
 	protected void verifyUUIDModels() throws Exception {
@@ -149,7 +149,7 @@ public class WikiServiceVerifyProcess extends VerifyProcess {
 
 	private final VerifyResourcePermissions _verifyResourcePermissions =
 		new VerifyResourcePermissions();
-	private WikiPageLocalService _wikiPageLocalService;
-	private WikiPageResourceLocalService _wikiPageResourceLocalService;
+	private volatile WikiPageLocalService _wikiPageLocalService;
+	private volatile WikiPageResourceLocalService _wikiPageResourceLocalService;
 
 }

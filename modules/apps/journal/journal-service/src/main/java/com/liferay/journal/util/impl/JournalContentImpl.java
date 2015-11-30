@@ -289,7 +289,7 @@ public class JournalContentImpl implements JournalContent {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJournalArticleLocalService(
 		JournalArticleLocalService journalArticleLocalService) {
 
@@ -327,7 +327,7 @@ public class JournalContentImpl implements JournalContent {
 	private static PortalCacheIndexer
 		<String, JournalContentKey, JournalArticleDisplay> _portalCacheIndexer;
 
-	private JournalArticleLocalService _journalArticleLocalService;
+	private volatile JournalArticleLocalService _journalArticleLocalService;
 
 	private static class JournalContentKey implements Serializable {
 

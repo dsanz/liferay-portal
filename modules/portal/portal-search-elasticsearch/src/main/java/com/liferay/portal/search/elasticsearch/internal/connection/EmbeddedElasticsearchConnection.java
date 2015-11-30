@@ -84,7 +84,7 @@ public class EmbeddedElasticsearchConnection
 	}
 
 	@Override
-	@Reference
+	@Reference(unbind = "-")
 	public void setIndexFactory(IndexFactory indexFactory) {
 		super.setIndexFactory(indexFactory);
 	}
@@ -292,8 +292,8 @@ public class EmbeddedElasticsearchConnection
 	private static final Log _log = LogFactoryUtil.getLog(
 		EmbeddedElasticsearchConnection.class);
 
-	private ClusterSettingsContext _clusterSettingsContext;
+	private volatile ClusterSettingsContext _clusterSettingsContext;
 	private Node _node;
-	private Props _props;
+	private volatile Props _props;
 
 }

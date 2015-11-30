@@ -21,8 +21,8 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.wiki.configuration.WikiGroupServiceConfiguration;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.constants.WikiWebKeys;
@@ -145,7 +145,7 @@ public class WikiDisplayViewMVCRenderCommand implements MVCRenderCommand {
 		_wikiPageService = wikiPageService;
 	}
 
-	private WikiNodeService _wikiNodeService;
-	private WikiPageService _wikiPageService;
+	private volatile WikiNodeService _wikiNodeService;
+	private volatile WikiPageService _wikiPageService;
 
 }

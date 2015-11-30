@@ -9,6 +9,11 @@
 </thead>
 <tbody>
 <tr>
+	<td>CATEGORY_ALERT</td>
+	<td>//div[contains(@id,'categorization')]/div[contains(@class,'alert-danger')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CHECKOUT_SUCCESS</td>
 	<td>//div[contains(@class,'lfr-asset-column-details')]/div[contains(@class,'alert-success')]</td>
 	<td></td>
@@ -19,8 +24,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>EMPTY</td>
-	<td>//div[contains(@class,'empty-message')]/span</td>
+	<td>DDM_TEMPLATE_INFO</td>
+	<td>//div[contains(@id,'DDMPortlet')]//div[contains(@class,'empty-result-message')]//div[@class='card-footer']</td>
 	<td></td>
 </tr>
 <tr>
@@ -69,6 +74,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ERROR_FORM_FIELD_REQUIRED</td>
+	<td>//div[contains(@class,'has-error')]//div[@class='help-block']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>INFO</td>
 	<td>//div[contains(@class,'alert alert-info') and not(contains(@class,'hide'))]</td>
 	<td></td>
@@ -80,17 +90,7 @@
 </tr>
 <tr>
 	<td>INFO_1</td>
-	<td>xpath=(//div[@class='alert alert-info'])[1]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>INFO_2</td>
-	<td>xpath=(//div[@class='alert alert-info'])[2]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>INFO_3</td>
-	<td>xpath=(//div[@class='alert alert-info'])[3]</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-info')][1]</td>
 	<td></td>
 </tr>
 <tr>
@@ -99,38 +99,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>INFO_5</td>
-	<td>//div[contains(@class,'text') and contains(@class,'empty-message')]/span</td>
-	<td></td>
-</tr>
-<tr>
-	<td>INFO_ADD_EXPLANATION</td>
-	<td>//div[contains(@id,'explanationPost')]/div[@class='alert alert-info']</td>
-	<td></td>
-</tr>
-<tr>
 	<td>INFO_ARTICLE</td>
 	<td>//div[contains(@class,'alert') and contains(@class,'alert-info')]/span/span</td>
 	<td></td>
 </tr>
 <tr>
-	<td>INFO_NO_PAGES_FOUND</td>
-	<td>//div[@class='alert alert-info' and contains(.,'No pages were found that matched the keywords')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>INFO_PAGE_DOES_NOT_EXIST</td>
-	<td>//div[@class='alert alert-info' and contains(.,'This page does not exist yet. Use the form below to create it')]</td>
+	<td>INFO_NO_RESULTS_FOUND</td>
+	<td>//div[contains(@id,'EmptyResultsMessage') and contains(@class,'alert-info')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>INFO_EXPLANATION_POST</td>
 	<td>//div[contains(@id,'explanationPost')]/div[@class='alert alert-info']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>INFO_RESPONSE</td>
-	<td>//div[contains(@class,'message-response') and contains(@class,'alert')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -150,17 +130,22 @@
 </tr>
 <tr>
 	<td>EMPTY_INFO</td>
-	<td>//div[contains(@class,'empty-message') and contains(@class,'text-center')]/span</td>
+	<td>//div[contains(@class,'empty-result-message')]//div[@class='card-footer']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EMPTY_INFO_2</td>
+	<td>//div[contains(@class,'panel-default')][2]//div[contains(@class,'empty-result-message')]//div[@class='card-footer']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>RECYCLE_BIN_RESTORE_SUCCESS</td>
-	<td>//div[contains(.,'${key_assetType}') and contains(@class,'alert-success')]</td>
+	<td>//div[contains(@class,'alert-success') and em[contains(@class,'restore')]]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>RECYCLE_BIN_SUCCESS</td>
-	<td>//div[contains(.,'${key_assetType}') and contains(@class,'alert-success')]</td>
+	<td>SUCCESS</td>
+	<td>//div[contains(@class,'alert-success') and contains(@class,'taglib-trash-undo')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -211,6 +196,11 @@
 <tr>
 	<td>SUCCESS_RESTORE_LOCATION</td>
 	<td>//div[@class='portlet-body']/div/em[2]/a[contains(.,'${key_assetRestoreLocation}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TOOLTIP</td>
+	<td>//div[contains(@class,'tooltip-content')]</td>
 	<td></td>
 </tr>
 <tr>

@@ -19,11 +19,9 @@
 <%
 String redirect = ParamUtil.getString(request, "redirect");
 
-String referringPortletResource = ParamUtil.getString(request, "referringPortletResource");
-
 long newFolderId = ParamUtil.getLong(request, "newFolderId");
 
-String fileShortcutIds = ParamUtil.getString(request, "fileShortcutIds");
+long[] fileShortcutIds = ParamUtil.getLongValues(request, "rowIdsDLFileShortcut");
 
 List<Folder> folders = (List<Folder>)request.getAttribute(WebKeys.DOCUMENT_LIBRARY_FOLDERS);
 
@@ -83,13 +81,18 @@ for (FileShortcut curFileShortcut : fileShortcuts) {
 		invalidShortcutEntries.add(curFileShortcut);
 	}
 }
+
+boolean portletTitleBasedNavigation = GetterUtil.getBoolean(portletConfig.getInitParameter("portlet-title-based-navigation"));
+
+if (portletTitleBasedNavigation) {
+	portletDisplay.setShowBackIcon(true);
+	portletDisplay.setURLBack(redirect);
+
+	renderResponse.setTitle(LanguageUtil.get(request, "move-files"));
+}
 %>
 
 <div <%= portletName.equals(DLPortletKeys.DOCUMENT_LIBRARY_ADMIN) ? "class=\"container-fluid-1280\"" : StringPool.BLANK %>>
-	<c:if test="<%= Validator.isNull(referringPortletResource) %>">
-		<liferay-util:include page="/document_library/top_links.jsp" servletContext="<%= application %>" />
-	</c:if>
-
 	<portlet:actionURL name="/document_library/move_entry" var="moveFileEntryURL">
 		<portlet:param name="mvcRenderCommandName" value="/document_library/move_entry" />
 	</portlet:actionURL>
@@ -99,10 +102,12 @@ for (FileShortcut curFileShortcut : fileShortcuts) {
 		<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 		<aui:input name="newFolderId" type="hidden" value="<%= newFolderId %>" />
 
-		<liferay-ui:header
-			backURL="<%= redirect %>"
-			title="move-files"
-		/>
+		<c:if test="<%= !portletTitleBasedNavigation %>">
+			<liferay-ui:header
+				backURL="<%= redirect %>"
+				title="move-files"
+			/>
+		</c:if>
 
 		<liferay-ui:error exception="<%= DuplicateFileEntryException.class %>" message="the-folder-you-selected-already-has-an-entry-with-this-name.-please-select-a-different-folder" />
 		<liferay-ui:error exception="<%= DuplicateFolderNameException.class %>" message="the-folder-you-selected-already-has-an-entry-with-this-name.-please-select-a-different-folder" />
@@ -120,7 +125,7 @@ for (FileShortcut curFileShortcut : fileShortcuts) {
 
 		<c:if test="<%= !validMoveFolders.isEmpty() %>">
 			<div class="move-list-info">
-				<h4><%= LanguageUtil.format(request, "x-folders-ready-to-be-moved", validMoveFolders.size(), false) %></h4>
+				<h4><liferay-ui:message arguments="<%= validMoveFolders.size() %>" key="x-folders-ready-to-be-moved" translateArguments="<%= false %>" /></h4>
 			</div>
 
 			<div class="move-list">
@@ -151,7 +156,7 @@ for (FileShortcut curFileShortcut : fileShortcuts) {
 
 		<c:if test="<%= !invalidMoveFolders.isEmpty() %>">
 			<div class="move-list-info">
-				<h4><%= LanguageUtil.format(request, "x-folders-cannot-be-moved", invalidMoveFolders.size(), false) %></h4>
+				<h4><liferay-ui:message arguments="<%= invalidMoveFolders.size() %>" key="x-folders-cannot-be-moved" translateArguments="<%= false %>" /></h4>
 			</div>
 
 			<div class="move-list">
@@ -174,10 +179,10 @@ for (FileShortcut curFileShortcut : fileShortcuts) {
 							<span class="error-message">
 								<c:choose>
 									<c:when test="<%= folder.isLocked() && !folder.hasLock() %>">
-										<%= LanguageUtil.get(request, "you-cannot-modify-this-folder-because-it-was-locked") %>
+										<liferay-ui:message key="you-cannot-modify-this-folder-because-it-was-locked" />
 									</c:when>
 									<c:otherwise>
-										<%= LanguageUtil.get(request, "you-do-not-have-the-required-permissions") %>
+										<liferay-ui:message key="you-do-not-have-the-required-permissions" />
 									</c:otherwise>
 								</c:choose>
 							</span>
@@ -191,11 +196,11 @@ for (FileShortcut curFileShortcut : fileShortcuts) {
 			</div>
 		</c:if>
 
-		<aui:input name="folderIds" type="hidden" value="<%= ListUtil.toString(validMoveFolders, Folder.FOLDER_ID_ACCESSOR) %>" />
+		<aui:input name="rowIdsFolder" type="hidden" value="<%= ListUtil.toString(validMoveFolders, Folder.FOLDER_ID_ACCESSOR) %>" />
 
 		<c:if test="<%= !validMoveFileEntries.isEmpty() %>">
 			<div class="move-list-info">
-				<h4><%= LanguageUtil.format(request, "x-files-ready-to-be-moved", validMoveFileEntries.size(), false) %></h4>
+				<h4><liferay-ui:message arguments="<%= validMoveFileEntries.size() %>" key="x-files-ready-to-be-moved" translateArguments="<%= false %>" /></h4>
 			</div>
 
 			<div class="move-list">
@@ -226,7 +231,7 @@ for (FileShortcut curFileShortcut : fileShortcuts) {
 
 		<c:if test="<%= !invalidMoveFileEntries.isEmpty() %>">
 			<div class="move-list-info">
-				<h4><%= LanguageUtil.format(request, "x-files-cannot-be-moved", invalidMoveFileEntries.size(), false) %></h4>
+				<h4><liferay-ui:message arguments="<%= invalidMoveFileEntries.size() %>" key="x-files-cannot-be-moved" translateArguments="<%= false %>" /></h4>
 			</div>
 
 			<div class="move-list">
@@ -251,10 +256,10 @@ for (FileShortcut curFileShortcut : fileShortcuts) {
 							<span class="error-message">
 								<c:choose>
 									<c:when test="<%= invalidMoveFileEntry.isCheckedOut() && !invalidMoveFileEntry.hasLock() %>">
-										<%= LanguageUtil.format(request, "you-cannot-modify-this-document-because-it-was-checked-out-by-x-on-x", new Object[] {HtmlUtil.escape(PortalUtil.getUserName(lock.getUserId(), String.valueOf(lock.getUserId()))), dateFormatDateTime.format(lock.getCreateDate())}, false) %>
+										<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(PortalUtil.getUserName(lock.getUserId(), String.valueOf(lock.getUserId()))), dateFormatDateTime.format(lock.getCreateDate())} %>" key="you-cannot-modify-this-document-because-it-was-checked-out-by-x-on-x" translateArguments="<%= false %>" />
 									</c:when>
 									<c:otherwise>
-										<%= LanguageUtil.get(request, "you-do-not-have-the-required-permissions") %>
+										<liferay-ui:message key="you-do-not-have-the-required-permissions" />
 									</c:otherwise>
 								</c:choose>
 							</span>
@@ -268,11 +273,11 @@ for (FileShortcut curFileShortcut : fileShortcuts) {
 			</div>
 		</c:if>
 
-		<aui:input name="fileEntryIds" type="hidden" value="<%= ListUtil.toString(validMoveFileEntries, FileEntry.FILE_ENTRY_ID_ACCESSOR) %>" />
+		<aui:input name="rowIdsFileEntry" type="hidden" value="<%= ListUtil.toString(validMoveFileEntries, FileEntry.FILE_ENTRY_ID_ACCESSOR) %>" />
 
 		<c:if test="<%= !validShortcutEntries.isEmpty() %>">
 			<div class="move-list-info">
-				<h4><%= LanguageUtil.format(request, "x-shortcuts-ready-to-be-moved", validShortcutEntries.size(), false) %></h4>
+				<h4><liferay-ui:message arguments="<%= validShortcutEntries.size() %>" key="x-shortcuts-ready-to-be-moved" translateArguments="<%= false %>" /></h4>
 			</div>
 
 			<div class="move-list">
@@ -298,7 +303,7 @@ for (FileShortcut curFileShortcut : fileShortcuts) {
 
 		<c:if test="<%= !invalidShortcutEntries.isEmpty() %>">
 			<div class="move-list-info">
-				<h4><%= LanguageUtil.format(request, "x-shortcuts-cannot-be-moved", invalidShortcutEntries.size(), false) %></h4>
+				<h4><liferay-ui:message arguments="<%= invalidShortcutEntries.size() %>" key="x-shortcuts-cannot-be-moved" translateArguments="<%= false %>" /></h4>
 			</div>
 
 			<div class="move-list">
@@ -314,7 +319,7 @@ for (FileShortcut curFileShortcut : fileShortcuts) {
 							</span>
 
 							<span class="error-message">
-								<%= LanguageUtil.get(request, "you-do-not-have-the-required-permissions") %>
+								<liferay-ui:message key="you-do-not-have-the-required-permissions" />
 							</span>
 						</li>
 
@@ -326,7 +331,7 @@ for (FileShortcut curFileShortcut : fileShortcuts) {
 			</div>
 		</c:if>
 
-		<aui:input name="fileShortcutIds" type="hidden" value="<%= fileShortcutIds %>" />
+		<aui:input name="fileShortcutIds" type="hidden" value="<%= StringUtil.merge(fileShortcutIds) %>" />
 
 		<aui:fieldset>
 

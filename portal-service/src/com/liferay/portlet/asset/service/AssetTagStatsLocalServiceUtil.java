@@ -122,8 +122,6 @@ public class AssetTagStatsLocalServiceUtil {
 	* Deletes the asset tag statistics instance matching the tag statistics ID.
 	*
 	* @param tagStatsId the primary key of the asset tag statistics instance
-	* @throws PortalException if the assetTagStats with the primary key could
-	not be found
 	*/
 	public static void deleteTagStats(long tagStatsId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -274,13 +272,17 @@ public class AssetTagStatsLocalServiceUtil {
 		return getService().getAssetTagStatsesCount();
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return getService().getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
 	}
 
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
@@ -329,15 +331,6 @@ public class AssetTagStatsLocalServiceUtil {
 	}
 
 	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
-	}
-
-	/**
 	* Updates the asset tag stats in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	*
 	* @param assetTagStats the asset tag stats
@@ -354,8 +347,6 @@ public class AssetTagStatsLocalServiceUtil {
 	* @param tagId the primary key of the tag
 	* @param classNameId the asset entry's class name ID
 	* @return the updated asset tag statistics instance
-	* @throws PortalException if an asset tag with the tag ID could not be
-	found
 	*/
 	public static com.liferay.portlet.asset.model.AssetTagStats updateTagStats(
 		long tagId, long classNameId)

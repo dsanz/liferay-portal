@@ -81,6 +81,7 @@ import com.liferay.portal.service.LayoutSetService;
 import com.liferay.portal.service.PortletLocalService;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
+import com.liferay.portal.service.ServiceContextThreadLocal;
 import com.liferay.portal.service.ThemeLocalService;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
@@ -124,7 +125,6 @@ import org.osgi.service.component.annotations.Reference;
 	property = {
 		"com.liferay.portlet.add-default-resource=true",
 		"com.liferay.portlet.css-class-wrapper=portlet-layouts-admin",
-		"com.liferay.portlet.header-portlet-css=/css/main.css",
 		"com.liferay.portlet.icon=/icons/default.png",
 		"com.liferay.portlet.preferences-owned-by-group=true",
 		"com.liferay.portlet.private-request-attributes=false",
@@ -658,6 +658,18 @@ public class LayoutAdminPortlet extends MVCPortlet {
 			include("/error.jsp", renderRequest, renderResponse);
 		}
 		else {
+			try {
+				ServiceContext serviceContext =
+					ServiceContextFactory.getInstance(renderRequest);
+
+				ServiceContextThreadLocal.pushServiceContext(serviceContext);
+			}
+			catch (Exception e) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(e, e);
+				}
+			}
+
 			super.doDispatch(renderRequest, renderResponse);
 		}
 	}

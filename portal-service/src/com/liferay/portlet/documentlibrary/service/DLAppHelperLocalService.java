@@ -73,13 +73,6 @@ public interface DLAppHelperLocalService extends BaseLocalService {
 	public void deleteRepositoryFileEntries(long repositoryId)
 		throws PortalException;
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
-
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public void getFileAsStream(long userId,
 		com.liferay.portal.kernel.repository.model.FileEntry fileEntry,
@@ -114,6 +107,13 @@ public interface DLAppHelperLocalService extends BaseLocalService {
 	public java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getNoAssetFileEntries();
 
 	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public java.lang.String getOSGiServiceIdentifier();
+
+	/**
 	* @deprecated As of 7.0.0, replaced by {@link
 	#moveDependentsToTrash(DLFolder)}
 	*/
@@ -139,7 +139,6 @@ public interface DLAppHelperLocalService extends BaseLocalService {
 	* @param userId the primary key of the user moving the file entry
 	* @param fileEntry the file entry to be moved
 	* @return the moved file entry
-	* @throws PortalException if a user with the primary key could not be found
 	*/
 	public com.liferay.portal.kernel.repository.model.FileEntry moveFileEntryToTrash(
 		long userId,
@@ -159,7 +158,6 @@ public interface DLAppHelperLocalService extends BaseLocalService {
 	* @param userId the primary key of the user moving the file shortcut
 	* @param fileShortcut the file shortcut to be moved
 	* @return the moved file shortcut
-	* @throws PortalException if a user with the primary key could not be found
 	*/
 	public com.liferay.portal.kernel.repository.model.FileShortcut moveFileShortcutToTrash(
 		long userId,
@@ -178,7 +176,6 @@ public interface DLAppHelperLocalService extends BaseLocalService {
 	* @param userId the primary key of the user moving the folder
 	* @param folder the folder to be moved
 	* @return the moved folder
-	* @throws PortalException if a user with the primary key could not be found
 	*/
 	public com.liferay.portal.kernel.repository.model.Folder moveFolderToTrash(
 		long userId, com.liferay.portal.kernel.repository.model.Folder folder)
@@ -217,13 +214,6 @@ public interface DLAppHelperLocalService extends BaseLocalService {
 	public void restoreFolderFromTrash(long userId,
 		com.liferay.portal.kernel.repository.model.Folder folder)
 		throws PortalException;
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	public com.liferay.portlet.asset.model.AssetEntry updateAsset(long userId,
 		com.liferay.portal.kernel.repository.model.FileEntry fileEntry,

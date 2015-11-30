@@ -223,14 +223,19 @@ public class SocialActivitySettingLocalServiceWrapper
 		return _socialActivitySettingLocalService.getActivitySettings(groupId);
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _socialActivitySettingLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _socialActivitySettingLocalService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _socialActivitySettingLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -291,16 +296,6 @@ public class SocialActivitySettingLocalServiceWrapper
 	public boolean isEnabled(long groupId, long classNameId, long classPK) {
 		return _socialActivitySettingLocalService.isEnabled(groupId,
 			classNameId, classPK);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_socialActivitySettingLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	@Override

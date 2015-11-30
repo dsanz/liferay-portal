@@ -16,9 +16,12 @@ package com.liferay.site.navigation.language.web.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
 
+import com.liferay.configuration.admin.ConfigurationAdmin;
+
 /**
  * @author Juergen Kappler
  */
+@ConfigurationAdmin(category = "web-experience-management")
 @Meta.OCD(
 	id = "com.liferay.site.navigation.language.web.configuration.SiteNavigationLanguagePortletInstanceConfiguration"
 )
@@ -27,13 +30,13 @@ public interface SiteNavigationLanguagePortletInstanceConfiguration {
 	@Meta.AD(deflt = "true", required = false)
 	public boolean displayCurrentLocale();
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String displayStyle();
 
 	@Meta.AD(deflt = "0", required = false)
 	public long displayStyleGroupId();
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String languageIds();
 
 }

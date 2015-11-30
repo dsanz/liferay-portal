@@ -20,9 +20,6 @@
 String cmd = ParamUtil.getString(request, Constants.CMD, Constants.EDIT);
 
 String redirect = ParamUtil.getString(request, "redirect");
-String uploadExceptionRedirect = ParamUtil.getString(request, "uploadExceptionRedirect", currentURL);
-
-String referringPortletResource = ParamUtil.getString(request, "referringPortletResource");
 
 String uploadProgressId = "dlFileEntryUploadProgress";
 
@@ -118,13 +115,27 @@ if (fileEntry == null) {
 else {
 	dlEditFileEntryDisplayContext = dlDisplayContextProvider.getDLEditFileEntryDisplayContext(request, response, fileEntry);
 }
+
+String headerTitle = LanguageUtil.get(request, "new-document");
+
+if (fileVersion != null) {
+	headerTitle = fileVersion.getTitle();
+}
+else if ((dlFileEntryType != null) && (fileEntryTypeId != 0)) {
+	headerTitle = LanguageUtil.format(request, "new-x", dlFileEntryType.getName(locale), false);
+}
+
+boolean portletTitleBasedNavigation = GetterUtil.getBoolean(portletConfig.getInitParameter("portlet-title-based-navigation"));
+
+if (portletTitleBasedNavigation) {
+	portletDisplay.setShowBackIcon(true);
+	portletDisplay.setURLBack(redirect);
+
+	renderResponse.setTitle(headerTitle);
+}
 %>
 
 <div <%= portletName.equals(DLPortletKeys.DOCUMENT_LIBRARY_ADMIN) ? "class=\"container-fluid-1280\"" : StringPool.BLANK %>>
-	<c:if test="<%= Validator.isNull(referringPortletResource) %>">
-		<liferay-util:include page="/document_library/top_links.jsp" servletContext="<%= application %>" />
-	</c:if>
-
 	<c:if test="<%= checkedOut %>">
 		<c:choose>
 			<c:when test="<%= hasLock %>">
@@ -139,54 +150,40 @@ else {
 							String lockExpirationTime = StringUtil.toLowerCase(LanguageUtil.getTimeDescription(request, DLFileEntryConstants.LOCK_EXPIRATION_TIME));
 							%>
 
-							<%= LanguageUtil.format(request, "you-now-have-a-lock-on-this-document", lockExpirationTime, false) %>
+							<liferay-ui:message arguments="<%= StringUtil.toLowerCase(LanguageUtil.getTimeDescription(request, DLFileEntryConstants.LOCK_EXPIRATION_TIME)) %>" key="you-now-have-a-lock-on-this-document" translateArguments="<%= false %>" />
 						</c:otherwise>
 					</c:choose>
 				</div>
 			</c:when>
 			<c:otherwise>
 				<div class="alert alert-danger">
-					<%= LanguageUtil.format(request, "you-cannot-modify-this-document-because-it-was-checked-out-by-x-on-x", new Object[] {HtmlUtil.escape(PortalUtil.getUserName(lock.getUserId(), String.valueOf(lock.getUserId()))), dateFormatDateTime.format(lock.getCreateDate())}, false) %>
+					<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(PortalUtil.getUserName(lock.getUserId(), String.valueOf(lock.getUserId()))), dateFormatDateTime.format(lock.getCreateDate())} %>" key="you-cannot-modify-this-document-because-it-was-checked-out-by-x-on-x" translateArguments="<%= false %>" />
 				</div>
 			</c:otherwise>
 		</c:choose>
 	</c:if>
 
-	<c:if test="<%= showHeader %>">
-
-		<%
-		boolean localizeTitle = true;
-		String headerTitle = LanguageUtil.get(request, "new-document");
-
-		if (fileVersion != null) {
-			headerTitle = fileVersion.getTitle();
-			localizeTitle = false;
-		}
-		else if ((dlFileEntryType != null) && (fileEntryTypeId != 0)) {
-			headerTitle = LanguageUtil.format(request, "new-x", dlFileEntryType.getName(locale), false);
-		}
-		%>
-
+	<c:if test="<%= !portletTitleBasedNavigation && showHeader %>">
 		<liferay-ui:header
 			backURL="<%= redirect %>"
-			localizeTitle="<%= localizeTitle %>"
+			localizeTitle="<%= false %>"
 			title="<%= headerTitle %>"
 		/>
 	</c:if>
 
 	<liferay-portlet:actionURL name="/document_library/edit_file_entry" varImpl="editFileEntryURL">
 		<liferay-portlet:param name="mvcRenderCommandName" value="/document_library/edit_file_entry" />
-		<liferay-portlet:param name="uploadExceptionRedirect" value="<%= uploadExceptionRedirect %>" />
 	</liferay-portlet:actionURL>
 
 	<aui:form action="<%= editFileEntryURL %>" cssClass="lfr-dynamic-form" enctype="multipart/form-data" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveFileEntry(" + saveAsDraft + ");" %>'>
 		<aui:input name="<%= Constants.CMD %>" type="hidden" />
 		<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
-		<aui:input name="referringPortletResource" type="hidden" value="<%= referringPortletResource %>" />
 		<aui:input name="uploadProgressId" type="hidden" value="<%= uploadProgressId %>" />
 		<aui:input name="repositoryId" type="hidden" value="<%= repositoryId %>" />
 		<aui:input name="folderId" type="hidden" value="<%= folderId %>" />
 		<aui:input name="fileEntryId" type="hidden" value="<%= fileEntryId %>" />
+		<aui:input name="majorVersion" type="hidden" />
+		<aui:input name="changeLog" type="hidden" />
 		<aui:input name="workflowAction" type="hidden" value="<%= String.valueOf(WorkflowConstants.ACTION_PUBLISH) %>" />
 
 		<liferay-ui:error exception="<%= AntivirusScannerException.class %>">
@@ -228,6 +225,10 @@ else {
 			<liferay-ui:message arguments="<%= TextFormatter.formatStorageSize(fileMaxSize, locale) %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
 		</liferay-ui:error>
 
+		<liferay-ui:error exception="<%= UploadRequestSizeException.class %>">
+			<liferay-ui:message arguments="<%= TextFormatter.formatStorageSize(dlEditFileEntryDisplayContext.getMaximumUploadRequestSize(), locale) %>" key="request-is-larger-than-x-and-could-not-be-processed" translateArguments="<%= false %>" />
+		</liferay-ui:error>
+
 		<liferay-ui:asset-categories-error />
 
 		<liferay-ui:asset-tags-error />
@@ -251,7 +252,7 @@ else {
 			<aui:field-wrapper>
 				<c:if test="<%= fileMaxSize != 0 %>">
 					<div class="alert alert-info">
-						<%= LanguageUtil.format(request, "upload-documents-no-larger-than-x", TextFormatter.formatStorageSize(fileMaxSize, locale), false) %>
+						<liferay-ui:message arguments="<%= TextFormatter.formatStorageSize(fileMaxSize, locale) %>" key="upload-documents-no-larger-than-x" translateArguments="<%= false %>" />
 					</div>
 				</c:if>
 			</aui:field-wrapper>
@@ -417,6 +418,14 @@ else {
 
 				</c:if>
 
+				<c:if test="<%= (fileEntry != null) && !checkedOut %>">
+					<aui:input
+						label="customize-the-version-number-increment-and-describe-my-changes"
+						name="updateVersionDetails"
+						type="checkbox"
+					/>
+				</c:if>
+
 				<liferay-ui:custom-attributes-available className="<%= DLFileEntryConstants.getClassName() %>">
 					<liferay-ui:custom-attribute-list
 						className="<%= DLFileEntryConstants.getClassName() %>"
@@ -498,6 +507,8 @@ else {
 	/>
 </div>
 
+<%@ include file="/document_library/version_details.jspf" %>
+
 <aui:script>
 	function <portlet:namespace />changeFileEntryType() {
 		var form = AUI.$(document.<portlet:namespace />fm);
@@ -516,7 +527,7 @@ else {
 
 		form.fm('<%= Constants.CMD %>').val('<%= Constants.UPDATE_AND_CHECKIN %>');
 
-		submitForm(form);
+		<portlet:namespace />showVersionDetailsDialog(form);
 	}
 
 	function <portlet:namespace />checkOut() {
@@ -551,11 +562,19 @@ else {
 
 			form.fm('<%= Constants.CMD %>').val('<%= (fileEntry == null) ? Constants.ADD : Constants.UPDATE %>');
 
-			if (draft) {
-				form.fm('workflowAction').val('<%= WorkflowConstants.ACTION_SAVE_DRAFT %>');
-			}
+			var checkedOut = <%= (fileEntry != null) && checkedOut %>;
+			var showModalDialog = form.fm('updateVersionDetails').is(':checked');
 
-			submitForm(form);
+			if (draft || !showModalDialog) {
+				if (draft) {
+					form.fm('workflowAction').val('<%= WorkflowConstants.ACTION_SAVE_DRAFT %>');
+				}
+
+				submitForm(form);
+			}
+			else if (!checkedOut) {
+				<portlet:namespace />showVersionDetailsDialog(form);
+			}
 		}
 		else {
 			fileTitleErrorNode.addClass(className + ' show');
@@ -563,6 +582,30 @@ else {
 			window.location.hash = '<portlet:namespace />fileTitleError';
 		}
 	}
+
+	Liferay.provide(
+		window,
+		'<portlet:namespace />showVersionDetailsDialog',
+		function(form) {
+			Liferay.Portlet.DocumentLibrary.Checkin.showDialog(
+				'<portlet:namespace />versionDetails',
+				'<%= UnicodeLanguageUtil.get(request, "describe-your-changes") %>',
+				['<portlet:namespace />versionDetailsMajorVersion', '<portlet:namespace />versionDetailsChangeLog'],
+				function(event, nodes) {
+					var majorVersionNode = nodes[0];
+
+					form.fm('majorVersion').val(majorVersionNode.attr('checked'));
+
+					var changeLogNode = nodes[1];
+
+					form.fm('changeLog').val(changeLogNode.val());
+
+					submitForm(form);
+				}
+			);
+		},
+		['document-library-checkin']
+	);
 
 	function <portlet:namespace />validateTitle() {
 		Liferay.Form.get('<portlet:namespace />fm').formValidator.validateField('<portlet:namespace />title');

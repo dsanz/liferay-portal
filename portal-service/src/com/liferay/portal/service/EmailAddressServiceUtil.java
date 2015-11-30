@@ -76,21 +76,11 @@ public class EmailAddressServiceUtil {
 	* @return the email address with the primary key, or <code>null</code> if
 	an email address with the primary key could not be found or if
 	the user did not have permission to view the email address
-	* @throws PortalException if a portal exception occurred
 	*/
 	public static com.liferay.portal.model.EmailAddress fetchEmailAddress(
 		long emailAddressId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().fetchEmailAddress(emailAddressId);
-	}
-
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
 	}
 
 	public static com.liferay.portal.model.EmailAddress getEmailAddress(
@@ -106,12 +96,12 @@ public class EmailAddressServiceUtil {
 	}
 
 	/**
-	* Sets the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @param beanIdentifier the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
 	}
 
 	public static com.liferay.portal.model.EmailAddress updateEmailAddress(

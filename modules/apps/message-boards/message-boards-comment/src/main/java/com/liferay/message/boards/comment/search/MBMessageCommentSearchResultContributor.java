@@ -68,19 +68,19 @@ public class MBMessageCommentSearchResultContributor
 		return MBMessage.class.getName();
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setCommentManager(CommentManager commentManager) {
 		_commentManager = commentManager;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setMBMessageLocalService(
 		MBMessageLocalService mbMessageLocalService) {
 
 		_mbMessageLocalService = mbMessageLocalService;
 	}
 
-	private CommentManager _commentManager;
-	private MBMessageLocalService _mbMessageLocalService;
+	private volatile CommentManager _commentManager;
+	private volatile MBMessageLocalService _mbMessageLocalService;
 
 }

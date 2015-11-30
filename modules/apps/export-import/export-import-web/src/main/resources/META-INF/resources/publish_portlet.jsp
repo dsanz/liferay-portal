@@ -96,13 +96,19 @@ portletURL.setParameter("tabs3", "current-and-previous");
 					</liferay-util:include>
 				</div>
 
-				<portlet:actionURL name="exportImport" var="publishPortletURL">
-					<portlet:param name="mvcRenderCommandName" value="exportImport" />
+				<portlet:actionURL name="publishPortlet" var="publishPortletURL">
+					<portlet:param name="mvcRenderCommandName" value="publishPortlet" />
 				</portlet:actionURL>
+
+				<liferay-portlet:renderURL var="redirectURL">
+					<portlet:param name="mvcRenderCommandName" value="publishPortlet" />
+					<portlet:param name="tabs3" value="current-and-previous" />
+					<portlet:param name="portletResource" value="<%= portletResource %>" />
+				</liferay-portlet:renderURL>
 
 				<aui:form action="<%= publishPortletURL %>" cssClass="lfr-export-dialog" method="post" name="fm1" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "publishToLive();" %>'>
 					<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.PUBLISH_TO_LIVE %>" />
-					<aui:input name="redirect" type="hidden" value="<%= portletURL %>" />
+					<aui:input name="redirect" type="hidden" value="<%= redirectURL %>" />
 					<aui:input name="plid" type="hidden" value="<%= exportableLayout.getPlid() %>" />
 					<aui:input name="groupId" type="hidden" value="<%= themeDisplay.getScopeGroupId() %>" />
 					<aui:input name="portletResource" type="hidden" value="<%= portletResource %>" />
@@ -458,7 +464,7 @@ portletURL.setParameter("tabs3", "current-and-previous");
 		</liferay-ui:tabs>
 
 		<aui:script use="liferay-export-import">
-			<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="exportImport" var="publishProcessesURL">
+			<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="publishPortlet" var="publishProcessesURL">
 				<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.PUBLISH %>" />
 				<portlet:param name="<%= SearchContainer.DEFAULT_CUR_PARAM %>" value="<%= ParamUtil.getString(request, SearchContainer.DEFAULT_CUR_PARAM) %>" />
 				<portlet:param name="<%= SearchContainer.DEFAULT_DELTA_PARAM %>" value="<%= ParamUtil.getString(request, SearchContainer.DEFAULT_DELTA_PARAM) %>" />

@@ -195,52 +195,6 @@ public class JournalArticleStagedModelDataHandler
 	}
 
 	@Override
-	public void importMissingReference(
-			PortletDataContext portletDataContext, Element referenceElement)
-		throws PortletDataException {
-
-		importMissingGroupReference(portletDataContext, referenceElement);
-
-		String uuid = referenceElement.attributeValue("uuid");
-		String articleResourceUuid = referenceElement.attributeValue(
-			"article-resource-uuid");
-
-		Map<Long, Long> groupIds =
-			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
-				Group.class);
-
-		long groupId = GetterUtil.getLong(
-			referenceElement.attributeValue("group-id"));
-
-		groupId = MapUtil.getLong(groupIds, groupId);
-
-		String articleArticleId = referenceElement.attributeValue("article-id");
-		boolean preloaded = GetterUtil.getBoolean(
-			referenceElement.attributeValue("preloaded"));
-
-		JournalArticle existingArticle = null;
-
-		existingArticle = fetchExistingArticle(
-			uuid, articleResourceUuid, groupId, articleArticleId, null, 0.0,
-			preloaded);
-
-		Map<String, String> articleArticleIds =
-			(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(
-				JournalArticle.class + ".articleId");
-
-		articleArticleIds.put(articleArticleId, existingArticle.getArticleId());
-
-		Map<Long, Long> articleIds =
-			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
-				JournalArticle.class);
-
-		long articleId = GetterUtil.getLong(
-			referenceElement.attributeValue("class-pk"));
-
-		articleIds.put(articleId, existingArticle.getId());
-	}
-
-	@Override
 	public boolean validateReference(
 		PortletDataContext portletDataContext, Element referenceElement) {
 
@@ -399,6 +353,52 @@ public class JournalArticleStagedModelDataHandler
 		portletDataContext.addClassedModel(
 			articleElement, ExportImportPathUtil.getModelPath(article),
 			article);
+	}
+
+	@Override
+	protected void doImportMissingReference(
+			PortletDataContext portletDataContext, Element referenceElement)
+		throws PortletDataException {
+
+		importMissingGroupReference(portletDataContext, referenceElement);
+
+		String uuid = referenceElement.attributeValue("uuid");
+		String articleResourceUuid = referenceElement.attributeValue(
+			"article-resource-uuid");
+
+		Map<Long, Long> groupIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				Group.class);
+
+		long groupId = GetterUtil.getLong(
+			referenceElement.attributeValue("group-id"));
+
+		groupId = MapUtil.getLong(groupIds, groupId);
+
+		String articleArticleId = referenceElement.attributeValue("article-id");
+		boolean preloaded = GetterUtil.getBoolean(
+			referenceElement.attributeValue("preloaded"));
+
+		JournalArticle existingArticle = null;
+
+		existingArticle = fetchExistingArticle(
+			uuid, articleResourceUuid, groupId, articleArticleId, null, 0.0,
+			preloaded);
+
+		Map<String, String> articleArticleIds =
+			(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(
+				JournalArticle.class + ".articleId");
+
+		articleArticleIds.put(articleArticleId, existingArticle.getArticleId());
+
+		Map<Long, Long> articleIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				JournalArticle.class);
+
+		long articleId = GetterUtil.getLong(
+			referenceElement.attributeValue("class-pk"));
+
+		articleIds.put(articleId, existingArticle.getId());
 	}
 
 	@Override
@@ -953,15 +953,16 @@ public class JournalArticleStagedModelDataHandler
 		_userLocalService = userLocalService;
 	}
 
-	private DDMStructureLocalService _ddmStructureLocalService;
-	private DDMTemplateLocalService _ddmTemplateLocalService;
-	private ImageLocalService _imageLocalService;
-	private JournalArticleExportImportContentProcessor
+	private volatile DDMStructureLocalService _ddmStructureLocalService;
+	private volatile DDMTemplateLocalService _ddmTemplateLocalService;
+	private volatile ImageLocalService _imageLocalService;
+	private volatile JournalArticleExportImportContentProcessor
 		_journalArticleExportImportContentProcessor;
-	private JournalArticleImageLocalService _journalArticleImageLocalService;
-	private JournalArticleLocalService _journalArticleLocalService;
-	private JournalArticleResourceLocalService
+	private volatile JournalArticleImageLocalService
+		_journalArticleImageLocalService;
+	private volatile JournalArticleLocalService _journalArticleLocalService;
+	private volatile JournalArticleResourceLocalService
 		_journalArticleResourceLocalService;
-	private UserLocalService _userLocalService;
+	private volatile UserLocalService _userLocalService;
 
 }

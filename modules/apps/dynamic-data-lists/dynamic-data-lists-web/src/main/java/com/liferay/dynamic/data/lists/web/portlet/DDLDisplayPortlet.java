@@ -21,7 +21,6 @@ import com.liferay.dynamic.data.lists.model.DDLRecord;
 import com.liferay.dynamic.data.lists.model.DDLRecordSet;
 import com.liferay.dynamic.data.lists.service.DDLRecordService;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetService;
-import com.liferay.dynamic.data.lists.web.upgrade.DDLDisplayWebUpgrade;
 import com.liferay.portal.PortletPreferencesException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -51,8 +50,8 @@ import org.osgi.service.component.annotations.Reference;
 		"com.liferay.portlet.add-default-resource=true",
 		"com.liferay.portlet.css-class-wrapper=portlet-dynamic-data-lists-display",
 		"com.liferay.portlet.display-category=category.collaboration",
-		"com.liferay.portlet.header-portal-javascript=/o/ddm-web/js/custom_fields.js",
-		"com.liferay.portlet.header-portal-javascript=/o/ddm-web/js/main.js",
+		"com.liferay.portlet.header-portal-javascript=/o/dynamic-data-mapping-web/js/custom_fields.js",
+		"com.liferay.portlet.header-portal-javascript=/o/dynamic-data-mapping-web/js/main.js",
 		"com.liferay.portlet.header-portlet-css=/css/main.css",
 		"com.liferay.portlet.header-portlet-javascript=/js/main.js",
 		"com.liferay.portlet.instanceable=true",
@@ -105,7 +104,7 @@ public class DDLDisplayPortlet extends MVCPortlet {
 		super.render(renderRequest, renderResponse);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setDDLRecordService(DDLRecordService ddlRecordService) {
 		_ddlRecordService = ddlRecordService;
 	}
@@ -142,11 +141,6 @@ public class DDLDisplayPortlet extends MVCPortlet {
 		return false;
 	}
 
-	@Reference(unbind = "-")
-	protected void setDDLDisplayWebUpgrade(
-		DDLDisplayWebUpgrade ddlDisplayWebUpgrade) {
-	}
-
 	protected void setDDLRecordRequestAttribute(RenderRequest renderRequest)
 		throws PortalException {
 
@@ -178,7 +172,7 @@ public class DDLDisplayPortlet extends MVCPortlet {
 			DDLWebKeys.DYNAMIC_DATA_LISTS_RECORD_SET, recordSet);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDLRecordSetService(
 		DDLRecordSetService ddlRecordSetService) {
 
@@ -188,7 +182,7 @@ public class DDLDisplayPortlet extends MVCPortlet {
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDLDisplayPortlet.class);
 
-	private DDLRecordService _ddlRecordService;
-	private DDLRecordSetService _ddlRecordSetService;
+	private volatile DDLRecordService _ddlRecordService;
+	private volatile DDLRecordSetService _ddlRecordSetService;
 
 }

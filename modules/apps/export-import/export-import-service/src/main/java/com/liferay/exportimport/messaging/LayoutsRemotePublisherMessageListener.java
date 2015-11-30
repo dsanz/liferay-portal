@@ -123,7 +123,7 @@ public class LayoutsRemotePublisherMessageListener
 	protected void setDestination(Destination destination) {
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setExportImportConfigurationLocalService(
 		ExportImportConfigurationLocalService
 			exportImportConfigurationLocalService) {
@@ -132,13 +132,13 @@ public class LayoutsRemotePublisherMessageListener
 			exportImportConfigurationLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setUserLocalService(UserLocalService userLocalService) {
 		_userLocalService = userLocalService;
 	}
 
-	private ExportImportConfigurationLocalService
+	private volatile ExportImportConfigurationLocalService
 		_exportImportConfigurationLocalService;
-	private UserLocalService _userLocalService;
+	private volatile UserLocalService _userLocalService;
 
 }

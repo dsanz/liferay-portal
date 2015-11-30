@@ -13,11 +13,11 @@
 		</execute>
 
 		<if>
-			<equals arg1="${workflowDefinitionTitle}" arg2="Join Xor" />
+			<isset var="workflowDefinitionTask" />
 			<then>
-				<var name="key_menuListOption" value="join-xor" />
+				<var name="key_menuListOption" value="${workflowDefinitionTask}" />
 
-				<execute function="AssertClick#pauseAssertTextClickAt" locator1="CPMyworkflowtasks#ASSIGNED_TO_ME_MENULIST_OPTION" value1="join-xor" />
+				<execute function="AssertClick#pauseAssertTextClickAt" locator1="CPMyworkflowtasks#ASSIGNED_TO_ME_MENULIST_OPTION" value1="${workflowDefinitionTask}" />
 			</then>
 			<else>
 				<execute function="AssertClick#pauseAssertTextClickAt" locator1="MenuItem#APPROVE" value1="Approve" />
@@ -211,30 +211,20 @@
 		<execute function="AssertTextEquals#assertText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
 	</command>
 
-	<command name="configureDocumentsAndMediaWorkflow">
-		<execute function="Click" locator1="DocumentsAndMedia#FILTER_HOME_ACTIONS" />
-		<execute function="AssertClick" locator1="MenuItem#EDIT" value1="Edit" />
+	<command name="configureWorkflow">
+		<execute function="Select" locator1="WorkflowConfiguration#${workflowResourceKey}" value1="${workflowDefinition}" />
 
-		<execute function="Select" locator1="AssetWorkflow#ALL_STRUCTURES_WORKFLOW_SELECT" value1="${workflowDefinition}" />
 		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
 
 		<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request completed successfully." />
 	</command>
 
-	<command name="configureWebContentWorkflow">
+	<command name="configureWorkflowViaFolderInfo">
 		<execute function="Click" locator1="Icon#INFO" />
 		<execute function="Click" locator1="Icon#BODY_VERTICAL_ELLIPSIS" />
 		<execute function="AssertClick" locator1="MenuItem#EDIT" value1="Edit" />
 
 		<execute function="Select" locator1="AssetWorkflow#ALL_STRUCTURES_WORKFLOW_SELECT" value1="${workflowDefinition}" />
-		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
-
-		<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request completed successfully." />
-	</command>
-
-	<command name="configureWorkflow">
-		<execute function="Select" locator1="WorkflowConfiguration#${workflowResourceKey}" value1="${workflowDefinition}" />
-
 		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
 
 		<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request completed successfully." />
@@ -475,11 +465,13 @@
 		<execute function="Select" locator1="WorkflowConfiguration#RESOURCE_TABLE_WIKI_PAGE_SELECT" value1="${defaultWorkflow}" />
 		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Web Content" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Web Content" />
 		</execute>
 
-		<execute macro="Workflow#configureWebContentWorkflow">
+		<execute macro="Workflow#configureWorkflowViaFolderInfo">
 			<var name="workflowDefinition" value="No Workflow" />
 		</execute>
 	</command>
@@ -614,16 +606,7 @@
 
 		<execute function="AssertTextEquals" locator1="CPMyworkflowtasksCompleted#COMPLETED_TABLE_TASK" value1="${workflowTask}" />
 
-		<if>
-			<equals arg1="${workflowAssetType}" arg2="Dynamic Data Lists Record" />
-			<then>
-				<execute function="AssertTextEquals#assertPartialText" locator1="CPMyworkflowtasks#COMPLETED_TABLE_ASSET_TITLE" value1="New ${ddlDataDefinitionName} for List: ${workflowAssetTitle}" />
-			</then>
-			<else>
-				<execute function="AssertTextEquals#assertPartialText" locator1="CPMyworkflowtasks#COMPLETED_TABLE_ASSET_TITLE" value1="${workflowAssetTitle}" />
-			</else>
-		</if>
-
+		<execute function="AssertTextEquals#assertPartialText" locator1="CPMyworkflowtasks#COMPLETED_TABLE_ASSET_TITLE" value1="${workflowAssetTitle}" />
 		<execute function="AssertTextEquals" locator1="CPMyworkflowtasks#COMPLETED_TABLE_ASSET_TYPE" value1="${workflowAssetType}" />
 		<execute function="AssertElementPresent" locator1="CPMyworkflowtasks#COMPLETED_TABLE_LAST_ACTIVITY_DATE" />
 		<execute function="AssertElementPresent" locator1="CPMyworkflowtasks#COMPLETED_TABLE_DUE_DATE" />
@@ -650,18 +633,25 @@
 	</command>
 
 	<command name="viewDefaultMySubmissionsCP">
-		<execute function="AssertTextEquals" locator1="Message#EMPTY" value1="There are no pending publications requested by me." />
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="There are no pending publications requested by me." />
 		<execute function="AssertClick" locator1="MenuItem#COMPLETED" value1="Completed" />
 
-		<execute function="AssertTextEquals" locator1="Message#EMPTY" value1="There are no completed publications requested by me." />
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="There are no completed publications requested by me." />
 	</command>
 
 	<command name="viewDefaultMyWorkflowTasksCP">
-		<execute function="AssertTextEquals" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_INFO_MESSAGE" value1="There are no pending tasks assigned to you." />
-		<execute function="AssertTextEquals" locator1="MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_INFO_MESSAGE" value1="There are no pending tasks assigned to your roles." />
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="There are no pending tasks assigned to you." />
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO_2" value1="There are no pending tasks assigned to your roles." />
 		<execute function="AssertClick" locator1="MenuItem#COMPLETED" value1="Completed" />
 
-		<execute function="AssertTextEquals" locator1="Message#EMPTY" value1="There are no completed tasks." />
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="There are no completed tasks." />
+	</command>
+
+	<command name="viewDefaultWorkflowSubmissions">
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="There are no pending publication requests." />
+		<execute function="AssertClick" locator1="MenuItem#COMPLETED" value1="Completed" />
+
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="There are no completed publication requests." />
 	</command>
 
 	<command name="viewDefinition">
@@ -700,25 +690,33 @@
 		<execute function="AssertTextEquals" locator1="Home#SITE_ADMINISTRATION_PORTLET_TITLE" value1="${workflowDefinition}" />
 	</command>
 
+	<command name="viewPendingTasks">
+		<var name="key_workflowAssetTitle" value="${workflowAssetTitle}" />
+
+		<execute function="AssertTextEquals" locator1="WorkflowSubmissions#PENDING_TABLE_DEFINITION" value1="${workflowDefinition}" />
+		<execute function="AssertTextEquals" locator1="WorkflowSubmissions#PENDING_TABLE_ASSET_TITLE" value1="${workflowAssetTitle}" />
+		<execute function="AssertTextEquals" locator1="WorkflowSubmissions#PENDING_TABLE_ASSET_TYPE" value1="${workflowAssetType}" />
+		<execute function="AssertTextEquals" locator1="WorkflowSubmissions#PENDING_TABLE_STATUS" value1="${workflowTask}" />
+		<execute function="AssertElementPresent" locator1="WorkflowSubmissions#PENDING_TABLE_LAST_ACTIVITY_DATE" />
+		<execute function="AssertElementPresent" locator1="WorkflowSubmissions#PENDING_TABLE_END_DATE" />
+	</command>
+
 	<command name="viewRejectedTask">
 		<var name="key_workflowAssetTitle" value="${workflowAssetTitle}" />
 		<var name="key_workflowTask" value="Update" />
 
 		<execute function="AssertTextEquals" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_TASK" value1="Update" />
 
-		<if>
-			<equals arg1="${workflowAssetType}" arg2="Dynamic Data Lists Record" />
-			<then>
-				<execute function="AssertTextEquals#assertPartialText" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_ASSET_TITLE" value1="New ${ddlDataDefinitionName} for List: ${workflowAssetTitle}" />
-			</then>
-			<else>
-				<execute function="AssertTextEquals#assertPartialText" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_ASSET_TITLE" value1="${workflowAssetTitle}" />
-			</else>
-		</if>
-
+		<execute function="AssertTextEquals#assertPartialText" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_ASSET_TITLE" value1="${workflowAssetTitle}" />
 		<execute function="AssertTextEquals" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_ASSET_TYPE" value1="${workflowAssetType}" />
 		<execute function="AssertElementPresent" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_LAST_ACTIVITY_DATE" />
 		<execute function="AssertElementPresent" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_DUE_DATE" />
+	</command>
+
+	<command name="viewSubmissionNotPresent">
+		<var name="key_workflowAssetTitle" value="${workflowAssetTitle}" />
+
+		<execute function="AssertElementNotPresent" locator1="WorkflowSubmissions#PENDING_TABLE_ASSET_TITLE" value1="${workflowAssetTitle}" />
 	</command>
 
 	<command name="viewTaskAssignedToMe">
@@ -727,16 +725,7 @@
 
 		<execute function="AssertTextEquals" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_TASK" value1="${workflowTask}" />
 
-		<if>
-			<equals arg1="${workflowAssetType}" arg2="Dynamic Data Lists Record" />
-			<then>
-				<execute function="AssertTextEquals#assertPartialText" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_ASSET_TITLE" value1="New ${ddlDataDefinitionName} for List: ${workflowAssetTitle}" />
-			</then>
-			<else>
-				<execute function="AssertTextEquals#assertPartialText" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_ASSET_TITLE" value1="${workflowAssetTitle}" />
-			</else>
-		</if>
-
+		<execute function="AssertTextEquals#assertPartialText" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_ASSET_TITLE" value1="${workflowAssetTitle}" />
 		<execute function="AssertTextEquals" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_ASSET_TYPE" value1="${workflowAssetType}" />
 		<execute function="AssertElementPresent" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_LAST_ACTIVITY_DATE" />
 		<execute function="AssertElementPresent" locator1="MyWorkflowTasks#ASSIGNED_TO_ME_TABLE_DUE_DATE" />
@@ -769,20 +758,18 @@
 
 		<execute function="AssertTextEquals" locator1="MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_TASK" value1="${workflowTask}" />
 
-		<if>
-			<equals arg1="${workflowAssetType}" arg2="Dynamic Data Lists Record" />
-			<then>
-				<execute function="AssertTextEquals#assertPartialText" locator1="MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_ASSET_TITLE" value1="New ${ddlDataDefinitionName} for List: ${workflowAssetTitle}" />
-			</then>
-			<else>
-				<execute function="AssertTextEquals#assertPartialText" locator1="MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_ASSET_TITLE" value1="${workflowAssetTitle}" />
-			</else>
-		</if>
-
+		<execute function="AssertTextEquals#assertPartialText" locator1="MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_ASSET_TITLE" value1="${workflowAssetTitle}" />
 		<execute function="AssertTextEquals" locator1="MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_ASSET_TYPE" value1="${workflowAssetType}" />
 		<execute function="AssertElementPresent" locator1="MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_LAST_ACTIVITY_DATE" />
 		<execute function="AssertElementPresent" locator1="MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_DUE_DATE" />
 		<execute function="AssertElementPresent" locator1="MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_ACTIONS" />
+	</command>
+
+	<command name="viewTaskNotPresentAssignedToMyRoles">
+		<var name="key_workflowAssetTitle" value="${workflowAssetTitle}" />
+		<var name="key_workflowTask" value="${workflowTask}" />
+
+		<execute function="AssertElementNotPresent" locator1="MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_TASK" value1="${workflowTask}" />
 	</command>
 
 	<command name="withdrawTaskByActions">

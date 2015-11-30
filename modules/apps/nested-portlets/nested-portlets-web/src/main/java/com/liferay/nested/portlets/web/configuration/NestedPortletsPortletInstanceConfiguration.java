@@ -16,15 +16,18 @@ package com.liferay.nested.portlets.web.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
 
+import com.liferay.configuration.admin.ConfigurationAdmin;
+
 /**
  * @author Juergen Kappler
  */
+@ConfigurationAdmin(category = "web-experience-management")
 @Meta.OCD(
 	id = "com.liferay.nested.portlets.web.configuration.NestedPortletsPortletInstanceConfiguration"
 )
 public interface NestedPortletsPortletInstanceConfiguration {
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String layoutTemplateId();
 
 }

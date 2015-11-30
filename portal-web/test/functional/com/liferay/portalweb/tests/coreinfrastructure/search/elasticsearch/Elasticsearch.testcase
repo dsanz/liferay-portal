@@ -2,15 +2,34 @@
 	<property name="testray.main.component.name" value="Elastic Search Impl" />
 
 	<set-up>
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
+
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="SignIn#signInPortalInstanceSetUp" />
+			</then>
+		</if>
+
 		<execute macro="User#firstLoginPG" />
 	</set-up>
 
 	<tear-down>
-		<execute macro="MessageboardsThread#tearDownCP" />
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
 
-		<execute macro="DMDocument#tearDownCP" />
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="PortalInstances#tearDownCP" />
+			</then>
+			<else>
+				<execute macro="MessageboardsThread#tearDownCP" />
 
-		<execute macro="Page#tearDownPG" />
+				<execute macro="DMDocument#tearDownCP" />
+
+				<execute macro="Page#tearDownPG" />
+			</else>
+		</if>
 	</tear-down>
 
 	<command name="ElasticsearchClusterSmokeTest" priority="5">
@@ -31,8 +50,10 @@
 			<var name="pageName" value="Elasticsearch Page" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Message Boards" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Message Boards" />
 		</execute>
 
 		<execute macro="MessageboardsThread#addCP">
@@ -40,8 +61,10 @@
 			<var name="threadSubject" value="Apple" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Documents and Media" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Documents and Media" />
 		</execute>
 
 		<execute macro="DMDocument#addCP">
@@ -69,8 +92,8 @@
 		<execute macro="Search#viewSearchResultsPG">
 			<var name="searchAssetTitle1" value="Apple" />
 			<var name="searchAssetTitle2" value="Apple" />
-			<var name="searchAssetType1" value="Document" />
-			<var name="searchAssetType2" value="Message Boards Message" />
+			<var name="searchAssetType1" value="Message Boards Message" />
+			<var name="searchAssetType2" value="Document" />
 		</execute>
 
 		<execute macro="Page#gotoPG">
@@ -84,8 +107,8 @@
 		<execute macro="Search#viewSearchResultsPG">
 			<var name="searchAssetTitle1" value="Apple" />
 			<var name="searchAssetTitle2" value="Apple" />
-			<var name="searchAssetType1" value="Document" />
-			<var name="searchAssetType2" value="Message Boards Message" />
+			<var name="searchAssetType1" value="Message Boards Message" />
+			<var name="searchAssetType2" value="Document" />
 		</execute>
 
 		<execute macro="Portlet#shutdownSpecificServer">
@@ -113,8 +136,8 @@
 		<execute macro="Search#viewSearchResultsPG">
 			<var name="searchAssetTitle1" value="Apple" />
 			<var name="searchAssetTitle2" value="Apple" />
-			<var name="searchAssetType1" value="Document" />
-			<var name="searchAssetType2" value="Message Boards Message" />
+			<var name="searchAssetType1" value="Message Boards Message" />
+			<var name="searchAssetType2" value="Document" />
 		</execute>
 
 		<execute macro="Page#gotoPG">
@@ -128,8 +151,8 @@
 		<execute macro="Search#viewSearchResultsPG">
 			<var name="searchAssetTitle1" value="Apple" />
 			<var name="searchAssetTitle2" value="Apple" />
-			<var name="searchAssetType1" value="Document" />
-			<var name="searchAssetType2" value="Message Boards Message" />
+			<var name="searchAssetType1" value="Message Boards Message" />
+			<var name="searchAssetType2" value="Document" />
 		</execute>
 	</command>
 </definition>

@@ -63,12 +63,12 @@ if (group != null) {
 </aui:nav-bar>
 
 <liferay-frontend:management-bar
-	checkBoxContainerId="sitesSearchContainer"
 	includeCheckBox="<%= true %>"
+	searchContainerId="sites"
 >
 	<liferay-frontend:management-bar-buttons>
 		<c:if test="<%= Validator.isNull(keywords) && (group != null) %>">
-			<aui:a cssClass="btn infoPanelToggler" href="javascript:;" iconCssClass="icon-info-sign" />
+			<liferay-frontend:management-bar-button cssClass="infoPanelToggler" href="javascript:;" iconCssClass="icon-info-sign" />
 		</c:if>
 
 		<liferay-frontend:management-bar-display-buttons
@@ -88,7 +88,7 @@ if (group != null) {
 	</liferay-frontend:management-bar-filters>
 
 	<liferay-frontend:management-bar-action-buttons>
-		<aui:a cssClass="btn" href="javascript:;" iconCssClass="icon-trash" id="deleteSites" />
+		<liferay-frontend:management-bar-button href="javascript:;" iconCssClass="icon-trash" id="deleteSites" />
 	</liferay-frontend:management-bar-action-buttons>
 </liferay-frontend:management-bar>
 
@@ -102,9 +102,10 @@ if (group != null) {
 	</div>
 
 	<div class="sidenav-content">
-		<aui:form action="<%= searchURLString %>" name="fm">
+		<portlet:actionURL name="deleteGroups" var="deleteGroupsURL" />
+
+		<aui:form action="<%= deleteGroupsURL %>" name="fm">
 			<aui:input name="redirect" type="hidden" value="<%= portletURLString %>" />
-			<aui:input name="deleteGroupIds" type="hidden" />
 
 			<div id="breadcrumb">
 				<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showPortletBreadcrumb="<%= true %>" />
@@ -155,11 +156,7 @@ if (group != null) {
 		'click',
 		function() {
 			if (confirm('<%= UnicodeLanguageUtil.get(request, "are-you-sure-you-want-to-delete-this") %>')) {
-				var form = AUI.$(document.<portlet:namespace />fm);
-
-				form.fm('deleteGroupIds').val(Liferay.Util.listCheckedExcept(form, '<portlet:namespace />allRowIds'));
-
-				submitForm(form, '<portlet:actionURL name="deleteGroups" />');
+				submitForm(AUI.$(document.<portlet:namespace />fm));
 			}
 		}
 	);

@@ -54,11 +54,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>CHECK_ALL_NAME</td>
-	<td>//input[contains(@name,'allRowIds')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>DISPLAY_IMMEDIATELY</td>
 	<td>//input[contains(@name,'displayImmediately')]</td>
 	<td></td>
@@ -255,7 +250,7 @@
 </tr>
 <tr>
 	<td>SELECT_ALL</td>
-	<td>//input[contains(@id,'allRowIds')]</td>
+	<td>//input[contains(@id,'allRowIds') or contains(@name,'allRowIds')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -265,7 +260,7 @@
 </tr>
 <tr>
 	<td>SHOW_ACTIONS_CHECKBOX</td>
-	<td>//input[contains(@id,'showActions')]</td>
+	<td>//label[contains(@for,'showActions')]//input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -280,12 +275,12 @@
 </tr>
 <tr>
 	<td>SHOW_FOLDER_MENU_CHECKBOX</td>
-	<td>//input[contains(@id,'showFolderMenu')]</td>
+	<td>//label[contains(@for,'showFolderMenu')]//input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SHOW_NAVIGATION_LINKS_CHECKBOX</td>
-	<td>//input[contains(@id,'showTabs')]</td>
+	<td>//label[contains(@for,'showTabs')]//input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -306,6 +301,11 @@
 <tr>
 	<td>STAGED_CONTENT</td>
 	<td>//div[contains(@id,'stagedPortlets')]//label[contains(.,'${key_contentName}')]/input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>STATUS</td>
+	<td>//span[@class='icon-check' and contains(.,'${key_status}')]</td>
 	<td></td>
 </tr>
 <tr>

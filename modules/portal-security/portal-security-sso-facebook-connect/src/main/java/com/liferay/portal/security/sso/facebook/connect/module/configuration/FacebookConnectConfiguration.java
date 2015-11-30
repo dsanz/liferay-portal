@@ -16,18 +16,21 @@ package com.liferay.portal.security.sso.facebook.connect.module.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
 
+import com.liferay.configuration.admin.ConfigurationAdmin;
+
 /**
  * @author Michael C. Han
  */
+@ConfigurationAdmin(category = "platform")
 @Meta.OCD(
 	id = "com.liferay.portal.security.sso.facebook.connect.module.configuration.FacebookConnectConfiguration"
 )
 public interface FacebookConnectConfiguration {
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String appId();
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String appSecret();
 
 	@Meta.AD(deflt = "false", required = false)

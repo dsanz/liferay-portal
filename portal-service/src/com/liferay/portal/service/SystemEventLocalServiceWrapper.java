@@ -223,14 +223,19 @@ public class SystemEventLocalServiceWrapper implements SystemEventLocalService,
 		return _systemEventLocalService.getActionableDynamicQuery();
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _systemEventLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _systemEventLocalService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _systemEventLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -293,16 +298,6 @@ public class SystemEventLocalServiceWrapper implements SystemEventLocalService,
 	@Override
 	public int getSystemEventsCount() {
 		return _systemEventLocalService.getSystemEventsCount();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_systemEventLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

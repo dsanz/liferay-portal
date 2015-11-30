@@ -60,6 +60,7 @@ import org.osgi.service.component.annotations.Reference;
 public class DefaultDDMStructureHelperImpl
 	implements DefaultDDMStructureHelper {
 
+	@Override
 	public void addDDMStructures(
 			long userId, long groupId, long classNameId,
 			ClassLoader classLoader, String fileName,
@@ -149,6 +150,7 @@ public class DefaultDDMStructureHelperImpl
 		}
 	}
 
+	@Override
 	public String getDynamicDDMStructureDefinition(
 			ClassLoader classLoader, String fileName,
 			String dynamicDDMStructureName, Locale locale)
@@ -237,57 +239,58 @@ public class DefaultDDMStructureHelperImpl
 		return rootElement.elements("structure");
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDM(DDM ddm) {
 		_ddm = ddm;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMFormJSONDeserializer(
 		DDMFormJSONDeserializer ddmFormJSONDeserializer) {
 
 		_ddmFormJSONDeserializer = ddmFormJSONDeserializer;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMFormLayoutJSONDeserializer(
 		DDMFormLayoutJSONDeserializer ddmFormLayoutJSONDeserializer) {
 
 		_ddmFormLayoutJSONDeserializer = ddmFormLayoutJSONDeserializer;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMFormXSDDeserializer(
 		DDMFormXSDDeserializer ddmFormXSDDeserializer) {
 
 		_ddmFormXSDDeserializer = ddmFormXSDDeserializer;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMStructureLocalService(
 		DDMStructureLocalService ddmStructureLocalService) {
 
 		_ddmStructureLocalService = ddmStructureLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMTemplateLocalService(
 		DDMTemplateLocalService ddmTemplateLocalService) {
 
 		_ddmTemplateLocalService = ddmTemplateLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMXML(DDMXML ddmXML) {
 		_ddmXML = ddmXML;
 	}
 
-	private DDM _ddm;
-	private DDMFormJSONDeserializer _ddmFormJSONDeserializer;
-	private DDMFormLayoutJSONDeserializer _ddmFormLayoutJSONDeserializer;
-	private DDMFormXSDDeserializer _ddmFormXSDDeserializer;
-	private DDMStructureLocalService _ddmStructureLocalService;
-	private DDMTemplateLocalService _ddmTemplateLocalService;
-	private DDMXML _ddmXML;
+	private volatile DDM _ddm;
+	private volatile DDMFormJSONDeserializer _ddmFormJSONDeserializer;
+	private volatile DDMFormLayoutJSONDeserializer
+		_ddmFormLayoutJSONDeserializer;
+	private volatile DDMFormXSDDeserializer _ddmFormXSDDeserializer;
+	private volatile DDMStructureLocalService _ddmStructureLocalService;
+	private volatile DDMTemplateLocalService _ddmTemplateLocalService;
+	private volatile DDMXML _ddmXML;
 
 }

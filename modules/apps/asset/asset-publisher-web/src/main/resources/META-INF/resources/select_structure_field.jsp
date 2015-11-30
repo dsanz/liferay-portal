@@ -39,7 +39,7 @@ portletURL.setParameter("classTypeId", String.valueOf(classTypeId));
 %>
 
 <div class="alert alert-danger hide" id="<portlet:namespace />message">
-	<span class="error-message"><%= LanguageUtil.get(request, "the-field-value-is-invalid") %></span>
+	<span class="error-message"><liferay-ui:message key="the-field-value-is-invalid" /></span>
 </div>
 
 <div id="<portlet:namespace />selectDDMStructureFieldForm">
@@ -59,7 +59,6 @@ portletURL.setParameter("classTypeId", String.valueOf(classTypeId));
 			<%
 			String label = field.getLabel();
 			String name = field.getName();
-			String fieldType = field.getType();
 			long ddmStructureId = field.getClassTypeId();
 			%>
 
@@ -92,10 +91,6 @@ portletURL.setParameter("classTypeId", String.valueOf(classTypeId));
 					ddmField.setName(name);
 
 					if (name.equals(ddmStructureFieldName)) {
-						if (fieldType.equals(DDMFormFieldType.DATE)) {
-							ddmStructureFieldValue = GetterUtil.getDate(ddmStructureFieldValue, DateFormatFactoryUtil.getSimpleDateFormat("yyyyMMddHHmmss"));
-						}
-
 						ddmField.setValue(themeDisplay.getLocale(), ddmStructureFieldValue);
 					}
 					%>

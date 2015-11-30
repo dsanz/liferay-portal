@@ -108,7 +108,7 @@
 </tr>
 <tr>
 	<td>CATEGORY_TABLE_CHECKBOX</td>
-	<td>//div[contains(@id,'mbCategoriesSearchContainer')]//tr[contains(.,'${key_categoryName}')]/td[1]/input[@type='checkbox']</td>
+	<td>//div[contains(@id,'mbCategoriesSearchContainer')]//tr[contains(.,'${key_categoryName}')]/td[1]//input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -179,7 +179,7 @@
 </tr>
 <tr>
 	<td>CATEGORY_TABLE_ADMIN_CHECKBOX</td>
-	<td>//div[contains(@id,'mbCategoriesSearchContainer')]//tr[contains(.,'${key_categoryName}')]/td[1]/input[@type='checkbox']</td>
+	<td>//div[contains(@id,'mbCategoriesSearchContainer')]//tr[contains(.,'${key_categoryName}')]/td[1]//input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -312,7 +312,7 @@
 </tr>
 <tr>
 	<td>THREAD_TABLE_CHECKBOX</td>
-	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]/td[1]/input[@type='checkbox']</td>
+	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]/td[1]//input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -357,7 +357,7 @@
 </tr>
 <tr>
 	<td>THREAD_TABLE_LAST_POST</td>
-	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]/td[6]//span | //div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]//span[contains(@class,'user-name')]</td>
+	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]//div[contains(@class,'user-info')]//span[contains(@class,'user-name')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -383,7 +383,7 @@
 <!--THREAD_TABLE_ADMIN-->
 <tr>
 	<td>THREAD_TABLE_ADMIN_CHECKBOX</td>
-	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]/td[1]/input[@type='checkbox']</td>
+	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]/td[1]//input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -413,7 +413,7 @@
 </tr>
 <tr>
 	<td>THREAD_TABLE_ADMIN_LAST_POST</td>
-	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]/td[7]//span | //div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]//span[contains(@class,'user-name')]</td>
+	<td>//div[contains(@id,'mbThreadsSearchContainer')]//tr[contains(.,'${key_threadSubject}')]//div[contains(@class,'user-info')]//span[contains(@class,'user-name')]</td>
 	<td></td>
 </tr>
 </tbody>

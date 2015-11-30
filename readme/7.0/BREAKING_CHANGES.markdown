@@ -20,7 +20,7 @@ feature or API will be dropped in an upcoming version.
 replaces an old API, in spite of the old API being kept in Liferay Portal for
 backwards compatibility.
 
-*This document has been reviewed through commit `1adcc25`.*
+*This document has been reviewed through commit `252b72b`.*
 
 ## Breaking Changes Contribution Guidelines
 
@@ -1555,7 +1555,7 @@ exceptions wherever possible. For example, instead of using
 
 This change was made in accordance with the new exceptions pattern being applied
 throughout Portal. It also allows the new localized user name configuration
-feature to be thoroughly covered by exceptions for different configurations.  
+feature to be thoroughly covered by exceptions for different configurations.
 
 ---------------------------------------
 
@@ -1748,7 +1748,7 @@ Method `Indexer.addRelatedEntryFields(Document, Object)` has been moved into
 `DDMStructureIndexer`.
 
 `Indexer.getQueryString(SearchContext, Query)` has been removed, in favor of
-calling `SearchEngineUtil.getQueryString(SearchContext, Query)`
+calling `SearchEngineUtil.getQueryString(SearchContext, Query)`.
 
 #### Who is affected?
 
@@ -1795,8 +1795,8 @@ New code:
         ddmStructureIndexer.reindexDDMStructures(...);
     }
 
-Any code calling Indexer.getQueryString(...) should call
-SearchEngineUtil.getQueryString(...)
+Any code calling `Indexer.getQueryString(...)` should call
+`SearchEngineUtil.getQueryString(...)`.
 
 Old code:
 
@@ -2045,6 +2045,99 @@ possibility of injecting JavaScript, when needed.
 
 This change is part of a greater effort to provide mechanisms to extend and
 configure any editor in Liferay Portal in a coherent and extensible way.
+
+---------------------------------------
+
+### Renamed ActionCommand Classes Used in the MVCPortlet Framework
+- **Date:** 2015-Jun-16
+- **JIRA Ticket:** LPS-56372
+
+#### What changed?
+
+The classes located in the `com.liferay.portal.kernel.portlet.bridges.mvc`
+package have been renamed to include the *MVC* prefix.
+
+Old Classes:
+
+- `BaseActionCommand`
+- `BaseTransactionalActionCommand`
+- `ActionCommand`
+- `ActionCommandCache`
+
+New Classes:
+
+- `BaseMVCActionCommand`
+- `BaseMVCTransactionalActionCommand`
+- `MVCActionCommand`
+- `MVCActionCommandCache`
+
+Also, the property `action.command.name` has been renamed to `mvc.command.name`.
+The code snippet below shows the new property in its context.
+
+    @Component(
+        immediate = true,
+        property = {
+                "javax.portlet.name=" + InvitationPortletKeys.INVITATION,
+                "mvc.command.name=view"
+        },
+        service = MVCActionCommand.class
+    )
+
+#### Who is affected?
+
+This affects any Java code calling the `ActionCommand` classes used in the
+`MVCPortlet` framework.
+
+#### How should I update my code?
+
+You should update the old `ActionCommand` class names with the new *MVC* prefix.
+
+#### Why was this change made?
+
+This change adds consistency to the MVC framework, and makes it self-explanatory
+what classes should be used for the MVC portlet.
+
+---------------------------------------
+
+### Extended MVC Framework to Use Same Key for Registering ActionURL and ResourceURL
+- **Date:** 2015-Jun-16
+- **JIRA Ticket:** LPS-56372
+
+#### What changed?
+
+Previously, a single `ActionCommand` was valid for both `ActionURL` and
+`ResourceURL`. Now you must distinguish both an `ActionURL` and `ResourceURL` as
+different actions, which means you can register both with the same key.
+
+#### Who is affected?
+
+This affects developers that were using the `ActionCommand` for `actionURL`s and
+`resourceURL`s.
+
+#### How should I update my code?
+
+You should replace the `ActionCommand`s used for `actionURL`s and `resourceURL`s
+to use `MVCActionCommand` and `MVCResourceCommand`, respectively. For example,
+for the new `MVCResourceCommand`, you'll need to use the `resourceID` of the
+`resourceURL` instead of using `ActionRequest.ACTION_NAME`.
+
+Old Code:
+
+    <liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" var="exportRecordSetURL">
+        <portlet:param name="<%= ActionRequest.ACTION_NAME %>" value="exportRecordSet" />
+        <portlet:param name="recordSetId" value="<%= String.valueOf(recordSet.getRecordSetId()) %>" />
+    </liferay-portlet:resourceURL>
+
+New Code:
+
+    <liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="exportRecordSet" var="exportRecordSetURL">
+        <portlet:param name="recordSetId" value="<%= String.valueOf(recordSet.getRecordSetId()) %>" />
+    </liferay-portlet:resourceURL>
+
+#### Why was this change made?
+
+This change was made to extend the MVC framework to have better support for
+`actionURL`s and `resourceURL`s.
 
 ---------------------------------------
 
@@ -2345,7 +2438,8 @@ this tag.
 #### How should I update my code?
 
 Embedding another portlet is only supported from a template. You should embed
-the portlet by passing its name in a call to `theme.runtime`.
+the portlet by passing its name in a call to `theme.runtime` or using the right
+tag in FreeMarker.
 
 **Example**
 
@@ -2355,7 +2449,9 @@ In Velocity:
 
 In FreeMarker:
 
-    ${theme.runtime("145")
+    <#assign liferay_portlet = PortalJspTagLibs["/WEB-INF/tld/liferay-portlet-ext.tld"] />
+
+    <@liferay_portlet["runtime"] portletName="145" />
 
 #### Why was this change made?
 
@@ -2493,15 +2589,15 @@ site called Control Panel in the Sites API.
 
 ---------------------------------------
 
-### Changed exception thrown by D&M services when duplicate files are found
+### Changed Exception Thrown by Documents and Media Services When Duplicate Files are Found
 - **Date:** 2015-Sep-24
 - **JIRA Ticket:** LPS-53819
 
 #### What changed?
 
-When a duplicate file entry is found by D&M services, a
-`DuplicateFileEntryException` will be thrown. Previously, the
-exception `DuplicateFileException` was used.
+When a duplicate file entry is found by Documents and Media (D&M) services, a
+`DuplicateFileEntryException` will be thrown. Previously, the exception
+`DuplicateFileException` was used.
 
 The `DuplicateFileException` is now raised only by `Store`
 implementations.
@@ -2509,7 +2605,7 @@ implementations.
 #### Who is affected?
 
 Any caller of the `addFileEntry` methods in `DLApp` and `DLFileEntry`
-local and remote services.
+local and remote services is affected.
 
 #### How should I update my code?
 
@@ -2524,7 +2620,7 @@ contexts:
 - When creating a new file through D&M and a row in the database
 already existed for a file entry with the same title.
 - When the stores tried to save a file and the underlying storage unit
-(a file in the case of FileSystemStore) already existed.
+(a file in the case of `FileSystemStore`) already existed.
 
 This made it impossible to detect and recover from store corruption
 issues, as they were undifferentiable from other errors.
@@ -2537,7 +2633,7 @@ issues, as they were undifferentiable from other errors.
 
 #### What changed?
 
-All references to the `msnSn` column in the Contacts table have been removed
+All references to the `msnSn` column in the `Contacts` table have been removed
 from portal. All references to Windows Live Messenger have been removed from
 properties, tests, classes, and the frontend. Also, the `getMsnSn` and
 `setMsnSn` methods have been removed from the `Contact` and `LDAPUser` models.
@@ -2582,7 +2678,7 @@ When updating or adding a user or contact using one of the changed methods
 above, remove the `msnSn` argument from the method call. If you are using one of
 the removed items above, you should remove all references to them from your code
 and look for alternatives, if necessary. Lastly, remove any references to the
-`msnSN` column in the Contacts table from your SQL queries.
+`msnSN` column in the `Contacts` table from your SQL queries.
 
 #### Why was this change made?
 
@@ -2701,16 +2797,131 @@ You should update your code to call one of these methods:
 Instead of simply providing the class name of your scheduled job listener, you
 should follow these steps:
 
-1.  Instantiate your MessageListener.
+1.  Instantiate your `MessageListener`.
 
 2.  Call `SchedulerEngineHelper.register(MessageListener, SchedulerEntry)` to
     register your `SchedulerEventMessageListener`.
 
-
 #### Why was this change made?
 
 The deleted methods provided facilities that aren't compatible with using
-declarative services in an OSGI container. The new approach allows for proper
+declarative services in an OSGi container. The new approach allows for proper
 injection of dependencies into scheduled event message listeners.
 
 ---------------------------------------
+
+### Removed the asset.publisher.query.form.configuration Property
+- **Date:** 2015-Nov-03
+- **JIRA Ticket:** LPS-60119
+
+#### What changed?
+
+The `asset.publisher.query.form.configuration` property has been removed
+from `portal.properties`.
+
+#### Who is affected?
+
+This affects any hook that uses the `asset.publisher.query.form.configuration`
+property.
+
+#### How should I update my code?
+
+If you are using this property to generate the UI for an Asset Entry Query
+Processor, your Asset Entry Query Processor must now implement the `include`
+method to generate the UI.
+
+#### Why was this change made?
+
+This change was made as a part of the ongoing strategy to modularize Liferay
+Portal.
+
+---------------------------------------
+
+### Removed Hover and Alternate Style Features of Search Container Tag
+- **Date:** 2015-Nov-03
+- **JIRA Ticket:** LPS-58854
+
+#### What changed?
+
+The following attributes and methods have been removed:
+
+- The attribute `hover` of the `liferay-ui:search-container` tag.
+- The method `isHover()` of the `SearchContainerTag` class.
+- The attributes `classNameHover`, `hover`, `rowClassNameAlternate`,
+`rowClassNameAlternateHover`, `rowClassNameBody`, `rowClassNameBodyHover` of the
+`liferay-search-container` JavaScript module.
+
+#### Who is affected?
+
+This affects developers that use the `hover` attribute of the
+`liferay-ui:search-container` tag.
+
+#### How should I update my code?
+
+You should update your code changing the CSS selector that defines how rows look
+on hover to use the `:hover` and `:nth-of-type` CSS pseudo selectors instead.
+
+#### Why was this change made?
+
+Browsers support better ways to style content on hover in a way that doesn't
+penalize performance. Therefore, this change was made to increase the
+performance of hovering over content in Liferay.
+
+---------------------------------------
+
+### Removed AppViewMove and AppViewSelect JavaScript Modules
+- **Date:** 2015-Nov-03
+- **JIRA Ticket:** LPS-58854
+
+#### What changed?
+
+The JavaScript modules `AppViewMove` and `AppViewSelect` have been removed.
+
+#### Who is affected?
+
+This affects developers that use these modules to configure *select* and *move*
+actions inside their applications.
+
+#### How should I update my code?
+
+If you are using any of these modules, you can make use of the following
+`SearchContainer` APIs:
+
+- Listen to the `rowToggled` event of the search container to be notified about
+changes to the search container state.
+- Configure your search container *move* options creating a `RowMover` and
+define the allowed *move* targets and associated actions.
+- Use the `registerAction` method of the search container to execute your *move*
+logic when the user completes a *move* action.
+
+#### Why was this change made?
+
+The removed JavaScript modules contained too much logic and were difficult to
+decipher. It was also difficult to add this to an existing app. With this
+change, every app using a search container can use this functionality much
+easier.
+
+---------------------------------------
+
+### Removed the mergeLayoutTags Preference from Asset Publisher
+- **Date:** 2015-Nov-20
+- **JIRA Ticket:** LPS-60677
+
+#### What changed?
+
+The `mergeLayoutTags` preference has been removed from the Asset Publisher.
+
+#### Who is affected?
+
+This affects any Asset Publisher portlet that uses this preference.
+
+#### How should I update my code?
+
+There is nothing to update since this functionality is no longer used.
+
+#### Why was this change made?
+
+In previous versions of Liferay, some applications such as Blogs and Wiki shared
+the tags of their entries within the page. The Asset Publisher was able to use
+them to show other assets with the same tags. This functionality has changed, so
+the preference is no longer used.

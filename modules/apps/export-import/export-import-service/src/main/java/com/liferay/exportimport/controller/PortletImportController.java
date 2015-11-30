@@ -1230,28 +1230,28 @@ public class PortletImportController implements ImportController {
 		portletDataContext.setScopeType(StringPool.BLANK);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setAssetEntryLocalService(
 		AssetEntryLocalService assetEntryLocalService) {
 
 		_assetEntryLocalService = assetEntryLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setAssetLinkLocalService(
 		AssetLinkLocalService assetLinkLocalService) {
 
 		_assetLinkLocalService = assetLinkLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setExpandoColumnLocalService(
 		ExpandoColumnLocalService expandoColumnLocalService) {
 
 		_expandoColumnLocalService = expandoColumnLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setExpandoTableLocalService(
 		ExpandoTableLocalService expandoTableLocalService) {
 
@@ -1265,40 +1265,40 @@ public class PortletImportController implements ImportController {
 		_exportImportLifecycleManager = exportImportLifecycleManager;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setGroupLocalService(GroupLocalService groupLocalService) {
 		_groupLocalService = groupLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setLayoutLocalService(
 		LayoutLocalService layoutLocalService) {
 
 		_layoutLocalService = layoutLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setPortletItemLocalService(
 		PortletItemLocalService portletItemLocalService) {
 
 		_portletItemLocalService = portletItemLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setPortletLocalService(
 		PortletLocalService portletLocalService) {
 
 		_portletLocalService = portletLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setPortletPreferencesLocalService(
 		PortletPreferencesLocalService portletPreferencesLocalService) {
 
 		_portletPreferencesLocalService = portletPreferencesLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setUserLocalService(UserLocalService userLocalService) {
 		_userLocalService = userLocalService;
 	}
@@ -1466,20 +1466,21 @@ public class PortletImportController implements ImportController {
 	private static final Log _log = LogFactoryUtil.getLog(
 		PortletImportController.class);
 
-	private AssetEntryLocalService _assetEntryLocalService;
-	private AssetLinkLocalService _assetLinkLocalService;
+	private volatile AssetEntryLocalService _assetEntryLocalService;
+	private volatile AssetLinkLocalService _assetLinkLocalService;
 	private final DeletionSystemEventImporter _deletionSystemEventImporter =
 		DeletionSystemEventImporter.getInstance();
-	private ExpandoColumnLocalService _expandoColumnLocalService;
-	private ExpandoTableLocalService _expandoTableLocalService;
-	private ExportImportLifecycleManager _exportImportLifecycleManager;
-	private GroupLocalService _groupLocalService;
-	private LayoutLocalService _layoutLocalService;
+	private volatile ExpandoColumnLocalService _expandoColumnLocalService;
+	private volatile ExpandoTableLocalService _expandoTableLocalService;
+	private volatile ExportImportLifecycleManager _exportImportLifecycleManager;
+	private volatile GroupLocalService _groupLocalService;
+	private volatile LayoutLocalService _layoutLocalService;
 	private final PermissionImporter _permissionImporter =
 		PermissionImporter.getInstance();
-	private PortletItemLocalService _portletItemLocalService;
-	private PortletLocalService _portletLocalService;
-	private PortletPreferencesLocalService _portletPreferencesLocalService;
-	private UserLocalService _userLocalService;
+	private volatile PortletItemLocalService _portletItemLocalService;
+	private volatile PortletLocalService _portletLocalService;
+	private volatile PortletPreferencesLocalService
+		_portletPreferencesLocalService;
+	private volatile UserLocalService _userLocalService;
 
 }

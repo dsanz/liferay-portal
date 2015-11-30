@@ -2,16 +2,37 @@
 	<property name="testray.main.component.name" value="Site and Page Templates" />
 
 	<set-up>
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
+
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="SignIn#signInPortalInstanceSetUp" />
+			</then>
+		</if>
+
 		<execute macro="User#firstLoginPG" />
 	</set-up>
 
 	<tear-down>
-		<execute macro="Site#tearDownCP" />
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
 
-		<execute macro="SiteTemplates#tearDownCP" />
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="PortalInstances#tearDownCP" />
+			</then>
+			<else>
+				<execute macro="Site#tearDownCP" />
+
+				<execute macro="SiteTemplates#tearDownCP" />
+			</else>
+		</if>
 	</tear-down>
 
 	<command name="AddSiteTemplate" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<var name="siteTemplateActive" value="Yes" />
 
 		<execute macro="Page#gotoCP">
@@ -34,6 +55,8 @@
 	</command>
 
 	<command name="DeleteSiteTemplate" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Site Templates" />
 		</execute>
@@ -61,6 +84,8 @@
 	</command>
 
 	<command name="EditSiteTemplateStatus" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Site Templates" />
 		</execute>
@@ -107,7 +132,7 @@
 			<var name="siteTemplateNameList" value="Community Site,Intranet Site" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoMySpaceMyAccount">
+		<execute macro="ProductMenu#gotoUserMyAccount">
 			<var name="portlet" value="Account Settings" />
 		</execute>
 
@@ -132,10 +157,9 @@
 
 		<execute macro="Navigator#openURL" />
 
-		<execute macro="ProductMenu#gotoLocalizedMySpaceMyAccount">
+		<execute macro="ProductMenu#gotoLocalizedUserMyAccount">
 			<var name="category" value="Mi cuenta" />
 			<var name="portlet" value="Mi cuenta" />
-			<var name="tab" value="Mi espacio" />
 		</execute>
 
 		<execute macro="MyAccount#changeUserLanguage">

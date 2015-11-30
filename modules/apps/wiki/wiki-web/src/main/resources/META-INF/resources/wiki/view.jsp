@@ -229,7 +229,7 @@ contextObjects.put("wikiPortletInstanceOverriddenConfiguration", wikiPortletInst
 		%>
 
 		<div class="page-redirect" onClick="location.href = '<%= originalViewPageURL.toString() %>';">
-			(<%= LanguageUtil.format(request, "redirected-from-x", originalPage.getTitle(), false) %>)
+			(<liferay-ui:message arguments="<%= originalPage.getTitle() %>" key="redirected-from-x" translateArguments="<%= false %>" />)
 		</div>
 	</c:if>
 
@@ -316,7 +316,9 @@ contextObjects.put("wikiPortletInstanceOverriddenConfiguration", wikiPortletInst
 				<liferay-ui:icon
 					iconCssClass="icon-paperclip"
 					label="<%= true %>"
-					message='<%= attachmentsFileEntriesCount + " " + LanguageUtil.get(request, (attachmentsFileEntriesCount == 1) ? "attachment" : "attachments") %>' method="get" url="<%= viewAttachmentsURL.toString() %>"
+					message='<%= attachmentsFileEntriesCount + " " + LanguageUtil.get(request, (attachmentsFileEntriesCount == 1) ? "attachment" : "attachments") %>'
+					method="get"
+					url="<%= viewAttachmentsURL.toString() %>"
 				/>
 			</div>
 

@@ -161,13 +161,13 @@ public class LayoutStagingImpl implements LayoutStaging {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setLayoutSetBranchLocalService(
 		LayoutSetBranchLocalService layoutSetBranchLocalService) {
 
 		_layoutSetBranchLocalService = layoutSetBranchLocalService;
 	}
 
-	private LayoutSetBranchLocalService _layoutSetBranchLocalService;
+	private volatile LayoutSetBranchLocalService _layoutSetBranchLocalService;
 
 }

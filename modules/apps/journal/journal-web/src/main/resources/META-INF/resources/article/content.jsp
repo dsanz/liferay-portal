@@ -17,7 +17,7 @@
 <%@ include file="/init.jsp" %>
 
 <%
-JournalArticle article = ActionUtil.getArticle(request);
+JournalArticle article = journalDisplayContext.getArticle();
 
 long groupId = BeanParamUtil.getLong(article, request, "groupId", scopeGroupId);
 
@@ -31,19 +31,7 @@ DDMTemplate ddmTemplate = (DDMTemplate)request.getAttribute("edit_article.jsp-te
 
 String defaultLanguageId = (String)request.getAttribute("edit_article.jsp-defaultLanguageId");
 
-DDMFormValues ddmFormValues = null;
-
-if (article != null) {
-	String content = article.getContent();
-
-	if (Validator.isNotNull(content)) {
-		Fields fields = JournalConverterUtil.getDDMFields(ddmStructure, content);
-
-		if (fields != null) {
-			ddmFormValues = FieldsToDDMFormValuesConverterUtil.convert(ddmStructure, fields);
-		}
-	}
-}
+DDMFormValues ddmFormValues = journalDisplayContext.getDDMFormValues(ddmStructure);
 
 Locale[] availableLocales = new Locale[] {LocaleUtil.fromLanguageId(defaultLanguageId)};
 
@@ -85,7 +73,7 @@ boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_artic
 			<div class="journal-article-header-id">
 				<c:if test="<%= (article == null) || article.isNew() %>">
 					<c:choose>
-						<c:when test="<%= JournalWebConfigurationValues.JOURNAL_ARTICLE_FORCE_AUTOGENERATE_ID || (classNameId != JournalArticleConstants.CLASSNAME_ID_DEFAULT) %>">
+						<c:when test="<%= journalWebConfiguration.journalFeedForceAutogenerateId() || (classNameId != JournalArticleConstants.CLASSNAME_ID_DEFAULT) %>">
 							<aui:input name="newArticleId" type="hidden" />
 							<aui:input name="autoArticleId" type="hidden" value="<%= true %>" />
 						</c:when>
@@ -185,7 +173,7 @@ boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_artic
 		</div>
 
 		<div class="journal-article-general-fields">
-			<aui:input autoFocus="<%= (((article != null) && !article.isNew()) && !JournalWebConfigurationValues.JOURNAL_ARTICLE_FORCE_AUTOGENERATE_ID && windowState.equals(WindowState.MAXIMIZED)) || windowState.equals(LiferayWindowState.POP_UP) %>" ignoreRequestValue="<%= changeStructure %>" name="title" wrapperCssClass="article-content-title">
+			<aui:input autoFocus="<%= (((article != null) && !article.isNew()) && !journalWebConfiguration.journalFeedForceAutogenerateId() && windowState.equals(WindowState.MAXIMIZED)) || windowState.equals(LiferayWindowState.POP_UP) %>" ignoreRequestValue="<%= changeStructure %>" name="title" wrapperCssClass="article-content-title">
 				<c:if test="<%= classNameId == JournalArticleConstants.CLASSNAME_ID_DEFAULT %>">
 					<aui:validator name="required" />
 				</c:if>
@@ -200,6 +188,7 @@ boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_artic
 				classNameId="<%= PortalUtil.getClassNameId(DDMStructure.class) %>"
 				classPK="<%= ddmStructure.getStructureId() %>"
 				ddmFormValues="<%= ddmFormValues %>"
+				ignoreRequestValue="<%= changeStructure %>"
 				requestedLocale="<%= LocaleUtil.fromLanguageId(defaultLanguageId) %>"
 			/>
 

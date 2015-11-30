@@ -15,9 +15,10 @@
 package com.liferay.control.menu.util;
 
 import com.liferay.control.menu.ControlMenuCategory;
-import com.liferay.osgi.service.tracker.map.PropertyServiceReferenceComparator;
-import com.liferay.osgi.service.tracker.map.ServiceTrackerMap;
-import com.liferay.osgi.service.tracker.map.ServiceTrackerMapFactory;
+import com.liferay.control.menu.ControlMenuEntry;
+import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReferenceComparator;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -36,6 +37,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Julio Camarero
@@ -72,9 +74,21 @@ public class ControlMenuCategoryRegistry {
 			new PredicateFilter<ControlMenuCategory>() {
 
 				@Override
-				public boolean filter(ControlMenuCategory ControlMenuCategory) {
+				public boolean filter(ControlMenuCategory controlMenuCategory) {
 					try {
-						return ControlMenuCategory.hasAccessPermission(request);
+						if (!controlMenuCategory.hasAccessPermission(request)) {
+							return false;
+						}
+
+						List<ControlMenuEntry> controlMenuEntries =
+							_controlMenuEntryRegistry.getControlMenuEntries(
+								controlMenuCategory, request);
+
+						if (controlMenuEntries.isEmpty()) {
+							return false;
+						}
+
+						return true;
 					}
 					catch (PortalException pe) {
 						_log.error(pe, pe);
@@ -91,13 +105,11 @@ public class ControlMenuCategoryRegistry {
 		throws InvalidSyntaxException {
 
 		_controlMenuCategoryServiceTrackerMap =
-			ServiceTrackerMapFactory.multiValueMap(
+			ServiceTrackerMapFactory.openMultiValueMap(
 				bundleContext, ControlMenuCategory.class,
 				"(control.menu.category.key=*)",
 				new ControlMenuCategoryServiceReferenceMapper(),
 				new ServiceRankingPropertyServiceReferenceComparator());
-
-		_controlMenuCategoryServiceTrackerMap.open();
 	}
 
 	@Deactivate
@@ -105,11 +117,19 @@ public class ControlMenuCategoryRegistry {
 		_controlMenuCategoryServiceTrackerMap.close();
 	}
 
+	@Reference(unbind = "-")
+	protected void setControlMenuEntryRegistry(
+		ControlMenuEntryRegistry controlMenuEntryRegistry) {
+
+		_controlMenuEntryRegistry = controlMenuEntryRegistry;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		ControlMenuCategoryRegistry.class);
 
 	private ServiceTrackerMap<String, List<ControlMenuCategory>>
 		_controlMenuCategoryServiceTrackerMap;
+	private volatile ControlMenuEntryRegistry _controlMenuEntryRegistry;
 
 	private static class ServiceRankingPropertyServiceReferenceComparator
 		extends PropertyServiceReferenceComparator<ControlMenuCategory> {

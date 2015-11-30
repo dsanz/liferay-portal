@@ -23,11 +23,11 @@ import com.liferay.dynamic.data.mapping.service.DDMTemplateService;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortletURLImpl;
 
 import java.util.Locale;
@@ -111,6 +111,8 @@ public class CopyStructureMVCActionCommand extends DDMBaseMVCActionCommand {
 
 		DDMStructure structure = copyStructure(actionRequest);
 
+		addSuccessMessage(actionRequest, actionResponse);
+
 		setRedirectAttribute(actionRequest, structure);
 	}
 
@@ -147,21 +149,21 @@ public class CopyStructureMVCActionCommand extends DDMBaseMVCActionCommand {
 		return portletURL.toString();
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMStructureService(
 		DDMStructureService ddmStructureService) {
 
 		_ddmStructureService = ddmStructureService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMTemplateService(
 		DDMTemplateService ddmTemplateService) {
 
 		_ddmTemplateService = ddmTemplateService;
 	}
 
-	private DDMStructureService _ddmStructureService;
-	private DDMTemplateService _ddmTemplateService;
+	private volatile DDMStructureService _ddmStructureService;
+	private volatile DDMTemplateService _ddmTemplateService;
 
 }

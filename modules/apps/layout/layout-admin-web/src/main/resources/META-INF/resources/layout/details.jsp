@@ -32,8 +32,6 @@ String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
 
 <aui:model-context bean="<%= selLayout %>" model="<%= Layout.class %>" />
 
-<h3><liferay-ui:message key="details" /></h3>
-
 <%
 StringBuilder friendlyURLBase = new StringBuilder();
 %>

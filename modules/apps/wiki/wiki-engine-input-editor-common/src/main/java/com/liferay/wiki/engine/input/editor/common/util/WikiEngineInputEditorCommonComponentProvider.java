@@ -48,7 +48,8 @@ public class WikiEngineInputEditorCommonComponentProvider {
 	}
 
 	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.wiki.engine.input.editor.common)"
+		target = "(osgi.web.symbolicname=com.liferay.wiki.engine.input.editor.common)",
+		unbind = "-"
 	)
 	protected void setServletContext(ServletContext servletContext) {
 		_servletContext = servletContext;
@@ -57,6 +58,6 @@ public class WikiEngineInputEditorCommonComponentProvider {
 	private static WikiEngineInputEditorCommonComponentProvider
 		_wikiEngineInputEditorCommonComponentProvider;
 
-	private ServletContext _servletContext;
+	private volatile ServletContext _servletContext;
 
 }

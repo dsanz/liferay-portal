@@ -199,14 +199,19 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 		return _virtualHostLocalService.getActionableDynamicQuery();
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _virtualHostLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _virtualHostLocalService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _virtualHostLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -269,16 +274,6 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	@Override
 	public int getVirtualHostsCount() {
 		return _virtualHostLocalService.getVirtualHostsCount();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_virtualHostLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	@Override

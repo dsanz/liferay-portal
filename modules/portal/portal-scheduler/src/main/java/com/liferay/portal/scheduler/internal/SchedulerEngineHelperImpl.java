@@ -22,12 +22,14 @@ import com.liferay.portal.kernel.cal.Recurrence;
 import com.liferay.portal.kernel.cal.RecurrenceSerializer;
 import com.liferay.portal.kernel.cluster.ClusterLink;
 import com.liferay.portal.kernel.cluster.ClusterMasterExecutor;
+import com.liferay.portal.kernel.cluster.ClusterableProxyFactory;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageListener;
+import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
 import com.liferay.portal.kernel.scheduler.JobState;
 import com.liferay.portal.kernel.scheduler.SchedulerEngine;
 import com.liferay.portal.kernel.scheduler.SchedulerEngineHelper;
@@ -51,6 +53,7 @@ import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.CompanyConstants;
+import com.liferay.portal.scheduler.internal.messaging.config.SchedulerProxyMessagingConfigurator;
 import com.liferay.portal.util.PortalUtil;
 
 import java.util.ArrayList;
@@ -566,8 +569,9 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 	}
 
 	@Override
-	public String register(
-		MessageListener messageListener, SchedulerEntry schedulerEntry) {
+	public void register(
+		MessageListener messageListener, SchedulerEntry schedulerEntry,
+		String destinationName) {
 
 		SchedulerEventMessageListenerWrapper
 			schedulerEventMessageListenerWrapper =
@@ -580,7 +584,7 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 
 		Dictionary<String, Object> properties = new HashMapDictionary<>();
 
-		properties.put("destination.name", DestinationNames.SCHEDULER_DISPATCH);
+		properties.put("destination.name", destinationName);
 
 		ServiceRegistration<SchedulerEventMessageListener> serviceRegistration =
 			_bundleContext.registerService(
@@ -590,8 +594,6 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 		synchronized (_serviceRegistrations) {
 			_serviceRegistrations.put(messageListener, serviceRegistration);
 		}
-
-		return schedulerEventMessageListenerWrapper.getMessageListenerUUID();
 	}
 
 	@Override
@@ -752,7 +754,12 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 			clusterSchedulerEngine.setProps(_props);
 			clusterSchedulerEngine.setSchedulerEngineHelper(this);
 
-			_schedulerEngine = clusterSchedulerEngine;
+			_serviceRegistration = _bundleContext.registerService(
+				IdentifiableOSGiService.class, clusterSchedulerEngine,
+				new HashMapDictionary<String, Object>());
+
+			_schedulerEngine = ClusterableProxyFactory.createClusterableProxy(
+				clusterSchedulerEngine);
 		}
 
 		if (GetterUtil.getBoolean(_props.get(PropsKeys.SCHEDULER_ENABLED))) {
@@ -782,6 +789,10 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 			_serviceTracker.close();
 
 			_serviceTracker = null;
+		}
+
+		if (_serviceRegistration != null) {
+			_serviceRegistration.unregister();
 		}
 
 		try {
@@ -842,6 +853,12 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 		_schedulerEngine = schedulerEngine;
 	}
 
+	@Reference(unbind = "-")
+	protected void setSchedulerProxyMessagingConfigurator(
+		SchedulerProxyMessagingConfigurator
+			schedulerProxyMessagingConfigurator) {
+	}
+
 	protected void unsetAuditRouter(AuditRouter auditRouter) {
 		_auditRouter = null;
 	}
@@ -852,13 +869,14 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 	private boolean _auditMessageSchedulerJob;
 	private volatile AuditRouter _auditRouter;
 	private volatile BundleContext _bundleContext;
-	private ClusterLink _clusterLink;
-	private ClusterMasterExecutor _clusterMasterExecutor;
-	private JSONFactory _jsonFactory;
+	private volatile ClusterLink _clusterLink;
+	private volatile ClusterMasterExecutor _clusterMasterExecutor;
+	private volatile JSONFactory _jsonFactory;
 	private final Map<String, ServiceRegistration<MessageListener>>
 		_messageListenerServiceRegistrations = new HashMap<>();
-	private Props _props;
-	private SchedulerEngine _schedulerEngine;
+	private volatile Props _props;
+	private volatile SchedulerEngine _schedulerEngine;
+	private ServiceRegistration<IdentifiableOSGiService> _serviceRegistration;
 	private final Map
 		<MessageListener, ServiceRegistration<SchedulerEventMessageListener>>
 			_serviceRegistrations = new HashMap<>();
@@ -904,17 +922,12 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 				destinationName = DestinationNames.SCHEDULER_DISPATCH;
 			}
 
+			SchedulerClusterInvokingThreadLocal.setEnabled(false);
+
 			try {
-				Message message = new Message();
-
-				message.put(
-					SchedulerEngine.MESSAGE_LISTENER_UUID,
-					schedulerEventMessageListener.getMessageListenerUUID());
-
 				schedule(
 					schedulerEntry.getTrigger(), storageType,
-					schedulerEntry.getDescription(),
-					DestinationNames.SCHEDULER_DISPATCH, message, 0);
+					schedulerEntry.getDescription(), destinationName, null, 0);
 
 				Dictionary<String, Object> properties =
 					new HashMapDictionary<>();
@@ -934,6 +947,9 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 			}
 			catch (SchedulerException se) {
 				_log.error(se, se);
+			}
+			finally {
+				SchedulerClusterInvokingThreadLocal.setEnabled(true);
 			}
 
 			return null;
@@ -972,11 +988,16 @@ public class SchedulerEngineHelperImpl implements SchedulerEngineHelper {
 				storageType = storageTypeAware.getStorageType();
 			}
 
+			SchedulerClusterInvokingThreadLocal.setEnabled(false);
+
 			try {
 				unschedule(schedulerEntry, storageType);
 			}
 			catch (SchedulerException se) {
 				_log.error(se, se);
+			}
+			finally {
+				SchedulerClusterInvokingThreadLocal.setEnabled(true);
 			}
 
 			ServiceRegistration<MessageListener>

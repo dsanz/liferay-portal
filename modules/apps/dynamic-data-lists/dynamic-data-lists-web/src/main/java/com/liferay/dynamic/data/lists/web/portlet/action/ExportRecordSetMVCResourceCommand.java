@@ -25,10 +25,10 @@ import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.WebKeys;
 
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
@@ -91,7 +91,7 @@ public class ExportRecordSetMVCResourceCommand extends BaseMVCResourceCommand {
 			request, response, fileName, bytes, contentType);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDLExporterFactory(
 		DDLExporterFactory ddlExporterFactory) {
 
@@ -105,7 +105,7 @@ public class ExportRecordSetMVCResourceCommand extends BaseMVCResourceCommand {
 		_ddlRecordSetService = ddlRecordSetService;
 	}
 
-	private DDLExporterFactory _ddlExporterFactory;
-	private DDLRecordSetService _ddlRecordSetService;
+	private volatile DDLExporterFactory _ddlExporterFactory;
+	private volatile DDLRecordSetService _ddlRecordSetService;
 
 }

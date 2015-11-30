@@ -18,6 +18,8 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.mail.Account;
 import com.liferay.portal.kernel.messaging.BaseSchedulerEntryMessageListener;
+import com.liferay.portal.kernel.messaging.Destination;
+import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.pop.MessageListener;
 import com.liferay.portal.kernel.pop.MessageListenerException;
@@ -71,7 +73,8 @@ public class POPNotificationsMessageListener
 					getEventListenerClass(), getEventListenerClass(), 1,
 					TimeUnit.MINUTE));
 
-			_schedulerEngineHelper.register(this, schedulerEntryImpl);
+			_schedulerEngineHelper.register(
+				this, schedulerEntryImpl, DestinationNames.SCHEDULER_DISPATCH);
 		}
 	}
 
@@ -237,6 +240,13 @@ public class POPNotificationsMessageListener
 		_messageListenerWrappers.remove(messageListener);
 	}
 
+	@Reference(
+		target = "(destination.name=" + DestinationNames.SCHEDULER_DISPATCH + ")",
+		unbind = "-"
+	)
+	protected void setDestination(Destination destination) {
+	}
+
 	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
 	protected void setModuleServiceLifecycle(
 		ModuleServiceLifecycle moduleServiceLifecycle) {
@@ -258,6 +268,6 @@ public class POPNotificationsMessageListener
 
 	private final Map<MessageListener, MessageListenerWrapper>
 		_messageListenerWrappers = new ConcurrentHashMap<>();
-	private SchedulerEngineHelper _schedulerEngineHelper;
+	private volatile SchedulerEngineHelper _schedulerEngineHelper;
 
 }

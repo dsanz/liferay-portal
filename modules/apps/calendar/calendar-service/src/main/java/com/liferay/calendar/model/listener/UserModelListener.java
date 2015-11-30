@@ -59,13 +59,13 @@ public class UserModelListener extends BaseModelListener<User> {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setCalendarResourceLocalService(
 		CalendarResourceLocalService calendarResourceLocalService) {
 
 		_calendarResourceLocalService = calendarResourceLocalService;
 	}
 
-	private CalendarResourceLocalService _calendarResourceLocalService;
+	private volatile CalendarResourceLocalService _calendarResourceLocalService;
 
 }

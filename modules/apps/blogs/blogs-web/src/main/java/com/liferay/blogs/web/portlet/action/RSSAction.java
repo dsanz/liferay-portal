@@ -22,11 +22,11 @@ import com.liferay.portal.kernel.struts.StrutsAction;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.RSSUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.struts.BaseRSSStrutsAction;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.blogs.constants.BlogsConstants;
 import com.liferay.portlet.blogs.service.BlogsEntryService;
 
@@ -135,14 +135,14 @@ public class RSSAction extends BaseRSSStrutsAction {
 		_blogsEntryService = blogsEntryService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setConfigurationFactory(
 		ConfigurationFactory configurationFactory) {
 
 		_configurationFactory = configurationFactory;
 	}
 
-	private BlogsEntryService _blogsEntryService;
-	private ConfigurationFactory _configurationFactory;
+	private volatile BlogsEntryService _blogsEntryService;
+	private volatile ConfigurationFactory _configurationFactory;
 
 }

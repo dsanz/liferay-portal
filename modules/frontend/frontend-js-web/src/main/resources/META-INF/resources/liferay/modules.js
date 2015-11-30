@@ -55,57 +55,6 @@
 				combine: COMBINE,
 				filter: filterConfig,
 				modules: {
-					'liferay-alloy-editor': {
-						path: 'alloyeditor.js',
-						requires: [
-							'alloy-editor',
-							'aui-component',
-							'liferay-portlet-base'
-						]
-					},
-					'liferay-alloy-editor-source': {
-						path: 'alloyeditor_source.js',
-						requires: [
-							'liferay-fullscreen-source-editor',
-							'liferay-source-editor'
-						]
-					},
-					'liferay-app-view-move': {
-						path: 'app_view_move.js',
-						plugins: {
-							'liferay-app-view-move-touch': {
-								condition: {
-									name: 'liferay-app-view-move-touch',
-									trigger: 'liferay-app-view-move',
-									ua: 'touch'
-								}
-							}
-						},
-						requires: [
-							'aui-base',
-							'dd-constrain',
-							'dd-delegate',
-							'dd-drag',
-							'dd-drop',
-							'dd-proxy',
-							'liferay-history-manager',
-							'liferay-portlet-base'
-						]
-					},
-					'liferay-app-view-move-touch': {
-						path: 'app_view_move_touch.js',
-						requires: [
-							'aui-base'
-						]
-					},
-					'liferay-app-view-select': {
-						path: 'app_view_select.js',
-						requires: [
-							'liferay-app-view-move',
-							'liferay-history-manager',
-							'liferay-portlet-base'
-						]
-					},
 					'liferay-asset-addon-entry-selector': {
 						path: 'asset_addon_entry_selector.js',
 						requires: [
@@ -405,20 +354,20 @@
 							'sortable'
 						]
 					},
-					'liferay-item-selector-browser': {
-						path: 'item_selector_browser.js',
+					'liferay-item-selector-dialog': {
+						path: 'item_selector_dialog.js',
+						requires: [
+							'aui-component'
+						]
+					},
+					'liferay-item-selector-repository-entry-browser': {
+						path: 'item_selector_repository_entry_browser.js',
 						requires: [
 							'liferay-item-selector-uploader',
 							'liferay-item-viewer',
 							'liferay-notice',
 							'liferay-portlet-base',
 							'liferay-storage-formatter'
-						]
-					},
-					'liferay-item-selector-dialog': {
-						path: 'item_selector_dialog.js',
-						requires: [
-							'aui-component'
 						]
 					},
 					'liferay-item-selector-uploader': {
@@ -531,6 +480,7 @@
 					'liferay-management-bar': {
 						path: 'management_bar.js',
 						requires: [
+							'aui-component',
 							'liferay-portlet-base'
 						]
 					},
@@ -614,6 +564,8 @@
 							}
 						},
 						requires: [
+							'aui-base',
+							'aui-component',
 							'event-mouseenter',
 							'node-focusmanager',
 							'plugin'
@@ -727,8 +679,26 @@
 						path: 'search_container.js',
 						requires: [
 							'aui-base',
-							'aui-datatable-core',
-							'event-mouseenter'
+							'aui-datatable-core'
+						]
+					},
+					'liferay-search-container-move': {
+						path: 'search_container_move.js',
+						requires: [
+							'aui-component',
+							'dd-constrain',
+							'dd-delegate',
+							'dd-drag',
+							'dd-drop',
+							'dd-proxy',
+							'plugin'
+						]
+					},
+					'liferay-search-container-select': {
+						path: 'search_container_select.js',
+						requires: [
+							'aui-component',
+							'plugin'
 						]
 					},
 					'liferay-search-filter': {

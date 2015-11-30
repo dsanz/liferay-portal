@@ -80,7 +80,7 @@ public class MediaWikiEngine extends BaseInputEditorWikiEngine {
 
 	@Override
 	public String getHelpURL() {
-		return "http://www.mediawiki.org/wiki/Help:Formatting";
+		return "http://jamwiki.org/wiki/en/Help:Formatting";
 	}
 
 	@Override
@@ -268,7 +268,8 @@ public class MediaWikiEngine extends BaseInputEditorWikiEngine {
 	}
 
 	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.wiki.engine.mediawiki)"
+		target = "(osgi.web.symbolicname=com.liferay.wiki.engine.mediawiki)",
+		unbind = "-"
 	)
 	protected void setServletContext(ServletContext servletContext) {
 		_servletContext = servletContext;
@@ -294,8 +295,9 @@ public class MediaWikiEngine extends BaseInputEditorWikiEngine {
 		_wikiGroupServiceConfiguration = null;
 	}
 
-	private ServletContext _servletContext;
-	private WikiGroupServiceConfiguration _wikiGroupServiceConfiguration;
-	private WikiPageLocalService _wikiPageLocalService;
+	private volatile ServletContext _servletContext;
+	private volatile WikiGroupServiceConfiguration
+		_wikiGroupServiceConfiguration;
+	private volatile WikiPageLocalService _wikiPageLocalService;
 
 }

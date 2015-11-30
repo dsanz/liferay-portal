@@ -43,6 +43,7 @@ import com.liferay.portal.kernel.transaction.TransactionAttribute;
 import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -181,8 +182,7 @@ public class SiteAdminPortlet extends MVCPortlet {
 			deleteGroupIds = new long[] {groupId};
 		}
 		else {
-			deleteGroupIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "deleteGroupIds"), 0L);
+			deleteGroupIds = ParamUtil.getLongValues(actionRequest, "rowIds");
 		}
 
 		for (long deleteGroupId : deleteGroupIds) {
@@ -203,13 +203,6 @@ public class SiteAdminPortlet extends MVCPortlet {
 
 		long liveGroupId = ParamUtil.getLong(actionRequest, "liveGroupId");
 
-		PortletURL siteAdministrationURL = PortalUtil.getControlPanelPortletURL(
-			actionRequest, group, SiteAdminPortletKeys.SITE_SETTINGS, 0,
-			PortletRequest.RENDER_PHASE);
-
-		siteAdministrationURL.setParameter(
-			"redirect", siteAdministrationURL.toString());
-
 		if (liveGroupId <= 0) {
 			hideDefaultSuccessMessage(actionRequest);
 
@@ -217,6 +210,15 @@ public class SiteAdminPortlet extends MVCPortlet {
 				actionRequest,
 				SiteAdminPortletKeys.SITE_SETTINGS + "requestProcessed");
 		}
+
+		PortletURL siteAdministrationURL = PortalUtil.getControlPanelPortletURL(
+			actionRequest, group, SiteAdminPortletKeys.SITE_SETTINGS, 0, 0,
+			PortletRequest.RENDER_PHASE);
+
+		siteAdministrationURL.setParameter(
+			"historyKey", getHistoryKey(actionRequest, actionResponse));
+		siteAdministrationURL.setParameter(
+			"redirect", siteAdministrationURL.toString());
 
 		actionRequest.setAttribute(
 			WebKeys.REDIRECT, siteAdministrationURL.toString());
@@ -333,6 +335,15 @@ public class SiteAdminPortlet extends MVCPortlet {
 
 		return ArrayUtil.toArray(
 			filteredUserIds.toArray(new Long[filteredUserIds.size()]));
+	}
+
+	protected String getHistoryKey(
+		ActionRequest actionRequest, ActionResponse actionResponse) {
+
+		String redirect = ParamUtil.getString(actionRequest, "redirect");
+
+		return HttpUtil.getParameter(
+			redirect, actionResponse.getNamespace() + "historyKey", false);
 	}
 
 	protected Group getLiveGroup(PortletRequest portletRequest)
@@ -894,8 +905,8 @@ public class SiteAdminPortlet extends MVCPortlet {
 		TransactionAttribute.Factory.create(
 			Propagation.REQUIRED, new Class<?>[] {Exception.class});
 
-	private PanelAppRegistry _panelAppRegistry;
-	private PanelCategoryRegistry _panelCategoryRegistry;
+	private volatile PanelAppRegistry _panelAppRegistry;
+	private volatile PanelCategoryRegistry _panelCategoryRegistry;
 
 	private class GroupCallable implements Callable<Group> {
 

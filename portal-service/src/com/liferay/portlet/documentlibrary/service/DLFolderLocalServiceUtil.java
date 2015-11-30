@@ -326,15 +326,6 @@ public class DLFolderLocalServiceUtil {
 		return getService().getActionableDynamicQuery();
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
 	public static java.util.List<com.liferay.portlet.documentlibrary.model.DLFolder> getCompanyFolders(
 		long companyId, int start, int end) {
 		return getService().getCompanyFolders(companyId, start, end);
@@ -668,6 +659,10 @@ public class DLFolderLocalServiceUtil {
 		getService().getGroupSubfolderIds(folderIds, groupId, folderId);
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return getService().getIndexableActionableDynamicQuery();
+	}
+
 	public static com.liferay.portlet.documentlibrary.model.DLFolder getMountFolder(
 		long repositoryId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -687,6 +682,15 @@ public class DLFolderLocalServiceUtil {
 
 	public static java.util.List<com.liferay.portlet.documentlibrary.model.DLFolder> getNoAssetFolders() {
 		return getService().getNoAssetFolders();
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
 	}
 
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
@@ -738,6 +742,11 @@ public class DLFolderLocalServiceUtil {
 		return getService().hasFolderLock(userId, folderId);
 	}
 
+	public static boolean hasInheritableLock(long folderId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().hasInheritableLock(folderId);
+	}
+
 	public static com.liferay.portal.kernel.lock.Lock lockFolder(long userId,
 		long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -771,15 +780,6 @@ public class DLFolderLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 		getService()
 			.rebuildTree(companyId, parentFolderId, parentTreePath, reindex);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
 	}
 
 	public static void setDLFileEntryTypeDLFolders(long fileEntryTypeId,
@@ -914,6 +914,12 @@ public class DLFolderLocalServiceUtil {
 		return getService()
 				   .updateStatus(userId, folderId, status, workflowContext,
 			serviceContext);
+	}
+
+	public static boolean verifyInheritableLock(long folderId,
+		java.lang.String lockUuid)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().verifyInheritableLock(folderId, lockUuid);
 	}
 
 	public static DLFolderLocalService getService() {

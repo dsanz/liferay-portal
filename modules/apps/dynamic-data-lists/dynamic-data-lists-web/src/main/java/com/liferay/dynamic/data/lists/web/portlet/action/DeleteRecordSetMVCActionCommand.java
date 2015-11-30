@@ -49,13 +49,13 @@ public class DeleteRecordSetMVCActionCommand extends BaseMVCActionCommand {
 		_ddlRecordSetService.deleteRecordSet(recordSetId);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDLRecordSetService(
 		DDLRecordSetService ddlRecordSetService) {
 
 		_ddlRecordSetService = ddlRecordSetService;
 	}
 
-	private DDLRecordSetService _ddlRecordSetService;
+	private volatile DDLRecordSetService _ddlRecordSetService;
 
 }

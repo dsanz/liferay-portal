@@ -17,7 +17,6 @@ package com.liferay.portlet.softwarecatalog.service.base;
 import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.BeanReference;
-import com.liferay.portal.kernel.bean.IdentifiableBean;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
@@ -26,9 +25,11 @@ import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DefaultActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -75,7 +76,7 @@ import javax.sql.DataSource;
 @ProviderType
 public abstract class SCProductEntryLocalServiceBaseImpl
 	extends BaseLocalServiceImpl implements SCProductEntryLocalService,
-		IdentifiableBean {
+		IdentifiableOSGiService {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -239,19 +240,33 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 		ActionableDynamicQuery actionableDynamicQuery = new DefaultActionableDynamicQuery();
 
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portlet.softwarecatalog.service.SCProductEntryLocalServiceUtil.getService());
-		actionableDynamicQuery.setClass(SCProductEntry.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
+		actionableDynamicQuery.setModelClass(SCProductEntry.class);
 
 		actionableDynamicQuery.setPrimaryKeyPropertyName("productEntryId");
 
 		return actionableDynamicQuery;
 	}
 
+	@Override
+	public IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery = new IndexableActionableDynamicQuery();
+
+		indexableActionableDynamicQuery.setBaseLocalService(com.liferay.portlet.softwarecatalog.service.SCProductEntryLocalServiceUtil.getService());
+		indexableActionableDynamicQuery.setClassLoader(getClassLoader());
+		indexableActionableDynamicQuery.setModelClass(SCProductEntry.class);
+
+		indexableActionableDynamicQuery.setPrimaryKeyPropertyName(
+			"productEntryId");
+
+		return indexableActionableDynamicQuery;
+	}
+
 	protected void initActionableDynamicQuery(
 		ActionableDynamicQuery actionableDynamicQuery) {
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portlet.softwarecatalog.service.SCProductEntryLocalServiceUtil.getService());
-		actionableDynamicQuery.setClass(SCProductEntry.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
+		actionableDynamicQuery.setModelClass(SCProductEntry.class);
 
 		actionableDynamicQuery.setPrimaryKeyPropertyName("productEntryId");
 	}
@@ -465,25 +480,6 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the s c product entry remote service.
-	 *
-	 * @return the s c product entry remote service
-	 */
-	public com.liferay.portlet.softwarecatalog.service.SCProductEntryService getSCProductEntryService() {
-		return scProductEntryService;
-	}
-
-	/**
-	 * Sets the s c product entry remote service.
-	 *
-	 * @param scProductEntryService the s c product entry remote service
-	 */
-	public void setSCProductEntryService(
-		com.liferay.portlet.softwarecatalog.service.SCProductEntryService scProductEntryService) {
-		this.scProductEntryService = scProductEntryService;
-	}
-
-	/**
 	 * Returns the s c product entry persistence.
 	 *
 	 * @return the s c product entry persistence
@@ -541,25 +537,6 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the group remote service.
-	 *
-	 * @return the group remote service
-	 */
-	public com.liferay.portal.service.GroupService getGroupService() {
-		return groupService;
-	}
-
-	/**
-	 * Sets the group remote service.
-	 *
-	 * @param groupService the group remote service
-	 */
-	public void setGroupService(
-		com.liferay.portal.service.GroupService groupService) {
-		this.groupService = groupService;
-	}
-
-	/**
 	 * Returns the group persistence.
 	 *
 	 * @return the group persistence
@@ -612,25 +589,6 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 	public void setImageLocalService(
 		com.liferay.portal.service.ImageLocalService imageLocalService) {
 		this.imageLocalService = imageLocalService;
-	}
-
-	/**
-	 * Returns the image remote service.
-	 *
-	 * @return the image remote service
-	 */
-	public com.liferay.portal.service.ImageService getImageService() {
-		return imageService;
-	}
-
-	/**
-	 * Sets the image remote service.
-	 *
-	 * @param imageService the image remote service
-	 */
-	public void setImageService(
-		com.liferay.portal.service.ImageService imageService) {
-		this.imageService = imageService;
 	}
 
 	/**
@@ -728,25 +686,6 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the user remote service.
-	 *
-	 * @return the user remote service
-	 */
-	public com.liferay.portal.service.UserService getUserService() {
-		return userService;
-	}
-
-	/**
-	 * Sets the user remote service.
-	 *
-	 * @param userService the user remote service
-	 */
-	public void setUserService(
-		com.liferay.portal.service.UserService userService) {
-		this.userService = userService;
-	}
-
-	/**
 	 * Returns the user persistence.
 	 *
 	 * @return the user persistence
@@ -799,25 +738,6 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 	public void setMBMessageLocalService(
 		com.liferay.portlet.messageboards.service.MBMessageLocalService mbMessageLocalService) {
 		this.mbMessageLocalService = mbMessageLocalService;
-	}
-
-	/**
-	 * Returns the message-boards message remote service.
-	 *
-	 * @return the message-boards message remote service
-	 */
-	public com.liferay.portlet.messageboards.service.MBMessageService getMBMessageService() {
-		return mbMessageService;
-	}
-
-	/**
-	 * Sets the message-boards message remote service.
-	 *
-	 * @param mbMessageService the message-boards message remote service
-	 */
-	public void setMBMessageService(
-		com.liferay.portlet.messageboards.service.MBMessageService mbMessageService) {
-		this.mbMessageService = mbMessageService;
 	}
 
 	/**
@@ -933,25 +853,6 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the s c license remote service.
-	 *
-	 * @return the s c license remote service
-	 */
-	public com.liferay.portlet.softwarecatalog.service.SCLicenseService getSCLicenseService() {
-		return scLicenseService;
-	}
-
-	/**
-	 * Sets the s c license remote service.
-	 *
-	 * @param scLicenseService the s c license remote service
-	 */
-	public void setSCLicenseService(
-		com.liferay.portlet.softwarecatalog.service.SCLicenseService scLicenseService) {
-		this.scLicenseService = scLicenseService;
-	}
-
-	/**
 	 * Returns the s c license persistence.
 	 *
 	 * @return the s c license persistence
@@ -1028,25 +929,6 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the s c product version remote service.
-	 *
-	 * @return the s c product version remote service
-	 */
-	public com.liferay.portlet.softwarecatalog.service.SCProductVersionService getSCProductVersionService() {
-		return scProductVersionService;
-	}
-
-	/**
-	 * Sets the s c product version remote service.
-	 *
-	 * @param scProductVersionService the s c product version remote service
-	 */
-	public void setSCProductVersionService(
-		com.liferay.portlet.softwarecatalog.service.SCProductVersionService scProductVersionService) {
-		this.scProductVersionService = scProductVersionService;
-	}
-
-	/**
 	 * Returns the s c product version persistence.
 	 *
 	 * @return the s c product version persistence
@@ -1076,23 +958,13 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the Spring bean ID for this bean.
+	 * Returns the OSGi service identifier.
 	 *
-	 * @return the Spring bean ID for this bean
+	 * @return the OSGi service identifier
 	 */
 	@Override
-	public String getBeanIdentifier() {
-		return _beanIdentifier;
-	}
-
-	/**
-	 * Sets the Spring bean ID for this bean.
-	 *
-	 * @param beanIdentifier the Spring bean ID for this bean
-	 */
-	@Override
-	public void setBeanIdentifier(String beanIdentifier) {
-		_beanIdentifier = beanIdentifier;
+	public String getOSGiServiceIdentifier() {
+		return SCProductEntryLocalService.class.getName();
 	}
 
 	protected Class<?> getModelClass() {
@@ -1129,24 +1001,18 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 
 	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCProductEntryLocalService.class)
 	protected SCProductEntryLocalService scProductEntryLocalService;
-	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCProductEntryService.class)
-	protected com.liferay.portlet.softwarecatalog.service.SCProductEntryService scProductEntryService;
 	@BeanReference(type = SCProductEntryPersistence.class)
 	protected SCProductEntryPersistence scProductEntryPersistence;
 	@BeanReference(type = com.liferay.counter.service.CounterLocalService.class)
 	protected com.liferay.counter.service.CounterLocalService counterLocalService;
 	@BeanReference(type = com.liferay.portal.service.GroupLocalService.class)
 	protected com.liferay.portal.service.GroupLocalService groupLocalService;
-	@BeanReference(type = com.liferay.portal.service.GroupService.class)
-	protected com.liferay.portal.service.GroupService groupService;
 	@BeanReference(type = GroupPersistence.class)
 	protected GroupPersistence groupPersistence;
 	@BeanReference(type = GroupFinder.class)
 	protected GroupFinder groupFinder;
 	@BeanReference(type = com.liferay.portal.service.ImageLocalService.class)
 	protected com.liferay.portal.service.ImageLocalService imageLocalService;
-	@BeanReference(type = com.liferay.portal.service.ImageService.class)
-	protected com.liferay.portal.service.ImageService imageService;
 	@BeanReference(type = ImagePersistence.class)
 	protected ImagePersistence imagePersistence;
 	@BeanReference(type = com.liferay.portal.service.ResourceLocalService.class)
@@ -1157,16 +1023,12 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 	protected SubscriptionPersistence subscriptionPersistence;
 	@BeanReference(type = com.liferay.portal.service.UserLocalService.class)
 	protected com.liferay.portal.service.UserLocalService userLocalService;
-	@BeanReference(type = com.liferay.portal.service.UserService.class)
-	protected com.liferay.portal.service.UserService userService;
 	@BeanReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
 	@BeanReference(type = UserFinder.class)
 	protected UserFinder userFinder;
 	@BeanReference(type = com.liferay.portlet.messageboards.service.MBMessageLocalService.class)
 	protected com.liferay.portlet.messageboards.service.MBMessageLocalService mbMessageLocalService;
-	@BeanReference(type = com.liferay.portlet.messageboards.service.MBMessageService.class)
-	protected com.liferay.portlet.messageboards.service.MBMessageService mbMessageService;
 	@BeanReference(type = MBMessagePersistence.class)
 	protected MBMessagePersistence mbMessagePersistence;
 	@BeanReference(type = MBMessageFinder.class)
@@ -1179,8 +1041,6 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 	protected RatingsStatsFinder ratingsStatsFinder;
 	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCLicenseLocalService.class)
 	protected com.liferay.portlet.softwarecatalog.service.SCLicenseLocalService scLicenseLocalService;
-	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCLicenseService.class)
-	protected com.liferay.portlet.softwarecatalog.service.SCLicenseService scLicenseService;
 	@BeanReference(type = SCLicensePersistence.class)
 	protected SCLicensePersistence scLicensePersistence;
 	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCProductScreenshotLocalService.class)
@@ -1189,11 +1049,8 @@ public abstract class SCProductEntryLocalServiceBaseImpl
 	protected SCProductScreenshotPersistence scProductScreenshotPersistence;
 	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCProductVersionLocalService.class)
 	protected com.liferay.portlet.softwarecatalog.service.SCProductVersionLocalService scProductVersionLocalService;
-	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCProductVersionService.class)
-	protected com.liferay.portlet.softwarecatalog.service.SCProductVersionService scProductVersionService;
 	@BeanReference(type = SCProductVersionPersistence.class)
 	protected SCProductVersionPersistence scProductVersionPersistence;
 	@BeanReference(type = PersistedModelLocalServiceRegistry.class)
 	protected PersistedModelLocalServiceRegistry persistedModelLocalServiceRegistry;
-	private String _beanIdentifier;
 }

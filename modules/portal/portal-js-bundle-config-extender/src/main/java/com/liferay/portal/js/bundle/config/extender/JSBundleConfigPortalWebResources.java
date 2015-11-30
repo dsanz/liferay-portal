@@ -52,22 +52,22 @@ public class JSBundleConfigPortalWebResources {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setBundlerConfigServlet(
 		JSBundleConfigServlet jsLBundleConfigServlet) {
 
 		_jsBundleConfigServlet = jsLBundleConfigServlet;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJSBundleConfigTracker(
 		JSBundleConfigTracker jsBundleConfigTracker) {
 
 		_jsBundleConfigTracker = jsBundleConfigTracker;
 	}
 
-	private JSBundleConfigServlet _jsBundleConfigServlet;
-	private JSBundleConfigTracker _jsBundleConfigTracker;
+	private volatile JSBundleConfigServlet _jsBundleConfigServlet;
+	private volatile JSBundleConfigTracker _jsBundleConfigTracker;
 	private ServiceRegistration<?> _serviceRegistration;
 
 	private class InternalPortalWebResources

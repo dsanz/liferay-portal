@@ -59,7 +59,8 @@ public class SiteAdminControlPanelEntry extends BaseControlPanelEntry {
 			}
 		}
 
-		return false;
+		return super.hasPermissionImplicitlyGranted(
+			permissionChecker, group, portlet);
 	}
 
 	@Reference(unbind = "-")
@@ -67,6 +68,6 @@ public class SiteAdminControlPanelEntry extends BaseControlPanelEntry {
 		_groupLocalService = groupLocalService;
 	}
 
-	private GroupLocalService _groupLocalService;
+	private volatile GroupLocalService _groupLocalService;
 
 }

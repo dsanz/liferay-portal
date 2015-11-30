@@ -16,12 +16,12 @@ package com.liferay.dynamic.data.mapping.validator;
 
 import static org.mockito.Mockito.when;
 
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTrackerUtil;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldType;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
-import com.liferay.dynamic.data.mapping.registry.DDMFormFieldTypeServicesTrackerUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.dynamic.data.mapping.validator.internal.DDMFormValidatorImpl;
 import com.liferay.portal.bean.BeanPropertiesImpl;
@@ -48,7 +48,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest(DDMFormFieldTypeServicesTrackerUtil.class)
 @RunWith(PowerMockRunner.class)
 @SuppressStaticInitializationFor(
-	"com.liferay.dynamic.data.mapping.registry.DDMFormFieldTypeServicesTrackerUtil"
+	"com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTrackerUtil"
 )
 public class DDMFormValidatorTest {
 
@@ -146,6 +146,18 @@ public class DDMFormValidatorTest {
 	}
 
 	@Test(expected = DDMFormValidationException.class)
+	public void testInvalidFieldType() throws Exception {
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm(
+			createAvailableLocales(LocaleUtil.US), LocaleUtil.US);
+
+		DDMFormField ddmFormField = new DDMFormField("Name", "html-text_*");
+
+		ddmForm.addDDMFormField(ddmFormField);
+
+		_ddmFormValidator.validate(ddmForm);
+	}
+
+	@Test(expected = DDMFormValidationException.class)
 	public void testNoOptionsSetForFieldOptions() throws Exception {
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm(
 			createAvailableLocales(LocaleUtil.US), LocaleUtil.US);
@@ -178,25 +190,12 @@ public class DDMFormValidatorTest {
 	}
 
 	@Test
-	public void testRegisteredTextFieldType() throws Exception {
+	public void testValidFieldName() throws Exception {
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm(
 			createAvailableLocales(LocaleUtil.US), LocaleUtil.US);
 
 		DDMFormField ddmFormField = new DDMFormField(
-			"Text", DDMFormFieldType.TEXT);
-
-		ddmForm.addDDMFormField(ddmFormField);
-
-		_ddmFormValidator.validate(ddmForm);
-	}
-
-	@Test(expected = DDMFormValidationException.class)
-	public void testUnregisteredFieldType() throws Exception {
-		DDMForm ddmForm = DDMFormTestUtil.createDDMForm(
-			createAvailableLocales(LocaleUtil.US), LocaleUtil.US);
-
-		DDMFormField ddmFormField = new DDMFormField(
-			"Name", "Unregistered Type");
+			"valid_name", DDMFormFieldType.TEXT);
 
 		ddmForm.addDDMFormField(ddmFormField);
 
@@ -204,12 +203,11 @@ public class DDMFormValidatorTest {
 	}
 
 	@Test
-	public void testValidFieldName() throws Exception {
+	public void testValidFieldType() throws Exception {
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm(
 			createAvailableLocales(LocaleUtil.US), LocaleUtil.US);
 
-		DDMFormField ddmFormField = new DDMFormField(
-			"valid_name", DDMFormFieldType.TEXT);
+		DDMFormField ddmFormField = new DDMFormField("Name", "html-text_1");
 
 		ddmForm.addDDMFormField(ddmFormField);
 

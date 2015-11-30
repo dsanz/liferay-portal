@@ -41,16 +41,15 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.permission.PortletPermissionUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortletURLUtil;
 import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
 import com.liferay.portlet.trash.model.TrashEntry;
@@ -259,11 +258,18 @@ public class TrashImpl implements Trash {
 
 					entry = new TrashEntryImpl();
 
-					entry.setClassName(entryClassName);
-					entry.setClassPK(classPK);
-
 					entry.setUserName(userName);
 					entry.setCreateDate(removedDate);
+
+					TrashHandler trashHandler =
+						TrashHandlerRegistryUtil.getTrashHandler(
+							entryClassName);
+
+					TrashRenderer trashRenderer = trashHandler.getTrashRenderer(
+						classPK);
+
+					entry.setClassName(trashRenderer.getClassName());
+					entry.setClassPK(trashRenderer.getClassPK());
 
 					String rootEntryClassName = GetterUtil.getString(
 						document.get(Field.ROOT_ENTRY_CLASS_NAME));
@@ -455,11 +461,8 @@ public class TrashImpl implements Trash {
 			return null;
 		}
 
-		Layout layout = themeDisplay.getLayout();
-
 		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
-			request, portletId, layout.getLayoutId(),
-			PortletRequest.RENDER_PHASE);
+			request, portletId, PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter("mvcPath", "/view_content.jsp");
 		portletURL.setParameter("redirect", themeDisplay.getURLCurrent());
@@ -500,11 +503,8 @@ public class TrashImpl implements Trash {
 			return null;
 		}
 
-		Layout layout = themeDisplay.getLayout();
-
 		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
-			request, portletId, layout.getLayoutId(),
-			PortletRequest.RENDER_PHASE);
+			request, portletId, PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter("redirect", themeDisplay.getURLCurrent());
 

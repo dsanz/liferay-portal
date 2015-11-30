@@ -259,26 +259,6 @@
 		<execute function="SelectFrame" value1="relative=top" />
 	</command>
 
-	<command name="configureKBArticlePG">
-		<execute function="AssertClick" locator1="Message#INFO" value1="Please configure this portlet to make it visible to all users." />
-
-		<execute function="SelectFrame" locator1="PGKnowledgebasearticleConfiguration#CONFIGURATION_IFRAME" />
-		<execute function="AssertClick" locator1="PGKnowledgebasearticleConfiguration#SELECT_BUTTON" value1="Select" />
-
-		<execute function="SelectWindow" locator1="title=Knowledge Base Article" />
-
-		<var name="key_kbArticleTitle" value="${kbArticleTitle}" />
-
-		<execute function="AssertClick" locator1="KnowledgeBaseSelectParent#CHOOSE_BUTTON" value1="Choose" />
-		<execute function="Pause" locator1="5000" />
-
-		<execute function="SelectWindow" locator1="title=${pageName} - Liferay" />
-		<execute function="SelectFrame" value1="relative=top" />
-		<execute function="SelectFrame" locator1="PGKnowledgebasearticleConfiguration#CONFIGURATION_IFRAME" />
-		<execute function="AssertClick" locator1="PGKnowledgebasearticleConfiguration#SAVE_BUTTON" value1="Save" />
-		<execute function="AssertTextEquals" locator1="PGKnowledgebasearticleConfiguration#SUCCESS_MESSAGE" value1="You have successfully updated the setup." />
-	</command>
-
 	<command name="configureKBDisplaySettingsPG">
 		<execute macro="Portlet#gotoPortletOptions">
 			<var name="portletNameBorderless" value="${portletNameBorderless}" />
@@ -585,10 +565,12 @@
 	<command name="gotoPGViaKBSearchResult">
 		<var name="key_kbArticleTitle" value="${kbArticleTitle}" />
 
-		<execute function="AssertClick" locator1="KnowledgeBase#ARTICLE_TABLE_ARTICLE_TITLE" value1="${kbArticleTitle}" />
+		<execute function="AssertClick" locator1="KnowledgeBase#KB_SEARCH_RESULTS_TITLE" value1="${kbArticleTitle}" />
 	</command>
 
 	<command name="gotoPGViaKBSection">
+		<var name="key_kbArticleTitle" value="${kbArticleTitle}" />
+
 		<execute function="AssertClick" locator1="KnowledgeBaseSection#KB_ARTICLE_LINK" value1="${kbArticleTitle}" />
 	</command>
 
@@ -640,6 +622,8 @@
 		<var name="key_kbArticleTitle" value="${kbArticleTitle}" />
 
 		<execute function="AssertClick" locator1="KnowledgeBase#HIERARCHY_NAVIGATION_PARENT" value1="${kbArticleTitle}" />
+
+		<execute function="Pause" locator1="5000" />
 	</command>
 
 	<command name="importCP">
@@ -738,9 +722,11 @@
 
 	<command name="removeParentArticleCP">
 		<execute function="SelectFrame" locator1="KnowledgeBaseSelectParent#IFRAME" />
+
 		<execute function="Click" locator1="KnowledgeBaseSelectParent#REMOVE_BUTTON" />
 
-		<execute function="AssertTextEquals" locator1="KnowledgeBase#MOVE_NEW_PARENT_TITLE_FIELD" value1="" />
+		<execute function="SelectFrame" value1="relative=top" />
+
 		<execute function="Click" locator1="Button#MOVE" />
 
 		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
@@ -817,21 +803,27 @@
 	</command>
 
 	<command name="selectPGViaKBArticle">
-		<execute function="AssertClick" locator1="Message#INFO" value1="Please configure this portlet to make it visible to all users." />
+		<execute macro="Portlet#gotoPortletOptions">
+			<var name="portletNameBorderless" value="${portletNameBorderless}" />
+			<var name="portletOption" value="Configuration" />
+		</execute>
 
 		<execute function="SelectFrame" locator1="Configuration#CONFIGURATION_IFRAME" />
+
 		<execute function="AssertClick" locator1="Button#SELECT" value1="Select" />
 
-		<execute function="SelectWindow" locator1="title=Knowledge Base Article" />
+		<execute function="SelectFrame" value1="relative=top" />
+
+		<execute function="SelectFrame" locator1="KnowledgeBaseSelectParent#SELECT_PARENT_DISPLAY_IFRAME" />
 
 		<var name="key_kbArticleTitle" value="${kbArticleTitle}" />
 
-		<execute function="AssertClickNoError" locator1="KnowledgeBaseSelectParent#CHOOSE_BUTTON" value1="Choose" />
-
-		<execute function="SelectWindow" locator1="title=${pageName} - Liferay" />
+		<execute function="AssertClick" locator1="KnowledgeBaseSelectParent#CHOOSE_BUTTON" value1="Choose" />
 
 		<execute function="SelectFrame" locator1="Configuration#CONFIGURATION_IFRAME" />
+
 		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
+
 		<execute function="SelectFrame" value1="relative=top" />
 	</command>
 
@@ -1406,12 +1398,12 @@
 	</command>
 
 	<command name="viewPGViaKBArticle">
-		<execute function="AssertTextEquals" locator1="PGKnowledgebasearticle#ARTICLE_TITLE" value1="${kbArticleTitle}" />
+		<execute function="AssertTextEquals#assertPartialText" locator1="PGKnowledgebasearticle#ARTICLE_TITLE" value1="${kbArticleTitle}" />
 		<execute function="AssertTextEquals" locator1="PGKnowledgebasearticle#ARTICLE_CONTENT" value1="${kbArticleContent}" />
 	</command>
 
 	<command name="viewPGViaKBDisplay">
-		<execute function="AssertTextEquals" locator1="KnowledgeBase#DISPLAY_TITLE" value1="${kbArticleTitle}" />
+		<execute function="AssertTextEquals#assertPartialText" locator1="KnowledgeBase#DISPLAY_TITLE" value1="${kbArticleTitle}" />
 		<execute function="AssertTextEquals" locator1="KnowledgeBase#DISPLAY_CONTENT" value1="${kbArticleContent}" />
 	</command>
 
@@ -1421,8 +1413,8 @@
 	</command>
 
 	<command name="viewPGViaKBSection">
-		<execute function="AssertTextEquals" locator1="PGKnowledgebasesectionArticle#ARTICLE_TITLE" value1="${kbArticleTitle}" />
-		<execute function="AssertTextEquals" locator1="PGKnowledgebasesectionArticle#ARTICLE_CONTENT" value1="${kbArticleContent}" />
+		<execute function="AssertTextEquals" locator1="KnowledgeBaseArticle#TITLE" value1="${kbArticleTitle}" />
+		<execute function="AssertTextEquals" locator1="KnowledgeBaseArticle#CONTENT" value1="${kbArticleContent}" />
 	</command>
 
 	<command name="viewRelatedAssetCP">
@@ -1442,7 +1434,7 @@
 		<for list="${kbArticleTitleList}" param="kbArticleTitle">
 			<var name="key_kbArticleTitle" value="${kbArticleTitle}" />
 
-			<execute function="AssertTextEquals" locator1="KnowledgeBase#ARTICLE_TABLE_ARTICLE_TITLE" value1="${kbArticleTitle}" />
+			<execute function="AssertTextEquals" locator1="KnowledgeBase#KB_SEARCH_RESULTS_TITLE" value1="${kbArticleTitle}" />
 		</for>
 	</command>
 

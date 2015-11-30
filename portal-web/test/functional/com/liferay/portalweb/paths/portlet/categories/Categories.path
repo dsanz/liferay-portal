@@ -25,7 +25,7 @@
 </tr>
 <tr>
 	<td>SUBCATEGORY_CHECKBOX</td>
-	<td>//tr[contains(.,'${key_subcategoryName}')]/td[1]/input</td>
+	<td>//tr[contains(.,'${key_subcategoryName}')]/td[1]//input</td>
 	<td></td>
 </tr>
 <tr>
@@ -36,6 +36,11 @@
 <tr>
 	<td>BACK_BUTTON</td>
 	<td>//span[@class='header-back-to']/a[@title='Back']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VOCABULARY_HEADER</td>
+	<td>//h3[@class='header-title']/span[contains(.,'${key_vocabularyName}')]</td>
 	<td></td>
 </tr>
 <tr>

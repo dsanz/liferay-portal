@@ -16,6 +16,8 @@ package com.liferay.dynamic.data.mapping.form.renderer.internal;
 
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationResult;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluator;
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldType;
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingException;
@@ -24,9 +26,9 @@ import com.liferay.dynamic.data.mapping.io.DDMFormJSONSerializerUtil;
 import com.liferay.dynamic.data.mapping.io.DDMFormLayoutJSONSerializerUtil;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesJSONSerializerUtil;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
+import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
-import com.liferay.dynamic.data.mapping.registry.DDMFormFieldType;
-import com.liferay.dynamic.data.mapping.registry.DDMFormFieldTypeServicesTracker;
+import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.util.DDM;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -34,13 +36,17 @@ import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONSerializer;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.template.TemplateException;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.template.TemplateResource;
 import com.liferay.portal.kernel.template.URLTemplateResource;
+import com.liferay.portal.kernel.util.AggregateResourceBundle;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -48,8 +54,12 @@ import java.io.Writer;
 
 import java.net.URL;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -123,6 +133,25 @@ public class DDMFormRendererImpl implements DDMFormRenderer {
 		return html.concat(javaScript);
 	}
 
+	protected Map<String, String> getLanguageStringsMap(Locale locale) {
+		Map<String, String> stringsMap = new HashMap<>();
+
+		ResourceBundle portalResourceBundle = ResourceBundleUtil.getBundle(
+			"content.Language", locale, PortalClassLoaderUtil.getClassLoader());
+
+		ResourceBundle resourceBundle = new AggregateResourceBundle(
+			portalResourceBundle,
+			ResourceBundleUtil.getBundle(
+				"content.Language", locale, getClass()));
+
+		stringsMap.put("next", LanguageUtil.get(resourceBundle, "next"));
+		stringsMap.put(
+			"previous", LanguageUtil.get(resourceBundle, "previous"));
+		stringsMap.put("submit", LanguageUtil.get(resourceBundle, "submit"));
+
+		return stringsMap;
+	}
+
 	protected List<Object> getPages(
 			DDMForm ddmForm, DDMFormLayout ddmFormLayout,
 			DDMFormRenderingContext ddmFormRenderingContext)
@@ -185,10 +214,20 @@ public class DDMFormRendererImpl implements DDMFormRenderer {
 		template.put(
 			"definition", DDMFormJSONSerializerUtil.serialize(ddmForm));
 
+		DDMFormValues ddmFormValues =
+			ddmFormRenderingContext.getDDMFormValues();
+
+		if (ddmFormValues != null) {
+			removeStaleDDMFormFieldValues(
+				ddmForm.getDDMFormFieldsMap(true),
+				ddmFormValues.getDDMFormFieldValues());
+		}
+
+		Locale locale = ddmFormRenderingContext.getLocale();
+
 		DDMFormEvaluationResult ddmFormEvaluationResult =
 			_ddmFormEvaluator.evaluate(
-				ddmForm, ddmFormRenderingContext.getDDMFormValues(),
-				ddmFormRenderingContext.getLocale());
+				ddmForm, ddmFormRenderingContext.getDDMFormValues(), locale);
 
 		JSONSerializer jsonSerializer = _jsonFactory.createJSONSerializer();
 
@@ -209,12 +248,12 @@ public class DDMFormRendererImpl implements DDMFormRenderer {
 			ddmForm, ddmFormLayout, ddmFormRenderingContext);
 
 		template.put("pages", pages);
+
 		template.put(
 			"portletNamespace", ddmFormRenderingContext.getPortletNamespace());
+		template.put("readOnly", ddmFormRenderingContext.isReadOnly());
+		template.put("strings", getLanguageStringsMap(locale));
 		template.put("templateNamespace", getTemplateNamespace(ddmFormLayout));
-
-		DDMFormValues ddmFormValues =
-			ddmFormRenderingContext.getDDMFormValues();
 
 		if (ddmFormValues != null) {
 			template.put(
@@ -223,6 +262,25 @@ public class DDMFormRendererImpl implements DDMFormRenderer {
 		}
 		else {
 			template.put("values", JSONFactoryUtil.getNullJSON());
+		}
+	}
+
+	protected void removeStaleDDMFormFieldValues(
+		Map<String, DDMFormField> ddmFormFieldsMap,
+		List<DDMFormFieldValue> ddmFormFieldValues) {
+
+		Iterator<DDMFormFieldValue> iterator = ddmFormFieldValues.iterator();
+
+		while (iterator.hasNext()) {
+			DDMFormFieldValue ddmFormFieldValue = iterator.next();
+
+			if (!ddmFormFieldsMap.containsKey(ddmFormFieldValue.getName())) {
+				iterator.remove();
+			}
+
+			removeStaleDDMFormFieldValues(
+				ddmFormFieldsMap,
+				ddmFormFieldValue.getNestedDDMFormFieldValues());
 		}
 	}
 
@@ -238,32 +296,33 @@ public class DDMFormRendererImpl implements DDMFormRenderer {
 		return writer.toString();
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDM(DDM ddm) {
 		_ddm = ddm;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMFormEvaluator(DDMFormEvaluator ddmFormEvaluator) {
 		_ddmFormEvaluator = ddmFormEvaluator;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMFormFieldTypeServicesTracker(
 		DDMFormFieldTypeServicesTracker ddmFormFieldTypeServicesTracker) {
 
 		_ddmFormFieldTypeServicesTracker = ddmFormFieldTypeServicesTracker;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJSONFactory(JSONFactory jsonFactory) {
 		_jsonFactory = jsonFactory;
 	}
 
-	private DDM _ddm;
-	private DDMFormEvaluator _ddmFormEvaluator;
-	private DDMFormFieldTypeServicesTracker _ddmFormFieldTypeServicesTracker;
-	private JSONFactory _jsonFactory;
+	private volatile DDM _ddm;
+	private volatile DDMFormEvaluator _ddmFormEvaluator;
+	private volatile DDMFormFieldTypeServicesTracker
+		_ddmFormFieldTypeServicesTracker;
+	private volatile JSONFactory _jsonFactory;
 	private TemplateResource _templateResource;
 
 }

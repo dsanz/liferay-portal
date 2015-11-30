@@ -69,6 +69,7 @@ public class DDLRecordSetWrapper implements DDLRecordSet,
 		attributes.put("description", getDescription());
 		attributes.put("minDisplayRows", getMinDisplayRows());
 		attributes.put("scope", getScope());
+		attributes.put("settings", getSettings());
 		attributes.put("lastPublishDate", getLastPublishDate());
 
 		return attributes;
@@ -158,6 +159,12 @@ public class DDLRecordSetWrapper implements DDLRecordSet,
 
 		if (scope != null) {
 			setScope(scope);
+		}
+
+		String settings = (String)attributes.get("settings");
+
+		if (settings != null) {
+			setSettings(settings);
 		}
 
 		Date lastPublishDate = (Date)attributes.get("lastPublishDate");
@@ -479,6 +486,27 @@ public class DDLRecordSetWrapper implements DDLRecordSet,
 	@Override
 	public int getScope() {
 		return _ddlRecordSet.getScope();
+	}
+
+	/**
+	* Returns the settings of this d d l record set.
+	*
+	* @return the settings of this d d l record set
+	*/
+	@Override
+	public java.lang.String getSettings() {
+		return _ddlRecordSet.getSettings();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.util.UnicodeProperties getSettingsProperties() {
+		return _ddlRecordSet.getSettingsProperties();
+	}
+
+	@Override
+	public java.lang.String getSettingsProperty(java.lang.String key,
+		java.lang.String defaultValue) {
+		return _ddlRecordSet.getSettingsProperty(key, defaultValue);
 	}
 
 	/**
@@ -825,6 +853,16 @@ public class DDLRecordSetWrapper implements DDLRecordSet,
 	@Override
 	public void setScope(int scope) {
 		_ddlRecordSet.setScope(scope);
+	}
+
+	/**
+	* Sets the settings of this d d l record set.
+	*
+	* @param settings the settings of this d d l record set
+	*/
+	@Override
+	public void setSettings(java.lang.String settings) {
+		_ddlRecordSet.setSettings(settings);
 	}
 
 	/**

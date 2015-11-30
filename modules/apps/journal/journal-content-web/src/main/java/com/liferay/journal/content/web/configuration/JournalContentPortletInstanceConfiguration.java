@@ -16,21 +16,24 @@ package com.liferay.journal.content.web.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
 
+import com.liferay.configuration.admin.ConfigurationAdmin;
+
 /**
  * @author Juergen Kappler
  */
+@ConfigurationAdmin(category = "web-experience-management")
 @Meta.OCD(
 	id = "com.liferay.journal.content.web.configuration.JournalContentPortletInstanceConfiguration"
 )
 public interface JournalContentPortletInstanceConfiguration {
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String articleId();
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String contentMetadataAssetAddonEntryKeys();
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String ddmTemplateKey();
 
 	@Meta.AD(required = false)
@@ -39,7 +42,7 @@ public interface JournalContentPortletInstanceConfiguration {
 	@Meta.AD(deflt = "0", required = false)
 	public long groupId();
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String userToolAssetAddonEntryKeys();
 
 }

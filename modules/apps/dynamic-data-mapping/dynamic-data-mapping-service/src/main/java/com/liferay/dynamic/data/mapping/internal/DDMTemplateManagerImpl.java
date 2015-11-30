@@ -77,13 +77,13 @@ public class DDMTemplateManagerImpl implements DDMTemplateManager {
 		return new DDMTemplateImpl(ddmTemplate);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMTemplateLocalService(
 		DDMTemplateLocalService ddmTemplateLocalService) {
 
 		_ddmTemplateLocalService = ddmTemplateLocalService;
 	}
 
-	private DDMTemplateLocalService _ddmTemplateLocalService;
+	private volatile DDMTemplateLocalService _ddmTemplateLocalService;
 
 }

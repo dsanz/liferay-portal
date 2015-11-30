@@ -23,9 +23,12 @@ import java.io.Serializable;
 
 import java.util.Map;
 
+import org.osgi.service.component.annotations.Component;
+
 /**
  * @author Michael C. Han
  */
+@Component(immediate = true, service = ClusterInvokeAcceptor.class)
 public class SchedulerClusterInvokeAcceptor implements ClusterInvokeAcceptor {
 
 	@Override
@@ -45,6 +48,13 @@ public class SchedulerClusterInvokeAcceptor implements ClusterInvokeAcceptor {
 			ClusterSchedulerEngine.PORTAL_READY);
 
 		if (!portalReady) {
+			return false;
+		}
+
+		boolean schedulerClusterInvoking = (Boolean)context.get(
+			ClusterSchedulerEngine.SCHEDULER_CLUSTER_INVOKING);
+
+		if (!schedulerClusterInvoking) {
 			return false;
 		}
 

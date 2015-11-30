@@ -40,6 +40,43 @@
 
 		<reference package-path="com.liferay.portal" entity="User" />
 	</entity>
+	<entity name="DDMDataProviderInstance" uuid="true" local-service="true" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="dataProviderInstanceId" type="long" primary="true" />
+
+		<!-- Group instance -->
+
+		<column name="groupId" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="name" type="String" localized="true" />
+		<column name="description" type="String" localized="true" />
+		<column name="definition" type="String" />
+		<column name="type" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="GroupId" return-type="Collection">
+			<finder-column name="groupId" arrayable-operator="OR" />
+		</finder>
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
+
+		<reference package-path="com.liferay.portal" entity="Group" />
+		<reference package-path="com.liferay.portal" entity="User" />
+	</entity>
 	<entity name="DDMStorageLink" uuid="true" local-service="true" remote-service="false">
 
 		<!-- PK fields -->
@@ -447,6 +484,7 @@
 		<exception>Content</exception>
 		<exception>ContentData</exception>
 		<exception>ContentName</exception>
+		<exception>DataProviderInstanceName</exception>
 		<exception>InvalidStructureVersion</exception>
 		<exception>InvalidTemplateVersion</exception>
 		<exception>RequiredStructure</exception>

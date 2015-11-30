@@ -20,11 +20,11 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.ActionResponseImpl;
 import com.liferay.portlet.messageboards.LockedThreadException;
 import com.liferay.portlet.messageboards.MBGroupServiceSettings;
@@ -150,8 +150,8 @@ public class MoveThreadMVCActionCommand extends BaseMVCActionCommand {
 		_mbThreadService = mbThreadService;
 	}
 
-	private MBMessageService _mbMessageService;
-	private MBThreadLocalService _mbThreadLocalService;
-	private MBThreadService _mbThreadService;
+	private volatile MBMessageService _mbMessageService;
+	private volatile MBThreadLocalService _mbThreadLocalService;
+	private volatile MBThreadService _mbThreadService;
 
 }

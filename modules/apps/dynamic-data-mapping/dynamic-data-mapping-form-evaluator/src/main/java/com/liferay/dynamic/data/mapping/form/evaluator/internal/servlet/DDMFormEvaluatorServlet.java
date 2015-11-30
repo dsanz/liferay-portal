@@ -46,9 +46,9 @@ import org.osgi.service.component.annotations.Reference;
 @Component(
 	immediate = true,
 	property = {
-		"osgi.http.whiteboard.context.path=/ddm-form-evaluator",
+		"osgi.http.whiteboard.context.path=/dynamic-data-mapping-form-evaluator",
 		"osgi.http.whiteboard.servlet.name=Dynamic Data Mapping Form Evaluator Servlet",
-		"osgi.http.whiteboard.servlet.pattern=/ddm-form-evaluator/*"
+		"osgi.http.whiteboard.servlet.pattern=/dynamic-data-mapping-form-evaluator/*"
 	},
 	service = Servlet.class
 )
@@ -107,26 +107,26 @@ public class DDMFormEvaluatorServlet extends HttpServlet {
 			response, jsonSerializer.serializeDeep(ddmFormEvaluationResult));
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMFormEvaluator(DDMFormEvaluator ddmFormEvaluator) {
 		_ddmFormEvaluator = ddmFormEvaluator;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMFormJSONDeserializer(
 		DDMFormJSONDeserializer ddmFormJSONDeserializer) {
 
 		_ddmFormJSONDeserializer = ddmFormJSONDeserializer;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMFormValuesJSONDeserializer(
 		DDMFormValuesJSONDeserializer ddmFormValuesJSONDeserializer) {
 
 		_ddmFormValuesJSONDeserializer = ddmFormValuesJSONDeserializer;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJSONFactory(JSONFactory jsonFactory) {
 		_jsonFactory = jsonFactory;
 	}
@@ -136,9 +136,10 @@ public class DDMFormEvaluatorServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 
-	private DDMFormEvaluator _ddmFormEvaluator;
-	private DDMFormJSONDeserializer _ddmFormJSONDeserializer;
-	private DDMFormValuesJSONDeserializer _ddmFormValuesJSONDeserializer;
-	private JSONFactory _jsonFactory;
+	private volatile DDMFormEvaluator _ddmFormEvaluator;
+	private volatile DDMFormJSONDeserializer _ddmFormJSONDeserializer;
+	private volatile DDMFormValuesJSONDeserializer
+		_ddmFormValuesJSONDeserializer;
+	private volatile JSONFactory _jsonFactory;
 
 }

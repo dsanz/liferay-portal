@@ -16,11 +16,12 @@ package com.liferay.portal.verify.extender.internal;
 
 import aQute.bnd.annotation.metatype.Configurable;
 
-import com.liferay.osgi.service.tracker.map.ServiceTrackerMap;
-import com.liferay.osgi.service.tracker.map.ServiceTrackerMapFactory;
-import com.liferay.osgi.service.tracker.map.ServiceTrackerMapListener;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapListener;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.util.RunnableUtil;
 import com.liferay.portal.model.Release;
 import com.liferay.portal.output.stream.container.OutputStreamContainer;
@@ -234,7 +235,12 @@ public class VerifyProcessTracker {
 		return verifyProcess;
 	}
 
-	@Reference
+	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
+	protected void setModuleServiceLifecycle(
+		ModuleServiceLifecycle moduleServiceLifecycle) {
+	}
+
+	@Reference(unbind = "-")
 	protected void setOutputStreamTracker(
 		OutputStreamContainerFactoryTracker
 			outputStreamContainerFactoryTracker) {
@@ -243,7 +249,7 @@ public class VerifyProcessTracker {
 			outputStreamContainerFactoryTracker;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setReleaseLocalService(
 		ReleaseLocalService releaseLocalService) {
 
@@ -253,9 +259,9 @@ public class VerifyProcessTracker {
 	private static final Log _log = LogFactoryUtil.getLog(
 		VerifyProcessTracker.class);
 
-	private OutputStreamContainerFactoryTracker
+	private volatile OutputStreamContainerFactoryTracker
 		_outputStreamContainerFactoryTracker;
-	private ReleaseLocalService _releaseLocalService;
+	private volatile ReleaseLocalService _releaseLocalService;
 	private ServiceTrackerMap<String, VerifyProcess> _verifyProcesses;
 	private VerifyProcessTrackerConfiguration
 		_verifyProcessTrackerConfiguration;

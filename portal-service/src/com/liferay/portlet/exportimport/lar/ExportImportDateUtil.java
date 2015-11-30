@@ -44,6 +44,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutSet;
+import com.liferay.portal.model.StagedGroupedModel;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.LayoutSetLocalServiceUtil;
@@ -309,6 +310,23 @@ public class ExportImportDateUtil {
 	}
 
 	public static void updateLastPublishDate(
+		StagedGroupedModel stagedGroupedModel, DateRange dateRange,
+		Date lastPublishDate) {
+
+		Date originalLastPublishDate = stagedGroupedModel.getLastPublishDate();
+
+		if (!isValidDateRange(dateRange, originalLastPublishDate)) {
+			return;
+		}
+
+		if (lastPublishDate == null) {
+			lastPublishDate = new Date();
+		}
+
+		stagedGroupedModel.setLastPublishDate(lastPublishDate);
+	}
+
+	public static void updateLastPublishDate(
 		String portletId, PortletPreferences portletPreferences,
 		DateRange dateRange, Date lastPublishDate) {
 
@@ -396,14 +414,25 @@ public class ExportImportDateUtil {
 		else if (range.equals(RANGE_FROM_LAST_PUBLISH_DATE)) {
 			Date lastPublishDate = null;
 
-			if (Validator.isNotNull(portletId) && (plid > 0)) {
-				Layout layout = LayoutLocalServiceUtil.getLayout(plid);
+			if (Validator.isNotNull(portletId)) {
+				Layout layout = LayoutLocalServiceUtil.fetchLayout(plid);
 
-				PortletPreferences preferences =
-					PortletPreferencesFactoryUtil.getStrictPortletSetup(
-						layout, portletId);
+				PortletPreferences portletPreferences = null;
 
-				lastPublishDate = getLastPublishDate(preferences);
+				if (layout == null) {
+					Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+					portletPreferences =
+						PortletPreferencesFactoryUtil.getStrictPortletSetup(
+							group.getCompanyId(), groupId, portletId);
+				}
+				else {
+					portletPreferences =
+						PortletPreferencesFactoryUtil.getStrictPortletSetup(
+							layout, portletId);
+				}
+
+				lastPublishDate = getLastPublishDate(portletPreferences);
 			}
 			else {
 				LayoutSet layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(

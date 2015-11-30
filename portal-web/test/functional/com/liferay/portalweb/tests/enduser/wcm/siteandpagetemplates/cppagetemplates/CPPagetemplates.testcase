@@ -2,15 +2,36 @@
 	<property name="testray.main.component.name" value="Site and Page Templates" />
 
 	<set-up>
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
+
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="SignIn#signInPortalInstanceSetUp" />
+			</then>
+		</if>
+
 		<execute macro="User#firstLoginPG" />
 	</set-up>
 
 	<tear-down>
-		<execute macro="Site#tearDownCP" />
-		<execute macro="PageTemplate#tearDownCP" />
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
+
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="PortalInstances#tearDownCP" />
+			</then>
+			<else>
+				<execute macro="Site#tearDownCP" />
+				<execute macro="PageTemplate#tearDownCP" />
+			</else>
+		</if>
 	</tear-down>
 
 	<command name="AddPageTemplate" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Page Templates" />
 		</execute>
@@ -22,6 +43,8 @@
 	</command>
 
 	<command name="AddSitePageTemplate" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Page Templates" />
 		</execute>
@@ -44,10 +67,10 @@
 		</execute>
 
 		<execute macro="SitePage#addCP">
+			<var name="page" value="Public Pages" />
 			<var name="pageTemplateName" value="Page Template Name" />
 			<var name="siteName" value="Site Name" />
 			<var name="sitePageName" value="Site Page" />
-			<var name="sitePagePrivacy" value="Public" />
 		</execute>
 
 		<execute macro="Page#openURL">
@@ -60,7 +83,84 @@
 		</execute>
 	</command>
 
+	<command name="DeactivateAndActivatePageTemplate" priority="4">
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Page Templates" />
+		</execute>
+
+		<execute macro="PageTemplate#addCP">
+			<var name="pageTemplateActive" value="Yes" />
+			<var name="pageTemplateName" value="Page Template Name" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Page Templates" />
+		</execute>
+
+		<execute macro="PageTemplate#deactivateAndActivate">
+			<var name="pageTemplateName" value="Page Template Name" />
+			<var name="pageTemplateStatus" value="No" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Page Templates" />
+		</execute>
+
+		<execute macro="PageTemplate#viewStatus">
+			<var name="pageTemplateName" value="Page Template Name" />
+			<var name="pageTemplateStatus" value="No" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSite">
+			<var name="site" value="Liferay" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesPages">
+			<var name="page" value="Public Pages" />
+		</execute>
+
+		<execute macro="SitePageNavigator#gotoAddPage" />
+
+		<execute macro="SitePage#viewPageTemplateTypeNotPresentCP">
+			<var name="pageTemplateName" value="Page Template Name" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Page Templates" />
+		</execute>
+
+		<execute macro="PageTemplate#deactivateAndActivate">
+			<var name="pageTemplateName" value="Page Template Name" />
+			<var name="pageTemplateStatus" value="Yes" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Page Templates" />
+		</execute>
+
+		<execute macro="PageTemplate#viewStatus">
+			<var name="pageTemplateName" value="Page Template Name" />
+			<var name="pageTemplateStatus" value="Yes" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSite">
+			<var name="site" value="Liferay" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesPages">
+			<var name="page" value="Public Pages" />
+		</execute>
+
+		<execute macro="SitePageNavigator#gotoAddPage" />
+
+		<execute macro="SitePage#viewPageTemplateTypePresentCP">
+			<var name="pageTemplateName" value="Page Template Name" />
+		</execute>
+	</command>
+
 	<command name="DeletePageTemplate" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Page Templates" />
 		</execute>
@@ -88,6 +188,8 @@
 	</command>
 
 	<command name="EditPageTemplate" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="Page#gotoCP">
 			<var name="portletName" value="Page Templates" />
 		</execute>
@@ -103,6 +205,35 @@
 		</execute>
 	</command>
 
+	<command name="EditPageTemplateDescription" priority="4">
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Page Templates" />
+		</execute>
+
+		<execute macro="PageTemplate#addCP">
+			<var name="pageTemplateActive" value="Yes" />
+			<var name="pageTemplateName" value="Page Template Name" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Page Templates" />
+		</execute>
+
+		<execute macro="PageTemplate#editDescription">
+			<var name="pageTemplateDescription" value="This is a page template description" />
+			<var name="pageTemplateName" value="Page Template Name" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Page Templates" />
+		</execute>
+
+		<execute macro="PageTemplate#viewDescription">
+			<var name="pageTemplateDescription" value="This is a page template description edit" />
+			<var name="pageTemplateName" value="Page Template Name" />
+		</execute>
+	</command>
+
 	<command name="LocalizeDefaultPageTemplates" priority="4">
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Page Templates" />
@@ -112,7 +243,7 @@
 			<var name="pageTemplateNameList" value="Blog,Content Display Page,Wiki" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoMySpaceMyAccount">
+		<execute macro="ProductMenu#gotoUserMyAccount">
 			<var name="portlet" value="Account Settings" />
 		</execute>
 
@@ -137,10 +268,9 @@
 
 		<execute macro="Navigator#openURL" />
 
-		<execute macro="ProductMenu#gotoLocalizedMySpaceMyAccount">
+		<execute macro="ProductMenu#gotoLocalizedUserMyAccount">
 			<var name="category" value="Mi cuenta" />
 			<var name="portlet" value="Mi cuenta" />
-			<var name="tab" value="Mi espacio" />
 		</execute>
 
 		<execute macro="MyAccount#changeUserLanguage">

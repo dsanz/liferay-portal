@@ -65,7 +65,8 @@ public class PortalSettingsCASAuthenticationDynamicInclude
 	}
 
 	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.portal.security.sso.cas)"
+		target = "(osgi.web.symbolicname=com.liferay.portal.security.sso.cas)",
+		unbind = "-"
 	)
 	protected void setServletContext(ServletContext servletContext) {
 		_servletContext = servletContext;
@@ -76,6 +77,6 @@ public class PortalSettingsCASAuthenticationDynamicInclude
 	private static final Log _log = LogFactoryUtil.getLog(
 		PortalSettingsCASAuthenticationDynamicInclude.class);
 
-	private ServletContext _servletContext;
+	private volatile ServletContext _servletContext;
 
 }

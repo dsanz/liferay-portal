@@ -28,6 +28,7 @@ else {
 	portalPreferences.setValue(BlogsPortletKeys.BLOGS_ADMIN, "images-display-style", displayStyle);
 }
 
+int delta = ParamUtil.getInteger(request, "delta");
 String orderByCol = ParamUtil.getString(request, "orderByCol", "title");
 String orderByType = ParamUtil.getString(request, "orderByType", "asc");
 
@@ -35,13 +36,16 @@ PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("mvcRenderCommandName", "/blogs_admin/view");
 portletURL.setParameter("navigation", "images");
+portletURL.setParameter("delta", String.valueOf(delta));
+portletURL.setParameter("orderBycol", orderByCol);
+portletURL.setParameter("orderByType", orderByType);
 
 String keywords = ParamUtil.getString(request, "keywords");
 %>
 
 <liferay-frontend:management-bar
-	checkBoxContainerId="imagesSearchContainer"
 	includeCheckBox="<%= true %>"
+	searchContainerId="images"
 >
 	<c:if test="<%= Validator.isNull(keywords) %>">
 		<liferay-frontend:management-bar-buttons>
@@ -68,7 +72,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 		String taglibURL = "javascript:" + renderResponse.getNamespace() + "deleteImages();";
 		%>
 
-		<aui:a cssClass="btn" href="<%= taglibURL %>" iconCssClass="icon-remove" />
+		<liferay-frontend:management-bar-button href="<%= taglibURL %>" iconCssClass="icon-remove" />
 	</liferay-frontend:management-bar-action-buttons>
 </liferay-frontend:management-bar>
 
@@ -84,7 +88,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 			id="images"
 			orderByComparator="<%= DLUtil.getRepositoryModelOrderByComparator(orderByCol, orderByType) %>"
 			rowChecker="<%= new EmptyOnClickRowChecker(renderResponse) %>"
-			searchContainer="<%= new EntrySearch(renderRequest, PortletURLUtil.clone(portletURL, liferayPortletResponse)) %>"
+			searchContainer='<%= new SearchContainer(renderRequest, PortletURLUtil.clone(portletURL, liferayPortletResponse), null, "no-images-were-found") %>'
 		>
 
 			<%

@@ -35,11 +35,11 @@ public class JournalConverterManagerImpl implements JournalConverterManager {
 		return _journalConverter.getDDMXSD(journalXSD, defaultLocale);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJournalConverter(JournalConverter journalConverter) {
 		_journalConverter = journalConverter;
 	}
 
-	private JournalConverter _journalConverter;
+	private volatile JournalConverter _journalConverter;
 
 }

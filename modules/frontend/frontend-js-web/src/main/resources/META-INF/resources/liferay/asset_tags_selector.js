@@ -58,7 +58,7 @@ AUI.add(
 				'<input class="form-control lfr-tag-selector-input search-query" placeholder="{0}" type="text" />' +
 			'</form>';
 
-		var TPL_SUGGESTIONS_QUERY = 'select * from search.termextract where context="{0}"';
+		var TPL_SUGGESTIONS_QUERY = 'select * from contentanalysis.analyze where context="{0}"';
 
 		var TPL_TAG = new A.Template(
 			'<div class="lfr-tag-selector-tags {[(!values.tags || !values.tags.length) ? "', CSS_NO_MATCHES, '" : "', STR_BLANK, '" ]}">',
@@ -446,7 +446,6 @@ AUI.add(
 
 						var buttonGroup = [
 							{
-								icon: 'icon-search',
 								label: Liferay.Language.get('select'),
 								on: {
 									click: A.bind('_showSelectPopup', instance)
@@ -458,7 +457,6 @@ AUI.add(
 						if (instance.get('allowAddEntry')) {
 							buttonGroup.unshift(
 								{
-									icon: 'icon-plus',
 									label: Liferay.Language.get('add'),
 									on: {
 										click: A.bind('_onAddEntryClick', instance)
@@ -471,7 +469,6 @@ AUI.add(
 						if (instance.get('contentCallback')) {
 							buttonGroup.push(
 								{
-									icon: 'icon-comment',
 									label: Liferay.Language.get('suggestions'),
 									on: {
 										click: A.bind('_showSuggestionsPopup', instance)

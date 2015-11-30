@@ -17,9 +17,9 @@ package com.liferay.journal.content.web.lar;
 import com.liferay.journal.content.web.configuration.JournalContentWebConfigurationValues;
 import com.liferay.journal.content.web.constants.JournalContentPortletKeys;
 import com.liferay.journal.model.JournalArticle;
-import com.liferay.journal.web.lar.JournalPortletDataHandler;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portlet.exportimport.lar.BasePortletDataHandler;
 import com.liferay.portlet.exportimport.lar.DataLevel;
 import com.liferay.portlet.exportimport.lar.PortletDataContext;
 import com.liferay.portlet.exportimport.lar.PortletDataHandler;
@@ -54,9 +54,9 @@ import org.osgi.service.component.annotations.Reference;
  * @author Raymond Augé
  * @author Bruno Farache
  * @author Daniel Kocsis
- * @see    com.liferay.journal.web.lar.JournalPortletDataHandler
+ * @author Mate Thurzo
  * @see    com.liferay.journal.lar.JournalCreationStrategy
- * @see    com.liferay.portlet.exportimport.lar.PortletDataHandler
+ * @see    PortletDataHandler
  */
 @Component(
 	immediate = true,
@@ -65,8 +65,7 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = PortletDataHandler.class
 )
-public class JournalContentPortletDataHandler
-	extends JournalPortletDataHandler {
+public class JournalContentPortletDataHandler extends BasePortletDataHandler {
 
 	@Activate
 	protected void activate() {

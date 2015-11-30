@@ -6,6 +6,15 @@
 	<var name="portletName" value="Blogs" />
 
 	<set-up>
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
+
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="SignIn#signInPortalInstanceSetUp" />
+			</then>
+		</if>
+
 		<execute macro="User#firstLoginPG" />
 
 		<execute macro="Page#addPG">
@@ -52,15 +61,25 @@
 	</set-up>
 
 	<tear-down>
-		<execute macro="Blogs#tearDownSubscribePG" />
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
 
-		<execute macro="Blogs#tearDownCP" />
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="PortalInstances#tearDownCP" />
+			</then>
+			<else>
+				<execute macro="Blogs#tearDownSubscribePG" />
 
-		<execute macro="NotificationsPortlet#tearDownUserDeliveries" />
+				<execute macro="Blogs#tearDownCP" />
 
-		<execute macro="Page#tearDownPG" />
+				<execute macro="NotificationsPortlet#tearDownUserDeliveries" />
 
-		<execute macro="User#tearDownCP" />
+				<execute macro="Page#tearDownPG" />
+
+				<execute macro="User#tearDownCP" />
+			</else>
+		</if>
 	</tear-down>
 
 	<command name="MarkAllNotificationsAsRead" priority="4">
@@ -371,12 +390,14 @@
 			<var name="contentBody" value="Blogs Entry Comment" />
 		</execute>
 
+		<execute macro="BlogsNavigator#gotoEntryPG">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
 		<execute macro="BlogsEntryComment#viewPG">
 			<var name="commentCount" value="1" />
 			<var name="entryComment" value="Blogs Entry Comment" />
-			<var name="entryContent" value="Blogs Entry Content" />
-			<var name="entryTitle" value="Blogs Entry Title" />
-			<var name="userFullName" value="Test Test" />
 			<var name="userFullName" value="userfn userln" />
 		</execute>
 

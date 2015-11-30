@@ -23,7 +23,6 @@ import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -32,20 +31,25 @@ import java.sql.ResultSet;
  */
 public class VerifyAsset extends VerifyProcess {
 
-	protected void deleteOrphanedAssetEntries(Connection con) throws Exception {
-		long classNameId = PortalUtil.getClassNameId(
-			DLFileEntryConstants.getClassName());
+	protected void deleteOrphanedAssetEntries() throws Exception {
+		PreparedStatement ps = null;
+		ResultSet rs = null;
 
-		StringBundler sb = new StringBundler(5);
+		try {
+			long classNameId = PortalUtil.getClassNameId(
+				DLFileEntryConstants.getClassName());
 
-		sb.append("select classPK, entryId from AssetEntry where ");
-		sb.append("classNameId = ");
-		sb.append(classNameId);
-		sb.append(" and classPK not in (select fileVersionId from ");
-		sb.append("DLFileVersion)");
+			StringBundler sb = new StringBundler(5);
 
-		try (PreparedStatement ps = con.prepareStatement(sb.toString());
-			ResultSet rs = ps.executeQuery()) {
+			sb.append("select classPK, entryId from AssetEntry where ");
+			sb.append("classNameId = ");
+			sb.append(classNameId);
+			sb.append(" and classPK not in (select fileVersionId from ");
+			sb.append("DLFileVersion)");
+
+			ps = connection.prepareStatement(sb.toString());
+
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 				long classPK = rs.getLong("classPK");
@@ -59,29 +63,36 @@ public class VerifyAsset extends VerifyProcess {
 				}
 			}
 		}
+		finally {
+			DataAccess.cleanUp(null, ps, rs);
+		}
 	}
 
 	@Override
 	protected void doVerify() throws Exception {
-		try (Connection con = DataAccess.getUpgradeOptimizedConnection()) {
-			deleteOrphanedAssetEntries(con);
-			rebuildTree(con);
-		}
+		deleteOrphanedAssetEntries();
+		rebuildTree();
 	}
 
-	protected void rebuildTree(Connection con) throws Exception {
-		String sql =
-			"select distinct groupId from AssetCategory where " +
-				"(leftCategoryId is null) or (rightCategoryId is null)";
+	protected void rebuildTree() throws Exception {
+		PreparedStatement ps = null;
+		ResultSet rs = null;
 
-		try (PreparedStatement ps = con.prepareStatement(sql);
-			ResultSet rs = ps.executeQuery()) {
+		try {
+			ps = connection.prepareStatement(
+				"select distinct groupId from AssetCategory where " +
+					"(leftCategoryId is null) or (rightCategoryId is null)");
+
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 				long groupId = rs.getLong("groupId");
 
 				AssetCategoryLocalServiceUtil.rebuildTree(groupId, true);
 			}
+		}
+		finally {
+			DataAccess.cleanUp(null, ps, rs);
 		}
 	}
 

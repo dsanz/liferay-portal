@@ -14,7 +14,7 @@
 
 package com.liferay.product.navigation.control.panel.application.list;
 
-import com.liferay.application.list.BaseControlPanelEntryPanelApp;
+import com.liferay.application.list.BasePanelApp;
 import com.liferay.application.list.PanelApp;
 import com.liferay.application.list.constants.PanelCategoryKeys;
 import com.liferay.portal.model.Portlet;
@@ -34,13 +34,14 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = PanelApp.class
 )
-public class LicenseManagerPanelApp extends BaseControlPanelEntryPanelApp {
+public class LicenseManagerPanelApp extends BasePanelApp {
 
 	@Override
 	public String getPortletId() {
 		return PortletKeys.LICENSE_MANAGER;
 	}
 
+	@Override
 	@Reference(
 		target = "(javax.portlet.name=" + PortletKeys.LICENSE_MANAGER + ")",
 		unbind = "-"

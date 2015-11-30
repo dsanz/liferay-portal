@@ -1,4 +1,6 @@
 <definition>
+	<var name="siteName" value="Liferay" />
+
 	<command name="_assertDialogBoxPresent">
 		<if>
 			<equals arg1="${schedulerEventDialogBox}" arg2="false" />
@@ -364,7 +366,7 @@
 
 					<execute function="AssertClick" locator1="Button#REPLY" value1="Reply" />
 
-					<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request processed successfully." />
+					<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request completed successfully." />
 				</for>
 			</then>
 			<else>
@@ -372,7 +374,7 @@
 
 				<execute function="AssertClick" locator1="Button#REPLY" value1="Reply" />
 
-				<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request processed successfully." />
+				<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request completed successfully." />
 			</else>
 		</if>
 
@@ -1074,7 +1076,7 @@
 	</command>
 
 	<command name="publish">
-		<execute function="Click" locator1="Button#PUBLISH" />
+		<execute function="AssertClick" locator1="Button#SUBMIT" value1="Publish" />
 
 		<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request completed successfully." />
 	</command>
@@ -1149,6 +1151,7 @@
 			<isset var="position" />
 			<then>
 				<execute function="Click" locator1="CalendarEditEvent#REPEAT_REPEAT_ON_DAY_OF_THE_WEEK_RADIO" />
+
 				<execute function="Select" locator1="CalendarEditEvent#REPEAT_REPEAT_ON_DAY_OF_THE_WEEK_POSITION_DROPDOWN" value1="${position}" />
 				<execute function="Select" locator1="CalendarEditEvent#REPEAT_REPEAT_ON_DAY_OF_THE_WEEK_WEEKDAY_DROPDOWN" value1="${weekday}" />
 			</then>
@@ -1158,7 +1161,7 @@
 			<isset var="numberOfOccurrences" />
 			<then>
 				<execute function="Click" locator1="CalendarEditEvent#REPEAT_ENDS_AFTER_RADIO" />
-				<execute function="Pause" value1="1000" />
+
 				<execute function="Type" locator1="CalendarEditEvent#REPEAT_ENDS_AFTER_FIELD" value1="${numberOfOccurrences}" />
 			</then>
 		</if>
@@ -1167,6 +1170,7 @@
 			<isset var="endOnDate" />
 			<then>
 				<execute function="Click" locator1="CalendarEditEvent#REPEAT_ENDS_ON_RADIO" />
+
 				<execute function="Type#clickAtSendKeys" locator1="CalendarEditEvent#REPEAT_ENDS_ON_DATE_FIELD" value1="${endOnDate}" />
 			</then>
 		</if>
@@ -1531,6 +1535,7 @@
 
 	<command name="viewInvitedUserRSVPWithApprovedWorkflow">
 		<var name="key_siteCalendarName" value="${siteCalendarName}" />
+		<var name="key_siteName" value="${siteName}" />
 
 		<execute function="AssertClick" locator1="Calendar#CURRENT_SITE_CALENDARS_CALENDAR" value1="${siteCalendarName}" />
 
@@ -1544,6 +1549,7 @@
 
 	<command name="viewNoUserInviteWithUnapprovedWorkflow">
 		<var name="key_siteCalendarName" value="${siteCalendarName}" />
+		<var name="key_siteName" value="${siteName}" />
 
 		<execute function="AssertClick" locator1="Calendar#CURRENT_SITE_CALENDARS_CALENDAR" value1="${siteCalendarName}" />
 

@@ -219,14 +219,19 @@ public class UserNotificationDeliveryLocalServiceWrapper
 		return _userNotificationDeliveryLocalService.getActionableDynamicQuery();
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _userNotificationDeliveryLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _userNotificationDeliveryLocalService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _userNotificationDeliveryLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -285,16 +290,6 @@ public class UserNotificationDeliveryLocalServiceWrapper
 		long userNotificationDeliveryId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return _userNotificationDeliveryLocalService.getUserNotificationDelivery(userNotificationDeliveryId);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_userNotificationDeliveryLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

@@ -53,9 +53,6 @@ public class SocialRequestLocalServiceWrapper
 	* @param extraData the extra data regarding the request
 	* @param receiverUserId the primary key of the user receiving the request
 	* @return the social request
-	* @throws PortalException if the users could not be found, if the users
-	were not from the same company, or if either of the users was the
-	default user
 	*/
 	@Override
 	public com.liferay.portlet.social.model.SocialRequest addRequest(
@@ -126,7 +123,6 @@ public class SocialRequestLocalServiceWrapper
 	* database.
 	*
 	* @param requestId the primary key of the social request
-	* @throws PortalException if the social request could not be found
 	*/
 	@Override
 	public void deleteRequest(long requestId)
@@ -285,14 +281,19 @@ public class SocialRequestLocalServiceWrapper
 		return _socialRequestLocalService.getActionableDynamicQuery();
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _socialRequestLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _socialRequestLocalService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _socialRequestLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -587,16 +588,6 @@ public class SocialRequestLocalServiceWrapper
 	}
 
 	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_socialRequestLocalService.setBeanIdentifier(beanIdentifier);
-	}
-
-	/**
 	* Updates the social request replacing its status.
 	*
 	* <p>
@@ -613,7 +604,6 @@ public class SocialRequestLocalServiceWrapper
 	* @param status the new status
 	* @param themeDisplay the theme display
 	* @return the updated social request
-	* @throws PortalException if the social request could not be found
 	*/
 	@Override
 	public com.liferay.portlet.social.model.SocialRequest updateRequest(

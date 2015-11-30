@@ -81,34 +81,6 @@
 		<execute function="AssertTextEquals" locator1="PGBlogs#SUCCESS_MESSAGE" value1="Your request completed successfully." />
 	</command>
 
-	<command name="addSelectTagMultipleViaBlogsPG">
-		<execute macro="BlogsNavigator#gotoAddEntry" />
-
-		<execute macro="BlogsEntry#addEntryContent">
-			<var name="entryContent" value="${entryContent}" />
-			<var name="entryTitle" value="${entryTitle}" />
-		</execute>
-
-		<execute macro="BlogsNavigator#gotoSettings" />
-
-		<execute macro="BlogsEntry#addTagList">
-			<var name="tagNameList" value="${tagNameList}" />
-		</execute>
-
-		<execute macro="BlogsEntry#publish" />
-
-		<execute function="AssertTextEquals" locator1="PGBlogs#SUCCESS_MESSAGE" value1="Your request completed successfully." />
-
-		<var name="key_entryTitle" value="${entryTitle}" />
-
-		<execute function="AssertClick" locator1="BlogsEntry#TITLE_LINK" value1="${entryTitle}" />
-
-		<execute macro="BlogsEntry#viewTagPG">
-			<var name="entryTitle" value="${entryTitle}" />
-			<var name="tagName" value="${tagName}" />
-		</execute>
-	</command>
-
 	<command name="addViaSiteCP">
 		<execute function="AssertClick" locator1="SitesEditSite#MENU_BASIC_INFORMATION_CATEGORIZATION" value1="Categorization" />
 
@@ -125,7 +97,8 @@
 
 		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="TextInput#REQUIRED_ALERT" value1="Name Required" />
+		<execute function="AssertElementPresent" locator1="Icon#ASTERISK" />
+
 		<execute function="AssertTextEquals#assertPartialText" locator1="TextInput#REQUIRED_ALERT" value1="This field is required." />
 	</command>
 
@@ -148,7 +121,7 @@
 				</then>
 			</elseif>
 			<else>
-				<execute function="Check" locator1="Tags#ALL_TAGS_CHECKBOX" />
+				<execute function="Check#checkAll" locator1="Tags#ALL_TAGS_CHECKBOX" />
 				<execute function="Click" locator1="Tags#TOOLBAR_ACTIONS" />
 				<execute function="AssertClickNoError" locator1="MenuItem#DELETE" value1="Delete" />
 			</else>
@@ -156,7 +129,7 @@
 
 		<execute function="Confirm" value1="Are you sure you want to delete this? It will be deleted immediately." />
 		<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request completed successfully." />
-		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="There are no tags." />
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="There are no tags. You can add a tag by clicking the plus button on the bottom right corner." />
 		<execute function="AssertTextNotPresent" value1="${tagName}" />
 	</command>
 
@@ -181,15 +154,15 @@
 
 		<execute function="AssertTextEquals" locator1="Home#SITE_ADMINISTRATION_PORTLET_TITLE" value1="${tagName}" />
 
-		<execute function="Type" locator1="CPTagsEdit#NAME_FIELD" value1="${tagNameEdit}" />
+		<execute function="Type" locator1="Tags#NAME_FIELD" value1="${tagNameEdit}" />
 
-		<execute function="AssertClick" locator1="CPTagsEdit#SAVE_BUTTON" value1="Save" />
+		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
 
 		<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request completed successfully." />
 	</command>
 
 	<command name="mergeMultipleTags">
-		<execute function="Check" locator1="Tags#ALL_TAGS_CHECKBOX" />
+		<execute function="Check#checkAll" locator1="Tags#ALL_TAGS_CHECKBOX" />
 		<execute function="Click" locator1="Icon#MERGE" />
 		<execute function="Select" locator1="Tags#MERGE_TAGS_INTO_THIS_TAG_SELECT" value1="${tagName2}" />
 		<execute function="AssertClickNoError" locator1="Button#MERGE" value1="Merge" />
@@ -209,7 +182,11 @@
 		<var name="key_tagName" value="${tagName}" />
 
 		<execute function="Check" locator1="Tags#TAG_ENTRY_TABLE_CHECKBOX" />
+
 		<execute function="ClickNoError" locator1="Icon#MERGE" />
+
+		<execute function="ClickNoError" locator1="Button#SAVE" />
+
 		<execute function="Confirm" value1="Please choose at least 2 tags." />
 	</command>
 
@@ -291,20 +268,22 @@
 	</command>
 
 	<command name="tearDownCP">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Tags" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Tags" />
 		</execute>
 
 		<if>
-			<condition function="IsElementNotPresent" locator1="Message#INFO" />
+			<condition function="IsElementNotPresent" locator1="Message#EMPTY_INFO" />
 			<then>
-				<execute function="Check" locator1="Checkbox#CHECK_ALL_NAME" />
+				<execute function="Check#checkAll" locator1="Checkbox#SELECT_ALL" />
 				<execute function="ClickNoError" locator1="Icon#DELETE" />
 				<execute function="Confirm" value1="Are you sure you want to delete this? It will be deleted immediately." />
 			</then>
 		</if>
 
-		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="There are no tags." />
+		<execute function="AssertTextEquals#assertPartialText" locator1="Message#EMPTY_INFO" value1="There are no tags." />
 	</command>
 
 	<command name="viewCP">

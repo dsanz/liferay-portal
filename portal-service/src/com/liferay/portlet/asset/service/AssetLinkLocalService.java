@@ -72,7 +72,6 @@ public interface AssetLinkLocalService extends BaseLocalService,
 	* @param weight the weight of the relationship, allowing precedence
 	ordering of links
 	* @return the asset link
-	* @throws PortalException if the user could not be found
 	*/
 	public com.liferay.portlet.asset.model.AssetLink addLink(long userId,
 		long entryId1, long entryId2, int type, int weight)
@@ -119,7 +118,6 @@ public interface AssetLinkLocalService extends BaseLocalService,
 	* Deletes the asset link.
 	*
 	* @param linkId the primary key of the asset link
-	* @throws PortalException if the asset link could not be found
 	*/
 	public void deleteLink(long linkId) throws PortalException;
 
@@ -252,13 +250,6 @@ public interface AssetLinkLocalService extends BaseLocalService,
 	public int getAssetLinksCount();
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
-
-	/**
 	* Returns all the asset links whose first entry ID is the given entry ID.
 	*
 	* @param entryId the primary key of the asset entry
@@ -289,6 +280,9 @@ public interface AssetLinkLocalService extends BaseLocalService,
 	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionbleDynamicQuery(
 		com.liferay.portlet.exportimport.lar.PortletDataContext portletDataContext);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
+
 	/**
 	* Returns all the asset links whose first or second entry ID is the given
 	* entry ID.
@@ -318,6 +312,13 @@ public interface AssetLinkLocalService extends BaseLocalService,
 	public java.util.List<com.liferay.portlet.asset.model.AssetLink> getLinks(
 		long entryId, int typeId);
 
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public java.lang.String getOSGiServiceIdentifier();
+
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
@@ -339,13 +340,6 @@ public interface AssetLinkLocalService extends BaseLocalService,
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.asset.model.AssetLink> getReverseLinks(
 		long entryId, int typeId);
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	/**
 	* Updates the asset link in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
@@ -382,7 +376,6 @@ public interface AssetLinkLocalService extends BaseLocalService,
 	bidirectional relationship and {@link
 	AssetLinkConstants#TYPE_CHILD} which is a unidirectional
 	relationship. For more information see {@link AssetLinkConstants}
-	* @throws PortalException if the user could not be found
 	*/
 	public void updateLinks(long userId, long entryId, long[] linkEntryIds,
 		int typeId) throws PortalException;

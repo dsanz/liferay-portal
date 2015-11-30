@@ -29,7 +29,7 @@ DLPortletInstanceSettingsHelper dlPortletInstanceSettingsHelper = new DLPortletI
 <c:choose>
 	<c:when test="<%= results.isEmpty() %>">
 		<div class="alert alert-info">
-			<%= LanguageUtil.get(request, "there-are-no-media-files-in-this-folder") %>
+			<liferay-ui:message key="there-are-no-media-files-in-this-folder" />
 		</div>
 	</c:when>
 	<c:otherwise>
@@ -127,7 +127,7 @@ DLPortletInstanceSettingsHelper dlPortletInstanceSettingsHelper = new DLPortletI
 					<div class="image-icon">
 						<a class="image-link preview" <%= (hasAudio || hasVideo) ? "data-options=\"height=" + playerHeight + "&thumbnailURL=" + HtmlUtil.escapeURL(DLUtil.getPreviewURL(fileEntry, fileVersion, themeDisplay, "&videoThumbnail=1")) + "&width=640" + dataOptions + "\"" : StringPool.BLANK %> href="<%= href %>" thumbnailId="<%= thumbnailId %>" title="<%= HtmlUtil.escapeAttribute(title) %>">
 							<span class="image-thumbnail">
-								<img alt="<%= HtmlUtil.escapeAttribute(title) %>" src="<%= src %>" style="<%= DLUtil.getThumbnailStyle(true, 0) %>" />
+								<img alt="<%= HtmlUtil.escapeAttribute(title) %>" src="<%= src %>" style="<%= DLUtil.getThumbnailStyle(true, 0, 128, 128) %>" />
 
 								<c:if test="<%= fileShortcut != null %>">
 									<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="shortcut" />" class="shortcut-icon" src="<%= themeDisplay.getPathThemeImages() %>/file_system/large/overlay_link.png" />
@@ -212,7 +212,7 @@ DLPortletInstanceSettingsHelper dlPortletInstanceSettingsHelper = new DLPortletI
 						%>
 
 							<div class="image-icon">
-								<span class="error image-thumbnail" title="<%= LanguageUtil.get(request, "an-unexpected-error-occurred-while-connecting-to-the-repository") %>">
+								<span class="error image-thumbnail" title='<liferay-ui:message key="an-unexpected-error-occurred-while-connecting-to-the-repository" />'>
 									<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="error" />" src="<%= folderImageSrc %>" style="<%= DLUtil.getThumbnailStyle(true, 0, 128, 128) %>" />
 
 									<span class="image-title"><%= HtmlUtil.escape(StringUtil.shorten(curFolder.getName(), 60)) %></span>
@@ -292,7 +292,7 @@ embeddedPlayerURL.setWindowState(LiferayWindowState.POP_UP);
 		var maxHeight = (viewportRegion.height / 2);
 		var maxWidth = (viewportRegion.width / 2);
 
-		var imageGallery = new A.ImageViewer(
+		new A.ImageViewer(
 			{
 				after: {
 					<c:if test="<%= dlPortletInstanceSettingsHelper.isShowActions() %>">

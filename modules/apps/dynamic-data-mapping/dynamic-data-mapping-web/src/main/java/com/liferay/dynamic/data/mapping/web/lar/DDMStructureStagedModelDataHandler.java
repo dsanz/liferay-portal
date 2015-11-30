@@ -146,51 +146,6 @@ public class DDMStructureStagedModelDataHandler
 	}
 
 	@Override
-	public void importMissingReference(
-			PortletDataContext portletDataContext, Element referenceElement)
-		throws PortletDataException {
-
-		importMissingGroupReference(portletDataContext, referenceElement);
-
-		String uuid = referenceElement.attributeValue("uuid");
-
-		Map<Long, Long> groupIds =
-			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
-				Group.class);
-
-		long groupId = GetterUtil.getLong(
-			referenceElement.attributeValue("group-id"));
-
-		groupId = MapUtil.getLong(groupIds, groupId);
-
-		long classNameId = PortalUtil.getClassNameId(
-			referenceElement.attributeValue("referenced-class-name"));
-		String structureKey = referenceElement.attributeValue("structure-key");
-		boolean preloaded = GetterUtil.getBoolean(
-			referenceElement.attributeValue("preloaded"));
-
-		DDMStructure existingStructure = null;
-
-		existingStructure = fetchExistingStructure(
-			uuid, groupId, classNameId, structureKey, preloaded);
-
-		Map<Long, Long> structureIds =
-			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
-				DDMStructure.class);
-
-		long structureId = GetterUtil.getLong(
-			referenceElement.attributeValue("class-pk"));
-
-		structureIds.put(structureId, existingStructure.getStructureId());
-
-		Map<String, String> structureKeys =
-			(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(
-				DDMStructure.class + ".ddmStructureKey");
-
-		structureKeys.put(structureKey, existingStructure.getStructureKey());
-	}
-
-	@Override
 	public boolean validateReference(
 		PortletDataContext portletDataContext, Element referenceElement) {
 
@@ -257,6 +212,51 @@ public class DDMStructureStagedModelDataHandler
 		portletDataContext.addClassedModel(
 			structureElement, ExportImportPathUtil.getModelPath(structure),
 			structure);
+	}
+
+	@Override
+	protected void doImportMissingReference(
+			PortletDataContext portletDataContext, Element referenceElement)
+		throws PortletDataException {
+
+		importMissingGroupReference(portletDataContext, referenceElement);
+
+		String uuid = referenceElement.attributeValue("uuid");
+
+		Map<Long, Long> groupIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				Group.class);
+
+		long groupId = GetterUtil.getLong(
+			referenceElement.attributeValue("group-id"));
+
+		groupId = MapUtil.getLong(groupIds, groupId);
+
+		long classNameId = PortalUtil.getClassNameId(
+			referenceElement.attributeValue("referenced-class-name"));
+		String structureKey = referenceElement.attributeValue("structure-key");
+		boolean preloaded = GetterUtil.getBoolean(
+			referenceElement.attributeValue("preloaded"));
+
+		DDMStructure existingStructure = null;
+
+		existingStructure = fetchExistingStructure(
+			uuid, groupId, classNameId, structureKey, preloaded);
+
+		Map<Long, Long> structureIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				DDMStructure.class);
+
+		long structureId = GetterUtil.getLong(
+			referenceElement.attributeValue("class-pk"));
+
+		structureIds.put(structureId, existingStructure.getStructureId());
+
+		Map<String, String> structureKeys =
+			(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(
+				DDMStructure.class + ".ddmStructureKey");
+
+		structureKeys.put(structureKey, existingStructure.getStructureKey());
 	}
 
 	@Override
@@ -510,10 +510,12 @@ public class DDMStructureStagedModelDataHandler
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDMStructureStagedModelDataHandler.class);
 
-	private DDMFormJSONDeserializer _ddmFormJSONDeserializer;
-	private DDMFormLayoutJSONDeserializer _ddmFormLayoutJSONDeserializer;
-	private DDMStructureLayoutLocalService _ddmStructureLayoutLocalService;
-	private DDMStructureLocalService _ddmStructureLocalService;
-	private UserLocalService _userLocalService;
+	private volatile DDMFormJSONDeserializer _ddmFormJSONDeserializer;
+	private volatile DDMFormLayoutJSONDeserializer
+		_ddmFormLayoutJSONDeserializer;
+	private volatile DDMStructureLayoutLocalService
+		_ddmStructureLayoutLocalService;
+	private volatile DDMStructureLocalService _ddmStructureLocalService;
+	private volatile UserLocalService _userLocalService;
 
 }

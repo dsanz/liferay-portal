@@ -97,13 +97,11 @@ public interface ExportImportConfigurationLocalService extends BaseLocalService,
 	*
 	* @param exportImportConfiguration the export import configuration
 	* @return the export import configuration that was removed
-	* @throws PortalException
 	*/
 	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.DELETE)
 	@com.liferay.portal.kernel.systemevent.SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public com.liferay.portlet.exportimport.model.ExportImportConfiguration deleteExportImportConfiguration(
-		com.liferay.portlet.exportimport.model.ExportImportConfiguration exportImportConfiguration)
-		throws PortalException;
+		com.liferay.portlet.exportimport.model.ExportImportConfiguration exportImportConfiguration);
 
 	/**
 	* Deletes the export import configuration with the primary key from the database. Also notifies the appropriate model listeners.
@@ -116,8 +114,7 @@ public interface ExportImportConfigurationLocalService extends BaseLocalService,
 	public com.liferay.portlet.exportimport.model.ExportImportConfiguration deleteExportImportConfiguration(
 		long exportImportConfigurationId) throws PortalException;
 
-	public void deleteExportImportConfigurations(long groupId)
-		throws PortalException;
+	public void deleteExportImportConfigurations(long groupId);
 
 	/**
 	* @throws PortalException
@@ -200,13 +197,6 @@ public interface ExportImportConfigurationLocalService extends BaseLocalService,
 	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery();
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
-
-	/**
 	* Returns the export import configuration with the primary key.
 	*
 	* @param exportImportConfigurationId the primary key of the export import configuration
@@ -259,6 +249,16 @@ public interface ExportImportConfigurationLocalService extends BaseLocalService,
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getExportImportConfigurationsCount(long groupId, int type);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public java.lang.String getOSGiServiceIdentifier();
+
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
@@ -285,13 +285,6 @@ public interface ExportImportConfigurationLocalService extends BaseLocalService,
 		long companyId, long groupId, int type, java.lang.String name,
 		java.lang.String description, boolean andSearch, int start, int end,
 		com.liferay.portal.kernel.search.Sort sort) throws PortalException;
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	/**
 	* Updates the export import configuration in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.

@@ -71,9 +71,18 @@ String rootNodeName = ParamUtil.getString(request, "rootNodeName");
 
 			<%
 			int exportImportConfigurationType = ExportImportConfigurationConstants.TYPE_EXPORT_LAYOUT;
+
+			long originalGroupId = groupId;
+
+			groupId = liveGroupId;
 			%>
 
 			<%@ include file="/export_import_configuration_search_results.jspf" %>
+
+			<%
+			groupId = originalGroupId;
+			%>
+
 		</liferay-ui:search-container-results>
 
 		<liferay-ui:search-container-row
@@ -126,6 +135,6 @@ String rootNodeName = ParamUtil.getString(request, "rootNodeName");
 			/>
 		</liferay-ui:search-container-row>
 
-		<liferay-ui:search-iterator />
+		<liferay-ui:search-iterator markupView="lexicon" />
 	</liferay-ui:search-container>
 </aui:form>

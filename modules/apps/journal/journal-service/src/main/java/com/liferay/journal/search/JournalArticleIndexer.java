@@ -25,11 +25,12 @@ import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleDisplay;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.service.permission.JournalArticlePermission;
-import com.liferay.journal.util.JournalContentUtil;
+import com.liferay.journal.util.JournalContent;
 import com.liferay.journal.util.JournalConverter;
 import com.liferay.journal.util.impl.JournalUtil;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
+import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -754,11 +755,10 @@ public class JournalArticleIndexer
 				(ThemeDisplay)portletRequest.getAttribute(
 					WebKeys.THEME_DISPLAY);
 
-			JournalArticleDisplay articleDisplay =
-				JournalContentUtil.getDisplay(
-					groupId, articleId, version, null, Constants.VIEW,
-					LocaleUtil.toLanguageId(snippetLocale), 1,
-					portletRequestModel, themeDisplay);
+			JournalArticleDisplay articleDisplay = _journalContent.getDisplay(
+				groupId, articleId, version, null, Constants.VIEW,
+				LocaleUtil.toLanguageId(snippetLocale), 1, portletRequestModel,
+				themeDisplay);
 
 			content = articleDisplay.getDescription();
 			content = HtmlUtil.replaceNewLine(content);
@@ -777,11 +777,11 @@ public class JournalArticleIndexer
 	}
 
 	protected void reindexArticles(long companyId) throws PortalException {
-		final ActionableDynamicQuery actionableDynamicQuery =
-			_journalArticleLocalService.getActionableDynamicQuery();
+		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+			_journalArticleLocalService.getIndexableActionableDynamicQuery();
 
-		actionableDynamicQuery.setCompanyId(companyId);
-		actionableDynamicQuery.setPerformActionMethod(
+		indexableActionableDynamicQuery.setCompanyId(companyId);
+		indexableActionableDynamicQuery.setPerformActionMethod(
 			new ActionableDynamicQuery.PerformActionMethod<JournalArticle>() {
 
 				@Override
@@ -803,7 +803,7 @@ public class JournalArticleIndexer
 					try {
 						Document document = getDocument(article);
 
-						actionableDynamicQuery.addDocument(document);
+						indexableActionableDynamicQuery.addDocument(document);
 					}
 					catch (PortalException pe) {
 						if (_log.isWarnEnabled()) {
@@ -816,9 +816,9 @@ public class JournalArticleIndexer
 				}
 
 			});
-		actionableDynamicQuery.setSearchEngineId(getSearchEngineId());
+		indexableActionableDynamicQuery.setSearchEngineId(getSearchEngineId());
 
-		actionableDynamicQuery.performActions();
+		indexableActionableDynamicQuery.performActions();
 	}
 
 	protected void reindexArticleVersions(JournalArticle article)
@@ -829,21 +829,26 @@ public class JournalArticleIndexer
 			getArticleVersions(article), isCommitImmediately());
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMStructureLocalService(
 		DDMStructureLocalService ddmStructureLocalService) {
 
 		_ddmStructureLocalService = ddmStructureLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJournalArticleLocalService(
 		JournalArticleLocalService journalArticleLocalService) {
 
 		_journalArticleLocalService = journalArticleLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
+	protected void setJournalContent(JournalContent journalContent) {
+		_journalContent = journalContent;
+	}
+
+	@Reference(unbind = "-")
 	protected void setJournalConverter(JournalConverter journalConverter) {
 		_journalConverter = journalConverter;
 	}
@@ -851,8 +856,9 @@ public class JournalArticleIndexer
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalArticleIndexer.class);
 
-	private DDMStructureLocalService _ddmStructureLocalService;
-	private JournalArticleLocalService _journalArticleLocalService;
-	private JournalConverter _journalConverter;
+	private volatile DDMStructureLocalService _ddmStructureLocalService;
+	private volatile JournalArticleLocalService _journalArticleLocalService;
+	private volatile JournalContent _journalContent;
+	private volatile JournalConverter _journalConverter;
 
 }

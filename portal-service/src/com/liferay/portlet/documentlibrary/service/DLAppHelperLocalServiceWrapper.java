@@ -82,16 +82,6 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 		_dlAppHelperLocalService.deleteRepositoryFileEntries(repositoryId);
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _dlAppHelperLocalService.getBeanIdentifier();
-	}
-
 	@Override
 	public void getFileAsStream(long userId,
 		com.liferay.portal.kernel.repository.model.FileEntry fileEntry,
@@ -143,6 +133,16 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	}
 
 	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	@Override
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _dlAppHelperLocalService.getOSGiServiceIdentifier();
+	}
+
+	/**
 	* @deprecated As of 7.0.0, replaced by {@link
 	#moveDependentsToTrash(DLFolder)}
 	*/
@@ -180,7 +180,6 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	* @param userId the primary key of the user moving the file entry
 	* @param fileEntry the file entry to be moved
 	* @return the moved file entry
-	* @throws PortalException if a user with the primary key could not be found
 	*/
 	@Override
 	public com.liferay.portal.kernel.repository.model.FileEntry moveFileEntryToTrash(
@@ -207,7 +206,6 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	* @param userId the primary key of the user moving the file shortcut
 	* @param fileShortcut the file shortcut to be moved
 	* @return the moved file shortcut
-	* @throws PortalException if a user with the primary key could not be found
 	*/
 	@Override
 	public com.liferay.portal.kernel.repository.model.FileShortcut moveFileShortcutToTrash(
@@ -234,7 +232,6 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	* @param userId the primary key of the user moving the folder
 	* @param folder the folder to be moved
 	* @return the moved folder
-	* @throws PortalException if a user with the primary key could not be found
 	*/
 	@Override
 	public com.liferay.portal.kernel.repository.model.Folder moveFolderToTrash(
@@ -296,16 +293,6 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 		com.liferay.portal.kernel.repository.model.Folder folder)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		_dlAppHelperLocalService.restoreFolderFromTrash(userId, folder);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_dlAppHelperLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	@Override

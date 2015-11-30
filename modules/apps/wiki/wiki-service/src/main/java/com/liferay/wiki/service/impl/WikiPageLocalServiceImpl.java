@@ -240,7 +240,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		// Workflow
 
-		startWorkflowInstance(userId, page, serviceContext);
+		page = startWorkflowInstance(userId, page, serviceContext);
 
 		return page;
 	}
@@ -283,6 +283,9 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		Folder folder = page.addAttachmentsFolder();
 
+		fileName = PortletFileRepositoryUtil.getUniqueFileName(
+			page.getGroupId(), folder.getFolderId(), fileName);
+
 		FileEntry fileEntry = PortletFileRepositoryUtil.addPortletFileEntry(
 			page.getGroupId(), userId, WikiPage.class.getName(),
 			page.getResourcePrimKey(), WikiPortletKeys.WIKI,
@@ -315,6 +318,9 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		WikiPage page = getPage(nodeId, title);
 
 		Folder folder = page.addAttachmentsFolder();
+
+		fileName = PortletFileRepositoryUtil.getUniqueFileName(
+			page.getGroupId(), folder.getFolderId(), fileName);
 
 		FileEntry fileEntry = PortletFileRepositoryUtil.addPortletFileEntry(
 			page.getGroupId(), userId, WikiPage.class.getName(),
@@ -1911,7 +1917,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 				page.getModifiedDate(), WikiPage.class.getName(),
 				page.getPrimaryKey(), page.getUuid(), 0, assetCategoryIds,
 				assetTagNames, false, null, null, null, ContentTypes.TEXT_HTML,
-				page.getTitle(), null, null, null, null, 0, 0, null, false);
+				page.getTitle(), null, null, null, null, 0, 0, null);
 		}
 		else {
 			assetEntry = assetEntryLocalService.updateEntry(
@@ -1920,7 +1926,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 				page.getResourcePrimKey(), page.getUuid(), 0, assetCategoryIds,
 				assetTagNames, page.isApproved(), null, null, null,
 				ContentTypes.TEXT_HTML, page.getTitle(), null, null, null, null,
-				0, 0, null, false);
+				0, 0, null);
 		}
 
 		assetLinkLocalService.updateLinks(
@@ -2063,7 +2069,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 						page.getResourcePrimKey(), page.getUuid(), 0,
 						assetCategoryIds, assetTagNames, true, null, null, null,
 						ContentTypes.TEXT_HTML, page.getTitle(), null, null,
-						null, null, 0, 0, null, false);
+						null, null, 0, 0, null);
 
 					// Asset Links
 
@@ -2097,7 +2103,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 							page.getGroupId(), WikiConstants.SERVICE_NAME));
 
 			if ((oldStatus != WorkflowConstants.STATUS_IN_TRASH) &&
-				(page.getVersion() == WikiPageConstants.VERSION_DEFAULT) &&
 				(!page.isMinorEdit() ||
 				 wikiGroupServiceOverriddenConfiguration.
 					 pageMinorEditAddSocialActivity())) {
@@ -2108,9 +2113,14 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 				extraDataJSONObject.put("title", page.getTitle());
 				extraDataJSONObject.put("version", page.getVersion());
 
+				int type = WikiActivityKeys.UPDATE_PAGE;
+
+				if (serviceContext.isCommandAdd()) {
+					type = WikiActivityKeys.ADD_PAGE;
+				}
+
 				SocialActivityManagerUtil.addActivity(
-					userId, page, WikiActivityKeys.ADD_PAGE,
-					extraDataJSONObject.toString(), 0);
+					userId, page, type, extraDataJSONObject.toString(), 0);
 			}
 
 			// Subscriptions
@@ -2330,7 +2340,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		if (plid == LayoutConstants.DEFAULT_PLID) {
 			portletURL = PortalUtil.getControlPanelPortletURL(
-				request, WikiPortletKeys.WIKI_ADMIN, 0,
+				request, WikiPortletKeys.WIKI_ADMIN,
 				PortletRequest.RENDER_PHASE);
 		}
 		else {
@@ -2372,7 +2382,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		}
 		else {
 			PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
-				request, WikiPortletKeys.WIKI_ADMIN, 0,
+				request, WikiPortletKeys.WIKI_ADMIN,
 				PortletRequest.RENDER_PHASE);
 
 			portletURL.setParameter(
@@ -3080,7 +3090,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			expandoBridge.getAttributes());
 	}
 
-	protected void startWorkflowInstance(
+	protected WikiPage startWorkflowInstance(
 			long userId, WikiPage page, ServiceContext serviceContext)
 		throws PortalException {
 
@@ -3091,7 +3101,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		workflowContext.put(
 			WorkflowConstants.CONTEXT_URL, getPageURL(page, serviceContext));
 
-		WorkflowHandlerRegistryUtil.startWorkflowInstance(
+		return WorkflowHandlerRegistryUtil.startWorkflowInstance(
 			page.getCompanyId(), page.getGroupId(), userId,
 			WikiPage.class.getName(), page.getPageId(), page, serviceContext,
 			workflowContext);
@@ -3200,42 +3210,9 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			serviceContext.getAssetTagNames(),
 			serviceContext.getAssetLinkEntryIds());
 
-		// Social
-
-		WikiGroupServiceOverriddenConfiguration
-			wikiGroupServiceOverriddenConfiguration =
-				configurationFactory.getConfiguration(
-					WikiGroupServiceOverriddenConfiguration.class,
-					new GroupServiceSettingsLocator(
-						node.getGroupId(), WikiConstants.SERVICE_NAME));
-
-		if (!page.isMinorEdit() ||
-			wikiGroupServiceOverriddenConfiguration.
-				pageMinorEditAddSocialActivity()) {
-
-			if (oldPage.getVersion() == newVersion) {
-				Date createDate = new Date(now.getTime() + 1);
-
-				SocialActivityManagerUtil.updateLastSocialActivity(
-					serviceContext.getUserId(), page,
-					WikiActivityKeys.UPDATE_PAGE, createDate);
-			}
-			else {
-				JSONObject extraDataJSONObject =
-					JSONFactoryUtil.createJSONObject();
-
-				extraDataJSONObject.put("title", page.getTitle());
-				extraDataJSONObject.put("version", page.getVersion());
-
-				SocialActivityManagerUtil.addActivity(
-					userId, page, WikiActivityKeys.UPDATE_PAGE,
-					extraDataJSONObject.toString(), 0);
-			}
-		}
-
 		// Workflow
 
-		startWorkflowInstance(userId, page, serviceContext);
+		page = startWorkflowInstance(userId, page, serviceContext);
 
 		return page;
 	}

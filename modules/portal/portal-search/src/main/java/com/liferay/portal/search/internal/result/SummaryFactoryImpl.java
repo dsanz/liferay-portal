@@ -89,11 +89,11 @@ public class SummaryFactoryImpl implements SummaryFactory {
 		return summary;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setIndexerRegistry(IndexerRegistry indexerRegistry) {
 		_indexerRegistry = indexerRegistry;
 	}
 
-	private IndexerRegistry _indexerRegistry;
+	private volatile IndexerRegistry _indexerRegistry;
 
 }

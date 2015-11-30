@@ -219,16 +219,6 @@ public class DDMTemplateLinkLocalServiceWrapper
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _ddmTemplateLinkLocalService.getBeanIdentifier();
-	}
-
-	/**
 	* Returns the d d m template link with the primary key.
 	*
 	* @param templateLinkId the primary key of the d d m template link
@@ -270,6 +260,21 @@ public class DDMTemplateLinkLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _ddmTemplateLinkLocalService.getIndexableActionableDynamicQuery();
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	@Override
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _ddmTemplateLinkLocalService.getOSGiServiceIdentifier();
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -294,16 +299,6 @@ public class DDMTemplateLinkLocalServiceWrapper
 	public java.util.List<com.liferay.dynamic.data.mapping.model.DDMTemplateLink> getTemplateLinks(
 		long classNameId) {
 		return _ddmTemplateLinkLocalService.getTemplateLinks(classNameId);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_ddmTemplateLinkLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

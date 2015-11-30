@@ -4,11 +4,7 @@
 	</command>
 
 	<command name="addPageContent">
-		<execute function="SelectFrame" locator1="CKEditor#BODY_FIELD_IFRAME" />
-
-		<execute function="Type#sendKeys" locator1="CKEditor#BODY" value1="${wikiPageContent}" />
-
-		<execute function="SelectFrame" value1="relative=top" />
+		<execute function="Type#clickAtType" locator1="Wiki#RICH_TEXT_EDITOR" value1="${wikiPageContent}" />
 	</command>
 
 	<command name="addPageTitle">
@@ -17,6 +13,10 @@
 
 	<command name="cancel">
 		<execute function="AssertClick" locator1="Button#CANCEL" value1="Cancel" />
+	</command>
+
+	<command name="confirmHTML">
+		<execute function="Confirm" value1="You may lose some formatting when switching from Creole to HTML. Do you want to continue?" />
 	</command>
 
 	<command name="confirmMediaWiki">
@@ -50,10 +50,6 @@
 	</command>
 
 	<command name="viewPageContentBody">
-		<execute function="SelectFrame" locator1="CKEditor#BODY_FIELD_IFRAME" />
-
-		<execute function="AssertTextEquals" locator1="CKEditor#BODY" value1="${wikiPageContent}" />
-
-		<execute function="SelectFrame" value1="relative=top" />
+		<execute function="AssertTextEquals" locator1="Wiki#RICH_TEXT_EDITOR" value1="${wikiPageContent}" />
 	</command>
 </definition>

@@ -67,12 +67,7 @@ request.setAttribute("view_entries.jspf-site", group);
 </aui:nav-bar>
 
 <div class="sidebar-body">
-
-	<%
-	LayoutSet layoutSet = group.getPublicLayoutSet();
-	%>
-
-	<img alt="<%= HtmlUtil.escapeAttribute(group.getDescriptiveName()) %>" class="center-block img-responsive" src='<%= themeDisplay.getPathImage() + "/layout_set_logo?img_id=" + layoutSet.getLogoId() + "&t=" + WebServerServletTokenUtil.getToken(layoutSet.getLogoId()) %>' />
+	<img alt="<%= HtmlUtil.escapeAttribute(group.getDescriptiveName()) %>" class="center-block img-responsive" src="<%= group.getLogoURL(themeDisplay, true) %>" />
 
 	<c:if test="<%= group.isOrganization() %>">
 
@@ -96,7 +91,7 @@ request.setAttribute("view_entries.jspf-site", group);
 	<%
 	String portletId = PortletProviderUtil.getPortletId(MembershipRequest.class.getName(), PortletProvider.Action.VIEW);
 
-	PortletURL assignMembersURL = PortalUtil.getControlPanelPortletURL(request, portletId, 0, PortletRequest.RENDER_PHASE);
+	PortletURL assignMembersURL = PortalUtil.getControlPanelPortletURL(request, portletId, PortletRequest.RENDER_PHASE);
 
 	assignMembersURL.setParameter("redirect", currentURL);
 	%>

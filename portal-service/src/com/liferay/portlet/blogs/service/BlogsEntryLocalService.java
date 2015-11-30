@@ -269,13 +269,6 @@ public interface BlogsEntryLocalService extends BaseLocalService,
 	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery();
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
-
-	/**
 	* Returns a range of all the blogs entries.
 	*
 	* <p>
@@ -533,7 +526,17 @@ public interface BlogsEntryLocalService extends BaseLocalService,
 		int start, int end);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getNoAssetEntries();
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public java.lang.String getOSGiServiceIdentifier();
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getOrganizationEntries(
@@ -590,9 +593,6 @@ public interface BlogsEntryLocalService extends BaseLocalService,
 	* @param userId the primary key of the user moving the blogs entry
 	* @param entry the blogs entry to be moved
 	* @return the moved blogs entry
-	* @throws PortalException if a user with the primary key could not be found
-	or if the blogs entry owner's social activity counter could not
-	be updated
 	*/
 	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
 	public com.liferay.portlet.blogs.model.BlogsEntry moveEntryToTrash(
@@ -605,9 +605,6 @@ public interface BlogsEntryLocalService extends BaseLocalService,
 	* @param userId the primary key of the user moving the blogs entry
 	* @param entryId the primary key of the blogs entry to be moved
 	* @return the moved blogs entry
-	* @throws PortalException if a user or blogs entry with the primary key
-	could not be found or if the blogs entry owner's social activity
-	counter could not be updated
 	*/
 	public com.liferay.portlet.blogs.model.BlogsEntry moveEntryToTrash(
 		long userId, long entryId) throws PortalException;
@@ -619,20 +616,10 @@ public interface BlogsEntryLocalService extends BaseLocalService,
 	* @param userId the primary key of the user restoring the blogs entry
 	* @param entryId the primary key of the blogs entry to be restored
 	* @return the restored blogs entry from the recycle bin
-	* @throws PortalException if a user or blogs entry with the primary key
-	could not be found or if the blogs entry owner's social activity
-	counter could not be updated
 	*/
 	@com.liferay.portal.kernel.search.Indexable(type = IndexableType.REINDEX)
 	public com.liferay.portlet.blogs.model.BlogsEntry restoreEntryFromTrash(
 		long userId, long entryId) throws PortalException;
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	public void subscribe(long userId, long groupId) throws PortalException;
 

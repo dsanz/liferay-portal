@@ -17,6 +17,24 @@
 <%@ include file="/init.jsp" %>
 
 <%
+String navigation = ParamUtil.getString(request, "navigation");
+
+String displayStyle = ParamUtil.getString(request, "displayStyle", "list");
+
+String orderByCol = ParamUtil.getString(request, "orderByCol", "create-date");
+String orderByType = ParamUtil.getString(request, "orderByType", "asc");
+
+Boolean active = null;
+
+if (navigation.equals("active")) {
+	active = true;
+}
+else if (navigation.equals("inactive")) {
+	active = false;
+}
+
+int totalVar = LayoutPrototypeLocalServiceUtil.searchCount(company.getCompanyId(), active);
+
 PortletURL portletURL = renderResponse.createRenderURL();
 %>
 
@@ -28,38 +46,87 @@ PortletURL portletURL = renderResponse.createRenderURL();
 	</aui:nav>
 </aui:nav-bar>
 
-<aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid-1280" method="get" name="fm">
-	<liferay-portlet:renderURLParams varImpl="portletURL" />
-	<aui:input name="<%= Constants.CMD %>" type="hidden" />
-	<aui:input name="redirect" type="hidden" value="<%= portletURL.toString() %>" />
-
-	<liferay-ui:search-container
-		emptyResultsMessage="no-page-templates-were-found"
-		headerNames="name"
-		iteratorURL="<%= portletURL %>"
-		total="<%= LayoutPrototypeLocalServiceUtil.searchCount(company.getCompanyId(), null) %>"
+<c:if test='<%= (totalVar > 0) || !navigation.equals("all") %>'>
+	<liferay-frontend:management-bar
+		includeCheckBox="<%= true %>"
+		searchContainerId="layoutPrototype"
 	>
-		<aui:input name="deleteLayoutPrototypesIds" type="hidden" />
+		<liferay-frontend:management-bar-filters>
+			<liferay-frontend:management-bar-navigation
+				navigationKeys='<%= new String[] {"all", "active", "inactive"} %>'
+				portletURL="<%= renderResponse.createRenderURL() %>"
+			/>
+
+			<liferay-frontend:management-bar-sort
+				orderByCol="<%= orderByCol %>"
+				orderByType="<%= orderByType %>"
+				orderColumns='<%= new String[] {"create-date"} %>'
+				portletURL="<%= renderResponse.createRenderURL() %>"
+			/>
+		</liferay-frontend:management-bar-filters>
+
+		<liferay-frontend:management-bar-buttons>
+			<liferay-frontend:management-bar-display-buttons
+				displayViews='<%= new String[] {"list"} %>'
+				portletURL="<%= portletURL %>"
+				selectedDisplayStyle="<%= displayStyle %>"
+			/>
+		</liferay-frontend:management-bar-buttons>
+
+		<liferay-frontend:management-bar-action-buttons>
+			<liferay-frontend:management-bar-button href="javascript:;" iconCssClass="icon-trash" id="deleteSelectedLayoutPrototypes" />
+		</liferay-frontend:management-bar-action-buttons>
+	</liferay-frontend:management-bar>
+</c:if>
+
+<portlet:actionURL name="deleteLayoutPrototypes" var="deleteLayoutPrototypesURL">
+	<portlet:param name="redirect" value="<%= currentURL %>" />
+</portlet:actionURL>
+
+<aui:form action="<%= deleteLayoutPrototypesURL %>" cssClass="container-fluid-1280" name="fm">
+	<liferay-ui:search-container
+		emptyResultsMessage="there-are-no-page-templates.-you-can-add-a-page-template-by-clicking-the-plus-button-on-the-bottom-right-corner"
+		headerNames="name"
+		id="layoutPrototype"
+		iteratorURL="<%= portletURL %>"
+		rowChecker="<%= new EmptyOnClickRowChecker(renderResponse) %>"
+		total="<%= totalVar %>"
+	>
+
+		<%
+		boolean orderByAsc = false;
+
+		if (orderByType.equals("asc")) {
+			orderByAsc = true;
+		}
+
+		OrderByComparator<LayoutPrototype> orderByComparator = new LayoutPrototypeCreateDateComparator(orderByAsc);
+
+		searchContainer.setOrderByCol(orderByCol);
+		searchContainer.setOrderByComparator(orderByComparator);
+		searchContainer.setOrderByType(orderByType);
+		%>
 
 		<liferay-ui:search-container-results
-			results="<%= LayoutPrototypeLocalServiceUtil.search(company.getCompanyId(), null, searchContainer.getStart(), searchContainer.getEnd(), null) %>"
+			results="<%= LayoutPrototypeLocalServiceUtil.search(company.getCompanyId(), active, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator()) %>"
 		/>
 
 		<liferay-ui:search-container-row
 			className="com.liferay.portal.model.LayoutPrototype"
+			cssClass="selectable"
 			escapedModel="<%= true %>"
 			keyProperty="layoutPrototypeId"
 			modelVar="layoutPrototype"
 		>
+
+			<%
+			Group layoutPrototypeGroup = layoutPrototype.getGroup();
+			%>
+
 			<liferay-ui:search-container-column-text
 				name="name"
 			>
-				<liferay-portlet:renderURL varImpl="rowURL">
-					<portlet:param name="mvcPath" value="/edit_layout_prototype.jsp" />
-					<portlet:param name="layoutPrototypeId" value="<%= String.valueOf(layoutPrototype.getLayoutPrototypeId()) %>" />
-				</liferay-portlet:renderURL>
-
-				<aui:a href="<%= rowURL.toString() %>"><%= layoutPrototype.getName(locale) %></aui:a>
+				<aui:a href="<%= layoutPrototypeGroup.getDisplayURL(themeDisplay, true) %>" target="_blank"><%= layoutPrototype.getName(locale) %></aui:a>
 
 				<%
 				int mergeFailCount = SitesUtil.getMergeFailCount(layoutPrototype);
@@ -78,6 +145,11 @@ PortletURL portletURL = renderResponse.createRenderURL();
 				value="<%= layoutPrototype.getDescription(locale) %>"
 			/>
 
+			<liferay-ui:search-container-column-date
+				name="create-date"
+				property="createDate"
+			/>
+
 			<liferay-ui:search-container-column-text
 				cssClass="checkbox-cell"
 				name="active"
@@ -91,7 +163,7 @@ PortletURL portletURL = renderResponse.createRenderURL();
 			/>
 		</liferay-ui:search-container-row>
 
-		<liferay-ui:search-iterator markupView="lexicon" />
+		<liferay-ui:search-iterator displayStyle="<%= displayStyle %>" markupView="lexicon" />
 	</liferay-ui:search-container>
 </aui:form>
 
@@ -104,3 +176,14 @@ PortletURL portletURL = renderResponse.createRenderURL();
 		<liferay-frontend:add-menu-item title='<%= LanguageUtil.get(request, "add") %>' url="<%= addLayoutPrototypeURL.toString() %>" />
 	</liferay-frontend:add-menu>
 </c:if>
+
+<aui:script sandbox="<%= true %>">
+	$('#<portlet:namespace />deleteSelectedLayoutPrototypes').on(
+		'click',
+		function() {
+			if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" />')) {
+				submitForm($(document.<portlet:namespace />fm));
+			}
+		}
+	);
+</aui:script>

@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.util.ProgressTracker;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
@@ -41,12 +42,11 @@ import com.liferay.portal.service.permission.PortletPermissionUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.ActionResponseImpl;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.usersadmin.search.UserSearch;
 import com.liferay.portlet.usersadmin.search.UserSearchTerms;
-import com.liferay.users.admin.web.constants.UsersAdminPortletKeys;
+import com.liferay.users.admin.constants.UsersAdminPortletKeys;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -106,8 +106,7 @@ public class ExportUsersMVCActionCommand extends BaseMVCActionCommand {
 			ServletResponseUtil.sendFile(
 				request, response, fileName, bytes, ContentTypes.TEXT_CSV_UTF8);
 
-			actionResponse.setRenderParameter(
-				"mvcPath", "/html/common/null.jsp");
+			actionResponse.setRenderParameter("mvcPath", "/null.jsp");
 		}
 		catch (Exception e) {
 			SessionErrors.add(actionRequest, e.getClass());
@@ -276,6 +275,6 @@ public class ExportUsersMVCActionCommand extends BaseMVCActionCommand {
 		_userLocalService = userLocalService;
 	}
 
-	private UserLocalService _userLocalService;
+	private volatile UserLocalService _userLocalService;
 
 }

@@ -366,24 +366,24 @@ public class DDMStructureManagerImpl implements DDMStructureManager {
 		return new StructureIdComparator();
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDM(DDM ddm) {
 		_ddm = ddm;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMBeanTranslator(DDMBeanTranslator ddmBeanTranslator) {
 		_ddmBeanTranslator = ddmBeanTranslator;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMStorageLinkLocalService(
 		DDMStorageLinkLocalService ddmStorageLinkLocalService) {
 
 		_ddmStorageLinkLocalService = ddmStorageLinkLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMStructureLocalService(
 		DDMStructureLocalService ddmStructureLocalService) {
 
@@ -430,9 +430,9 @@ public class DDMStructureManagerImpl implements DDMStructureManager {
 		return portalException;
 	}
 
-	private DDM _ddm;
-	private DDMBeanTranslator _ddmBeanTranslator;
-	private DDMStorageLinkLocalService _ddmStorageLinkLocalService;
-	private DDMStructureLocalService _ddmStructureLocalService;
+	private volatile DDM _ddm;
+	private volatile DDMBeanTranslator _ddmBeanTranslator;
+	private volatile DDMStorageLinkLocalService _ddmStorageLinkLocalService;
+	private volatile DDMStructureLocalService _ddmStructureLocalService;
 
 }

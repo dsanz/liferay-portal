@@ -40,7 +40,6 @@ import org.osgi.service.component.annotations.Reference;
  * @author Jorge Ferrer
  * @author Peter Fellwock
  */
-
 @Component(
 	property = {
 		"javax.portlet.name=" + PluginsAdminPortletKeys.PLUGINS_ADMIN,
@@ -110,7 +109,7 @@ public class EditPluginActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	private PluginSettingService _pluginSettingService;
-	private PortletService _portletService;
+	private volatile PluginSettingService _pluginSettingService;
+	private volatile PortletService _portletService;
 
 }

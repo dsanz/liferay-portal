@@ -195,12 +195,8 @@ public interface JournalContentSearchLocalService extends BaseLocalService,
 	public java.util.List<com.liferay.journal.model.JournalContentSearch> getArticleContentSearches(
 		long groupId, java.lang.String articleId);
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
 
 	/**
 	* Returns the journal content search with the primary key.
@@ -247,6 +243,13 @@ public interface JournalContentSearchLocalService extends BaseLocalService,
 	public int getLayoutIdsCount(long groupId, boolean privateLayout,
 		java.lang.String articleId);
 
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public java.lang.String getOSGiServiceIdentifier();
+
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
@@ -255,13 +258,6 @@ public interface JournalContentSearchLocalService extends BaseLocalService,
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.journal.model.JournalContentSearch> getPortletContentSearches(
 		java.lang.String portletId);
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	public com.liferay.journal.model.JournalContentSearch updateContentSearch(
 		long groupId, boolean privateLayout, long layoutId,

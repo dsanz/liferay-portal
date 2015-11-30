@@ -18,6 +18,7 @@
 
 <%
 long groupId = ParamUtil.getLong(request, "groupId");
+boolean privateLayout = ParamUtil.getBoolean(request, "privateLayout");
 boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
 
 PortletURL portletURL = liferayPortletResponse.createRenderURL();
@@ -25,6 +26,7 @@ PortletURL portletURL = liferayPortletResponse.createRenderURL();
 portletURL.setParameter("mvcRenderCommandName", "exportLayouts");
 portletURL.setParameter("tabs2", "current-and-previous");
 portletURL.setParameter("groupId", String.valueOf(groupId));
+portletURL.setParameter("privateLayout", String.valueOf(privateLayout));
 portletURL.setParameter("showHeader", String.valueOf(showHeader));
 
 String orderByCol = ParamUtil.getString(request, "orderByCol");
@@ -153,7 +155,7 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 		</liferay-ui:search-container-column-text>
 	</liferay-ui:search-container-row>
 
-	<liferay-ui:search-iterator />
+	<liferay-ui:search-iterator markupView="lexicon" />
 </liferay-ui:search-container>
 
 <%

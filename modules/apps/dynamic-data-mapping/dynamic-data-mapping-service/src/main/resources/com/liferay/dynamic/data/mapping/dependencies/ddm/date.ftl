@@ -6,8 +6,12 @@
 
 <#assign nullable = false>
 
-<#if (fieldRawValue?is_date)>
-	<#assign fieldValue = calendarFactory.getCalendar(fieldRawValue?long, timeZone)>
+<#if (hasFieldValue)>
+	<#assign dateValue = fieldRawValue?date["yyyy-MM-dd"]>
+
+	<#assign fieldValue = calendarFactory.getCalendar(requestedLocale)>
+
+	<#assign void = fieldValue.setTimeInMillis(dateValue?long)>
 
 <#elseif (validator.isNotNull(predefinedValue))>
 	<#assign predefinedDate = dateUtil.parseDate(predefinedValue, requestedLocale)>
@@ -26,19 +30,21 @@
 <#assign yearValue = paramUtil.getInteger(request, "${namespacedFieldName}Year", fieldValue.get(YEAR))>
 
 <@aui["field-wrapper"] data=data helpMessage=escape(fieldStructure.tip) label=escape(label) name=namespacedFieldName>
-	<@liferay_ui["input-date"]
-		cssClass=cssClass
-		dayParam="${namespacedFieldName}Day"
-		dayValue=dayValue
-		disabled=false
-		monthParam="${namespacedFieldName}Month"
-		monthValue=monthValue
-		name="${namespacedFieldName}"
-		nullable=nullable
-		required=required
-		yearParam="${namespacedFieldName}Year"
-		yearValue=yearValue
-	/>
+	<div class="form-group">
+		<@liferay_ui["input-date"]
+			cssClass=cssClass
+			dayParam="${namespacedFieldName}Day"
+			dayValue=dayValue
+			disabled=false
+			monthParam="${namespacedFieldName}Month"
+			monthValue=monthValue
+			name="${namespacedFieldName}"
+			nullable=nullable
+			required=required
+			yearParam="${namespacedFieldName}Year"
+			yearValue=yearValue
+		/>
+	</div>
 
 	${fieldStructure.children}
 </@>

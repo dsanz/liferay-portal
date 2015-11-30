@@ -271,13 +271,6 @@ public interface UserNotificationEventLocalService extends BaseLocalService,
 	public int getArchivedUserNotificationEventsCount(long userId,
 		int deliveryType, boolean archived);
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
-
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.UserNotificationEvent> getDeliveredUserNotificationEvents(
 		long userId, boolean delivered);
@@ -327,6 +320,16 @@ public interface UserNotificationEventLocalService extends BaseLocalService,
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getDeliveredUserNotificationEventsCount(long userId,
 		int deliveryType, boolean delivered, boolean actionRequired);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public java.lang.String getOSGiServiceIdentifier();
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -427,6 +430,10 @@ public interface UserNotificationEventLocalService extends BaseLocalService,
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getUserNotificationEventsCount(long userId, int deliveryType);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getUserNotificationEventsCount(long userId,
+		java.lang.String type, int deliveryType, boolean archived);
+
 	public com.liferay.portal.model.UserNotificationEvent sendUserNotificationEvents(
 		long userId, java.lang.String portletId, int deliveryType,
 		boolean actionRequired,
@@ -437,13 +444,6 @@ public interface UserNotificationEventLocalService extends BaseLocalService,
 		long userId, java.lang.String portletId, int deliveryType,
 		com.liferay.portal.kernel.json.JSONObject notificationEventJSONObject)
 		throws PortalException;
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	/**
 	* Updates the user notification event in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.

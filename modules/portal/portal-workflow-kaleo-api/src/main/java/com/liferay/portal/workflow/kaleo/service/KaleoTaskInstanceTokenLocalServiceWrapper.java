@@ -241,16 +241,6 @@ public class KaleoTaskInstanceTokenLocalServiceWrapper
 		return _kaleoTaskInstanceTokenLocalService.getActionableDynamicQuery();
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _kaleoTaskInstanceTokenLocalService.getBeanIdentifier();
-	}
-
 	@Override
 	public java.util.List<com.liferay.portal.workflow.kaleo.model.KaleoTaskInstanceToken> getCompanyKaleoTaskInstanceTokens(
 		long companyId, int start, int end) {
@@ -261,6 +251,11 @@ public class KaleoTaskInstanceTokenLocalServiceWrapper
 	@Override
 	public int getCompanyKaleoTaskInstanceTokensCount(long companyId) {
 		return _kaleoTaskInstanceTokenLocalService.getCompanyKaleoTaskInstanceTokensCount(companyId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _kaleoTaskInstanceTokenLocalService.getIndexableActionableDynamicQuery();
 	}
 
 	/**
@@ -384,6 +379,16 @@ public class KaleoTaskInstanceTokenLocalServiceWrapper
 			completed, serviceContext);
 	}
 
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	@Override
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _kaleoTaskInstanceTokenLocalService.getOSGiServiceIdentifier();
+	}
+
 	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
@@ -499,16 +504,6 @@ public class KaleoTaskInstanceTokenLocalServiceWrapper
 		return _kaleoTaskInstanceTokenLocalService.searchCount(taskName,
 			assetTypes, assetPrimaryKeys, dueDateGT, dueDateLT, completed,
 			searchByUserRoles, andOperator, serviceContext);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_kaleoTaskInstanceTokenLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	@Override

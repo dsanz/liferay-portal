@@ -122,8 +122,6 @@ public class AssetTagStatsLocalServiceWrapper
 	* Deletes the asset tag statistics instance matching the tag statistics ID.
 	*
 	* @param tagStatsId the primary key of the asset tag statistics instance
-	* @throws PortalException if the assetTagStats with the primary key could
-	not be found
 	*/
 	@Override
 	public void deleteTagStats(long tagStatsId)
@@ -289,14 +287,19 @@ public class AssetTagStatsLocalServiceWrapper
 		return _assetTagStatsLocalService.getAssetTagStatsesCount();
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _assetTagStatsLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _assetTagStatsLocalService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _assetTagStatsLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -348,16 +351,6 @@ public class AssetTagStatsLocalServiceWrapper
 	}
 
 	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_assetTagStatsLocalService.setBeanIdentifier(beanIdentifier);
-	}
-
-	/**
 	* Updates the asset tag stats in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	*
 	* @param assetTagStats the asset tag stats
@@ -375,8 +368,6 @@ public class AssetTagStatsLocalServiceWrapper
 	* @param tagId the primary key of the tag
 	* @param classNameId the asset entry's class name ID
 	* @return the updated asset tag statistics instance
-	* @throws PortalException if an asset tag with the tag ID could not be
-	found
 	*/
 	@Override
 	public com.liferay.portlet.asset.model.AssetTagStats updateTagStats(

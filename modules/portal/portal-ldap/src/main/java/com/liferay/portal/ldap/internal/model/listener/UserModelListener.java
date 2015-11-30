@@ -93,19 +93,19 @@ public class UserModelListener extends BaseModelListener<User> {
 			user.getOriginalEmailAddress());
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setMembershipRequestLocalService(
 		MembershipRequestLocalService membershipRequestLocalService) {
 
 		_membershipRequestLocalService = membershipRequestLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setUserExporter(UserExporter userExporter) {
 		_userExporter = userExporter;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setUserLocalService(UserLocalService userLocalService) {
 		_userLocalService = userLocalService;
 	}
@@ -152,8 +152,9 @@ public class UserModelListener extends BaseModelListener<User> {
 		}
 	}
 
-	private MembershipRequestLocalService _membershipRequestLocalService;
-	private UserExporter _userExporter;
-	private UserLocalService _userLocalService;
+	private volatile MembershipRequestLocalService
+		_membershipRequestLocalService;
+	private volatile UserExporter _userExporter;
+	private volatile UserLocalService _userLocalService;
 
 }

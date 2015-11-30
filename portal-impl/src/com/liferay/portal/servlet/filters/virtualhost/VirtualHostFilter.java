@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.impl.LayoutImpl;
@@ -37,7 +38,6 @@ import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portal.webserver.WebServerServlet;
 
 import java.util.Set;
@@ -223,7 +223,8 @@ public class VirtualHostFilter extends BasePortalFilter {
 			_log.debug("Friendly URL is not valid");
 
 			processFilter(
-				VirtualHostFilter.class, request, response, filterChain);
+				VirtualHostFilter.class.getName(), request, response,
+				filterChain);
 
 			return;
 		}
@@ -237,7 +238,8 @@ public class VirtualHostFilter extends BasePortalFilter {
 
 		if (layoutSet == null) {
 			processFilter(
-				VirtualHostFilter.class, request, response, filterChain);
+				VirtualHostFilter.class.getName(), request, response,
+				filterChain);
 
 			return;
 		}
@@ -275,7 +277,7 @@ public class VirtualHostFilter extends BasePortalFilter {
 						request, group.getGroupId(), friendlyURL)) {
 
 					processFilter(
-						VirtualHostFilter.class, request, response,
+						VirtualHostFilter.class.getName(), request, response,
 						filterChain);
 
 					return;
@@ -322,7 +324,8 @@ public class VirtualHostFilter extends BasePortalFilter {
 			_log.error(e, e);
 
 			processFilter(
-				VirtualHostFilter.class, request, response, filterChain);
+				VirtualHostFilter.class.getName(), request, response,
+				filterChain);
 		}
 	}
 

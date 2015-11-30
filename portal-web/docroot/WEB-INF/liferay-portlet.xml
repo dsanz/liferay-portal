@@ -14,19 +14,6 @@
 		<include>false</include>
 	</portlet>
 	<portlet>
-		<portlet-name>11</portlet-name>
-		<icon>/html/icons/directory.png</icon>
-		<asset-renderer-factory>com.liferay.portlet.directory.asset.UserAssetRendererFactory</asset-renderer-factory>
-		<workflow-handler>com.liferay.portlet.directory.workflow.UserWorkflowHandler</workflow-handler>
-		<preferences-owned-by-group>true</preferences-owned-by-group>
-		<use-default-template>true</use-default-template>
-		<private-request-attributes>false</private-request-attributes>
-		<private-session-attributes>false</private-session-attributes>
-		<render-weight>50</render-weight>
-		<header-portlet-css>/html/portlet/directory/css/main.css</header-portlet-css>
-		<css-class-wrapper>portlet-directory</css-class-wrapper>
-	</portlet>
-	<portlet>
 		<portlet-name>47</portlet-name>
 		<icon>/html/icons/default.png</icon>
 		<struts-path>hello_world</struts-path>
@@ -35,19 +22,6 @@
 		<private-session-attributes>false</private-session-attributes>
 		<render-weight>50</render-weight>
 		<css-class-wrapper>portlet-hello-world</css-class-wrapper>
-	</portlet>
-	<portlet>
-		<portlet-name>58</portlet-name>
-		<icon>/html/icons/login.png</icon>
-		<configuration-action-class>com.liferay.portlet.login.action.ConfigurationActionImpl</configuration-action-class>
-		<preferences-owned-by-group>true</preferences-owned-by-group>
-		<use-default-template>true</use-default-template>
-		<private-request-attributes>false</private-request-attributes>
-		<private-session-attributes>false</private-session-attributes>
-		<render-weight>50</render-weight>
-		<header-portlet-css>/html/portlet/login/css/main.css</header-portlet-css>
-		<css-class-wrapper>portlet-login</css-class-wrapper>
-		<add-default-resource>true</add-default-resource>
 	</portlet>
 	<portlet>
 		<portlet-name>64</portlet-name>
@@ -135,19 +109,6 @@
 		<system>true</system>
 	</portlet>
 	<portlet>
-		<portlet-name>164</portlet-name>
-		<icon>/html/icons/login.png</icon>
-		<configuration-action-class>com.liferay.portlet.login.action.ConfigurationActionImpl</configuration-action-class>
-		<preferences-owned-by-group>true</preferences-owned-by-group>
-		<use-default-template>true</use-default-template>
-		<private-request-attributes>false</private-request-attributes>
-		<private-session-attributes>false</private-session-attributes>
-		<render-weight>50</render-weight>
-		<header-portlet-css>/html/portlet/login/css/main.css</header-portlet-css>
-		<css-class-wrapper>portlet-login</css-class-wrapper>
-		<add-default-resource>true</add-default-resource>
-	</portlet>
-	<portlet>
 		<portlet-name>176</portlet-name>
 		<icon>/html/icons/default.png</icon>
 		<struts-path>license_manager</struts-path>
@@ -159,39 +120,6 @@
 		<private-session-attributes>false</private-session-attributes>
 		<render-weight>50</render-weight>
 		<css-class-wrapper>license-manager</css-class-wrapper>
-	</portlet>
-	<portlet>
-		<portlet-name>186</portlet-name>
-		<icon>/html/icons/directory.png</icon>
-		<preferences-owned-by-group>true</preferences-owned-by-group>
-		<use-default-template>true</use-default-template>
-		<private-request-attributes>false</private-request-attributes>
-		<private-session-attributes>false</private-session-attributes>
-		<render-weight>50</render-weight>
-		<header-portlet-css>/html/portlet/directory/css/main.css</header-portlet-css>
-		<css-class-wrapper>portlet-directory</css-class-wrapper>
-	</portlet>
-	<portlet>
-		<portlet-name>187</portlet-name>
-		<icon>/html/icons/directory.png</icon>
-		<preferences-owned-by-group>true</preferences-owned-by-group>
-		<use-default-template>true</use-default-template>
-		<private-request-attributes>false</private-request-attributes>
-		<private-session-attributes>false</private-session-attributes>
-		<render-weight>50</render-weight>
-		<header-portlet-css>/html/portlet/directory/css/main.css</header-portlet-css>
-		<css-class-wrapper>portlet-directory</css-class-wrapper>
-	</portlet>
-	<portlet>
-		<portlet-name>188</portlet-name>
-		<icon>/html/icons/directory.png</icon>
-		<preferences-owned-by-group>true</preferences-owned-by-group>
-		<use-default-template>true</use-default-template>
-		<private-request-attributes>false</private-request-attributes>
-		<private-session-attributes>false</private-session-attributes>
-		<render-weight>50</render-weight>
-		<header-portlet-css>/html/portlet/directory/css/main.css</header-portlet-css>
-		<css-class-wrapper>portlet-directory</css-class-wrapper>
 	</portlet>
 	<portlet>
 		<portlet-name>195</portlet-name>

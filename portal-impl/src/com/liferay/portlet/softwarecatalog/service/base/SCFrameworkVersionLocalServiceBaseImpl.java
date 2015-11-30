@@ -17,7 +17,6 @@ package com.liferay.portlet.softwarecatalog.service.base;
 import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.BeanReference;
-import com.liferay.portal.kernel.bean.IdentifiableBean;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
@@ -26,9 +25,11 @@ import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DefaultActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -67,7 +68,7 @@ import javax.sql.DataSource;
 @ProviderType
 public abstract class SCFrameworkVersionLocalServiceBaseImpl
 	extends BaseLocalServiceImpl implements SCFrameworkVersionLocalService,
-		IdentifiableBean {
+		IdentifiableOSGiService {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -233,19 +234,33 @@ public abstract class SCFrameworkVersionLocalServiceBaseImpl
 		ActionableDynamicQuery actionableDynamicQuery = new DefaultActionableDynamicQuery();
 
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionLocalServiceUtil.getService());
-		actionableDynamicQuery.setClass(SCFrameworkVersion.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
+		actionableDynamicQuery.setModelClass(SCFrameworkVersion.class);
 
 		actionableDynamicQuery.setPrimaryKeyPropertyName("frameworkVersionId");
 
 		return actionableDynamicQuery;
 	}
 
+	@Override
+	public IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery = new IndexableActionableDynamicQuery();
+
+		indexableActionableDynamicQuery.setBaseLocalService(com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionLocalServiceUtil.getService());
+		indexableActionableDynamicQuery.setClassLoader(getClassLoader());
+		indexableActionableDynamicQuery.setModelClass(SCFrameworkVersion.class);
+
+		indexableActionableDynamicQuery.setPrimaryKeyPropertyName(
+			"frameworkVersionId");
+
+		return indexableActionableDynamicQuery;
+	}
+
 	protected void initActionableDynamicQuery(
 		ActionableDynamicQuery actionableDynamicQuery) {
 		actionableDynamicQuery.setBaseLocalService(com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionLocalServiceUtil.getService());
-		actionableDynamicQuery.setClass(SCFrameworkVersion.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
+		actionableDynamicQuery.setModelClass(SCFrameworkVersion.class);
 
 		actionableDynamicQuery.setPrimaryKeyPropertyName("frameworkVersionId");
 	}
@@ -474,25 +489,6 @@ public abstract class SCFrameworkVersionLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the s c framework version remote service.
-	 *
-	 * @return the s c framework version remote service
-	 */
-	public com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionService getSCFrameworkVersionService() {
-		return scFrameworkVersionService;
-	}
-
-	/**
-	 * Sets the s c framework version remote service.
-	 *
-	 * @param scFrameworkVersionService the s c framework version remote service
-	 */
-	public void setSCFrameworkVersionService(
-		com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionService scFrameworkVersionService) {
-		this.scFrameworkVersionService = scFrameworkVersionService;
-	}
-
-	/**
 	 * Returns the s c framework version persistence.
 	 *
 	 * @return the s c framework version persistence
@@ -547,25 +543,6 @@ public abstract class SCFrameworkVersionLocalServiceBaseImpl
 	public void setGroupLocalService(
 		com.liferay.portal.service.GroupLocalService groupLocalService) {
 		this.groupLocalService = groupLocalService;
-	}
-
-	/**
-	 * Returns the group remote service.
-	 *
-	 * @return the group remote service
-	 */
-	public com.liferay.portal.service.GroupService getGroupService() {
-		return groupService;
-	}
-
-	/**
-	 * Sets the group remote service.
-	 *
-	 * @param groupService the group remote service
-	 */
-	public void setGroupService(
-		com.liferay.portal.service.GroupService groupService) {
-		this.groupService = groupService;
 	}
 
 	/**
@@ -643,25 +620,6 @@ public abstract class SCFrameworkVersionLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the user remote service.
-	 *
-	 * @return the user remote service
-	 */
-	public com.liferay.portal.service.UserService getUserService() {
-		return userService;
-	}
-
-	/**
-	 * Sets the user remote service.
-	 *
-	 * @param userService the user remote service
-	 */
-	public void setUserService(
-		com.liferay.portal.service.UserService userService) {
-		this.userService = userService;
-	}
-
-	/**
 	 * Returns the user persistence.
 	 *
 	 * @return the user persistence
@@ -717,25 +675,6 @@ public abstract class SCFrameworkVersionLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the s c product version remote service.
-	 *
-	 * @return the s c product version remote service
-	 */
-	public com.liferay.portlet.softwarecatalog.service.SCProductVersionService getSCProductVersionService() {
-		return scProductVersionService;
-	}
-
-	/**
-	 * Sets the s c product version remote service.
-	 *
-	 * @param scProductVersionService the s c product version remote service
-	 */
-	public void setSCProductVersionService(
-		com.liferay.portlet.softwarecatalog.service.SCProductVersionService scProductVersionService) {
-		this.scProductVersionService = scProductVersionService;
-	}
-
-	/**
 	 * Returns the s c product version persistence.
 	 *
 	 * @return the s c product version persistence
@@ -765,23 +704,13 @@ public abstract class SCFrameworkVersionLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the Spring bean ID for this bean.
+	 * Returns the OSGi service identifier.
 	 *
-	 * @return the Spring bean ID for this bean
+	 * @return the OSGi service identifier
 	 */
 	@Override
-	public String getBeanIdentifier() {
-		return _beanIdentifier;
-	}
-
-	/**
-	 * Sets the Spring bean ID for this bean.
-	 *
-	 * @param beanIdentifier the Spring bean ID for this bean
-	 */
-	@Override
-	public void setBeanIdentifier(String beanIdentifier) {
-		_beanIdentifier = beanIdentifier;
+	public String getOSGiServiceIdentifier() {
+		return SCFrameworkVersionLocalService.class.getName();
 	}
 
 	protected Class<?> getModelClass() {
@@ -818,16 +747,12 @@ public abstract class SCFrameworkVersionLocalServiceBaseImpl
 
 	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionLocalService.class)
 	protected SCFrameworkVersionLocalService scFrameworkVersionLocalService;
-	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionService.class)
-	protected com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionService scFrameworkVersionService;
 	@BeanReference(type = SCFrameworkVersionPersistence.class)
 	protected SCFrameworkVersionPersistence scFrameworkVersionPersistence;
 	@BeanReference(type = com.liferay.counter.service.CounterLocalService.class)
 	protected com.liferay.counter.service.CounterLocalService counterLocalService;
 	@BeanReference(type = com.liferay.portal.service.GroupLocalService.class)
 	protected com.liferay.portal.service.GroupLocalService groupLocalService;
-	@BeanReference(type = com.liferay.portal.service.GroupService.class)
-	protected com.liferay.portal.service.GroupService groupService;
 	@BeanReference(type = GroupPersistence.class)
 	protected GroupPersistence groupPersistence;
 	@BeanReference(type = GroupFinder.class)
@@ -836,19 +761,14 @@ public abstract class SCFrameworkVersionLocalServiceBaseImpl
 	protected com.liferay.portal.service.ResourceLocalService resourceLocalService;
 	@BeanReference(type = com.liferay.portal.service.UserLocalService.class)
 	protected com.liferay.portal.service.UserLocalService userLocalService;
-	@BeanReference(type = com.liferay.portal.service.UserService.class)
-	protected com.liferay.portal.service.UserService userService;
 	@BeanReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
 	@BeanReference(type = UserFinder.class)
 	protected UserFinder userFinder;
 	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCProductVersionLocalService.class)
 	protected com.liferay.portlet.softwarecatalog.service.SCProductVersionLocalService scProductVersionLocalService;
-	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCProductVersionService.class)
-	protected com.liferay.portlet.softwarecatalog.service.SCProductVersionService scProductVersionService;
 	@BeanReference(type = SCProductVersionPersistence.class)
 	protected SCProductVersionPersistence scProductVersionPersistence;
 	@BeanReference(type = PersistedModelLocalServiceRegistry.class)
 	protected PersistedModelLocalServiceRegistry persistedModelLocalServiceRegistry;
-	private String _beanIdentifier;
 }

@@ -192,16 +192,6 @@ public class DDLRecordVersionLocalServiceWrapper
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _ddlRecordVersionLocalService.getBeanIdentifier();
-	}
-
-	/**
 	* Returns the d d l record version with the primary key.
 	*
 	* @param recordVersionId the primary key of the d d l record version
@@ -243,10 +233,25 @@ public class DDLRecordVersionLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _ddlRecordVersionLocalService.getIndexableActionableDynamicQuery();
+	}
+
+	@Override
 	public com.liferay.dynamic.data.lists.model.DDLRecordVersion getLatestRecordVersion(
 		long recordId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return _ddlRecordVersionLocalService.getLatestRecordVersion(recordId);
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	@Override
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _ddlRecordVersionLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -281,16 +286,6 @@ public class DDLRecordVersionLocalServiceWrapper
 	@Override
 	public int getRecordVersionsCount(long recordId) {
 		return _ddlRecordVersionLocalService.getRecordVersionsCount(recordId);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_ddlRecordVersionLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

@@ -80,13 +80,6 @@ public interface AssetVocabularyService extends BaseService {
 		long vocabularyId) throws PortalException;
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
-
-	/**
 	* @deprecated As of 7.0.0, with no direct replacement
 	*/
 	@java.lang.Deprecated
@@ -168,6 +161,13 @@ public interface AssetVocabularyService extends BaseService {
 		throws PortalException;
 
 	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public java.lang.String getOSGiServiceIdentifier();
+
+	/**
 	* @deprecated As of 7.0.0, replaced by {@link
 	AssetUtil#filterVocabularyIds(PermissionChecker, long[])}
 	*/
@@ -182,15 +182,14 @@ public interface AssetVocabularyService extends BaseService {
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portlet.asset.model.AssetVocabularyDisplay searchVocabulariesDisplay(
-		long groupId, java.lang.String title, int start, int end,
-		boolean addDefaultVocabulary) throws PortalException;
+		long groupId, java.lang.String title, boolean addDefaultVocabulary,
+		int start, int end) throws PortalException;
 
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portlet.asset.model.AssetVocabularyDisplay searchVocabulariesDisplay(
+		long groupId, java.lang.String title, boolean addDefaultVocabulary,
+		int start, int end, com.liferay.portal.kernel.search.Sort sort)
+		throws PortalException;
 
 	public com.liferay.portlet.asset.model.AssetVocabulary updateVocabulary(
 		long vocabularyId, java.lang.String title,

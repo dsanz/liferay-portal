@@ -46,7 +46,6 @@ else {
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			iconCssClass="icon-edit"
 			message="edit"
 			url="<%= editURL %>"
 		/>
@@ -57,11 +56,10 @@ else {
 			<portlet:param name="mvcPath" value="/move_entries.jsp" />
 			<portlet:param name="redirect" value="<%= currentURL %>" />
 			<portlet:param name="referringPortletResource" value="<%= referringPortletResource %>" />
-			<portlet:param name="articleIds" value="<%= article.getArticleId() %>" />
+			<portlet:param name="rowIdsJournalArticle" value="<%= article.getArticleId() %>" />
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			iconCssClass="icon-move"
 			message="move"
 			url="<%= moveURL %>"
 		/>
@@ -77,7 +75,6 @@ else {
 		/>
 
 		<liferay-ui:icon
-			iconCssClass="icon-lock"
 			message="permissions"
 			method="get"
 			url="<%= permissionsURL %>"
@@ -98,7 +95,6 @@ else {
 		%>
 
 		<liferay-ui:icon
-			iconCssClass="icon-search"
 			message="preview"
 			onClick="<%= taglibOnClick %>"
 			url="javascript:;"
@@ -108,12 +104,12 @@ else {
 			<portlet:renderURL var="viewHistoryURL">
 				<portlet:param name="mvcPath" value="/view_article_history.jsp" />
 				<portlet:param name="redirect" value="<%= redirect %>" />
+				<portlet:param name="backURL" value="<%= currentURL %>" />
 				<portlet:param name="referringPortletResource" value="<%= referringPortletResource %>" />
 				<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
 			</portlet:renderURL>
 
 			<liferay-ui:icon
-				iconCssClass="icon-time"
 				message="view-history"
 				url="<%= viewHistoryURL.toString() %>"
 			/>
@@ -129,7 +125,6 @@ else {
 			</portlet:renderURL>
 
 			<liferay-ui:icon
-				iconCssClass="icon-copy"
 				message="copy"
 				url="<%= copyURL.toString() %>"
 			/>
@@ -144,7 +139,6 @@ else {
 		</portlet:actionURL>
 
 		<liferay-ui:icon
-			iconCssClass="icon-time"
 			message="expire"
 			url="<%= expireURL %>"
 		/>

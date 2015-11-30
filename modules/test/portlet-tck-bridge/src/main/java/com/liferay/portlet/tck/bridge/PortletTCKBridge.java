@@ -22,9 +22,10 @@ import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.util.ThreadUtil;
 import com.liferay.portal.kernel.util.Time;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.struts.StrutsActionRegistryUtil;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.tck.bridge.configuration.PortletTCKBridgeConfiguration;
+import com.liferay.portlet.tck.bridge.struts.PortletTCKStrutsAction;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -35,11 +35,11 @@ public class AnnotationsExtendedMetaTypeService
 			bundle, _metaTypeService.getMetaTypeInformation(bundle));
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setMetaTypeService(MetaTypeService metaTypeService) {
 		_metaTypeService = metaTypeService;
 	}
 
-	private MetaTypeService _metaTypeService;
+	private volatile MetaTypeService _metaTypeService;
 
 }

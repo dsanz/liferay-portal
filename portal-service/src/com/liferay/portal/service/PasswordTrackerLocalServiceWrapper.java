@@ -194,14 +194,19 @@ public class PasswordTrackerLocalServiceWrapper
 		return _passwordTrackerLocalService.getActionableDynamicQuery();
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _passwordTrackerLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _passwordTrackerLocalService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _passwordTrackerLocalService.getOSGiServiceIdentifier();
 	}
 
 	/**
@@ -265,16 +270,6 @@ public class PasswordTrackerLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return _passwordTrackerLocalService.isValidPassword(userId,
 			newClearTextPwd);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_passwordTrackerLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	@Override

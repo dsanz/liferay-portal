@@ -36,9 +36,6 @@ public class PermissionServiceWrapper implements PermissionService,
 	* @param groupId the primary key of the group
 	* @param name the service name
 	* @param primKey the primary key of the service
-	* @throws PortalException if the group did not have permission to the
-	service, if a group with the primary key could not be found or if
-	the permission information was invalid
 	*/
 	@Override
 	public void checkPermission(long groupId, java.lang.String name,
@@ -53,9 +50,6 @@ public class PermissionServiceWrapper implements PermissionService,
 	* @param groupId the primary key of the group
 	* @param name the service name
 	* @param primKey the primary key of the service
-	* @throws PortalException if the group did not have permission to the
-	service, if a group with the primary key could not be found or if
-	the permission information was invalid
 	*/
 	@Override
 	public void checkPermission(long groupId, java.lang.String name,
@@ -65,23 +59,13 @@ public class PermissionServiceWrapper implements PermissionService,
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _permissionService.getBeanIdentifier();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_permissionService.setBeanIdentifier(beanIdentifier);
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _permissionService.getOSGiServiceIdentifier();
 	}
 
 	/**

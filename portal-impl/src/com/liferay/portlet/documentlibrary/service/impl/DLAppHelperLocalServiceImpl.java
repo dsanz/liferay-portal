@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.documentlibrary.service.impl;
 
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -69,6 +70,7 @@ import com.liferay.portlet.documentlibrary.model.DLFileVersion;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.model.DLSyncConstants;
+import com.liferay.portlet.documentlibrary.service.DLAppService;
 import com.liferay.portlet.documentlibrary.service.base.DLAppHelperLocalServiceBaseImpl;
 import com.liferay.portlet.documentlibrary.service.permission.DLPermission;
 import com.liferay.portlet.documentlibrary.social.DLActivityKeys;
@@ -407,7 +409,6 @@ public class DLAppHelperLocalServiceImpl
 	 * @param  userId the primary key of the user moving the file entry
 	 * @param  fileEntry the file entry to be moved
 	 * @return the moved file entry
-	 * @throws PortalException if a user with the primary key could not be found
 	 */
 	@Override
 	public FileEntry moveFileEntryToTrash(long userId, FileEntry fileEntry)
@@ -495,7 +496,6 @@ public class DLAppHelperLocalServiceImpl
 	 * @param  userId the primary key of the user moving the file shortcut
 	 * @param  fileShortcut the file shortcut to be moved
 	 * @return the moved file shortcut
-	 * @throws PortalException if a user with the primary key could not be found
 	 */
 	@Override
 	public FileShortcut moveFileShortcutToTrash(
@@ -568,7 +568,6 @@ public class DLAppHelperLocalServiceImpl
 	 * @param  userId the primary key of the user moving the folder
 	 * @param  folder the folder to be moved
 	 * @return the moved folder
-	 * @throws PortalException if a user with the primary key could not be found
 	 */
 	@Override
 	public Folder moveFolderToTrash(long userId, Folder folder)
@@ -1977,5 +1976,8 @@ public class DLAppHelperLocalServiceImpl
 				repositoryEventType, modelClass, target);
 		}
 	}
+
+	@BeanReference(type = DLAppService.class)
+	protected DLAppService dlAppService;
 
 }

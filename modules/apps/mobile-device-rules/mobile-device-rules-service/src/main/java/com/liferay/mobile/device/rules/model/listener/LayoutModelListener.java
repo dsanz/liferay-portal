@@ -51,13 +51,14 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setMDRRuleGroupInstanceLocalService(
 		MDRRuleGroupInstanceLocalService mdrRuleGroupInstanceLocalService) {
 
 		_mdrRuleGroupInstanceLocalService = mdrRuleGroupInstanceLocalService;
 	}
 
-	private MDRRuleGroupInstanceLocalService _mdrRuleGroupInstanceLocalService;
+	private volatile MDRRuleGroupInstanceLocalService
+		_mdrRuleGroupInstanceLocalService;
 
 }

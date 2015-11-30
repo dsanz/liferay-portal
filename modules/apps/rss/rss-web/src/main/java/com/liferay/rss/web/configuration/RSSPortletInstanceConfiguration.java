@@ -16,9 +16,12 @@ package com.liferay.rss.web.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
 
+import com.liferay.configuration.admin.ConfigurationAdmin;
+
 /**
  * @author Juergen Kappler
  */
+@ConfigurationAdmin(category = "web-experience-management")
 @Meta.OCD(
 	id = "com.liferay.rss.web.configuration.RSSPortletInstanceConfiguration"
 )
@@ -28,7 +31,7 @@ public interface RSSPortletInstanceConfiguration {
 	 * Set a DDM template ID that starts with the prefix "ddmTemplate_" (i.e.
 	 * ddmTemplate_rss-navigation-ftl) to use as the display style.
 	 */
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String displayStyle();
 
 	@Meta.AD(deflt = "0", required = false)
@@ -58,7 +61,7 @@ public interface RSSPortletInstanceConfiguration {
 	@Meta.AD(deflt = "true", required = false)
 	public boolean showFeedTitle();
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String[] titles();
 
 	@Meta.AD(

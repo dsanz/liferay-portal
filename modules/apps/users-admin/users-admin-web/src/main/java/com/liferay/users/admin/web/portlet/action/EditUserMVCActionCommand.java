@@ -57,6 +57,7 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Address;
 import com.liferay.portal.model.Company;
@@ -82,7 +83,6 @@ import com.liferay.portal.service.permission.GroupPermissionUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.InvokerPortletImpl;
 import com.liferay.portlet.admin.util.AdminUtil;
 import com.liferay.portlet.admin.util.PortalMyAccountApplicationType;
@@ -94,7 +94,7 @@ import com.liferay.portlet.documentlibrary.service.DLAppLocalService;
 import com.liferay.portlet.sites.util.SitesUtil;
 import com.liferay.portlet.usersadmin.util.UsersAdmin;
 import com.liferay.portlet.usersadmin.util.UsersAdminUtil;
-import com.liferay.users.admin.web.constants.UsersAdminPortletKeys;
+import com.liferay.users.admin.constants.UsersAdminPortletKeys;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -784,11 +784,11 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 		return new Object[] {user, oldScreenName, updateLanguageId};
 	}
 
-	private AnnouncementsDeliveryLocalService
+	private volatile AnnouncementsDeliveryLocalService
 		_announcementsDeliveryLocalService;
-	private DLAppLocalService _dlAppLocalService;
-	private ListTypeLocalService _listTypeLocalService;
-	private UserLocalService _userLocalService;
-	private UserService _userService;
+	private volatile DLAppLocalService _dlAppLocalService;
+	private volatile ListTypeLocalService _listTypeLocalService;
+	private volatile UserLocalService _userLocalService;
+	private volatile UserService _userService;
 
 }

@@ -108,7 +108,7 @@ public class LayoutsLocalPublisherMessageListener
 	protected void setDestination(Destination destination) {
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setExportImportConfigurationLocalService(
 		ExportImportConfigurationLocalService
 			exportImportConfigurationLocalService) {
@@ -117,7 +117,7 @@ public class LayoutsLocalPublisherMessageListener
 			exportImportConfigurationLocalService;
 	}
 
-	private ExportImportConfigurationLocalService
+	private volatile ExportImportConfigurationLocalService
 		_exportImportConfigurationLocalService;
 
 }

@@ -26,8 +26,8 @@ import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.documentlibrary.display.context.DLEditFileEntryDisplayContext;
 import com.liferay.portlet.documentlibrary.display.context.DLFilePicker;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
@@ -65,12 +65,17 @@ public class DefaultDLEditFileEntryDisplayContext
 	}
 
 	@Override
+	public long getMaximumUploadRequestSize() {
+		return PrefsPropsUtil.getLong(
+			PropsKeys.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE);
+	}
+
+	@Override
 	public long getMaximumUploadSize() {
 		long fileMaxSize = PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE);
 
 		if (fileMaxSize == 0) {
-			fileMaxSize = PrefsPropsUtil.getLong(
-				PropsKeys.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE);
+			fileMaxSize = getMaximumUploadRequestSize();
 		}
 
 		return fileMaxSize;

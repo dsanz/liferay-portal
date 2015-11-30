@@ -32,7 +32,7 @@ AssetTag tag = AssetTagLocalServiceUtil.fetchAssetTag(tagId);
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(redirect);
 
-renderResponse.setTitle(((tag == null) ? LanguageUtil.get(request, "add-tag") : tag.getName()));
+renderResponse.setTitle(((tag == null) ? LanguageUtil.get(request, "new-tag") : tag.getName()));
 %>
 
 <portlet:actionURL name="editTag" var="editTagURL">
@@ -57,19 +57,17 @@ renderResponse.setTitle(((tag == null) ? LanguageUtil.get(request, "add-tag") : 
 
 	<aui:model-context bean="<%= tag %>" model="<%= AssetTag.class %>" />
 
-	<aui:fieldset>
-		<div>
-			<div class="add-tag-layer asset-tag-layer">
-				<aui:input name="tagId" type="hidden" value="<%= tagId %>" />
+	<aui:fieldset-group markupView="lexicon">
+		<aui:fieldset cssClass="col-md-4">
+			<aui:input name="tagId" type="hidden" value="<%= tagId %>" />
 
-				<aui:input autoFocus="<%= true %>" cssClass="tag-name" name="name" />
+			<aui:input autoFocus="<%= true %>" cssClass="tag-name" name="name" />
+		</aui:fieldset>
+	</aui:fieldset-group>
 
-				<aui:button-row>
-					<aui:button cssClass="btn-lg" type="submit" />
+	<aui:button-row>
+		<aui:button cssClass="btn-lg" type="submit" />
 
-					<aui:button cssClass="btn-lg" href="<%= redirect %>" type="cancel" />
-				</aui:button-row>
-			</div>
-		</div>
-	</aui:fieldset>
+		<aui:button cssClass="btn-lg" href="<%= redirect %>" type="cancel" />
+	</aui:button-row>
 </aui:form>

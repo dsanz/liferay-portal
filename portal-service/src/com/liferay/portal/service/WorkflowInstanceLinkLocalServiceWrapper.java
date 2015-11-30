@@ -223,14 +223,19 @@ public class WorkflowInstanceLinkLocalServiceWrapper
 		return _workflowInstanceLinkLocalService.getActionableDynamicQuery();
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _workflowInstanceLinkLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _workflowInstanceLinkLocalService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _workflowInstanceLinkLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -318,16 +323,6 @@ public class WorkflowInstanceLinkLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return _workflowInstanceLinkLocalService.isEnded(companyId, groupId,
 			className, classPK);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_workflowInstanceLinkLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	@Override

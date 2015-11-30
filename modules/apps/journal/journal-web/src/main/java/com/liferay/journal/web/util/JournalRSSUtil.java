@@ -19,10 +19,10 @@ import com.liferay.journal.model.JournalArticleConstants;
 import com.liferay.journal.model.JournalArticleDisplay;
 import com.liferay.journal.model.JournalFeed;
 import com.liferay.journal.model.JournalFeedConstants;
-import com.liferay.journal.service.JournalArticleLocalServiceUtil;
-import com.liferay.journal.service.JournalContentSearchLocalServiceUtil;
-import com.liferay.journal.service.JournalFeedLocalServiceUtil;
-import com.liferay.journal.util.JournalContentUtil;
+import com.liferay.journal.service.JournalArticleLocalService;
+import com.liferay.journal.service.JournalContentSearchLocalService;
+import com.liferay.journal.service.JournalFeedLocalService;
+import com.liferay.journal.util.JournalContent;
 import com.liferay.journal.util.comparator.ArticleDisplayDateComparator;
 import com.liferay.journal.util.comparator.ArticleModifiedDateComparator;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -49,14 +49,14 @@ import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.XPath;
 import com.liferay.portal.model.Image;
 import com.liferay.portal.model.Layout;
-import com.liferay.portal.service.ImageLocalServiceUtil;
-import com.liferay.portal.service.LayoutLocalServiceUtil;
+import com.liferay.portal.service.ImageLocalService;
+import com.liferay.portal.service.LayoutLocalService;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortletURLImpl;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
-import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
+import com.liferay.portlet.documentlibrary.service.DLAppLocalService;
 import com.liferay.portlet.documentlibrary.util.ImageProcessorUtil;
 import com.liferay.util.RSSUtil;
 
@@ -85,12 +85,16 @@ import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 import javax.portlet.ResourceURL;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Raymond Augé
  */
+@Component(service = JournalRSSUtil.class)
 public class JournalRSSUtil {
 
-	public static List<JournalArticle> getArticles(JournalFeed feed) {
+	public List<JournalArticle> getArticles(JournalFeed feed) {
 		long companyId = feed.getCompanyId();
 		long groupId = feed.getGroupId();
 		List<Long> folderIds = Collections.emptyList();
@@ -131,7 +135,7 @@ public class JournalRSSUtil {
 			obc = new ArticleDisplayDateComparator(orderByAsc);
 		}
 
-		return JournalArticleLocalServiceUtil.search(
+		return _journalArticleLocalService.search(
 			companyId, groupId, folderIds,
 			JournalArticleConstants.CLASSNAME_ID_DEFAULT, articleId, version,
 			title, description, content, ddmStructureKey, ddmTemplateKey,
@@ -139,9 +143,7 @@ public class JournalRSSUtil {
 			start, end, obc);
 	}
 
-	public static List<SyndEnclosure> getDLEnclosures(
-		String portalURL, String url) {
-
+	public List<SyndEnclosure> getDLEnclosures(String portalURL, String url) {
 		List<SyndEnclosure> syndEnclosures = new ArrayList<>();
 
 		FileEntry fileEntry = getFileEntry(url);
@@ -161,7 +163,7 @@ public class JournalRSSUtil {
 		return syndEnclosures;
 	}
 
-	public static List<SyndLink> getDLLinks(String portalURL, String url) {
+	public List<SyndLink> getDLLinks(String portalURL, String url) {
 		List<SyndLink> syndLinks = new ArrayList<>();
 
 		FileEntry fileEntry = getFileEntry(url);
@@ -182,7 +184,7 @@ public class JournalRSSUtil {
 		return syndLinks;
 	}
 
-	public static FileEntry getFileEntry(String url) {
+	public FileEntry getFileEntry(String url) {
 		FileEntry fileEntry = null;
 
 		String queryString = HttpUtil.getQueryString(url);
@@ -211,12 +213,11 @@ public class JournalRSSUtil {
 
 			try {
 				if (Validator.isNotNull(uuid)) {
-					fileEntry =
-						DLAppLocalServiceUtil.getFileEntryByUuidAndGroupId(
-							uuid, groupId);
+					fileEntry = _dlAppLocalService.getFileEntryByUuidAndGroupId(
+						uuid, groupId);
 				}
 				else {
-					fileEntry = DLAppLocalServiceUtil.getFileEntry(
+					fileEntry = _dlAppLocalService.getFileEntry(
 						groupId, folderId, title);
 				}
 			}
@@ -233,7 +234,7 @@ public class JournalRSSUtil {
 				long fileEntryId = GetterUtil.getLong(
 					parameters.get("fileEntryId")[0]);
 
-				fileEntry = DLAppLocalServiceUtil.getFileEntry(fileEntryId);
+				fileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
 			}
 			catch (Exception e) {
 				if (_log.isWarnEnabled()) {
@@ -248,7 +249,7 @@ public class JournalRSSUtil {
 				String uuid = parameters.get("uuid")[0];
 				long groupId = GetterUtil.getLong(parameters.get("groupId")[0]);
 
-				fileEntry = DLAppLocalServiceUtil.getFileEntryByUuidAndGroupId(
+				fileEntry = _dlAppLocalService.getFileEntryByUuidAndGroupId(
 					uuid, groupId);
 			}
 			catch (Exception e) {
@@ -261,9 +262,7 @@ public class JournalRSSUtil {
 		return fileEntry;
 	}
 
-	public static List<SyndEnclosure> getIGEnclosures(
-		String portalURL, String url) {
-
+	public List<SyndEnclosure> getIGEnclosures(String portalURL, String url) {
 		List<SyndEnclosure> syndEnclosures = new ArrayList<>();
 
 		Object[] imageProperties = getImageProperties(url);
@@ -285,7 +284,7 @@ public class JournalRSSUtil {
 		return syndEnclosures;
 	}
 
-	public static List<SyndLink> getIGLinks(String portalURL, String url) {
+	public List<SyndLink> getIGLinks(String portalURL, String url) {
 		List<SyndLink> syndLinks = new ArrayList<>();
 
 		Object[] imageProperties = getImageProperties(url);
@@ -308,7 +307,7 @@ public class JournalRSSUtil {
 		return syndLinks;
 	}
 
-	public static Image getImage(String url) {
+	public Image getImage(String url) {
 		Image image = null;
 
 		String queryString = HttpUtil.getQueryString(url);
@@ -333,7 +332,7 @@ public class JournalRSSUtil {
 					imageId = GetterUtil.getLong(parameters.get("i_id")[0]);
 				}
 
-				image = ImageLocalServiceUtil.getImage(imageId);
+				image = _imageLocalService.getImage(imageId);
 			}
 			catch (Exception e) {
 				if (_log.isWarnEnabled()) {
@@ -345,7 +344,7 @@ public class JournalRSSUtil {
 		return image;
 	}
 
-	public static byte[] getRSS(
+	public byte[] getRSS(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws Exception {
 
@@ -360,10 +359,10 @@ public class JournalRSSUtil {
 		String feedId = ParamUtil.getString(resourceRequest, "feedId");
 
 		if (id > 0) {
-			feed = JournalFeedLocalServiceUtil.getFeed(id);
+			feed = _journalFeedLocalService.getFeed(id);
 		}
 		else {
-			feed = JournalFeedLocalServiceUtil.getFeed(groupId, feedId);
+			feed = _journalFeedLocalService.getFeed(groupId, feedId);
 		}
 
 		String languageId = LanguageUtil.getLanguageId(resourceRequest);
@@ -374,7 +373,7 @@ public class JournalRSSUtil {
 		Layout layout = null;
 
 		if (plid > 0) {
-			layout = LayoutLocalServiceUtil.fetchLayout(plid);
+			layout = _layoutLocalService.fetchLayout(plid);
 		}
 
 		if (layout == null) {
@@ -388,7 +387,7 @@ public class JournalRSSUtil {
 		return rss.getBytes(StringPool.UTF8);
 	}
 
-	protected static String exportToRSS(
+	protected String exportToRSS(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse,
 			JournalFeed feed, String languageId, Layout layout,
 			ThemeDisplay themeDisplay)
@@ -402,7 +401,7 @@ public class JournalRSSUtil {
 
 		syndFeed.setEntries(syndEntries);
 
-		List<JournalArticle> articles = JournalRSSUtil.getArticles(feed);
+		List<JournalArticle> articles = getArticles(feed);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Syndicating " + articles.size() + " articles");
@@ -485,20 +484,20 @@ public class JournalRSSUtil {
 		}
 	}
 
-	protected static String getEntryURL(
+	protected String getEntryURL(
 			ResourceRequest resourceRequest, JournalFeed feed,
 			JournalArticle article, Layout layout, ThemeDisplay themeDisplay)
 		throws Exception {
 
 		List<Long> hitLayoutIds =
-			JournalContentSearchLocalServiceUtil.getLayoutIds(
+			_journalContentSearchLocalService.getLayoutIds(
 				layout.getGroupId(), layout.isPrivateLayout(),
 				article.getArticleId());
 
 		if (!hitLayoutIds.isEmpty()) {
 			Long hitLayoutId = hitLayoutIds.get(0);
 
-			Layout hitLayout = LayoutLocalServiceUtil.getLayout(
+			Layout hitLayout = _layoutLocalService.getLayout(
 				layout.getGroupId(), layout.isPrivateLayout(),
 				hitLayoutId.longValue());
 
@@ -523,7 +522,7 @@ public class JournalRSSUtil {
 		return entryURL.toString();
 	}
 
-	protected static Object[] getImageProperties(String url) {
+	protected Object[] getImageProperties(String url) {
 		String type = null;
 		long size = 0;
 
@@ -553,7 +552,7 @@ public class JournalRSSUtil {
 		return null;
 	}
 
-	protected static String processContent(
+	protected String processContent(
 			JournalFeed feed, JournalArticle article, String languageId,
 			ThemeDisplay themeDisplay, SyndEntry syndEntry,
 			SyndContent syndContent)
@@ -570,19 +569,18 @@ public class JournalRSSUtil {
 				ddmRendererTemplateKey = feed.getDDMRendererTemplateKey();
 			}
 
-			JournalArticleDisplay articleDisplay =
-				JournalContentUtil.getDisplay(
-					feed.getGroupId(), article.getArticleId(),
-					ddmRendererTemplateKey, null, languageId, 1,
-					new PortletRequestModel() {
+			JournalArticleDisplay articleDisplay = _journalContent.getDisplay(
+				feed.getGroupId(), article.getArticleId(),
+				ddmRendererTemplateKey, null, languageId, 1,
+				new PortletRequestModel() {
 
-						@Override
-						public String toXML() {
-							return _XML_REQUUEST;
-						}
+					@Override
+					public String toXML() {
+						return _XML_REQUUEST;
+					}
 
-					},
-					themeDisplay);
+				},
+				themeDisplay);
 
 			if (articleDisplay != null) {
 				content = articleDisplay.getContent();
@@ -636,7 +634,7 @@ public class JournalRSSUtil {
 		return content;
 	}
 
-	protected static String processURL(
+	protected String processURL(
 		JournalFeed feed, String url, ThemeDisplay themeDisplay,
 		SyndEntry syndEntry) {
 
@@ -648,23 +646,64 @@ public class JournalRSSUtil {
 			}
 		);
 
-		List<SyndEnclosure> syndEnclosures = JournalRSSUtil.getDLEnclosures(
+		List<SyndEnclosure> syndEnclosures = getDLEnclosures(
 			themeDisplay.getURLPortal(), url);
 
 		syndEnclosures.addAll(
-			JournalRSSUtil.getIGEnclosures(themeDisplay.getURLPortal(), url));
+			getIGEnclosures(themeDisplay.getURLPortal(), url));
 
 		syndEntry.setEnclosures(syndEnclosures);
 
-		List<SyndLink> syndLinks = JournalRSSUtil.getDLLinks(
-			themeDisplay.getURLPortal(), url);
+		List<SyndLink> syndLinks = getDLLinks(themeDisplay.getURLPortal(), url);
 
-		syndLinks.addAll(
-			JournalRSSUtil.getIGLinks(themeDisplay.getURLPortal(), url));
+		syndLinks.addAll(getIGLinks(themeDisplay.getURLPortal(), url));
 
 		syndEntry.setLinks(syndLinks);
 
 		return url;
+	}
+
+	@Reference(unbind = "-")
+	protected void setDLAppLocalService(DLAppLocalService dlAppLocalService) {
+		_dlAppLocalService = dlAppLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setImageLocalService(ImageLocalService imageLocalService) {
+		_imageLocalService = imageLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setJournalArticleLocalService(
+		JournalArticleLocalService journalArticleLocalService) {
+
+		_journalArticleLocalService = journalArticleLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setJournalContent(JournalContent journalContent) {
+		_journalContent = journalContent;
+	}
+
+	@Reference(unbind = "-")
+	protected void setJournalContentSearchLocalService(
+		JournalContentSearchLocalService journalContentSearchLocalService) {
+
+		_journalContentSearchLocalService = journalContentSearchLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setJournalFeedLocalService(
+		JournalFeedLocalService journalFeedLocalService) {
+
+		_journalFeedLocalService = journalFeedLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLayoutLocalService(
+		LayoutLocalService layoutLocalService) {
+
+		_layoutLocalService = layoutLocalService;
 	}
 
 	private static final String _XML_REQUUEST =
@@ -672,5 +711,14 @@ public class JournalRSSUtil {
 			"</parameter></parameters></request>";
 
 	private static final Log _log = LogFactoryUtil.getLog(JournalRSSUtil.class);
+
+	private volatile DLAppLocalService _dlAppLocalService;
+	private volatile ImageLocalService _imageLocalService;
+	private volatile JournalArticleLocalService _journalArticleLocalService;
+	private volatile JournalContent _journalContent;
+	private volatile JournalContentSearchLocalService
+		_journalContentSearchLocalService;
+	private volatile JournalFeedLocalService _journalFeedLocalService;
+	private volatile LayoutLocalService _layoutLocalService;
 
 }

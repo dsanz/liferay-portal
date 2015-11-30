@@ -399,7 +399,7 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 				MBCategory.class.getName(), PortletProvider.Action.MANAGE);
 
 			portletURL = PortalUtil.getControlPanelPortletURL(
-				portletRequest, portletId, 0, PortletRequest.RENDER_PHASE);
+				portletRequest, portletId, PortletRequest.RENDER_PHASE);
 		}
 		else {
 			portletURL = PortletURLFactoryUtil.create(
@@ -446,8 +446,8 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 		_trashRendererFactory = trashRendererFactory;
 	}
 
-	private MBCategoryLocalService _mbCategoryLocalService;
-	private MBThreadLocalService _mbThreadLocalService;
-	private TrashRendererFactory _trashRendererFactory;
+	private volatile MBCategoryLocalService _mbCategoryLocalService;
+	private volatile MBThreadLocalService _mbThreadLocalService;
+	private volatile TrashRendererFactory _trashRendererFactory;
 
 }

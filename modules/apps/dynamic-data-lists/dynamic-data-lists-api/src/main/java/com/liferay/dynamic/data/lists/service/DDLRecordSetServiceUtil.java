@@ -60,12 +60,12 @@ public class DDLRecordSetServiceUtil {
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
 	}
 
 	public static com.liferay.dynamic.data.lists.model.DDLRecordSet getRecordSet(
@@ -111,15 +111,6 @@ public class DDLRecordSetServiceUtil {
 			andOperator);
 	}
 
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
-	}
-
 	public static com.liferay.dynamic.data.lists.model.DDLRecordSet updateMinDisplayRows(
 		long recordSetId, int minDisplayRows,
 		com.liferay.portal.service.ServiceContext serviceContext)
@@ -151,6 +142,12 @@ public class DDLRecordSetServiceUtil {
 		return getService()
 				   .updateRecordSet(recordSetId, ddmStructureId, nameMap,
 			descriptionMap, minDisplayRows, serviceContext);
+	}
+
+	public static com.liferay.dynamic.data.lists.model.DDLRecordSet updateRecordSet(
+		long recordSetId, java.lang.String settings)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().updateRecordSet(recordSetId, settings);
 	}
 
 	public static DDLRecordSetService getService() {

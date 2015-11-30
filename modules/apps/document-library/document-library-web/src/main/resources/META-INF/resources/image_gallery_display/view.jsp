@@ -100,8 +100,6 @@ List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderI
 		portletURL="<%= restoreTrashEntriesURL %>"
 	/>
 
-	<liferay-util:include page="/document_library/top_links.jsp" servletContext="<%= application %>" />
-
 	<c:choose>
 		<c:when test="<%= useAssetEntryQuery %>">
 			<liferay-ui:categorization-filter
@@ -174,7 +172,7 @@ List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderI
 
 							<div class="lfr-asset-metadata">
 								<div class="icon-calendar lfr-asset-icon">
-									<%= LanguageUtil.format(request, "last-updated-x", dateFormatDate.format(folder.getModifiedDate()), false) %>
+									<liferay-ui:message arguments="<%= dateFormatDate.format(folder.getModifiedDate()) %>" key="last-updated-x" translateArguments="<%= false %>" />
 								</div>
 
 								<%

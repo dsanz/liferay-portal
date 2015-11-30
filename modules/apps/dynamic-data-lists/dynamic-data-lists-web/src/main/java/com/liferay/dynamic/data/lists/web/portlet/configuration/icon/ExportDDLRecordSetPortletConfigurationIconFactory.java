@@ -30,7 +30,10 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	immediate = true,
-	property = {"javax.portlet.name=" + DDLPortletKeys.DYNAMIC_DATA_LISTS},
+	property = {
+		"javax.portlet.name=" + DDLPortletKeys.DYNAMIC_DATA_LISTS,
+		"path=/view_record_set.jsp"
+	},
 	service = PortletConfigurationIconFactory.class
 )
 public class ExportDDLRecordSetPortletConfigurationIconFactory
@@ -53,7 +56,8 @@ public class ExportDDLRecordSetPortletConfigurationIconFactory
 
 	@Override
 	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.dynamic.data.lists.web)"
+		target = "(osgi.web.symbolicname=com.liferay.dynamic.data.lists.web)",
+		unbind = "-"
 	)
 	public void setServletContext(ServletContext servletContext) {
 		super.setServletContext(servletContext);

@@ -191,7 +191,7 @@ public class JSLoaderModulesServlet extends HttpServlet {
 		_details = details;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJSLoaderModulesTracker(
 		JSLoaderModulesTracker jsLoaderModulesTracker) {
 
@@ -199,7 +199,7 @@ public class JSLoaderModulesServlet extends HttpServlet {
 	}
 
 	private volatile Details _details;
-	private JSLoaderModulesTracker _jsLoaderModulesTracker;
+	private volatile JSLoaderModulesTracker _jsLoaderModulesTracker;
 	private Logger _logger;
 
 }

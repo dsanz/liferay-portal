@@ -33,24 +33,31 @@ else {
 	request.setAttribute(WebKeys.SINGLE_PAGE_APPLICATION_CLEAR_CACHE, Boolean.TRUE);
 }
 
+int delta = ParamUtil.getInteger(request, "delta");
 String orderByCol = ParamUtil.getString(request, "orderByCol", "title");
 String orderByType = ParamUtil.getString(request, "orderByType", "asc");
 
 PortletURL navigationPortletURL = renderResponse.createRenderURL();
 
 navigationPortletURL.setParameter("mvcRenderCommandName", "/blogs_admin/view");
+navigationPortletURL.setParameter("delta", String.valueOf(delta));
+navigationPortletURL.setParameter("orderBycol", orderByCol);
+navigationPortletURL.setParameter("orderByType", orderByType);
 
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("mvcRenderCommandName", "/blogs_admin/view");
 portletURL.setParameter("entriesNavigation", entriesNavigation);
+portletURL.setParameter("delta", String.valueOf(delta));
+portletURL.setParameter("orderBycol", orderByCol);
+portletURL.setParameter("orderByType", orderByType);
 
 String keywords = ParamUtil.getString(request, "keywords");
 %>
 
 <liferay-frontend:management-bar
-	checkBoxContainerId="blogEntriesSearchContainer"
 	includeCheckBox="<%= true %>"
+	searchContainerId="blogEntries"
 >
 	<c:if test="<%= Validator.isNull(keywords) %>">
 		<liferay-frontend:management-bar-buttons>
@@ -83,7 +90,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 		String taglibURL = "javascript:" + renderResponse.getNamespace() + "deleteEntries();";
 		%>
 
-		<aui:a cssClass="btn" href="<%= taglibURL %>" iconCssClass='<%= TrashUtil.isTrashEnabled(scopeGroupId) ? "icon-trash" : "icon-remove" %>' />
+		<liferay-frontend:management-bar-button href="<%= taglibURL %>" iconCssClass='<%= TrashUtil.isTrashEnabled(scopeGroupId) ? "icon-trash" : "icon-remove" %>' />
 	</liferay-frontend:management-bar-action-buttons>
 </liferay-frontend:management-bar>
 
@@ -110,12 +117,8 @@ String keywords = ParamUtil.getString(request, "keywords");
 			id="blogEntries"
 			orderByComparator="<%= BlogsUtil.getOrderByComparator(orderByCol, orderByType) %>"
 			rowChecker="<%= new EmptyOnClickRowChecker(renderResponse) %>"
-			searchContainer="<%= new EntrySearch(renderRequest, portletURL) %>"
+			searchContainer='<%= new SearchContainer(renderRequest, PortletURLUtil.clone(portletURL, liferayPortletResponse), null, "no-entries-were-found") %>'
 		>
-
-			<%
-			EntrySearchTerms searchTerms = (EntrySearchTerms)searchContainer.getSearchTerms();
-			%>
 
 			<liferay-ui:search-container-results>
 				<%@ include file="/blogs_admin/entry_search_results.jspf" %>

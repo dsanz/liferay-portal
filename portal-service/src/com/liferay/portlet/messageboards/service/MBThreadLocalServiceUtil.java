@@ -230,15 +230,6 @@ public class MBThreadLocalServiceUtil {
 		return getService().getActionableDynamicQuery();
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
 	public static int getCategoryThreadsCount(long groupId, long categoryId,
 		int status) {
 		return getService().getCategoryThreadsCount(groupId, categoryId, status);
@@ -391,6 +382,10 @@ public class MBThreadLocalServiceUtil {
 			queryDefinition);
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return getService().getIndexableActionableDynamicQuery();
+	}
+
 	/**
 	* Returns the message boards thread with the primary key.
 	*
@@ -475,6 +470,15 @@ public class MBThreadLocalServiceUtil {
 
 	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> getNoAssetThreads() {
 		return getService().getNoAssetThreads();
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
 	}
 
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
@@ -591,20 +595,12 @@ public class MBThreadLocalServiceUtil {
 				   .search(groupId, userId, creatorUserId, status, start, end);
 	}
 
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
-	}
-
 	public static com.liferay.portlet.messageboards.model.MBThread splitThread(
-		long messageId, java.lang.String subject,
+		long userId, long messageId, java.lang.String subject,
 		com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
-		return getService().splitThread(messageId, subject, serviceContext);
+		return getService()
+				   .splitThread(userId, messageId, subject, serviceContext);
 	}
 
 	/**

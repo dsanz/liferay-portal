@@ -37,11 +37,6 @@ public class FeedsPortletConfigurationIcon
 	}
 
 	@Override
-	public String getImage() {
-		return "../aui/rss";
-	}
-
-	@Override
 	public String getMessage() {
 		return "feeds";
 	}
@@ -49,8 +44,7 @@ public class FeedsPortletConfigurationIcon
 	@Override
 	public String getURL() {
 		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
-			request, JournalPortletKeys.JOURNAL, 0,
-			PortletRequest.RENDER_PHASE);
+			request, JournalPortletKeys.JOURNAL, PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter("mvcPath", "/view_feeds.jsp");
 

@@ -184,7 +184,7 @@ public class OpenIdAction extends BaseStrutsPortletAction {
 		return _forwards.get("portlet.login.open_id");
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	public void setOpenIdProviderRegistry(
 		OpenIdProviderRegistry openIdProviderRegistry) {
 
@@ -518,7 +518,7 @@ public class OpenIdAction extends BaseStrutsPortletAction {
 		response.sendRedirect(authRequest.getDestinationUrl(true));
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setOpenId(OpenId openId) {
 		_openId = openId;
 	}
@@ -563,8 +563,8 @@ public class OpenIdAction extends BaseStrutsPortletAction {
 
 	private ConsumerManager _consumerManager;
 	private final Map<String, String> _forwards = new HashMap<>();
-	private OpenId _openId;
-	private OpenIdProviderRegistry _openIdProviderRegistry;
-	private UserLocalService _userLocalService;
+	private volatile OpenId _openId;
+	private volatile OpenIdProviderRegistry _openIdProviderRegistry;
+	private volatile UserLocalService _userLocalService;
 
 }

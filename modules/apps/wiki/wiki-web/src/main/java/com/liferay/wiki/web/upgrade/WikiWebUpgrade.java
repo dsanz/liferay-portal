@@ -16,6 +16,7 @@ package com.liferay.wiki.web.upgrade;
 
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.settings.SettingsFactory;
+import com.liferay.portal.kernel.upgrade.DummyUpgradeStep;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 import com.liferay.wiki.web.upgrade.v1_0_0.UpgradePortletSettings;
 
@@ -26,11 +27,14 @@ import org.osgi.service.component.annotations.Reference;
  * @author Iván Zaera
  * @author Manuel de la Peña
  */
-@Component(immediate = true)
+@Component(immediate = true, service = UpgradeStepRegistrator.class)
 public class WikiWebUpgrade implements UpgradeStepRegistrator {
 
 	@Override
 	public void register(Registry registry) {
+		registry.register(
+			"com.liferay.wiki.web", "0.0.0", "1.0.0", new DummyUpgradeStep());
+
 		registry.register(
 			"com.liferay.wiki.web", "0.0.1", "1.0.0",
 			new UpgradePortletSettings(_settingsFactory));
@@ -46,6 +50,6 @@ public class WikiWebUpgrade implements UpgradeStepRegistrator {
 		_settingsFactory = settingsFactory;
 	}
 
-	private SettingsFactory _settingsFactory;
+	private volatile SettingsFactory _settingsFactory;
 
 }

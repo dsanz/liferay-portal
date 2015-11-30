@@ -49,13 +49,13 @@ public class DLFileEntryTypePermissionUpdateHandler
 		_dLFileEntryTypeLocalService.updateDLFileEntryType(dlFileEntryType);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDLFileEntryTypeLocalService(
 		DLFileEntryTypeLocalService dLFileEntryTypeLocalService) {
 
 		_dLFileEntryTypeLocalService = dLFileEntryTypeLocalService;
 	}
 
-	private DLFileEntryTypeLocalService _dLFileEntryTypeLocalService;
+	private volatile DLFileEntryTypeLocalService _dLFileEntryTypeLocalService;
 
 }

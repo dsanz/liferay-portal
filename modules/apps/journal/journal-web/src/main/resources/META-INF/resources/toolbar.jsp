@@ -17,21 +17,19 @@
 <%@ include file="/init.jsp" %>
 
 <%
+String searchContainerId = ParamUtil.getString(request, "searchContainerId");
+
 String keywords = ParamUtil.getString(request, "keywords");
-
-boolean advancedSearch = ParamUtil.getBoolean(liferayPortletRequest, ArticleDisplayTerms.ADVANCED_SEARCH);
-
-boolean search = Validator.isNotNull(keywords) || advancedSearch;
 %>
 
 <liferay-frontend:management-bar
-	checkBoxContainerId="entriesContainer"
 	includeCheckBox="<%= !user.isDefaultUser() && journalDisplayContext.isShowEditActions() %>"
+	searchContainerId="<%= searchContainerId %>"
 >
 	<liferay-frontend:management-bar-buttons>
-		<aui:a cssClass="btn infoPanelToggler" href="javascript:;" iconCssClass="icon-info-sign" />
+		<liferay-frontend:management-bar-button cssClass="infoPanelToggler" href="javascript:;" iconCssClass="icon-info-sign" />
 
-		<c:if test="<%= !search %>">
+		<c:if test="<%= Validator.isNull(keywords) %>">
 			<liferay-util:include page="/display_style_buttons.jsp" servletContext="<%= application %>" />
 		</c:if>
 	</liferay-frontend:management-bar-buttons>
@@ -41,25 +39,25 @@ boolean search = Validator.isNotNull(keywords) || advancedSearch;
 	</liferay-frontend:management-bar-filters>
 
 	<liferay-frontend:management-bar-action-buttons>
-		<aui:a cssClass="btn infoPanelToggler" href="javascript:;" iconCssClass="icon-info-sign" />
+		<liferay-frontend:management-bar-button cssClass="infoPanelToggler" href="javascript:;" iconCssClass="icon-info-sign" />
 
 		<%
 		String taglibURL = "javascript:" + renderResponse.getNamespace() + "deleteEntries();";
 		%>
 
-		<aui:a cssClass="btn" href="<%= taglibURL %>" iconCssClass='<%= TrashUtil.isTrashEnabled(scopeGroupId) ? "icon-trash" : "icon-remove" %>' />
+		<liferay-frontend:management-bar-button href="<%= taglibURL %>" iconCssClass='<%= TrashUtil.isTrashEnabled(scopeGroupId) ? "icon-trash" : "icon-remove" %>' />
 
 		<%
 		taglibURL = "javascript:Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: 'expireEntries'}); void(0);";
 		%>
 
-		<aui:a cssClass="btn" href="<%= taglibURL %>" iconCssClass="icon-time" />
+		<liferay-frontend:management-bar-button href="<%= taglibURL %>" iconCssClass="icon-time" />
 
 		<%
 		taglibURL = "javascript:Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: 'moveEntries'}); void(0);";
 		%>
 
-		<aui:a cssClass="btn" href="<%= taglibURL %>" iconCssClass="icon-move" />
+		<liferay-frontend:management-bar-button href="<%= taglibURL %>" iconCssClass="icon-move" />
 	</liferay-frontend:management-bar-action-buttons>
 </liferay-frontend:management-bar>
 

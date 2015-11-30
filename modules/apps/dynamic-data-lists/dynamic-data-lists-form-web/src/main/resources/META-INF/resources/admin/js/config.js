@@ -1,5 +1,5 @@
 ;(function() {
-	var PATH_DDL_FORM_WEB = Liferay.ThemeDisplay.getPathContext() + '/o/ddl-form-web';
+	var PATH_DDL_FORM_WEB = Liferay.ThemeDisplay.getPathContext() + '/o/dynamic-data-lists-form-web';
 
 	AUI().applyConfig(
 		{
@@ -13,9 +13,11 @@
 								'aui-form-builder',
 								'aui-form-builder-pages',
 								'liferay-ddl-form-builder-field-support',
+								'liferay-ddl-form-builder-field-types-modal',
 								'liferay-ddl-form-builder-layout-deserializer',
 								'liferay-ddl-form-builder-layout-visitor',
 								'liferay-ddl-form-builder-pages-manager',
+								'liferay-ddl-form-builder-util',
 								'liferay-ddm-form-field-types',
 								'liferay-ddm-form-renderer'
 							]
@@ -25,6 +27,12 @@
 							requires: [
 								'json',
 								'liferay-ddl-form-builder-layout-visitor'
+							]
+						},
+						'liferay-ddl-form-builder-field-types-modal': {
+							path: 'form_builder_field_types_modal.js',
+							requires: [
+								'aui-form-builder-field-types-modal'
 							]
 						},
 						'liferay-ddl-form-builder-layout-deserializer': {
@@ -60,7 +68,8 @@
 						'liferay-ddl-form-builder-settings-form': {
 							path: 'form_builder_settings_form.js',
 							requires: [
-								'liferay-ddm-form-renderer'
+								'liferay-ddm-form-renderer',
+								'liferay-form'
 							]
 						},
 						'liferay-ddl-form-builder-settings-support': {

@@ -241,12 +241,12 @@ public class OpenSSOAutoLogin extends BaseAutoLogin {
 		_configurationFactory = configurationFactory;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setOpenSSO(OpenSSO openSSO) {
 		_openSSO = openSSO;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setScreenNameGenerator(
 		ScreenNameGenerator screenNameGenerator) {
 
@@ -262,8 +262,8 @@ public class OpenSSOAutoLogin extends BaseAutoLogin {
 		OpenSSOAutoLogin.class);
 
 	private volatile ConfigurationFactory _configurationFactory;
-	private OpenSSO _openSSO;
-	private ScreenNameGenerator _screenNameGenerator;
-	private UserLocalService _userLocalService;
+	private volatile OpenSSO _openSSO;
+	private volatile ScreenNameGenerator _screenNameGenerator;
+	private volatile UserLocalService _userLocalService;
 
 }

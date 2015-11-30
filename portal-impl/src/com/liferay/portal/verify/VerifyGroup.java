@@ -40,7 +40,6 @@ import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.RobotsUtil;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -83,16 +82,19 @@ public class VerifyGroup extends VerifyProcess {
 			RobotsUtil.getDefaultRobots(virtualHostname));
 	}
 
-	protected void updateName(Connection con, long groupId, String name)
-		throws Exception {
+	protected void updateName(long groupId, String name) throws Exception {
+		PreparedStatement ps = null;
 
-		String sql = "update Group_ set name = ? where groupId = ?";
+		try {
+			ps = connection.prepareStatement(
+				"update Group_ set name = ? where groupId= " + groupId);
 
-		try (PreparedStatement ps = con.prepareStatement(sql)) {
 			ps.setString(1, name);
-			ps.setLong(2, groupId);
 
 			ps.executeUpdate();
+		}
+		finally {
+			DataAccess.cleanUp(ps);
 		}
 	}
 
@@ -155,17 +157,21 @@ public class VerifyGroup extends VerifyProcess {
 	}
 
 	protected void verifyOrganizationNames() throws Exception {
-		StringBundler sb = new StringBundler(5);
+		PreparedStatement ps = null;
+		ResultSet rs = null;
 
-		sb.append("select groupId, name from Group_ where name like '%");
-		sb.append(GroupLocalServiceImpl.ORGANIZATION_NAME_SUFFIX);
-		sb.append("%' and name not like '%");
-		sb.append(GroupLocalServiceImpl.ORGANIZATION_NAME_SUFFIX);
-		sb.append("'");
+		try {
+			StringBundler sb = new StringBundler(5);
 
-		try (Connection con = DataAccess.getUpgradeOptimizedConnection();
-			PreparedStatement ps = con.prepareStatement(sb.toString());
-			ResultSet rs = ps.executeQuery()) {
+			sb.append("select groupId, name from Group_ where name like '%");
+			sb.append(GroupLocalServiceImpl.ORGANIZATION_NAME_SUFFIX);
+			sb.append("%' and name not like '%");
+			sb.append(GroupLocalServiceImpl.ORGANIZATION_NAME_SUFFIX);
+			sb.append("'");
+
+			ps = connection.prepareStatement(sb.toString());
+
+			rs = ps.executeQuery();
 
 			while (rs.next()) {
 				long groupId = rs.getLong("groupId");
@@ -188,8 +194,11 @@ public class VerifyGroup extends VerifyProcess {
 					name.substring(pos + 1) +
 						GroupLocalServiceImpl.ORGANIZATION_NAME_SUFFIX;
 
-				updateName(con, groupId, newName);
+				updateName(groupId, newName);
 			}
+		}
+		finally {
+			DataAccess.cleanUp(null, ps, rs);
 		}
 	}
 

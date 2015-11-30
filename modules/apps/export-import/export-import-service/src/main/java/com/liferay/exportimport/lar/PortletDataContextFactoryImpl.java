@@ -14,6 +14,7 @@
 
 package com.liferay.exportimport.lar;
 
+import com.liferay.portal.kernel.lock.LockManager;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.xml.Document;
@@ -56,8 +57,8 @@ public class PortletDataContextFactoryImpl
 			return null;
 		}
 
-		PortletDataContext clonePortletDataContext =
-			new PortletDataContextImpl();
+		PortletDataContext clonePortletDataContext = new PortletDataContextImpl(
+			_lockManager);
 
 		clonePortletDataContext.setCompanyId(portletDataContext.getCompanyId());
 		clonePortletDataContext.setCompanyGroupId(
@@ -176,7 +177,8 @@ public class PortletDataContextFactoryImpl
 	protected PortletDataContext createPortletDataContext(
 		long companyId, long groupId) {
 
-		PortletDataContext portletDataContext = new PortletDataContextImpl();
+		PortletDataContext portletDataContext = new PortletDataContextImpl(
+			_lockManager);
 
 		try {
 			Group companyGroup = _groupLocalService.fetchCompanyGroup(
@@ -254,11 +256,24 @@ public class PortletDataContextFactoryImpl
 
 		portletDataContext.setSourceUserPersonalSiteGroupId(
 			sourceUserPersonalSiteGroupId);
+
+		Element missingReferencesElement = rootElement.element(
+			"missing-references");
+
+		if (missingReferencesElement != null) {
+			portletDataContext.setMissingReferencesElement(
+				missingReferencesElement);
+		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setGroupLocalService(GroupLocalService groupLocalService) {
 		_groupLocalService = groupLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLockManager(LockManager lockManager) {
+		_lockManager = lockManager;
 	}
 
 	protected void validateDateRange(Date startDate, Date endDate)
@@ -293,6 +308,7 @@ public class PortletDataContextFactoryImpl
 		}
 	}
 
-	private GroupLocalService _groupLocalService;
+	private volatile GroupLocalService _groupLocalService;
+	private volatile LockManager _lockManager;
 
 }

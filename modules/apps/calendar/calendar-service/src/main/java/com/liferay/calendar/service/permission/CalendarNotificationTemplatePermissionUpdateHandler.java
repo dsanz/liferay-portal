@@ -52,7 +52,7 @@ public class CalendarNotificationTemplatePermissionUpdateHandler
 			updateCalendarNotificationTemplate(calendarNotificationTemplate);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setCalendarNotificationTemplateSetLocalService(
 		CalendarNotificationTemplateLocalService
 			calendarNotificationTemplateLocalService) {
@@ -61,7 +61,7 @@ public class CalendarNotificationTemplatePermissionUpdateHandler
 			calendarNotificationTemplateLocalService;
 	}
 
-	private CalendarNotificationTemplateLocalService
+	private volatile CalendarNotificationTemplateLocalService
 		_calendarNotificationTemplateLocalService;
 
 }

@@ -20,6 +20,12 @@
 String redirect = ParamUtil.getString(request, "redirect");
 
 CalendarResource calendarResource = (CalendarResource)request.getAttribute(CalendarWebKeys.CALENDAR_RESOURCE);
+
+PortletURL portletURL = renderResponse.createRenderURL();
+
+portletURL.setParameter("mvcPath", "/view_calendars.jsp");
+portletURL.setParameter("redirect", redirect);
+portletURL.setParameter("calendarResourceId", String.valueOf(calendarResource.getCalendarResourceId()));
 %>
 
 <liferay-ui:header
@@ -36,62 +42,64 @@ CalendarResource calendarResource = (CalendarResource)request.getAttribute(Calen
 			<liferay-portlet:param name="calendarResourceId" value="<%= String.valueOf(calendarResource.getCalendarResourceId()) %>" />
 		</liferay-portlet:renderURL>
 
-		<aui:button onClick="<%= editCalendarURL %>" value="add-calendar" />
+		<aui:button onClick="<%= editCalendarURL %>" primary="<%= true %>" value="add-calendar" />
 	</aui:button-row>
 </c:if>
 
-<liferay-ui:search-container
-	emptyResultsMessage="there-are-no-calendars-for-the-selected-resource"
-	iteratorURL="<%= renderResponse.createRenderURL() %>"
-	total="<%= CalendarServiceUtil.searchCount(themeDisplay.getCompanyId(), new long[] {calendarResource.getGroupId()}, new long[] {calendarResource.getCalendarResourceId()}, null, false) %>"
->
-	<liferay-ui:search-container-results
-		results="<%= CalendarServiceUtil.search(themeDisplay.getCompanyId(), new long[] {calendarResource.getGroupId()}, new long[] {calendarResource.getCalendarResourceId()}, null, false, QueryUtil.ALL_POS, QueryUtil.ALL_POS, new CalendarNameComparator(true)) %>"
-	/>
-
-	<liferay-ui:search-container-row
-		className="com.liferay.calendar.model.Calendar"
-		keyProperty="calendarId"
-		modelVar="calendar"
+<div class="container-fluid-1280">
+	<liferay-ui:search-container
+		emptyResultsMessage="there-are-no-calendars-for-the-selected-resource"
+		iteratorURL="<%= renderResponse.createRenderURL() %>"
+		total="<%= CalendarServiceUtil.searchCount(themeDisplay.getCompanyId(), new long[] {calendarResource.getGroupId()}, new long[] {calendarResource.getCalendarResourceId()}, null, false) %>"
 	>
-		<liferay-ui:search-container-column-text
-			name="name"
-			value="<%= HtmlUtil.escape(calendar.getName(locale)) %>"
+		<liferay-ui:search-container-results
+			results="<%= CalendarServiceUtil.search(themeDisplay.getCompanyId(), new long[] {calendarResource.getGroupId()}, new long[] {calendarResource.getCalendarResourceId()}, null, false, QueryUtil.ALL_POS, QueryUtil.ALL_POS, new CalendarNameComparator(true)) %>"
 		/>
 
-		<liferay-ui:search-container-column-text
-			name="description"
-			value="<%= HtmlUtil.escape(StringUtil.shorten(calendar.getDescription(locale))) %>"
-		/>
-
-		<liferay-ui:search-container-column-text
-			align="center"
-			name="color"
+		<liferay-ui:search-container-row
+			className="com.liferay.calendar.model.Calendar"
+			keyProperty="calendarId"
+			modelVar="calendar"
 		>
-			<span class="calendar-portlet-color-box" style="background-color:<%= ColorUtil.toHexString(calendar.getColor()) %>;">&nbsp;</span>
-		</liferay-ui:search-container-column-text>
+			<liferay-ui:search-container-column-text
+				name="name"
+				value="<%= HtmlUtil.escape(calendar.getName(locale)) %>"
+			/>
 
-		<liferay-ui:search-container-column-text name="default">
-			<c:choose>
-				<c:when test="<%= calendar.isDefaultCalendar() %>">
-					<liferay-ui:message key="yes" />
-				</c:when>
-				<c:otherwise>
-					<liferay-ui:message key="no" />
-				</c:otherwise>
-			</c:choose>
-		</liferay-ui:search-container-column-text>
+			<liferay-ui:search-container-column-text
+				name="description"
+				value="<%= HtmlUtil.escape(StringUtil.shorten(calendar.getDescription(locale))) %>"
+			/>
 
-		<liferay-ui:search-container-column-jsp
-			align="right"
-			cssClass="entry-action"
-			path="/calendar_action.jsp"
-		/>
+			<liferay-ui:search-container-column-text
+				align="center"
+				name="color"
+			>
+				<span class="calendar-portlet-color-box" style="background-color:<%= ColorUtil.toHexString(calendar.getColor()) %>;">&nbsp;</span>
+			</liferay-ui:search-container-column-text>
 
-	</liferay-ui:search-container-row>
+			<liferay-ui:search-container-column-text name="default">
+				<c:choose>
+					<c:when test="<%= calendar.isDefaultCalendar() %>">
+						<liferay-ui:message key="yes" />
+					</c:when>
+					<c:otherwise>
+						<liferay-ui:message key="no" />
+					</c:otherwise>
+				</c:choose>
+			</liferay-ui:search-container-column-text>
 
-	<liferay-ui:search-iterator />
-</liferay-ui:search-container>
+			<liferay-ui:search-container-column-jsp
+				align="right"
+				cssClass="entry-action"
+				path="/calendar_action.jsp"
+			/>
+
+		</liferay-ui:search-container-row>
+
+		<liferay-ui:search-iterator markupView="lexicon" />
+	</liferay-ui:search-container>
+</div>
 
 <div class="calendar-portlet-import-container hide" id="<portlet:namespace />importCalendarContainer">
 	<div class="hide portlet-msg-error" id="<portlet:namespace />portletErrorMessage"></div>

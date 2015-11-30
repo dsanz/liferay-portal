@@ -15,7 +15,7 @@
 package com.liferay.journal.web.util;
 
 import com.liferay.journal.model.JournalArticleDisplay;
-import com.liferay.journal.util.JournalContentUtil;
+import com.liferay.journal.util.JournalContent;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.PortletRequestModel;
@@ -28,9 +28,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.documentlibrary.util.DLUtil;
 import com.liferay.portlet.documentlibrary.util.DocumentConversionUtil;
 
@@ -46,12 +46,16 @@ import javax.portlet.PortletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Eudaldo Alonso
  */
+@Component(service = ExportArticleUtil.class)
 public class ExportArticleUtil {
 
-	public static void sendFile(
+	public void sendFile(
 			PortletRequest portletRequest, PortletResponse portletResponse)
 		throws IOException {
 
@@ -76,7 +80,7 @@ public class ExportArticleUtil {
 		HttpServletResponse response = PortalUtil.getHttpServletResponse(
 			portletResponse);
 
-		JournalArticleDisplay articleDisplay = JournalContentUtil.getDisplay(
+		JournalArticleDisplay articleDisplay = _journalContent.getDisplay(
 			groupId, articleId, null, "export", languageId, 1,
 			portletRequestModel, themeDisplay);
 
@@ -100,7 +104,7 @@ public class ExportArticleUtil {
 		sb.append(articleDisplay.getContent());
 
 		for (int i = 2; i <= pages; i++) {
-			articleDisplay = JournalContentUtil.getDisplay(
+			articleDisplay = _journalContent.getDisplay(
 				groupId, articleId, "export", languageId, i, themeDisplay);
 
 			sb.append(articleDisplay.getContent());
@@ -145,5 +149,12 @@ public class ExportArticleUtil {
 		ServletResponseUtil.sendFile(
 			request, response, fileName, is, contentType);
 	}
+
+	@Reference(unbind = "-")
+	protected void setJournalContent(JournalContent journalContent) {
+		_journalContent = journalContent;
+	}
+
+	private volatile JournalContent _journalContent;
 
 }

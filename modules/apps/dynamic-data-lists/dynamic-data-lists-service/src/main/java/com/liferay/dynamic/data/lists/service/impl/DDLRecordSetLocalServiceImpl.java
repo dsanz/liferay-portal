@@ -17,6 +17,7 @@ package com.liferay.dynamic.data.lists.service.impl;
 import com.liferay.dynamic.data.lists.exception.RecordSetDDMStructureIdException;
 import com.liferay.dynamic.data.lists.exception.RecordSetDuplicateRecordSetKeyException;
 import com.liferay.dynamic.data.lists.exception.RecordSetNameException;
+import com.liferay.dynamic.data.lists.exception.RecordSetSettingsException;
 import com.liferay.dynamic.data.lists.model.DDLRecordSet;
 import com.liferay.dynamic.data.lists.service.base.DDLRecordSetLocalServiceBaseImpl;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
@@ -25,8 +26,10 @@ import com.liferay.dynamic.data.mapping.service.DDMStructureLinkLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.SystemEventConstants;
@@ -34,6 +37,7 @@ import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -310,6 +314,27 @@ public class DDLRecordSetLocalServiceImpl
 			serviceContext, recordSet);
 	}
 
+	@Override
+	public DDLRecordSet updateRecordSet(long recordSetId, String settings)
+		throws PortalException {
+
+		Date now = new Date();
+
+		UnicodeProperties settingsProperties = new UnicodeProperties();
+
+		settingsProperties.fastLoad(settings);
+
+		validateSettingsProperties(settingsProperties);
+
+		DDLRecordSet recordSet = ddlRecordSetPersistence.findByPrimaryKey(
+			recordSetId);
+
+		recordSet.setModifiedDate(now);
+		recordSet.setSettings(settingsProperties.toString());
+
+		return ddlRecordSetPersistence.update(recordSet);
+	}
+
 	protected DDLRecordSet doUpdateRecordSet(
 			long ddmStructureId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, int minDisplayRows,
@@ -384,17 +409,74 @@ public class DDLRecordSetLocalServiceImpl
 			ddmStructureId);
 
 		if (ddmStructure == null) {
-			throw new RecordSetDDMStructureIdException();
+			throw new RecordSetDDMStructureIdException(
+				"No DDM structure exists with the DDM structure ID " +
+					ddmStructureId);
 		}
 	}
 
 	protected void validateName(Map<Locale, String> nameMap)
 		throws PortalException {
 
-		String name = nameMap.get(LocaleUtil.getSiteDefault());
+		Locale locale = LocaleUtil.getSiteDefault();
+
+		String name = nameMap.get(locale);
 
 		if (Validator.isNull(name)) {
-			throw new RecordSetNameException();
+			throw new RecordSetNameException(
+				"Name is null for locale " + locale.getDisplayName());
+		}
+	}
+
+	protected void validateSettingsProperties(
+			UnicodeProperties settingsProperties)
+		throws PortalException {
+
+		String redirectURL = settingsProperties.getProperty("redirectURL");
+
+		if (Validator.isNotNull(redirectURL) && !Validator.isUrl(redirectURL)) {
+			throw new RecordSetSettingsException(
+				"The property \"redirectURL\" is not a URL");
+		}
+
+		String requireCaptcha = settingsProperties.getProperty(
+			"requireCaptcha");
+
+		if (Validator.isNotNull(requireCaptcha) &&
+			!Validator.isBoolean(requireCaptcha)) {
+
+			throw new RecordSetSettingsException(
+				"The property \"requireCaptcha\" is not a boolean");
+		}
+
+		boolean sendEmailNotification = GetterUtil.getBoolean(
+			settingsProperties.getProperty("sendEmailNotification"));
+
+		if (sendEmailNotification) {
+			String emailFromAddress = settingsProperties.getProperty(
+				"emailFromAddress");
+
+			if (!Validator.isEmailAddress(emailFromAddress)) {
+				throw new RecordSetSettingsException(
+					"The property \"emailFromAddress\" is not an email " +
+						"address");
+			}
+
+			String emailFromName = settingsProperties.getProperty(
+				"emailFromName");
+
+			if (Validator.isNull(emailFromName)) {
+				throw new RecordSetSettingsException(
+					"The property \"emailFromName\" is empty");
+			}
+
+			String emailToAddress = settingsProperties.getProperty(
+				"emailToAddresses");
+
+			if (!Validator.isEmailAddress(emailToAddress)) {
+				throw new RecordSetSettingsException(
+					"The property \"emailToAddress\" is not an email address");
+			}
 		}
 	}
 

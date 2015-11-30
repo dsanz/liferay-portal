@@ -26,7 +26,7 @@ if (Validator.isNull(doAsUserId)) {
 }
 
 boolean autoCreate = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:input-editor:autoCreate"));
-String contents = (String)request.getAttribute("liferay-ui:input-editor:contents");
+String contents = GetterUtil.getString((String)request.getAttribute("liferay-ui:input-editor:contents"));
 String contentsLanguageId = (String)request.getAttribute("liferay-ui:input-editor:contentsLanguageId");
 String cssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:input-editor:cssClass"));
 Map<String, Object> data = (Map<String, Object>)request.getAttribute("liferay-ui:input-editor:data");
@@ -73,6 +73,12 @@ EditorOptions editorOptions = null;
 if (data != null) {
 	editorOptions = (EditorOptions)data.get("editorOptions");
 }
+
+Map<String, Object> editorOptionsDynamicAttributes = null;
+
+if (editorOptions != null) {
+	editorOptionsDynamicAttributes = editorOptions.getDynamicAttributes();
+}
 %>
 
 <c:if test="<%= !skipEditorLoading %>">
@@ -91,6 +97,30 @@ if (data != null) {
 			AlloyEditor.regexBasePath = /(^|.*[\\\/])(?:liferay-alloy-editor[^/]+|liferay-alloy-editor)\.js(?:\?.*|;.*)?$/i;
 
 			Liferay.namespace('EDITORS')['<%= editorName %>'] = true;
+
+			CKEDITOR.scriptLoader.loadScripts = function(scripts, success, failure) {
+				AUI().use(
+					'aui-base',
+					function(A) {
+						scripts = scripts.filter(
+							function(item) {
+								return !A.one('script[src=' + item + ']');
+							}
+						);
+
+						if (scripts.length) {
+							CKEDITOR.scriptLoader.load(scripts, success, failure);
+						}
+						else {
+							success();
+						}
+					}
+				);
+			};
+
+			CKEDITOR.getNextZIndex = function() {
+				return CKEDITOR.dialog._.currentZIndex ? CKEDITOR.dialog._.currentZIndex + 10 : Liferay.zIndex.WINDOW + 10;
+			};
 		</script>
 	</liferay-util:html-top>
 </c:if>
@@ -108,14 +138,6 @@ if (data != null) {
 <liferay-util:buffer var="editor">
 	<c:choose>
 		<c:when test="<%= showSource %>">
-			<div class="alloy-editor-switch">
-				<button class="btn btn-default btn-xs hide icon-fullscreen" id="<%= name %>Fullscreen" type="button"></button>
-
-				<button class="btn btn-default btn-xs" id="<%= name %>Switch" type="button">
-					&lt;&#47;&gt;
-				</button>
-			</div>
-
 			<div class="alloy-editor-wrapper" id="<%= name %>Wrapper">
 				<div class="wrapper">
 					<%= alloyEditor %>
@@ -124,6 +146,13 @@ if (data != null) {
 						<div class="lfr-source-editor-code"></div>
 					</div>
 				</div>
+			</div>
+			<div class="alloy-editor-switch hide">
+				<button class="btn btn-default btn-xs hide icon-fullscreen" id="<%= name %>Fullscreen" type="button"></button>
+
+				<button class="btn btn-default btn-xs" id="<%= name %>Switch" type="button">
+					&lt;&#47;&gt;
+				</button>
 			</div>
 		</c:when>
 		<c:otherwise>
@@ -214,6 +243,19 @@ if (showSource) {
 			}
 		).render();
 
+		<%
+		boolean useCustomDataProcessor = (editorOptionsDynamicAttributes != null) && GetterUtil.getBoolean(editorOptionsDynamicAttributes.get("useCustomDataProcessor"));
+		%>
+
+		<c:if test="<%= useCustomDataProcessor %>">
+			alloyEditor.getNativeEditor().on(
+				'customDataProcessorLoaded',
+				function() {
+					alloyEditor.setHTML(getInitialContent());
+				}
+			);
+		</c:if>
+
 		<liferay-util:dynamic-include key='<%= "com.liferay.frontend.editor.alloyeditor.web#" + editorName + "#onEditorCreate" %>' />
 	};
 
@@ -263,7 +305,7 @@ if (showSource) {
 				data = alloyEditor.getHTML();
 			}
 			else {
-				getInitialContent();
+				data = getInitialContent();
 			}
 
 			return data;

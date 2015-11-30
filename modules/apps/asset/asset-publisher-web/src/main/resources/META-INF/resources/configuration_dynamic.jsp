@@ -341,8 +341,6 @@ String selectStyle = (String)request.getAttribute("configuration.jsp-selectStyle
 
 				<aui:input label="include-tags-specified-in-the-url" name="preferences--mergeUrlTags--" type="checkbox" value="<%= assetPublisherDisplayContext.isMergeURLTags() %>" />
 
-				<aui:input helpMessage="include-tags-set-by-other-applications-help" label="include-tags-set-by-other-applications" name="preferences--mergeLayoutTags--" type="checkbox" value="<%= assetPublisherDisplayContext.isMergeLayoutTags() %>" />
-
 				<aui:script use="liferay-auto-fields">
 					var autoFields = new Liferay.AutoFields(
 						{
@@ -356,14 +354,17 @@ String selectStyle = (String)request.getAttribute("configuration.jsp-selectStyle
 			</liferay-ui:panel>
 
 			<%
-			String[] sections = AssetPublisherWebConfigurationValues.QUERY_FORM_CONFIGURATION;
+			List<AssetEntryQueryProcessor> assetEntryQueryProcessors = AssetPublisherUtil.getAssetEntryQueryProcessors();
 
-			for (String section : sections) {
-				String sectionId = renderResponse.getNamespace() + _getSectionId(section);
+			for (AssetEntryQueryProcessor assetEntryQueryProcessor : assetEntryQueryProcessors) {
 			%>
 
-				<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id='<%= "assetPublisherPanelContainerSection_" + sectionId %>' persistState="<%= true %>" title="<%= section %>">
-					<liferay-util:include page='<%= "/query/" + _getSectionJsp(section) + ".jsp" %>' servletContext="<%= application %>" />
+				<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id='<%= "assetPublisherPanelContainerSection_" + assetEntryQueryProcessor.getKey() %>' persistState="<%= true %>" title="<%= assetEntryQueryProcessor.getTitle(locale) %>">
+
+					<%
+					assetEntryQueryProcessor.include(request, new PipingServletResponse(pageContext));
+					%>
+
 				</liferay-ui:panel>
 
 			<%

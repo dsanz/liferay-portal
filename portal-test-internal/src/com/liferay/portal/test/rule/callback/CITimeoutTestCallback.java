@@ -16,12 +16,9 @@ package com.liferay.portal.test.rule.callback;
 
 import com.liferay.portal.kernel.test.rule.callback.BaseTestCallback;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.GetterUtil;
 
 import org.junit.Assert;
 import org.junit.runner.Description;
-import org.junit.runner.RunWith;
-import org.junit.runner.Runner;
 
 /**
  * @author Shuyang Zhou
@@ -32,7 +29,7 @@ public class CITimeoutTestCallback extends BaseTestCallback<Long, Object> {
 		new CITimeoutTestCallback();
 
 	@Override
-	public void doAfterClass(Description description, Long startTime) {
+	public void afterClass(Description description, Long startTime) {
 		long testTime = System.currentTimeMillis() - startTime;
 
 		if (testTime <= TestPropsValues.CI_TEST_TIMEOUT_TIME) {
@@ -51,7 +48,7 @@ public class CITimeoutTestCallback extends BaseTestCallback<Long, Object> {
 	}
 
 	@Override
-	public Long doBeforeClass(Description description) {
+	public Long beforeClass(Description description) {
 		String message = System.getProperty(_CI_TIMEOUT_TEST_CLASS_MESSAGE);
 
 		if (message != null) {
@@ -60,52 +57,11 @@ public class CITimeoutTestCallback extends BaseTestCallback<Long, Object> {
 					message);
 		}
 
-		if (!_isArquillianTest(description)) {
-			return System.currentTimeMillis();
-		}
-
-		String startTimeKey =
-			_CI_TIMEOUT_ARQUILLIAN_TEST_START_TIME + description.getClassName();
-
-		String startTimeValue = System.getProperty(startTimeKey);
-
-		if (startTimeValue == null) {
-			long startTime = System.currentTimeMillis();
-
-			System.setProperty(startTimeKey, String.valueOf(startTime));
-
-			return startTime;
-		}
-
-		return GetterUtil.getLongStrict(startTimeValue);
+		return System.currentTimeMillis();
 	}
 
 	private CITimeoutTestCallback() {
 	}
-
-	private boolean _isArquillianTest(Description description) {
-		RunWith runWith = description.getAnnotation(RunWith.class);
-
-		if (runWith == null) {
-			return false;
-		}
-
-		Class<? extends Runner> runnerClass = runWith.value();
-
-		String runnerClassName = runnerClass.getName();
-
-		if (runnerClassName.equals(
-				"com.liferay.arquillian.extension.junit.bridge.junit." +
-					"Arquillian")) {
-
-			return true;
-		}
-
-		return false;
-	}
-
-	private static final String _CI_TIMEOUT_ARQUILLIAN_TEST_START_TIME =
-		"CI_TIMEOUT_ARQUILLIAN_TEST_START_TIME_";
 
 	private static final String _CI_TIMEOUT_TEST_CLASS_MESSAGE =
 		"CI_TIMEOUT_TEST_CLASS_MESSAGE";

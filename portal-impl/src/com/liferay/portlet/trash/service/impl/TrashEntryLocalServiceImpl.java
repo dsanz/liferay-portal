@@ -15,7 +15,7 @@
 package com.liferay.portlet.trash.service.impl;
 
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
-import com.liferay.portal.kernel.dao.orm.BaseActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.DefaultActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
@@ -68,7 +68,6 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 *         com.liferay.portlet.documentlibrary.model.DLFileVersion})
 	 * @param  typeSettingsProperties the type settings properties
 	 * @return the trashEntry
-	 * @throws PortalException if a user with the primary key could not be found
 	 */
 	@Override
 	public TrashEntry addTrashEntry(
@@ -81,6 +80,13 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 		User user = userPersistence.findByPrimaryKey(userId);
 		long classNameId = classNameLocalService.getClassNameId(className);
 
+		TrashEntry trashEntry = trashEntryPersistence.fetchByC_C(
+			classNameId, classPK);
+
+		if (trashEntry != null) {
+			return trashEntry;
+		}
+
 		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
 			className);
 
@@ -89,7 +95,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 
 		long entryId = counterLocalService.increment();
 
-		TrashEntry trashEntry = trashEntryPersistence.create(entryId);
+		trashEntry = trashEntryPersistence.create(entryId);
 
 		trashEntry.setGroupId(groupId);
 		trashEntry.setCompanyId(user.getCompanyId());
@@ -163,7 +169,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 
 			});
 		actionableDynamicQuery.setTransactionAttribute(
-			BaseActionableDynamicQuery.REQUIRES_NEW_TRANSACTION_ATTRIBUTE);
+			DefaultActionableDynamicQuery.REQUIRES_NEW_TRANSACTION_ATTRIBUTE);
 
 		actionableDynamicQuery.performActions();
 	}
@@ -182,11 +188,9 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 *
 	 * @param  entryId the primary key of the trash entry
 	 * @return the trash entry with the primary key
-	 * @throws PortalException if a trash entry with the primary key could not
-	 *         be found
 	 */
 	@Override
-	public TrashEntry deleteEntry(long entryId) throws PortalException {
+	public TrashEntry deleteEntry(long entryId) {
 		TrashEntry entry = trashEntryPersistence.fetchByPrimaryKey(entryId);
 
 		return deleteEntry(entry);
@@ -198,13 +202,9 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 * @param  className the class name of entity
 	 * @param  classPK the primary key of the entry
 	 * @return the trash entry with the entity class name and primary key
-	 * @throws PortalException if a trash entry with the primary key could not
-	 *         be found
 	 */
 	@Override
-	public TrashEntry deleteEntry(String className, long classPK)
-		throws PortalException {
-
+	public TrashEntry deleteEntry(String className, long classPK) {
 		long classNameId = classNameLocalService.getClassNameId(className);
 
 		TrashEntry entry = trashEntryPersistence.fetchByC_C(
@@ -320,8 +320,6 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 *
 	 * @param  entryId the primary key of the trash entry
 	 * @return the trash entry with the primary key
-	 * @throws PortalException if a trash entry with the primary key could not
-	 *         be found
 	 */
 	@Override
 	public TrashEntry getEntry(long entryId) throws PortalException {
@@ -334,8 +332,6 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 * @param  className the class name of the entity
 	 * @param  classPK the primary key of the entity
 	 * @return the trash entry with the entity class name and primary key
-	 * @throws PortalException if a trash entry with the primary key could not
-	 *         be found
 	 */
 	@Override
 	public TrashEntry getEntry(String className, long classPK)

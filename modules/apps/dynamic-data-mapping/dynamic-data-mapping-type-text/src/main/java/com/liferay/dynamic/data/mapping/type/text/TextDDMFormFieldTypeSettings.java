@@ -14,21 +14,21 @@
 
 package com.liferay.dynamic.data.mapping.type.text;
 
+import com.liferay.dynamic.data.mapping.annotations.DDMForm;
+import com.liferay.dynamic.data.mapping.annotations.DDMFormField;
+import com.liferay.dynamic.data.mapping.form.field.type.DefaultDDMFormFieldTypeSettings;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
-import com.liferay.dynamic.data.mapping.registry.DefaultDDMFormFieldTypeSettings;
-import com.liferay.dynamic.data.mapping.registry.annotations.DDMForm;
-import com.liferay.dynamic.data.mapping.registry.annotations.DDMFormField;
 
 /**
  * @author Lino Alves
-*/
+ */
 @DDMForm
 public interface TextDDMFormFieldTypeSettings
 	extends DefaultDDMFormFieldTypeSettings {
 
 	@DDMFormField(
-		label = "%my-text-field-is",
-		optionLabels = {"%single-line", "%multiple-lines"},
+		label = "%my-text-field-has",
+		optionLabels = {"%a-single-line", "%multiple-lines"},
 		optionValues = {"singleline", "multiline"},
 		properties = {
 			"inline=true", "setting.category=basic", "setting.weight=2"

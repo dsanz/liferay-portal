@@ -16,9 +16,12 @@ package com.liferay.journal.content.search.web.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
 
+import com.liferay.configuration.admin.ConfigurationAdmin;
+
 /**
  * @author Juergen Kappler
  */
+@ConfigurationAdmin(category = "web-experience-management")
 @Meta.OCD(
 	id = "com.liferay.journal.content.search.web.configuration.JournalContentSearchPortletInstanceConfiguration"
 )
@@ -27,7 +30,7 @@ public interface JournalContentSearchPortletInstanceConfiguration {
 	@Meta.AD(deflt = "true", required = false)
 	public boolean showListed();
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String targetPortletId();
 
 }

@@ -18,6 +18,8 @@ import aQute.bnd.annotation.metatype.Configurable;
 
 import com.liferay.blogs.configuration.BlogsConfiguration;
 import com.liferay.portal.kernel.messaging.BaseSchedulerEntryMessageListener;
+import com.liferay.portal.kernel.messaging.Destination;
+import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.scheduler.SchedulerEngineHelper;
@@ -40,7 +42,10 @@ import org.osgi.service.component.annotations.Reference;
  * @author Alexander Chow
  * @author Tina Tian
  */
-@Component(immediate = true, service = LinkbackMessageListener.class)
+@Component(
+	configurationPid = "com.liferay.blogs.configuration.BlogsConfiguration",
+	immediate = true, service = LinkbackMessageListener.class
+)
 public class LinkbackMessageListener extends BaseSchedulerEntryMessageListener {
 
 	@Activate
@@ -54,7 +59,8 @@ public class LinkbackMessageListener extends BaseSchedulerEntryMessageListener {
 				getEventListenerClass(), getEventListenerClass(),
 				_blogsConfiguration.linkbackJobInterval(), TimeUnit.MINUTE));
 
-		_schedulerEngineHelper.register(this, schedulerEntryImpl);
+		_schedulerEngineHelper.register(
+			this, schedulerEntryImpl, DestinationNames.SCHEDULER_DISPATCH);
 	}
 
 	@Deactivate
@@ -67,6 +73,13 @@ public class LinkbackMessageListener extends BaseSchedulerEntryMessageListener {
 		_linkbackConsumer.verifyNewTrackbacks();
 
 		LinkbackProducerUtil.sendQueuedPingbacks();
+	}
+
+	@Reference(
+		target = "(destination.name=" + DestinationNames.SCHEDULER_DISPATCH + ")",
+		unbind = "-"
+	)
+	protected void setDestination(Destination destination) {
 	}
 
 	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
@@ -88,6 +101,6 @@ public class LinkbackMessageListener extends BaseSchedulerEntryMessageListener {
 	private volatile BlogsConfiguration _blogsConfiguration;
 	private final LinkbackConsumer _linkbackConsumer =
 		LinkbackConsumerUtil.getLinkbackConsumer();
-	private SchedulerEngineHelper _schedulerEngineHelper;
+	private volatile SchedulerEngineHelper _schedulerEngineHelper;
 
 }

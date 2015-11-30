@@ -77,13 +77,6 @@ public interface AssetCategoryService extends BaseService {
 	public com.liferay.portlet.asset.model.AssetCategory fetchCategory(
 		long categoryId) throws PortalException;
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
-
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.asset.model.AssetCategory> getCategories(
 		java.lang.String className, long classPK) throws PortalException;
@@ -140,6 +133,13 @@ public interface AssetCategoryService extends BaseService {
 		long vocabularyId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portlet.asset.model.AssetCategory> obc)
 		throws PortalException;
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public java.lang.String getOSGiServiceIdentifier();
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.asset.model.AssetCategory> getVocabularyCategories(
@@ -237,6 +237,12 @@ public interface AssetCategoryService extends BaseService {
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portlet.asset.model.AssetCategoryDisplay searchCategoriesDisplay(
+		long groupId, java.lang.String title, long vocabularyId,
+		long parentCategoryId, int start, int end,
+		com.liferay.portal.kernel.search.Sort sort) throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portlet.asset.model.AssetCategoryDisplay searchCategoriesDisplay(
 		long groupId, java.lang.String title, long vocabularyId, int start,
 		int end) throws PortalException;
 
@@ -248,14 +254,13 @@ public interface AssetCategoryService extends BaseService {
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portlet.asset.model.AssetCategoryDisplay searchCategoriesDisplay(
 		long[] groupIds, java.lang.String title, long[] vocabularyIds,
-		int start, int end) throws PortalException;
+		long[] parentCategoryIds, int start, int end,
+		com.liferay.portal.kernel.search.Sort sort) throws PortalException;
 
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portlet.asset.model.AssetCategoryDisplay searchCategoriesDisplay(
+		long[] groupIds, java.lang.String title, long[] vocabularyIds,
+		int start, int end) throws PortalException;
 
 	public com.liferay.portlet.asset.model.AssetCategory updateCategory(
 		long categoryId, long parentCategoryId,

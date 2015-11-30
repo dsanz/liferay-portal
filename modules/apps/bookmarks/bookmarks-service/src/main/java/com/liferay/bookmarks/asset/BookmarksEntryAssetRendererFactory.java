@@ -102,7 +102,7 @@ public class BookmarksEntryAssetRendererFactory
 		LiferayPortletResponse liferayPortletResponse, long classTypeId) {
 
 		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
-			liferayPortletRequest, BookmarksPortletKeys.BOOKMARKS, 0,
+			liferayPortletRequest, BookmarksPortletKeys.BOOKMARKS,
 			PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter(
@@ -170,7 +170,7 @@ public class BookmarksEntryAssetRendererFactory
 		_bookmarksEntryLocalService = bookmarksEntryLocalService;
 	}
 
-	private BookmarksEntryLocalService _bookmarksEntryLocalService;
-	private ServletContext _servletContext;
+	private volatile BookmarksEntryLocalService _bookmarksEntryLocalService;
+	private volatile ServletContext _servletContext;
 
 }

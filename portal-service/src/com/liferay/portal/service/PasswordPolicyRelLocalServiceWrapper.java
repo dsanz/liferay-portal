@@ -235,14 +235,19 @@ public class PasswordPolicyRelLocalServiceWrapper
 		return _passwordPolicyRelLocalService.getActionableDynamicQuery();
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _passwordPolicyRelLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _passwordPolicyRelLocalService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _passwordPolicyRelLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -314,16 +319,6 @@ public class PasswordPolicyRelLocalServiceWrapper
 		java.lang.String className, long classPK) {
 		return _passwordPolicyRelLocalService.hasPasswordPolicyRel(passwordPolicyId,
 			className, classPK);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_passwordPolicyRelLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

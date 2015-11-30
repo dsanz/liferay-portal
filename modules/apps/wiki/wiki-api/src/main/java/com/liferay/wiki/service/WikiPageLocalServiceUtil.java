@@ -400,15 +400,6 @@ public class WikiPageLocalServiceUtil {
 		return getService().getActionableDynamicQuery();
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
 	public static java.util.List<com.liferay.wiki.model.WikiPage> getChildren(
 		long nodeId, boolean head, java.lang.String parentTitle) {
 		return getService().getChildren(nodeId, head, parentTitle);
@@ -457,6 +448,10 @@ public class WikiPageLocalServiceUtil {
 		return getService().getIncomingLinks(nodeId, title);
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return getService().getIndexableActionableDynamicQuery();
+	}
+
 	public static com.liferay.wiki.model.WikiPage getLatestPage(long nodeId,
 		java.lang.String title, int status, boolean preferApproved)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -480,6 +475,15 @@ public class WikiPageLocalServiceUtil {
 
 	public static java.util.List<com.liferay.wiki.model.WikiPage> getNoAssetPages() {
 		return getService().getNoAssetPages();
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
 	}
 
 	public static java.util.List<com.liferay.wiki.model.WikiPage> getOrphans(
@@ -905,15 +909,6 @@ public class WikiPageLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .revertPage(userId, nodeId, title, version, serviceContext);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
 	}
 
 	public static void subscribePage(long userId, long nodeId,

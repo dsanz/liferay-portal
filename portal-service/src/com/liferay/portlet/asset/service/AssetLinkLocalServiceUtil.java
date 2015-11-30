@@ -66,7 +66,6 @@ public class AssetLinkLocalServiceUtil {
 	* @param weight the weight of the relationship, allowing precedence
 	ordering of links
 	* @return the asset link
-	* @throws PortalException if the user could not be found
 	*/
 	public static com.liferay.portlet.asset.model.AssetLink addLink(
 		long userId, long entryId1, long entryId2, int type, int weight)
@@ -122,7 +121,6 @@ public class AssetLinkLocalServiceUtil {
 	* Deletes the asset link.
 	*
 	* @param linkId the primary key of the asset link
-	* @throws PortalException if the asset link could not be found
 	*/
 	public static void deleteLink(long linkId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -282,15 +280,6 @@ public class AssetLinkLocalServiceUtil {
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
-	/**
 	* Returns all the asset links whose first entry ID is the given entry ID.
 	*
 	* @param entryId the primary key of the asset entry
@@ -324,6 +313,10 @@ public class AssetLinkLocalServiceUtil {
 		return getService().getExportActionbleDynamicQuery(portletDataContext);
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return getService().getIndexableActionableDynamicQuery();
+	}
+
 	/**
 	* Returns all the asset links whose first or second entry ID is the given
 	* entry ID.
@@ -355,6 +348,15 @@ public class AssetLinkLocalServiceUtil {
 		return getService().getLinks(entryId, typeId);
 	}
 
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
+	}
+
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -377,15 +379,6 @@ public class AssetLinkLocalServiceUtil {
 	public static java.util.List<com.liferay.portlet.asset.model.AssetLink> getReverseLinks(
 		long entryId, int typeId) {
 		return getService().getReverseLinks(entryId, typeId);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
 	}
 
 	/**
@@ -427,7 +420,6 @@ public class AssetLinkLocalServiceUtil {
 	bidirectional relationship and {@link
 	AssetLinkConstants#TYPE_CHILD} which is a unidirectional
 	relationship. For more information see {@link AssetLinkConstants}
-	* @throws PortalException if the user could not be found
 	*/
 	public static void updateLinks(long userId, long entryId,
 		long[] linkEntryIds, int typeId)

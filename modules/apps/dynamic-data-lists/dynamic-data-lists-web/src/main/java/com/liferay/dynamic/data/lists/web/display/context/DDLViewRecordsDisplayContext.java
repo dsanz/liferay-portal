@@ -16,7 +16,9 @@ package com.liferay.dynamic.data.lists.web.display.context;
 
 import com.liferay.dynamic.data.lists.constants.DDLWebKeys;
 import com.liferay.dynamic.data.lists.model.DDLRecordSet;
+import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
+import com.liferay.dynamic.data.mapping.model.DDMFormFieldType;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
@@ -24,6 +26,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Rafael Praxedes
@@ -50,20 +53,26 @@ public class DDLViewRecordsDisplayContext {
 
 	public List<DDMFormField> getDDMFormFields() {
 		if (_ddmFormFields == null) {
-			_ddmFormFields = new ArrayList<>();
+			DDMForm ddmForm = _ddmStructure.getDDMForm();
 
-			List<DDMFormField> ddmFormfields = _ddmStructure.getDDMFormFields(
-				false);
+			Map<String, DDMFormField> ddmFormFieldsMap =
+				ddmForm.getDDMFormFieldsMap(true);
+
+			List<DDMFormField> ddmFormFields = new ArrayList<>();
+
+			for (DDMFormField ddmFormField : ddmFormFieldsMap.values()) {
+				if (hasValue(ddmFormField)) {
+					ddmFormFields.add(ddmFormField);
+				}
+			}
 
 			int totalColumns = _TOTAL_COLUMNS;
 
-			if (ddmFormfields.size() < totalColumns) {
-				totalColumns = ddmFormfields.size();
+			if (ddmFormFields.size() < totalColumns) {
+				totalColumns = ddmFormFields.size();
 			}
 
-			for (int i = 0; i < totalColumns; i++) {
-				_ddmFormFields.add(ddmFormfields.get(i));
-			}
+			_ddmFormFields = ddmFormFields.subList(0, totalColumns);
 		}
 
 		return _ddmFormFields;
@@ -75,6 +84,18 @@ public class DDLViewRecordsDisplayContext {
 
 	public String getDisplayStyle() {
 		return "list";
+	}
+
+	protected boolean hasValue(DDMFormField ddmFormField) {
+		String type = ddmFormField.getType();
+
+		if (type.equals(DDMFormFieldType.FIELDSET) ||
+			type.equals(DDMFormFieldType.SEPARATOR)) {
+
+			return false;
+		}
+
+		return true;
 	}
 
 	private static final int _TOTAL_COLUMNS = 5;

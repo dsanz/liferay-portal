@@ -184,7 +184,7 @@ public class SoapExtender {
 		activate(bundleContext, properties);
 	}
 
-	@Reference(policyOption = ReferencePolicyOption.GREEDY)
+	@Reference(policyOption = ReferencePolicyOption.GREEDY, unbind = "-")
 	protected void setSoapDescriptorBuilder(
 		SoapDescriptorBuilder soapDescriptorBuilder) {
 
@@ -193,7 +193,7 @@ public class SoapExtender {
 
 	private org.apache.felix.dm.Component _component;
 	private TCCLDependencyManager _dependencyManager;
-	private SoapDescriptorBuilder _soapDescriptorBuilder;
+	private volatile SoapDescriptorBuilder _soapDescriptorBuilder;
 	private SoapExtenderConfiguration _soapExtenderConfiguration;
 
 }

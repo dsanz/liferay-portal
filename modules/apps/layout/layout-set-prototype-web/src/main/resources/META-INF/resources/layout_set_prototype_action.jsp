@@ -34,24 +34,22 @@ Group group = layoutSetPrototype.getGroup();
 	<c:if test="<%= LayoutSetPrototypePermissionUtil.contains(permissionChecker, layoutSetPrototypeId, ActionKeys.UPDATE) %>">
 
 		<%
-		String href = (String)request.getAttribute(WebKeys.SEARCH_ENTRY_HREF);
+		PortletURL siteAdministrationURL = null;
+
+		PanelCategoryHelper panelCategoryHelper = (PanelCategoryHelper)request.getAttribute(ApplicationListWebKeys.PANEL_CATEGORY_HELPER);
+
+		String portletId = panelCategoryHelper.getFirstPortletId(PanelCategoryKeys.SITE_ADMINISTRATION, permissionChecker, group);
+
+		if (Validator.isNotNull(portletId)) {
+			siteAdministrationURL = PortalUtil.getControlPanelPortletURL(request, group, portletId, 0, 0, PortletRequest.RENDER_PHASE);
+		}
 		%>
 
-		<c:if test="<%= Validator.isNotNull(href) %>">
+		<c:if test="<%= Validator.isNotNull(siteAdministrationURL) %>">
 			<liferay-ui:icon
-				iconCssClass="icon-edit"
 				message="manage"
 				method="get"
-				url="<%= href %>"
-			/>
-		</c:if>
-
-		<c:if test="<%= group.getPrivateLayoutsPageCount() > 0 %>">
-			<liferay-ui:icon
-				iconCssClass="icon-search"
-				message="view-pages"
-				target="_blank"
-				url="<%= group.getDisplayURL(themeDisplay, true) %>"
+				url="<%= siteAdministrationURL.toString() %>"
 			/>
 		</c:if>
 	</c:if>
@@ -66,7 +64,6 @@ Group group = layoutSetPrototype.getGroup();
 		/>
 
 		<liferay-ui:icon
-			iconCssClass="icon-lock"
 			message="permissions"
 			method="get"
 			url="<%= permissionsURL %>"
@@ -77,7 +74,7 @@ Group group = layoutSetPrototype.getGroup();
 	<c:if test="<%= GroupPermissionUtil.contains(permissionChecker, group, ActionKeys.EXPORT_IMPORT_LAYOUTS) %>">
 
 		<%
-		PortletURL exportPagesURL = PortalUtil.getControlPanelPortletURL(request, PortletKeys.EXPORT_IMPORT, 0, PortletRequest.RENDER_PHASE);
+		PortletURL exportPagesURL = PortalUtil.getControlPanelPortletURL(request, PortletKeys.EXPORT_IMPORT, PortletRequest.RENDER_PHASE);
 
 		exportPagesURL.setParameter("mvcRenderCommandName", "exportLayouts");
 		exportPagesURL.setParameter(Constants.CMD, Constants.EXPORT);
@@ -90,7 +87,6 @@ Group group = layoutSetPrototype.getGroup();
 
 		<liferay-ui:icon
 			cssClass="export-layoutset-prototype layoutset-prototype-action"
-			iconCssClass="icon-arrow-down"
 			message="export"
 			method="get"
 			url="<%= exportPagesURL.toString() %>"
@@ -98,7 +94,7 @@ Group group = layoutSetPrototype.getGroup();
 		/>
 
 		<%
-		PortletURL importPagesURL = PortalUtil.getControlPanelPortletURL(request, PortletKeys.EXPORT_IMPORT, 0, PortletRequest.RENDER_PHASE);
+		PortletURL importPagesURL = PortalUtil.getControlPanelPortletURL(request, PortletKeys.EXPORT_IMPORT, PortletRequest.RENDER_PHASE);
 
 		importPagesURL.setParameter("mvcRenderCommandName", "importLayouts");
 		importPagesURL.setParameter(Constants.CMD, Constants.IMPORT);
@@ -111,7 +107,6 @@ Group group = layoutSetPrototype.getGroup();
 
 		<liferay-ui:icon
 			cssClass="import-layoutset-prototype layoutset-prototype-action"
-			iconCssClass="icon-arrow-up"
 			message="import"
 			method="get"
 			url="<%= importPagesURL.toString() %>"
@@ -122,7 +117,7 @@ Group group = layoutSetPrototype.getGroup();
 	<c:if test="<%= LayoutSetPrototypePermissionUtil.contains(permissionChecker, layoutSetPrototypeId, ActionKeys.DELETE) %>">
 		<portlet:actionURL name="deleteLayoutSetPrototypes" var="deleteLayoutSetPrototypesURL">
 			<portlet:param name="redirect" value="<%= redirect %>" />
-			<portlet:param name="layoutSetPrototypeIds" value="<%= String.valueOf(layoutSetPrototypeId) %>" />
+			<portlet:param name="layoutSetPrototypeId" value="<%= String.valueOf(layoutSetPrototypeId) %>" />
 		</portlet:actionURL>
 
 		<liferay-ui:icon-delete

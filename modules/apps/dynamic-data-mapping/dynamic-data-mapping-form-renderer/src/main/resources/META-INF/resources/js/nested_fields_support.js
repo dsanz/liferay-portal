@@ -19,7 +19,7 @@ AUI.add(
 				var instance = this;
 
 				instance._eventHandlers.push(
-					instance.after('fieldsChange', instance._afterFieldsChange)
+					instance.after('fieldsChange', instance._afterNestedFieldsChange)
 				);
 			},
 
@@ -35,7 +35,7 @@ AUI.add(
 				instance.insert(0, field);
 			},
 
-			eachField: function(fn) {
+			eachField: function(fn, flat) {
 				var instance = this;
 
 				var queue = new A.Queue();
@@ -57,7 +57,9 @@ AUI.add(
 						break;
 					}
 
-					field.get('fields').forEach(addSiblingsToQueue);
+					if (!flat) {
+						field.get('fields').forEach(addSiblingsToQueue);
+					}
 				}
 			},
 
@@ -103,6 +105,21 @@ AUI.add(
 				);
 
 				return field;
+			},
+
+			getImmediateFields: function() {
+				var instance = this;
+
+				var fields = [];
+
+				instance.eachField(
+					function(field) {
+						fields.push(field);
+					},
+					true
+				);
+
+				return fields;
 			},
 
 			getRoot: function() {
@@ -151,7 +168,7 @@ AUI.add(
 				}
 			},
 
-			_afterFieldsChange: function(event) {
+			_afterNestedFieldsChange: function(event) {
 				var instance = this;
 
 				instance.eachField(
@@ -176,6 +193,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['liferay-ddm-form-renderer-types', 'liferay-ddm-form-renderer-util']
+		requires: ['array-invoke', 'liferay-ddm-form-renderer-types', 'liferay-ddm-form-renderer-util']
 	}
 );

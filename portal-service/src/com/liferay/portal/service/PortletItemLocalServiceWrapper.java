@@ -196,14 +196,19 @@ public class PortletItemLocalServiceWrapper implements PortletItemLocalService,
 		return _portletItemLocalService.getActionableDynamicQuery();
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _portletItemLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
 	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _portletItemLocalService.getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _portletItemLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -274,16 +279,6 @@ public class PortletItemLocalServiceWrapper implements PortletItemLocalService,
 	@Override
 	public int getPortletItemsCount() {
 		return _portletItemLocalService.getPortletItemsCount();
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_portletItemLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

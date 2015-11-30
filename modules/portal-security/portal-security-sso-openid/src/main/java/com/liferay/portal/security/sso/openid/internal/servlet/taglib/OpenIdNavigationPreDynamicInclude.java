@@ -78,13 +78,14 @@ public class OpenIdNavigationPreDynamicInclude extends BaseDynamicInclude {
 			"/html/portlet/login/navigation.jsp#pre");
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setOpenId(OpenId openId) {
 		_openId = openId;
 	}
 
 	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.portal.security.sso.openid)"
+		target = "(osgi.web.symbolicname=com.liferay.portal.security.sso.openid)",
+		unbind = "-"
 	)
 	protected void setServletContext(ServletContext servletContext) {
 		_servletContext = servletContext;
@@ -96,7 +97,7 @@ public class OpenIdNavigationPreDynamicInclude extends BaseDynamicInclude {
 	private static final Log _log = LogFactoryUtil.getLog(
 		OpenIdNavigationPreDynamicInclude.class);
 
-	private OpenId _openId;
-	private ServletContext _servletContext;
+	private volatile OpenId _openId;
+	private volatile ServletContext _servletContext;
 
 }

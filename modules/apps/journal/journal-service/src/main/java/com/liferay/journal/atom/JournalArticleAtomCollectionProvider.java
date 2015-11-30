@@ -277,7 +277,7 @@ public class JournalArticleAtomCollectionProvider
 			status, articleURL, serviceContext);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJournalArticleService(
 		JournalArticleService journalArticleService) {
 
@@ -286,6 +286,6 @@ public class JournalArticleAtomCollectionProvider
 
 	private static final String _COLLECTION_NAME = "web-content";
 
-	private JournalArticleService _journalArticleService;
+	private volatile JournalArticleService _journalArticleService;
 
 }

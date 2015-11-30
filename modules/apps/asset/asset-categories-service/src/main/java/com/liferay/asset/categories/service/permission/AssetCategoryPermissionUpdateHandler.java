@@ -51,13 +51,13 @@ public class AssetCategoryPermissionUpdateHandler
 		_assetCategoryLocalService.updateAssetCategory(assetCategory);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setAssetCategoryLocalService(
 		AssetCategoryLocalService assetCategoryLocalService) {
 
 		_assetCategoryLocalService = assetCategoryLocalService;
 	}
 
-	private AssetCategoryLocalService _assetCategoryLocalService;
+	private volatile AssetCategoryLocalService _assetCategoryLocalService;
 
 }

@@ -24,6 +24,10 @@
 	</command>
 
 	<command name="editName">
+		<var name="key_columnSize" value="${columnSize}" />
+
+		<execute function="AssertElementPresent" locator1="Form#ADD_FIRST_FIELD" />
+
 		<execute function="Type#typeAceEditor" locator1="Form#NAME_FIELD" value1="${formName}" />
 	</command>
 
@@ -35,12 +39,23 @@
 		<execute function="Type" locator1="Form#PAGE_TITLE_FIELD" value1="${formPageName}" />
 	</command>
 
-	<command name="gotoAddField">
+	<command name="gotoAddAdditionalField">
+		<var name="key_columnSize" value="${columnSize}" />
+		<var name="key_previousFieldName" value="${previousFieldName}" />
+
+		<execute function="Click#makeVisibleClickAt" locator1="Form#ADD_ADDITIONAL_FIELD" />
+
+		<var method="StringUtil#lowerCase('${fieldType}')" name="key_fieldType" />
+
+		<execute function="AssertClick" locator1="Form#ADD_FIELD_TYPE" value1="${fieldType}" />
+	</command>
+
+	<command name="gotoAddFirstField">
 		<var name="key_columnSize" value="${columnSize}" />
 
-		<execute function="Click#makeVisibleClickAt" locator1="Form#ADD_FIELD" />
+		<execute function="Click" locator1="Form#ADD_FIRST_FIELD" />
 
-		<var name="key_fieldType" value="${fieldType}" />
+		<var method="StringUtil#lowerCase('${fieldType}')" name="key_fieldType" />
 
 		<execute function="AssertClick" locator1="Form#ADD_FIELD_TYPE" value1="${fieldType}" />
 	</command>
@@ -49,5 +64,16 @@
 		<execute function="AssertClick" locator1="Form#SAVE_BUTTON" value1="Save" />
 
 		<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+	</command>
+
+	<command name="saveWithoutFormName">
+		<execute function="AssertClick" locator1="Form#SAVE_BUTTON" value1="Save" />
+
+		<execute function="AssertTextEquals" locator1="Message#ERROR_REQUEST_FAILED_TO_COMPLETE" value1="Your request failed to complete." />
+		<execute function="AssertTextEquals" locator1="Message#ERROR_2" value1="Please enter a valid form name." />
+	</command>
+
+	<command name="viewFormName">
+		<execute function="AssertTextEquals" locator1="Form#NAME_FIELD" value1="${formName}" />
 	</command>
 </definition>

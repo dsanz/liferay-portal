@@ -377,16 +377,6 @@ public class MBMessageLocalServiceWrapper implements MBMessageLocalService,
 		return _mbMessageLocalService.getActionableDynamicQuery();
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _mbMessageLocalService.getBeanIdentifier();
-	}
-
 	@Override
 	public java.util.List<com.liferay.portlet.messageboards.model.MBMessage> getCategoryMessages(
 		long groupId, long categoryId, int status, int start, int end) {
@@ -528,6 +518,11 @@ public class MBMessageLocalServiceWrapper implements MBMessageLocalService,
 			status);
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _mbMessageLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
 	* Returns the message-boards message with the primary key.
 	*
@@ -662,6 +657,16 @@ public class MBMessageLocalServiceWrapper implements MBMessageLocalService,
 		return _mbMessageLocalService.getNoAssetMessages();
 	}
 
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	@Override
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _mbMessageLocalService.getOSGiServiceIdentifier();
+	}
+
 	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
@@ -769,16 +774,6 @@ public class MBMessageLocalServiceWrapper implements MBMessageLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException {
 		_mbMessageLocalService.restoreMessageAttachmentFromTrash(userId,
 			messageId, deletedFileName);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_mbMessageLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
 	@Override

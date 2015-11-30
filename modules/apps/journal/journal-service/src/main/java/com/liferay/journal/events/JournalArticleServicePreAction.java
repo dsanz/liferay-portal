@@ -24,8 +24,8 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.service.AssetEntryLocalService;
 
@@ -86,14 +86,14 @@ public class JournalArticleServicePreAction extends Action {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setAssetEntryLocalService(
 		AssetEntryLocalService assetEntryLocalService) {
 
 		_assetEntryLocalService = assetEntryLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJournalArticleService(
 		JournalArticleService journalArticleService) {
 
@@ -105,7 +105,7 @@ public class JournalArticleServicePreAction extends Action {
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalArticleServicePreAction.class);
 
-	private AssetEntryLocalService _assetEntryLocalService;
-	private JournalArticleService _journalArticleService;
+	private volatile AssetEntryLocalService _assetEntryLocalService;
+	private volatile JournalArticleService _journalArticleService;
 
 }

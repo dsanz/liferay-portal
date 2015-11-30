@@ -17,9 +17,7 @@
 <%@ include file="/document_library/init.jsp" %>
 
 <%
-String backURL = ParamUtil.getString(request, "backURL");
-
-String referringPortletResource = ParamUtil.getString(request, "referringPortletResource");
+String redirect = ParamUtil.getString(request, "redirect");
 
 long repositoryId = ParamUtil.getLong(request, "repositoryId");
 
@@ -31,17 +29,27 @@ if (repositoryId <= 0) {
 }
 
 long folderId = ParamUtil.getLong(request, "folderId");
+
+String headerTitle = portletName.equals(DLPortletKeys.MEDIA_GALLERY_DISPLAY) ? LanguageUtil.get(request, "add-multiple-media") : LanguageUtil.get(request, "add-multiple-documents");
+
+boolean portletTitleBasedNavigation = GetterUtil.getBoolean(portletConfig.getInitParameter("portlet-title-based-navigation"));
+
+if (portletTitleBasedNavigation) {
+	portletDisplay.setShowBackIcon(true);
+	portletDisplay.setURLBack(redirect);
+
+	renderResponse.setTitle(headerTitle);
+}
 %>
 
 <div <%= portletName.equals(DLPortletKeys.DOCUMENT_LIBRARY_ADMIN) ? "class=\"container-fluid-1280\"" : StringPool.BLANK %>>
-	<c:if test="<%= Validator.isNull(referringPortletResource) %>">
-		<liferay-util:include page="/document_library/top_links.jsp" servletContext="<%= application %>" />
+	<c:if test="<%= !portletTitleBasedNavigation %>">
+		<liferay-ui:header
+			backURL="<%= redirect %>"
+			localizeTitle="<%= false %>"
+			title="<%= headerTitle %>"
+		/>
 	</c:if>
-
-	<liferay-ui:header
-		backURL="<%= backURL %>"
-		title='<%= portletName.equals(DLPortletKeys.MEDIA_GALLERY_DISPLAY) ? "add-multiple-media" : "add-multiple-documents" %>'
-	/>
 
 	<c:choose>
 		<c:when test="<%= DLFolderPermission.contains(permissionChecker, scopeGroupId, folderId, ActionKeys.ADD_DOCUMENT) %>">
@@ -84,7 +92,7 @@ long folderId = ParamUtil.getLong(request, "folderId");
 										groupId: <%= scopeGroupId %>
 									}
 								},
-								tempRandomSuffix: '<%= DL.TEMP_RANDOM_SUFFIX %>',
+								tempRandomSuffix: '<%= TempFileEntryUtil.TEMP_RANDOM_SUFFIX %>',
 								uploadFile: '<liferay-portlet:actionURL doAsUserId="<%= user.getUserId() %>" name="/document_library/upload_multiple_file_entries"><portlet:param name="<%= Constants.CMD %>" value="<%= Constants.ADD_TEMP %>" /><portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" /></liferay-portlet:actionURL>&ticketKey=<%= ticket.getKey() %><liferay-ui:input-permissions-params modelName="<%= DLFileEntryConstants.getClassName() %>" />'
 							}
 						);
@@ -170,7 +178,7 @@ long folderId = ParamUtil.getLong(request, "folderId");
 
 														var originalFileName = item.originalFileName;
 
-														var pos = originalFileName.indexOf('<%= DL.TEMP_RANDOM_SUFFIX %>');
+														var pos = originalFileName.indexOf('<%= TempFileEntryUtil.TEMP_RANDOM_SUFFIX %>');
 
 														if (pos != -1) {
 															originalFileName = originalFileName.substr(0, pos);

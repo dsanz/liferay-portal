@@ -21,7 +21,6 @@ import com.liferay.dynamic.data.mapping.service.DDMTemplateVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMTemplateVersionPersistence;
 
 import com.liferay.portal.kernel.bean.BeanReference;
-import com.liferay.portal.kernel.bean.IdentifiableBean;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
@@ -30,9 +29,11 @@ import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DefaultActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -62,7 +63,7 @@ import javax.sql.DataSource;
 @ProviderType
 public abstract class DDMTemplateVersionLocalServiceBaseImpl
 	extends BaseLocalServiceImpl implements DDMTemplateVersionLocalService,
-		IdentifiableBean {
+		IdentifiableOSGiService {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -228,19 +229,33 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 		ActionableDynamicQuery actionableDynamicQuery = new DefaultActionableDynamicQuery();
 
 		actionableDynamicQuery.setBaseLocalService(com.liferay.dynamic.data.mapping.service.DDMTemplateVersionLocalServiceUtil.getService());
-		actionableDynamicQuery.setClass(DDMTemplateVersion.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
+		actionableDynamicQuery.setModelClass(DDMTemplateVersion.class);
 
 		actionableDynamicQuery.setPrimaryKeyPropertyName("templateVersionId");
 
 		return actionableDynamicQuery;
 	}
 
+	@Override
+	public IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery = new IndexableActionableDynamicQuery();
+
+		indexableActionableDynamicQuery.setBaseLocalService(com.liferay.dynamic.data.mapping.service.DDMTemplateVersionLocalServiceUtil.getService());
+		indexableActionableDynamicQuery.setClassLoader(getClassLoader());
+		indexableActionableDynamicQuery.setModelClass(DDMTemplateVersion.class);
+
+		indexableActionableDynamicQuery.setPrimaryKeyPropertyName(
+			"templateVersionId");
+
+		return indexableActionableDynamicQuery;
+	}
+
 	protected void initActionableDynamicQuery(
 		ActionableDynamicQuery actionableDynamicQuery) {
 		actionableDynamicQuery.setBaseLocalService(com.liferay.dynamic.data.mapping.service.DDMTemplateVersionLocalServiceUtil.getService());
-		actionableDynamicQuery.setClass(DDMTemplateVersion.class);
 		actionableDynamicQuery.setClassLoader(getClassLoader());
+		actionableDynamicQuery.setModelClass(DDMTemplateVersion.class);
 
 		actionableDynamicQuery.setPrimaryKeyPropertyName("templateVersionId");
 	}
@@ -319,25 +334,6 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the d d m template version remote service.
-	 *
-	 * @return the d d m template version remote service
-	 */
-	public com.liferay.dynamic.data.mapping.service.DDMTemplateVersionService getDDMTemplateVersionService() {
-		return ddmTemplateVersionService;
-	}
-
-	/**
-	 * Sets the d d m template version remote service.
-	 *
-	 * @param ddmTemplateVersionService the d d m template version remote service
-	 */
-	public void setDDMTemplateVersionService(
-		com.liferay.dynamic.data.mapping.service.DDMTemplateVersionService ddmTemplateVersionService) {
-		this.ddmTemplateVersionService = ddmTemplateVersionService;
-	}
-
-	/**
 	 * Returns the d d m template version persistence.
 	 *
 	 * @return the d d m template version persistence
@@ -386,23 +382,13 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 	}
 
 	/**
-	 * Returns the Spring bean ID for this bean.
+	 * Returns the OSGi service identifier.
 	 *
-	 * @return the Spring bean ID for this bean
+	 * @return the OSGi service identifier
 	 */
 	@Override
-	public String getBeanIdentifier() {
-		return _beanIdentifier;
-	}
-
-	/**
-	 * Sets the Spring bean ID for this bean.
-	 *
-	 * @param beanIdentifier the Spring bean ID for this bean
-	 */
-	@Override
-	public void setBeanIdentifier(String beanIdentifier) {
-		_beanIdentifier = beanIdentifier;
+	public String getOSGiServiceIdentifier() {
+		return DDMTemplateVersionLocalService.class.getName();
 	}
 
 	protected Class<?> getModelClass() {
@@ -439,13 +425,10 @@ public abstract class DDMTemplateVersionLocalServiceBaseImpl
 
 	@BeanReference(type = com.liferay.dynamic.data.mapping.service.DDMTemplateVersionLocalService.class)
 	protected DDMTemplateVersionLocalService ddmTemplateVersionLocalService;
-	@BeanReference(type = com.liferay.dynamic.data.mapping.service.DDMTemplateVersionService.class)
-	protected com.liferay.dynamic.data.mapping.service.DDMTemplateVersionService ddmTemplateVersionService;
 	@BeanReference(type = DDMTemplateVersionPersistence.class)
 	protected DDMTemplateVersionPersistence ddmTemplateVersionPersistence;
 	@BeanReference(type = com.liferay.counter.service.CounterLocalService.class)
 	protected com.liferay.counter.service.CounterLocalService counterLocalService;
 	@BeanReference(type = PersistedModelLocalServiceRegistry.class)
 	protected PersistedModelLocalServiceRegistry persistedModelLocalServiceRegistry;
-	private String _beanIdentifier;
 }

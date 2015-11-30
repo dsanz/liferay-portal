@@ -66,9 +66,19 @@ DDLRecordSet ddlRecordSet = ddlFormViewRecordsDisplayContext.getDDLRecordSet();
 			}
 			%>
 
+			<liferay-ui:search-container-column-status
+				name="status"
+				status="<%= ddlFormViewRecordsDisplayContext.getStatus(record) %>"
+			/>
+
 			<liferay-ui:search-container-column-date
 				name="modified-date"
 				value="<%= record.getModifiedDate() %>"
+			/>
+
+			<liferay-ui:search-container-column-text
+				name="author"
+				value="<%= PortalUtil.getUserName(record) %>"
 			/>
 
 			<liferay-ui:search-container-column-jsp
@@ -84,3 +94,5 @@ DDLRecordSet ddlRecordSet = ddlFormViewRecordsDisplayContext.getDDLRecordSet();
 <div class="container-fluid-1280">
 	<liferay-ui:search-paginator searchContainer="<%= ddlFormViewRecordsDisplayContext.getRecordSearchContainer() %>" />
 </div>
+
+<%@ include file="/admin/export_record_set.jspf" %>

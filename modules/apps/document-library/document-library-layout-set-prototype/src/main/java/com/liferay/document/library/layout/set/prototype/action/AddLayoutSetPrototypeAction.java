@@ -118,7 +118,8 @@ public class AddLayoutSetPrototypeAction {
 	}
 
 	@Reference(
-		target = "(javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY + ")"
+		target = "(javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY + ")",
+		unbind = "-"
 	)
 	protected void setPortlet(Portlet portlet) {
 	}
@@ -128,8 +129,9 @@ public class AddLayoutSetPrototypeAction {
 		_userLocalService = userLocalService;
 	}
 
-	private CompanyLocalService _companyLocalService;
-	private LayoutSetPrototypeLocalService _layoutSetPrototypeLocalService;
-	private UserLocalService _userLocalService;
+	private volatile CompanyLocalService _companyLocalService;
+	private volatile LayoutSetPrototypeLocalService
+		_layoutSetPrototypeLocalService;
+	private volatile UserLocalService _userLocalService;
 
 }

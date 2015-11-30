@@ -14,7 +14,7 @@
 
 package com.liferay.dynamic.data.mapping.web.application.list;
 
-import com.liferay.application.list.BaseControlPanelEntryPanelApp;
+import com.liferay.application.list.BasePanelApp;
 import com.liferay.application.list.PanelApp;
 import com.liferay.application.list.constants.PanelCategoryKeys;
 import com.liferay.portal.model.Portlet;
@@ -34,14 +34,14 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = PanelApp.class
 )
-public class PortletDisplayTemplatePanelApp
-	extends BaseControlPanelEntryPanelApp {
+public class PortletDisplayTemplatePanelApp extends BasePanelApp {
 
 	@Override
 	public String getPortletId() {
 		return PortletKeys.PORTLET_DISPLAY_TEMPLATE;
 	}
 
+	@Override
 	@Reference(
 		target = "(javax.portlet.name=" + PortletKeys.PORTLET_DISPLAY_TEMPLATE + ")",
 		unbind = "-"

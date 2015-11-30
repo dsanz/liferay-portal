@@ -1692,6 +1692,11 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
+			<name>markupView</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
 			<description>Whether to show the <![CDATA[<code>Submit</code>]]> and <![CDATA[<code>Cancel</code>]]> buttons. The default value is <![CDATA[<code>true</code>]]>.</description>
 			<name>showButtons</name>
 			<required>false</required>
@@ -3078,6 +3083,7 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
+			<description>The time format for the time displayed. Acceptable values include <![CDATA[<code>24-hour</code>]]> for 24 hour format (i.e., 13:00 for 1:00 PM) , <![CDATA[<code>am-pm</code>]]> for 12 hour format (i.e., 1:00 PM and 1:00 AM), and <![CDATA[<code>locale</code>]]> for the locale's default time format.</description>
 			<name>timeFormat</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -3269,12 +3275,22 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
+			<name>linkTemplate</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
 			<name>portletURL</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
 			<name>privateLayout</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>rootLinkTemplate</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
@@ -3560,6 +3576,13 @@
 			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
+		<attribute>
+			<description>Whether to use the indexer for search. The default value is <![CDATA[<code>true</code>]]>.</description>
+			<name>useIndexer</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>boolean</type>
+		</attribute>
 	</tag>
 	<tag>
 		<name>organization-search-form</name>
@@ -3710,6 +3733,11 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
+			<name>markupView</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
 			<description>The ID of the component that contains the panel. If a <![CDATA[<code>liferay-ui:panel-container</code>]]> is used as the container for the panel, its ID is used as the value for the <![CDATA[<code>parentID</code>]]>.</description>
 			<name>parentId</name>
 			<required>false</required>
@@ -3767,6 +3795,11 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
+			<name>markupView</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
 			<description>Whether to remember the component's state and persist it to the database. The default value is <![CDATA[<code>false</code>]]>.</description>
 			<name>persistState</name>
 			<required>false</required>
@@ -3816,7 +3849,7 @@
 		</attribute>
 	</tag>
 	<tag>
-		<description>Creates a progress bar using the <![CDATA[<code>liferay-progress</code>]]> module.</description>
+		<description>Deprecated as of 7.0.0, with no direct replacement</description>
 		<name>progress</name>
 		<tag-class>com.liferay.taglib.ui.ProgressTag</tag-class>
 		<body-content>JSP</body-content>
@@ -4083,11 +4116,6 @@
 		</attribute>
 		<attribute>
 			<name>headerNames</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		</attribute>
-		<attribute>
-			<name>hover</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
@@ -5259,7 +5287,7 @@
 		</attribute>
 	</tag>
 	<tag>
-		<description>Creates a tabbed UI of section dividers that each house their own content.</description>
+		<description>Creates a tabbed UI of section dividers that each house their own content.<![CDATA[<br /><br />Example:<br /><img src="../../../util-taglib/src/META-INF/images/tabs.png"/>]]></description>
 		<name>tabs</name>
 		<tag-class>com.liferay.taglib.ui.TabsTag</tag-class>
 		<body-content>JSP</body-content>
@@ -5733,6 +5761,13 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
+			<description>Whether to use the indexer for search. The default value is <![CDATA[<code>true</code>]]>.</description>
+			<name>useIndexer</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>boolean</type>
+		</attribute>
+		<attribute>
 			<name>userGroupParams</name>
 			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -5764,6 +5799,31 @@
 		<body-content>JSP</body-content>
 	</tag>
 	<tag>
+		<name>user-portrait</name>
+		<tag-class>com.liferay.taglib.ui.UserPortraitTag</tag-class>
+		<body-content>JSP</body-content>
+		<attribute>
+			<name>cssClass</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>imageCssClass</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>userId</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>userName</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	<tag>
 		<name>user-search</name>
 		<tag-class>com.liferay.taglib.ui.UserSearchTag</tag-class>
 		<body-content>JSP</body-content>
@@ -5787,6 +5847,13 @@
 		<name>user-search-container-results</name>
 		<tag-class>com.liferay.taglib.ui.UserSearchContainerResultsTag</tag-class>
 		<body-content>JSP</body-content>
+		<attribute>
+			<description>Whether to use the indexer for search. The default value is <![CDATA[<code>true</code>]]>.</description>
+			<name>useIndexer</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>boolean</type>
+		</attribute>
 		<attribute>
 			<name>userParams</name>
 			<required>true</required>

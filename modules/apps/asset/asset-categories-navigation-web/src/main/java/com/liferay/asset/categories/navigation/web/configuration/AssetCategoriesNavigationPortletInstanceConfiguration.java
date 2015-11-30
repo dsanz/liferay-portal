@@ -16,9 +16,12 @@ package com.liferay.asset.categories.navigation.web.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
 
+import com.liferay.configuration.admin.ConfigurationAdmin;
+
 /**
  * @author Juergen Kappler
  */
+@ConfigurationAdmin(category = "web-experience-management")
 @Meta.OCD(
 	id = "com.liferay.asset.categories.navigation.web.configuration.AssetCategoriesNavigationPortletInstanceConfiguration"
 )
@@ -27,10 +30,10 @@ public interface AssetCategoriesNavigationPortletInstanceConfiguration {
 	@Meta.AD(deflt = "true", required = false)
 	public boolean allAssetVocabularies();
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String[] assetVocabularyIds();
 
-	@Meta.AD(deflt = "", required = false)
+	@Meta.AD(required = false)
 	public String displayStyle();
 
 	@Meta.AD(deflt = "0", required = false)

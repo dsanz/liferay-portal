@@ -83,47 +83,47 @@ public class GoogleDocsConfigurator {
 		actionableDynamicQuery.performActions();
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setClassNameLocalService(
 		ClassNameLocalService classNameLocalService) {
 
 		_classNameLocalService = classNameLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setCompanyLocalService(
 		CompanyLocalService companyLocalService) {
 
 		_companyLocalService = companyLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMStructureLinkManager(
 		DDMStructureLinkManager ddmStructureLinkManager) {
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDDMStructureLocalService(
 		DDMStructureLocalService ddmStructureLocalService) {
 
 		_ddmStructureLocalService = ddmStructureLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDLFileEntryLocalService(
 		DLFileEntryLocalService dlFileEntryLocalService) {
 
 		_dlFileEntryLocalService = dlFileEntryLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDLFileEntryMetadataLocalService(
 		DLFileEntryMetadataLocalService dlFileEntryMetadataLocalService) {
 
 		_dlFileEntryMetadataLocalService = dlFileEntryMetadataLocalService;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setDLFileEntryTypeLocalService(
 		DLFileEntryTypeLocalService dlFileEntryTypeLocalService) {
 
@@ -135,23 +135,24 @@ public class GoogleDocsConfigurator {
 		ModuleServiceLifecycle moduleServiceLifecycle) {
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setStorageEngine(StorageEngine storageEngine) {
 		_storageEngine = storageEngine;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setUserLocalService(UserLocalService userLocalService) {
 		_userLocalService = userLocalService;
 	}
 
-	private ClassNameLocalService _classNameLocalService;
-	private CompanyLocalService _companyLocalService;
-	private DDMStructureLocalService _ddmStructureLocalService;
-	private DLFileEntryLocalService _dlFileEntryLocalService;
-	private DLFileEntryMetadataLocalService _dlFileEntryMetadataLocalService;
-	private DLFileEntryTypeLocalService _dlFileEntryTypeLocalService;
-	private StorageEngine _storageEngine;
-	private UserLocalService _userLocalService;
+	private volatile ClassNameLocalService _classNameLocalService;
+	private volatile CompanyLocalService _companyLocalService;
+	private volatile DDMStructureLocalService _ddmStructureLocalService;
+	private volatile DLFileEntryLocalService _dlFileEntryLocalService;
+	private volatile DLFileEntryMetadataLocalService
+		_dlFileEntryMetadataLocalService;
+	private volatile DLFileEntryTypeLocalService _dlFileEntryTypeLocalService;
+	private volatile StorageEngine _storageEngine;
+	private volatile UserLocalService _userLocalService;
 
 }

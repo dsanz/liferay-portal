@@ -57,7 +57,8 @@ public class MyPagesControlPanelEntry extends BaseControlPanelEntry {
 			return true;
 		}
 
-		return false;
+		return super.hasAccessPermissionDenied(
+			permissionChecker, group, portlet);
 	}
 
 	@Reference(unbind = "-")
@@ -65,6 +66,6 @@ public class MyPagesControlPanelEntry extends BaseControlPanelEntry {
 		_roleLocalService = roleLocalService;
 	}
 
-	private RoleLocalService _roleLocalService;
+	private volatile RoleLocalService _roleLocalService;
 
 }

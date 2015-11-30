@@ -42,13 +42,13 @@ public class GroupModelListener extends BaseModelListener<Group> {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setSubscriptionLocalService(
 		SubscriptionLocalService subscriptionLocalService) {
 
 		_subscriptionLocalService = subscriptionLocalService;
 	}
 
-	private SubscriptionLocalService _subscriptionLocalService;
+	private volatile SubscriptionLocalService _subscriptionLocalService;
 
 }

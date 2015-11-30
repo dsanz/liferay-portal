@@ -91,7 +91,7 @@ public class StagingPermissionImpl implements StagingPermission {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setGroupLocalService(GroupLocalService groupLocalService) {
 		_groupLocalService = groupLocalService;
 	}
@@ -99,6 +99,6 @@ public class StagingPermissionImpl implements StagingPermission {
 	private static final Log _log = LogFactoryUtil.getLog(
 		StagingPermissionImpl.class);
 
-	private GroupLocalService _groupLocalService;
+	private volatile GroupLocalService _groupLocalService;
 
 }

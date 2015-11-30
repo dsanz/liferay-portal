@@ -244,16 +244,6 @@ public class MBThreadLocalServiceWrapper implements MBThreadLocalService,
 		return _mbThreadLocalService.getActionableDynamicQuery();
 	}
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	@Override
-	public java.lang.String getBeanIdentifier() {
-		return _mbThreadLocalService.getBeanIdentifier();
-	}
-
 	@Override
 	public int getCategoryThreadsCount(long groupId, long categoryId, int status) {
 		return _mbThreadLocalService.getCategoryThreadsCount(groupId,
@@ -422,6 +412,11 @@ public class MBThreadLocalServiceWrapper implements MBThreadLocalService,
 			subscribed, queryDefinition);
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return _mbThreadLocalService.getIndexableActionableDynamicQuery();
+	}
+
 	/**
 	* Returns the message boards thread with the primary key.
 	*
@@ -513,6 +508,16 @@ public class MBThreadLocalServiceWrapper implements MBThreadLocalService,
 	@Override
 	public java.util.List<com.liferay.portlet.messageboards.model.MBThread> getNoAssetThreads() {
 		return _mbThreadLocalService.getNoAssetThreads();
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	@Override
+	public java.lang.String getOSGiServiceIdentifier() {
+		return _mbThreadLocalService.getOSGiServiceIdentifier();
 	}
 
 	@Override
@@ -652,22 +657,12 @@ public class MBThreadLocalServiceWrapper implements MBThreadLocalService,
 			status, start, end);
 	}
 
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	@Override
-	public void setBeanIdentifier(java.lang.String beanIdentifier) {
-		_mbThreadLocalService.setBeanIdentifier(beanIdentifier);
-	}
-
 	@Override
 	public com.liferay.portlet.messageboards.model.MBThread splitThread(
-		long messageId, java.lang.String subject,
+		long userId, long messageId, java.lang.String subject,
 		com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
-		return _mbThreadLocalService.splitThread(messageId, subject,
+		return _mbThreadLocalService.splitThread(userId, messageId, subject,
 			serviceContext);
 	}
 

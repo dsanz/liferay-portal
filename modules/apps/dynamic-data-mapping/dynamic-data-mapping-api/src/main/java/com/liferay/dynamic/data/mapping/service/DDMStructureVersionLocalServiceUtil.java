@@ -186,15 +186,6 @@ public class DDMStructureVersionLocalServiceUtil {
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
-	/**
 	* Returns the d d m structure version with the primary key.
 	*
 	* @param structureVersionId the primary key of the d d m structure version
@@ -232,10 +223,23 @@ public class DDMStructureVersionLocalServiceUtil {
 		return getService().getDDMStructureVersionsCount();
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return getService().getIndexableActionableDynamicQuery();
+	}
+
 	public static com.liferay.dynamic.data.mapping.model.DDMStructureVersion getLatestStructureVersion(
 		long structureId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getLatestStructureVersion(structureId);
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
 	}
 
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
@@ -271,15 +275,6 @@ public class DDMStructureVersionLocalServiceUtil {
 
 	public static int getStructureVersionsCount(long structureId) {
 		return getService().getStructureVersionsCount(structureId);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

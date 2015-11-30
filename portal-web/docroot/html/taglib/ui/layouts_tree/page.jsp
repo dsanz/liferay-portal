@@ -24,13 +24,15 @@ boolean draggableTree = GetterUtil.getBoolean((String)request.getAttribute("life
 boolean expandFirstNode = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:layouts-tree:expandFirstNode"));
 long groupId = GetterUtil.getLong((String)request.getAttribute("liferay-ui:layouts-tree:groupId"));
 boolean incomplete = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:layouts-tree:incomplete"));
+String linkTemplate = (String)request.getAttribute("liferay-ui:layouts-tree:linkTemplate");
 String modules = (String)request.getAttribute("liferay-ui:layouts-tree:modules");
 PortletURL portletURL = (PortletURL)request.getAttribute("liferay-ui:layouts-tree:portletURL");
 boolean privateLayout = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:layouts-tree:privateLayout"));
+String rootLinkTemplate = (String)request.getAttribute("liferay-ui:layouts-tree:rootLinkTemplate");
 String rootNodeName = (String)request.getAttribute("liferay-ui:layouts-tree:rootNodeName");
 boolean saveState = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:layouts-tree:saveState"));
 boolean selectableTree = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:layouts-tree:selectableTree"));
-long selPlid = GetterUtil.getLong((String)request.getAttribute("liferay-ui:layouts-tree:selPlid"));
+Long selPlid = (Long)request.getAttribute("liferay-ui:layouts-tree:selPlid");
 String treeId = (String)request.getAttribute("liferay-ui:layouts-tree:treeId");
 %>
 
@@ -64,12 +66,6 @@ String treeId = (String)request.getAttribute("liferay-ui:layouts-tree:treeId");
 		);
 	</c:if>
 
-	<%
-	long[] openNodes = StringUtil.split(SessionTreeJSClicks.getOpenNodes(request, treeId), 0L);
-
-	JSONObject layoutsJSON = JSONFactoryUtil.createJSONObject(LayoutsTreeUtil.getLayoutsJSON(request, groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, openNodes, true, treeId));
-	%>
-
 	var TreeViewType = Liferay.LayoutsTree;
 
 	<c:if test="<%= draggableTree %>">
@@ -87,23 +83,58 @@ String treeId = (String)request.getAttribute("liferay-ui:layouts-tree:treeId");
 			},
 			boundingBox: '#<portlet:namespace /><%= HtmlUtil.escape(treeId) %>Output',
 			incomplete: <%= incomplete %>,
-			layouts: <%= layoutsJSON %>,
-			layoutURL: '<%= portletURL + StringPool.AMPERSAND + portletDisplay.getNamespace() + "selPlid={selPlid}" + StringPool.AMPERSAND + portletDisplay.getNamespace() %>',
+
+			<%
+			long[] openNodes = StringUtil.split(SessionTreeJSClicks.getOpenNodes(request, treeId), 0L);
+
+			JSONObject layoutsJSONObject = JSONFactoryUtil.createJSONObject(LayoutsTreeUtil.getLayoutsJSON(request, groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, openNodes, true, treeId));
+			%>
+
+			layouts: <%= layoutsJSONObject %>,
+
+			<%
+			portletURL.setParameter("selPlid", "{selPlid}");
+			%>
+
+			layoutURL: '<%= StringUtil.replace(portletURL.toString(), HttpUtil.encodePath("{selPlid}"), "{selPlid}") %>',
+
+			<c:if test="<%= Validator.isNotNull(linkTemplate) %>">
+				linkTemplate: '<%= HtmlUtil.escapeJS(linkTemplate) %>',
+			</c:if>
 
 			<c:if test="<%= draggableTree %>">
 				lazyLoad: false,
 			</c:if>
 
 			maxChildren: <%= PropsValues.LAYOUT_MANAGE_PAGES_INITIAL_CHILDREN %>,
+			on: {
+				'*:select': function(event) {
+					Liferay.fire(
+						'<%= namespace + treeId %>:selectedNode',
+						{
+							selectedNode: event.target
+						}
+					);
+				}
+			},
 			plugins: plugins,
 			root: {
 				defaultParentLayoutId: <%= LayoutConstants.DEFAULT_PARENT_LAYOUT_ID %>,
 				expand: <%= expandFirstNode %>,
 				groupId: <%= groupId %>,
 				label: '<%= HtmlUtil.escapeJS(rootNodeName) %>',
+
+				<c:if test="<%= Validator.isNotNull(rootLinkTemplate) %>">
+					linkTemplate: '<%= HtmlUtil.escapeJS(rootLinkTemplate) %>',
+				</c:if>
+
 				privateLayout: <%= privateLayout %>
-			},
-			selPlid: '<%= selPlid %>'
+			}
+
+			<c:if test="<%= selPlid != null %>">
+				,
+				selPlid: '<%= selPlid %>'
+			</c:if>
 		}
 	).render();
 </aui:script>

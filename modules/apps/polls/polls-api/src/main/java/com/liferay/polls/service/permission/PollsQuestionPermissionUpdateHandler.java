@@ -49,13 +49,13 @@ public class PollsQuestionPermissionUpdateHandler
 		_pollsQuestionLocalService.updatePollsQuestion(pollsQuestion);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setPollsQuestionLocalService(
 		PollsQuestionLocalService pollsQuestionLocalService) {
 
 		_pollsQuestionLocalService = pollsQuestionLocalService;
 	}
 
-	private PollsQuestionLocalService _pollsQuestionLocalService;
+	private volatile PollsQuestionLocalService _pollsQuestionLocalService;
 
 }

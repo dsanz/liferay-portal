@@ -57,13 +57,14 @@ public class TinyMCEEditorPortalWebResources implements PortalWebResources {
 	}
 
 	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.frontend.editor.tinymce.web)"
+		target = "(osgi.web.symbolicname=com.liferay.frontend.editor.tinymce.web)",
+		unbind = "-"
 	)
 	protected void setServletContext(ServletContext servletContext) {
 		_servletContext = servletContext;
 	}
 
 	private Bundle _bundle;
-	private ServletContext _servletContext;
+	private volatile ServletContext _servletContext;
 
 }

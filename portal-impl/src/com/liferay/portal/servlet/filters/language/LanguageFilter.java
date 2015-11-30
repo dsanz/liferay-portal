@@ -20,9 +20,9 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
 import com.liferay.portal.kernel.servlet.PortletServlet;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
+import com.liferay.portal.kernel.util.AggregateResourceBundle;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.language.AggregateResourceBundle;
 import com.liferay.portal.language.LanguageResources;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PortletApp;
@@ -80,7 +80,7 @@ public class LanguageFilter extends BasePortalFilter {
 			new BufferCacheServletResponse(response);
 
 		processFilter(
-			LanguageFilter.class, request, bufferCacheServletResponse,
+			LanguageFilter.class.getName(), request, bufferCacheServletResponse,
 			filterChain);
 
 		if (_log.isDebugEnabled()) {

@@ -18,10 +18,12 @@ import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.settings.SettingsFactory;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 import com.liferay.wiki.upgrade.v1_0_0.UpgradeClassNames;
+import com.liferay.wiki.upgrade.v1_0_0.UpgradeCompanyId;
 import com.liferay.wiki.upgrade.v1_0_0.UpgradeLastPublishDate;
 import com.liferay.wiki.upgrade.v1_0_0.UpgradePortletId;
 import com.liferay.wiki.upgrade.v1_0_0.UpgradePortletPreferences;
 import com.liferay.wiki.upgrade.v1_0_0.UpgradePortletSettings;
+import com.liferay.wiki.upgrade.v1_0_0.UpgradeSchema;
 import com.liferay.wiki.upgrade.v1_0_0.UpgradeWikiPageResource;
 
 import org.osgi.service.component.annotations.Component;
@@ -31,15 +33,16 @@ import org.osgi.service.component.annotations.Reference;
  * @author Iván Zaera
  * @author Manuel de la Peña
  */
-@Component(immediate = true)
+@Component(immediate = true, service = UpgradeStepRegistrator.class)
 public class WikiServiceUpgrade implements UpgradeStepRegistrator {
 
 	@Override
 	public void register(Registry registry) {
 		registry.register(
-			"com.liferay.wiki.service", "0.0.1", "1.0.0",
+			"com.liferay.wiki.service", "0.0.1", "1.0.0", new UpgradeSchema(),
 			new UpgradePortletId(), new UpgradePortletPreferences(),
-			new UpgradeClassNames(), new UpgradeLastPublishDate(),
+			new UpgradeClassNames(), new UpgradeCompanyId(),
+			new UpgradeLastPublishDate(),
 			new UpgradePortletSettings(_settingsFactory),
 			new UpgradeWikiPageResource());
 	}
@@ -54,6 +57,6 @@ public class WikiServiceUpgrade implements UpgradeStepRegistrator {
 		_settingsFactory = settingsFactory;
 	}
 
-	private SettingsFactory _settingsFactory;
+	private volatile SettingsFactory _settingsFactory;
 
 }

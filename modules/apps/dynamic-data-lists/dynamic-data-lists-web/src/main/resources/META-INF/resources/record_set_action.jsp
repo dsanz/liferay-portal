@@ -30,7 +30,7 @@ DDLRecordSet selRecordSet = (DDLRecordSet)request.getAttribute("record_set_actio
 boolean hasViewPermission = ddlDisplayContext.isAdminPortlet() && DDLRecordSetPermission.contains(permissionChecker, recordSet, ActionKeys.VIEW);
 %>
 
-<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" markupView="lexicon" message="<%= StringPool.BLANK %>">
+<liferay-ui:icon-menu direction="left-side" icon="<%= StringPool.BLANK %>" markupView="lexicon" message="<%= StringPool.BLANK %>">
 	<c:if test="<%= hasViewPermission %>">
 		<portlet:renderURL var="viewRecordSetURL">
 			<portlet:param name="mvcPath" value="/view_record_set.jsp" />
@@ -114,8 +114,7 @@ boolean hasViewPermission = ddlDisplayContext.isAdminPortlet() && DDLRecordSetPe
 			<portlet:param name="recordSetId" value="<%= String.valueOf(recordSet.getRecordSetId()) %>" />
 		</liferay-portlet:actionURL>
 
-		<liferay-ui:icon
-			message="delete"
+		<liferay-ui:icon-delete
 			url="<%= deleteRecordSetURL %>"
 		/>
 	</c:if>

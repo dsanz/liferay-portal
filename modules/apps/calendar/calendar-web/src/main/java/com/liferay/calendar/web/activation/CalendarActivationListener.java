@@ -62,7 +62,7 @@ public class CalendarActivationListener {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setCalendarImporterLocalService(
 		CalendarImporterLocalService calendarImporterLocalService) {
 
@@ -72,6 +72,6 @@ public class CalendarActivationListener {
 	private static final Log _log = LogFactoryUtil.getLog(
 		CalendarActivationListener.class);
 
-	private CalendarImporterLocalService _calendarImporterLocalService;
+	private volatile CalendarImporterLocalService _calendarImporterLocalService;
 
 }

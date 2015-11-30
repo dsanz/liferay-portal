@@ -51,22 +51,22 @@ public class JSLoaderModulesPortalWebResources {
 		}
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJSLoaderModulesServlet(
 		JSLoaderModulesServlet jsLoaderModulesServlet) {
 
 		_jsLoaderModulesServlet = jsLoaderModulesServlet;
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setJSLoaderModulesTracker(
 		JSLoaderModulesTracker jsLoaderModulesTracker) {
 
 		_jsLoaderModulesTracker = jsLoaderModulesTracker;
 	}
 
-	private JSLoaderModulesServlet _jsLoaderModulesServlet;
-	private JSLoaderModulesTracker _jsLoaderModulesTracker;
+	private volatile JSLoaderModulesServlet _jsLoaderModulesServlet;
+	private volatile JSLoaderModulesTracker _jsLoaderModulesTracker;
 	private ServiceRegistration<?> _serviceRegistration;
 
 	private class InternalPortalWebResources

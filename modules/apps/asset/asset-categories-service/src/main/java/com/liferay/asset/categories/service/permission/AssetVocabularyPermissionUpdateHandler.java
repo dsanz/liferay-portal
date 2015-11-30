@@ -51,13 +51,13 @@ public class AssetVocabularyPermissionUpdateHandler
 		_assetVocabularyLocalService.updateAssetVocabulary(assetVocabulary);
 	}
 
-	@Reference
+	@Reference(unbind = "-")
 	protected void setAssetVocabularyLocalService(
 		AssetVocabularyLocalService assetVocabularyLocalService) {
 
 		_assetVocabularyLocalService = assetVocabularyLocalService;
 	}
 
-	private AssetVocabularyLocalService _assetVocabularyLocalService;
+	private volatile AssetVocabularyLocalService _assetVocabularyLocalService;
 
 }

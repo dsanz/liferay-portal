@@ -116,7 +116,7 @@ public class CalendarBookingAssetRendererFactory
 		}
 
 		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
-			liferayPortletRequest, CalendarPortletKeys.CALENDAR, 0,
+			liferayPortletRequest, CalendarPortletKeys.CALENDAR,
 			PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter("mvcPath", "/edit_calendar_booking.jsp");
@@ -191,7 +191,7 @@ public class CalendarBookingAssetRendererFactory
 		_calendarBookingLocalService = calendarBookingLocalService;
 	}
 
-	private CalendarBookingLocalService _calendarBookingLocalService;
-	private ServletContext _servletContext;
+	private volatile CalendarBookingLocalService _calendarBookingLocalService;
+	private volatile ServletContext _servletContext;
 
 }

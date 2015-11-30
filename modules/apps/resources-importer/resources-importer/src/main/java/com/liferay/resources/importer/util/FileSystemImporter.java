@@ -32,7 +32,6 @@ import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleConstants;
 import com.liferay.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.journal.service.JournalArticleServiceUtil;
-import com.liferay.journal.util.JournalConverterUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -443,7 +442,7 @@ public class FileSystemImporter extends BaseImporter {
 		String xsd = StringUtil.read(inputStream);
 
 		if (isJournalStructureXSD(xsd)) {
-			xsd = JournalConverterUtil.getDDMXSD(xsd);
+			xsd = journalConverter.getDDMXSD(xsd);
 		}
 
 		DDMXMLUtil.validateXML(xsd);
@@ -1333,7 +1332,8 @@ public class FileSystemImporter extends BaseImporter {
 
 		portletPreferencesJSONObject.put("articleId", journalArticleId);
 		portletPreferencesJSONObject.put("groupId", groupId);
-		portletPreferencesJSONObject.put("portletSetupShowBorders", false);
+		portletPreferencesJSONObject.put(
+			"portletSetupPortletDecoratorId", "borderless");
 
 		portletJSONObject.put(
 			"portletPreferences", portletPreferencesJSONObject);

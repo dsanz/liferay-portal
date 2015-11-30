@@ -820,8 +820,6 @@ public class IntrabandProxyUtilTest {
 
 			Throwable throwable = logRecord.getThrown();
 
-			throwable = throwable.getCause();
-
 			Assert.assertSame(
 				IllegalArgumentException.class, throwable.getClass());
 			Assert.assertEquals(
@@ -2779,7 +2777,7 @@ public class IntrabandProxyUtilTest {
 
 	private interface TestGenerateInterface1
 		extends Comparable<String>, Callable<String>, Runnable,
-		TestEmptyMethodsInterface, TestProxyMethodsInterface {
+				TestEmptyMethodsInterface, TestProxyMethodsInterface {
 	}
 
 	private interface TestGenerateInterface2

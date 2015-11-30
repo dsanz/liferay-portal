@@ -173,37 +173,43 @@ public class VerifyResourcePermissions extends VerifyProcess {
 			Role role, VerifiableResourcedModel verifiableResourcedModel)
 		throws Exception {
 
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		int total = 0;
+
 		try (Connection con = DataAccess.getUpgradeOptimizedConnection()) {
-			int total = 0;
+			try {
+				ps = con.prepareStatement(
+					"select count(*) from " +
+						verifiableResourcedModel.getTableName() +
+							" where companyId = " + role.getCompanyId());
 
-			StringBundler sb = new StringBundler(4);
-
-			sb.append("select count(*) from ");
-			sb.append(verifiableResourcedModel.getTableName());
-			sb.append(" where companyId = ");
-			sb.append(role.getCompanyId());
-
-			try (PreparedStatement ps = con.prepareStatement(sb.toString());
-				ResultSet rs = ps.executeQuery()) {
+				rs = ps.executeQuery();
 
 				if (rs.next()) {
 					total = rs.getInt(1);
 				}
 			}
+			finally {
+				DataAccess.cleanUp(null, ps, rs);
+			}
 
-			sb = new StringBundler(8);
+			try {
+				StringBundler sb = new StringBundler(8);
 
-			sb.append("select ");
-			sb.append(verifiableResourcedModel.getPrimaryKeyColumnName());
-			sb.append(", ");
-			sb.append(verifiableResourcedModel.getUserIdColumnName());
-			sb.append(" from ");
-			sb.append(verifiableResourcedModel.getTableName());
-			sb.append(" where companyId = ");
-			sb.append(role.getCompanyId());
+				sb.append("select ");
+				sb.append(verifiableResourcedModel.getPrimaryKeyColumnName());
+				sb.append(", ");
+				sb.append(verifiableResourcedModel.getUserIdColumnName());
+				sb.append(" from ");
+				sb.append(verifiableResourcedModel.getTableName());
+				sb.append(" where companyId = ");
+				sb.append(role.getCompanyId());
 
-			try (PreparedStatement ps = con.prepareStatement(sb.toString());
-				ResultSet rs = ps.executeQuery()) {
+				ps = con.prepareStatement(sb.toString());
+
+				rs = ps.executeQuery();
 
 				for (int i = 0; rs.next(); i++) {
 					long primKey = rs.getLong(
@@ -216,6 +222,9 @@ public class VerifyResourcePermissions extends VerifyProcess {
 						verifiableResourcedModel.getModelName(), primKey, role,
 						userId, i, total);
 				}
+			}
+			finally {
+				DataAccess.cleanUp(null, ps, rs);
 			}
 		}
 	}

@@ -1864,7 +1864,7 @@ AUI.add(
 								declineLinkEnabled: instance._hasWorkflowStatusPermission(schedulerEvent, CalendarWorkflow.STATUS_DENIED),
 								editing: editing,
 								endTime: templateData.endDate,
-								hasWorkflowInstanceLink:  schedulerEvent.get('hasWorkflowInstanceLink'),
+								hasWorkflowInstanceLink: schedulerEvent.get('hasWorkflowInstanceLink'),
 								instanceIndex: schedulerEvent.get('instanceIndex'),
 								maybeLinkEnabled: instance._hasWorkflowStatusPermission(schedulerEvent, CalendarWorkflow.STATUS_MAYBE),
 								permissions: permissions,
@@ -2087,7 +2087,7 @@ AUI.add(
 
 						var linkEnabled = A.DataType.Boolean.parse(currentTarget.hasClass('calendar-event-answer-true'));
 
-						var statusData = Lang.toInt(currentTarget.getData('status'));
+						var statusData = toInt(currentTarget.getData('status'));
 
 						if (schedulerEvent && linkEnabled) {
 							CalendarUtil.invokeTransition(schedulerEvent, statusData);
@@ -2255,7 +2255,7 @@ AUI.add(
 											var results = AArray.partition(
 													data,
 													function(item) {
-														return item.classNameId === CalendarUtil.USER_CLASS_NAME_ID;
+														return toInt(item.classNameId) === CalendarUtil.USER_CLASS_NAME_ID;
 													}
 											);
 

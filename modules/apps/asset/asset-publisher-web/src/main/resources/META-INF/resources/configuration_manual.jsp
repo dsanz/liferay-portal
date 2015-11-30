@@ -118,7 +118,8 @@ String eventName = "_" + HtmlUtil.escapeJS(assetPublisherDisplayContext.getPortl
 					<div class="edit-controls lfr-meta-actions">
 						<liferay-ui:icon-menu
 							cssClass="select-existing-selector"
-							direction="right" icon="../aui/plus"
+							direction="right"
+							icon="../aui/plus"
 							message='<%= LanguageUtil.format(request, (groupIds.length == 1) ? "select" : "select-in-x", HtmlUtil.escape(group.getDescriptiveName(locale)), false) %>'
 							showWhenSingleIcon="<%= true %>"
 						>
@@ -222,15 +223,18 @@ String eventName = "_" + HtmlUtil.escapeJS(assetPublisherDisplayContext.getPortl
 	<aui:button onClick='<%= renderResponse.getNamespace() + "saveSelectBoxes();" %>' type="submit" />
 </aui:button-row>
 
-<aui:script sandbox="<%= true %>">
+<aui:script>
 	function selectAsset(assetEntryId, assetClassName, assetType, assetEntryTitle, groupName) {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'add-selection';
+		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = '<%= HtmlUtil.escapeJS(currentURL) %>';
 		document.<portlet:namespace />fm.<portlet:namespace />assetEntryId.value = assetEntryId;
 		document.<portlet:namespace />fm.<portlet:namespace />assetEntryType.value = assetClassName;
 
 		submitForm(document.<portlet:namespace />fm);
 	}
+</aui:script>
 
+<aui:script sandbox="<%= true %>">
 	$('body').on(
 		'click',
 		'.asset-selector a',

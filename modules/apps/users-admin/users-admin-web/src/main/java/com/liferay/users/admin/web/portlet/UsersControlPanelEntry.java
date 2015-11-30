@@ -27,7 +27,7 @@ import com.liferay.portal.service.UserGroupRoleLocalService;
 import com.liferay.portal.service.permission.OrganizationPermissionUtil;
 import com.liferay.portlet.BaseControlPanelEntry;
 import com.liferay.portlet.ControlPanelEntry;
-import com.liferay.users.admin.web.constants.UsersAdminPortletKeys;
+import com.liferay.users.admin.constants.UsersAdminPortletKeys;
 
 import java.util.List;
 
@@ -91,7 +91,8 @@ public class UsersControlPanelEntry extends BaseControlPanelEntry {
 			}*/
 		}
 
-		return false;
+		return super.hasPermissionImplicitlyGranted(
+			permissionChecker, group, portlet);
 	}
 
 	@Reference(unbind = "-")
@@ -108,7 +109,7 @@ public class UsersControlPanelEntry extends BaseControlPanelEntry {
 		_userGroupRoleLocalService = userGroupRoleLocalService;
 	}
 
-	private OrganizationLocalService _organizationLocalService;
-	private UserGroupRoleLocalService _userGroupRoleLocalService;
+	private volatile OrganizationLocalService _organizationLocalService;
+	private volatile UserGroupRoleLocalService _userGroupRoleLocalService;
 
 }

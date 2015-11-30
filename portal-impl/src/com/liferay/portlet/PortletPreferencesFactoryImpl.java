@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutConstants;
@@ -52,7 +53,6 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portal.xml.StAXReaderUtil;
 import com.liferay.portlet.portletconfiguration.util.ConfigurationPortletRequest;
 
@@ -270,9 +270,18 @@ public class PortletPreferencesFactoryImpl
 			ownerType = PortletKeys.PREFS_OWNER_TYPE_USER;
 		}
 
-		return PortletPreferencesLocalServiceUtil.getPreferences(
+		return getLayoutPortletSetup(
 			layout.getCompanyId(), ownerId, ownerType, layout.getPlid(),
 			portletId, defaultPreferences);
+	}
+
+	@Override
+	public PortletPreferences getLayoutPortletSetup(
+		long companyId, long ownerId, int ownerType, long plid,
+		String portletId, String defaultPreferences) {
+
+		return PortletPreferencesLocalServiceUtil.getPreferences(
+			companyId, ownerId, ownerType, plid, portletId, defaultPreferences);
 	}
 
 	@Override
@@ -502,6 +511,7 @@ public class PortletPreferencesFactoryImpl
 					(LayoutTypePortlet)layout.getLayoutType();
 
 				if (layoutTypePortlet.isPortletEmbedded(portletId)) {
+					ownerId = layout.getGroupId();
 					plid = PortletKeys.PREFS_PLID_SHARED;
 				}
 
@@ -625,7 +635,8 @@ public class PortletPreferencesFactoryImpl
 		String defaultPreferences) {
 
 		return getPortletSetup(
-			siteGroupId, layout, portletId, defaultPreferences, false);
+			layout.getCompanyId(), siteGroupId, layout.getGroupId(),
+			layout.getPlid(), portletId, defaultPreferences, false);
 	}
 
 	@Override
@@ -724,8 +735,18 @@ public class PortletPreferencesFactoryImpl
 		Layout layout, String portletId) {
 
 		return getPortletSetup(
-			LayoutConstants.DEFAULT_PLID, layout, portletId, StringPool.BLANK,
+			layout.getCompanyId(), LayoutConstants.DEFAULT_PLID,
+			layout.getGroupId(), layout.getPlid(), portletId, StringPool.BLANK,
 			true);
+	}
+
+	@Override
+	public PortletPreferences getStrictPortletSetup(
+		long companyId, long groupId, String portletId) {
+
+		return getPortletSetup(
+			companyId, LayoutConstants.DEFAULT_PLID, groupId,
+			LayoutConstants.DEFAULT_PLID, portletId, StringPool.BLANK, true);
 	}
 
 	@Override
@@ -821,13 +842,13 @@ public class PortletPreferencesFactoryImpl
 	}
 
 	protected PortletPreferences getPortletSetup(
-		long siteGroupId, Layout layout, String portletId,
-		String defaultPreferences, boolean strictMode) {
+		long companyId, long siteGroupId, long layoutGroupId, long plid,
+		String portletId, String defaultPreferences, boolean strictMode) {
 
 		String originalPortletId = portletId;
 
 		Portlet portlet = PortletLocalServiceUtil.getPortletById(
-			layout.getCompanyId(), portletId);
+			companyId, portletId);
 
 		boolean uniquePerLayout = false;
 		boolean uniquePerGroup = false;
@@ -853,7 +874,6 @@ public class PortletPreferencesFactoryImpl
 
 		long ownerId = PortletKeys.PREFS_OWNER_ID_DEFAULT;
 		int ownerType = PortletKeys.PREFS_OWNER_TYPE_LAYOUT;
-		long plid = layout.getPlid();
 
 		Group group = GroupLocalServiceUtil.fetchGroup(siteGroupId);
 
@@ -873,25 +893,24 @@ public class PortletPreferencesFactoryImpl
 					ownerId = siteGroupId;
 				}
 				else {
-					ownerId = layout.getGroupId();
+					ownerId = layoutGroupId;
 				}
 
 				ownerType = PortletKeys.PREFS_OWNER_TYPE_GROUP;
 			}
 			else {
-				ownerId = layout.getCompanyId();
+				ownerId = companyId;
 				ownerType = PortletKeys.PREFS_OWNER_TYPE_COMPANY;
 			}
 		}
 
 		if (strictMode) {
 			return PortletPreferencesLocalServiceUtil.getStrictPreferences(
-				layout.getCompanyId(), ownerId, ownerType, plid, portletId);
+				companyId, ownerId, ownerType, plid, portletId);
 		}
 
 		return PortletPreferencesLocalServiceUtil.getPreferences(
-			layout.getCompanyId(), ownerId, ownerType, plid, portletId,
-			defaultPreferences);
+			companyId, ownerId, ownerType, plid, portletId, defaultPreferences);
 	}
 
 	protected Map<String, Preference> toPreferencesMap(String xml) {

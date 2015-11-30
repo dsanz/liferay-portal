@@ -51,18 +51,10 @@ public interface OrganizationLocalService extends BaseLocalService,
 
 	public void addGroupOrganization(long groupId, long organizationId);
 
-	/**
-	* @throws PortalException
-	*/
 	public void addGroupOrganizations(long groupId,
-		java.util.List<com.liferay.portal.model.Organization> Organizations)
-		throws PortalException;
+		java.util.List<com.liferay.portal.model.Organization> Organizations);
 
-	/**
-	* @throws PortalException
-	*/
-	public void addGroupOrganizations(long groupId, long[] organizationIds)
-		throws PortalException;
+	public void addGroupOrganizations(long groupId, long[] organizationIds);
 
 	/**
 	* Adds the organization to the database. Also notifies the appropriate model listeners.
@@ -91,9 +83,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	* @param site whether the organization is to be associated with a main
 	site
 	* @return the organization
-	* @throws PortalException if a creator or parent organization with the
-	primary key could not be found or if the organization's
-	information was invalid
 	*/
 	public com.liferay.portal.model.Organization addOrganization(long userId,
 		long parentOrganizationId, java.lang.String name, boolean site)
@@ -127,9 +116,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	<code>null</code>). Can set asset category IDs, asset tag
 	names, and expando bridge attributes for the organization.
 	* @return the organization
-	* @throws PortalException if a creator or parent organization with the
-	primary key could not be found or if the organization's
-	information was invalid
 	* @deprecated As of 6.2.0, replaced by {@link #addOrganization(long, long,
 	String, String, long, long, int, String, boolean,
 	ServiceContext)}
@@ -167,9 +153,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	<code>null</code>). Can set asset category IDs, asset tag names,
 	and expando bridge attributes for the organization.
 	* @return the organization
-	* @throws PortalException if a creator or parent organization with the
-	primary key could not be found or if the organization's
-	information was invalid
 	*/
 	public com.liferay.portal.model.Organization addOrganization(long userId,
 		long parentOrganizationId, java.lang.String name,
@@ -184,7 +167,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	*
 	* @param userId the primary key of the creator/owner of the organization
 	* @param organization the organization
-	* @throws PortalException if a portal exception occurred
 	*/
 	public void addOrganizationResources(long userId,
 		com.liferay.portal.model.Organization organization)
@@ -237,9 +219,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	* Deletes the organization's logo.
 	*
 	* @param organizationId the primary key of the organization
-	* @throws PortalException if an organization or parent organization with
-	the primary key could not be found or if the organization's logo
-	could not be found
 	*/
 	public void deleteLogo(long organizationId) throws PortalException;
 
@@ -380,13 +359,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery();
 
-	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public java.lang.String getBeanIdentifier();
-
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
 		com.liferay.portlet.exportimport.lar.PortletDataContext portletDataContext);
@@ -421,7 +393,17 @@ public interface OrganizationLocalService extends BaseLocalService,
 		long groupId, long userId) throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.Organization> getNoAssetOrganizations();
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public java.lang.String getOSGiServiceIdentifier();
 
 	/**
 	* Returns the organization with the name.
@@ -429,8 +411,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	* @param companyId the primary key of the organization's company
 	* @param name the organization's name
 	* @return the organization with the name
-	* @throws PortalException if the organization with the name could not be
-	found
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.Organization getOrganization(
@@ -514,8 +494,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	*
 	* @param organizationIds the primary keys of the organizations
 	* @return the organizations with the primary keys
-	* @throws PortalException if any one of the organizations could not be
-	found
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.Organization> getOrganizations(
@@ -567,8 +545,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	*
 	* @param organizationId the primary key of the organization
 	* @return the parent organizations in order by closest ancestor
-	* @throws PortalException if an organization with the primary key could not
-	be found
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.Organization> getParentOrganizations(
@@ -643,8 +619,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	* @return the IDs of organizations with which the user is explicitly
 	associated, optionally including the IDs of organizations that
 	the user administers or owns
-	* @throws PortalException if a user with the primary key could not be found
-	or if a portal exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public long[] getUserOrganizationIds(long userId,
@@ -672,7 +646,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	* @return the organizations with which the user is explicitly associated,
 	optionally including the organizations that the user administers
 	or owns
-	* @throws PortalException if a user with the primary key could not be found
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portal.model.Organization> getUserOrganizations(
@@ -765,8 +738,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	considered in the determination
 	* @return <code>true</code> if the user has access to the organization;
 	<code>false</code> otherwise
-	* @throws PortalException if an organization with the primary key could not
-	be found
 	* @see com.liferay.portal.service.persistence.OrganizationFinder
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -787,8 +758,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	* </p>
 	*
 	* @param companyId the primary key of the organization's company
-	* @throws PortalException if an organization with the primary key could not
-	be found
 	*/
 	public void rebuildTree(long companyId) throws PortalException;
 
@@ -1154,18 +1123,7 @@ public interface OrganizationLocalService extends BaseLocalService,
 		boolean andSearch, int start, int end,
 		com.liferay.portal.kernel.search.Sort sort) throws PortalException;
 
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
-
-	/**
-	* @throws PortalException
-	*/
-	public void setGroupOrganizations(long groupId, long[] organizationIds)
-		throws PortalException;
+	public void setGroupOrganizations(long groupId, long[] organizationIds);
 
 	public void setUserOrganizations(long userId, long[] organizationIds);
 
@@ -1174,10 +1132,8 @@ public interface OrganizationLocalService extends BaseLocalService,
 	*
 	* @param groupId the primary key of the group
 	* @param organizationIds the primary keys of the organizations
-	* @throws PortalException if a portal exception occurred
 	*/
-	public void unsetGroupOrganizations(long groupId, long[] organizationIds)
-		throws PortalException;
+	public void unsetGroupOrganizations(long groupId, long[] organizationIds);
 
 	/**
 	* Removes the organizations from the password policy.
@@ -1196,7 +1152,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	* @param organization the organization
 	* @param assetCategoryIds the primary keys of the asset categories
 	* @param assetTagNames the asset tag names
-	* @throws PortalException if a user with the primary key could not be found
 	*/
 	public void updateAsset(long userId,
 		com.liferay.portal.model.Organization organization,
@@ -1225,9 +1180,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	names for the organization, and merge expando bridge
 	attributes for the organization.
 	* @return the organization
-	* @throws PortalException if an organization or parent organization
-	with the primary key could not be found or if the new
-	information was invalid
 	* @deprecated As of 6.2.0, replaced by {@link #updateOrganization(long,
 	long, long, String, String, long, long, int, String, boolean,
 	byte[], boolean, ServiceContext)}
@@ -1263,9 +1215,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	names for the organization, and merge expando bridge attributes
 	for the organization.
 	* @return the organization
-	* @throws PortalException if an organization or parent organization with
-	the primary key could not be found or if the new information was
-	invalid
 	*/
 	public com.liferay.portal.model.Organization updateOrganization(
 		long companyId, long organizationId, long parentOrganizationId,
@@ -1295,9 +1244,6 @@ public interface OrganizationLocalService extends BaseLocalService,
 	names for the organization, and merge expando bridge
 	attributes for the organization.
 	* @return the organization
-	* @throws PortalException if an organization or parent organization
-	with the primary key could not be found or if the new
-	information was invalid
 	* @deprecated As of 7.0.0, replaced by {@link #updateOrganization(long,
 	long, long, String, String, long, long, int, String, boolean,
 	byte[], boolean, ServiceContext)}

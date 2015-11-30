@@ -78,8 +78,6 @@ public class AssetTagLocalServiceUtil {
 	* @param name the asset tag's name
 	* @param serviceContext the service context to be applied
 	* @return the asset tag that was added
-	* @throws PortalException if a user with the primary key could not be found
-	or if a portal exception occurred
 	*/
 	public static com.liferay.portlet.asset.model.AssetTag addTag(long userId,
 		long groupId, java.lang.String name,
@@ -102,8 +100,6 @@ public class AssetTagLocalServiceUtil {
 	* @param names the asset tag names
 	* @return the asset tags matching the group and names and new asset tags
 	matching the names that don't already exist in the group
-	* @throws PortalException if a matching group could not be found or if a
-	portal exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.asset.model.AssetTag> checkTags(
 		long userId, com.liferay.portal.model.Group group,
@@ -122,8 +118,6 @@ public class AssetTagLocalServiceUtil {
 	* @param names the asset tag names
 	* @return the asset tags matching the group and names and new asset tags
 	matching the names that don't already exist in the group
-	* @throws PortalException if a matching group could not be found or if a
-	portal exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.asset.model.AssetTag> checkTags(
 		long userId, long groupId, java.lang.String[] names)
@@ -153,8 +147,6 @@ public class AssetTagLocalServiceUtil {
 	* @param classNameId the class name ID of the entity to which the asset
 	tag had been applied
 	* @return the asset tag
-	* @throws PortalException if an asset tag with the primary key could not be
-	found or if a portal exception occurred
 	*/
 	public static com.liferay.portlet.asset.model.AssetTag decrementAssetCount(
 		long tagId, long classNameId)
@@ -208,7 +200,6 @@ public class AssetTagLocalServiceUtil {
 	*
 	* @param groupId the primary key of the group in which to delete all asset
 	tags
-	* @throws PortalException if a portal exception occurred
 	*/
 	public static void deleteGroupTags(long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -228,7 +219,6 @@ public class AssetTagLocalServiceUtil {
 	* Deletes the asset tag.
 	*
 	* @param tag the asset tag to be deleted
-	* @throws PortalException if a portal exception occurred
 	*/
 	public static void deleteTag(com.liferay.portlet.asset.model.AssetTag tag)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -239,8 +229,6 @@ public class AssetTagLocalServiceUtil {
 	* Deletes the asset tag.
 	*
 	* @param tagId the primary key of the asset tag
-	* @throws PortalException if no asset tag could be found with the primary
-	key or if a portal exception occurred
 	*/
 	public static void deleteTag(long tagId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -473,15 +461,6 @@ public class AssetTagLocalServiceUtil {
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
-	/**
 	* Returns the asset tags of the asset entry.
 	*
 	* @param entryId the primary key of the asset entry
@@ -542,6 +521,19 @@ public class AssetTagLocalServiceUtil {
 		return getService().getGroupsTags(groupIds);
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return getService().getIndexableActionableDynamicQuery();
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
+	}
+
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -570,7 +562,6 @@ public class AssetTagLocalServiceUtil {
 	* @param groupId the primary key of the group
 	* @param name the name of the asset tag
 	* @return the asset tag with the name in the group
-	* @throws PortalException if a matching asset tag could not be found
 	*/
 	public static com.liferay.portlet.asset.model.AssetTag getTag(
 		long groupId, java.lang.String name)
@@ -583,8 +574,6 @@ public class AssetTagLocalServiceUtil {
 	*
 	* @param tagId the primary key of the asset tag
 	* @return the asset tag with the primary key
-	* @throws PortalException if an asset tag with the primary key could not be
-	found
 	*/
 	public static com.liferay.portlet.asset.model.AssetTag getTag(long tagId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -733,8 +722,6 @@ public class AssetTagLocalServiceUtil {
 	* @param classNameId the class name ID of the entity to which the asset
 	tag is being applied
 	* @return the asset tag
-	* @throws PortalException if a asset tag with the primary key could not be
-	found or if a portal exception occurred
 	*/
 	public static com.liferay.portlet.asset.model.AssetTag incrementAssetCount(
 		long tagId, long classNameId)
@@ -749,7 +736,6 @@ public class AssetTagLocalServiceUtil {
 	* @param fromTagId the primary key of the asset tag to be replaced
 	* @param toTagId the primary key of the asset tag to apply to the asset
 	entries of the other asset tag
-	* @throws PortalException if a portal exception occurred
 	*/
 	public static void mergeTags(long fromTagId, long toTagId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -786,15 +772,6 @@ public class AssetTagLocalServiceUtil {
 
 	public static void setAssetEntryAssetTags(long entryId, long[] tagIds) {
 		getService().setAssetEntryAssetTags(entryId, tagIds);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

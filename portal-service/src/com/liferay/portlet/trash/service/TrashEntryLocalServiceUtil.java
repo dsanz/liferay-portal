@@ -68,7 +68,6 @@ public class TrashEntryLocalServiceUtil {
 	com.liferay.portlet.documentlibrary.model.DLFileVersion})
 	* @param typeSettingsProperties the type settings properties
 	* @return the trashEntry
-	* @throws PortalException if a user with the primary key could not be found
 	*/
 	public static com.liferay.portlet.trash.model.TrashEntry addTrashEntry(
 		long userId, long groupId, java.lang.String className, long classPK,
@@ -109,12 +108,9 @@ public class TrashEntryLocalServiceUtil {
 	* @param className the class name of entity
 	* @param classPK the primary key of the entry
 	* @return the trash entry with the entity class name and primary key
-	* @throws PortalException if a trash entry with the primary key could not
-	be found
 	*/
 	public static com.liferay.portlet.trash.model.TrashEntry deleteEntry(
-		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException {
+		java.lang.String className, long classPK) {
 		return getService().deleteEntry(className, classPK);
 	}
 
@@ -123,12 +119,9 @@ public class TrashEntryLocalServiceUtil {
 	*
 	* @param entryId the primary key of the trash entry
 	* @return the trash entry with the primary key
-	* @throws PortalException if a trash entry with the primary key could not
-	be found
 	*/
 	public static com.liferay.portlet.trash.model.TrashEntry deleteEntry(
-		long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException {
+		long entryId) {
 		return getService().deleteEntry(entryId);
 	}
 
@@ -281,15 +274,6 @@ public class TrashEntryLocalServiceUtil {
 	}
 
 	/**
-	* Returns the Spring bean ID for this bean.
-	*
-	* @return the Spring bean ID for this bean
-	*/
-	public static java.lang.String getBeanIdentifier() {
-		return getService().getBeanIdentifier();
-	}
-
-	/**
 	* Returns the trash entries with the matching group ID.
 	*
 	* @param groupId the primary key of the group
@@ -353,8 +337,6 @@ public class TrashEntryLocalServiceUtil {
 	* @param className the class name of the entity
 	* @param classPK the primary key of the entity
 	* @return the trash entry with the entity class name and primary key
-	* @throws PortalException if a trash entry with the primary key could not
-	be found
 	*/
 	public static com.liferay.portlet.trash.model.TrashEntry getEntry(
 		java.lang.String className, long classPK)
@@ -367,13 +349,24 @@ public class TrashEntryLocalServiceUtil {
 	*
 	* @param entryId the primary key of the trash entry
 	* @return the trash entry with the primary key
-	* @throws PortalException if a trash entry with the primary key could not
-	be found
 	*/
 	public static com.liferay.portlet.trash.model.TrashEntry getEntry(
 		long entryId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService().getEntry(entryId);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		return getService().getIndexableActionableDynamicQuery();
+	}
+
+	/**
+	* Returns the OSGi service identifier.
+	*
+	* @return the OSGi service identifier
+	*/
+	public static java.lang.String getOSGiServiceIdentifier() {
+		return getService().getOSGiServiceIdentifier();
 	}
 
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
@@ -434,15 +427,6 @@ public class TrashEntryLocalServiceUtil {
 		return getService()
 				   .searchTrashEntries(companyId, groupId, userId, keywords,
 			start, end, sort);
-	}
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
-		getService().setBeanIdentifier(beanIdentifier);
 	}
 
 	/**

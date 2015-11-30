@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.settings.ModifiableSettings;
 import com.liferay.portal.kernel.settings.PortletInstanceSettingsLocator;
 import com.liferay.portal.kernel.settings.Settings;
 import com.liferay.portal.kernel.settings.SettingsFactoryUtil;
+import com.liferay.portal.kernel.util.AggregateResourceBundle;
 import com.liferay.portal.kernel.util.AutoResetThreadLocal;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
@@ -35,7 +36,7 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.language.AggregateResourceBundle;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutTypePortlet;
@@ -55,10 +56,8 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortletConfigFactoryUtil;
 import com.liferay.portlet.PortletConfigImpl;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.configuration.web.upgrade.PortletConfigurationWebUpgrade;
 import com.liferay.portlet.portletconfiguration.action.ActionUtil;
 import com.liferay.portlet.portletconfiguration.util.PortletConfigurationUtil;
@@ -588,14 +587,16 @@ public class PortletConfigurationPortlet extends MVCPortlet {
 
 			renderResponse.setTitle(
 				ActionUtil.getTitle(portlet, renderRequest));
+
+			super.doDispatch(renderRequest, renderResponse);
 		}
-		catch (Exception ex) {
-			_log.error(ex.getMessage());
+		catch (Exception e) {
+			_log.error(e.getMessage());
+
+			SessionErrors.add(renderRequest, e.getClass());
 
 			include("/error.jsp", renderRequest, renderResponse);
 		}
-
-		super.doDispatch(renderRequest, renderResponse);
 	}
 
 	protected String[] getActionIds(
@@ -771,10 +772,10 @@ public class PortletConfigurationPortlet extends MVCPortlet {
 			return null;
 		}
 
-		PortletPreferencesIds portletPreferencesIds =
-			PortletPreferencesFactoryUtil.getPortletPreferencesIds(
-				themeDisplay.getCompanyId(), themeDisplay.getSiteGroupId(),
-				PortletKeys.PREFS_PLID_SHARED, portletId, settingsScope);
+		PortletPreferencesIds portletPreferencesIds = new PortletPreferencesIds(
+			themeDisplay.getCompanyId(), layout.getGroupId(),
+			PortletKeys.PREFS_OWNER_TYPE_LAYOUT, PortletKeys.PREFS_PLID_SHARED,
+			portletId);
 
 		return _portletPreferencesLocalService.getPreferences(
 			portletPreferencesIds);
@@ -980,15 +981,16 @@ public class PortletConfigurationPortlet extends MVCPortlet {
 	private static final Log _log = LogFactoryUtil.getLog(
 		PortletConfigurationPortlet.class);
 
-	private GroupLocalService _groupLocalService;
-	private LayoutLocalService _layoutLocalService;
-	private PortletLocalService _portletLocalService;
-	private PortletPreferencesLocalService _portletPreferencesLocalService;
+	private volatile GroupLocalService _groupLocalService;
+	private volatile LayoutLocalService _layoutLocalService;
+	private volatile PortletLocalService _portletLocalService;
+	private volatile PortletPreferencesLocalService
+		_portletPreferencesLocalService;
 	private final ThreadLocal<PortletRequest> _portletRequestThreadLocal =
 		new AutoResetThreadLocal<>("_portletRequestThreadLocal");
-	private ResourceBlockLocalService _resourceBlockLocalService;
-	private ResourceBlockService _resourceBlockService;
-	private ResourcePermissionService _resourcePermissionService;
+	private volatile ResourceBlockLocalService _resourceBlockLocalService;
+	private volatile ResourceBlockService _resourceBlockService;
+	private volatile ResourcePermissionService _resourcePermissionService;
 
 	private class PortletConfigurationPortletPortletConfig
 		extends PortletConfigImpl {

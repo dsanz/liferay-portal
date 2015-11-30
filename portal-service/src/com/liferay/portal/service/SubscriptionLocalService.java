@@ -76,7 +76,6 @@ public interface SubscriptionLocalService extends BaseLocalService,
 	* @param className the entity's class name
 	* @param classPK the primary key of the entity's instance
 	* @return the subscription
-	* @throws PortalException if a matching user or group could not be found
 	*/
 	public com.liferay.portal.model.Subscription addSubscription(long userId,
 		long groupId, java.lang.String className, long classPK)
@@ -102,7 +101,6 @@ public interface SubscriptionLocalService extends BaseLocalService,
 	* @param classPK the primary key of the entity's instance
 	* @param frequency the frequency for notifications
 	* @return the subscription
-	* @throws PortalException if a matching user or group could not be found
 	*/
 	public com.liferay.portal.model.Subscription addSubscription(long userId,
 		long groupId, java.lang.String className, long classPK,
@@ -155,8 +153,6 @@ public interface SubscriptionLocalService extends BaseLocalService,
 	* @param userId the primary key of the user
 	* @param className the entity's class name
 	* @param classPK the primary key of the entity's instance
-	* @throws PortalException if a matching user or subscription could not be
-	found
 	*/
 	public void deleteSubscription(long userId, java.lang.String className,
 		long classPK) throws PortalException;
@@ -167,7 +163,6 @@ public interface SubscriptionLocalService extends BaseLocalService,
 	* @param companyId the primary key of the company
 	* @param className the entity's class name
 	* @param classPK the primary key of the entity's instance
-	* @throws PortalException if a portal exception occurred
 	*/
 	public void deleteSubscriptions(long companyId, java.lang.String className,
 		long classPK) throws PortalException;
@@ -176,7 +171,6 @@ public interface SubscriptionLocalService extends BaseLocalService,
 	* Deletes all the subscriptions of the user.
 	*
 	* @param userId the primary key of the user
-	* @throws PortalException if a portal exception occurred
 	*/
 	public void deleteSubscriptions(long userId) throws PortalException;
 
@@ -259,12 +253,15 @@ public interface SubscriptionLocalService extends BaseLocalService,
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
+
 	/**
-	* Returns the Spring bean ID for this bean.
+	* Returns the OSGi service identifier.
 	*
-	* @return the Spring bean ID for this bean
+	* @return the OSGi service identifier
 	*/
-	public java.lang.String getBeanIdentifier();
+	public java.lang.String getOSGiServiceIdentifier();
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -279,7 +276,6 @@ public interface SubscriptionLocalService extends BaseLocalService,
 	* @param className the entity's class name
 	* @param classPK the primary key of the entity's instance
 	* @return the subscription of the user to the entity
-	* @throws PortalException if a matching subscription could not be found
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.Subscription getSubscription(
@@ -408,13 +404,6 @@ public interface SubscriptionLocalService extends BaseLocalService,
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean isSubscribed(long companyId, long userId,
 		java.lang.String className, long[] classPKs);
-
-	/**
-	* Sets the Spring bean ID for this bean.
-	*
-	* @param beanIdentifier the Spring bean ID for this bean
-	*/
-	public void setBeanIdentifier(java.lang.String beanIdentifier);
 
 	/**
 	* Updates the subscription in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
