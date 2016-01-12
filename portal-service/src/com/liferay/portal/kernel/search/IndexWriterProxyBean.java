@@ -53,7 +53,7 @@ public class IndexWriterProxyBean
 	}
 
 	@Override
-	public void commit(long companyId) {
+	public void commit(SearchContext searchContext) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -84,7 +84,8 @@ public class IndexWriterProxyBean
 
 		String searchEngineId = searchContext.getSearchEngineId();
 
-		return SearchEngineUtil.getSearchWriterDestinationName(searchEngineId);
+		return SearchEngineHelperUtil.getSearchWriterDestinationName(
+			searchEngineId);
 	}
 
 	@Override

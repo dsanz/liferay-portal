@@ -759,15 +759,13 @@ public interface PropsKeys {
 
 	public static final String EHCACHE_BOOTSTRAP_CACHE_LOADER_ENABLED = "ehcache.bootstrap.cache.loader.enabled";
 
-	public static final String EHCACHE_BOOTSTRAP_CACHE_LOADER_FACTORY = "ehcache.bootstrap.cache.loader.factory";
+	public static final String EHCACHE_BOOTSTRAP_CACHE_LOADER_PROPERTIES = "ehcache.bootstrap.cache.loader.properties";
 
-	public static final String EHCACHE_CACHE_EVENT_LISTENER_FACTORY = "ehcache.cache.event.listener.factory";
+	public static final String EHCACHE_BOOTSTRAP_CACHE_LOADER_PROPERTIES_DEFAULT = "ehcache.bootstrap.cache.loader.properties.default";
 
-	public static final String EHCACHE_CACHE_MANAGER_PEER_LISTENER_FACTORY = "ehcache.cache.manager.peer.listener.factory";
+	public static final String EHCACHE_CLUSTER_LINK_REPLICATOR_PROPERTIES = "ehcache.cluster.link.replicator.properties";
 
-	public static final String EHCACHE_CACHE_MANAGER_PEER_PROVIDER_FACTORY = "ehcache.cache.manager.peer.provider.factory";
-
-	public static final String EHCACHE_CLUSTER_LINK_REPLICATION_ENABLED = "ehcache.cluster.link.replication.enabled";
+	public static final String EHCACHE_CLUSTER_LINK_REPLICATOR_PROPERTIES_DEFAULT = "ehcache.cluster.link.replicator.properties.default";
 
 	public static final String EHCACHE_MULTI_VM_CONFIG_LOCATION = "ehcache.multi.vm.config.location";
 
@@ -881,8 +879,6 @@ public interface PropsKeys {
 
 	public static final String IMAGEMAGICK_RESOURCE_LIMIT = "imagemagick.resource.limit.";
 
-	public static final String INDEX_COMMIT_IMMEDIATELY = "index.commit.immediately";
-
 	public static final String INDEX_DATE_FORMAT_PATTERN = "index.date.format.pattern";
 
 	public static final String INDEX_DUMP_COMPRESSION_ENABLED = "index.dump.compression.enabled";
@@ -894,8 +890,6 @@ public interface PropsKeys {
 	public static final String INDEX_ON_UPGRADE = "index.on.upgrade";
 
 	public static final String INDEX_PERMISSION_FILTER_SEARCH_AMPLIFICATION_FACTOR = "index.permission.filter.search.amplification.factor";
-
-	public static final String INDEX_READ_ONLY = "index.read.only";
 
 	public static final String INDEX_SEARCH_COLLATED_SPELL_CHECK_RESULT_ENABLED = "index.search.collated.spell.check.result.enabled";
 
@@ -1141,7 +1135,6 @@ public interface PropsKeys {
 
 	public static final String LAYOUT_VIEW_PAGE = "layout.view.page";
 
-	@Deprecated
 	public static final String LDAP_ATTRS_TRANSFORMER_IMPL = "ldap.attrs.transformer.impl";
 
 	public static final String LIBRARY_DOWNLOAD_URL = "library.download.url.";
@@ -1853,14 +1846,6 @@ public interface PropsKeys {
 	public static final String SANDBOX_DEPLOY_LISTENERS = "sandbox.deploy.listeners";
 
 	public static final String SANITIZER_IMPL = "sanitizer.impl";
-
-	public static final String SC_IMAGE_MAX_SIZE = "sc.image.max.size";
-
-	public static final String SC_IMAGE_THUMBNAIL_MAX_HEIGHT = "sc.image.thumbnail.max.height";
-
-	public static final String SC_IMAGE_THUMBNAIL_MAX_WIDTH = "sc.image.thumbnail.max.width";
-
-	public static final String SC_PRODUCT_COMMENTS_ENABLED = "sc.product.comments.enabled";
 
 	public static final String SCHEDULER_DESCRIPTION_MAX_LENGTH = "scheduler.description.max.length";
 

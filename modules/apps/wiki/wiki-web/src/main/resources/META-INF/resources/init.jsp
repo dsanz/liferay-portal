@@ -20,15 +20,16 @@
 
 <%@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
 taglib uri="http://liferay.com/tld/ddm" prefix="liferay-ddm" %><%@
+taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
 taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
 taglib uri="http://liferay.com/tld/security" prefix="liferay-security" %><%@
 taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
+taglib uri="http://liferay.com/tld/trash" prefix="liferay-trash" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %><%@
 taglib uri="http://liferay.com/tld/util" prefix="liferay-util" %>
 
 <%@ page import="com.liferay.portal.NoSuchModelException" %><%@
 page import="com.liferay.portal.kernel.bean.BeanParamUtil" %><%@
-page import="com.liferay.portal.kernel.dao.orm.QueryUtil" %><%@
 page import="com.liferay.portal.kernel.dao.search.RowChecker" %><%@
 page import="com.liferay.portal.kernel.dao.search.SearchContainer" %><%@
 page import="com.liferay.portal.kernel.exception.PortalException" %><%@
@@ -51,7 +52,6 @@ page import="com.liferay.portal.kernel.search.SearchContextFactory" %><%@
 page import="com.liferay.portal.kernel.search.SearchResultUtil" %><%@
 page import="com.liferay.portal.kernel.search.Summary" %><%@
 page import="com.liferay.portal.kernel.servlet.SessionErrors" %><%@
-page import="com.liferay.portal.kernel.servlet.taglib.ui.ToolbarItem" %><%@
 page import="com.liferay.portal.kernel.upload.UploadRequestSizeException" %><%@
 page import="com.liferay.portal.kernel.util.ArrayUtil" %><%@
 page import="com.liferay.portal.kernel.util.Constants" %><%@
@@ -64,7 +64,6 @@ page import="com.liferay.portal.kernel.util.KeyValuePair" %><%@
 page import="com.liferay.portal.kernel.util.KeyValuePairComparator" %><%@
 page import="com.liferay.portal.kernel.util.ListUtil" %><%@
 page import="com.liferay.portal.kernel.util.MathUtil" %><%@
-page import="com.liferay.portal.kernel.util.OrderByComparator" %><%@
 page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
 page import="com.liferay.portal.kernel.util.PrefsPropsUtil" %><%@
 page import="com.liferay.portal.kernel.util.PropsKeys" %><%@
@@ -88,6 +87,8 @@ page import="com.liferay.portal.service.TicketLocalServiceUtil" %><%@
 page import="com.liferay.portal.service.UserLocalServiceUtil" %><%@
 page import="com.liferay.portal.service.WorkflowDefinitionLinkLocalServiceUtil" %><%@
 page import="com.liferay.portal.util.PortalUtil" %><%@
+page import="com.liferay.portlet.PortalPreferences" %><%@
+page import="com.liferay.portlet.PortletPreferencesFactoryUtil" %><%@
 page import="com.liferay.portlet.PortletURLImpl" %><%@
 page import="com.liferay.portlet.PortletURLUtil" %><%@
 page import="com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil" %><%@
@@ -97,7 +98,6 @@ page import="com.liferay.portlet.asset.model.AssetRendererFactory" %><%@
 page import="com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil" %><%@
 page import="com.liferay.portlet.asset.service.AssetEntryServiceUtil" %><%@
 page import="com.liferay.portlet.asset.service.AssetTagLocalServiceUtil" %><%@
-page import="com.liferay.portlet.asset.service.persistence.AssetEntryQuery" %><%@
 page import="com.liferay.portlet.asset.util.AssetUtil" %><%@
 page import="com.liferay.portlet.documentlibrary.DuplicateFileEntryException" %><%@
 page import="com.liferay.portlet.documentlibrary.FileExtensionException" %><%@
@@ -112,7 +112,10 @@ page import="com.liferay.portlet.social.service.SocialActivityLocalServiceUtil" 
 page import="com.liferay.portlet.trash.model.TrashEntry" %><%@
 page import="com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil" %><%@
 page import="com.liferay.portlet.trash.util.TrashUtil" %><%@
-page import="com.liferay.taglib.search.ResultRow" %>
+page import="com.liferay.taglib.search.ResultRow" %><%@
+page import="com.liferay.wiki.web.search.NodesChecker" %><%@
+page import="com.liferay.wiki.web.search.PagesChecker" %><%@
+page import="com.liferay.wiki.web.util.WikiPortletUtil" %>
 
 <%@ page import="java.text.DecimalFormatSymbols" %><%@
 page import="java.text.Format" %>
@@ -143,4 +146,6 @@ WindowState windowState = liferayPortletRequest.getWindowState();
 PortletURL currentURLObj = PortletURLUtil.getCurrent(liferayPortletRequest, liferayPortletResponse);
 
 String currentURL = currentURLObj.toString();
+
+PortalPreferences portalPreferences = PortletPreferencesFactoryUtil.getPortalPreferences(liferayPortletRequest);
 %>

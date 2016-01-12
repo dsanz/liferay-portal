@@ -42,8 +42,10 @@
 	</tear-down>
 
 	<command name="AddChildArticleToKBArticleViaKBAdmin" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -57,8 +59,10 @@
 			<var name="kbChildArticleTitle" value="Knowledge Base Child Article Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#gotoViaKBAdminCP">
@@ -78,8 +82,10 @@
 	<command name="AddKBArticlesViaKBAdmin" priority="4">
 		<var name="kbArticleCounterList" value="1,2,3" />
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<for list="${kbArticleCounterList}" param="kbCount">
@@ -90,8 +96,10 @@
 		</for>
 
 		<for list="${kbArticleCounterList}" param="kbCount">
-			<execute macro="Page#gotoContentCP">
-				<var name="portletName" value="Knowledge Base" />
+			<execute macro="Navigator#openURL" />
+
+			<execute macro="ProductMenu#gotoSitesContent">
+				<var name="portlet" value="Knowledge Base" />
 			</execute>
 
 			<execute macro="KBArticle#viewCP">
@@ -102,8 +110,10 @@
 	</command>
 
 	<command name="AddKBArticleViaKBAdmin" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -111,8 +121,10 @@
 			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#viewCP">
@@ -122,8 +134,10 @@
 	</command>
 
 	<command name="AddKBArticleViaTemplateCP" priority="3">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBTemplate#addCP">
@@ -131,8 +145,10 @@
 			<var name="kbTemplateTitle" value="Knowledge Base Template Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -141,8 +157,10 @@
 			<var name="kbTemplateTitle" value="Knowledge Base Template Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#viewCP">
@@ -152,8 +170,10 @@
 	</command>
 
 	<command name="AddKBArticleWithAttachmentViaKBAdmin" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -162,8 +182,10 @@
 			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#viewKBArticleWithAttachmentCP">
@@ -185,8 +207,10 @@
 			<var name="entryTitle" value="Blogs Entry Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -196,8 +220,10 @@
 			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#viewCP">
@@ -207,9 +233,10 @@
 		</execute>
 
 		<var name="kbArticleRelatedAssetTitle" value="Blogs Entry Title" />
-		<var name="key_relatedAssetTitle" value="${relatedAssetTitle}" />
 
-		<execute function="AssertClick" locator1="AssetRelatedAssets#ASSET_TITLE" value1="${kbArticleRelatedAssetTitle}" />
+		<var name="key_kbArticleRelatedAssetTitle" value="${kbArticleRelatedAssetTitle}" />
+
+		<execute function="AssertClick" locator1="AssetRelatedAssets#KB_RELATED_ASSETS_LINKS" value1="${kbArticleRelatedAssetTitle}" />
 
 		<execute macro="KBArticle#viewBlogsEntryRelatedAsset" />
 	</command>
@@ -238,8 +265,10 @@
 			<var name="vocabularyName" value="Vocabulary Name" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -260,7 +289,7 @@
 	</command>
 
 	<command name="AddKBArticleWithInvalidAttachmentSize" priority="3">
-		<execute macro="ProductMenu#gotoControlPanelSystem">
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="Server Administration" />
 		</execute>
 
@@ -268,15 +297,28 @@
 			<var name="maxFileSize" value="1024" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
-		<execute macro="KBArticle#addCP">
+		<execute macro="KBArticle#addCPWithInvalidAttachmentSize">
 			<var name="kbArticleAttachment" value="Document_1.png" />
 			<var name="kbArticleContent" value="Knowledge Base Article Content" />
-			<var name="kbArticleInvalidAttachmentSize" value="true" />
 			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
+		</execute>
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
+		</execute>
+
+		<execute macro="KBArticle#viewCP">
+			<var name="kbArticleContent" value="Knowledge Base Article Content" />
+			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
+			<var name="noAttachment" value="true" />
 		</execute>
 	</command>
 
@@ -304,8 +346,10 @@
 			<var name="vocabularyName" value="Vocabulary Name" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -321,8 +365,10 @@
 			<![CDATA[<b>Knowledge Base&rsquo;s Article Content</b>]]>
 		</var>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -342,8 +388,10 @@
 	</command>
 
 	<command name="AddKBFolder" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBFolder#addCP">
@@ -357,8 +405,10 @@
 
 		<execute macro="KBArticle#viewDefaultCP" />
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBFolder#viewFolderTableCP">
@@ -378,8 +428,10 @@
 	</command>
 
 	<command name="AddTemplateCP" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBTemplate#addCP">
@@ -387,8 +439,10 @@
 			<var name="kbTemplateTitle" value="Knowledge Base Template Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBTemplate#viewCP">
@@ -398,8 +452,10 @@
 	</command>
 
 	<command name="CannotAddDuplicateKBFolder" priority="3">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBFolder#addCP">
@@ -415,8 +471,10 @@
 	</command>
 
 	<command name="DeleteKBArticleViaKBAdmin" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -424,8 +482,10 @@
 			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#selectArticleCP">
@@ -434,16 +494,20 @@
 
 		<execute macro="KBArticle#deleteCP" />
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#viewDefaultCP" />
 	</command>
 
 	<command name="DeleteKBFolder" priority ="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBFolder#addCP">
@@ -457,8 +521,10 @@
 
 		<execute macro="KBArticle#viewDefaultCP" />
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBFolder#viewFolderTableCP">
@@ -471,8 +537,10 @@
 	</command>
 
 	<command name="EditKBArticleAndAddAttachmentViaKBAdmin" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -480,8 +548,10 @@
 			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#editCP">
@@ -491,8 +561,10 @@
 			<var name="kbArticleTitleEdit" value="Knowledge Base Article Title Edit" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#viewKBArticleWithAttachmentCP">
@@ -503,8 +575,10 @@
 	</command>
 
 	<command name="EditKBArticlePriorityViaEnterKey" priority="3">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -526,8 +600,10 @@
 			<var name="pageName" value="Welcome" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#viewKBArticlePriorityCP">
@@ -537,8 +613,10 @@
 	</command>
 
 	<command name="EditKBArticleViaKBAdmin" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -546,8 +624,10 @@
 			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#editCP">
@@ -556,8 +636,10 @@
 			<var name="kbArticleTitleEdit" value="Knowledge Base Article Title Edit" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#viewCP">
@@ -567,8 +649,10 @@
 	</command>
 
 	<command name="EditKBFolder" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBFolder#addCP">
@@ -582,8 +666,10 @@
 
 		<execute macro="KBArticle#viewDefaultCP" />
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBFolder#viewFolderTableCP">
@@ -602,8 +688,10 @@
 	</command>
 
 	<command name="RemoveParentArticleViaKBAdmin" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -637,8 +725,10 @@
 
 		<execute macro="KBArticle#removeParentArticleCP" />
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#viewCP">
@@ -650,8 +740,10 @@
 	</command>
 
 	<command name="SelectParentArticleViaKBAdmin" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -688,8 +780,10 @@
 	</command>
 
 	<command name="ViewChildArticleInKBArticleViaKBAdmin" priority="3">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -703,8 +797,10 @@
 			<var name="kbChildArticleTitle" value="Knowledge Base Child Article Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#viewCP">
@@ -716,8 +812,10 @@
 	</command>
 
 	<command name="ViewDuplicateFriendlyURLIsNotAllowed" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -725,8 +823,10 @@
 			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">
@@ -737,8 +837,10 @@
 	</command>
 
 	<command name="ViewImportedKBArticlesPrioritization" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#importCP">
@@ -784,8 +886,10 @@
 			<var name="kbPriority" value="1.0" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#gotoViaKBAdminCP">
@@ -801,8 +905,10 @@
 			<var name="kbPriority" value="1.0" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#importCP">
@@ -823,8 +929,10 @@
 			<var name="kbPriority" value="1.0" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#gotoViaKBAdminCP">
@@ -840,8 +948,10 @@
 			<var name="kbPriority" value="1.0" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#selectAllCP" />
@@ -911,8 +1021,10 @@
 	<command name="ViewKBArticlePriority" priority="4">
 		<var name="kbArticleCounterList" value="1,2" />
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<for list="${kbArticleCounterList}" param="kbCount">
@@ -934,8 +1046,10 @@
 	</command>
 
 	<command name="ViewKBTemplateViaAddKBArticleCP" priority="3">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBTemplate#addCP">
@@ -943,8 +1057,10 @@
 			<var name="kbTemplateTitle" value="Knowledge Base Template Title" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBTemplate#viewCPViaAddTemplate">
@@ -954,8 +1070,10 @@
 	</command>
 
 	<command name="ViewNoErrorAfterImportWithoutParentMarkdownFiles" priority="4">
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#importCP">
@@ -972,17 +1090,21 @@
 		<var name="kbArticleContent" value="Knowledge Base Article Content" />
 		<var name="kbArticleTitle" value="Knowledge Base Article Title" />
 
-		<execute macro="Page#gotoConfigurationCP">
-			<var name="portletName" value="Workflow Configuration" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesConfiguration">
+			<var name="portlet" value="Workflow Configuration" />
 		</execute>
 
 		<execute macro="Workflow#configureWorkflow">
 			<var name="workflowDefinition" value="Single Approver (Version 1)" />
-			<var name="workflowResourceKey" value="RESOURCE_TABLE_KNOWLEDGE_BASE_ARTICLE_SELECT" />
+			<var name="workflowResourceValue" value="Knowledge Base Article" />
 		</execute>
 
-		<execute macro="Page#gotoContentCP">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
 		</execute>
 
 		<execute macro="KBArticle#addCP">

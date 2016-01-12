@@ -28,7 +28,7 @@ portletDisplay.setURLBack(redirect);
 renderResponse.setTitle(factoryConfigurationModel.getName());
 %>
 
-<aui:nav-bar cssClass="collapse-basic-search" markupView="lexicon">
+<aui:nav-bar markupView="lexicon">
 	<aui:nav cssClass="navbar-nav">
 		<aui:nav-item
 			label="entries"
@@ -72,9 +72,7 @@ renderResponse.setTitle(factoryConfigurationModel.getName());
 			</portlet:renderURL>
 
 			<liferay-ui:search-container-column-text name="entry">
-				<aui:a href="<%= editURL %>"><%= configurationModel.getName() %></aui:a><br />
-
-				<%= configurationModel.getID() %>
+				<aui:a href="<%= editURL %>"><strong><%= configurationModel.getLabel() %></strong></aui:a>
 			</liferay-ui:search-container-column-text>
 
 			<liferay-ui:search-container-column-text
@@ -104,6 +102,17 @@ renderResponse.setTitle(factoryConfigurationModel.getName());
 							message="delete"
 							method="post"
 							url="<%= deleteConfigActionURL %>"
+						/>
+
+						<portlet:resourceURL id="export" var="exportURL">
+							<portlet:param name="factoryPid" value="<%= configurationModel.getFactoryPid() %>" />
+							<portlet:param name="pid" value="<%= configurationModel.getID() %>" />
+						</portlet:resourceURL>
+
+						<liferay-ui:icon
+							message="export"
+							method="post"
+							url="<%= exportURL %>"
 						/>
 					</c:if>
 				</liferay-ui:icon-menu>

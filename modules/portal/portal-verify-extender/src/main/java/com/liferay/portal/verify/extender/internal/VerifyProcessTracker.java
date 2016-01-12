@@ -215,7 +215,8 @@ public class VerifyProcessTracker {
 					executeVerifyProcess(verifyProcessName, outputStream);
 				}
 
-			}, outputStreamName, outputStream);
+			},
+			outputStreamName, outputStream);
 
 		close(outputStream);
 	}
@@ -270,9 +271,9 @@ public class VerifyProcessTracker {
 	private static final Log _log = LogFactoryUtil.getLog(
 		VerifyProcessTracker.class);
 
-	private volatile OutputStreamContainerFactoryTracker
+	private OutputStreamContainerFactoryTracker
 		_outputStreamContainerFactoryTracker;
-	private volatile ReleaseLocalService _releaseLocalService;
+	private ReleaseLocalService _releaseLocalService;
 	private ServiceTrackerMap<String, VerifyProcess> _verifyProcesses;
 	private VerifyProcessTrackerConfiguration
 		_verifyProcessTrackerConfiguration;

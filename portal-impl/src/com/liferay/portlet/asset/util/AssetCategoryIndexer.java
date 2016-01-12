@@ -23,10 +23,9 @@ import com.liferay.portal.kernel.search.BaseIndexer;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Document;
-import com.liferay.portal.kernel.search.DocumentImpl;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.IndexWriterHelperUtil;
 import com.liferay.portal.kernel.search.SearchContext;
-import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Summary;
 import com.liferay.portal.kernel.search.filter.BooleanFilter;
 import com.liferay.portal.kernel.search.filter.TermsFilter;
@@ -141,13 +140,8 @@ public class AssetCategoryIndexer extends BaseIndexer<AssetCategory> {
 
 	@Override
 	protected void doDelete(AssetCategory assetCategory) throws Exception {
-		Document document = new DocumentImpl();
-
-		document.addUID(CLASS_NAME, assetCategory.getCategoryId());
-
-		SearchEngineUtil.deleteDocument(
-			getSearchEngineId(), assetCategory.getCompanyId(),
-			document.get(Field.UID), isCommitImmediately());
+		deleteDocument(
+			assetCategory.getCompanyId(), assetCategory.getCategoryId());
 	}
 
 	@Override
@@ -199,11 +193,9 @@ public class AssetCategoryIndexer extends BaseIndexer<AssetCategory> {
 	protected void doReindex(AssetCategory assetCategory) throws Exception {
 		Document document = getDocument(assetCategory);
 
-		if (document != null) {
-			SearchEngineUtil.updateDocument(
-				getSearchEngineId(), assetCategory.getCompanyId(), document,
-				isCommitImmediately());
-		}
+		IndexWriterHelperUtil.updateDocument(
+			getSearchEngineId(), assetCategory.getCompanyId(), document,
+			isCommitImmediately());
 	}
 
 	@Override
@@ -238,7 +230,7 @@ public class AssetCategoryIndexer extends BaseIndexer<AssetCategory> {
 						Document document = getDocument(category);
 
 						if (document != null) {
-							indexableActionableDynamicQuery.addDocument(
+							indexableActionableDynamicQuery.addDocuments(
 								document);
 						}
 					}

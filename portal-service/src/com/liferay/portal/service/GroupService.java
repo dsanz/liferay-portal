@@ -163,7 +163,7 @@ public interface GroupService extends BaseService {
 	* The group is unstaged and its assets and resources including layouts,
 	* membership requests, subscriptions, teams, blogs, bookmarks, calendar
 	* events, image gallery, journals, message boards, polls, shopping related
-	* entities, software catalog, and wikis are also deleted.
+	* entities, and wikis are also deleted.
 	* </p>
 	*
 	* @param groupId the primary key of the group
@@ -203,6 +203,11 @@ public interface GroupService extends BaseService {
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.Group getGroup(long groupId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.lang.String getGroupDisplayURL(long groupId,
+		boolean privateLayout, boolean secureConnection)
 		throws PortalException;
 
 	/**

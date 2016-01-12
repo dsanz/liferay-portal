@@ -223,7 +223,8 @@ public class LDAPAuth implements Authenticator {
 			if (userPassword != null) {
 				String ldapPassword = new String((byte[])userPassword.get());
 
-				String encryptedPassword = password;
+				String encryptedPassword = removeEncryptionAlgorithm(
+					ldapPassword);
 
 				String algorithm =
 					ldapAuthConfiguration.passwordEncryptionAlgorithm();
@@ -609,6 +610,22 @@ public class LDAPAuth implements Authenticator {
 		return user.getLdapServerId();
 	}
 
+	protected String removeEncryptionAlgorithm(String ldapPassword) {
+		int x = ldapPassword.indexOf(StringPool.OPEN_CURLY_BRACE);
+
+		if (x == -1) {
+			return ldapPassword;
+		}
+
+		int y = ldapPassword.indexOf(StringPool.CLOSE_CURLY_BRACE);
+
+		if (y == -1) {
+			return ldapPassword;
+		}
+
+		return ldapPassword.substring(x, y + 1);
+	}
+
 	@Reference(
 		target = "(factoryPid=com.liferay.portal.ldap.authenticator.configuration.LDAPAuthConfiguration)",
 		unbind = "-"
@@ -711,20 +728,20 @@ public class LDAPAuth implements Authenticator {
 			new AutoResetThreadLocal<Map<String, LDAPAuthResult>>(
 				LDAPAuth.class + "._failedLDAPAuthResultCache",
 				new HashMap<String, LDAPAuthResult>());
-	private volatile ConfigurationProvider<LDAPAuthConfiguration>
+	private ConfigurationProvider<LDAPAuthConfiguration>
 		_ldapAuthConfigurationProvider;
-	private volatile ConfigurationProvider<LDAPImportConfiguration>
+	private ConfigurationProvider<LDAPImportConfiguration>
 		_ldapImportConfigurationProvider;
-	private volatile ConfigurationProvider<LDAPServerConfiguration>
+	private ConfigurationProvider<LDAPServerConfiguration>
 		_ldapServerConfigurationProvider;
-	private volatile LDAPSettings _ldapSettings;
-	private volatile LDAPUserImporter _ldapUserImporter;
-	private volatile Omniadmin _omniadmin;
-	private volatile PasswordEncryptor _passwordEncryptor;
-	private volatile PortalLDAP _portalLDAP;
-	private volatile Props _props;
-	private volatile ConfigurationProvider<SystemLDAPConfiguration>
+	private LDAPSettings _ldapSettings;
+	private LDAPUserImporter _ldapUserImporter;
+	private Omniadmin _omniadmin;
+	private PasswordEncryptor _passwordEncryptor;
+	private PortalLDAP _portalLDAP;
+	private Props _props;
+	private ConfigurationProvider<SystemLDAPConfiguration>
 		_systemLDAPConfigurationProvider;
-	private volatile UserLocalService _userLocalService;
+	private UserLocalService _userLocalService;
 
 }

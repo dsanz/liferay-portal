@@ -576,30 +576,6 @@ public class PropsValues {
 
 	public static final String EDITOR_WYSIWYG_DEFAULT = PropsUtil.get(PropsKeys.EDITOR_WYSIWYG_DEFAULT);
 
-	public static final boolean EHCACHE_BLOCKING_CACHE_ALLOWED = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.EHCACHE_BLOCKING_CACHE_ALLOWED));
-
-	public static final boolean EHCACHE_BOOTSTRAP_CACHE_LOADER_ENABLED = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.EHCACHE_BOOTSTRAP_CACHE_LOADER_ENABLED));
-
-	public static final String EHCACHE_BOOTSTRAP_CACHE_LOADER_FACTORY = PropsUtil.get(PropsKeys.EHCACHE_BOOTSTRAP_CACHE_LOADER_FACTORY);
-
-	public static final String EHCACHE_CACHE_EVENT_LISTENER_FACTORY = PropsUtil.get(PropsKeys.EHCACHE_CACHE_EVENT_LISTENER_FACTORY);
-
-	public static final String EHCACHE_CACHE_MANAGER_PEER_LISTENER_FACTORY = PropsUtil.get(PropsKeys.EHCACHE_CACHE_MANAGER_PEER_LISTENER_FACTORY);
-
-	public static final String EHCACHE_CACHE_MANAGER_PEER_PROVIDER_FACTORY = PropsUtil.get(PropsKeys.EHCACHE_CACHE_MANAGER_PEER_PROVIDER_FACTORY);
-
-	public static final boolean EHCACHE_CLUSTER_LINK_REPLICATION_ENABLED = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.EHCACHE_CLUSTER_LINK_REPLICATION_ENABLED));
-
-	public static final String EHCACHE_MULTI_VM_CONFIG_LOCATION = PropsUtil.get(PropsKeys.EHCACHE_MULTI_VM_CONFIG_LOCATION);
-
-	public static final String EHCACHE_SINGLE_VM_CONFIG_LOCATION = PropsUtil.get(PropsKeys.EHCACHE_SINGLE_VM_CONFIG_LOCATION);
-
-	public static final boolean EHCACHE_PORTAL_CACHE_MANAGER_JMX_ENABLED = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.EHCACHE_PORTAL_CACHE_MANAGER_JMX_ENABLED));
-
-	public static final int EHCACHE_SOCKET_SO_TIMEOUT = GetterUtil.getInteger(PropsUtil.get(PropsKeys.EHCACHE_SOCKET_SO_TIMEOUT));
-
-	public static final int EHCACHE_SOCKET_START_PORT = GetterUtil.getInteger(PropsUtil.get(PropsKeys.EHCACHE_SOCKET_START_PORT));
-
 	public static final int ETAG_RESPONSE_SIZE_MAX = GetterUtil.getInteger(PropsUtil.get(PropsKeys.ETAG_RESPONSE_SIZE_MAX));
 
 	public static final String FACEBOOK_CONNECT_APP_ID = PropsUtil.get(PropsKeys.FACEBOOK_CONNECT_APP_ID);
@@ -679,8 +655,6 @@ public class PropsValues {
 	public static final int INDEX_ON_STARTUP_DELAY = GetterUtil.getInteger(PropsUtil.get(PropsKeys.INDEX_ON_STARTUP_DELAY));
 
 	public static final boolean INDEX_ON_UPGRADE = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.INDEX_ON_UPGRADE));
-
-	public static boolean INDEX_READ_ONLY = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.INDEX_READ_ONLY));
 
 	public static final boolean INDEX_SEARCH_COLLATED_SPELL_CHECK_RESULT_ENABLED = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.INDEX_SEARCH_COLLATED_SPELL_CHECK_RESULT_ENABLED));
 
@@ -1348,8 +1322,6 @@ public class PropsValues {
 
 	public static final long SANDBOX_DEPLOY_INTERVAL = GetterUtil.getLong(PropsUtil.get(PropsKeys.SANDBOX_DEPLOY_INTERVAL));
 
-	public static final boolean SC_PRODUCT_COMMENTS_ENABLED = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.SC_PRODUCT_COMMENTS_ENABLED));
-
 	public static final boolean SCHEDULER_ENABLED = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.SCHEDULER_ENABLED));
 
 	public static final String SCRIPTING_JRUBY_COMPILE_MODE = PropsUtil.get(PropsKeys.SCRIPTING_JRUBY_COMPILE_MODE);
@@ -1539,10 +1511,6 @@ public class PropsValues {
 	public static int TRANSACTION_ISOLATION_PORTAL = GetterUtil.getInteger(PropsUtil.get(PropsKeys.TRANSACTION_ISOLATION_PORTAL));
 
 	public static final String TRANSACTION_MANAGER_IMPL = PropsUtil.get(PropsKeys.TRANSACTION_MANAGER_IMPL);
-
-	public static boolean TRANSACTIONAL_CACHE_ENABLED = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.TRANSACTIONAL_CACHE_ENABLED));
-
-	public static final String[] TRANSACTIONAL_CACHE_NAMES = PropsUtil.getArray(PropsKeys.TRANSACTIONAL_CACHE_NAMES);
 
 	public static final boolean TRANSLATIONS_DISABLED = GetterUtil.getBoolean(PropsUtil.get(PropsKeys.TRANSLATIONS_DISABLED));
 

@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.ldap.LDAPUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.log.LogUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -242,6 +243,10 @@ public class DefaultLDAPSettings implements LDAPSettings {
 		for (String keyValuePair : keyValuePairs) {
 			String[] keyValue = StringUtil.split(keyValuePair, CharPool.EQUAL);
 
+			if (ArrayUtil.isEmpty(keyValue)) {
+				continue;
+			}
+
 			String value = StringPool.BLANK;
 
 			if (keyValue.length == 2) {
@@ -317,16 +322,16 @@ public class DefaultLDAPSettings implements LDAPSettings {
 	private static final Log _log = LogFactoryUtil.getLog(
 		DefaultLDAPSettings.class);
 
-	private volatile ConfigurationProvider<LDAPAuthConfiguration>
+	private ConfigurationProvider<LDAPAuthConfiguration>
 		_ldapAuthConfigurationProvider;
-	private volatile ConfigurationProvider<LDAPExportConfiguration>
+	private ConfigurationProvider<LDAPExportConfiguration>
 		_ldapExportConfigurationProvider;
-	private volatile ConfigurationProvider<LDAPImportConfiguration>
+	private ConfigurationProvider<LDAPImportConfiguration>
 		_ldapImportConfigurationProvider;
-	private volatile ConfigurationProvider<LDAPServerConfiguration>
+	private ConfigurationProvider<LDAPServerConfiguration>
 		_ldapServerConfigurationProvider;
-	private volatile ConfigurationProvider<SystemLDAPConfiguration>
+	private ConfigurationProvider<SystemLDAPConfiguration>
 		_systemLDAPConfigurationProvider;
-	private volatile UserLocalService _userLocalService;
+	private UserLocalService _userLocalService;
 
 }

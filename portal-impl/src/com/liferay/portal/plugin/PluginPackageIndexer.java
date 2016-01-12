@@ -22,9 +22,10 @@ import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.DocumentImpl;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.IndexWriterHelperUtil;
 import com.liferay.portal.kernel.search.SearchContext;
-import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.search.background.task.ReindexStatusMessageSenderUtil;
 import com.liferay.portal.kernel.search.filter.BooleanFilter;
 import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -183,7 +184,7 @@ public class PluginPackageIndexer extends BaseIndexer<PluginPackage> {
 	protected void doReindex(PluginPackage pluginPackage) throws Exception {
 		Document document = getDocument(pluginPackage);
 
-		SearchEngineUtil.updateDocument(
+		IndexWriterHelperUtil.updateDocument(
 			getSearchEngineId(), CompanyConstants.SYSTEM, document,
 			isCommitImmediately());
 	}
@@ -194,23 +195,32 @@ public class PluginPackageIndexer extends BaseIndexer<PluginPackage> {
 
 	@Override
 	protected void doReindex(String[] ids) throws Exception {
-		SearchEngineUtil.deleteEntityDocuments(
+		IndexWriterHelperUtil.deleteEntityDocuments(
 			getSearchEngineId(), CompanyConstants.SYSTEM, CLASS_NAME,
 			isCommitImmediately());
 
 		Collection<Document> documents = new ArrayList<>();
 
-		for (PluginPackage pluginPackage :
-				PluginPackageUtil.getAllAvailablePluginPackages()) {
+		List<PluginPackage> pluginPackages =
+			PluginPackageUtil.getAllAvailablePluginPackages();
 
+		int total = pluginPackages.size();
+
+		ReindexStatusMessageSenderUtil.sendStatusMessage(
+			getClassName(), 0, total);
+
+		for (PluginPackage pluginPackage : pluginPackages) {
 			Document document = getDocument(pluginPackage);
 
 			documents.add(document);
 		}
 
-		SearchEngineUtil.updateDocuments(
+		IndexWriterHelperUtil.updateDocuments(
 			getSearchEngineId(), CompanyConstants.SYSTEM, documents,
 			isCommitImmediately());
+
+		ReindexStatusMessageSenderUtil.sendStatusMessage(
+			getClassName(), total, total);
 	}
 
 	@Override

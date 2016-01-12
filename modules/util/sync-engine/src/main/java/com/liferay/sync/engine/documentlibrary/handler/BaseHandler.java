@@ -177,7 +177,7 @@ public class BaseHandler implements Handler<Void> {
 				if (syncFile != null) {
 					_logger.trace(
 						"Handling response {} file path {}",
-							clazz.getSimpleName(), syncFile.getFilePathName());
+						clazz.getSimpleName(), syncFile.getFilePathName());
 				}
 				else {
 					_logger.trace(
@@ -204,6 +204,10 @@ public class BaseHandler implements Handler<Void> {
 
 	@Override
 	public void processResponse(String response) throws Exception {
+	}
+
+	public void removeEvent() {
+		FileEventManager.removeEvent(_event);
 	}
 
 	protected void doHandleResponse(HttpResponse httpResponse)
@@ -255,10 +259,6 @@ public class BaseHandler implements Handler<Void> {
 
 	protected boolean isEventCancelled() {
 		return _event.isCancelled();
-	}
-
-	protected void removeEvent() {
-		FileEventManager.removeEvent(_event);
 	}
 
 	protected void retryServerConnection(int uiEvent) {

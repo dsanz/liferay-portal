@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowInstance;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.PortletPreferences;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
@@ -31,7 +32,6 @@ import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.MBThread;
-import com.liferay.portlet.softwarecatalog.model.SCProductEntry;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -67,8 +67,20 @@ public class UpgradeSubscription extends UpgradeProcess {
 		}
 	}
 
+	protected void deleteOrphanedSubscriptions() throws Exception {
+		long classNameId = PortalUtil.getClassNameId(
+			PortletPreferences.class.getName());
+
+		runSQL(
+			"delete from Subscription where classNameId = " + classNameId +
+				" and classPK not in (select portletPreferencesId from " +
+					" PortletPreferences)");
+	}
+
 	@Override
 	protected void doUpgrade() throws Exception {
+		deleteOrphanedSubscriptions();
+
 		updateSubscriptionClassNames(
 			Folder.class.getName(), DLFolder.class.getName());
 		updateSubscriptionClassNames(
@@ -237,9 +249,6 @@ public class UpgradeSubscription extends UpgradeProcess {
 			MBCategory.class.getName(), "MBCategory,groupId,categoryId");
 		_getGroupIdSQLPartsMap.put(
 			MBThread.class.getName(), "MBThread,groupId,threadId");
-		_getGroupIdSQLPartsMap.put(
-			SCProductEntry.class.getName(),
-			"SCProductEntry,groupId,productEntryId");
 		_getGroupIdSQLPartsMap.put(
 			WorkflowInstance.class.getName(),
 			"WorkflowInstance,groupId,workflowInstanceId");

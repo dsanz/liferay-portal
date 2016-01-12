@@ -285,7 +285,7 @@ public class GroupServiceSoap {
 	* The group is unstaged and its assets and resources including layouts,
 	* membership requests, subscriptions, teams, blogs, bookmarks, calendar
 	* events, image gallery, journals, message boards, polls, shopping related
-	* entities, software catalog, and wikis are also deleted.
+	* entities, and wikis are also deleted.
 	* </p>
 	*
 	* @param groupId the primary key of the group
@@ -377,6 +377,22 @@ public class GroupServiceSoap {
 					groupKey);
 
 			return com.liferay.portal.model.GroupSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static java.lang.String getGroupDisplayURL(long groupId,
+		boolean privateLayout, boolean secureConnection)
+		throws RemoteException {
+		try {
+			java.lang.String returnValue = GroupServiceUtil.getGroupDisplayURL(groupId,
+					privateLayout, secureConnection);
+
+			return returnValue;
 		}
 		catch (Exception e) {
 			_log.error(e, e);

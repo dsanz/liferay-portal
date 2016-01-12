@@ -134,22 +134,6 @@ public class OutputStreamContainerFactoryTracker {
 			outputStreamContainer.getOutputStream());
 	}
 
-	@Reference(
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY, unbind = "-"
-	)
-	public void setOutputStreamContainerFactory(
-		OutputStreamContainerFactory outputStreamContainerFactory) {
-
-		if (outputStreamContainerFactory == null) {
-			_outputStreamContainerFactory =
-				new ConsoleOutputStreamContainerFactory();
-		}
-		else {
-			_outputStreamContainerFactory = outputStreamContainerFactory;
-		}
-	}
-
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_logger = new org.apache.felix.utils.log.Logger(bundleContext);
@@ -179,9 +163,13 @@ public class OutputStreamContainerFactoryTracker {
 	protected void deactivate() {
 		Logger rootLogger = Logger.getRootLogger();
 
-		rootLogger.removeAppender(_writerAppender);
+		if (_outputStreamContainerFactory != null) {
+			_outputStreamContainerFactories.close();
+		}
 
-		_outputStreamContainerFactories.close();
+		if (rootLogger != null) {
+			rootLogger.removeAppender(_writerAppender);
+		}
 	}
 
 	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind ="-")
@@ -189,10 +177,29 @@ public class OutputStreamContainerFactoryTracker {
 		ModuleServiceLifecycle moduleServiceLifecycle) {
 	}
 
+	@Reference(
+		policy = ReferencePolicy.DYNAMIC,
+		policyOption = ReferencePolicyOption.GREEDY
+	)
+	protected void setOutputStreamContainerFactory(
+		OutputStreamContainerFactory outputStreamContainerFactory) {
+
+		_outputStreamContainerFactory = outputStreamContainerFactory;
+	}
+
+	protected void unsetOutputStreamContainerFactory(
+		OutputStreamContainerFactory outputStreamContainerFactory) {
+
+		_outputStreamContainerFactory = _consoleOutputStreamContainerFactory;
+	}
+
+	private final OutputStreamContainerFactory
+		_consoleOutputStreamContainerFactory =
+			new ConsoleOutputStreamContainerFactory();
 	private org.apache.felix.utils.log.Logger _logger;
 	private ServiceTrackerMap<String, OutputStreamContainerFactory>
 		_outputStreamContainerFactories;
-	private volatile OutputStreamContainerFactory _outputStreamContainerFactory;
+	private OutputStreamContainerFactory _outputStreamContainerFactory;
 	private WriterAppender _writerAppender;
 	private final ThreadLocal<Writer> _writerThreadLocal = new ThreadLocal<>();
 

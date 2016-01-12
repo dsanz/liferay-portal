@@ -52,6 +52,13 @@ public class LayoutSetPrototypePortletDataHandler
 
 	public static final String NAMESPACE = "layout_set_prototypes";
 
+	public static final String SCHEMA_VERSION = "1.0.0";
+
+	@Override
+	public String getSchemaVersion() {
+		return SCHEMA_VERSION;
+	}
+
 	@Activate
 	protected void activate() {
 		setDataLevel(DataLevel.PORTAL);
@@ -156,7 +163,6 @@ public class LayoutSetPrototypePortletDataHandler
 		ModuleServiceLifecycle moduleServiceLifecycle) {
 	}
 
-	private volatile LayoutSetPrototypeLocalService
-		_layoutSetPrototypeLocalService;
+	private LayoutSetPrototypeLocalService _layoutSetPrototypeLocalService;
 
 }

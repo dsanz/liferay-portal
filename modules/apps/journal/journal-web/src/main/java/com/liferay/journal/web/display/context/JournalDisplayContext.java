@@ -19,6 +19,7 @@ import com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.Fields;
 import com.liferay.dynamic.data.mapping.util.FieldsToDDMFormValuesConverterUtil;
+import com.liferay.frontend.taglib.servlet.taglib.util.ManagementBarFilterItem;
 import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.constants.JournalWebKeys;
 import com.liferay.journal.model.JournalArticle;
@@ -51,14 +52,17 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.service.WorkflowDefinitionLinkLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.PortalPreferences;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portlet.PortletURLUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.portlet.PortletException;
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletURL;
 
@@ -240,12 +244,66 @@ public class JournalDisplayContext {
 		return _keywords;
 	}
 
+	public List<ManagementBarFilterItem> getManagementBarStatusFilterItems()
+		throws PortalException, PortletException {
+
+		List<ManagementBarFilterItem> managementBarFilterItems =
+			new ArrayList<>();
+
+		String parameterName = "status";
+		PortletURL portletURL = PortletURLUtil.clone(
+			getPortletURL(), _liferayPortletResponse);
+
+		managementBarFilterItems.add(
+			getManagementBarFilterItem(
+				parameterName, portletURL, WorkflowConstants.STATUS_ANY));
+		managementBarFilterItems.add(
+			getManagementBarFilterItem(
+				parameterName, portletURL, WorkflowConstants.STATUS_DRAFT));
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		int workflowDefinitionLinksCount =
+			WorkflowDefinitionLinkLocalServiceUtil.
+				getWorkflowDefinitionLinksCount(
+					themeDisplay.getCompanyId(), themeDisplay.getScopeGroupId(),
+					JournalFolder.class.getName());
+
+		if (workflowDefinitionLinksCount > 0) {
+			managementBarFilterItems.add(
+				getManagementBarFilterItem(
+					parameterName, portletURL,
+					WorkflowConstants.STATUS_PENDING));
+			managementBarFilterItems.add(
+				getManagementBarFilterItem(
+					parameterName, portletURL,
+					WorkflowConstants.STATUS_DENIED));
+		}
+
+		managementBarFilterItems.add(
+			getManagementBarFilterItem(
+				parameterName, portletURL, WorkflowConstants.STATUS_SCHEDULED));
+		managementBarFilterItems.add(
+			getManagementBarFilterItem(
+				parameterName, portletURL, WorkflowConstants.STATUS_APPROVED));
+		managementBarFilterItems.add(
+			getManagementBarFilterItem(
+				parameterName, portletURL, WorkflowConstants.STATUS_EXPIRED));
+
+		return managementBarFilterItems;
+	}
+
+	public String getManagementBarStatusFilterValue() {
+		return WorkflowConstants.getStatusLabel(getStatus());
+	}
+
 	public String getNavigation() {
 		if (_navigation != null) {
 			return _navigation;
 		}
 
-		_navigation = ParamUtil.getString(_request, "navigation", "home");
+		_navigation = ParamUtil.getString(_request, "navigation", "all");
 
 		return _navigation;
 	}
@@ -280,7 +338,7 @@ public class JournalDisplayContext {
 
 		_orderByType = ParamUtil.getString(_request, "orderByType");
 
-		if (Validator.isNull(_orderByCol)) {
+		if (Validator.isNull(_orderByType)) {
 			_orderByType = _portalPreferences.getValue(
 				JournalPortletKeys.JOURNAL, "order-by-type", "asc");
 		}
@@ -310,8 +368,14 @@ public class JournalDisplayContext {
 
 		String ddmStructureKey = getDDMStructureKey();
 
-		if (!ddmStructureKey.equals("0")) {
+		if (isNavigationStructure()) {
 			portletURL.setParameter("ddmStructureKey", ddmStructureKey);
+		}
+
+		String status = ParamUtil.getString(_request, "status");
+
+		if (Validator.isNotNull(status)) {
+			portletURL.setParameter("status", String.valueOf(getStatus()));
 		}
 
 		String deltaEntry = ParamUtil.getString(_request, "deltaEntry");
@@ -390,13 +454,14 @@ public class JournalDisplayContext {
 		}
 		else if (Validator.isNotNull(getDDMStructureKey())) {
 			int total = JournalArticleServiceUtil.getArticlesCountByStructureId(
-				themeDisplay.getScopeGroupId(), getDDMStructureKey());
+				themeDisplay.getScopeGroupId(), getDDMStructureKey(),
+				getStatus());
 
 			articleSearchContainer.setTotal(total);
 
 			List results = JournalArticleServiceUtil.getArticlesByStructureId(
 				themeDisplay.getScopeGroupId(), getDDMStructureKey(),
-				articleSearchContainer.getStart(),
+				getStatus(), articleSearchContainer.getStart(),
 				articleSearchContainer.getEnd(),
 				articleSearchContainer.getOrderByComparator());
 
@@ -432,8 +497,7 @@ public class JournalDisplayContext {
 		}
 		else {
 			int total = JournalFolderServiceUtil.getFoldersAndArticlesCount(
-				themeDisplay.getScopeGroupId(), themeDisplay.getUserId(),
-				getFolderId(), getStatus());
+				themeDisplay.getScopeGroupId(), 0, getFolderId(), getStatus());
 
 			articleSearchContainer.setTotal(total);
 
@@ -455,8 +519,8 @@ public class JournalDisplayContext {
 			}
 
 			List results = JournalFolderServiceUtil.getFoldersAndArticles(
-				themeDisplay.getScopeGroupId(), themeDisplay.getUserId(),
-				getFolderId(), getStatus(), articleSearchContainer.getStart(),
+				themeDisplay.getScopeGroupId(), 0, getFolderId(), getStatus(),
+				articleSearchContainer.getStart(),
 				articleSearchContainer.getEnd(), folderOrderByComparator);
 
 			articleSearchContainer.setResults(results);
@@ -491,7 +555,7 @@ public class JournalDisplayContext {
 	}
 
 	public boolean isNavigationHome() {
-		if (Validator.equals(getNavigation(), "home")) {
+		if (Validator.equals(getNavigation(), "all")) {
 			return true;
 		}
 
@@ -514,6 +578,14 @@ public class JournalDisplayContext {
 		return false;
 	}
 
+	public boolean isNavigationStructure() {
+		if (Validator.equals(getNavigation(), "structure")) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public boolean isSearch() {
 		if (Validator.isNotNull(getKeywords())) {
 			return true;
@@ -523,9 +595,7 @@ public class JournalDisplayContext {
 	}
 
 	public boolean isShowBreadcrumb() {
-		String browseBy = ParamUtil.getString(_request, "browseBy");
-
-		if (Validator.isNotNull(browseBy)) {
+		if (isNavigationStructure()) {
 			return false;
 		}
 
@@ -607,6 +677,15 @@ public class JournalDisplayContext {
 		}
 
 		return displayStyle;
+	}
+
+	protected ManagementBarFilterItem getManagementBarFilterItem(
+		String parameterName, PortletURL portletURL, int status) {
+
+		portletURL.setParameter(parameterName, String.valueOf(status));
+
+		return new ManagementBarFilterItem(
+			WorkflowConstants.getStatusLabel(status), portletURL.toString());
 	}
 
 	private JournalArticle _article;

@@ -59,8 +59,7 @@ public class ControlPanelCategory extends BasePanelCategory {
 	}
 
 	@Override
-	public boolean hasAccessPermission(
-			PermissionChecker permissionChecker, Group group)
+	public boolean isShow(PermissionChecker permissionChecker, Group group)
 		throws PortalException {
 
 		if (PortalPermissionUtil.contains(
@@ -77,6 +76,6 @@ public class ControlPanelCategory extends BasePanelCategory {
 		_panelAppRegistry = panelAppRegistry;
 	}
 
-	private volatile PanelAppRegistry _panelAppRegistry;
+	private PanelAppRegistry _panelAppRegistry;
 
 }

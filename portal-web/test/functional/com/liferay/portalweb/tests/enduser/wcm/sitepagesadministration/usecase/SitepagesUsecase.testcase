@@ -50,15 +50,15 @@
 	<command name="AddSitePageXSS" priority="3">
 		<var name="sitePage3Name"><![CDATA[<script>alert("Site Page 3")</script> />]]></var>
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Site Page 1" />
 		</execute>
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Site Page 2" />
 		</execute>
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="${sitePage3Name}" />
 		</execute>
 
@@ -89,9 +89,9 @@
 			<var name="page" value="Private Pages" />
 		</execute>
 
-		<execute macro="SitePage#addCP">
+		<execute macro="Page#add">
 			<var name="page" value="Private Pages" />
-			<var name="sitePageName" value="Site Page Name" />
+			<var name="pageName" value="Site Page Name" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
 
@@ -118,9 +118,9 @@
 			<var name="page" value="Public Pages" />
 		</execute>
 
-		<execute macro="SitePage#addCP">
+		<execute macro="Page#add">
 			<var name="page" value="Public Pages" />
-			<var name="sitePageName" value="Site Page Name" />
+			<var name="pageName" value="Site Page Name" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
 
@@ -146,16 +146,16 @@
 			<var name="page" value="Public Pages" />
 		</execute>
 
-		<execute macro="SitePage#addCP">
+		<execute macro="Page#add">
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Site Page1 Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="sitePageName" value="Site Page1 Name" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
 
-		<execute macro="SitePage#addCP">
+		<execute macro="Page#add">
 			<var name="page" value="Public Pages" />
-			<var name="sitePageName" value="Site Page2 Name" />
+			<var name="pageName" value="Site Page2 Name" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
 
@@ -163,7 +163,7 @@
 			<var name="portlet" value="Sites" />
 		</execute>
 
-		<execute macro="SitePage#addChildCP">
+		<execute macro="Page#addChild">
 			<var name="childSitepageName" value="true" />
 			<var name="page" value="Public Pages" />
 			<var name="siteChildPageName" value="Child Page Name" />
@@ -198,7 +198,7 @@
 	</command>
 
 	<command name="DefaultLanguageWithEmptyFriendlyURLThrowsErrorExceptions" priority="3">
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Page Name" />
 		</execute>
 
@@ -235,7 +235,7 @@
 		<var name="pageNameList" value="Page1 Name,Page2 Name,Page3 Name,Page4 Name" />
 
 		<for list="${pageNameList}" param="pageName">
-			<execute macro="Page#addPG">
+			<execute macro="Page#add">
 				<var name="pageName" value="${pageName}" />
 			</execute>
 		</for>
@@ -249,7 +249,7 @@
 		</execute>
 
 		<for list="${childPageNameList}" param="siteChildPageName">
-			<execute macro="SitePage#addChildCP">
+			<execute macro="Page#addChild">
 				<var name="page" value="Public Pages" />
 				<var name="siteChildPageName" value="${siteChildPageName}" />
 				<var name="sitePageName" value="Welcome" />
@@ -267,8 +267,8 @@
 	</command>
 
 	<command name="SitesPanelLayout" priority="3">
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#addCP">
@@ -278,8 +278,8 @@
 			<var name="userScreenName" value="usersn" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#editPasswordCP">
@@ -292,10 +292,10 @@
 			<var name="userEmailAddress" value="userea@liferay.com" />
 		</execute>
 
-		<execute macro="Page#gotoMyProfile" />
+		<execute macro="UserBar#gotoProfile" />
 
 		<execute macro="ProductMenu#gotoSitesPages">
-			<var name="page" value="My Profile" />
+			<var name="page" value="Profile" />
 		</execute>
 
 		<execute macro="SitePageNavigator#gotoAddPage" />
@@ -319,8 +319,8 @@
 	<command name="SitesPrivatePagesPermissions" priority="4">
 		<var name="sitePageName" value="Site Page" />
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Sites" />
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Sites" />
 		</execute>
 
 		<execute macro="Site#addCommunityCP">
@@ -333,23 +333,23 @@
 			<var name="siteScopeName" value="Site Name" />
 		</execute>
 
-		<execute macro="SitePage#addCP">
+		<execute macro="Page#add">
 			<var name="page" value="Private Pages" />
+			<var name="pageName" value="Site Page" />
 			<var name="siteName" value="Site Name" />
-			<var name="sitePageName" value="Site Page" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Roles" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Roles" />
 		</execute>
 
 		<execute macro="Role#addCP">
 			<var name="roleName" value="Roles Regrole Name" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#addCP">
@@ -359,8 +359,8 @@
 			<var name="userScreenName" value="usersn" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#editPasswordCP">
@@ -368,8 +368,8 @@
 			<var name="userScreenName" value="usersn" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#editUserSiteCP">
@@ -377,8 +377,8 @@
 			<var name="userScreenName" value="usersn" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#assignRegularRoleCP">
@@ -474,7 +474,7 @@
 	</command>
 
 	<command name="ViewSecureContentAndPageAsGuest" priority="3">
-		<execute macro="ProductMenu#gotoControlPanelSystem">
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="Server Administration" />
 		</execute>
 
@@ -483,8 +483,8 @@
 			<var method="TestPropsUtil#get('email.password.1')" name="userPassword" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#addCP">
@@ -494,8 +494,8 @@
 			<var name="userScreenName" value="usersn1" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Roles" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Roles" />
 		</execute>
 
 		<execute macro="Role#assignRegRoleCP">
@@ -503,8 +503,8 @@
 			<var name="userScreenName" value="usersn1" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#editPasswordCP">
@@ -512,17 +512,17 @@
 			<var name="userScreenName" value="usersn1" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Sites" />
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Sites" />
 		</execute>
 
-		<execute macro="SitePage#addCP">
+		<execute macro="Page#add">
 			<var name="page" value="Private Pages" />
+			<var name="pageName" value="Private Page" />
 			<var name="siteName" value="Liferay" />
-			<var name="sitePageName" value="Private Page" />
 		</execute>
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Blog and Message Board Page" />
 		</execute>
 
@@ -677,7 +677,7 @@
 	</command>
 
 	<command name="ViewSecureContentAndPageAsSiteMember" priority="3">
-		<execute macro="ProductMenu#gotoControlPanelSystem">
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="Server Administration" />
 		</execute>
 
@@ -686,8 +686,8 @@
 			<var method="TestPropsUtil#get('email.password.1')" name="userPassword" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#addCP">
@@ -704,8 +704,8 @@
 			<var name="userScreenName" value="usersn2" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Roles" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Roles" />
 		</execute>
 
 		<execute macro="Role#assignRegRoleCP">
@@ -713,8 +713,8 @@
 			<var name="userScreenName" value="usersn1" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="Site#assignUserSitesCP">
@@ -722,8 +722,8 @@
 			<var name="userScreenName" value="usersn2" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#editPasswordCP">
@@ -731,8 +731,8 @@
 			<var name="userScreenName" value="usersn1" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#editPasswordCP">
@@ -740,17 +740,17 @@
 			<var name="userScreenName" value="usersn2" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Sites" />
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Sites" />
 		</execute>
 
-		<execute macro="SitePage#addCP">
+		<execute macro="Page#add">
 			<var name="page" value="Private Pages" />
+			<var name="pageName" value="Private Page" />
 			<var name="siteName" value="Liferay" />
-			<var name="sitePageName" value="Private Page" />
 		</execute>
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Blog and Message Board Page" />
 		</execute>
 
@@ -927,7 +927,7 @@
 	</command>
 
 	<command name="ViewSecureContentAndPageAsUser" priority="3">
-		<execute macro="ProductMenu#gotoControlPanelSystem">
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="Server Administration" />
 		</execute>
 
@@ -936,8 +936,8 @@
 			<var method="TestPropsUtil#get('email.password.1')" name="userPassword" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#addCP">
@@ -954,8 +954,8 @@
 			<var name="userScreenName" value="usersn2" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Roles" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Roles" />
 		</execute>
 
 		<execute macro="Role#assignRegRoleCP">
@@ -963,8 +963,8 @@
 			<var name="userScreenName" value="usersn1" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#editPasswordCP">
@@ -972,8 +972,8 @@
 			<var name="userScreenName" value="usersn1" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Users and Organizations" />
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
 		<execute macro="User#editPasswordCP">
@@ -981,17 +981,17 @@
 			<var name="userScreenName" value="usersn2" />
 		</execute>
 
-		<execute macro="Page#gotoCP">
-			<var name="portletName" value="Sites" />
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Sites" />
 		</execute>
 
-		<execute macro="SitePage#addCP">
+		<execute macro="Page#add">
 			<var name="page" value="Private Pages" />
+			<var name="pageName" value="Private Page" />
 			<var name="siteName" value="Liferay" />
-			<var name="sitePageName" value="Private Page" />
 		</execute>
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Blog and Message Board Page" />
 		</execute>
 
@@ -1151,7 +1151,7 @@
 	</command>
 
 	<command name="WebContentAdministrationSitesPagesPanel" priority="3">
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="componentName" value="Collaboration" />
 			<var name="pageName" value="Panel Test Page" />
 			<var name="pageType" value="Panel" />
@@ -1232,18 +1232,18 @@
 			<var name="page" value="Public Pages" />
 		</execute>
 
-		<execute macro="SitePage#addCP">
+		<execute macro="Page#add">
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Blank Page" />
 			<var name="siteName" value="Page Type Test Site Name" />
-			<var name="sitePageName" value="Blank Page" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
 
-		<execute macro="SitePage#addCP">
+		<execute macro="Page#add">
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Link to URL Page" />
 			<var name="pageTypeURL" value="https://www.google.com/" />
 			<var name="siteName" value="Page Type Test Site Name" />
-			<var name="sitePageName" value="Link to URL Page" />
 			<var name="sitePageType" value="Link to URL" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
@@ -1252,20 +1252,20 @@
 			<var name="sitePageName" value="Blank Page" />
 		</execute>
 
-		<execute macro="SitePage#addCP">
+		<execute macro="Page#add">
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Embedded Page" />
 			<var name="pageTypeURL" value="http://iscaliforniaonfire.com/" />
 			<var name="siteName" value="Page Type Test Site Name" />
-			<var name="sitePageName" value="Embedded Page" />
 			<var name="sitePageType" value="Embedded" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
 
-		<execute macro="SitePage#addCP">
+		<execute macro="Page#add">
 			<var name="componentName" value="Community" />
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Panel Page" />
 			<var name="siteName" value="Page Type Test Site Name" />
-			<var name="sitePageName" value="Panel Page" />
 			<var name="sitePageType" value="Panel" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>

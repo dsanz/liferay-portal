@@ -153,8 +153,9 @@ public class RubySassCompiler implements AutoCloseable, SassCompiler {
 
 			String[] results = _scriptingContainer.callMethod(
 				_scriptObject, "process",
-				new Object[] {inputFileName, includeDirNames, _tmpDirName,
-					false, outputFileName, _precision, generateSourceMap,
+				new Object[] {
+					inputFileName, includeDirNames, _tmpDirName, false,
+					outputFileName, _precision, generateSourceMap,
 					sourceMapFileName
 				},
 				String[].class);
@@ -185,8 +186,9 @@ public class RubySassCompiler implements AutoCloseable, SassCompiler {
 
 	@Override
 	public String compileString(
-		String input, String inputFileName, String includeDirName,
-		boolean generateSourceMap) throws RubySassCompilerException {
+			String input, String inputFileName, String includeDirName,
+			boolean generateSourceMap)
+		throws RubySassCompilerException {
 
 		return compileString(
 			input, inputFileName, includeDirName, generateSourceMap, "");
@@ -265,7 +267,7 @@ public class RubySassCompiler implements AutoCloseable, SassCompiler {
 		}
 
 		try (Writer writer = new OutputStreamWriter(
-			new FileOutputStream(file, false), "UTF-8")) {
+				new FileOutputStream(file, false), "UTF-8")) {
 
 			writer.write(string);
 		}

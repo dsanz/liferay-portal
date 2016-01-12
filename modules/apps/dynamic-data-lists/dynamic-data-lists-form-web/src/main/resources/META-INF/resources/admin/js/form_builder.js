@@ -23,6 +23,9 @@ AUI.add(
 						}
 					},
 
+					dataProviders: {
+					},
+
 					definition: {
 						validator: Lang.isObject
 					},
@@ -105,6 +108,7 @@ AUI.add(
 								fieldType.get('defaultConfig'),
 								{
 									builder: instance,
+									dataProviders: instance.get('dataProviders'),
 									portletNamespace: instance.get('portletNamespace')
 								}
 							)
@@ -164,7 +168,10 @@ AUI.add(
 
 						instance.showFieldSettingsPanel(
 							instance.createField(fieldType),
-							fieldType.get('label')
+							Lang.sub(
+								Liferay.Language.get('add-x-field'),
+								[fieldType.get('label')]
+							)
 						);
 					},
 
@@ -332,6 +339,9 @@ AUI.add(
 								modal: true,
 								portletNamespace: instance.get('portletNamespace'),
 								resizable: false,
+								strings: {
+									addField: Liferay.Language.get('choose-field')
+								},
 								visible: false
 							}
 						);

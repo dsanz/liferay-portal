@@ -21,18 +21,21 @@ import com.liferay.configuration.admin.ConfigurationAdmin;
 /**
  * @author Michael C. Han
  */
-@ConfigurationAdmin(category = "platform")
+@ConfigurationAdmin(
+	category = "platform", factoryInstanceLabelAttribute = "companyId",
+	scope = ConfigurationAdmin.Scope.COMPANY
+)
 @Meta.OCD(
 	factory = true,
 	id = "com.liferay.portal.ldap.configuration.LDAPServerConfiguration",
-	localization = "content/Language"
+	localization = "content/Language", name = "%ldap.server.configuration.name"
 )
 public interface LDAPServerConfiguration {
 
 	@Meta.AD(deflt = "(mail=@email_address@)", required = false)
 	public String authSearchFilter();
 
-	@Meta.AD(deflt = "dc=example,dc=com", required = false)
+	@Meta.AD(deflt = "", required = false)
 	public String baseDN();
 
 	@Meta.AD(deflt = "ldap://localhost:10389", required = false)
@@ -65,10 +68,7 @@ public interface LDAPServerConfiguration {
 	)
 	public String[] groupMappings();
 
-	@Meta.AD(
-		deflt = "ou=groups,dc=example,dc=com", description = "%groups-dn-help",
-		required = false
-	)
+	@Meta.AD(deflt = "", description = "%groups-dn-help", required = false)
 	public String groupsDN();
 
 	@Meta.AD(
@@ -89,7 +89,7 @@ public interface LDAPServerConfiguration {
 	@Meta.AD(deflt = "secret", required = false)
 	public String securityCredential();
 
-	@Meta.AD(deflt = "uid=admin,ou=system", required = false)
+	@Meta.AD(deflt = "", required = false)
 	public String securityPrincipal();
 
 	@Meta.AD(deflt = "", required = false)
@@ -118,10 +118,7 @@ public interface LDAPServerConfiguration {
 	)
 	public String[] userMappings();
 
-	@Meta.AD(
-		deflt = "users,dc=example,dc=com", description = "%users-dn-help",
-		required = false
-	)
+	@Meta.AD(deflt = "", description = "%users-dn-help", required = false)
 	public String usersDN();
 
 	@Meta.AD(

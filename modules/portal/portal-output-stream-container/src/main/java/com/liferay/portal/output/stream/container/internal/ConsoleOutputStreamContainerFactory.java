@@ -25,10 +25,7 @@ import org.osgi.service.component.annotations.Component;
 /**
  * @author Carlos Sierra Andrés
  */
-@Component(
-	immediate = true,
-	property = {"name=console", "service.ranking:Integer=100"}
-)
+@Component(immediate = true, property = {"service.ranking:Integer=100"})
 public class ConsoleOutputStreamContainerFactory
 	implements OutputStreamContainerFactory {
 

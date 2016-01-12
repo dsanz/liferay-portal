@@ -20,12 +20,6 @@
 String redirect = ParamUtil.getString(request, "redirect", currentURL);
 
 DDLRecordSet recordSet = ddlFormDisplayContext.getRecordSet();
-
-boolean published = false;
-
-if (recordSet != null) {
-	published = GetterUtil.getBoolean(recordSet.getSettingsProperty("published", Boolean.FALSE.toString()));
-}
 %>
 
 <c:choose>
@@ -36,14 +30,14 @@ if (recordSet != null) {
 	</c:when>
 	<c:otherwise>
 		<c:choose>
-			<c:when test="<%= published %>">
+			<c:when test="<%= ddlFormDisplayContext.isFormAvailable() %>">
 				<portlet:actionURL name="addRecord" var="addRecordActionURL" />
 
 				<div class="portlet-forms">
 					<aui:form action="<%= addRecordActionURL %>" method="post" name="fm">
 
 						<%
-						String redirectURL = GetterUtil.getString(recordSet.getSettingsProperty("redirectURL", StringPool.BLANK));
+						String redirectURL = ddlFormDisplayContext.getRedirectURL();
 						%>
 
 						<c:if test="<%= Validator.isNull(redirectURL) %>">

@@ -257,7 +257,7 @@ if (Validator.isNotNull(requestUpdateStructureURL)) {
 										<aui:select disabled="<%= structure != null %>" name="storageType">
 
 										<%
-										for (StorageType storageType : StorageType.values()) {
+										for (String storageType : StorageType.getTypes()) {
 										%>
 
 											<aui:option label="<%= storageType %>" value="<%= storageType %>" />
@@ -276,7 +276,7 @@ if (Validator.isNotNull(requestUpdateStructureURL)) {
 						</c:choose>
 					</aui:row>
 
-				<c:if test="<%= !ddmServiceConfiguration.autogenerateStructureKey() %>">
+				<c:if test="<%= !ddmWebConfiguration.autogenerateStructureKey() %>">
 					<aui:input disabled="<%= (structure != null) ? true : false %>" label='<%= LanguageUtil.format(request, "x-key", ddmDisplay.getStructureName(locale), false) %>' name="structureKey" />
 				</c:if>
 
@@ -311,13 +311,13 @@ if (Validator.isNotNull(requestUpdateStructureURL)) {
 	<%@ include file="/form_builder.jspf" %>
 
 	<aui:button-row>
-		<aui:button onClick='<%= renderResponse.getNamespace() + "saveStructure(false);" %>' primary="<%= true %>" value='<%= LanguageUtil.get(request, "save") %>' />
+		<aui:button cssClass="btn-lg" onClick='<%= renderResponse.getNamespace() + "saveStructure(false);" %>' primary="<%= true %>" value='<%= LanguageUtil.get(request, "save") %>' />
 
 		<c:if test="<%= ddmDisplay.isVersioningEnabled() %>">
-			<aui:button onClick='<%= renderResponse.getNamespace() + "saveStructure(true);" %>' value='<%= LanguageUtil.get(request, "save-draft") %>' />
+			<aui:button cssClass="btn-lg" onClick='<%= renderResponse.getNamespace() + "saveStructure(true);" %>' value='<%= LanguageUtil.get(request, "save-draft") %>' />
 		</c:if>
 
-		<aui:button href="<%= redirect %>" type="cancel" />
+		<aui:button cssClass="btn-lg" href="<%= redirect %>" type="cancel" />
 	</aui:button-row>
 </div>
 

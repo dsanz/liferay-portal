@@ -40,7 +40,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"control.menu.category.key=" + ControlMenuCategoryKeys.TOOLS,
-		"service.ranking:Integer=100"
+		"service.ranking:Integer=200"
 	},
 	service = ControlMenuEntry.class
 )
@@ -53,9 +53,7 @@ public class AddContentControlMenuEntry
 	}
 
 	@Override
-	public boolean hasAccessPermission(HttpServletRequest request)
-		throws PortalException {
-
+	public boolean isShow(HttpServletRequest request) throws PortalException {
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -72,7 +70,7 @@ public class AddContentControlMenuEntry
 			return false;
 		}
 
-		return super.hasAccessPermission(request);
+		return super.isShow(request);
 	}
 
 	@Override

@@ -124,8 +124,8 @@ public class DownloadFilesHandler extends BaseHandler {
 				if (_logger.isTraceEnabled()) {
 					_logger.trace(
 						"Handling response {} file path {}",
-							DownloadFileHandler.class.getSimpleName(),
-							syncFile.getFilePathName());
+						DownloadFileHandler.class.getSimpleName(),
+						syncFile.getFilePathName());
 				}
 
 				try {
@@ -137,6 +137,9 @@ public class DownloadFilesHandler extends BaseHandler {
 					if (!isEventCancelled()) {
 						_logger.error(e.getMessage(), e);
 					}
+				}
+				finally {
+					downloadFileHandler.removeEvent();
 				}
 			}
 		}

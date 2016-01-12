@@ -10,7 +10,17 @@
 <tbody>
 <tr>
 	<td>TOGGLE</td>
-	<td>//a[contains(@class,'sidenav-toggler')]/span</td>
+	<td>//*[@data-qa-id='productMenu']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_PLUS_ICON_COLLAPSED</td>
+	<td>//ul[contains(@class,'tree-container')]//span[contains(@class,'icon-plus') and not (contains(@class,'hidden'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_PLUS_ICON_EXPANDED</td>
+	<td>//ul[contains(@class,'tree-container')]//span[contains(@class,'tree-hitarea') and contains(@class,'icon-minus')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -39,6 +49,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>GO_TO_SITES_LINK</td>
+	<td>//a[contains(.,'Go to Site')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CATEGORY_COLLAPSED</td>
 	<td>//div[div[@aria-expanded='true']]/../..//a[@aria-expanded='false' and contains(.,'${key_category}')]</td>
 	<td></td>
@@ -50,22 +65,42 @@
 </tr>
 <tr>
 	<td>PRIVATE_PAGES</td>
-	<td>//div[contains(@id,'privateLayoutsTreeOutput')]//span[contains(.,'Private Pages')]</td>
+	<td>//*[@data-qa-id='goToPrivatePages']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PUBLIC_PAGES</td>
-	<td>//div[contains(@id,'publicLayoutsTreeOutput')]//span[contains(.,'Public Pages')]</td>
+	<td>//*[@data-qa-id='goToPublicPages']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGES</td>
-	<td>//div[@class='list-group-item']//span[contains(.,'${key_page}')]</td>
+	<td>//div[@class='list-group-item']//span[contains(.,'${key_page}')]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_PAGE_ICON</td>
+	<td>//span/*[name()='a' or 'span'][contains(.,'${key_page}')]/..//span/*[name()='svg'][contains(@class,'icon-plus')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_PUBLIC_PAGE_ICON</td>
+	<td>//*[@data-qa-id='addPublicPage']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_PRIVATE_PAGE_ICON</td>
+	<td>//*[@data-qa-id='addPrivatePage']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_PAGE</td>
+	<td>//div[@class='list-group-item']//a[contains(@title,'Edit ${key_page}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PORTLET</td>
-	<td>//div[a[@aria-expanded='true']]//a[contains(@id,'Portlet') and contains(.,'${key_portlet}')]</td>
+	<td>//div[a[@aria-expanded='true']]//a[contains(@id,'Portlet') and contains(@data-title,'${key_portlet}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -75,12 +110,22 @@
 </tr>
 <tr>
 	<td>PRIVATE_SITE_LINK</td>
-	<td>//div[contains(@id,'my_sites')]//a[contains(@id,'PrivateSiteLink') and contains(.,'${key_site}')]</td>
+	<td>//div[contains(@class,'list-group-item-content') and contains (.,'Private')]//h5[contains(.,'${key_site}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PUBLIC_SITE_LINK</td>
-	<td>//div[contains(@id,'my_sites')]//a[contains(@id,'PublicSiteLink') and contains(.,'${key_site}')]</td>
+	<td>//div[contains(@class,'list-group-item-content') and contains (.,'Public')]//h5[contains(.,'${key_site}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>LIVE_LINK</td>
+	<td>//*[@data-qa-id='live']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>STAGING_LINK</td>
+	<td>//*[@data-qa-id='staging']</td>
 	<td></td>
 </tr>
 <tr>
@@ -110,7 +155,7 @@
 </tr>
 <tr>
 	<td>USER_PROFILE</td>
-	<td>//div[contains(@class,'nameplate')]//a[contains(.,'Profile')]</td>
+	<td>//div[contains(@class,'list-group')]//a[contains(.,'Profile')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -202,7 +247,7 @@
 </tr>
 <tr>
 	<td>PRODUCT_MENU_PANEL_SCOPE_COG</td>
-	<td>//div[contains(@class,'nav-equal-height-heading')]//i[contains(@class,'icon-cog')]</td>
+	<td>//div[contains(@class,'dropdown')]/a/span/*[name()='svg'][contains(@class,'lexicon-icon-cog')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -217,7 +262,7 @@
 </tr>
 <tr>
 	<td>PRODUCT_MENU_PANEL_SITE_ADMINISTRATION_SITE_NAME</td>
-	<td>//div[contains(@class,'toolbar-group-content') and contains(.,'${key_siteName}')]</td>
+	<td>//span[@class='site-name']</td>
 	<td></td>
 </tr>
 <tr>

@@ -311,6 +311,20 @@ public class StringUtil {
 		return true;
 	}
 
+	public static boolean containsIgnoreCase(String s, String text) {
+		return containsIgnoreCase(s, text, StringPool.COMMA);
+	}
+
+	public static boolean containsIgnoreCase(
+		String s, String text, String delimiter) {
+
+		if ((s == null) || (text == null) || (delimiter == null)) {
+			return false;
+		}
+
+		return contains(toLowerCase(s), toLowerCase(text), delimiter);
+	}
+
 	/**
 	 * Returns the number of times the text appears in the string.
 	 *
@@ -441,6 +455,8 @@ public class StringUtil {
 				continue;
 			}
 
+			// Fast fallback for non-acsii code.
+
 			if ((c1 > 127) || (c2 > 127)) {
 
 				// Georgian alphabet needs to check both upper and lower case
@@ -450,6 +466,14 @@ public class StringUtil {
 
 					continue;
 				}
+
+				return false;
+			}
+
+			// Fast fallback for non-letter ascii code
+
+			if ((c1 < CharPool.UPPER_CASE_A) || (c1 > CharPool.LOWER_CASE_Z) ||
+				(c2 < CharPool.UPPER_CASE_A) || (c2 > CharPool.LOWER_CASE_Z)) {
 
 				return false;
 			}
@@ -4705,6 +4729,13 @@ public class StringUtil {
 		int comparePoint = 0;
 
 		while (sIndex < s.length()) {
+			if (wildcardIndex == wildcard.length()) {
+
+				// Wildcard exhausted before s
+
+				return false;
+			}
+
 			char c = wildcard.charAt(wildcardIndex);
 
 			if (c == multipleWildcardCharacter) {

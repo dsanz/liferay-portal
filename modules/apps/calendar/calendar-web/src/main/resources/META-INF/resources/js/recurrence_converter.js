@@ -3,6 +3,8 @@ AUI.add(
 	function(A) {
 		var Lang = A.Lang;
 
+		var LString = Lang.String;
+
 		var EXDATE = 'EXDATE';
 
 		var RRULE = 'RRULE';
@@ -17,11 +19,9 @@ AUI.add(
 
 		var STR_SEMICOLON = ';';
 
-		var STR_ZERO = '0';
-
 		var WEEKLY = 'WEEKLY';
 
-		var padNumber = A.rbind('padNumber', A.Lang.String, 2);
+		var padNumber = A.rbind('padNumber', LString, 2);
 
 		var RecurrenceConverter = function() {
 		};
@@ -116,6 +116,7 @@ AUI.add(
 					var instance = this;
 
 					var components = A.Object.map(
+						rrule,
 						function(item, index) {
 							return index.toUpperCase() + STR_EQUALS + instance._encode(item);
 						}
@@ -145,7 +146,7 @@ AUI.add(
 
 					var exDate = null;
 
-					if (string && string.startsWith(EXDATE + STR_SEMICOLON)) {
+					if (string && LString.startsWith(string, EXDATE + STR_SEMICOLON)) {
 						exDate = string.slice(7);
 					}
 
@@ -153,9 +154,9 @@ AUI.add(
 				},
 
 				_parsePositionalByDay: function(string) {
-					var position = string.split(0, -2);
+					var position = string.slice(0, -2);
 
-					var dayOfWeek = string.split(-2);
+					var dayOfWeek = string.slice(-2);
 
 					return {
 						dayOfWeek: dayOfWeek,
@@ -168,7 +169,7 @@ AUI.add(
 
 					var rrule = null;
 
-					if (string && string.startsWith(RRULE + STR_COLON)) {
+					if (string && LString.startsWith(string, RRULE + STR_COLON)) {
 						string = string.slice(6);
 
 						var params = string.split(STR_SEMICOLON);

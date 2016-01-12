@@ -20,7 +20,7 @@ AUI.add(
 
 					strings: {
 						value: {
-							addAnOption: Liferay.Language.get('add-an-option')
+							addOptionMessage: Liferay.Language.get('enter-an-option')
 						}
 					},
 
@@ -174,7 +174,7 @@ AUI.add(
 
 						var value = instance.getValue();
 
-						if (value.length === 0) {
+						if (value.length === 0 && instance.get('required')) {
 							instance.showErrorMessage(Liferay.Language.get('please-add-at-least-one-option'));
 
 							instance.showValidationStatus();
@@ -298,7 +298,7 @@ AUI.add(
 						instance._mainField = new Liferay.DDM.Field.KeyValue(
 							{
 								enableEvaluations: false,
-								placeholder: strings.addAnOption,
+								placeholder: strings.addOptionMessage,
 								repeatable: true,
 								showLabel: false,
 								visibilityExpression: 'true'
