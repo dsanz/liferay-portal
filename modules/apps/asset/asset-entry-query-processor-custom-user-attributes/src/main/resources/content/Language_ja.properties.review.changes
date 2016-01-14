@@ -1,0 +1,3 @@
+custom-user-attributes=カスタムユーザー属性
+custom-user-attributes-help=Specifying the custom user attributes retrieves assets that have matching categorization. Categories must be from the global context.
+displayed-assets-must-match-these-custom-user-profile-attributes=表示されている資産は、これらのカスタム ユーザー プロファイル属性を一致しなければなりません。 (Automatic Translation)
