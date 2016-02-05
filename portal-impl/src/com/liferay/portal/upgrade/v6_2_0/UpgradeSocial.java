@@ -98,7 +98,7 @@ public class UpgradeSocial extends UpgradeProcess {
 		updateDLFileVersionActivities();
 		updateJournalActivities();
 		updateSOSocialActivities();
-		updateWikiPageActivities();
+		updateActivities();
 	}
 
 	protected Timestamp getUniqueModifiedDate(
@@ -389,61 +389,6 @@ public class UpgradeSocial extends UpgradeProcess {
 		runSQL("drop table SO_SocialActivity");
 	}
 
-	protected void updateWikiPageActivities() throws Exception {
-		long classNameId = PortalUtil.getClassNameId(
-			"com.liferay.wiki.model.WikiPage");
-
-		runSQL("delete from SocialActivity where classNameId = " + classNameId);
-
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			Set<String> keys = new HashSet<>();
-
-			con = DataAccess.getUpgradeOptimizedConnection();
-
-			ps = con.prepareStatement(
-				"select groupId, companyId, userId, modifiedDate, " +
-					"resourcePrimKey, version from WikiPage");
-
-			rs = ps.executeQuery();
-
-			while (rs.next()) {
-				long groupId = rs.getLong("groupId");
-				long companyId = rs.getLong("companyId");
-				long userId = rs.getLong("userId");
-				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
-				long resourcePrimKey = rs.getLong("resourcePrimKey");
-				double version = rs.getDouble("version");
-
-				int type = 1;
-
-				if (version > 1.0) {
-					type = 2;
-				}
-
-				modifiedDate = getUniqueModifiedDate(
-					keys, groupId, userId, modifiedDate, classNameId,
-					resourcePrimKey, type);
-
-				JSONObject extraDataJSONObject =
-					JSONFactoryUtil.createJSONObject();
-
-				extraDataJSONObject.put("version", version);
-
-				addActivity(
-					increment(), groupId, companyId, userId, modifiedDate, 0,
-					classNameId, resourcePrimKey, type,
-					extraDataJSONObject.toString(), 0);
-			}
-		}
-		finally {
-			DataAccess.cleanUp(con, ps, rs);
-		}
-	}
-
 	protected Map<Long, String> _extraDataMap = new HashMap<Long, String>();
 
 	protected static final List<ExtraDataGenerator>
@@ -492,4 +437,49 @@ public class UpgradeSocial extends UpgradeProcess {
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(UpgradeSocial.class);
+
+	private static final ExtraDataGenerator _wikiPageExtraDataGenerator =
+		new ExtraDataGenerator() {
+			public String getActivityQueryWhereClause() {
+				return "classNameId = ?";
+			}
+
+			public String getEntityQuery() {
+				return "select title, version from WikiPage where" +
+					" companyId = ? and groupId = ? and resourcePrimKey = ?";
+			}
+
+			public void setEntityQueryParameters(
+					PreparedStatement ps, long companyId, long groupId,
+					long userId, long classNameId, long classPK, int type)
+				throws SQLException {
+
+				ps.setLong(1, companyId);
+				ps.setLong(2, groupId);
+				ps.setLong(3, classPK);
+			}
+
+			public void setActivityQueryParameters(PreparedStatement ps)
+				throws SQLException {
+
+				ps.setLong(1, PortalUtil.getClassNameId(
+					"com.liferay.wiki.model.WikiPage"));
+			}
+
+			public JSONObject getExtraData(
+					ResultSet entityResultSet, String extraData)
+				throws SQLException {
+
+				JSONObject result = JSONFactoryUtil.createJSONObject();
+
+				result.put("title", entityResultSet.getString("title"));
+				result.put("version", entityResultSet.getDouble("version"));
+
+				return result;
+			}
+		};
+
+	static {
+		_extraDataGenerators.add(_wikiPageExtraDataGenerator);
+	}
 }
