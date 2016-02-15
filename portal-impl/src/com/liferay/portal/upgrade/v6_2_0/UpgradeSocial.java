@@ -27,6 +27,8 @@ import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.social.DLActivityKeys;
 
+import com.liferay.wiki.social.WikiActivityKeys;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -344,7 +346,7 @@ public class UpgradeSocial extends UpgradeProcess {
 	private static final ExtraDataGenerator _wikiPageExtraDataGenerator =
 		new ExtraDataGenerator() {
 			public String getActivityQueryWhereClause() {
-				return "classNameId = ?";
+				return "classNameId = ? and ( type_= ? or type_ = ?)";
 			}
 
 			public String getEntityQuery() {
@@ -367,6 +369,10 @@ public class UpgradeSocial extends UpgradeProcess {
 
 				ps.setLong(1, PortalUtil.getClassNameId(
 					"com.liferay.wiki.model.WikiPage"));
+
+				ps.setInt(2, WikiActivityKeys.ADD_PAGE);
+
+				ps.setInt(3, WikiActivityKeys.UPDATE_PAGE);
 			}
 
 			public JSONObject getExtraData(
