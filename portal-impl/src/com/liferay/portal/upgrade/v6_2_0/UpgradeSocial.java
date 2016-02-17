@@ -193,7 +193,21 @@ public class UpgradeSocial extends UpgradeProcess {
 		long classNameId = PortalUtil.getClassNameId(
 			"com.liferay.portlet.journal.model.JournalArticle");
 
+		String[] tableNames = {"SocialActivity", "SocialActivityCounter"};
 
+		for (String tableName : tableNames) {
+			StringBundler sb = new StringBundler(7);
+
+			sb.append("update ");
+			sb.append(tableName);
+			sb.append(" set classPK = (select resourcePrimKey ");
+			sb.append("from JournalArticle where id_ = ");
+			sb.append(tableName);
+			sb.append(".classPK) where classNameId = ");
+			sb.append(classNameId);
+
+			runSQL(sb.toString());
+		}
 	}
 
 	protected void updateSOSocialActivities() throws Exception {
