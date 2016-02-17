@@ -562,12 +562,19 @@ protected static final List<ExtraDataGenerator>
 
 	private static final ExtraDataGenerator _kbArticleExtraDataGenerator =
 		new ExtraDataGenerator() {
+			public static final int ADD_KB_ARTICLE = 1;
+
+			public static final int MOVE_KB_ARTICLE = 7;
+
+			public static final int UPDATE_KB_ARTICLE = 3;
+
 			public String getActivityQueryWhereClause() {
-				return "classNameId = ? and (type_= ? or type_ = ?)";
+				return "classNameId = ? and " +
+					"(type_= ? or type_ = ? or type_ = ?)";
 			}
 
 			public String getEntityQuery() {
-				return "select name from BookmarksEntry where entryId = ?";
+				return "select title from KBArticle where kbarticleid = ?";
 			}
 
 			public void setEntityQueryParameters(
@@ -583,11 +590,13 @@ protected static final List<ExtraDataGenerator>
 				throws SQLException {
 
 				ps.setLong(1, PortalUtil.getClassNameId(
-					"com.liferay.portlet.bookmarks.model.BookmarksEntry"));
+					"com.liferay.knowledgebase.model.KBArticle"));
 
-				ps.setInt(2, BookmarksActivityKeys.ADD_ENTRY);
+				ps.setInt(2, ADD_KB_ARTICLE);
 
-				ps.setInt(3, BookmarksActivityKeys.UPDATE_ENTRY);
+				ps.setInt(3, UPDATE_KB_ARTICLE);
+
+				ps.setInt(4, MOVE_KB_ARTICLE);
 			}
 
 			public JSONObject getExtraData(
@@ -596,9 +605,145 @@ protected static final List<ExtraDataGenerator>
 
 				JSONObject result = JSONFactoryUtil.createJSONObject();
 
-				result.put("title", entityResultSet.getString("name"));
+				result.put("title", entityResultSet.getString("title"));
 
 				return result;
+			}
+		};
+
+	private static final ExtraDataGenerator _kbTemplateExtraDataGenerator =
+		new ExtraDataGenerator() {
+			public static final int ADD_KB_COMMENT = 5;
+
+			public static final int ADD_KB_TEMPLATE = 2;
+
+			public static final int UPDATE_KB_COMMENT = 6;
+
+			public static final int UPDATE_KB_TEMPLATE = 4;
+
+			public String getActivityQueryWhereClause() {
+				return "classNameId = ? and (type_= ? or type_ = ?)";
+			}
+
+			public String getEntityQuery() {
+				return "select title from KBTemplate where kbtemplateid = ?";
+			}
+
+			public void setEntityQueryParameters(
+					PreparedStatement ps, long companyId, long groupId,
+					long userId, long classNameId, long classPK, int type,
+					String extraData)
+				throws SQLException {
+
+				ps.setLong(1, classPK);
+			}
+
+			public void setActivityQueryParameters(PreparedStatement ps)
+				throws SQLException {
+
+				ps.setLong(1, PortalUtil.getClassNameId(
+					"com.liferay.knowledgebase.model.KBTemplate"));
+
+				ps.setInt(2, ADD_KB_TEMPLATE);
+
+				ps.setInt(3, UPDATE_KB_TEMPLATE);
+			}
+
+			public JSONObject getExtraData(
+					ResultSet entityResultSet, String extraData)
+				throws SQLException {
+
+				JSONObject result = JSONFactoryUtil.createJSONObject();
+
+				result.put("title", entityResultSet.getString("title"));
+
+				return result;
+			}
+		};
+
+	private static final ExtraDataGenerator _kbCommentExtraDataGenerator =
+		new ExtraDataGenerator() {
+			public static final int ADD_KB_COMMENT = 5;
+
+			public static final int UPDATE_KB_COMMENT = 6;
+
+			public String getActivityQueryWhereClause() {
+				return "classNameId = ? and (type_= ? or type_ = ?)";
+			}
+
+			public String getEntityQuery() {
+				return "select classnameid, classpk from KBComment " +
+					"where kbcommentid = ?";
+			}
+
+			public void setEntityQueryParameters(
+					PreparedStatement ps, long companyId, long groupId,
+					long userId, long classNameId, long classPK, int type,
+					String extraData)
+				throws SQLException {
+
+				ps.setLong(1, classPK);
+			}
+
+			public void setActivityQueryParameters(PreparedStatement ps)
+				throws SQLException {
+
+				ps.setLong(1, PortalUtil.getClassNameId(
+					"com.liferay.knowledgebase.model.KBComment"));
+
+				ps.setInt(2, ADD_KB_COMMENT);
+
+				ps.setInt(3, UPDATE_KB_COMMENT);
+			}
+
+			public JSONObject getExtraData(
+					ResultSet entityResultSet, String extraData)
+				throws SQLException {
+
+				JSONObject extraDataJSONObject = null;
+
+				long classnameId = entityResultSet.getLong("classnameid");
+				long classpk = entityResultSet.getLong("classpk");
+
+				Connection con = null;
+				PreparedStatement ps = null;
+				ResultSet rs = null;
+
+				try {
+					con = DataAccess.getUpgradeOptimizedConnection();
+
+					ExtraDataGenerator extraDataGenerator = null;
+
+					if (classnameId == PortalUtil.getClassNameId(
+							"com.liferay.knowledgebase.model.KBArticle")) {
+
+						extraDataGenerator = _kbArticleExtraDataGenerator;
+					}
+					else if (classnameId == PortalUtil.getClassNameId(
+						"com.liferay.knowledgebase.model.KBTemplate")) {
+
+						extraDataGenerator = _kbTemplateExtraDataGenerator;
+					}
+
+					if (extraDataGenerator != null) {
+						ps = con.prepareStatement(
+							extraDataGenerator.getEntityQuery());
+
+						ps.setLong(1, classpk);
+
+						rs = ps.executeQuery();
+
+						while (rs.next()) {
+							extraDataJSONObject =
+								extraDataGenerator.getExtraData(rs, "");
+						}
+					}
+				}
+				finally {
+					DataAccess.cleanUp(con, ps, rs);
+				}
+
+				return extraDataJSONObject;
 			}
 		};
 
@@ -620,14 +765,15 @@ protected static final List<ExtraDataGenerator>
 			}
 		}
 
-	com.liferay.knowledgebase.model.KBArticle
-
 	static {
 		_extraDataGenerators.add(_addAssetCommentExtraDataGenerator);
 		_extraDataGenerators.add(_addMessageExtraDataGenerator);
 		_extraDataGenerators.add(_blogsEntryExtraDataGenerator);
 		_extraDataGenerators.add(_bookmarksEntryExtraDataGenerator);
 		_extraDataGenerators.add(_dlFileEntryExtraDataGenerator);
+		_extraDataGenerators.add(_kbArticleExtraDataGenerator);
+		_extraDataGenerators.add(_kbCommentExtraDataGenerator);
+		_extraDataGenerators.add(_kbTemplateExtraDataGenerator);
 		_extraDataGenerators.add(_wikiPageExtraDataGenerator);
 	}
 }
