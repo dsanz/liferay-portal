@@ -628,7 +628,7 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoSitesPublishingTools">
+		<execute macro="ProductMenu#gotoSitesPublishing">
 			<var name="portlet" value="Staging" />
 		</execute>
 
@@ -1001,6 +1001,8 @@
 	</command>
 
 	<command name="RestoreDMDocumentFromFolderCP" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="ProductMenu#gotoSite">
 			<var name="site" value="Site Name" />
 		</execute>

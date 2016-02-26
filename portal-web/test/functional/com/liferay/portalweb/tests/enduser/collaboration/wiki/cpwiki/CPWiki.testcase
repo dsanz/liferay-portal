@@ -489,7 +489,7 @@
 			<var name="renamedTrashEntryTitle" value="Wiki Page 1 Restored" />
 		</execute>
 
-		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
+		<execute macro="Button#clickSave" />
 
 		<execute macro="Navigator#openURL" />
 
@@ -553,8 +553,6 @@
 		<execute macro="WikiPage#viewPageContentBody">
 			<var name="wikiPageContent" value="Wiki Page Content" />
 		</execute>
-
-		<execute macro="WikiNavigator#gotoDetails" />
 
 		<execute macro="WikiPage#viewRSS">
 			<var name="version" value="1.0" />

@@ -9,4 +9,4 @@ Export-Package:\
 	com.liferay.invitation.invite.members.util
 Liferay-Releng-Module-Group-Description:
 Liferay-Releng-Module-Group-Title:
--include: ../../../../marketplace/collaboration/bnd.bnd
+-include: ../../../../../marketplace/collaboration/bnd.bnd

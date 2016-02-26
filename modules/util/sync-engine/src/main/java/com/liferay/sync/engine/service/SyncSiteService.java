@@ -109,6 +109,22 @@ public class SyncSiteService {
 
 			SyncSite syncSite = fetchSyncSite(syncSiteId);
 
+			List<SyncFile> syncFiles = SyncFileService.findSyncFiles(
+				syncSite.getGroupId(), SyncFile.STATE_IN_PROGRESS,
+				syncSite.getSyncAccountId());
+
+			syncFiles.add(
+				SyncFileService.fetchSyncFile(syncSite.getFilePathName()));
+
+			for (SyncFile syncFile : syncFiles) {
+				Set<Event> events = FileEventManager.getEvents(
+					syncFile.getSyncFileId());
+
+				for (Event event : events) {
+					event.cancel();
+				}
+			}
+
 			_syncSitePersistence.deleteById(syncSiteId);
 
 			// Sync file
@@ -297,11 +313,12 @@ public class SyncSiteService {
 
 		syncSite = update(syncSite);
 
-		// Sync files
-
 		List<SyncFile> syncFiles = SyncFileService.findSyncFiles(
 			syncSite.getGroupId(), SyncFile.STATE_IN_PROGRESS,
 			syncSite.getSyncAccountId());
+
+		syncFiles.add(
+			SyncFileService.fetchSyncFile(syncSite.getFilePathName()));
 
 		for (SyncFile syncFile : syncFiles) {
 			Set<Event> events = FileEventManager.getEvents(
@@ -311,6 +328,8 @@ public class SyncSiteService {
 				event.cancel();
 			}
 		}
+
+		// Sync files
 
 		try {
 			deleteSyncFiles(syncSite);
@@ -329,13 +348,11 @@ public class SyncSiteService {
 	protected static void deleteSyncFiles(SyncSite syncSite)
 		throws IOException {
 
-		List<SyncFile> syncFiles = SyncFileService.findSyncFilesByRepositoryId(
-			syncSite.getGroupId(), syncSite.getSyncAccountId());
+		SyncFile syncFile = SyncFileService.fetchSyncFile(
+			syncSite.getFilePathName());
 
-		for (SyncFile syncFile : syncFiles) {
-			if (!syncFile.isSystem()) {
-				SyncFileService.deleteSyncFile(syncFile);
-			}
+		if (syncFile != null) {
+			SyncFileService.deleteSyncFiles(syncFile, true);
 		}
 
 		Path filePath = Paths.get(syncSite.getFilePathName());

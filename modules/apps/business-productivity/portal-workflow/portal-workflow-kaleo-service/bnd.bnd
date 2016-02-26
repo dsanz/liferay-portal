@@ -2,6 +2,7 @@ Bundle-Name: Liferay Portal Workflow Kaleo Service
 Bundle-SymbolicName: com.liferay.portal.workflow.kaleo.service
 Bundle-Version: 1.0.0
 Export-Package:\
+	com.liferay.portal.workflow.kaleo.messaging,\
 	com.liferay.portal.workflow.kaleo.runtime,\
 	com.liferay.portal.workflow.kaleo.runtime.action,\
 	com.liferay.portal.workflow.kaleo.runtime.util,\
@@ -19,5 +20,6 @@ Liferay-Spring-Context: META-INF/spring
 Require-Capability:\
 	liferay.extender;\
 	filter:="(&(liferay.extender=spring.extender)(version>=1.0)(!(version>=2.0)))"
+-dsannotations-options: inherit
 -include: ../../../../../marketplace/business-productivity/bnd.bnd
 -liferay-spring-dependency: com.liferay.portal.spring.extender.service.ServiceReference

@@ -22,7 +22,7 @@
 
 		<execute function="Click" locator1="Button#PUBLISH" />
 
-		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="addChildPagePG">
@@ -36,7 +36,7 @@
 
 		<execute function="Click" locator1="Button#PUBLISH" value1="Publish" />
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="addChildPagePGViaWD">
@@ -50,7 +50,7 @@
 
 		<execute function="Click" locator1="Button#PUBLISH" value1="Publish" />
 
-		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="addComment">
@@ -60,7 +60,7 @@
 
 		<execute function="AssertClick#assertTextClickAtAndWait" locator1="Button#REPLY" value1="Reply" />
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="addCommentPG">
@@ -101,7 +101,7 @@
 			</else>
 		</if>
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="addCP">
@@ -113,9 +113,7 @@
 
 		<execute function="Type#typeAlloyEditor" locator1="AlloyEditor#CONTENT_FIELD" value1="${wikiPageContent}" />
 
-		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
-
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="PortletEntry#publish" />
 	</command>
 
 	<command name="addFrontPageChildPageInvalidTitle">
@@ -157,9 +155,7 @@
 
 		<execute function="Type#typeAlloyEditor" locator1="AlloyEditor#CONTENT_FIELD" value1="${wikiFrontPageContent}" />
 
-		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
-
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="PortletEntry#publish" />
 	</command>
 
 	<command name="addFrontPageDraftPG">
@@ -178,7 +174,7 @@
 
 		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS"  value1="Your request completed successfully." />
+		<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 	</command>
 
 	<command name="addFrontPagePG">
@@ -235,9 +231,7 @@
 			</then>
 		</if>
 
-		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
-
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="PortletEntry#publish" />
 	</command>
 
 	<command name="addFrontPageWithWorkflowPG">
@@ -285,7 +279,7 @@
 
 		<execute function="AssertClick" locator1="Button#SUBMIT_FOR_PUBLICATION" value1="Submit for Publication" />
 
-		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="addPageWithWorkflowPGViaWD">
@@ -297,7 +291,7 @@
 
 		<execute function="AssertClick" locator1="Button#SUBMIT_FOR_PUBLICATION" value1="Submit for Publication" />
 
-		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="addPermissionsPGCmd">
@@ -383,7 +377,7 @@
 		</if>
 
 		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
-		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="addTagPGCmd">
@@ -431,7 +425,7 @@
 
 		<execute function="AssertClick" locator1="Button#CHANGE" value1="Change Parent" />
 
-		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="compareVersionsCP">
@@ -439,28 +433,31 @@
 
 		<execute function="AssertClick" locator1="Wiki#DESCRIPTIVE_VIEW_ENTRY_TITLE" value1="${wikiPageTitle}" />
 
-		<execute function="AssertClick" locator1="Wiki#LINK_DETAILS" value1="Details" />
-		<execute function="AssertClick" locator1="Wiki#PAGE_TABS_HISTORY" value1="History" />
+		<execute function="Click" locator1="Icon#INFO" />
 
-		<var name="key_wikiActivity" value="${wikiPageVersionNew}" />
+		<execute function="AssertClick" locator1="NavBar#DETAILS" value1="Details" />
 
-		<execute function="Click" locator1="Wiki#HISTORY_ACTIVITIES_ACTIONS" />
+		<execute function="AssertClick" locator1="MenuItem#VERSIONS" value1="Versions" />
+
+		<var name="key_wikiPageVersion" value="${wikiPageVersionNew}" />
+
+		<execute function="Click" locator1="Wiki#COMPARE_VERSIONS_VERSION_ACTIONS" />
 
 		<execute function="AssertClick" locator1="Wiki#HISTORY_ACTIVITIES_TABLE_COMPARE_TO_LINK" value1="Compare to..." />
 
-		<execute function="SelectFrame" locator1="WikiCompareVersions#IFRAME" />
+		<execute function="SelectFrame" locator1="Wiki#COMPARE_VERSIONS_IFRAME" />
 
-		<var name="key_wikiPageVersionNew" value="${wikiPageVersionNew}" />
+		<var name="key_wikiPageVersion" value="${wikiPageVersionNew}" />
 
-		<execute function="AssertTextEquals" locator1="WikiCompareVersions#NEW_VERSION" value1="${wikiPageVersionNew}" />
-		<execute function="AssertElementPresent" locator1="WikiCompareVersions#NEW_VERSION_DATE" />
+		<execute function="AssertTextEquals" locator1="Wiki#COMPARE_VERSIONS_VERSION" value1="${wikiPageVersionNew}" />
+		<execute function="AssertElementPresent" locator1="Wiki#COMPARE_VERSIONS_DATE" />
 
-		<var name="key_wikiPageVersionOld" value="${wikiPageVersionOld}" />
+		<var name="key_wikiPageVersion" value="${wikiPageVersionOld}" />
 
-		<execute function="AssertTextEquals" locator1="WikiCompareVersions#OLD_VERSION" value1="${wikiPageVersionOld}" />
-		<execute function="AssertElementPresent" locator1="WikiCompareVersions#OLD_VERSION_DATE" />
+		<execute function="AssertTextEquals" locator1="Wiki#COMPARE_VERSIONS_VERSION" value1="${wikiPageVersionOld}" />
+		<execute function="AssertElementPresent" locator1="Wiki#COMPARE_VERSIONS_DATE" />
 
-		<execute function="AssertClick" locator1="WikiCompareVersions#CHOOSE_BUTTON" value1="Choose" />
+		<execute function="AssertClick" locator1="Wiki#COMPARE_VERSIONS_VERSION_LINK" value1="${wikiPageVersionOld}" />
 
 		<execute function="SelectFrame" value1="relative=top" />
 
@@ -576,7 +573,7 @@
 
 				<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
 
-				<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+				<execute macro="Alert#viewSuccessMessage" />
 			</else>
 		</if>
 	</command>
@@ -598,7 +595,7 @@
 			</else>
 		</if>
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="deleteCP">
@@ -606,16 +603,16 @@
 
 		<execute function="AssertTextEquals" locator1="Wiki#ALL_PAGES_TABLE_PAGE_NAME" value1="${wikiPageTitle}" />
 		<execute function="Click" locator1="Wiki#ALL_PAGES_TABLE_VERTICAL_ELLIPSIS" />
-		<execute function="AssertClick" locator1="MenuItem#MOVE_TO_THE_RECYCLE_BIN" value1="Move to the Recycle Bin" />
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="The ${assetType} ${wikiPageTitle} was moved to the Recycle Bin. Undo" />
+		<execute macro="PortletEntry#clickMoveToRecycleBin" />
+		<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 	</command>
 
 	<command name="deleteFrontPagePGViaWD">
 		<var name="key_wikiPageTitle" value="${wikiPageTitle}" />
 
 		<execute function="Click" locator1="Wiki#ALL_PAGES_TABLE_VERTICAL_ELLIPSIS" />
-		<execute function="AssertClick" locator1="MenuItem#MOVE_TO_THE_RECYCLE_BIN" value1="Move to the Recycle Bin" />
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="The ${assetType} ${wikiPageTitle} was moved to the Recycle Bin. Undo" />
+		<execute macro="PortletEntry#clickMoveToRecycleBin" />
+		<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 		<execute function="AssertTextEquals#assertPartialText" locator1="Wiki#ALL_PAGES_TABLE_REVISION" value1="1.0" />
 
 		<execute macro="Navigator#openURL" />
@@ -631,8 +628,8 @@
 		<var name="key_wikiPageTitle" value="${wikiPageTitle}" />
 
 		<execute function="Click" locator1="Wiki#ALL_PAGES_TABLE_VERTICAL_ELLIPSIS" />
-		<execute function="AssertClick" locator1="MenuItem#MOVE_TO_THE_RECYCLE_BIN" value1="Move to the Recycle Bin" />
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="The ${assetType} ${wikiPageTitle} was moved to the Recycle Bin. Undo" />
+		<execute macro="PortletEntry#clickMoveToRecycleBin" />
+		<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 
 		<if>
 			<equals arg1="${wikiPageTitle}" arg2="FrontPage" />
@@ -649,7 +646,7 @@
 	<command name="editComment">
 		<var name="key_entryComment" value="${entryComment}" />
 
-		<execute function="AssertTextEquals" locator1="Comments#COMMENT_BODY" value1="${entryComment}" />
+		<execute function="AssertTextEquals" locator1="Comments#COMMENT_BODY_SPECIFIC" value1="${entryComment}" />
 
 		<execute function="AssertClick" locator1="Comments#EDIT_LINK" value1="Edit" />
 
@@ -667,9 +664,7 @@
 
 		<execute function="Type" locator1="Wiki#COMMENT_EDIT_BODY_FIELD" value1="${commentBodyEdit}" />
 
-		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
-
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="PortletEntry#publish" />
 	</command>
 
 	<command name="editFrontPagePG">
@@ -682,7 +677,7 @@
 		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
 
 		<execute function="AssertTextEquals" locator1="Wiki#BODY" value1="${wikiPageContentEdit}" />
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="editPageCP">
@@ -693,9 +688,7 @@
 
 		<execute function="Type#typeAlloyEditor" locator1="AlloyEditor#CONTENT_FIELD" value1="${wikiPageContentEdit}" />
 
-		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
-
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="PortletEntry#publish" />
 	</command>
 
 	<command name="editPagePG">
@@ -723,7 +716,7 @@
 		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
 
 		<execute function="AssertTextEquals" locator1="Wiki#BODY" value1="${wikiPageContentEdit}" />
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="linkOrphanPageHtmlPG">
@@ -814,9 +807,7 @@
 			</else>
 		</if>
 
-		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
-
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="PortletEntry#publish" />
 	</command>
 
 	<command name="linkPG">
@@ -836,9 +827,7 @@
 
 		<execute function="Type#typeAlloyEditor" locator1="AlloyEditor#CONTENT_FIELD" value1="${wikiPage2Link}" />
 
-		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
-
-		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+		<execute macro="PortletEntry#publish" />
 
 		<execute function="AssertClick" locator1="Wiki#BODY_LINK" value1="${wikiPage2Title}" />
 
@@ -848,7 +837,7 @@
 
 	<command name="markAsSpamCP">
 		<execute function="AssertClick" locator1="Wiki#LINK_MARK_AS_SPAM" value1="Mark as Spam" />
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Version ${wikiPageRevision} was marked as spam." />
+		<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 		<execute function="AssertTextEquals" locator1="Message#ERROR" value1="This version has been flagged as spam. An administrator will review your version as soon as possible." />
 	</command>
 
@@ -856,8 +845,8 @@
 		<var name="key_wikiPageTitle" value="${wikiPageTitle}" />
 
 		<execute function="Click" locator1="Wiki#DESCRIPTIVE_VIEW_ACTIONS" />
-		<execute function="AssertClick" locator1="MenuItem#MOVE_TO_THE_RECYCLE_BIN" value1="Move to the Recycle Bin" />
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="The ${assetType} ${wikiPageTitle} was moved to the Recycle Bin. Undo" />
+		<execute macro="PortletEntry#clickMoveToRecycleBin" />
+		<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 	</command>
 
 	<command name="moveWikiPagePG">
@@ -883,7 +872,7 @@
 
 		<execute function="AssertClick" locator1="Button#CHANGE" value1="Change Parent" />
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="rate4StarsPG">
@@ -909,9 +898,7 @@
 
 		<execute function="Type#typeAlloyEditor" locator1="AlloyEditor#CONTENT_FIELD" value1="${wikiPage2Content}" />
 
-		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
-
-		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+		<execute macro="PortletEntry#publish" />
 	</command>
 
 	<command name="removeViewPermissionPG">
@@ -930,7 +917,7 @@
 
 		<execute function="Uncheck" locator1="Permissions#CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX" />
 
-		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
+		<execute macro="Button#clickSave" />
 
 		<execute function="AssertTextEquals#assertPartialText" locator1="Permissions#SUCCESS_MESSAGE" value1="Your request completed successfully." />
 
@@ -942,7 +929,7 @@
 
 		<execute function="AssertClick" locator1="Button#RENAME" value1="Rename" />
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request has been completed successfully." />
+		<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 	</command>
 
 	<command name="renameWikiPagePG">
@@ -954,7 +941,7 @@
 		<execute function="Type" locator1="TextInput#NEW_TITLE" value1="${wikiPageTitleRename}" />
 		<execute function="AssertClick" locator1="Button#RENAME" value1="Rename" />
 
-		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="revertChangeParentWikipagetoWikipagePG">
@@ -982,7 +969,7 @@
 
 		<execute function="AssertClick" locator1="MenuItem#REVERT" value1="Revert" />
 
-		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+		<execute macro="Alert#viewSuccessMessage" />
 
 		<var name="key_wikiPageRevision" value="1.2" />
 		<var name="key_wikiVersionSummary" value="${wikiVersion2Summary}" />
@@ -1007,7 +994,7 @@
 
 		<execute function="AssertClick" locator1="MenuItem#REVERT" value1="Revert" />
 
-		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+		<execute macro="Alert#viewSuccessMessage" />
 
 		<var name="key_wikiPageRevision" value="${wikiPageRevisionNew}" />
 		<var name="key_wikiVersionSummary" value="${wikiVersionSummary}" />
@@ -1022,7 +1009,7 @@
 
 		<execute function="AssertClick" locator1="Button#SAVE_AS_DRAFT" value1="Save as Draft" />
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS"  value1="Your request completed successfully." />
+		<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 		<execute function="AssertTextEquals" locator1="Wiki#WORKFLOW_STATUS" value1="Draft" />
 
 		<var name="key_wikiPageContent" value="${wikiPageContent}" />
@@ -1052,7 +1039,7 @@
 	<command name="submitForPublication">
 		<execute function="AssertClick" locator1="Button#SUBMIT_FOR_PUBLICATION" value1="Submit for Publication" />
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="subscribeToPagePG">
@@ -1063,7 +1050,7 @@
 
 		<execute function="AssertClick" locator1="Wiki#LINK_SUBSCRIBE_TO_PAGE" value1="Subscribe" />
 
-		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="tearDownCP">
@@ -1083,8 +1070,8 @@
 			<condition function="IsTextNotEqual" locator1="Wiki#ALL_PAGES_TABLE_REVISION" value1="1.0 (Minor Edit)" />
 			<then>
 				<execute function="Click" locator1="Wiki#ALL_PAGES_TABLE_ACTIONS_DROPDOWN_GENERIC" />
-				<execute function="AssertClick" locator1="MenuItem#MOVE_TO_THE_RECYCLE_BIN" value1="Move to the Recycle Bin" />
-				<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="moved to the Recycle Bin. Undo" />
+				<execute macro="PortletEntry#clickMoveToRecycleBin" />
+				<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 			</then>
 		</while>
 
@@ -1092,8 +1079,8 @@
 			<condition function="IsElementPresent" locator1="Wiki#ALL_PAGES_TABLE_ACTIONS_DROPDOWN_GENERIC_2" />
 			<then>
 				<execute function="Click" locator1="Wiki#ALL_PAGES_TABLE_ACTIONS_DROPDOWN_GENERIC_2" />
-				<execute function="AssertClick" locator1="MenuItem#MOVE_TO_THE_RECYCLE_BIN" value1="Move to the Recycle Bin" />
-				<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="moved to the Recycle Bin. Undo" />
+				<execute macro="PortletEntry#clickMoveToRecycleBin" />
+				<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 			</then>
 		</while>
 
@@ -1180,7 +1167,7 @@
 		<var name="key_entryComment" value="${entryComment}" />
 		<var name="key_wikiPageTitle" value="${wikiPageTitle}" />
 
-		<execute function="AssertTextEquals" locator1="Comments#COMMENT_BODY" value1="${entryComment}" />
+		<execute function="AssertTextEquals" locator1="Comments#COMMENT_BODY_SPECIFIC" value1="${entryComment}" />
 	</command>
 
 	<command name="viewCommentRatingBad">
@@ -1453,7 +1440,9 @@
 	</command>
 
 	<command name="viewRSS">
-		<execute function="AssertClick" locator1="Link#RSS" value1="RSS" />
+		<execute function="Click" locator1="Icon#INFO" />
+
+		<execute function="AssertClick" locator1="WikiRSS#FEED_LINK" value1="Feed" />
 
 		<execute function="SelectWindow" locator1="title=${wikiPageTitle}" />
 

@@ -14,12 +14,12 @@
 
 package com.liferay.layout.admin.web.product.navigation.control.menu;
 
-import com.liferay.layout.admin.web.constants.LayoutAdminWebKeys;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
-import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -53,6 +53,12 @@ public class InformationMessagesProductNavigationControlMenuEntry
 	extends BaseJSPProductNavigationControlMenuEntry
 	implements ProductNavigationControlMenuEntry {
 
+	public static final String INFORMATION_MESSAGES_LINKED_LAYOUT =
+		"INFORMATION_MESSAGES_LINKED_LAYOUT";
+
+	public static final String INFORMATION_MESSAGES_MODIFIED_LAYOUT =
+		"INFORMATION_MESSAGES_MODIFIED_LAYOUT";
+
 	@Override
 	public String getIconJspPath() {
 		return "/control/menu/information_messages.jsp";
@@ -76,46 +82,52 @@ public class InformationMessagesProductNavigationControlMenuEntry
 			HttpServletRequest request, HttpServletResponse response)
 		throws IOException {
 
-		request.setAttribute(LayoutAdminWebKeys.CONTROL_MENU_ENTRY, this);
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		try {
+			request.setAttribute(
+				INFORMATION_MESSAGES_LINKED_LAYOUT,
+				isLinkedLayout(themeDisplay));
+			request.setAttribute(
+				INFORMATION_MESSAGES_MODIFIED_LAYOUT,
+				isModifiedLayout(themeDisplay));
+		}
+		catch (PortalException pe) {
+			_log.error(pe, pe);
+		}
 
 		return super.includeIcon(request, response);
 	}
 
-	public boolean isCustomizableLayout(ThemeDisplay themeDisplay)
-		throws PortalException {
+	@Override
+	public boolean isShow(HttpServletRequest request) throws PortalException {
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
 		Layout layout = themeDisplay.getLayout();
 
-		Group group = layout.getGroup();
-
-		if (group.isLayoutPrototype() || group.isLayoutSetPrototype() ||
-			group.isStagingGroup() || group.isUserGroup()) {
-
+		if (layout.isTypeControlPanel()) {
 			return false;
 		}
 
-		LayoutTypePortlet layoutTypePortlet =
-			themeDisplay.getLayoutTypePortlet();
-
-		if (!layout.isTypePortlet() || (layoutTypePortlet == null)) {
+		if (!isLinkedLayout(themeDisplay) && !isModifiedLayout(themeDisplay)) {
 			return false;
 		}
 
-		if (!layoutTypePortlet.isCustomizable()) {
-			return false;
-		}
-
-		if (!LayoutPermissionUtil.containsWithoutViewableGroup(
-				themeDisplay.getPermissionChecker(), layout, false,
-				ActionKeys.CUSTOMIZE)) {
-
-			return false;
-		}
-
-		return true;
+		return super.isShow(request);
 	}
 
-	public boolean isLinkedLayout(ThemeDisplay themeDisplay)
+	@Override
+	@Reference(
+		target = "(osgi.web.symbolicname=com.liferay.layout.admin.web)",
+		unbind = "-"
+	)
+	public void setServletContext(ServletContext servletContext) {
+		super.setServletContext(servletContext);
+	}
+
+	protected boolean isLinkedLayout(ThemeDisplay themeDisplay)
 		throws PortalException {
 
 		Layout layout = themeDisplay.getLayout();
@@ -139,7 +151,7 @@ public class InformationMessagesProductNavigationControlMenuEntry
 		return false;
 	}
 
-	public boolean isModifiedLayout(ThemeDisplay themeDisplay)
+	protected boolean isModifiedLayout(ThemeDisplay themeDisplay)
 		throws PortalException {
 
 		Layout layout = themeDisplay.getLayout();
@@ -159,33 +171,7 @@ public class InformationMessagesProductNavigationControlMenuEntry
 		return true;
 	}
 
-	@Override
-	public boolean isShow(HttpServletRequest request) throws PortalException {
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		Layout layout = themeDisplay.getLayout();
-
-		if (layout.isTypeControlPanel()) {
-			return false;
-		}
-
-		if (!isCustomizableLayout(themeDisplay) &&
-			!isLinkedLayout(themeDisplay) && !isModifiedLayout(themeDisplay)) {
-
-			return false;
-		}
-
-		return super.isShow(request);
-	}
-
-	@Override
-	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.layout.admin.web)",
-		unbind = "-"
-	)
-	public void setServletContext(ServletContext servletContext) {
-		super.setServletContext(servletContext);
-	}
+	private static final Log _log = LogFactoryUtil.getLog(
+		InformationMessagesProductNavigationControlMenuEntry.class);
 
 }

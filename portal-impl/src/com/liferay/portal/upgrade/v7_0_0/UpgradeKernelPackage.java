@@ -17,6 +17,7 @@ package com.liferay.portal.upgrade.v7_0_0;
 import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -102,51 +103,53 @@ public class UpgradeKernelPackage extends UpgradeProcess {
 			WildcardMode wildcardMode)
 		throws SQLException {
 
-		StringBundler updateSB = new StringBundler(7);
+		try (LoggingTimer loggingTimer = new LoggingTimer(tableName)) {
+			StringBundler updateSB = new StringBundler(7);
 
-		updateSB.append("update ");
-		updateSB.append(tableName);
-		updateSB.append(" set ");
-		updateSB.append(columnName);
-		updateSB.append(" = ? where ");
-		updateSB.append(columnName);
-		updateSB.append(" = ?");
+			updateSB.append("update ");
+			updateSB.append(tableName);
+			updateSB.append(" set ");
+			updateSB.append(columnName);
+			updateSB.append(" = ? where ");
+			updateSB.append(columnName);
+			updateSB.append(" = ?");
 
-		String updateSQL = updateSB.toString();
+			String updateSQL = updateSB.toString();
 
-		StringBundler selectPrefixSB = new StringBundler(7);
+			StringBundler selectPrefixSB = new StringBundler(7);
 
-		selectPrefixSB.append("select distinct ");
-		selectPrefixSB.append(columnName);
-		selectPrefixSB.append(" from ");
-		selectPrefixSB.append(tableName);
-		selectPrefixSB.append(" where ");
-		selectPrefixSB.append(columnName);
+			selectPrefixSB.append("select distinct ");
+			selectPrefixSB.append(columnName);
+			selectPrefixSB.append(" from ");
+			selectPrefixSB.append(tableName);
+			selectPrefixSB.append(" where ");
+			selectPrefixSB.append(columnName);
 
-		if (wildcardMode.equals(WildcardMode.LEADING) ||
-			wildcardMode.equals(WildcardMode.SURROUND)) {
+			if (wildcardMode.equals(WildcardMode.LEADING) ||
+				wildcardMode.equals(WildcardMode.SURROUND)) {
 
-			selectPrefixSB.append(" like '%");
-		}
-		else {
-			selectPrefixSB.append(" like '");
-		}
+				selectPrefixSB.append(" like '%");
+			}
+			else {
+				selectPrefixSB.append(" like '");
+			}
 
-		String selectPrefix = selectPrefixSB.toString();
+			String selectPrefix = selectPrefixSB.toString();
 
-		String selectPostfix = StringPool.APOSTROPHE;
+			String selectPostfix = StringPool.APOSTROPHE;
 
-		if (wildcardMode.equals(WildcardMode.SURROUND) ||
-			wildcardMode.equals(WildcardMode.TRAILING)) {
+			if (wildcardMode.equals(WildcardMode.SURROUND) ||
+				wildcardMode.equals(WildcardMode.TRAILING)) {
 
-			selectPostfix = "%'";
-		}
+				selectPostfix = "%'";
+			}
 
-		for (String[] name : names) {
-			String selectSQL = selectPrefix.concat(name[0]).concat(
-				selectPostfix);
+			for (String[] name : names) {
+				String selectSQL = selectPrefix.concat(name[0]).concat(
+					selectPostfix);
 
-			upgradeTable(columnName, selectSQL, updateSQL, name);
+				upgradeTable(columnName, selectSQL, updateSQL, name);
+			}
 		}
 	}
 

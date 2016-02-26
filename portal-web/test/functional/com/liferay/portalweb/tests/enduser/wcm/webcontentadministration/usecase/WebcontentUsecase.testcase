@@ -205,7 +205,6 @@
 		<execute macro="User#logoutPG" />
 
 		<execute macro="User#loginPG">
-			<var name="loginViaDockbar" value="true" />
 			<var name="password" value="test" />
 			<var name="siteName" value="Site Name" />
 			<var name="siteURL" value="true" />
@@ -242,7 +241,6 @@
 		<execute macro="User#logoutPG" />
 
 		<execute macro="User#loginPG">
-			<var name="loginViaDockbar" value="true" />
 			<var name="password" value="test" />
 			<var name="siteName" value="Site Name" />
 			<var name="siteURL" value="true" />
@@ -975,8 +973,6 @@
 			<var name="portlet" value="Web Content" />
 		</execute>
 
-		<execute macro="WebContentNavigator#gotoManageStructures" />
-
 		<execute macro="WebContentStructures#deleteCP">
 			<var name="structureName" value="WC Structure Name" />
 			<var name="webContentHasReference" value="true" />
@@ -1435,7 +1431,7 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoSitesPublishingTools">
+		<execute macro="ProductMenu#gotoSitesPublishing">
 			<var name="portlet" value="Staging" />
 		</execute>
 
