@@ -8,7 +8,7 @@
 	</set-up>
 
 	<tear-down>
-<!-- comentario -->
+<!-- comentario 2 -->
 		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
 
 		<if>
