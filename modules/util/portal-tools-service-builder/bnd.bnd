@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Portal Tools Service Builder
 Bundle-SymbolicName: com.liferay.portal.tools.service.builder
-Bundle-Version: 1.0.102
+Bundle-Version: 1.0.104
 Import-Package:\
 	!javax.portlet.*,\
 	\
@@ -25,6 +25,7 @@ Include-Resource:\
 	@../../../portal-impl/portal-impl.jar!/com/liferay/portal/service.xml,\
 	@../../../portal-impl/portal-impl.jar!/com/liferay/portal/tools/ArgumentsMap.class,\
 	@../../../portal-impl/portal-impl.jar!/com/liferay/portal/tools/ArgumentsUtil.class,\
+	@../../../portal-impl/portal-impl.jar!/com/liferay/portal/tools/BaseImportsFormatter.class,\
 	@../../../portal-impl/portal-impl.jar!/com/liferay/portal/tools/ImportPackage.class,\
 	@../../../portal-impl/portal-impl.jar!/com/liferay/portal/tools/ImportsFormatter.class,\
 	@../../../portal-impl/portal-impl.jar!/com/liferay/portal/tools/JavaImportsFormatter.class,\

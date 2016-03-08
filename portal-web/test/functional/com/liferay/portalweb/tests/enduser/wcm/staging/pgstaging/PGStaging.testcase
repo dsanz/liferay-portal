@@ -19,7 +19,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Staging Test Page" />
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -354,8 +353,6 @@
 	</command>
 
 	<command name="AddPageVariation" priority="5">
-		<property name="portal.acceptance" value="true" />
-
 		<execute macro="Navigator#openSiteURL">
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -393,8 +390,6 @@
 	</command>
 
 	<command name="AddPageWithPageVersioningEnabled" priority="5">
-		<property name="portal.acceptance" value="true" />
-
 		<execute macro="Navigator#openSiteURL">
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -420,8 +415,6 @@
 	</command>
 
 	<command name="AddSitePagesVariation" priority="5">
-		<property name="portal.acceptance" value="true" />
-
 		<execute macro="Navigator#openSiteURL">
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -696,7 +689,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Staging Test Page" />
 			<var name="siteName" value="Organization Name" />
 		</execute>
@@ -1046,7 +1038,7 @@
 			<var name="siteURL" value="true" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoEditPage">
+		<execute macro="SitePageNavigator#gotoEditPage">
 			<var name="page" value="Staging Test Page" />
 		</execute>
 

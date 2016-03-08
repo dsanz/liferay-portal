@@ -16,8 +16,12 @@ package com.liferay.dynamic.data.mapping.web.display.context;
 
 import com.liferay.dynamic.data.mapping.configuration.DDMGroupServiceConfiguration;
 import com.liferay.dynamic.data.mapping.constants.DDMPortletKeys;
-import com.liferay.dynamic.data.mapping.io.DDMFormJSONDeserializer;
-import com.liferay.dynamic.data.mapping.model.DDMForm;
+import com.liferay.dynamic.data.mapping.model.DDMStructure;
+import com.liferay.dynamic.data.mapping.model.DDMTemplate;
+import com.liferay.dynamic.data.mapping.storage.StorageAdapterRegistry;
+import com.liferay.dynamic.data.mapping.util.DDMDisplay;
+import com.liferay.dynamic.data.mapping.util.DDMDisplayRegistry;
+import com.liferay.dynamic.data.mapping.util.DDMTemplateHelper;
 import com.liferay.dynamic.data.mapping.web.configuration.DDMWebConfiguration;
 import com.liferay.dynamic.data.mapping.web.context.util.DDMWebRequestHelper;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -26,6 +30,8 @@ import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
+
+import java.util.Set;
 
 import javax.portlet.RenderRequest;
 
@@ -37,14 +43,17 @@ import javax.servlet.http.HttpServletRequest;
 public class DDMDisplayContext {
 
 	public DDMDisplayContext(
-			RenderRequest renderRequest,
-			DDMFormJSONDeserializer ddmFormJSONDeserializer,
-			DDMWebConfiguration ddmWebConfiguration)
+			RenderRequest renderRequest, DDMDisplayRegistry ddmDisplayRegistry,
+			DDMTemplateHelper ddmTemplateHelper,
+			DDMWebConfiguration ddmWebConfiguration,
+			StorageAdapterRegistry storageAdapterRegistry)
 		throws PortalException {
 
 		_renderRequest = renderRequest;
-		_ddmFormJSONDeserializer = ddmFormJSONDeserializer;
+		_ddmDisplayRegistry = ddmDisplayRegistry;
+		_ddmTemplateHelper = ddmTemplateHelper;
 		_ddmWebConfiguration = ddmWebConfiguration;
+		_storageAdapterRegistry = storageAdapterRegistry;
 
 		HttpServletRequest httpServletRequest =
 			PortalUtil.getHttpServletRequest(renderRequest);
@@ -64,10 +73,19 @@ public class DDMDisplayContext {
 		return _ddmWebConfiguration.changeableDefaultLanguage();
 	}
 
-	public DDMForm deserialize(String serializedDDMForm)
-		throws PortalException {
+	public DDMStructure fetchStructure(DDMTemplate template) {
+		return _ddmTemplateHelper.fetchStructure(template);
+	}
 
-		return _ddmFormJSONDeserializer.deserialize(serializedDDMForm);
+	public String getAutocompleteJSON(
+			HttpServletRequest request, String language)
+		throws Exception {
+
+		return _ddmTemplateHelper.getAutocompleteJSON(request, language);
+	}
+
+	public DDMDisplay getDDMDisplay(String portletId) {
+		return _ddmDisplayRegistry.getDDMDisplay(portletId);
 	}
 
 	public DDMGroupServiceConfiguration getDDMGroupServiceConfiguration() {
@@ -114,9 +132,33 @@ public class DDMDisplayContext {
 		return orderByType;
 	}
 
-	private final DDMFormJSONDeserializer _ddmFormJSONDeserializer;
+	public Set<String> getStorageTypes() {
+		return _storageAdapterRegistry.getStorageTypes();
+	}
+
+	public boolean isAutocompleteEnabled(String language) {
+		return _ddmTemplateHelper.isAutocompleteEnabled(language);
+	}
+
+	public String[] smallImageExtensions() {
+		DDMGroupServiceConfiguration ddmGroupServiceConfiguration =
+			_ddmWebRequestHelper.getDDMGroupServiceConfiguration();
+
+		return ddmGroupServiceConfiguration.smallImageExtensions();
+	}
+
+	public int smallImageMaxSize() {
+		DDMGroupServiceConfiguration ddmGroupServiceConfiguration =
+			_ddmWebRequestHelper.getDDMGroupServiceConfiguration();
+
+		return ddmGroupServiceConfiguration.smallImageMaxSize();
+	}
+
+	private final DDMDisplayRegistry _ddmDisplayRegistry;
+	private final DDMTemplateHelper _ddmTemplateHelper;
 	private final DDMWebConfiguration _ddmWebConfiguration;
 	private final DDMWebRequestHelper _ddmWebRequestHelper;
 	private final RenderRequest _renderRequest;
+	private final StorageAdapterRegistry _storageAdapterRegistry;
 
 }

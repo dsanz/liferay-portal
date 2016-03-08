@@ -30,6 +30,8 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.io.Serializable;
 
+import java.util.Locale;
+
 import javax.portlet.PortletRequest;
 
 /**
@@ -43,6 +45,9 @@ public interface DDM {
 		throws PortalException;
 
 	public DDMForm getDDMForm(PortletRequest portletRequest)
+		throws PortalException;
+
+	public DDMForm getDDMForm(String serializedJSONDDMForm)
 		throws PortalException;
 
 	public JSONArray getDDMFormFieldsJSONArray(
@@ -69,6 +74,9 @@ public interface DDM {
 	public Serializable getDisplayFieldValue(
 			ThemeDisplay themeDisplay, Serializable fieldValue, String type)
 		throws Exception;
+
+	public Fields getFields(long ddmStructureId, DDMFormValues ddmFormValues)
+		throws PortalException;
 
 	public Fields getFields(
 			long ddmStructureId, long ddmTemplateId,
@@ -102,5 +110,8 @@ public interface DDM {
 		String orderByCol, String orderByType);
 
 	public Fields mergeFields(Fields newFields, Fields existingFields);
+
+	public DDMForm updateDDMFormDefaultLocale(
+		DDMForm ddmForm, Locale newDefaultLocale);
 
 }

@@ -39,7 +39,7 @@ import com.liferay.dynamic.data.mapping.storage.Field;
 import com.liferay.dynamic.data.mapping.storage.FieldConstants;
 import com.liferay.dynamic.data.mapping.storage.Fields;
 import com.liferay.dynamic.data.mapping.util.DDM;
-import com.liferay.dynamic.data.mapping.util.DDMFormValuesToFieldsConverterUtil;
+import com.liferay.dynamic.data.mapping.util.DDMFormValuesToFieldsConverter;
 import com.liferay.dynamic.data.mapping.util.FieldsToDDMFormValuesConverterUtil;
 import com.liferay.dynamic.data.mapping.util.comparator.StructureIdComparator;
 import com.liferay.dynamic.data.mapping.util.comparator.StructureModifiedDateComparator;
@@ -173,6 +173,13 @@ public class DDMImpl implements DDM {
 		catch (PortalException pe) {
 			throw new StructureDefinitionException(pe);
 		}
+	}
+
+	@Override
+	public DDMForm getDDMForm(String serializedJSONDDMForm)
+		throws PortalException {
+
+		return _ddmFormJSONDeserializer.deserialize(serializedJSONDDMForm);
 	}
 
 	@Override
@@ -330,6 +337,17 @@ public class DDMImpl implements DDM {
 		}
 
 		return fieldValue;
+	}
+
+	@Override
+	public Fields getFields(long ddmStructureId, DDMFormValues ddmFormValues)
+		throws PortalException {
+
+		DDMStructure ddmStructure = DDMStructureLocalServiceUtil.getStructure(
+			ddmStructureId);
+
+		return _ddmFormValuesToFieldsConverter.convert(
+			ddmStructure, ddmFormValues);
 	}
 
 	@Override
@@ -564,6 +582,27 @@ public class DDMImpl implements DDM {
 		}
 
 		return existingFields;
+	}
+
+	@Override
+	public DDMForm updateDDMFormDefaultLocale(
+		DDMForm ddmForm, Locale newDefaultLocale) {
+
+		DDMForm ddmFormCopy = new DDMForm(ddmForm);
+
+		Locale defautLocale = ddmForm.getDefaultLocale();
+
+		if (defautLocale.equals(newDefaultLocale)) {
+			return ddmFormCopy;
+		}
+
+		ddmFormCopy.addAvailableLocale(newDefaultLocale);
+		ddmFormCopy.setDefaultLocale(newDefaultLocale);
+
+		updateDDMFormFieldsDefaultLocale(
+			ddmFormCopy.getDDMFormFields(), newDefaultLocale);
+
+		return ddmFormCopy;
 	}
 
 	protected void addDDMFormFieldLocalizedProperties(
@@ -918,7 +957,7 @@ public class DDMImpl implements DDM {
 		DDMFormValues ddmFormValues = getDDMFormValues(
 			ddmStructure.getFullHierarchyDDMForm(), serializedDDMFormValues);
 
-		return DDMFormValuesToFieldsConverterUtil.convert(
+		return _ddmFormValuesToFieldsConverter.convert(
 			ddmStructure, ddmFormValues);
 	}
 
@@ -1218,6 +1257,13 @@ public class DDMImpl implements DDM {
 	}
 
 	@Reference(unbind = "-")
+	protected void setDDMFormValuesToFieldsConverter(
+		DDMFormValuesToFieldsConverter ddmFormValuesToFieldsConverter) {
+
+		_ddmFormValuesToFieldsConverter = ddmFormValuesToFieldsConverter;
+	}
+
+	@Reference(unbind = "-")
 	protected void setDLAppLocalService(DLAppLocalService dlAppLocalService) {
 		_dlAppLocalService = dlAppLocalService;
 	}
@@ -1240,12 +1286,67 @@ public class DDMImpl implements DDM {
 		return StringUtil.split(value);
 	}
 
+	protected void updateDDMFormFieldDefaultLocale(
+		DDMFormField ddmFormField, Locale newDefaultLocale) {
+
+		updateDDMFormFieldOptionsDefaultLocale(
+			ddmFormField.getDDMFormFieldOptions(), newDefaultLocale);
+
+		updateLocalizedValueDefaultLocale(
+			ddmFormField.getLabel(), newDefaultLocale);
+		updateLocalizedValueDefaultLocale(
+			ddmFormField.getPredefinedValue(), newDefaultLocale);
+		updateLocalizedValueDefaultLocale(
+			ddmFormField.getStyle(), newDefaultLocale);
+		updateLocalizedValueDefaultLocale(
+			ddmFormField.getTip(), newDefaultLocale);
+	}
+
+	protected void updateDDMFormFieldOptionsDefaultLocale(
+		DDMFormFieldOptions ddmFormFieldOptions, Locale newDefaultLocale) {
+
+		Map<String, LocalizedValue> options = ddmFormFieldOptions.getOptions();
+
+		for (LocalizedValue localizedValue : options.values()) {
+			updateLocalizedValueDefaultLocale(localizedValue, newDefaultLocale);
+		}
+
+		ddmFormFieldOptions.setDefaultLocale(newDefaultLocale);
+	}
+
+	protected void updateDDMFormFieldsDefaultLocale(
+		List<DDMFormField> ddmFormFields, Locale newDefaultLocale) {
+
+		for (DDMFormField ddmFormField : ddmFormFields) {
+			updateDDMFormFieldDefaultLocale(ddmFormField, newDefaultLocale);
+
+			updateDDMFormFieldsDefaultLocale(
+				ddmFormField.getNestedDDMFormFields(), newDefaultLocale);
+		}
+	}
+
+	protected void updateLocalizedValueDefaultLocale(
+		LocalizedValue localizedValue, Locale newDefaultLocale) {
+
+		Set<Locale> availableLocales = localizedValue.getAvailableLocales();
+
+		if (!availableLocales.contains(newDefaultLocale)) {
+			String defaultValueString = localizedValue.getString(
+				localizedValue.getDefaultLocale());
+
+			localizedValue.addString(newDefaultLocale, defaultValueString);
+		}
+
+		localizedValue.setDefaultLocale(newDefaultLocale);
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(DDMImpl.class);
 
 	private DDMFormJSONDeserializer _ddmFormJSONDeserializer;
 	private DDMFormJSONSerializer _ddmFormJSONSerializer;
 	private DDMFormValuesJSONDeserializer _ddmFormValuesJSONDeserializer;
 	private DDMFormValuesJSONSerializer _ddmFormValuesJSONSerializer;
+	private DDMFormValuesToFieldsConverter _ddmFormValuesToFieldsConverter;
 	private DLAppLocalService _dlAppLocalService;
 	private ImageLocalService _imageLocalService;
 	private LayoutLocalService _layoutLocalService;

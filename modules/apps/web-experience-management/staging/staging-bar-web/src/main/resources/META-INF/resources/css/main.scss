@@ -13,65 +13,6 @@
 	}
 }
 
-.control-menu-level-2 {
-	padding-bottom: 7px;
-	padding-top: 6px;
-
-	@include sm() {
-		left: 0;
-		position: absolute;
-		right: 0;
-		top: 100%;
-	}
-
-	@include media-query(null, $screen-xs-max) {
-		bottom: 0;
-		display: none;
-		left: 0;
-		position: fixed;
-		right: 0;
-		top: 0;
-		z-index: 1;
-	}
-
-	&.open {
-		@include media-query(null, $screen-xs-max) {
-			background-color: transparentize(#29343D, 0.1);
-			display: block;
-			overflow: auto;
-		}
-	}
-}
-
-.control-menu-level-2-heading {
-	padding: 20px 0;
-	text-align: center;
-}
-
-.control-menu-level-2-nav {
-	@include display(flex);
-	@include flex-wrap(wrap);
-	@include justify-content(space-between);
-
-	> .control-menu-nav-item {
-		@include media-query(null, $screen-xs-max) {
-			margin-bottom: 55px;
-		}
-	}
-
-	.control-menu-nav-item {
-		@include media-query(null, $screen-xs-max) {
-			width: 100%;
-		}
-	}
-
-	.dropdown {
-		@include media-query(null, $screen-xs-max) {
-			width: 100%;
-		}
-	}
-}
-
 .control-menu-nav {
 	.staging-bar {
 		position: absolute;
@@ -136,6 +77,7 @@
 
 		label {
 			margin-bottom: 0;
+			min-width: 210px;
 
 			@include sm() {
 				float: left;
@@ -166,10 +108,42 @@
 		@include flex(0 1 50%);
 		@include justify-content(space-between);
 	}
+
+	&:first-child {
+		@include sm() {
+			@include flex-basis(100%);
+		}
+
+		.staging-layout-revision-details-list {
+			@include sm() {
+				@include flex-wrap(nowrap);
+
+				> li {
+					margin-left: 15px;
+
+					&:first-child {
+						margin-left: 0;
+					}
+				}
+			}
+		}
+	}
+
+	.staging-layout-revision-details-list {
+		display: block;
+		width: 100%;
+
+		@include sm() {
+			@include display(flex);
+			@include flex(1);
+			@include flex-wrap(wrap);
+			@include justify-content(space-between);
+		}
+	}
 }
 
 .staging-ready {
-	padding-top: 55px;
+	padding-top: 64px;
 }
 
 .staging-variation-label {

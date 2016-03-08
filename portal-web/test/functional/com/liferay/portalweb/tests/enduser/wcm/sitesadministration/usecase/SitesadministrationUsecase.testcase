@@ -544,7 +544,7 @@
 			<var name="privateVirtualHosts" value="true" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoSitesPages">
+		<execute macro="SitePageNavigator#gotoPages">
 			<var name="page" value="Private Pages" />
 		</execute>
 
@@ -651,12 +651,11 @@
 			<var name="publicVirtualHosts" value="true" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoSitesPages">
+		<execute macro="SitePageNavigator#gotoPages">
 			<var name="page" value="Public Pages" />
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Site Page Name" />
 		</execute>
 

@@ -15,6 +15,8 @@ AUI.add(
 
 		var CSS_PAGES = A.getClassName('form', 'builder', 'pages', 'lexicon');
 
+		var CSS_ROW_CONTAINER_ROW = A.getClassName('layout', 'row', 'container', 'row');
+
 		var TPL_REQURIED_FIELDS = '<label class="hide required-warning">{message}</label>';
 
 		var FormBuilder = A.Component.create(
@@ -78,11 +80,18 @@ AUI.add(
 
 						var boundingBox = instance.get('boundingBox');
 
+						var settingsModal = instance.getFieldSettingModal();
+
 						instance._eventHandlers = [
 							boundingBox.delegate('click', instance._onClickPaginationItem, '.pagination li a'),
 							instance.after('form-builder-field-list:fieldsChange', instance._afterFieldListChange, instance),
-							instance.after('render', instance._afterFormBuilderRender, instance)
+							instance.after('render', instance._afterFormBuilderRender, instance),
+							instance.after(instance._afterRemoveField, instance, 'removeField'),
+							settingsModal.after('hide', A.bind(instance._afterFieldSettingsModalHide, instance)),
+							settingsModal.after('save', A.bind(instance._afterFieldSettingsModalSave, instance))
 						];
+
+						instance._overwriteFieldToolbar();
 					},
 
 					destructor: function() {
@@ -143,7 +152,7 @@ AUI.add(
 						return FieldTypes.get(field.get('type'));
 					},
 
-					showFieldSettingsPanel: function(field, typeName) {
+					getFieldSettingModal: function() {
 						var instance = this;
 
 						if (!instance._fieldSettingsModal) {
@@ -152,14 +161,32 @@ AUI.add(
 									portletNamespace: instance.get('portletNamespace')
 								}
 							);
-
-							instance._eventHandlers.push(
-								instance._fieldSettingsModal.after('hide', A.bind(instance._afterFieldSettingsModalHide, instance)),
-								instance._fieldSettingsModal.after('save', A.bind(instance._afterFieldSettingsModalSave, instance))
-							);
 						}
 
-						instance._fieldSettingsModal.show(field, typeName);
+						return instance._fieldSettingsModal;
+					},
+
+					showFieldSettingsPanel: function(field, typeName) {
+						var instance = this;
+
+						var settingsModal = instance.getFieldSettingModal();
+
+						settingsModal.show(field, typeName);
+					},
+
+					_addFieldsChangeListener: function(layouts) {
+						var instance = this;
+
+						layouts.forEach(
+							function(layout) {
+								instance._fieldsChangeHandles.push(
+									layout.after(
+										'liferay-ddl-form-builder-field-list:fieldsChange',
+										A.bind(instance._afterFieldsChange, instance)
+									)
+								);
+							}
+						);
 					},
 
 					_afterActivePageNumberChange: function() {
@@ -177,6 +204,20 @@ AUI.add(
 						instance._syncRequiredFieldsWarning();
 					},
 
+					_afterFieldSettingsModalSave: function(event) {
+						var instance = this;
+
+						FormBuilder.superclass._afterFieldSettingsModalSave.apply(instance, arguments);
+
+						var field = event.field;
+
+						instance.appendChild(field);
+
+						var row = instance.getFieldRow(field);
+
+						instance.getActiveLayout().normalizeColsHeight(new A.NodeList(row));
+					},
+
 					_afterFormBuilderRender: function() {
 						var instance = this;
 
@@ -185,6 +226,7 @@ AUI.add(
 						instance._renderRequiredFieldsWarning();
 						instance._syncRequiredFieldsWarning();
 						instance._syncRowsLastColumnUI();
+						instance._syncRowIcons();
 					},
 
 					_afterLayoutColsChange: function(event) {
@@ -210,6 +252,12 @@ AUI.add(
 
 						instance._syncRequiredFieldsWarning();
 						instance._syncRowsLastColumnUI();
+					},
+
+					_afterRemoveField: function(field) {
+						var instance = this;
+
+						instance.removeChild(field);
 					},
 
 					_afterSelectFieldType: function(event) {
@@ -264,10 +312,43 @@ AUI.add(
 						return visitor;
 					},
 
+					_insertCutRowIcon: function(row) {
+						var instance = this;
+
+						var cutButton = row.ancestor('.' + CSS_ROW_CONTAINER_ROW).one('.layout-builder-move-cut-button');
+
+						if (cutButton) {
+							cutButton.insert(Liferay.Util.getLexiconIconTpl('cut'));
+						}
+					},
+
+					_insertRemoveRowButton: function(layoutRow, row) {
+						var instance = this;
+
+						var deleteButton = row.ancestor('.' + CSS_ROW_CONTAINER_ROW).all('.layout-builder-remove-row-button');
+
+						if (deleteButton) {
+							deleteButton.empty();
+							deleteButton.insert(Liferay.Util.getLexiconIconTpl('trash'));
+						}
+					},
+
+					_makeEmptyFieldList: function(col) {
+						col.set('value', new Liferay.DDL.FormBuilderFieldList());
+					},
+
 					_onClickPaginationItem: function(event) {
 						var instance = this;
 
 						event.halt();
+					},
+
+					_overwriteFieldToolbar: function() {
+						var instance = this;
+
+						instance._fieldToolbar.destroy();
+
+						instance._fieldToolbar = new Liferay.DDL.FormBuilderFieldToolbar(instance.get('fieldToolbarConfig'));
 					},
 
 					_renderContentBox: function() {
@@ -344,6 +425,19 @@ AUI.add(
 						instance._requiredFieldsWarningNode.appendTo(pageManager.get('pageHeader'));
 					},
 
+					_renderRowIcons: function() {
+						var instance = this;
+
+						var rows = A.all('.layout-row');
+
+						rows.each(
+							function(row) {
+								instance._insertCutRowIcon(row);
+								instance._insertRemoveRowButton(null, row);
+							}
+						);
+					},
+
 					_setFieldToolbarConfig: function() {
 						var instance = this;
 
@@ -351,10 +445,10 @@ AUI.add(
 							FormBuilder.superclass._setFieldToolbarConfig.apply(instance, arguments),
 							{
 								items: [
-									A.FormBuilderFieldToolbar.ITEM_EDIT,
-									A.FormBuilderFieldToolbar.ITEM_MOVE,
-									A.FormBuilderFieldToolbar.ITEM_REMOVE,
-									A.FormBuilderFieldToolbar.ITEM_CLOSE
+									Liferay.DDL.FormBuilderFieldToolbar.ITEM_EDIT,
+									Liferay.DDL.FormBuilderFieldToolbar.ITEM_MOVE,
+									Liferay.DDL.FormBuilderFieldToolbar.ITEM_REMOVE,
+									Liferay.DDL.FormBuilderFieldToolbar.ITEM_CLOSE
 								]
 							}
 						);
@@ -396,6 +490,16 @@ AUI.add(
 						visitor.visit();
 
 						instance._requiredFieldsWarningNode.toggle(hasRequiredField);
+					},
+
+					_syncRowIcons: function() {
+						var instance = this;
+
+						instance._renderRowIcons();
+
+						instance._layoutBuilder.after(instance._insertCutRowIcon, instance._layoutBuilder, '_insertCutButtonOnRow');
+
+						instance._layoutBuilder.after(instance._insertRemoveRowButton, instance._layoutBuilder, '_insertRemoveButtonBeforeRow');
 					},
 
 					_syncRowLastColumnUI: function(row) {
@@ -485,6 +589,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-form-builder', 'aui-form-builder-pages', 'liferay-ddl-form-builder-field-settings-modal', 'liferay-ddl-form-builder-field-support', 'liferay-ddl-form-builder-field-types-modal', 'liferay-ddl-form-builder-layout-deserializer', 'liferay-ddl-form-builder-layout-visitor', 'liferay-ddl-form-builder-pages-manager', 'liferay-ddl-form-builder-util', 'liferay-ddm-form-field-types', 'liferay-ddm-form-renderer']
+		requires: ['aui-form-builder', 'aui-form-builder-pages', 'liferay-ddl-form-builder-field-settings-modal', 'liferay-ddl-form-builder-field-support', 'liferay-ddl-form-builder-field-type', 'liferay-ddl-form-builder-field-types-modal', 'liferay-ddl-form-builder-layout-deserializer', 'liferay-ddl-form-builder-layout-visitor', 'liferay-ddl-form-builder-pages-manager', 'liferay-ddl-form-builder-util', 'liferay-ddm-form-field-types', 'liferay-ddm-form-renderer']
 	}
 );

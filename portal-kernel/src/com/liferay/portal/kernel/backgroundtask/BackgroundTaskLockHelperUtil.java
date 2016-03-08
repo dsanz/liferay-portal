@@ -69,28 +69,32 @@ public class BackgroundTaskLockHelperUtil {
 					BackgroundTaskConstants.ISOLATION_LEVEL_COMPANY) {
 
 			lockKey =
-				backgroundTask.getTaskExecutorClassName() +
-					StringPool.POUND + backgroundTask.getCompanyId();
+				backgroundTask.getTaskExecutorClassName() + StringPool.POUND +
+					backgroundTask.getCompanyId();
+		}
+		else if (backgroundTaskExecutor.getIsolationLevel() ==
+					BackgroundTaskConstants.ISOLATION_LEVEL_CUSTOM) {
+
+			lockKey = backgroundTaskExecutor.generateLockKey(backgroundTask);
 		}
 		else if (backgroundTaskExecutor.getIsolationLevel() ==
 					BackgroundTaskConstants.ISOLATION_LEVEL_GROUP) {
 
 			lockKey =
-				backgroundTask.getTaskExecutorClassName() +
-					StringPool.POUND + backgroundTask.getGroupId();
+				backgroundTask.getTaskExecutorClassName() + StringPool.POUND +
+					backgroundTask.getGroupId();
 		}
 		else if (backgroundTaskExecutor.getIsolationLevel() ==
 					BackgroundTaskConstants.ISOLATION_LEVEL_TASK_NAME) {
 
 			lockKey =
-				backgroundTask.getTaskExecutorClassName() +
-					StringPool.POUND + backgroundTask.getName();
+				backgroundTask.getTaskExecutorClassName() + StringPool.POUND +
+					backgroundTask.getName();
 		}
 		else {
 			lockKey =
-				backgroundTask.getTaskExecutorClassName() +
-					StringPool.POUND +
-						backgroundTaskExecutor.getIsolationLevel();
+				backgroundTask.getTaskExecutorClassName() + StringPool.POUND +
+					backgroundTaskExecutor.getIsolationLevel();
 		}
 
 		return lockKey;

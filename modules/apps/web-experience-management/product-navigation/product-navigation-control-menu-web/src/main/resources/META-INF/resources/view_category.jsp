@@ -91,6 +91,8 @@ if (!categories.isEmpty() || !portlets.isEmpty()) {
 
 					<%
 					for (PortletCategory category : categories) {
+						portletCategoryIndex++;
+
 						request.setAttribute(WebKeys.PORTLET_CATEGORY, category);
 						request.setAttribute(WebKeys.PORTLET_CATEGORY_INDEX, String.valueOf(portletCategoryIndex));
 						request.setAttribute(WebKeys.PORTLET_CATEGORY_PATH, newCategoryPath);
@@ -100,8 +102,6 @@ if (!categories.isEmpty() || !portlets.isEmpty()) {
 
 					<%
 						request.setAttribute(WebKeys.PORTLET_CATEGORY_PATH, oldCategoryPath);
-
-						portletCategoryIndex++;
 					}
 
 					for (Portlet portlet : portlets) {
@@ -144,7 +144,7 @@ if (!categories.isEmpty() || !portlets.isEmpty()) {
 								String cssClass = "drag-content-item";
 
 								if (portletLocked) {
-									cssClass += " lfr-portlet-used";
+									cssClass += " lfr-portlet-used text-muted";
 								}
 								%>
 
@@ -155,7 +155,7 @@ if (!categories.isEmpty() || !portlets.isEmpty()) {
 									data.remove("draggable");
 									%>
 
-									<span <%= AUIUtil.buildData(data) %> class='add-content-item <%= portletLocked ? "lfr-portlet-used" : StringPool.BLANK %>'>
+									<span <%= AUIUtil.buildData(data) %> class='add-content-item <%= portletLocked ? "lfr-portlet-used text-muted" : StringPool.BLANK %>'>
 										<liferay-ui:message key="add" />
 									</span>
 								</li>
@@ -201,7 +201,7 @@ if (!categories.isEmpty() || !portlets.isEmpty()) {
 												portletItemData.remove("draggable");
 												%>
 
-												<span <%= AUIUtil.buildData(portletItemData) %> class='add-content-item <%= portletLocked ? "lfr-portlet-used" : StringPool.BLANK %>'>
+												<span <%= AUIUtil.buildData(portletItemData) %> class='add-content-item <%= portletLocked ? "lfr-portlet-used text-muted" : StringPool.BLANK %>'>
 													<liferay-ui:message key="add" />
 												</span>
 											</li>

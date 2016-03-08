@@ -27,7 +27,6 @@ import com.liferay.dynamic.data.mapping.service.DDMStructureLayoutLocalServiceUt
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalServiceUtil;
-import com.liferay.dynamic.data.mapping.util.DDMXMLUtil;
 import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
 import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -408,14 +407,11 @@ public class DDMStructureImpl extends DDMStructureBaseImpl {
 
 		super.prepareLocalizedFieldsForImport(defaultImportLocale);
 
-		Locale ddmStructureDefaultLocale = LocaleUtil.fromLanguageId(
-			getDefaultLanguageId());
-
 		try {
 			setDefinition(
-				DDMXMLUtil.updateXMLDefaultLocale(
-					getDefinition(), ddmStructureDefaultLocale,
-					defaultImportLocale));
+				DDMStructureLocalServiceUtil.
+					prepareLocalizedDefinitionForImport(
+						this, defaultImportLocale));
 		}
 		catch (Exception e) {
 			throw new LocaleException(LocaleException.TYPE_EXPORT_IMPORT, e);

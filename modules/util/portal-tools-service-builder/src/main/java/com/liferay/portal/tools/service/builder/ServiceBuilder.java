@@ -74,6 +74,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -3551,14 +3552,16 @@ public class ServiceBuilder {
 			if (Validator.isNotNull(createTableSQL)) {
 				_createSQLTables(sqlFile, createTableSQL, entity, true);
 
-				Path updateSQLFilePath = _getUpdateSQLFilePath();
+				List<Path> updateSQLFilePaths = _getUpdateSQLFilePaths();
 
-				if ((updateSQLFilePath != null) &&
-					Files.exists(updateSQLFilePath)) {
+				for (Path updateSQLFilePath : updateSQLFilePaths) {
+					if ((updateSQLFilePath != null) &&
+						Files.exists(updateSQLFilePath)) {
 
-					_createSQLTables(
-						updateSQLFilePath.toFile(), createTableSQL, entity,
-						false);
+						_createSQLTables(
+							updateSQLFilePath.toFile(), createTableSQL, entity,
+							false);
+					}
 				}
 			}
 		}
@@ -4455,9 +4458,19 @@ public class ServiceBuilder {
 		return transients;
 	}
 
-	private Path _getUpdateSQLFilePath() throws IOException {
+	private List<Path> _getUpdateSQLFilePaths() throws IOException {
 		if (!_osgiModule) {
-			return Paths.get(_sqlDirName, "update-6.2.0-7.0.0.sql");
+			final List<Path> updateSQLFilePaths = new ArrayList<>();
+
+			try (DirectoryStream<Path> paths = Files.newDirectoryStream(
+					Paths.get(_sqlDirName), "update-6.2.0-7.0.0*.sql")) {
+
+				for (Path path : paths) {
+					updateSQLFilePaths.add(path);
+				}
+			}
+
+			return updateSQLFilePaths;
 		}
 
 		final AtomicReference<Path> atomicReference = new AtomicReference<>();
@@ -4500,7 +4513,7 @@ public class ServiceBuilder {
 
 			});
 
-		return atomicReference.get();
+		return Arrays.asList(atomicReference.get());
 	}
 
 	private Version _getUpdateSQLFileVersion(Path path) {
@@ -4719,8 +4732,8 @@ public class ServiceBuilder {
 
 		if (newFinderImplFile.exists()) {
 			finderClass =
-				_packagePath +
-					".service.persistence.impl." + ejbName + "FinderImpl";
+				_packagePath + ".service.persistence.impl." + ejbName +
+					"FinderImpl";
 		}
 
 		String dataSource = entityElement.attributeValue("data-source");
@@ -5157,14 +5170,14 @@ public class ServiceBuilder {
 
 	private void _removeActionableDynamicQuery(Entity entity) {
 		File ejbFile = new File(
-			_oldServiceOutputPath + "/service/persistence/" +
-				entity.getName() + "ActionableDynamicQuery.java");
+			_oldServiceOutputPath + "/service/persistence/" + entity.getName() +
+				"ActionableDynamicQuery.java");
 
 		ejbFile.delete();
 
 		ejbFile = new File(
-			_serviceOutputPath + "/service/persistence/" +
-				entity.getName() + "ActionableDynamicQuery.java");
+			_serviceOutputPath + "/service/persistence/" + entity.getName() +
+				"ActionableDynamicQuery.java");
 
 		ejbFile.delete();
 	}
@@ -5191,14 +5204,14 @@ public class ServiceBuilder {
 
 	private void _removeExportActionableDynamicQuery(Entity entity) {
 		File ejbFile = new File(
-			_oldServiceOutputPath + "/service/persistence/" +
-				entity.getName() + "ExportActionableDynamicQuery.java");
+			_oldServiceOutputPath + "/service/persistence/" + entity.getName() +
+				"ExportActionableDynamicQuery.java");
 
 		ejbFile.delete();
 
 		ejbFile = new File(
-			_serviceOutputPath + "/service/persistence/" +
-				entity.getName() + "ExportActionableDynamicQuery.java");
+			_serviceOutputPath + "/service/persistence/" + entity.getName() +
+				"ExportActionableDynamicQuery.java");
 
 		ejbFile.delete();
 	}
