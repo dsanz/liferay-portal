@@ -213,8 +213,7 @@ public class SubscriptionSender implements Serializable {
 					return null;
 				}
 
-			}
-		);
+			});
 	}
 
 	public Object getContextAttribute(String key) {
@@ -609,17 +608,6 @@ public class SubscriptionSender implements Serializable {
 		else {
 			sendNotification(user);
 		}
-	}
-
-	/**
-	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             #notifyPersistedSubscriber(Subscription)}
-	 */
-	@Deprecated
-	protected void notifySubscriber(Subscription subscription)
-		throws Exception {
-
-		notifyPersistedSubscriber(subscription, null, 0);
 	}
 
 	/**

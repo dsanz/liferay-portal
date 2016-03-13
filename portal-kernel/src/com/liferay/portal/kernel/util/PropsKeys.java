@@ -1113,8 +1113,6 @@ public interface PropsKeys {
 
 	public static final String LDAP_ATTRS_TRANSFORMER_IMPL = "ldap.attrs.transformer.impl";
 
-	public static final String LIBRARY_DOWNLOAD_URL = "library.download.url.";
-
 	public static final String LIFERAY_HOME = "liferay.home";
 
 	public static final String LIFERAY_LIB_GLOBAL_DIR = "liferay.lib.global.dir";

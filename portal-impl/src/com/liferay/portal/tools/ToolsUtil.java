@@ -150,16 +150,15 @@ public class ToolsUtil {
 
 	public static String getPackagePath(File file) {
 		String fileName = StringUtil.replace(
-			file.toString(), StringPool.BACK_SLASH, StringPool.SLASH);
+			file.toString(), CharPool.BACK_SLASH, CharPool.SLASH);
 
 		int x = Math.max(
 			fileName.lastIndexOf("/com/"), fileName.lastIndexOf("/org/"));
-		int y = fileName.lastIndexOf(StringPool.SLASH);
+		int y = fileName.lastIndexOf(CharPool.SLASH);
 
 		String packagePath = fileName.substring(x + 1, y);
 
-		return StringUtil.replace(
-			packagePath, StringPool.SLASH, StringPool.PERIOD);
+		return StringUtil.replace(packagePath, CharPool.SLASH, CharPool.PERIOD);
 	}
 
 	public static boolean isInsideQuotes(String s, int pos) {
@@ -318,8 +317,9 @@ public class ToolsUtil {
 
 		className = className.substring(0, className.length() - 5);
 
-		content = JavaImportsFormatter.stripJavaImports(
-			content, packagePath, className);
+		ImportsFormatter importsFormatter = new JavaImportsFormatter();
+
+		content = importsFormatter.format(content, packagePath, className);
 
 		content = stripFullyQualifiedClassNames(content);
 

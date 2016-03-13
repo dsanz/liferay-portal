@@ -16,7 +16,7 @@
 </tr>
 <tr>
 	<td>ROLE_TABLE_TITLE_LINK</td>
-	<td>//tr[contains(.,'${key_roleName}')]/td[2]/a</td>
+	<td>//tr[contains(.,'${key_roleName}')]/td[2]//a</td>
 	<td></td>
 </tr>
 <tr>
@@ -44,7 +44,12 @@
 	<td>//tr[contains(.,'${key_roleName}')]/td[4]//span[contains(.,'Define Permissions')]</td>
 	<td></td>
 </tr>
-<!---->
+<!--SEARCH-->
+<tr>
+	<td>ROLE_SEARCH_BUTTON</td>
+	<td>//*[@data-qa-id='searchButton']</td>
+	<td></td>
+</tr>
 <!--BREADCRUMB-->
 <tr>
 	<td>BREADCRUMB</td>

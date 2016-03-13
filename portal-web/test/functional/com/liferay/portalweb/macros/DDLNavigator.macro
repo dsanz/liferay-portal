@@ -33,13 +33,11 @@
 	</command>
 
 	<command name="gotoListRecords">
-		<execute function="Type" locator1="NavBar#BASIC_SEARCH_FIELD" value1="${ddlListName}" />
+		<var name="key_ddlListName" value="${ddlListName}" />
 
-		<execute function="Click" locator1="Icon#BASIC_SEARCH" />
+		<execute function="AssertTextEquals" locator1="DDL#LIST_TABLE_NAME" value1="${ddlListName}" />
 
-		<execute function="AssertTextEquals" locator1="DDL#LIST_TABLE_NAME_1" value1="${ddlListName}" />
-
-		<execute function="Click" locator1="DDL#LIST_TABLE_NAME_1" value1="${ddlListName}" />
+		<execute function="AssertClick" locator1="DDL#LIST_TABLE_NAME" value1="${ddlListName}" />
 
 		<execute macro="SiteAdmin#viewPortletTitle">
 			<var name="portletTitle" value="${ddlListName}" />
@@ -56,17 +54,27 @@
 		<execute function="AssertTextEquals" locator1="ControlMenu#HEADER_TITLE" value1="Structures" />
 	</command>
 
+	<command name="gotoOptionalConfiguration">
+		<execute function="SelectFrame" locator1="DDLConfiguration#CONFIGURATION_IFRAME" />
+
+		<execute function="AssertClick" locator1="DDLConfiguration#NAVIGATION_OPTIONAL_CONFIGURATION" value1="Optional Configuration" />
+	</command>
+
 	<command name="gotoSpreadsheetView">
+		<var name="key_ddlListName" value="${ddlListName}" />
+
+		<execute function="AssertTextEquals" locator1="DDL#LIST_TABLE_NAME" value1="${ddlListName}" />
+
 		<var name="key_rowEntry" value="${ddlListName}" />
-
-		<execute function="Type" locator1="NavBar#BASIC_SEARCH_FIELD" value1="${ddlListName}" />
-
-		<execute function="Click" locator1="Icon#BASIC_SEARCH" />
-
-		<execute function="AssertTextEquals" locator1="DDL#LIST_TABLE_NAME_1" value1="${ddlListName}" />
 
 		<execute function="Click#waitForMenuToggleJSClick" locator1="Icon#ROW_VERTICAL_ELLIPSIS" />
 
 		<execute function="AssertClick" locator1="MenuItem#SPREADSHEET_VIEW" value1="Spreadsheet View" />
+	</command>
+
+	<command name="gotoView">
+		<execute function="Click" locator1="DDL#RECORD_TABLE_ELLIPSIS_1" />
+
+		<execute function="AssertClick" locator1="MenuItem#VIEW" value1="View" />
 	</command>
 </definition>

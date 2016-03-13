@@ -38,6 +38,7 @@ import com.liferay.sync.engine.util.SyncEngineUtil;
 
 import java.io.IOException;
 
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystemException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -252,12 +253,12 @@ public class GetSyncDLObjectUpdateHandler extends BaseSyncDLObjectHandler {
 
 		syncFile.setFilePathName(filePathName);
 		syncFile.setSyncAccountId(getSyncAccountId());
-		syncFile.setUiEvent(SyncFile.UI_EVENT_ADDED_REMOTE);
 
 		if (syncFile.isFolder()) {
 			Files.createDirectories(filePath);
 
 			syncFile.setState(SyncFile.STATE_SYNCED);
+			syncFile.setUiEvent(SyncFile.UI_EVENT_ADDED_REMOTE);
 
 			SyncFileService.update(syncFile);
 
@@ -265,6 +266,8 @@ public class GetSyncDLObjectUpdateHandler extends BaseSyncDLObjectHandler {
 				filePath, String.valueOf(syncFile.getSyncFileId()), false);
 		}
 		else {
+			syncFile.setUiEvent(SyncFile.UI_EVENT_DOWNLOADING);
+
 			SyncFileService.update(syncFile);
 
 			downloadFile(syncFile, null, 0, false);
@@ -297,10 +300,20 @@ public class GetSyncDLObjectUpdateHandler extends BaseSyncDLObjectHandler {
 		boolean exists = Files.exists(
 			Paths.get(targetSyncFile.getFilePathName()));
 
-		Files.move(
-			tempFilePath, Paths.get(targetSyncFile.getFilePathName()),
-			StandardCopyOption.ATOMIC_MOVE,
-			StandardCopyOption.REPLACE_EXISTING);
+		try {
+			Files.move(
+				tempFilePath, Paths.get(targetSyncFile.getFilePathName()),
+				StandardCopyOption.ATOMIC_MOVE,
+				StandardCopyOption.REPLACE_EXISTING);
+		}
+		catch (AccessDeniedException ade) {
+			targetSyncFile.setState(SyncFile.STATE_ERROR);
+			targetSyncFile.setUiEvent(SyncFile.UI_EVENT_ACCESS_DENIED_LOCAL);
+
+			SyncFileService.update(targetSyncFile);
+
+			return;
+		}
 
 		targetSyncFile.setState(SyncFile.STATE_SYNCED);
 

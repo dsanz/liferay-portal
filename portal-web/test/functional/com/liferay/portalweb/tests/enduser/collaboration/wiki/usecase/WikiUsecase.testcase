@@ -14,7 +14,7 @@
 			<var name="pageName" value="${pageName}" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoEditPage">
+		<execute macro="SitePageNavigator#gotoEditPage">
 			<var name="page" value="${pageName}" />
 		</execute>
 
@@ -64,12 +64,11 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Staging Test Page" />
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoEditPage">
+		<execute macro="SitePageNavigator#gotoEditPage">
 			<var name="page" value="Staging Test Page" />
 		</execute>
 
@@ -77,20 +76,18 @@
 			<var name="columnName" value="1_column" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Staging Test Page" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Wiki" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Staging Test Page" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="WikiNavigator#gotoAllPagesPG" />
@@ -122,17 +119,16 @@
 			<var name="uncheckContent" value="Wiki" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Staging Test Page" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="WikiNavigator#gotoPG">
 			<var name="wikiPageTitle" value="Wiki Page Title" />
 		</execute>
 
-		<execute macro="WikiPage#viewAttachmentPG">
+		<execute macro="WikiPage#viewAttachmentPGViaEdit">
 			<var name="attachmentFileName" value="Document_1.jpg" />
 			<var name="wikiPageTitle" value="Wiki Page Title" />
 		</execute>
@@ -148,7 +144,7 @@
 			<var name="wikiPageTitle" value="Wiki Page Title" />
 		</execute>
 
-		<execute macro="WikiPage#viewAttachmentPG">
+		<execute macro="WikiPage#viewAttachmentPGViaEdit">
 			<var name="attachmentFileName" value="Document_1.jpg" />
 			<var name="wikiPageTitle" value="Wiki Page Title" />
 		</execute>
@@ -404,6 +400,8 @@
 	</command>
 
 	<command name="RestoreDeleteWikiFrontpage" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">

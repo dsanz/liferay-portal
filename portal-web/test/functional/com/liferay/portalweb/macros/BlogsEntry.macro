@@ -210,7 +210,7 @@
 	<command name="autoSaveDraft">
 		<execute function="Pause" locator1="30000" />
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SAVE_STATUS" value1="Draft saved at" />
+		<execute function="AssertElementPresent" locator1="Message#DRAFT_AUTO_SAVE" />
 	</command>
 
 	<command name="editContent">
@@ -258,7 +258,10 @@
 		<var name="key_entryContent" value="${entryContent}" />
 
 		<execute function="AssertTextEquals" locator1="BlogsEntry#CONTENT" value1="${entryContent}" />
-		<execute function="AssertElementNotPresent" locator1="Link#EDIT" />
+
+		<execute function="Click" locator1="Icon#BODY_VERTICAL_ELLIPSIS" />
+
+		<execute function="AssertClick" locator1="MenuItem#EDIT" value1="Edit" />
 	</command>
 
 	<command name="editSubtitle">
@@ -318,6 +321,8 @@
 		<execute function="AssertTextEquals" locator1="ReportContent#WARNING_TERMS_OF_USE_LINK" value1="Terms of Use" />
 
 		<execute function="Select" locator1="ReportContent#REASON_SELECT" value1="${flagReason}" />
+
+		<execute function="Type" locator1="TextInput#EMAIL" value1="${userEmailAddress}" />
 
 		<execute macro="Button#clickSave" />
 

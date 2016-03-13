@@ -33,6 +33,7 @@ import aQute.bnd.service.AnalyzerPlugin;
 import aQute.lib.io.IO;
 import aQute.lib.strings.Strings;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import java.util.Arrays;
@@ -44,6 +45,16 @@ import java.util.TreeSet;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * @author Raymond Augé
@@ -151,9 +162,9 @@ public class JspAnalyzerPlugin implements AnalyzerPlugin {
 	protected void addJarApiUses(
 		Analyzer analyzer, String content, PackageRef packageRef, Jar jar) {
 
-		Map<String, Map<String, Resource>> directories = jar.getDirectories();
+		Map<String, Map<String, Resource>> resourceMaps = jar.getDirectories();
 
-		Map<String, Resource> resourceMap = directories.get(
+		Map<String, Resource> resourceMap = resourceMaps.get(
 			packageRef.getPath());
 
 		if ((resourceMap == null) || resourceMap.isEmpty()) {
@@ -279,6 +290,17 @@ public class JspAnalyzerPlugin implements AnalyzerPlugin {
 		Set<String> taglibRequirements = new TreeSet<String>();
 
 		for (String uri : getTaglibURIs(content)) {
+
+			// Check to see if the JAR provides this TLD itself which would
+			// indicate that it already has access to the required classes
+
+			if (containsTLD(analyzer, analyzer.getJar(), "META-INF", uri) ||
+				containsTLD(analyzer, analyzer.getJar(), "WEB-INF/tld", uri) ||
+				containsTLDInBundleClassPath(analyzer, "META-INF", uri)) {
+
+				continue;
+			}
+
 			if (Arrays.binarySearch(_JSTL_CORE_URIS, uri) < 0) {
 				addTaglibRequirement(taglibRequirements, uri);
 			}
@@ -349,11 +371,117 @@ public class JspAnalyzerPlugin implements AnalyzerPlugin {
 		return taglibURis;
 	}
 
+	protected boolean containsTLD(
+		Analyzer analyzer, Jar jar, String root, String uri) {
+
+		Map<String, Map<String, Resource>> resourceMaps = jar.getDirectories();
+
+		Map<String, Resource> resourceMap = resourceMaps.get(root);
+
+		if (resourceMap == null || resourceMap.isEmpty()) {
+			Resource resource = jar.getResource(root);
+
+			if ((resource != null) &&
+				matchesURI(analyzer, root, resource, uri)) {
+
+				return true;
+			}
+
+			return false;
+		}
+
+		for (Entry<String, Resource> entry : resourceMap.entrySet()) {
+			String path = entry.getKey();
+			Resource resource = entry.getValue();
+
+			Matcher matcher = _tldPattern.matcher(path);
+
+			if (matcher.matches() &&
+				matchesURI(analyzer, path, resource, uri)) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	protected boolean containsTLDInBundleClassPath(
+		Analyzer analyzer, String root, String uri) {
+
+		Parameters parameters = new Parameters(
+			analyzer.getProperty(Constants.BUNDLE_CLASSPATH));
+
+		if (parameters.isEmpty()) {
+			return false;
+		}
+
+		Jar jar = analyzer.getJar();
+
+		for (String entry : parameters.keySet()) {
+			String entryLowerCase = entry.toLowerCase();
+
+			if (!entryLowerCase.endsWith(".jar") &&
+				!entryLowerCase.endsWith(".zip")) {
+
+				continue;
+			}
+
+			Resource resource = jar.getResource(entry);
+
+			if (resource == null) {
+				continue;
+			}
+
+			try {
+				Jar classPathJar = new Jar(entry, resource.openInputStream());
+
+				if (containsTLD(analyzer, classPathJar, root, uri)) {
+					return true;
+				}
+			}
+			catch (Exception e) {
+				continue;
+			}
+		}
+
+		return false;
+	}
+
+	protected boolean matchesURI(
+		Analyzer analyzer, String path, Resource resource, final String uri) {
+
+		try {
+			URIFinder uriFinder = new URIFinder(uri);
+
+			SAXParser saxParser = _saxParserFactory.newSAXParser();
+
+			XMLReader xmlReader = saxParser.getXMLReader();
+
+			xmlReader.setContentHandler(uriFinder);
+			xmlReader.setFeature(_LOAD_EXTERNAL_DTD, false);
+			xmlReader.setEntityResolver(new NullEntityResolver());
+
+			xmlReader.parse(new InputSource(resource.openInputStream()));
+
+			return uriFinder.hasURI();
+		}
+		catch (Exception e) {
+			analyzer.error(
+				"Unexpected exception in processing TLD " + path + ": " + e);
+		}
+
+		return false;
+	}
+
 	private static final String[] _JSTL_CORE_URIS = new String[] {
 		"http://java.sun.com/jsp/jstl/core", "http://java.sun.com/jsp/jstl/fmt",
 		"http://java.sun.com/jsp/jstl/functions",
 		"http://java.sun.com/jsp/jstl/sql", "http://java.sun.com/jsp/jstl/xml"
 	};
+
+	private static final String _LOAD_EXTERNAL_DTD =
+		"http://apache.org/xml/features/nonvalidating/load-external-dtd";
 
 	private static final String[] _REQUIRED_PACKAGE_NAMES = new String[] {
 		"javax.servlet", "javax.servlet.http"
@@ -361,5 +489,71 @@ public class JspAnalyzerPlugin implements AnalyzerPlugin {
 
 	private static final Pattern _packagePattern = Pattern.compile(
 		"[_A-Za-z$][_A-Za-z0-9$]*(\\.[_A-Za-z$][_A-Za-z0-9$]*)*");
+
+	private static final Pattern _tldPattern = Pattern.compile(".*\\.tld");
+
+	private final SAXParserFactory _saxParserFactory =
+		SAXParserFactory.newInstance();
+
+	private class NullEntityResolver implements EntityResolver {
+
+		@Override
+		public InputSource resolveEntity(
+				String publicId, String systemId)
+			throws SAXException, IOException {
+
+			return new InputSource();
+		}
+
+	}
+
+	private class URIFinder extends DefaultHandler {
+
+		public URIFinder(String uri) {
+			_uri = uri;
+		}
+
+		@Override
+		public void endElement(String uri, String localName, String qName)
+			throws SAXException {
+
+			if (qName.equals("uri")) {
+				_inURI = false;
+			}
+		}
+
+		@Override
+		public void startElement(
+				String uri, String localName, String qName,
+				Attributes attributes)
+			throws SAXException {
+
+			if (qName.equals("uri")) {
+				_inURI = true;
+			}
+		}
+
+		@Override
+		public void characters(char[] chars, int start, int length)
+			throws SAXException {
+
+			if (!_inURI) {
+				return;
+			}
+
+			String value = new String(chars, start, length);
+
+			_hasURI = _uri.equals(value.trim());
+		}
+
+		public boolean hasURI() {
+			return _hasURI;
+		}
+
+		private boolean _hasURI;
+		private boolean _inURI;
+		private String _uri;
+
+	}
 
 }

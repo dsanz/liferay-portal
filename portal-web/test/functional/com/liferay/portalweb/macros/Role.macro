@@ -33,7 +33,7 @@
 
 		<execute function="Click" locator1="Button#PLUS" />
 
-		<execute function="AssertVisible" locator1="Button#SAVE" />
+		<execute function="AssertTextEquals" locator1="Portlet#HEADER" value1="New Role" />
 
 		<execute function="Type" locator1="TextInput#NAME" value1="${roleName}" />
 
@@ -789,7 +789,7 @@
 		</execute>
 
 		<execute function="Type#sendKeys" locator1="NavBar#BASIC_SEARCH_FIELD" value1="Name" />
-		<execute function="AssertClick" locator1="Button#SEARCH" value1="Search" />
+		<execute function="Click" locator1="Roles#ROLE_SEARCH_BUTTON" />
 
 		<while>
 			<condition function="IsElementPresent#pauseIsElementPresent" locator1="Roles#ROLE_TABLE_ACTIONS_1" />

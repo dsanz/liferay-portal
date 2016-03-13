@@ -70,9 +70,9 @@ public class DDMTemplateResourceParser implements TemplateResourceParser {
 
 			if (_log.isDebugEnabled()) {
 				_log.debug(
-					"Loading {companyId=" + companyId + ", groupId=" +
-						groupId + ", classNameId=" + classNameId +
-							", ddmTemplateKey=" + ddmTemplateKey + "}");
+					"Loading {companyId=" + companyId + ", groupId=" + groupId +
+						", classNameId=" + classNameId + ", ddmTemplateKey=" +
+							ddmTemplateKey + "}");
 			}
 
 			DDMTemplate ddmTemplate = DDMTemplateManagerUtil.fetchTemplate(
@@ -111,6 +111,18 @@ public class DDMTemplateResourceParser implements TemplateResourceParser {
 			throw new TemplateException(
 				"Unable to find template " + templateId, e);
 		}
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
+	public boolean isTemplateResourceValid(String templateId, String langType) {
+		if (templateId.contains(TemplateConstants.JOURNAL_SEPARATOR) ||
+			templateId.contains(TemplateConstants.TEMPLATE_SEPARATOR)) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

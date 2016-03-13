@@ -190,8 +190,8 @@
 		</execute>
 
 		<execute macro="User#loginPG">
+			<var name="specificURL" value="http://www.able.com:8080" />
 			<var name="userEmailAddress" value="test@www.able.com" />
-			<var name="virtualHostsURL" value="http://www.able.com:8080" />
 		</execute>
 
 		<execute function="AssertElementNotPresent" locator1="SOUserBar#USER_BAR" />
@@ -477,10 +477,10 @@
 		</execute>
 
 		<execute macro="SiteTemplates#addSitePageViaSiteTemplateCP">
+			<var name="pageName" value="URL Page Name" />
 			<var name="pageType" value="Link to URL" />
 			<var name="pageTypeDescription" value="URL Page Description" />
 			<var name="pageTypeURL" value="http://www.google.com" />
-			<var name="sitePageName" value="URL Page Name" />
 			<var name="siteTemplateName" value="Social Office User Home" />
 		</execute>
 

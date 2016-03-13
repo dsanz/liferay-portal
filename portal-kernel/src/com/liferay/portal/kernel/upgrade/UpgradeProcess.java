@@ -24,10 +24,12 @@ import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.upgrade.util.UpgradeColumn;
 import com.liferay.portal.kernel.upgrade.util.UpgradeTable;
 import com.liferay.portal.kernel.upgrade.util.UpgradeTableFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ClassUtil;
+import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -251,103 +253,109 @@ public abstract class UpgradeProcess
 	protected void alter(Class<?> tableClass, Alterable... alterables)
 		throws Exception {
 
-		Field tableNameField = tableClass.getField("TABLE_NAME");
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			Field tableNameField = tableClass.getField("TABLE_NAME");
 
-		String tableName = (String)tableNameField.get(null);
+			String tableName = (String)tableNameField.get(null);
 
-		DatabaseMetaData databaseMetaData = connection.getMetaData();
+			DatabaseMetaData databaseMetaData = connection.getMetaData();
 
-		try (ResultSet rs1 = databaseMetaData.getPrimaryKeys(
-				null, null, tableName);
-			ResultSet rs2 = databaseMetaData.getIndexInfo(
-				null, null, normalizeName(tableName, databaseMetaData), false,
-				false)) {
+			try (ResultSet rs1 = databaseMetaData.getPrimaryKeys(
+					null, null, tableName);
+				ResultSet rs2 = databaseMetaData.getIndexInfo(
+					null, null, normalizeName(tableName, databaseMetaData),
+					false, false)) {
 
-			Set<String> primaryKeyNames = new HashSet<>();
+				Set<String> primaryKeyNames = new HashSet<>();
 
-			while (rs1.next()) {
-				String primaryKeyName = rs1.getString("PK_NAME");
+				while (rs1.next()) {
+					String primaryKeyName = rs1.getString("PK_NAME");
 
-				if (primaryKeyName != null) {
-					primaryKeyNames.add(primaryKeyName);
-				}
-			}
-
-			Map<String, Set<String>> columnNamesMap = new HashMap<>();
-
-			while (rs2.next()) {
-				String indexName = rs2.getString("INDEX_NAME");
-
-				if ((indexName == null) ||
-					primaryKeyNames.contains(indexName)) {
-
-					continue;
-				}
-
-				Set<String> columnNames = columnNamesMap.get(indexName);
-
-				if (columnNames == null) {
-					columnNames = new HashSet<>();
-
-					columnNamesMap.put(indexName, columnNames);
-				}
-
-				columnNames.add(rs2.getString("COLUMN_NAME"));
-			}
-
-			for (Alterable alterable : alterables) {
-				String columnName = alterable.getIndexedColumnName();
-
-				for (Map.Entry<String, Set<String>> entry :
-						columnNamesMap.entrySet()) {
-
-					Set<String> columnNames = entry.getValue();
-
-					if (columnNames.contains(columnName)) {
-						runSQL(
-							"drop index " + entry.getKey() + " on " +
-								tableName);
+					if (primaryKeyName != null) {
+						primaryKeyNames.add(primaryKeyName);
 					}
 				}
 
-				runSQL(alterable.getSQL(tableName));
+				Map<String, Set<String>> columnNamesMap = new HashMap<>();
 
-				List<ObjectValuePair<String, IndexMetadata>> objectValuePairs =
-					getIndexesSQL(tableClass.getClassLoader(), tableName);
+				while (rs2.next()) {
+					String indexName = rs2.getString("INDEX_NAME");
 
-				if (objectValuePairs == null) {
-					continue;
-				}
-
-				for (ObjectValuePair<String, IndexMetadata> objectValuePair :
-						objectValuePairs) {
-
-					IndexMetadata indexMetadata = objectValuePair.getValue();
-
-					if (!ArrayUtil.contains(
-							indexMetadata.getColumnNames(), columnName)) {
+					if ((indexName == null) ||
+						primaryKeyNames.contains(indexName)) {
 
 						continue;
 					}
 
-					runSQLTemplateString(objectValuePair.getKey(), false, true);
+					Set<String> columnNames = columnNamesMap.get(indexName);
+
+					if (columnNames == null) {
+						columnNames = new HashSet<>();
+
+						columnNamesMap.put(indexName, columnNames);
+					}
+
+					columnNames.add(rs2.getString("COLUMN_NAME"));
+				}
+
+				for (Alterable alterable : alterables) {
+					String columnName = alterable.getIndexedColumnName();
+
+					for (Map.Entry<String, Set<String>> entry :
+							columnNamesMap.entrySet()) {
+
+						Set<String> columnNames = entry.getValue();
+
+						if (columnNames.contains(columnName)) {
+							runSQL(
+								"drop index " + entry.getKey() + " on " +
+									tableName);
+						}
+					}
+
+					runSQL(alterable.getSQL(tableName));
+
+					List<ObjectValuePair<String, IndexMetadata>>
+						objectValuePairs = getIndexesSQL(
+							tableClass.getClassLoader(), tableName);
+
+					if (objectValuePairs == null) {
+						continue;
+					}
+
+					for (ObjectValuePair<String, IndexMetadata>
+							objectValuePair : objectValuePairs) {
+
+						IndexMetadata indexMetadata =
+							objectValuePair.getValue();
+
+						if (!ArrayUtil.contains(
+								indexMetadata.getColumnNames(), columnName)) {
+
+							continue;
+						}
+
+						runSQLTemplateString(
+							objectValuePair.getKey(), false, true);
+					}
 				}
 			}
-		}
-		catch (SQLException sqle) {
-			if (_log.isWarnEnabled()) {
-				_log.warn("Fallback to recreating the table", sqle);
+			catch (SQLException sqle) {
+				if (_log.isWarnEnabled()) {
+					_log.warn("Fallback to recreating the table", sqle);
+				}
+
+				Field tableColumnsField = tableClass.getField("TABLE_COLUMNS");
+				Field tableSQLCreateField = tableClass.getField(
+					"TABLE_SQL_CREATE");
+				Field tableSQLAddIndexesField = tableClass.getField(
+					"TABLE_SQL_ADD_INDEXES");
+
+				upgradeTable(
+					tableName, (Object[][])tableColumnsField.get(null),
+					(String)tableSQLCreateField.get(null),
+					(String[])tableSQLAddIndexesField.get(null));
 			}
-
-			Field tableColumnsField = tableClass.getField("TABLE_COLUMNS");
-			Field tableSQLCreateField = tableClass.getField("TABLE_SQL_CREATE");
-			Field tableSQLAddIndexesField = tableClass.getField(
-				"TABLE_SQL_ADD_INDEXES");
-
-			upgradeTable(
-				tableName, (Object[][])tableColumnsField.get(null),
-				(String)tableSQLCreateField.get(null),
-				(String[])tableSQLAddIndexesField.get(null));
 		}
 	}
 
@@ -441,6 +449,12 @@ public abstract class UpgradeProcess
 		return db.increment(name);
 	}
 
+	protected long increment(String name, int size) {
+		DB db = DBManagerUtil.getDB();
+
+		return db.increment(name, size);
+	}
+
 	protected boolean isSupportsAlterColumnName() {
 		DB db = DBManagerUtil.getDB();
 
@@ -490,17 +504,19 @@ public abstract class UpgradeProcess
 	}
 
 	protected void upgradeTable(
-			String tableName, Object[][] tableColumns, String sqlCreate,
-			String[] sqlAddIndexes)
+			String tableName, Object[][] tableColumns, String createSQL,
+			String[] indexesSQL, UpgradeColumn... upgradeColumns)
 		throws Exception {
 
-		UpgradeTable upgradeTable = UpgradeTableFactoryUtil.getUpgradeTable(
-			tableName, tableColumns);
+		try (LoggingTimer loggingTimer = new LoggingTimer(tableName)) {
+			UpgradeTable upgradeTable = UpgradeTableFactoryUtil.getUpgradeTable(
+				tableName, tableColumns, upgradeColumns);
 
-		upgradeTable.setCreateSQL(sqlCreate);
-		upgradeTable.setIndexesSQL(sqlAddIndexes);
+			upgradeTable.setCreateSQL(createSQL);
+			upgradeTable.setIndexesSQL(indexesSQL);
 
-		upgradeTable.updateTable();
+			upgradeTable.updateTable();
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(UpgradeProcess.class);

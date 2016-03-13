@@ -94,39 +94,34 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Site Page 1" />
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Site Page 2" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page 1" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Documents and Media" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page 2" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Documents and Media" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page 1" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="DMPortlet#configureDisplaySettingsPG">
@@ -135,10 +130,9 @@
 			<var name="entriesToDisplayCount" value="75" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page 2" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="DMPortlet#viewDefaultConfigurationDisplaySettingsPG" />
@@ -247,7 +241,10 @@
 			<var name="dmDocumentTitle" value="Document_1.doc" />
 		</execute>
 
-		<execute function="AssertTextEquals" locator1="DocumentsAndMediaDocument#DOCUMENT_INFO_VERSION" value1="Version PWC" />
+		<execute macro="DMDocument#viewDocumentVersionNumberCmdPG">
+			<var name="dmDocumentVersionNumber" value="PWC" />
+		</execute>
+
 		<execute function="AssertTextEquals" locator1="DocumentsAndMediaDocument#DOCUMENT_INFO_WORKFLOW_STATUS" value1="Draft" />
 
 		<execute macro="Navigator#gotoPage">
@@ -302,7 +299,9 @@
 
 		<execute function="AssertClick" locator1="DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_TITLE" value1="Document1" />
 
-		<execute function="AssertTextEquals" locator1="DocumentsAndMediaDocument#DOCUMENT_INFO_VERSION" value1="Version PWC" />
+		<execute macro="DMDocument#viewDocumentVersionNumberCmdPG">
+			<var name="dmDocumentVersionNumber" value="PWC" />
+		</execute>
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="${pageName}" />
@@ -316,7 +315,10 @@
 			<var name="dmDocumentTitle" value="Document1" />
 		</execute>
 
-		<execute function="AssertTextEquals" locator1="DocumentsAndMediaDocument#DOCUMENT_INFO_VERSION" value1="Version 1.1" />
+		<execute macro="DMDocument#viewDocumentVersionNumberCmdPG">
+			<var name="dmDocumentVersionNumber" value="1.1" />
+		</execute>
+
 		<execute function="AssertTextEquals" locator1="DocumentsAndMediaDocument#DOCUMENT_INFO_WORKFLOW_STATUS" value1="Approved" />
 
 		<execute macro="Navigator#gotoPage">
@@ -346,7 +348,9 @@
 
 		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
 
-		<execute function="AssertTextEquals" locator1="DocumentsAndMediaDocument#DOCUMENT_INFO_VERSION" value1="Version PWC" />
+		<execute macro="DMDocument#viewDocumentVersionNumberCmdPG">
+			<var name="dmDocumentVersionNumber" value="PWC" />
+		</execute>
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="${pageName}" />
@@ -356,7 +360,10 @@
 			<var name="dmDocumentTitle" value="Document1" />
 		</execute>
 
-		<execute function="AssertTextEquals" locator1="DocumentsAndMediaDocument#DOCUMENT_INFO_VERSION" value1="Version 1.1" />
+		<execute macro="DMDocument#viewDocumentVersionNumberCmdPG">
+			<var name="dmDocumentVersionNumber" value="1.1" />
+		</execute>
+
 		<execute function="AssertTextEquals" locator1="DocumentsAndMediaDocument#DOCUMENT_INFO_WORKFLOW_STATUS" value1="Approved" />
 	</command>
 
@@ -1100,7 +1107,7 @@
 		</execute>
 
 		<execute macro="SiteTemplates#addSitePageViaSiteTemplateCP">
-			<var name="sitePageName" value="DM Site Page Name - Global" />
+			<var name="pageName" value="DM Site Page Name - Global" />
 			<var name="siteTemplateName" value="Site Template Name" />
 		</execute>
 
@@ -1117,40 +1124,36 @@
 			<var name="site" value="DM Site Name" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="DM Site Page Name - Global" />
 			<var name="siteName" value="DM Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Documents and Media" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="DM Site Page Name - Global" />
 			<var name="siteName" value="DM Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="DMPortlet#configureScopetoGlobalPG">
 			<var name="currentScope" value="DM Site Name" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="DM Site Page Name - Global" />
 			<var name="siteName" value="DM Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="DMPortlet#configureRootFolderPG">
 			<var name="dmFolderName" value="DM Folder Name" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="DM Site Page Name - Global" />
 			<var name="siteName" value="DM Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="DMNavigator#gotoFolderPG">

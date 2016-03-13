@@ -73,6 +73,12 @@ public class LayoutTypePortletImplTest {
 				PortletLocalServiceUtil.getPortletById(PortletKeys.LOGIN);
 
 			PortletPreferencesLocalServiceUtil.addPortletPreferences(
+				TestPropsValues.getCompanyId(),
+				PortletKeys.PREFS_OWNER_ID_DEFAULT,
+				PortletKeys.PREFS_OWNER_TYPE_LAYOUT, _layout.getPlid(),
+				noncacheablePortlet.getPortletId(), noncacheablePortlet, null);
+
+			PortletPreferencesLocalServiceUtil.addPortletPreferences(
 				TestPropsValues.getCompanyId(), _layout.getGroupId(),
 				PortletKeys.PREFS_OWNER_TYPE_LAYOUT,
 				PortletKeys.PREFS_PLID_SHARED,
@@ -128,11 +134,6 @@ public class LayoutTypePortletImplTest {
 			_setUp();
 		}
 
-		@After
-		public void tearDown() {
-			_tearDown();
-		}
-
 		@Test
 		public void
 				shouldReturnFalseIfANonlayoutCacheableRootPortletIsInstalled()
@@ -172,6 +173,11 @@ public class LayoutTypePortletImplTest {
 			Assert.assertTrue(_layoutTypePortlet.isCacheable());
 		}
 
+		@After
+		public void tearDown() {
+			_tearDown();
+		}
+
 	}
 
 	public static class
@@ -185,11 +191,6 @@ public class LayoutTypePortletImplTest {
 		@Before
 		public void setUp() throws Exception {
 			_setUp();
-		}
-
-		@After
-		public void tearDown() {
-			_tearDown();
 		}
 
 		@Test
@@ -222,6 +223,11 @@ public class LayoutTypePortletImplTest {
 				PropsKeys.LAYOUT_STATIC_PORTLETS_ALL, cacheablePortletId);
 
 			Assert.assertTrue(_layoutTypePortlet.isCacheable());
+		}
+
+		@After
+		public void tearDown() {
+			_tearDown();
 		}
 
 	}

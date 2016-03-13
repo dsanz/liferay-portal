@@ -140,7 +140,7 @@
 <!--PAGE_VARIATION_MENULIST-->
 <tr>
 	<td>PAGE_VARIATION_MENULIST_NAME</td>
-	<td>xpath=(//ul//li//a[contains(.,'${key_pageVariationName}')])[2]</td>
+	<td>//ul//li//a[contains(.,'${key_pageVariationName}') and contains(@class,'disabled')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -151,7 +151,7 @@
 <!--HISTORY-->
 <tr>
 	<td>HISTORY_VERSION</td>
-	<td>//td/span[@class='layout-revision-current']</td>
+	<td>//td//span[@class='layout-revision-current']</td>
 	<td></td>
 </tr>
 <tr>
@@ -188,12 +188,12 @@
 </tr>
 <tr>
 	<td>STAGING_MENU_MARK_AS_READY_FOR_PUBLICATION_BUTTON</td>
-	<td>//span[contains(@data-label-on,'Ready for Publication')]</td>
+	<td>//span[@class='staging-bar-control-toggle']//span[@class='toggle-switch-bar' and not (@aria-hidden='true')] </td>
 	<td></td>
 </tr>
 <tr>
 	<td>STAGING_MENU_READY_FOR_PUBLICATION</td>
-	<td>//span[@class='workflow-status']/strong[contains(.,'Ready for Publication')]</td>
+	<td>//span[@class='toggle-switch-handle' and @data-label-on='Ready for Publication']</td>
 	<td></td>
 </tr>
 <tr>
@@ -223,7 +223,7 @@
 </tr>
 <tr>
 	<td>STAGING_MENU_REVISION_DETAILS_MESSAGE</td>
-	<td>//span[contains(@id,'layoutRevisionDetails')]/li/p</td>
+	<td>//li[contains(@id,'layoutRevisionDetails')]/ul/li/p</td>
 	<td></td>
 </tr>
 <tr>

@@ -144,8 +144,7 @@ public class LanguageImpl implements Language, Serializable {
 				public void destroy() {
 				}
 
-			}
-		);
+			});
 
 		serviceDependencyManager.registerDependencies(MultiVMPool.class);
 	}
@@ -1721,7 +1720,7 @@ public class LanguageImpl implements Language, Serializable {
 
 	private String _escapePattern(String pattern) {
 		return StringUtil.replace(
-			pattern, StringPool.APOSTROPHE, StringPool.DOUBLE_APOSTROPHE);
+			pattern, CharPool.APOSTROPHE, StringPool.DOUBLE_APOSTROPHE);
 	}
 
 	private String _get(ResourceBundle resourceBundle, String key) {

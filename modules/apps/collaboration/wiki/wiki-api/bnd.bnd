@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Wiki API
 Bundle-SymbolicName: com.liferay.wiki.api
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1
 Export-Package:\
 	!com.liferay.wiki.configuration.dependencies,\
 	!com.liferay.wiki.item.selector.handler,\
@@ -8,4 +8,4 @@ Export-Package:\
 	com.liferay.wiki.*
 Liferay-Releng-Module-Group-Description:
 Liferay-Releng-Module-Group-Title: Wiki
--include: ../../../../../marketplace/collaboration/bnd.bnd
+-include: ../../app.bnd
