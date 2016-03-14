@@ -14,6 +14,7 @@
 
 package com.liferay.wiki.upgrade.v1_0_0;
 
+import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.wiki.constants.WikiPortletKeys;
 
 /**
@@ -22,14 +23,18 @@ import com.liferay.wiki.constants.WikiPortletKeys;
 public class UpgradeLastPublishDate
 	extends com.liferay.portal.upgrade.v7_0_0.UpgradeLastPublishDate {
 
+	protected void addLastPublishDateColumns() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			addLastPublishDateColumn("WikiNode");
+			addLastPublishDateColumn("WikiPage");
+		}
+	}
+
 	@Override
 	protected void doUpgrade() throws Exception {
-		runSQL("alter table WikiNode add lastPublishDate DATE null");
+		addLastPublishDateColumns();
 
 		updateLastPublishDates(WikiPortletKeys.WIKI, "WikiNode");
-
-		runSQL("alter table WikiPage add lastPublishDate DATE null");
-
 		updateLastPublishDates(WikiPortletKeys.WIKI, "WikiPage");
 	}
 

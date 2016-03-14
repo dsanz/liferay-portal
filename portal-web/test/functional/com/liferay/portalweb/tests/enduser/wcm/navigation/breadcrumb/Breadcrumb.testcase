@@ -47,9 +47,9 @@
 
 		<execute macro="Page#addChild">
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Parent Page Name" />
 			<var name="siteChildPageName" value="Child Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="sitePageName" value="Parent Page Name" />
 		</execute>
 
 		<execute macro="Page#gotoChildPagePG">
@@ -101,15 +101,13 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Page Name" />
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -126,10 +124,9 @@
 			<var name="subCategoryName" value="MB Subcategory Name" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="MessageboardsCategory#addSubcategoryToSubcategoryPG">
@@ -139,20 +136,18 @@
 			<var name="subCategorySubCategoryName" value="MB Subcategory Subcategory Name" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Breadcrumb" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="MessageboardsCategory#viewSubcategoryPG">
@@ -173,10 +168,9 @@
 			<var name="pathLocator" value="EMBEDDED" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#gotoPortletOptions">
@@ -193,10 +187,9 @@
 
 		<execute macro="Breadcrumb#saveDisplayPreview" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="MessageboardsCategory#viewSubcategoryPG">
@@ -232,10 +225,9 @@
 
 		<execute macro="Breadcrumb#saveDisplayPreview" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="MessageboardsCategory#viewSubcategoryPG">
@@ -271,7 +263,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Parent Page Name" />
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -282,9 +273,9 @@
 
 		<execute macro="Page#addChild">
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Parent Page Name" />
 			<var name="siteChildPageName" value="Child Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="sitePageName" value="Parent Page Name" />
 		</execute>
 
 		<execute macro="Page#gotoChildPagePG">
@@ -363,14 +354,14 @@
 	<command name="DisableShowPage" priority="5">
 		<property name="portal.acceptance" value="true" />
 
-		<execute macro="ProductMenu#gotoSitesPages">
+		<execute macro="SitePageNavigator#gotoPages">
 			<var name="page" value="Public Pages" />
 		</execute>
 
 		<execute macro="Page#addChild">
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Welcome" />
 			<var name="siteChildPageName" value="Child Page Name" />
-			<var name="sitePageName" value="Welcome" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
 
@@ -440,7 +431,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Page Name" />
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -463,7 +453,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Parent Page Name" />
 			<var name="siteName" value="Child SiteName" />
 		</execute>
@@ -474,9 +463,9 @@
 
 		<execute macro="Page#addChild">
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Parent Page Name" />
 			<var name="siteChildPageName" value="Child Page Name" />
 			<var name="siteName" value="Child SiteName" />
-			<var name="sitePageName" value="Parent Page Name" />
 		</execute>
 
 		<execute macro="Page#gotoChildPagePG">
@@ -523,14 +512,14 @@
 	</command>
 
 	<command name="DisplayTemplateWithHorizontalStyle" priority="4">
-		<execute macro="ProductMenu#gotoSitesPages">
+		<execute macro="SitePageNavigator#gotoPages">
 			<var name="page" value="Public Pages" />
 		</execute>
 
 		<execute macro="Page#addChild">
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Welcome" />
 			<var name="siteChildPageName" value="Child Page Name" />
-			<var name="sitePageName" value="Welcome" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
 
@@ -569,14 +558,14 @@
 	</command>
 
 	<command name="DisplayTemplateWithVerticalStyle" priority="4">
-		<execute macro="ProductMenu#gotoSitesPages">
+		<execute macro="SitePageNavigator#gotoPages">
 			<var name="page" value="Public Pages" />
 		</execute>
 
 		<execute macro="Page#addChild">
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Welcome" />
 			<var name="siteChildPageName" value="Child Page Name" />
-			<var name="sitePageName" value="Welcome" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
 
@@ -615,14 +604,14 @@
 	</command>
 
 	<command name="EnableShowGuestSite" priority="4">
-		<execute macro="ProductMenu#gotoSitesPages">
+		<execute macro="SitePageNavigator#gotoPages">
 			<var name="page" value="Public Pages" />
 		</execute>
 
 		<execute macro="Page#addChild">
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Welcome" />
 			<var name="siteChildPageName" value="Child Page Name" />
-			<var name="sitePageName" value="Welcome" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
 

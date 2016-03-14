@@ -2671,9 +2671,18 @@ org.apache.catalina.startup.ClassLoaderFactory.level=INFO]]>
 						</then>
 					</if>
 
-					<antcall target="delete-liferay-home">
-						<param name="keep.hypersonicdb" value="true" />
-					</antcall>
+					<get-testcase-property property.name="portal.version" />
+
+					<if>
+						<not>
+							<isset property="portal.version" />
+						</not>
+						<then>
+							<antcall target="delete-liferay-home">
+								<param name="keep.hypersonicdb" value="true" />
+							</antcall>
+						</then>
+					</if>
 
 					<if>
 						<equals arg1="${test.ant.launched.by.selenium}" arg2="true" />
@@ -2686,15 +2695,29 @@ org.apache.catalina.startup.ClassLoaderFactory.level=INFO]]>
 						</then>
 						<else>
 							<parallel>
-								<sequential>
-									<wait-for-app-server app.server.bin.dir="@{app.server.bin.dir}" />
-								</sequential>
 								<daemons>
 									<exec dir="${test.app.server.bin.dir}" executable="${app.server.start.executable}" failonerror="true" resolveexecutable="true">
 										<arg line="${app.server.start.executable.arg.line}" />
 									</exec>
 								</daemons>
 							</parallel>
+
+							<trycatch>
+								<try>
+									<wait-for-app-server app.server.bin.dir="@{app.server.bin.dir}" />
+								</try>
+								<catch>
+									<parallel>
+										<daemons>
+											<exec dir="${test.app.server.bin.dir}" executable="${app.server.start.executable}" failonerror="true" resolveexecutable="true">
+												<arg line="${app.server.start.executable.arg.line}" />
+											</exec>
+										</daemons>
+									</parallel>
+
+									<wait-for-app-server app.server.bin.dir="@{app.server.bin.dir}" />
+								</catch>
+							</trycatch>
 						</else>
 					</if>
 				</then>
@@ -2989,11 +3012,47 @@ org.apache.catalina.startup.ClassLoaderFactory.level=INFO]]>
 
 			<local name="app.server.waiting.timeout" />
 
+			<echo>Waiting for ${app.server.waiting.url} to load</echo>
+
 			<waitfor maxwait="5" maxwaitunit="minute" timeoutproperty="app.server.waiting.timeout">
 				<http url="${app.server.waiting.url}" />
 			</waitfor>
 
-			<fail if="app.server.waiting.timeout" message="App server waiting timeout on ${app.server.waiting.url}" />
+			<if>
+				<isset property="app.server.waiting.timeout" />
+				<then>
+					<execute>
+						jps > jps_output
+					</execute>
+
+					<var name="jps.output" unset="true" />
+
+					<loadfile property="jps.output" srcfile="jps_output" />
+
+					<if>
+						<contains string="${jps.output}" substring="Bootstrap" />
+						<then>
+							<propertyregex
+								input="${jps.output}"
+								override="true"
+								property="bootstrap.pid"
+								regexp="(|[\S\s]*\n)([0-9]+) Bootstrap[\S\s]*"
+								replace="\2"
+							/>
+
+							<execute>
+								jstack ${bootstrap.pid}
+							</execute>
+						</then>
+					</if>
+
+					<delete file="jps_output" />
+
+					<fail if="app.server.waiting.timeout" message="No server is available at ${app.server.waiting.url}" />
+				</then>
+			</if>
+
+			<echo>${app.server.waiting.url} has loaded</echo>
 		</sequential>
 	</macrodef>
 
@@ -3554,6 +3613,8 @@ go]]></replacevalue>
 	</target>
 
 	<target name="clean-up-mobile-device">
+		<get-testcase-property property.name="browser.type" />
+
 		<if>
 			<equals arg1="${browser.type}" arg2="android" />
 			<then>
@@ -4693,14 +4754,9 @@ osb.lcs.portlet.oauth.consumer.secret=${osb.lcs.portlet.oauth.consumer.secret}</
 	</target>
 
 	<target name="prepare-mobile-device">
-		<if>
-			<equals arg1="${browser.type}" arg2="android" />
-			<then>
-				<stop-android-device />
+		<stop-android-device />
 
-				<start-android-device />
-			</then>
-		</if>
+		<start-android-device />
 	</target>
 
 	<target name="prepare-portal-ext-properties">
@@ -5388,6 +5444,13 @@ auto.deploy.dest.dir=C:/WINDOWS/system32/config/systemprofile/liferay/websphere-
 					mobile.android.home=${mobile.android.home}
 					mobile.browser=true
 				</echo>
+			</then>
+		</if>
+
+		<if>
+			<equals arg1="${browser.type}" arg2="android" />
+			<then>
+				<antcall target="prepare-mobile-device" />
 			</then>
 		</if>
 
@@ -6954,8 +7017,6 @@ if (ppstate.equals("normal")) {
 	</target>
 
 	<target name="run-selenium-test" depends="prepare-selenium">
-		<antcall target="prepare-mobile-device" />
-
 		<if>
 			<and>
 				<equals arg1="${test.class}" arg2="PortalWebTestSuite" />
@@ -7135,8 +7196,9 @@ jdbc.default.password=${database.mysql.password}</echo>
 				<if>
 					<and>
 						<available file="${jenkins.results.xml.file}" />
-						<isset property="env.BUILD_FLOW_BUILD_NUMBER" />
-						<isset property="env.BUILD_FLOW_JOB_NAME" />
+						<not>
+							<isset property="env.JENKINS_GITHUB_PULL_REQUEST_USERNAME" />
+						</not>
 					</and>
 					<then>
 						<copy
@@ -7287,6 +7349,7 @@ jdbc.default.password=${database.mysql.password}</echo>
 			<or>
 				<equals arg1="${cmis.repository.type}" arg2="documentum6" />
 				<equals arg1="${cmis.repository.type}" arg2="sharepoint2010" />
+				<equals arg1="${cmis.repository.type}" arg2="sharepoint2013" />
 			</or>
 			<then>
 				<if>
@@ -7444,6 +7507,7 @@ jdbc.default.password=${database.mysql.password}</echo>
 			<or>
 				<equals arg1="${cmis.repository.type}" arg2="documentum6" />
 				<equals arg1="${cmis.repository.type}" arg2="sharepoint2010" />
+				<equals arg1="${cmis.repository.type}" arg2="sharepoint2013" />
 			</or>
 			<then>
 				<property file="${project.dir}/${test.ext.properties.file}" />

@@ -155,14 +155,13 @@
 		<var method="StringUtil#upperCase('${displayStyle}')" name="displayStyle" />
 
 		<if>
-			<and>
-				<condition function="IsElementPresent" locator1="Icon#DISPLAY_STYLE_${displayStyle}" />
-				<condition function="IsVisible" locator1="Icon#DISPLAY_STYLE_${displayStyle}" />
-			</and>
+			<condition function="IsElementNotPresent" locator1="Icon#DISPLAY_STYLE_${displayStyle}_ACTIVE" />
 			<then>
 				<execute function="Click" locator1="Icon#DISPLAY_STYLE_${displayStyle}" />
 			</then>
 		</if>
+
+		<execute function="AssertElementPresent" locator1="Icon#DISPLAY_STYLE_${displayStyle}_ACTIVE" />
 	</command>
 
 	<command name="configureCustomStylesViaLookandfeelPG">
@@ -239,6 +238,10 @@
 		<execute function="Click#makeVisibleClickAt" locator1="BasePortlet#OPTIONS_ICON" />
 
 		<execute function="AssertClick" locator1="BasePortlet#MAXIMIZE" value1="Maximize" />
+	</command>
+
+	<command name="openAdminURL">
+		<execute function="Open" locator1="${adminURL}" />
 	</command>
 
 	<command name="shutdownServer">
@@ -322,6 +325,18 @@
 		<var name="portletLocator" value="//span[@data-title=&quot;${portletName}&quot; and contains(@class,'add-content-item')]" />
 
 		<execute function="AssertElementNotPresent" locator1="${portletLocator}" />
+	</command>
+
+	<command name="viewCannotEdit">
+		<execute function="AssertElementNotPresent" locator1="Button#EDIT" />
+	</command>
+
+	<command name="viewCannotPublish">
+		<execute function="AssertElementNotPresent" locator1="Button#PUBLISH" value1="Publish" />
+	</command>
+
+	<command name="viewCannotSaveAsDraft">
+		<execute function="AssertElementNotPresent" locator1="Button#SAVE_AS_DRAFT" value1="Save as Draft" />
 	</command>
 
 	<command name="viewCustomStylesViaLookandfeelPG">

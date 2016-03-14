@@ -387,7 +387,7 @@ if (portletTitleBasedNavigation) {
 										try {
 											DLFileEntryMetadata fileEntryMetadata = DLFileEntryMetadataLocalServiceUtil.getFileEntryMetadata(ddmStructure.getStructureId(), fileVersionId);
 
-											ddmFormValues = StorageEngineUtil.getDDMFormValues(fileEntryMetadata.getDDMStorageId());
+											ddmFormValues = dlEditFileEntryDisplayContext.getDDMFormValues(fileEntryMetadata.getDDMStorageId());
 										}
 										catch (Exception e) {
 										}
@@ -592,7 +592,7 @@ if (portletTitleBasedNavigation) {
 		if (!title) {
 			var filePath = $('#<portlet:namespace />file').val();
 
-			var fileName = filePath.replace(/^.*[\\\/]/, '')
+			var fileName = filePath.replace(/^.*[\\\/]/, '');
 
 			$('#<portlet:namespace />title').val(fileName);
 		}

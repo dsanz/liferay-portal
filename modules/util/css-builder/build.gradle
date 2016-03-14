@@ -18,8 +18,8 @@ dependencies {
 	compile group: "org.apache.ant", name: "ant", version: "1.9.4"
 	compile group: "org.slf4j", name: "slf4j-log4j12", version: "1.7.2"
 
-	provided group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "default"
-	provided group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "default"
+	provided group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "2.0.0"
+	provided group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "2.0.0"
 	provided group: "org.apache.maven", name: "maven-plugin-api", transitive: false, version: "3.0.4"
 }
 
@@ -32,10 +32,10 @@ liferay {
 }
 
 test {
-	dependsOn ":apps:platform:frontend:frontend-common-css:buildCssCommon"
+	dependsOn ":apps:foundation:frontend-css:frontend-css-common:buildCssCommon"
 }
 
 updateFileVersions {
-	match(/\t\t\t\t<version>(.+)<\/version>/, "samples/pom.xml")
-	match(/com\.liferay\.css\.builder=(.+)/, "../../sdk/gradle-plugins/src/main/resources/com/liferay/gradle/plugins/dependencies/portal-tools.properties")
+	match(/\t\t\t\t<version>(\d.+)<\/version>/, "samples/pom.xml")
+	match(/com\.liferay\.css\.builder=(\d.+)/, "../../sdk/gradle-plugins/src/main/resources/com/liferay/gradle/plugins/dependencies/portal-tools.properties")
 }

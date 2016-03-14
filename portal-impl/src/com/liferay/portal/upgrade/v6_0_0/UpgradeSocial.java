@@ -14,14 +14,12 @@
 
 package com.liferay.portal.upgrade.v6_0_0;
 
-import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.upgrade.util.DateUpgradeColumnImpl;
 import com.liferay.portal.kernel.upgrade.util.UpgradeColumn;
-import com.liferay.portal.kernel.upgrade.util.UpgradeTable;
-import com.liferay.portal.kernel.upgrade.util.UpgradeTableFactoryUtil;
+import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.upgrade.v6_0_0.util.SocialActivityTable;
 import com.liferay.portal.upgrade.v6_0_0.util.SocialRelationTable;
@@ -47,97 +45,66 @@ public class UpgradeSocial extends UpgradeProcess {
 		UpgradeColumn modifiedDateColumn = new DateUpgradeColumnImpl(
 			"modifiedDate");
 
-		UpgradeTable upgradeTable = UpgradeTableFactoryUtil.getUpgradeTable(
+		upgradeTable(
 			SocialActivityTable.TABLE_NAME, SocialActivityTable.TABLE_COLUMNS,
-			createDateColumn);
-
-		upgradeTable.setCreateSQL(SocialActivityTable.TABLE_SQL_CREATE);
-		upgradeTable.setIndexesSQL(SocialActivityTable.TABLE_SQL_ADD_INDEXES);
-
-		upgradeTable.updateTable();
+			SocialActivityTable.TABLE_SQL_CREATE,
+			SocialActivityTable.TABLE_SQL_ADD_INDEXES, createDateColumn);
 
 		// SocialRelation
 
-		upgradeTable = UpgradeTableFactoryUtil.getUpgradeTable(
+		upgradeTable(
 			SocialRelationTable.TABLE_NAME, SocialRelationTable.TABLE_COLUMNS,
-			createDateColumn);
-
-		upgradeTable.setCreateSQL(SocialRelationTable.TABLE_SQL_CREATE);
-		upgradeTable.setIndexesSQL(SocialRelationTable.TABLE_SQL_ADD_INDEXES);
-
-		upgradeTable.updateTable();
+			SocialRelationTable.TABLE_SQL_CREATE,
+			SocialRelationTable.TABLE_SQL_ADD_INDEXES, createDateColumn);
 
 		// SocialRequest
 
-		upgradeTable = UpgradeTableFactoryUtil.getUpgradeTable(
+		upgradeTable(
 			SocialRequestTable.TABLE_NAME, SocialRequestTable.TABLE_COLUMNS,
-			createDateColumn, modifiedDateColumn);
-
-		upgradeTable.setCreateSQL(SocialRequestTable.TABLE_SQL_CREATE);
-		upgradeTable.setIndexesSQL(SocialRequestTable.TABLE_SQL_ADD_INDEXES);
-
-		upgradeTable.updateTable();
+			SocialRequestTable.TABLE_SQL_CREATE,
+			SocialRequestTable.TABLE_SQL_ADD_INDEXES, createDateColumn,
+			modifiedDateColumn);
 	}
 
 	protected Object[] getGroup(long groupId) throws Exception {
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			ps = connection.prepareStatement(_GET_GROUP);
-
+		try (PreparedStatement ps = connection.prepareStatement(_GET_GROUP)) {
 			ps.setLong(1, groupId);
 
-			rs = ps.executeQuery();
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					long classNameId = rs.getLong("classNameId");
+					long classPK = rs.getLong("classPK");
 
-			if (rs.next()) {
-				long classNameId = rs.getLong("classNameId");
-				long classPK = rs.getLong("classPK");
+					return new Object[] {classNameId, classPK};
+				}
 
-				return new Object[] {classNameId, classPK};
+				return null;
 			}
-
-			return null;
-		}
-		finally {
-			DataAccess.cleanUp(ps, rs);
 		}
 	}
 
 	protected Object[] getLayout(long plid) throws Exception {
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			ps = connection.prepareStatement(_GET_LAYOUT);
-
+		try (PreparedStatement ps = connection.prepareStatement(_GET_LAYOUT)) {
 			ps.setLong(1, plid);
 
-			rs = ps.executeQuery();
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					long groupId = rs.getLong("groupId");
 
-			if (rs.next()) {
-				long groupId = rs.getLong("groupId");
+					return new Object[] {groupId};
+				}
 
-				return new Object[] {groupId};
+				return null;
 			}
-
-			return null;
-		}
-		finally {
-			DataAccess.cleanUp(ps, rs);
 		}
 	}
 
 	protected void updateGroupId() throws Exception {
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			ps = connection.prepareStatement(
+		try (LoggingTimer loggingTimer = new LoggingTimer();
+			PreparedStatement ps = connection.prepareStatement(
 				"select distinct(groupId) from SocialActivity where groupId " +
 					"> 0");
-
-			rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery()) {
 
 			while (rs.next()) {
 				long groupId = rs.getLong("groupId");
@@ -151,9 +118,6 @@ public class UpgradeSocial extends UpgradeProcess {
 					}
 				}
 			}
-		}
-		finally {
-			DataAccess.cleanUp(ps, rs);
 		}
 	}
 

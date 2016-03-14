@@ -1,7 +1,0 @@
-dependencies {
-	provided group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "default"
-}
-
-liferay {
-	deployDir = file("${liferayHome}/osgi/portal")
-}

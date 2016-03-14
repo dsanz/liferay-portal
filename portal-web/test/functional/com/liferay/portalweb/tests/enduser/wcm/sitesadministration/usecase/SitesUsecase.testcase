@@ -48,12 +48,11 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoSitesPages">
+		<execute macro="SitePageNavigator#gotoPages">
 			<var name="page" value="Public Pages" />
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Home" />
 		</execute>
 
@@ -80,13 +79,13 @@
 
 		<execute macro="Page#addChild">
 			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Home" />
 			<var name="siteChildPageName" value="Blog Page" />
 			<var name="siteName" value="Site Name" />
-			<var name="sitePageName" value="Home" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoSitesPages">
+		<execute macro="SitePageNavigator#gotoPages">
 			<var name="page" value="Public Pages" />
 		</execute>
 
@@ -149,7 +148,9 @@
 			<var name="portletName" value="Asset Publisher" />
 		</execute>
 
-		<execute function="Refresh" />
+		<execute macro="Navigator#openSiteURL">
+			<var name="siteName" value="Site Name" />
+		</execute>
 
 		<execute macro="Portlet#viewTitle">
 			<var name="portletName" value="Asset Publisher" />

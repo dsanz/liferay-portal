@@ -1,13 +1,3 @@
-alter table AssetEntry add listable BOOLEAN;
-
-alter table AssetTag add uuid_ VARCHAR(75);
-
-COMMIT_TRANSACTION;
-
-update AssetEntry set listable = TRUE;
-
-drop table AssetTagProperty;
-
 alter table BlogsEntry add subtitle STRING null;
 alter table BlogsEntry add coverImageCaption STRING null;
 alter table BlogsEntry add coverImageFileEntryId LONG;
@@ -55,12 +45,6 @@ create table ExportImportConfiguration (
 	statusDate DATE null
 );
 
-alter table Group_ add groupKey STRING;
-
-update Group_ set groupKey = name;
-
-alter table Group_ add inheritContent BOOLEAN;
-
 alter table Layout drop column iconImage;
 alter table Layout drop column wapThemeId;
 alter table Layout drop column wapColorSchemeId;
@@ -68,14 +52,6 @@ alter table Layout drop column wapColorSchemeId;
 alter table LayoutRevision drop column iconImage;
 alter table LayoutRevision drop column wapThemeId;
 alter table LayoutRevision drop column wapColorSchemeId;
-
-alter table LayoutSet drop column logo;
-alter table LayoutSet drop column wapThemeId;
-alter table LayoutSet drop column wapColorSchemeId;
-
-alter table LayoutSetBranch drop column logo;
-alter table LayoutSetBranch drop column wapThemeId;
-alter table LayoutSetBranch drop column wapColorSchemeId;
 
 alter table Organization_ add logoId LONG;
 

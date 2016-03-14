@@ -121,6 +121,8 @@
 	</command>
 
 	<command name="deleteField">
+		<execute macro="DynamicDataMapping#selectDynamicDataMappingFrame" />
+
 		<var name="key_fieldFieldLabel" value="${fieldFieldLabel}" />
 
 		<execute function="DoubleClick" locator1="DDMEditStructure#FORM_FIELD" />
@@ -133,6 +135,8 @@
 		<execute function="AssertTextEquals" locator1="DDMEditStructure#ARE_YOU_SURE_DIALOG_BOX_BODY" value1="Are you sure you want to delete the selected entries? They will be deleted immediately." />
 
 		<execute function="AssertClick" locator1="Button#OK" value1="OK" />
+
+		<execute function="SelectFrame" value1="relative=top" />
 	</command>
 
 	<command name="editField">
@@ -325,8 +329,6 @@
 		</execute>
 
 		<execute function="AssertClick#pauseAssertTextClickAt" locator1="DDMEditStructure#FIELDS_LINK" value1="Fields" />
-
-		<execute function="SelectFrame" value1="relative=top" />
 	</command>
 
 	<command name="editFieldPredefinedValue">
@@ -558,9 +560,13 @@
 	</command>
 
 	<command name="viewCanAddField">
+		<execute macro="DynamicDataMapping#selectDynamicDataMappingFrame" />
+
 		<var name="key_field" value="${field}" />
 
 		<execute function="AssertTextEquals" locator1="DDMEditStructure#FIELDS_FIELD" value1="${field}" />
+
+		<execute function="SelectFrame" value1="relative=top" />
 	</command>
 
 	<command name="viewCannotAddField">

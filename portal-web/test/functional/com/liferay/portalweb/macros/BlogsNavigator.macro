@@ -1,11 +1,8 @@
 <definition>
 	<command name="gotoAbstractField">
-		<if>
-			<condition function="IsVisible" locator1="Button#COG" />
-			<then>
-				<execute function="Click" locator1="Button#COG" />
-			</then>
-		</if>
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Configuration" />
+		</execute>
 	</command>
 
 	<command name="gotoAddEntry">
@@ -18,6 +15,8 @@
 				<execute function="Click" locator1="Button#PLUS" />
 			</else>
 		</if>
+
+		<execute function="AssertVisible" locator1="BlogsEntry#ENTRY_COVER_IMAGE_SELECT_FILE" />
 	</command>
 
 	<command name="gotoConfigurationPermissionsPG">
@@ -80,6 +79,9 @@
 		<execute function="Click" locator1="Blogs#ICON_VIEW_ENTRY_OPTIONS_DROPDOWN" />
 
 		<execute function="AssertClick" locator1="MenuItem#EDIT" value1="Edit" />
+
+		<execute function="AssertElementPresent" locator1="Icon#BACK" />
+		<execute function="AssertVisible" locator1="AlloyEditor#TITLE_FIELD" />
 	</command>
 
 	<command name="gotoEditPG">
@@ -88,6 +90,8 @@
 		<execute function="AssertTextEquals" locator1="BlogsEntry#TITLE" value1="${entryTitle}" />
 
 		<execute macro="PortletEntry#clickEditFromEllipsis" />
+
+		<execute function="AssertVisible" locator1="BlogsEntry#ENTRY_COVER_IMAGE_SELECT_FILE" />
 	</command>
 
 	<command name="gotoEntryCP">
@@ -145,21 +149,6 @@
 		</if>
 
 		<execute function="AssertTextEquals" locator1="BlogsEntry#TITLE" value1="${entryTitle}" />
-	</command>
-
-	<command name="gotoSettings">
-		<execute function="Pause" locator1="3000" />
-
-		<if>
-			<not>
-				<condition function="IsVisible" locator1="BlogsEditEntry#SETTINGS_SECTION" />
-			</not>
-			<then>
-				<execute function="Click" locator1="Button#COG" />
-
-				<execute function="AssertVisible" locator1="BlogsEditEntry#SETTINGS_SECTION" />
-			</then>
-		</if>
 	</command>
 
 	<command name="moveToRecycleBinCP">

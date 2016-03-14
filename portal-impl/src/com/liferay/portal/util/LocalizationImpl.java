@@ -397,9 +397,11 @@ public class LocalizationImpl implements Localization {
 			defaultPropertyValue = PropsUtil.get(propertyName);
 		}
 
+		Class<?> clazz = getClass();
+
 		return getLocalizationMap(
 			preferences, preferenceName, propertyName, defaultPropertyValue,
-			getClass().getClassLoader());
+			clazz.getClassLoader());
 	}
 
 	@Override
@@ -611,17 +613,6 @@ public class LocalizationImpl implements Localization {
 	@Override
 	public String getLocalizedName(String name, String languageId) {
 		return name.concat(StringPool.UNDERLINE).concat(languageId);
-	}
-
-	/**
-	 * @deprecated As of 7.0.0
-	 */
-	@Deprecated
-	@Override
-	public Map<Locale, String> getLocalizedParameter(
-		PortletRequest portletRequest, String parameter) {
-
-		return getLocalizationMap(portletRequest, parameter);
 	}
 
 	@Override

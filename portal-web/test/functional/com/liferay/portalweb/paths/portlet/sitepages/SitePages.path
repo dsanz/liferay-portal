@@ -317,6 +317,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>LOGO_UPLOAD_IMAGE_BUTTON</td>
+	<td>//label[contains(@for,'ImageUploaderPortlet')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -371,6 +376,68 @@
 <tr>
 	<td>JAVASCRIPT_LABEL</td>
 	<td>//label[contains(@for,'javascript')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--MENUITEM-->
+<tr>
+	<td>ADD_PUBLIC_PAGE_MENUITEM</td>
+	<td>//*[@data-qa-id='addPublicPage']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_PUBLIC_PAGE_MENUITEM</td>
+	<td>//*[@data-qa-id='editPublicPages']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_PRIVATE_PAGE_MENUITEM</td>
+	<td>//*[@data-qa-id='addPrivatePage']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_PRIVATE_PAGE_MENUITEM</td>
+	<td>//*[@data-qa-id='editPrivatePages']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_CHILD_PAGE</td>
+	<td>//div[*[@data-qa-id='pageOptions' and @aria-expanded='true']]//*[@data-qa-id='addChildPage']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDIT_SPECIFIC_PAGE</td>
+	<td>//li[contains(.,'${key_page}')]/*[@data-qa-id='editPage']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DELETE_SPECIFIC_PAGE</td>
+	<td>//li[contains(.,'${key_page}')]/*[@data-qa-id='deletePage']</td>
+	<td></td>
+</tr>
+<!--ELLIPSIS-->
+<tr>
+	<td>PUBLIC_PAGE_ELLIPSIS</td>
+	<td>//*[@data-qa-id='publicPagesOptions']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRIVATE_PAGE_ELLIPSIS</td>
+	<td>//*[@data-qa-id='privatePagesOptions']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGES_ELLIPSIS</td>
+	<td>//*[@data-qa-id='pagesOptions']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SPECIFIC_PAGE_ELLIPSIS</td>
+	<td>//div[contains(.,'${key_page}')]/*[@data-qa-id='pageOptions']</td>
 	<td></td>
 </tr>
 </tbody>

@@ -20,9 +20,9 @@ import com.liferay.layouts.admin.kernel.util.SitemapURLProviderRegistryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.LayoutConstants;
+import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
-import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
+import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -153,7 +153,7 @@ public class SitemapImpl implements Sitemap {
 	public String encodeXML(String input) {
 		return StringUtil.replace(
 			input,
-			new String[] {"&", "<", ">", "'", "\""},
+			new char[] {'&', '<', '>', '\'', '\"'},
 			new String[] {"&amp;", "&lt;", "&gt;", "&apos;", "&quot;"});
 	}
 
@@ -190,32 +190,18 @@ public class SitemapImpl implements Sitemap {
 
 		rootElement.addAttribute("xmlns:xhtml", "http://www.w3.org/1999/xhtml");
 
-		List<Layout> layouts = LayoutLocalServiceUtil.getLayouts(
-			groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
+		LayoutSet layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
+			groupId, privateLayout);
 
 		List<SitemapURLProvider> sitemapURLProviders =
 			SitemapURLProviderRegistryUtil.getSitemapURLProviders();
 
-		visitLayouts(rootElement, layouts, sitemapURLProviders, themeDisplay);
+		for (SitemapURLProvider sitemapURLProvider : sitemapURLProviders) {
+			sitemapURLProvider.visitLayoutSet(
+				rootElement, layoutSet, themeDisplay);
+		}
 
 		return document.asXML();
-	}
-
-	protected void visitLayouts(
-			Element element, List<Layout> layouts,
-			List<SitemapURLProvider> sitemapURLProviders,
-			ThemeDisplay themeDisplay)
-		throws PortalException {
-
-		for (Layout layout : layouts) {
-			for (SitemapURLProvider sitemapURLProvider : sitemapURLProviders) {
-				sitemapURLProvider.visitLayout(element, layout, themeDisplay);
-			}
-
-			visitLayouts(
-				element, layout.getChildren(), sitemapURLProviders,
-				themeDisplay);
-		}
 	}
 
 }

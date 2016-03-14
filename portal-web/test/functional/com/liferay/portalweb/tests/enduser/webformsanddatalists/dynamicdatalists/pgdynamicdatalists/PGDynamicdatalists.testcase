@@ -372,7 +372,10 @@
 			<var name="ddlListName" value="DDL List" />
 		</execute>
 
-		<execute macro="DDLRecord#viewNestedFieldsVisualGroupingViaDDLDisplay" />
+		<execute macro="DDLRecord#viewNestedFields">
+			<var name="nestedChildFieldFieldName" value="Integer" />
+			<var name="nestedParentFieldFieldName" value="Text" />
+		</execute>
 
 		<execute macro="DDLRecord#populateFieldText">
 			<var name="ddlRecordFieldData" value="Text" />
@@ -1170,6 +1173,23 @@
 
 		<execute macro="DDLList#saveCP" />
 
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Dynamic Data Lists" />
+		</execute>
+
+		<execute macro="DDLList#editPermissions">
+			<var name="ddlListName" value="DDL List Name" />
+		</execute>
+
+		<execute macro="Role#removePermissionPG">
+			<var name="permissionDefinitionKey" value="CONTENT_PERMISSIONS_VIEW_CHECKBOX" />
+			<var name="roleName" value="Guest" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Dynamic Data Lists" />
+		</execute>
+
 		<execute macro="DDLRecord#addCP">
 			<var name="ddlDataDefinitionName" value="Data Definition Name" />
 			<var name="ddlListName" value="DDL List Name" />
@@ -1301,9 +1321,9 @@
 			<var name="pageName" value="${pageName}" />
 		</execute>
 
-		<var name="key_ddlDataDefinitionName" value="Add ${ddlDataDefinition1Name}" />
-
-		<execute function="AssertTextEquals" locator1="DDL#TOOLBAR_ADD" value1="Add ${ddlDataDefinition1Name}" />
+		<execute macro="DDLDisplayPortlet#viewAddToolbar">
+			<var name="ddlDataDefinitionName" value="${ddlDataDefinition1Name}" />
+		</execute>
 
 		<execute macro="DDLList#addViaDDLDisplayPG">
 			<var name="ddlListName" value="${ddlList2Name}" />
@@ -1323,8 +1343,11 @@
 			<var name="ddlListName" value="${ddlList2Name}" />
 		</execute>
 
-		<execute function="SelectFrame" locator1="DDLConfiguration#CONFIGURATION_IFRAME" />
-		<execute function="AssertChecked" locator1="DDLConfiguration#TEMPLATES_EDITABLE_CHECKBOX" />
+		<execute macro="DDLNavigator#gotoOptionalConfiguration" />
+
+		<execute macro="FormFields#viewCheckboxChecked">
+			<var name="fieldName" value="editable" />
+		</execute>
 	</command>
 
 	<command name="ViewBooleanFieldPredefinedValue" priority="3">
@@ -1736,6 +1759,7 @@
 		<execute macro="DDLRecord#viewViaDDLDisplayPG">
 			<var name="ddlListName" value="${ddlListName}" />
 			<var name="ddlRecordFieldData" value="${ddlRecordFieldData}" />
+			<var name="ddlRecordFieldDataTableDisplay" value="${ddlRecordFieldData}" />
 			<var name="field" value="${field}" />
 			<var name="fieldFieldLabel" value="${fieldFieldLabel}" />
 			<var name="userRole" value="${userRole}" />

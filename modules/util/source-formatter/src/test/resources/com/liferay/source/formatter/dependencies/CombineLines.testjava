@@ -51,11 +51,18 @@ public class CombineLines
 	@Meta.AD(
 		deflt = "false", required = false
 	)
-	public String getString(
+	public String getString1(
 		String test) {
 
 		return
 			test;
+	}
+
+	public String getString2(String test) {
+		return
+			StringUtil.replace(
+				test, "Hello World Hello World Hello",
+				"World Hello World Hello World");
 	}
 
 	public String[][] getStringArray() {
@@ -180,6 +187,10 @@ public class CombineLines
 		boolean b3 = StringUtil.merge(
 			new String[] {"One", "Two"},
 			"Hello World");
+
+		String s =
+			"Hello World " +
+				"Hello World Hello" + "Hello World Hello World Hello";
 	}
 
 	private class SubClass1 extends
