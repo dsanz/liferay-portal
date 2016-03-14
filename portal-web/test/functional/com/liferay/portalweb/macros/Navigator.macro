@@ -19,6 +19,12 @@
 		<execute function="Close#closeWindow" />
 	</command>
 
+	<command name="getCurrentURL" returns="currentURL">
+		<var method="selenium#getLocation()" name="currentURL" />
+
+		<return name="currentURL" value="${currentURL}" />
+	</command>
+
 	<command name="gotoBack">
 		<execute function="Click" locator1="Icon#BACK" />
 	</command>
@@ -63,14 +69,6 @@
 		<execute macro="ProductMenuHelper#openProductMenu" />
 
 		<execute function="Click" locator1="Link#STAGING" />
-	</command>
-
-	<command name="gotoStagingPage">
-		<execute macro="Navigator#openStagingURL" />
-
-		<execute macro="Navigator#_gotoPage">
-			<var name="pageName" value="${pageName}" />
-		</execute>
 	</command>
 
 	<command name="gotoTab">
@@ -129,6 +127,24 @@
 		<execute function="Open" locator1="http://localhost:${nodePort}" />
 	</command>
 
+	<command name="openPrivateSitePageURL">
+		<var method="StringUtil#lowerCase('${pageNameURL}')" name="pageNameURL" />
+		<var method="StringUtil#lowerCase('${siteNameURL}')" name="siteNameURL" />
+
+		<execute function="Open" locator1="/group/${siteNameURL}/${pageNameURL}" />
+	</command>
+
+	<command name="openPrivateSiteURL">
+		<var method="StringUtil#replace('${siteName}', ' ', '-')" name="siteNameURL" />
+		<var method="StringUtil#lowerCase('${siteNameURL}')" name="siteNameURL" />
+
+		<execute function="Open" locator1="/group/${siteNameURL}" />
+	</command>
+
+	<command name="openPrivateURL">
+		<execute function="Open" locator1="/group/guest" />
+	</command>
+
 	<command name="openSiteURL">
 		<var method="StringUtil#replace('${siteName}', ' ', '-')" name="siteNameURL" />
 		<var method="StringUtil#lowerCase('${siteNameURL}')" name="siteNameURL" />
@@ -140,8 +156,15 @@
 		<execute function="Open" locator1="${url}" />
 	</command>
 
+	<command name="openStagingSiteURL">
+		<var method="StringUtil#replace('${siteName}', ' ', '-')" name="siteNameURL" />
+		<var method="StringUtil#lowerCase('${siteNameURL}')" name="siteNameURL" />
+
+		<execute function="Open" locator1="/web/${siteNameURL}-staging" />
+	</command>
+
 	<command name="openStagingURL">
-		<execute function="Open" locator1="/web/guest-staging/home" />
+		<execute function="Open" locator1="/web/guest-staging" />
 	</command>
 
 	<command name="openURL">

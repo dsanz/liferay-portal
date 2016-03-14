@@ -17,6 +17,7 @@ package com.liferay.portal.kernel.dao.db;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.IOException;
@@ -76,18 +77,22 @@ public abstract class BaseDBProcess implements DBProcess {
 	public void runSQLTemplate(String path)
 		throws IOException, NamingException, SQLException {
 
-		DB db = DBManagerUtil.getDB();
+		try (LoggingTimer loggingTimer = new LoggingTimer(path)) {
+			DB db = DBManagerUtil.getDB();
 
-		db.runSQLTemplate(path);
+			db.runSQLTemplate(path);
+		}
 	}
 
 	@Override
 	public void runSQLTemplate(String path, boolean failOnError)
 		throws IOException, NamingException, SQLException {
 
-		DB db = DBManagerUtil.getDB();
+		try (LoggingTimer loggingTimer = new LoggingTimer(path)) {
+			DB db = DBManagerUtil.getDB();
 
-		db.runSQLTemplate(path, failOnError);
+			db.runSQLTemplate(path, failOnError);
+		}
 	}
 
 	@Override
@@ -95,14 +100,16 @@ public abstract class BaseDBProcess implements DBProcess {
 			String template, boolean evaluate, boolean failOnError)
 		throws IOException, NamingException, SQLException {
 
-		DB db = DBManagerUtil.getDB();
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			DB db = DBManagerUtil.getDB();
 
-		if (connection == null) {
-			db.runSQLTemplateString(template, evaluate, failOnError);
-		}
-		else {
-			db.runSQLTemplateString(
-				connection, template, evaluate, failOnError);
+			if (connection == null) {
+				db.runSQLTemplateString(template, evaluate, failOnError);
+			}
+			else {
+				db.runSQLTemplateString(
+					connection, template, evaluate, failOnError);
+			}
 		}
 	}
 
@@ -129,13 +136,9 @@ public abstract class BaseDBProcess implements DBProcess {
 	protected boolean hasColumn(String tableName, String columnName)
 		throws Exception {
 
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			ps = connection.prepareStatement("select * from " + tableName);
-
-			rs = ps.executeQuery();
+		try (PreparedStatement ps = connection.prepareStatement(
+				"select * from " + tableName);
+			ResultSet rs = ps.executeQuery()) {
 
 			ResultSetMetaData rsmd = rs.getMetaData();
 
@@ -150,22 +153,14 @@ public abstract class BaseDBProcess implements DBProcess {
 		catch (Exception e) {
 			_log.error(e, e);
 		}
-		finally {
-			DataAccess.cleanUp(ps, rs);
-		}
 
 		return false;
 	}
 
 	protected boolean hasRows(String tableName) throws Exception {
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			ps = connection.prepareStatement(
+		try (PreparedStatement ps = connection.prepareStatement(
 				"select count(*) from " + tableName);
-
-			rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery()) {
 
 			while (rs.next()) {
 				int count = rs.getInt(1);
@@ -177,9 +172,6 @@ public abstract class BaseDBProcess implements DBProcess {
 		}
 		catch (Exception e) {
 			_log.error(e, e);
-		}
-		finally {
-			DataAccess.cleanUp(ps, rs);
 		}
 
 		return false;

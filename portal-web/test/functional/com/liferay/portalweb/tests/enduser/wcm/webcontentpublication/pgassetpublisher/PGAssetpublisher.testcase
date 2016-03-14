@@ -131,7 +131,7 @@
 		<execute function="Refresh" />
 
 		<execute macro="Portlet#gotoPortletOptions">
-			<var name="portletOption" value="Look and Feel" />
+			<var name="portletOption" value="Look and Feel Configuration" />
 		</execute>
 
 		<execute macro="Portlet#configureCustomTitleViaLookandfeelPG">
@@ -371,7 +371,7 @@
 		</execute>
 
 		<execute macro="AssetPublisherPortlet#viewSelectedPG">
-			<var name="selectedAsset" value="Document" />
+			<var name="selectedAsset" value="Basic Document" />
 			<var name="selectedAssetConfiguration" value="Document" />
 		</execute>
 	</command>
@@ -857,7 +857,7 @@
 			<var name="pageName" value="Asset Publisher Page" />
 		</execute>
 
-		<execute macro="AssetPublisherPortlet#deleteArchivedSetupPG">
+		<execute macro="AssetPublisherPortlet#deleteConfigurationTemplatePG">
 			<var name="configurationName" value="AP Manual Display" />
 		</execute>
 	</command>

@@ -14,8 +14,8 @@
 
 package com.liferay.portal.upgrade.v6_0_5;
 
-import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.LoggingTimer;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,53 +28,28 @@ public class UpgradeLayout extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			ps = connection.prepareStatement(
-				"select groupId, liveGroupId from Group_ where liveGroupId " +
-					"!= 0");
-
-			rs = ps.executeQuery();
-
-			while (rs.next()) {
-				long groupId = rs.getLong("groupId");
-				long liveGroupId = rs.getLong("liveGroupId");
-
-				updateUUID(groupId, liveGroupId);
-			}
-		}
-		finally {
-			DataAccess.cleanUp(ps, rs);
-		}
+		updateUUIDs();
 	}
 
 	protected void updateUUID(long groupId, long liveGroupId) throws Exception {
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			ps = connection.prepareStatement(
+		try (PreparedStatement ps = connection.prepareStatement(
 				"select plid, privateLayout, layoutId, friendlyURL from " +
-					"Layout where groupId = ?");
+					"Layout where groupId = ?")) {
 
 			ps.setLong(1, groupId);
 
-			rs = ps.executeQuery();
+			try (ResultSet rs = ps.executeQuery()) {
+				while (rs.next()) {
+					long plid = rs.getLong("plid");
+					boolean privateLayout = rs.getBoolean("privateLayout");
+					long layoutId = rs.getLong("layoutId");
+					String friendlyURL = rs.getString("friendlyURL");
 
-			while (rs.next()) {
-				long plid = rs.getLong("plid");
-				boolean privateLayout = rs.getBoolean("privateLayout");
-				long layoutId = rs.getLong("layoutId");
-				String friendlyURL = rs.getString("friendlyURL");
-
-				updateUUID(
-					plid, liveGroupId, privateLayout, layoutId, friendlyURL);
+					updateUUID(
+						plid, liveGroupId, privateLayout, layoutId,
+						friendlyURL);
+				}
 			}
-		}
-		finally {
-			DataAccess.cleanUp(ps, rs);
 		}
 	}
 
@@ -83,43 +58,53 @@ public class UpgradeLayout extends UpgradeProcess {
 			String friendlyURL)
 		throws Exception {
 
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			ps = connection.prepareStatement(
+		try (PreparedStatement ps = connection.prepareStatement(
 				"select uuid_ from Layout where groupId = ? and friendlyURL " +
-					"= ?");
+					"= ?")) {
 
 			ps.setLong(1, groupId);
 			ps.setString(2, friendlyURL);
 
-			rs = ps.executeQuery();
-
-			if (!rs.next()) {
-				ps = connection.prepareStatement(
-					"select uuid_ from Layout where groupId = ? and " +
-						"privateLayout = ? and layoutId = ?");
-
-				ps.setLong(1, groupId);
-				ps.setBoolean(2, privateLayout);
-				ps.setLong(3, layoutId);
-
-				rs = ps.executeQuery();
-
+			try (ResultSet rs = ps.executeQuery()) {
 				if (!rs.next()) {
-					return;
+					try (PreparedStatement ps2 = connection.prepareStatement(
+							"select uuid_ from Layout where groupId = ? and " +
+								"privateLayout = ? and layoutId = ?")) {
+
+						ps2.setLong(1, groupId);
+						ps2.setBoolean(2, privateLayout);
+						ps2.setLong(3, layoutId);
+
+						try (ResultSet rs2 = ps2.executeQuery()) {
+							if (!rs2.next()) {
+								return;
+							}
+						}
+					}
 				}
+
+				String uuid = rs.getString("uuid_");
+
+				runSQL(
+					"update Layout set uuid_ = '" + uuid + "' where plid = " +
+						plid);
 			}
-
-			String uuid = rs.getString("uuid_");
-
-			runSQL(
-				"update Layout set uuid_ = '" + uuid + "' where plid = " +
-					plid);
 		}
-		finally {
-			DataAccess.cleanUp(ps, rs);
+	}
+
+	protected void updateUUIDs() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer();
+			PreparedStatement ps = connection.prepareStatement(
+				"select groupId, liveGroupId from Group_ where liveGroupId " +
+					"!= 0");
+			ResultSet rs = ps.executeQuery()) {
+
+			while (rs.next()) {
+				long groupId = rs.getLong("groupId");
+				long liveGroupId = rs.getLong("liveGroupId");
+
+				updateUUID(groupId, liveGroupId);
+			}
 		}
 	}
 

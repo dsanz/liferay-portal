@@ -14,14 +14,13 @@
 
 package com.liferay.portal.upgrade.v6_2_0;
 
-import com.liferay.portal.kernel.dao.jdbc.DataAccess;
-import com.liferay.portal.kernel.model.CustomizedPages;
 import com.liferay.portal.kernel.model.LayoutTypePortletConstants;
 import com.liferay.portal.kernel.model.PortletConstants;
 import com.liferay.portal.kernel.model.PortletPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -40,37 +39,14 @@ import java.util.List;
  */
 public class UpgradeCustomizablePortlets extends UpgradeProcess {
 
+	public static String namespacePlid(long plid) {
+		return "com.liferay.portal.model.CustomizedPages".concat(
+			String.valueOf(plid));
+	}
+
 	@Override
 	protected void doUpgrade() throws Exception {
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			ps = connection.prepareStatement(
-				"select ownerId, ownerType, preferences from " +
-					"PortalPreferences where preferences like " +
-						"'%com.liferay.portal.kernel.model.CustomizedPages%'");
-
-			rs = ps.executeQuery();
-
-			while (rs.next()) {
-				long ownerId = rs.getLong("ownerId");
-				int ownerType = rs.getInt("ownerType");
-				String preferences = rs.getString("preferences");
-
-				PortalPreferencesWrapper portalPreferencesWrapper =
-					getPortalPreferencesInstance(
-						ownerId, ownerType, preferences);
-
-				upgradeCustomizablePreferences(
-					portalPreferencesWrapper, ownerId, ownerType, preferences);
-
-				portalPreferencesWrapper.store();
-			}
-		}
-		finally {
-			DataAccess.cleanUp(ps, rs);
-		}
+		upgradeCustomizablePreferences();
 	}
 
 	protected PortalPreferencesWrapper getPortalPreferencesInstance(
@@ -87,41 +63,35 @@ public class UpgradeCustomizablePortlets extends UpgradeProcess {
 			long ownerId, int ownerType, long plid, String portletId)
 		throws Exception {
 
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			ps = connection.prepareStatement(
+		try (PreparedStatement ps = connection.prepareStatement(
 				"select portletPreferencesId, ownerId, ownerType, plid, " +
 					"portletId, preferences from PortletPreferences where " +
-						"ownerId = ?, ownerType = ?, plid = ?, portletId = ?");
+						"ownerId = ?, ownerType = ?, plid = ?, portletId = " +
+							"?")) {
 
 			ps.setLong(1, ownerId);
 			ps.setInt(2, ownerType);
 			ps.setLong(3, plid);
 			ps.setString(4, portletId);
 
-			rs = ps.executeQuery();
+			try (ResultSet rs = ps.executeQuery()) {
+				if (!rs.next()) {
+					return null;
+				}
 
-			if (!rs.next()) {
-				return null;
+				PortletPreferences portletPreferences =
+					new PortletPreferencesImpl();
+
+				portletPreferences.setPortletPreferencesId(
+					rs.getLong("portletPreferencesId"));
+				portletPreferences.setOwnerId(rs.getLong("ownerId"));
+				portletPreferences.setOwnerType(rs.getInt("ownerType"));
+				portletPreferences.setPlid(rs.getLong("plid"));
+				portletPreferences.setPortletId(rs.getString("portletId"));
+				portletPreferences.setPreferences(rs.getString("preferences"));
+
+				return portletPreferences;
 			}
-
-			PortletPreferences portletPreferences =
-				new PortletPreferencesImpl();
-
-			portletPreferences.setPortletPreferencesId(
-				rs.getLong("portletPreferencesId"));
-			portletPreferences.setOwnerId(rs.getLong("ownerId"));
-			portletPreferences.setOwnerType(rs.getInt("ownerType"));
-			portletPreferences.setPlid(rs.getLong("plid"));
-			portletPreferences.setPortletId(rs.getString("portletId"));
-			portletPreferences.setPreferences(rs.getString("preferences"));
-
-			return portletPreferences;
-		}
-		finally {
-			DataAccess.cleanUp(ps, rs);
 		}
 	}
 
@@ -147,14 +117,10 @@ public class UpgradeCustomizablePortlets extends UpgradeProcess {
 			long userId, long plid, String portletId, String newPortletId)
 		throws Exception {
 
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			ps = connection.prepareStatement(
+		try (PreparedStatement ps = connection.prepareStatement(
 				"update PortletPreferences set ownerId = ?, ownerType = ?, " +
 					"plid = ?, portletId = ? where ownerId = ? and " +
-						"ownerType = ? and plid = ? and portletId = ?");
+						"ownerType = ? and plid = ? and portletId = ?")) {
 
 			ps.setLong(1, userId);
 			ps.setInt(2, PortletKeys.PREFS_OWNER_TYPE_USER);
@@ -167,8 +133,30 @@ public class UpgradeCustomizablePortlets extends UpgradeProcess {
 
 			ps.executeUpdate();
 		}
-		finally {
-			DataAccess.cleanUp(ps, rs);
+	}
+
+	protected void upgradeCustomizablePreferences() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer();
+			PreparedStatement ps = connection.prepareStatement(
+				"select ownerId, ownerType, preferences from " +
+					"PortalPreferences where preferences like " +
+						"'%com.liferay.portal.model.CustomizedPages%'");
+			ResultSet rs = ps.executeQuery()) {
+
+			while (rs.next()) {
+				long ownerId = rs.getLong("ownerId");
+				int ownerType = rs.getInt("ownerType");
+				String preferences = rs.getString("preferences");
+
+				PortalPreferencesWrapper portalPreferencesWrapper =
+					getPortalPreferencesInstance(
+						ownerId, ownerType, preferences);
+
+				upgradeCustomizablePreferences(
+					portalPreferencesWrapper, ownerId, ownerType, preferences);
+
+				portalPreferencesWrapper.store();
+			}
 		}
 	}
 
@@ -193,8 +181,8 @@ public class UpgradeCustomizablePortlets extends UpgradeProcess {
 
 		while (x != -1) {
 
-			// <name>com.liferay.portal.kernel.model.CustomizedPages10415#
-			// column-1</name>
+			// <name>com.liferay.portal.model.CustomizedPages10415#column-1
+			// </name>
 
 			String[] parts = StringUtil.split(
 				preferences.substring(x, y), StringPool.POUND);
@@ -204,7 +192,7 @@ public class UpgradeCustomizablePortlets extends UpgradeProcess {
 
 			if (key.startsWith(LayoutTypePortletConstants.COLUMN_PREFIX)) {
 				String value = portalPreferencesImpl.getValue(
-					CustomizedPages.namespacePlid(plid), key);
+					namespacePlid(plid), key);
 
 				List<String> newPortletIds = new ArrayList<>();
 
@@ -218,8 +206,7 @@ public class UpgradeCustomizablePortlets extends UpgradeProcess {
 
 				value = StringUtil.merge(newPortletIds);
 
-				portalPreferencesImpl.setValue(
-					CustomizedPages.namespacePlid(plid), key, value);
+				portalPreferencesImpl.setValue(namespacePlid(plid), key, value);
 			}
 
 			x = preferences.indexOf(_PREFIX, y);
@@ -233,7 +220,7 @@ public class UpgradeCustomizablePortlets extends UpgradeProcess {
 	}
 
 	private static final String _PREFIX =
-		"<name>com.liferay.portal.kernel.model.CustomizedPages";
+		"<name>com.liferay.portal.model.CustomizedPages";
 
 	private static final String _SUFFIX = "</name>";
 

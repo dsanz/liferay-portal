@@ -14,12 +14,8 @@
 
 package com.liferay.portal.kernel.backgroundtask;
 
-import com.liferay.portal.kernel.dao.orm.ORMException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lock.DuplicateLockException;
 import com.liferay.portal.kernel.lock.Lock;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 /**
  * @author Michael C. Han
@@ -68,27 +64,8 @@ public class SerialBackgroundTaskExecutor
 	protected Lock acquireLock(BackgroundTask backgroundTask)
 		throws DuplicateLockException {
 
-		Lock lock = null;
-
-		while (true) {
-			try {
-				lock = BackgroundTaskLockHelperUtil.lockBackgroundTask(
-					backgroundTask);
-
-				break;
-			}
-			catch (ORMException | SystemException e) {
-				if (_log.isDebugEnabled()) {
-					_log.debug("Unable to acquire acquiring lock", e);
-				}
-
-				try {
-					Thread.sleep(50);
-				}
-				catch (InterruptedException ie) {
-				}
-			}
-		}
+		Lock lock = BackgroundTaskLockHelperUtil.lockBackgroundTask(
+			backgroundTask);
 
 		if (!lock.isNew()) {
 			throw new DuplicateLockException(lock);
@@ -96,8 +73,5 @@ public class SerialBackgroundTaskExecutor
 
 		return lock;
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		SerialBackgroundTaskExecutor.class);
 
 }

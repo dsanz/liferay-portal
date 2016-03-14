@@ -81,8 +81,8 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 		}
 		catch (Exception e) {
 			_log.error(
-				"Unable to add dynamic data mapping structure link " +
-					"for file entry type " + classPK);
+				"Unable to add dynamic data mapping structure link for file " +
+					"entry type " + classPK);
 
 			throw e;
 		}
@@ -147,20 +147,15 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 					"select fileEntryId, groupId, folderId, extension, title," +
 						" version from DLFileEntry");
 				PreparedStatement ps2 =
-					AutoBatchPreparedStatementUtil.autoBatch(
-						connection.prepareStatement(
-							"update DLFileEntry set fileName = ? where " +
-								"fileEntryId = ?"));
+					AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+						connection,
+						"update DLFileEntry set fileName = ?, title = ? " +
+							"where fileEntryId = ?");
 				PreparedStatement ps3 =
-					AutoBatchPreparedStatementUtil.autoBatch(
-						connection.prepareStatement(
-							"update DLFileEntry set title = ? where " +
-								"fileEntryId = ?"));
-				PreparedStatement ps4 =
-					AutoBatchPreparedStatementUtil.autoBatch(
-						connection.prepareStatement(
-							"update DLFileVersion set title = ? where " +
-								"fileEntryId = " + "? and version = ?"));
+					AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+						connection,
+						"update DLFileVersion set title = ? where " +
+							"fileEntryId = " + "? and version = ?");
 				ResultSet rs = ps1.executeQuery()) {
 
 				while (rs.next()) {
@@ -204,29 +199,30 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 					}
 
 					ps2.setString(1, uniqueFileName);
-					ps2.setLong(2, fileEntryId);
+
+					if (Validator.isNotNull(uniqueTitle)) {
+						ps2.setString(1, uniqueTitle);
+					}
+					else {
+						ps2.setString(2, title);
+					}
+
+					ps2.setLong(3, fileEntryId);
 
 					ps2.addBatch();
 
 					if (Validator.isNotNull(uniqueTitle)) {
-						ps3.setString(1, title);
+						ps3.setString(1, uniqueTitle);
 						ps3.setLong(2, fileEntryId);
+						ps3.setString(3, version);
 
 						ps3.addBatch();
-
-						ps4.setString(1, title);
-						ps4.setLong(2, fileEntryId);
-						ps4.setString(3, version);
-
-						ps4.addBatch();
 					}
 				}
 
 				ps2.executeBatch();
 
 				ps3.executeBatch();
-
-				ps4.executeBatch();
 			}
 		}
 	}
@@ -433,10 +429,10 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 					"select fileVersionId, extension, title from " +
 						"DLFileVersion");
 				PreparedStatement ps2 =
-					AutoBatchPreparedStatementUtil.autoBatch(
-						connection.prepareStatement(
-							"update DLFileVersion set fileName = ? where " +
-								"fileVersionId = ?"));
+					AutoBatchPreparedStatementUtil.concurrentAutoBatch(
+						connection,
+						"update DLFileVersion set fileName = ? where " +
+							"fileVersionId = ?");
 				ResultSet rs = ps1.executeQuery()) {
 
 				while (rs.next()) {

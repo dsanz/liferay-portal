@@ -74,6 +74,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -555,19 +556,19 @@ public class ServiceBuilder {
 			_apiPackagePath = GetterUtil.getString(
 				rootElement.attributeValue("api-package-path"), packagePath);
 			_oldServiceOutputPath =
-				_apiDirName + "/" + StringUtil.replace(packagePath, ".", "/");
+				_apiDirName + "/" + StringUtil.replace(packagePath, '.', '/');
 			_outputPath =
-				_implDirName + "/" + StringUtil.replace(packagePath, ".", "/");
+				_implDirName + "/" + StringUtil.replace(packagePath, '.', '/');
 
 			if (Validator.isNotNull(_testDirName)) {
 				_testOutputPath =
 					_testDirName + "/" +
-						StringUtil.replace(packagePath, ".", "/");
+						StringUtil.replace(packagePath, '.', '/');
 			}
 
 			_serviceOutputPath =
 				_apiDirName + "/" +
-					StringUtil.replace(_apiPackagePath, ".", "/");
+					StringUtil.replace(_apiPackagePath, '.', '/');
 
 			_packagePath = packagePath;
 
@@ -970,9 +971,9 @@ public class ServiceBuilder {
 		String createMappingTableSQL = _getCreateMappingTableSQL(entityMapping);
 
 		createMappingTableSQL = StringUtil.replace(
-			createMappingTableSQL, "\n", "");
+			createMappingTableSQL, '\n', "");
 		createMappingTableSQL = StringUtil.replace(
-			createMappingTableSQL, "\t", "");
+			createMappingTableSQL, '\t', "");
 		createMappingTableSQL = createMappingTableSQL.substring(
 			0, createMappingTableSQL.length() - 1);
 
@@ -982,8 +983,8 @@ public class ServiceBuilder {
 	public String getCreateTableSQL(Entity entity) {
 		String createTableSQL = _getCreateTableSQL(entity);
 
-		createTableSQL = StringUtil.replace(createTableSQL, "\n", "");
-		createTableSQL = StringUtil.replace(createTableSQL, "\t", "");
+		createTableSQL = StringUtil.replace(createTableSQL, '\n', "");
+		createTableSQL = StringUtil.replace(createTableSQL, '\t', "");
 		createTableSQL = createTableSQL.substring(
 			0, createTableSQL.length() - 1);
 
@@ -1060,7 +1061,7 @@ public class ServiceBuilder {
 			}
 		}
 
-		String refPackageDirName = StringUtil.replace(refPackage, ".", "/");
+		String refPackageDirName = StringUtil.replace(refPackage, '.', '/');
 
 		String refFileName =
 			_implDirName + "/" + refPackageDirName + "/service.xml";
@@ -1073,7 +1074,9 @@ public class ServiceBuilder {
 			refFileName = String.valueOf(System.currentTimeMillis());
 			refFile = new File(_TMP_DIR, refFileName);
 
-			ClassLoader classLoader = getClass().getClassLoader();
+			Class<?> clazz = getClass();
+
+			ClassLoader classLoader = clazz.getClassLoader();
 
 			String refContent = null;
 
@@ -3055,7 +3058,7 @@ public class ServiceBuilder {
 		}
 
 		File file = new File(
-			_implDirName + "/" + StringUtil.replace(_propsUtil, ".", "/") +
+			_implDirName + "/" + StringUtil.replace(_propsUtil, '.', '/') +
 				".java");
 
 		Map<String, Object> context = _getContext();
@@ -3551,14 +3554,16 @@ public class ServiceBuilder {
 			if (Validator.isNotNull(createTableSQL)) {
 				_createSQLTables(sqlFile, createTableSQL, entity, true);
 
-				Path updateSQLFilePath = _getUpdateSQLFilePath();
+				List<Path> updateSQLFilePaths = _getUpdateSQLFilePaths();
 
-				if ((updateSQLFilePath != null) &&
-					Files.exists(updateSQLFilePath)) {
+				for (Path updateSQLFilePath : updateSQLFilePaths) {
+					if ((updateSQLFilePath != null) &&
+						Files.exists(updateSQLFilePath)) {
 
-					_createSQLTables(
-						updateSQLFilePath.toFile(), createTableSQL, entity,
-						false);
+						_createSQLTables(
+							updateSQLFilePath.toFile(), createTableSQL, entity,
+							false);
+					}
 				}
 			}
 		}
@@ -4265,7 +4270,9 @@ public class ServiceBuilder {
 		if (javaClass == null) {
 			ClassLibrary classLibrary = new ClassLibrary();
 
-			classLibrary.addClassLoader(getClass().getClassLoader());
+			Class<?> clazz = getClass();
+
+			classLibrary.addClassLoader(clazz.getClassLoader());
 
 			JavaDocBuilder builder = new JavaDocBuilder(classLibrary);
 
@@ -4455,9 +4462,19 @@ public class ServiceBuilder {
 		return transients;
 	}
 
-	private Path _getUpdateSQLFilePath() throws IOException {
+	private List<Path> _getUpdateSQLFilePaths() throws IOException {
 		if (!_osgiModule) {
-			return Paths.get(_sqlDirName, "update-6.2.0-7.0.0.sql");
+			final List<Path> updateSQLFilePaths = new ArrayList<>();
+
+			try (DirectoryStream<Path> paths = Files.newDirectoryStream(
+					Paths.get(_sqlDirName), "update-6.2.0-7.0.0*.sql")) {
+
+				for (Path path : paths) {
+					updateSQLFilePaths.add(path);
+				}
+			}
+
+			return updateSQLFilePaths;
 		}
 
 		final AtomicReference<Path> atomicReference = new AtomicReference<>();
@@ -4500,7 +4517,7 @@ public class ServiceBuilder {
 
 			});
 
-		return atomicReference.get();
+		return Arrays.asList(atomicReference.get());
 	}
 
 	private Version _getUpdateSQLFileVersion(Path path) {
@@ -4719,8 +4736,8 @@ public class ServiceBuilder {
 
 		if (newFinderImplFile.exists()) {
 			finderClass =
-				_packagePath +
-					".service.persistence.impl." + ejbName + "FinderImpl";
+				_packagePath + ".service.persistence.impl." + ejbName +
+					"FinderImpl";
 		}
 
 		String dataSource = entityElement.attributeValue("data-source");
@@ -5146,7 +5163,9 @@ public class ServiceBuilder {
 	}
 
 	private Set<String> _readLines(String fileName) throws Exception {
-		ClassLoader classLoader = getClass().getClassLoader();
+		Class<?> clazz = getClass();
+
+		ClassLoader classLoader = clazz.getClassLoader();
 
 		Set<String> lines = new HashSet<>();
 
@@ -5157,14 +5176,14 @@ public class ServiceBuilder {
 
 	private void _removeActionableDynamicQuery(Entity entity) {
 		File ejbFile = new File(
-			_oldServiceOutputPath + "/service/persistence/" +
-				entity.getName() + "ActionableDynamicQuery.java");
+			_oldServiceOutputPath + "/service/persistence/" + entity.getName() +
+				"ActionableDynamicQuery.java");
 
 		ejbFile.delete();
 
 		ejbFile = new File(
-			_serviceOutputPath + "/service/persistence/" +
-				entity.getName() + "ActionableDynamicQuery.java");
+			_serviceOutputPath + "/service/persistence/" + entity.getName() +
+				"ActionableDynamicQuery.java");
 
 		ejbFile.delete();
 	}
@@ -5191,14 +5210,14 @@ public class ServiceBuilder {
 
 	private void _removeExportActionableDynamicQuery(Entity entity) {
 		File ejbFile = new File(
-			_oldServiceOutputPath + "/service/persistence/" +
-				entity.getName() + "ExportActionableDynamicQuery.java");
+			_oldServiceOutputPath + "/service/persistence/" + entity.getName() +
+				"ExportActionableDynamicQuery.java");
 
 		ejbFile.delete();
 
 		ejbFile = new File(
-			_serviceOutputPath + "/service/persistence/" +
-				entity.getName() + "ExportActionableDynamicQuery.java");
+			_serviceOutputPath + "/service/persistence/" + entity.getName() +
+				"ExportActionableDynamicQuery.java");
 
 		ejbFile.delete();
 	}

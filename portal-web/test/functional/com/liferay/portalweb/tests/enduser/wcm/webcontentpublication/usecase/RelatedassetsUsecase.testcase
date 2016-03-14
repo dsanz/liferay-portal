@@ -32,7 +32,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Test Page" />
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -137,18 +136,17 @@
 			<var name="webContentTitle" value="Web Content Title 2" />
 		</execute>
 
-		<execute macro="Page#openURL">
-			<var name="pageStaging" value="true" />
+		<execute macro="Navigator#openStagingSiteURL">
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoSitesPages">
-			<var name="page" value="Private Pages" />
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Sites" />
 		</execute>
 
 		<execute macro="Page#add">
 			<var name="pageName" value="Private Page Name" />
+			<var name="siteName" value="Site Name" />
 			<var name="sitePagePrivacy" value="Private" />
 		</execute>
 
@@ -229,7 +227,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Test Page 1" />
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -239,7 +236,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Test Page 2" />
 			<var name="siteName" value="Site Name" />
 		</execute>

@@ -108,13 +108,13 @@
 </tr>
 <!--CONTENT-->
 <tr>
-	<td>CONTENT_ALL_CONTENT_RADIO</td>
-	<td>//input[contains(@id,'_allContent')]</td>
+	<td>CONTENT_ALL_CONTENT</td>
+	<td>//option[contains(@id,'allContent')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>CONTENT_CHOOSE_CONTENT_RADIO</td>
-	<td>//input[contains(@id,'_chooseContent')]</td>
+	<td>CONTENT_CHOOSE_CONTENT</td>
+	<td>//option[contains(@id,'chooseContent')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -154,8 +154,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>CHOOSE_CONTENT_DATE_RANGE_CHANGE_LINK</td>
-	<td>//a[contains(@id,'_rangeLink')]</td>
+	<td>CHOOSE_CONTENT_DATE_RANGE_CHANGE</td>
+	<td>//input[contains(@id,'rangeDateRange')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -182,12 +182,12 @@
 <!--DATE_RANGE-->
 <tr>
 	<td>DATE_RANGE_START_DATE</td>
-	<td>//input[contains(@name,'startDate')]</td>
+	<td>xpath=(//input[contains(@name,'startDate') and contains(@type,'text')])[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DATE_RANGE_END_DATE</td>
-	<td>//input[contains(@name,'endDate')]</td>
+	<td>xpath=(//input[contains(@name,'endDate') and contains(@type,'text')])[1]</td>
 	<td></td>
 </tr>
 <tr>
@@ -272,7 +272,7 @@
 <!--PUBLISH_TEMPLATES_TABLE-->
 <tr>
 	<td>PUBLISH_TEMPLATES_TABLE_NAME</td>
-	<td>//div[contains(@id,'Configurations')]//tr[contains(.,'${key_publishTemplateName}')]/td[2]/a</td>
+	<td>//div[contains(@id,'Configurations')]//tr[contains(.,'${key_publishTemplateName}')]/td[2]//a</td>
 	<td></td>
 </tr>
 <tr>

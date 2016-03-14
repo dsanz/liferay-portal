@@ -25,7 +25,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -181,10 +180,9 @@
 
 		<execute macro="ContentTargetingCampaign#saveCP" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -213,10 +211,9 @@
 
 		<execute macro="CampaignDisplayPortlet#savePG" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="CampaignDisplayPortlet#viewPG">
@@ -295,10 +292,9 @@
 
 		<execute macro="ContentTargetingCampaign#saveCP" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -320,10 +316,9 @@
 
 		<execute macro="CampaignDisplayPortlet#savePG" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="CampaignDisplayPortlet#viewPG">
@@ -500,10 +495,9 @@
 			<var name="viewReportType" value="Content Views" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -525,10 +519,9 @@
 
 		<execute macro="CampaignDisplayPortlet#savePG" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoSite">
@@ -734,10 +727,9 @@
 
 		<execute macro="ContentTargetingCampaign#saveCP" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -764,10 +756,9 @@
 
 		<execute macro="CampaignDisplayPortlet#savePG" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="CampaignDisplayPortlet#viewPG">
@@ -845,10 +836,9 @@
 
 		<execute macro="ContentTargetingCampaign#saveCP" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -870,10 +860,9 @@
 
 		<execute macro="CampaignDisplayPortlet#savePG" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="CampaignDisplayPortlet#viewPG">
@@ -1058,10 +1047,9 @@
 			<var name="viewReportType" value="Tracking Actions" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -1083,10 +1071,9 @@
 
 		<execute macro="CampaignDisplayPortlet#savePG" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoSite">
@@ -1342,7 +1329,7 @@
 		<execute function="DownloadTempFile" />
 		<execute function="SelectFrame" value1="relative=top" />
 
-		<execute macro="ProductMenu#gotoSitesPages">
+		<execute macro="SitePageNavigator#gotoPages">
 			<var name="page" value="Public Pages" />
 			<var name="siteName" value="Import Site" />
 		</execute>
@@ -2259,10 +2246,9 @@
 
 		<execute macro="Staging#publishToLive" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentListPortlet#viewContent">
@@ -2372,18 +2358,16 @@
 
 		<execute macro="Staging#publishToLive" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="CampaignDisplayPortlet#viewNoContentPG" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentDisplayPortlet#viewNoContentPG" />
@@ -2482,10 +2466,9 @@
 			<var name="viewEntryTitleList" value="Web Content Title" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentListPortlet#viewContent">
@@ -2517,10 +2500,9 @@
 
 		<execute macro="UserSegmentContentListPortlet#viewContentNotPresent" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentListPortlet#viewContentNotPresent" />
@@ -2620,10 +2602,9 @@
 			<var name="viewEntryTitleList" value="Web Content Title" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentListPortlet#viewContent">
@@ -2655,10 +2636,9 @@
 
 		<execute macro="UserSegmentContentListPortlet#viewContentNotPresent" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentListPortlet#viewContent">
@@ -2677,10 +2657,9 @@
 
 		<execute macro="Staging#publishToLive" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentListPortlet#viewContentNotPresent" />
@@ -3085,7 +3064,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Page Name" />
 			<var name="siteName" value="Child SiteName" />
 		</execute>
@@ -3169,7 +3147,6 @@
 
 	<command name="UserSegmentAddMultipleViaUserContentDisplayPortletPG" priority="4">
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Site Page Name" />
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -3347,16 +3324,14 @@
 			<var name="userLoginFullName" value="WCM User" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentDisplayPortlet#viewEntryPG">
@@ -3368,10 +3343,9 @@
 			<var name="userLoginFullName" value="person person" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentDisplayPortlet#viewEntryPG">
@@ -3509,10 +3483,9 @@
 
 		<execute macro="ContentTargetingUserSegment#saveCP" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -3541,10 +3514,9 @@
 
 		<execute macro="UserSegmentContentDisplayPortlet#savePG" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentDisplayPortlet#viewEntryPG">
@@ -3637,10 +3609,9 @@
 
 		<execute macro="ContentTargetingUserSegment#saveCP" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -3669,10 +3640,9 @@
 
 		<execute macro="UserSegmentContentDisplayPortlet#savePG" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentDisplayPortlet#viewEntryPG">
@@ -3730,10 +3700,9 @@
 			<var name="dmDocumentTitle" value="DM Document Title 2" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -3762,10 +3731,9 @@
 
 		<execute macro="UserSegmentContentDisplayPortlet#savePG" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentDisplayPortlet#viewEntryPG">
@@ -3814,10 +3782,9 @@
 			<var name="userLoginFullName" value="female female" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute function="SikuliClick" locator1="UserSegmentContentDisplay#PREVIEW_DOCUMENT_1_PNG" />
@@ -3885,10 +3852,9 @@
 			<var name="webContentTitle" value="Web Content Title Male" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -3917,10 +3883,9 @@
 
 		<execute macro="UserSegmentContentDisplayPortlet#savePG" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentDisplayPortlet#viewEntryPG">
@@ -3970,10 +3935,9 @@
 			<var name="userLoginFullName" value="female female" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentDisplayPortlet#viewEntryPG">
@@ -4022,10 +3986,9 @@
 
 		<execute macro="ContentTargetingUserSegment#saveCP" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -4049,10 +4012,9 @@
 
 		<execute macro="UserSegmentContentDisplayPortlet#savePG" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="UserSegmentContentDisplayPortlet#viewEntryPG">
@@ -4328,10 +4290,9 @@
 			<var name="vocabularyName" value="User Segment" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -4504,10 +4465,9 @@
 			<var name="vocabularyName" value="User Segment" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Test Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">

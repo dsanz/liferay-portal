@@ -20,7 +20,7 @@ feature or API will be dropped in an upcoming version.
 replaces an old API, in spite of the old API being kept in Liferay Portal for
 backwards compatibility.
 
-*This document has been reviewed through commit `929b6ad`.*
+*This document has been reviewed through commit `9dc624a`.*
 
 ## Breaking Changes Contribution Guidelines
 
@@ -3976,3 +3976,50 @@ This change standardizes naming conventions and separates concepts in the
 Product Menu.
 
 ---------------------------------------
+
+### FlagsEntryService.addEntry Method Throws PortalException
+- **Date:** 2016-Mar-04
+- **JIRA Ticket:** LPS-63109
+
+#### What changed?
+
+The method `FlagsEntryService.addEntry` now throws a `PortalException` if the
+`reporterEmailAddress` is not a valid email address.
+
+#### Who is affected?
+
+Any caller of the method `FlagsEntryService.addEntry` is affected.
+
+#### How should I update my code?
+
+You should consider checking for the `PortalException` in try-catch blocks and
+adapt your code accordingly.
+
+#### Why was this change made?
+
+This change prevents providing an incorrect email address when adding flag
+entries.
+
+---------------------------------------
+
+### Removed PHP Portlet Support
+- **Date:** 2016-Mar-10
+- **JIRA Ticket:** LPS-64052
+
+#### What changed?
+
+PHP portlets are no longer supported.
+
+#### Who is affected?
+
+This affects any portlet using the class
+`com.liferay.util.bridges.php.PHPPortlet`.
+
+#### How should I update my code?
+
+You should port your PHP portlet to a different technology.
+
+#### Why was this change made?
+
+This change simplifies future maintenance of the portal. This support could be
+added back in the future as an independent module.

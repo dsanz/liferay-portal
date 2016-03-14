@@ -102,7 +102,7 @@
 		<execute function="Type" locator1="StagingPublishToLive#DATE_SCHEDULE_TITLE_FIELD" value1="${scheduleTitleName}" />
 		<execute function="Check" locator1="StagingPublishToLive#DATE_SCHEDULE_END_DATE_NO_END_DATE_RADIO" />
 		<execute function="Check" locator1="StagingPublishToLive#DATE_SCHEDULE_REPEAT_DAILY_RADIO" />
-		<execute function="Check" locator1="StagingPublishToLive#CONTENT_ALL_CONTENT_RADIO" />
+		<execute function="Check" locator1="StagingPublishToLive#CONTENT_ALL_CONTENT" />
 
 		<execute function="AssertClick" locator1="StagingPublishToLive#ADD_EVENT_BUTTON" value1="Add Event" />
 
@@ -310,14 +310,13 @@
 		<if>
 			<isset var="contentDateRange" />
 			<then>
-				<execute function="Click" locator1="StagingPublishToLive#CONTENT_CHOOSE_CONTENT_RADIO" />
-				<execute function="AssertClick" locator1="StagingPublishToLive#CHOOSE_CONTENT_DATE_RANGE_CHANGE_LINK" value1="Change" />
+				<execute function="Click" locator1="StagingPublishToLive#CONTENT_CHOOSE_CONTENT" />
+				<execute function="Click" locator1="StagingPublishToLive#CHOOSE_CONTENT_DATE_RANGE_CHANGE" />
 
 				<var name="key_contentDateRange" value="${contentDateRange}" />
 
-				<execute function="Click" locator1="StagingPublishToLive#DATE_RANGE_POPUP_RANGE_RADIO" />
-				<execute function="AssertClick" locator1="StagingPublishToLive#DATE_RANGE_POPUP_OK_BUTTON" value1="OK" />
-				<execute function="AssertTextEquals" locator1="StagingPublishToLive#CHOOSE_CONTENT_DATE_RANGE_STATUS" value1="${contentDateRange}" />
+				<execute function="Type" locator1="StagingPublishToLive#DATE_RANGE_START_DATE" value1="${dateRangeStartDate}" />
+				<execute function="Type" locator1="StagingPublishToLive#DATE_RANGE_END_DATE" value1="${dateRangeEndDate}" />
 			</then>
 		</if>
 
@@ -332,14 +331,14 @@
 		<if>
 			<equals arg1="${checkAllContent}" arg2="true" />
 			<then>
-				<execute function="Check" locator1="StagingPublishToLive#CONTENT_ALL_CONTENT_RADIO" />
+				<execute function="Check" locator1="StagingPublishToLive#CONTENT_ALL_CONTENT" />
 			</then>
 		</if>
 
 		<if>
 			<isset var="checkContentNameList" />
 			<then>
-				<execute function="Check" locator1="StagingPublishToLive#CONTENT_CHOOSE_CONTENT_RADIO" />
+				<execute function="Check" locator1="StagingPublishToLive#CONTENT_CHOOSE_CONTENT" />
 
 				<for list="${checkContentNameList}" param="contentName">
 					<var name="key_contentName" value="${contentName}" />
@@ -352,7 +351,7 @@
 		<if>
 			<isset var="uncheckContentNameList" />
 			<then>
-				<execute function="Check" locator1="StagingPublishToLive#CONTENT_CHOOSE_CONTENT_RADIO" />
+				<execute function="Check" locator1="StagingPublishToLive#CONTENT_CHOOSE_CONTENT" />
 
 				<for list="${uncheckContentNameList}" param="contentName">
 					<var name="key_contentName" value="${contentName}" />
@@ -365,7 +364,7 @@
 		<if>
 			<isset var="uncheckSubContent" />
 			<then>
-				<execute function="Click" locator1="StagingPublishToLive#CONTENT_CHOOSE_CONTENT_RADIO" />
+				<execute function="Click" locator1="StagingPublishToLive#CONTENT_CHOOSE_CONTENT" />
 
 				<var name="key_contentName" value="${contentName}" />
 
@@ -382,7 +381,7 @@
 		<if>
 			<isset var="uncheckSubSubContent" />
 			<then>
-				<execute function="Click" locator1="StagingPublishToLive#CONTENT_CHOOSE_CONTENT_RADIO" />
+				<execute function="Click" locator1="StagingPublishToLive#CONTENT_CHOOSE_CONTENT" />
 
 				<var name="key_contentName" value="${contentName}" />
 
@@ -407,7 +406,7 @@
 				</not>
 			</and>
 			<then>
-				<execute function="Check" locator1="StagingPublishToLive#CONTENT_ALL_CONTENT_RADIO" />
+				<execute function="Check" locator1="StagingPublishToLive#CONTENT_ALL_CONTENT" />
 			</then>
 		</if>
 	</command>
@@ -780,15 +779,13 @@
 
 		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
 		<execute function="AssertClick#assertPartialTextClickAt" locator1="StagingPublishToLive#SWITCH_TO_ADVANCED_PUBLICATION" value1="Switch to Advanced Publication" />
-		<execute function="Check" locator1="StagingPublishToLive#CONTENT_CHOOSE_CONTENT_RADIO" />
-		<execute function="Click" locator1="StagingPublishToLive#CHOOSE_CONTENT_DATE_RANGE_CHANGE_LINK" />
+		<execute function="Check" locator1="StagingPublishToLive#CONTENT_CHOOSE_CONTENT" />
+		<execute function="Click" locator1="StagingPublishToLive#CHOOSE_CONTENT_DATE_RANGE_CHANGE" />
 
 		<var name="key_contentDateRange" value="DateRange" />
 
-		<execute function="Click" locator1="StagingPublishToLive#DATE_RANGE_POPUP_RANGE_RADIO" />
 		<execute function="Type" locator1="StagingPublishToLive#DATE_RANGE_START_DATE" value1="${dateRangeStartDate}" />
 		<execute function="Type" locator1="StagingPublishToLive#DATE_RANGE_END_DATE" value1="${dateRangeEndDate}" />
-		<execute function="Click" locator1="StagingPublishToLive#DATE_RANGE_POPUP_OK_BUTTON" />
 	</command>
 
 	<command name="setHistoryVersionPG">

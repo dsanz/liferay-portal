@@ -42,19 +42,10 @@ public abstract class BaseJenkinsResultsParserTestCase {
 
 		String expectedMessage = read(expectedMessageFile);
 
-		expectedMessage = expectedMessage.replace(" \n", "\n");
-
-		String actualMessage = getMessage(
-			"${dependencies.url}/" + getSimpleClassName() + "/" +
-				caseDir.getName() + "/");
-
-		actualMessage = actualMessage.replace(" \n", "\n");
-
-		if (actualMessage.contains(JenkinsResultsParserUtil.DEPENDENCIES_URL)) {
-			actualMessage = actualMessage.replace(
-				JenkinsResultsParserUtil.DEPENDENCIES_URL,
-				"${dependencies.url}");
-		}
+		String actualMessage = fixMessage(
+			getMessage(
+				"${dependencies.url}/" + getSimpleClassName() + "/" +
+					caseDir.getName() + "/"));
 
 		boolean value = expectedMessage.equals(actualMessage);
 
@@ -148,6 +139,22 @@ public abstract class BaseJenkinsResultsParserTestCase {
 				JenkinsResultsParserUtil.getLocalURL(urlString)));
 	}
 
+	protected String fixMessage(String message) {
+		if (message.contains(JenkinsResultsParserUtil.DEPENDENCIES_URL_FILE)) {
+			message = message.replace(
+				JenkinsResultsParserUtil.DEPENDENCIES_URL_FILE,
+				"${dependencies.url}");
+		}
+
+		if (message.contains(JenkinsResultsParserUtil.DEPENDENCIES_URL_HTTP)) {
+			message = message.replace(
+				JenkinsResultsParserUtil.DEPENDENCIES_URL_HTTP,
+				"${dependencies.url}");
+		}
+
+		return message.replaceAll("[^\\S\\r\\n]+\n", "\n");
+	}
+
 	protected String formatXML(String xml)
 		throws DocumentException, IOException {
 
@@ -228,15 +235,8 @@ public abstract class BaseJenkinsResultsParserTestCase {
 
 	protected void writeExpectedMessage(File sampleDir) throws Exception {
 		File expectedMessageFile = new File(sampleDir, "expected_message.html");
-		String expectedMessage = getMessage(toURLString(sampleDir));
 
-		if (expectedMessage.contains(
-				JenkinsResultsParserUtil.DEPENDENCIES_URL)) {
-
-			expectedMessage = expectedMessage.replace(
-				JenkinsResultsParserUtil.DEPENDENCIES_URL,
-				"${dependencies.url}");
-		}
+		String expectedMessage = fixMessage(getMessage(toURLString(sampleDir)));
 
 		JenkinsResultsParserUtil.write(expectedMessageFile, expectedMessage);
 	}

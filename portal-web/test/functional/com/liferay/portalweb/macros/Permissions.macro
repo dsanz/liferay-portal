@@ -191,7 +191,6 @@
 			<var name="pageName" value="${pageName}" />
 			<var name="pageTemplateName" value="${pageTemplateName}" />
 			<var name="siteName" value="${siteName}" />
-			<var name="sitePageName" value="${pageName}" />
 			<var name="sitePagePrivacy" value="${sitePagePrivacy}" />
 			<var name="sitePageType" value="${sitePageType}" />
 		</execute>
@@ -430,9 +429,9 @@
 		</execute>
 
 		<execute macro="Page#add">
+			<var name="pageName" value="${pageName}" />
 			<var name="pageTemplateName" value="${pageTemplateName}" />
 			<var name="siteName" value="${siteName}" />
-			<var name="sitePageName" value="${pageName}" />
 			<var name="sitePagePrivacy" value="${sitePagePrivacy}" />
 			<var name="sitePageType" value="${sitePageType}" />
 		</execute>
@@ -530,7 +529,6 @@
 			<var name="pageName" value="${pageName}" />
 			<var name="pageTemplateName" value="${pageTemplateName}" />
 			<var name="siteName" value="${siteName}" />
-			<var name="sitePageName" value="${pageName}" />
 			<var name="sitePagePrivacy" value="${sitePagePrivacy}" />
 			<var name="sitePageType" value="${sitePageType}" />
 		</execute>
@@ -768,7 +766,6 @@
 			<var name="pageName" value="${pageName}" />
 			<var name="pageTemplateName" value="${pageTemplateName}" />
 			<var name="siteName" value="${siteName}" />
-			<var name="sitePageName" value="${pageName}" />
 			<var name="sitePagePrivacy" value="${sitePagePrivacy}" />
 			<var name="sitePageType" value="${sitePageType}" />
 		</execute>

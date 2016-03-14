@@ -21,7 +21,7 @@ import com.liferay.message.boards.kernel.model.MBThread;
 import com.liferay.message.boards.kernel.service.MBCategoryLocalServiceUtil;
 import com.liferay.message.boards.kernel.service.MBMessageLocalServiceUtil;
 import com.liferay.message.boards.kernel.service.MBThreadLocalServiceUtil;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
@@ -126,35 +126,42 @@ public class VerifyMessageBoards extends VerifyProcess {
 
 	protected void verifyStatisticsForCategories() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			List<MBCategory> categories =
-				MBCategoryLocalServiceUtil.getMBCategories(
-					QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
 			if (_log.isDebugEnabled()) {
-				_log.debug(
-					"Processing " + categories.size() +
-						" categories for statistics accuracy");
+				_log.debug("Processing categories for statistics accuracy");
 			}
 
-			for (MBCategory category : categories) {
-				int threadCount =
-					MBThreadLocalServiceUtil.getCategoryThreadsCount(
-						category.getGroupId(), category.getCategoryId(),
-						WorkflowConstants.STATUS_APPROVED);
-				int messageCount =
-					MBMessageLocalServiceUtil.getCategoryMessagesCount(
-						category.getGroupId(), category.getCategoryId(),
-						WorkflowConstants.STATUS_APPROVED);
+			ActionableDynamicQuery actionableDynamicQuery =
+				MBCategoryLocalServiceUtil.getActionableDynamicQuery();
 
-				if ((category.getThreadCount() != threadCount) ||
-					(category.getMessageCount() != messageCount)) {
+			actionableDynamicQuery.setParallel(true);
+			actionableDynamicQuery.setPerformActionMethod(
+				new ActionableDynamicQuery.PerformActionMethod<MBCategory>() {
 
-					category.setThreadCount(threadCount);
-					category.setMessageCount(messageCount);
+					@Override
+					public void performAction(MBCategory category) {
+						int threadCount =
+							MBThreadLocalServiceUtil.getCategoryThreadsCount(
+								category.getGroupId(), category.getCategoryId(),
+								WorkflowConstants.STATUS_APPROVED);
+						int messageCount =
+							MBMessageLocalServiceUtil.getCategoryMessagesCount(
+								category.getGroupId(), category.getCategoryId(),
+								WorkflowConstants.STATUS_APPROVED);
 
-					MBCategoryLocalServiceUtil.updateMBCategory(category);
-				}
-			}
+						if ((category.getThreadCount() != threadCount) ||
+							(category.getMessageCount() != messageCount)) {
+
+							category.setThreadCount(threadCount);
+							category.setMessageCount(messageCount);
+
+							MBCategoryLocalServiceUtil.updateMBCategory(
+								category);
+						}
+					}
+
+				});
+
+			actionableDynamicQuery.performActions();
 
 			if (_log.isDebugEnabled()) {
 				_log.debug("Statistics verified for categories");
@@ -164,27 +171,34 @@ public class VerifyMessageBoards extends VerifyProcess {
 
 	protected void verifyStatisticsForThreads() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			List<MBThread> threads = MBThreadLocalServiceUtil.getMBThreads(
-				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
 			if (_log.isDebugEnabled()) {
-				_log.debug(
-					"Processing " + threads.size() +
-						" threads for statistics accuracy");
+				_log.debug("Processing threads for statistics accuracy");
 			}
 
-			for (MBThread thread : threads) {
-				int messageCount =
-					MBMessageLocalServiceUtil.getThreadMessagesCount(
-						thread.getThreadId(),
-						WorkflowConstants.STATUS_APPROVED);
+			ActionableDynamicQuery actionableDynamicQuery =
+				MBThreadLocalServiceUtil.getActionableDynamicQuery();
 
-				if (thread.getMessageCount() != messageCount) {
-					thread.setMessageCount(messageCount);
+			actionableDynamicQuery.setParallel(true);
+			actionableDynamicQuery.setPerformActionMethod(
+				new ActionableDynamicQuery.PerformActionMethod<MBThread>() {
 
-					MBThreadLocalServiceUtil.updateMBThread(thread);
-				}
-			}
+					@Override
+					public void performAction(MBThread thread) {
+						int messageCount =
+							MBMessageLocalServiceUtil.getThreadMessagesCount(
+								thread.getThreadId(),
+								WorkflowConstants.STATUS_APPROVED);
+
+						if (thread.getMessageCount() != messageCount) {
+							thread.setMessageCount(messageCount);
+
+							MBThreadLocalServiceUtil.updateMBThread(thread);
+						}
+					}
+
+				});
+
+			actionableDynamicQuery.performActions();
 
 			if (_log.isDebugEnabled()) {
 				_log.debug("Statistics verified for threads");

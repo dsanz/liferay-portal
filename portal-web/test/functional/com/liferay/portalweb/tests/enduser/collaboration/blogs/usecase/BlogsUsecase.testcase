@@ -133,39 +133,34 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Site Page 1" />
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Site Page 2" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page 1" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Blogs" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page 2" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Blogs" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page 1" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#gotoPortletOptions">
@@ -204,10 +199,9 @@
 
 		<execute macro="BlogsConfiguration#saveConfigurationIFrame" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Site Page 2" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#gotoPortletOptions">
@@ -409,7 +403,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Blogs Page" />
 			<var name="siteScopeSelected" value="true" />
 		</execute>
@@ -743,7 +736,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Site Page Name" />
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -946,7 +938,7 @@
 
 		<execute function="AssertElementNotPresent" locator1="BlogsEntry#TITLE" value1="Blogs Entry Title 2" />
 
-		<execute macro="ProductMenu#gotoSitesPages">
+		<execute macro="SitePageNavigator#gotoPages">
 			<var name="page" value="Public Pages" />
 			<var name="site" value="Site Name" />
 		</execute>
@@ -960,10 +952,9 @@
 
 		<execute macro="Staging#publishToLive" />
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Blogs Page 2" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="BlogsNavigator#gotoEntryPG">
@@ -976,10 +967,9 @@
 			<var name="entryTitle" value="Blogs Entry Title 2" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Blogs Page 1" />
 			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<var name="key_entryTitle" value="Blogs Entry Title 1" />
@@ -1006,7 +996,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Site Page Name" />
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -1156,12 +1145,11 @@
 			<var name="privateVirtualHosts" value="true" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoSitesPages">
+		<execute macro="SitePageNavigator#gotoPages">
 			<var name="page" value="Public Pages" />
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Public Blogs Page" />
 		</execute>
 
@@ -1353,8 +1341,8 @@
 			<var name="pageName" value="${pageName}" />
 		</execute>
 
-		<execute macro="Page#openURL">
-			<var name="specificURL" value="${friendlyURL}" />
+		<execute macro="Navigator#openSpecificURL">
+			<var name="url" value="${friendlyURL}" />
 		</execute>
 
 		<execute macro="BlogsEntry#viewPG">
@@ -1664,7 +1652,9 @@
 			<var name="entryTitle" value="Blogs Entry Title" />
 		</execute>
 
-		<execute macro="BlogsNavigator#gotoSettings" />
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Configuration" />
+		</execute>
 
 		<execute macro="BlogsEntry#scheduleBlogEntry" />
 
@@ -1676,7 +1666,9 @@
 			<var name="entryTitle" value="Blogs Entry Title" />
 		</execute>
 
-		<execute function="AssertVisible" locator1="Button#COG" />
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Configuration" />
+		</execute>
 
 		<execute macro="BlogsNavigator#gotoAbstractField" />
 

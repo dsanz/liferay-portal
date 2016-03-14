@@ -194,15 +194,13 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="page" value="Public Pages" />
 			<var name="pageName" value="${pageName}" />
 			<var name="siteName" value="${siteName}" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="${pageName}" />
 			<var name="siteName" value="${siteName}" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
@@ -216,10 +214,9 @@
 			<var name="entryURL" value="${entryURL}" />
 		</execute>
 
-		<execute macro="Page#gotoPG">
+		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="${pageName}" />
 			<var name="siteName" value="${siteName}" />
-			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="AnnouncementsEntry#viewPG">

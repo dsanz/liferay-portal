@@ -63,22 +63,6 @@ public class MSOfficeFileUtil {
 		}
 	}
 
-	public static boolean isExcelFile(Path filePath) {
-		String extension = FilenameUtils.getExtension(filePath.toString());
-
-		if (extension == null) {
-			return false;
-		}
-
-		if (_excelExtensions.contains(extension.toLowerCase()) &&
-			!Files.isDirectory(filePath)) {
-
-			return true;
-		}
-
-		return false;
-	}
-
 	public static boolean isLegacyExcelFile(Path filePath) {
 		String extension = FilenameUtils.getExtension(filePath.toString());
 
@@ -99,34 +83,83 @@ public class MSOfficeFileUtil {
 		String fileName = String.valueOf(filePath.getFileName());
 
 		if ((fileName.startsWith("~$") ||
-			 (fileName.startsWith("~") && fileName.endsWith(".tmp"))) &&
+			 ((fileName.startsWith("~") || fileName.startsWith("ppt") ||
+			   fileName.startsWith("pub")) &&
+			  fileName.endsWith(".tmp"))) &&
 			!Files.isDirectory(filePath)) {
 
 			return true;
 		}
 
-		return false;
-	}
+		Matcher matcher = _tempCreatedFilePattern.matcher(
+			String.valueOf(filePath.getFileName()));
 
-	public static boolean isTempRenamedFile(Path filePath) {
-		if (Files.isDirectory(filePath)) {
-			return false;
-		}
-
-		String fileName = String.valueOf(filePath.getFileName());
-
-		Matcher matcher = _pattern.matcher(fileName);
-
-		if (matcher.matches()) {
+		if (matcher.matches() && !Files.isDirectory(filePath)) {
 			return true;
 		}
 
 		return false;
 	}
 
-	private static final Set<String> _excelExtensions = new HashSet(
-		Arrays.asList("csv", "xls", "xlsb", "xlsm", "xlsx", "xltx"));
-	private static final Pattern _pattern = Pattern.compile(
-		"[0-9A-F]{8}(.tmp)?");
+	public static boolean isTempRenamedFile(
+		Path sourceFilePath, Path targetFilePath) {
+
+		String extension = FilenameUtils.getExtension(
+			sourceFilePath.toString());
+
+		if (extension.equals("pub")) {
+			String fileName = String.valueOf(targetFilePath.getFileName());
+
+			if (fileName.startsWith("pub") && fileName.endsWith(".tmp")) {
+				return true;
+			}
+		}
+		else if (hasExtension(extension, _excelExtensions) ||
+				 hasExtension(extension, _powerpointExtensions)) {
+
+			Matcher matcher = _tempRenamedFilePattern.matcher(
+				String.valueOf(targetFilePath.getFileName()));
+
+			if (matcher.matches()) {
+				return true;
+			}
+		}
+		else if (hasExtension(extension, _wordExtensions)) {
+			String fileName = String.valueOf(targetFilePath.getFileName());
+
+			if (fileName.startsWith("~WR") && fileName.endsWith(".tmp")) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	protected static boolean hasExtension(
+		String extension, Set<String> extensions) {
+
+		if ((extension != null) &&
+			extensions.contains(extension.toLowerCase())) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private static final Set<String> _excelExtensions = new HashSet<>(
+		Arrays.asList(
+			"csv", "xla", "xlam", "xls", "xlsb", "xlsm", "xlsx", "xlt", "xltm",
+			"xltx"));
+	private static final Set<String> _powerpointExtensions = new HashSet<>(
+		Arrays.asList(
+			"pot", "potm", "potx", "ppa", "ppam", "pps", "ppsm", "ppsx", "ppt",
+			"pptm", "pptx"));
+	private static final Pattern _tempCreatedFilePattern = Pattern.compile(
+		"[0-9A-F]{6,8}\\.tmp");
+	private static final Pattern _tempRenamedFilePattern = Pattern.compile(
+		"[0-9A-F]{6,8}(\\.tmp)?");
+	private static final Set<String> _wordExtensions = new HashSet<>(
+		Arrays.asList("doc", "docb", "docm", "docx", "dot", "dotm", "dotx"));
 
 }
