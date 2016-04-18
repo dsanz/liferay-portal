@@ -17,7 +17,7 @@ package com.liferay.server.admin.web.portlet.action;
 import com.liferay.document.library.kernel.util.DLPreviewableProcessor;
 import com.liferay.mail.kernel.model.Account;
 import com.liferay.mail.kernel.service.MailService;
-import com.liferay.petra.log4j.util.Log4JUtil;
+import com.liferay.petra.log4j.Log4JUtil;
 import com.liferay.portal.captcha.CaptchaImpl;
 import com.liferay.portal.captcha.recaptcha.ReCaptchaImpl;
 import com.liferay.portal.captcha.simplecaptcha.SimpleCaptchaImpl;

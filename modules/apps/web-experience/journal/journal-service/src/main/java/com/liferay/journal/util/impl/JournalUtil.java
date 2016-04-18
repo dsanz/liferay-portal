@@ -31,7 +31,7 @@ import com.liferay.journal.service.JournalArticleServiceUtil;
 import com.liferay.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.journal.transformer.JournalTransformer;
 import com.liferay.journal.util.comparator.ArticleVersionComparator;
-import com.liferay.petra.xml.util.XMLUtil;
+import com.liferay.petra.xml.XMLUtil;
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.diff.CompareVersionsException;

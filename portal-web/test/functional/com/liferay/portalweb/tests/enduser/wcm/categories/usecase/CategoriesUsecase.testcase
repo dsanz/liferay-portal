@@ -177,11 +177,6 @@
 			<var name="searchAssetTitle" value="Web Content Title" />
 			<var name="searchAssetType" value="Webcontent" />
 		</execute>
-
-		<execute macro="User#logoutAndLoginPG">
-			<var name="userLoginEmailAddress" value="test@liferay.com" />
-			<var name="userLoginFullName" value="Test Test" />
-		</execute>
 	</command>
 
 	<command name="AddCategorywithSiteRole" priority="4">
@@ -942,6 +937,11 @@
 
 		<execute macro="AssetPublisherPortlet#configureAnyCategoriesFilterPG">
 			<var name="categoryName" value="Category Name" />
+		</execute>
+
+		<execute macro="Navigator#gotoSitePage">
+			<var name="pageName" value="Test Page Name" />
+			<var name="siteName" value="Site Name" />
 		</execute>
 
 		<execute macro="LAR#_gotoExportSite">
