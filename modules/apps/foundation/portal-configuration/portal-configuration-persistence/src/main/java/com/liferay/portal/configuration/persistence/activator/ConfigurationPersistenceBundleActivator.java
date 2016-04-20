@@ -15,6 +15,7 @@
 package com.liferay.portal.configuration.persistence.activator;
 
 import com.liferay.portal.configuration.persistence.ConfigurationPersistenceManager;
+import com.liferay.portal.configuration.persistence.ReloadablePersistenceManager;
 
 import java.util.Collection;
 import java.util.Dictionary;
@@ -65,9 +66,13 @@ public class ConfigurationPersistenceBundleActivator
 
 		properties.put(Constants.SERVICE_RANKING, (Integer.MAX_VALUE - 1000));
 
+		String[] interfaceStrings = {
+			PersistenceManager.class.getName(),
+			ReloadablePersistenceManager.class.getName()
+		};
+
 		_serviceRegistration = bundleContext.registerService(
-			PersistenceManager.class, _configurationPersistenceManager,
-			properties);
+			interfaceStrings, _configurationPersistenceManager, properties);
 	}
 
 	@Override

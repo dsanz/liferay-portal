@@ -301,9 +301,17 @@
 		<execute function="AssertClick" locator1="MenuItem#WEB_CONTENT_LANGUAGE" value1="${localizedLanguage}" />
 
 		<if>
+			<not>
+				<condition function="IsElementPresent" locator1="Translation#SELECTED_LOCALE" value1="${localizedLanguage}" />
+			</not>
+			<then>
+				<execute function="Click" locator1="Translation#CURRENT_LOCALE" />
+			</then>
+		</if>
+
+		<if>
 			<isset var="localizedTitle" />
 			<then>
-				<execute function="Click" locator1="Translation#TITLE" />
 				<execute function="Type#mouseOverFocusType" locator1="TextInput#TITLE" value1="${localizedTitle}" />
 			</then>
 		</if>
@@ -426,6 +434,33 @@
 			<var name="userSegmentDetailTitle" value="${userSegmentDetailTitle}" />
 			<var name="vocabularyName" value="${vocabularyName}" />
 		</execute>
+
+		<execute macro="PortletEntry#publish" />
+	</command>
+
+	<command name="addWithDocumentCP">
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="${webContentContent}" />
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
+
+		<execute function="Click" locator1="AlloyEditor#CONTENT_FIELD" />
+
+		<execute function="Click" locator1="AlloyEditor#CONTENT_ADD_BUTTON" />
+
+		<execute function="Click" locator1="AlloyEditor#CONTENT_ADD_MENUBAR_IMAGE" />
+
+		<execute function="SelectFrame" locator1="IFrame#METADATA_SETS_IFRAME" />
+
+		<var name="key_imageFileName" value="${dmDocumentTitle}" />
+
+		<var method="StringUtil#replace('${dmDocumentTitle}', ' ', '+')" name="key_imageFileName" />
+
+		<execute function="Click" locator1="ItemSelector#SELECT_FILE_IMAGE_PREVIEW" />
+
+		<execute function="SelectFrameTop" value1="relative=top" />
+
+		<execute function="AssertClick" locator1="ItemSelector#ADD_BUTTON" value1="Add" />
 
 		<execute macro="PortletEntry#publish" />
 	</command>
@@ -1746,7 +1781,7 @@
 
 		<execute function="AssertTextEquals" locator1="DDMField#TEXT_BOX" value1="${webContentTextBox}" />
 
-		<var name="key_translationLocale" value="es_ES" />
+		<var name="key_localizedLanguage" value="Spanish (Spain)" />
 
 		<execute function="Click" locator1="Translation#CURRENT_LOCALE" />
 
