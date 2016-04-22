@@ -18,6 +18,8 @@ import com.liferay.marketplace.model.App;
 import com.liferay.marketplace.service.AppLocalService;
 import com.liferay.marketplace.service.ModuleLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
@@ -94,6 +96,11 @@ public class LiferayPackageInstaller
 		catch (Exception e) {
 			bundles.add(bundle);
 
+			_log.error(
+				"Uninstalling bundles " + bundles + " due to: " +
+					e.getMessage(),
+				e);
+
 			uninstallBundles(bundles);
 
 			return null;
@@ -159,10 +166,12 @@ public class LiferayPackageInstaller
 		String description = properties.getProperty("description");
 		String category = properties.getProperty("category");
 		String iconURL = properties.getProperty("icon-url");
+		boolean required = GetterUtil.getBoolean(
+			properties.getProperty("required"));
 
 		App app = _appLocalService.updateApp(
 			0, remoteAppId, title, description, category, iconURL, version,
-			null);
+			required, null);
 
 		String[] bundles = StringUtil.split(properties.getProperty("bundles"));
 
@@ -199,6 +208,9 @@ public class LiferayPackageInstaller
 			}
 		}
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		LiferayPackageInstaller.class);
 
 	private static final Pattern _pattern = Pattern.compile(
 		"(.*?)(-\\d+\\.\\d+\\.\\d+\\.\\d+)?");

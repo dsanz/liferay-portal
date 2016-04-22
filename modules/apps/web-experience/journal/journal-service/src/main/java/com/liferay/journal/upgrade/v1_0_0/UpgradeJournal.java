@@ -16,8 +16,8 @@ package com.liferay.journal.upgrade.v1_0_0;
 
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLinkLocalService;
-import com.liferay.petra.content.util.ContentUtil;
-import com.liferay.petra.xml.util.XMLUtil;
+import com.liferay.petra.content.ContentUtil;
+import com.liferay.petra.xml.XMLUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;

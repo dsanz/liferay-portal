@@ -15,6 +15,15 @@ $horizontal-spacing: 35px;
 }
 
 .ddl-form-settings-modal,
+.ddl-publish-modal,
+.dynamic-data-mapping-data-providers-modal,
+.lfr-ddl-field-settings-modal {
+	.btn {
+		transition: opacity 0.5s;
+	}
+}
+
+.ddl-form-settings-modal,
 .lfr-ddl-field-settings-modal.form-builder-field-settings,
 .publish-modal-container {
 	.modal-body {
@@ -79,7 +88,7 @@ $horizontal-spacing: 35px;
 	}
 }
 
-.form-builder-page-manager-popover-header  {
+.form-builder-page-manager-popover-header {
 	.popover-content {
 		padding: 7px 21px;
 	}
@@ -104,10 +113,28 @@ $horizontal-spacing: 35px;
 	margin-left: 19px;
 }
 
+.lfr-ddl-field-settings-confirmation-message {
+	margin: 0;
+	padding: $horizontal-spacing;
+	text-align: center;
+}
+
 .lfr-ddl-field-settings-modal.form-builder-field-settings {
 	height: 100%;
 	margin: 0;
 	width: 100%;
+
+	@keyframes fade-down {
+		from {
+			opacity: 0;
+			top: -50px;
+		}
+
+		to {
+			opacity: 1;
+			top: 0;
+		}
+	}
 
 	&:focus {
 		outline: none;
@@ -218,6 +245,10 @@ $horizontal-spacing: 35px;
 
 			.drag-placeholder {
 				opacity: 0.5;
+			}
+
+			.last-option:not(:first-of-type) {
+				@include animation(fade-down 0.7s ease);
 			}
 
 			.last-option .close {
@@ -350,11 +381,6 @@ $horizontal-spacing: 35px;
 		.btn {
 			width: auto;
 		}
-
-		.lfr-ddl-field-settings-confirmation-message {
-			float: left;
-			margin: 13px 20px 0 0;
-		}
 	}
 
 	.modal-header {
@@ -402,6 +428,11 @@ $horizontal-spacing: 35px;
 			margin-left: 0;
 		}
 	}
+}
+
+.lfr-ddl-field-settings-yes {
+	padding-left: 21px;
+	padding-right: 21px;
 }
 
 .lfr-ddl-form-builder-field-types-modal {
@@ -598,6 +629,10 @@ $horizontal-spacing: 35px;
 
 	.aspect-ratio img {
 		top: 0;
+	}
+
+	.btn {
+		transition: opacity 0.5s;
 	}
 
 	.control-label {

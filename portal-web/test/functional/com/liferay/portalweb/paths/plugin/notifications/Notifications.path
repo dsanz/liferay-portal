@@ -10,7 +10,7 @@
 <tbody>
 <tr>
 	<td>USER_BAR_BADGE_COUNT</td>
-	<td>//*[@data-qa-id='openUserMenu']//span[contains(@class,'notifications-count') and contains(@class,'sticker')]</td>
+	<td>//*[@data-qa-id='productMenuUserPanelCategory']//span[contains(@class,'notifications-count') and contains(@class,'sticker')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -20,7 +20,7 @@
 </tr>
 <tr>
 	<td>PROFILE_BADGE_COUNT</td>
-	<td>//div[@class='panel-title']/div[@aria-expanded="false"]//span[contains(@class,'notifications-count')]</td>
+	<td>//span[contains(@class,'notifications-count')]</td>
 	<td></td>
 </tr>
 <tr>

@@ -181,7 +181,7 @@
 	<command name="addDocumentTypePG">
 		<var name="key_dmDocumentTypeName" value="${dmDocumentTypeName}" />
 
-		<execute function="Click" locator1="Button#PLUS" />
+		<execute function="Click#makeVisibleClickAt" locator1="Portlet#ICON_PLUS_SIGN" />
 
 		<execute function="AssertClick" locator1="MenuItem#DOCUMENT_TYPE" value1="${dmDocumentTypeName}" />
 
@@ -673,7 +673,12 @@
 	</command>
 
 	<command name="checkoutCP">
-		<execute function="AssertClick" locator1="DocumentsAndMediaDocument#TOOLBAR_CHECKOUT_BUTTON" value1="Checkout" />
+		<var name="key_dmDocumentTitle" value="${dmDocumentTitle}" />
+
+		<execute function="Click" locator1="DocumentsAndMedia#ICON_DOCUMENT_ACTIONS" />
+
+		<execute function="AssertClick" locator1="MenuItem#CHECKOUT" value1="Checkout" />
+
 		<execute macro="Alert#viewSuccessMessage" />
 
 		<if>
@@ -986,6 +991,7 @@
 		<var name="key_assetTitle" value="${assetTitle}" />
 
 		<execute function="Click" locator1="AP#ASSET_ABSTRACT_EDIT" />
+		<execute function="Click" locator1="AP#ASSET_EDIT" />
 
 		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
 
@@ -1112,17 +1118,15 @@
 	</command>
 
 	<command name="linkImage">
-		<execute function="Click#pauseClickAt" locator1="CKEditor#CONTENT_IMAGE_LINK" />
+		<execute function="Click" locator1="AlloyEditor#CONTENT_FIELD" />
+		<execute function="Click" locator1="AlloyEditor#CONTENT_ADD_BUTTON" />
+		<execute function="Click" locator1="AlloyEditor#CONTENT_ADD_MENUBAR_IMAGE" />
 
 		<execute macro="ItemSelector#addFromURL">
 			<var name="imageSourceURL" value="${dmDocumentURL}" />
 		</execute>
 
-		<execute function="SelectFrame" locator1="CKEditor#BODY_FIELD_IFRAME" />
-
 		<execute function="AssertElementPresent" locator1="CKEditor#CONTENT_IMAGE_LINK_IMAGE" />
-
-		<execute macro="IFrame#selectTopFrame" />
 	</command>
 
 	<command name="moveToFolderCP">
@@ -1864,6 +1868,19 @@
 
 	<command name="viewDocumentTypePG">
 		<if>
+			<condition function="IsElementNotPresent" locator1="DocumentsAndMediaDocument#DOCUMENT_DETAILS_DROPDOWN" />
+			<then>
+				<execute function="Refresh" />
+			</then>
+		</if>
+
+		<execute function="Click" locator1="Button#INFO" />
+
+		<execute function="Click" locator1="DocumentsAndMediaDocument#DOCUMENT_DETAILS_DROPDOWN" />
+
+		<execute function="AssertClick" locator1="MenuItem#DM_DOCUMENT_TYPE" value1="Document Type" />
+
+		<if>
 			<isset var="booleanValue" />
 			<then>
 				<var name="key_booleanValue" value="${booleanValue}" />
@@ -1904,7 +1921,7 @@
 			<then>
 				<var name="key_numberValue" value="${numberValue}" />
 
-				<execute function="AssertTextEquals#assertValue" locator1="DocumentsAndMediaDocument#METADATA_PANEL_NUMBER" value1="${numberValue}" />
+				<execute function="AssertTextEquals#assertPartialText" locator1="DocumentsAndMediaDocument#METADATA_PANEL_NUMBER" value1="${numberValue}" />
 			</then>
 		</if>
 	</command>

@@ -93,10 +93,12 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
@@ -2019,13 +2021,23 @@ public class ServiceBuilder {
 		JavaClass modelImplJavaClass = _getJavaClass(
 			_outputPath + "/model/impl/" + entity.getName() + "Impl.java");
 
-		List<JavaMethod> methods = ListUtil.fromArray(
-			_getMethods(modelImplJavaClass));
+		Map<String, JavaMethod> methods = new LinkedHashMap<>();
 
-		Iterator<JavaMethod> itr = methods.iterator();
+		for (JavaMethod method : _getMethods(modelImplJavaClass)) {
+			String methodSignature = _getMethodSignature(
+				method, modelImplJavaClass.getPackageName());
+
+			methods.put(methodSignature, method);
+		}
+
+		Set<Map.Entry<String, JavaMethod>> entrySet = methods.entrySet();
+
+		Iterator<Map.Entry<String, JavaMethod>> itr = entrySet.iterator();
 
 		while (itr.hasNext()) {
-			JavaMethod method = itr.next();
+			Map.Entry<String, JavaMethod> entry = itr.next();
+
+			JavaMethod method = entry.getValue();
 
 			String methodName = method.getName();
 
@@ -2038,13 +2050,16 @@ public class ServiceBuilder {
 			_serviceOutputPath + "/model/" + entity.getName() + "Model.java");
 
 		for (JavaMethod method : _getMethods(modelJavaClass)) {
-			methods.remove(method);
+			String methodSignature = _getMethodSignature(
+				method, modelJavaClass.getPackageName());
+
+			methods.remove(methodSignature);
 		}
 
 		Map<String, Object> context = _getContext();
 
 		context.put("entity", entity);
-		context.put("methods", methods.toArray(new Object[methods.size()]));
+		context.put("methods", methods.values());
 
 		context = _putDeprecatedKeys(context, modelJavaClass);
 
@@ -3966,14 +3981,14 @@ public class ServiceBuilder {
 					String name1 = entity1.getName();
 					String name2 = entity2.getName();
 
-					if (Validator.equals(
+					if (Objects.equals(
 							entity1.getPackagePath(), "com.liferay.portal") &&
 						name1.equals("Company")) {
 
 						return -1;
 					}
 
-					if (Validator.equals(
+					if (Objects.equals(
 							entity2.getPackagePath(), "com.liferay.portal") &&
 						name2.equals("Company")) {
 
@@ -4382,6 +4397,33 @@ public class ServiceBuilder {
 		return methods.toArray(new JavaMethod[methods.size()]);
 	}
 
+	private String _getMethodSignature(JavaMethod method, String packagePath) {
+		StringBundler sb = new StringBundler();
+
+		sb.append(method.getName());
+		sb.append(StringPool.OPEN_PARENTHESIS);
+
+		for (JavaParameter parameter : method.getParameters()) {
+			String parameterValue = parameter.getResolvedValue();
+
+			if (parameterValue.matches("[A-Z]\\w+")) {
+				parameterValue =
+					packagePath + StringPool.PERIOD + parameterValue;
+			}
+
+			sb.append(parameterValue);
+			sb.append(StringPool.COMMA);
+		}
+
+		if (sb.index() > 2) {
+			sb.setIndex(sb.index() - 1);
+		}
+
+		sb.append(StringPool.CLOSE_PARENTHESIS);
+
+		return sb.toString();
+	}
+
 	private String _getSessionTypeName(int sessionType) {
 		if (sessionType == _SESSION_TYPE_LOCAL) {
 			return "Local";
@@ -4686,10 +4728,11 @@ public class ServiceBuilder {
 
 			@Override
 			public int compare(JavaMethod javaMethod1, JavaMethod javaMethod2) {
-				String callSignature1 = javaMethod1.getCallSignature();
-				String callSignature2 = javaMethod2.getCallSignature();
+				String declarationSignature =
+					javaMethod1.getDeclarationSignature(false);
 
-				return callSignature1.compareTo(callSignature2);
+				return declarationSignature.compareTo(
+					javaMethod2.getDeclarationSignature(false));
 			}
 
 		};

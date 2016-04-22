@@ -51,6 +51,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -61,6 +62,7 @@ import org.apache.tools.ant.types.selectors.SelectorUtils;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 /**
@@ -190,6 +192,41 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 				fileName,
 				"Use Collections.empty" + collectionType + "(): " + fileName +
 					" " + lineCount);
+		}
+	}
+
+	protected void checkGetterUtilGet(String fileName, String content)
+		throws Exception {
+
+		Matcher matcher = getterUtilGetPattern.matcher(content);
+
+		while (matcher.find()) {
+			List<String> parametersList = getParameterList(matcher);
+
+			if (parametersList.size() != 2) {
+				continue;
+			}
+
+			String defaultVariableName =
+				"DEFAULT_" + StringUtil.toUpperCase(matcher.group(1));
+
+			Field defaultValuefield = GetterUtil.class.getDeclaredField(
+				defaultVariableName);
+
+			String defaultValue = String.valueOf(defaultValuefield.get(null));
+
+			String value = parametersList.get(1);
+
+			if (value.equals("StringPool.BLANK")) {
+				value = StringPool.BLANK;
+			}
+
+			if (Objects.equals(value, defaultValue)) {
+				processErrorMessage(
+					fileName,
+					"No need to pass default value: " + fileName + " " +
+						getLineCount(content, matcher.start()));
+			}
 		}
 	}
 
@@ -407,6 +444,44 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 		}
 	}
 
+	protected void checkOrder(
+		String fileName, Element rootElement, String elementName,
+		String parentElementName, ElementComparator elementComparator) {
+
+		if (rootElement == null) {
+			return;
+		}
+
+		List<Element> elements = rootElement.elements(elementName);
+
+		Element previousElement = null;
+
+		for (Element element : elements) {
+			if ((previousElement != null) &&
+				(elementComparator.compare(previousElement, element) > 0)) {
+
+				StringBundler sb = new StringBundler(8);
+
+				sb.append("order ");
+				sb.append(elementName);
+				sb.append(": ");
+				sb.append(fileName);
+				sb.append(StringPool.SPACE);
+
+				if (Validator.isNotNull(parentElementName)) {
+					sb.append(parentElementName);
+					sb.append(StringPool.SPACE);
+				}
+
+				sb.append(elementComparator.getElementName(element));
+
+				processErrorMessage(fileName, sb.toString());
+			}
+
+			previousElement = element;
+		}
+	}
+
 	protected String checkPrincipalException(String content) {
 		String newContent = content;
 
@@ -461,27 +536,7 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 		Matcher matcher = stringUtilReplacePattern.matcher(content);
 
 		while (matcher.find()) {
-			String replaceCall = matcher.group();
-
-			int x = replaceCall.length();
-
-			while (true) {
-				x = replaceCall.lastIndexOf(
-					StringPool.CLOSE_PARENTHESIS, x - 1);
-
-				replaceCall = replaceCall.substring(0, x + 1);
-
-				if (getLevel(replaceCall) == 0) {
-					break;
-				}
-			}
-
-			x = replaceCall.indexOf(StringPool.OPEN_PARENTHESIS);
-
-			String parameters = replaceCall.substring(
-				x + 1, replaceCall.length() - 1);
-
-			List<String> parametersList = splitParameters(parameters);
+			List<String> parametersList = getParameterList(matcher);
 
 			if (parametersList.size() != 3) {
 				return;
@@ -1045,7 +1100,7 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 	protected String formatJavaTerms(
 			String javaClassName, String packagePath, File file,
 			String fileName, String absolutePath, String content,
-			String javaClassContent, int javaClassLineCount,
+			String javaClassContent, int javaClassLineCount, String indent,
 			List<String> checkJavaFieldTypesExcludes,
 			List<String> javaTermAccessLevelModifierExcludes,
 			List<String> javaTermSortExcludes,
@@ -1065,7 +1120,7 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 
 		JavaClass javaClass = new JavaClass(
 			javaClassName, packagePath, file, fileName, absolutePath, content,
-			javaClassContent, javaClassLineCount, StringPool.TAB, null,
+			javaClassContent, javaClassLineCount, indent + StringPool.TAB, null,
 			javaTermAccessLevelModifierExcludes, javaSourceProcessor);
 
 		String newJavaClassContent = javaClass.formatJavaTerms(
@@ -1233,6 +1288,7 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 		linePart = formatIncorrectSyntax(linePart, "]{", "] {", false);
 
 		if (javaSource) {
+			linePart = formatIncorrectSyntax(linePart, " ...", "...", false);
 			linePart = formatIncorrectSyntax(linePart, " [", "[", false);
 			linePart = formatIncorrectSyntax(linePart, "{ ", "{", false);
 			linePart = formatIncorrectSyntax(linePart, " }", "}", false);
@@ -1749,7 +1805,7 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 
 		return getLevel(
 			s, new String[] {increaseLevelString},
-			new String[] {decreaseLevelString}, 0);	
+			new String[] {decreaseLevelString}, 0);
 	}
 
 	protected int getLevel(
@@ -2017,6 +2073,30 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 		return null;
 	}
 
+	protected List<String> getParameterList(Matcher methodCallMatcher) {
+		String replaceCall = methodCallMatcher.group();
+
+		int x = replaceCall.length();
+
+		while (true) {
+			x = replaceCall.lastIndexOf(
+				StringPool.CLOSE_PARENTHESIS, x - 1);
+
+			replaceCall = replaceCall.substring(0, x + 1);
+
+			if (getLevel(replaceCall) == 0) {
+				break;
+			}
+		}
+
+		x = replaceCall.indexOf(StringPool.OPEN_PARENTHESIS);
+
+		String parameters = replaceCall.substring(
+			x + 1, replaceCall.length() - 1);
+
+		return splitParameters(parameters);
+	}
+
 	protected String getProperty(String key) {
 		return _properties.getProperty(key);
 	}
@@ -2217,10 +2297,10 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 		return absolutePath.contains("/modules/");
 	}
 
-	protected void preFormat() throws Exception {
+	protected void postFormat() throws Exception {
 	}
 
-	protected void postFormat() throws Exception {
+	protected void preFormat() throws Exception {
 	}
 
 	protected void printError(String fileName, String message) {
@@ -2454,6 +2534,10 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 		"\\scontent=(.*?)(,\\\\|\n|$)");
 	protected static Pattern emptyCollectionPattern = Pattern.compile(
 		"Collections\\.EMPTY_(LIST|MAP|SET)");
+	protected static Pattern getterUtilGetPattern = Pattern.compile(
+		"GetterUtil\\.get(Boolean|Double|Float|Integer|Number|Object|Short|" +
+			"String)\\((.*?)\\);\n",
+		Pattern.DOTALL);
 	protected static Pattern javaSourceInsideJSPTagPattern = Pattern.compile(
 		"<%=(.+?)%>");
 	protected static Pattern jsonObjectPutBlockPattern = Pattern.compile(
@@ -2484,6 +2568,8 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 	protected static Pattern taglibSessionKeyPattern = Pattern.compile(
 		"<liferay-ui:error [^>]+>|<liferay-ui:success [^>]+>",
 		Pattern.MULTILINE);
+	protected static Pattern validatorEqualsPattern = Pattern.compile(
+		"\\WValidator\\.equals\\(");
 
 	protected SourceFormatterArgs sourceFormatterArgs;
 
@@ -2632,8 +2718,10 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 	}
 
 	private Set<String> _annotationsExclusions;
-	private Map<String, Tuple> _bndFileLocationAndContentMap = new HashMap<>();
-	private Map<String, Properties> _bndLanguagePropertiesMap = new HashMap<>();
+	private final Map<String, Tuple> _bndFileLocationAndContentMap =
+		new HashMap<>();
+	private final Map<String, Properties> _bndLanguagePropertiesMap =
+		new HashMap<>();
 	private Map<String, String> _compatClassNamesMap;
 	private String _copyright;
 	private Map<String, List<String>> _errorMessagesMap = new HashMap<>();
@@ -2642,9 +2730,10 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 	private Set<String> _immutableFieldTypes;
 	private String _mainReleaseVersion;
 	private final List<String> _modifiedFileNames = new ArrayList<>();
-	private Map<String, Properties> _moduleLangLanguageProperties =
+	private final Map<String, Properties> _moduleLangLanguageProperties =
 		new HashMap<>();
-	private Map<String, Properties> _moduleLanguageProperties = new HashMap<>();
+	private final Map<String, Properties> _moduleLanguageProperties =
+		new HashMap<>();
 	private String _oldCopyright;
 	private Properties _portalLanguageProperties;
 	private Properties _properties;

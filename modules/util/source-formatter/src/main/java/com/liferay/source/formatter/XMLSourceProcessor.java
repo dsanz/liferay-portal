@@ -17,7 +17,6 @@ package com.liferay.source.formatter;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.util.CharPool;
-import com.liferay.portal.kernel.util.NaturalOrderStringComparator;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -255,44 +254,6 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		}
 	}
 
-	protected void checkOrder(
-		String fileName, Element rootElement, String elementName,
-		String parentElementName, ElementComparator elementComparator) {
-
-		if (rootElement == null) {
-			return;
-		}
-
-		List<Element> elements = rootElement.elements(elementName);
-
-		Element previousElement = null;
-
-		for (Element element : elements) {
-			if ((previousElement != null) &&
-				(elementComparator.compare(previousElement, element) > 0)) {
-
-				StringBundler sb = new StringBundler(8);
-
-				sb.append("order ");
-				sb.append(elementName);
-				sb.append(": ");
-				sb.append(fileName);
-				sb.append(StringPool.SPACE);
-
-				if (Validator.isNotNull(parentElementName)) {
-					sb.append(parentElementName);
-					sb.append(StringPool.SPACE);
-				}
-
-				sb.append(elementComparator.getElementName(element));
-
-				processErrorMessage(fileName, sb.toString());
-			}
-
-			previousElement = element;
-		}
-	}
-
 	protected void checkPoshiCharactersAfterDefinition(
 		String fileName, String content) {
 
@@ -374,7 +335,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			formatResourceActionXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("/service.xml")) {
-			formatServiceXML(fileName, absolutePath, newContent);
+			newContent = formatServiceXML(fileName, absolutePath, newContent);
 		}
 		else if (fileName.endsWith("/schema.xml") &&
 				 absolutePath.contains("solr")) {
@@ -696,8 +657,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 		processErrorMessage(
 			fileName,
-				"LPS-51315 Avoid using WHERE ... NOT IN: " + fileName + " " +
-					content.substring(y + 1, z));
+			"LPS-51315 Avoid using WHERE ... NOT IN: " + fileName + " " +
+				content.substring(y + 1, z));
 	}
 
 	protected String formatDDLStructuresXML(String content) throws Exception {
@@ -920,13 +881,15 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			new ResourceActionPortletResourceElementComparator());
 	}
 
-	protected void formatServiceXML(
+	protected String formatServiceXML(
 			String fileName, String absolutePath, String content)
 		throws Exception {
 
 		Document document = readXML(content);
 
 		Element rootElement = document.getRootElement();
+
+		sortAttributes(rootElement, true);
 
 		List<Element> entityElements = rootElement.elements("entity");
 
@@ -953,6 +916,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, rootElement.element("exceptions"), "exception", null,
 			new ServiceExceptionElementComparator());
+
+		return Dom4jUtil.toString(document);
 	}
 
 	protected void formatSolrSchema(String fileName, String content)
@@ -1456,52 +1421,6 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 			return elementName.substring(0, pos);
 		}
-
-	}
-
-	private static class ElementComparator
-		extends NaturalOrderStringComparator {
-
-		public ElementComparator() {
-			this(_NAME_ATTRIBUTE_DEFAULT);
-		}
-
-		public ElementComparator(boolean importPackage) {
-			this(_NAME_ATTRIBUTE_DEFAULT, importPackage);
-		}
-
-		public ElementComparator(String nameAttribute) {
-			this(nameAttribute, false);
-		}
-
-		public ElementComparator(String nameAttribute, boolean importPackage) {
-			_nameAttribute = nameAttribute;
-			_importPackage = importPackage;
-		}
-
-		public int compare(Element element1, Element element2) {
-			String elementName1 = getElementName(element1);
-			String elementName2 = getElementName(element2);
-
-			if (_importPackage) {
-				return elementName1.compareTo(elementName2);
-			}
-
-			return super.compare(elementName1, elementName2);
-		}
-
-		protected String getElementName(Element element) {
-			return element.attributeValue(getNameAttribute());
-		}
-
-		protected String getNameAttribute() {
-			return _nameAttribute;
-		}
-
-		private static final String _NAME_ATTRIBUTE_DEFAULT = "name";
-
-		private boolean _importPackage;
-		private String _nameAttribute;
 
 	}
 

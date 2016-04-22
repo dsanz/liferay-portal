@@ -183,11 +183,25 @@ jdbc.default.url=${database.url}
 jdbc.default.username=${database.username}
 jdbc.default.password=${database.password}
 
+// HikariCP
+
 jdbc.default.maximumPoolSize=20
 jdbc.default.minimumIdle=0
 
 jdbc.counter.maximumPoolSize=5
 jdbc.counter.minimumIdle=0
+
+// Tomcat
+
+jdbc.default.initialSize=0
+jdbc.default.maxActive=20
+jdbc.default.maxIdle=0
+jdbc.default.minIdle=0
+
+jdbc.counter.initialSize=0
+jdbc.counter.maxActive=5
+jdbc.counter.maxIdle=0
+jdbc.counter.minIdle=0
 
 counter.jdbc.prefix=jdbc.counter.]]></echo>
 
@@ -2927,37 +2941,78 @@ org.apache.catalina.startup.ClassLoaderFactory.level=INFO]]>
 				</then>
 			</if>
 
-			<exec dir="${test.app.server.bin.dir}" executable="${app.server.stop.executable}" resolveexecutable="true">
-				<arg line="${app.server.stop.executable.arg.line}" />
-			</exec>
+			<parallel>
+				<daemons>
+					<exec dir="${test.app.server.bin.dir}" executable="${app.server.stop.executable}" resolveexecutable="true">
+						<arg line="${app.server.stop.executable.arg.line}" />
+					</exec>
+				</daemons>
+				<sequential>
+					<if>
+						<equals arg1="@{app.server.bin.dir}" arg2="${app.server.tcat.admin.bin.dir}" />
+						<then>
+							<waitfor maxwait="5" maxwaitunit="minute" timeoutproperty="app.server.stopping.timeout">
+								<not>
+									<http url="http://localhost:${test.app.server.leading.port.number}180/console" />
+								</not>
+							</waitfor>
+						</then>
+						<elseif>
+							<equals arg1="@{app.server.bin.dir}" arg2="${app.server.tcat.agent.bin.dir}" />
+							<then>
+								<waitfor maxwait="5" maxwaitunit="minute" timeoutproperty="app.server.stopping.timeout">
+									<not>
+										<http url="http://localhost:${test.app.server.leading.port.number}080" />
+									</not>
+								</waitfor>
+							</then>
+						</elseif>
+						<else>
+							<waitfor maxwait="5" maxwaitunit="minute" timeoutproperty="app.server.stopping.timeout">
+								<not>
+									<http url="http://localhost:${test.app.server.leading.port.number}080/web/guest" />
+								</not>
+							</waitfor>
+						</else>
+					</if>
 
-			<if>
-				<equals arg1="@{app.server.bin.dir}" arg2="${app.server.tcat.admin.bin.dir}" />
-				<then>
-					<waitfor maxwait="1" maxwaitunit="minute">
-						<not>
-							<http url="http://localhost:${test.app.server.leading.port.number}180/console" />
-						</not>
-					</waitfor>
-				</then>
-				<elseif>
-					<equals arg1="@{app.server.bin.dir}" arg2="${app.server.tcat.agent.bin.dir}" />
-					<then>
-						<waitfor maxwait="1" maxwaitunit="minute">
-							<not>
-								<http url="http://localhost:${test.app.server.leading.port.number}080" />
-							</not>
-						</waitfor>
-					</then>
-				</elseif>
-				<else>
-					<waitfor maxwait="1" maxwaitunit="minute">
-						<not>
-							<http url="http://localhost:${test.app.server.leading.port.number}080/web/guest" />
-						</not>
-					</waitfor>
-				</else>
-			</if>
+					<if>
+						<isset property="app.server.stopping.timeout" />
+						<then>
+							<execute>
+								jps > jps_output
+							</execute>
+
+							<var name="jps.output" unset="true" />
+
+							<loadfile property="jps.output" srcfile="jps_output" />
+
+							<if>
+								<contains string="${jps.output}" substring="Bootstrap" />
+								<then>
+									<propertyregex
+										input="${jps.output}"
+										override="true"
+										property="bootstrap.pid"
+										regexp="(|[\S\s]*\n)([0-9]+) Bootstrap[\S\s]*"
+										replace="\2"
+									/>
+
+									<execute>
+										jstack ${bootstrap.pid}
+									</execute>
+
+									<stop-app-server app.server.bundle.index="@{app.server.bundle.index}" />
+								</then>
+							</if>
+
+							<delete file="jps_output" />
+
+							<fail if="app.server.stopping.timeout" message="Server is still available at ${app.server.waiting.url}." />
+						</then>
+					</if>
+				</sequential>
+			</parallel>
 
 			<if>
 				<and>
@@ -3776,7 +3831,9 @@ go]]></replacevalue>
 		<get-database-property property.name="database.version" />
 
 		<if>
-			<equals arg1="${database.type}" arg2="db2" />
+			<and>
+				<equals arg1="${database.type}" arg2="db2" />
+			</and>
 			<then>
 				<delete includeemptydirs="true" failonerror="false">
 					<fileset
@@ -3789,7 +3846,7 @@ go]]></replacevalue>
 					<sequential>
 						<mirrors-get
 							dest="${todir}"
-							src="${test.jdbc.drivers.url}/db2/10.5.1/@{jdbc.driver}"
+							src="${test.jdbc.drivers.url}/db2/${database.version}/@{jdbc.driver}"
 						/>
 					</sequential>
 				</for>
@@ -3829,7 +3886,6 @@ go]]></replacevalue>
 			<elseif>
 				<and>
 					<equals arg1="${database.type}" arg2="oracle" />
-					<equals arg1="${database.version}" arg2="10" />
 				</and>
 				<then>
 					<delete includeemptydirs="true" failonerror="false">
@@ -3841,45 +3897,7 @@ go]]></replacevalue>
 
 					<mirrors-get
 						dest="${todir}"
-						src="${test.jdbc.drivers.url}/oracle/10.2.0.1.0/${jdbc.oracle.driver}"
-					/>
-				</then>
-			</elseif>
-			<elseif>
-				<and>
-					<equals arg1="${database.type}" arg2="oracle" />
-					<equals arg1="${database.version}" arg2="11" />
-				</and>
-				<then>
-					<delete includeemptydirs="true" failonerror="false">
-						<fileset
-							dir="${app.server.lib.global.dir}"
-							includes="${jdbc.oracle.driver}"
-						/>
-					</delete>
-
-					<mirrors-get
-						dest="${todir}"
-						src="${test.jdbc.drivers.url}/oracle/11.2.0.1.0/${jdbc.oracle.driver}"
-					/>
-				</then>
-			</elseif>
-			<elseif>
-				<and>
-					<equals arg1="${database.type}" arg2="oracle" />
-					<equals arg1="${database.version}" arg2="12" />
-				</and>
-				<then>
-					<delete includeemptydirs="true" failonerror="false">
-						<fileset
-							dir="${app.server.lib.global.dir}"
-							includes="${jdbc.oracle.driver}"
-						/>
-					</delete>
-
-					<mirrors-get
-						dest="${todir}"
-						src="${test.jdbc.drivers.url}/oracle/12.1.0.2/${jdbc.oracle.driver}"
+						src="${test.jdbc.drivers.url}/oracle/${database.version}/${jdbc.oracle.driver}"
 					/>
 				</then>
 			</elseif>
@@ -6559,14 +6577,28 @@ cluster.link.bind.addr["cluster-link-udp"]=127.0.0.1</echo>
 				<if>
 					<equals arg1="${database.type}" arg2="db2" />
 					<then>
-						<exec executable="${db2.executable}">
-							<arg line="drop db lportal" />
-						</exec>
+						<if>
+							<os family="windows" />
+							<then>
+								<exec executable="${db2.executable}">
+									<arg line="/c /w db2 drop db lportal" />
+								</exec>
 
-						<exec executable="${db2.executable}" failonerror="true">
-							<arg value="-fcreate.sql" />
-							<arg value="-t" />
-						</exec>
+								<exec executable="${db2.executable}">
+									<arg line="/c /w db2 -fcreate.sql -td;" />
+								</exec>
+							</then>
+							<else>
+								<exec executable="${db2.executable}">
+									<arg line="drop db lportal" />
+								</exec>
+
+								<exec executable="${db2.executable}" failonerror="true">
+									<arg value="-fcreate.sql" />
+									<arg value="-t" />
+								</exec>
+							</else>
+						</if>
 					</then>
 					<elseif>
 						<equals arg1="${database.type}" arg2="hypersonic" />
@@ -6657,7 +6689,7 @@ cluster.link.bind.addr["cluster-link-udp"]=127.0.0.1</echo>
 								<arg value="${database.username}" />
 								<arg value="-P" />
 								<arg value="${database.password}" />
-								<arg value="i" />
+								<arg value="-i" />
 								<arg value="create.sql" />
 							</exec>
 						</then>
@@ -7881,6 +7913,13 @@ jdbc.default.password=${database.mysql.password}</echo>
 		<ant dir="portal-impl" target="test-unit" inheritAll="false" />
 
 		<ant dir="util-java" target="test-unit" inheritAll="false" />
+	</target>
+
+	<target name="update-test-gradle-properties">
+		<propertyfile file="${project.dir}/.gradle/gradle.properties">
+			<entry key="database.jdbc.drivers.url" value="${test.jdbc.drivers.url}" />
+			<entry key="database.oracle.version" value="${database.oracle.version}" />
+		</propertyfile>
 	</target>
 
 	<target name="upgrade-legacy-database">

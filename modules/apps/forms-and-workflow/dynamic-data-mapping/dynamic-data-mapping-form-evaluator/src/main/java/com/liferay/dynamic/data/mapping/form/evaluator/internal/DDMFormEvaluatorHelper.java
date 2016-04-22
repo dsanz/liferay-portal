@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -158,7 +159,12 @@ public class DDMFormEvaluatorHelper {
 			new DDMFormFieldEvaluationResult(
 				ddmFormFieldValue.getName(), ddmFormFieldValue.getInstanceId());
 
-		if (ddmFormField.isRequired() &&
+		boolean visible = evaluateBooleanExpression(
+			ddmFormField.getVisibilityExpression(), ancestorDDMFormFieldValues);
+
+		ddmFormFieldEvaluationResult.setVisible(visible);
+
+		if (visible && ddmFormField.isRequired() &&
 			isDDMFormFieldValueEmpty(ddmFormFieldValue)) {
 
 			ddmFormFieldEvaluationResult.setErrorMessage(
@@ -184,17 +190,12 @@ public class DDMFormEvaluatorHelper {
 			}
 		}
 
-		boolean visible = evaluateBooleanExpression(
-			ddmFormField.getVisibilityExpression(), ancestorDDMFormFieldValues);
-
-		ddmFormFieldEvaluationResult.setVisible(visible);
-
 		List<DDMFormFieldEvaluationResult> nestedDDMFormFieldEvaluationResults =
 			evaluateDDMFormFieldValues(
 				ddmFormFieldValue.getNestedDDMFormFieldValues(),
 				ancestorDDMFormFieldValues);
 
-		ddmFormFieldEvaluationResult. setNestedDDMFormFieldEvaluationResults(
+		ddmFormFieldEvaluationResult.setNestedDDMFormFieldEvaluationResults(
 			nestedDDMFormFieldEvaluationResults);
 
 		return ddmFormFieldEvaluationResult;
@@ -256,8 +257,8 @@ public class DDMFormEvaluatorHelper {
 
 		String dataType = ddmFormField.getDataType();
 
-		if (Validator.equals(dataType, "boolean") &&
-			Validator.equals(valueString, "false")) {
+		if (Objects.equals(dataType, "boolean") &&
+			Objects.equals(valueString, "false")) {
 
 			return true;
 		}

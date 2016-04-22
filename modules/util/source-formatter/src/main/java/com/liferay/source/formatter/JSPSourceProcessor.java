@@ -100,7 +100,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 			}
 
 			fileName = StringUtil.replace(
-				fileName, StringPool.BACK_SLASH, StringPool.SLASH);
+				fileName, CharPool.BACK_SLASH, CharPool.SLASH);
 
 			includedAndReferencedFileNames.addAll(
 				getJSPIncludeFileNames(fileName, fileNames));
@@ -114,7 +114,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 		for (String fileName : includedAndReferencedFileNames) {
 			fileName = StringUtil.replace(
-				fileName, StringPool.SLASH, StringPool.BACK_SLASH);
+				fileName, CharPool.SLASH, CharPool.BACK_SLASH);
 
 			if (!fileNames.contains(fileName)) {
 				fileNames.add(fileName);
@@ -294,6 +294,18 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		}
 	}
 
+	protected void checkValidatorEquals(String fileName, String content) {
+		Matcher matcher = validatorEqualsPattern.matcher(content);
+
+		while (matcher.find()) {
+			processErrorMessage(
+				fileName,
+				"Use Objects.equals(Object, Object) instead of " +
+					"Validator.equals(Object, Object): " + fileName + " " +
+						getLineCount(content, matcher.start()));
+		}
+	}
+
 	protected String compressImportsOrTaglibs(
 		String fileName, String content, String attributePrefix) {
 
@@ -469,6 +481,10 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 		checkStringUtilReplace(fileName, newContent);
 
+		checkGetterUtilGet(fileName, newContent);
+
+		checkValidatorEquals(fileName, newContent);
+
 		Matcher matcher = _javaClassPattern.matcher(newContent);
 
 		if (matcher.find()) {
@@ -483,7 +499,8 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 			newContent = formatJavaTerms(
 				javaClassName, null, file, fileName, absolutePath, newContent,
-				javaClassContent, javaClassLineCount, null, null, null, null);
+				javaClassContent, javaClassLineCount, StringPool.BLANK, null,
+				null, null, null);
 		}
 
 		JSPSourceTabCalculator jspSourceTabCalculator =
@@ -802,14 +819,14 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 					line = StringUtil.replace(line, "<%=", "<%= ");
 				}
 
-				if (trimmedPreviousLine.equals("%>") &&
+				if (trimmedPreviousLine.matches("(--)?%>") &&
 					Validator.isNotNull(line) && !trimmedLine.equals("-->")) {
 
 					sb.append("\n");
 				}
 				else if (Validator.isNotNull(previousLine) &&
 						 !trimmedPreviousLine.equals("<!--") &&
-						 trimmedLine.equals("<%")) {
+						 trimmedLine.matches("<%(--)?")) {
 
 					sb.append("\n");
 				}
@@ -1240,8 +1257,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 				content, taglibName, taglibValue, matcher.start(4));
 
 			return content = StringUtil.replaceFirst(
-				content, matcher.group(1), StringPool.BLANK,
-				matcher.start());
+				content, matcher.group(1), StringPool.BLANK, matcher.start());
 		}
 
 		return content;
@@ -1717,9 +1733,6 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 			getIncludes());
 
 		try {
-			Pattern pattern = Pattern.compile(
-				"\\s*@\\s*include\\s*file=['\"](.*)['\"]");
-
 			for (String fileName : allFileNames) {
 				File file = new File(fileName);
 
@@ -1730,7 +1743,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 				String content = FileUtil.read(file);
 
-				Matcher matcher = pattern.matcher(content);
+				Matcher matcher = _includeFilePattern.matcher(content);
 
 				String newContent = content;
 
@@ -1877,9 +1890,8 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		}
 	}
 
-	private static final String[] _INCLUDES = new String[] {
-		"**/*.jsp", "**/*.jspf", "**/*.vm"
-	};
+	private static final String[] _INCLUDES =
+		new String[] {"**/*.jsp", "**/*.jspf", "**/*.vm"};
 
 	private static final String[][] _LIFERAY_FRONTEND_DEFINE_OBJECTS =
 		new String[][] {
@@ -1898,7 +1910,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 				"WindowState", "windowState",
 				"liferayPortletRequest.getWindowState()"
 			}
-	};
+		};
 
 	private static final String[][] _LIFERAY_THEME_DEFINE_OBJECTS =
 		new String[][] {
@@ -2028,7 +2040,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 	private final Pattern _compressedJSPTaglibPattern = Pattern.compile(
 		"(<.*\n*taglib uri=\".*>\n*)+", Pattern.MULTILINE);
 	private final Pattern _defineObjectsPattern = Pattern.compile(
-		"\n\t*(<.*:defineObjects />)\n");
+		"\n\t*(<.*:defineObjects />)(\n|$)");
 	private final List<String> _duplicateImportClassNames = new ArrayList<>();
 	private final Pattern _emptyJavaSourceTagPattern = Pattern.compile(
 		"\n\t*<%\n+\t*%>\n");
@@ -2043,7 +2055,9 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 	private final Pattern _importsPattern = Pattern.compile(
 		"page import=\"(.+)\"");
 	private Set<String> _includeFileNames = new HashSet<>();
-	private Pattern _incorrectClosingTagPattern = Pattern.compile(
+	private final Pattern _includeFilePattern = Pattern.compile(
+		"\\s*@\\s*include\\s*file=['\"](.*)['\"]");
+	private final Pattern _incorrectClosingTagPattern = Pattern.compile(
 		"\n(\t*)\t((?!<\\w).)* />\n");
 	private Pattern _javaClassPattern = Pattern.compile(
 		"\n(private|protected|public).* class ([A-Za-z0-9]+) " +

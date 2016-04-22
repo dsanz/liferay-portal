@@ -51,11 +51,9 @@
 	</macrodef>
 
 	<macrodef name="update-jboss-java-opts">
-		<attribute name="app.server.jboss.dir" />
-
 		<sequential>
 			<replace
-				dir="@{app.server.jboss.dir}/bin"
+				dir="${app.server.jboss.dir}/bin"
 				includes="*.bat,*.conf"
 				token="-Xmx512m"
 				value="-Xmx1024m"
@@ -120,80 +118,16 @@
 		</antcall>
 	</target>
 
-	<target name="build-dist-jboss-eap-6.0">
+	<target name="build-dist-jboss">
 		<app-server-properties-update>
 			app.server.type=jboss
-			app.server.jboss.version=6.0.1
-			app.server.jboss.dir=${app.server.parent.dir}/jboss-eap-6.0.1
-			app.server.jboss.zip.name=jboss-eap-6.0.1.zip
-			app.server.jboss.zip.url=http://www.jboss.org/jbossas/downloads/jboss-eap-6.0.1.zip
 		</app-server-properties-update>
 
 		<antcall target="update-sdk-properties" inheritAll="false" />
 
 		<antcall target="unzip-jboss" inheritAll="false" />
 
-		<update-jboss-java-opts app.server.jboss.dir="${app.server.parent.dir}/jboss-eap-6.0.1" />
-
-		<delete dir="${project.dir}/portal-web/classes" />
-
-		<ant target="deploy" inheritAll="false" />
-
-		<antcall target="resolve-dynamic-jars" inheritAll="false" />
-
-		<app-server-properties-reset />
-
-		<antcall target="deploy-plugins">
-			<param name="deployer.dest.dir" value="${app.server.jboss.deploy.dir}" />
-			<param name="deployer.app.server.type" value="jboss" />
-			<param name="deployer.app.server.lib.portal.dir" value="${app.server.jboss.portal.dir}/WEB-INF/lib" />
-		</antcall>
-	</target>
-
-	<target name="build-dist-jboss-eap-6.1">
-		<app-server-properties-update>
-			app.server.type=jboss
-			app.server.jboss.version=6.1.0
-			app.server.jboss.dir=${app.server.parent.dir}/jboss-eap-6.1.0
-			app.server.jboss.zip.name=jboss-eap-6.1.0.zip
-			app.server.jboss.zip.url=http://www.jboss.org/jbossas/downloads/jboss-eap-6.1.0.zip
-		</app-server-properties-update>
-
-		<antcall target="update-sdk-properties" inheritAll="false" />
-
-		<antcall target="unzip-jboss" inheritAll="false" />
-
-		<update-jboss-java-opts app.server.jboss.dir="${app.server.parent.dir}/jboss-eap-6.1.0" />
-
-		<delete dir="${project.dir}/portal-web/classes" />
-
-		<ant target="deploy" inheritAll="false" />
-
-		<antcall target="resolve-dynamic-jars" inheritAll="false" />
-
-		<app-server-properties-reset />
-
-		<antcall target="deploy-plugins">
-			<param name="deployer.dest.dir" value="${app.server.jboss.deploy.dir}" />
-			<param name="deployer.app.server.type" value="jboss" />
-			<param name="deployer.app.server.lib.portal.dir" value="${app.server.jboss.portal.dir}/WEB-INF/lib" />
-		</antcall>
-	</target>
-
-	<target name="build-dist-jboss-eap-6.4">
-		<app-server-properties-update>
-			app.server.type=jboss
-			app.server.jboss.version=6.4.0
-			app.server.jboss.dir=${app.server.parent.dir}/jboss-eap-6.4.0
-			app.server.jboss.zip.name=jboss-eap-6.4.0.zip
-			app.server.jboss.zip.url=http://www.jboss.org/jbossas/downloads/jboss-eap-6.4.0.zip
-		</app-server-properties-update>
-
-		<antcall target="update-sdk-properties" inheritAll="false" />
-
-		<antcall target="unzip-jboss" inheritAll="false" />
-
-		<update-jboss-java-opts app.server.jboss.dir="${app.server.parent.dir}/jboss-eap-6.4.0" />
+		<update-jboss-java-opts />
 
 		<delete dir="${project.dir}/portal-web/classes" />
 
@@ -907,7 +841,6 @@
 		<antcall target="build-dist-tomcat" />
 		<antcall target="build-dist-wildlfy" />
 
-		<antcall target="zip-api" />
 		<antcall target="zip-glassfish" />
 		<antcall target="zip-jboss" />
 		<antcall target="zip-jetty" />
@@ -1210,7 +1143,7 @@ release was successful.</echo>
 						<fail>
 .
 
-Please download the JBoss EAP zip file from ${app.server.jboss.zip.url} and
+Please download the JBoss zip file from ${app.server.jboss.zip.url} and
 place it here: ${app.server.parent.dir}/${app.server.jboss.zip.name}. Then rerun
 this task.
 						</fail>
@@ -1738,7 +1671,7 @@ this task.
 			src="${app.server.parent.dir}/${app.server.tcserver.zip.name}"
 		>
 			<mapper
-				from="vfabric-tc-server-developer-${app.server.tcserver.version}.RELEASE/*"
+				from="pivotal-tc-server-developer-${app.server.tcserver.version}.RELEASE/*"
 				to="tc-server-${app.server.tcserver.version}/*"
 				type="glob"
 			/>
@@ -1754,12 +1687,12 @@ this task.
 			<os family="windows" />
 			<then>
 				<exec dir="${app.server.tcserver.dir}" executable="cmd">
-					<arg line="/c set JAVA_OPTS= &amp; tcruntime-instance.bat create liferay" />
+					<arg line="/c set JAVA_OPTS= &amp; tcruntime-instance.bat create liferay -v ${app.server.tcserver.tomcat.version}" />
 				</exec>
 			</then>
 			<else>
 				<exec dir="${app.server.tcserver.dir}" executable="${app.server.tcserver.dir}/tcruntime-instance.sh">
-					<arg line="create liferay" />
+					<arg line="create liferay -v ${app.server.tcserver.tomcat.version}" />
 				</exec>
 			</else>
 		</if>
@@ -1769,7 +1702,7 @@ this task.
 			<then>
 				<replace file="${app.server.tcserver.bin.dir}/setenv.bat">
 					<replacetoken><![CDATA[set JVM_OPTS=-Xmx512M -Xss256K]]></replacetoken>
-					<replacevalue><![CDATA[set JVM_OPTS=-Xmx1024M -Xss512K -XX:MaxPermSize=512m]]></replacevalue>
+					<replacevalue><![CDATA[set JVM_OPTS=-Xmx1024M -Xss512K -XX:MaxMetaspaceSize=512m]]></replacevalue>
 				</replace>
 			</then>
 			<else>
@@ -1794,14 +1727,15 @@ this task.
 			<os family="windows" />
 			<then>
 				<replace file="${app.server.tcserver.dir}/liferay/conf/wrapper.conf">
-					<replacetoken><![CDATA[wrapper.java.additional.8="-Xmx512M"]]></replacetoken>
+					<replacetoken><![CDATA[wrapper.java.additional.8=-Xmx512M]]></replacetoken>
 					<replacevalue><![CDATA[wrapper.java.additional.8="-Xmx1024M"]]></replacevalue>
 				</replace>
 
 				<replace file="${app.server.tcserver.dir}/liferay/conf/wrapper.conf">
-					<replacetoken><![CDATA[wrapper.java.additional.9="-Xss256K"]]></replacetoken>
+					<replacetoken><![CDATA[wrapper.java.additional.9=-Xss256K]]></replacetoken>
 					<replacevalue><![CDATA[wrapper.java.additional.9="-Xss512K"
-						wrapper.java.additional.10="-XX:MaxPermSize=256m"]]></replacevalue>
+wrapper.java.additional.10="-XX:MaxPermSize=256M"
+wrapper.java.additional.11="-Dfile.encoding=UTF-8"]]></replacevalue>
 				</replace>
 			</then>
 		</if>
@@ -1972,21 +1906,45 @@ rerun this task.
 
 		<delete dir="${app.server.weblogic.dir}" />
 
-		<unzip
-			dest="${app.server.weblogic.dir}"
-			src="${app.server.parent.dir}/${app.server.weblogic.zip.name}"
-		/>
+		<if>
+			<equals arg1="${app.server.weblogic.version.build}" arg2="1221" />
+			<then>
+				<unzip
+					dest="${app.server.weblogic.dir}-temp"
+					src="${app.server.parent.dir}/${app.server.weblogic.zip.name}"
+				/>
+			</then>
+			<else>
+				<unzip
+					dest="${app.server.weblogic.dir}"
+					src="${app.server.parent.dir}/${app.server.weblogic.zip.name}"
+				/>
+			</else>
+		</if>
 
 		<if>
-			<equals arg1="${app.server.weblogic.version.build}" arg2="1213" />
+			<equals arg1="${app.server.weblogic.version.build}" arg2="1221" />
 			<then>
-				<move todir="${app.server.weblogic.dir}">
-					<fileset dir="${app.server.weblogic.dir}/wls12130" />
-				</move>
+				<java jar="${app.server.weblogic.dir}-temp/${app.server.weblogic.jar.name}" fork="true">
+					<arg line="ORACLE_HOME=${app.server.weblogic.dir}" />
+				</java>
+
+				<delete dir="${app.server.weblogic.dir}-temp" />
 
 				<property name="app.server.weblogic.configure.silent" value="-silent" />
 				<property name="app.server.weblogic.template.dir" value="${app.server.weblogic.wlserver.dir}/common/templates/wls" />
 			</then>
+			<elseif>
+				<equals arg1="${app.server.weblogic.version.build}" arg2="1213" />
+				<then>
+					<move todir="${app.server.weblogic.dir}">
+						<fileset dir="${app.server.weblogic.dir}/wls${app.server.weblogic.version.build}0" />
+					</move>
+
+					<property name="app.server.weblogic.configure.silent" value="-silent" />
+					<property name="app.server.weblogic.template.dir" value="${app.server.weblogic.wlserver.dir}/common/templates/wls" />
+				</then>
+			</elseif>
 			<else>
 				<property name="app.server.weblogic.configure.silent" value="" />
 				<property name="app.server.weblogic.template.dir" value="${app.server.weblogic.wlserver.dir}/common/templates/domains" />
@@ -2021,23 +1979,23 @@ closeTemplate()
 		<if>
 			<os family="windows" />
 			<then>
-				<exec dir="${app.server.weblogic.dir}" executable="cmd">
+				<exec dir="${app.server.weblogic.dir}/wlserver/server/bin" executable="cmd">
 					<env key="MW_HOME" value="${app.server.weblogic.dir.windows}" />
 					<arg value="/c" />
-					<arg value="configure.cmd" />
+					<arg value="setWLSEnv.cmd" />
 					<arg value="${app.server.weblogic.configure.silent}" />
 				</exec>
 
 				<echo file="${tstamp.value}/create-weblogic-domain.bat">
 					@echo off
 
-					set "USER_MEM_ARGS=-Xmx1024m -XX:PermSize=256m"
+					set "USER_MEM_ARGS=-Xmx1024m -XX:MetaspaceSize=256m"
 
 					set "MW_HOME=${app.server.weblogic.dir.windows}"
 
 					set "WL_HOME=${app.server.weblogic.wlserver.dir.windows}"
 
-					call %WL_HOME%/common/bin/commEnv.cmd
+					call %MW_HOME%/oracle_common/common/bin/commEnv.cmd
 
 					set "CLASSPATH=%FMWCONFIG_CLASSPATH%"
 
@@ -2084,7 +2042,7 @@ closeTemplate()
 				<if>
 					<os family="unix" />
 					<then>
-						<replace file="${app.server.weblogic.dir}/configure.sh">
+						<replace file="${app.server.weblogic.dir}/wlserver/server/bin/setWLSEnv.sh">
 							<replacefilter token="#!/bin/sh" value="#!/bin/bash" />
 						</replace>
 
@@ -2093,23 +2051,23 @@ closeTemplate()
 				</if>
 
 				<chmod
-					dir="${app.server.weblogic.dir}"
-					includes="configure.sh"
+					dir="${app.server.weblogic.dir}/wlserver/server/bin"
+					includes="setWLSEnv.sh"
 					perm="744"
 				/>
 
 				<if>
 					<os family="unix" />
 					<then>
-						<exec dir="${app.server.weblogic.dir}" executable="./configure.sh">
+						<exec dir="${app.server.weblogic.dir}/wlserver/server/bin" executable="./setWLSEnv.sh">
 							<env key="MW_HOME" file="${app.server.weblogic.dir}" />
 							<arg value="${app.server.weblogic.configure.silent}" />
 						</exec>
 					</then>
 					<else>
-						<exec dir="${app.server.weblogic.dir}" executable="sh">
+						<exec dir="${app.server.weblogic.dir}/wlserver/server/bin" executable="sh">
 							<env key="MW_HOME" file="${app.server.weblogic.dir}" />
-							<arg value="configure.sh" />
+							<arg value="setWLSEnv.sh" />
 						</exec>
 					</else>
 				</if>
@@ -2117,13 +2075,13 @@ closeTemplate()
 				<echo file="${tstamp.value}/create-weblogic-domain.sh">
 					#!/bin/sh
 
-					export USER_MEM_ARGS="-Xmx1024m -XX:PermSize=256m"
+					export USER_MEM_ARGS="-Xmx1024m -XX:MetaspaceSize=256m"
 
 					export MW_HOME="${app.server.weblogic.dir}"
 
 					export WL_HOME="${app.server.weblogic.wlserver.dir}"
 
-					${source.command} ${WL_HOME}/common/bin/commEnv.sh
+					${source.command} ${MW_HOME}/oracle_common/common/bin/commEnv.sh
 
 					export CLASSPATH=${FMWCONFIG_CLASSPATH}
 
@@ -2146,7 +2104,7 @@ closeTemplate()
 						<![CDATA[
 							# Any changes to this script may be lost when adding extensions to this configuration.
 
-							export USER_MEM_ARGS="-Xmx1024m -XX:PermSize=512m"
+							export USER_MEM_ARGS="-Xmx1024m -XX:MetaspaceSize=512m"
 
 							export MW_HOME="${app.server.weblogic.dir}"
 
@@ -2809,18 +2767,6 @@ plugins.includes=</echo>
 		</xmltask>
 	</target>
 
-	<target name="zip-api">
-		<delete file="dist/liferay-portal-doc-${lp.version}.zip" failonerror="false" />
-
-		<zip destfile="dist/liferay-portal-doc-${lp.version}.zip">
-			<zipfileset
-				dir="api"
-				includes="**/*.css,**/*.gif,**/*.html,**/*.jpeg,**/*.jpg,**/*.png,**/*.svg"
-				prefix="liferay-portal-doc-${lp.version}"
-			/>
-		</zip>
-	</target>
-
 	<target name="zip-db-upgrade">
 		<tstamp>
 			<format property="tstamp.value" pattern="yyyyMMddkkmmssSSS" />
@@ -3061,15 +3007,6 @@ plugins.includes=</echo>
 	<target name="zip-jboss">
 		<antcall target="zip-executable">
 			<param name="zip.executable.file" value="liferay-portal-jboss" />
-			<param name="zip.executable.dir" value="${app.server.jboss.dir}" />
-		</antcall>
-	</target>
-
-	<target name="zip-jboss-eap-6.4">
-		<var name="app.server.jboss.dir" value="${app.server.parent.dir}/jboss-eap-6.4.0" />
-
-		<antcall target="zip-executable" inheritAll="false">
-			<param name="zip.executable.file" value="liferay-portal-jboss-eap" />
 			<param name="zip.executable.dir" value="${app.server.jboss.dir}" />
 		</antcall>
 	</target>

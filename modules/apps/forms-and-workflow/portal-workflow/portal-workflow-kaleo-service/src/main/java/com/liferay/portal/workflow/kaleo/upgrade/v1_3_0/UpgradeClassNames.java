@@ -46,12 +46,18 @@ public class UpgradeClassNames extends UpgradeProcess {
 		updateClassName("KaleoInstance", "className");
 		updateClassName("KaleoInstanceToken", "className");
 		updateClassName("KaleoLog", "currentAssigneeClassName");
+		updateClassName("KaleoLog", "previousAssigneeClassName");
+		updateClassName("KaleoNotificationRecipient", "recipientClassName");
+		updateClassName("KaleoTaskAssignment", "assigneeClassName");
+		updateClassName("KaleoTaskAssignmentInstance", "assigneeClassName");
 		updateClassName("KaleoTaskInstanceToken", "className");
 
 		updateWorkflowContextEntryClassName("KaleoInstance", "kaleoInstanceId");
 		updateWorkflowContextEntryClassName("KaleoLog", "kaleoLogId");
 		updateWorkflowContextEntryClassName(
 			"KaleoTaskInstanceToken", "kaleoTaskInstanceTokenId");
+		updateWorkflowContextEntryClassName(
+			"KaleoTimerInstanceToken", "kaleoTimerInstanceTokenId");
 	}
 
 	protected String renamePortalJavaClassNames(String workflowContextJSON) {
@@ -64,6 +70,7 @@ public class UpgradeClassNames extends UpgradeProcess {
 			String oldPortalJavaClassName = matcher.group(1);
 
 			if (oldPortalJavaClassName.contains(".impl") ||
+				oldPortalJavaClassName.contains(".kernel") ||
 				oldSubs.contains(oldPortalJavaClassName)) {
 
 				continue;
@@ -207,6 +214,9 @@ public class UpgradeClassNames extends UpgradeProcess {
 		_classNamesMap.put(
 			"com.liferay.portlet.journal.model.JournalArticle",
 			"com.liferay.journal.model.JournalArticle");
+		_classNamesMap.put(
+			"com.liferay.portlet.messageboards.model.MBDiscussion",
+			"com.liferay.message.boards.kernel.model.MBDiscussion");
 		_classNamesMap.put(
 			"com.liferay.portlet.messageboards.model.MBMessage",
 			"com.liferay.message.boards.kernel.model.MBMessage");
