@@ -20,7 +20,7 @@
 </tr>
 <tr>
 	<td>ADD_ASSET_SCOPED</td>
-	<td>//a[contains(@id,'add-content-select-scope')]</td>
+	<td>//a[@data-title='Add Content (Select Scope and Type)']</td>
 	<td></td>
 </tr>
 <tr>
@@ -37,6 +37,12 @@
 <tr>
 	<td>CATEGORIES_FILTER_CATEGORY</td>
 	<td>//div[contains(@class,'portlet-asset-publisher')]//div[@class='portlet-body']//span[contains(.,'${key_categoryName}')]</td>
+	<td></td>
+</tr>
+<!--ASSET_EDIT-->
+<tr>
+	<td>ASSET_EDIT</td>
+	<td>//a[contains(@data-id,'editAsset')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -114,7 +120,7 @@
 <!--ASSET_ABSTRACT_DETAIL-->
 <tr>
 	<td>ASSET_ABSTRACT_DETAIL_TITLE</td>
-	<td>//h3[contains(.,'${key_assetTitle}')]</td>
+	<td>//h4[contains(.,'${key_assetTitle}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -162,7 +168,7 @@
 <!--ASSET_ABSTRACT_BOOKMARK_DETAIL-->
 <tr>
 	<td>ASSET_ABSTRACT_BOOKMARK_DETAIL_NAME</td>
-	<td>//h3[contains(.,'${key_bookmarkName}')]</td>
+	<td>//h4[contains(.,'${key_bookmarkName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -172,7 +178,7 @@
 </tr>
 <tr>
 	<td>ASSET_ABSTRACT_BOOKMARK_LIFERAY_LOGO</td>
-	<td>//img[@alt='Liferay']</td>
+	<td>//*[name()='svg'][*[name()='use'][contains(@class,'logo')]]</td>
 	<td></td>
 </tr>
 <tr>

@@ -26,6 +26,7 @@ import com.liferay.dynamic.data.mapping.constants.DDMWebKeys;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
+import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory;
 import com.liferay.dynamic.data.mapping.io.DDMFormFieldTypesJSONSerializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormJSONSerializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormLayoutJSONSerializer;
@@ -41,6 +42,7 @@ import com.liferay.dynamic.data.mapping.storage.StorageAdapterRegistry;
 import com.liferay.dynamic.data.mapping.storage.StorageEngine;
 import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
 import com.liferay.dynamic.data.mapping.util.DDMFormLayoutFactory;
+import com.liferay.dynamic.data.mapping.util.DDMFormValuesMerger;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
@@ -90,7 +92,6 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 		"com.liferay.portlet.header-portlet-css=/admin/css/main.css",
 		"com.liferay.portlet.icon=/admin/icons/form.png",
 		"com.liferay.portlet.instanceable=false",
-		"com.liferay.portlet.layout-cacheable=true",
 		"com.liferay.portlet.preferences-owned-by-group=true",
 		"com.liferay.portlet.private-request-attributes=false",
 		"com.liferay.portlet.private-session-attributes=false",
@@ -314,7 +315,7 @@ public class DDLFormAdminPortlet extends MVCPortlet {
 	}
 
 	@Reference(
-		target = "(osgi.http.whiteboard.servlet.name=DDMFormEvaluatorServlet)",
+		target = "(osgi.http.whiteboard.servlet.name=com.liferay.dynamic.data.mapping.form.evaluator.internal.servlet.DDMFormEvaluatorServlet)",
 		unbind = "-"
 	)
 	protected void setDDMFormEvaluatorServlet(Servlet ddmFormEvaluatorServlet) {
@@ -372,6 +373,20 @@ public class DDLFormAdminPortlet extends MVCPortlet {
 	}
 
 	@Reference(unbind = "-")
+	protected void setDDMFormValuesFactory(
+		DDMFormValuesFactory ddmFormValuesFactory) {
+
+		_ddmFormValuesFactory = ddmFormValuesFactory;
+	}
+
+	@Reference(unbind = "-")
+	protected void setDDMFormValuesMerger(
+		DDMFormValuesMerger ddmFormValuesMerger) {
+
+		_ddmFormValuesMerger = ddmFormValuesMerger;
+	}
+
+	@Reference(unbind = "-")
 	protected void setDDMStructureLocalService(
 		DDMStructureLocalService ddmStructureLocalService) {
 
@@ -420,6 +435,7 @@ public class DDLFormAdminPortlet extends MVCPortlet {
 				_ddmFormFieldTypeServicesTracker,
 				_ddmFormFieldTypesJSONSerializer, _ddmFormJSONSerializer,
 				_ddmFormLayoutJSONSerializer, _ddmFormRenderer,
+				_ddmFormValuesFactory, _ddmFormValuesMerger,
 				_ddmStructureLocalService, _jsonFactory, _storageEngine,
 				_workflowEngineManager);
 
@@ -468,6 +484,8 @@ public class DDLFormAdminPortlet extends MVCPortlet {
 	private DDMFormJSONSerializer _ddmFormJSONSerializer;
 	private DDMFormLayoutJSONSerializer _ddmFormLayoutJSONSerializer;
 	private DDMFormRenderer _ddmFormRenderer;
+	private DDMFormValuesFactory _ddmFormValuesFactory;
+	private DDMFormValuesMerger _ddmFormValuesMerger;
 	private DDMStructureLocalService _ddmStructureLocalService;
 	private JSONFactory _jsonFactory;
 	private StorageAdapterRegistry _storageAdapterRegistry;

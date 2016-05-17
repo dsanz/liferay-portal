@@ -220,7 +220,17 @@
 			</then>
 		</if>
 
-		<execute function="Check" locator1="Permissions#${permissionDefinitionKey}" />
+		<if>
+			<isset var="permissionsList" />
+			<then>
+				<for list="${permissionsList}" param="permissionDefinitionKey">
+					<execute function="Check" locator1="Permissions#${permissionDefinitionKey}" />
+				</for>
+			</then>
+			<else>
+				<execute function="Check" locator1="Permissions#${permissionDefinitionKey}" />
+			</else>
+		</if>
 
 		<execute macro="Button#clickSave" />
 
@@ -965,7 +975,7 @@
 				<contains string="${permissionDefinitionKey}" substring="CONTROL_PANEL_SITES_SITES_RESOURCE_PERMISSIONS_SITE" />
 				<then>
 					<var name="permissionNavigationKey" value="CONTROL_PANEL_SITES_SITES" />
-					<var name="permissionNavigationValue" value="Site Memberships" />
+					<var name="permissionNavigationValue" value="Site Settings" />
 				</then>
 			</elseif>
 			<elseif>

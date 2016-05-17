@@ -121,6 +121,14 @@ public class JavaClass {
 			if (javaTerm.isMethod() || javaTerm.isConstructor()) {
 				checkChaining(javaTerm);
 				checkLineBreak(javaTerm);
+				checkParameterNames(javaTerm);
+				checkVariableNames(javaTerm);
+			}
+
+			// LPS-65690
+
+			if (_fileName.endsWith("Comparator.java") && javaTerm.isMethod()) {
+				checkLocalSensitiveComparison(javaTerm);
 			}
 
 			if (_fileName.endsWith("LocalServiceImpl.java") &&
@@ -233,7 +241,7 @@ public class JavaClass {
 
 	protected void checkAnnotationForMethod(
 		JavaTerm javaTerm, String annotation, String requiredMethodNameRegex,
-		int requiredMethodType, String fileName) {
+		int requiredMethodType) {
 
 		String methodName = javaTerm.getName();
 
@@ -244,22 +252,22 @@ public class JavaClass {
 		if (javaTerm.hasAnnotation(annotation)) {
 			if (!matcher.find()) {
 				_javaSourceProcessor.processErrorMessage(
-					fileName,
+					_fileName,
 					"LPS-36303: Incorrect method name: " + methodName + " " +
-						fileName);
+						_fileName);
 			}
 			else if (javaTerm.getType() != requiredMethodType) {
 				_javaSourceProcessor.processErrorMessage(
-					fileName,
+					_fileName,
 					"LPS-36303: Incorrect method type for " + methodName + " " +
-						fileName);
+						_fileName);
 			}
 		}
 		else if (matcher.find() && !javaTerm.hasAnnotation("Override")) {
 			_javaSourceProcessor.processErrorMessage(
-				fileName,
+				_fileName,
 				"Annotation @" + annotation + " required for " + methodName +
-					" " + fileName);
+					" " + _fileName);
 		}
 	}
 
@@ -568,6 +576,26 @@ public class JavaClass {
 		}
 	}
 
+	protected void checkLocalSensitiveComparison(JavaTerm javaTerm) {
+		String javaTermName = javaTerm.getName();
+
+		if (!javaTermName.equals("compare")) {
+			return;
+		}
+
+		String javaTermContent = javaTerm.getContent();
+
+		if (javaTermContent.contains("_locale") &&
+			javaTermContent.contains(".compareTo") &&
+			!javaTermContent.contains("Collator")) {
+
+			_javaSourceProcessor.processErrorMessage(
+				_fileName,
+				"LPS-65690 Use Collator for locale-sensitive String " +
+					"comparison: " + _fileName);
+		}
+	}
+
 	protected void checkMutableFieldType(
 		JavaTerm javaTerm, String javaFieldType) {
 
@@ -614,8 +642,22 @@ public class JavaClass {
 			else {
 				_javaSourceProcessor.processErrorMessage(
 					_fileName,
-					"Rename " + javaTermName + " to " + newName + " " +
-						javaTerm.getLineCount());
+					"Rename " + javaTermName + " to " + newName + ": " +
+						_fileName + " " + javaTerm.getLineCount());
+			}
+		}
+	}
+
+	protected void checkParameterNames(JavaTerm javaTerm) {
+		for (String parameterName : javaTerm.getParameterNames()) {
+			if (Validator.isVariableName(parameterName) &&
+				parameterName.matches("_?[A-Z].+")) {
+
+				_javaSourceProcessor.processErrorMessage(
+					_fileName,
+					"Parameter " + parameterName +
+						" should not start with uppercase: " + _fileName + " " +
+							javaTerm.getLineCount());
 			}
 		}
 	}
@@ -643,19 +685,18 @@ public class JavaClass {
 
 		checkAnnotationForMethod(
 			javaTerm, "After", "\\btearDown(?!Class)",
-			JavaTerm.TYPE_METHOD_PUBLIC, _fileName);
+			JavaTerm.TYPE_METHOD_PUBLIC);
 		checkAnnotationForMethod(
 			javaTerm, "AfterClass", "\\btearDownClass",
-			JavaTerm.TYPE_METHOD_PUBLIC_STATIC, _fileName);
+			JavaTerm.TYPE_METHOD_PUBLIC_STATIC);
 		checkAnnotationForMethod(
 			javaTerm, "Before", "\\bsetUp(?!Class)",
-			JavaTerm.TYPE_METHOD_PUBLIC, _fileName);
+			JavaTerm.TYPE_METHOD_PUBLIC);
 		checkAnnotationForMethod(
 			javaTerm, "BeforeClass", "\\bsetUpClass",
-			JavaTerm.TYPE_METHOD_PUBLIC_STATIC, _fileName);
+			JavaTerm.TYPE_METHOD_PUBLIC_STATIC);
 		checkAnnotationForMethod(
-			javaTerm, "Test", "^.*test", JavaTerm.TYPE_METHOD_PUBLIC,
-			_fileName);
+			javaTerm, "Test", "^.*test", JavaTerm.TYPE_METHOD_PUBLIC);
 	}
 
 	protected void checkUnusedParameters(JavaTerm javaTerm) {
@@ -670,6 +711,24 @@ public class JavaClass {
 					"Unused parameter " + parameterName + ": " + _fileName +
 						" " + javaTerm.getLineCount());
 			}
+		}
+	}
+
+	protected void checkVariableNames(JavaTerm javaTerm) {
+		Matcher matcher = _variableNameStartingWithUpperCasePattern.matcher(
+			javaTerm.getContent());
+
+		while (matcher.find()) {
+			int lineCount =
+				javaTerm.getLineCount() +
+					_javaSourceProcessor.getLineCount(
+						javaTerm.getContent(), matcher.start(1)) - 1;
+
+			_javaSourceProcessor.processErrorMessage(
+				_fileName,
+				"Variable " + matcher.group(1) +
+					" should not start with uppercase: " + _fileName + " " +
+						lineCount);
 		}
 	}
 
@@ -1491,38 +1550,41 @@ public class JavaClass {
 	}
 
 	private void _formatReturnStatement(
-		String javaTermContent, Matcher matcher) {
+		String javaTermContent, String returnStatement, String tabs,
+		String ifCondition, String trueValue, String falseValue) {
 
-		String tabs = matcher.group(1);
+		StringBundler sb = new StringBundler(15);
 
-		StringBundler sb = new StringBundler(11);
-
-		sb.append(javaTermContent.substring(0, matcher.end(1)));
+		sb.append("\n");
+		sb.append(tabs);
 		sb.append("if (");
-		sb.append(matcher.group(2));
+		sb.append(ifCondition);
 		sb.append(") {\n\n");
 		sb.append(tabs);
-		sb.append("\treturn true;\n");
+		sb.append("\treturn ");
+		sb.append(trueValue);
+		sb.append(";\n");
 		sb.append(tabs);
 		sb.append("}\n\n");
 		sb.append(tabs);
-		sb.append("return false;\n");
-		sb.append(javaTermContent.substring(matcher.end()));
+		sb.append("return ");
+		sb.append(falseValue);
+		sb.append(";\n");
 
-		_classContent = _classContent.replace(javaTermContent, sb.toString());
+		String newJavaTermContent = StringUtil.replace(
+			javaTermContent, returnStatement, sb.toString());
+
+		_classContent = StringUtil.replace(
+			_classContent, javaTermContent, newJavaTermContent);
 	}
 
 	private void _formatReturnStatements(JavaTerm javaTerm) {
-		String returnType = javaTerm.getReturnType();
-
-		if (!returnType.equals("boolean")) {
-			return;
-		}
-
 		String javaTermContent = javaTerm.getContent();
+		String returnType = javaTerm.getReturnType();
 
 		Matcher matcher1 = _returnPattern1.matcher(javaTermContent);
 
+		outerLoop:
 		while (matcher1.find()) {
 			String returnStatement = matcher1.group();
 
@@ -1532,22 +1594,75 @@ public class JavaClass {
 				continue;
 			}
 
-			if (returnStatement.contains("|\n") ||
-				returnStatement.contains("&\n")) {
+			if (returnType.equals("boolean")) {
+				if (returnStatement.contains("|\n") ||
+					returnStatement.contains("&\n")) {
 
-				_formatReturnStatement(javaTermContent, matcher1);
+					_formatReturnStatement(
+						javaTermContent, returnStatement, matcher1.group(1),
+						matcher1.group(2), "true", "false");
 
-				return;
+					return;
+				}
+
+				Matcher matcher2 = _returnPattern2.matcher(returnStatement);
+
+				if (matcher2.find() &&
+					!ToolsUtil.isInsideQuotes(
+						returnStatement, matcher2.start(1))) {
+
+					_formatReturnStatement(
+						javaTermContent, returnStatement, matcher1.group(1),
+						matcher1.group(2), "true", "false");
+
+					return;
+				}
 			}
 
-			Matcher matcher2 = _returnPattern2.matcher(returnStatement);
+			String match = matcher1.group(2);
 
-			if (matcher2.find() &&
-				!ToolsUtil.isInsideQuotes(returnStatement, matcher2.start(1))) {
+			int x = -1;
 
-				_formatReturnStatement(javaTermContent, matcher1);
+			while (true) {
+				x = match.indexOf(StringPool.QUESTION, x + 1);
 
-				return;
+				if (x == -1) {
+					continue outerLoop;
+				}
+
+				if (!ToolsUtil.isInsideQuotes(match, x) &&
+					_javaSourceProcessor.getLevel(
+						match.substring(0, x), "<", ">") == 0) {
+
+					break;
+				}
+			}
+
+			int y = x;
+
+			while (true) {
+				y = match.indexOf(StringPool.COLON, y + 1);
+
+				if (y == -1) {
+					continue outerLoop;
+				}
+
+				if (!ToolsUtil.isInsideQuotes(match, y)) {
+					break;
+				}
+			}
+
+			String falseValue = StringUtil.trim(match.substring(y + 1));
+			String ifCondition = StringUtil.trim(match.substring(0, x));
+			String trueValue = StringUtil.trim(match.substring(x + 1, y));
+
+			if ((_javaSourceProcessor.getLevel(falseValue) == 0) &&
+				(_javaSourceProcessor.getLevel(ifCondition) == 0) &&
+				(_javaSourceProcessor.getLevel(trueValue) == 0)) {
+
+				_formatReturnStatement(
+					javaTermContent, returnStatement, matcher1.group(1),
+					ifCondition, trueValue, falseValue);
 			}
 		}
 	}
@@ -1584,7 +1699,7 @@ public class JavaClass {
 	private final Pattern _classPattern = Pattern.compile(
 		"(private|protected|public) ((abstract|static) )*" +
 			"(class|enum|interface) ([\\s\\S]*?) \\{\n");
-	private int _constructorCount = 0;
+	private int _constructorCount;
 	private final String _content;
 	private final Pattern _enumTypePattern = Pattern.compile(
 		"\t[A-Z0-9]+[ _,;\\(\n]");
@@ -1601,9 +1716,11 @@ public class JavaClass {
 	private final String _name;
 	private final JavaClass _outerClass;
 	private String _packagePath;
-	private Pattern _returnPattern1 = Pattern.compile(
+	private final Pattern _returnPattern1 = Pattern.compile(
 		"\n(\t+)return (.*?);\n", Pattern.DOTALL);
-	private Pattern _returnPattern2 = Pattern.compile(
+	private final Pattern _returnPattern2 = Pattern.compile(
 		".* (==|!=|<|>|>=|<=)[ \n].*");
+	private final Pattern _variableNameStartingWithUpperCasePattern =
+		Pattern.compile("\t[\\w\\s<>,]+ ([A-Z]\\w+) =");
 
 }

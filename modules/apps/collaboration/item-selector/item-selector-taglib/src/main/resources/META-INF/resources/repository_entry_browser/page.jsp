@@ -467,6 +467,22 @@ if (Validator.isNotNull(keywords)) {
 	new Liferay.ItemSelectorRepositoryEntryBrowser(
 		{
 			closeCaption: '<%= UnicodeLanguageUtil.get(request, tabName) %>',
+
+			<c:if test="<%= uploadURL != null %>">
+
+				<%
+				String imageEditorPortletId = PortletProviderUtil.getPortletId(Image.class.getName(), PortletProvider.Action.EDIT);
+				%>
+
+				<c:if test="<%= Validator.isNotNull(imageEditorPortletId) %>">
+					<liferay-portlet:renderURL portletName="<%= imageEditorPortletId %>" var="viewImageEditorURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+						<liferay-portlet:param name="mvcRenderCommandName" value="/image_editor/view" />
+					</liferay-portlet:renderURL>
+
+					editItemURL: '<%= viewImageEditorURL.toString() %>',
+				</c:if>
+			</c:if>
+
 			maxFileSize: '<%= maxFileSize %>',
 			on: {
 				selectedItem: function(event) {
@@ -477,7 +493,7 @@ if (Validator.isNotNull(keywords)) {
 
 			<c:if test="<%= uploadURL != null %>">
 				, uploadItemReturnType: '<%= ClassUtil.getClassName(existingFileEntryReturnType) %>',
-				uploadItemUrl: '<%= uploadURL.toString() %>'
+				uploadItemURL: '<%= uploadURL.toString() %>'
 			</c:if>
 		}
 	);

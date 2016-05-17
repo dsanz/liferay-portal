@@ -29,15 +29,17 @@ import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.service.VirtualHostLocalServiceUtil;
-import com.liferay.portal.kernel.util.Base64;
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PrefsPropsUtil;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.util.Encryptor;
 
 import java.io.Serializable;
 
@@ -90,7 +92,7 @@ public class CompanyImpl extends CompanyBaseImpl {
 	@Override
 	public CompanySecurityBag getCompanySecurityBag() {
 		if (_companySecurityBag == null) {
-			_companySecurityBag = new CompanySecurityBag(getCompanyId());
+			_companySecurityBag = new CompanySecurityBag(this);
 		}
 
 		return _companySecurityBag;
@@ -136,7 +138,7 @@ public class CompanyImpl extends CompanyBaseImpl {
 			String key = getKey();
 
 			if (Validator.isNotNull(key)) {
-				_keyObj = (Key)Base64.stringToObjectSilent(key);
+				_keyObj = Encryptor.deserializeKey(key);
 			}
 		}
 
@@ -324,30 +326,32 @@ public class CompanyImpl extends CompanyBaseImpl {
 
 	public static class CompanySecurityBag implements Serializable {
 
-		private CompanySecurityBag(long companyId) {
+		private CompanySecurityBag(Company company) {
 			PortletPreferences preferences = PrefsPropsUtil.getPreferences(
-				companyId, true);
+				company.getCompanyId(), true);
 
-			_authType = PrefsPropsUtil.getString(
-				preferences, PropsKeys.COMPANY_SECURITY_AUTH_TYPE,
+			_authType = _getPrefsPropsString(
+				preferences, company, PropsKeys.COMPANY_SECURITY_AUTH_TYPE,
 				PropsValues.COMPANY_SECURITY_AUTH_TYPE);
-			_autoLogin = PrefsPropsUtil.getBoolean(
-				preferences, PropsKeys.COMPANY_SECURITY_AUTO_LOGIN,
+			_autoLogin = _getPrefsPropsBoolean(
+				preferences, company, PropsKeys.COMPANY_SECURITY_AUTO_LOGIN,
 				PropsValues.COMPANY_SECURITY_AUTO_LOGIN);
-			_sendPassword = PrefsPropsUtil.getBoolean(
-				preferences, PropsKeys.COMPANY_SECURITY_SEND_PASSWORD,
+			_sendPassword = _getPrefsPropsBoolean(
+				preferences, company, PropsKeys.COMPANY_SECURITY_SEND_PASSWORD,
 				PropsValues.COMPANY_SECURITY_SEND_PASSWORD);
-			_siteLogo = PrefsPropsUtil.getBoolean(
-				preferences, PropsKeys.COMPANY_SECURITY_SITE_LOGO,
+			_siteLogo = _getPrefsPropsBoolean(
+				preferences, company, PropsKeys.COMPANY_SECURITY_SITE_LOGO,
 				PropsValues.COMPANY_SECURITY_SITE_LOGO);
-			_strangers = PrefsPropsUtil.getBoolean(
-				preferences, PropsKeys.COMPANY_SECURITY_STRANGERS,
+			_strangers = _getPrefsPropsBoolean(
+				preferences, company, PropsKeys.COMPANY_SECURITY_STRANGERS,
 				PropsValues.COMPANY_SECURITY_STRANGERS);
-			_strangersVerify = PrefsPropsUtil.getBoolean(
-				preferences, PropsKeys.COMPANY_SECURITY_STRANGERS_VERIFY,
+			_strangersVerify = _getPrefsPropsBoolean(
+				preferences, company,
+				PropsKeys.COMPANY_SECURITY_STRANGERS_VERIFY,
 				PropsValues.COMPANY_SECURITY_STRANGERS_VERIFY);
-			_strangersWithMx = PrefsPropsUtil.getBoolean(
-				preferences, PropsKeys.COMPANY_SECURITY_STRANGERS_WITH_MX,
+			_strangersWithMx = _getPrefsPropsBoolean(
+				preferences, company,
+				PropsKeys.COMPANY_SECURITY_STRANGERS_WITH_MX,
 				PropsValues.COMPANY_SECURITY_STRANGERS_WITH_MX);
 		}
 
@@ -359,6 +363,34 @@ public class CompanyImpl extends CompanyBaseImpl {
 		private final boolean _strangersVerify;
 		private final boolean _strangersWithMx;
 
+	}
+
+	private static boolean _getPrefsPropsBoolean(
+		PortletPreferences portletPreferences, Company company, String name,
+		boolean defaultValue) {
+
+		String value = portletPreferences.getValue(
+			name, PropsUtil.get(company, name));
+
+		if (value != null) {
+			return GetterUtil.getBoolean(value);
+		}
+
+		return defaultValue;
+	}
+
+	private static String _getPrefsPropsString(
+		PortletPreferences portletPreferences, Company company, String name,
+		String defaultValue) {
+
+		String value = portletPreferences.getValue(
+			name, PropsUtil.get(company, name));
+
+		if (value != null) {
+			return value;
+		}
+
+		return defaultValue;
 	}
 
 	@CacheField

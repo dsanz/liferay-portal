@@ -55,7 +55,7 @@ import org.xml.sax.InputSource;
 /**
  * @author Brian Wing Shun Chan
  * @author Tomas Polesovsky
- * @see com.liferay.petra.log4j.util.Log4JUtil
+ * @see com.liferay.petra.log4j.Log4JUtil
  */
 public class Log4JUtil {
 
@@ -184,10 +184,8 @@ public class Log4JUtil {
 			_logger.error(e, e);
 		}
 
-		for (String name : customLogSettings.keySet()) {
-			String priority = customLogSettings.get(name);
-
-			setLevel(name, priority, false);
+		for (Map.Entry<String, String> entry : customLogSettings.entrySet()) {
+			setLevel(entry.getKey(), entry.getValue(), false);
 		}
 	}
 

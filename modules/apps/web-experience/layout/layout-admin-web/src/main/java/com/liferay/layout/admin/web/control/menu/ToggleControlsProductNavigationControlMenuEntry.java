@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.SessionClicks;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.product.navigation.control.menu.BaseProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.ProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.constants.ProductNavigationControlMenuCategoryKeys;
@@ -61,7 +62,7 @@ public class ToggleControlsProductNavigationControlMenuEntry
 	}
 
 	@Override
-	public String getIconCssClass(HttpServletRequest request) {
+	public String getIcon(HttpServletRequest request) {
 		String stateCss = null;
 
 		String toggleControls = GetterUtil.getString(
@@ -110,7 +111,9 @@ public class ToggleControlsProductNavigationControlMenuEntry
 
 		Group group = layout.getGroup();
 
-		if (group.hasStagingGroup() && !group.isStagingGroup()) {
+		if (group.hasStagingGroup() && !group.isStagingGroup() &&
+			PropsValues.STAGING_LIVE_GROUP_LOCKING_ENABLED) {
+
 			return false;
 		}
 

@@ -156,7 +156,7 @@ public class ReleaseInfo {
 
 	private static final String _DATE = "April 29, 2016";
 
-	private static final String _NAME = "Liferay Portal Community Edition";
+	private static final String _NAME = "Liferay Community Edition Portal";
 
 	private static final int _PARENT_BUILD_NUMBER = _BUILD_NUMBER;
 
@@ -170,7 +170,7 @@ public class ReleaseInfo {
 
 	private static final String _VERSION = "7.0.1";
 
-	private static final String _VERSION_DISPLAY_NAME = "7.0.1 CE GA2";
+	private static final String _VERSION_DISPLAY_NAME = "7.0.1 GA2";
 
 	private static String _releaseInfo;
 	private static String _serverInfo;

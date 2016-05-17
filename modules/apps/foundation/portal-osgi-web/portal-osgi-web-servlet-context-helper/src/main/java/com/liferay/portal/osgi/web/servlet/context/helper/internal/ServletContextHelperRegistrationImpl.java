@@ -111,7 +111,8 @@ public class ServletContextHelperRegistrationImpl
 		_bundleContext = _bundle.getBundleContext();
 
 		_customServletContextHelper = new CustomServletContextHelper(
-			_bundle, _wabShapedBundle);
+			_bundle, _wabShapedBundle,
+			_webXMLDefinition.getWebResourceCollectionDefinitions());
 
 		_servletContextHelperServiceRegistration = createServletContextHelper(
 			contextPath);
@@ -213,7 +214,9 @@ public class ServletContextHelperRegistrationImpl
 	protected ServiceRegistration<Servlet> createJspServlet() {
 		Dictionary<String, Object> properties = new HashMapDictionary<>();
 
-		for (String key : _properties.keySet()) {
+		for (Map.Entry<String, Object> entry : _properties.entrySet()) {
+			String key = entry.getKey();
+
 			if (!key.startsWith(_JSP_SERVLET_INIT_PARAM_PREFIX)) {
 				continue;
 			}
@@ -222,14 +225,15 @@ public class ServletContextHelperRegistrationImpl
 				_SERVLET_INIT_PARAM_PREFIX +
 					key.substring(_JSP_SERVLET_INIT_PARAM_PREFIX.length());
 
-			properties.put(name, _properties.get(key));
+			properties.put(name, entry.getValue());
 		}
 
 		properties.put(
 			HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT,
 			createContextSelectFilterString());
 		properties.put(
-			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME, "jsp");
+			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME,
+			JspServletWrapper.class.getName());
 		properties.put(
 			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN,
 			new String[] {"*.jsp", "*.jspx"});
@@ -250,7 +254,7 @@ public class ServletContextHelperRegistrationImpl
 			createContextSelectFilterString());
 		properties.put(
 			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_NAME,
-			"Portlet Servlet");
+			PortletServletWrapper.class.getName());
 		properties.put(
 			HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN,
 			"/portlet-servlet/*");

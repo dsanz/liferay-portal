@@ -19,6 +19,8 @@
 <%
 long repositoryId = GetterUtil.getLong((String)request.getAttribute("view.jsp-repositoryId"), ParamUtil.getLong(request, "repositoryId"));
 
+request.setAttribute("view.jsp-repositoryId", String.valueOf(repositoryId));
+
 List<Folder> folders = (List<Folder>)request.getAttribute(WebKeys.DOCUMENT_LIBRARY_FOLDERS);
 List<FileEntry> fileEntries = (List<FileEntry>)request.getAttribute(WebKeys.DOCUMENT_LIBRARY_FILE_ENTRIES);
 List<FileShortcut> fileShortcuts = (List<FileShortcut>)request.getAttribute(WebKeys.DOCUMENT_LIBRARY_FILE_SHORTCUTS);
@@ -127,7 +129,7 @@ if (ListUtil.isEmpty(folders) && ListUtil.isEmpty(fileEntries) && ListUtil.isEmp
 				</li>
 			</ul>
 
-			<h4><%= fileEntry.getTitle() %></h4>
+			<h4><%= HtmlUtil.escape(fileEntry.getTitle()) %></h4>
 
 			<h5 class="text-default">
 				<span>
@@ -194,7 +196,7 @@ if (ListUtil.isEmpty(folders) && ListUtil.isEmpty(fileEntries) && ListUtil.isEmp
 							</dt>
 
 							<dd>
-								<%= fileEntry.getDescription() %>
+								<%= HtmlUtil.escape(fileEntry.getDescription()) %>
 							</dd>
 						</c:if>
 

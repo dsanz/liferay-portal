@@ -25,7 +25,7 @@ import java.io.IOException;
 
 /**
  * @author Leonardo Barros
- * @see com.liferay.petra.xml.util.XMLUtil
+ * @see com.liferay.petra.xml.XMLUtil
  */
 public class XMLUtil {
 

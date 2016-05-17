@@ -22,8 +22,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
-		<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_LAST_NAME" value1="${userLastName}" />
+		<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_NAME" value1="${userName}" />
 		<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 	</command>
 
@@ -128,8 +127,6 @@
 		<execute function="Type" locator1="UsersAndOrganizationsEditUser#DETAILS_LAST_NAME_FIELD" value1="${userLastName}" />
 
 		<execute function="AssertClick" locator1="Button#SUBMIT" value1="Save" />
-
-		<execute macro="Alert#viewSuccessMessage" />
 
 		<if>
 			<equals arg1="${userEmailAddressVariation}" arg2="Invalid" />
@@ -451,8 +448,7 @@
 
 				<var name="key_userScreenName" value="${userScreenName}" />
 
-				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
-				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_LAST_NAME" value1="${userLastName}" />
+				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_NAME" value1="${userName}" />
 				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 
 				<execute function="Type" locator1="AdvancedSearch#FIRST_NAME_FIELD" value1="${userFirstName}1" />
@@ -470,8 +466,7 @@
 
 					<var name="key_userScreenName" value="${userScreenName}" />
 
-					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
-					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_LAST_NAME" value1="${userLastName}" />
+					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_NAME" value1="${userName}" />
 					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 
 					<execute function="Type" locator1="AdvancedSearch#MIDDLE_NAME_FIELD" value1="${userMiddleName}1" />
@@ -490,8 +485,7 @@
 
 					<var name="key_userScreenName" value="${userScreenName}" />
 
-					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
-					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_LAST_NAME" value1="${userLastName}" />
+					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_NAME" value1="${userName}" />
 					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 
 					<execute function="Type" locator1="AdvancedSearch#LAST_NAME_FIELD" value1="${userLastName}1" />
@@ -510,8 +504,7 @@
 
 					<var name="key_userScreenName" value="${userScreenName}" />
 
-					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
-					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_LAST_NAME" value1="${userLastName}" />
+					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_NAME" value1="${userName}" />
 					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 
 					<execute function="Type" locator1="AdvancedSearch#SCREEN_NAME_FIELD" value1="${userScreenName}1" />
@@ -530,8 +523,7 @@
 
 					<var name="key_userScreenName" value="${userScreenName}" />
 
-					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
-					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_LAST_NAME" value1="${userLastName}" />
+					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_NAME" value1="${userName}" />
 					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 
 					<execute function="Type" locator1="AdvancedSearch#EMAIL_ADDRESS_FIELD" value1="${userEmailAddress}1" />
@@ -887,7 +879,7 @@
 	<command name="attemptImpersonateCP">
 		<execute function="Type" locator1="NavBar#BASIC_SEARCH_FIELD" value1="${userScreenName}" />
 
-		<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+		<execute function="Click" locator1="Button#SUBMIT" />
 
 		<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -915,8 +907,7 @@
 
 				<var name="key_userScreenName" value="${userScreenName}" />
 
-				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
-				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_LAST_NAME" value1="${userLastName}" />
+				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_NAME" value1="${userName}" />
 				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 
 				<execute function="Type" locator1="TextInput#SEARCH" value1="user1*" />
@@ -936,8 +927,7 @@
 
 					<var name="key_userScreenName" value="${userScreenName}" />
 
-					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
-					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_LAST_NAME" value1="${userLastName}" />
+					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_NAME" value1="${userName}" />
 					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 
 					<var name="fullName"><![CDATA["${userFirstName} 1 ${userLastName}"]]></var>
@@ -960,8 +950,7 @@
 
 					<var name="key_userScreenName" value="${userScreenName}" />
 
-					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
-					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_LAST_NAME" value1="${userLastName}" />
+					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_NAME" value1="${userName}" />
 					<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 				</then>
 			</elseif>
@@ -969,11 +958,13 @@
 	</command>
 
 	<command name="changePasswordCP">
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Password" />
+		</execute>
+
 		<if>
 			<equals arg1="${userPassword}" arg2="Invalid" />
 			<then>
-				<execute function="AssertClick" locator1="NavListItem#PASSWORD" value1="Password" />
-
 				<execute function="Type" locator1="TextInput#CURRENT_PASSWORD" value1="" />
 				<execute function="Type" locator1="TextInput#NEW_PASSWORD" value1="test1" />
 				<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="test1" />
@@ -1004,8 +995,6 @@
 				</execute>
 			</then>
 			<else>
-				<execute function="AssertClick" locator1="NavListItem#PASSWORD" value1="Password" />
-
 				<execute function="Type" locator1="TextInput#CURRENT_PASSWORD" value1="test" />
 				<execute function="Type" locator1="TextInput#NEW_PASSWORD" value1="test1" />
 				<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="test1" />
@@ -1100,7 +1089,7 @@
 			</elseif>
 		</if>
 
-		<execute function="AssertTextEquals" locator1="Card#GENERIC_HORIZONTAL_DETAILS" value1="No users were found." />
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 	</command>
 
 	<command name="deleteCP">
@@ -1227,9 +1216,11 @@
 
 		<execute function="Type" locator1="TextInput#EMAIL_ADDRESS" value1="${userEmailAddress}" />
 
-		<execute macro="PortletEntry#save" />
+		<execute macro="Button#clickSave" />
 
 		<execute function="AssertTextEquals" locator1="Message#SUCCESS_1" value1="Your email verification code has been sent and the new email address will be applied to your account once it is verified." />
+
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="editPasswordCP">
@@ -1403,13 +1394,13 @@
 	</command>
 
 	<command name="editUserGenderCP">
-		<var name="key_userScreenName" value="${userScreenName}" />
+		<var name="key_rowEntry" value="${userFirstName}" />
 
 		<execute function="Pause" locator1="1000" />
 
-		<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
+		<execute function="AssertTextEquals" locator1="ContentRow#ENTRY_CONTENT_ENTRY_NAME_LINK" value1="${userFirstName}" />
 
-		<execute function="AssertClick" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
+		<execute function="AssertClick" locator1="ContentRow#ENTRY_CONTENT_ENTRY_NAME_LINK" value1="${userFirstName}" />
 
 		<execute function="Select" locator1="UsersAndOrganizationsEditUser#DETAILS_GENDER_SELECT" value1="${userGender}" />
 
@@ -1752,6 +1743,8 @@
 	<command name="logoutAndLoginPG">
 		<execute macro="Navigator#openURL" />
 
+		<execute macro="ProductMenuHelper#expandPanelUser" />
+
 		<if>
 			<condition function="IsTextNotEqual" locator1="ControlMenu#USER_NAME" value1="${userLoginFullName}" />
 			<then>
@@ -1963,11 +1956,10 @@
 
 				<execute function="Pause" locator1="1000" />
 
-				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
-				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_LAST_NAME" value1="${userLastName}" />
+				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_NAME" value1="${userFirstName} ${userLastName}" />
 				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 
-				<execute function="AssertClick" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
+				<execute function="AssertClick" locator1="UsersAndOrganizations#USER_TABLE_NAME" value1="${userFirstName} ${userLastName}" />
 
 				<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditUser#DETAILS_SCREEN_NAME_FIELD" value1="${userScreenName}" />
 				<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditUser#DETAILS_EMAIL_ADDRESS_FIELD" value1="${userEmailAddress}" />
@@ -2014,7 +2006,7 @@
 	</command>
 
 	<command name="viewNoUsersFoundCP">
-		<execute function="AssertTextEquals" locator1="Card#GENERIC_HORIZONTAL_DETAILS" value1="No users were found." />
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 	</command>
 
 	<command name="viewUserInfomationOrganizationSitesCP">

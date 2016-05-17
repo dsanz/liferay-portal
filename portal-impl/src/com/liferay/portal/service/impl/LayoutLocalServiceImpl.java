@@ -17,6 +17,9 @@ package com.liferay.portal.service.impl;
 import com.liferay.exportimport.kernel.lar.MissingReferences;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.portal.kernel.bean.BeanReference;
+import com.liferay.portal.kernel.dao.orm.DynamicQuery;
+import com.liferay.portal.kernel.dao.orm.Property;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -1331,6 +1334,28 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 	}
 
 	@Override
+	public int getLayoutsCount(
+		Group group, boolean privateLayout, long[] layoutIds) {
+
+		DynamicQuery dynamicQuery = dynamicQuery();
+
+		Property groupIdProperty = PropertyFactoryUtil.forName("groupId");
+
+		dynamicQuery.add(groupIdProperty.eq(group.getGroupId()));
+
+		Property privateLayoutProperty = PropertyFactoryUtil.forName(
+			"privateLayout");
+
+		dynamicQuery.add(privateLayoutProperty.eq(privateLayout));
+
+		Property layoutIdProperty = PropertyFactoryUtil.forName("layoutId");
+
+		dynamicQuery.add(layoutIdProperty.in(layoutIds));
+
+		return GetterUtil.getInteger(dynamicQueryCount(dynamicQuery));
+	}
+
+	@Override
 	public int getLayoutsCount(User user, boolean privateLayout)
 		throws PortalException {
 
@@ -2131,7 +2156,7 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 			userId, layout.getGroupId(), layout.getCreateDate(),
 			layout.getModifiedDate(), Layout.class.getName(), layout.getPlid(),
 			layout.getUuid(), 0, assetCategoryIds, assetTagNames, true, false,
-			null, null, null, ContentTypes.TEXT_HTML,
+			null, null, null, null, ContentTypes.TEXT_HTML,
 			layout.getName(LocaleUtil.getDefault()), null, null, null, null, 0,
 			0, null);
 	}

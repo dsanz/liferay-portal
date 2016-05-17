@@ -47,7 +47,7 @@ import com.liferay.exportimport.lar.PermissionExporter;
 import com.liferay.exportimport.portlet.preferences.processor.Capability;
 import com.liferay.exportimport.portlet.preferences.processor.ExportImportPortletPreferencesProcessor;
 import com.liferay.exportimport.portlet.preferences.processor.ExportImportPortletPreferencesProcessorRegistryUtil;
-import com.liferay.petra.xml.util.DocUtil;
+import com.liferay.petra.xml.DocUtil;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskThreadLocal;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.NoSuchPortletPreferencesException;

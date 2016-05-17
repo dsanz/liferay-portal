@@ -300,6 +300,9 @@ public class JavaTerm {
 
 			linePart = StringUtil.removeChar(linePart, CharPool.TAB);
 			linePart = StringUtil.replace(
+				linePart, StringPool.PERIOD + StringPool.NEW_LINE,
+				StringPool.PERIOD);
+			linePart = StringUtil.replace(
 				linePart, CharPool.NEW_LINE, StringPool.SPACE);
 
 			int z = linePart.lastIndexOf(CharPool.SPACE);
@@ -340,6 +343,9 @@ public class JavaTerm {
 		}
 
 		parameters = StringUtil.removeChar(parameters, CharPool.TAB);
+		parameters = StringUtil.replace(
+			parameters, StringPool.PERIOD + StringPool.NEW_LINE,
+			StringPool.PERIOD);
 		parameters = StringUtil.replace(
 			parameters, CharPool.NEW_LINE, StringPool.SPACE);
 
@@ -404,12 +410,12 @@ public class JavaTerm {
 		}
 	}
 
-	private String _content;
-	private String _indent;
-	private JavaSourceProcessor _javaSourceProcessor =
+	private final String _content;
+	private final String _indent;
+	private final JavaSourceProcessor _javaSourceProcessor =
 		new JavaSourceProcessor();
-	private int _lineCount;
-	private String _name;
+	private final int _lineCount;
+	private final String _name;
 	private List<String> _parameterNames;
 	private List<String> _parameterTypes;
 	private String _returnType;

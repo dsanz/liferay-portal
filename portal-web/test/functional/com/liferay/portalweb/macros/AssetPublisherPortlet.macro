@@ -619,7 +619,7 @@
 
 		<execute function="AssertClick" locator1="AP#ASSET_ABSTRACT_TITLE" value1="${assetTitle}" />
 
-		<execute function="AssertTextEquals" locator1="AP#ASSET_ABSTRACT_DETAIL_TITLE" value1="${assetTitle}" />
+		<execute function="AssertTextEquals" locator1="APAsset#ASSET_TITLE_HEADER" value1="${assetTitle}" />
 		<execute function="AssertTextEquals#assertPartialText" locator1="AP#ASSET_ABSTRACT_DETAIL_CONTENT" value1="${assetContent}" />
 	</command>
 
@@ -980,7 +980,10 @@
 
 		<execute function="AssertTextEquals" locator1="AP#ASSET_ABSTRACT_TITLE" value1="${entryTitle}" />
 		<execute function="AssertTextEquals#assertPartialText" locator1="AP#ASSET_ABSTRACT_DESCRIPTION" value1="${entryContent}" />
-		<execute function="AssertElementNotPresent" locator1="AP#ASSET_ABSTRACT_EDIT" />
+
+		<execute function="Click" locator1="AP#ASSET_ABSTRACT_EDIT" />
+
+		<execute function="AssertElementNotPresent" locator1="AP#ASSET_EDIT" />
 	</command>
 
 	<command name="viewOrderedFieldPG">
