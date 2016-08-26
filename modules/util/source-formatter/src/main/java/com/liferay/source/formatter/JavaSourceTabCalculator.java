@@ -238,7 +238,7 @@ public class JavaSourceTabCalculator {
 
 				while (true) {
 					Tuple tuple2 = getFirstOccurenceTuple(
-						s, new String[] {"\tnew ", " new "}, y + 1);
+						s, new String[] {"\tnew ", " new ", " ->"}, y + 1);
 
 					y = (Integer)tuple2.getObject(1);
 
@@ -369,10 +369,8 @@ public class JavaSourceTabCalculator {
 		}
 		else {
 			if (_printIncorrectTabMessage) {
-				sourceProcessor.processErrorMessage(
-					fileName,
-					"Incorrect tab or line break: " + fileName + " " +
-						lineCount);
+				sourceProcessor.processMessage(
+					fileName, "Incorrect tab or line break", lineCount);
 			}
 
 			_printIncorrectTabMessage = false;

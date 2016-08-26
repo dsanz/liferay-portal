@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.cache.CacheField;
 import com.liferay.portal.kernel.plugin.Version;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ArrayUtil_IW;
 import com.liferay.portal.kernel.util.CharPool;
@@ -263,47 +264,47 @@ public class ServiceBuilder {
 				"\n" +
 				"You can also customize the generated code by overriding the default templates with these optional system properties:\n" +
 				"\n" +
-				"\t-Dservice.tpl.bad_alias_names=" + _TPL_ROOT + "bad_alias_names.txt\n"+
-				"\t-Dservice.tpl.bad_column_names=" + _TPL_ROOT + "bad_column_names.txt\n"+
-				"\t-Dservice.tpl.bad_json_types=" + _TPL_ROOT + "bad_json_types.txt\n"+
-				"\t-Dservice.tpl.bad_table_names=" + _TPL_ROOT + "bad_table_names.txt\n"+
-				"\t-Dservice.tpl.base_mode_impl=" + _TPL_ROOT + "base_mode_impl.ftl\n"+
-				"\t-Dservice.tpl.blob_model=" + _TPL_ROOT + "blob_model.ftl\n"+
-				"\t-Dservice.tpl.copyright.txt=copyright.txt\n"+
-				"\t-Dservice.tpl.ejb_pk=" + _TPL_ROOT + "ejb_pk.ftl\n"+
-				"\t-Dservice.tpl.exception=" + _TPL_ROOT + "exception.ftl\n"+
-				"\t-Dservice.tpl.extended_model=" + _TPL_ROOT + "extended_model.ftl\n"+
-				"\t-Dservice.tpl.extended_model_base_impl=" + _TPL_ROOT + "extended_model_base_impl.ftl\n"+
-				"\t-Dservice.tpl.extended_model_impl=" + _TPL_ROOT + "extended_model_impl.ftl\n"+
-				"\t-Dservice.tpl.finder=" + _TPL_ROOT + "finder.ftl\n"+
-				"\t-Dservice.tpl.finder_base_impl=" + _TPL_ROOT + "finder_base_impl.ftl\n"+
-				"\t-Dservice.tpl.finder_util=" + _TPL_ROOT + "finder_util.ftl\n"+
-				"\t-Dservice.tpl.hbm_xml=" + _TPL_ROOT + "hbm_xml.ftl\n"+
-				"\t-Dservice.tpl.json_js=" + _TPL_ROOT + "json_js.ftl\n"+
-				"\t-Dservice.tpl.json_js_method=" + _TPL_ROOT + "json_js_method.ftl\n"+
-				"\t-Dservice.tpl.model=" + _TPL_ROOT + "model.ftl\n"+
-				"\t-Dservice.tpl.model_cache=" + _TPL_ROOT + "model_cache.ftl\n"+
-				"\t-Dservice.tpl.model_hints_xml=" + _TPL_ROOT + "model_hints_xml.ftl\n"+
-				"\t-Dservice.tpl.model_impl=" + _TPL_ROOT + "model_impl.ftl\n"+
-				"\t-Dservice.tpl.model_soap=" + _TPL_ROOT + "model_soap.ftl\n"+
-				"\t-Dservice.tpl.model_wrapper=" + _TPL_ROOT + "model_wrapper.ftl\n"+
-				"\t-Dservice.tpl.persistence=" + _TPL_ROOT + "persistence.ftl\n"+
-				"\t-Dservice.tpl.persistence_impl=" + _TPL_ROOT + "persistence_impl.ftl\n"+
-				"\t-Dservice.tpl.persistence_util=" + _TPL_ROOT + "persistence_util.ftl\n"+
-				"\t-Dservice.tpl.props=" + _TPL_ROOT + "props.ftl\n"+
-				"\t-Dservice.tpl.service=" + _TPL_ROOT + "service.ftl\n"+
-				"\t-Dservice.tpl.service_base_impl=" + _TPL_ROOT + "service_base_impl.ftl\n"+
-				"\t-Dservice.tpl.service_clp=" + _TPL_ROOT + "service_clp.ftl\n"+
-				"\t-Dservice.tpl.service_clp_invoker=" + _TPL_ROOT + "service_clp_invoker.ftl\n"+
-				"\t-Dservice.tpl.service_clp_message_listener=" + _TPL_ROOT + "service_clp_message_listener.ftl\n"+
-				"\t-Dservice.tpl.service_clp_serializer=" + _TPL_ROOT + "service_clp_serializer.ftl\n"+
-				"\t-Dservice.tpl.service_http=" + _TPL_ROOT + "service_http.ftl\n"+
-				"\t-Dservice.tpl.service_impl=" + _TPL_ROOT + "service_impl.ftl\n"+
-				"\t-Dservice.tpl.service_props_util=" + _TPL_ROOT + "service_props_util.ftl\n"+
-				"\t-Dservice.tpl.service_soap=" + _TPL_ROOT + "service_soap.ftl\n"+
-				"\t-Dservice.tpl.service_util=" + _TPL_ROOT + "service_util.ftl\n"+
-				"\t-Dservice.tpl.service_wrapper=" + _TPL_ROOT + "service_wrapper.ftl\n"+
-				"\t-Dservice.tpl.spring_xml=" + _TPL_ROOT + "spring_xml.ftl\n"+
+				"\t-Dservice.tpl.bad_alias_names=" + _TPL_ROOT + "bad_alias_names.txt\n" +
+				"\t-Dservice.tpl.bad_column_names=" + _TPL_ROOT + "bad_column_names.txt\n" +
+				"\t-Dservice.tpl.bad_json_types=" + _TPL_ROOT + "bad_json_types.txt\n" +
+				"\t-Dservice.tpl.bad_table_names=" + _TPL_ROOT + "bad_table_names.txt\n" +
+				"\t-Dservice.tpl.base_mode_impl=" + _TPL_ROOT + "base_mode_impl.ftl\n" +
+				"\t-Dservice.tpl.blob_model=" + _TPL_ROOT + "blob_model.ftl\n" +
+				"\t-Dservice.tpl.copyright.txt=copyright.txt\n" +
+				"\t-Dservice.tpl.ejb_pk=" + _TPL_ROOT + "ejb_pk.ftl\n" +
+				"\t-Dservice.tpl.exception=" + _TPL_ROOT + "exception.ftl\n" +
+				"\t-Dservice.tpl.extended_model=" + _TPL_ROOT + "extended_model.ftl\n" +
+				"\t-Dservice.tpl.extended_model_base_impl=" + _TPL_ROOT + "extended_model_base_impl.ftl\n" +
+				"\t-Dservice.tpl.extended_model_impl=" + _TPL_ROOT + "extended_model_impl.ftl\n" +
+				"\t-Dservice.tpl.finder=" + _TPL_ROOT + "finder.ftl\n" +
+				"\t-Dservice.tpl.finder_base_impl=" + _TPL_ROOT + "finder_base_impl.ftl\n" +
+				"\t-Dservice.tpl.finder_util=" + _TPL_ROOT + "finder_util.ftl\n" +
+				"\t-Dservice.tpl.hbm_xml=" + _TPL_ROOT + "hbm_xml.ftl\n" +
+				"\t-Dservice.tpl.json_js=" + _TPL_ROOT + "json_js.ftl\n" +
+				"\t-Dservice.tpl.json_js_method=" + _TPL_ROOT + "json_js_method.ftl\n" +
+				"\t-Dservice.tpl.model=" + _TPL_ROOT + "model.ftl\n" +
+				"\t-Dservice.tpl.model_cache=" + _TPL_ROOT + "model_cache.ftl\n" +
+				"\t-Dservice.tpl.model_hints_xml=" + _TPL_ROOT + "model_hints_xml.ftl\n" +
+				"\t-Dservice.tpl.model_impl=" + _TPL_ROOT + "model_impl.ftl\n" +
+				"\t-Dservice.tpl.model_soap=" + _TPL_ROOT + "model_soap.ftl\n" +
+				"\t-Dservice.tpl.model_wrapper=" + _TPL_ROOT + "model_wrapper.ftl\n" +
+				"\t-Dservice.tpl.persistence=" + _TPL_ROOT + "persistence.ftl\n" +
+				"\t-Dservice.tpl.persistence_impl=" + _TPL_ROOT + "persistence_impl.ftl\n" +
+				"\t-Dservice.tpl.persistence_util=" + _TPL_ROOT + "persistence_util.ftl\n" +
+				"\t-Dservice.tpl.props=" + _TPL_ROOT + "props.ftl\n" +
+				"\t-Dservice.tpl.service=" + _TPL_ROOT + "service.ftl\n" +
+				"\t-Dservice.tpl.service_base_impl=" + _TPL_ROOT + "service_base_impl.ftl\n" +
+				"\t-Dservice.tpl.service_clp=" + _TPL_ROOT + "service_clp.ftl\n" +
+				"\t-Dservice.tpl.service_clp_invoker=" + _TPL_ROOT + "service_clp_invoker.ftl\n" +
+				"\t-Dservice.tpl.service_clp_message_listener=" + _TPL_ROOT + "service_clp_message_listener.ftl\n" +
+				"\t-Dservice.tpl.service_clp_serializer=" + _TPL_ROOT + "service_clp_serializer.ftl\n" +
+				"\t-Dservice.tpl.service_http=" + _TPL_ROOT + "service_http.ftl\n" +
+				"\t-Dservice.tpl.service_impl=" + _TPL_ROOT + "service_impl.ftl\n" +
+				"\t-Dservice.tpl.service_props_util=" + _TPL_ROOT + "service_props_util.ftl\n" +
+				"\t-Dservice.tpl.service_soap=" + _TPL_ROOT + "service_soap.ftl\n" +
+				"\t-Dservice.tpl.service_util=" + _TPL_ROOT + "service_util.ftl\n" +
+				"\t-Dservice.tpl.service_wrapper=" + _TPL_ROOT + "service_wrapper.ftl\n" +
+				"\t-Dservice.tpl.spring_xml=" + _TPL_ROOT + "spring_xml.ftl\n" +
 				"\t-Dservice.tpl.spring_xml_session=" + _TPL_ROOT + "spring_xml_session.ftl";
 
 			if (t instanceof ServiceBuilderException) {
@@ -1645,6 +1646,20 @@ public class ServiceBuilder {
 	public boolean isReadOnlyMethod(
 		JavaMethod method, List<String> txRequiredList, String[] prefixes) {
 
+		Annotation[] annotations = method.getAnnotations();
+
+		if (annotations != null) {
+			for (Annotation annotation : annotations) {
+				Type type = annotation.getType();
+
+				String className = type.getFullyQualifiedName();
+
+				if (className.equals(Transactional.class.getName())) {
+					return false;
+				}
+			}
+		}
+
 		String methodName = method.getName();
 
 		if (isTxRequiredMethod(method, txRequiredList)) {
@@ -1756,13 +1771,15 @@ public class ServiceBuilder {
 	private static void _move(File sourceFile, File destinationFile)
 		throws IOException {
 
-		Path destinationPath = destinationFile.toPath();
+		File parentFile = destinationFile.getParentFile();
 
-		if (!Files.exists(destinationPath)) {
-			Files.createDirectories(destinationPath);
+		Path parentPath = parentFile.toPath();
+
+		if (!Files.exists(parentPath)) {
+			Files.createDirectories(parentPath);
 		}
 
-		Files.move(sourceFile.toPath(), destinationPath);
+		Files.move(sourceFile.toPath(), destinationFile.toPath());
 	}
 
 	private static String _normalize(String fileName) {
@@ -2286,7 +2303,7 @@ public class ServiceBuilder {
 				"<?xml version=\"1.0\"?>\n" +
 				"<!DOCTYPE hibernate-mapping PUBLIC \"-//Hibernate/Hibernate Mapping DTD 3.0//EN\" \"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n" +
 				"\n" +
-				"<hibernate-mapping default-lazy=\"false\" auto-import=\"false\">\n" +
+				"<hibernate-mapping auto-import=\"false\" default-lazy=\"false\">\n" +
 				"</hibernate-mapping>";
 
 			_write(xmlFile, xml);

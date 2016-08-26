@@ -38,7 +38,7 @@ if (!resultRowSplitterEntries.isEmpty()) {
 %>
 
 <div class="table-responsive">
-	<table class="table table-list">
+	<table class="table table-autofit table-heading-nowrap table-list">
 		<c:if test="<%= ListUtil.isNotNull(headerNames) %>">
 			<thead>
 				<tr>
@@ -53,6 +53,8 @@ if (!resultRowSplitterEntries.isEmpty()) {
 					}
 
 					for (int i = 0; i < headerNames.size(); i++) {
+						String cssClass = StringPool.BLANK;
+
 						String headerName = headerNames.get(i);
 
 						String normalizedHeaderName = null;
@@ -61,11 +63,14 @@ if (!resultRowSplitterEntries.isEmpty()) {
 							normalizedHeaderName = normalizedHeaderNames.get(i);
 						}
 
-						if (Validator.isNull(normalizedHeaderName)) {
-							normalizedHeaderName = String.valueOf(i +1);
+						if (Validator.isNotNull(normalizedHeaderName)) {
+							cssClass = (normalizedHeaderName.equals("rowChecker")) ? "lfr-checkbox-column" : "lfr-" + normalizedHeaderName + "-column";
 						}
+						else {
+							normalizedHeaderName = String.valueOf(i +1);
 
-						String cssClass = StringPool.BLANK;
+							cssClass = "lfr-entry-action-column";
+						}
 
 						boolean truncate = false;
 
@@ -75,11 +80,13 @@ if (!resultRowSplitterEntries.isEmpty()) {
 									com.liferay.portal.kernel.dao.search.SearchEntry entry = (com.liferay.portal.kernel.dao.search.SearchEntry)entries.get(i - 1);
 
 									if (entry != null) {
+										cssClass += " " + entry.getCssClass();
+
 										if (entry.isTruncate()) {
 											truncate = true;
-										}
 
-										cssClass = entry.getCssClass();
+											cssClass += " table-cell-content";
+										}
 
 										if (!Validator.isBlank(entry.getAlign())) {
 											cssClass += " text-" + entry.getAlign();
@@ -95,17 +102,19 @@ if (!resultRowSplitterEntries.isEmpty()) {
 								com.liferay.portal.kernel.dao.search.SearchEntry entry = (com.liferay.portal.kernel.dao.search.SearchEntry)entries.get(i);
 
 								if (entry != null) {
+									cssClass += " " + entry.getCssClass();
+
 									if (entry.isTruncate()) {
 										truncate = true;
-									}
 
-									cssClass = entry.getCssClass();
+										cssClass += " table-cell-content";
+									}
 								}
 							}
 						}
 					%>
 
-						<th class="<%= cssClass %> <%= truncate ? "clamp-horizontal table-cell-content" : "table-cell-field" %>" id="<%= namespace + id %>_col-<%= normalizedHeaderName %>">
+						<th class="<%= cssClass %>" id="<%= namespace + id %>_col-<%= normalizedHeaderName %>">
 
 							<%
 							String headerNameValue = null;
@@ -124,11 +133,9 @@ if (!resultRowSplitterEntries.isEmpty()) {
 
 							<c:choose>
 								<c:when test="<%= truncate %>">
-									<div class="clamp-container">
-										<span class="truncate-text">
-											<%= headerNameValue %>
-										</span>
-									</div>
+									<span class="truncate-text">
+										<%= headerNameValue %>
+									</span>
 								</c:when>
 								<c:otherwise>
 									<%= headerNameValue %>
@@ -218,7 +225,7 @@ if (!resultRowSplitterEntries.isEmpty()) {
 					}
 				%>
 
-					<tr class="<%= GetterUtil.getString(row.getClassName()) %> <%= row.getCssClass() %> <%= row.getState() %> <%= rowIsChecked ? "info" : StringPool.BLANK %>" data-qa-id="row" <%= AUIUtil.buildData(data) %>>
+					<tr class="<%= GetterUtil.getString(row.getClassName()) %> <%= row.getCssClass() %> <%= row.getState() %> <%= rowIsChecked ? "active" : StringPool.BLANK %>" data-qa-id="row" <%= AUIUtil.buildData(data) %>>
 
 						<%
 						for (int j = 0; j < entries.size(); j++) {
@@ -227,6 +234,8 @@ if (!resultRowSplitterEntries.isEmpty()) {
 							entry.setIndex(j);
 
 							request.setAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW_ENTRY, entry);
+
+							boolean truncate = false;
 
 							String columnClassName = entry.getCssClass();
 
@@ -237,20 +246,38 @@ if (!resultRowSplitterEntries.isEmpty()) {
 							if (!Validator.isBlank(entry.getValign())) {
 								columnClassName += " text-" + entry.getValign();
 							}
+
+							if (entry.isTruncate()) {
+								truncate = true;
+
+								columnClassName += " table-cell-content";
+							}
+
+							String normalizedColumnName = null;
+
+							if (j < normalizedHeaderNames.size()) {
+								normalizedColumnName = normalizedHeaderNames.get(j);
+
+								if (!Validator.isBlank(normalizedColumnName)) {
+									columnClassName += (normalizedColumnName.equals("rowChecker")) ? " lfr-checkbox-column" : " lfr-" + normalizedColumnName + "-column";
+								}
+							}
+
+							if (Validator.isNull(normalizedColumnName)) {
+								columnClassName += " lfr-entry-action-column";
+							}
 						%>
 
-							<td class="<%= columnClassName %> <%= entry.isTruncate() ? "clamp-horizontal table-cell-content" : "table-cell-field" %>" colspan="<%= entry.getColspan() %>">
+							<td class="<%= columnClassName %>" colspan="<%= entry.getColspan() %>">
 								<c:choose>
-									<c:when test="<%= entry.isTruncate() %>">
-										<div class="clamp-container">
-											<span class="truncate-text">
+									<c:when test="<%= truncate %>">
+										<span class="truncate-text">
 
-												<%
-												entry.print(pageContext.getOut(), request, response);
-												%>
+											<%
+											entry.print(pageContext.getOut(), request, response);
+											%>
 
-											</span>
-										</div>
+										</span>
 									</c:when>
 									<c:otherwise>
 

@@ -70,20 +70,29 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 					</c:if>
 				</c:if>
 
-				<c:if test="<%= !viewSingleEntry %>">
-					<div class="<%= colCssClass %> entry-info text-muted ">
-						<small>
-							<strong><%= entry.getUserName() %></strong>
-							<span> - </span>
-							<span class="hide-accessible"><liferay-ui:message key="published-date" /></span>
-							<%= dateFormatDate.format(entry.getDisplayDate()) %>
-						</small>
-					</div>
-				</c:if>
+				<div class="<%= colCssClass %> entry-info text-muted ">
+					<small>
+						<strong><%= entry.getUserName() %></strong>
+						<span> - </span>
+						<span class="hide-accessible"><liferay-ui:message key="published-date" /></span>
+						<%= dateFormatDate.format(entry.getDisplayDate()) %>
+						<span> - </span>
+						<span><%= LanguageUtil.format(resourceBundle, "x-minutes-read", new String[] {String.valueOf(com.liferay.blogs.web.internal.util.BlogsUtil.getReadingTimeMinutes(entry.getContent()))}, false) %></span>
+					</small>
+				</div>
 
 				<portlet:renderURL var="viewEntryURL">
 					<portlet:param name="mvcRenderCommandName" value="/blogs/view_entry" />
-					<portlet:param name="urlTitle" value="<%= entry.getUrlTitle() %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
+
+					<c:choose>
+						<c:when test="<%= Validator.isNotNull(entry.getUrlTitle()) %>">
+							<portlet:param name="urlTitle" value="<%= entry.getUrlTitle() %>" />
+						</c:when>
+						<c:otherwise>
+							<portlet:param name="entryId" value="<%= String.valueOf(entry.getEntryId()) %>" />
+						</c:otherwise>
+					</c:choose>
 				</portlet:renderURL>
 
 				<div class="<%= colCssClass %>">
@@ -230,7 +239,15 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 						<portlet:renderURL var="viewEntryCommentsURL">
 							<portlet:param name="mvcRenderCommandName" value="/blogs/view_entry" />
 							<portlet:param name="scroll" value='<%= renderResponse.getNamespace() + "discussionContainer" %>' />
-							<portlet:param name="urlTitle" value="<%= entry.getUrlTitle() %>" />
+
+							<c:choose>
+								<c:when test="<%= Validator.isNotNull(entry.getUrlTitle()) %>">
+									<portlet:param name="urlTitle" value="<%= entry.getUrlTitle() %>" />
+								</c:when>
+								<c:otherwise>
+									<portlet:param name="entryId" value="<%= String.valueOf(entry.getEntryId()) %>" />
+								</c:otherwise>
+							</c:choose>
 						</portlet:renderURL>
 
 						<div class="comments">
@@ -253,7 +270,15 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view_entry_content.jsp
 					<c:if test="<%= blogsPortletInstanceConfiguration.enableSocialBookmarks() %>">
 						<portlet:renderURL var="bookmarkURL" windowState="<%= WindowState.NORMAL.toString() %>">
 							<portlet:param name="mvcRenderCommandName" value="/blogs/view_entry" />
-							<portlet:param name="urlTitle" value="<%= entry.getUrlTitle() %>" />
+
+							<c:choose>
+								<c:when test="<%= Validator.isNotNull(entry.getUrlTitle()) %>">
+									<portlet:param name="urlTitle" value="<%= entry.getUrlTitle() %>" />
+								</c:when>
+								<c:otherwise>
+									<portlet:param name="entryId" value="<%= String.valueOf(entry.getEntryId()) %>" />
+								</c:otherwise>
+							</c:choose>
 						</portlet:renderURL>
 
 						<div class="social-bookmarks">

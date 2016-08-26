@@ -535,6 +535,14 @@ public class KBArticlePersistenceTest {
 	}
 
 	@Test
+	public void testCountByG_KBFI_L() throws Exception {
+		_persistence.countByG_KBFI_L(RandomTestUtil.nextLong(),
+			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean());
+
+		_persistence.countByG_KBFI_L(0L, 0L, RandomTestUtil.randomBoolean());
+	}
+
+	@Test
 	public void testCountByG_KBFI_S() throws Exception {
 		_persistence.countByG_KBFI_S(RandomTestUtil.nextLong(),
 			RandomTestUtil.nextLong(), RandomTestUtil.nextInt());

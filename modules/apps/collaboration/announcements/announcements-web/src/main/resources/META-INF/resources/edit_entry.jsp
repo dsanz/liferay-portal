@@ -83,7 +83,12 @@ if (entry == null) {
 		<aui:input name="url" />
 
 		<aui:field-wrapper label="content">
-			<liferay-ui:input-editor contents="<%= content %>" editorName='<%= PropsUtil.get("editor.wysiwyg.portal-web.docroot.html.portlet.announcements.edit_entry.jsp") %>' />
+
+			<%
+			String editorName = PropsUtil.get("editor.wysiwyg.portal-web.docroot.html.portlet.announcements.edit_entry.jsp");
+			%>
+
+			<liferay-ui:input-editor contents="<%= content %>" cssClass='<%= editorName.startsWith("alloyeditor") ? "form-control" : StringPool.BLANK %>' editorName="<%= editorName %>" name="contentEditor" />
 
 			<aui:input name="content" type="hidden" />
 		</aui:field-wrapper>
@@ -123,7 +128,7 @@ if (entry == null) {
 
 <aui:script>
 	function <portlet:namespace />getContent() {
-		return window.<portlet:namespace />editor.getHTML();
+		return window.<portlet:namespace />contentEditor.getHTML();
 	}
 
 	function <portlet:namespace />previewEntry() {

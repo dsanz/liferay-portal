@@ -480,8 +480,8 @@ public class SyncUtil {
 		SyncDLObject syncDLObject = new SyncDLObjectImpl();
 
 		syncDLObject.setCompanyId(dlFileVersion.getCompanyId());
-		syncDLObject.setUserId(dlFileVersion.getUserId());
-		syncDLObject.setUserName(dlFileVersion.getUserName());
+		syncDLObject.setUserId(dlFileVersion.getStatusByUserId());
+		syncDLObject.setUserName(dlFileVersion.getStatusByUserName());
 		syncDLObject.setCreateDate(dlFileVersion.getCreateDate());
 		syncDLObject.setModifiedDate(dlFileVersion.getModifiedDate());
 		syncDLObject.setRepositoryId(dlFileVersion.getRepositoryId());

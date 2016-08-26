@@ -41,7 +41,7 @@
 <!--NOTIFICATIONS-->
 <tr>
 	<td>MARK_AS_READ</td>
-	<td>//span[contains(.,'Mark as Read')]</td>
+	<td>//a[contains(.,'Mark as Read')]/span[1]</td>
 	<td></td>
 </tr>
 <tr>
@@ -56,7 +56,12 @@
 </tr>
 <tr>
 	<td>NOTIFICATIONS_CONTENT</td>
-	<td>//div[@class='body']</td>
+	<td>//div[@class='body-container']//div[@class='body' and contains(.,'${key_contentBody}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NOTIFICATIONS_CONTENT_GENERIC</td>
+	<td>//div[@class='body-container']//div[@class='body']</td>
 	<td></td>
 </tr>
 <tr>

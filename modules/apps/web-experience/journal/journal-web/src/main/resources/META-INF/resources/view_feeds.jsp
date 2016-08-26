@@ -111,6 +111,7 @@ renderResponse.setTitle(LanguageUtil.get(request, "feeds"));
 	>
 		<liferay-ui:search-container-row
 			className="com.liferay.journal.model.JournalFeed"
+			escapedModel="<%= true %>"
 			keyProperty="feedId"
 			modelVar="feed"
 		>
@@ -161,27 +162,23 @@ renderResponse.setTitle(LanguageUtil.get(request, "feeds"));
 				</c:when>
 				<c:when test='<%= displayStyle.equals("list") %>'>
 					<liferay-ui:search-container-column-text
-						cssClass="id-column text-column"
 						name="id"
 						property="feedId"
 					/>
 
 					<liferay-ui:search-container-column-text
-						cssClass="content-column name-column title-column"
 						name="name"
 						property="name"
 						truncate="<%= true %>"
 					/>
 
 					<liferay-ui:search-container-column-text
-						cssClass="content-column description-column"
 						name="description"
 						property="description"
 						truncate="<%= true %>"
 					/>
 
 					<liferay-ui:search-container-column-jsp
-						cssClass="entry-action-column"
 						path="/feed_action.jsp"
 					/>
 				</c:when>

@@ -16,9 +16,10 @@ package com.liferay.taglib.ui;
 
 import com.liferay.portal.kernel.language.UnicodeLanguageUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Http;
-import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.taglib.FileAvailabilityUtil;
@@ -36,6 +37,10 @@ public class IconDeleteTag extends IconTag {
 		_confirmation = confirmation;
 	}
 
+	public void setShowIcon(boolean showIcon) {
+		_showIcon = showIcon;
+	}
+
 	public void setTrash(boolean trash) {
 		_trash = trash;
 	}
@@ -49,6 +54,25 @@ public class IconDeleteTag extends IconTag {
 		String cssClass = GetterUtil.getString(getCssClass());
 
 		setCssClass(cssClass.concat(" item-remove"));
+
+		String icon = StringPool.BLANK;
+
+		if (_showIcon) {
+			icon = getIcon();
+
+			if (Validator.isNull(icon)) {
+				if (_trash) {
+					icon = "trash";
+				}
+				else {
+					icon = "times";
+				}
+			}
+		}
+
+		setIcon(icon);
+
+		setMarkupView("lexicon");
 
 		if (Validator.isNull(getMessage())) {
 			if (_trash) {
@@ -73,7 +97,7 @@ public class IconDeleteTag extends IconTag {
 			url.startsWith(Http.HTTPS_WITH_SLASH)) {
 
 			url = "submitForm(document.hrefFm, '".concat(
-				HttpUtil.encodeURL(url)).concat("');");
+				HtmlUtil.escapeJS(url)).concat("');");
 		}
 
 		if (url.startsWith("wsrp_rewrite?")) {
@@ -120,6 +144,7 @@ public class IconDeleteTag extends IconTag {
 	private static final String _PAGE = "/html/taglib/ui/icon_delete/page.jsp";
 
 	private String _confirmation;
+	private boolean _showIcon;
 	private boolean _trash;
 
 }

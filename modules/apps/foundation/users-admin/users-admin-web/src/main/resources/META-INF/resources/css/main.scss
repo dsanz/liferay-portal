@@ -66,10 +66,6 @@
 		margin: 0 0 0.5em 0.5em;
 	}
 
-	.password-policy-options {
-		margin-left: 2em;
-	}
-
 	.section {
 		float: left;
 		margin-left: 10px;
@@ -261,6 +257,29 @@
 	}
 }
 
-.users-search-container .content-column {
-	min-width: 125px;
+// Users Admin Search Container
+
+.lfr-search-container-organizations {
+	.lfr-roles-column, .lfr-type-column {
+		width: 26%;
+	}
+}
+
+.lfr-inherited-site-roles {
+	.lfr-site-column, .lfr-user-group-column {
+		width: 27%;
+	}
+}
+
+.portlet-users-admin {
+	.lfr-job-title-column, .lfr-name-column, .lfr-organization-column, .lfr-organizations-column, .lfr-roles-column, .lfr-screen-name-column, .lfr-site-column, .lfr-user-group-column, .lfr-user-groups-column {
+		max-width: 150px;
+		min-width: 150px;
+	}
+}
+
+.portlet-users-admin-edit-user {
+	.lfr-name-column, .lfr-title-column {
+		width: 45%;
+	}
 }

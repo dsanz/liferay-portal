@@ -35,6 +35,7 @@ import com.liferay.calendar.social.CalendarActivityKeys;
 import com.liferay.calendar.util.JCalendarUtil;
 import com.liferay.calendar.util.RecurrenceUtil;
 import com.liferay.calendar.workflow.CalendarBookingWorkflowConstants;
+import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
@@ -143,6 +144,7 @@ public class CalendarBookingLocalServiceImpl
 		CalendarBooking calendarBooking = calendarBookingPersistence.create(
 			calendarBookingId);
 
+		calendarBooking.setUuid(serviceContext.getUuid());
 		calendarBooking.setGroupId(calendar.getGroupId());
 		calendarBooking.setCompanyId(user.getCompanyId());
 		calendarBooking.setUserId(user.getUserId());
@@ -876,7 +878,9 @@ public class CalendarBookingLocalServiceImpl
 		calendarBooking.setSecondReminder(secondReminder);
 		calendarBooking.setSecondReminderType(secondReminderType);
 
-		if (!calendarBooking.isPending() || !calendarBooking.isDraft()) {
+		if (calendarBooking.isMasterBooking() && !calendarBooking.isDraft() &&
+			!calendarBooking.isPending()) {
+
 			calendarBooking.setStatus(WorkflowConstants.STATUS_DRAFT);
 		}
 
@@ -884,8 +888,10 @@ public class CalendarBookingLocalServiceImpl
 
 		calendarBookingPersistence.update(calendarBooking);
 
-		addChildCalendarBookings(
-			calendarBooking, childCalendarIds, serviceContext);
+		if (!ExportImportThreadLocal.isImportInProcess()) {
+			addChildCalendarBookings(
+				calendarBooking, childCalendarIds, serviceContext);
+		}
 
 		// Asset
 
@@ -1216,6 +1222,23 @@ public class CalendarBookingLocalServiceImpl
 				continue;
 			}
 
+			long firstReminder = calendarBooking.getFirstReminder();
+			String firstReminderType = calendarBooking.getFirstReminderType();
+			long secondReminder = calendarBooking.getSecondReminder();
+			String secondReminderType = calendarBooking.getSecondReminderType();
+
+			if (childCalendarBookingMap.containsKey(calendarId)) {
+				CalendarBooking oldChildCalendarBooking =
+					childCalendarBookingMap.get(calendarId);
+
+				firstReminder = oldChildCalendarBooking.getFirstReminder();
+				firstReminderType =
+					oldChildCalendarBooking.getFirstReminderType();
+				secondReminder = oldChildCalendarBooking.getSecondReminder();
+				secondReminderType =
+					oldChildCalendarBooking.getSecondReminderType();
+			}
+
 			serviceContext.setAttribute("sendNotification", false);
 
 			CalendarBooking childCalendarBooking = addCalendarBooking(
@@ -1225,11 +1248,9 @@ public class CalendarBookingLocalServiceImpl
 				calendarBooking.getDescriptionMap(),
 				calendarBooking.getLocation(), calendarBooking.getStartTime(),
 				calendarBooking.getEndTime(), calendarBooking.getAllDay(),
-				calendarBooking.getRecurrence(),
-				calendarBooking.getFirstReminder(),
-				calendarBooking.getFirstReminderType(),
-				calendarBooking.getSecondReminder(),
-				calendarBooking.getSecondReminderType(), serviceContext);
+				calendarBooking.getRecurrence(), firstReminder,
+				firstReminderType, secondReminder, secondReminderType,
+				serviceContext);
 
 			serviceContext.setAttribute("sendNotification", true);
 

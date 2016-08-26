@@ -14,8 +14,7 @@
 
 package com.liferay.gradle.plugins.node;
 
-import com.liferay.gradle.util.FileUtil;
-import com.liferay.gradle.util.GradleUtil;
+import com.liferay.gradle.plugins.node.util.GradleUtil;
 import com.liferay.gradle.util.OSDetector;
 import com.liferay.gradle.util.Validator;
 
@@ -35,11 +34,19 @@ import org.gradle.util.GUtil;
 public class NodeExtension {
 
 	public NodeExtension(final Project project) {
+		_download = GradleUtil.getProperty(project, "nodeDownload", true);
+
 		_nodeDir = new Callable<File>() {
 
 			@Override
 			public File call() throws Exception {
-				return new File(project.getBuildDir(), "node");
+				Project curProject = project;
+
+				if (isGlobal()) {
+					curProject = curProject.getRootProject();
+				}
+
+				return new File(curProject.getBuildDir(), "node");
 			}
 
 		};
@@ -123,17 +130,6 @@ public class NodeExtension {
 		};
 
 		_project = project;
-
-		setNpmArgs(
-			"--cache",
-			new Callable<String>() {
-
-				@Override
-				public String call() throws Exception {
-					return FileUtil.getAbsolutePath(getNpmCacheDir());
-				}
-
-			});
 	}
 
 	public File getNodeDir() {
@@ -156,6 +152,14 @@ public class NodeExtension {
 		return GradleUtil.toStringList(_npmArgs);
 	}
 
+	public boolean isDownload() {
+		return _download;
+	}
+
+	public boolean isGlobal() {
+		return _global;
+	}
+
 	public NodeExtension npmArgs(Iterable<?> npmArgs) {
 		GUtil.addToCollection(_npmArgs, npmArgs);
 
@@ -164,6 +168,14 @@ public class NodeExtension {
 
 	public NodeExtension npmArgs(Object... npmArgs) {
 		return npmArgs(Arrays.asList(npmArgs));
+	}
+
+	public void setDownload(boolean download) {
+		_download = download;
+	}
+
+	public void setGlobal(boolean global) {
+		_global = global;
 	}
 
 	public void setNodeDir(Object nodeDir) {
@@ -192,10 +204,8 @@ public class NodeExtension {
 		setNpmArgs(Arrays.asList(npmArgs));
 	}
 
-	protected File getNpmCacheDir() {
-		return new File(getNodeDir(), ".cache");
-	}
-
+	private boolean _download;
+	private boolean _global;
 	private Object _nodeDir;
 	private Object _nodeExeUrl;
 	private Object _nodeUrl;

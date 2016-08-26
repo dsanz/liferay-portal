@@ -567,7 +567,15 @@
 
 		<antcall inheritAll="false" target="update-sdk-properties" />
 
-		<antcall target="unzip-weblogic" />
+		<if>
+			<equals arg1="${app.server.weblogic.version}" arg2="12.2.1" />
+			<then>
+				<antcall target="unzip-weblogic-custom" />
+			</then>
+			<else>
+				<antcall target="unzip-weblogic" />
+			</else>
+		</if>
 
 		<delete dir="${project.dir}/portal-web/classes" />
 
@@ -1838,15 +1846,6 @@ wrapper.java.additional.11="-Dfile.encoding=UTF-8"]]></replacevalue>
 	<target name="unzip-weblogic">
 		<if>
 			<not>
-				<equals arg1="${app.server.weblogic.major.version}" arg2="12" />
-			</not>
-			<then>
-				<fail>Weblogic ${app.server.weblogic.major.version} is unsupported.</fail>
-			</then>
-		</if>
-
-		<if>
-			<not>
 				<available file="${app.server.parent.dir}/${app.server.weblogic.zip.name}" />
 			</not>
 			<then>
@@ -1951,6 +1950,14 @@ closeTemplate()
 		<if>
 			<os family="windows" />
 			<then>
+				<pathconvert property="app.server.weblogic.dir.windows" targetos="windows">
+					<path location="${app.server.weblogic.dir}" />
+				</pathconvert>
+
+				<pathconvert property="app.server.weblogic.wlserver.dir.windows" targetos="windows">
+					<path location="${app.server.weblogic.wlserver.dir}" />
+				</pathconvert>
+
 				<if>
 					<equals arg1="${app.server.weblogic.version.build}" arg2="1221" />
 					<then>
@@ -2251,7 +2258,7 @@ this task.
 					dir="${app.server.weblogic.dir}"
 					includes="**/*.cmd,**/*.domains,**/*.properties,**/*.sh,**/*.xml"
 				>
-					<replacefilter token="${env.JAVA_HOME}" value="@env.JAVA_HOME@" />
+					<replacefilter token="@env.JAVA_HOME@" value="${env.JAVA_HOME}" />
 				</replace>
 			</then>
 			<elseif>
@@ -2973,6 +2980,11 @@ plugins.includes=</echo>
 						prefix="liferay-portal-${lp.version}/${zip.executable.dir.name}"
 					/>
 					<zipfileset
+						dir="${zip.executable.dir}/.."
+						includes=".liferay-home"
+						prefix="liferay-portal-${lp.version}"
+					/>
+					<zipfileset
 						dir="${zip.executable.dir}/../data"
 						prefix="liferay-portal-${lp.version}/data"
 					/>
@@ -3464,6 +3476,10 @@ plugins.includes=</echo>
 			<elseif>
 				<os family="windows" />
 				<then>
+					<pathconvert property="app.server.parent.dir.windows" targetos="windows">
+						<path location="${app.server.parent.dir}" />
+					</pathconvert>
+
 					<propertyregex
 						input="${app.server.parent.dir.windows}"
 						property="app.server.parent.dir.windows.double.slash"
@@ -3477,6 +3493,10 @@ plugins.includes=</echo>
 						regexp=":"
 						replace="\\\\:"
 					/>
+
+					<pathconvert property="app.server.weblogic.dir.windows" targetos="windows">
+						<path location="${app.server.weblogic.dir}" />
+					</pathconvert>
 
 					<propertyregex
 						input="${app.server.weblogic.dir.windows}"
@@ -3535,6 +3555,10 @@ plugins.includes=</echo>
 		<if>
 			<os family="windows" />
 			<then>
+				<pathconvert property="app.server.websphere.dir.windows" targetos="windows">
+					<path location="${app.server.websphere.dir}" />
+				</pathconvert>
+
 				<propertyregex
 					input="${app.server.websphere.dir.windows}"
 					property="app.server.websphere.dir.windows.double.slash"

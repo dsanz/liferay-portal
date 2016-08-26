@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.security.pacl.NotPrivileged;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.security.lang.DoPrivilegedUtil;
 
 import java.io.Serializable;
@@ -264,6 +265,17 @@ public class SessionImpl implements Session {
 		catch (Exception e) {
 			throw ExceptionTranslator.translate(e, _session, object);
 		}
+	}
+
+	@Override
+	public String toString() {
+		StringBundler sb = new StringBundler(3);
+
+		sb.append("{_session=");
+		sb.append(String.valueOf(_session));
+		sb.append("}");
+
+		return sb.toString();
 	}
 
 	private final org.hibernate.Session _session;

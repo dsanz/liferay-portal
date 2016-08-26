@@ -252,14 +252,12 @@ LayoutsTreeDisplayContext layoutsTreeDisplayContext = new LayoutsTreeDisplayCont
 						<span class="sr-only"><liferay-ui:message arguments="{label}" key="add-child-page-of-x" /></span>
 					</a>
 				</li>
-
 				<li>
 					<a class="layout-tree-edit" data-plid="{plid}" data-qa-id="editPage" data-updateable="{updateable}" data-url="{url}" data-uuid="{uuid}" href="{editLayoutURL}" id="{id}Edit">
 						<span aria-hidden="true"><liferay-ui:message key="configure-page" /></span>
 						<span class="sr-only"><liferay-ui:message arguments="{label}" key="configure-x" /></span>
 					</a>
 				</li>
-
 				<li>
 					<a class="layout-tree-delete" data-deleteable="{deleteable}" data-plid="{plid}" data-qa-id="deletePage" data-url="{url}" data-uuid="{uuid}" href="{deleteLayoutURL}" id="{id}Delete">
 						<span aria-hidden="true"><liferay-ui:message key="delete" /></span>
@@ -338,7 +336,7 @@ LayoutsTreeDisplayContext layoutsTreeDisplayContext = new LayoutsTreeDisplayCont
 				if (!expandedTreeDialog) {
 					expandedTreeDialog = new Liferay.UrlPreview(
 						{
-							title: '<%= LanguageUtil.get(request, "pages") %>',
+							title: '<%= HtmlUtil.escape(LanguageUtil.get(request, "pages")) %>',
 							url: '<%= treeURL.toString() %>',
 							width: Liferay.Util.isPhone() ? '100%' : '900px'
 						}

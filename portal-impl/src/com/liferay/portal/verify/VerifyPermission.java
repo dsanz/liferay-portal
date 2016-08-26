@@ -50,10 +50,10 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.security.permission.PermissionCacheUtil;
 import com.liferay.portal.service.impl.ResourcePermissionLocalServiceImpl;
 import com.liferay.portal.util.PortalInstances;
 
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -215,19 +215,14 @@ public class VerifyPermission extends VerifyProcess {
 				ResourcePermissionLocalServiceUtil.dynamicQuery(dynamicQuery);
 
 			for (ResourcePermission resourcePermission : resourcePermissions) {
-				ResourcePermission groupResourcePermission = null;
+				ResourcePermission groupResourcePermission =
+					ResourcePermissionLocalServiceUtil.fetchResourcePermission(
+						resourcePermission.getCompanyId(),
+						Group.class.getName(), resourcePermission.getScope(),
+						resourcePermission.getPrimKey(),
+						resourcePermission.getRoleId());
 
-				try {
-					groupResourcePermission =
-						ResourcePermissionLocalServiceUtil.
-							getResourcePermission(
-								resourcePermission.getCompanyId(),
-								Group.class.getName(),
-								resourcePermission.getScope(),
-								resourcePermission.getPrimKey(),
-								resourcePermission.getRoleId());
-				}
-				catch (Exception e) {
+				if (groupResourcePermission == null) {
 					ResourcePermissionLocalServiceUtil.setResourcePermissions(
 						resourcePermission.getCompanyId(),
 						Group.class.getName(), resourcePermission.getScope(),
@@ -268,8 +263,6 @@ public class VerifyPermission extends VerifyProcess {
 					_log.error(e, e);
 				}
 			}
-
-			PermissionCacheUtil.clearResourceCache();
 		}
 	}
 
@@ -351,13 +344,9 @@ public class VerifyPermission extends VerifyProcess {
 			Role userRole = RoleLocalServiceUtil.getRole(
 				companyId, RoleConstants.USER);
 
-			deleteConflictingUserDefaultRolePermissions(
-				companyId, powerUserRole.getRoleId(), userRole.getRoleId(),
-				userClassNameId, userGroupClassNameId);
-
 			StringBundler sb = new StringBundler(19);
 
-			sb.append("update ResourcePermission inner join Layout on ");
+			sb.append("update ignore ResourcePermission inner join Layout on ");
 			sb.append("ResourcePermission.companyId = Layout.companyId and ");
 			sb.append("ResourcePermission.primKey like ");
 			sb.append("replace('[$PLID$]_LAYOUT_%', '[$PLID$]', ");
@@ -386,24 +375,34 @@ public class VerifyPermission extends VerifyProcess {
 		throws Exception {
 
 		try {
-			runSQL(
-				"create table ResourcePermissionPlid (resourcePermissionId " +
-					"LONG null, plid LONG null)");
+			runSQL("alter table ResourcePermission drop column plid");
 		}
 		catch (SQLException sqle) {
-			runSQL("delete from ResourcePermissionPlid");
+			if (_log.isDebugEnabled()) {
+				_log.debug(sqle, sqle);
+			}
 		}
+
+		runSQL("alter table ResourcePermission add plid NUMBER null");
+
+		runSQL("create index tmp_res_plid on ResourcePermission(plid)");
 
 		StringBundler sb = new StringBundler(6);
 
-		sb.append("insert into ResourcePermissionPlid(select ");
-		sb.append("ResourcePermission.resourcePermissionId, ");
+		sb.append("update ResourcePermission r1 set plid = (select ");
 		sb.append("SUBSTR(ResourcePermission.primKey, 0, ");
-		sb.append("INSTR(ResourcePermission.primKey, '_LAYOUT_') -1) as plid ");
-		sb.append("from ResourcePermission where ResourcePermission.primKey ");
-		sb.append("like '%_LAYOUT_%')");
+		sb.append("INSTR(ResourcePermission.primKey, '_LAYOUT_') -1) from ");
+		sb.append("ResourcePermission where r1.resourcePermissionId = ");
+		sb.append("ResourcePermission.resourcePermissionId and ");
+		sb.append("ResourcePermission.primKey like '%_LAYOUT_%')");
 
 		runSQL(sb.toString());
+
+		try (CallableStatement cs = connection.prepareCall(
+				"{call DBMS_ERRLOG.CREATE_ERROR_LOG('ResourcePermission')}")) {
+
+			cs.execute();
+		}
 
 		for (long companyId : companyIds) {
 			Role powerUserRole = RoleLocalServiceUtil.getRole(
@@ -411,22 +410,17 @@ public class VerifyPermission extends VerifyProcess {
 			Role userRole = RoleLocalServiceUtil.getRole(
 				companyId, RoleConstants.USER);
 
-			deleteConflictingUserDefaultRolePermissions(
-				companyId, powerUserRole.getRoleId(), userRole.getRoleId(),
-				userClassNameId, userGroupClassNameId);
-
 			sb = new StringBundler(20);
 
-			sb.append("update ResourcePermission set roleId = ");
+			sb.append("update ResourcePermission r1 set roleId = ");
 			sb.append(userRole.getRoleId());
-			sb.append(" where resourcePermissionId in (select ");
+			sb.append(" where exists (select ");
 			sb.append("ResourcePermission.resourcePermissionId from ");
-			sb.append("ResourcePermission inner join ResourcePermissionPlid ");
-			sb.append("on ResourcePermission.resourcePermissionId = ");
-			sb.append("ResourcePermissionPlid.resourcePermissionId inner ");
-			sb.append("join Layout on ResourcePermissionPlid.plid = ");
-			sb.append("Layout.plid inner join Group_ on Layout.groupId = ");
-			sb.append("Group_.groupId where ResourcePermission.scope = ");
+			sb.append("ResourcePermission inner join Layout on ");
+			sb.append("ResourcePermission.plid = Layout.plid inner join ");
+			sb.append("Group_ on Layout.groupId = Group_.groupId where ");
+			sb.append("r1.resourcePermissionId = ResourcePermission.");
+			sb.append("resourcePermissionId and ResourcePermission.scope = ");
 			sb.append(ResourceConstants.SCOPE_INDIVIDUAL);
 			sb.append(" and ResourcePermission.roleId = ");
 			sb.append(powerUserRole.getRoleId());
@@ -436,12 +430,15 @@ public class VerifyPermission extends VerifyProcess {
 			sb.append(userGroupClassNameId);
 			sb.append(") and Layout.type_ = '");
 			sb.append(LayoutConstants.TYPE_PORTLET);
-			sb.append("')");
+			sb.append("') log errors into ERR$_ResourcePermission ('') ");
+			sb.append("reject limit unlimited");
 
 			runSQL(sb.toString());
 		}
 
-		runSQL("drop table ResourcePermissionPlid");
+		runSQL("drop table ERR$_ResourcePermission");
+
+		runSQL("alter table ResourcePermission drop column plid");
 	}
 
 	protected boolean isPrivateLayout(String name, String primKey)

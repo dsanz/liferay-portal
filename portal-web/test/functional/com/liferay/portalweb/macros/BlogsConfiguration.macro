@@ -20,7 +20,7 @@
 			</else>
 		</if>
 
-		<execute function="SelectFrame" locator1="BasePortletConfiguration#CONFIGURATION_IFRAME" />
+		<execute function="SelectFrame" locator1="IFrame#CONFIGURATION" />
 
 		<execute function="AssertClick" locator1="NavBar#SCOPE" value1="Scope" />
 
@@ -44,7 +44,7 @@
 	</command>
 
 	<command name="selectConfigurationIFrame">
-		<execute function="SelectFrame" locator1="Configuration#CONFIGURATION_IFRAME" />
+		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
 	</command>
 
 	<command name="selectDisplayTemplate">
@@ -100,9 +100,20 @@
 	</command>
 
 	<command name="viewAsSiteMemberPG">
-		<execute function="AssertElementNotPresent" locator1="Portlet#TITLE" />
+		<var name="key_portletName" value="Blogs" />
+
+		<execute function="AssertElementPresent" locator1="Portlet#TITLE" />
 		<execute function="AssertElementNotPresent" locator1="Blogs#ADD_BLOGS_ENTRY" value1="Add Blog Entry" />
-		<execute function="AssertElementNotPresent" locator1="Button#PERMISSIONS" value1="Permissions" />
+
+		<if>
+			<condition function="IsElementPresent" locator1="Portlet#OPTIONS_ICON" />
+			<then>
+				<execute function="Click#mouseOverClick" locator1="Portlet#OPTIONS_ICON" />
+
+				<execute function="AssertElementNotPresent" locator1="MenuItem#PERMISSIONS" value1="Permissions" />
+			</then>
+		</if>
+
 		<execute function="AssertTextEquals" locator1="Link#SUBSCRIBE" value1="Subscribe" />
 		<execute function="AssertTextEquals" locator1="Link#RSS" value1="RSS" />
 	</command>
@@ -144,18 +155,18 @@
 		<execute function="AssertTextEquals" locator1="Link#RSS" value1="RSS" />
 
 		<if>
-			<condition function="IsElementPresent" locator1="BasePortlet#OPTIONS_ICON" />
+			<condition function="IsElementPresent" locator1="Portlet#OPTIONS_ICON" />
 			<then>
-				<execute function="Click#mouseOverClick" locator1="BasePortlet#OPTIONS_ICON" />
+				<execute function="Click#mouseOverClick" locator1="Portlet#OPTIONS_ICON" />
 
 				<execute function="AssertElementNotPresent" locator1="MenuItem#PERMISSIONS" value1="Permissions" />
 
 				<if>
-					<condition function="IsElementPresent" locator1="BasePortlet#OPTIONS_MENULIST_CONFIGURATION" />
+					<condition function="IsElementPresent" locator1="MenuItem#CONFIGURATION" />
 					<then>
-						<execute function="Click" locator1="BasePortlet#OPTIONS_MENULIST_CONFIGURATION" />
+						<execute function="Click" locator1="MenuItem#CONFIGURATION" />
 
-						<execute function="SelectFrame" locator1="BasePortletConfiguration#CONFIGURATION_IFRAME" />
+						<execute function="SelectFrame" locator1="IFrame#CONFIGURATION" />
 
 						<execute function="AssertElementNotPresent" locator1="MenuItem#PERMISSIONS" value1="Permissions" />
 					</then>
@@ -169,12 +180,12 @@
 	</command>
 
 	<command name="viewPermissionsPG">
-		<execute function="Click#mouseOverClick" locator1="BasePortlet#OPTIONS_ICON" />
+		<execute function="Click#mouseOverClick" locator1="Portlet#OPTIONS_ICON" />
 
 		<if>
-			<condition function="IsElementPresent" locator1="BasePortlet#OPTIONS_MENULIST_PERMISSIONS" />
+			<condition function="IsElementPresent" locator1="Portlet#OPTIONS_MENULIST_PERMISSIONS" />
 			<then>
-				<execute function="Click" locator1="BasePortlet#OPTIONS_MENULIST_PERMISSIONS" />
+				<execute function="Click" locator1="Portlet#OPTIONS_MENULIST_PERMISSIONS" />
 
 				<execute function="SelectFrame" locator1="IFrame#DIALOG" />
 			</then>

@@ -243,15 +243,21 @@ public class BackgroundTaskLocalServiceImpl
 	@Override
 	public void cleanUpBackgroundTasks() {
 		List<BackgroundTask> backgroundTasks =
-			backgroundTaskPersistence.findByStatus(
-				BackgroundTaskConstants.STATUS_IN_PROGRESS);
+			backgroundTaskPersistence.findByCompleted(false);
 
 		for (BackgroundTask backgroundTask : backgroundTasks) {
-			backgroundTask.setStatus(BackgroundTaskConstants.STATUS_FAILED);
+			if (backgroundTask.getStatus() ==
+					BackgroundTaskConstants.STATUS_IN_PROGRESS) {
+
+				backgroundTask.setCompleted(true);
+				backgroundTask.setStatus(BackgroundTaskConstants.STATUS_FAILED);
+
+				backgroundTaskPersistence.update(backgroundTask);
+			}
 
 			cleanUpBackgroundTask(
 				backgroundTask.getBackgroundTaskId(),
-				BackgroundTaskConstants.STATUS_FAILED);
+				backgroundTask.getStatus());
 		}
 	}
 

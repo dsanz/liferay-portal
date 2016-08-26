@@ -8,16 +8,6 @@
 <tr><td rowspan="1" colspan="3">Configuration</td></tr>
 </thead>
 <tbody>
-<tr>
-	<td>CONFIGURATION_IFRAME</td>
-	<td>//iframe[@class='dialog-iframe-node ']</td>
-	<td></td>
-</tr>
-<tr>
-	<td></td>
-	<td></td>
-	<td></td>
-</tr>
 <!--NAVIGATION-->
 <tr>
 	<td>NAVIGATION_SETUP</td>
@@ -86,13 +76,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>SOURCE_SCOPE_SELECT</td>
-	<td>//div[@class='select-asset-selector']/div/a[@title='Select']/span</td>
+	<td>SCOPE_SELECT</td>
+	<td>//div[@id='scopeContent']//a[@title='Select']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SETUP_DISPLAY_SETTINGS_PANEL</td>
+	<td>//a[contains(@class,'collapse-icon') and contains(.,'Display Settings')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SETUP_DISPLAY_SETTINGS</td>
-	<td>//a[contains(@class,'collapse-icon') and contains(.,'Display Settings')] | //ul[contains(@class,'nav-tabs')]/li/a[contains(.,'Display Settings')]</td>
+	<td>//ul[contains(@class,'nav-tabs')]/li/a[contains(.,'Display Settings')]</td>
 	<td></td>
 </tr>
 <tr>

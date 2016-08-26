@@ -14,7 +14,7 @@
 
 package com.liferay.sync.service.impl;
 
-import com.liferay.document.library.kernel.exception.DuplicateFileException;
+import com.liferay.document.library.kernel.exception.DuplicateFileEntryException;
 import com.liferay.document.library.kernel.exception.DuplicateFolderNameException;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
 import com.liferay.document.library.kernel.exception.NoSuchFolderException;
@@ -133,7 +133,7 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 			return toSyncDLObject(fileEntry, SyncDLObjectConstants.EVENT_ADD);
 		}
 		catch (PortalException pe) {
-			if (pe instanceof DuplicateFileException) {
+			if (pe instanceof DuplicateFileEntryException) {
 				if (GetterUtil.getBoolean(
 						serviceContext.getAttribute("overwrite"))) {
 
@@ -588,8 +588,9 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 				lastAccessTime, repositoryId, events);
 
 			if (count == 0) {
-				SyncDLObjectUpdate syncDLObjectUpdate = new SyncDLObjectUpdate(
-					Collections.<SyncDLObject>emptyList(), 0, lastAccessTime);
+				SyncDLObjectUpdate syncDLObjectUpdate = getSyncDLObjectUpdate(
+					Collections.<SyncDLObject>emptyList(), 0, lastAccessTime,
+					lastAccessTime);
 
 				return syncDLObjectUpdate.toString();
 			}
@@ -623,9 +624,9 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 			SyncDLObject syncDLObject = syncDLObjects.get(
 				syncDLObjects.size() - 1);
 
-			SyncDLObjectUpdate syncDLObjectUpdate = new SyncDLObjectUpdate(
+			SyncDLObjectUpdate syncDLObjectUpdate = getSyncDLObjectUpdate(
 				checkSyncDLObjects(syncDLObjects, repositoryId, lastAccessTime),
-				count, syncDLObject.getModifiedTime());
+				count, syncDLObject.getModifiedTime(), lastAccessTime);
 
 			return syncDLObjectUpdate.toString();
 		}
@@ -652,9 +653,10 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 			SyncDLObject syncDLObject = syncDLObjects.get(
 				syncDLObjects.size() - 1);
 
-			SyncDLObjectUpdate syncDLObjectUpdate = new SyncDLObjectUpdate(
+			SyncDLObjectUpdate syncDLObjectUpdate = getSyncDLObjectUpdate(
 				checkSyncDLObjects(syncDLObjects, repositoryId, lastAccessTime),
-				syncDLObjects.size(), syncDLObject.getModifiedTime());
+				syncDLObjects.size(), syncDLObject.getModifiedTime(),
+				lastAccessTime);
 
 			return syncDLObjectUpdate.toString();
 		}
@@ -1054,6 +1056,28 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 		}
 	}
 
+	protected static SyncDLObjectUpdate getSyncDLObjectUpdate(
+		List<SyncDLObject> syncDLObjects, int resultsTotal, long lastAccessTime,
+		long previousLastAccessTime) {
+
+		Map<String, Long> settingsModifiedTimes = new HashMap<>();
+
+		long syncContextModifiedTime = PrefsPropsUtil.getLong(
+			CompanyThreadLocal.getCompanyId(),
+			SyncConstants.SYNC_CONTEXT_MODIFIED_TIME);
+
+		if ((syncContextModifiedTime != 0) &&
+			(syncContextModifiedTime > previousLastAccessTime)) {
+
+			settingsModifiedTimes.put(
+				SyncConstants.SYNC_CONTEXT_MODIFIED_TIME,
+				syncContextModifiedTime);
+		}
+
+		return new SyncDLObjectUpdate(
+			syncDLObjects, resultsTotal, lastAccessTime, settingsModifiedTimes);
+	}
+
 	protected static boolean syncDeviceSupports(int featureSet) {
 		SyncDevice syncDevice = SyncDeviceThreadLocal.getSyncDevice();
 
@@ -1243,6 +1267,15 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 			SyncServiceConfigurationKeys.SYNC_CLIENT_BATCH_FILE_MAX_SIZE,
 			String.valueOf(batchFileMaxSize));
 
+		boolean forceSecurityMode = PrefsPropsUtil.getBoolean(
+			user.getCompanyId(),
+			SyncServiceConfigurationKeys.SYNC_CLIENT_FORCE_SECURITY_MODE,
+			SyncServiceConfigurationValues.SYNC_CLIENT_FORCE_SECURITY_MODE);
+
+		portletPreferencesMap.put(
+			SyncServiceConfigurationKeys.SYNC_CLIENT_FORCE_SECURITY_MODE,
+			String.valueOf(forceSecurityMode));
+
 		int maxConnections = PrefsPropsUtil.getInteger(
 			user.getCompanyId(),
 			SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_CONNECTIONS,
@@ -1251,6 +1284,24 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 		portletPreferencesMap.put(
 			SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_CONNECTIONS,
 			String.valueOf(maxConnections));
+
+		int maxDownloadRate = PrefsPropsUtil.getInteger(
+			user.getCompanyId(),
+			SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_DOWNLOAD_RATE,
+			SyncServiceConfigurationValues.SYNC_CLIENT_MAX_DOWNLOAD_RATE);
+
+		portletPreferencesMap.put(
+			SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_DOWNLOAD_RATE,
+			String.valueOf(maxDownloadRate));
+
+		int maxUploadRate = PrefsPropsUtil.getInteger(
+			user.getCompanyId(),
+			SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_UPLOAD_RATE,
+			SyncServiceConfigurationValues.SYNC_CLIENT_MAX_UPLOAD_RATE);
+
+		portletPreferencesMap.put(
+			SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_UPLOAD_RATE,
+			String.valueOf(maxUploadRate));
 
 		int pollInterval = PrefsPropsUtil.getInteger(
 			user.getCompanyId(),

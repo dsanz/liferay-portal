@@ -154,6 +154,15 @@ public abstract class DoulosServlet extends HttpServlet {
 					request.getParameterMap(), payloadJSONObject,
 					responseJSONObject);
 
+				String redirect = responseJSONObject.optString(
+					"doulosRedirect");
+
+				if (redirect != null) {
+					response.sendRedirect(redirect);
+
+					return;
+				}
+
 				String json = responseJSONObject.toString();
 
 				write(
@@ -192,10 +201,19 @@ public abstract class DoulosServlet extends HttpServlet {
 
 		String validIpsString = servletConfig.getInitParameter("validIps");
 
-		_validIps = validIpsString.split(",");
+		if (validIpsString != null) {
+			_validIps = validIpsString.split(",");
+		}
+		else {
+			_validIps = new String[0];
+		}
 	}
 
 	protected boolean isValidIP(String remoteAddr) {
+		if (_validIps.length == 0) {
+			return true;
+		}
+
 		for (String validIp : _validIps) {
 			if (remoteAddr.equals(validIp) ||
 				remoteAddr.startsWith(validIp + ".")) {

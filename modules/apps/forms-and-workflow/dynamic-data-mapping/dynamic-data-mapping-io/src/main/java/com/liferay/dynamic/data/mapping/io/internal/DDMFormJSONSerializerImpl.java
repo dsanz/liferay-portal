@@ -23,6 +23,7 @@ import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
+import com.liferay.dynamic.data.mapping.model.DDMFormRule;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -53,6 +54,7 @@ public class DDMFormJSONSerializerImpl implements DDMFormJSONSerializer {
 		addAvailableLanguageIds(jsonObject, ddmForm.getAvailableLocales());
 		addDefaultLanguageId(jsonObject, ddmForm.getDefaultLocale());
 		addFields(jsonObject, ddmForm.getDDMFormFields());
+		addRules(jsonObject, ddmForm.getDDMFormRules());
 
 		return jsonObject.toString();
 	}
@@ -79,7 +81,7 @@ public class DDMFormJSONSerializerImpl implements DDMFormJSONSerializer {
 	protected void addFields(
 		JSONObject jsonObject, List<DDMFormField> ddmFormFields) {
 
-		jsonObject.put("fields", toJSONArray(ddmFormFields));
+		jsonObject.put("fields", fieldsToJSONArray(ddmFormFields));
 	}
 
 	protected void addNestedFields(
@@ -89,7 +91,7 @@ public class DDMFormJSONSerializerImpl implements DDMFormJSONSerializer {
 			return;
 		}
 
-		jsonObject.put("nestedFields", toJSONArray(nestedDDMFormFields));
+		jsonObject.put("nestedFields", fieldsToJSONArray(nestedDDMFormFields));
 	}
 
 	protected void addProperties(
@@ -131,6 +133,26 @@ public class DDMFormJSONSerializerImpl implements DDMFormJSONSerializer {
 		jsonObject.put(propertyName, propertyValue);
 	}
 
+	protected void addRules(
+		JSONObject jsonObject, List<DDMFormRule> ddmFormRules) {
+
+		if (ddmFormRules.isEmpty()) {
+			return;
+		}
+
+		jsonObject.put("rules", rulesToJSONArray(ddmFormRules));
+	}
+
+	protected JSONArray fieldsToJSONArray(List<DDMFormField> ddmFormFields) {
+		JSONArray jsonArray = _jsonFactory.createJSONArray();
+
+		for (DDMFormField ddmFormField : ddmFormFields) {
+			jsonArray.put(toJSONObject(ddmFormField));
+		}
+
+		return jsonArray;
+	}
+
 	protected DDMForm getDDMFormFieldTypeSettingsDDMForm(String type) {
 		DDMFormFieldType ddmFormFieldType =
 			_ddmFormFieldTypeServicesTracker.getDDMFormFieldType(type);
@@ -146,42 +168,9 @@ public class DDMFormJSONSerializerImpl implements DDMFormJSONSerializer {
 		return DDMFormFactory.create(ddmFormFieldTypeSettings);
 	}
 
-	protected Object serializeDDMFormFieldProperty(
-		Object property, DDMFormField ddmFormFieldTypeSetting) {
+	protected JSONArray optionsToJSONArray(
+		DDMFormFieldOptions ddmFormFieldOptions) {
 
-		if (ddmFormFieldTypeSetting.isLocalizable()) {
-			return toJSONObject((LocalizedValue)property);
-		}
-
-		String dataType = ddmFormFieldTypeSetting.getDataType();
-
-		if (Objects.equals(dataType, "boolean")) {
-			return GetterUtil.getBoolean(property);
-		}
-		else if (Objects.equals(dataType, "ddm-options")) {
-			return toJSONArray((DDMFormFieldOptions)property);
-		}
-		else if (Objects.equals(dataType, "ddm-validation")) {
-			return toJSONObject((DDMFormFieldValidation)property);
-		}
-		else {
-			return String.valueOf(property);
-		}
-	}
-
-	@Reference(unbind = "-")
-	protected void setDDMFormFieldTypeServicesTracker(
-		DDMFormFieldTypeServicesTracker ddmFormFieldTypeServicesTracker) {
-
-		_ddmFormFieldTypeServicesTracker = ddmFormFieldTypeServicesTracker;
-	}
-
-	@Reference(unbind = "-")
-	protected void setJSONFactory(JSONFactory jsonFactory) {
-		_jsonFactory = jsonFactory;
-	}
-
-	protected JSONArray toJSONArray(DDMFormFieldOptions ddmFormFieldOptions) {
 		Set<String> optionValues = ddmFormFieldOptions.getOptionsValues();
 
 		if (optionValues.isEmpty()) {
@@ -204,14 +193,59 @@ public class DDMFormJSONSerializerImpl implements DDMFormJSONSerializer {
 		return jsonArray;
 	}
 
-	protected JSONArray toJSONArray(List<DDMFormField> ddmFormFields) {
+	protected JSONArray ruleActionsToJSONArray(List<String> ruleActions) {
 		JSONArray jsonArray = _jsonFactory.createJSONArray();
 
-		for (DDMFormField ddmFormField : ddmFormFields) {
-			jsonArray.put(toJSONObject(ddmFormField));
+		for (String ruleAction : ruleActions) {
+			jsonArray.put(ruleAction);
 		}
 
 		return jsonArray;
+	}
+
+	protected JSONArray rulesToJSONArray(List<DDMFormRule> ddmFormRules) {
+		JSONArray jsonArray = _jsonFactory.createJSONArray();
+
+		for (DDMFormRule ddmFormRule : ddmFormRules) {
+			jsonArray.put(toJSONObject(ddmFormRule));
+		}
+
+		return jsonArray;
+	}
+
+	protected Object serializeDDMFormFieldProperty(
+		Object property, DDMFormField ddmFormFieldTypeSetting) {
+
+		if (ddmFormFieldTypeSetting.isLocalizable()) {
+			return toJSONObject((LocalizedValue)property);
+		}
+
+		String dataType = ddmFormFieldTypeSetting.getDataType();
+
+		if (Objects.equals(dataType, "boolean")) {
+			return GetterUtil.getBoolean(property);
+		}
+		else if (Objects.equals(dataType, "ddm-options")) {
+			return optionsToJSONArray((DDMFormFieldOptions)property);
+		}
+		else if (Objects.equals(dataType, "ddm-validation")) {
+			return toJSONObject((DDMFormFieldValidation)property);
+		}
+		else {
+			return String.valueOf(property);
+		}
+	}
+
+	@Reference(unbind = "-")
+	protected void setDDMFormFieldTypeServicesTracker(
+		DDMFormFieldTypeServicesTracker ddmFormFieldTypeServicesTracker) {
+
+		_ddmFormFieldTypeServicesTracker = ddmFormFieldTypeServicesTracker;
+	}
+
+	@Reference(unbind = "-")
+	protected void setJSONFactory(JSONFactory jsonFactory) {
+		_jsonFactory = jsonFactory;
 	}
 
 	protected JSONObject toJSONObject(DDMFormField ddmFormField) {
@@ -236,6 +270,17 @@ public class DDMFormJSONSerializerImpl implements DDMFormJSONSerializer {
 		jsonObject.put(
 			"errorMessage", ddmFormFieldValidation.getErrorMessage());
 		jsonObject.put("expression", ddmFormFieldValidation.getExpression());
+
+		return jsonObject;
+	}
+
+	protected JSONObject toJSONObject(DDMFormRule ddmFormRule) {
+		JSONObject jsonObject = _jsonFactory.createJSONObject();
+
+		jsonObject.put(
+			"actions", ruleActionsToJSONArray(ddmFormRule.getActions()));
+		jsonObject.put("condition", ddmFormRule.getCondition());
+		jsonObject.put("enabled", ddmFormRule.isEnabled());
 
 		return jsonObject;
 	}

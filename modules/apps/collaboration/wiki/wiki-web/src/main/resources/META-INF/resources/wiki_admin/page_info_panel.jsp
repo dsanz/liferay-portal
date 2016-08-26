@@ -35,7 +35,6 @@ WikiPageInfoPanelDisplayContext wikiPageInfoPanelDisplayContext = wikiDisplayCon
 					<li>
 						<liferay-util:include page="/wiki/subscribe.jsp" servletContext="<%= application %>" />
 					</li>
-
 					<li>
 						<liferay-util:include page="/wiki/page_action.jsp" servletContext="<%= application %>" />
 					</li>
@@ -74,118 +73,115 @@ if (wikiPageInfoPanelDisplayContext.isSinglePageSelection()) {
 <liferay-ui:tabs names="<%= sections %>" refresh="<%= false %>" type="dropdown">
 	<liferay-ui:section>
 		<div class="sidebar-body">
-			<c:choose>
-				<c:when test="<%= wikiPageInfoPanelDisplayContext.isSinglePageSelection() %>">
+			<dl>
+				<c:choose>
+					<c:when test="<%= wikiPageInfoPanelDisplayContext.isSinglePageSelection() %>">
 
-					<%
-					WikiPage wikiPage = wikiPageInfoPanelDisplayContext.getFirstPage();
-					%>
+						<%
+						WikiPage wikiPage = wikiPageInfoPanelDisplayContext.getFirstPage();
+						%>
 
-					<c:if test="<%= Validator.isNotNull(wikiPage.getSummary()) %>">
-						<h5><strong><liferay-ui:message key="summary" /></strong></h5>
+						<c:if test="<%= Validator.isNotNull(wikiPage.getSummary()) %>">
+							<dt class="h5"><liferay-ui:message key="summary" /></dt>
 
-						<p>
-							<%= HtmlUtil.escape(wikiPage.getSummary()) %>
-						</p>
-					</c:if>
-
-					<h5><strong><liferay-ui:message key="format" /></strong></h5>
-
-					<p>
-						<liferay-ui:message key="<%= wikiEngineRenderer.getFormatLabel(wikiPage.getFormat(), locale) %>" />
-					</p>
-
-					<h5><strong><liferay-ui:message key="latest-version" /></strong></h5>
-
-					<p>
-						<%= wikiPage.getVersion() %>
-
-						<c:if test="<%= wikiPage.isMinorEdit() %>">
-							(<liferay-ui:message key="minor-edit" />)
+							<dd>
+								<%= HtmlUtil.escape(wikiPage.getSummary()) %>
+							</dd>
 						</c:if>
-					</p>
 
-					<h5><strong><liferay-ui:message key="create-date" /></strong></h5>
+						<dt class="h5"><liferay-ui:message key="format" /></dt>
 
-					<p>
-						<%= dateFormatDateTime.format(wikiPage.getCreateDate()) %>
-					</p>
+						<dd>
+							<liferay-ui:message key="<%= wikiEngineRenderer.getFormatLabel(wikiPage.getFormat(), locale) %>" />
+						</dd>
+						<dt class="h5"><liferay-ui:message key="latest-version" /></dt>
 
-					<h5><strong><liferay-ui:message key="last-modified" /></strong></h5>
+						<dd>
+							<%= wikiPage.getVersion() %>
 
-					<p>
-						<%= dateFormatDateTime.format(wikiPage.getModifiedDate()) %>
-					</p>
+							<c:if test="<%= wikiPage.isMinorEdit() %>">
+								(<liferay-ui:message key="minor-edit" />)
+							</c:if>
+						</dd>
+						<dt class="h5"><liferay-ui:message key="create-date" /></dt>
 
-					<h5><strong><liferay-ui:message key="attachments" /></strong></h5>
+						<dd>
+							<%= dateFormatDateTime.format(wikiPage.getCreateDate()) %>
+						</dd>
+						<dt class="h5"><liferay-ui:message key="last-modified" /></dt>
 
-					<p>
-						<%= wikiPage.getAttachmentsFileEntriesCount() %>
-					</p>
+						<dd>
+							<%= dateFormatDateTime.format(wikiPage.getModifiedDate()) %>
+						</dd>
+						<dt class="h5"><liferay-ui:message key="attachments" /></dt>
 
-					<h5><strong><liferay-ui:message key="rss" /></strong></h5>
+						<dd>
+							<%= wikiPage.getAttachmentsFileEntriesCount() %>
+						</dd>
+						<dt class="h5"><liferay-ui:message key="rss" /></dt>
 
-					<p>
-						<aui:a href="<%= wikiPageInfoPanelDisplayContext.getPageRSSURL(wikiPage) %>" target="_blank">
-							<liferay-ui:message key="feed" />
-						</aui:a>
-					</p>
+						<dd>
+							<aui:a href="<%= wikiPageInfoPanelDisplayContext.getPageRSSURL(wikiPage) %>" target="_blank">
+								<liferay-ui:message key="feed" />
+							</aui:a>
+						</dd>
 
-					<div class="lfr-asset-categories">
-						<liferay-ui:asset-categories-summary
-							className="<%= WikiPage.class.getName() %>"
-							classPK="<%= wikiPage.getResourcePrimKey() %>"
-							message="categories"
-						/>
-					</div>
-
-					<div class="lfr-asset-tags">
-						<liferay-ui:asset-tags-summary
-							className="<%= WikiPage.class.getName() %>"
-							classPK="<%= wikiPage.getResourcePrimKey() %>"
-							message="tags"
-						/>
-					</div>
-
-					<c:if test="<%= wikiPortletInstanceSettingsHelper.isEnablePageRatings() %>">
-						<liferay-ui:ratings
-							className="<%= WikiPage.class.getName() %>"
-							classPK="<%= wikiPage.getResourcePrimKey() %>"
-						/>
-					</c:if>
-
-					<liferay-ui:custom-attributes-available className="<%= WikiPage.class.getName() %>">
-						<liferay-ui:custom-attribute-list
-							className="<%= WikiPage.class.getName() %>"
-							classPK="<%= wikiPage.getResourcePrimKey() %>"
-							editable="<%= false %>"
-							label="<%= true %>"
-						/>
-					</liferay-ui:custom-attributes-available>
-
-					<%
-					AssetEntry wikiPageAssetEntry = AssetEntryLocalServiceUtil.fetchEntry(WikiPage.class.getName(), wikiPage.getPrimaryKey());
-					%>
-
-					<c:if test="<%= (wikiPageAssetEntry != null) && wikiPortletInstanceSettingsHelper.isEnableRelatedAssets() %>">
-						<div class="entry-links">
-							<liferay-ui:asset-links
-								assetEntryId="<%= wikiPageAssetEntry.getEntryId() %>"
+						<div class="lfr-asset-categories">
+							<liferay-ui:asset-categories-summary
+								className="<%= WikiPage.class.getName() %>"
+								classPK="<%= wikiPage.getResourcePrimKey() %>"
+								message="categories"
 							/>
 						</div>
-					</c:if>
-				</c:when>
-				<c:when test="<%= wikiPageInfoPanelDisplayContext.isMultiplePageSelection() %>">
-					<h5><liferay-ui:message arguments="<%= wikiPageInfoPanelDisplayContext.getSelectedPagesCount() %>" key="x-items-are-selected" /></h5>
-				</c:when>
-				<c:otherwise>
-					<h5><liferay-ui:message key="num-of-items" /></h5>
 
-					<p>
-						<%= wikiPageInfoPanelDisplayContext.getPagesCount() %>
-					</p>
-				</c:otherwise>
-			</c:choose>
+						<div class="lfr-asset-tags">
+							<liferay-ui:asset-tags-summary
+								className="<%= WikiPage.class.getName() %>"
+								classPK="<%= wikiPage.getResourcePrimKey() %>"
+								message="tags"
+							/>
+						</div>
+
+						<c:if test="<%= wikiPortletInstanceSettingsHelper.isEnablePageRatings() %>">
+							<liferay-ui:ratings
+								className="<%= WikiPage.class.getName() %>"
+								classPK="<%= wikiPage.getResourcePrimKey() %>"
+							/>
+						</c:if>
+
+						<liferay-ui:custom-attributes-available className="<%= WikiPage.class.getName() %>">
+							<liferay-ui:custom-attribute-list
+								className="<%= WikiPage.class.getName() %>"
+								classPK="<%= wikiPage.getResourcePrimKey() %>"
+								editable="<%= false %>"
+								label="<%= true %>"
+							/>
+						</liferay-ui:custom-attributes-available>
+
+						<%
+						AssetEntry wikiPageAssetEntry = AssetEntryLocalServiceUtil.fetchEntry(WikiPage.class.getName(), wikiPage.getPrimaryKey());
+						%>
+
+						<c:if test="<%= (wikiPageAssetEntry != null) && wikiPortletInstanceSettingsHelper.isEnableRelatedAssets() %>">
+							<div class="entry-links">
+								<liferay-ui:asset-links
+									assetEntryId="<%= wikiPageAssetEntry.getEntryId() %>"
+								/>
+							</div>
+						</c:if>
+					</c:when>
+					<c:when test="<%= wikiPageInfoPanelDisplayContext.isMultiplePageSelection() %>">
+						<dt class="h5"><liferay-ui:message arguments="<%= wikiPageInfoPanelDisplayContext.getSelectedPagesCount() %>" key="x-items-are-selected" /></dt>
+					</c:when>
+					<c:otherwise>
+						<dt class="h5"><liferay-ui:message key="num-of-items" /></dt>
+
+						<dd>
+							<%= wikiPageInfoPanelDisplayContext.getPagesCount() %>
+						</dd>
+					</c:otherwise>
+				</c:choose>
+			</dl>
 		</div>
 	</liferay-ui:section>
 
@@ -216,11 +212,16 @@ if (wikiPageInfoPanelDisplayContext.isSinglePageSelection()) {
 							</li>
 						</ul>
 
-						<h4><liferay-ui:message arguments="<%= curPage.getVersion() %>" key="version-x" /></h4>
-
-						<small class="text-muted">
-							<liferay-ui:message arguments="<%= new Object[] {curPage.getUserName(), dateFormatDateTime.format(curPage.getCreateDate())} %>" key="by-x-on-x" />
-						</small>
+						<dl>
+							<dt class="h5">
+								<h4><liferay-ui:message arguments="<%= curPage.getVersion() %>" key="version-x" /></h4>
+							</dt>
+							<dd>
+								<small class="text-muted">
+									<liferay-ui:message arguments="<%= new Object[] {curPage.getUserName(), dateFormatDateTime.format(curPage.getCreateDate())} %>" key="by-x-on-x" />
+								</small>
+							</dd>
+						</dl>
 					</div>
 
 				<%
@@ -260,11 +261,16 @@ if (wikiPageInfoPanelDisplayContext.isSinglePageSelection()) {
 						</div>
 					</c:if>
 
-					<h4><%= wikiSocialActivityHelper.getSocialActivityDescription(wikiPage, socialActivity, extraDataJSONObject, resourceBundle) %></h4>
-
-					<small type="text-muted">
-						<%= dateFormatDateTime.format(socialActivity.getCreateDate()) %>
-					</small>
+					<dl>
+						<dt class="h5">
+							<h4><%= wikiSocialActivityHelper.getSocialActivityDescription(wikiPage, socialActivity, extraDataJSONObject, resourceBundle) %></h4>
+						</dt>
+						<dd>
+							<small class="text-muted">
+								<%= dateFormatDateTime.format(socialActivity.getCreateDate()) %>
+							</small>
+						</dd>
+					</dl>
 
 				<%
 				}

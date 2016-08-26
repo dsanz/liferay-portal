@@ -86,14 +86,17 @@
 		}
 
 		&.drop-enabled .image-wrapper {
-			height : 100px;
+			height: 0;
 		}
 
 		.image-wrapper {
-			height : 400px;
+			height: 400px;
 			overflow: hidden;
-			position: relative;
 			width: 100%;
+
+			@include respond-to(phone) {
+				height: 150px;
+			}
 		}
 	}
 
@@ -114,14 +117,7 @@
 	}
 
 	.browse-image-controls {
-		left: 0;
 		padding: 10px;
-		position: absolute;
-		right: 0;
-		top: 50%;
-
-		@include transform(translate(0, -50%));
-
 		width: 100%;
 		z-index: 1;
 

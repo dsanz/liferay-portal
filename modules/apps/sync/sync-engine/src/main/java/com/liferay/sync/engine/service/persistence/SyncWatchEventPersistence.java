@@ -117,8 +117,8 @@ public class SyncWatchEventPersistence
 
 		QueryBuilder<SyncWatchEvent, Long> queryBuilder = queryBuilder();
 
-		queryBuilder.orderBy("fileType", false);
 		queryBuilder.orderBy(orderByColumn, ascending);
+		queryBuilder.orderBy("fileType", false);
 
 		Where<SyncWatchEvent, Long> where = queryBuilder.where();
 

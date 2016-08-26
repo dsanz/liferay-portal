@@ -14,7 +14,7 @@
 
 package com.liferay.gradle.plugins;
 
-import com.liferay.gradle.plugins.util.GradleUtil;
+import com.liferay.gradle.plugins.internal.util.GradleUtil;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
@@ -23,7 +23,7 @@ import org.gradle.api.Project;
 /**
  * @author Andrea Di Giorgi
  */
-public abstract class BaseDefaultsPlugin<T extends Plugin<Project>>
+public abstract class BaseDefaultsPlugin<T extends Plugin<? extends Project>>
 	implements Plugin<Project> {
 
 	@Override

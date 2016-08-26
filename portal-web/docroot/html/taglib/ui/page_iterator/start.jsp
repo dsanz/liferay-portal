@@ -17,6 +17,8 @@
 <%@ include file="/html/taglib/init.jsp" %>
 
 <%
+String randomNamespace = StringUtil.randomId() + StringPool.UNDERLINE;
+
 String formName = namespace + request.getAttribute("liferay-ui:page-iterator:formName");
 int cur = GetterUtil.getInteger((String)request.getAttribute("liferay-ui:page-iterator:cur"));
 String curParam = (String)request.getAttribute("liferay-ui:page-iterator:curParam");
@@ -81,7 +83,8 @@ if (forcePost && (portletURL != null)) {
 	url = url.split(namespace)[0];
 %>
 
-	<form action="<%= url %>" id="<%= namespace %>pageIteratorFm" method="post" name="<%= namespace %>pageIteratorFm">
+	<form action="<%= url %>" id="<%= randomNamespace + namespace %>pageIteratorFm" method="post" name="<%= randomNamespace + namespace %>pageIteratorFm">
+		<aui:input name="<%= curParam %>" type="hidden" />
 		<liferay-portlet:renderURLParams portletURL="<%= portletURL %>" />
 	</form>
 
@@ -225,6 +228,7 @@ if (forcePost && (portletURL != null)) {
 							</c:otherwise>
 						</c:choose>
 					</div>
+
 					<div class="lfr-pagination-delta-selector">
 						<c:choose>
 							<c:when test="<%= !deltaConfigurable || themeDisplay.isFacebook() %>">
@@ -283,7 +287,6 @@ if (forcePost && (portletURL != null)) {
 					<liferay-ui:message key="previous" />
 				</a>
 			</li>
-
 			<li class="<%= (cur != pages) ? "" : "disabled" %>">
 				<a href="<%= (cur != pages) ? _getHREF(formName, namespace + curParam, cur + 1, jsCall, url, urlAnchor) : "javascript:;" %>" onclick="<%= (cur != pages && forcePost) ? "event.preventDefault(); " + namespace + "submitForm('" + namespace + curParam + "'," + (cur + 1) + ");" : "" %>" tabIndex="<%= (cur != pages) ? "0" : "-1" %>" target="<%= target %>">
 					<c:choose>
@@ -314,7 +317,7 @@ if (forcePost && (portletURL != null)) {
 
 <aui:script>
 	function <portlet:namespace />submitForm(curParam, cur) {
-		var form = AUI.$(document.<portlet:namespace />pageIteratorFm);
+		var form = AUI.$(document.<%= randomNamespace + namespace %>pageIteratorFm);
 
 		form.fm(curParam).val(cur);
 

@@ -157,7 +157,7 @@ public class ClassLoaderTest {
 
 	@Test
 	public void testGet11() throws Exception {
-		PortalRuntimePermission.checkGetClassLoader("flash-portlet");
+		PortalRuntimePermission.checkGetClassLoader("pacl-1-test-portlet");
 	}
 
 	@Test
@@ -196,7 +196,7 @@ public class ClassLoaderTest {
 	@Test
 	public void testGet15() throws Exception {
 		try {
-			PortletClassLoaderUtil.getClassLoader("1_WAR_chatportlet");
+			PortletClassLoaderUtil.getClassLoader("2_WAR_pacl_testportlet");
 
 			Assert.fail();
 		}
@@ -206,13 +206,13 @@ public class ClassLoaderTest {
 
 	@Test
 	public void testGet16() throws Exception {
-		PortletClassLoaderUtil.getClassLoader("1_WAR_flashportlet");
+		PortletClassLoaderUtil.getClassLoader("1_WAR_pacl_testportlet");
 	}
 
 	@Test
 	public void testGet17() throws Exception {
 		try {
-			PortletClassLoaderUtil.getClassLoader("chat-portlet");
+			PortletClassLoaderUtil.getClassLoader("pacl-2-test-portlet");
 
 			Assert.fail();
 		}
@@ -222,7 +222,13 @@ public class ClassLoaderTest {
 
 	@Test
 	public void testGet18() throws Exception {
-		PortletClassLoaderUtil.getClassLoader("flash-portlet");
+		try {
+			PortletClassLoaderUtil.getClassLoader("pacl-1-test-portlet");
+
+			Assert.fail();
+		}
+		catch (SecurityException se) {
+		}
 	}
 
 	@Test

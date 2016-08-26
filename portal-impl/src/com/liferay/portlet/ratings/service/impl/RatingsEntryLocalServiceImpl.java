@@ -15,16 +15,17 @@
 package com.liferay.portlet.ratings.service.impl;
 
 import com.liferay.asset.kernel.model.AssetEntry;
-import com.liferay.blogs.kernel.model.BlogsEntry;
-import com.liferay.blogs.kernel.model.BlogsStatsUser;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portlet.ratings.service.base.RatingsEntryLocalServiceBaseImpl;
 import com.liferay.ratings.kernel.exception.EntryScoreException;
 import com.liferay.ratings.kernel.model.RatingsEntry;
@@ -88,6 +89,10 @@ public class RatingsEntryLocalServiceImpl
 		stats.setAverageScore(averageScore);
 
 		ratingsStatsPersistence.update(stats);
+
+		// Indexer
+
+		reindex(stats);
 	}
 
 	@Override
@@ -151,8 +156,6 @@ public class RatingsEntryLocalServiceImpl
 
 		// Entry
 
-		boolean newEntry = false;
-
 		long classNameId = classNameLocalService.getClassNameId(className);
 		double oldScore = 0;
 
@@ -178,10 +181,12 @@ public class RatingsEntryLocalServiceImpl
 				stats.getTotalScore() / stats.getTotalEntries());
 
 			ratingsStatsPersistence.update(stats);
+
+			// Indexer
+
+			reindex(stats);
 		}
 		else {
-			newEntry = true;
-
 			User user = userPersistence.findByPrimaryKey(userId);
 
 			long entryId = counterLocalService.increment();
@@ -208,38 +213,10 @@ public class RatingsEntryLocalServiceImpl
 				stats.getTotalScore() / stats.getTotalEntries());
 
 			ratingsStatsPersistence.update(stats);
-		}
 
-		// Blogs entry
+			// Indexer
 
-		if (className.equals(BlogsEntry.class.getName())) {
-			BlogsEntry blogsEntry = blogsEntryPersistence.findByPrimaryKey(
-				classPK);
-
-			BlogsStatsUser blogsStatsUser =
-				blogsStatsUserLocalService.getStatsUser(
-					blogsEntry.getGroupId(), blogsEntry.getUserId());
-
-			int ratingsTotalEntries = blogsStatsUser.getRatingsTotalEntries();
-			double ratingsTotalScore = blogsStatsUser.getRatingsTotalScore();
-			double ratingsAverageScore =
-				blogsStatsUser.getRatingsAverageScore();
-
-			if (newEntry) {
-				ratingsTotalEntries++;
-				ratingsTotalScore += score;
-			}
-			else {
-				ratingsTotalScore = ratingsTotalScore - oldScore + score;
-			}
-
-			ratingsAverageScore = ratingsTotalScore / ratingsTotalEntries;
-
-			blogsStatsUser.setRatingsTotalEntries(ratingsTotalEntries);
-			blogsStatsUser.setRatingsTotalScore(ratingsTotalScore);
-			blogsStatsUser.setRatingsAverageScore(ratingsAverageScore);
-
-			blogsStatsUserPersistence.update(blogsStatsUser);
+			reindex(stats);
 		}
 
 		// Social
@@ -258,6 +235,14 @@ public class RatingsEntryLocalServiceImpl
 		}
 
 		return entry;
+	}
+
+	protected void reindex(RatingsStats stats) throws PortalException {
+		String className = PortalUtil.getClassName(stats.getClassNameId());
+
+		Indexer<?> indexer = IndexerRegistryUtil.nullSafeGetIndexer(className);
+
+		indexer.reindex(className, stats.getClassPK());
 	}
 
 	protected void validate(double score) throws PortalException {

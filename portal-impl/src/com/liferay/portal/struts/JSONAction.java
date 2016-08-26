@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.access.control.AccessControlUtil;
 import com.liferay.portal.kernel.security.auth.AuthTokenUtil;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.util.ClassUtil;
@@ -86,6 +87,14 @@ public abstract class JSONAction extends Action {
 
 				json = sb.toString();
 			}
+		}
+		catch (PrincipalException pe) {
+			_log.error(pe.getMessage());
+
+			PortalUtil.sendError(
+				HttpServletResponse.SC_FORBIDDEN, pe, request, response);
+
+			return null;
 		}
 		catch (SecurityException se) {
 			if (_log.isWarnEnabled()) {

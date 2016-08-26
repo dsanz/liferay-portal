@@ -197,6 +197,15 @@ AUI.add(
 						}
 					).render();
 
+					Liferay.once(
+						'beforeScreenFlip',
+						function() {
+							overlay.destroy();
+
+							instance._overlay = null;
+						}
+					);
+
 					instance._overlay = overlay;
 				}
 				else {
@@ -552,7 +561,6 @@ AUI.add(
 
 					MAP_LIVE_SEARCH[id] = liveSearch;
 				}
-
 			},
 			['liferay-menu-filter'],
 			true

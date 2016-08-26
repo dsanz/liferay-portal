@@ -120,6 +120,18 @@ int nodesCount = WikiNodeServiceUtil.getNodesCount(scopeGroupId);
 	</liferay-frontend:sidebar-panel>
 
 	<div class="sidenav-content">
+
+		<%
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "wiki"), portletURL.toString());
+		%>
+
+		<liferay-ui:breadcrumb
+			showCurrentGroup="<%= false %>"
+			showGuestGroup="<%= false %>"
+			showLayout="<%= false %>"
+			showParentGroups="<%= false %>"
+		/>
+
 		<liferay-trash:undo
 			portletURL="<%= restoreTrashEntriesURL %>"
 		/>
@@ -173,6 +185,17 @@ int nodesCount = WikiNodeServiceUtil.getNodesCount(scopeGroupId);
 							/>
 
 							<liferay-ui:search-container-column-text colspan="<%= 2 %>">
+
+								<%
+								Date lastPostDate = node.getLastPostDate();
+								%>
+
+								<c:if test="<%= lastPostDate != null %>">
+									<h5 class="text-default">
+										<liferay-ui:message arguments="<%= new String[] {LanguageUtil.getTimeDescription(request, System.currentTimeMillis() - lastPostDate.getTime(), true)} %>" key="last-post-x-ago" />
+									</h5>
+								</c:if>
+
 								<h4>
 									<aui:a href="<%= rowURL.toString() %>">
 										<%= HtmlUtil.escape(node.getName()) %>
@@ -190,27 +213,23 @@ int nodesCount = WikiNodeServiceUtil.getNodesCount(scopeGroupId);
 						</c:when>
 						<c:otherwise>
 							<liferay-ui:search-container-column-text
-								cssClass="content-column title-column"
+								cssClass="table-cell-content"
 								href="<%= rowURL %>"
 								name="wiki"
-								truncate="<%= true %>"
 								value="<%= HtmlUtil.escape(node.getName()) %>"
 							/>
 
 							<liferay-ui:search-container-column-text
-								cssClass="num-of-pages-column"
 								name="num-of-pages"
 								value="<%= String.valueOf(WikiPageServiceUtil.getPagesCount(scopeGroupId, node.getNodeId(), true)) %>"
 							/>
 
 							<liferay-ui:search-container-column-text
-								cssClass="last-post-date-column text-column"
 								name="last-post-date"
 								value='<%= (node.getLastPostDate() == null) ? LanguageUtil.get(request, "never") : dateFormatDateTime.format(node.getLastPostDate()) %>'
 							/>
 
 							<liferay-ui:search-container-column-jsp
-								cssClass="entry-action-column"
 								path="/wiki/node_action.jsp"
 							/>
 						</c:otherwise>

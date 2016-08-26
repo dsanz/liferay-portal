@@ -173,7 +173,6 @@ if (portletTitleBasedNavigation) {
 									<liferay-ui:message key="version" />
 								</span>
 							</dt>
-
 							<dd>
 								<%= HtmlUtil.escape(fileVersion.getVersion()) %>
 							</dd>
@@ -182,25 +181,20 @@ if (portletTitleBasedNavigation) {
 						<dt class="h5">
 							<liferay-ui:message key="status" />
 						</dt>
-
 						<dd>
 							<aui:model-context bean="<%= fileVersion %>" model="<%= DLFileVersion.class %>" />
 
 							<aui:workflow-status model="<%= DLFileEntry.class %>" showIcon="<%= false %>" showLabel="<%= false %>" status="<%= fileVersion.getStatus() %>" />
 						</dd>
-
 						<dt class="h5">
 							<liferay-ui:message key="created" />
 						</dt>
-
 						<dd>
 							<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(fileVersion.getUserName()), dateFormatDateTime.format(fileVersion.getCreateDate())} %>" key="by-x-on-x" translateArguments="<%= false %>" />
 						</dd>
-
 						<dt class="h5">
 							<liferay-ui:message key="modified" />
 						</dt>
-
 						<dd>
 							<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(fileVersion.getStatusByUserName()), dateFormatDateTime.format(fileVersion.getModifiedDate())} %>" key="by-x-on-x" translateArguments="<%= false %>" />
 						</dd>
@@ -209,7 +203,6 @@ if (portletTitleBasedNavigation) {
 							<dt class="h5">
 								<liferay-ui:message key="description" />
 							</dt>
-
 							<dd>
 								<%= HtmlUtil.escape(fileEntry.getDescription()) %>
 							</dd>
@@ -225,7 +218,6 @@ if (portletTitleBasedNavigation) {
 								url="<%= DLUtil.getDownloadURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK) %>"
 							/>
 						</span>
-
 						<span class="conversions">
 
 							<%
@@ -246,13 +238,11 @@ if (portletTitleBasedNavigation) {
 							%>
 
 						</span>
-
 						<span class="webdav-url">
 							<c:choose>
 								<c:when test="<%= portletDisplay.isWebDAVEnabled() && fileEntry.isSupportsSocial() %>">
 									<liferay-ui:message key="get-url-or-webdav-url" />
 								</c:when>
-
 								<c:otherwise>
 									<liferay-ui:message key="get-url" />
 								</c:otherwise>
@@ -270,10 +260,10 @@ if (portletTitleBasedNavigation) {
 								String webDavHelpMessage = null;
 
 								if (BrowserSnifferUtil.isWindows(request)) {
-									webDavHelpMessage = LanguageUtil.format(resourceBundle, "webdav-windows-help", new Object[] {"http://www.microsoft.com/downloads/details.aspx?FamilyId=17C36612-632E-4C04-9382-987622ED1D64", "http://www.liferay.com/web/guest/community/wiki/-/wiki/Main/WebDAV"}, false);
+									webDavHelpMessage = LanguageUtil.format(resourceBundle, "webdav-windows-help", new Object[] {"https://support.microsoft.com/en-us/kb/892211", "https://dev.liferay.com/discover/portal/-/knowledge_base/7-0/publishing-files#desktop-access-to-documents-and-media"}, false);
 								}
 								else {
-									webDavHelpMessage = LanguageUtil.format(resourceBundle, "webdav-help", "http://www.liferay.com/web/guest/community/wiki/-/wiki/Main/WebDAV", false);
+									webDavHelpMessage = LanguageUtil.format(resourceBundle, "webdav-help", "https://dev.liferay.com/discover/portal/-/knowledge_base/7-0/publishing-files#desktop-access-to-documents-and-media", false);
 								}
 								%>
 
@@ -454,7 +444,6 @@ if (portletTitleBasedNavigation) {
 							<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="thumbnail" />" class="thumbnail" src="<%= thumbnailSrc %>" style="<%= DLUtil.getThumbnailStyle(true, 0, 128, 128) %>" />
 						</c:if>
 					</span>
-
 					<span class="user-date">
 
 						<%

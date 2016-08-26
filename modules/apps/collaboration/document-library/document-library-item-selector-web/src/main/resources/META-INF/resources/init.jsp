@@ -19,14 +19,13 @@
 <%@ taglib uri="http://liferay.com/tld/item-selector" prefix="liferay-item-selector" %><%@
 taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %>
 
-<%@ page import="com.liferay.document.library.item.selector.web.DLItemSelectorView" %><%@
-page import="com.liferay.document.library.item.selector.web.display.context.DLItemSelectorViewDisplayContext" %><%@
+<%@ page import="com.liferay.document.library.item.selector.web.internal.DLItemSelectorView" %><%@
+page import="com.liferay.document.library.item.selector.web.internal.display.context.DLItemSelectorViewDisplayContext" %><%@
 page import="com.liferay.document.library.kernel.model.DLFileEntryConstants" %><%@
 page import="com.liferay.document.library.kernel.model.DLFileShortcutConstants" %><%@
 page import="com.liferay.document.library.kernel.model.DLFolderConstants" %><%@
 page import="com.liferay.document.library.kernel.service.DLAppServiceUtil" %><%@
 page import="com.liferay.document.library.kernel.util.DLUtil" %><%@
-page import="com.liferay.item.selector.ItemSelectorCriterion" %><%@
 page import="com.liferay.portal.kernel.dao.search.SearchContainer" %><%@
 page import="com.liferay.portal.kernel.dao.search.SearchPaginationUtil" %><%@
 page import="com.liferay.portal.kernel.language.LanguageUtil" %><%@

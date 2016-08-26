@@ -1,11 +1,54 @@
+import com.liferay.gradle.plugins.node.tasks.DownloadNodeTask
+import com.liferay.gradle.plugins.node.tasks.ExecuteNodeTask
+import com.liferay.gradle.plugins.node.tasks.ExecuteNpmTask
 import com.liferay.gradle.util.FileUtil
 import com.liferay.gradle.util.GradleUtil
+
+import java.util.concurrent.ConcurrentSkipListSet
 
 buildscript {
 	apply from: rootProject.file("build-buildscript.gradle"), to: buildscript
 }
 
+Set<File> bndPrintJarFiles = null
+
+if (Boolean.getBoolean("build.bnd.print.enabled") && System.getenv("JENKINS_HOME")) {
+	configurations {
+		bnd
+	}
+
+	dependencies {
+		bnd group: "biz.aQute.bnd", name: "biz.aQute.bnd", version: "3.2.0"
+	}
+
+	repositories {
+		maven {
+			url System.properties["repository.url"] ?: "https://cdn.lfrs.sl/repository.liferay.com/nexus/content/groups/public"
+		}
+	}
+
+	bndPrintJarFiles = new ConcurrentSkipListSet<File>()
+}
+
 buildDir = new File(rootDir.parentFile, "build")
+
+for (String gradleVersion in ["2.5", "2.14"]) {
+	String gradleDistributionURL = "https://services.gradle.org/distributions/gradle-${gradleVersion}-bin.zip"
+	String suffix = gradleVersion.replace('.', '')
+
+	tasks.create(name: "extractGradleApi${suffix}", type: Copy) {
+		description = "Extracts the Gradle ${gradleVersion} JAR files into a temporary directory."
+
+		from {
+			zipTree(FileUtil.get(project, gradleDistributionURL))
+		}
+
+		include "gradle-${gradleVersion}/lib/**/*.jar"
+
+		includeEmptyDirs = false
+		into buildDir
+	}
+}
 
 gradle.beforeProject {
 	Project project ->
@@ -31,8 +74,6 @@ gradle.beforeProject {
 		}
 
 		pluginManager.withPlugin("com.liferay.osgi.plugin") {
-			apply plugin: "pmd"
-
 			afterEvaluate {
 				bundle.jarBuilderFactory.contextClassLoader = buildscript.classLoader
 
@@ -48,13 +89,7 @@ gradle.beforeProject {
 			}
 
 			dependencies {
-				pmd group: "com.liferay", name: "com.liferay.pmd", version: "1.0.1"
 				xmltask rootProject.files("../lib/development/xmltask.jar")
-			}
-
-			pmd {
-				ruleSetFiles = rootProject.files("../tools/sdk/dependencies/net.sourceforge.pmd/rulesets/java/standard-rules.xml")
-				ruleSets = []
 			}
 
 			testIntegration {
@@ -83,8 +118,12 @@ gradle.beforeProject {
 				}
 			}
 
-			tasks.withType(Pmd) {
-				classpath = null
+			if (bndPrintJarFiles != null) {
+				jar {
+					doLast {
+						bndPrintJarFiles << archivePath
+					}
+				}
 			}
 
 			if (gradle.hasProperty("testClassGroupIndex")) {
@@ -108,12 +147,45 @@ gradle.beforeProject {
 		}
 
 		if (System.getenv("JENKINS_HOME")) {
-			pluginManager.withPlugin("com.liferay.node") {
-				downloadNode {
-					doFirst {
+			pluginManager.withPlugin("com.liferay.theme.plugin") {
+				npmInstall {
+					nodeModulesCacheDir = new File(System.properties["user.home"], ".liferay/node-modules-cache")
+					removeShrinkwrappedUrls = true
+				}
+			}
+
+			tasks.withType(DownloadNodeTask) {
+				doFirst {
+					if (plugins.hasPlugin("com.liferay.cache")) {
 						throw new GradleException("Unable to use Node.js on CI, please configure com.liferay.cache or update the cache")
 					}
 				}
+			}
+
+			tasks.withType(ExecuteNodeTask) {
+				npmInstallRetries = 3
+			}
+
+			String ciRegistry = project.properties["nodejs.npm.ci.registry"]
+
+			if (ciRegistry) {
+				tasks.withType(ExecuteNpmTask) {
+					registry = ciRegistry
+				}
+			}
+		}
+	}
+}
+
+if (bndPrintJarFiles != null) {
+	gradle.buildFinished {
+		bndPrintJarFiles.each {
+			File jarFile ->
+
+			javaexec {
+				args "print", jarFile
+				classpath = configurations.bnd
+				main = "aQute.bnd.main.bnd"
 			}
 		}
 	}

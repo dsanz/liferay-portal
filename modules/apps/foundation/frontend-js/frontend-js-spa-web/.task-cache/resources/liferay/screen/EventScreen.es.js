@@ -1,4 +1,4 @@
-define("frontend-js-spa-web@1.0.7/liferay/screen/EventScreen.es", ['exports', 'senna/src/screen/HtmlScreen', 'senna/src/globals/globals', 'metal-promise/src/promise/Promise', '../util/Utils.es'], function (exports, _HtmlScreen2, _globals, _Promise, _Utils) {
+define("frontend-js-spa-web@1.0.11/liferay/screen/EventScreen.es", ['exports', 'senna/src/screen/HtmlScreen', 'senna/src/globals/globals', 'metal-promise/src/promise/Promise', '../util/Utils.es'], function (exports, _HtmlScreen2, _globals, _Promise, _Utils) {
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
@@ -56,7 +56,6 @@ define("frontend-js-spa-web@1.0.7/liferay/screen/EventScreen.es", ['exports', 's
 			var _this = _possibleConstructorReturn(this, _HtmlScreen.call(this));
 
 			_this.cacheable = false;
-			_this.timeout = Liferay.PropsValues.JAVASCRIPT_SINGLE_PAGE_APPLICATION_TIMEOUT;
 			return _this;
 		}
 

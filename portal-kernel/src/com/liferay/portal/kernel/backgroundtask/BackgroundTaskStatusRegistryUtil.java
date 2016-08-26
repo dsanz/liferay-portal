@@ -25,12 +25,36 @@ public class BackgroundTaskStatusRegistryUtil {
 	public static BackgroundTaskStatus getBackgroundTaskStatus(
 		long backgroundTaskId) {
 
-		return getBackgroundTaskStatusRegistry().getBackgroundTaskStatus(
+		return _getBackgroundTaskStatusRegistry().getBackgroundTaskStatus(
 			backgroundTaskId);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #_getBackgroundTaskStatusRegistry()}
+	 */
+	@Deprecated
 	public static BackgroundTaskStatusRegistry
 		getBackgroundTaskStatusRegistry() {
+
+		return _getBackgroundTaskStatusRegistry();
+	}
+
+	public static BackgroundTaskStatus registerBackgroundTaskStatus(
+		long backgroundTaskId) {
+
+		return _getBackgroundTaskStatusRegistry().registerBackgroundTaskStatus(
+			backgroundTaskId);
+	}
+
+	public static BackgroundTaskStatus unregisterBackgroundTaskStatus(
+		long backgroundTaskId) {
+
+		return _getBackgroundTaskStatusRegistry().
+			unregisterBackgroundTaskStatus(backgroundTaskId);
+	}
+
+	private static BackgroundTaskStatusRegistry
+		_getBackgroundTaskStatusRegistry() {
 
 		PortalRuntimePermission.checkGetBeanProperty(
 			BackgroundTaskStatusRegistryUtil.class);
@@ -38,22 +62,10 @@ public class BackgroundTaskStatusRegistryUtil {
 		return _backgroundTaskStatusRegistry;
 	}
 
-	public static BackgroundTaskStatus registerBackgroundTaskStatus(
-		long backgroundTaskId) {
-
-		return getBackgroundTaskStatusRegistry().registerBackgroundTaskStatus(
-			backgroundTaskId);
-	}
-
-	public static BackgroundTaskStatus unregisterBackgroundTaskStatus(
-		long backgroundTaskId) {
-
-		return getBackgroundTaskStatusRegistry().unregisterBackgroundTaskStatus(
-			backgroundTaskId);
-	}
-
-	private static final BackgroundTaskStatusRegistry
+	private static volatile BackgroundTaskStatusRegistry
 		_backgroundTaskStatusRegistry = ProxyFactory.newServiceTrackedInstance(
-			BackgroundTaskStatusRegistry.class);
+			BackgroundTaskStatusRegistry.class,
+			BackgroundTaskStatusRegistryUtil.class,
+			"_backgroundTaskStatusRegistry");
 
 }

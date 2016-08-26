@@ -21,16 +21,17 @@ import com.liferay.dynamic.data.mapping.service.DDMStorageLinkLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLinkLocalService;
 import com.liferay.dynamic.data.mapping.util.DefaultDDMStructureHelper;
-import com.liferay.journal.upgrade.v0_0_2.UpgradeClassNames;
-import com.liferay.journal.upgrade.v0_0_3.UpgradeJournalArticleType;
-import com.liferay.journal.upgrade.v0_0_4.UpgradeSchema;
-import com.liferay.journal.upgrade.v0_0_5.UpgradeCompanyId;
-import com.liferay.journal.upgrade.v0_0_5.UpgradeJournal;
-import com.liferay.journal.upgrade.v0_0_5.UpgradeJournalArticles;
-import com.liferay.journal.upgrade.v0_0_5.UpgradeJournalDisplayPreferences;
-import com.liferay.journal.upgrade.v0_0_5.UpgradeLastPublishDate;
-import com.liferay.journal.upgrade.v0_0_5.UpgradePortletSettings;
-import com.liferay.journal.upgrade.v1_0_0.UpgradeJournalArticleImage;
+import com.liferay.journal.internal.upgrade.v0_0_2.UpgradeClassNames;
+import com.liferay.journal.internal.upgrade.v0_0_3.UpgradeJournalArticleType;
+import com.liferay.journal.internal.upgrade.v0_0_4.UpgradeSchema;
+import com.liferay.journal.internal.upgrade.v0_0_5.UpgradeCompanyId;
+import com.liferay.journal.internal.upgrade.v0_0_5.UpgradeJournal;
+import com.liferay.journal.internal.upgrade.v0_0_5.UpgradeJournalArticles;
+import com.liferay.journal.internal.upgrade.v0_0_5.UpgradeJournalDisplayPreferences;
+import com.liferay.journal.internal.upgrade.v0_0_5.UpgradeLastPublishDate;
+import com.liferay.journal.internal.upgrade.v0_0_5.UpgradePortletSettings;
+import com.liferay.journal.internal.upgrade.v1_0_0.UpgradeJournalArticleImage;
+import com.liferay.journal.internal.upgrade.v1_1_0.UpgradeJournalArticleLocalizedValues;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.db.DBProcessContext;
@@ -80,9 +81,10 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 			new UpgradeCompanyId(),
 			new UpgradeJournal(
 				_companyLocalService, _ddmStorageLinkLocalService,
-				_ddmTemplateLinkLocalService, _defaultDDMStructureHelper,
-				_groupLocalService, _resourceActionLocalService,
-				_resourceActions, _userLocalService),
+				_ddmStructureLocalService, _ddmTemplateLinkLocalService,
+				_defaultDDMStructureHelper, _groupLocalService,
+				_resourceActionLocalService, _resourceActions,
+				_userLocalService),
 			new UpgradeJournalArticles(
 				_assetCategoryLocalService, _ddmStructureLocalService,
 				_groupLocalService, _layoutLocalService),
@@ -110,6 +112,10 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 		registry.register(
 			"com.liferay.journal.service", "0.0.5", "1.0.0",
 			new UpgradeJournalArticleImage());
+
+		registry.register(
+			"com.liferay.journal.service", "1.0.0", "1.1.0",
+			new UpgradeJournalArticleLocalizedValues());
 	}
 
 	protected void deleteTempImages() throws Exception {

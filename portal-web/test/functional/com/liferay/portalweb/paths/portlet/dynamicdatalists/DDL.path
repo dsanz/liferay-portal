@@ -47,7 +47,7 @@
 <!--RECORD_TABLE-->
 <tr>
 	<td>RECORD_TABLE_ENTRY</td>
-	<td>//tr/th[contains(.,'${key_fieldFieldLabel}')]/../../../tbody/tr/td[contains(.,'${key_ddlRecordFieldData}')]</td>
+	<td>//tr/th[contains(.,'${key_fieldFieldLabel}')]/../../../tbody/tr/td/a[.='${key_ddlRecordFieldData}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -135,7 +135,16 @@
 	<td>//img[@src='x']</td>
 	<td></td>
 </tr>
-
+<tr>
+	<td>RECORD_TABLE_WORKFLOW_STATUS</td>
+	<td>//tr/th[contains(.,'${key_fieldFieldLabel}')]/../../../tbody/tr[contains(.,'${key_workflowStatus}')]//strong[contains(.,'${key_workflowStatus}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RECORD_TABLE_DISPLAY_FIELD</td>
+	<td>//div[@class='ddl-record' and contains(.,'${key_ddlRecordFieldData}')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td></td>
 	<td></td>

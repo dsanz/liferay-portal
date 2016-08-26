@@ -4,6 +4,10 @@
 		<execute function="AssertTextEquals#assertPartialText" locator1="SitePagesEditPage#PAGE_TYPE_EMBEDDED_DESCRIPTION_FIELD" value1="Show content from another website." />
 	</command>
 
+	<command name="_addPageTypeFullPageApplication">
+		<execute function="Select" locator1="SitePagesEditPage#PAGE_TYPE_FULL_PAGE_APPLICATION_SELECT" value1="${portlet}" />
+	</command>
+
 	<command name="_addPageTypeLinkToURL">
 		<execute function="Type" locator1="SitePagesEditPage#PAGE_TYPE_LINK_TO_URL_URL_FIELD" value1="${pageTypeURL}" />
 		<execute function="AssertTextEquals#assertPartialText" locator1="SitePagesEditPage#PAGE_TYPE_LINK_TO_URL_DESCRIPTION_FIELD" value1="Link to another website." />
@@ -49,6 +53,16 @@
 				</then>
 			</elseif>
 			<elseif>
+				<equals arg1="${sitePageType}" arg2="Full Page Application" />
+				<then>
+					<execute function="Select" locator1="SitePagesEditPage#PAGE_TYPE_SELECT" value1="Full Page Application" />
+
+					<execute macro="Page#_addPageTypeFullPageApplication">
+						<var name="portlet" value="${portlet}" />
+					</execute>
+				</then>
+			</elseif>
+			<elseif>
 				<equals arg1="${sitePageType}" arg2="Empty Page" />
 				<then>
 					<var name="key_columnName" value="${columnName}" />
@@ -65,15 +79,9 @@
 		<if>
 			<isset var="siteName" />
 			<then>
-				<var name="key_rowEntry" value="${siteName}" />
-
-				<execute function="ClickNoError#waitForMenuToggleJSClick" locator1="Icon#ROW_VERTICAL_ELLIPSIS" />
-
-				<execute function="AssertClick" locator1="MenuItem#SITE_ADMINISTRATION" value1="Site Administration" />
-
-				<var name="key_portletTitle" value="Public Pages" />
-
-				<execute function="AssertTextEquals" locator1="Home#SITE_ADMINISTRATION_PORTLET_TITLE" value1="Public Pages" />
+				<execute macro="ProductMenu#gotoSite">
+					<var name="site" value="${siteName}" />
+				</execute>
 			</then>
 		</if>
 
@@ -109,6 +117,7 @@
 					<var name="componentName" value="${componentName}" />
 					<var name="pageTypeDescription" value="${pageTypeDescription}" />
 					<var name="pageTypeURL" value="${pageTypeURL}" />
+					<var name="portlet" value="${portlet}" />
 					<var name="sitePageType" value="${sitePageType}" />
 				</execute>
 			</then>
@@ -134,6 +143,11 @@
 	</command>
 
 	<command name="addChild">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<var name="key_siteName" value="${siteName}" />
 
 		<if>
@@ -143,8 +157,9 @@
 			<then>
 				<execute function="Type" locator1="NavBar#BASIC_SEARCH_FIELD" value1="${siteName}" />
 				<execute function="Click" locator1="Icon#BASIC_SEARCH" />
-				<execute function="Click#waitForMenuToggleJSClick" locator1="Sites#SITE_TABLE_ACTIONS" />
-				<execute function="AssertClick" locator1="MenuItem#SITE_ADMINISTRATION" value1="Site Administration" />
+				<execute function="AssertClick" locator1="ContentRow#ENTRY_CONTENT_ENTRY_NAME_LINK" value1="${siteName}">
+					<var name="key_rowEntry" value="${siteName}" />
+				</execute>
 			</then>
 		</if>
 
@@ -188,6 +203,29 @@
 		<execute function="AssertTextEquals" locator1="SitePages#JAVASCRIPT_LABEL" value1="Paste JavaScript code that is executed at the bottom of the page." />
 		<execute function="Type" locator1="SitePages#JAVASCRIPT_TEXTAREA" value1="${javaScript}" />
 		<execute macro="PortletEntry#save" />
+	</command>
+
+	<command name="addPageCategory">
+		<execute macro="Navigator#gotoTab">
+			<var name="tab" value="SEO" />
+		</execute>
+
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="SEO" />
+		</execute>
+
+		<var name="key_vocabularyName" value="${vocabularyName}" />
+
+		<execute function="Click" locator1="SitePagesEditPage#SELECT_CATEGORY_BUTTON" />
+
+		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
+
+		<execute function="Click" locator1="SitePagesEditPage#CATEGORY_TREE_NODE" />
+
+		<execute function="SelectFrame" value1="relative=top" />
+
+		<execute function="AssertClick" locator1="Button#DONE" value1="Done" />
+		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
 	</command>
 
 	<command name="addPageTitle">
@@ -298,6 +336,8 @@
 		<execute function="Click" locator1="SitePagesEditPage#COPY_APPLICATIONS_COPY_FROM_PAGE_SELECT" value1="${pageNameCopy}" />
 
 		<execute function="AssertClick" locator1="SitePagesEditPage#COPY_APPLICATIONS_COPY_BUTTON" value1="Copy" />
+
+		<var name="key_portletName" value="Blogs" />
 
 		<execute function="AssertTextNotPresent" locator1="Portlet#TITLE" value1="Blogs" />
 	</command>
@@ -483,6 +523,18 @@
 		</execute>
 	</command>
 
+	<command name="hideFromNavigationMenu">
+		<execute function="Check#checkToggleSwitch" locator1="Checkbox#HIDE_FROM_NAVIGATION_MENU" />
+
+		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
+	</command>
+
+	<command name="localizedPG">
+		<var name="key_pageLocale" value="${pageLocale}" />
+
+		<execute function="Click" locator1="Link#PAGE_LOCALE"  value1="${pageLocale}" />
+	</command>
+
 	<command name="openURLLocale">
 		<execute function="Open" locator1="${localizationPageURL}" />
 
@@ -637,14 +689,14 @@
 
 	<command name="viewFriendlyURLLanguageOptionsPG">
 		<for list="${currentLanguageList}" param="languageKey">
-			<execute function="AssertElementPresent" locator1="DockbarEditpanel#${languageKey}" />
+			<execute function="AssertElementPresent" locator1="SitePagesEditPage#${languageKey}" />
 		</for>
 
 		<if>
 			<equals arg1="${assertUnavailableLanguages}" arg2="true" />
 			<then>
 				<for list="${unavailableLanguageList}" param="languageKey">
-					<execute function="AssertElementNotPresent" locator1="DockbarEditpanel#${languageKey}" />
+					<execute function="AssertElementNotPresent" locator1="SitePagesEditPage#${languageKey}" />
 				</for>
 			</then>
 		</if>
@@ -695,6 +747,24 @@
 		<execute function="AssertElementNotPresent" locator1="Home#PAGE" value1="${pageName}" />
 	</command>
 
+	<command name="viewNoSelectCategory">
+		<execute macro="SitePageNavigator#gotoAddPage">
+			<var name="sitePagePrivacy" value="${sitePagePrivacy}" />
+		</execute>
+
+		<execute macro-mobile="MobileNavigator#clickRemoveIcon" />
+
+		<execute function="Type#typeClickAt" locator1="TextInput#NAME" value1="${pageName}" />
+
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Categorization" />
+		</execute>
+
+		<execute function="AssertElementNotPresent" locator1="AssetCategorization#CATEGORY_SELECT">
+			<var name="key_vocabularyName" value="${vocabularyName}" />
+		</execute>
+	</command>
+
 	<command name="viewOnlyAddOptionViaSiteAdmin">
 		<execute function="Click" locator1="ControlMenu#ADD" />
 
@@ -704,9 +774,17 @@
 		<execute function="Refresh" />
 	</command>
 
-	<command name="viewPageFriendURLPG">
-		<execute function="AssertTextNotPresent" locator1="SitePagesEditPage#FRIENDLY_URL_FIELD" value1="${pageName}" />
-		<execute function="AssertTextEquals" locator1="SitePagesEditPage#FRIENDLY_URL_FIELD" value1="/2" />
+	<command name="viewPageFriendlyURLPG">
+		<if>
+			<isset var="friendlyUrlLocalized" />
+			<then>
+				<var name="key_friendlyUrlLocalized" value="${friendlyUrlLocalized}" />
+
+				<execute function="Click" locator1="SitePagesEditPage#FRIENDLY_URL_LOCALIZED" />
+			</then>
+		</if>
+
+		<execute function="AssertTextEquals" locator1="SitePagesEditPage#FRIENDLY_URL_FIELD" value1="/${pageName}" />
 	</command>
 
 	<command name="viewPageLayout">
@@ -760,7 +838,7 @@
 	</command>
 
 	<command name="viewPageLockCheck">
-		<execute function="Click" locator1="Dockbar#PAGE_INFO_MESSAGE_ICON" />
+		<execute function="Click" locator1="ControlMenu#INFO" />
 
 		<execute function="AssertTextEquals#assertPartialText" locator1="Message#CUSTOMIZED_PAGE_INFO" value1="This page is linked to a site template which does not allow modifications to it." />
 	</command>
@@ -810,13 +888,13 @@
 	</command>
 
 	<command name="viewPageTemplateLockCheck">
-		<execute function="Click" locator1="Dockbar#PAGE_INFO_MESSAGE_ICON" />
+		<execute function="Click" locator1="ControlMenu#INFO" />
 
 		<execute function="AssertTextEquals#assertPartialText" locator1="Message#CUSTOMIZED_PAGE_INFO" value1="This page is linked to a page template. Disable the automatic propagation of changes to this page to be able to make modifications." />
 	</command>
 
 	<command name="viewPageTemplateNoLockCheck">
-		<execute function="AssertElementNotPresent" locator1="Dockbar#PAGE_INFO_MESSAGE_ICON" />
+		<execute function="AssertElementNotPresent" locator1="ControlMenu#INFO" />
 		<execute function="AssertElementNotPresent" locator1="Message#CUSTOMIZED_PAGE_INFO" />
 	</command>
 

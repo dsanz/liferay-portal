@@ -78,6 +78,10 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
+		<execute macro="Page#localizedPG">
+			<var name="pageLocale" value="Display the page in English (United States)" />
+		</execute>
+
 		<execute macro="Page#addChild">
 			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Home" />
@@ -265,7 +269,7 @@
 			<var name="portletName" value="Polls Display" />
 		</execute>
 
-		<execute function="AssertTextEquals" locator1="BasePortlet#INFO_MESSAGE" value1="Please sign in to vote." />
+		<execute function="AssertTextEquals" locator1="Message#INFO" value1="Please sign in to vote." />
 
 		<execute function="AssertElementPresent" locator1="Search#SEARCH_FIELD" />
 
@@ -306,8 +310,8 @@
 
 		<execute function="Open" locator1="${portalURL}/web/site-name/home" />
 
-		<execute function="AssertTextEquals" locator1="PGPollsdisplay#ERROR_MESSAGE_1_COLUMN_1" value1="You do not have the roles required to access this portlet." />
-		<execute function="AssertTextEquals" locator1="PGPollsdisplay#ERROR_MESSAGE_1_COLUMN_2" value1="You do not have the roles required to access this portlet." />
+		<execute function="AssertTextEquals" locator1="Message#ERROR_1_COLUMN_1" value1="You do not have the roles required to access this portlet." />
+		<execute function="AssertTextEquals" locator1="Message#ERROR_1_COLUMN_2" value1="You do not have the roles required to access this portlet." />
 	</command>
 
 	<command name="ViewDefaultGlobalScopeLandingPage" priority="4">

@@ -17,6 +17,8 @@
 <%@ include file="/html/taglib/init.jsp" %>
 
 <%
+String randomNamespace = StringUtil.randomId() + StringPool.UNDERLINE;
+
 String formName = namespace + request.getAttribute("liferay-ui:page-iterator:formName");
 int cur = GetterUtil.getInteger((String)request.getAttribute("liferay-ui:page-iterator:cur"));
 String curParam = (String)request.getAttribute("liferay-ui:page-iterator:curParam");
@@ -65,7 +67,8 @@ if (forcePost && (portletURL != null)) {
 	url = url.split(namespace)[0];
 %>
 
-	<form action="<%= url %>" id="<%= namespace %>pageIteratorFm" method="post" name="<%= namespace %>pageIteratorFm">
+	<form action="<%= url %>" id="<%= randomNamespace + namespace %>pageIteratorFm" method="post" name="<%= randomNamespace + namespace %>pageIteratorFm">
+		<aui:input name="<%= curParam %>" type="hidden" />
 		<liferay-portlet:renderURLParams portletURL="<%= portletURL %>" />
 	</form>
 
@@ -129,15 +132,12 @@ if (forcePost && (portletURL != null)) {
 					<li class="active">
 						<a href="<%= _getHREF(formName, namespace + curParam, 1, jsCall, url, urlAnchor) %>" onclick="<%= forcePost ? "event.preventDefault(); " + namespace + "submitForm('" + namespace + curParam + "'," + 1 + ");" : "" %>">1</a>
 					</li>
-
 					<li>
 						<a href="<%= _getHREF(formName, namespace + curParam, 2, jsCall, url, urlAnchor) %>" onclick="<%= forcePost ? "event.preventDefault(); " + namespace + "submitForm('" + namespace + curParam + "'," + 2 + ");" : "" %>">2</a>
 					</li>
-
 					<li>
 						<a href="<%= _getHREF(formName, namespace + curParam, 3, jsCall, url, urlAnchor) %>" onclick="<%= forcePost ? "event.preventDefault(); " + namespace + "submitForm('" + namespace + curParam + "'," + 3 + ");" : "" %>">3</a>
 					</li>
-
 					<li class="dropdown">
 						<a class="dropdown-toggle" data-toggle="dropdown" href="javascript:;">...</a>
 
@@ -159,7 +159,6 @@ if (forcePost && (portletURL != null)) {
 							</ul>
 						</div>
 					</li>
-
 					<li>
 						<a href="<%= _getHREF(formName, namespace + curParam, pages, jsCall, url, urlAnchor) %>" onclick="<%= forcePost ? "event.preventDefault(); " + namespace + "submitForm('" + namespace + curParam + "'," + pages + ");" : "" %>"><%= pages %></a>
 					</li>
@@ -168,7 +167,6 @@ if (forcePost && (portletURL != null)) {
 					<li>
 						<a href="<%= _getHREF(formName, namespace + curParam, 1, jsCall, url, urlAnchor) %>" onclick="<%= forcePost ? "event.preventDefault(); " + namespace + "submitForm('" + namespace + curParam + "'," + 1 + ");" : "" %>">1</a>
 					</li>
-
 					<li class="dropdown">
 						<a class="dropdown-toggle" data-toggle="dropdown" href="javascript:;">...</a>
 
@@ -190,15 +188,12 @@ if (forcePost && (portletURL != null)) {
 							</ul>
 						</div>
 					</li>
-
 					<li>
 						<a href="<%= _getHREF(formName, namespace + curParam, pages - 2, jsCall, url, urlAnchor) %>" onclick="<%= forcePost ? "event.preventDefault(); " + namespace + "submitForm('" + namespace + curParam + "'," + (pages - 2) + ");" : "" %>"><%= pages - 2 %></a>
 					</li>
-
 					<li>
 						<a href="<%= _getHREF(formName, namespace + curParam, pages - 1, jsCall, url, urlAnchor) %>" onclick="<%= forcePost ? "event.preventDefault(); " + namespace + "submitForm('" + namespace + curParam + "'," + (pages - 1) + ");" : "" %>"><%= pages - 1 %></a>
 					</li>
-
 					<li class="active">
 						<a href="<%= _getHREF(formName, namespace + curParam, pages, jsCall, url, urlAnchor) %>" onclick="<%= forcePost ? "event.preventDefault(); " + namespace + "submitForm('" + namespace + curParam + "'," + pages + ");" : "" %>"><%= pages %></a>
 					</li>
@@ -291,7 +286,7 @@ if (forcePost && (portletURL != null)) {
 
 <aui:script>
 	function <portlet:namespace />submitForm(curParam, cur) {
-		var form = AUI.$(document.<portlet:namespace />pageIteratorFm);
+		var form = AUI.$(document.<%= randomNamespace + namespace %>pageIteratorFm);
 
 		form.fm(curParam).val(cur);
 

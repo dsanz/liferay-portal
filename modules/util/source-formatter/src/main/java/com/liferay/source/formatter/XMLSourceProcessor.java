@@ -41,6 +41,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.maven.artifact.versioning.ComparableVersion;
+
 import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -249,8 +251,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		String projectName = rootElement.attributeValue("name");
 
 		if (!projectName.equals(expectedProjectName)) {
-			processErrorMessage(
-				fileName, fileName + " has an incorrect project name");
+			processMessage(fileName, "incorrect project name");
 		}
 	}
 
@@ -273,10 +274,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			File file = new File(importFileName);
 
 			if (!file.exists()) {
-				processErrorMessage(
-					fileName,
-					"Incorrect import file: " + fileName + " - " +
-						matcher.group(1));
+				processMessage(
+					fileName, "Incorrect import file: " + matcher.group(1));
 			}
 		}
 	}
@@ -287,9 +286,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		if (content.contains("/definition>") &&
 			!content.endsWith("/definition>")) {
 
-			processErrorMessage(
-				fileName,
-				"Characters found after definition element: " + fileName);
+			processMessage(
+				fileName, "Characters found after definition element");
 		}
 	}
 
@@ -297,9 +295,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		String fileName, String content) {
 
 		if (!content.startsWith("<definition")) {
-			processErrorMessage(
-				fileName,
-				"Characters found before definition element: " + fileName);
+			processMessage(
+				fileName, "Characters found before definition element");
 		}
 	}
 
@@ -321,9 +318,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		}
 
 		if (!targetNames.contains(targetName)) {
-			processErrorMessage(
-				fileName,
-				"Target '" + targetName + "' does not exist: " + fileName);
+			processMessage(
+				fileName, "Target '" + targetName + "' does not exist");
 		}
 	}
 
@@ -458,18 +454,24 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		else if (portalSource && fileName.endsWith("/struts-config.xml")) {
 			formatStrutsConfigXML(fileName, newContent);
 		}
+		else if (portalSource &&
+				 fileName.endsWith("/test-ignorable-error-lines.xml")) {
+
+			formatTestIgnorableErrorLinesXml(fileName, newContent);
+		}
 		else if (portalSource && fileName.endsWith("/tiles-defs.xml")) {
 			formatTilesDefsXML(fileName, newContent);
 		}
 		else if ((portalSource &&
-				  fileName.endsWith(
-					  "portal-web/docroot/WEB-INF/web.xml")) ||
+				  fileName.endsWith("portal-web/docroot/WEB-INF/web.xml")) ||
 				 (!portalSource && fileName.endsWith("/web.xml"))) {
 
 			newContent = formatWebXML(fileName, newContent);
 		}
 
 		newContent = sortAttributes(fileName, newContent);
+
+		newContent = fixEmptyLinesInNestedTags(newContent);
 
 		return formatXML(newContent);
 	}
@@ -667,15 +669,13 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		int y = content.indexOf("<process-ivy");
 
 		if ((y != -1) && (x > y)) {
-			processErrorMessage(
-				fileName, "macrodefs go before process-ivy: " + fileName);
+			processMessage(fileName, "macrodefs go before process-ivy");
 		}
 
 		int z = content.indexOf("</target>");
 
 		if ((z != -1) && (x > z)) {
-			processErrorMessage(
-				fileName, "macrodefs go before targets: " + fileName);
+			processMessage(fileName, "macrodefs go before targets");
 		}
 
 		checkImportFiles(fileName, newContent);
@@ -706,9 +706,9 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 		int z = content.indexOf(CharPool.QUOTE, y + 1);
 
-		processErrorMessage(
+		processMessage(
 			fileName,
-			"LPS-51315 Avoid using WHERE ... NOT IN: " + fileName + " " +
+			"LPS-51315 Avoid using WHERE ... NOT IN: " +
 				content.substring(y + 1, z));
 	}
 
@@ -772,7 +772,10 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 		StringBundler sb = new StringBundler(9);
 
-		String mainReleaseVersion = getMainReleaseVersion();
+		ComparableVersion mainReleaseComparableVersion =
+			getMainReleaseComparableVersion();
+
+		String mainReleaseVersion = mainReleaseComparableVersion.toString();
 
 		sb.append("<?xml version=\"1.0\"?>\n");
 		sb.append("<!DOCTYPE routes PUBLIC \"-//Liferay//DTD Friendly URL ");
@@ -823,6 +826,26 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			fileName, rootElement, "model", null, new ElementComparator());
 	}
 
+	protected void formatPortletPreferencesXML(String fileName, String content)
+		throws Exception {
+
+		Document document = readXML(content);
+
+		checkOrder(
+			fileName, document.getRootElement(), "preference", null,
+			new PortletPreferenceElementComparator());
+
+		Matcher matcher = _incorrectDefaultPreferencesFileName.matcher(
+			fileName);
+
+		if (matcher.find()) {
+			String correctFileName =
+				matcher.group(1) + "-default-portlet-preferences.xml";
+
+			processMessage(fileName, "Rename file to " + correctFileName);
+		}
+	}
+
 	protected String formatPortletXML(
 			String fileName, String absolutePath, String content)
 		throws Exception {
@@ -844,11 +867,9 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 				String portletNameText = portletNameElement.getText();
 
 				if (!Validator.isNumber(portletNameText)) {
-					processErrorMessage(
+					processMessage(
 						fileName,
-						fileName +
-							" contains a nonstandard portlet-name element " +
-								portletNameText);
+						"nonstandard portlet-name element " + portletNameText);
 				}
 			}
 
@@ -904,28 +925,6 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		content = fixPoshiXMLEndLines(content);
 
 		return fixPoshiXMLNumberOfTabs(content);
-	}
-
-	protected void formatPortletPreferencesXML(String fileName, String content)
-		throws Exception {
-
-		Document document = readXML(content);
-
-		checkOrder(
-			fileName, document.getRootElement(), "preference", null,
-			new PortletPreferenceElementComparator());
-
-		Matcher matcher = _incorrectDefaultPreferencesFileName.matcher(
-			fileName);
-
-		if (matcher.find()) {
-			String correctFileName =
-				matcher.group(1) + "-default-portlet-preferences.xml";
-
-			processErrorMessage(
-				fileName,
-				"Rename file to " + correctFileName + ": " + fileName);
-		}
 	}
 
 	protected void formatResourceActionXML(String fileName, String content)
@@ -1034,6 +1033,31 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			new StrutsActionElementComparator("path"));
 	}
 
+	protected void formatTestIgnorableErrorLinesXml(
+			String fileName, String content)
+		throws Exception {
+
+		Document document = readXML(content);
+
+		Element rootElement = document.getRootElement();
+
+		List<Element> javascriptElements = rootElement.elements("javascript");
+
+		for (Element javascriptElement : javascriptElements) {
+			checkOrder(
+				fileName, javascriptElement, "ignore-error", null,
+				new ElementComparator("description"));
+		}
+
+		List<Element> logElements = rootElement.elements("log");
+
+		for (Element logElement : logElements) {
+			checkOrder(
+				fileName, logElement, "ignore-error", null,
+				new ElementComparator("description"));
+		}
+	}
+
 	protected void formatTilesDefsXML(String fileName, String content)
 		throws Exception {
 
@@ -1052,7 +1076,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 				"com/liferay/portal/deploy/dependencies/web.xml");
 
 			if (content.equals(webXML)) {
-				processErrorMessage(fileName, fileName);
+				processMessage(fileName, StringPool.BLANK);
 			}
 
 			return content;
@@ -1254,10 +1278,9 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 		if (!file.exists()) {
 			if (!importFile) {
-				processErrorMessage(
+				processMessage(
 					fileName,
-					fileName + " contains an Ant element pointing to " +
-						"non-existing " + buildfileName);
+					"ant element pointing to non-existing " + buildfileName);
 			}
 
 			return null;
@@ -1544,43 +1567,6 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		"WHERE[ \t\n]+\\(*[a-zA-z0-9.]+ NOT IN");
 	private List<String> _xmlExcludes;
 
-	private class CustomSQLElementComparator extends ElementComparator {
-
-		public CustomSQLElementComparator(String nameAttribute) {
-			super(nameAttribute);
-		}
-
-		@Override
-		public int compare(Element sqlElement1, Element sqlElement2) {
-			String sqlElementName1 = getElementName(sqlElement1);
-			String sqlElementName2 = getElementName(sqlElement2);
-
-			if ((sqlElementName1 == null) || (sqlElementName2 == null)) {
-				return 0;
-			}
-
-			return sqlElementName1.compareToIgnoreCase(sqlElementName2);
-		}
-
-		@Override
-		protected String getElementName(Element element) {
-			String elementName = element.attributeValue(getNameAttribute());
-
-			if (Validator.isNull(elementName)) {
-				return null;
-			}
-
-			int pos = elementName.lastIndexOf(StringPool.PERIOD);
-
-			if (pos == -1) {
-				return null;
-			}
-
-			return elementName.substring(0, pos);
-		}
-
-	}
-
 	private static class PortletPreferenceElementComparator
 		extends ElementComparator {
 
@@ -1622,6 +1608,114 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		@Override
 		protected String getElementName(Element exceptionElement) {
 			return exceptionElement.getStringValue();
+		}
+
+	}
+
+	private static class ServiceReferenceElementComparator
+		extends ElementComparator {
+
+		public ServiceReferenceElementComparator(String nameAttribute) {
+			super(nameAttribute);
+		}
+
+		@Override
+		public int compare(
+			Element referenceElement1, Element referenceElement2) {
+
+			String packagePath1 = referenceElement1.attributeValue(
+				"package-path");
+			String packagePath2 = referenceElement2.attributeValue(
+				"package-path");
+
+			if (!packagePath1.equals(packagePath2)) {
+				return packagePath1.compareToIgnoreCase(packagePath2);
+			}
+
+			String entityName1 = referenceElement1.attributeValue("entity");
+			String entityName2 = referenceElement2.attributeValue("entity");
+
+			return entityName1.compareToIgnoreCase(entityName2);
+		}
+
+	}
+
+	private static class StrutsActionElementComparator
+		extends ElementComparator {
+
+		public StrutsActionElementComparator(String nameAttribute) {
+			super(nameAttribute);
+		}
+
+		@Override
+		public int compare(Element actionElement1, Element actionElement2) {
+			String path1 = actionElement1.attributeValue("path");
+			String path2 = actionElement2.attributeValue("path");
+
+			if (!path1.startsWith("/portal/") && path2.startsWith("/portal/")) {
+				return 1;
+			}
+
+			if (path1.startsWith("/portal/") && !path2.startsWith("/portal/")) {
+				return -1;
+			}
+
+			return path1.compareTo(path2);
+		}
+
+	}
+
+	private static class TilesDefinitionElementComparator
+		extends ElementComparator {
+
+		@Override
+		public int compare(
+			Element definitionElement1, Element definitionElement2) {
+
+			String definitionName1 = getElementName(definitionElement1);
+
+			if (definitionName1.equals("portlet")) {
+				return -1;
+			}
+
+			return super.compare(definitionElement1, definitionElement2);
+		}
+
+	}
+
+	private class CustomSQLElementComparator extends ElementComparator {
+
+		public CustomSQLElementComparator(String nameAttribute) {
+			super(nameAttribute);
+		}
+
+		@Override
+		public int compare(Element sqlElement1, Element sqlElement2) {
+			String sqlElementName1 = getElementName(sqlElement1);
+			String sqlElementName2 = getElementName(sqlElement2);
+
+			if ((sqlElementName1 == null) || (sqlElementName2 == null)) {
+				return 0;
+			}
+
+			return sqlElementName1.compareToIgnoreCase(sqlElementName2);
+		}
+
+		@Override
+		protected String getElementName(Element element) {
+			String elementName = element.attributeValue(getNameAttribute());
+
+			if (Validator.isNull(elementName)) {
+				return null;
+			}
+
+			int pos = elementName.lastIndexOf(StringPool.PERIOD);
+
+			if (pos == -1) {
+				return null;
+			}
+
+			return elementName.substring(0, pos);
 		}
 
 	}
@@ -1694,35 +1788,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			return 0;
 		}
 
-		private List<String> _columnNames;
-
-	}
-
-	private static class ServiceReferenceElementComparator
-		extends ElementComparator {
-
-		public ServiceReferenceElementComparator(String nameAttribute) {
-			super(nameAttribute);
-		}
-
-		@Override
-		public int compare(
-			Element referenceElement1, Element referenceElement2) {
-
-			String packagePath1 = referenceElement1.attributeValue(
-				"package-path");
-			String packagePath2 = referenceElement2.attributeValue(
-				"package-path");
-
-			if (!packagePath1.equals(packagePath2)) {
-				return packagePath1.compareToIgnoreCase(packagePath2);
-			}
-
-			String entityName1 = referenceElement1.attributeValue("entity");
-			String entityName2 = referenceElement2.attributeValue("entity");
-
-			return entityName1.compareToIgnoreCase(entityName2);
-		}
+		private final List<String> _columnNames;
 
 	}
 
@@ -1756,49 +1822,6 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			}
 
 			return 1;
-		}
-
-	}
-
-	private static class StrutsActionElementComparator
-		extends ElementComparator {
-
-		public StrutsActionElementComparator(String nameAttribute) {
-			super(nameAttribute);
-		}
-
-		@Override
-		public int compare(Element actionElement1, Element actionElement2) {
-			String path1 = actionElement1.attributeValue("path");
-			String path2 = actionElement2.attributeValue("path");
-
-			if (!path1.startsWith("/portal/") && path2.startsWith("/portal/")) {
-				return 1;
-			}
-
-			if (path1.startsWith("/portal/") && !path2.startsWith("/portal/")) {
-				return -1;
-			}
-
-			return path1.compareTo(path2);
-		}
-
-	}
-
-	private static class TilesDefinitionElementComparator
-		extends ElementComparator {
-
-		@Override
-		public int compare(
-			Element definitionElement1, Element definitionElement2) {
-
-			String definitionName1 = getElementName(definitionElement1);
-
-			if (definitionName1.equals("portlet")) {
-				return -1;
-			}
-
-			return super.compare(definitionElement1, definitionElement2);
 		}
 
 	}

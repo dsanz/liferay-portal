@@ -9,16 +9,6 @@
 </thead>
 <tbody>
 <tr>
-	<td>EXTEND_ACTION_PATH</td>
-	<td>BasePortlet</td>
-	<td></td>
-</tr>
-<tr>
-	<td></td>
-	<td></td>
-	<td></td>
-</tr>
-<tr>
 	<td>HEADER_TITLE</td>
 	<td>//h3[@class='header-title']</td>
 	<td></td>
@@ -46,6 +36,11 @@
 <tr>
 	<td>DETAILS</td>
 	<td>//div[@id='structureDetailsSectionPanel']/div/div/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DETAILS_TOGGLE</td>
+	<td>//div[@id='structureDetailsSectionPanel']//a/span</td>
 	<td></td>
 </tr>
 <tr>

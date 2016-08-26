@@ -92,13 +92,8 @@
 </tr>
 <!--ADD_FIELD-->
 <tr>
-	<td>ADD_ADDITIONAL_FIELD</td>
-	<td>//div[contains(@class,'col col-md-${key_columnSize}') and contains(.,'${key_previousFieldLabel}')]/../../following-sibling::div//span[contains(@class,'plus-icon')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ADD_FIRST_FIELD</td>
-	<td>//div[contains(@class,'col col-md-${key_columnSize}')]//span[contains(@class,'add-button-plus-icon')]</td>
+	<td>ADD_FIELD</td>
+	<td>//div[contains(@class,'col col-md-${key_columnSize}')]//button[contains(@class,'add-button-large')]/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -132,25 +127,52 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--SETTINGS_TAB-->
+<tr>
+	<td>SETTINGS_TAB_EMAIL_NOTIFICATIONS</td>
+	<td>//a[contains(@class,'tab-content') and contains(.,'Email Notifications')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
 <!--FIELD-->
+<tr>
+	<td>FIELD_BODY</td>
+	<td>//div[contains(@data-fieldname,'${key_fieldName}')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>FIELD_LABEL</td>
 	<td>//div[contains(@data-fieldname,'${key_fieldName}')]//label</td>
 	<td></td>
 </tr>
+<!--SIDEBAR -->
 <tr>
-	<td>FIELD_ELLIPSIS</td>
-	<td>//div[contains(@data-fieldname,'${key_fieldName}')]//div[contains(@class,'toolbar')]//button[contains(@class,'toggle')]</td>
+	<td>SIDEBAR_ADVANCED_TAB</td>
+	<td>//a[contains(@class,'tab') and .='advanced']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>FIELD_DELETE_BUTTON</td>
-	<td>//div[contains(@data-fieldname,'${key_fieldName}')]//div[contains(@class,'toolbar')]//button[contains(@class,'item')][3]</td>
+	<td>SIDEBAR_BASIC_TAB</td>
+	<td>//a[contains(@class,'tab') and .='basic']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>FIELD_EDIT_BUTTON</td>
-	<td>//div[contains(@data-fieldname,'${key_fieldName}')]//div[contains(@class,'toolbar')]//button[contains(@class,'item')][1]</td>
+	<td>SIDEBAR_ELLIPSIS</td>
+	<td>//div[contains(@class,'sidebar-header')]//*[contains(@class,'lexicon-icon-ellipsis-v')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_MENUITEM_REMOVE_FIELD</td>
+	<td>//a[@title='Remove Field']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_CLOSE</td>
+	<td>//div[contains(@class,'sidebar-header')]//a[contains(@class,'close')]</td>
 	<td></td>
 </tr>
 </tbody>

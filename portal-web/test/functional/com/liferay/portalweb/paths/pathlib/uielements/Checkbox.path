@@ -14,6 +14,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ADD_EXPLANATION_POST</td>
+	<td>//input[contains(@id,'addExplanationPost')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADD_SAMPLE_DATA</td>
 	<td>//label[contains(.,'Add Sample Data')]/input[@type='checkbox']</td>
 	<td></td>
@@ -51,6 +56,11 @@
 <tr>
 	<td>CHANGE_REQUIRED</td>
 	<td>//label[contains(.,'Change Required')]/input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_ADDITIONAL_ACTIVITY_COUNTERS</td>
+	<td>//label[contains(.,'Display Additional Activity Counters')]/input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -105,7 +115,7 @@
 </tr>
 <tr>
 	<td>ENABLE_FLAGS</td>
-	<td>//label[contains(.,'Enable Flags')]/input[@type='checkbox']</td>
+	<td>//label[contains(.,'Enable Flags')]/input[@type='checkbox']/../span[2]/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -130,7 +140,7 @@
 </tr>
 <tr>
 	<td>ENABLE_PRINT</td>
-	<td>//label[contains(.,'Enable Print')]/input[@type='checkbox']</td>
+	<td>//label[contains(.,'Enable Print')]/input[@type='checkbox']/../span[2]/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -140,7 +150,7 @@
 </tr>
 <tr>
 	<td>ENABLE_RATINGS</td>
-	<td>//label[contains(.,'Enable Ratings')]/input[@type='checkbox']</td>
+	<td>//label[contains(.,'Enable Ratings')]/input[@type='checkbox']/../span[2]/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -160,7 +170,7 @@
 </tr>
 <tr>
 	<td>ENABLE_SOCIAL_BOOKMARKS</td>
-	<td>//label[contains(.,'Enable Social Bookmarks')]/input[@type='checkbox']</td>
+	<td>//label[contains(.,'Enable Social Bookmarks')]/input[@type='checkbox']/../span[2]/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -210,7 +220,12 @@
 </tr>
 <tr>
 	<td>LEXICON_SELECT_ALL</td>
-	<td>//*[@data-qa-id='selectAllCheckbox']</td>
+	<td>//div[contains(@class,'collapse on')]//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>LOWER_CASE_LETTERS</td>
+	<td>//label[contains(.,'Lower Case Letters')]/input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -249,8 +264,28 @@
 	<td></td>
 </tr>
 <tr>
+	<td>NUMBERS</td>
+	<td>//label[contains(.,'Numbers')]/input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PERMISSIONS</td>
 	<td>//label[contains(.,'Permissions')]/input[contains(@id,'PERMISSIONS')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PRIORITIZATION_STRATEGY</td>
+	<td>//input[contains(@id,'prioritize') and contains(@type,'checkbox')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RANK_BY_CONTRIBUTION</td>
+	<td>//label[contains(.,'Rank by Contribution')]/input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RANK_BY_PARTICIPATION</td>
+	<td>//label[contains(.,'Rank by Participation')]/input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -265,17 +300,17 @@
 </tr>
 <tr>
 	<td>SELECT_ALL</td>
-	<td>//*[@data-qa-id='selectAllCheckbox'] | //input[contains(@id,'allRowIds') or contains(@name,'allRowIds') or contains(@class,'select-all-checkboxes')]</td>
+	<td>//*[@data-qa-id='selectAllCheckbox'] | //div[@class='checkbox']//input[@title='Select All'] | //input[contains(@id,'allRowIds') or contains(@name,'allRowIds') or contains(@class,'select-all-checkboxes')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_ALL_CHECKBOX_TICK</td>
+	<td>//div[@class='portlet-body']//div[contains(@class,'secondary-bar-open')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SELECT_ALL_NOTIFICATIONS</td>
 	<td>//input[contains(@id,'notifications') and contains(@class,'select-all')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SET_AS_THE_DEFAULT_ASSET_PUBLISHER_FOR_THIS_PAGE</td>
-	<td>//label[contains(.,'Set as the Default Asset Publisher for This Page')]/input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -299,6 +334,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SHOW_HEADER_TEXT</td>
+	<td>//label[contains(.,'Show Header Text')]/input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SHOW_NAVIGATION_LINKS_CHECKBOX</td>
 	<td>//label[contains(@for,'showTabs')]//input[@type='checkbox']</td>
 	<td></td>
@@ -309,6 +349,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SHOW_TOTALS</td>
+	<td>//label[contains(.,'Show Totals')]/input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SITE_ADMINISTRATOR</td>
 	<td>xpath=(//input[contains(@name,'rowIds')])[1]</td>
 	<td></td>
@@ -316,6 +361,11 @@
 <tr>
 	<td>SITE_OWNER</td>
 	<td>//tr[contains(.,'Site Owner')]//input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SOURCE_URL_ENABLED</td>
+	<td>//label[contains(@for,'sourceURLEnabled')]//input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -341,6 +391,11 @@
 <tr>
 	<td>TWITTER</td>
 	<td>//input[contains(@id,'twitter')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>UPPER_CASE_LETTERS</td>
+	<td>//label[contains(.,'Upper Case Letters')]/input[@type='checkbox']</td>
 	<td></td>
 </tr>
 </tbody>

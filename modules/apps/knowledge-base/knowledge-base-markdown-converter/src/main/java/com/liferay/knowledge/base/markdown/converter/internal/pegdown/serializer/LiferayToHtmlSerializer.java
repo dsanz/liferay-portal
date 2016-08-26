@@ -15,9 +15,11 @@
 package com.liferay.knowledge.base.markdown.converter.internal.pegdown.serializer;
 
 import com.liferay.knowledge.base.markdown.converter.internal.pegdown.ast.PicWithCaptionNode;
-import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.pegdown.LinkRenderer;
 import org.pegdown.ToHtmlSerializer;
@@ -47,23 +49,21 @@ public class LiferayToHtmlSerializer extends ToHtmlSerializer {
 			List<Node> childNodes = node.getChildren();
 
 			if (!childNodes.isEmpty()) {
-				Node childNode = childNodes.get(0);
+				StringBundler sb = new StringBundler();
 
-				if (childNode instanceof TextNode) {
-					TextNode textNode = (TextNode)childNodes.get(0);
+				for (Node child : childNodes) {
+					if (child instanceof TextNode) {
+						sb.append(((TextNode)child).getText());
+					}
+				}
 
-					String text = textNode.getText();
+				Matcher matcher = _headerIdPattern.matcher(sb.toString());
 
-					text = StringUtil.toLowerCase(text);
-
-					text = text.replaceAll("[^a-z0-9 ]", "");
-
-					text = text.trim();
-
-					text = text.replace(' ', '-');
+				if (matcher.find()) {
+					String match = matcher.group(1);
 
 					printer.print(
-						"<a href=\"#" + text + "\" id=\"" + text + "\">");
+						"<a href=\"#" + match + "\" id=\"" + match + "\">");
 
 					anchorInserted = true;
 				}
@@ -151,5 +151,8 @@ public class LiferayToHtmlSerializer extends ToHtmlSerializer {
 
 		printer.print("</p>");
 	}
+
+	private final Pattern _headerIdPattern = Pattern.compile(
+		"\\[\\]\\(id=([^\\s]+?)\\)");
 
 }

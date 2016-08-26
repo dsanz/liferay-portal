@@ -1,14 +1,38 @@
+import com.liferay.gradle.plugins.change.log.builder.BuildChangeLogTask
+import com.liferay.gradle.plugins.util.PortalTools
 import com.liferay.gradle.util.FileUtil
 import com.liferay.gradle.util.StringUtil
 import com.liferay.gradle.util.copy.RenameDependencyClosure
+
+import java.util.regex.Matcher
 
 buildscript {
 	apply from: file("build-buildscript.gradle"), to: buildscript
 }
 
+task buildFixPackChangeLog(type: BuildChangeLogTask)
 task cleanReleng
 task setUpPortalTools
 task wrapper(type: Wrapper)
+
+buildFixPackChangeLog {
+	changeLogHeader = {
+		File releaseInfoFile = file("../portal-kernel/src/com/liferay/portal/kernel/util/ReleaseInfo.java")
+
+		Matcher matcher = (releaseInfoFile.text =~ /private static final String _VERSION = "(.+)";/)
+
+		return matcher[0][1]
+	}
+
+	changeLogFile = "../.releng/fix-pack.changelog"
+	dirs = ["../portal-impl", "../portal-kernel", "../portal-web", "../util-bridges", "../util-java", "../util-slf4j", "../util-taglib"]
+
+	if (project.hasProperty("rangeStart")) {
+		rangeStart = project.rangeStart
+	}
+
+	ticketIdPrefixes "LRQA"
+}
 
 cleanReleng << {
 	File relengRootDir = file(".releng")
@@ -41,7 +65,7 @@ repositories {
 wrapper {
 	File wrapperDir = projectDir.parentFile
 
-	distributionUrl = "../../tools/gradle-${gradle.gradleVersion}.LIFERAY-PATCHED-5-bin.zip"
+	distributionUrl = "../../tools/gradle-${gradle.gradleVersion}.LIFERAY-PATCHED-1-bin.zip"
 
 	doLast {
 		ant.replace(file: new File(wrapperDir, "gradlew")) {
@@ -70,8 +94,6 @@ _createSetUpTasks()
 private void _createSetUpTasks() {
 	FileTree ivyXmlFileTree = fileTree(dir: "../tools/sdk", includes: ["ivy.xml", "dependencies/*/ivy.xml"])
 
-	Properties portalToolVersions = _getPortalToolVersions()
-
 	XmlSlurper xmlSlurper = new XmlSlurper()
 
 	ivyXmlFileTree.each {
@@ -82,7 +104,7 @@ private void _createSetUpTasks() {
 		String portalToolName = portalToolDir.name
 
 		String portalToolSuffix = _getPortalToolSuffix(portalToolName)
-		String portalToolVersion = portalToolVersions[portalToolName]
+		String portalToolVersion = PortalTools.getVersion(project, portalToolName)
 
 		Configuration portalToolConfiguration = configurations.create("portalTools" + portalToolSuffix)
 
@@ -129,24 +151,4 @@ private String _getPortalToolSuffix(String name) {
 	}
 
 	return StringUtil.capitalize(suffix)
-}
-
-private Properties _getPortalToolVersions() {
-	Properties properties = new Properties()
-
-	InputStream inputStream = buildscript.classLoader.getResourceAsStream("com/liferay/gradle/plugins/dependencies/portal-tools.properties")
-
-	inputStream.withCloseable {
-		properties.load it
-	}
-
-	for (String name in properties.stringPropertyNames()) {
-		String version = project.properties[name + ".version"]
-
-		if (version) {
-			properties.setProperty name, version
-		}
-	}
-
-	return properties
 }

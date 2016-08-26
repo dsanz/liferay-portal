@@ -40,7 +40,7 @@ if (wikiPage != null) {
 	parentTitle = wikiPage.getParentTitle();
 }
 
-List childPages = wikiPage.getViewableChildPages();
+List<WikiPage> childPages = wikiPage.getViewableChildPages();
 
 int attachmentsFileEntriesCount = 0;
 
@@ -136,6 +136,8 @@ if (portletTitleBasedNavigation) {
 %>
 
 <c:if test="<%= portletTitleBasedNavigation %>">
+	<div class="lfr-alert-container"></div>
+
 	<liferay-frontend:info-bar>
 		<aui:workflow-status markupView="lexicon" showHelpMessage="<%= false %>" showIcon="<%= false %>" showLabel="<%= false %>" status="<%= wikiPage.getStatus() %>" version="<%= String.valueOf(wikiPage.getVersion()) %>" />
 
@@ -211,7 +213,9 @@ if (portletTitleBasedNavigation) {
 				contextObjects.put("wikiPortletInstanceOverriddenConfiguration", wikiPortletInstanceOverriddenConfiguration);
 				%>
 
-				<div class="lfr-alert-container"></div>
+				<c:if test="<%= !portletTitleBasedNavigation %>">
+					<div class="lfr-alert-container"></div>
+				</c:if>
 
 				<liferay-ddm:template-renderer className="<%= WikiPage.class.getName() %>" contextObjects="<%= contextObjects %>" displayStyle="<%= wikiPortletInstanceSettingsHelper.getDisplayStyle() %>" displayStyleGroupId="<%= wikiPortletInstanceSettingsHelper.getDisplayStyleGroupId() %>" entries="<%= entries %>">
 					<div class="main-content-body">
@@ -337,12 +341,18 @@ if (portletTitleBasedNavigation) {
 									</div>
 
 									<div class="page-tags">
-										<liferay-ui:asset-tags-summary
+										<liferay-ui:asset-tags-available
 											className="<%= WikiPage.class.getName() %>"
 											classPK="<%= wikiPage.getResourcePrimKey() %>"
-											message="tags"
-											portletURL="<%= PortletURLUtil.clone(taggedPagesURL, renderResponse) %>"
-										/>
+										>
+											<h5><liferay-ui:message key="tags" /></h5>
+
+											<liferay-ui:asset-tags-summary
+												className="<%= WikiPage.class.getName() %>"
+												classPK="<%= wikiPage.getResourcePrimKey() %>"
+												portletURL="<%= PortletURLUtil.clone(taggedPagesURL, renderResponse) %>"
+											/>
+										</liferay-ui:asset-tags-available>
 									</div>
 								</div>
 
@@ -394,42 +404,6 @@ if (portletTitleBasedNavigation) {
 										<liferay-ui:asset-links
 											assetEntryId="<%= assetEntry.getEntryId() %>"
 										/>
-									</div>
-								</c:if>
-
-								<c:if test="<%= !childPages.isEmpty() %>">
-									<div class="child-pages">
-										<h5><liferay-ui:message key="children-pages" /></h5>
-
-										<liferay-ui:search-container
-											headerNames="<%= null %>"
-											id="childPages"
-											total="<%= childPages.size() %>"
-										>
-											<liferay-ui:search-container-results
-												results="<%= childPages %>"
-											/>
-
-											<liferay-ui:search-container-row
-												className="com.liferay.wiki.model.WikiPage"
-												keyProperty="pageId"
-												modelVar="curPage"
-											>
-
-												<%
-												PortletURL rowURL = PortletURLUtil.clone(viewPageURL, renderResponse);
-
-												rowURL.setParameter("title", curPage.getTitle());
-												%>
-
-												<liferay-ui:search-container-column-text
-													href="<%= rowURL %>"
-													value="<%= curPage.getTitle() %>"
-												/>
-											</liferay-ui:search-container-row>
-
-											<liferay-ui:search-iterator markupView="lexicon" paginate="<%= false %>" />
-										</liferay-ui:search-container>
 									</div>
 								</c:if>
 							</div>
@@ -499,5 +473,42 @@ if (portletTitleBasedNavigation) {
 				<liferay-util:dynamic-include key="com.liferay.wiki.web#/wiki/view.jsp#post" />
 			</div>
 		</div>
+
+		<c:if test="<%= !childPages.isEmpty() %>">
+			<h4 class="text-default">
+				<liferay-ui:message arguments="<%= childPages.size() %>" key="child-pages-x" translateArguments="<%= false %>" />
+			</h4>
+
+			<div>
+				<ul class="list-group">
+
+					<%
+					for (WikiPage childPage : childPages) {
+					%>
+
+						<li class="list-group-item">
+							<div class="list-group-item-content">
+								<h3>
+
+									<%
+									PortletURL rowURL = PortletURLUtil.clone(viewPageURL, renderResponse);
+
+									rowURL.setParameter("title", childPage.getTitle());
+									%>
+
+									<aui:a href="<%= rowURL.toString() %>"><%= childPage.getTitle() %></aui:a>
+								</h3>
+
+								<p class="text-default"><%= StringUtil.shorten(HtmlUtil.extractText(childPage.getContent()), 200) %></p>
+							</div>
+						</li>
+
+					<%
+					}
+					%>
+
+				</ul>
+			</div>
+		</c:if>
 	</div>
 </div>

@@ -67,13 +67,15 @@ public class PushNotificationsDeviceLocalServiceImpl
 
 	@Override
 	public void afterPropertiesSet() {
+		super.afterPropertiesSet();
+
 		Bundle bundle = FrameworkUtil.getBundle(
 			PushNotificationsDeviceLocalServiceImpl.class);
 
-		BundleContext _bundleContext = bundle.getBundleContext();
+		BundleContext bundleContext = bundle.getBundleContext();
 
 		_serviceTrackerMap = ServiceTrackerMapFactory.singleValueMap(
-			_bundleContext, PushNotificationsSender.class, "platform");
+			bundleContext, PushNotificationsSender.class, "platform");
 
 		_serviceTrackerMap.open();
 	}
@@ -92,6 +94,8 @@ public class PushNotificationsDeviceLocalServiceImpl
 
 	@Override
 	public void destroy() {
+		super.destroy();
+
 		_serviceTrackerMap.close();
 	}
 

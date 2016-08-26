@@ -92,6 +92,14 @@
 		<execute function="AssertVisible" locator1="TextInput#TITLE" />
 	</command>
 
+	<command name="gotoEditStructure">
+		<var name="key_ddlDataDefinitionName" value="${structureName}" />
+
+		<execute function="AssertClick" locator1="DDMSelectStructure#DDM_STRUCTURE_TABLE_NAME_LINK" value1="${structureName}" />
+
+		<execute function="SelectFrame" value1="relative=top" />
+	</command>
+
 	<command name="gotoLocalizedEditPGViaWCD">
 		<execute macro="Portlet#gotoPortletOptions">
 			<var name="portletName" value="${localizedPortletName}" />
@@ -152,7 +160,9 @@
 		<execute function="AssertElementPresent#pauseAssertVisible" locator1="WC#ENTRY_DESCRIPTIVE_THUMBNAIL" />
 		<execute function="AssertTextEquals" locator1="WC#ENTRY_DESCRIPTIVE_WORKFLOW_STATUS" value1="${webContentStatus}" />
 
-		<execute function="AssertClick" locator1="WC#ENTRY_DESCRIPTIVE_TITLE" value1="${webContentTitle}" />
+		<execute macro="WebContentNavigator#gotoEditCP">
+			<var name="webContentTitle" value="${webContentTitle}" />
+		</execute>
 	</command>
 
 	<command name="gotoViewTemplate">

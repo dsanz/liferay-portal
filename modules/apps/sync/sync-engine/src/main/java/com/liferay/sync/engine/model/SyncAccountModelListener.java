@@ -15,10 +15,11 @@
 package com.liferay.sync.engine.model;
 
 import com.liferay.sync.engine.SyncEngine;
-import com.liferay.sync.engine.documentlibrary.util.ServerEventUtil;
+import com.liferay.sync.engine.document.library.util.ServerEventUtil;
 import com.liferay.sync.engine.service.SyncAccountService;
 import com.liferay.sync.engine.service.SyncFileService;
 import com.liferay.sync.engine.session.SessionManager;
+import com.liferay.sync.engine.session.rate.limiter.RateLimiterManager;
 import com.liferay.sync.engine.util.FileKeyUtil;
 
 import java.nio.file.Path;
@@ -61,6 +62,7 @@ public class SyncAccountModelListener implements ModelListener<SyncAccount> {
 		}
 
 		if (originalValues.containsKey("login") ||
+			originalValues.containsKey("maxConnections") ||
 			originalValues.containsKey("oAuthToken") ||
 			originalValues.containsKey("oAuthTokenSecret") ||
 			originalValues.containsKey("password")) {
@@ -69,6 +71,25 @@ public class SyncAccountModelListener implements ModelListener<SyncAccount> {
 
 			ServerEventUtil.retryServerConnection(
 				syncAccount.getSyncAccountId(), 0, TimeUnit.SECONDS);
+		}
+
+		if (originalValues.containsKey("maxDownloadRate")) {
+			RateLimiterManager.updateDownloadRateLimits();
+		}
+
+		if (originalValues.containsKey("maxUploadRate")) {
+			RateLimiterManager.updateUploadRateLimits();
+		}
+
+		if (originalValues.containsKey("pollInterval")) {
+			deactivateSyncAccount(syncAccount);
+
+			activateSyncAccount(syncAccount);
+		}
+
+		if (originalValues.containsKey("syncContextModifiedTime")) {
+			ServerEventUtil.synchronizeSyncAccount(
+				syncAccount.getSyncAccountId());
 		}
 
 		if (originalValues.containsKey("uiEvent")) {

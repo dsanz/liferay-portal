@@ -16,11 +16,12 @@ package com.liferay.blogs.service.impl.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.blogs.kernel.model.BlogsEntry;
-import com.liferay.blogs.kernel.service.BlogsEntryLocalServiceUtil;
+import com.liferay.blogs.service.BlogsEntryLocalServiceUtil;
 import com.liferay.portal.kernel.comment.CommentManagerUtil;
 import com.liferay.portal.kernel.service.IdentityServiceContextFunction;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.Sync;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -28,7 +29,9 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -59,6 +62,8 @@ public class BlogsEntryLocalServiceImplTest {
 			TestPropsValues.getUserId(), StringUtil.randomString(),
 			StringUtil.randomString(), new Date(), serviceContext);
 
+		_blogsEntries.add(blogsEntry);
+
 		long initialCommentsCount = CommentManagerUtil.getCommentsCount(
 			BlogsEntry.class.getName(), blogsEntry.getEntryId());
 
@@ -83,6 +88,14 @@ public class BlogsEntryLocalServiceImplTest {
 			TestPropsValues.getUserId(), StringUtil.randomString(),
 			StringUtil.randomString(), new Date(), serviceContext);
 
+		_blogsEntries.add(blogsEntry);
+
+		CommentManagerUtil.addComment(
+			TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
+			BlogsEntry.class.getName(), blogsEntry.getEntryId(),
+			StringUtil.randomString(),
+			new IdentityServiceContextFunction(serviceContext));
+
 		Assert.assertTrue(
 			CommentManagerUtil.hasDiscussion(
 				BlogsEntry.class.getName(), blogsEntry.getEntryId()));
@@ -94,5 +107,8 @@ public class BlogsEntryLocalServiceImplTest {
 			CommentManagerUtil.hasDiscussion(
 				BlogsEntry.class.getName(), blogsEntry.getEntryId()));
 	}
+
+	@DeleteAfterTestRun
+	private final List<BlogsEntry> _blogsEntries = new ArrayList<>();
 
 }

@@ -15,11 +15,14 @@
 package com.liferay.portal.osgi.web.wab.generator.internal.processor;
 
 import aQute.bnd.component.DSAnnotations;
+import aQute.bnd.header.Attrs;
 import aQute.bnd.make.metatype.MetatypePlugin;
 import aQute.bnd.metatype.MetatypeAnnotations;
 import aQute.bnd.osgi.Analyzer;
+import aQute.bnd.osgi.Descriptors.PackageRef;
 import aQute.bnd.osgi.Jar;
 import aQute.bnd.osgi.JarResource;
+import aQute.bnd.osgi.Packages;
 import aQute.bnd.osgi.Resource;
 import aQute.bnd.version.Version;
 
@@ -83,6 +86,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -1025,9 +1029,9 @@ public class WabProcessor {
 			_servicePackageName = rootElement.attributeValue("package-path");
 
 			String[] partialPackageNames = {
-				"", ".model", ".model.impl", ".service", ".service.base",
-				".service.http", ".service.impl", ".service.persistence",
-				".service.persistence.impl"
+				"", ".exception", ".model", ".model.impl", ".service",
+				".service.base", ".service.http", ".service.impl",
+				".service.persistence", ".service.persistence.impl"
 			};
 
 			for (String partialPackageName : partialPackageNames) {
@@ -1243,6 +1247,27 @@ public class WabProcessor {
 		analyzer.setProperties(pluginPackageProperties);
 
 		try {
+			analyzer.calcManifest();
+
+			Packages packages = analyzer.getImports();
+
+			Set<Entry<PackageRef, Attrs>> packageRefsSet = packages.entrySet();
+
+			Iterator<Entry<PackageRef, Attrs>> iterator =
+				packageRefsSet.iterator();
+
+			while (iterator.hasNext()) {
+				Entry<PackageRef, Attrs> entry = iterator.next();
+
+				PackageRef packageRef = entry.getKey();
+
+				String fqn = packageRef.getFQN();
+
+				if (fqn.startsWith("junit.")) {
+					iterator.remove();
+				}
+			}
+
 			writeManifest(analyzer.calcManifest());
 
 			copyOSGI_INFToWab(analyzer);

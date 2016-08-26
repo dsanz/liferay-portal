@@ -16,13 +16,13 @@ package com.liferay.portal.security.ldap.internal;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.log.LogUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.security.ldap.LDAPSettings;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.Props;
@@ -139,7 +139,11 @@ public class DefaultPortalLDAP implements PortalLDAP {
 				connectionPropertySplit[0], connectionPropertySplit[1]);
 		}
 
-		LogUtil.debug(_log, environmentProperties);
+		if (_log.isDebugEnabled()) {
+			_log.debug(
+				MapUtil.toString(
+					environmentProperties, null, Context.SECURITY_CREDENTIALS));
+		}
 
 		LdapContext ldapContext = null;
 
@@ -663,6 +667,24 @@ public class DefaultPortalLDAP implements PortalLDAP {
 					Attribute attribute = attributes.get(attributeId);
 
 					if (attribute == null) {
+						continue;
+					}
+
+					String attributeID = StringUtil.toLowerCase(
+						attribute.getID());
+
+					if (attributeID.indexOf("password") > -1) {
+						Attribute clonedAttribute =
+							(Attribute)attribute.clone();
+
+						clonedAttribute.clear();
+
+						clonedAttribute.add("********");
+
+						_log.debug(
+							"LDAP user attribute " +
+								clonedAttribute.toString());
+
 						continue;
 					}
 

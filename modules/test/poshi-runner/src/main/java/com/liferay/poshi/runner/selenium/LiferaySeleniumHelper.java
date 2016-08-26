@@ -109,8 +109,7 @@ public class LiferaySeleniumHelper {
 			LiferaySelenium liferaySelenium, String fileName, String target)
 		throws Exception {
 
-		AntCommands antCommands = new AntCommands(
-			liferaySelenium, fileName, target);
+		AntCommands antCommands = new AntCommands(fileName, target);
 
 		ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -161,8 +160,8 @@ public class LiferaySeleniumHelper {
 
 		if (!pattern.equals(confirmation)) {
 			throw new Exception(
-				"Pattern \"" + pattern + "\" does not match \"" + confirmation +
-					"\"");
+				"Expected text \"" + pattern +
+					"\" does not match actual text \"" + confirmation + "\"");
 		}
 	}
 
@@ -606,8 +605,9 @@ public class LiferaySeleniumHelper {
 			String text = liferaySelenium.getSelectedLabel(selectLocator);
 
 			throw new Exception(
-				"Pattern \"" + pattern + "\" does not match \"" + text +
-					"\" at \"" + selectLocator + "\"");
+				"Expected text \"" + pattern +
+					"\" does not match actual text \"" + text + "\" at \"" +
+						selectLocator + "\"");
 		}
 	}
 
@@ -621,8 +621,9 @@ public class LiferaySeleniumHelper {
 			String text = liferaySelenium.getText(locator);
 
 			throw new Exception(
-				"Pattern \"" + pattern + "\" does not match \"" + text +
-					"\" at \"" + locator + "\"");
+				"Expected text \"" + pattern +
+					"\" does not match actual text \"" + text + "\" at \"" +
+						locator + "\"");
 		}
 	}
 
@@ -654,8 +655,9 @@ public class LiferaySeleniumHelper {
 			String value = liferaySelenium.getElementValue(locator);
 
 			throw new Exception(
-				"Pattern \"" + pattern + "\" does not match \"" + value +
-					"\" at \"" + locator + "\"");
+				"Expected text \"" + pattern +
+					"\" does not match actual text \"" + value + "\" at \"" +
+						locator + "\"");
 		}
 	}
 
@@ -1381,11 +1383,22 @@ public class LiferaySeleniumHelper {
 
 		Keyboard keyboard = new DesktopKeyboard();
 
-		keyboard.keyDown(Key.CTRL);
+		if (OSDetector.isApple()) {
+			keyboard.keyDown(Key.CMD);
+			keyboard.keyDown(Key.SHIFT);
 
-		keyboard.type("a");
+			keyboard.type("g");
 
-		keyboard.keyUp(Key.CTRL);
+			keyboard.keyUp(Key.CMD);
+			keyboard.keyUp(Key.SHIFT);
+		}
+		else {
+			keyboard.keyDown(Key.CTRL);
+
+			keyboard.type("a");
+
+			keyboard.keyUp(Key.CTRL);
+		}
 
 		String filePath =
 			FileUtil.getSeparator() + _TEST_DEPENDENCIES_DIR_NAME +

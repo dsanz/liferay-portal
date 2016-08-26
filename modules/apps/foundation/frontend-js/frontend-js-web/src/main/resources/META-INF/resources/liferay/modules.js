@@ -190,6 +190,12 @@
 							'aui-base'
 						]
 					},
+					'liferay-dd-proxy': {
+						path: 'dd_proxy.js',
+						requires: [
+							'dd-proxy'
+						]
+					},
 					'liferay-dynamic-select': {
 						path: 'dynamic_select.js',
 						requires: [
@@ -592,6 +598,7 @@
 							'dd-drag',
 							'dd-drop',
 							'dd-proxy',
+							'liferay-store',
 							'plugin'
 						]
 					},
@@ -645,6 +652,13 @@
 						requires: [
 							'aui-component',
 							'aui-node'
+						]
+					},
+					'liferay-sortable': {
+						path: 'sortable.js',
+						requires: [
+							'liferay-dd-proxy',
+							'sortable'
 						]
 					},
 					'liferay-source-editor': {

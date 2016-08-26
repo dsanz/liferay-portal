@@ -249,8 +249,13 @@
 	</command>
 
 	<command name="ConfigureAPPortletEnableRatings" priority="4">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoSite">
-			<var name="site" value="Liferay" />
+			<var name="site" value="${siteName}" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -306,6 +311,11 @@
 	</command>
 
 	<command name="ConfigureAPPortletScopeMultipleSites" priority="4">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -335,7 +345,7 @@
 		</execute>
 
 		<execute macro="AssetPublisherPortlet#viewMultipleSiteScopesAddDropdowns">
-			<var name="siteName1" value="Liferay" />
+			<var name="siteName1" value="${siteName}" />
 			<var name="siteName2" value="Test Site" />
 		</execute>
 	</command>

@@ -23,12 +23,13 @@
 <%@ taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %>
 <%@ taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 
-<%@ page import="com.liferay.layout.admin.web.constants.LayoutAdminPortletKeys" %>
-<%@ page import="com.liferay.layout.admin.web.control.menu.CustomizationSettingsProductNavigationControlMenuEntry" %>
+<%@ page import="com.liferay.layout.admin.web.internal.constants.LayoutAdminPortletKeys" %>
+<%@ page import="com.liferay.layout.admin.web.internal.control.menu.CustomizationSettingsProductNavigationControlMenuEntry" %>
 <%@ page import="com.liferay.portal.kernel.language.LanguageUtil" %>
 <%@ page import="com.liferay.portal.kernel.language.UnicodeLanguageUtil" %>
 <%@ page import="com.liferay.portal.kernel.portlet.PortletURLFactoryUtil" %>
 <%@ page import="com.liferay.portal.kernel.util.GetterUtil" %>
+<%@ page import="com.liferay.portal.kernel.util.HtmlUtil" %>
 <%@ page import="com.liferay.portal.kernel.util.HttpUtil" %>
 <%@ page import="com.liferay.portal.kernel.util.PortalUtil" %>
 <%@ page import="com.liferay.portal.kernel.util.StringPool" %>
@@ -68,7 +69,6 @@ data.put("qa-id", "customizations");
 		url="javascript:;"
 	/>
 </li>
-
 <li class="control-menu-nav-item" id="<%= portletNamespace %>customizationBar">
 	<div class="control-menu-level-2">
 		<div class="container-fluid-1280">
@@ -153,13 +153,13 @@ data.put("qa-id", "customizations");
 					toggleCustomizedViewMessage = "the-defaults-for-the-current-page-have-been-updated-click-here-to-see-them";
 				}
 
-				PortletURL resetCustomizationViewURL = PortletURLFactoryUtil.create(request, LayoutAdminPortletKeys.LAYOUT_ADMIN, plid, PortletRequest.ACTION_PHASE);
+				PortletURL resetCustomizationViewURL = PortletURLFactoryUtil.create(request, LayoutAdminPortletKeys.LAYOUT_ADMIN, PortletRequest.ACTION_PHASE);
 
 				resetCustomizationViewURL.setParameter(ActionRequest.ACTION_NAME, "resetCustomizationView");
 
-				String resetCustomizationsViewURLString = "javascript:if (confirm('" + UnicodeLanguageUtil.get(resourceBundle, "are-you-sure-you-want-to-reset-your-customizations-to-default") + "')){submitForm(document.hrefFm, '" + HttpUtil.encodeURL(resetCustomizationViewURL.toString()) + "');}";
+				String resetCustomizationsViewURLString = "javascript:if (confirm('" + UnicodeLanguageUtil.get(resourceBundle, "are-you-sure-you-want-to-reset-your-customizations-to-default") + "')){submitForm(document.hrefFm, '" + HtmlUtil.escapeJS(resetCustomizationViewURL.toString()) + "');}";
 
-				PortletURL toggleCustomizationViewPortletURL = PortletURLFactoryUtil.create(request, LayoutAdminPortletKeys.LAYOUT_ADMIN, plid, PortletRequest.ACTION_PHASE);
+				PortletURL toggleCustomizationViewPortletURL = PortletURLFactoryUtil.create(request, LayoutAdminPortletKeys.LAYOUT_ADMIN, PortletRequest.ACTION_PHASE);
 
 				toggleCustomizationViewPortletURL.setParameter(ActionRequest.ACTION_NAME, "toggleCustomizedView");
 
@@ -181,7 +181,6 @@ data.put("qa-id", "customizations");
 						</c:if>
 					</liferay-ui:icon-menu>
 				</li>
-
 				<li class="control-menu-nav-item visible-xs">
 					<div class="btn-group dropdown">
 						<aui:a cssClass="btn btn-primary" href="<%= toggleCustomizationViewURL %>" label="<%= toggleCustomizedViewMessage %>" />

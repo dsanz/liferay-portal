@@ -7,14 +7,24 @@
 					combine: Liferay.AUI.getCombine(),
 					filter: Liferay.AUI.getFilterConfig(),
 					modules: {
-						'liferay-calendar-date-picker-util': {
-							path: 'date_picker_util.js',
+						'liferay-calendar-container': {
+							path: 'calendar_container.js',
 							requires: [
-								'aui-base'
+								'aui-alert',
+								'aui-base',
+								'aui-component',
+								'liferay-portlet-base'
 							]
 						},
 						'liferay-calendar-interval-selector': {
 							path: 'interval_selector.js',
+							requires: [
+								'aui-base',
+								'liferay-portlet-base'
+							]
+						},
+						'liferay-calendar-interval-selector-scheduler-event-link': {
+							path: 'interval_selector_scheduler_event_link.js',
 							requires: [
 								'aui-base',
 								'liferay-portlet-base'
@@ -56,6 +66,17 @@
 							path: 'calendar_reminders.js',
 							requires: [
 								'aui-base'
+							]
+						},
+						'liferay-calendar-remote-services': {
+							path: 'remote_services.js',
+							requires: [
+								'aui-base',
+								'aui-component',
+								'aui-io',
+								'liferay-calendar-util',
+								'liferay-portlet-base',
+								'liferay-portlet-url'
 							]
 						},
 						'liferay-calendar-session-listener': {
@@ -111,9 +132,29 @@
 								'liferay-calendar-recurrence-util',
 								'liferay-calendar-util',
 								'liferay-node',
+								'liferay-scheduler-event-recorder',
+								'liferay-scheduler-models',
 								'liferay-store',
 								'promise',
 								'resize-plugin'
+							]
+						},
+						'liferay-scheduler-event-recorder': {
+							path: 'scheduler_event_recorder.js',
+							requires: [
+								'dd-plugin',
+								'liferay-calendar-util',
+								'liferay-node',
+								'resize-plugin'
+							]
+						},
+						'liferay-scheduler-models': {
+							path: 'scheduler_models.js',
+							requires: [
+								'aui-datatype',
+								'dd-plugin',
+								'liferay-calendar-util',
+								'liferay-store'
 							]
 						}
 					},

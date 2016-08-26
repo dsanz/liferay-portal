@@ -30,7 +30,7 @@ WorkflowDefinitionLinkSearch workflowDefinitionLinkSearchContainer = workflowDef
 		searchContainer="<%= workflowDefinitionLinkSearchContainer %>"
 	>
 		<liferay-ui:search-container-row
-			className="com.liferay.portal.workflow.definition.link.web.search.WorkflowDefinitionLinkSearchEntry"
+			className="com.liferay.portal.workflow.definition.link.web.internal.search.WorkflowDefinitionLinkSearchEntry"
 			modelVar="workflowDefinitionLinkSearchEntry"
 		>
 			<liferay-ui:search-container-row-parameter
@@ -39,18 +39,18 @@ WorkflowDefinitionLinkSearch workflowDefinitionLinkSearchContainer = workflowDef
 			/>
 
 			<liferay-ui:search-container-column-text
+				cssClass="table-cell-content"
 				name="resource"
 				value="<%= workflowDefinitionLinkSearchEntry.getResource() %>"
 			/>
 
 			<liferay-ui:search-container-column-text
+				cssClass="table-cell-content"
 				name="workflow"
 				value="<%= workflowDefinitionLinkSearchEntry.getWorkflowDefinitionLabel() %>"
 			/>
 
 			<liferay-ui:search-container-column-jsp
-				align="right"
-				cssClass="entry-action"
 				path="/workflow_definition_link_action.jsp"
 			/>
 		</liferay-ui:search-container-row>

@@ -8,16 +8,6 @@
 <tr><td rowspan="1" colspan="3">WebForm</td></tr>
 </thead>
 <tbody>
-<tr>
-	<td>EXTEND_ACTION_PATH</td>
-	<td>BasePortlet</td>
-	<td></td>
-</tr>
-<tr>
-	<td></td>
-	<td></td>
-	<td></td>
-</tr>
 <!--FORM_INFORMATION-->
 <tr>
 	<td>FORM_INFORMATION_TITLE</td>
@@ -42,7 +32,7 @@
 </tr>
 <tr>
 	<td>FORM_FIELDS_FIELD_HEADER</td>
-	<td>//div[contains(.,'${key_wfFieldName}')]/label[contains(@for,'webformportlet')]</td>
+	<td>//div[contains(.,'${key_wfFieldName}')]/label[contains(@for,'WebFormPortlet')]</td>
 	<td></td>
 </tr>
 <tr>

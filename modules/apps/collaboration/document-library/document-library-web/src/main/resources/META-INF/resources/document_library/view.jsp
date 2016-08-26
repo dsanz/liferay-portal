@@ -26,7 +26,7 @@ String browseBy = ParamUtil.getString(request, "browseBy");
 
 Folder folder = (com.liferay.portal.kernel.repository.model.Folder)request.getAttribute(WebKeys.DOCUMENT_LIBRARY_FOLDER);
 
-long folderId = BeanParamUtil.getLong(folder, request, "folderId", rootFolderId);
+long folderId = BeanPropertiesUtil.getLong(folder, "folderId", rootFolderId);
 
 boolean defaultFolderView = false;
 
@@ -147,6 +147,7 @@ request.setAttribute("view.jsp-orderByType", orderByType);
 				<aui:input name="repositoryId" type="hidden" value="<%= repositoryId %>" />
 				<aui:input name="newFolderId" type="hidden" />
 
+				<liferay-ui:error exception="<%= AuthenticationRepositoryException.class %>" message="you-cannot-access-the-repository-because-you-are-not-allowed-to-or-it-is-unavailable" />
 				<liferay-ui:error exception="<%= FileEntryLockException.MustOwnLock.class %>" message="you-can-only-checkin-documents-you-have-checked-out-yourself" />
 
 				<div class="document-container">
@@ -219,6 +220,7 @@ if (!defaultFolderView && (folder != null) && (portletName.equals(DLPortletKeys.
 			decimalSeparator: '<%= decimalFormatSymbols.getDecimalSeparator() %>',
 			displayStyle: '<%= HtmlUtil.escapeJS(displayStyle) %>',
 			editEntryUrl: '<portlet:actionURL name="/document_library/edit_entry" />',
+			downloadEntryUrl: '<portlet:resourceURL id="/document_library/download_entry"><portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" /></portlet:resourceURL>',
 			folders: {
 				defaultParentFolderId: '<%= folderId %>',
 				dimensions: {

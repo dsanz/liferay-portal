@@ -1,11 +1,23 @@
 <definition>
+	<command name="enableAnalytics">
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Audience Targeting Analytics" />
+		</execute>
+
+		<for list="${analyticsList}" param="analytic">
+			<execute function="Check#checkToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+				<var name="key_toggleSwitchLabel" value="${analytic}" />
+			</execute>
+		</for>
+	</command>
+
 	<command name="expandPreview">
+		<var name="key_portletName" value="${portletName}" />
+
 		<if>
 			<condition function="IsElementNotPresent" locator1="ContentTargeting#PREVIEW_BUTTON_EXPANDED" />
 			<then>
-				<var name="key_portletName" value="${portletName}" />
-
-				<execute function="Click#makeVisibleClickAt" locator1="BasePortlet#SPECIFIC_PORTLET_BORDERLESS_BAR" />
+				<execute function="Click#makeVisibleClickAt" locator1="Portlet#SPECIFIC_BORDERLESS_BAR" />
 
 				<execute function="Click" locator1="ContentTargeting#PREVIEW_BUTTON" />
 
@@ -15,11 +27,11 @@
 	</command>
 
 	<command name="expandPreviewOnStagingLiveMode">
+		<var name="key_portletName" value="${portletName}" />
+
 		<if>
 			<condition function="IsElementNotPresent" locator1="ContentTargeting#PREVIEW_BUTTON_EXPANDED" />
 			<then>
-				<var name="key_portletName" value="${portletName}" />
-
 				<execute function="MouseOver" locator1="ContentTargeting#PREVIEW_BUTTON_STAGING_LIVE_MODE" />
 
 				<execute function="Click" locator1="ContentTargeting#PREVIEW_BUTTON" />

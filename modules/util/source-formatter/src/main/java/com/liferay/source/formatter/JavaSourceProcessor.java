@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.tools.ImportsFormatter;
 import com.liferay.portal.tools.JavaImportsFormatter;
 import com.liferay.portal.tools.ToolsUtil;
+import com.liferay.source.formatter.checkstyle.util.CheckStyleUtil;
 import com.liferay.source.formatter.util.FileUtil;
 
 import com.thoughtworks.qdox.JavaDocBuilder;
@@ -35,15 +36,21 @@ import com.thoughtworks.qdox.model.JavaSource;
 import java.io.File;
 import java.io.IOException;
 
+import java.net.UnknownHostException;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.maven.artifact.versioning.ComparableVersion;
 
 /**
  * @author Hugo Huijser
@@ -190,81 +197,6 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		return content;
 	}
 
-	protected void checkAnnotationParameters(
-		String fileName, String javaTermName, String annotation) {
-
-		int x = annotation.indexOf(CharPool.OPEN_PARENTHESIS);
-
-		String annotationParameters = stripQuotes(
-			annotation.substring(x + 1), CharPool.QUOTE);
-
-		x = -1;
-		int y = -1;
-
-		String previousParameterName = StringPool.BLANK;
-
-		while (true) {
-			x = annotationParameters.indexOf(CharPool.EQUAL, x + 1);
-
-			if (x == -1) {
-				return;
-			}
-
-			if (Validator.isNotNull(previousParameterName)) {
-				y = annotationParameters.lastIndexOf(CharPool.COMMA, x);
-
-				if (y == -1) {
-					return;
-				}
-			}
-
-			String parameterName = StringUtil.trim(
-				annotationParameters.substring(y + 1, x));
-
-			if (parameterName.startsWith(StringPool.OPEN_CURLY_BRACE)) {
-				break;
-			}
-
-			if (Validator.isNull(previousParameterName) ||
-				(previousParameterName.compareToIgnoreCase(parameterName) <=
-					0)) {
-
-				previousParameterName = parameterName;
-
-				continue;
-			}
-
-			x = annotation.indexOf(CharPool.AT);
-			y = annotation.indexOf(CharPool.OPEN_PARENTHESIS);
-
-			if ((x == -1) || (x > y)) {
-				return;
-			}
-
-			StringBundler sb = new StringBundler(8);
-
-			sb.append("sort: ");
-
-			if (Validator.isNotNull(javaTermName)) {
-				sb.append(javaTermName);
-				sb.append(StringPool.POUND);
-			}
-
-			String annotationName = annotation.substring(x, y);
-
-			sb.append(annotationName);
-
-			sb.append(StringPool.POUND);
-			sb.append(parameterName);
-			sb.append(StringPool.SPACE);
-			sb.append(fileName);
-
-			processErrorMessage(fileName, sb.toString());
-
-			return;
-		}
-	}
-
 	protected void checkBndInheritAnnotationOption() {
 		for (Map.Entry<String, Tuple> entry :
 				_bndInheritRequiredTupleMap.entrySet()) {
@@ -305,7 +237,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				continue;
 			}
 
-			StringBundler sb = new StringBundler(5);
+			StringBundler sb = new StringBundler(3);
 
 			if (isRunOutsidePortalExclusion) {
 				sb.append("Possible Java Serialization Remote Code Execution ");
@@ -316,10 +248,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			}
 
 			sb.append(matcher.group(1));
-			sb.append(": ");
-			sb.append(fileName);
 
-			processErrorMessage(fileName, sb.toString());
+			processMessage(fileName, sb.toString());
 		}
 	}
 
@@ -335,10 +265,45 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		Matcher matcher = _fetchByPrimaryKeysMethodPattern.matcher(content);
 
 		if (!matcher.find()) {
-			processErrorMessage(
+			processMessage(
 				fileName,
 				"LPS-49552: Missing override of BasePersistenceImpl." +
-					"fetchByPrimaryKeys(Set<Serializable>): " + fileName);
+					"fetchByPrimaryKeys(Set<Serializable>)");
+		}
+	}
+
+	protected void checkInternalImports(
+		String fileName, String absolutePath, String content) {
+
+		if (absolutePath.contains("/modules/core/") ||
+			absolutePath.contains("/modules/util/") ||
+			fileName.contains("/test/") ||
+			fileName.contains("/testIntegration/")) {
+
+			return;
+		}
+
+		Matcher matcher = _internalImportPattern.matcher(content);
+
+		int pos = -1;
+
+		while (matcher.find()) {
+			if (pos == -1) {
+				pos = absolutePath.lastIndexOf("/com/liferay/");
+			}
+
+			String expectedImportFileLocation =
+				absolutePath.substring(0, pos + 13) +
+					StringUtil.replace(matcher.group(1), ".", "/") + ".java";
+
+			File file = new File(expectedImportFileLocation);
+
+			if (!file.exists()) {
+				processMessage(
+					fileName,
+					"Do not import internal class from another module",
+					getLineCount(content, matcher.start(1)));
+			}
 		}
 	}
 
@@ -372,25 +337,14 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				int lineCount = getLineCount(content, matcher.start(1));
 
 				if (codeBlock.contains(s)) {
-					processErrorMessage(
-						fileName,
-						"Do not use _log.isErrorEnabled(): " + fileName + " " +
-							lineCount);
+					processMessage(
+						fileName, "Do not use _log.isErrorEnabled()",
+						lineCount);
 				}
 				else {
-					processErrorMessage(
-						fileName,
-						"Use " + s + ": " + fileName + " " + lineCount);
+					processMessage(fileName, "Use " + s, lineCount);
 				}
 			}
-		}
-	}
-
-	protected void checkMissingAuthor(
-		String content, String fileName, String className) {
-
-		if (!content.contains(" * @author ")) {
-			processErrorMessage(fileName, "Missing author: " + fileName);
 		}
 	}
 
@@ -400,41 +354,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		if (!content.contains(
 				"package " + packagePath + StringPool.SEMICOLON)) {
 
-			processErrorMessage(
-				fileName, "Incorrect package path: " + fileName);
-		}
-	}
-
-	protected void checkRegexPattern(
-		String regexPattern, String fileName, int lineCount) {
-
-		int i = regexPattern.indexOf("Pattern.compile(");
-
-		if (i == -1) {
-			return;
-		}
-
-		regexPattern = regexPattern.substring(i + 16);
-
-		regexPattern = stripQuotes(regexPattern, CharPool.QUOTE);
-
-		i = regexPattern.indexOf(CharPool.COMMA);
-
-		if (i != -1) {
-			regexPattern = regexPattern.substring(0, i);
-		}
-		else {
-			regexPattern = StringUtil.replaceLast(
-				regexPattern, ");", StringPool.BLANK);
-		}
-
-		regexPattern = StringUtil.replace(
-			regexPattern, StringPool.PLUS, StringPool.BLANK);
-
-		if (Validator.isNull(regexPattern)) {
-			processErrorMessage(
-				fileName,
-				"create pattern as global var: " + fileName + " " + lineCount);
+			processMessage(fileName, "Incorrect package path");
 		}
 	}
 
@@ -503,7 +423,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			}
 
 			if (!localServiceImplContent.contains("@SystemEvent")) {
-				processErrorMessage(
+				processMessage(
 					fileName,
 					"Missing deletion system event: " +
 						localServiceImplFileName);
@@ -524,20 +444,18 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		int pos = content.indexOf("LocaleUtil.getDefault()");
 
 		if (pos != -1) {
-			processErrorMessage(
+			processMessage(
 				fileName,
 				"Use UpgradeProcessUtil.getDefaultLanguageId(companyId) " +
-					"instead of LocaleUtil.getDefault(): " + fileName + " " +
-						getLineCount(content, pos));
+					"instead of LocaleUtil.getDefault()",
+				getLineCount(content, pos));
 		}
 
 		pos = content.indexOf("rs.getDate(");
 
 		if (pos != -1) {
-			processErrorMessage(
-				fileName,
-				"Use rs.getTimeStamp: " + fileName + " " +
-					getLineCount(content, pos));
+			processMessage(
+				fileName, "Use rs.getTimeStamp", getLineCount(content, pos));
 		}
 
 		// LPS-34911
@@ -551,8 +469,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			pos = content.indexOf("ServiceUtil.");
 
 			if (pos != -1) {
-				processErrorMessage(fileName, "ServiceUtil: " + fileName + " " +
-					getLineCount(content, pos));
+				processMessage(
+					fileName, "ServiceUtil", getLineCount(content, pos));
 			}
 		}
 
@@ -569,8 +487,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				String componentAnnotation = matcher.group();
 
 				if (!componentAnnotation.contains("service =")) {
-					processErrorMessage(
-						fileName, "Missing service in @Component " + fileName);
+					processMessage(fileName, "Missing service in @Component");
 				}
 			}
 		}
@@ -604,16 +521,11 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 					(previousUpgradeClassName.compareTo(
 						upgradeClassName) > 0)) {
 
-					StringBundler sb = new StringBundler(6);
-
-					sb.append("LPS-65685: Break up Upgrade classes with a ");
-					sb.append("minor version increment or order ");
-					sb.append("alphabetically: ");
-					sb.append(fileName);
-					sb.append(StringPool.SPACE);
-					sb.append(getLineCount(content, matcher1.start()));
-
-					processErrorMessage(fileName, sb.toString());
+					processMessage(
+						fileName,
+						"LPS-65685: Break up Upgrade classes with a minor " +
+							"version increment or order alphabetically",
+						getLineCount(content, matcher1.start()));
 
 					break;
 				}
@@ -649,11 +561,11 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				break;
 			}
 
-			processErrorMessage(
+			processMessage(
 				fileName,
 				"Use existing connection field instead of " +
-					"DataAccess.getUpgradeOptimizedConnection " + fileName +
-						" " + getLineCount(content, x));
+					"DataAccess.getUpgradeOptimizedConnection",
+				getLineCount(content, x));
 		}
 	}
 
@@ -676,7 +588,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				continue;
 			}
 
-			StringBundler sb = new StringBundler(5);
+			StringBundler sb = new StringBundler(3);
 
 			if (isRunOutsidePortalExclusion) {
 				sb.append("Possible XXE or Quadratic Blowup security ");
@@ -688,10 +600,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			}
 
 			sb.append(xmlVulnerabitily);
-			sb.append(": ");
-			sb.append(fileName);
 
-			processErrorMessage(fileName, sb.toString());
+			processMessage(fileName, sb.toString());
 		}
 	}
 
@@ -703,6 +613,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		if (hasGeneratedTag(content)) {
 			return content;
 		}
+
+		_ungeneratedFiles.add(file);
 
 		String className = file.getName();
 
@@ -723,7 +635,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		String newContent = trimContent(content, false);
 
 		if (newContent.contains("$\n */")) {
-			processErrorMessage(fileName, "*: " + fileName);
+			processMessage(fileName, "*");
 
 			newContent = StringUtil.replace(newContent, "$\n */", "$\n *\n */");
 		}
@@ -732,7 +644,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			newContent, absolutePath, fileName, className);
 
 		if (newContent.contains(className + ".java.html")) {
-			processErrorMessage(fileName, "Java2HTML: " + fileName);
+			processMessage(fileName, "Java2HTML");
 		}
 
 		if (newContent.contains(" * @author Raymond Aug") &&
@@ -741,10 +653,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			newContent = newContent.replaceFirst(
 				"Raymond Aug.++", "Raymond Aug\u00e9");
 
-			processErrorMessage(fileName, "UTF-8: " + fileName);
+			processMessage(fileName, "UTF-8");
 		}
-
-		checkMissingAuthor(newContent, fileName, className);
 
 		newContent = fixDataAccessConnection(className, newContent);
 		newContent = fixSessionKey(fileName, newContent, sessionKeyPattern);
@@ -784,7 +694,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		newContent = fixIncorrectLineBreaks(newContent, fileName);
 
 		newContent = formatAnnotations(
-			fileName, StringPool.BLANK, newContent, StringPool.BLANK);
+			fileName, StringPool.BLANK, newContent, StringPool.BLANK, true);
 
 		Matcher matcher = _logPattern.matcher(newContent);
 
@@ -804,17 +714,22 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				"private static final Log _log");
 		}
 
+		newContent = StringUtil.replace(
+			newContent,
+			new String[] {"!Validator.isNotNull(", "!Validator.isNull("},
+			new String[] {"Validator.isNull(", "Validator.isNotNull("});
+
 		if (newContent.contains("*/\npackage ")) {
-			processErrorMessage(fileName, "package: " + fileName);
+			processMessage(fileName, "package");
 		}
 
 		if (portalSource && !_allowUseServiceUtilInServiceImpl &&
-			!fileName.contains("/wsrp/bind/") &&
+			!fileName.contains("/wsrp/internal/bind/") &&
 			!className.equals("BaseServiceImpl") &&
 			className.endsWith("ServiceImpl") &&
 			newContent.contains("ServiceUtil.")) {
 
-			processErrorMessage(fileName, "ServiceUtil: " + fileName);
+			processMessage(fileName, "ServiceUtil");
 		}
 
 		boolean isRunOutsidePortalExclusion = isExcludedPath(
@@ -824,16 +739,15 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			!isExcludedPath(_proxyExcludes, absolutePath) &&
 			newContent.contains("import java.lang.reflect.Proxy;")) {
 
-			processErrorMessage(fileName, "Proxy: " + fileName);
+			processMessage(fileName, "Proxy");
 		}
 
 		if (newContent.contains("import edu.emory.mathcs.backport.java")) {
-			processErrorMessage(
-				fileName, "edu.emory.mathcs.backport.java: " + fileName);
+			processMessage(fileName, "edu.emory.mathcs.backport.java");
 		}
 
 		if (newContent.contains("import jodd.util.StringPool")) {
-			processErrorMessage(fileName, "jodd.util.StringPool: " + fileName);
+			processMessage(fileName, "jodd.util.StringPool");
 		}
 
 		// LPS-45027
@@ -841,11 +755,10 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		if (newContent.contains(
 				"com.liferay.portal.kernel.util.UnmodifiableList")) {
 
-			processErrorMessage(
+			processMessage(
 				fileName,
 				"Use java.util.Collections.unmodifiableList instead of " +
-					"com.liferay.portal.kernel.util.UnmodifiableList: " +
-						fileName);
+					"com.liferay.portal.kernel.util.UnmodifiableList");
 		}
 
 		// LPS-28266
@@ -872,8 +785,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			}
 
 			if ((pos3 < pos4) && (pos4 < pos5)) {
-				processErrorMessage(
-					fileName, "Use getInt(1) for count: " + fileName);
+				processMessage(fileName, "Use getInt(1) for count");
 			}
 		}
 
@@ -884,10 +796,9 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		if (matcher.find() &&
 			!content.contains("private static final long serialVersionUID")) {
 
-			processErrorMessage(
+			processMessage(
 				fileName,
-				"Assign ProcessCallable implementation a serialVersionUID: " +
-					fileName);
+				"Assign ProcessCallable implementation a serialVersionUID");
 		}
 
 		checkLanguageKeys(
@@ -913,11 +824,10 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			content.contains("java.security.SecureRandom") &&
 			!content.contains("javax.crypto.KeyGenerator")) {
 
-			processErrorMessage(
+			processMessage(
 				fileName,
 				"Use SecureRandomUtil or com.liferay.portal.kernel.security." +
-					"SecureRandom instead of java.security.SecureRandom: " +
-						fileName);
+					"SecureRandom instead of java.security.SecureRandom");
 		}
 
 		// LPS-41315
@@ -955,10 +865,9 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		if (portalSource && fileName.contains("/portal-kernel/") &&
 			content.contains("import javax.servlet.jsp.")) {
 
-			processErrorMessage(
+			processMessage(
 				fileName,
-				"Never import javax.servlet.jsp.* from portal-kernel " +
-					fileName);
+				"Never import javax.servlet.jsp.* from portal-kernel");
 		}
 
 		// LPS-48153
@@ -993,13 +902,13 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		// LPS-55690
 
 		if (newContent.contains("org.testng.Assert")) {
-			processErrorMessage(
-				fileName,
-				"Use org.junit.Assert instead of org.testng.Assert: " +
-					fileName);
+			processMessage(
+				fileName, "Use org.junit.Assert instead of org.testng.Assert");
 		}
 
-		if (portalSource && isModulesFile(absolutePath)) {
+		if (portalSource && isModulesFile(absolutePath) &&
+			packagePath.startsWith("com.liferay")) {
+
 			newContent = formatModulesFile(
 				fileName, absolutePath, className, packagePath, newContent);
 		}
@@ -1013,10 +922,10 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		if (newContent.contains(".supportsBatchUpdates()") &&
 			!fileName.endsWith("AutoBatchPreparedStatementUtil.java")) {
 
-			processErrorMessage(
+			processMessage(
 				fileName,
 				"Use AutoBatchPreparedStatementUtil instead of " +
-					"DatabaseMetaData.supportsBatchUpdates: " + fileName);
+					"DatabaseMetaData.supportsBatchUpdates");
 		}
 
 		// LPS-64056
@@ -1024,10 +933,10 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		if (newContent.contains("Configurable.createConfigurable(") &&
 			!fileName.endsWith("ConfigurableUtil.java")) {
 
-			processErrorMessage(
+			processMessage(
 				fileName,
 				"Use ConfigurableUtil.createConfigurable instead of " +
-					"Configurable.createConfigurable: " + fileName);
+					"Configurable.createConfigurable");
 		}
 
 		// LPS-62786
@@ -1047,10 +956,10 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		if (fileName.endsWith("ResourceCommand.java") &&
 			newContent.contains("ServletResponseUtil.sendFile(")) {
 
-			processErrorMessage(
+			processMessage(
 				fileName,
 				"Use PortletResponseUtil.sendFile instead of " +
-					"ServletResponseUtil.sendFile: " + fileName);
+					"ServletResponseUtil.sendFile");
 		}
 
 		if (!fileName.endsWith("GetterUtilTest.java")) {
@@ -1083,6 +992,10 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 
 		newContent = fixLineStartingWithCloseParenthesis(newContent, fileName);
 
+		matcher = _incorrectSynchronizedPattern.matcher(newContent);
+
+		newContent = matcher.replaceAll("$1$3 $2");
+
 		pos = newContent.indexOf("\npublic ");
 
 		if (pos != -1) {
@@ -1094,8 +1007,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				className, packagePath, file, fileName, absolutePath,
 				newContent, javaClassContent, javaClassLineCount,
 				StringPool.BLANK, _checkJavaFieldTypesExcludes,
-				_javaTermAccessLevelModifierExcludes, _javaTermSortExcludes,
-				_testAnnotationsExcludes);
+				_javaTermSortExcludes, _testAnnotationsExcludes);
 		}
 
 		matcher = _anonymousClassPattern.matcher(newContent);
@@ -1121,10 +1033,10 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 					newContent, matcher.start() + 1);
 
 				newContent = formatJavaTerms(
-					className, packagePath, file, fileName, absolutePath,
-					newContent, javaClassContent, javaClassLineCount,
-					matcher.group(1), _checkJavaFieldTypesExcludes,
-					_javaTermAccessLevelModifierExcludes, _javaTermSortExcludes,
+					StringPool.BLANK, StringPool.BLANK, file, fileName,
+					absolutePath, newContent, javaClassContent,
+					javaClassLineCount, matcher.group(1),
+					_checkJavaFieldTypesExcludes, _javaTermSortExcludes,
 					_testAnnotationsExcludes);
 
 				break;
@@ -1388,8 +1300,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			if (getLevel(matcher.group()) == 0) {
 				int lineCount = getLineCount(content, matcher.start());
 
-				processErrorMessage(
-					fileName, "line break: " + fileName + " " + lineCount);
+				processMessage(fileName, "line break", lineCount);
 			}
 		}
 
@@ -1410,10 +1321,9 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			String lastCharacterPreviousLine = matcher.group(1);
 
 			if (lastCharacterPreviousLine.equals(StringPool.OPEN_PARENTHESIS)) {
-				processErrorMessage(
-					fileName,
-					"line break: " + fileName + " " +
-						getLineCount(content, matcher.start(1)));
+				processMessage(
+					fileName, "line break",
+					getLineCount(content, matcher.start(1)));
 
 				return content;
 			}
@@ -1598,7 +1508,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 	}
 
 	protected String formatAnnotations(
-			String fileName, String javaTermName, String content, String indent)
+			String fileName, String javaTermName, String content, String indent,
+			boolean sortAnnotations)
 		throws IOException {
 
 		UnsyncBufferedReader unsyncBufferedReader = new UnsyncBufferedReader(
@@ -1614,8 +1525,15 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				return content;
 			}
 
-			if ((StringUtil.count(line, CharPool.TAB) == indent.length()) &&
-				!line.startsWith(indent + StringPool.CLOSE_PARENTHESIS)) {
+			int tabCount = StringUtil.count(line, CharPool.TAB);
+
+			if ((tabCount < indent.length()) && Validator.isNull(annotation)) {
+				continue;
+			}
+
+			if ((tabCount < indent.length()) ||
+				((tabCount == indent.length()) &&
+				 !line.startsWith(indent + StringPool.CLOSE_PARENTHESIS))) {
 
 				if (Validator.isNotNull(annotation) &&
 					annotation.contains(StringPool.OPEN_PARENTHESIS)) {
@@ -1650,14 +1568,22 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 
 					if (!newContent.equals(content)) {
 						return formatAnnotations(
-							fileName, javaTermName, newContent, indent);
+							fileName, javaTermName, newContent, indent,
+							sortAnnotations);
 					}
 
-					checkAnnotationParameters(
-						fileName, javaTermName, annotation);
+					String newAnnotation = formatAnnotations(
+						fileName, javaTermName, annotation, indent + "\t\t",
+						false);
+
+					if (!newAnnotation.equals(annotation)) {
+						return StringUtil.replace(
+							content, annotation, newAnnotation);
+					}
 				}
 
-				if (Validator.isNotNull(previousAnnotation) &&
+				if (sortAnnotations &&
+					Validator.isNotNull(previousAnnotation) &&
 					(previousAnnotation.compareToIgnoreCase(annotation) > 0)) {
 
 					content = StringUtil.replaceFirst(
@@ -1666,7 +1592,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 						content, annotation, previousAnnotation);
 
 					return formatAnnotations(
-						fileName, javaTermName, content, indent);
+						fileName, javaTermName, content, indent,
+						sortAnnotations);
 				}
 
 				if (line.startsWith(indent + StringPool.AT)) {
@@ -1992,10 +1919,9 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 
 					int lineCount = getLineCount(content, matcher.start(2));
 
-					processErrorMessage(
-						fileName,
-						"Unprocessed " + originalExceptionClassName + ": " +
-							fileName + " " + lineCount);
+					processMessage(
+						fileName, "Unprocessed " + originalExceptionClassName,
+						lineCount);
 
 					break;
 				}
@@ -2056,24 +1982,46 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 						line.substring(x + 1));
 			}
 
+			if ((previousLineLength > 0) && previousLineIsStartCriteria &&
+				(previousLineLevel >= 0) && previousLine.matches(".*[|&^]")) {
+
+				Matcher matcher = _ifStatementCriteriaPattern.matcher(
+					trimmedLine);
+
+				while (matcher.find()) {
+					if (ToolsUtil.isInsideQuotes(trimmedLine, matcher.end())) {
+						continue;
+					}
+
+					String linePart = trimmedLine.substring(0, matcher.end());
+
+					int linePartLevel = getLevel(linePart);
+
+					if ((linePartLevel <= 0) &&
+						((previousLineLength + linePart.length()) <
+							_maxLineLength)) {
+
+						if (linePart.equals(trimmedLine)) {
+							return StringUtil.replace(
+								ifClause, previousLine + "\n" + originalLine,
+								previousLine + StringPool.SPACE + trimmedLine);
+						}
+						else {
+							String newPreviousLine =
+								previousLine + StringPool.SPACE + linePart;
+							String newLine = StringUtil.replaceFirst(
+								originalLine, linePart, StringPool.BLANK);
+
+							return StringUtil.replace(
+								ifClause, previousLine + "\n" + originalLine,
+								newPreviousLine + "\n" + newLine);
+						}
+					}
+				}
+			}
+
 			line = StringUtil.replace(
 				line, StringPool.TAB, StringPool.FOUR_SPACES);
-
-			int lineLevel = getLevel(trimmedLine);
-
-			if ((previousLineLength > 0) &&
-				(line.endsWith("|") || line.endsWith("&&") ||
-				 line.endsWith(") {")) &&
-				(previousLine.endsWith("|") || previousLine.endsWith("&&")) &&
-				((previousLineLength + trimmedLine.length()) <
-					_maxLineLength) &&
-				(lineLevel <= 0) && (previousLineLevel >= 0) &&
-				previousLineIsStartCriteria) {
-
-				return StringUtil.replace(
-					ifClause, previousLine + "\n" + originalLine,
-					previousLine + StringPool.SPACE + trimmedLine);
-			}
 
 			int leadingWhitespace = line.length() - trimmedLine.length();
 
@@ -2138,6 +2086,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				return ifClause;
 			}
 
+			int lineLevel = getLevel(trimmedLine);
+
 			level += lineLevel;
 
 			if (Validator.isNotNull(previousLine)) {
@@ -2199,7 +2149,6 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 
 			String ifClause = StringPool.BLANK;
 			String packageName = StringPool.BLANK;
-			String regexPattern = StringPool.BLANK;
 
 			while ((line = unsyncBufferedReader.readLine()) != null) {
 				lineCount++;
@@ -2209,11 +2158,6 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				}
 
 				if (line.startsWith("import ")) {
-					if (line.endsWith(".*;")) {
-						processErrorMessage(
-							fileName, "import: " + fileName + " " + lineCount);
-					}
-
 					int pos = line.lastIndexOf(CharPool.PERIOD);
 
 					if (pos != -1) {
@@ -2253,23 +2197,6 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 					line = formatWhitespace(line, trimmedLine, true);
 				}
 
-				if (line.contains(StringPool.TAB + "for (") &&
-					line.contains(":") && !line.contains(" :")) {
-
-					line = StringUtil.replace(line, ":", " :");
-				}
-
-				// LPS-42924
-
-				if (line.contains("PortalUtil.getClassNameId(") &&
-					fileName.endsWith("ServiceImpl.java")) {
-
-					processErrorMessage(
-						fileName,
-						"Use classNameLocalService.getClassNameId: " +
-							fileName + " " + lineCount);
-				}
-
 				// LPS-42599
 
 				if (!isExcludedPath(_hibernateSQLQueryExcludes, absolutePath) &&
@@ -2295,10 +2222,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				// LPS-45492
 
 				if (trimmedLine.contains("StopWatch stopWatch = null;")) {
-					processErrorMessage(
-						fileName,
-						"Do not set stopwatch to null: " + fileName + " " +
-							lineCount);
+					processMessage(
+						fileName, "Do not set stopwatch to null", lineCount);
 				}
 
 				checkEmptyCollection(trimmedLine, fileName, lineCount);
@@ -2312,10 +2237,14 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				if (trimmedLine.startsWith("* @deprecated") &&
 					_addMissingDeprecationReleaseVersion) {
 
+					ComparableVersion mainReleaseComparableVersion =
+						getMainReleaseComparableVersion();
+
 					if (!trimmedLine.startsWith("* @deprecated As of ")) {
 						line = StringUtil.replace(
 							line, "* @deprecated",
-							"* @deprecated As of " + getMainReleaseVersion());
+							"* @deprecated As of " +
+								mainReleaseComparableVersion.toString());
 					}
 					else {
 						String version = trimmedLine.substring(20);
@@ -2326,7 +2255,19 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 						version = StringUtil.replace(
 							version, StringPool.COMMA, StringPool.BLANK);
 
-						if (StringUtil.count(version, CharPool.PERIOD) == 1) {
+						ComparableVersion comparableVersion =
+							new ComparableVersion(version);
+
+						if (comparableVersion.compareTo(
+								mainReleaseComparableVersion) > 0) {
+
+							line = StringUtil.replaceFirst(
+								line, version,
+								mainReleaseComparableVersion.toString());
+						}
+						else if (StringUtil.count(
+									version, CharPool.PERIOD) == 1) {
+
 							line = StringUtil.replaceFirst(
 								line, version, version + ".0");
 						}
@@ -2336,37 +2277,30 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				if (trimmedLine.startsWith("* @see ") &&
 					(StringUtil.count(trimmedLine, CharPool.AT) > 1)) {
 
-					processErrorMessage(
-						fileName,
-						"Do not use @see with another annotation: " + fileName +
-							" " + lineCount);
+					processMessage(
+						fileName, "Do not use @see with another annotation",
+						lineCount);
 				}
 
 				checkInefficientStringMethods(
 					line, fileName, absolutePath, lineCount, true);
 
 				if (trimmedLine.startsWith(StringPool.EQUAL)) {
-					processErrorMessage(
-						fileName, "line break: " + fileName + " " + lineCount);
+					processMessage(fileName, "line break", lineCount);
 				}
 
 				if (trimmedLine.startsWith("},") && !trimmedLine.equals("},")) {
-					processErrorMessage(
-						fileName, "line break: " + fileName + " " + lineCount);
+					processMessage(fileName, "line break", lineCount);
 				}
 
 				if (line.contains("ActionForm form")) {
-					processErrorMessage(
-						fileName,
-						"Rename form to actionForm: " + fileName + " " +
-							lineCount);
+					processMessage(
+						fileName, "Rename form to actionForm", lineCount);
 				}
 
 				if (line.contains("ActionMapping mapping")) {
-					processErrorMessage(
-						fileName,
-						"Rename mapping to ActionMapping: " + fileName + " " +
-							lineCount);
+					processMessage(
+						fileName, "Rename mapping to ActionMapping", lineCount);
 				}
 
 				if (!trimmedLine.equals("{") && line.endsWith("{") &&
@@ -2376,21 +2310,6 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				}
 
 				line = sortExceptions(line);
-
-				if (trimmedLine.startsWith("Pattern ") ||
-					Validator.isNotNull(regexPattern)) {
-
-					regexPattern = regexPattern + trimmedLine;
-
-					if (trimmedLine.endsWith(");")) {
-
-						// LPS-41084
-
-						checkRegexPattern(regexPattern, fileName, lineCount);
-
-						regexPattern = StringPool.BLANK;
-					}
-				}
 
 				int lineLeadingTabCount = getLeadingTabCount(line);
 				int previousLineLeadingTabCount = getLeadingTabCount(
@@ -2410,16 +2329,12 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 						(strippedQuotesLineOpenParenthesisCount > 0) &&
 						(getLevel(trimmedLine) > 0)) {
 
-						processErrorMessage(
-							fileName,
-							"line break: " + fileName + " " + lineCount);
+						processMessage(fileName, "line break", lineCount);
 					}
 
 					if (line.endsWith(StringPool.OPEN_PARENTHESIS)) {
 						if (line.contains(" && ") || line.contains(" || ")) {
-							processErrorMessage(
-								fileName,
-								"line break: " + fileName + " " + lineCount);
+							processMessage(fileName, "line break", lineCount);
 						}
 
 						int pos = strippedQuotesLine.indexOf(" + ");
@@ -2431,10 +2346,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 							if ((getLevel(linePart, "(", ")") == 0) &&
 								(getLevel(linePart, "[", "]") == 0)) {
 
-								processErrorMessage(
-									fileName,
-									"line break: " + fileName + " " +
-										lineCount);
+								processMessage(
+									fileName, "line break", lineCount);
 							}
 						}
 					}
@@ -2539,10 +2452,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 								(previousLine.endsWith(StringPool.PLUS) &&
 								 (level <= 0))) {
 
-								processErrorMessage(
-									fileName,
-									"line break: " + fileName + " " +
-										lineCount);
+								processMessage(
+									fileName, "line break", lineCount);
 							}
 						}
 					}
@@ -2553,18 +2464,14 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 						String linePart = strippedQuotesLine.substring(0, x);
 
 						if (getLevel(linePart) < 0) {
-							processErrorMessage(
-								fileName,
-								"line break: " + fileName + " " + lineCount);
+							processMessage(fileName, "line break", lineCount);
 						}
 					}
 					else if (trimmedLine.endsWith(StringPool.COMMA) &&
 							 !trimmedLine.startsWith("for (")) {
 
 						if (getLevel(trimmedLine) > 0) {
-							processErrorMessage(
-								fileName,
-								"line break: " + fileName + " " + lineCount);
+							processMessage(fileName, "line break", lineCount);
 						}
 					}
 
@@ -2577,10 +2484,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 							int y = line.indexOf(CharPool.QUOTE);
 
 							if ((y == -1) || (x < y)) {
-								processErrorMessage(
-									fileName,
-									"line break: " + fileName + " " +
-										lineCount);
+								processMessage(
+									fileName, "line break", lineCount);
 							}
 						}
 					}
@@ -2592,45 +2497,35 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 						 (line.endsWith(StringPool.OPEN_CURLY_BRACE) ||
 						  line.endsWith(StringPool.SEMICOLON)))) {
 
-						processErrorMessage(
-							fileName,
-							"line break: " + fileName + " " + lineCount);
+						processMessage(fileName, "line break", lineCount);
 					}
 
 					if (trimmedLine.startsWith(StringPool.PERIOD) ||
 						(line.endsWith(StringPool.PERIOD) &&
 						 line.contains(StringPool.EQUAL))) {
 
-						processErrorMessage(
-							fileName,
-							"line break: " + fileName + " " + lineCount);
+						processMessage(fileName, "line break", lineCount);
 					}
 
 					if (trimmedLine.matches("^\\} (catch|else|finally) .*")) {
-						processErrorMessage(
-							fileName,
-							"line break: " + fileName + " " + lineCount);
+						processMessage(fileName, "line break", lineCount);
 					}
 
 					if (previousLine.endsWith(StringPool.OPEN_PARENTHESIS) &&
 						trimmedLine.startsWith(StringPool.CLOSE_PARENTHESIS)) {
 
-						processErrorMessage(
-							fileName,
-							"line break: " + fileName + " " + lineCount);
+						processMessage(fileName, "line break", lineCount);
 					}
 				}
 
 				if (line.contains("    ") && !line.matches("\\s*\\*.*")) {
 					if (!fileName.endsWith("StringPool.java")) {
-						processErrorMessage(
-							fileName, "tab: " + fileName + " " + lineCount);
+						processMessage(fileName, "tab", lineCount);
 					}
 				}
 
 				if (line.contains("  {") && !line.matches("\\s*\\*.*")) {
-					processErrorMessage(
-						fileName, "{:" + fileName + " " + lineCount);
+					processMessage(fileName, "{", lineCount);
 				}
 
 				if (trimmedLine.startsWith("catch (") ||
@@ -2660,10 +2555,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 						if (!trimmedIfClause.startsWith("while ") &&
 							!trimmedIfClause.contains("{\t")) {
 
-							processErrorMessage(
-								fileName,
-								"Incorrect if statement: " + fileName + " " +
-									lineCount);
+							processMessage(
+								fileName, "Incorrect if statement", lineCount);
 						}
 
 						ifClause = StringPool.BLANK;
@@ -2700,10 +2593,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 								return truncateLongLinesContent;
 							}
 
-							processErrorMessage(
-								fileName,
-								"> " + _maxLineLength + ": " + fileName + " " +
-									lineCount);
+							processMessage(
+								fileName, "> " + _maxLineLength, lineCount);
 						}
 					}
 					else {
@@ -2715,10 +2606,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 								(lineLeadingTabCount >
 									previousLineLeadingTabCount)) {
 
-								processErrorMessage(
-									fileName,
-									"line break: " + fileName + " " +
-										lineCount);
+								processMessage(
+									fileName, "line break", lineCount);
 							}
 
 							if ((lineLeadingTabCount ==
@@ -2727,9 +2616,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 								 previousLine.endsWith(
 									 StringPool.OPEN_PARENTHESIS))) {
 
-								processErrorMessage(
-									fileName,
-									"tab: " + fileName + " " + lineCount);
+								processMessage(fileName, "tab", lineCount);
 							}
 
 							if (Validator.isNotNull(trimmedLine) &&
@@ -2740,9 +2627,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 								((previousLineLeadingTabCount + 1) !=
 									lineLeadingTabCount)) {
 
-								processErrorMessage(
-									fileName,
-									"tab: " + fileName + " " + lineCount);
+								processMessage(fileName, "tab", lineCount);
 							}
 
 							if (previousLine.endsWith(StringPool.PERIOD)) {
@@ -2757,10 +2642,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 									 (trimmedLine.charAt(x + 1) !=
 										 CharPool.CLOSE_PARENTHESIS))) {
 
-									processErrorMessage(
-										fileName,
-										"line break: " + fileName + " " +
-											lineCount);
+									processMessage(
+										fileName, "line break", lineCount);
 								}
 							}
 
@@ -2771,9 +2654,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 							if (trimmedLine.startsWith("throws ") &&
 								((diff == 0) || (diff > 1))) {
 
-								processErrorMessage(
-									fileName,
-									"tab: " + fileName + " " + lineCount);
+								processMessage(fileName, "tab", lineCount);
 							}
 
 							if ((diff == 2) &&
@@ -2804,54 +2685,11 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 
 				if (lineCount > 1) {
 					sb.append(previousLine);
-
-					if (Validator.isNotNull(previousLine) &&
-						Validator.isNotNull(trimmedLine) &&
-						!previousLine.contains("/*") &&
-						!previousLine.endsWith("*/")) {
-
-						String trimmedPreviousLine = StringUtil.trimLeading(
-							previousLine);
-
-						trimmedLine = StringUtil.trimLeading(line);
-
-						if ((trimmedPreviousLine.startsWith("// ") &&
-							 !trimmedLine.startsWith("// ")) ||
-							(!trimmedPreviousLine.startsWith("// ") &&
-							 trimmedLine.startsWith("// "))) {
-
-							sb.append("\n");
-						}
-						else if (!trimmedPreviousLine.endsWith(
-									StringPool.OPEN_CURLY_BRACE) &&
-								 !trimmedPreviousLine.endsWith(
-									 StringPool.COLON) &&
-								 (trimmedLine.startsWith("for (") ||
-								  trimmedLine.startsWith("if (") ||
-								  trimmedLine.startsWith("try {"))) {
-
-							sb.append("\n");
-						}
-						else if (previousLine.endsWith(
-									StringPool.TAB +
-										StringPool.CLOSE_CURLY_BRACE) &&
-								 !trimmedLine.startsWith(
-									 StringPool.CLOSE_CURLY_BRACE) &&
-								 !trimmedLine.startsWith(
-									 StringPool.CLOSE_PARENTHESIS) &&
-								 !trimmedLine.startsWith(
-									 StringPool.DOUBLE_SLASH) &&
-								 !trimmedLine.equals("*/") &&
-								 !trimmedLine.startsWith("catch ") &&
-								 !trimmedLine.startsWith("else ") &&
-								 !trimmedLine.startsWith("finally ") &&
-								 !trimmedLine.startsWith("while ")) {
-
-							sb.append("\n");
-						}
-					}
-
 					sb.append("\n");
+
+					if (addExtraEmptyLine(previousLine, line, true)) {
+						sb.append("\n");
+					}
 				}
 
 				previousLine = line;
@@ -2883,37 +2721,34 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				if (content.contains("@RunWith(Arquillian.class)") &&
 					content.contains("import org.powermock.")) {
 
-					processErrorMessage(
+					processMessage(
 						fileName,
-						"Do not use PowerMock inside Arquillian tests: " +
-							fileName);
+						"Do not use PowerMock inside Arquillian tests");
 				}
 
 				if (!packagePath.endsWith(".test")) {
-					processErrorMessage(
+					processMessage(
 						fileName,
 						"Module integration test must be under a test " +
-							"subpackage" + fileName);
+							"subpackage");
 				}
 			}
 			else if ((absolutePath.contains("/test/unit/") ||
 					  absolutePath.contains("/src/test/java/")) &&
 					 packagePath.endsWith(".test")) {
 
-				processErrorMessage(
+				processMessage(
 					fileName,
-					"Module unit test should not be under a test subpackage" +
-						fileName);
+					"Module unit test should not be under a test subpackage");
 			}
 		}
 
 		// LPS-57358
 
 		if (content.contains("ProxyFactory.newServiceTrackedInstance(")) {
-			processErrorMessage(
+			processMessage(
 				fileName,
-				"Do not use ProxyFactory.newServiceTrackedInstance in " +
-					"modules: " + fileName);
+				"Do not use ProxyFactory.newServiceTrackedInstance in modules");
 		}
 
 		// LPS-59076
@@ -2935,10 +2770,9 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			Matcher matcher = _registryImportPattern.matcher(content);
 
 			if (matcher.find()) {
-				processErrorMessage(
+				processMessage(
 					fileName,
-					"Do not use com.liferay.registry classes in modules: " +
-						fileName);
+					"Do not use com.liferay.registry classes in modules");
 			}
 		}
 
@@ -2947,29 +2781,29 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		if (!absolutePath.contains("/test/") && content.contains("@Meta.OCD") &&
 			!content.contains("@ExtendedObjectClassDefinition")) {
 
-			processErrorMessage(
+			processMessage(
 				fileName,
-				"Specify category using @ExtendedObjectClassDefinition: " +
-					fileName);
+				"Specify category using @ExtendedObjectClassDefinition");
 		}
 
 		// LPS-64238
 
 		if (content.contains("import com.liferay.util.dao.orm.CustomSQLUtil")) {
-			processErrorMessage(
+			processMessage(
 				fileName,
-				"Do not use com.liferay.util.dao.orm.CustomSQLUtil in " +
-					"modules: " + fileName);
+				"Do not use com.liferay.util.dao.orm.CustomSQLUtil in modules");
 		}
 
 		// LPS-64335
 
 		if (content.contains("import com.liferay.util.ContentUtil")) {
-			processErrorMessage(
-				fileName,
-				"Do not use com.liferay.util.ContentUtil in modules:" +
-					fileName);
+			processMessage(
+				fileName, "Do not use com.liferay.util.ContentUtil in modules");
 		}
+
+		// LPS-67042
+
+		checkInternalImports(fileName, absolutePath, content);
 
 		return content;
 	}
@@ -3001,10 +2835,10 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				}
 			}
 
-			processErrorMessage(
+			processMessage(
 				fileName,
 				"LPS-59076: Use @Reference instead of calling " +
-					serviceUtilClassName + " directly: " + fileName);
+					serviceUtilClassName + " directly");
 		}
 
 		matcher = _referenceMethodPattern.matcher(content);
@@ -3226,8 +3060,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				}
 			}
 			else {
-				processErrorMessage(
-					fileName, "line break: " + fileName + " " + lineCount);
+				processMessage(fileName, "line break", lineCount);
 
 				return null;
 			}
@@ -3362,8 +3195,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 
 			if (previousLine.endsWith(StringPool.EQUAL)) {
 				if (line.endsWith(StringPool.OPEN_CURLY_BRACE)) {
-					processErrorMessage(
-						fileName, "line break: " + fileName + " " + lineCount);
+					processMessage(fileName, "line break", lineCount);
 
 					return null;
 				}
@@ -3377,9 +3209,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 						if (Validator.isNull(nextLine) ||
 							nextLine.endsWith(") {")) {
 
-							processErrorMessage(
-								fileName,
-								"line break: " + fileName + " " + lineCount);
+							processMessage(fileName, "line break", lineCount);
 
 							return null;
 						}
@@ -3530,8 +3360,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				}
 
 				if (trimmedLine.equals(linePart)) {
-					processErrorMessage(
-						fileName, "line break: " + fileName + " " + lineCount);
+					processMessage(fileName, "line break", lineCount);
 
 					return null;
 				}
@@ -3551,7 +3380,28 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			int nextLineTabCount = getLeadingTabCount(nextLine);
 
 			if (nextLineTabCount != (lineTabCount + 1)) {
-				int x = trimmedLine.indexOf(CharPool.COMMA);
+				int x = -1;
+
+				while (true) {
+					x = trimmedLine.indexOf(CharPool.COMMA, x + 1);
+
+					if (x == -1) {
+						break;
+					}
+
+					if (ToolsUtil.isInsideQuotes(trimmedLine, x)) {
+						continue;
+					}
+
+					String linePart = trimmedLine.substring(0, x);
+
+					if ((getLevel(linePart, "(", ")") == 0) &&
+						(getLevel(linePart, "{", "}") == 0) &&
+						(getLevel(linePart, "<", ">") == 0)) {
+
+						break;
+					}
+				}
 
 				if (x != -1) {
 					while ((previousLineLength + 1 + x) < _maxLineLength) {
@@ -4163,12 +4013,10 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		Collection<String> fileNames = new TreeSet<>();
 
 		String[] excludes = new String[] {
-			"**/*_IW.java", "**/PropsValues.java", "**/counter/service/**",
-			"**/jsp/*", "**/model/impl/*BaseImpl.java",
+			"**/*_IW.java", "**/counter/service/**", "**/jsp/*",
 			"**/model/impl/*Model.java", "**/model/impl/*ModelImpl.java",
 			"**/portal/service/**", "**/portal-client/**",
-			"**/portal-web/test/**/*Test.java", "**/portlet/**/service/**",
-			"**/test/*-generated/**", "**/source/formatter/**"
+			"**/portal-web/test/**/*Test.java", "**/test/*-generated/**"
 		};
 
 		for (String directoryName : getPluginsInsideModulesDirectoryNames()) {
@@ -4182,7 +4030,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 
 		excludes = new String[] {
 			"**/portal-client/**", "**/tools/ext_tmpl/**", "**/*_IW.java",
-			"**/test/**/*PersistenceTest.java", "**/source/formatter/**"
+			"**/test/**/*PersistenceTest.java"
 		};
 		includes = new String[] {
 			"**/com/liferay/portal/kernel/service/ServiceContext*.java",
@@ -4191,6 +4039,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			"**/portal-test-integration/**/portal/service/**/*.java",
 			"**/service/Base*.java",
 			"**/service/PersistedModelLocalService*.java",
+			"**/service/configuration/**/*.java",
 			"**/service/http/*HttpTest.java", "**/service/http/*SoapTest.java",
 			"**/service/http/TunnelUtil.java", "**/service/impl/*.java",
 			"**/service/jms/*.java", "**/service/permission/*.java",
@@ -4343,7 +4192,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			else {
 				x = line.lastIndexOf(StringPool.SPACE);
 
-				if (x != -1) {
+				if ((x != -1) && !ToolsUtil.isInsideQuotes(line, x)) {
 					String firstLine = line.substring(0, x);
 					String secondLine =
 						indent + StringPool.TAB + line.substring(x + 1);
@@ -4451,6 +4300,15 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 	@Override
 	protected void postFormat() throws Exception {
 		checkBndInheritAnnotationOption();
+
+		try {
+			processCheckStyle();
+		}
+		catch (UnknownHostException uhe) {
+			System.out.println(
+				"Could not perform Checkstyle checks. Please check your " +
+					"network connection.");
+		}
 	}
 
 	@Override
@@ -4469,8 +4327,6 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			"fit.on.single.line.excludes");
 		_hibernateSQLQueryExcludes = getPropertyList(
 			"hibernate.sql.query.excludes");
-		_javaTermAccessLevelModifierExcludes = getPropertyList(
-			"javaterm.access.level.modifier.excludes");
 		_javaTermSortExcludes = getPropertyList("javaterm.sort.excludes");
 		_lineLengthExcludes = getPropertyList("line.length.excludes");
 		_proxyExcludes = getPropertyList("proxy.excludes");
@@ -4484,6 +4340,31 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			"upgrade.data.access.connection.excludes");
 		_upgradeServiceUtilExcludes = getPropertyList(
 			"upgrade.service.util.excludes");
+	}
+
+	protected void processCheckStyle() throws Exception {
+		if (!portalSource) {
+			return;
+		}
+
+		File baseDirFile = new File(sourceFormatterArgs.getBaseDirName());
+
+		List<SourceFormatterMessage> sourceFormatterMessages =
+			CheckStyleUtil.process(
+				_ungeneratedFiles, getAbsolutePath(baseDirFile));
+
+		for (SourceFormatterMessage sourceFormatterMessage :
+				sourceFormatterMessages) {
+
+			processMessage(
+				sourceFormatterMessage.getFileName(),
+				sourceFormatterMessage.getMessage(),
+				sourceFormatterMessage.getLineCount());
+
+			printError(
+				sourceFormatterMessage.getFileName(),
+				sourceFormatterMessage.toString());
+		}
 	}
 
 	protected void setBNDInheritRequiredValue(
@@ -4567,9 +4448,9 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 	private final Pattern _annotationLineBreakPattern2 = Pattern.compile(
 		"=(\n\t*)\"");
 	private final Pattern _annotationMetaTypePattern = Pattern.compile(
-		"\\s(name|description) = \"%");
+		"[\\s\\(](name|description) = \"%");
 	private final Pattern _anonymousClassPattern = Pattern.compile(
-		"\n(\t+)new .*\\) \\{\n\n");
+		"\n(\t+)(\\S.* )?new .*\\) \\{\n\n");
 	private final Pattern _arrayPattern = Pattern.compile(
 		"(\n\t*.* =) (new \\w*\\[\\] \\{)\n(\t*)(.+)\n\t*(\\};)\n");
 	private final Pattern _assertEqualsPattern = Pattern.compile(
@@ -4598,6 +4479,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		"@Override\n\tpublic Map<(.+)> fetchByPrimaryKeys\\(");
 	private List<String> _fitOnSingleLineExcludes;
 	private List<String> _hibernateSQLQueryExcludes;
+	private final Pattern _ifStatementCriteriaPattern = Pattern.compile(
+		".*?( [|&^]+( |\\Z)|\\) \\{\\Z)");
 	private final Pattern _incorrectCloseCurlyBracePattern1 = Pattern.compile(
 		"\n(.+)\n\n(\t+)}\n");
 	private final Pattern _incorrectCloseCurlyBracePattern2 = Pattern.compile(
@@ -4616,6 +4499,11 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		"\n(\t*)\\{.+(?<!\\}(,|;)?)\n");
 	private final Pattern _incorrectLineBreakPattern7 = Pattern.compile(
 		"\n(\t+\\{)\n(.*[^;])\n\t+(\\},?)");
+	private final Pattern _incorrectSynchronizedPattern = Pattern.compile(
+		"([\n\t])(synchronized) (private|public|protected)");
+	private final Pattern _internalImportPattern = Pattern.compile(
+		"\nimport com\\.liferay\\.(.*\\.internal\\.([a-z].*?\\.)?[A-Z].*?)" +
+			"[\\.|;]");
 	private final Pattern[] _javaSerializationVulnerabilityPatterns =
 		new Pattern[] {
 			Pattern.compile(
@@ -4623,7 +4511,6 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			Pattern.compile(
 				".*(extends [a-z\\.\\s]*ObjectInputStream).*", Pattern.DOTALL)
 	};
-	private List<String> _javaTermAccessLevelModifierExcludes;
 	private List<String> _javaTermSortExcludes;
 	private List<String> _lineLengthExcludes;
 	private final Pattern _lineStartingWithOpenParenthesisPattern =
@@ -4673,6 +4560,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 	private List<String> _testAnnotationsExcludes;
 	private final Pattern _throwsSystemExceptionPattern = Pattern.compile(
 		"(\n\t+.*)throws(.*) SystemException(.*)( \\{|;\n)");
+	private final Set<File> _ungeneratedFiles = new CopyOnWriteArraySet<>();
 	private final Pattern _upgradeClassNamePattern = Pattern.compile(
 		"new .*?(\\w+)\\(", Pattern.DOTALL);
 	private List<String> _upgradeDataAccessConnectionExcludes;

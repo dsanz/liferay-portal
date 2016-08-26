@@ -85,9 +85,12 @@ public class SyncDeviceLocalServiceUtil {
 	}
 
 	public static com.liferay.sync.model.SyncDevice addSyncDevice(long userId,
-		java.lang.String type, int buildNumber, int featureSet)
+		java.lang.String type, long buildNumber, java.lang.String hostname,
+		int featureSet)
 		throws com.liferay.portal.kernel.exception.PortalException {
-		return getService().addSyncDevice(userId, type, buildNumber, featureSet);
+		return getService()
+				   .addSyncDevice(userId, type, buildNumber, hostname,
+			featureSet);
 	}
 
 	/**
@@ -181,12 +184,12 @@ public class SyncDeviceLocalServiceUtil {
 	}
 
 	public static com.liferay.sync.model.SyncDevice updateSyncDevice(
-		long syncDeviceId, java.lang.String type, int buildNumber,
-		int featureSet, int status)
+		long syncDeviceId, java.lang.String type, long buildNumber,
+		int featureSet, java.lang.String hostname, int status)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return getService()
 				   .updateSyncDevice(syncDeviceId, type, buildNumber,
-			featureSet, status);
+			featureSet, hostname, status);
 	}
 
 	/**
@@ -271,6 +274,13 @@ public class SyncDeviceLocalServiceUtil {
 	public static java.util.List<com.liferay.sync.model.SyncDevice> getSyncDevices(
 		int start, int end) {
 		return getService().getSyncDevices(start, end);
+	}
+
+	public static java.util.List<com.liferay.sync.model.SyncDevice> getSyncDevices(
+		long userId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().getSyncDevices(userId, start, end, orderByComparator);
 	}
 
 	public static java.util.List<com.liferay.sync.model.SyncDevice> search(

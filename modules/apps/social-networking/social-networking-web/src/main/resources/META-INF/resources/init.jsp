@@ -25,7 +25,7 @@ taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 
 <%@ page import="com.liferay.blogs.kernel.model.BlogsEntry" %><%@
-page import="com.liferay.blogs.kernel.service.BlogsStatsUserLocalServiceUtil" %><%@
+page import="com.liferay.blogs.service.BlogsStatsUserLocalService" %><%@
 page import="com.liferay.expando.kernel.service.ExpandoValueLocalServiceUtil" %><%@
 page import="com.liferay.ip.geocoder.IPGeocoder" %><%@
 page import="com.liferay.ip.geocoder.IPInfo" %><%@
@@ -79,9 +79,9 @@ page import="com.liferay.social.networking.model.WallEntry" %><%@
 page import="com.liferay.social.networking.service.MeetupsEntryLocalServiceUtil" %><%@
 page import="com.liferay.social.networking.service.MeetupsRegistrationLocalServiceUtil" %><%@
 page import="com.liferay.social.networking.service.WallEntryLocalServiceUtil" %><%@
-page import="com.liferay.social.networking.web.constants.SocialNetworkingWebKeys" %><%@
-page import="com.liferay.social.networking.web.meetups.util.MeetupsConstants" %><%@
-page import="com.liferay.social.networking.web.util.WallUtil" %><%@
+page import="com.liferay.social.networking.web.internal.constants.SocialNetworkingWebKeys" %><%@
+page import="com.liferay.social.networking.web.internal.meetups.util.MeetupsConstants" %><%@
+page import="com.liferay.social.networking.web.internal.util.WallUtil" %><%@
 page import="com.liferay.taglib.search.ResultRow" %>
 
 <%@ page import="java.text.Format" %>

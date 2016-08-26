@@ -125,9 +125,8 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 	}
 
 	protected void addJSPUnusedImports(
-		String fileName, List<String> importLines,
-		List<String> unneededImports, Set<String> checkedForIncludesFileNames,
-		Set<String> includeFileNames) {
+		String fileName, List<String> importLines, List<String> unneededImports,
+		Set<String> checkedForIncludesFileNames, Set<String> includeFileNames) {
 
 		for (String importLine : importLines) {
 			int x = importLine.indexOf(CharPool.QUOTE);
@@ -183,10 +182,9 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		String variableName, String value, String tag) {
 
 		if (line.contains(objectType + " " + variableName + " = " + value)) {
-			processErrorMessage(
-				fileName,
-				"Use '" + tag + ":defineObjects' or rename var: " + fileName +
-					" " + lineCount);
+			processMessage(
+				fileName, "Use '" + tag + ":defineObjects' or rename var",
+				lineCount);
 		}
 	}
 
@@ -232,11 +230,11 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		Matcher matcher = validatorEqualsPattern.matcher(content);
 
 		while (matcher.find()) {
-			processErrorMessage(
+			processMessage(
 				fileName,
 				"Use Objects.equals(Object, Object) instead of " +
-					"Validator.equals(Object, Object): " + fileName + " " +
-						getLineCount(content, matcher.start()));
+					"Validator.equals(Object, Object)",
+				getLineCount(content, matcher.start()));
 		}
 	}
 
@@ -294,12 +292,9 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 		newContent = fixCompatClassImports(absolutePath, newContent);
 
-		newContent = fixEmptyLineInNestedTags(
-			newContent, _emptyLineInNestedTagsPattern1, true);
-		newContent = fixEmptyLineInNestedTags(
-			newContent, _emptyLineInNestedTagsPattern2, false);
+		newContent = fixEmptyLinesInNestedTags(newContent);
 
-		newContent = fixMissingEmptyLinesBetweenTags(newContent);
+		newContent = fixEmptyLinesBetweenTags(newContent);
 
 		newContent = fixIncorrectClosingTag(newContent);
 
@@ -307,7 +302,15 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 		newContent = formatMultilineTagAttributes(fileName, newContent);
 
-		Matcher matcher = _directiveLinePattern.matcher(newContent);
+		Matcher matcher = _missingEmptyLinePattern.matcher(newContent);
+
+		if (matcher.find()) {
+			newContent = StringUtil.replaceFirst(
+				newContent, StringPool.NEW_LINE, StringPool.BLANK,
+				matcher.start(1));
+		}
+
+		matcher = _directiveLinePattern.matcher(newContent);
 
 		while (matcher.find()) {
 			String directiveLine = matcher.group();
@@ -347,8 +350,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 			!fileName.endsWith("touch.jsp") &&
 			(fileName.endsWith(".jspf") || content.contains("include file="))) {
 
-			processErrorMessage(
-				fileName, "move imports to init.jsp: " + fileName);
+			processMessage(fileName, "move imports to init.jsp");
 		}
 
 		newContent = fixCopyright(newContent, absolutePath, fileName, null);
@@ -368,7 +370,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 		if (newContent.contains("    ")) {
 			if (!fileName.matches(".*template.*\\.vm$")) {
-				processErrorMessage(fileName, "tab: " + fileName);
+				processMessage(fileName, "tab");
 			}
 		}
 
@@ -419,8 +421,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		if (portalSource && isModulesFile(absolutePath) &&
 			newContent.contains("import=\"com.liferay.registry.Registry")) {
 
-			processErrorMessage(
-				fileName, "Do not use Registry in modules: " + fileName);
+			processMessage(fileName, "Do not use Registry in modules");
 		}
 
 		// LPS-64335
@@ -428,10 +429,8 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		if (portalSource && isModulesFile(absolutePath) &&
 			newContent.contains("import=\"com.liferay.util.ContentUtil")) {
 
-			processErrorMessage(
-				fileName,
-				"Do not use com.liferay.util.ContentUtil in modules: " +
-					fileName);
+			processMessage(
+				fileName, "Do not use com.liferay.util.ContentUtil in modules");
 		}
 
 		// LPS-62786
@@ -461,7 +460,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 			newContent = formatJavaTerms(
 				javaClassName, null, file, fileName, absolutePath, newContent,
 				javaClassContent, javaClassLineCount, StringPool.BLANK, null,
-				null, null, null);
+				null, null);
 		}
 
 		JSPSourceTabCalculator jspSourceTabCalculator =
@@ -509,49 +508,6 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		return content;
 	}
 
-	protected String fixEmptyLineInNestedTags(
-		String content, Pattern pattern, boolean startTag) {
-
-		Matcher matcher = pattern.matcher(content);
-
-		while (matcher.find()) {
-			String tabs2 = null;
-
-			if (startTag) {
-				String secondLine = matcher.group(3);
-
-				if (secondLine.equals("<%") || secondLine.startsWith("<%--") ||
-					secondLine.startsWith("<!--")) {
-
-					continue;
-				}
-
-				tabs2 = matcher.group(2);
-			}
-			else {
-				String firstLine = matcher.group(2);
-
-				if (firstLine.equals("%>")) {
-					continue;
-				}
-
-				tabs2 = matcher.group(3);
-			}
-
-			String tabs1 = matcher.group(1);
-
-			if ((startTag && ((tabs1.length() + 1) == tabs2.length())) ||
-				(!startTag && ((tabs1.length() - 1) == tabs2.length()))) {
-
-				content = StringUtil.replaceFirst(
-					content, StringPool.NEW_LINE, StringPool.BLANK,
-					matcher.end(1));
-			}
-		}
-
-		return content;
-	}
-
 	protected String fixIncorrectClosingTag(String content) {
 		Matcher matcher = _incorrectClosingTagPattern.matcher(content);
 
@@ -559,23 +515,6 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 			return StringUtil.replaceFirst(
 				content, " />\n", "\n" + matcher.group(1) + "/>\n",
 				matcher.end(1));
-		}
-
-		return content;
-	}
-
-	protected String fixMissingEmptyLinesBetweenTags(String content) {
-		Matcher matcher = _missingEmptyLineBetweenTagsPattern.matcher(content);
-
-		while (matcher.find()) {
-			String tabs1 = matcher.group(1);
-			String tabs2 = matcher.group(3);
-			String tagName = matcher.group(2);
-
-			if (tabs1.equals(tabs2) && !tagName.equals("when")) {
-				return StringUtil.replaceFirst(
-					content, "\n", "\n\n", matcher.end(1));
-			}
 		}
 
 		return content;
@@ -714,22 +653,17 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 				if (line.contains("<aui:button ") &&
 					line.contains("type=\"button\"")) {
 
-					processErrorMessage(
-						fileName, "aui:button " + fileName + " " + lineCount);
+					processMessage(fileName, "aui:button", lineCount);
 				}
 
 				if (line.contains("debugger.")) {
-					processErrorMessage(
-						fileName, "debugger " + fileName + " " + lineCount);
+					processMessage(fileName, "debugger", lineCount);
 				}
 
 				String trimmedLine = StringUtil.trimLeading(line);
-				String trimmedPreviousLine = StringUtil.trimLeading(
-					previousLine);
 
 				if (line.matches(".*\\WgetClass\\(\\)\\..+")) {
-					processErrorMessage(
-						fileName, "chaining: " + fileName + " " + lineCount);
+					processMessage(fileName, "chaining", lineCount);
 				}
 
 				checkEmptyCollection(trimmedLine, fileName, lineCount);
@@ -787,10 +721,8 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 				if (line.contains(".sendRedirect(") &&
 					!fileName.endsWith("_jsp.jsp")) {
 
-					processErrorMessage(
-						fileName,
-						"Do not use sendRedirect in jsp: " + fileName + " " +
-							lineCount);
+					processMessage(
+						fileName, "Do not use sendRedirect in jsp", lineCount);
 				}
 
 				// LPS-55341
@@ -825,9 +757,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 				if (!fileName.endsWith("test.jsp") &&
 					line.contains("System.out.print")) {
 
-					processErrorMessage(
-						fileName,
-						"System.out.print: " + fileName + " " + lineCount);
+					processMessage(fileName, "System.out.print", lineCount);
 				}
 
 				if (!trimmedLine.equals("%>") && line.contains("%>") &&
@@ -840,37 +770,6 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 					line = StringUtil.replace(line, "<%=", "<%= ");
 				}
 
-				if (trimmedPreviousLine.matches("(--)?%>") &&
-					Validator.isNotNull(line) && !trimmedLine.equals("-->")) {
-
-					sb.append("\n");
-				}
-				else if (Validator.isNotNull(previousLine) &&
-						 !trimmedPreviousLine.equals("<!--") &&
-						 trimmedLine.matches("<%(--)?")) {
-
-					sb.append("\n");
-				}
-				else if (trimmedPreviousLine.equals("<%") &&
-						 Validator.isNull(line)) {
-
-					continue;
-				}
-				else if (trimmedPreviousLine.equals("<%") &&
-						 trimmedLine.startsWith("//")) {
-
-					sb.append("\n");
-				}
-				else if (Validator.isNull(previousLine) &&
-						 trimmedLine.equals("%>") && (sb.index() > 2)) {
-
-					String lineBeforePreviousLine = sb.stringAt(sb.index() - 3);
-
-					if (!lineBeforePreviousLine.startsWith("//")) {
-						sb.setIndex(sb.index() - 1);
-					}
-				}
-
 				if (javaSource &&
 					(trimmedLine.startsWith("if (") ||
 					 trimmedLine.startsWith("else if (") ||
@@ -878,6 +777,12 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 					trimmedLine.endsWith(") {")) {
 
 					checkIfClauseParentheses(trimmedLine, fileName, lineCount);
+				}
+
+				if (javaSource &&
+					trimmedLine.matches("^\\} (catch|else|finally) .*")) {
+
+					processMessage(fileName, "line break", lineCount);
 				}
 
 				Matcher matcher = _ifTagPattern.matcher(trimmedLine);
@@ -968,9 +873,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 								includeFileName);
 
 							if (!matcher.find()) {
-								processErrorMessage(
-									fileName,
-									"include: " + fileName + " " + lineCount);
+								processMessage(fileName, "include", lineCount);
 							}
 						}
 					}
@@ -978,14 +881,44 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 				line = replacePrimitiveWrapperInstantiation(line);
 
-				previousLine = line;
+				if (lineCount > 1) {
+					sb.append(previousLine);
+					sb.append("\n");
 
-				sb.append(line);
-				sb.append("\n");
+					if (addExtraEmptyLine(previousLine, line, javaSource)) {
+						sb.append("\n");
+					}
+				}
+
+				previousLine = line;
 			}
+
+			sb.append(previousLine);
 		}
 
 		content = sb.toString();
+
+		while (true) {
+			Matcher matcher = _incorrectEmptyLinePattern1.matcher(content);
+
+			if (matcher.find()) {
+				content = StringUtil.replaceFirst(
+					content, "\n\n", "\n", matcher.start());
+
+				continue;
+			}
+
+			matcher = _incorrectEmptyLinePattern2.matcher(content);
+
+			if (matcher.find()) {
+				content = StringUtil.replaceFirst(
+					content, "\n\n", "\n", matcher.start());
+
+				continue;
+			}
+
+			break;
+		}
 
 		if (content.endsWith("\n")) {
 			content = content.substring(0, content.length() - 1);
@@ -995,8 +928,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 			if ((StringUtil.count(content, currentException) > 1) ||
 				(StringUtil.count(content, previousException) > 1)) {
 
-				processErrorMessage(
-					fileName, "unsorted exceptions: " + fileName);
+				processMessage(fileName, "unsorted exceptions");
 			}
 			else {
 				content = StringUtil.replaceFirst(
@@ -1141,7 +1073,11 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 				(beforeClosingTagChar != CharPool.TAB)) {
 
 				String closingTag = matcher.group(2);
-				String tabs = matcher.group(1);
+
+				String whitespace = matcher.group(1);
+
+				String tabs = StringUtil.removeChar(
+					whitespace, CharPool.NEW_LINE);
 
 				return StringUtil.replaceFirst(
 					content, closingTag, "\n" + tabs + closingTag,
@@ -1158,7 +1094,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 			String newTag = formatAttributes(
 				fileName, tag, singlelineTag,
-				getLineCount(content, matcher.start() + 1), false);
+				getLineCount(content, matcher.end(1)), false);
 
 			if (!tag.equals(newTag)) {
 				return StringUtil.replace(content, tag, newTag);
@@ -1288,10 +1224,9 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 			String nextTag = matcher.group(4);
 
 			if (!nextTag.contains(taglibName)) {
-				processErrorMessage(
-					fileName,
-					"No need to specify taglib variable: " + fileName + " " +
-						getLineCount(content, matcher.start()));
+				processMessage(
+					fileName, "No need to specify taglib variable",
+					getLineCount(content, matcher.start()));
 
 				continue;
 			}
@@ -1580,8 +1515,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 	protected boolean hasUnusedJSPTerm(
 		String fileName, String regex, String type,
-		Set<String> checkedForIncludesFileNames,
-		Set<String> includeFileNames) {
+		Set<String> checkedForIncludesFileNames, Set<String> includeFileNames) {
 
 		includeFileNames.add(fileName);
 
@@ -1916,15 +1850,16 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 	private void _populateTagJavaClasses() throws Exception {
 		List<String> tldFileNames = getFileNames(
+			sourceFormatterArgs.getBaseDirName(), null,
 			new String[] {"**/dependencies/**", "**/util-taglib/**"},
 			new String[] {"**/*.tld"});
 
 		outerLoop:
 		for (String tldFileName : tldFileNames) {
-			File tldFile = new File(tldFileName);
-
 			tldFileName = StringUtil.replace(
 				tldFileName, StringPool.BACK_SLASH, StringPool.SLASH);
+
+			File tldFile = new File(tldFileName);
 
 			String content = FileUtil.read(tldFile);
 
@@ -2154,10 +2089,6 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 	private final List<String> _duplicateImportClassNames = new ArrayList<>();
 	private final Pattern _emptyJavaSourceTagPattern = Pattern.compile(
 		"\n\t*<%\n+\t*%>\n");
-	private final Pattern _emptyLineInNestedTagsPattern1 = Pattern.compile(
-		"\n(\t*)(?:<\\w.*[^/])?>\n\n(\t*)(<.*)\n");
-	private final Pattern _emptyLineInNestedTagsPattern2 = Pattern.compile(
-		"\n(\t*)(.*>)\n\n(\t*)</.*(\n|$)");
 	private final Pattern _ifTagPattern = Pattern.compile(
 		"^<c:if test=('|\")<%= (.+) %>('|\")>$");
 	private final List<String> _importClassNames = new ArrayList<>();
@@ -2168,6 +2099,10 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		"\\s*@\\s*include\\s*file=['\"](.*)['\"]");
 	private final Pattern _incorrectClosingTagPattern = Pattern.compile(
 		"\n(\t*)\t((?!<\\w).)* />\n");
+	private final Pattern _incorrectEmptyLinePattern1 = Pattern.compile(
+		"[\n\t]<%\n\n(\t*)[^/\n\t]");
+	private final Pattern _incorrectEmptyLinePattern2 = Pattern.compile(
+		"([\n\t])([^/\n\t])(.*)\n\n\t*%>");
 	private Pattern _javaClassPattern = Pattern.compile(
 		"\n(private|protected|public).* class ([A-Za-z0-9]+) " +
 			"([\\s\\S]*?)\n\\}\n");
@@ -2180,11 +2115,11 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		"Log _log = LogFactoryUtil\\.getLog\\(\"(.*?)\"\\)");
 	private final Pattern _missingEmptyLineBetweenDefineOjbectsPattern =
 		Pattern.compile("<.*:defineObjects />\n<.*:defineObjects />\n");
-	private final Pattern _missingEmptyLineBetweenTagsPattern = Pattern.compile(
-		"\n(\t*)</[-\\w]+:([-\\w]+)>\n(\t*)<[-\\w]+");
+	private final Pattern _missingEmptyLinePattern = Pattern.compile(
+		"[\n\t](catch |else |finally |for |if |try |while ).*\\{\n\n\t+\\w");
 	private boolean _moveFrequentlyUsedImportsToCommonInit;
 	private final Pattern _multilineTagPattern = Pattern.compile(
-		"\n(\t*)<[-\\w]+:[-\\w]+\n.*?(/?>)(\n|$)", Pattern.DOTALL);
+		"(\\s+)<[-\\w]+:[-\\w]+\n.*?(/?>)(\n|$)", Pattern.DOTALL);
 	private Set<String> _primitiveTagAttributeDataTypes;
 	private final Pattern _redirectBackURLPattern = Pattern.compile(
 		"(String redirect = ParamUtil\\.getString\\(request, \"redirect\".*" +

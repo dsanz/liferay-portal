@@ -302,7 +302,6 @@ AUI.add(
 						var instance = this;
 
 						var activeTab = event.newVal;
-						var previousTab = event.prevVal;
 
 						var entryId = activeTab.get(ENTRY_ID);
 
@@ -509,7 +508,10 @@ AUI.add(
 
 						var gadgetId = node.get(GADGET_ID);
 
-						var message = Liferay.Language.get('are-you-sure-you-want-to-unpublish-the-gadget', node.get(LABEL));
+						var message = Lang.sub(
+							Liferay.Language.get('are-you-sure-you-want-to-unpublish-the-gadget'),
+							[node.get(LABEL)]
+						);
 
 						instance._showConfirmationDialog(message, instance._unpublishGadget, node, gadgetId);
 					},
@@ -604,8 +606,6 @@ AUI.add(
 						var instance = this;
 
 						instance._searchDialog.destroy();
-
-						var tab = instance._tabViewEditor.getSelectedTab();
 
 						instance._searchEditorButton.toggle();
 					},
@@ -763,7 +763,10 @@ AUI.add(
 						if (tab && tab.get(IS_DIRTY) && !event.noConfirm) {
 							var tabFileName = tab.get('fileName');
 
-							var message = Liferay.Language.get('has-not-been-saved-are-you-sure-you-want-to-close-the-tab', tabFileName);
+							var message = Lang.sub(
+								Liferay.Language.get('has-not-been-saved-are-you-sure-you-want-to-close-the-tab'),
+								[tabFileName]
+							);
 
 							instance._showConfirmationDialog(message, instance._closeFileEntry, entryId);
 						}
@@ -777,17 +780,21 @@ AUI.add(
 
 						var entryId = event.entryId;
 
-						var unpublish = STR_EMPTY;
-
 						var node = instance._getNodeFromDataSet(entryId);
 
 						var message;
 
 						if (node.get(GADGET_ID) > 0) {
-							message = Liferay.Language.get('are-you-sure-you-want-to-unpublish-and-delete', node.get(LABEL));
+							message = Lang.sub(
+								Liferay.Language.get('are-you-sure-you-want-to-unpublish-and-delete'),
+								[node.get(LABEL)]
+							);
 						}
 						else {
-							message = Liferay.Language.get('are-you-sure-you-want-to-delete', node.get(LABEL));
+							message = Lang.sub(
+								Liferay.Language.get('are-you-sure-you-want-to-delete'),
+								[node.get(LABEL)]
+							);
 						}
 
 						instance._showConfirmationDialog(message, instance._deleteEntry, node, entryId);
@@ -815,7 +822,7 @@ AUI.add(
 									return;
 								}
 
-								var tab = instance._tabViewEditor.addExistingDocument(event.entryId, node.get(LABEL), data.content);
+								instance._tabViewEditor.addExistingDocument(event.entryId, node.get(LABEL), data.content);
 
 								node.set(FILE_ENTRY_LOADED, true);
 							};
@@ -1012,7 +1019,10 @@ AUI.add(
 										failure: function(event) {
 											instance._loadingMask.hide();
 
-											var message = Liferay.Language.get('request-for-resource-id-failed', resourceId);
+											var message = Lang.sub(
+												Liferay.Language.get('request-for-resource-id-failed'),
+												[resourceId]
+											);
 
 											instance._showErrorDialog(message);
 										}

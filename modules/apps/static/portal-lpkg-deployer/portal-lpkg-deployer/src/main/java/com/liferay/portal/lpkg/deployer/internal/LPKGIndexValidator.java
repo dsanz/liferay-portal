@@ -30,7 +30,6 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
-import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.lpkg.deployer.LPKGDeployer;
 import com.liferay.portal.lpkg.deployer.LPKGVerifyException;
 import com.liferay.portal.target.platform.indexer.IndexValidator;
@@ -139,7 +138,7 @@ public class LPKGIndexValidator {
 				Collections.sort(actualKeys);
 
 				_log.info(
-					"Failed integrity check because expected keys: " +
+					"Running validation because expected keys: " +
 						expectedKeys + " do not match actual keys: " +
 							actualKeys);
 			}
@@ -158,7 +157,7 @@ public class LPKGIndexValidator {
 				if (!Objects.equals(expectedChecksum, actualChecksum)) {
 					if (_log.isInfoEnabled()) {
 						_log.info(
-							"Failed integrity check because of mismatched " +
+							"Running validation because of mismatched " +
 								"checksum for " + integrityKey);
 					}
 
@@ -177,6 +176,18 @@ public class LPKGIndexValidator {
 		}
 
 		return true;
+	}
+
+	public void setJarFiles(List<File> jarFiles) {
+		_jarFiles = jarFiles;
+
+		Set<String> jarFileNames = new HashSet<>();
+
+		for (File file : jarFiles) {
+			jarFileNames.add(StringUtil.toLowerCase(file.getName()));
+		}
+
+		_jarFileNames = jarFileNames;
 	}
 
 	public void setLPKGDeployer(LPKGDeployer lpkgDeployer) {
@@ -297,15 +308,18 @@ public class LPKGIndexValidator {
 
 		LocalProcessExecutor localProcessExecutor = new LocalProcessExecutor();
 
+		List<File> additionalJarFiles = new ArrayList<>(_jarFiles);
+
+		additionalJarFiles.add(
+			new File(PropsValues.LIFERAY_LIB_PORTAL_DIR, "util-taglib.jar"));
+
 		try {
 			ProcessChannel<byte[]> processChannel =
 				localProcessExecutor.execute(
 					_processConfig,
 					new TargetPlatformIndexerProcessCallable(
-						Arrays.asList(
-							new File(
-								PropsValues.LIFERAY_LIB_PORTAL_DIR,
-								"util-taglib.jar")),
+						additionalJarFiles,
+						PropsValues.MODULE_FRAMEWORK_STOP_WAIT_TIMEOUT,
 						PropsValues.MODULE_FRAMEWORK_BASE_DIR + "/static",
 						PropsValues.MODULE_FRAMEWORK_MODULES_DIR,
 						PropsValues.MODULE_FRAMEWORK_PORTAL_DIR));
@@ -334,7 +348,8 @@ public class LPKGIndexValidator {
 
 		try {
 			for (File lpkgFile : lpkgFiles) {
-				Indexer indexer = _indexerFactory.createLPKGIndexer(lpkgFile);
+				Indexer indexer = _indexerFactory.createLPKGIndexer(
+					lpkgFile, _jarFileNames);
 
 				indexer.index(unsyncByteArrayOutputStream);
 
@@ -393,7 +408,7 @@ public class LPKGIndexValidator {
 			integrityKey = integrityKey.substring(index + 1);
 		}
 
-		return URLCodec.decodeURL(integrityKey);
+		return integrityKey;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -414,6 +429,8 @@ public class LPKGIndexValidator {
 	private final Path _integrityPropertiesFilePath = Paths.get(
 		PropsValues.MODULE_FRAMEWORK_BASE_DIR, Indexer.DIR_NAME_TARGET_PLATFORM,
 		"integrity.properties");
+	private Set<String> _jarFileNames;
+	private List<File> _jarFiles;
 	private LPKGDeployer _lpkgDeployer;
 	private final ProcessConfig _processConfig;
 

@@ -67,8 +67,8 @@ public abstract class BaseDataPartitioningExporter
 	}
 
 	@Override
-	public List<String> getControlTableNames(String schemaName) {
-		return getTableNames(getControlTableNamesSQL(schemaName));
+	public List<String> getControlTableNames(ExportContext exportContext) {
+		return getTableNames(getControlTableNamesSQL(exportContext));
 	}
 
 	@Override
@@ -87,8 +87,8 @@ public abstract class BaseDataPartitioningExporter
 	}
 
 	@Override
-	public List<String> getPartitionedTableNames(String schemaName) {
-		return getTableNames(getPartitionedTableNamesSQL(schemaName));
+	public List<String> getPartitionedTableNames(ExportContext exportContext) {
+		return getTableNames(getPartitionedTableNamesSQL(exportContext));
 	}
 
 	@Override
@@ -174,11 +174,11 @@ public abstract class BaseDataPartitioningExporter
 		try (Connection connection = dataSource.getConnection();
 			PreparedStatement preparedStatement = buildPreparedStatement(
 				connection,
-				"select * from " + tableName +" where companyId = ?",
+				"select count(1) from " + tableName + " where companyId = ?",
 				companyId);
 			ResultSet resultSet = preparedStatement.executeQuery()) {
 
-			if (resultSet.next()) {
+			if (resultSet.next() && (resultSet.getInt(1) > 0)) {
 				String deleteSQL =
 					"delete from " + tableName + " where companyId = " +
 						companyId + ";\n";
@@ -247,9 +247,11 @@ public abstract class BaseDataPartitioningExporter
 		outputStream.write(sql.getBytes());
 	}
 
-	protected abstract String getControlTableNamesSQL(String schemaName);
+	protected abstract String getControlTableNamesSQL(
+		ExportContext exportContext);
 
-	protected abstract String getPartitionedTableNamesSQL(String schemaName);
+	protected abstract String getPartitionedTableNamesSQL(
+		ExportContext exportContext);
 
 	protected List<String> getTableNames(String sql) {
 		List<String> tableNames = new ArrayList<>();

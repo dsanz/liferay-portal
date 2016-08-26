@@ -22,6 +22,7 @@ import com.liferay.dynamic.data.mapping.io.internal.DDMFormJSONDeserializerImpl;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
+import com.liferay.dynamic.data.mapping.model.DDMFormRule;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormFieldTypeSettingsTestUtil;
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -29,7 +30,9 @@ import com.liferay.portal.kernel.util.ReflectionUtil;
 
 import java.lang.reflect.Field;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -134,7 +137,7 @@ public class DDMFormJSONDeserializerTest
 	}
 
 	protected void setUpDefaultDDMFormFieldType() {
-		when (
+		when(
 			_defaultDDMFormFieldType.getDDMFormFieldTypeSettings()
 		).then(
 			new Answer<Class<? extends DDMFormFieldTypeSettings>>() {
@@ -165,6 +168,25 @@ public class DDMFormJSONDeserializerTest
 			"You must check this box to continue.",
 			ddmFormFieldValidation.getErrorMessage());
 		Assert.assertEquals("true", ddmFormField.getVisibilityExpression());
+	}
+
+	@Override
+	protected void testDDMFormRules(List<DDMFormRule> ddmFormRules) {
+		Assert.assertEquals(2, ddmFormRules.size());
+
+		DDMFormRule ddmFormRule1 = ddmFormRules.get(0);
+
+		Assert.assertEquals("Condition 1", ddmFormRule1.getCondition());
+		Assert.assertEquals(
+			Arrays.asList("Action 1", "Action 2"), ddmFormRule1.getActions());
+		Assert.assertTrue(ddmFormRule1.isEnabled());
+
+		DDMFormRule ddmFormRule2 = ddmFormRules.get(1);
+
+		Assert.assertEquals("Condition 2", ddmFormRule2.getCondition());
+		Assert.assertEquals(
+			Arrays.asList("Action 3"), ddmFormRule2.getActions());
+		Assert.assertFalse(ddmFormRule2.isEnabled());
 	}
 
 	@Override

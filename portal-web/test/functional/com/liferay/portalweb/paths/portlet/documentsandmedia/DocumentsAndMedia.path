@@ -116,7 +116,7 @@
 </tr>
 <tr>
 	<td>ICON_DOCUMENT_VERTICAL_ELLIPSIS</td>
-	<td>//li[contains(@data-title,'${key_dmDocumentTitle}')]//span[contains(@class,'icon-ellipsis-vertical')]</td>
+	<td>//ul[contains(@class,'display-style-icon')]/li[contains(@data-title,'${key_dmDocumentTitle}')]//span/*[name()='svg'][contains(@class,'icon-ellipsis')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -338,7 +338,7 @@
 </tr>
 <tr>
 	<td>TOOLBAR_SELECT_ALL_CHECKBOX</td>
-	<td>//input[contains(@id,'allRowIds')]</td>
+	<td>xpath=(//div[@class='checkbox']//input[@title='Select All'])[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -365,6 +365,16 @@
 <tr>
 	<td>SEARCH_PARENT_FOLDER</td>
 	<td>//a[@class='entry-link' and contains(.,'${dmDocumentTitle}')]//dd</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SEARCH_FIELD</td>
+	<td>//div[contains(@class,'basic-search')]/input[contains(@id,'document_library')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SEARCH_BUTTON</td>
+	<td>//*[@data-qa-id='searchButton']</td>
 	<td></td>
 </tr>
 <tr>

@@ -96,6 +96,7 @@
 						<span class="toggle-card-off <%= iconOff %>"></span>
 						<span class="toggle-card-on <%= iconOn %>"></span>
 					</div>
+
 					<div class="toggle-card-label">
 						<c:if test="<%= Validator.isNotNull(labelOff) %>">
 							<span class="toggle-card-off"><%= labelOff %></span>
@@ -291,7 +292,7 @@ boolean choiceField = checkboxField || radioField;
 		if (type.equals("hidden") && (value == null)) {
 			valueString = BeanPropertiesUtil.getStringSilent(bean, name);
 		}
-		else if (!ignoreRequestValue && (Validator.isNull(type) || type.equals("email") || type.equals("text") || type.equals("textarea"))) {
+		else if (!ignoreRequestValue && (Validator.isNull(type) || ArrayUtil.contains(_TYPES, type))) {
 			valueString = BeanParamUtil.getStringSilent(bean, request, name, valueString);
 
 			if (Validator.isNotNull(fieldParam)) {
@@ -417,4 +418,6 @@ private long _getClassPK(Object bean, long classPK) {
 }
 
 private static final String _TEXTAREA_WIDTH_HEIGHT_PREFIX = "liferay_resize_";
+
+private static final String[] _TYPES = {"color", "email", "number", "range", "tel", "text", "textarea"};
 %>

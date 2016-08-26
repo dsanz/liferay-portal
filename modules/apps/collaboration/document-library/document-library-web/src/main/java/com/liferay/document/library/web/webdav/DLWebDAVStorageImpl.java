@@ -33,7 +33,7 @@ import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.service.DLTrashService;
 import com.liferay.document.library.kernel.util.DL;
 import com.liferay.document.library.web.constants.DLPortletKeys;
-import com.liferay.document.library.web.util.DLTrashUtil;
+import com.liferay.document.library.web.internal.util.DLTrashUtil;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.lock.DuplicateLockException;

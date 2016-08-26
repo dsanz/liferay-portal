@@ -26,7 +26,7 @@
 </tr>
 <tr>
 	<td>FORM_FIELD_COLLAPSED</td>
-	<td>//div[contains(@class,'toggler-header-collapsed')]//h2[contains(.,'${key_fieldName}')]</td>
+	<td>//div[contains(@class,'field-header') and contains(@class,'collapsed')]//h2[contains(.,'${key_fieldName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -124,7 +124,7 @@
 </tr>
 <tr>
 	<td>PREVIEW_BUTTON_EXPANDED</td>
-	<td>//div[contains(@class,'preview-button')]/button[@aria-expanded='true']</td>
+	<td>//div[h2[contains(.,'${key_portletName}')]]//button[@aria-expanded='true']</td>
 	<td></td>
 </tr>
 <tr>

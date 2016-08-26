@@ -21,7 +21,7 @@ import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.web.constants.DLPortletKeys;
-import com.liferay.document.library.web.util.DLResourceBundleLoader;
+import com.liferay.document.library.web.internal.util.DLResourceBundleLoader;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.ServiceContext;

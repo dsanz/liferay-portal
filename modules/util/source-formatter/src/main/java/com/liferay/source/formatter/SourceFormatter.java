@@ -15,11 +15,12 @@
 package com.liferay.source.formatter;
 
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.tools.ArgumentsUtil;
-import com.liferay.source.formatter.util.GitUtil;
+import com.liferay.portal.tools.GitException;
+import com.liferay.portal.tools.GitUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,38 +46,46 @@ public class SourceFormatter {
 		try {
 			SourceFormatterArgs sourceFormatterArgs = new SourceFormatterArgs();
 
-			boolean autoFix = GetterUtil.getBoolean(
-				arguments.get("source.auto.fix"), SourceFormatterArgs.AUTO_FIX);
+			boolean autoFix = ArgumentsUtil.getBoolean(
+				arguments, "source.auto.fix", SourceFormatterArgs.AUTO_FIX);
 
 			sourceFormatterArgs.setAutoFix(autoFix);
 
-			String baseDirName = GetterUtil.getString(
-				arguments.get("source.base.dir"),
+			String baseDirName = ArgumentsUtil.getString(
+				arguments, "source.base.dir",
 				SourceFormatterArgs.BASE_DIR_NAME);
 
 			sourceFormatterArgs.setBaseDirName(baseDirName);
 
-			boolean formatCurrentBranch = GetterUtil.getBoolean(
-				arguments.get("format.current.branch"),
+			boolean formatCurrentBranch = ArgumentsUtil.getBoolean(
+				arguments, "format.current.branch",
 				SourceFormatterArgs.FORMAT_CURRENT_BRANCH);
 
 			sourceFormatterArgs.setFormatCurrentBranch(formatCurrentBranch);
 
-			boolean formatLatestAuthor = GetterUtil.getBoolean(
-				arguments.get("format.latest.author"),
+			boolean formatLatestAuthor = ArgumentsUtil.getBoolean(
+				arguments, "format.latest.author",
 				SourceFormatterArgs.FORMAT_LATEST_AUTHOR);
 
 			sourceFormatterArgs.setFormatLatestAuthor(formatLatestAuthor);
 
-			boolean formatLocalChanges = GetterUtil.getBoolean(
-				arguments.get("format.local.changes"),
+			boolean formatLocalChanges = ArgumentsUtil.getBoolean(
+				arguments, "format.local.changes",
 				SourceFormatterArgs.FORMAT_LOCAL_CHANGES);
 
 			sourceFormatterArgs.setFormatLocalChanges(formatLocalChanges);
 
 			if (formatCurrentBranch) {
+				String gitWorkingBranchName = ArgumentsUtil.getString(
+					arguments, "git.working.branch.name",
+					SourceFormatterArgs.GIT_WORKING_BRANCH_NAME);
+
+				sourceFormatterArgs.setGitWorkingBranchName(
+					gitWorkingBranchName);
+
 				sourceFormatterArgs.setRecentChangesFileNames(
-					GitUtil.getCurrentBranchFileNames(baseDirName));
+					GitUtil.getCurrentBranchFileNames(
+						baseDirName, gitWorkingBranchName));
 			}
 			else if (formatLatestAuthor) {
 				sourceFormatterArgs.setRecentChangesFileNames(
@@ -87,45 +96,48 @@ public class SourceFormatter {
 					GitUtil.getLocalChangesFileNames(baseDirName));
 			}
 
-			String copyrightFileName = GetterUtil.getString(
-				arguments.get("source.copyright.file"),
+			String copyrightFileName = ArgumentsUtil.getString(
+				arguments, "source.copyright.file",
 				SourceFormatterArgs.COPYRIGHT_FILE_NAME);
 
 			sourceFormatterArgs.setCopyrightFileName(copyrightFileName);
 
+			String fileNamesString = ArgumentsUtil.getString(
+				arguments, "source.files", StringPool.BLANK);
+
 			String[] fileNames = StringUtil.split(
-				arguments.get("source.files"), StringPool.COMMA);
+				fileNamesString, StringPool.COMMA);
 
 			if (ArrayUtil.isNotEmpty(fileNames)) {
 				sourceFormatterArgs.setFileNames(Arrays.asList(fileNames));
 			}
 
-			int maxLineLength = GetterUtil.getInteger(
-				arguments.get("max.line.length"),
+			int maxLineLength = ArgumentsUtil.getInteger(
+				arguments, "max.line.length",
 				SourceFormatterArgs.MAX_LINE_LENGTH);
 
 			sourceFormatterArgs.setMaxLineLength(maxLineLength);
 
-			boolean printErrors = GetterUtil.getBoolean(
-				arguments.get("source.print.errors"),
+			boolean printErrors = ArgumentsUtil.getBoolean(
+				arguments, "source.print.errors",
 				SourceFormatterArgs.PRINT_ERRORS);
 
 			sourceFormatterArgs.setPrintErrors(printErrors);
 
-			int processorThreadCount = GetterUtil.getInteger(
-				arguments.get("processor.thread.count"),
+			int processorThreadCount = ArgumentsUtil.getInteger(
+				arguments, "processor.thread.count",
 				SourceFormatterArgs.PROCESSOR_THREAD_COUNT);
 
 			sourceFormatterArgs.setProcessorThreadCount(processorThreadCount);
 
-			boolean throwException = GetterUtil.getBoolean(
-				arguments.get("source.throw.exception"),
+			boolean throwException = ArgumentsUtil.getBoolean(
+				arguments, "source.throw.exception",
 				SourceFormatterArgs.THROW_EXCEPTION);
 
 			sourceFormatterArgs.setThrowException(throwException);
 
-			boolean useProperties = GetterUtil.getBoolean(
-				arguments.get("source.use.properties"),
+			boolean useProperties = ArgumentsUtil.getBoolean(
+				arguments, "source.use.properties",
 				SourceFormatterArgs.USE_PROPERTIES);
 
 			sourceFormatterArgs.setUseProperties(useProperties);
@@ -215,8 +227,18 @@ public class SourceFormatter {
 		}
 
 		if (_sourceFormatterArgs.isThrowException()) {
-			if (!_errorMessages.isEmpty()) {
-				throw new Exception(StringUtil.merge(_errorMessages, "\n"));
+			if (!_sourceFormatterMessages.isEmpty()) {
+				StringBundler sb = new StringBundler(
+					_sourceFormatterMessages.size() * 2);
+
+				for (SourceFormatterMessage sourceFormatterMessage :
+						_sourceFormatterMessages) {
+
+					sb.append(sourceFormatterMessage.toString());
+					sb.append("\n");
+				}
+
+				throw new Exception(sb.toString());
 			}
 
 			if (_firstSourceMismatchException != null) {
@@ -225,16 +247,16 @@ public class SourceFormatter {
 		}
 	}
 
-	public List<String> getErrorMessages() {
-		return new ArrayList<>(_errorMessages);
-	}
-
 	public List<String> getModifiedFileNames() {
 		return _modifiedFileNames;
 	}
 
 	public SourceFormatterArgs getSourceFormatterArgs() {
 		return _sourceFormatterArgs;
+	}
+
+	public List<SourceFormatterMessage> getSourceFormatterMessages() {
+		return new ArrayList<>(_sourceFormatterMessages);
 	}
 
 	public SourceMismatchException getSourceMismatchException() {
@@ -248,7 +270,8 @@ public class SourceFormatter {
 
 		sourceProcessor.format();
 
-		_errorMessages.addAll(sourceProcessor.getErrorMessages());
+		_sourceFormatterMessages.addAll(
+			sourceProcessor.getSourceFormatterMessages());
 		_modifiedFileNames.addAll(sourceProcessor.getModifiedFileNames());
 
 		if (_firstSourceMismatchException == null) {
@@ -257,10 +280,11 @@ public class SourceFormatter {
 		}
 	}
 
-	private final Set<String> _errorMessages = new ConcurrentSkipListSet<>();
 	private volatile SourceMismatchException _firstSourceMismatchException;
 	private final List<String> _modifiedFileNames =
 		new CopyOnWriteArrayList<>();
 	private final SourceFormatterArgs _sourceFormatterArgs;
+	private final Set<SourceFormatterMessage> _sourceFormatterMessages =
+		new ConcurrentSkipListSet<>();
 
 }

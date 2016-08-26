@@ -835,7 +835,7 @@ public class ResourceActionsImpl implements ResourceActions {
 			return modelResourceActionsBag;
 		}
 
-		synchronized(_modelResourceActionsBags) {
+		synchronized (_modelResourceActionsBags) {
 			modelResourceActionsBag = _modelResourceActionsBags.get(modelName);
 
 			if (modelResourceActionsBag != null) {
@@ -911,7 +911,7 @@ public class ResourceActionsImpl implements ResourceActions {
 			return portletResourceActionsBag;
 		}
 
-		synchronized(_portletResourceActionsBags) {
+		synchronized (_portletResourceActionsBags) {
 			portletResourceActionsBag = _portletResourceActionsBags.get(
 				portletName);
 
@@ -991,7 +991,9 @@ public class ResourceActionsImpl implements ResourceActions {
 					types =
 						RoleConstants.TYPES_ORGANIZATION_AND_REGULAR_AND_SITE;
 				}
-				else if (group.isUser()) {
+				else if (group.isCompany() || group.isUser() ||
+						 group.isUserGroup()) {
+
 					types = RoleConstants.TYPES_REGULAR;
 				}
 			}

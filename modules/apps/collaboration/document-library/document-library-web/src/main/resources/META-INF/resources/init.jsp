@@ -18,7 +18,8 @@
 
 <%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet" %>
 
-<%@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
+<%@ taglib uri="http://liferay.com/tld/asset" prefix="liferay-asset" %><%@
+taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
 taglib uri="http://liferay.com/tld/ddm" prefix="liferay-ddm" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
 taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
@@ -83,26 +84,26 @@ page import="com.liferay.document.library.kernel.util.VideoProcessorUtil" %><%@
 page import="com.liferay.document.library.kernel.util.comparator.RepositoryModelModifiedDateComparator" %><%@
 page import="com.liferay.document.library.web.constants.DLPortletKeys" %><%@
 page import="com.liferay.document.library.web.constants.DLWebKeys" %><%@
-page import="com.liferay.document.library.web.dao.search.DLResultRowSplitter" %><%@
-page import="com.liferay.document.library.web.dao.search.IGResultRowSplitter" %><%@
-page import="com.liferay.document.library.web.display.context.DLDisplayContextProvider" %><%@
-page import="com.liferay.document.library.web.display.context.IGDisplayContextProvider" %><%@
-page import="com.liferay.document.library.web.display.context.logic.DLPortletInstanceSettingsHelper" %><%@
-page import="com.liferay.document.library.web.display.context.logic.DLVisualizationHelper" %><%@
-page import="com.liferay.document.library.web.display.context.logic.UIItemsBuilder" %><%@
-page import="com.liferay.document.library.web.display.context.util.DLRequestHelper" %><%@
-page import="com.liferay.document.library.web.display.context.util.IGRequestHelper" %><%@
-page import="com.liferay.document.library.web.dynamic.data.mapping.util.DLDDMDisplay" %><%@
-page import="com.liferay.document.library.web.portlet.action.ActionUtil" %><%@
-page import="com.liferay.document.library.web.portlet.action.EditFileEntryMVCActionCommand" %><%@
-page import="com.liferay.document.library.web.portlet.toolbar.contributor.DLPortletToolbarContributor" %><%@
-page import="com.liferay.document.library.web.search.EntriesChecker" %><%@
-page import="com.liferay.document.library.web.search.EntriesMover" %><%@
-page import="com.liferay.document.library.web.settings.internal.DLPortletInstanceSettings" %><%@
-page import="com.liferay.document.library.web.util.DLBreadcrumbUtil" %><%@
-page import="com.liferay.document.library.web.util.DLTrashUtil" %><%@
-page import="com.liferay.document.library.web.util.DLWebComponentProvider" %><%@
-page import="com.liferay.document.library.web.util.IGUtil" %><%@
+page import="com.liferay.document.library.web.internal.dao.search.DLResultRowSplitter" %><%@
+page import="com.liferay.document.library.web.internal.dao.search.IGResultRowSplitter" %><%@
+page import="com.liferay.document.library.web.internal.display.context.DLDisplayContextProvider" %><%@
+page import="com.liferay.document.library.web.internal.display.context.IGDisplayContextProvider" %><%@
+page import="com.liferay.document.library.web.internal.display.context.logic.DLPortletInstanceSettingsHelper" %><%@
+page import="com.liferay.document.library.web.internal.display.context.logic.DLVisualizationHelper" %><%@
+page import="com.liferay.document.library.web.internal.display.context.logic.UIItemsBuilder" %><%@
+page import="com.liferay.document.library.web.internal.display.context.util.DLRequestHelper" %><%@
+page import="com.liferay.document.library.web.internal.display.context.util.IGRequestHelper" %><%@
+page import="com.liferay.document.library.web.internal.dynamic.data.mapping.util.DLDDMDisplay" %><%@
+page import="com.liferay.document.library.web.internal.portlet.action.ActionUtil" %><%@
+page import="com.liferay.document.library.web.internal.portlet.action.EditFileEntryMVCActionCommand" %><%@
+page import="com.liferay.document.library.web.internal.portlet.toolbar.contributor.DLPortletToolbarContributor" %><%@
+page import="com.liferay.document.library.web.internal.search.EntriesChecker" %><%@
+page import="com.liferay.document.library.web.internal.search.EntriesMover" %><%@
+page import="com.liferay.document.library.web.internal.settings.DLPortletInstanceSettings" %><%@
+page import="com.liferay.document.library.web.internal.util.DLBreadcrumbUtil" %><%@
+page import="com.liferay.document.library.web.internal.util.DLTrashUtil" %><%@
+page import="com.liferay.document.library.web.internal.util.DLWebComponentProvider" %><%@
+page import="com.liferay.document.library.web.internal.util.IGUtil" %><%@
 page import="com.liferay.dynamic.data.mapping.kernel.DDMStructure" %><%@
 page import="com.liferay.dynamic.data.mapping.kernel.DDMStructureManager" %><%@
 page import="com.liferay.dynamic.data.mapping.kernel.DDMStructureManagerUtil" %><%@
@@ -148,11 +149,11 @@ page import="com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil" %>
 page import="com.liferay.portal.kernel.portlet.PortletProvider" %><%@
 page import="com.liferay.portal.kernel.portlet.PortletProviderUtil" %><%@
 page import="com.liferay.portal.kernel.portlet.PortletURLFactoryUtil" %><%@
+page import="com.liferay.portal.kernel.repository.AuthenticationRepositoryException" %><%@
 page import="com.liferay.portal.kernel.repository.LocalRepository" %><%@
 page import="com.liferay.portal.kernel.repository.RepositoryConfiguration" %><%@
 page import="com.liferay.portal.kernel.repository.RepositoryException" %><%@
 page import="com.liferay.portal.kernel.repository.RepositoryProviderUtil" %><%@
-page import="com.liferay.portal.kernel.repository.UndeployedExternalRepositoryException" %><%@
 page import="com.liferay.portal.kernel.repository.capabilities.CommentCapability" %><%@
 page import="com.liferay.portal.kernel.repository.capabilities.TemporaryFileEntriesCapability" %><%@
 page import="com.liferay.portal.kernel.repository.model.FileEntry" %><%@

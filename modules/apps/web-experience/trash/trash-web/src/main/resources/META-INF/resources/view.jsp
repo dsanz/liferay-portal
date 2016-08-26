@@ -52,7 +52,7 @@ entrySearch.setResults(trashEntries);
 
 EmptyOnClickRowChecker emptyOnClickRowChecker = new EmptyOnClickRowChecker(renderResponse);
 
-emptyOnClickRowChecker.setRememberCheckBoxStateURLRegex("^(?!.*" + liferayPortletResponse.getNamespace() + "redirect).*(/entry/)");
+emptyOnClickRowChecker.setRememberCheckBoxStateURLRegex("^(?!.*" + liferayPortletResponse.getNamespace() + "redirect).*^(?!.*/entry/)");
 
 entrySearch.setRowChecker(emptyOnClickRowChecker);
 
@@ -198,7 +198,8 @@ request.setAttribute("view.jsp-recycleBinEntrySearch", entrySearch);
 					}
 					else if(trashEntry.getRootEntry() == null) {
 						actionPath = "/entry_action.jsp";
-					} else {
+					}
+					else {
 						request.setAttribute(TrashWebKeys.TRASH_RENDERER, trashRenderer);
 					}
 					%>
@@ -240,7 +241,6 @@ request.setAttribute("view.jsp-recycleBinEntrySearch", entrySearch);
 							</liferay-ui:search-container-column-text>
 
 							<liferay-ui:search-container-column-jsp
-								cssClass="entry-action-column"
 								path="<%= actionPath %>"
 							/>
 						</c:when>
@@ -276,9 +276,8 @@ request.setAttribute("view.jsp-recycleBinEntrySearch", entrySearch);
 						</c:when>
 						<c:when test="<%= trashDisplayContext.isListView() %>">
 							<liferay-ui:search-container-column-text
-								cssClass="content-column name-column title-column"
+								cssClass="table-cell-content"
 								name="name"
-								truncate="<%= true %>"
 							>
 								<c:choose>
 									<c:when test="<%= !trashHandler.isContainerModel() %>">
@@ -330,25 +329,21 @@ request.setAttribute("view.jsp-recycleBinEntrySearch", entrySearch);
 							</liferay-ui:search-container-column-text>
 
 							<liferay-ui:search-container-column-text
-								cssClass="text-column type-column"
 								name="type"
 								value="<%= ResourceActionsUtil.getModelResource(locale, trashEntry.getClassName()) %>"
 							/>
 
 							<liferay-ui:search-container-column-date
-								cssClass="removed-date-column text-column"
 								name="removed-date"
 								value="<%= trashEntry.getCreateDate() %>"
 							/>
 
 							<liferay-ui:search-container-column-text
-								cssClass="removed-by-column text-column"
 								name="removed-by"
 								value="<%= HtmlUtil.escape(trashEntry.getUserName()) %>"
 							/>
 
 							<liferay-ui:search-container-column-jsp
-								cssClass="entry-action-column"
 								path="<%= actionPath %>"
 							/>
 						</c:when>

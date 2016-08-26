@@ -132,6 +132,33 @@
 		<execute function="AssertClick" locator1="Button#EDIT" value1="Edit" />
 	</command>
 
+	<command name="expandInfo">
+		<execute function="AssertElementNotPresent" locator1="DDLRecord#INFO_SIDEBAR_EXPANDED" />
+
+		<execute function="Click" locator1="Icon#INFO" />
+
+		<execute function="AssertVisible" locator1="Icon#INFO_ACTIVE" />
+		<execute function="AssertElementPresent" locator1="DDLRecord#INFO_SIDEBAR_EXPANDED" />
+	</command>
+
+	<command name="gotoLinkToPageChildPages">
+		<var name="key_pageName" value="${parentPage}" />
+
+		<execute function="Click" locator1="DDLEditRecord#LINK_TO_PAGE_PAGE_CARET" />
+	</command>
+
+	<command name="gotoLinkToPageNavItem">
+		<var name="key_navItem" value="${pagePrivacy} Pages" />
+
+		<execute function="AssertClick" locator1="DDLEditRecord#LINK_TO_PAGE_NAV_ITEM" value1="${pagePrivacy} Pages" />
+	</command>
+
+	<command name="gotoLinkToPageSelect">
+		<var name="key_fieldName" value="${fieldName}" />
+
+		<execute function="AssertClick" locator1="DDLEditRecord#LINK_TO_PAGE_SELECT_PAGE_BUTTON" value1="Select" />
+	</command>
+
 	<command name="gotoRecordPreview">
 		<execute function="AssertClick" locator1="DDL#RECORD_TABLE_COLUMN_ONE_PREVIEW_1" value1="(Preview)" />
 	</command>
@@ -181,7 +208,7 @@
 	<command name="populateFieldDate">
 		<var name="key_fieldName" value="${fieldName}" />
 
-		<execute function="Type#clickAtSendKeys" locator1="DDLEditRecord#DATE_FIELD" value1="${ddlRecordFieldData}" />
+		<execute function="Type" locator1="DDLEditRecord#DATE_FIELD" value1="${ddlRecordFieldData}" />
 	</command>
 
 	<command name="populateFieldDecimal">
@@ -247,20 +274,22 @@
 	</command>
 
 	<command name="populateFieldLinkToPage">
-		<var name="key_ddlRecordFieldData" value="${ddlRecordFieldData}" />
+		<execute macro="DDLRecord#gotoLinkToPageSelect">
+			<var name="fieldName" value="${fieldName}" />
+		</execute>
+
+		<execute macro="DDLRecord#gotoLinkToPageNavItem">
+			<var name="pagePrivacy" value="${pagePrivacy}" />
+		</execute>
+
+		<execute macro="DDLRecord#selectLinkToPageRadio">
+			<var name="ddlRecordFieldData" value="${ddlRecordFieldData}" />
+			<var name="parentPage" value="${parentPage}" />
+		</execute>
+
+		<execute function="AssertClick" locator1="Button#SELECT" value1="Select" />
+
 		<var name="key_fieldName" value="${fieldName}" />
-
-		<execute function="AssertClick" locator1="DDLEditRecord#LINK_TO_PAGE_SELECT_PAGE_BUTTON" value1="Select" />
-
-		<var name="key_navItem" value="${pagePrivacy} Pages" />
-
-		<execute function="AssertClick" locator1="DDLEditRecord#LINK_TO_PAGE_NAV_ITEM" value1="${pagePrivacy} Pages" />
-
-		<var name="key_pageName" value="${ddlRecordFieldData}" />
-
-		<execute function="Click" locator1="DDLEditRecord#LINK_TO_PAGE_PAGE_RADIO" />
-
-		<execute function="AssertClick" locator1="DDLEditRecord#LINK_TO_PAGE_SELECT_BUTTON" value1="Select" />
 
 		<execute function="AssertTextEquals" locator1="DDLEditRecord#LINK_TO_PAGE_PAGE_SELECT" value1="${ddlRecordFieldData}" />
 	</command>
@@ -341,6 +370,19 @@
 		<execute function="AssertTextEquals" locator1="DDLSpreadsheet#RECORD_TABLE_FIELD_ENTRY" value1="${ddlRecordFieldData}" />
 	</command>
 
+	<command name="populateFieldWebContentChooseFromWebContentLibrary">
+		<var name="key_fieldName" value="${fieldName}" />
+		<var name="key_webContentTitle" value="${webContentTitle}" />
+
+		<execute function="AssertClick" locator1="DDLEditRecord#WEB_CONTENT_CHOOSE_FROM_WEB_CONTENT_LIBRARY_BUTTON" value1="Select" />
+
+		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
+
+		<execute function="AssertClick" locator1="Link#WEB_CONTENT_ARTICLE" value1="${webContentTitle}" />
+
+		<execute function="SelectFrame" value1="relative=top" />
+	</command>
+
 	<command name="populateTranslationFieldText">
 		<var name="key_fieldName" value="${fieldName}" />
 
@@ -391,6 +433,21 @@
 		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
+	<command name="selectLinkToPageRadio">
+		<if>
+			<isset var="parentPage" />
+			<then>
+				<execute macro="DDLRecord#gotoLinkToPageChildPages">
+					<var name="parentPage" value="${parentPage}" />
+				</execute>
+			</then>
+		</if>
+
+		<var name="key_pageName" value="${ddlRecordFieldData}" />
+
+		<execute function="Click" locator1="DDLEditRecord#LINK_TO_PAGE_PAGE_RADIO" />
+	</command>
+
 	<command name="submitForPublication">
 		<execute macro="Button#clickSubmitForPublication" />
 
@@ -420,7 +477,15 @@
 		<var name="key_ddlRecordFieldData" value="${ddlRecordFieldData}" />
 		<var name="key_fieldFieldLabel" value="${fieldFieldLabel}" />
 
-		<execute function="AssertTextEquals" locator1="DDL#RECORD_TABLE_ENTRY" value1="${ddlRecordFieldData}" />
+		<if>
+			<equals arg1="${ddlRecordFieldData}" arg2="" />
+			<then>
+				<execute function="AssertElementPresent" locator1="DDL#RECORD_TABLE_ENTRY" />
+			</then>
+			<else>
+				<execute function="AssertTextEquals" locator1="DDL#RECORD_TABLE_ENTRY" value1="${ddlRecordFieldData}" />
+			</else>
+		</if>
 
 		<if>
 			<isset var="ddlRecordNestedFieldData" />
@@ -440,7 +505,7 @@
 		<execute function="AssertClick" locator1="MenuItem#VIEW" value1="View" />
 
 		<if>
-			<equals arg1="${fieldBlank}" arg2="true" />
+			<equals arg1="${ddlRecordFieldData}" arg2="" />
 			<then>
 				<execute function="AssertTextEquals#assertPartialText" locator1="DDLRecord#FIELD" value1="${fieldFieldLabel}${ddlRecordFieldData}" />
 			</then>
@@ -689,11 +754,11 @@
 
 	<command name="viewFirstRecordViaDDLDisplayTemplate">
 		<execute function="AssertTextEquals" locator1="Portlet#H3_HEADER" value1="New Data Definition Name for List: ${ddlListName}" />
-		<execute function="AssertTextEquals" locator1="PGDynamicdatalists#RECORD_TABLE_COLUMN_ONE_NAME" value1="${fieldFieldLabel}" />
+		<execute function="AssertTextEquals" locator1="DDL#RECORD_TABLE_COLUMN_ONE_NAME" value1="${fieldFieldLabel}" />
 
 		<execute function="Click" locator1="DDL#RECORD_TABLE_ELLIPSIS_1" />
 
-		<execute function="AssertClick" locator1="PGDynamicdatalists#RECORD_MENULIST_VIEW" value1="View" />
+		<execute function="AssertClick" locator1="MenuItem#VIEW" value1="View" />
 
 		<execute function="AssertTextEquals" locator1="DDLRecord#FIELD_1" value1="${fieldFieldLabel} ${ddlRecordFieldData}" />
 	</command>
@@ -706,6 +771,18 @@
 
 	<command name="viewInvalidHTMLfield">
 		<execute function="AssertElementPresent" locator1="DDL#RECORD_TABLE_PREVIEW_INVALID_IMG" />
+	</command>
+
+	<command name="viewLinkToPageBreadcrumbCount">
+		<var name="key_number" value="${count}" />
+
+		<execute function="AssertElementPresent" locator1="DDLEditRecord#LINK_TO_PAGE_BREADCRUMB" />
+
+		<var method="MathUtil#sum('${count}', '1')" name="count" />
+
+		<var name="key_number" value="${count}" />
+
+		<execute function="AssertElementNotPresent" locator1="DDLEditRecord#LINK_TO_PAGE_BREADCRUMB" />
 	</command>
 
 	<command name="viewLinkToPageLink">
@@ -783,9 +860,28 @@
 
 		<execute function="Click" locator1="DDL#RECORD_TABLE_ELLIPSIS_1" />
 
-		<execute function="AssertClick" locator1="PGDynamicdatalists#RECORD_MENULIST_VIEW" value1="View" />
+		<execute function="AssertClick" locator1="MenuItem#VIEW" value1="View" />
 
 		<execute function="AssertTextEquals" locator1="DDLRecord#FIELD_2" value1="${fieldFieldLabel} ${ddlRecordFieldData}" />
+	</command>
+
+	<command name="viewSelectedLinkToPage">
+		<execute macro="DDLRecord#gotoLinkToPageSelect">
+			<var name="fieldName" value="${fieldName}" />
+		</execute>
+
+		<var name="key_pageName" value="${ddlRecordFieldData}" />
+
+		<execute function="AssertChecked" locator1="DDLEditRecord#LINK_TO_PAGE_PAGE_RADIO" />
+
+		<execute function="AssertClick" locator1="Button#CANCEL" value1="Cancel" />
+	</command>
+
+	<command name="viewStatusViaDDLDisplayTable">
+		<var name="key_fieldFieldLabel" value="${fieldFieldLabel}" />
+		<var name="key_workflowStatus" value="${workflowStatus}" />
+
+		<execute function="AssertTextEquals" locator1="DDL#RECORD_TABLE_WORKFLOW_STATUS" value1="${workflowStatus}" />
 	</command>
 
 	<command name="viewTextFieldRepeated">
@@ -823,7 +919,6 @@
 		<execute function="AssertTextEquals" locator1="DDL#RECORD_TABLE_COLUMN_NAME" value1="${fieldFieldLabel}" />
 
 		<var name="key_ddlRecordFieldData" value="${key_ddlRecordFieldData}" />
-		<var name="key_fieldFieldLabel" value="${fieldFieldLabel}" />
 
 		<if>
 			<isset var="ddlRecordFieldDataTableDisplay" />
@@ -890,6 +985,14 @@
 		<var name="key_ddlRecordFieldData" value="${ddlRecordFieldData}" />
 		<var name="key_fieldFieldLabel" value="${fieldFieldLabel}" />
 
-		<execute function="AssertTextEquals" locator1="DDL#RECORD_TABLE_ENTRY" value1="${ddlRecordFieldData}" />
+		<if>
+			<equals arg1="${ddlRecordFieldData}" arg2="" />
+			<then>
+				<execute function="AssertElementPresent" locator1="DDL#RECORD_TABLE_ENTRY" />
+			</then>
+			<else>
+				<execute function="AssertTextEquals" locator1="DDL#RECORD_TABLE_ENTRY" value1="${ddlRecordFieldData}" />
+			</else>
+		</if>
 	</command>
 </definition>

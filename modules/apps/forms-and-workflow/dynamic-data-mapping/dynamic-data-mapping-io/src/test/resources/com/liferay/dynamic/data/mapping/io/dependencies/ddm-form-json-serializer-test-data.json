@@ -152,7 +152,7 @@
 		{
 			"dataType": "html",
 			"fieldNamespace": "ddm",
-			"indexType": "keyword",
+			"indexType": "text",
 			"label": {
 				"en_US": "HTML",
 				"pt_BR": "HTML"
@@ -172,6 +172,23 @@
 				"pt_BR": "Dica"
 			},
 			"type": "ddm-text-html"
+		}
+	],
+	"rules": [
+		{
+			"actions": [
+				"Action 1",
+				"Action 2"
+			],
+			"condition": "Condition 1",
+			"enabled": true
+		},
+		{
+			"actions": [
+				"Action 3"
+			],
+			"condition": "Condition 2",
+			"enabled": false
 		}
 	]
 }

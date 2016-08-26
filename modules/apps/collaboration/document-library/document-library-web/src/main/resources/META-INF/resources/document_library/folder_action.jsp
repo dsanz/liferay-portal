@@ -101,7 +101,7 @@ if ((row == null) && portletName.equals(DLPortletKeys.MEDIA_GALLERY_DISPLAY)) {
 		%>
 
 		<c:if test="<%= hasViewPermission %>">
-			<portlet:resourceURL id="/document_library/edit_folder" var="downloadURL">
+			<portlet:resourceURL id="/document_library/download_folder" var="downloadURL">
 				<portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" />
 				<portlet:param name="repositoryId" value="<%= String.valueOf(repositoryId) %>" />
 			</portlet:resourceURL>
@@ -188,7 +188,7 @@ if ((row == null) && portletName.equals(DLPortletKeys.MEDIA_GALLERY_DISPLAY)) {
 					try {
 						localRepository = RepositoryProviderUtil.getLocalRepository(folder.getRepositoryId());
 					}
-					catch (UndeployedExternalRepositoryException uere) {
+					catch (RepositoryException re) {
 					}
 
 					if ((localRepository != null) && localRepository.isCapabilityProvided(TemporaryFileEntriesCapability.class)) {

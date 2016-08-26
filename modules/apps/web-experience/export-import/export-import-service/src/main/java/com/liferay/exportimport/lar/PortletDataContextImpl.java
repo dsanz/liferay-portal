@@ -22,6 +22,7 @@ import com.liferay.asset.kernel.service.AssetTagLocalServiceUtil;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.model.ExpandoColumn;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalServiceUtil;
+import com.liferay.exportimport.internal.util.ExportImportPermissionUtil;
 import com.liferay.exportimport.kernel.lar.ExportImportClassedModelUtil;
 import com.liferay.exportimport.kernel.lar.ExportImportPathUtil;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
@@ -35,7 +36,6 @@ import com.liferay.exportimport.kernel.lar.UserIdStrategy;
 import com.liferay.exportimport.kernel.xstream.XStreamAlias;
 import com.liferay.exportimport.kernel.xstream.XStreamConverter;
 import com.liferay.exportimport.kernel.xstream.XStreamType;
-import com.liferay.exportimport.util.ExportImportPermissionUtil;
 import com.liferay.exportimport.xstream.ConverterAdapter;
 import com.liferay.exportimport.xstream.XStreamStagedModelTypeHierarchyPermission;
 import com.liferay.message.boards.kernel.model.MBMessage;
@@ -916,6 +916,11 @@ public class PortletDataContextImpl implements PortletDataContext {
 	}
 
 	@Override
+	public long[] getLayoutIds() {
+		return _layoutIds;
+	}
+
+	@Override
 	public Map<String, Lock> getLocks() {
 		return _locksMap;
 	}
@@ -1756,6 +1761,11 @@ public class PortletDataContextImpl implements PortletDataContext {
 	}
 
 	@Override
+	public void setLayoutIds(long[] layoutIds) {
+		_layoutIds = layoutIds;
+	}
+
+	@Override
 	public void setManifestSummary(ManifestSummary manifestSummary) {
 		_manifestSummary = manifestSummary;
 	}
@@ -2527,10 +2537,11 @@ public class PortletDataContextImpl implements PortletDataContext {
 	private transient Element _exportDataRootElement;
 	private long _groupId;
 	private transient Element _importDataRootElement;
-	private transient final LockManager _lockManager;
-	private transient final Map<String, Lock> _locksMap = new HashMap<>();
+	private transient long[] _layoutIds;
+	private final transient LockManager _lockManager;
+	private final transient Map<String, Lock> _locksMap = new HashMap<>();
 	private transient ManifestSummary _manifestSummary = new ManifestSummary();
-	private transient final Set<String> _missingReferences = new HashSet<>();
+	private final transient Set<String> _missingReferences = new HashSet<>();
 	private transient Element _missingReferencesElement;
 	private transient List<Layout> _newLayouts;
 	private final Map<String, Map<?, ?>> _newPrimaryKeysMaps = new HashMap<>();

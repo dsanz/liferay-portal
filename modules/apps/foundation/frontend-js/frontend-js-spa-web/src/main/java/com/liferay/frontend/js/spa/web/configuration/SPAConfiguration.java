@@ -34,4 +34,17 @@ public interface SPAConfiguration {
 	)
 	public String cacheExpirationTime();
 
+	@Meta.AD(
+		deflt = "${server-property://com.liferay.portal/javascript.single.page.application.timeout}",
+		description = "request.timeout.description",
+		name = "request.timeout.name", required = true
+	)
+	public String requestTimeout();
+
+	@Meta.AD(
+		deflt = "30000", description = "user.notification.timeout.description",
+		name = "user.notification.timeout.name", required = true
+	)
+	public String userNotificationTimeout();
+
 }

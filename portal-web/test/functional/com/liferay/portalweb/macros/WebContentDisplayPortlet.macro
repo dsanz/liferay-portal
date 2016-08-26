@@ -1,40 +1,4 @@
 <definition>
-	<command name="changeTemplate">
-		<execute macro="WebContentNavigator#gotoEditPGViaWCD" />
-
-		<execute macro="Panel#expandPanel">
-			<var name="panelHeading" value="Structure and Template" />
-		</execute>
-
-		<execute function="AssertTextEquals" locator1="WCEditWebContent#SELECTED_STRUCTURE" value1="${structureName}" />
-
-		<execute function="AssertClick" locator1="WCEditWebContent#SELECT_TEMPLATE" value1="Select" />
-
-		<execute function="SelectFrame" value1="relative=top" />
-
-		<execute function="SelectFrame" locator1="IFrame#TEMPLATES" />
-
-		<var name="key_ddlTemplateName" value="${templateName}" />
-
-		<execute function="AssertClickNoError" locator1="DDMSelectTemplate#TEMPLATE_TABLE_NAME_LINK" value1="${templateName}" />
-
-		<execute function="Confirm" value1="Selecting a new template deletes all unsaved content. Do you want to proceed?" />
-
-		<execute function="SelectFrame" value1="relative=top" />
-
-		<execute function="SelectFrame" locator1="IFrame#MODAL_IFRAME" />
-
-		<execute macro="Panel#expandPanel">
-			<var name="panelHeading" value="Structure and Template" />
-		</execute>
-
-		<execute function="AssertTextEquals" locator1="WCEditWebContent#SELECTED_TEMPLATE" value1="${templateName}" />
-
-		<execute function="AssertClick#pauseAssertTextClickAt" locator1="Button#PUBLISH" value1="Publish" />
-
-		<execute function="SelectFrame" value1="relative=top" />
-	</command>
-
 	<command name="configureScopePG">
 		<execute macro="Portlet#gotoPortletOptions">
 			<var name="portletName" value="${portletName}" />
@@ -62,16 +26,11 @@
 
 				<execute function="SelectFrameTop" />
 
-				<for list="${userToolNameList}" param="userToolName">
-					<var name="key_userToolName" value="${userToolName}" />
-
+				<for list="${userToolNameList}" param="key_toggleCardLabel">
 					<if>
-						<and>
-							<condition function="IsElementPresent" locator1="WCDConfiguration#USER_TOOLS_TOGGLE_OFF" />
-							<condition function="IsVisible" locator1="WCDConfiguration#USER_TOOLS_TOGGLE_OFF" />
-						</and>
+						<condition function="IsNotChecked" locator1="WCDConfiguration#TOGGLE_CARD_CHECKBOX" />
 						<then>
-							<execute function="Click" locator1="WCDConfiguration#USER_TOOLS_TOGGLE" />
+							<execute function="Click#clickNoWaitForVisible" locator1="WCDConfiguration#TOGGLE_CARD_CHECKBOX" />
 						</then>
 					</if>
 				</for>
@@ -87,23 +46,15 @@
 
 				<execute function="Click" locator1="WCDConfiguration#CONTENT_METADATA_SELECT" />
 
-				<for list="${metadataNameList}" param="metadataName">
-					<var name="key_metadataName" value="${metadataName}" />
-
-					<var name="key_metadataNameToggleOff" value="${metadataNameToggleOff}" />
-					<var method="StringUtil#replace('${metadataName}', ' ', '')" name="metadataNameToggleOff" />
-
+				<for list="${metadataNameList}" param="key_toggleCardLabel">
 					<execute function="Pause" locator1="1000" />
 
 					<execute function="SelectFrameTop" />
 
 					<if>
-						<and>
-							<condition function="IsElementPresent" locator1="WCDConfiguration#CONTENT_METADATA_TOGGLE_OFF" />
-							<condition function="IsVisible" locator1="WCDConfiguration#CONTENT_METADATA_TOGGLE_OFF" />
-						</and>
+						<condition function="IsNotChecked" locator1="WCDConfiguration#TOGGLE_CARD_CHECKBOX" />
 						<then>
-							<execute function="Click" locator1="WCDConfiguration#CONTENT_METADATA_TOGGLE" />
+							<execute function="Click#clickNoWaitForVisible" locator1="WCDConfiguration#TOGGLE_CARD_CHECKBOX" />
 						</then>
 					</if>
 				</for>
@@ -149,8 +100,10 @@
 		</if>
 
 		<execute function="SelectFrameTop" />
+
 		<execute function="SelectFrame" locator1="IFrame#MODAL_IFRAME" />
-		<execute function="Type#clickAtSendKeys" locator1="TextInput#NAME" value1="Template Edit" />
+
+		<execute function="Type#clickAtType" locator1="TextInput#NAME" value1="Template Edit" />
 
 		<if>
 			<isset var="templateScript" />
@@ -381,10 +334,10 @@
 		<if>
 			<equals arg1="${scopeSelectionDefault}" arg2="true" />
 			<then>
-				<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="Web Content Display" />
+				<execute function="AssertTextEquals" locator1="Portlet#TITLE" value1="Web Content Display" />
 			</then>
 			<else>
-				<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="Web Content Display (${scopeSelection})" />
+				<execute function="AssertTextEquals" locator1="Portlet#TITLE" value1="Web Content Display (${scopeSelection})" />
 			</else>
 		</if>
 
@@ -394,11 +347,12 @@
 		</execute>
 
 		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
+
 		<execute macro="Navigator#gotoNavItem">
 			<var name="navItem" value="Scope" />
 		</execute>
 
-		<execute function="AssertSelectedLabel#assertPartialSelectedLabel" locator1="Select#SCOPE" value1="${scopeSelection}" />
+		<execute function="AssertSelectedLabel" locator1="Select#SCOPE" value1="${scopeSelection}" />
 	</command>
 
 	<command name="viewContentPageBreak">

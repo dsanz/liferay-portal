@@ -66,7 +66,7 @@ public class SyncDeviceCacheModel implements CacheModel<SyncDevice>,
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(23);
+		StringBundler sb = new StringBundler(25);
 
 		sb.append("{uuid=");
 		sb.append(uuid);
@@ -88,6 +88,8 @@ public class SyncDeviceCacheModel implements CacheModel<SyncDevice>,
 		sb.append(buildNumber);
 		sb.append(", featureSet=");
 		sb.append(featureSet);
+		sb.append(", hostname=");
+		sb.append(hostname);
 		sb.append(", status=");
 		sb.append(status);
 		sb.append("}");
@@ -140,6 +142,14 @@ public class SyncDeviceCacheModel implements CacheModel<SyncDevice>,
 
 		syncDeviceImpl.setBuildNumber(buildNumber);
 		syncDeviceImpl.setFeatureSet(featureSet);
+
+		if (hostname == null) {
+			syncDeviceImpl.setHostname(StringPool.BLANK);
+		}
+		else {
+			syncDeviceImpl.setHostname(hostname);
+		}
+
 		syncDeviceImpl.setStatus(status);
 
 		syncDeviceImpl.resetOriginalValues();
@@ -164,6 +174,7 @@ public class SyncDeviceCacheModel implements CacheModel<SyncDevice>,
 		buildNumber = objectInput.readLong();
 
 		featureSet = objectInput.readInt();
+		hostname = objectInput.readUTF();
 
 		status = objectInput.readInt();
 	}
@@ -205,6 +216,13 @@ public class SyncDeviceCacheModel implements CacheModel<SyncDevice>,
 
 		objectOutput.writeInt(featureSet);
 
+		if (hostname == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(hostname);
+		}
+
 		objectOutput.writeInt(status);
 	}
 
@@ -218,5 +236,6 @@ public class SyncDeviceCacheModel implements CacheModel<SyncDevice>,
 	public String type;
 	public long buildNumber;
 	public int featureSet;
+	public String hostname;
 	public int status;
 }

@@ -20,12 +20,21 @@ package com.liferay.portal.kernel.exception;
  */
 public class GroupParentException extends PortalException {
 
+	/**
+	 * @deprecated As of 7.0.0
+	 */
 	@Deprecated
 	public static final int CHILD_DESCENDANT = 3;
 
+	/**
+	 * @deprecated As of 7.0.0
+	 */
 	@Deprecated
 	public static final int SELF_DESCENDANT = 1;
 
+	/**
+	 * @deprecated As of 7.0.0
+	 */
 	@Deprecated
 	public static final int STAGING_DESCENDANT = 2;
 
@@ -87,9 +96,7 @@ public class GroupParentException extends PortalException {
 
 		public MustNotBeOwnParent(long groupId) {
 			super(
-				String.format(
-					"Site %s cannot be its own parent site",
-					groupId),
+				String.format("Site %s cannot be its own parent site", groupId),
 				SELF_DESCENDANT);
 
 			this.groupId = groupId;

@@ -46,7 +46,7 @@ public class LoadBalancerUtilTest extends BaseJenkinsResultsParserTestCase {
 
 	@Test
 	public void testGetMostAvailableMasterURL() throws Exception {
-		LoadBalancerUtil.recentJobPeriod = 0;
+		LoadBalancerUtil.RECENT_BATCH_AGE = 0;
 
 		assertSamples();
 	}
@@ -118,10 +118,10 @@ public class LoadBalancerUtilTest extends BaseJenkinsResultsParserTestCase {
 	protected void downloadSample(File sampleDir, URL url) throws Exception {
 		Properties properties = getDownloadProperties(sampleDir.getName());
 
-		List<String> hostNames = LoadBalancerUtil.getHostNames(
-			properties, sampleDir.getName());
+		List<String> masters = LoadBalancerUtil.getMasters(
+			sampleDir.getName(), properties);
 
-		for (int i = 1; i <= hostNames.size(); i++) {
+		for (int i = 1; i <= masters.size(); i++) {
 			downloadSampleURL(
 				new File(sampleDir, sampleDir.getName() + "-" + i),
 				JenkinsResultsParserUtil.createURL(

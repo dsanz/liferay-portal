@@ -214,15 +214,17 @@ public class HitsImpl implements Hits {
 	public List<Document> toList() {
 		List<Document> subset = new ArrayList<>(_docs.length);
 
-		for (Document _doc : _docs) {
-			subset.add(_doc);
+		for (Document doc : _docs) {
+			subset.add(doc);
 		}
 
 		return subset;
 	}
 
+	private static final Document[] _EMPTY_DOCUMENTS = new Document[0];
+
 	private String _collatedSpellCheckResult;
-	private Document[] _docs;
+	private Document[] _docs = _EMPTY_DOCUMENTS;
 	private final Map<String, Hits> _groupedHits = new HashMap<>();
 	private int _length;
 	private Query _query;

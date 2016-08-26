@@ -30,7 +30,7 @@ boolean validate = ParamUtil.getBoolean(request, "validate", true);
 String[] tempFileNames = LayoutServiceUtil.getTempFileNames(scopeGroupId, ExportImportHelper.TEMP_FOLDER_NAME + portletDisplay.getId());
 %>
 
-<aui:nav-bar markupView="lexicon">
+<aui:nav-bar cssClass="navbar-collapse-absolute" markupView="lexicon">
 	<aui:nav cssClass="navbar-nav">
 
 		<%
@@ -79,9 +79,8 @@ String[] tempFileNames = LayoutServiceUtil.getTempFileNames(scopeGroupId, Export
 			</c:choose>
 		</div>
 	</c:when>
-
 	<c:when test='<%= tabs3.equals("current-and-previous") %>'>
-		<div class="process-list" id="<portlet:namespace />importProcesses">
+		<div class="portlet-export-import-import-processes process-list" id="<portlet:namespace />importProcesses">
 			<liferay-util:include page="/import_portlet_processes.jsp" servletContext="<%= application %>" />
 		</div>
 	</c:when>
@@ -105,7 +104,7 @@ String[] tempFileNames = LayoutServiceUtil.getTempFileNames(scopeGroupId, Export
 			namespace: '<portlet:namespace />',
 			processesNode: '#importProcesses',
 			processesResourceURL: '<%= HtmlUtil.escapeJS(importProcessesURL.toString()) %>',
-			timeZone: '<%= timeZone.getID() %>'
+			timeZoneOffset: <%= timeZoneOffset %>
 		}
 	);
 </aui:script>

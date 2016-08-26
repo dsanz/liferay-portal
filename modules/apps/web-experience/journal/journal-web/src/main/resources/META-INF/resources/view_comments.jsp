@@ -76,28 +76,25 @@ String displayStyle = journalDisplayContext.getDisplayStyle();
 						</liferay-frontend:vertical-card-header>
 
 						<liferay-frontend:vertical-card-footer>
-							<%= content %>
+							<%= HtmlUtil.extractText(content) %>
 						</liferay-frontend:vertical-card-footer>
 					</liferay-frontend:vertical-card>
 				</liferay-ui:search-container-column-text>
 			</c:when>
 			<c:otherwise>
 				<liferay-ui:search-container-column-text
-					cssClass="author-column content-column title-column"
 					name="author"
 					property="userName"
 					truncate="<%= true %>"
 				/>
 
 				<liferay-ui:search-container-column-text
-					cssClass="content-column message-column"
 					name="message"
 					truncate="<%= true %>"
 					value="<%= HtmlUtil.extractText(content) %>"
 				/>
 
 				<liferay-ui:search-container-column-date
-					cssClass="modified-date-column text-column"
 					name="modified-date"
 					property="modifiedDate"
 				/>

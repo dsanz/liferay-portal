@@ -923,12 +923,18 @@ public class CMISRepository extends BaseCmisRepository {
 		}
 	}
 
+	/**
+	 * @deprecated As of 7.0.0
+	 */
 	@Deprecated
 	@Override
 	public String[] getSupportedConfigurations() {
 		return _cmisRepositoryHandler.getSupportedConfigurations();
 	}
 
+	/**
+	 * @deprecated As of 7.0.0
+	 */
 	@Deprecated
 	@Override
 	public String[][] getSupportedParameters() {
@@ -1866,7 +1872,7 @@ public class CMISRepository extends BaseCmisRepository {
 		}
 		catch (CmisObjectNotFoundException confe) {
 			throw new NoSuchFileEntryException(
-				"No CMIS file entry with {fileEntryId=" + fileEntryId+ "}",
+				"No CMIS file entry with {fileEntryId=" + fileEntryId + "}",
 				confe);
 		}
 	}

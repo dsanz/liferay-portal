@@ -40,7 +40,7 @@ AUI.add(
 					rangeLastPublishNode: defaultConfig,
 					ratingsNode: defaultConfig,
 					setupNode: defaultConfig,
-					timeZone: STR_EMPTY,
+					timeZoneOffset: 0,
 					userPreferencesNode: defaultConfig
 				},
 
@@ -90,6 +90,60 @@ AUI.add(
 						if (instance._scheduledPublishingEventsDialog) {
 							instance._scheduledPublishingEventsDialog.destroy();
 						}
+					},
+
+					getDateRangeChecker: function() {
+						var instance = this;
+
+						var today = new Date();
+
+						var todayMS = +today;
+
+						var clientTZOffset = today.getTimezoneOffset();
+
+						var serverTZOffset = this.get('timeZoneOffset');
+
+						var adjustedDate = new Date(todayMS + serverTZOffset + (clientTZOffset * 60 * 1000));
+
+						var dateRangeChecker = {
+							todayUsed: adjustedDate,
+							validRange: true
+						};
+
+						if (instance._isChecked('rangeDateRangeNode')) {
+							dateRangeChecker.validRange = instance._rangeEndsLater() && instance._rangeEndsInPast(today) && instance._rangeStartsInPast(today);
+						}
+
+						return dateRangeChecker;
+					},
+
+					showNotification: function(dateChecker) {
+						var instance = this;
+
+						if (instance._notice) {
+							instance._notice.remove();
+						}
+
+						var message = instance._getNotificationMessage(dateChecker);
+
+						instance._notice = new Liferay.Notice(
+							{
+								animationConfig: {
+									duration: 2,
+									left: '0px',
+									top: '0px'
+								},
+								closeText: false,
+								content: message + '<button type="button" class="close">&times;</button>',
+								noticeClass: 'hide',
+								timeout: 10000,
+								toggleText: false,
+								type: 'warning',
+								useAnimation: true
+							}
+						);
+
+						instance._notice.show();
 					},
 
 					_bindUI: function() {
@@ -414,6 +468,21 @@ AUI.add(
 						return globalConfigurationDialog;
 					},
 
+					_getNotificationMessage: function(dateChecker) {
+						var instance = this;
+
+						var message;
+
+						if (!instance._rangeEndsLater()) {
+							message = Liferay.Language.get('end-date-must-be-greater-than-start-date');
+						}
+						else if (!instance._rangeEndsInPast(dateChecker.todayUsed) || !instance._rangeStartsInPast(dateChecker.todayUsed)) {
+							message = Liferay.Language.get('selected-dates-cannot-be-in-the-future');
+						}
+
+						return message;
+					},
+
 					_getScheduledPublishingEventsDialog: function() {
 						var instance = this;
 
@@ -456,6 +525,37 @@ AUI.add(
 						}
 
 						return scheduledPublishingEventsDialog;
+					},
+
+					_getSelectedDates: function() {
+						var instance = this;
+
+						var startDatePicker = Liferay.component(instance.ns('startDateDatePicker'));
+						var startTimePicker = Liferay.component(instance.ns('startTimeTimePicker'));
+
+						var endDatePicker = Liferay.component(instance.ns('endDateDatePicker'));
+						var endTimePicker = Liferay.component(instance.ns('endTimeTimePicker'));
+
+						var endDate = endDatePicker.getDate();
+						var endTime = endTimePicker.getTime();
+
+						endDate.setHours(endTime.getHours());
+						endDate.setMinutes(endTime.getMinutes());
+						endDate.setSeconds(0);
+						endDate.setMilliseconds(0);
+
+						var startDate = startDatePicker.getDate();
+						var startTime = startTimePicker.getTime();
+
+						startDate.setHours(startTime.getHours());
+						startDate.setMinutes(startTime.getMinutes());
+						startDate.setSeconds(0);
+						startDate.setMilliseconds(0);
+
+						return {
+							endDate: endDate,
+							startDate: startDate
+						};
 					},
 
 					_getValue: function(nodeName) {
@@ -529,6 +629,30 @@ AUI.add(
 								title: title
 							}
 						);
+					},
+
+					_rangeEndsInPast: function(today) {
+						var instance = this;
+
+						var selectedDates = instance._getSelectedDates();
+
+						return ADate.isGreaterOrEqual(today, selectedDates.endDate);
+					},
+
+					_rangeEndsLater: function() {
+						var instance = this;
+
+						var selectedDates = instance._getSelectedDates();
+
+						return ADate.isGreater(selectedDates.endDate, selectedDates.startDate);
+					},
+
+					_rangeStartsInPast: function(today) {
+						var instance = this;
+
+						var selectedDates = instance._getSelectedDates();
+
+						return ADate.isGreaterOrEqual(today, selectedDates.startDate);
 					},
 
 					_refreshDeletions: function() {
@@ -774,89 +898,15 @@ AUI.add(
 					_updateDateRange: function(event) {
 						var instance = this;
 
-						var endsInPast = true;
-						var endsLater = true;
-						var startsInPast = true;
+						var dateChecker = instance.getDateRangeChecker();
 
-						if (instance._isChecked('rangeDateRangeNode')) {
-							var startDatePicker = Liferay.component(instance.ns('startDateDatePicker'));
-							var startTimePicker = Liferay.component(instance.ns('startTimeTimePicker'));
-
-							var endDatePicker = Liferay.component(instance.ns('endDateDatePicker'));
-							var endTimePicker = Liferay.component(instance.ns('endTimeTimePicker'));
-
-							var startDate = startDatePicker.getDate();
-							var startTime = startTimePicker.getTime();
-
-							startDate.setHours(startTime.getHours());
-							startDate.setMinutes(startTime.getMinutes());
-							startDate.setSeconds(0);
-							startDate.setMilliseconds(0);
-
-							var endDate = endDatePicker.getDate();
-							var endTime = endTimePicker.getTime();
-
-							endDate.setHours(endTime.getHours());
-							endDate.setMinutes(endTime.getMinutes());
-							endDate.setSeconds(0);
-							endDate.setMilliseconds(0);
-
-							endsLater = ADate.isGreater(endDate, startDate);
-
-							var localeString = instance.get('locale');
-							var timeZoneString = instance.get('timeZone');
-
-							var today = new Date(
-								new Date().toLocaleString(
-									localeString,
-									{
-										timeZone: timeZoneString
-									}
-								)
-							);
-
-							endsInPast = ADate.isGreaterOrEqual(today, endDate);
-							startsInPast = ADate.isGreaterOrEqual(today, startDate);
-						}
-
-						if (endsLater && endsInPast && startsInPast) {
+						if (dateChecker.validRange) {
 							instance._reloadForm();
 
 							A.all('.datepicker-popover, .timepicker-popover').hide();
 						}
 						else {
-							var message;
-
-							if (!endsLater) {
-								message = Liferay.Language.get('end-date-must-be-greater-than-start-date');
-							}
-							else if (!endsInPast || !startsInPast) {
-								message = Liferay.Language.get('selected-dates-cannot-be-in-the-future');
-							}
-
-							if (instance._notice) {
-								instance._notice.remove();
-							}
-
-							instance._notice = new Liferay.Notice(
-								{
-									animationConfig:
-									{
-										duration: 2,
-										left: '0px',
-										top: '0px'
-									},
-									closeText: false,
-									content: message + '<button type="button" class="close">&times;</button>',
-									noticeClass: 'hide',
-									timeout: 10000,
-									toggleText: false,
-									type: 'warning',
-									useAnimation: true
-								}
-							);
-
-							instance._notice.show();
+							instance.showNotification(dateChecker);
 						}
 					},
 

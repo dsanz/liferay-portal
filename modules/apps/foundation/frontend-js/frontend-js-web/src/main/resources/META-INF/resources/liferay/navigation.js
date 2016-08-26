@@ -407,6 +407,14 @@ AUI.add(
 						}
 					);
 
+					sortable.plug(
+						A.Plugin.DDWinScroll,
+						{
+							horizontal: false,
+							vertical: true
+						}
+					);
+
 					sortable.delegate.on(
 						'drag:end',
 						function(event) {
@@ -432,7 +440,7 @@ AUI.add(
 					instance._afterMakeSortable(sortable);
 				}
 			},
-			['dd-constrain', 'sortable'],
+			['dd-scroll', 'liferay-sortable'],
 			true
 		);
 

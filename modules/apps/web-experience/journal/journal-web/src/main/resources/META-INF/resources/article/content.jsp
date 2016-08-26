@@ -32,6 +32,20 @@ DDMTemplate ddmTemplate = (DDMTemplate)request.getAttribute("edit_article.jsp-te
 String defaultLanguageId = (String)request.getAttribute("edit_article.jsp-defaultLanguageId");
 
 boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_article.jsp-changeStructure"));
+
+long folderId = journalDisplayContext.getFolderId();
+
+boolean searchRestriction = false;
+
+if (journalDisplayContext.getRestrictionType() == JournalFolderConstants.RESTRICTION_TYPE_DDM_STRUCTURES_AND_WORKFLOW) {
+	searchRestriction = true;
+}
+
+if (!searchRestriction) {
+	folderId = JournalFolderLocalServiceUtil.getOverridedDDMStructuresFolderId(folderId);
+
+	searchRestriction = folderId != JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID;
+}
 %>
 
 <liferay-ui:error-marker key="<%= WebKeys.ERROR_SECTION %>" value="content" />
@@ -67,12 +81,14 @@ boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_artic
 	String message = nsle.getMessage();
 	%>
 
-	<c:when test="<%= message.equals(JournalArticleConstants.DISPLAY_PAGE) %>">
-		<liferay-ui:message key="please-select-an-existing-display-page" />
-	</c:when>
-	<c:otherwise>
-		<liferay-ui:message key="the-content-references-a-missing-page" />
-	</c:otherwise>
+	<c:choose>
+		<c:when test="<%= Objects.equals(message, JournalArticleConstants.DISPLAY_PAGE) %>">
+			<liferay-ui:message key="please-select-an-existing-display-page" />
+		</c:when>
+		<c:otherwise>
+			<liferay-ui:message key="the-content-references-a-missing-page" />
+		</c:otherwise>
+	</c:choose>
 </liferay-ui:error>
 
 <liferay-ui:error exception="<%= NoSuchStructureException.class %>" message="please-select-an-existing-structure" />
@@ -80,7 +96,7 @@ boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_artic
 <liferay-ui:error exception="<%= StorageFieldRequiredException.class %>" message="please-fill-out-all-required-fields" />
 
 <aui:fieldset>
-	<aui:input autoFocus="<%= true %>" ignoreRequestValue="<%= changeStructure %>" name="title" wrapperCssClass="article-content-title">
+	<aui:input autoFocus="<%= true %>" ignoreRequestValue="<%= changeStructure %>" label="title" localized="<%= true %>" name="titleMapAsXML" type="text" wrapperCssClass="article-content-title">
 		<c:if test="<%= classNameId == JournalArticleConstants.CLASSNAME_ID_DEFAULT %>">
 			<aui:validator name="required" />
 		</c:if>
@@ -100,16 +116,18 @@ boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_artic
 		</c:choose>
 	</c:if>
 
-	<aui:input ignoreRequestValue="<%= changeStructure %>" label="summary" name="description" />
+	<aui:input ignoreRequestValue="<%= changeStructure %>" label="summary" localized="<%= true %>" name="descriptionMapAsXML" type="text" wrapperCssClass="article-content-description" />
 
-	<liferay-ddm:html
-		checkRequired="<%= classNameId == JournalArticleConstants.CLASSNAME_ID_DEFAULT %>"
-		classNameId="<%= PortalUtil.getClassNameId(DDMStructure.class) %>"
-		classPK="<%= ddmStructure.getStructureId() %>"
-		ddmFormValues="<%= journalDisplayContext.getDDMFormValues(ddmStructure) %>"
-		ignoreRequestValue="<%= changeStructure %>"
-		requestedLocale="<%= LocaleUtil.fromLanguageId(defaultLanguageId) %>"
-	/>
+	<div class="article-content-content">
+		<liferay-ddm:html
+			checkRequired="<%= classNameId == JournalArticleConstants.CLASSNAME_ID_DEFAULT %>"
+			classNameId="<%= PortalUtil.getClassNameId(DDMStructure.class) %>"
+			classPK="<%= ddmStructure.getStructureId() %>"
+			ddmFormValues="<%= journalDisplayContext.getDDMFormValues(ddmStructure) %>"
+			ignoreRequestValue="<%= changeStructure %>"
+			requestedLocale="<%= LocaleUtil.fromLanguageId(defaultLanguageId) %>"
+		/>
+	</div>
 
 	<aui:input label="searchable" name="indexable" type="toggle-switch" value="<%= (article != null) ? article.isIndexable() : true %>" />
 </aui:fieldset>
@@ -140,14 +158,17 @@ boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_artic
 <aui:script use="liferay-journal-content">
 	var journalContent = new Liferay.Portlet.JournalContent(
 		{
-			'ddm.basePortletURL': '<%= PortletURLFactoryUtil.create(request, PortletProviderUtil.getPortletId(DDMStructure.class.getName(), PortletProvider.Action.VIEW), themeDisplay.getPlid(), PortletRequest.RENDER_PHASE) %>',
+			'ddm.basePortletURL': '<%= PortletURLFactoryUtil.create(request, PortletProviderUtil.getPortletId(DDMStructure.class.getName(), PortletProvider.Action.VIEW), PortletRequest.RENDER_PHASE) %>',
 			'ddm.classNameId': '<%= PortalUtil.getClassNameId(DDMStructure.class) %>',
 			'ddm.classPK': <%= ddmStructure.getPrimaryKey() %>,
 			'ddm.groupId': <%= groupId %>,
 			'ddm.refererPortletName': '<%= JournalPortletKeys.JOURNAL + ".selectStructure" %>',
 			'ddm.resourceClassNameId': '<%= ddmStructure.getClassNameId() %>',
 			'ddm.templateId': <%= (ddmTemplate != null) ? ddmTemplate.getTemplateId() : 0 %>,
-			descriptionInputLocalized: Liferay.component('<portlet:namespace />description'),
+			'ddm.searchRestriction': <%= searchRestriction %>,
+			'ddm.searchRestrictionClassNameId': <%= ClassNameLocalServiceUtil.getClassNameId(JournalFolder.class) %>,
+			'ddm.searchRestrictionClassPK': <%= folderId %>,
+			descriptionInputLocalized: Liferay.component('<portlet:namespace />descriptionMapAsXML'),
 			editStructure: '#<portlet:namespace />editDDMStructure',
 			editTemplate: '#<portlet:namespace />editDDMTemplate',
 			namespace: '<portlet:namespace />',
@@ -156,7 +177,7 @@ boolean changeStructure = GetterUtil.getBoolean(request.getAttribute("edit_artic
 			'strings.draft': '<liferay-ui:message key="draft" />',
 			'strings.editStructure': '<liferay-ui:message key="editing-the-current-structure-deletes-all-unsaved-content" />',
 			'strings.editTemplate': '<liferay-ui:message key="editing-the-current-template-deletes-all-unsaved-content" />',
-			titleInputLocalized: Liferay.component('<portlet:namespace />title'),
+			titleInputLocalized: Liferay.component('<portlet:namespace />titleMapAsXML'),
 			translationManager: Liferay.component('<portlet:namespace />translationManager'),
 			'urls.editStructure': '<%= editStructureURL %>',
 			'urls.editTemplate': '<%= editTemplateURL %>'

@@ -23,20 +23,27 @@ import com.liferay.portal.kernel.cache.MultiVMPool;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.index.IndexEncoder;
 import com.liferay.portal.kernel.cache.index.PortalCacheIndexer;
+import com.liferay.portal.kernel.cluster.ClusterInvokeAcceptor;
+import com.liferay.portal.kernel.cluster.ClusterInvokeThreadLocal;
+import com.liferay.portal.kernel.cluster.ClusterableInvokerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.LayoutSet;
+import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
 import com.liferay.portal.kernel.portlet.PortletRequestModel;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashUtil;
+import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.Serializable;
+
+import java.lang.reflect.Method;
 
 import java.util.Objects;
 
@@ -52,9 +59,10 @@ import org.osgi.service.component.annotations.Reference;
  * @author Raymond Augé
  * @author Michael Young
  */
-@Component(service = JournalContent.class)
+@Component(service = {IdentifiableOSGiService.class, JournalContent.class})
 @DoPrivileged
-public class JournalContentImpl implements JournalContent {
+public class JournalContentImpl
+	implements IdentifiableOSGiService, JournalContent {
 
 	@Override
 	public void clearCache() {
@@ -69,9 +77,20 @@ public class JournalContentImpl implements JournalContent {
 	public void clearCache(
 		long groupId, String articleId, String ddmTemplateKey) {
 
-		_getPortalCacheIndexer().removeKeys(
+		_portalCacheIndexer.removeKeys(
 			JournalContentKeyIndexEncoder.encode(
 				groupId, articleId, ddmTemplateKey));
+
+		if (ClusterInvokeThreadLocal.isEnabled()) {
+			try {
+				ClusterableInvokerUtil.invokeOnCluster(
+					ClusterInvokeAcceptor.class, this, _clearCacheMethod,
+					new Object[] {groupId, articleId, ddmTemplateKey});
+			}
+			catch (Throwable t) {
+				ReflectionUtil.throwException(t);
+			}
+		}
 	}
 
 	@Override
@@ -263,6 +282,11 @@ public class JournalContentImpl implements JournalContent {
 			groupId, articleId, viewMode, languageId, 1, themeDisplay);
 	}
 
+	@Override
+	public String getOSGiServiceIdentifier() {
+		return JournalContent.class.getName();
+	}
+
 	protected JournalArticleDisplay getArticleDisplay(
 		long groupId, String articleId, String ddmTemplateKey, String viewMode,
 		String languageId, int page, PortletRequestModel portletRequestModel,
@@ -302,28 +326,31 @@ public class JournalContentImpl implements JournalContent {
 		_portalCache =
 			(PortalCache<JournalContentKey, JournalArticleDisplay>)
 				multiVMPool.getPortalCache(CACHE_NAME);
+
+		_portalCacheIndexer = new PortalCacheIndexer<>(
+			new JournalContentKeyIndexEncoder(), _portalCache);
 	}
 
 	protected static final String CACHE_NAME = JournalContent.class.getName();
 
-	private PortalCacheIndexer<String, JournalContentKey, JournalArticleDisplay>
-		_getPortalCacheIndexer() {
-
-		if (_portalCacheIndexer == null) {
-			_portalCacheIndexer = new PortalCacheIndexer<>(
-				new JournalContentKeyIndexEncoder(), _portalCache);
-		}
-
-		return _portalCacheIndexer;
-	}
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalContentImpl.class);
 
+	private static final Method _clearCacheMethod;
 	private static PortalCache<JournalContentKey, JournalArticleDisplay>
 		_portalCache;
 	private static PortalCacheIndexer
 		<String, JournalContentKey, JournalArticleDisplay> _portalCacheIndexer;
+
+	static {
+		try {
+			_clearCacheMethod = JournalContent.class.getMethod(
+				"clearCache", long.class, String.class, String.class);
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new ExceptionInInitializerError(nsme);
+		}
+	}
 
 	private JournalArticleLocalService _journalArticleLocalService;
 

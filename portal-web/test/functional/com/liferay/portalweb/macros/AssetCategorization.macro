@@ -4,13 +4,17 @@
 
 		<execute function="AssertClick" locator1="AssetCategorization#CATEGORY_SELECT" value1="Select" />
 
+		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
+
 		<var name="key_categoryName" value="${categoryName}" />
 
 		<execute function="Click" locator1="AssetCategorization#CATEGORIES_CATEGORY_CHECKBOX" />
 
 		<execute function="AssertVisible" locator1="AssetCategorization#CATEGORIES_CATEGORY_CHECKBOX_CHECKED" />
 
-		<execute function="Click" locator1="Icon#CLOSE" />
+		<execute function="SelectFrameTop" />
+
+		<execute function="AssertClick" locator1="Button#DONE" value1="Done" />
 
 		<execute function="AssertTextEquals" locator1="AssetCategorization#CATEGORY" value1="${categoryName}" />
 	</command>
@@ -35,6 +39,13 @@
 		<var name="key_tagName" value="${tagName}" />
 
 		<execute function="Type" locator1="AssetCategorization#TAGS_FIELD" value1="${tagName}" />
+
+		<if>
+			<condition function="IsElementPresent" locator1="AssetCategorization#TAG_AUTOCOMPLETE_CONTAINER" />
+			<then>
+				<execute function="Click" locator1="AssetCategorization#TAG_AUTOCOMPLETE" />
+			</then>
+		</if>
 
 		<execute function="AssertClick" locator1="Button#ADD_TAGS" value1="Add" />
 

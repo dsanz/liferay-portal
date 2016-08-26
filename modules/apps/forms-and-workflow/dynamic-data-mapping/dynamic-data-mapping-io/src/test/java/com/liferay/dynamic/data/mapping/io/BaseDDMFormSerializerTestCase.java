@@ -67,6 +67,7 @@ public abstract class BaseDDMFormSerializerTestCase extends BaseDDMTestCase {
 
 		ddmFormFields.add(
 			createNestedDDMFormFields("ParentField", "ChildField"));
+
 		ddmFormFields.add(createRadioDDMFormField("BooleanField"));
 		ddmFormFields.add(createSelectDDMFormField("SelectField"));
 		ddmFormFields.add(createTextDDMFormField("TextField"));
@@ -80,7 +81,7 @@ public abstract class BaseDDMFormSerializerTestCase extends BaseDDMTestCase {
 
 		ddmFormField.setDataType("html");
 		ddmFormField.setFieldNamespace("ddm");
-		ddmFormField.setIndexType("keyword");
+		ddmFormField.setIndexType("text");
 		ddmFormField.setLabel(createHTMLDDMFormFieldLabel());
 		ddmFormField.setLocalizable(true);
 		ddmFormField.setPredefinedValue(

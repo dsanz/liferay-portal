@@ -4,7 +4,7 @@
 ;
 [subrepo]
 	cmdver = liferay
-	commit = 74bf62a5c6e93e81e9c73077d0cd08585c766a1c
+	commit = e630bf3ff1add267b79aef62ee1eebc3a7c79d1c
 	mode = push
-	parent = 2a1e5679a0a9b124b7443f18b31e3cbc7f671dc8
+	parent = 47b7a3bcdd44f52f475a9db0bf02e01f67dcd883
 	remote = git@github.com:liferay/com-liferay-xsl-content.git

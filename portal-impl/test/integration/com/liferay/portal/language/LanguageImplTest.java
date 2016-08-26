@@ -55,18 +55,24 @@ public class LanguageImplTest {
 		}
 
 		@Test
+		public void testFormatWithKeyNull() {
+			Assert.assertEquals(
+				null,
+				_languageImpl.format(
+					LocaleThreadLocal.getDefaultLocale(), null, "31"));
+		}
+
+		@Test
 		public void testFormatWithLocaleNull() {
 			Locale defaultLocale = LocaleThreadLocal.getDefaultLocale();
 
 			Locale nullableLocale = null;
 
 			try {
-				String expectedValue = _languageImpl.format(
-					nullableLocale, _LANG_KEY_WITH_ARGUMENT, "31");
-				String actualValue = _languageImpl.format(
-					nullableLocale, _LANG_KEY_WITH_ARGUMENT, "31");
-
-				Assert.assertEquals(expectedValue, actualValue);
+				Assert.assertEquals(
+					_LANG_KEY_WITH_ARGUMENT,
+					_languageImpl.format(
+						nullableLocale, _LANG_KEY_WITH_ARGUMENT, "31"));
 			}
 			finally {
 				LocaleThreadLocal.setDefaultLocale(defaultLocale);
@@ -164,8 +170,7 @@ public class LanguageImplTest {
 
 			String value = _languageImpl.format(
 				mockLanguageServletRequest.getRequest(),
-				_LANG_KEY_WITH_ARGUMENT,
-				new LanguageWrapper("a", "31", "a"));
+				_LANG_KEY_WITH_ARGUMENT, new LanguageWrapper("a", "31", "a"));
 
 			Assert.assertEquals("a31a Hours", value);
 		}
@@ -225,8 +230,7 @@ public class LanguageImplTest {
 
 			String value = _languageImpl.format(
 				mockLanguageServletRequest.getRequest(),
-				_LANG_KEY_WITH_ARGUMENTS,
-				new Object[] {"A", "B"});
+				_LANG_KEY_WITH_ARGUMENTS, new Object[] {"A", "B"});
 
 			Assert.assertEquals("A has invited you to join B.", value);
 		}

@@ -18,7 +18,8 @@
 
 <%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet" %>
 
-<%@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
+<%@ taglib uri="http://liferay.com/tld/asset" prefix="liferay-asset" %><%@
+taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
 taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
 taglib uri="http://liferay.com/tld/security" prefix="liferay-security" %><%@
@@ -65,8 +66,8 @@ page import="com.liferay.calendar.util.ColorUtil" %><%@
 page import="com.liferay.calendar.util.JCalendarUtil" %><%@
 page import="com.liferay.calendar.util.RecurrenceUtil" %><%@
 page import="com.liferay.calendar.util.comparator.CalendarNameComparator" %><%@
-page import="com.liferay.calendar.web.search.CalendarResourceDisplayTerms" %><%@
-page import="com.liferay.calendar.web.search.CalendarResourceSearch" %><%@
+page import="com.liferay.calendar.web.internal.search.CalendarResourceDisplayTerms" %><%@
+page import="com.liferay.calendar.web.internal.search.CalendarResourceSearch" %><%@
 page import="com.liferay.calendar.workflow.CalendarBookingWorkflowConstants" %><%@
 page import="com.liferay.portal.kernel.bean.BeanParamUtil" %><%@
 page import="com.liferay.portal.kernel.bean.BeanPropertiesUtil" %><%@
@@ -146,13 +147,14 @@ if (usePortalTimeZone) {
 	timeZoneId = user.getTimeZoneId();
 }
 
+boolean displaySchedulerHeader = GetterUtil.getBoolean(portletPreferences.getValue("displaySchedulerHeader", null), true);
 boolean displaySchedulerOnly = GetterUtil.getBoolean(portletPreferences.getValue("displaySchedulerOnly", null));
 boolean showUserEvents = GetterUtil.getBoolean(portletPreferences.getValue("showUserEvents", null), true);
 
 boolean showAgendaView = GetterUtil.getBoolean(portletPreferences.getValue("showAgendaView", null), true);
 boolean showDayView = GetterUtil.getBoolean(portletPreferences.getValue("showDayView", null), true);
-boolean showWeekView = GetterUtil.getBoolean(portletPreferences.getValue("showWeekView", null), true);
 boolean showMonthView = GetterUtil.getBoolean(portletPreferences.getValue("showMonthView", null), true);
+boolean showWeekView = GetterUtil.getBoolean(portletPreferences.getValue("showWeekView", null), true);
 
 boolean enableRSS = !PortalUtil.isRSSFeedsEnabled() ? false : GetterUtil.getBoolean(portletPreferences.getValue("enableRss", null), true);
 int rssDelta = GetterUtil.getInteger(portletPreferences.getValue("rssDelta", StringPool.BLANK), SearchContainer.DEFAULT_DELTA);

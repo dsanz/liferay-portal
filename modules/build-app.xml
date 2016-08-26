@@ -8,7 +8,24 @@
 	<property file="../app.server.${env.HOSTNAME}.properties" />
 	<property file="../app.server.properties" />
 
-	<property name="liferay.home" value="${basedir}/../bundles" />
+	<property file="../build.properties" />
+
+	<property location="${modules.dir}/../bundles" name="liferay.home" />
+	<property location="${modules.dir}/.." name="project.dir" />
+
+	<condition property="liferay.releng.ee">
+		<or>
+			<istrue value="${ee.override}" />
+			<matches pattern="ee-.+" string="${liferay.releng.branch}" />
+		</or>
+	</condition>
+
+	<condition else="Liferay" property="liferay.releng.app.title.prefix" value="Liferay CE">
+		<not>
+			<istrue value="${liferay.releng.ee}" />
+		</not>
+	</condition>
+
 	<property name="portal.lib.dir" value="${app.server.tomcat.lib.portal.dir}" />
 
 	<property name="osgi.dir" value="${liferay.home}/osgi" />
@@ -26,7 +43,7 @@
 	</target>
 
 	<target depends="dist-module-artifacts-lpkg,write-lpkg-marketplace-properties" name="build-app-lpkg" unless="module.dirs.null">
-		<zip basedir="${osgi.dir}/marketplace" destfile="${osgi.dir}/marketplace/${app.name}.lpkg" includes="*.jar,*.war,liferay-marketplace.properties" />
+		<zip basedir="${osgi.dir}/marketplace" destfile="${osgi.dir}/marketplace/${Liferay-Releng-App-Title}.lpkg" includes="*.jar,*.war,liferay-marketplace.properties" />
 
 		<delete>
 			<fileset dir="${osgi.dir}/marketplace" includes="*.jar,*.war,liferay-marketplace.properties" />
@@ -37,7 +54,7 @@
 		<pathconvert pathsep="," property="app.names">
 			<globmapper from="${modules.dir}${file.separator}apps${file.separator}*" to="*" />
 			<path>
-				<dirset dir="${basedir}" includes="apps/*" />
+				<dirset dir="${modules.dir}" includes="apps/*" />
 			</path>
 		</pathconvert>
 
@@ -52,17 +69,21 @@
 		<antcall target="index-modules-and-app-lpkgs" />
 	</target>
 
-	<target name="check-app-version">
-		<fail message="Please provide a value for the property &quot;app.version&quot; when running this target.">
-			<condition>
-				<not>
-					<isset property="app.version" />
-				</not>
-			</condition>
-		</fail>
+	<target name="check-current-branch">
+		<exec dir="${modules.dir}" executable="git" outputproperty="liferay.releng.branch">
+			<arg value="rev-parse" />
+			<arg value="--abbrev-ref" />
+			<arg value="HEAD" />
+		</exec>
+
+		<echo message="Current branch: ${liferay.releng.branch}" />
+
+		<condition property="current.branch.private">
+			<contains string="${liferay.releng.branch}" substring="ee-" />
+		</condition>
 	</target>
 
-	<target depends="check-app-version,init-build-app" name="check-stale-artifacts">
+	<target depends="get-app-version,init-build-app" name="check-stale-artifacts" unless="check.stale.artifacts.skip">
 		<property location="${gradle.wrapper.path}" name="gradle.wrapper.path.absolute" />
 
 		<exec dir="${app.dir}" executable="${gradle.wrapper.path.absolute}" outputproperty="stale.artifacts.output">
@@ -86,6 +107,27 @@
 		</fail>
 	</target>
 
+	<target depends="check-current-branch" if="${current.branch.private}" name="checkout-public-modules-releng">
+		<loadfile property="git.commit.portal.public" srcfile="${project.dir}/git-commit-portal">
+			<filterchain>
+				<striplinebreaks />
+			</filterchain>
+		</loadfile>
+
+		<echo message="Checking out public releng info from commit ID: ${git.commit.portal.public}" />
+
+		<exec dir="${project.dir}" executable="git">
+			<arg value="fetch" />
+			<arg value="upstream" />
+		</exec>
+
+		<exec dir="${project.dir}/modules" executable="git">
+			<arg value="checkout" />
+			<arg value="${git.commit.portal.public}" />
+			<arg value=".releng" />
+		</exec>
+	</target>
+
 	<target depends="init-build-app" name="clean-app">
 		<delete dir="${dist.dir}" />
 
@@ -103,15 +145,17 @@
 	<target depends="check-stale-artifacts,get-artifact-versions-previous-release" name="dist-module-artifacts">
 		<mkdir dir="${dist.dir}" />
 
-		<subant genericantfile="${basedir}/build-app-module.xml" target="dist-module-artifact">
+		<subant genericantfile="${modules.dir}/build-app-module.xml" target="dist-module-artifact">
 			<dirset dir="${modules.dir}" excludes="${build.modules.excludes}" includes="${app.module.dirs}" />
 			<property name="app.first.version" value="${app.first.version}" />
 			<property name="artifact.versions.previous.release" value="${artifact.versions.previous.release}" />
+			<property name="build.repository.private.password" value="${build.repository.private.password}" />
+			<property name="build.repository.private.username" value="${build.repository.private.username}" />
 			<property name="dist.dir" value="${dist.dir}" />
 		</subant>
 	</target>
 
-	<target depends="init-build-app" name="dist-module-artifacts-lpkg" unless="module.dirs.null">
+	<target depends="get-osgi-static-modules,init-build-app" name="dist-module-artifacts-lpkg" unless="module.dirs.null">
 		<subant genericantfile="${modules.dir}/build-app-module.xml" target="dist-module-artifact-lpkg">
 			<dirset dir="${modules.dir}" excludes="${build.modules.excludes}" includes="${app.module.dirs}" />
 			<property name="osgi.dir" value="${osgi.dir}" />
@@ -119,7 +163,7 @@
 		</subant>
 	</target>
 
-	<target depends="init-build-app" name="get-app-artifacts">
+	<target depends="init-build-app,get-app-version" name="get-app-artifacts">
 		<pathconvert pathsep=",\${line.separator}&#x0009;" property="module.versions.list">
 			<flattenmapper />
 
@@ -131,7 +175,7 @@
 		<property name="app.artifacts" value="app.artifacts-${app.version}=\${line.separator}&#x0009;${module.versions.list}" />
 	</target>
 
-	<target depends="init-build-app" name="get-app-change-log">
+	<target depends="init-build-app,get-app-version" name="get-app-change-log">
 		<loadfile failonerror="false" property="app.ticket.list" srcfile="${dist.dir}/ticket.list.tmp">
 			<filterchain>
 				<tokenfilter>
@@ -162,8 +206,8 @@
 		<property name="app.change.log.header" value="${app.change.log.version.separator}#${line.separator}# Liferay App Version ${app.version}${line.separator}#" />
 	</target>
 
-	<target name="get-app-git-id">
-		<exec executable="git" outputproperty="git.rev.parse.output">
+	<target depends="get-app-version" name="get-app-git-id">
+		<exec dir="${project.dir}" executable="git" outputproperty="git.rev.parse.output">
 			<arg value="rev-parse" />
 			<arg value="head" />
 		</exec>
@@ -171,27 +215,35 @@
 		<property name="app.git.id" value="app.git.id-${app.version}=${git.rev.parse.output}" />
 	</target>
 
-	<target depends="init-build-app" name="get-app-version-previous-release">
-		<loadfile failonerror="false" property="app.version.previous.release" srcfile="${releng.app.dir}/app.changelog">
-			<filterchain>
-				<linecontains>
-					<contains value="# " />
-				</linecontains>
+	<target depends="init-build-app" name="get-app-properties">
+		<property file="${releng.app.dir}/app.properties" />
 
-				<striplinebreaks />
-
-				<tailfilter lines="1" />
-
-				<tokenfilter>
-					<replaceregex pattern="^.*?(\d[\d.]+\d)$" replace="\1" />
-				</tokenfilter>
-			</filterchain>
-		</loadfile>
-
-		<property name="app.version.previous" value="0.0.0" />
+		<property name="app.version.previous.release" value="${app.marketplace.version}" />
 	</target>
 
-	<target depends="get-app-version-previous-release" name="get-artifact-versions-previous-release">
+	<target depends="get-app-properties" name="get-app-version">
+		<loadfile property="app.major.minor.version.previous.release">
+			<filterchain>
+				<replaceregex pattern="(\d{1,2}\.\d{1,2})\.\d{1,2}" replace="\1" />
+
+				<striplinebreaks />
+			</filterchain>
+			<propertyresource name="app.version.previous.release" />
+		</loadfile>
+
+		<loadfile property="app.bug.fix.version.previous.release">
+			<filterchain>
+				<replaceregex pattern="\d{1,2}\.\d{1,2}\.(\d{1,2})" replace="\1" />
+			</filterchain>
+			<propertyresource name="app.version.previous.release" />
+		</loadfile>
+
+		<math datatype="int" operand1="${app.bug.fix.version.previous.release}" operand2="1" operation="+" result="app.bug.fix.version" />
+
+		<property name="app.version" value="${app.major.minor.version.previous.release}.${app.bug.fix.version}" />
+	</target>
+
+	<target depends="get-app-properties" name="get-artifact-versions-previous-release">
 		<property file="${releng.app.dir}/app.changelog" />
 
 		<set-artifact-versions-previous-release app.version.previous.release="${app.version.previous.release}" />
@@ -205,6 +257,14 @@
 				<regexpmapper from="^(.+?)-(\d.*?)\.jar$" to="\1#\2##" />
 			</chainedmapper>
 			<fileset dir="${osgi.dir}/marketplace" includes="*.jar" />
+		</pathconvert>
+	</target>
+
+	<target depends="init-build-app" name="get-osgi-static-modules">
+		<pathconvert property="osgi.static.modules">
+			<fileset dir="${osgi.dir}/static" includes="*.jar" />
+
+			<flattenmapper />
 		</pathconvert>
 	</target>
 
@@ -228,7 +288,7 @@
 		</java>
 	</target>
 
-	<target name="init-build-app">
+	<target depends="checkout-public-modules-releng" name="init-build-app">
 		<fail message="Please specify a value for &quot;app.name&quot; when running this command.">
 			<condition>
 				<not>
@@ -240,11 +300,13 @@
 			</condition>
 		</fail>
 
-		<basename file="${basedir}" property="app.name" />
+		<condition else="${modules.dir}/apps/${app.name}" property="app.dir" value="${modules.dir}/private/apps/${app.name}">
+			<available file="${modules.dir}/private/apps/${app.name}" />
+		</condition>
 
-		<property name="app.dir" value="${basedir}/apps/${app.name}" />
-
-		<property name="releng.app.dir" value="${basedir}/.releng/apps/${app.name}" />
+		<condition else="${modules.dir}/.releng/apps/${app.name}" property="releng.app.dir" value="${modules.dir}/.releng/private/apps/${app.name}">
+			<available file="${modules.dir}/.releng/private/apps/${app.name}" />
+		</condition>
 
 		<property name="dist.dir" value="${releng.app.dir}/dist" />
 
@@ -258,11 +320,13 @@
 					</linecontains>
 
 					<replacestring from="-dxp" to="" />
+
+					<replacestring from="private${file.separator}" to="" />
 				</filtermapper>
 			</chainedmapper>
 			<path>
-				<dirset dir="${basedir}" excludes="**/*-test*" includes="apps/${app.name}/**">
-					<present targetdir="${basedir}">
+				<dirset dir="${modules.dir}" excludes="**/*-test*" includes="apps/${app.name}/**,private/apps/${app.name}/**">
+					<present targetdir="${modules.dir}">
 						<mapper from="*" to="*/.lfrbuild-portal" type="glob" />
 					</present>
 				</dirset>
@@ -272,8 +336,8 @@
 		<pathconvert pathsep="," property="app.module.dirs">
 			<globmapper from="${modules.dir}${file.separator}*" to="*" />
 			<path>
-				<dirset dir="${basedir}" excludes="**/*-test*,${app.module.dirs.excludes}" includes="apps/${app.name}/**">
-					<present targetdir="${basedir}">
+				<dirset dir="${modules.dir}" excludes="**/*-test*,${app.module.dirs.excludes}" includes="apps/${app.name}/**,private/apps/${app.name}/**">
+					<present targetdir="${modules.dir}">
 						<mapper from="*" to="*/.lfrbuild-portal" type="glob" />
 					</present>
 				</dirset>
@@ -295,13 +359,28 @@
 			</not>
 		</condition>
 
-		<property file="${basedir}/../build.properties" />
+		<property file="${modules.dir}/../build.properties" />
 
-		<pathconvert property="osgi.static.modules">
-			<fileset dir="${osgi.dir}/static" includes="*.jar" />
-
-			<flattenmapper />
+		<pathconvert property="app.bnd.file">
+			<fileset dir="${modules.dir}" includes="apps/${app.name}/app.bnd,private/apps/${app.name}/app.bnd" />
 		</pathconvert>
+
+		<loadproperties srcFile="${app.bnd.file}">
+			<filterchain>
+				<linecontains>
+					<contains value="Liferay-Releng-App-Title" />
+				</linecontains>
+			</filterchain>
+		</loadproperties>
+
+		<condition property="check.stale.artifacts.skip">
+			<and>
+				<istrue value="${current.branch.private}" />
+				<not>
+					<available file="${modules.dir}/private/apps/${app.name}" />
+				</not>
+			</and>
+		</condition>
 	</target>
 
 	<target name="reset-all">
@@ -333,7 +412,7 @@
 	</target>
 
 	<target name="reset-lpkg">
-		<subant genericantfile="${basedir}/build-app-module.xml" target="reset-artifact">
+		<subant genericantfile="${modules.dir}/build-app-module.xml" target="reset-artifact">
 			<dirset dir="${modules.dir}" excludes="${build.modules.excludes}" includes="${app.module.dirs}" />
 			<property name="osgi.dir" value="${osgi.dir}" />
 		</subant>
@@ -366,7 +445,7 @@
 
 		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="${line.separator}" />
 
-		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="remote-app-id=${app.name}" />
+		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="remote-app-id=${Liferay-Releng-App-Title}" />
 
 		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="${line.separator}" />
 
@@ -374,15 +453,15 @@
 
 		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="${line.separator}" />
 
-		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="category=${app.name}" />
+		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="category=${Liferay-Releng-App-Title}" />
 
 		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="${line.separator}" />
 
-		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="description=${app.name}" />
+		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="description=${Liferay-Releng-App-Title}" />
 
 		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="${line.separator}" />
 
-		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="title=${app.name}" />
+		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="title=${Liferay-Releng-App-Title}" />
 
 		<echo append="true" file="${osgi.dir}/marketplace/liferay-marketplace.properties" message="${line.separator}" />
 

@@ -105,7 +105,7 @@
 
 	<command name="addTagList">
 		<for list="${tagNameList}" param="tagName">
-			<execute function="Type#clickAtSendKeys" locator1="AssetCategorization#CATEGORIES_SEARCH_FIELD" value1="${tagName}" />
+			<execute function="Type#clickAtType" locator1="AssetCategorization#CATEGORIES_SEARCH_FIELD" value1="${tagName}" />
 
 			<execute function="AssertClick" locator1="Button#ADD_TAGS" value1="Add" />
 		</for>
@@ -159,9 +159,9 @@
 
 		<execute function="Paste" locator1="AlloyEditor#TRACKBACKS_TO_SEND" />
 
-		<execute function="Pause" locator1="3000" />
-
 		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
+
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="addWithWorkflowPG">
@@ -315,7 +315,7 @@
 
 		<execute macro="Button#clickSave" />
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="ReportContent#SUCCESS_MESSAGE" value1="Although we cannot disclose our final decision, we do review every report and appreciate your effort to make sure Liferay DXP is a safe environment for everyone." />
+		<execute function="AssertTextEquals#assertPartialText" locator1="ReportContent#SUCCESS_MESSAGE" value1="Although we cannot disclose our final decision, we do review every report and appreciate your effort to make sure ${siteName} is a safe environment for everyone." />
 
 		<execute function="Click" locator1="Icon#CLOSE" />
 	</command>
@@ -371,6 +371,18 @@
 		<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 		<execute function="AssertElementNotPresent" locator1="BlogsEntry#TITLE" />
 		<execute function="AssertElementNotPresent" locator1="BlogsEntry#CONTENT" />
+	</command>
+
+	<command name="publish">
+		<if>
+			<condition function="IsElementPresent" locator1="Message#DRAFT_AUTO_SAVE" />
+			<then>
+				<execute macro="Button#clickPublish" />
+			</then>
+			<else>
+				<execute macro="PortletEntry#publish" />
+			</else>
+		</if>
 	</command>
 
 	<command name="publishWithInvalidContent">
@@ -449,9 +461,19 @@
 	</command>
 
 	<command name="saveAsDraft">
-		<execute function="AssertClick" locator1="Button#SAVE_AS_DRAFT" value1="Save as Draft" />
+		<if>
+			<condition function="IsElementPresent" locator1="Message#DRAFT_AUTO_SAVE" />
+			<then>
+				<execute function="AssertClick" locator1="Button#SAVE_AS_DRAFT" value1="Save as Draft" />
 
-		<execute macro="Alert#viewSuccessMessage" />
+				<execute function="AssertTextEquals" locator1="BlogsEntry#WORKFLOW_STATUS" value1="Draft" />
+			</then>
+			<else>
+				<execute function="AssertClick" locator1="Button#SAVE_AS_DRAFT" value1="Save as Draft" />
+
+				<execute macro="Alert#viewSuccessMessage" />
+			</else>
+		</if>
 	</command>
 
 	<command name="scheduleBlogEntry">
@@ -529,7 +551,7 @@
 
 		<execute function="Type" locator1="TextInput#SEARCH" value1="${entrySearchTerm}" />
 		<execute function="AssertClick" locator1="Button#SEARCH" value1="Search" />
-		<execute function="AssertTextEquals" locator1="BasePortlet#INFO_MESSAGE" value1="No entries were found that matched the keywords: ${entrySearchTerm}." />
+		<execute function="AssertTextEquals" locator1="Message#INFO" value1="No entries were found that matched the keywords: ${entrySearchTerm}." />
 
 		<if>
 			<equals arg1="${soPage}" arg2="true" />
@@ -644,12 +666,12 @@
 
 	<command name="viewAsRelatedAssetPG">
 		<var name="key_assetTitle" value="${assetTitle}" />
+		<var name="key_entryContent" value="${entryContent}" />
 		<var name="key_entryTitle" value="${entryTitle}" />
 
-		<execute function="AssertTextEquals" locator1="BlogsEntryTITLE" value1="${entryTitle}" />
+		<execute function="AssertTextEquals" locator1="BlogsEntry#TITLE" value1="${entryTitle}" />
 		<execute function="AssertTextEquals" locator1="BlogsEntry#CONTENT" value1="${entryContent}" />
 		<execute function="AssertTextEquals" locator1="AssetRelatedAssets#HEADER" value1="Related Assets:" />
-		<execute function="AssertElementPresent" locator1="AssetRelatedAssets#IMAGE" />
 		<execute function="AssertTextEquals" locator1="AssetRelatedAssets#ASSET_TITLE" value1="${assetTitle}" />
 	</command>
 
@@ -987,12 +1009,16 @@
 	<command name="viewRSS">
 		<execute function="AssertClick" locator1="Link#RSS" value1="RSS" />
 
-		<execute function="SelectWindow" locator1="title=Liferay" />
+		<execute function="SelectWindow" locator1="title=${siteName}" />
 
-		<execute function="AssertTextEquals" locator1="Blogs#RSS_FEED_TITLE" value1="Liferay" />
-		<execute function="AssertTextEquals" locator1="Blogs#RSS_FEED_SUBTITLE" value1="Liferay" />
+		<execute function="AssertTextEquals" locator1="Blogs#RSS_FEED_TITLE" value1="${siteName}" />
+		<execute function="AssertTextEquals" locator1="Blogs#RSS_FEED_SUBTITLE" value1="${siteName}" />
 		<execute function="AssertTextEquals" locator1="Blogs#RSS_ENTRY_TITLE" value1="${entryTitle}" />
 		<execute function="AssertTextEquals" locator1="Blogs#RSS_ENTRY_CONTENT" value1="${entryContent}" />
+	</command>
+
+	<command name="viewStatus">
+		<execute function="AssertTextEquals" locator1="AssetWorkflow#WORKFLOW_STATUS" value1="${entryStatus}" />
 	</command>
 
 	<command name="viewSubtitle">

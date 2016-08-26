@@ -42,7 +42,7 @@ if (Validator.isNull(user2.getComments())) {
 
 		<ul class="property-list">
 			<li>
-				<span class="property"><%= user2.getComments() %></span>
+				<span class="property"><%= HtmlUtil.replaceNewLine(user2.getComments()) %></span>
 			</li>
 		</ul>
 	</div>
@@ -65,7 +65,7 @@ if (phones.isEmpty()) {
 		<ul class="property-list">
 
 			<%
-			for (Phone phone: phones) {
+			for (Phone phone : phones) {
 			%>
 
 				<li class="<%= phone.isPrimary() ? "primary" : "" %>">
@@ -169,7 +169,7 @@ if (addresses.isEmpty()) {
 		<ul class="property-list">
 
 			<%
-			for (Address address: addresses) {
+			for (Address address : addresses) {
 				String street1 = address.getStreet1();
 				String street2 = address.getStreet2();
 				String street3 = address.getStreet3();

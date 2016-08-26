@@ -15,13 +15,14 @@
 package com.liferay.gradle.plugins.workspace.configurators;
 
 import com.liferay.gradle.plugins.LiferayBasePlugin;
-import com.liferay.gradle.plugins.LiferayOSGiDefaultsPlugin;
 import com.liferay.gradle.plugins.LiferayOSGiPlugin;
 import com.liferay.gradle.plugins.extensions.LiferayExtension;
 import com.liferay.gradle.plugins.poshi.runner.PoshiRunnerPlugin;
+import com.liferay.gradle.plugins.service.builder.ServiceBuilderPlugin;
 import com.liferay.gradle.plugins.workspace.WorkspaceExtension;
 import com.liferay.gradle.plugins.workspace.WorkspacePlugin;
 import com.liferay.gradle.plugins.workspace.util.GradleUtil;
+import com.liferay.gradle.util.FileUtil;
 
 import groovy.lang.Closure;
 
@@ -69,8 +70,7 @@ public class ModulesProjectConfigurator extends BaseProjectConfigurator {
 		WorkspaceExtension workspaceExtension = GradleUtil.getExtension(
 			(ExtensionAware)project.getGradle(), WorkspaceExtension.class);
 
-		GradleUtil.applyPlugin(project, LiferayOSGiPlugin.class);
-		GradleUtil.applyPlugin(project, PoshiRunnerPlugin.class);
+		applyPlugins(project);
 
 		addRepositoryDefault(project, workspaceExtension);
 		configureLiferay(project, workspaceExtension);
@@ -111,11 +111,19 @@ public class ModulesProjectConfigurator extends BaseProjectConfigurator {
 				public void execute(
 					MavenArtifactRepository mavenArtifactRepository) {
 
-					mavenArtifactRepository.setUrl(
-						LiferayOSGiDefaultsPlugin.DEFAULT_REPOSITORY_URL);
+					mavenArtifactRepository.setUrl(_DEFAULT_REPOSITORY_URL);
 				}
 
 			});
+	}
+
+	protected void applyPlugins(Project project) {
+		GradleUtil.applyPlugin(project, LiferayOSGiPlugin.class);
+		GradleUtil.applyPlugin(project, PoshiRunnerPlugin.class);
+
+		if (FileUtil.exists(project, "service.xml")) {
+			GradleUtil.applyPlugin(project, ServiceBuilderPlugin.class);
+		}
 	}
 
 	protected void configureLiferay(
@@ -135,7 +143,7 @@ public class ModulesProjectConfigurator extends BaseProjectConfigurator {
 
 		copySpec.into(
 			"osgi/modules",
-			new Closure<Void>(null) {
+			new Closure<Void>(project) {
 
 				@SuppressWarnings("unused")
 				public void doCall(CopySourceSpec copySourceSpec) {
@@ -183,6 +191,10 @@ public class ModulesProjectConfigurator extends BaseProjectConfigurator {
 	}
 
 	private static final boolean _DEFAULT_REPOSITORY_ENABLED = true;
+
+	private static final String _DEFAULT_REPOSITORY_URL =
+		"https://cdn.lfrs.sl/repository.liferay.com/nexus/content/groups/" +
+			"public";
 
 	private static final String _NAME = "modules";
 

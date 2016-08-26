@@ -1,4 +1,4 @@
-define("frontend-js-spa-web@1.0.7/liferay/util/Utils.es", ['exports'], function (exports) {
+define("frontend-js-spa-web@1.0.11/liferay/util/Utils.es", ['exports'], function (exports) {
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
@@ -11,10 +11,16 @@ define("frontend-js-spa-web@1.0.7/liferay/util/Utils.es", ['exports'], function 
 		}
 	}
 
+	var MAX_TIMEOUT = Math.pow(2, 31) - 1;
+
 	var Utils = function () {
 		function Utils() {
 			_classCallCheck(this, Utils);
 		}
+
+		Utils.getMaxTimeout = function getMaxTimeout() {
+			return MAX_TIMEOUT;
+		};
 
 		Utils.getPortletBoundaryId = function getPortletBoundaryId(portletId) {
 			return 'p_p_id_' + portletId + '_';

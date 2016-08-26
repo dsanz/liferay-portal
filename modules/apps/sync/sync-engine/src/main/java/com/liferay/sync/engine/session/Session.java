@@ -16,7 +16,7 @@ package com.liferay.sync.engine.session;
 
 import com.btr.proxy.search.ProxySearch;
 
-import com.liferay.sync.engine.documentlibrary.handler.Handler;
+import com.liferay.sync.engine.document.library.handler.Handler;
 import com.liferay.sync.engine.util.OSDetector;
 import com.liferay.sync.engine.util.PropsValues;
 import com.liferay.sync.engine.util.ReleaseInfo;
@@ -65,7 +65,14 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.HttpConnectionFactory;
+import org.apache.http.conn.ManagedHttpClientConnection;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
@@ -79,6 +86,7 @@ import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
@@ -121,21 +129,22 @@ public class Session {
 
 		headers.add(syncBuildHeader);
 
-		String syncDevice = null;
+		String syncDeviceType = null;
 
 		if (OSDetector.isApple()) {
-			syncDevice = "desktop-mac";
+			syncDeviceType = "desktop-mac";
 		}
 		else if (OSDetector.isLinux()) {
-			syncDevice = "desktop-linux";
+			syncDeviceType = "desktop-linux";
 		}
 		else if (OSDetector.isWindows()) {
-			syncDevice = "desktop-windows";
+			syncDeviceType = "desktop-windows";
 		}
 
-		Header syncDeviceHeader = new BasicHeader("Sync-Device", syncDevice);
+		Header syncDeviceTypeHeader = new BasicHeader(
+			"Sync-Device", syncDeviceType);
 
-		headers.add(syncDeviceHeader);
+		headers.add(syncDeviceTypeHeader);
 
 		httpClientBuilder.setDefaultHeaders(headers);
 
@@ -190,6 +199,9 @@ public class Session {
 		HttpClientBuilder httpClientBuilder = createHttpClientBuilder(
 			trustSelfSigned, maxConnections);
 
+		httpClientBuilder.setConnectionManager(
+			_getHttpClientConnectionManager(trustSelfSigned));
+
 		CredentialsProvider credentialsProvider =
 			new BasicCredentialsProvider();
 
@@ -221,6 +233,9 @@ public class Session {
 
 		HttpClientBuilder httpClientBuilder = createHttpClientBuilder(
 			trustSelfSigned, maxConnections);
+
+		httpClientBuilder.setConnectionManager(
+			_getHttpClientConnectionManager(trustSelfSigned));
 
 		_httpClient = httpClientBuilder.build();
 
@@ -383,7 +398,7 @@ public class Session {
 		};
 
 		_trackTransferRateScheduledFuture =
-			_scheduledExecutorService.scheduleWithFixedDelay(
+			_scheduledExecutorService.scheduleAtFixedRate(
 				runnable, 0, 1, TimeUnit.SECONDS);
 	}
 
@@ -515,6 +530,34 @@ public class Session {
 			}
 
 		};
+	}
+
+	private HttpClientConnectionManager _getHttpClientConnectionManager(
+		boolean trustSelfSigned) {
+
+		HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection>
+			connectionFactory = new SyncManagedHttpClientConnectionFactory();
+
+		if (trustSelfSigned) {
+			try {
+				RegistryBuilder<ConnectionSocketFactory> registryBuilder =
+					RegistryBuilder.create();
+
+				registryBuilder.register(
+					"https", _getTrustingSSLSocketFactory());
+
+				Registry<ConnectionSocketFactory> registry =
+					registryBuilder.build();
+
+				return new PoolingHttpClientConnectionManager(
+					registry, connectionFactory);
+			}
+			catch (Exception e) {
+				_logger.error(e.getMessage(), e);
+			}
+		}
+
+		return new PoolingHttpClientConnectionManager(connectionFactory);
 	}
 
 	private MultipartEntityBuilder _getMultipartEntityBuilder(

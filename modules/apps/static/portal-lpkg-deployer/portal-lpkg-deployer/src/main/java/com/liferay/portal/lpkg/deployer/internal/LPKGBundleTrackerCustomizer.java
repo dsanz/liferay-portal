@@ -18,12 +18,13 @@ import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.lpkg.StaticLPKGResolver;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.lpkg.deployer.LPKGWARBundleRegistry;
+import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.lpkg.deployer.internal.wrapper.bundle.URLStreamHandlerServiceServiceTrackerCustomizer;
 import com.liferay.portal.lpkg.deployer.internal.wrapper.bundle.WARBundleWrapperBundleActivator;
 import com.liferay.portal.util.PropsValues;
@@ -33,16 +34,25 @@ import java.io.InputStream;
 
 import java.net.URL;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
@@ -63,10 +73,12 @@ public class LPKGBundleTrackerCustomizer
 	implements BundleTrackerCustomizer<List<Bundle>> {
 
 	public LPKGBundleTrackerCustomizer(
-		BundleContext bundleContext, Map<String, URL> urls) {
+		BundleContext bundleContext, Map<String, URL> urls,
+		Set<String> overrideFileNames) {
 
 		_bundleContext = bundleContext;
 		_urls = urls;
+		_overrideFileNames = overrideFileNames;
 	}
 
 	@Override
@@ -79,7 +91,9 @@ public class LPKGBundleTrackerCustomizer
 
 		String symbolicName = bundle.getSymbolicName();
 
-		if (symbolicName.equals("static")) {
+		if (symbolicName.equals(
+				StaticLPKGResolver.getStaticLPKGBundleSymbolicName())) {
+
 			return Collections.emptyList();
 		}
 
@@ -92,6 +106,10 @@ public class LPKGBundleTrackerCustomizer
 			if (enumeration != null) {
 				while (enumeration.hasMoreElements()) {
 					url = enumeration.nextElement();
+
+					if (_checkOverridden(symbolicName, url)) {
+						continue;
+					}
 
 					Bundle newBundle = _bundleContext.installBundle(
 						url.getPath(), url.openStream());
@@ -115,6 +133,10 @@ public class LPKGBundleTrackerCustomizer
 
 			while (enumeration.hasMoreElements()) {
 				url = enumeration.nextElement();
+
+				if (_checkOverridden(symbolicName, url)) {
+					continue;
+				}
 
 				// Install a wrapper bundle for this WAR bundle. The wrapper
 				// bundle defers the WAR bundle installation until the WAB
@@ -165,9 +187,13 @@ public class LPKGBundleTrackerCustomizer
 			return;
 		}
 
+		String lpkgBundleSymbolicName = bundle.getSymbolicName();
+
+		String prefix = lpkgBundleSymbolicName.concat(StringPool.DASH);
+
 		for (Bundle newBundle : bundles) {
 			try {
-				newBundle.uninstall();
+				_uninstallBundle(prefix, newBundle);
 			}
 			catch (BundleException be) {
 				_log.error(
@@ -197,28 +223,96 @@ public class LPKGBundleTrackerCustomizer
 		return sb.toString();
 	}
 
-	private InputStream _toWARWrapperBundle(Bundle bundle, URL url)
-		throws IOException {
+	private boolean _checkOverridden(String symbolicName, URL url)
+		throws BundleException {
 
+		String path = url.getPath();
+
+		Matcher matcher = _pattern.matcher(path);
+
+		if (matcher.matches()) {
+			path = matcher.group(1) + matcher.group(4);
+		}
+
+		path = StringUtil.toLowerCase(path);
+
+		if (_overrideFileNames.contains(path)) {
+			Bundle bundle = _bundleContext.getBundle(url.getPath());
+
+			if (bundle != null) {
+				_uninstallBundle(symbolicName.concat(StringPool.DASH), bundle);
+			}
+
+			if (_log.isInfoEnabled()) {
+				_log.info("Disabled " + symbolicName + ":" + url.getPath());
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private String _readServletContextName(URL url) throws IOException {
 		String pathString = url.getPath();
 
-		String contextName = pathString.substring(
+		String servletContextName = pathString.substring(
 			pathString.lastIndexOf('/') + 1, pathString.lastIndexOf(".war"));
 
-		int index = contextName.lastIndexOf('-');
+		int index = servletContextName.lastIndexOf('-');
 
 		if (index >= 0) {
-			contextName = contextName.substring(0, index);
+			servletContextName = servletContextName.substring(0, index);
 		}
+
+		Path tempFilePath = Files.createTempFile(null, null);
+
+		try (InputStream inputStream1 = url.openStream()) {
+			Files.copy(
+				inputStream1, tempFilePath,
+				StandardCopyOption.REPLACE_EXISTING);
+
+			try (ZipFile zipFile = new ZipFile(tempFilePath.toFile());
+				InputStream inputStream2 = zipFile.getInputStream(
+					new ZipEntry(
+						"WEB-INF/liferay-plugin-package.properties"))) {
+
+				if (inputStream2 != null) {
+					Properties properties = new Properties();
+
+					properties.load(inputStream2);
+
+					String configuredServletContextName =
+						properties.getProperty("servlet-context-name");
+
+					if (configuredServletContextName != null) {
+						servletContextName = configuredServletContextName;
+					}
+				}
+			}
+		}
+		finally {
+			Files.delete(tempFilePath);
+		}
+
+		return servletContextName;
+	}
+
+	private InputStream _toWARWrapperBundle(Bundle bundle, URL url)
+		throws IOException {
 
 		StringBundler sb = new StringBundler(7);
 
 		sb.append("lpkg://");
-		sb.append(bundle.getSymbolicName());
+		sb.append(URLCodec.encodeURL(bundle.getSymbolicName()));
 		sb.append(StringPool.DASH);
 		sb.append(bundle.getVersion());
 		sb.append(StringPool.SLASH);
-		sb.append(contextName);
+
+		String servletContextName = _readServletContextName(url);
+
+		sb.append(servletContextName);
+
 		sb.append(".war");
 
 		String lpkgURL = sb.toString();
@@ -229,13 +323,28 @@ public class LPKGBundleTrackerCustomizer
 
 		_urls.put(lpkgURL, url);
 
+		String pathString = url.getPath();
+
+		String fileName = pathString.substring(
+			pathString.lastIndexOf('/') + 1, pathString.lastIndexOf(".war"));
+
+		String version = String.valueOf(bundle.getVersion());
+
+		int index = fileName.lastIndexOf('-');
+
+		if (index >= 0) {
+			version = fileName.substring(index + 1);
+		}
+
 		try (UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 				new UnsyncByteArrayOutputStream()) {
 
 			try (JarOutputStream jarOutputStream = new JarOutputStream(
 					unsyncByteArrayOutputStream)) {
 
-				_writeManifest(bundle, contextName, lpkgURL, jarOutputStream);
+				_writeManifest(
+					bundle, servletContextName, version, lpkgURL,
+					jarOutputStream);
 
 				_writeClasses(
 					jarOutputStream, WARBundleWrapperBundleActivator.class,
@@ -246,6 +355,32 @@ public class LPKGBundleTrackerCustomizer
 				unsyncByteArrayOutputStream.unsafeGetByteArray(), 0,
 				unsyncByteArrayOutputStream.size());
 		}
+	}
+
+	private void _uninstallBundle(String prefix, Bundle bundle)
+		throws BundleException {
+
+		String symbolicName = bundle.getSymbolicName();
+
+		if (symbolicName.startsWith(prefix) &&
+			symbolicName.endsWith("-wrapper")) {
+
+			String wrappedBundleSymbolicName = symbolicName.substring(
+				prefix.length(), symbolicName.length() - 8);
+
+			Version version = bundle.getVersion();
+
+			for (Bundle curBundle : _bundleContext.getBundles()) {
+				if (wrappedBundleSymbolicName.equals(
+						curBundle.getSymbolicName()) &&
+					version.equals(curBundle.getVersion())) {
+
+					curBundle.uninstall();
+				}
+			}
+		}
+
+		bundle.uninstall();
 	}
 
 	private void _writeClasses(
@@ -273,7 +408,7 @@ public class LPKGBundleTrackerCustomizer
 	}
 
 	private void _writeManifest(
-			Bundle bundle, String contextName, String lpkgURL,
+			Bundle bundle, String contextName, String version, String lpkgURL,
 			JarOutputStream jarOutputStream)
 		throws IOException {
 
@@ -289,15 +424,12 @@ public class LPKGBundleTrackerCustomizer
 			Constants.BUNDLE_SYMBOLICNAME,
 			bundle.getSymbolicName() + "-" + contextName + "-wrapper");
 
-		Version version = bundle.getVersion();
-
-		attributes.putValue(Constants.BUNDLE_VERSION, version.toString());
+		attributes.putValue(Constants.BUNDLE_VERSION, version);
 		attributes.putValue(
 			Constants.IMPORT_PACKAGE,
 			_buildImportPackageString(
 				BundleActivator.class, BundleStartLevel.class,
-				ServiceTrackerCustomizer.class, LPKGWARBundleRegistry.class,
-				URLConstants.class));
+				ServiceTrackerCustomizer.class, URLConstants.class));
 		attributes.putValue("Liferay-WAB-Context-Name", contextName);
 		attributes.putValue("Liferay-WAB-LPKG-URL", lpkgURL);
 		attributes.putValue(
@@ -316,7 +448,11 @@ public class LPKGBundleTrackerCustomizer
 	private static final Log _log = LogFactoryUtil.getLog(
 		LPKGBundleTrackerCustomizer.class);
 
+	private static final Pattern _pattern = Pattern.compile(
+		"/(.*?)(-\\d+\\.\\d+\\.\\d+)(\\..+)?(\\.[jw]ar)");
+
 	private final BundleContext _bundleContext;
+	private final Set<String> _overrideFileNames;
 	private final Map<String, URL> _urls;
 
 }

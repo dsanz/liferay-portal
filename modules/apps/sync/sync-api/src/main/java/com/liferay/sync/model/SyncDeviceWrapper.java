@@ -69,6 +69,7 @@ public class SyncDeviceWrapper implements SyncDevice, ModelWrapper<SyncDevice> {
 		attributes.put("type", getType());
 		attributes.put("buildNumber", getBuildNumber());
 		attributes.put("featureSet", getFeatureSet());
+		attributes.put("hostname", getHostname());
 		attributes.put("status", getStatus());
 
 		return attributes;
@@ -134,6 +135,12 @@ public class SyncDeviceWrapper implements SyncDevice, ModelWrapper<SyncDevice> {
 
 		if (featureSet != null) {
 			setFeatureSet(featureSet);
+		}
+
+		String hostname = (String)attributes.get("hostname");
+
+		if (hostname != null) {
+			setHostname(hostname);
 		}
 
 		Integer status = (Integer)attributes.get("status");
@@ -231,6 +238,16 @@ public class SyncDeviceWrapper implements SyncDevice, ModelWrapper<SyncDevice> {
 	@Override
 	public java.lang.Object clone() {
 		return new SyncDeviceWrapper((SyncDevice)_syncDevice.clone());
+	}
+
+	/**
+	* Returns the hostname of this sync device.
+	*
+	* @return the hostname of this sync device
+	*/
+	@Override
+	public java.lang.String getHostname() {
+		return _syncDevice.getHostname();
 	}
 
 	/**
@@ -423,6 +440,16 @@ public class SyncDeviceWrapper implements SyncDevice, ModelWrapper<SyncDevice> {
 	@Override
 	public void setFeatureSet(int featureSet) {
 		_syncDevice.setFeatureSet(featureSet);
+	}
+
+	/**
+	* Sets the hostname of this sync device.
+	*
+	* @param hostname the hostname of this sync device
+	*/
+	@Override
+	public void setHostname(java.lang.String hostname) {
+		_syncDevice.setHostname(hostname);
 	}
 
 	/**

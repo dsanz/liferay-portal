@@ -38,80 +38,86 @@ kbDisplayPortletInstanceConfiguration = ParameterMapUtil.setParameterMap(KBDispl
 	<aui:input name="preferences--resourceClassNameId--" type="hidden" value="<%= resourceClassNameId %>" />
 	<aui:input name="preferences--resourcePrimKey--" type="hidden" value="<%= kbDisplayPortletInstanceConfiguration.resourcePrimKey() %>" />
 
-	<liferay-ui:tabs
-		names="<%= tabsNames %>"
-		refresh="<%= false %>"
-		type="tabs nav-tabs-default"
-	>
-		<c:if test="<%= tabsNames.contains("general") %>">
+	<div class="portlet-configuration-body-content">
+		<liferay-ui:tabs
+			names="<%= tabsNames %>"
+			refresh="<%= false %>"
+			type="tabs nav-tabs-default"
+		>
+			<c:if test="<%= tabsNames.contains("general") %>">
+				<liferay-ui:section>
+					<div class="container-fluid-1280">
+						<aui:fieldset-group markupView="lexicon">
+							<aui:fieldset>
+								<div class="input-append kb-field-wrapper">
+									<aui:field-wrapper label="article-or-folder">
+
+										<%
+										String title = StringPool.BLANK;
+
+										if (resourceClassNameId != kbFolderClassNameId) {
+											KBArticle kbArticle = KBArticleLocalServiceUtil.fetchLatestKBArticle(kbDisplayPortletInstanceConfiguration.resourcePrimKey(), WorkflowConstants.STATUS_APPROVED);
+
+											if (kbArticle != null) {
+												title = kbArticle.getTitle();
+											}
+										}
+										else {
+											KBFolder kbFolder = KBFolderLocalServiceUtil.fetchKBFolder(kbDisplayPortletInstanceConfiguration.resourcePrimKey());
+
+											if (kbFolder != null) {
+												title = kbFolder.getName();
+											}
+										}
+										%>
+
+										<liferay-ui:input-resource id="configurationKBObject" url="<%= title %>" />
+
+										<aui:button name="selectKBObjectButton" value="select" />
+									</aui:field-wrapper>
+								</div>
+							</aui:fieldset>
+						</aui:fieldset-group>
+					</div>
+				</liferay-ui:section>
+			</c:if>
+
 			<liferay-ui:section>
-				<aui:fieldset-group markupView="lexicon">
-					<aui:fieldset>
-						<div class="input-append kb-field-wrapper">
-							<aui:field-wrapper label="article-or-folder">
+				<div class="container-fluid-1280">
+					<aui:fieldset-group markupView="lexicon">
+						<aui:fieldset>
+							<aui:input label="enable-description" name="preferences--enableKBArticleDescription--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticleDescription() %>" />
 
-								<%
-								String title = StringPool.BLANK;
+							<aui:input label="enable-ratings" name="preferences--enableKBArticleRatings--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticleRatings() %>" />
 
-								if (resourceClassNameId != kbFolderClassNameId) {
-									KBArticle kbArticle = KBArticleLocalServiceUtil.fetchLatestKBArticle(kbDisplayPortletInstanceConfiguration.resourcePrimKey(), WorkflowConstants.STATUS_APPROVED);
+							<aui:input label="show-asset-entries" name="preferences--showKBArticleAssetEntries--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.showKBArticleAssetEntries() %>" />
 
-									if (kbArticle != null) {
-										title = kbArticle.getTitle();
-									}
-								}
-								else {
-									KBFolder kbFolder = KBFolderLocalServiceUtil.fetchKBFolder(kbDisplayPortletInstanceConfiguration.resourcePrimKey());
+							<aui:input label="show-attachments" name="preferences--showKBArticleAttachments--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.showKBArticleAttachments() %>" />
 
-									if (kbFolder != null) {
-										title = kbFolder.getName();
-									}
-								}
-								%>
+							<aui:input label="enable-related-assets" name="preferences--enableKBArticleAssetLinks--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticleAssetLinks() %>" />
 
-								<liferay-ui:input-resource id="configurationKBObject" url="<%= title %>" />
+							<aui:input label="enable-view-count-increment" name="preferences--enableKBArticleViewCountIncrement--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticleViewCountIncrement() %>" />
 
-								<aui:button name="selectKBObjectButton" value="select" />
-							</aui:field-wrapper>
-						</div>
-					</aui:fieldset>
-				</aui:fieldset-group>
+							<aui:input label="enable-subscriptions" name="preferences--enableKBArticleSubscriptions--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticleSubscriptions() %>" />
+
+							<aui:input label="enable-history" name="preferences--enableKBArticleHistory--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticleHistory() %>" />
+
+							<aui:input label="enable-print" name="preferences--enableKBArticlePrint--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticlePrint() %>" />
+
+							<liferay-ui:social-bookmarks-settings
+								displayPosition="<%= kbDisplayPortletInstanceConfiguration.socialBookmarksDisplayPosition() %>"
+								displayStyle="<%= kbDisplayPortletInstanceConfiguration.socialBookmarksDisplayStyle() %>"
+								enabled="<%= kbDisplayPortletInstanceConfiguration.enableSocialBookmarks() %>"
+								types="<%= kbDisplayPortletInstanceConfiguration.socialBookmarksTypes() %>"
+							/>
+
+							<aui:input label="content-root-prefix" name="preferences--contentRootPrefix--" type="input" value="<%= kbDisplayPortletInstanceConfiguration.contentRootPrefix() %>" />
+						</aui:fieldset>
+					</aui:fieldset-group>
+				</div>
 			</liferay-ui:section>
-		</c:if>
-
-		<liferay-ui:section>
-			<aui:fieldset-group markupView="lexicon">
-				<aui:fieldset>
-					<aui:input label="enable-description" name="preferences--enableKBArticleDescription--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticleDescription() %>" />
-
-					<aui:input label="enable-ratings" name="preferences--enableKBArticleRatings--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticleRatings() %>" />
-
-					<aui:input label="show-asset-entries" name="preferences--showKBArticleAssetEntries--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.showKBArticleAssetEntries() %>" />
-
-					<aui:input label="show-attachments" name="preferences--showKBArticleAttachments--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.showKBArticleAttachments() %>" />
-
-					<aui:input label="enable-related-assets" name="preferences--enableKBArticleAssetLinks--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticleAssetLinks() %>" />
-
-					<aui:input label="enable-view-count-increment" name="preferences--enableKBArticleViewCountIncrement--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticleViewCountIncrement() %>" />
-
-					<aui:input label="enable-subscriptions" name="preferences--enableKBArticleSubscriptions--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticleSubscriptions() %>" />
-
-					<aui:input label="enable-history" name="preferences--enableKBArticleHistory--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticleHistory() %>" />
-
-					<aui:input label="enable-print" name="preferences--enableKBArticlePrint--" type="checkbox" value="<%= kbDisplayPortletInstanceConfiguration.enableKBArticlePrint() %>" />
-
-					<liferay-ui:social-bookmarks-settings
-						displayPosition="<%= kbDisplayPortletInstanceConfiguration.socialBookmarksDisplayPosition() %>"
-						displayStyle="<%= kbDisplayPortletInstanceConfiguration.socialBookmarksDisplayStyle() %>"
-						enabled="<%= kbDisplayPortletInstanceConfiguration.enableSocialBookmarks() %>"
-						types="<%= kbDisplayPortletInstanceConfiguration.socialBookmarksTypes() %>"
-					/>
-
-					<aui:input label="content-root-prefix" name="preferences--contentRootPrefix--" type="input" value="<%= kbDisplayPortletInstanceConfiguration.contentRootPrefix() %>" />
-				</aui:fieldset>
-			</aui:fieldset-group>
-		</liferay-ui:section>
-	</liferay-ui:tabs>
+		</liferay-ui:tabs>
+	</div>
 
 	<aui:button-row>
 		<aui:button cssClass="btn btn-lg btn-primary" type="submit" />
@@ -119,14 +125,8 @@ kbDisplayPortletInstanceConfiguration = ParameterMapUtil.setParameterMap(KBDispl
 </aui:form>
 
 <c:if test='<%= tabsNames.contains("general") %>'>
-	<aui:script use="aui-base">
-		<liferay-portlet:renderURL portletName="<%= portletResource %>" var="selectConfigurationKBObjectURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-			<portlet:param name="mvcPath" value="/display/select_configuration_object.jsp" />
-			<portlet:param name="parentResourceClassNameId" value="<%= String.valueOf(kbFolderClassNameId) %>" />
-			<portlet:param name="parentResourcePrimKey" value="<%= String.valueOf(KBFolderConstants.DEFAULT_PARENT_FOLDER_ID) %>" />
-		</liferay-portlet:renderURL>
-
-		A.one('#<portlet:namespace />selectKBObjectButton').on(
+	<aui:script>
+		AUI.$('#<portlet:namespace />selectKBObjectButton').on(
 			'click',
 			function(event) {
 				Liferay.Util.selectEntity(
@@ -134,16 +134,33 @@ kbDisplayPortletInstanceConfiguration = ParameterMapUtil.setParameterMap(KBDispl
 						dialog: {
 							constrain: true,
 							destroyOnHide: true,
-							modal: true
+							modal: true,
+							width: 600
 						},
-						id: '<portlet:namespace />selectConfigurationKBObject',
-						title: '<liferay-ui:message key="select-parent" />',
-						uri: '<%= selectConfigurationKBObjectURL %>'
+						id: '<portlet:namespace />selectKBObject',
+						title: '<liferay-ui:message key="select-entry" />',
+
+						<liferay-portlet:renderURL portletName="<%= portletResource %>" var="selectKBObjectURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+							<portlet:param name="mvcPath" value="/display/select_parent.jsp" />
+							<portlet:param name="parentResourceClassNameId" value="<%= String.valueOf(kbDisplayPortletInstanceConfiguration.resourceClassNameId()) %>" />
+							<portlet:param name="parentResourcePrimKey" value="<%= String.valueOf(kbDisplayPortletInstanceConfiguration.resourcePrimKey()) %>" />
+							<portlet:param name="originalParentResourcePrimKey" value="<%= String.valueOf(kbDisplayPortletInstanceConfiguration.resourcePrimKey()) %>" />
+							<portlet:param name="eventName" value="<%= liferayPortletResponse.getNamespace() + "selectKBObject" %>" />
+						</liferay-portlet:renderURL>
+
+						uri: '<%= selectKBObjectURL %>'
 					},
 					function(event) {
 						document.<portlet:namespace />fm.<portlet:namespace />resourceClassNameId.value = event.resourceclassnameid;
-						document.<portlet:namespace />fm.<portlet:namespace />resourcePrimKey.value = event.resourceprimkey;
-						document.getElementById('<portlet:namespace />configurationKBObject').value = event.title;
+
+						var kbObjectData = {
+							idString: 'resourcePrimKey',
+							idValue: event.resourceprimkey,
+							nameString: 'configurationKBObject',
+							nameValue: event.title
+						};
+
+						Liferay.Util.selectFolder(kbObjectData, '<portlet:namespace />');
 					}
 				);
 			}

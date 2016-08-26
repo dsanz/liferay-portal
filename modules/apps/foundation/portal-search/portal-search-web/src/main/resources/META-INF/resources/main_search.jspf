@@ -55,9 +55,14 @@ Hits hits = searchDisplayContext.getHits();
 							var form = $(document.<portlet:namespace />fm);
 
 							var field = form.fm(searchFacet.data('facetfieldname'));
+							var fieldSelection = form.fm(searchFacet.data('facetfieldname') + 'selection');
 
 							if (field.length) {
 								field.val(term.data('value'));
+
+								if (fieldSelection.length) {
+									fieldSelection.val(term.data('selection'));
+								}
 
 								form.fm('<%= SearchContainer.DEFAULT_CUR_PARAM %>').val(1);
 
@@ -103,7 +108,7 @@ Hits hits = searchDisplayContext.getHits();
 					assetRenderer = assetRendererFactory.getAssetRenderer(classPK);
 				}
 
-				String viewURL = com.liferay.portal.search.web.util.SearchUtil.getSearchResultViewURL(renderRequest, renderResponse, className, classPK, searchDisplayContext.isViewInContext(), currentURL);
+				String viewURL = com.liferay.portal.search.web.internal.util.SearchUtil.getSearchResultViewURL(renderRequest, renderResponse, className, classPK, searchDisplayContext.isViewInContext(), currentURL);
 
 				Indexer indexer = IndexerRegistryUtil.getIndexer(className);
 

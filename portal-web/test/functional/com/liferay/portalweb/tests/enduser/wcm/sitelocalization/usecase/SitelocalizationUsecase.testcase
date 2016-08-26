@@ -77,19 +77,16 @@
 	<command name="LocalizationStyle0" priority="3">
 		<property name="custom.properties" value="locale.prepend.friendly.url.style=0" />
 
-		<var name="pageName" value="Language Test Page" />
-		<var name="portletName" value="Language Selector" />
-
 		<execute macro="Page#add">
-			<var name="pageName" value="${pageName}" />
+			<var name="pageName" value="Language Test Page" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
-			<var name="portletName" value="${portletName}" />
+			<var name="portletName" value="Language Selector" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
-			<var name="pageName" value="${pageName}" />
+			<var name="pageName" value="Language Test Page" />
 		</execute>
 
 		<execute macro="LanguagePortlet#selectLanguagePG">
@@ -115,26 +112,23 @@
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
-			<var name="pageName" value="${pageName}" />
+			<var name="pageName" value="Language Test Page" />
 		</execute>
 	</command>
 
 	<command name="LocalizationStyle1" priority="3">
 		<property name="custom.properties" value="locale.prepend.friendly.url.style=1" />
 
-		<var name="pageName" value="Language Test Page" />
-		<var name="portletName" value="Language Selector" />
-
 		<execute macro="Page#add">
-			<var name="pageName" value="${pageName}" />
+			<var name="pageName" value="Language Test Page" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
-			<var name="portletName" value="${portletName}" />
+			<var name="portletName" value="Language Selector" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
-			<var name="pageName" value="${pageName}" />
+			<var name="pageName" value="Language Test Page" />
 		</execute>
 
 		<execute macro="LanguagePortlet#selectLanguagePG">
@@ -160,26 +154,23 @@
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
-			<var name="pageName" value="${pageName}" />
+			<var name="pageName" value="Language Test Page" />
 		</execute>
 	</command>
 
 	<command name="LocalizationStyle2" priority="3">
 		<property name="custom.properties" value="locale.prepend.friendly.url.style=2" />
 
-		<var name="pageName" value="Language Test Page" />
-		<var name="portletName" value="Language Selector" />
-
 		<execute macro="Page#add">
-			<var name="pageName" value="${pageName}" />
+			<var name="pageName" value="Language Test Page" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
-			<var name="portletName" value="${portletName}" />
+			<var name="portletName" value="Language Selector" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
-			<var name="pageName" value="${pageName}" />
+			<var name="pageName" value="Language Test Page" />
 		</execute>
 
 		<execute macro="LanguagePortlet#selectLanguagePG">
@@ -205,7 +196,7 @@
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
-			<var name="pageName" value="${pageName}" />
+			<var name="pageName" value="Language Test Page" />
 		</execute>
 	</command>
 
@@ -611,8 +602,6 @@
 
 		<execute macro="Site#addCP">
 			<var name="siteName" value="Site Name" />
-			<var name="siteTemplateActive" value="${siteTemplateActive}" />
-			<var name="siteTemplateName" value="${siteTemplateName}" />
 			<var name="siteType" value="Blank" />
 		</execute>
 
@@ -643,7 +632,7 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<execute function="AssertTextEquals" locator1="Home#PORTAL_LOCALIZATION_INFO_MESSAGE" value1="× Esta página se muestra en inglés (Estados Unidos). Mostrar la página en español (España). Establecer inglés (Estados Unidos) como su idioma preferido." />
+		<execute function="AssertTextEquals" locator1="Message#PORTAL_LOCALIZATION" value1="× Esta página se muestra en inglés (Estados Unidos). Mostrar la página en español (España). Establecer inglés (Estados Unidos) como su idioma preferido." />
 
 		<execute function="AssertTextEquals" locator1="Home#PORTAL_LOCALIZATION_CONFIRMATION_MESSAGE" value1="Mostrar la página en español (España)." />
 
@@ -695,7 +684,7 @@
 			<var name="url" value="http://localhost:8080/fr/web/site-name/language-page" />
 		</execute>
 
-		<execute function="Pause" locator1="2000" />
+		<execute macro="Alert#closePortalLocalizationWarning" />
 
 		<execute function="AssertLocation" value1="http://localhost:8080/en/web/site-name/language-page" />
 
@@ -703,7 +692,7 @@
 			<var name="url" value="http://localhost:8080/fr" />
 		</execute>
 
-		<execute function="Pause" locator1="2000" />
+		<execute macro="Alert#closePortalLocalizationWarning" />
 
 		<execute function="AssertLocation" value1="http://localhost:8080/en/web/guest" />
 
@@ -786,8 +775,8 @@
 
 		<execute macro="Page#viewFriendlyURLLanguageOptionsPG">
 			<var name="assertUnavailableLanguages" value="true" />
-			<var name="currentLanguageList" value="DETAILS_FRIENDLY_URL_PORTUGUESE_BRAZIL,DETAILS_FRIENDLY_URL_SPANISH_SPAIN" />
-			<var name="unavailableLanguageList" value="DETAILS_FRIENDLY_URL_ENGLISH_UNITED_STATES" />
+			<var name="currentLanguageList" value="FRIENDLY_URL_PORTUGUESE_BRAZIL,FRIENDLY_URL_SPANISH_SPAIN" />
+			<var name="unavailableLanguageList" value="FRIENDLY_URL_ENGLISH_UNITED_STATES" />
 		</execute>
 	</command>
 </definition>

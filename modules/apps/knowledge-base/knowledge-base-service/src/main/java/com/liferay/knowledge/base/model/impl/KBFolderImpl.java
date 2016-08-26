@@ -19,12 +19,15 @@ import aQute.bnd.annotation.ProviderType;
 import com.liferay.knowledge.base.constants.KBFolderConstants;
 import com.liferay.knowledge.base.model.KBFolder;
 import com.liferay.knowledge.base.service.KBArticleServiceUtil;
+import com.liferay.knowledge.base.service.KBFolderLocalServiceUtil;
 import com.liferay.knowledge.base.service.KBFolderServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -34,6 +37,26 @@ import java.util.Locale;
 public class KBFolderImpl extends KBFolderBaseImpl {
 
 	public KBFolderImpl() {
+	}
+
+	public List<Long> getAncestorKBFolderIds() throws PortalException {
+		List<Long> ancestorFolderIds = new ArrayList<>();
+
+		ancestorFolderIds.add(getKbFolderId());
+
+		KBFolder kbFolder = this;
+
+		while (!kbFolder.isRoot()) {
+			kbFolder = kbFolder.getParentKBFolder();
+
+			if (kbFolder == null) {
+				break;
+			}
+
+			ancestorFolderIds.add(kbFolder.getKbFolderId());
+		}
+
+		return ancestorFolderIds;
 	}
 
 	@Override
@@ -46,18 +69,25 @@ public class KBFolderImpl extends KBFolderBaseImpl {
 		return _classNameId;
 	}
 
-	@Override
-	public String getParentTitle(Locale locale) throws PortalException {
-		if (getParentKBFolderId() ==
-				KBFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+	public KBFolder getParentKBFolder() throws PortalException {
+		long parentKBFolderId = getParentKBFolderId();
 
-			return "(" + LanguageUtil.get(locale, "none") + ")";
+		if (parentKBFolderId <= KBFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			return null;
 		}
 
-		KBFolder kbFolder = KBFolderServiceUtil.getKBFolder(
-			getParentKBFolderId());
+		return KBFolderLocalServiceUtil.getKBFolder(parentKBFolderId);
+	}
 
-		return kbFolder.getName();
+	@Override
+	public String getParentTitle(Locale locale) throws PortalException {
+		KBFolder parentKBFolder = getParentKBFolder();
+
+		if (parentKBFolder == null) {
+			return LanguageUtil.get(locale, "home");
+		}
+
+		return parentKBFolder.getName();
 	}
 
 	@Override
@@ -77,6 +107,16 @@ public class KBFolderImpl extends KBFolderBaseImpl {
 		}
 
 		return true;
+	}
+
+	public boolean isRoot() {
+		if (getParentKBFolderId() ==
+				KBFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private long _classNameId;

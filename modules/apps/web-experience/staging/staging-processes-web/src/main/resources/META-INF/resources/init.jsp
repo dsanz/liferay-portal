@@ -77,6 +77,7 @@ page import="com.liferay.portal.kernel.service.LayoutLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.UserLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.permission.GroupPermissionUtil" %><%@
 page import="com.liferay.portal.kernel.servlet.SessionMessages" %><%@
+page import="com.liferay.portal.kernel.util.CalendarFactoryUtil" %><%@
 page import="com.liferay.portal.kernel.util.Constants" %><%@
 page import="com.liferay.portal.kernel.util.GetterUtil" %><%@
 page import="com.liferay.portal.kernel.util.HtmlUtil" %><%@
@@ -94,16 +95,17 @@ page import="com.liferay.portal.kernel.util.WebKeys" %><%@
 page import="com.liferay.portal.util.PropsValues" %><%@
 page import="com.liferay.staging.constants.StagingConfigurationPortletKeys" %><%@
 page import="com.liferay.staging.constants.StagingProcessesPortletKeys" %><%@
-page import="com.liferay.staging.processes.web.dao.search.PublishResultRowSplitter" %><%@
-page import="com.liferay.staging.processes.web.search.PublishConfigurationDisplayTerms" %><%@
-page import="com.liferay.staging.processes.web.search.PublishConfigurationSearchTerms" %><%@
+page import="com.liferay.staging.processes.web.internal.dao.search.PublishResultRowSplitter" %><%@
+page import="com.liferay.staging.processes.web.internal.search.PublishConfigurationDisplayTerms" %><%@
+page import="com.liferay.staging.processes.web.internal.search.PublishConfigurationSearchTerms" %><%@
 page import="com.liferay.taglib.search.ResultRow" %><%@
 page import="com.liferay.taglib.ui.util.SessionTreeJSClicks" %><%@
 page import="com.liferay.trash.kernel.util.TrashUtil" %>
 
 <%@ page import="java.io.Serializable" %>
 
-<%@ page import="java.util.Collections" %><%@
+<%@ page import="java.util.Calendar" %><%@
+page import="java.util.Collections" %><%@
 page import="java.util.Date" %><%@
 page import="java.util.List" %><%@
 page import="java.util.Map" %><%@
@@ -124,6 +126,10 @@ page import="javax.portlet.PortletURL" %>
 
 <%
 PortalPreferences portalPreferences = PortletPreferencesFactoryUtil.getPortalPreferences(liferayPortletRequest);
+
+Calendar calendar = CalendarFactoryUtil.getCalendar(timeZone, locale);
+
+int timeZoneOffset = timeZone.getOffset(calendar.getTimeInMillis());
 %>
 
 <%@ include file="/init-ext.jsp" %>

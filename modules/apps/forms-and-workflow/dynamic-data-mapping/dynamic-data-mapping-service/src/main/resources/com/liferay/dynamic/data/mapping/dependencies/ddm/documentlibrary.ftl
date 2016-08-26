@@ -1,22 +1,32 @@
 <#include "../init.ftl">
 
 <#if !(fields?? && fields.get(fieldName)??) && (fieldRawValue == "")>
-	<#assign fieldRawValue = predefinedValue>
+	<#assign fieldRawValue = predefinedValue />
 </#if>
 
-<#assign fieldRawValue = paramUtil.getString(request, "${namespacedFieldName}", fieldRawValue)>
+<#assign
+	fieldRawValue = paramUtil.getString(request, "${namespacedFieldName}", fieldRawValue)
 
-<#assign fileEntryTitle = "">
+	fileEntryTitle = ""
+/>
 
 <#if fieldRawValue != "">
-	<#assign fileJSONObject = getFileJSONObject(fieldRawValue)>
+	<#assign
+		fileJSONObject = getFileJSONObject(fieldRawValue)
 
-	<#assign fileEntry = getFileEntry(fileJSONObject)>
+		fileEntry = getFileEntry(fileJSONObject)
+	/>
 
 	<#if fileEntry != "">
-		<#assign fileEntryTitle = fileEntry.getTitle()>
+		<#assign fileEntryTitle = fileEntry.getTitle() />
 	</#if>
 </#if>
+
+<#assign itemSelectorAuthToken = authTokenUtil.getToken(request, themeDisplay.getPlid(), "com_liferay_item_selector_web_portlet_ItemSelectorPortlet") />
+
+<#assign data = data + {
+	"itemSelectorAuthToken": itemSelectorAuthToken
+}>
 
 <@liferay_aui["field-wrapper"] cssClass="form-builder-field" data=data required=required>
 	<div class="form-group">

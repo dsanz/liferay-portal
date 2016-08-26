@@ -101,7 +101,6 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 					<span class="h5 text-default">
 						<span><liferay-ui:message key="posts" />:</span> <%= posts %>
 					</span>
-
 					<span class="h5 text-default">
 						<span><liferay-ui:message key="join-date" />:</span> <%= dateFormatDate.format(messageUser.getCreateDate()) %>
 					</span>
@@ -109,6 +108,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 					<c:if test="<%= showRecentPosts %>">
 						<portlet:renderURL var="recentPostsURL">
 							<portlet:param name="mvcRenderCommandName" value="/message_boards/view_recent_posts" />
+							<portlet:param name="redirect" value="<%= currentURL %>" />
 							<portlet:param name="groupThreadsUserId" value="<%= String.valueOf(messageUser.getUserId()) %>" />
 						</portlet:renderURL>
 
@@ -128,47 +128,12 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 							<aui:workflow-status markupView="lexicon" showIcon="<%= false %>" showLabel="<%= false %>" status="<%= message.getStatus() %>" />
 						</span>
 					</c:if>
-
-					<c:if test="<%= (messageUser != null) && (user.getUserId() != messageUser.getUserId()) && !PortalUtil.isGroupAdmin(messageUser, scopeGroupId) && MBPermission.contains(permissionChecker, scopeGroupId, ActionKeys.BAN_USER) %>">
-						<br />
-
-						<c:choose>
-							<c:when test="<%= MBBanLocalServiceUtil.hasBan(scopeGroupId, messageUser.getUserId()) %>">
-								<portlet:actionURL name="/message_boards/ban_user" var="unbanUserURL">
-									<portlet:param name="<%= Constants.CMD %>" value="unban" />
-									<portlet:param name="redirect" value="<%= currentURL %>" />
-									<portlet:param name="banUserId" value="<%= String.valueOf(messageUser.getUserId()) %>" />
-								</portlet:actionURL>
-
-								<liferay-ui:icon
-									iconCssClass="icon-ok-sign"
-									label="<%= true %>"
-									message="unban-this-user"
-									url="<%= unbanUserURL.toString() %>"
-								/>
-							</c:when>
-							<c:otherwise>
-								<portlet:actionURL name="/message_boards/ban_user" var="banUserURL">
-									<portlet:param name="<%= Constants.CMD %>" value="ban" />
-									<portlet:param name="redirect" value="<%= currentURL %>" />
-									<portlet:param name="banUserId" value="<%= String.valueOf(messageUser.getUserId()) %>" />
-								</portlet:actionURL>
-
-								<liferay-ui:icon
-									iconCssClass="icon-ban-circle"
-									label="<%= true %>"
-									message="ban-this-user"
-									url="<%= banUserURL.toString() %>"
-								/>
-							</c:otherwise>
-						</c:choose>
-					</c:if>
 				</c:if>
 
 				<c:if test="<%= enableFlags || enableRatings %>">
 					<div class="social-interaction">
 						<c:if test="<%= enableRatings %>">
-							<div>
+							<div id="<portlet:namespace />mbRatings">
 								<liferay-ui:ratings
 									className="<%= MBMessage.class.getName() %>"
 									classPK="<%= message.getMessageId() %>"
@@ -181,6 +146,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 								className="<%= MBMessage.class.getName() %>"
 								classPK="<%= message.getMessageId() %>"
 								contentTitle="<%= message.getSubject() %>"
+								message=""
 								reportedUserId="<%= message.getUserId() %>"
 							/>
 						</c:if>
@@ -192,6 +158,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 				<c:if test="<%= editable %>">
 
 					<%
+					boolean hasBanUserPermission = (messageUser != null) && (user.getUserId() != messageUser.getUserId()) && !PortalUtil.isGroupAdmin(messageUser, scopeGroupId) && MBPermission.contains(permissionChecker, scopeGroupId, ActionKeys.BAN_USER);
 					boolean hasDeletePermission = !thread.isLocked() && (thread.getMessageCount() > 1) && MBMessagePermission.contains(permissionChecker, message, ActionKeys.DELETE);
 					boolean hasMoveThreadPermission = (message.getParentMessageId() != MBMessageConstants.DEFAULT_PARENT_MESSAGE_ID) && MBCategoryPermission.contains(permissionChecker, scopeGroupId, category.getCategoryId(), ActionKeys.MOVE_THREAD);
 					boolean hasPermissionsPermission = !thread.isLocked() && !message.isRoot() && MBMessagePermission.contains(permissionChecker, message, ActionKeys.PERMISSIONS);
@@ -207,7 +174,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 					}
 					%>
 
-					<c:if test="<%= showAnswerFlag || hasReplyPermission || hasUpdatePermission || hasPermissionsPermission || hasMoveThreadPermission || hasDeletePermission %>">
+					<c:if test="<%= showAnswerFlag || hasBanUserPermission || hasReplyPermission || hasUpdatePermission || hasPermissionsPermission || hasMoveThreadPermission || hasDeletePermission %>">
 						<liferay-ui:icon-menu direction="left-side" icon="<%= StringPool.BLANK %>" markupView="lexicon" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>">
 							<c:if test="<%= showAnswerFlag %>">
 								<c:choose>
@@ -239,18 +206,14 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 							</c:if>
 
 							<c:if test="<%= hasReplyPermission && !thread.isLocked() %>">
-								<portlet:renderURL var="replyURL">
-									<portlet:param name="mvcRenderCommandName" value="/message_boards/edit_message" />
-									<portlet:param name="redirect" value="<%= currentURL %>" />
-									<portlet:param name="mbCategoryId" value="<%= String.valueOf(message.getCategoryId()) %>" />
-									<portlet:param name="threadId" value="<%= String.valueOf(message.getThreadId()) %>" />
-									<portlet:param name="parentMessageId" value="<%= String.valueOf(message.getMessageId()) %>" />
-									<portlet:param name="priority" value="<%= String.valueOf(message.getPriority()) %>" />
-								</portlet:renderURL>
+
+								<%
+								String taglibReplyToMessageURL = "javascript:" + liferayPortletResponse.getNamespace() + "addReplyToMessage('" + message.getMessageId() + "', '');";
+								%>
 
 								<liferay-ui:icon
 									message="reply"
-									url="<%= replyURL %>"
+									url="<%= taglibReplyToMessageURL %>"
 								/>
 
 								<portlet:renderURL var="quoteURL">
@@ -263,18 +226,24 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 									<portlet:param name="quote" value="<%= Boolean.TRUE.toString() %>" />
 								</portlet:renderURL>
 
-								<liferay-ui:icon
-									message="reply-with-quote"
-									url="<%= quoteURL %>"
-								/>
-
 								<%
-								String taglibQuickReplyURL = "javascript:" + liferayPortletResponse.getNamespace() + "addQuickReply('reply', '" + message.getMessageId() + "');";
+								String quoteText = null;
+
+								if (messageFormat.equals("bbcode")) {
+									quoteText = MBUtil.getBBCodeQuoteBody(request, message);
+								}
+								else {
+									quoteText = MBUtil.getHtmlQuoteBody(request, message);
+								}
+
+								quoteText = HtmlUtil.escapeJS(quoteText);
+
+								String taglibReplyWithQuoteToMessageURL = "javascript:" + liferayPortletResponse.getNamespace() + "addReplyToMessage('" + message.getMessageId() + "', '" + quoteText + "');";
 								%>
 
 								<liferay-ui:icon
-									message="quick-reply"
-									url="<%= taglibQuickReplyURL %>"
+									message="reply-with-quote"
+									url="<%= taglibReplyWithQuoteToMessageURL %>"
 								/>
 							</c:if>
 
@@ -289,6 +258,35 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 									message="edit"
 									url="<%= editURL %>"
 								/>
+							</c:if>
+
+							<c:if test="<%= hasBanUserPermission %>">
+								<c:choose>
+									<c:when test="<%= MBBanLocalServiceUtil.hasBan(scopeGroupId, messageUser.getUserId()) %>">
+										<portlet:actionURL name="/message_boards/ban_user" var="unbanUserURL">
+											<portlet:param name="<%= Constants.CMD %>" value="unban" />
+											<portlet:param name="redirect" value="<%= currentURL %>" />
+											<portlet:param name="banUserId" value="<%= String.valueOf(messageUser.getUserId()) %>" />
+										</portlet:actionURL>
+
+										<liferay-ui:icon
+											message="unban-this-user"
+											url="<%= unbanUserURL.toString() %>"
+										/>
+									</c:when>
+									<c:otherwise>
+										<portlet:actionURL name="/message_boards/ban_user" var="banUserURL">
+											<portlet:param name="<%= Constants.CMD %>" value="ban" />
+											<portlet:param name="redirect" value="<%= currentURL %>" />
+											<portlet:param name="banUserId" value="<%= String.valueOf(messageUser.getUserId()) %>" />
+										</portlet:actionURL>
+
+										<liferay-ui:icon
+											message="ban-this-user"
+											url="<%= banUserURL.toString() %>"
+										/>
+									</c:otherwise>
+								</c:choose>
 							</c:if>
 
 							<c:if test="<%= hasPermissionsPermission %>">
@@ -374,7 +372,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 		String assetTagNames = (String)request.getAttribute("edit_message.jsp-assetTagNames");
 		%>
 
-		<div class="tags">
+		<div class="card-row card-row-padded tags">
 			<liferay-ui:asset-tags-summary
 				assetTagNames="<%= assetTagNames %>"
 				className="<%= MBMessage.class.getName() %>"
@@ -383,7 +381,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 		</div>
 
 		<liferay-ui:custom-attributes-available className="<%= MBMessage.class.getName() %>">
-			<div class="custom-attributes">
+			<div class="card-row card-row-padded custom-attributes">
 				<liferay-ui:custom-attribute-list
 					className="<%= MBMessage.class.getName() %>"
 					classPK="<%= (message != null) ? message.getMessageId() : 0 %>"
@@ -393,7 +391,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 			</div>
 		</liferay-ui:custom-attributes-available>
 
-		<div class="entry-links">
+		<div class="card-row card-row-padded entry-links">
 			<liferay-ui:asset-links
 				className="<%= MBMessage.class.getName() %>"
 				classPK="<%= message.getMessageId() %>"
@@ -408,7 +406,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 			%>
 
 			<c:if test="<%= (attachmentsFileEntriesCount > 0) || ((deletedAttachmentsFileEntriesCount > 0) && TrashUtil.isTrashEnabled(scopeGroupId) && MBMessagePermission.contains(permissionChecker, message, ActionKeys.UPDATE)) %>">
-				<div class="message-attachments">
+				<div class="card-row card-row-padded message-attachments">
 					<h3><liferay-ui:message key="attachments" />:</h3>
 
 					<%
@@ -453,6 +451,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 									label="<%= true %>"
 									markupView="lexicon"
 									message="<%= sb.toString() %>"
+									method="get"
 									url="<%= PortletFileRepositoryUtil.getDownloadPortletFileEntryURL(themeDisplay, fileEntry, StringPool.BLANK) %>"
 								/>
 							</li>

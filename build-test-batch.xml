@@ -444,16 +444,24 @@ app.server.type=@{app.server.type}]]></echo>
 /*/*/*/*/lib
 /*/*/*/*/tmp</echo>
 
-			<execute>
-				<![CDATA[
-					rm bundles/*.zip
+			<delete>
+				<fileset dir="bundles" includes="*.zip" />
+			</delete>
 
-					git add -A
+			<if>
+				<contains string="@{app.server.type}" substring="tomcat" />
+				<then>
+					<execute>
+						<![CDATA[
+							git add -A
 
-					git diff --binary --cached bundles/ > liferay-portal-bundle-@{app.server.type}.diff
-					git diff --binary --cached --name-only | grep -v '^bundles/' | xargs git diff --binary --cached -- > liferay-portal-source.diff
-				]]>
-			</execute>
+							git diff --cached --name-only | grep -v '^bundles/' | xargs -n 1000 zip liferay-portal-source.zip
+						]]>
+					</execute>
+				</then>
+			</if>
+
+			<zip basedir="." destfile="liferay-portal-bundle-@{app.server.type}.zip" includes="bundles/**" />
 		</sequential>
 	</macrodef>
 
@@ -480,8 +488,11 @@ app.server.type=@{app.server.type}]]></echo>
 		<sequential>
 			<execute>
 				<![CDATA[
-					git apply --whitespace=nowarn liferay-portal-bundle-@{app.server.type}.diff
-					git apply --exclude=.gitignore --whitespace=nowarn liferay-portal-source.diff
+					unzip -oq liferay-portal-source.zip
+
+					unzip -oq liferay-portal-bundle-@{app.server.type}.zip
+
+					chmod -R a+x bundles
 				]]>
 			</execute>
 
@@ -555,6 +566,7 @@ app.server.type=@{app.server.type}]]></echo>
 		<attribute default="" name="test.legacy.database.dump" />
 		<attribute default="" name="test.license.xml.url" />
 		<attribute default="" name="test.plugin.zip.url" />
+		<attribute default="" name="test.plugins.war.zip.url" />
 		<attribute default="" name="test.portal.bundle.version" />
 		<attribute default="" name="test.portal.bundle.zip.url" />
 		<attribute default="" name="test.sql.zip.url" />
@@ -582,7 +594,7 @@ app.server.type=@{app.server.type}]]></echo>
 							<ant antfile="build-test-${app.server.type}.xml" inheritAll="false" target="run-selenium-${app.server.type}">
 								<property name="database.type" value="@{database.type}" />
 								<property name="liferay.portal.bundle" value="@{test.portal.bundle.version}" />
-								<property name="print.java.process.on.fail" value="Bootstrap" />
+								<property name="test.build.plugins.war.zip.url" value="@{test.plugins.war.zip.url}" />
 								<property name="test.class" value="${test.class}" />
 							</ant>
 
@@ -591,7 +603,7 @@ app.server.type=@{app.server.type}]]></echo>
 								<then>
 									<get-testcase-property property.name="data.archive.type" />
 
-									<ant dir="${portal.legacy.dir}/@{test.portal.bundle.version}" target="export-database">
+									<ant dir="${portal.legacy.dir}" target="export-database">
 										<property name="data.archive.type" value="${data.archive.type}" />
 										<property name="database.type" value="@{database.type}" />
 										<property name="database.version" value="${database.version}" />
@@ -606,8 +618,8 @@ app.server.type=@{app.server.type}]]></echo>
 				<test-set-up>
 					<if>
 						<and>
-							<matches pattern="http" string="@{test.portal.bundle.zip.url}" />
-							<matches pattern="http" string="@{test.sql.zip.url}" />
+							<matches pattern="https?://" string="@{test.portal.bundle.zip.url}" />
+							<matches pattern="https?://" string="@{test.sql.zip.url}" />
 						</and>
 						<then>
 							<propertycopy from="app.server.${app.server.type}.bin.dir" name="test.app.server.bin.dir" />
@@ -621,7 +633,7 @@ app.server.type=@{app.server.type}]]></echo>
 							</antcall>
 
 							<if>
-								<matches pattern="http" string="@{test.license.xml.url}" />
+								<matches pattern="https?://" string="@{test.license.xml.url}" />
 								<then>
 									<antcall target="deploy-license-xml">
 										<param name="test.build.license.xml.zip.url" value="@{test.license.xml.url}" />
@@ -629,10 +641,46 @@ app.server.type=@{app.server.type}]]></echo>
 								</then>
 							</if>
 
+							<if>
+								<matches pattern="https?://" string="@{test.plugins.war.zip.url}" />
+								<then>
+									<mirrors-get
+										dest="plugins.war.zip"
+										src="@{test.plugins.war.zip.url}"
+									/>
+
+									<unzip
+										dest="."
+										src="plugins.war.zip"
+									/>
+
+									<delete file="plugins.war.zip" />
+								</then>
+							</if>
+
 							<antcall target="deploy-sql-zip">
 								<param name="test.sql.zip.url" value="@{test.sql.zip.url}" />
 							</antcall>
+
+							<antcall inheritAll="false" target="setup-sdk" />
 						</then>
+						<elseif>
+							<and>
+								<available file="liferay-portal-bundle-${app.server.type}.zip" />
+								<available file="liferay-portal-source.zip" />
+							</and>
+							<then>
+								<execute>
+									<![CDATA[
+										unzip -oq liferay-portal-source.zip
+
+										unzip -oq liferay-portal-bundle-@{app.server.type}.zip
+
+										chmod -R a+x bundles
+									]]>
+								</execute>
+							</then>
+						</elseif>
 						<else>
 							<if>
 								<isset property="env.DIST_PATH" />
@@ -667,7 +715,7 @@ app.server.type=@{app.server.type}]]></echo>
 					</if>
 
 					<if>
-						<matches pattern="http" string="@{test.plugin.zip.url}" />
+						<matches pattern="https?://" string="@{test.plugin.zip.url}" />
 						<then>
 							<mkdir dir="${liferay.home}/deploy" />
 
@@ -751,11 +799,205 @@ app.server.type=@{app.server.type}]]></echo>
 				test.fix.pack.base.url="${test.fix.pack.base.url}"
 				test.legacy.database.dump="true"
 				test.license.xml.url="${test.license.xml.url}"
-				test.plugin.zip.url="${test.plugin.zip.url}"
+				test.plugins.war.zip.url="${test.plugins.war.zip.url}"
 				test.portal.bundle.version="${test.portal.bundle.version}"
 				test.portal.bundle.zip.url="${test.portal.bundle.zip.url}"
 				test.sql.zip.url="${test.sql.zip.url}"
 			/>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="run-lpkg-override-test">
+		<sequential>
+			<run-batch-test tomcat.gc.log="true">
+				<test-action>
+					<database-test-run-test database.type="mysql" stop.app.server="true">
+						<test-action>
+							<setup-lpkg-test />
+
+							<trycatch>
+								<try>
+									<antcall inheritall="false" target="start-app-server" />
+								</try>
+
+								<finally>
+									<ant dir="portal-kernel" inheritAll="false" target="test-class">
+										<property name="test.class" value="PortalLogAssertorTest" />
+									</ant>
+								</finally>
+							</trycatch>
+
+							<antcall inheritall="false" target="stop-app-server" />
+
+							<delete dir="${liferay.home}/logs" />
+
+							<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="test">
+								<arg value="test" />
+								<arg value="--tests" />
+								<arg value="*.LPKGOverrideTest" />
+								<arg value="-Dliferay.home=${liferay.home}" />
+								<arg value="-Dmodules.only.build=true" />
+							</gradle-execute>
+
+							<trycatch>
+								<try>
+									<antcall inheritall="false" target="start-app-server-preserve-liferay-home" />
+
+									<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="testIntegration">
+										<arg value="testIntegration" />
+										<arg value="--tests" />
+										<arg value="*.LPKGOverrideVerifyTest" />
+										<arg value="-Dmodules.only.build=true" />
+									</gradle-execute>
+								</try>
+
+								<finally>
+									<ant dir="portal-kernel" inheritAll="false" target="test-class">
+										<property name="test.class" value="PortalLogAssertorTest" />
+									</ant>
+								</finally>
+							</trycatch>
+
+							<antcall inheritall="false" target="stop-app-server" />
+
+							<delete dir="${liferay.home}/logs" />
+
+							<trycatch>
+								<try>
+									<antcall inheritall="false" target="start-app-server" />
+
+									<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="testIntegration">
+										<arg value="testIntegration" />
+										<arg value="--tests" />
+										<arg value="*.LPKGOverrideVerifyTest" />
+										<arg value="-Dlpkg.clean.startup=true" />
+										<arg value="-Dmodules.only.build=true" />
+									</gradle-execute>
+								</try>
+								<finally>
+									<ant dir="portal-kernel" inheritAll="false" target="test-class">
+										<property name="test.class" value="PortalLogAssertorTest" />
+									</ant>
+								</finally>
+							</trycatch>
+
+							<antcall inheritall="false" target="stop-app-server" />
+
+							<delete dir="${liferay.home}/osgi/marketplace/override" />
+
+							<delete>
+								<fileset dir="${liferay.home}/osgi/static" />
+							</delete>
+
+							<trycatch>
+								<try>
+									<antcall inheritall="false" target="start-app-server-preserve-liferay-home" />
+
+									<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="testIntegration">
+										<arg value="testIntegration" />
+										<arg value="--tests" />
+										<arg value="*.LPKGRevertOverrideVerifyTest" />
+										<arg value="-Dmodules.only.build=true" />
+									</gradle-execute>
+								</try>
+
+								<finally>
+									<ant dir="portal-kernel" inheritAll="false" target="test-class">
+										<property name="test.class" value="PortalLogAssertorTest" />
+									</ant>
+								</finally>
+							</trycatch>
+						</test-action>
+					</database-test-run-test>
+				</test-action>
+
+				<test-set-up>
+					<if>
+						<isset property="env.DIST_PATH" />
+						<then>
+							<prepare-test-environment />
+						</then>
+						<else>
+							<prepare-test-build />
+						</else>
+					</if>
+				</test-set-up>
+			</run-batch-test>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="run-lpkg-persistence-test">
+		<sequential>
+			<run-batch-test tomcat.gc.log="true">
+				<test-action>
+					<database-test-run-test database.type="mysql" stop.app.server="true">
+						<test-action>
+							<setup-lpkg-test />
+
+							<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="test">
+								<arg value="test" />
+								<arg value="--tests" />
+								<arg value="*.LPKGPersistenceTest" />
+								<arg value="-Dliferay.home=${liferay.home}" />
+								<arg value="-Dmodules.only.build=true" />
+							</gradle-execute>
+
+							<trycatch>
+								<try>
+									<antcall inheritall="false" target="start-app-server" />
+
+									<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="testIntegration">
+										<arg value="testIntegration" />
+										<arg value="--tests" />
+										<arg value="*.LPKGPersistenceStopBundleTest" />
+										<arg value="-Dmodules.only.build=true" />
+									</gradle-execute>
+								</try>
+
+								<finally>
+									<ant dir="portal-kernel" inheritAll="false" target="test-class">
+										<property name="test.class" value="PortalLogAssertorTest" />
+									</ant>
+								</finally>
+							</trycatch>
+
+							<antcall inheritall="false" target="stop-app-server" />
+
+							<delete dir="${liferay.home}/logs" />
+
+							<trycatch>
+								<try>
+									<antcall inheritall="false" target="start-app-server-preserve-liferay-home" />
+
+									<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="testIntegration">
+										<arg value="testIntegration" />
+										<arg value="--tests" />
+										<arg value="*.LPKGPersistenceVerifyTest" />
+										<arg value="-Dmodules.only.build=true" />
+									</gradle-execute>
+								</try>
+								<finally>
+									<ant dir="portal-kernel" inheritAll="false" target="test-class">
+										<property name="test.class" value="PortalLogAssertorTest" />
+									</ant>
+								</finally>
+							</trycatch>
+						</test-action>
+					</database-test-run-test>
+				</test-action>
+
+				<test-set-up>
+					<if>
+						<isset property="env.DIST_PATH" />
+						<then>
+							<prepare-test-environment />
+						</then>
+						<else>
+							<prepare-test-build />
+						</else>
+					</if>
+				</test-set-up>
+			</run-batch-test>
 		</sequential>
 	</macrodef>
 
@@ -765,25 +1007,103 @@ app.server.type=@{app.server.type}]]></echo>
 				<test-action>
 					<database-test-run-test database.type="mysql" stop.app.server="true">
 						<test-action>
-							<antcall inheritAll="false" target="prepare-log4j-ext-xml">
-								<param name="database.type" value="@{database.type}" />
-							</antcall>
-
-							<antcall inheritAll="false" target="prepare-portal-ext-properties">
-								<param name="database.type" value="@{database.type}" />
-							</antcall>
-
-							<antcall inheritAll="false" target="prepare-system-ext-properties" />
-
-							<ant dir="modules" inheritAll="false" target="build-app-lpkg-all">
-								<property name="osgi.dir" value="${app.server.parent.dir}/osgi" />
-							</ant>
+							<setup-lpkg-test />
 
 							<trycatch>
 								<try>
 									<antcall inheritall="false" target="start-app-server" />
 
 									<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="testIntegration">
+										<arg value="testIntegration" />
+										<arg value="--tests" />
+										<arg value="*.LPKGDeployerTest" />
+										<arg value="-Dbefore.lpkg.upgrade=true" />
+										<arg value="-Dmodules.only.build=true" />
+									</gradle-execute>
+
+									<antcall inheritall="false" target="run-selenium-test">
+										<param name="test.class" value="PortalSmoke#Smoke" />
+									</antcall>
+								</try>
+
+								<finally>
+									<ant dir="portal-kernel" inheritAll="false" target="test-class">
+										<property name="test.class" value="PortalLogAssertorTest" />
+									</ant>
+								</finally>
+							</trycatch>
+
+							<antcall inheritall="false" target="stop-app-server" />
+
+							<delete dir="${liferay.home}/logs" />
+
+							<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="test">
+								<arg value="test" />
+								<arg value="--tests" />
+								<arg value="*.LPKGUpgradeTest" />
+								<arg value="-Dliferay.home=${liferay.home}" />
+								<arg value="-Dmodules.only.build=true" />
+							</gradle-execute>
+
+							<trycatch>
+								<try>
+									<antcall inheritall="false" target="start-app-server-preserve-liferay-home" />
+
+									<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="testIntegration">
+										<arg value="testIntegration" />
+										<arg value="--tests" />
+										<arg value="*.LPKGDeployerTest" />
+										<arg value="-Dmodules.only.build=true" />
+									</gradle-execute>
+
+									<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="test">
+										<arg value="test" />
+										<arg value="--tests" />
+										<arg value="*.LPKGVersionChangeLogAssertorTest" />
+										<arg value="-Dliferay.home=${liferay.home}" />
+										<arg value="-Dmodules.only.build=true" />
+									</gradle-execute>
+
+									<antcall inheritall="false" target="run-selenium-test">
+										<param name="test.class" value="PortalSmoke#Smoke" />
+									</antcall>
+								</try>
+
+								<finally>
+									<ant dir="portal-kernel" inheritAll="false" target="test-class">
+										<property name="test.class" value="PortalLogAssertorTest" />
+									</ant>
+								</finally>
+							</trycatch>
+
+							<antcall inheritall="false" target="stop-app-server" />
+
+							<delete dir="${liferay.home}/logs" />
+
+							<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="test">
+								<arg value="test" />
+								<arg value="--tests" />
+								<arg value="*.LPKGDowngradeTest" />
+								<arg value="-Dliferay.home=${liferay.home}" />
+								<arg value="-Dmodules.only.build=true" />
+							</gradle-execute>
+
+							<trycatch>
+								<try>
+									<antcall inheritall="false" target="start-app-server-preserve-liferay-home" />
+
+									<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="testIntegration">
+										<arg value="testIntegration" />
+										<arg value="--tests" />
+										<arg value="*.LPKGDeployerTest" />
+										<arg value="-Dmodules.only.build=true" />
+									</gradle-execute>
+
+									<gradle-execute dir="modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test" task="test">
+										<arg value="test" />
+										<arg value="--tests" />
+										<arg value="*.LPKGVersionChangeLogAssertorTest" />
+										<arg value="-Dliferay.home=${liferay.home}" />
 										<arg value="-Dmodules.only.build=true" />
 									</gradle-execute>
 
@@ -819,14 +1139,13 @@ app.server.type=@{app.server.type}]]></echo>
 
 	<macrodef name="run-modules-integration-test">
 		<attribute name="database.type" />
+		<attribute default="" name="subrepository.name" />
 
 		<sequential>
 			<run-batch-test tomcat.gc.log="true">
 				<test-action>
 					<database-test-run-test database.type="@{database.type}" stop.app.server="true">
 						<test-action>
-							<print-test-class-group test.class.group.index="${axis.variable}" />
-
 							<antcall inheritAll="false" target="prepare-log4j-ext-xml">
 								<param name="database.type" value="@{database.type}" />
 							</antcall>
@@ -837,11 +1156,38 @@ app.server.type=@{app.server.type}]]></echo>
 
 							<antcall inheritAll="false" target="prepare-system-ext-properties" />
 
-							<gradle-execute dir="modules" task="testIntegration">
-								<arg value="-Ddatabase.type=@{database.type}" />
-								<arg value="-Dmodules.only.build=true" />
-								<arg value="-Dtest.class.group.index=${axis.variable}" />
-							</gradle-execute>
+							<if>
+								<equals arg1="@{subrepository.name}" arg2="" />
+								<then>
+									<print-test-class-group test.class.group.index="${axis.variable}" />
+
+									<gradle-execute dir="modules" task="testIntegration">
+										<arg value="-Ddatabase.type=@{database.type}" />
+										<arg value="-Dmodules.only.build=true" />
+										<arg value="-Dtest.class.group.index=${axis.variable}" />
+									</gradle-execute>
+								</then>
+								<else>
+									<get-module-base-dir-from-subrepository-name subrepository.name="@{subrepository.name}" />
+
+									<trycatch property="failure.property">
+										<try>
+											<move file="${module.base.dir}/settings.gradle" tofile="${module.base.dir}/settings.gradle.temp" />
+
+											<gradle-execute dir="${module.base.dir}" task="testIntegration">
+												<arg value="-Ddatabase.type=@{database.type}" />
+												<arg value="-Dmodules.only.build=true" />
+											</gradle-execute>
+										</try>
+										<catch>
+											<fail message="${failure.property}" />
+										</catch>
+										<finally>
+											<move file="${module.base.dir}/settings.gradle.temp" tofile="${module.base.dir}/settings.gradle" />
+										</finally>
+									</trycatch>
+								</else>
+							</if>
 
 							<ant dir="portal-kernel" inheritAll="false" target="test-class">
 								<property name="test.class" value="PortalLogAssertorTest" />
@@ -881,7 +1227,25 @@ app.server.type=@{app.server.type}]]></echo>
 		</sequential>
 	</macrodef>
 
-	<target name="compile-jsp-jdk7">
+	<macrodef name="setup-lpkg-test">
+		<sequential>
+			<antcall inheritAll="false" target="prepare-log4j-ext-xml">
+				<param name="database.type" value="@{database.type}" />
+			</antcall>
+
+			<antcall inheritAll="false" target="prepare-portal-ext-properties">
+				<param name="database.type" value="@{database.type}" />
+			</antcall>
+
+			<antcall inheritAll="false" target="prepare-system-ext-properties" />
+
+			<ant dir="modules" inheritAll="false" target="build-app-lpkg-all">
+				<property name="osgi.dir" value="${app.server.parent.dir}/osgi" />
+			</ant>
+		</sequential>
+	</macrodef>
+
+	<target name="compile-jsp-jdk8">
 		<run-batch-test>
 			<test-action>
 				<ant dir="portal-web" target="compile-tomcat" />
@@ -967,7 +1331,7 @@ app.server.type=@{app.server.type}]]></echo>
 		<run-functional-test app.server.type="tcserver" database.type="mysql" />
 	</target>
 
-	<target name="functional-tomcat8-hypersonic20-jdk7">
+	<target name="functional-tomcat8-hypersonic20-jdk8">
 		<run-functional-test app.server.type="tomcat" database.type="hypersonic" />
 	</target>
 
@@ -1011,27 +1375,27 @@ app.server.type=@{app.server.type}]]></echo>
 		<run-functional-test app.server.type="wildfly" database.type="mariadb" />
 	</target>
 
-	<target name="integration-db2105-jdk7">
+	<target name="integration-db2105-jdk8">
 		<run-integration-test database.type="db2" />
 	</target>
 
-	<target name="integration-hypersonic20-jdk7">
+	<target name="integration-hypersonic20-jdk8">
 		<run-integration-test database.type="hypersonic" />
 	</target>
 
-	<target name="integration-mysql56-jdk7">
+	<target name="integration-mysql56-jdk8">
 		<run-integration-test database.type="mysql" />
 	</target>
 
-	<target name="integration-oracle12-jdk7">
+	<target name="integration-oracle12-jdk8">
 		<run-integration-test database.type="oracle" />
 	</target>
 
-	<target name="integration-postgresql94-jdk7">
+	<target name="integration-postgresql94-jdk8">
 		<run-integration-test database.type="postgresql" />
 	</target>
 
-	<target name="integration-sybase160-jdk7">
+	<target name="integration-sybase160-jdk8">
 		<run-integration-test database.type="sybase" />
 	</target>
 
@@ -1059,11 +1423,43 @@ app.server.type=@{app.server.type}]]></echo>
 		<run-legacy-database-dump database.type="sybase" />
 	</target>
 
-	<target name="lpkg-startup-jdk7">
+	<target name="lpkg-override-jdk8">
+		<run-lpkg-override-test />
+	</target>
+
+	<target name="lpkg-persistence-jdk8">
+		<run-lpkg-persistence-test />
+	</target>
+
+	<target name="lpkg-startup-jdk8">
 		<run-lpkg-startup-test />
 	</target>
 
-	<target name="modules-functional-jdk7">
+	<target name="modules-compile-jdk8">
+		<run-batch-test>
+			<test-action>
+				<gradle-execute dir="modules" task="assemble">
+					<arg value="--continue" />
+					<arg value="--parallel" />
+					<arg value="-Dbuild.exclude.dirs=third-party" />
+				</gradle-execute>
+			</test-action>
+
+			<test-set-up>
+				<if>
+					<isset property="env.DIST_PATH" />
+					<then>
+						<prepare-test-environment />
+					</then>
+					<else>
+						<prepare-test-build />
+					</else>
+				</if>
+			</test-set-up>
+		</run-batch-test>
+	</target>
+
+	<target name="modules-functional-jdk8">
 		<run-batch-test>
 			<test-action>
 				<antcall target="run-selenium-test">
@@ -1073,35 +1469,35 @@ app.server.type=@{app.server.type}]]></echo>
 		</run-batch-test>
 	</target>
 
-	<target name="modules-functional-tomcat8-mysql56-jdk7">
+	<target name="modules-functional-tomcat8-mysql56-jdk8">
 		<run-functional-test app.server.type="tomcat" database.type="mysql" />
 	</target>
 
-	<target name="modules-integration-db2105-jdk7">
+	<target name="modules-integration-db2105-jdk8">
 		<run-modules-integration-test database.type="db2" />
 	</target>
 
-	<target name="modules-integration-hypersonic20-jdk7">
+	<target name="modules-integration-hypersonic20-jdk8">
 		<run-modules-integration-test database.type="hypersonic" />
 	</target>
 
-	<target name="modules-integration-mysql56-jdk7">
+	<target name="modules-integration-mysql56-jdk8">
 		<run-modules-integration-test database.type="mysql" />
 	</target>
 
-	<target name="modules-integration-oracle12-jdk7">
+	<target name="modules-integration-oracle12-jdk8">
 		<run-modules-integration-test database.type="oracle" />
 	</target>
 
-	<target name="modules-integration-postgresql94-jdk7">
+	<target name="modules-integration-postgresql94-jdk8">
 		<run-modules-integration-test database.type="postgresql" />
 	</target>
 
-	<target name="modules-integration-sybase160-jdk7">
+	<target name="modules-integration-sybase160-jdk8">
 		<run-modules-integration-test database.type="sybase" />
 	</target>
 
-	<target name="modules-unit-jdk7">
+	<target name="modules-unit-jdk8">
 		<run-batch-test>
 			<test-action>
 				<gradle-execute dir="modules" task="test">
@@ -1165,7 +1561,7 @@ ${output.content}</echo>
 		</exec>
 	</target>
 
-	<target name="plugins-compile-jdk7">
+	<target name="plugins-compile-jdk8">
 		<run-batch-test>
 			<test-action>
 				<ant antfile="build-test-plugins.xml" target="test-plugin-group">
@@ -1191,7 +1587,7 @@ ${output.content}</echo>
 		</run-batch-test>
 	</target>
 
-	<target name="plugins-functional-bundle-tomcat-mysql56-jdk7">
+	<target name="plugins-functional-bundle-tomcat-mysql56-jdk8">
 		<set-tomcat-version-number liferay.portal.bundle="${test.portal.bundle.version}" />
 
 		<run-functional-test
@@ -1206,11 +1602,11 @@ ${output.content}</echo>
 		/>
 	</target>
 
-	<target name="plugins-functional-tomcat8-mysql56-jdk7">
+	<target name="plugins-functional-tomcat8-mysql56-jdk8">
 		<run-functional-test app.server.type="tomcat" database.type="mysql" />
 	</target>
 
-	<target name="plugins-gulp-jdk7">
+	<target name="plugins-gulp-jdk8">
 		<fail message="Please set the property ${test.base.dir.name}" unless="test.base.dir.name" />
 
 		<run-batch-test>
@@ -1241,7 +1637,7 @@ ${output.content}</echo>
 		</run-batch-test>
 	</target>
 
-	<target name="portal-web-jdk7">
+	<target name="portal-web-jdk8">
 		<run-batch-test>
 			<test-action>
 				<database-test-run-test database.type="mysql">
@@ -1282,7 +1678,7 @@ ${output.content}</echo>
 		<antcall target="functional-bundle-tomcat-mysql56-jdk8" />
 	</target>
 
-	<target name="ruby-sass-compiler-jdk7">
+	<target name="ruby-sass-compiler-jdk8">
 		<antcall if:set="env.JENKINS_HOME" inheritAll="false" target="clean-up-java-processes" />
 
 		<if>
@@ -1322,7 +1718,7 @@ ${output.content}</echo>
 		</fail>
 	</target>
 
-	<target name="semantic-versioning-jdk7">
+	<target name="semantic-versioning-jdk8">
 		<run-batch-test>
 			<test-action>
 				<echo>Checking for baseline log files.</echo>
@@ -1375,54 +1771,54 @@ ${output.content}</echo>
 					<available file="${env.TOP_LEVEL_SHARED_DIR}/modules.base.dir.names.properties" />
 					<then>
 						<property file="${env.TOP_LEVEL_SHARED_DIR}/modules.base.dir.names.properties" />
+					</then>
+				</if>
 
-						<if>
-							<isset property="modules.base.dir.names.with.changes" />
-							<then>
-								<for list="${modules.base.dir.names.with.changes}" param="module.base.dir.name">
-									<sequential>
-										<var name="module.baseline.task.name" unset="true" />
-										<var name="modules.base.dir.name" unset="true" />
+				<if>
+					<isset property="modules.base.dir.names.with.changes" />
+					<then>
+						<for list="${modules.base.dir.names.with.changes}" param="module.base.dir.name">
+							<sequential>
+								<var name="module.baseline.task.name" unset="true" />
+								<var name="modules.base.dir.name" unset="true" />
 
-										<propertyregex
-											input="@{module.base.dir.name}"
-											override="true"
-											property="modules.base.dir.name"
-											regexp="(.*/modules)(/.*)"
-											replace="\1"
-										/>
+								<propertyregex
+									input="@{module.base.dir.name}"
+									override="true"
+									property="modules.base.dir.name"
+									regexp="(.*/modules)(/.*)"
+									replace="\1"
+								/>
 
-										<propertyregex
-											input="@{module.base.dir.name}"
-											override="true"
-											property="module.baseline.task.name"
-											regexp="(.*/modules)(/.*)"
-											replace="\2"
-										/>
+								<propertyregex
+									input="@{module.base.dir.name}"
+									override="true"
+									property="module.baseline.task.name"
+									regexp="(.*/modules)(/.*)"
+									replace="\2"
+								/>
 
-										<antelope:stringutil property="module.baseline.task.name" string="${module.baseline.task.name}">
-											<antelope:replace regex="/" replacement=":" />
-										</antelope:stringutil>
+								<antelope:stringutil property="module.baseline.task.name" string="${module.baseline.task.name}">
+									<antelope:replace regex="/" replacement=":" />
+								</antelope:stringutil>
 
-										<var name="module.baseline.task.name" value="${module.baseline.task.name}:baseline" />
+								<var name="module.baseline.task.name" value="${module.baseline.task.name}:baseline" />
 
-										<echo>Executing ${module.baseline.task.name} on ${modules.base.dir.name}.</echo>
+								<echo>Executing ${module.baseline.task.name} on ${modules.base.dir.name}.</echo>
 
-										<gradle-execute dir="${modules.base.dir.name}" forcedcacheenabled="false" task="${module.baseline.task.name}" />
+								<gradle-execute dir="${modules.base.dir.name}" forcedcacheenabled="false" task="${module.baseline.task.name}" />
 
-										<var name="module.baseline.task.name" unset="true" />
-										<var name="modules.base.dir.name" unset="true" />
-									</sequential>
-								</for>
-							</then>
-						</if>
+								<var name="module.baseline.task.name" unset="true" />
+								<var name="modules.base.dir.name" unset="true" />
+							</sequential>
+						</for>
 					</then>
 				</if>
 			</test-set-up>
 		</run-batch-test>
 	</target>
 
-	<target name="service-builder-jdk7">
+	<target name="service-builder-jdk8">
 		<run-batch-test>
 			<test-action>
 				<gradle-execute dir="modules/util/portal-tools-service-builder" task="deploy">
@@ -1436,6 +1832,7 @@ ${output.content}</echo>
 				<record action="stop" name="${project.dir}/build.services.output.txt" />
 
 				<replaceregexp byline="true" file="${project.dir}/build.services.output.txt" match="Writing \/.+\/docroot\/WEB-INF\/src\/service\.properties" replace="" />
+				<replaceregexp byline="true" file="${project.dir}/build.services.output.txt" match="^.+wsrp-test.+$" replace="" />
 				<replace file="${project.dir}/build.services.output.txt" token="Writing src/service.properties" value="" />
 				<replace file="${project.dir}/build.services.output.txt" token="Writing src/main/resources/service.properties" value="" />
 
@@ -1474,6 +1871,159 @@ information. Make sure to commit in all build services results.
 		</run-batch-test>
 	</target>
 
+	<target name="subrepository-compile-jdk8">
+		<fail message="Please set the property ${subrepository.name}." unless="subrepository.name" />
+
+		<get-module-base-dir-from-subrepository-name subrepository.name="${subrepository.name}" />
+
+		<trycatch property="failure.property">
+			<try>
+				<move file="${module.base.dir}/settings.gradle" tofile="${module.base.dir}/settings.gradle.temp" />
+
+				<gradle-execute dir="${module.base.dir}" task="compileJava" />
+			</try>
+			<catch>
+				<fail message="${failure.property}" />
+			</catch>
+			<finally>
+				<move file="${module.base.dir}/settings.gradle.temp" tofile="${module.base.dir}/settings.gradle" />
+			</finally>
+		</trycatch>
+	</target>
+
+	<target name="subrepository-functional-tomcat8-mysql56-jdk8">
+		<run-functional-test app.server.type="tomcat" database.type="mysql" />
+	</target>
+
+	<target name="subrepository-integration-mysql56-jdk8">
+		<fail message="Please set the property ${subrepository.name}." unless="subrepository.name" />
+
+		<run-modules-integration-test database.type="mysql" subrepository.name="${subrepository.name}" />
+	</target>
+
+	<target name="subrepository-pmd-jdk8">
+		<fail message="Please set the property ${subrepository.name}." unless="subrepository.name" />
+
+		<get-module-base-dir-from-subrepository-name subrepository.name="${subrepository.name}" />
+
+		<trycatch property="failure.property">
+			<try>
+				<move file="${module.base.dir}/settings.gradle" tofile="${module.base.dir}/settings.gradle.temp" />
+
+				<gradle-execute dir="${module.base.dir}" task="pmdMain">
+					<arg value="pmdTest" />
+					<arg value="pmdTestIntegration" />
+				</gradle-execute>
+			</try>
+			<catch>
+				<fail message="${failure.property}" />
+			</catch>
+			<finally>
+				<move file="${module.base.dir}/settings.gradle.temp" tofile="${module.base.dir}/settings.gradle" />
+			</finally>
+		</trycatch>
+	</target>
+
+	<target name="subrepository-semantic-versioning-jdk8">
+		<fail message="Please set the property ${subrepository.name}." unless="subrepository.name" />
+
+		<get-module-base-dir-from-subrepository-name subrepository.name="${subrepository.name}" />
+
+		<echo>Deleting stale baseline log files.</echo>
+
+		<delete failonerror="false">
+			<fileset dir="${project.dir}">
+				<include name="baseline-reports/*.log" />
+				<include name="modules/**/baseline.log" />
+			</fileset>
+		</delete>
+
+		<echo file="build.${user.name}.properties">baseline.jar.report.level=persist</echo>
+
+		<echo>Executing baseline on ${module.base.dir}.</echo>
+		<trycatch property="failure.property">
+			<try>
+				<move file="${module.base.dir}/settings.gradle" tofile="${module.base.dir}/settings.gradle.temp" />
+
+				<gradle-execute dir="${module.base.dir}" forcedcacheenabled="false" task="baseline" />
+			</try>
+			<catch>
+				<fail message="${failure.property}" />
+			</catch>
+			<finally>
+				<move file="${module.base.dir}/settings.gradle.temp" tofile="${module.base.dir}/settings.gradle" />
+			</finally>
+		</trycatch>
+
+		<echo>Checking for baseline log files.</echo>
+
+		<var name="log.files" unset="true" />
+
+		<fileset dir="${project.dir}" id="log.files">
+			<include name="baseline-reports/*.log" />
+			<include name="modules/**/baseline.log" />
+		</fileset>
+
+		<pathconvert pathsep="," property="log.files" refid="log.files" />
+
+		<for list="${log.files}" param="log.file">
+			<sequential>
+				<print-file file.name="@{log.file}" />
+			</sequential>
+		</for>
+
+		<if>
+			<not>
+				<equals arg1="${log.files}" arg2="" />
+			</not>
+			<then>
+				<fail message="Semantic versioning is incorrect." />
+			</then>
+		</if>
+
+		<echo>Check for baseline log files completed.</echo>
+	</target>
+
+	<target name="subrepository-source-format-jdk8">
+		<fail message="Please set the property ${subrepository.name}." unless="subrepository.name" />
+
+		<get-module-base-dir-from-subrepository-name subrepository.name="${subrepository.name}" />
+
+		<trycatch property="failure.property">
+			<try>
+				<move file="${module.base.dir}/settings.gradle" tofile="${module.base.dir}/settings.gradle.temp" />
+
+				<gradle-execute dir="${module.base.dir}" task="checkSourceFormatting" />
+			</try>
+			<catch>
+				<fail message="${failure.property}" />
+			</catch>
+			<finally>
+				<move file="${module.base.dir}/settings.gradle.temp" tofile="${module.base.dir}/settings.gradle" />
+			</finally>
+		</trycatch>
+	</target>
+
+	<target name="subrepository-unit-jdk8">
+		<fail message="Please set the property ${subrepository.name}." unless="subrepository.name" />
+
+		<get-module-base-dir-from-subrepository-name subrepository.name="${subrepository.name}" />
+
+		<trycatch property="failure.property">
+			<try>
+				<move file="${module.base.dir}/settings.gradle" tofile="${module.base.dir}/settings.gradle.temp" />
+
+				<gradle-execute dir="${module.base.dir}" task="test" />
+			</try>
+			<catch>
+				<fail message="${failure.property}" />
+			</catch>
+			<finally>
+				<move file="${module.base.dir}/settings.gradle.temp" tofile="${module.base.dir}/settings.gradle" />
+			</finally>
+		</trycatch>
+	</target>
+
 	<target name="sybase-service-start">
 		<local name="database.type" />
 
@@ -1484,6 +2034,8 @@ information. Make sure to commit in all build services results.
 		<get-database-property property.name="database.username" />
 
 		<clean-restart-sybase />
+
+		<set-sybase-charset-utf8 />
 
 		<echo file="create-header.sql">use master
 dump transaction master with no_log
@@ -1575,7 +2127,7 @@ ${output.content}</echo>
 		<antcall target="clean-up-sybase-processes" />
 	</target>
 
-	<target name="tck-jdk7">
+	<target name="tck-jdk8">
 		<run-batch-test tomcat.gc.log="true" tsant.gc.log="true">
 			<test-action>
 				<database-test-run-test database.type="mysql" stop.app.server="true">
@@ -1611,7 +2163,7 @@ ${output.content}</echo>
 		</run-batch-test>
 	</target>
 
-	<target name="unit-jdk7">
+	<target name="unit-jdk8">
 		<run-batch-test>
 			<test-action>
 				<ant dir="portal-kernel" inheritAll="false" target="test-class-group">
@@ -1637,6 +2189,9 @@ ${output.content}</echo>
 						<antcall inheritAll="false" target="record-test-class-file-names">
 							<param name="test.class.groups.size" value="${test.batch.size}" />
 						</antcall>
+
+						<delete dir="${liferay.home}/osgi/static" />
+						<delete file="${app.server.lib.portal.dir}/util-taglib.jar" />
 					</then>
 					<else>
 						<prepare-test-build-unit />
@@ -1644,5 +2199,9 @@ ${output.content}</echo>
 				</if>
 			</test-set-up>
 		</run-batch-test>
+	</target>
+
+	<target name="upstream-functional-tomcat8-mysql56-jdk8">
+		<run-functional-test app.server.type="tomcat" database.type="mysql" />
 	</target>
 </project>

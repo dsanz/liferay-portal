@@ -81,7 +81,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_USERS_SITE_TEAMS_RESOURCE_PERMISSIONS_TEAM_ACTION_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_MEMBERS_SITE_TEAMS_RESOURCE_PERMISSIONS_TEAM_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="roleName" value="Roles Siterole Name" />
 			<var name="roleType" value="Site" />
@@ -92,7 +92,7 @@
 		</execute>
 
 		<execute macro="Role#definePermissionCmdCP">
-			<var name="permissionDefinitionKey" value="SITE_ADMIN_USERS_SITE_MEMBERSHIPS_GENERAL_PERMISSIONS_ACTION_CHECKBOX" />
+			<var name="permissionDefinitionKey" value="SITE_ADMIN_MEMBERS_SITE_MEMBERSHIPS_GENERAL_PERMISSIONS_ACTION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Action" />
 			<var name="roleName" value="Roles Siterole Name" />
 			<var name="roleType" value="Site" />
@@ -230,10 +230,10 @@
 			<var name="teamName" value="Site Team Name" />
 		</execute>
 
-		<for list="CONTENT_PERMISSIONS_ASSIGN_MEMBERS_CHECKBOX,CONTENT_PERMISSIONS_DELETE_CHECKBOX,CONTENT_PERMISSIONS_PERMISSIONS_CHECKBOX,CONTENT_PERMISSIONS_UPDATE_CHECKBOX,CONTENT_PERMISSIONS_VIEW_CHECKBOX" param="permissionDefinitionKey">
-			<execute macro="Role#definePermissionPG">
+		<for list="ACTION_ASSIGN_MEMBERS,ACTION_DELETE,ACTION_PERMISSIONS,ACTION_UPDATE,ACTION_VIEW" param="permissionDefinitionKey">
+			<execute macro="Team#definePermissionPG">
 				<var name="permissionDefinitionKey" value="${permissionDefinitionKey}" />
-				<var name="roleName" value="Site Team Name" />
+				<var name="teamName" value="Site Team Name" />
 			</execute>
 		</for>
 
@@ -244,16 +244,13 @@
 			<var name="userEmailAddress" value="userea@liferay.com" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoControlPanelSites">
-			<var name="portlet" value="Sites" />
+		<execute macro="ProductMenu#gotoSite">
+			<var name="site" value="Site Name" />
 		</execute>
 
-		<var name="key_siteName" value="Site Name" />
-
-		<execute function="AssertClick#assertPartialTextClickAt" locator1="Sites#SITE_TABLE_NAME" value1="Site Name" />
-
-		<execute function="AssertClick#assertPartialTextClickAtCPNavigation" locator1="Home#SITE_ADMINISTRATION_MEMBERS" value1="Members" />
-		<execute function="AssertClick#assertPartialTextClickAtCPNavigation" locator1="Home#SITE_ADMINISTRATION_MEMBERS_SITE_TEAMS" value1="Site Teams" />
+		<execute macro="ProductMenu#gotoSitesMembers">
+			<var name="portlet" value="Site Teams" />
+		</execute>
 
 		<execute macro="Team#editCP">
 			<var name="teamDescriptionEdit" value="Site Team Description Edit" />
@@ -268,6 +265,11 @@
 	</command>
 
 	<command name="GroupScopePermissionCheck" priority="4">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Roles" />
 		</execute>
@@ -309,6 +311,10 @@
 			<var name="bookmarkViewableBy" value="Owner" />
 		</execute>
 
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Bookmarks Page" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -343,8 +349,13 @@
 
 		<execute macro="Bookmark#addPG">
 			<var name="bookmarkName" value="Test Bookmark2 Name" />
-			<var name="bookmarkURL" value="http://www.google.com" />
+			<var name="bookmarkURL" value="https://www.google.com" />
 			<var name="bookmarkViewableBy" value="Owner" />
+		</execute>
+
+		<execute macro="Navigator#gotoSitePage">
+			<var name="pageName" value="Bookmarks Page" />
+			<var name="siteName" value="google.com Name" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
@@ -372,7 +383,7 @@
 		</execute>
 
 		<execute macro="User#editUserSiteCP">
-			<var name="siteName" value="Liferay" />
+			<var name="siteName" value="${siteName}" />
 			<var name="userScreenName" value="usersn" />
 		</execute>
 
@@ -422,7 +433,7 @@
 
 		<execute macro="Bookmark#viewNoPG">
 			<var name="bookmarkName" value="Test Bookmark2 Name" />
-			<var name="bookmarkURL" value="http://www.google.com" />
+			<var name="bookmarkURL" value="https://www.google.com" />
 		</execute>
 
 		<execute macro="User#logoutPG" />
@@ -442,14 +453,14 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoControlPanelSites">
-			<var name="portlet" value="Sites" />
-		</execute>
-
 		<execute macro="Page#add">
 			<var name="pageName" value="Private Blogs Page" />
 			<var name="siteName" value="Site Name" />
-			<var name="sitePagePrivacy" value="Private Pages" />
+			<var name="sitePagePrivacy" value="Private" />
+		</execute>
+
+		<execute macro="ProductMenuHelper#expandCategory">
+			<var name="category" value="Navigation" />
 		</execute>
 
 		<execute macro="PermissionsInline#gotoSitepageCP">
@@ -666,7 +677,7 @@
 			<var name="siteName" value="Organization Name" />
 		</execute>
 
-		<execute function="AssertTextEquals" locator1="Message#INFO" value1="There are no documents or media files in this folder." />
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="There are no documents or media files in this folder." />
 
 		<execute macro="Search#searchNoPG">
 			<var name="searchAssetTitle" value="Test Document" />
@@ -719,6 +730,11 @@
 	</command>
 
 	<command name="RolesPermissionsDynamicDataLists" priority="4">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Roles" />
 		</execute>
@@ -806,7 +822,7 @@
 		</execute>
 
 		<execute macro="User#editUserSiteCP">
-			<var name="siteName" value="Liferay" />
+			<var name="siteName" value="${siteName}" />
 			<var name="userScreenName" value="usersn1" />
 		</execute>
 
@@ -844,7 +860,7 @@
 		</execute>
 
 		<execute macro="User#editUserSiteCP">
-			<var name="siteName" value="Liferay" />
+			<var name="siteName" value="${siteName}" />
 			<var name="userScreenName" value="usersn2" />
 		</execute>
 
@@ -1050,7 +1066,7 @@
 			<var name="pageName" value="Dynamic Data Lists Page" />
 		</execute>
 
-		<var name="key_ddlDataDefinitionName" value="Add Employee Profile Data Definition" />
+		<var name="key_ddlDataDefinitionName" value="Employee Profile Data Definition" />
 
 		<execute function="AssertTextEquals" locator1="DDL#TOOLBAR_ADD" value1="Add Employee Profile Data Definition" />
 		<execute function="AssertElementPresent" locator1="DDL#RECORD_TABLE_ELLIPSIS_1" />
@@ -1078,6 +1094,11 @@
 	</command>
 
 	<command name="RolesSiteSearch" priority="4">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Roles" />
 		</execute>
@@ -1123,7 +1144,7 @@
 		</execute>
 
 		<execute macro="User#editUserSiteCP">
-			<var name="siteName" value="Liferay" />
+			<var name="siteName" value="${siteName}" />
 			<var name="userScreenName" value="usersn1" />
 		</execute>
 
@@ -1152,7 +1173,7 @@
 		</execute>
 
 		<execute macro="User#editUserSiteCP">
-			<var name="siteName" value="Liferay" />
+			<var name="siteName" value="${siteName}" />
 			<var name="userScreenName" value="usersn2" />
 		</execute>
 
@@ -1815,13 +1836,13 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<var name="key_portletName" value="Message Boards" />
+		<var name="key_portletTitleName" value="Message Boards" />
 
-		<execute function="AssertTextEquals" locator1="BasePortlet#SPECIFIC_PORTLET_TITLE" value1="Message Boards" />
+		<execute function="AssertTextEquals" locator1="Portlet#SPECIFIC_TITLE" value1="Message Boards" />
 
-		<var name="key_portletName" value="Asset Publisher" />
+		<var name="key_portletTitleName" value="Asset Publisher" />
 
-		<execute function="AssertElementNotPresent" locator1="BasePortlet#SPECIFIC_PORTLET_TITLE" value1="Asset Publisher" />
+		<execute function="AssertElementNotPresent" locator1="Portlet#SPECIFIC_TITLE" value1="Asset Publisher" />
 
 		<execute macro="MessageboardsThread#addPG">
 			<var name="threadBody" value="This is a thread by usersn1" />
@@ -1840,13 +1861,13 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<var name="key_portletName" value="Message Boards" />
+		<var name="key_portletTitleName" value="Message Boards" />
 
-		<execute function="AssertTextEquals" locator1="BasePortlet#SPECIFIC_PORTLET_TITLE" value1="Message Boards" />
+		<execute function="AssertTextEquals" locator1="Portlet#SPECIFIC_TITLE" value1="Message Boards" />
 
-		<var name="key_portletName" value="Asset Publisher" />
+		<var name="key_portletTitleName" value="Asset Publisher" />
 
-		<execute function="AssertTextEquals" locator1="BasePortlet#SPECIFIC_PORTLET_TITLE" value1="Asset Publisher" />
+		<execute function="AssertTextEquals" locator1="Portlet#SPECIFIC_TITLE" value1="Asset Publisher" />
 
 		<execute function="AssertElementNotPresent" locator1="MessageBoards#ADD_CATEGORY_BUTTON" />
 		<execute function="AssertElementNotPresent" locator1="Button#PERMISSIONS" />
@@ -1860,12 +1881,12 @@
 			<var name="siteName" value="Organization Name 2" />
 		</execute>
 
-		<var name="key_portletName" value="Message Boards" />
+		<var name="key_portletTitleName" value="Message Boards" />
 
-		<execute function="AssertTextEquals" locator1="BasePortlet#SPECIFIC_PORTLET_TITLE" value1="Message Boards" />
+		<execute function="AssertTextEquals" locator1="Portlet#SPECIFIC_TITLE" value1="Message Boards" />
 
-		<execute function="AssertTextEquals" locator1="MessageBoards#ADD_CATEGORY_BUTTON" value1="Add Category" />
-		<execute function="AssertTextEquals" locator1="MessageBoards#POST_NEW_THREAD_BUTTON" value1="Post New Thread" />
+		<execute function="AssertTextEquals" locator1="Button#ADD_CATEGORY" value1="Add Category" />
+		<execute function="AssertTextEquals" locator1="Button#POST_NEW_THREAD" value1="Post New Thread" />
 		<execute function="AssertTextEquals" locator1="Button#PERMISSIONS" value1="Permissions" />
 
 		<execute macro="User#logoutPG" />
@@ -1880,15 +1901,15 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<var name="key_portletName" value="Message Boards" />
+		<var name="key_portletTitleName" value="Message Boards" />
 
-		<execute function="AssertTextEquals" locator1="BasePortlet#SPECIFIC_PORTLET_TITLE" value1="Message Boards" />
+		<execute function="AssertTextEquals" locator1="Portlet#SPECIFIC_TITLE" value1="Message Boards" />
 
-		<var name="key_portletName" value="Asset Publisher" />
+		<var name="key_portletTitleName" value="Asset Publisher" />
 
-		<execute function="AssertTextEquals" locator1="BasePortlet#SPECIFIC_PORTLET_TITLE" value1="Asset Publisher" />
+		<execute function="AssertTextEquals" locator1="Portlet#SPECIFIC_TITLE" value1="Asset Publisher" />
 
-		<execute function="AssertElementNotPresent" locator1="MessageBoards#ADD_CATEGORY_BUTTON" />
+		<execute function="AssertElementNotPresent" locator1="Button#ADD_CATEGORY" />
 
 		<execute macro="WebContent#addPGViaAP">
 			<var name="webContentContent" value="This article is by usersn3, a member of user group 3 but not site name 1" />
@@ -1981,6 +2002,11 @@
 	</command>
 
 	<command name="SiteRoleBookmarksInlinePermissions" priority="4">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Roles" />
 		</execute>
@@ -2023,6 +2049,10 @@
 			<var name="bookmarkViewableBy" value="Owner" />
 		</execute>
 
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Bookmarks Page" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
@@ -2048,7 +2078,7 @@
 		</execute>
 
 		<execute macro="User#editUserSiteCP">
-			<var name="siteName" value="Liferay" />
+			<var name="siteName" value="${siteName}" />
 			<var name="userScreenName" value="usersn" />
 		</execute>
 
@@ -2096,6 +2126,10 @@
 			<var name="bookmarkURL" value="https://www.liferay.com" />
 		</execute>
 
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Bookmarks Page" />
+		</execute>
+
 		<execute macro="User#logoutPG" />
 
 		<execute macro="User#loginUserPG">
@@ -2105,6 +2139,11 @@
 	</command>
 
 	<command name="TeamPermissionsSite" priority="4">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<for list="1,2" param="userNumber">
 			<execute macro="ProductMenu#gotoControlPanelUsers">
 				<var name="portlet" value="Users and Organizations" />
@@ -2131,7 +2170,7 @@
 			</execute>
 
 			<execute macro="User#editUserSiteCP">
-				<var name="siteName" value="Liferay" />
+				<var name="siteName" value="${siteName}" />
 				<var name="userScreenName" value="usersn${userNumber}" />
 			</execute>
 		</for>
@@ -2169,6 +2208,10 @@
 		</execute>
 
 		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="There are no site teams. You can add a site team by clicking the plus button on the bottom right corner." />
+
+		<execute macro="ProductMenu#gotoSite">
+			<var name="site" value="Liferay" />
+		</execute>
 
 		<execute macro="Page#add">
 			<var name="pageName" value="USA Ice Hockey Team Blog" />
@@ -2219,7 +2262,7 @@
 		<for list="Blogs,Tag Cloud,Recent Bloggers" param="portletTitleName">
 			<var name="key_portletTitleName" value="${portletTitleName}" />
 
-			<execute function="AssertTextEquals" locator1="BasePortlet#SPECIFIC_TITLE" value1="${portletTitleName}" />
+			<execute function="AssertTextEquals" locator1="Portlet#SPECIFIC_TITLE" value1="${portletTitleName}" />
 		</for>
 
 		<execute macro="User#logoutPG" />
@@ -2277,7 +2320,7 @@
 
 		<execute macro="Role#viewPermissionCP">
 			<var name="permissionDefinitionValue" value="View Site Administration Menu" />
-			<var name="permissionNavigationValue" value="Site Memberships > Site" />
+			<var name="permissionNavigationValue" value="Site Settings > Site" />
 		</execute>
 	</command>
 
@@ -2308,6 +2351,13 @@
 	</command>
 
 	<command name="ViewPreferencesPanelPermissionSiteMemberRole" priority="4">
+		<property name="osgi.modules.includes" value="currency-converter-web" />
+
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
@@ -2324,7 +2374,7 @@
 		</execute>
 
 		<execute macro="User#editUserSiteCP">
-			<var name="siteName" value="Liferay" />
+			<var name="siteName" value="${siteName}" />
 			<var name="userScreenName" value="usersn" />
 		</execute>
 
@@ -2456,7 +2506,7 @@
 		<execute macro="Page#add">
 			<var name="pageName" value="Site Page Name" />
 			<var name="siteName" value="Site Name" />
-			<var name="sitePagePrivacy" value="Private Pages" />
+			<var name="sitePagePrivacy" value="Private" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
@@ -2499,11 +2549,6 @@
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Users and Organizations" />
-		</execute>
-
-		<execute macro="User#unassignRegularRoleCP">
-			<var name="roleName" value="Power User" />
-			<var name="userScreenName" value="usersn" />
 		</execute>
 
 		<execute macro="User#logoutPG" />

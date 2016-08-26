@@ -18,7 +18,8 @@
 
 <%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet" %>
 
-<%@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
+<%@ taglib uri="http://liferay.com/tld/asset" prefix="liferay-asset" %><%@
+taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
 taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
 taglib uri="http://liferay.com/tld/security" prefix="liferay-security" %><%@
@@ -38,6 +39,7 @@ page import="com.liferay.asset.kernel.service.AssetEntryServiceUtil" %><%@
 page import="com.liferay.asset.kernel.service.AssetVocabularyLocalServiceUtil" %><%@
 page import="com.liferay.asset.kernel.service.persistence.AssetEntryQuery" %><%@
 page import="com.liferay.blogs.kernel.model.BlogsEntry" %><%@
+page import="com.liferay.document.library.display.context.DLMimeTypeDisplayContext" %><%@
 page import="com.liferay.document.library.kernel.exception.DuplicateFileException" %><%@
 page import="com.liferay.document.library.kernel.exception.FileNameException" %><%@
 page import="com.liferay.document.library.kernel.exception.FileSizeException" %><%@
@@ -87,22 +89,25 @@ page import="com.liferay.knowledge.base.service.permission.SuggestionPermission"
 page import="com.liferay.knowledge.base.service.util.AdminUtil" %><%@
 page import="com.liferay.knowledge.base.util.KnowledgeBaseUtil" %><%@
 page import="com.liferay.knowledge.base.util.comparator.KBArticlePriorityComparator" %><%@
-page import="com.liferay.knowledge.base.web.application.dao.search.KBCommentResultRowSplitter" %><%@
+page import="com.liferay.knowledge.base.util.comparator.KBObjectsTitleComparator" %><%@
 page import="com.liferay.knowledge.base.web.configuration.KBArticlePortletInstanceConfiguration" %><%@
 page import="com.liferay.knowledge.base.web.configuration.KBDisplayPortletInstanceConfiguration" %><%@
 page import="com.liferay.knowledge.base.web.configuration.KBSearchPortletInstanceConfiguration" %><%@
 page import="com.liferay.knowledge.base.web.configuration.KBSectionPortletInstanceConfiguration" %><%@
-page import="com.liferay.knowledge.base.web.constants.KBWebKeys" %><%@
-page import="com.liferay.knowledge.base.web.display.context.KBNavigationDisplayContext" %><%@
-page import="com.liferay.knowledge.base.web.display.context.KBSuggestionListDisplayContext" %><%@
-page import="com.liferay.knowledge.base.web.display.context.util.KBArticleURLHelper" %><%@
-page import="com.liferay.knowledge.base.web.search.KBArticleDisplayTerms" %><%@
-page import="com.liferay.knowledge.base.web.search.KBArticleSearch" %><%@
-page import="com.liferay.knowledge.base.web.search.KBArticleSearchTerms" %><%@
-page import="com.liferay.knowledge.base.web.search.KBCommentsChecker" %><%@
-page import="com.liferay.knowledge.base.web.search.KBTemplateSearch" %><%@
-page import="com.liferay.knowledge.base.web.search.KBTemplateSearchTerms" %><%@
-page import="com.liferay.knowledge.base.web.util.KBArticleAssetEntriesUtil" %><%@
+page import="com.liferay.knowledge.base.web.internal.KBUtil" %><%@
+page import="com.liferay.knowledge.base.web.internal.application.dao.search.KBCommentResultRowSplitter" %><%@
+page import="com.liferay.knowledge.base.web.internal.application.dao.search.KBResultRowSplitter" %><%@
+page import="com.liferay.knowledge.base.web.internal.constants.KBWebKeys" %><%@
+page import="com.liferay.knowledge.base.web.internal.display.context.KBAdminViewDisplayContext" %><%@
+page import="com.liferay.knowledge.base.web.internal.display.context.KBNavigationDisplayContext" %><%@
+page import="com.liferay.knowledge.base.web.internal.display.context.KBSelectParentDisplayContext" %><%@
+page import="com.liferay.knowledge.base.web.internal.display.context.KBSuggestionListDisplayContext" %><%@
+page import="com.liferay.knowledge.base.web.internal.display.context.util.KBArticleURLHelper" %><%@
+page import="com.liferay.knowledge.base.web.internal.search.EntriesChecker" %><%@
+page import="com.liferay.knowledge.base.web.internal.search.KBCommentsChecker" %><%@
+page import="com.liferay.knowledge.base.web.internal.search.KBObjectsSearch" %><%@
+page import="com.liferay.knowledge.base.web.internal.search.KBTemplateSearch" %><%@
+page import="com.liferay.knowledge.base.web.internal.util.KBArticleAssetEntriesUtil" %><%@
 page import="com.liferay.message.boards.kernel.model.MBMessage" %><%@
 page import="com.liferay.portal.configuration.metatype.util.ParameterMapUtil" %><%@
 page import="com.liferay.portal.kernel.bean.BeanParamUtil" %><%@
@@ -134,6 +139,7 @@ page import="com.liferay.portal.kernel.search.Indexer" %><%@
 page import="com.liferay.portal.kernel.search.IndexerRegistryUtil" %><%@
 page import="com.liferay.portal.kernel.search.SearchContext" %><%@
 page import="com.liferay.portal.kernel.search.SearchContextFactory" %><%@
+page import="com.liferay.portal.kernel.security.permission.ActionKeys" %><%@
 page import="com.liferay.portal.kernel.service.ClassNameLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.PortletLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.ServiceContext" %><%@
@@ -142,6 +148,7 @@ page import="com.liferay.portal.kernel.service.TicketLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.permission.GroupPermissionUtil" %><%@
 page import="com.liferay.portal.kernel.service.permission.PortletPermissionUtil" %><%@
+page import="com.liferay.portal.kernel.servlet.HttpHeaders" %><%@
 page import="com.liferay.portal.kernel.servlet.SessionMessages" %><%@
 page import="com.liferay.portal.kernel.upload.UploadRequestSizeException" %><%@
 page import="com.liferay.portal.kernel.util.ArrayUtil" %><%@
@@ -150,6 +157,7 @@ page import="com.liferay.portal.kernel.util.FastDateFormatConstants" %><%@
 page import="com.liferay.portal.kernel.util.FastDateFormatFactoryUtil" %><%@
 page import="com.liferay.portal.kernel.util.GetterUtil" %><%@
 page import="com.liferay.portal.kernel.util.HtmlUtil" %><%@
+page import="com.liferay.portal.kernel.util.ListUtil" %><%@
 page import="com.liferay.portal.kernel.util.OrderByComparator" %><%@
 page import="com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil" %><%@
 page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
@@ -166,10 +174,8 @@ page import="com.liferay.portal.kernel.util.Tuple" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %><%@
 page import="com.liferay.portal.kernel.workflow.WorkflowConstants" %><%@
-page import="com.liferay.portlet.configuration.kernel.util.PortletConfigurationApplicationType" %><%@
 page import="com.liferay.ratings.kernel.RatingsType" %><%@
 page import="com.liferay.ratings.kernel.definition.PortletRatingsDefinitionUtil" %><%@
-page import="com.liferay.taglib.search.DateSearchEntry" %><%@
 page import="com.liferay.taglib.search.ResultRow" %><%@
 page import="com.liferay.wiki.model.WikiPage" %>
 

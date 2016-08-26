@@ -21,32 +21,27 @@ String mvcPath = ParamUtil.getString(request, "mvcPath");
 
 ResultRow row = (ResultRow)request.getAttribute(KBWebKeys.SEARCH_CONTAINER_RESULT_ROW);
 
-KBArticle kbArticle = (KBArticle)row.getObject();
+KBArticle kbArticle = null;
+
+if (row != null) {
+	kbArticle = (KBArticle)row.getObject();
+}
+else {
+	kbArticle = (KBArticle)request.getAttribute("info_panel.jsp-kbArticle");
+}
 
 KBArticleURLHelper kbArticleURLHelper = new KBArticleURLHelper(renderRequest, renderResponse, templatePath);
 %>
 
-<liferay-ui:icon-menu cssClass="kb-article-action">
-
-	<%
-	PortletURL viewURL = kbArticleURLHelper.createViewWithRedirectURL(kbArticle, currentURL);
-	%>
-
-	<liferay-ui:icon
-		image="view"
-		method="get"
-		url="<%= viewURL.toString() %>"
-	/>
-
+<liferay-ui:icon-menu direction="left-side" icon="<%= StringPool.BLANK %>" markupView="lexicon" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>">
 	<c:if test="<%= KBArticlePermission.contains(permissionChecker, kbArticle, KBActionKeys.UPDATE) %>">
 		<liferay-portlet:renderURL var="editURL">
 			<portlet:param name="mvcPath" value='<%= templatePath + "edit_article.jsp" %>' />
-			<portlet:param name="redirect" value="<%= redirect %>" />
+			<portlet:param name="redirect" value="<%= currentURL %>" />
 			<portlet:param name="resourcePrimKey" value="<%= String.valueOf(kbArticle.getResourcePrimKey()) %>" />
 		</liferay-portlet:renderURL>
 
 		<liferay-ui:icon
-			iconCssClass="icon-edit"
 			message="edit"
 			url="<%= editURL %>"
 		/>
@@ -55,16 +50,13 @@ KBArticleURLHelper kbArticleURLHelper = new KBArticleURLHelper(renderRequest, re
 	<c:if test="<%= (AdminPermission.contains(permissionChecker, scopeGroupId, KBActionKeys.ADD_KB_ARTICLE) && rootPortletId.equals(KBPortletKeys.KNOWLEDGE_BASE_ADMIN)) || (DisplayPermission.contains(permissionChecker, scopeGroupId, KBActionKeys.ADD_KB_ARTICLE) && DisplayPermission.contains(permissionChecker, scopeGroupId, KBActionKeys.ADMINISTRATOR) && rootPortletId.equals(KBPortletKeys.KNOWLEDGE_BASE_DISPLAY)) %>">
 		<liferay-portlet:renderURL var="addKBArticleURL">
 			<portlet:param name="mvcPath" value='<%= templatePath + "edit_article.jsp" %>' />
-			<portlet:param name="redirect" value="<%= redirect %>" />
+			<portlet:param name="redirect" value="<%= currentURL %>" />
 			<portlet:param name="parentResourceClassNameId" value="<%= String.valueOf(kbArticle.getClassNameId()) %>" />
 			<portlet:param name="parentResourcePrimKey" value="<%= String.valueOf(kbArticle.getResourcePrimKey()) %>" />
 		</liferay-portlet:renderURL>
 
 		<liferay-ui:icon
-			image="add_article"
-			label="<%= true %>"
 			message="add-child-article"
-			method="get"
 			url="<%= addKBArticleURL %>"
 		/>
 	</c:if>
@@ -79,7 +71,6 @@ KBArticleURLHelper kbArticleURLHelper = new KBArticleURLHelper(renderRequest, re
 		/>
 
 		<liferay-ui:icon
-			iconCssClass="icon-lock"
 			message="permissions"
 			url="<%= permissionsURL %>"
 			useDialog="<%= true %>"
@@ -90,24 +81,22 @@ KBArticleURLHelper kbArticleURLHelper = new KBArticleURLHelper(renderRequest, re
 		<c:choose>
 			<c:when test="<%= SubscriptionLocalServiceUtil.isSubscribed(user.getCompanyId(), user.getUserId(), KBArticle.class.getName(), kbArticle.getResourcePrimKey()) %>">
 				<liferay-portlet:actionURL name="unsubscribeKBArticle" var="unsubscribeKBArticleURL">
-					<portlet:param name="redirect" value="<%= redirect %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
 					<portlet:param name="resourcePrimKey" value="<%= String.valueOf(kbArticle.getResourcePrimKey()) %>" />
 				</liferay-portlet:actionURL>
 
 				<liferay-ui:icon
-					iconCssClass="icon-remove-sign"
 					message="unsubscribe"
 					url="<%= unsubscribeKBArticleURL %>"
 				/>
 			</c:when>
 			<c:otherwise>
 				<liferay-portlet:actionURL name="subscribeKBArticle" var="subscribeKBArticleURL">
-					<portlet:param name="redirect" value="<%= redirect %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
 					<portlet:param name="resourcePrimKey" value="<%= String.valueOf(kbArticle.getResourcePrimKey()) %>" />
 				</liferay-portlet:actionURL>
 
 				<liferay-ui:icon
-					iconCssClass="icon-ok-sign"
 					message="subscribe"
 					url="<%= subscribeKBArticleURL %>"
 				/>
@@ -118,7 +107,7 @@ KBArticleURLHelper kbArticleURLHelper = new KBArticleURLHelper(renderRequest, re
 	<c:if test="<%= KBArticlePermission.contains(permissionChecker, kbArticle, KBActionKeys.MOVE_KB_ARTICLE) %>">
 		<liferay-portlet:renderURL var="moveKBArticleURL">
 			<portlet:param name="mvcPath" value='<%= templatePath + "move_object.jsp" %>' />
-			<portlet:param name="redirect" value="<%= redirect %>" />
+			<portlet:param name="redirect" value="<%= currentURL %>" />
 			<portlet:param name="resourceClassNameId" value="<%= String.valueOf(kbArticle.getClassNameId()) %>" />
 			<portlet:param name="resourcePrimKey" value="<%= String.valueOf(kbArticle.getResourcePrimKey()) %>" />
 			<portlet:param name="parentResourceClassNameId" value="<%= String.valueOf(kbArticle.getParentResourceClassNameId()) %>" />
@@ -126,7 +115,6 @@ KBArticleURLHelper kbArticleURLHelper = new KBArticleURLHelper(renderRequest, re
 		</liferay-portlet:renderURL>
 
 		<liferay-ui:icon
-			iconCssClass="icon-move"
 			message="move"
 			url="<%= moveKBArticleURL %>"
 		/>
@@ -135,7 +123,7 @@ KBArticleURLHelper kbArticleURLHelper = new KBArticleURLHelper(renderRequest, re
 	<c:if test="<%= KBArticlePermission.contains(permissionChecker, kbArticle, KBActionKeys.DELETE) %>">
 		<liferay-portlet:actionURL name="deleteKBArticle" var="deleteURL">
 			<portlet:param name="mvcPath" value="<%= mvcPath %>" />
-			<portlet:param name="redirect" value="<%= redirect %>" />
+			<portlet:param name="redirect" value="<%= (row == null) ? redirect : currentURL %>" />
 			<portlet:param name="resourcePrimKey" value="<%= String.valueOf(kbArticle.getResourcePrimKey()) %>" />
 		</liferay-portlet:actionURL>
 

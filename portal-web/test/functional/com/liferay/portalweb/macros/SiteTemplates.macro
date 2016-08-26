@@ -29,19 +29,20 @@
 		<if>
 			<equals arg1="${siteTemplateActive}" arg2="No" />
 			<then>
-				<execute function="Uncheck#uncheckToggleSwitch" locator1="ToggleSwitch#ACTIVE" />
+				<execute function="Uncheck#uncheckHiddenToggleSwitch" locator1="ToggleSwitch#ACTIVE" />
+			</then>
+		</if>
+
+		<if>
+			<equals arg1="${disableChanges}" arg2="true" />
+			<then>
+				<execute function="Uncheck#uncheckHiddenToggleSwitch" locator1="ToggleSwitch#ALLOW_SITE_ADMIN_MODIFY_PAGES" />
 			</then>
 		</if>
 
 		<execute macro="Button#clickSave" />
 
-		<execute macro="SiteAdmin#viewPortletTitle">
-			<var name="portletTitle" value="Site Template Settings" />
-		</execute>
-
-		<var name="key_siteTemplateName" value="${siteTemplateName}" />
-
-		<execute function="AssertTextEquals" locator1="TextInput#NAME" value1="${siteTemplateName}" />
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="addSitePageViaSiteTemplateCP">
@@ -91,7 +92,7 @@
 			</then>
 		</if>
 
-		<execute function="Type#clickAtSendKeys" locator1="TextInput#NAME" value1="${pageName}" />
+		<execute function="Type#clickAtType" locator1="TextInput#NAME" value1="${pageName}" />
 		<execute function="AssertClick" locator1="Button#ADD_PAGE_BTN" value1="Add Page" />
 	</command>
 
@@ -129,7 +130,17 @@
 		<execute function="AssertClickNoError" locator1="MenuItem#DELETE" value1="Delete" />
 		<execute function="Confirm" value1="Are you sure you want to delete this? It will be deleted immediately." />
 
-		<execute macro="Alert#viewSuccessMessage" />
+		<if>
+			<equals arg1="${associatedToSite}" arg2="true" />
+			<then>
+				<execute macro="Alert#viewRequestFailedToComplete" />
+
+				<execute macro="Alert#viewFailedSiteTemplateDeletionMessage" />
+			</then>
+			<else>
+				<execute macro="Alert#viewSuccessMessage" />
+			</else>
+		</if>
 	</command>
 
 	<command name="editCP">
@@ -152,7 +163,7 @@
 				<if>
 					<equals arg1="${siteTemplateActiveEdit}" arg2="No" />
 					<then>
-						<execute function="Uncheck#uncheckToggleSwitch" locator1="ToggleSwitch#ACTIVE" />
+						<execute function="Uncheck#uncheckHiddenToggleSwitch" locator1="ToggleSwitch#ACTIVE" />
 					</then>
 				</if>
 			</then>
@@ -188,7 +199,7 @@
 
 		<execute function="AssertClick#assertPartialTextClickAt" locator1="SiteTemplates#SITE_TEMPLATE_TABLE_NAME" value1="${siteTemplateName}" />
 
-		<execute function="SelectWindow" locator1="home - ${siteTemplateName} - Liferay" />
+		<execute function="SelectWindow" locator1="home - ${siteTemplateName} - ${siteName}" />
 	</command>
 
 	<command name="resetPageChanges">
@@ -237,6 +248,14 @@
 		</if>
 
 		<execute macro="Button#clickSave" />
+	</command>
+
+	<command name="viewCP">
+		<for list="${siteTemplateNameList}" param="siteTemplateName" >
+			<var name="key_siteTemplateName" value="${siteTemplateName}" />
+
+			<execute function="AssertTextEquals#assertPartialText" locator1="SiteTemplates#SITE_TEMPLATE_TABLE_NAME" value1="${siteTemplateName}" />
+		</for>
 	</command>
 
 	<command name="viewDefaultCP">

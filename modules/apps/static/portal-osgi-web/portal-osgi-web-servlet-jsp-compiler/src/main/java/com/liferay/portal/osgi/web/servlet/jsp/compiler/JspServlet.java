@@ -14,6 +14,7 @@
 
 package com.liferay.portal.osgi.web.servlet.jsp.compiler;
 
+import com.liferay.portal.kernel.util.JavaDetector;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -135,7 +136,7 @@ public class JspServlet extends HttpServlet {
 				TreeNode treeNode = parserUtils.parseXMLDocument(
 					url.getPath(), inputStream, false);
 
-				Iterator<TreeNode>iterator = treeNode.findChildren("listener");
+				Iterator<TreeNode> iterator = treeNode.findChildren("listener");
 
 				while (iterator.hasNext()) {
 					TreeNode listenerTreeNode = iterator.next();
@@ -274,8 +275,16 @@ public class JspServlet extends HttpServlet {
 			"compilerClassName",
 			"com.liferay.portal.osgi.web.servlet.jsp.compiler.internal." +
 				"JspCompiler");
-		defaults.put("compilerSourceVM", "1.7");
-		defaults.put("compilerTargetVM", "1.7");
+
+		if (JavaDetector.isJDK7()) {
+			defaults.put("compilerSourceVM", "1.7");
+			defaults.put("compilerTargetVM", "1.7");
+		}
+		else {
+			defaults.put("compilerSourceVM", "1.8");
+			defaults.put("compilerTargetVM", "1.8");
+		}
+
 		defaults.put("development", "false");
 		defaults.put("httpMethods", "GET,POST,HEAD");
 		defaults.put("keepgenerated", "false");
@@ -540,8 +549,7 @@ public class JspServlet extends HttpServlet {
 	private static final String _ANALYZED_TLDS =
 		JspServlet.class.getName().concat("#ANALYZED_TLDS");
 
-	private static final String _DIR_NAME_RESOURCES =
-		File.separator + "META-INF" + File.separator + "resources";
+	private static final String _DIR_NAME_RESOURCES = "/META-INF/resources";
 
 	private static final String _INIT_PARAMETER_NAME_SCRATCH_DIR = "scratchdir";
 

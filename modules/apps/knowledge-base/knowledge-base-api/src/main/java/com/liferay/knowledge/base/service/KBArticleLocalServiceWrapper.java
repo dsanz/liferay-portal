@@ -314,6 +314,15 @@ public class KBArticleLocalServiceWrapper implements KBArticleLocalService,
 	}
 
 	@Override
+	public com.liferay.portal.kernel.repository.model.FileEntry addAttachment(
+		long userId, long resourcePrimKey, java.lang.String fileName,
+		java.io.InputStream inputStream, java.lang.String mimeType)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _kbArticleLocalService.addAttachment(userId, resourcePrimKey,
+			fileName, inputStream, mimeType);
+	}
+
+	@Override
 	public int addKBArticlesMarkdown(long userId, long groupId,
 		long parentKbFolderId, java.lang.String fileName,
 		boolean prioritizeByNumericalPrefix, java.io.InputStream inputStream,
@@ -573,6 +582,12 @@ public class KBArticleLocalServiceWrapper implements KBArticleLocalService,
 		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.knowledge.base.model.KBArticle> orderByComparator) {
 		return _kbArticleLocalService.getKBArticlesByUuidAndCompanyId(uuid,
 			companyId, start, end, orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.knowledge.base.model.KBArticle> getKBFolderKBArticles(
+		long groupId, long kbFolderId) {
+		return _kbArticleLocalService.getKBFolderKBArticles(groupId, kbFolderId);
 	}
 
 	@Override

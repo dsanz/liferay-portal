@@ -374,6 +374,31 @@
 		<execute macro="Staging#viewPageVariationPG">
 			<var name="pageVariationName" value="Page Variation Name" />
 		</execute>
+
+		<execute macro="Navigator#gotoStagedSitePage">
+			<var name="pageName" value="Staging Test Page" />
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="SitePageNavigator#gotoEditPage">
+			<var name="page" value="Staging Test Page" />
+		</execute>
+
+		<execute macro="Page#addFriendlyURLLocalizedPG">
+			<var name="friendlyUrlLocalized" value="de_DE" />
+			<var name="localizedFriendlyURL" value="/german" />
+		</execute>
+
+		<execute macro="Page#hideFromNavigationMenu" />
+
+		<execute macro="SitePageNavigator#gotoEditPage">
+			<var name="page" value="Staging Test Page" />
+		</execute>
+
+		<execute macro="Page#viewPageFriendlyURLPG">
+			<var name="friendlyUrlLocalized" value="de_DE" />
+			<var name="pageName" value="german" />
+		</execute>
 	</command>
 
 	<command name="AddPageWithPageVersioningEnabled" priority="5">
@@ -879,7 +904,7 @@
 			<var name="siteName" value="Organization Name" />
 		</execute>
 
-		<execute function="AssertElementNotPresent" locator1="BasePortlet#TITLE" value1="Blogs">
+		<execute function="AssertElementNotPresent" locator1="Portlet#TITLE" value1="Blogs">
 			<var name="key_portletName" value="Blogs" />
 		</execute>
 
@@ -903,7 +928,7 @@
 			<var name="siteName" value="Organization Name" />
 		</execute>
 
-		<execute function="AssertElementPresent" locator1="BasePortlet#TITLE" value1="Blogs">
+		<execute function="AssertElementPresent" locator1="Portlet#TITLE" value1="Blogs">
 			<var name="key_portletName" value="Blogs" />
 		</execute>
 
@@ -1366,6 +1391,10 @@
 			<var name="webContentTitle" value="Web Content Title" />
 		</execute>
 
+		<execute macro="WebContent#viewPGViaWCD">
+			<var name="webContentContent" value="Web Content Content" />
+		</execute>
+
 		<execute macro="Staging#gotoPublishToLive" />
 
 		<execute macro="Staging#publishToLive" />
@@ -1411,12 +1440,16 @@
 			<var name="webContentTitle" value="Web Content Title" />
 		</execute>
 
+		<execute macro="WebContent#viewPGViaWCD">
+			<var name="webContentContent" value="Web Content Content" />
+		</execute>
+
 		<execute macro="Staging#changeSitePageVariationPG">
 			<var name="sitePagesVariationMenulistName" value="Main Variation" />
 			<var name="sitePagesVariationName" value="Test Site Pages Variation" />
 		</execute>
 
-		<execute function="AssertElementNotPresent" locator1="BasePortlet#TITLE" value1="Web Content Display" />
+		<execute function="AssertElementNotPresent" locator1="Portlet#TITLE" value1="Web Content Display" />
 
 		<execute macro="Staging#changeSitePageVariationPG">
 			<var name="sitePagesVariationMenulistName" value="Test Site Pages Variation" />
@@ -1460,7 +1493,7 @@
 			<var name="pageVariationNameMenulistName" value="Main Variation" />
 		</execute>
 
-		<execute function="AssertElementNotPresent" locator1="BasePortlet#TITLE" value1="Blogs" />
+		<execute function="AssertElementNotPresent" locator1="Portlet#TITLE" value1="Blogs" />
 
 		<execute macro="Staging#changePageVariationPG">
 			<var name="pageVariationName" value="Main Variation" />

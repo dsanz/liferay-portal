@@ -15,11 +15,15 @@
 package com.liferay.portlet.blogs.linkback;
 
 import com.liferay.portal.kernel.comment.CommentManager;
+import com.liferay.portal.kernel.comment.CommentManagerUtil;
 import com.liferay.portal.kernel.security.pacl.permission.PortalSocketPermission;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portlet.blogs.util.BlogsUtil;
+import com.liferay.registry.BasicRegistryImpl;
+import com.liferay.registry.RegistryUtil;
 
 import java.io.IOException;
 
@@ -47,10 +51,15 @@ public class LinkbackConsumerImplTest extends PowerMockito {
 	public void setUp() throws Exception {
 		MockitoAnnotations.initMocks(this);
 
+		RegistryUtil.setRegistry(new BasicRegistryImpl());
+
 		setUpBlogsUtil();
 		setUpHttpUtil();
 
-		_linkbackConsumer = new LinkbackConsumerImpl(_commentManager);
+		ReflectionTestUtil.setFieldValue(
+			CommentManagerUtil.class, "_commentManager", _commentManager);
+
+		_linkbackConsumer = new LinkbackConsumerImpl();
 	}
 
 	@Test

@@ -26,7 +26,6 @@ String lastImportLayoutSetBranchName = null;
 long lastImportLayoutSetBranchId = GetterUtil.getLong(typeSettingsProperties.getProperty("last-import-layout-set-branch-id"));
 
 if (lastImportLayoutSetBranchId > 0) {
-
 	try {
 		LayoutSetBranch lastImportLayoutSetBranch = LayoutSetBranchLocalServiceUtil.getLayoutSetBranch(lastImportLayoutSetBranchId);
 
@@ -107,7 +106,6 @@ if (Validator.isNull(publisherName)) {
 					)</span>
 				</c:if>
 			</span>
-
 			<span class="last-publication-user">
 				<liferay-ui:message arguments="<%= new String[] {LanguageUtil.getTimeDescription(request, (System.currentTimeMillis() - lastImportDate), true), HtmlUtil.escape(publisherName)} %>" key="x-ago-by-x" translateArguments="<%= false %>" />
 			</span>
@@ -117,7 +115,6 @@ if (Validator.isNull(publisherName)) {
 		<span class="staging-live-group-name">
 			<liferay-ui:message arguments="<%= HtmlUtil.escape(liveGroup.getDescriptiveName(locale)) %>" key="x-is-staged" translateArguments="<%= false %>" />
 		</span>
-
 		<span class="staging-live-help">
 			<liferay-ui:message arguments="<%= HtmlUtil.escape(liveGroup.getDescriptiveName(locale)) %>" key='<%= (group.isStagingGroup() || group.isStagedRemotely()) ? "staging-staging-help-x" : !PropsValues.STAGING_LIVE_GROUP_LOCKING_ENABLED ? "staging-live-help2-x" : "staging-live-help-x" %>' translateArguments="<%= false %>" />
 		</span>

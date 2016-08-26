@@ -53,7 +53,7 @@ portletURL.setParameter("curFolder", currentFolder);
 portletURL.setParameter("deltaFolder", deltaFolder);
 portletURL.setParameter("folderId", String.valueOf(folderId));
 
-SearchContainer dlSearchContainer = new SearchContainer(liferayPortletRequest, null, null, "curEntry", SearchContainer.DEFAULT_DELTA, portletURL, null, null);
+SearchContainer dlSearchContainer = new SearchContainer(liferayPortletRequest, null, null, "curEntry", dlPortletInstanceSettings.getEntriesPerPage(), portletURL, null, null);
 
 EntriesChecker entriesChecker = new EntriesChecker(liferayPortletRequest, liferayPortletResponse);
 
@@ -377,9 +377,8 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 								%>
 
 								<liferay-ui:search-container-column-text
-									cssClass="content-column title-column"
+									cssClass="table-cell-content"
 									name="title"
-									truncate="<%= true %>"
 								>
 									<aui:a href="<%= rowURL.toString() %>"><%= latestFileVersion.getTitle() %></aui:a>
 
@@ -399,7 +398,6 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 
 							<c:if test='<%= ArrayUtil.contains(entryColumns, "size") %>'>
 								<liferay-ui:search-container-column-text
-									cssClass="size-column"
 									name="size"
 									value="<%= TextFormatter.formatStorageSize(latestFileVersion.getSize(), locale) %>"
 								/>
@@ -407,7 +405,6 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 
 							<c:if test='<%= ArrayUtil.contains(entryColumns, "status") %>'>
 								<liferay-ui:search-container-column-status
-									cssClass="status-column"
 									name="status"
 									status="<%= latestFileVersion.getStatus() %>"
 								/>
@@ -415,7 +412,6 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 
 							<c:if test='<%= ArrayUtil.contains(entryColumns, "downloads") %>'>
 								<liferay-ui:search-container-column-text
-									cssClass="downloads-column"
 									name="downloads"
 									value="<%= String.valueOf(fileEntry.getReadCount()) %>"
 								/>
@@ -423,7 +419,6 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 
 							<c:if test='<%= ArrayUtil.contains(entryColumns, "create-date") %>'>
 								<liferay-ui:search-container-column-date
-									cssClass="create-date-column text-column"
 									name="create-date"
 									value="<%= fileEntry.getCreateDate() %>"
 								/>
@@ -431,7 +426,6 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 
 							<c:if test='<%= ArrayUtil.contains(entryColumns, "modified-date") %>'>
 								<liferay-ui:search-container-column-date
-									cssClass="modified-date-column text-column"
 									name="modified-date"
 									value="<%= latestFileVersion.getModifiedDate() %>"
 								/>
@@ -439,7 +433,6 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 
 							<c:if test='<%= ArrayUtil.contains(entryColumns, "action") %>'>
 								<liferay-ui:search-container-column-jsp
-									cssClass="entry-action-column"
 									path="/document_library/file_entry_action.jsp"
 								/>
 							</c:if>
@@ -533,17 +526,15 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 								%>
 
 								<liferay-ui:search-container-column-text
-									cssClass="content-column title-column"
+									cssClass="table-cell-content"
 									href="<%= rowURL %>"
 									name="title"
-									truncate="<%= true %>"
 									value="<%= curFolder.getName() %>"
 								/>
 							</c:if>
 
 							<c:if test='<%= ArrayUtil.contains(entryColumns, "size") %>'>
 								<liferay-ui:search-container-column-text
-									cssClass="size-column"
 									name="size"
 									value="--"
 								/>
@@ -551,7 +542,6 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 
 							<c:if test='<%= ArrayUtil.contains(entryColumns, "status") %>'>
 								<liferay-ui:search-container-column-text
-									cssClass="status-column"
 									name="status"
 									value="--"
 								/>
@@ -559,7 +549,6 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 
 							<c:if test='<%= ArrayUtil.contains(entryColumns, "downloads") %>'>
 								<liferay-ui:search-container-column-text
-									cssClass="downloads-column"
 									name="downloads"
 									value="--"
 								/>
@@ -567,7 +556,6 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 
 							<c:if test='<%= ArrayUtil.contains(entryColumns, "create-date") %>'>
 								<liferay-ui:search-container-column-date
-									cssClass="create-date-column text-column"
 									name="create-date"
 									value="<%= curFolder.getCreateDate() %>"
 								/>
@@ -575,7 +563,6 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 
 							<c:if test='<%= ArrayUtil.contains(entryColumns, "modified-date") %>'>
 								<liferay-ui:search-container-column-date
-									cssClass="modified-date-column text-column"
 									name="modified-date"
 									value="<%= curFolder.getModifiedDate() %>"
 								/>
@@ -583,7 +570,6 @@ if (portletTitleBasedNavigation && (folderId != DLFolderConstants.DEFAULT_PARENT
 
 							<c:if test='<%= ArrayUtil.contains(entryColumns, "action") %>'>
 								<liferay-ui:search-container-column-jsp
-									cssClass="entry-action-column"
 									path="/document_library/folder_action.jsp"
 								/>
 							</c:if>

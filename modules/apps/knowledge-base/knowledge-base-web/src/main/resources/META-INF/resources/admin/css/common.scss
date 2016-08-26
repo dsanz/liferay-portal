@@ -73,99 +73,29 @@
 
 	/* ---------- Portlet ---------- */
 
+	.kb-article {
+		.panel .panel-body, .panel .list-group-item {
+			padding: 15px 30px;
+		}
+
+		h1 {
+			font-size: 48px;
+			margin-bottom: 30px;
+		}
+
+		.kb-article-assets, .kb-attachments, .taglib-asset-links,
+		.kb-article-ratings {
+			margin-top: 20px;
+		}
+	}
+
 	.kb-add-article-button {
 		font-weight: normal;
 	}
 
-	.kb-article-child {
-		margin: 15px 0 0;
-
-		@include respond-to(desktop) {
-			.kb-elements .kb-element {
-				display: inline-table;
-				margin: 1% 2%;
-				padding: 0 2%;
-				width: 41%;
-			}
-		}
-
-		.kb-element-header {
-			font-size: 21px;
-			line-height: 25px;
-			margin-bottom: 15px;
-
-			a {
-				display: block;
-			}
-		}
-
-		.kb-element-body a {
-			display: block;
-			margin-top: 5px;
-		}
-	}
-
-	.kb-article-comment {
-		border-top: 1px dotted;
-		margin: 20px;
-		padding: 10px;
-
-		.lfr-table {
-			vertical-align: top;
-			width: 100%;
-
-			.kb-article-comment-body {
-				word-wrap: break-word;
-			}
-
-			.kb-article-comment-user {
-				text-align: center;
-				width: 30%;
-			}
-		}
-	}
-
-	.kb-article-previous-comments {
-		clear: both;
-		margin-left: 15px;
-
-		.kb-article-add-comment {
-			margin: 10px 25px;
-		}
-
-		.kb-suggestion-actions {
-			margin: 10px 0;
-		}
-	}
-
-	.kb-article-suggestion {
-		clear: both;
-
-		textarea {
-			min-width: 98%;
-			padding: 1%;
-			width: 98%;
-		}
-
-		div.control-group {
-			margin-bottom: 5px;
-		}
-	}
-
-	@include respond-to(desktop) {
-		.kb-article-suggestion {
-			margin-left: 25px;
-
-			textarea {
-				max-width: 500px;
-			}
-		}
-	}
-
-	.kb-article-suggestion-actions {
-		clear: both;
+	.kb-article-ratings {
 		display: inline-block;
-		padding-left: 20px;
+		width: 100%;
 	}
 
 	.kb-article-siblings {
@@ -217,26 +147,26 @@
 		}
 	}
 
-	.kb-article-comment-date, .kb-article-comment-helpful {
-		margin-top: 10px;
-	}
-
 	.kb-article-tools {
-		float: right;
-		margin: 5px 0 5px;
+		margin-bottom: 15px;
+		text-align: right;
+
+		& > span {
+			margin-left: 5px;
+		}
 	}
 
 	.kb-attachments {
-		margin: 5px 0 0;
+		display: inline-block;
+		margin: 20px 0 0;
+
+		& > div {
+			padding-left: 0;
+		}
 	}
 
 	.kb-block-labels .field-label {
 		display: block;
-	}
-
-	.kb-bulk-action-button-holder {
-		margin-bottom: 15px;
-		margin-top: 15px;
 	}
 
 	.kb-column-no-wrap {
@@ -245,6 +175,10 @@
 
 	.kb-column-score {
 		width: 85px;
+	}
+
+	.kb-comment-status {
+		margin-right: 15px;
 	}
 
 	.kb-edit-link {
@@ -259,7 +193,7 @@
 		}
 
 		.kb-article-asset-entries {
-			margin: 15px 0 0;
+			margin: 15px 0;
 
 			.kb-info {
 				padding-left: 5px;
@@ -267,7 +201,7 @@
 
 			.kb-most-popular-column {
 				padding: 0 0 0 20px;
-				width: 40%;
+				width: 50%;
 
 				.kb-header {
 					margin: 0 -7px 0 -27px;
@@ -277,7 +211,7 @@
 
 			.kb-most-recent-column {
 				padding: 0 20px;
-				width: 60%;
+				width: 50%;
 
 				.kb-header {
 					margin: 0 0 0 -27px;
@@ -375,9 +309,17 @@
 	}
 }
 
+#wrapper .knowledge-base-portlet .card-horizontal.main-content-card {
+	min-height: 0;
+}
+
 /* Skin */
 
 .knowledge-base-portlet {
+	a.text-default, a.text-default:hover {
+		color: #869CAD;
+	}
+
 	.lfr-panel-container {
 		border-width: 0;
 	}
@@ -409,10 +351,6 @@
 					font-weight: bold;
 				}
 			}
-		}
-
-		.kb-article-assets {
-			color: #7D7D7D;
 		}
 
 		.kb-article-comments, .kb-template-comments {
@@ -452,5 +390,4 @@
 			word-wrap: break-word;
 		}
 	}
-
 }

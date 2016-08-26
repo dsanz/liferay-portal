@@ -145,6 +145,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PAGE_TYPE_FULL_PAGE_APPLICATION_SELECT</td>
+	<td>//select[contains(@id,'fullPageApplication')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -153,6 +158,16 @@
 <tr>
 	<td>CATEGORIZATION_PANEL_TOGGLE</td>
 	<td>//li/a[contains(@id,'categorization')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_CATEGORY_BUTTON</td>
+	<td>//button[contains(@title,'Select ${key_vocabularyName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CATEGORY_TREE_NODE</td>
+	<td>//li[contains(@id,'category')]//div//span[contains(@class,'tree-node-checkbox-container')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -239,11 +254,6 @@
 <tr>
 	<td>MOBILE_DEVICE_RULES_PANEL_TOGGLE</td>
 	<td>//li/a[contains(@id,'mobileDeviceRules')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td></td>
-	<td></td>
 	<td></td>
 </tr>
 <tr>

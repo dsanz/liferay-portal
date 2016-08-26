@@ -258,7 +258,7 @@
 			<var name="imageSourceURL" value="https://cdn.lfrs.sl/www.liferay.com/osb-community-theme/images/custom/heading.png" />
 		</execute>
 
-		<execute macro="PortletEntry#publish" />
+		<execute macro="BlogsEntry#publish" />
 
 		<execute macro="Navigator#openURL" />
 
@@ -600,6 +600,8 @@
 			<var name="portlet" value="Blogs" />
 		</execute>
 
+		<execute macro="DMPortlet#setDescriptiveView" />
+
 		<execute macro="BlogsEntry#searchCP">
 			<var name="entryContent" value="Blogs Entry Content" />
 			<var name="entrySearchTerm" value="Blogs Entry Content" />
@@ -648,6 +650,8 @@
 		<execute macro="ProductMenu#gotoSitesContent">
 			<var name="portlet" value="Blogs" />
 		</execute>
+
+		<execute macro="DMPortlet#setDescriptiveView" />
 
 		<execute macro="BlogsEntry#searchCP">
 			<var name="entryContent" value="Blogs Entry Content" />
@@ -730,7 +734,7 @@
 			<var name="uploadFileName" value="Document_1.jpg" />
 		</execute>
 
-		<execute macro="PortletEntry#publish" />
+		<execute macro="BlogsEntry#publish" />
 
 		<execute macro="BlogsNavigator#gotoEntryCP">
 			<var name="entryTitle" value="Blogs Entry Title" />

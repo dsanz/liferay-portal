@@ -62,6 +62,24 @@
 			<var name="portletOption" value="Configuration" />
 		</execute>
 
+		<execute macro="RSS#addFeed">
+			<var name="feedRowIndexNumber" value="0" />
+			<var name="feedTitle" value="Latimes > Technology News" />
+			<var name="feedUrlLink" value="http://www.latimes.com/business/technology/rss2.0.xml" />
+		</execute>
+
+		<execute macro="PortletEntry#save" />
+
+		<execute macro="Navigator#gotoSitePage">
+			<var name="pageName" value="ADT Test Page" />
+			<var name="siteName" value="Test Site Name" />
+		</execute>
+
+		<execute macro="Portlet#gotoPortletOptions">
+			<var name="portletName" value="RSS Publisher" />
+			<var name="portletOption" value="Configuration" />
+		</execute>
+
 		<execute macro="ApplicationDisplayTemplates#addManualViaRSS">
 			<var name="siteName" value="Test Site Name" />
 		</execute>
@@ -99,6 +117,24 @@
 			<var name="portletName" value="RSS Publisher" />
 		</execute>
 
+		<execute macro="Portlet#gotoPortletOptions">
+			<var name="portletName" value="RSS Publisher" />
+			<var name="portletOption" value="Configuration" />
+		</execute>
+
+		<execute macro="RSS#addFeed">
+			<var name="feedRowIndexNumber" value="0" />
+			<var name="feedTitle" value="Latimes > Technology News" />
+			<var name="feedUrlLink" value="http://www.latimes.com/business/technology/rss2.0.xml" />
+		</execute>
+
+		<execute macro="PortletEntry#save" />
+
+		<execute macro="Navigator#gotoSitePage">
+			<var name="pageName" value="ADT Test Page" />
+			<var name="siteName" value="Test Site Name" />
+		</execute>
+
 		<execute macro="ApplicationDisplayTemplates#addPG">
 			<var name="adtFile" value="adt_rss_navigation_corrupt.ftl" />
 			<var name="adtType" value="RSS" />
@@ -130,6 +166,24 @@
 
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="RSS Publisher" />
+		</execute>
+
+		<execute macro="Portlet#gotoPortletOptions">
+			<var name="portletName" value="RSS Publisher" />
+			<var name="portletOption" value="Configuration" />
+		</execute>
+
+		<execute macro="RSS#addFeed">
+			<var name="feedRowIndexNumber" value="0" />
+			<var name="feedTitle" value="Technology" />
+			<var name="feedUrlLink" value="http://rss.nytimes.com/services/xml/rss/nyt/Technology.xml" />
+		</execute>
+
+		<execute macro="PortletEntry#save" />
+
+		<execute macro="Navigator#gotoSitePage">
+			<var name="pageName" value="ADT Test Page" />
+			<var name="siteName" value="Test Site Name" />
 		</execute>
 
 		<execute macro="ApplicationDisplayTemplates#addPG">
@@ -643,7 +697,7 @@
 			<var name="siteName" value="Test Site Name" />
 		</execute>
 
-		<execute macro="Tag#addMultipleViaBlogsPG">
+		<execute macro="Blogs#addEntryWithTags">
 			<var name="entryContent" value="Entry Content" />
 			<var name="entryTitle" value="Entry Title" />
 			<var name="tagNameList" value="tag name 1,tag name 2,tag name 3" />
@@ -654,7 +708,7 @@
 			<var name="siteName" value="Test Site Name" />
 		</execute>
 
-		<execute macro="Tag#addMultipleViaBlogsPG">
+		<execute macro="Blogs#addEntryWithTags">
 			<var name="entryContent" value="Entry Content" />
 			<var name="entryTitle" value="Entry Title" />
 			<var name="tagNameList" value="tag name 2,tag name 3" />
@@ -665,7 +719,7 @@
 			<var name="siteName" value="Test Site Name" />
 		</execute>
 
-		<execute macro="Tag#addMultipleViaBlogsPG">
+		<execute macro="Blogs#addEntryWithTags">
 			<var name="entryContent" value="Entry Content" />
 			<var name="entryTitle" value="Entry Title" />
 			<var name="tagNameList" value="tag name 3" />

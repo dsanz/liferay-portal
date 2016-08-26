@@ -126,7 +126,7 @@
 </tr>
 <tr>
 	<td>GEOLOCATION_GOOGLE_MAP</td>
-	<td>//div[@data-fieldname='${key_fieldName}']//div[contains(@class,'lfrmapgoogle')]</td>
+	<td>//div[@data-fieldname='${key_fieldName}' and contains(@class,'geolocation')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -165,18 +165,23 @@
 	<td></td>
 </tr>
 <tr>
-	<td>LINK_TO_PAGE_PAGE_RADIO</td>
-	<td>//label[@name='tree-node-check' and contains(.,'${key_pageName}')]/input[@type='radio']</td>
+	<td>LINK_TO_PAGE_BREADCRUMB</td>
+	<td>//ul[contains(@class,'breadcrumb')]/li[${key_number}]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>LINK_TO_PAGE_SELECT_BUTTON</td>
-	<td>//button[contains(.,'Select')]</td>
+	<td>LINK_TO_PAGE_PAGE_RADIO</td>
+	<td>//a[contains(.,'${key_pageName}')]/../input[@type='radio']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>LINK_TO_PAGE_PAGE_CARET</td>
+	<td>//a[contains(.,'${key_pageName}')]/../input[@type='radio']/../a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>LINK_TO_PAGE_SELECT_PAGE_BUTTON</td>
-	<td>//button[contains(.,'Select')]</td>
+	<td>//div[@data-fieldname='${key_fieldName}']//button[contains(.,'Select')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -222,6 +227,16 @@
 <tr>
 	<td>TEXT_BOX_FIELD</td>
 	<td>//div[@data-fieldname='${key_fieldName}']//textarea</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WEB_CONTENT_FIELD</td>
+	<td>//div[@data-fieldname='${key_fieldName}']//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WEB_CONTENT_CHOOSE_FROM_WEB_CONTENT_LIBRARY_BUTTON</td>
+	<td>//div[@data-fieldname='${key_fieldName}']//button[contains(.,'Select')]</td>
 	<td></td>
 </tr>
 </tbody>

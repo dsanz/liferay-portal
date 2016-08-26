@@ -83,7 +83,7 @@
 			<c:choose>
 				<c:when test="<%= layoutPrototypeDisplayContext.isDescriptiveView() %>">
 					<liferay-ui:search-container-column-icon
-						icon="edit-layout"
+						icon="page-template"
 						toggleRowChecker="<%= true %>"
 					/>
 
@@ -98,7 +98,7 @@
 						%>
 
 						<h6 class="text-default">
-							<span><liferay-ui:message arguments="<%= modifiedDateDescription %>" key="modified-x-ago" /></span>
+							<span><liferay-ui:message arguments="<%= modifiedDateDescription %>" key="created-x-ago" /></span>
 						</h6>
 
 						<h5>
@@ -132,7 +132,7 @@
 							actionJsp="/layout_prototype_action.jsp"
 							actionJspServletContext="<%= application %>"
 							cssClass="entry-display-style"
-							icon="edit-layout"
+							icon="page-template"
 							resultRow="<%= row %>"
 							rowChecker="<%= searchContainer.getRowChecker() %>"
 							title="<%= layoutPrototype.getName(locale) %>"
@@ -147,7 +147,7 @@
 								%>
 
 								<label class="text-default">
-									<liferay-ui:message arguments="<%= modifiedDateDescription %>" key="modified-x-ago" />
+									<liferay-ui:message arguments="<%= modifiedDateDescription %>" key="created-x-ago" />
 								</label>
 							</liferay-frontend:vertical-card-header>
 
@@ -168,9 +168,8 @@
 				</c:when>
 				<c:when test="<%= layoutPrototypeDisplayContext.isListView() %>">
 					<liferay-ui:search-container-column-text
-						cssClass="content-column name-column title-column"
+						cssClass="table-cell-content"
 						name="name"
-						truncate="<%= true %>"
 					>
 						<aui:a href="<%= layoutPrototypeGroup.getDisplayURL(themeDisplay, true) %>" target="_blank"><%= layoutPrototype.getName(locale) %></aui:a>
 
@@ -184,26 +183,22 @@
 					</liferay-ui:search-container-column-text>
 
 					<liferay-ui:search-container-column-text
-						cssClass="content-column description-column"
+						cssClass="table-cell-content"
 						name="description"
-						truncate="<%= true %>"
 						value="<%= layoutPrototype.getDescription(locale) %>"
 					/>
 
 					<liferay-ui:search-container-column-date
-						cssClass="create-date-column text-column"
 						name="create-date"
 						property="createDate"
 					/>
 
 					<liferay-ui:search-container-column-text
-						cssClass="page-active-column"
 						name="active"
 						value='<%= LanguageUtil.get(request, layoutPrototype.isActive()? "yes" : "no") %>'
 					/>
 
 					<liferay-ui:search-container-column-jsp
-						cssClass="entry-action-column"
 						path="/layout_prototype_action.jsp"
 					/>
 				</c:when>

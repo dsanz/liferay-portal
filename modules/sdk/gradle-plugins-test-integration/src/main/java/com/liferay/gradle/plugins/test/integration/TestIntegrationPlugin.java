@@ -18,8 +18,8 @@ import com.liferay.gradle.plugins.test.integration.tasks.BaseAppServerTask;
 import com.liferay.gradle.plugins.test.integration.tasks.JmxRemotePortSpec;
 import com.liferay.gradle.plugins.test.integration.tasks.ManagerSpec;
 import com.liferay.gradle.plugins.test.integration.tasks.ModuleFrameworkBaseDirSpec;
-import com.liferay.gradle.plugins.test.integration.tasks.SetupArquillianTask;
-import com.liferay.gradle.plugins.test.integration.tasks.SetupTestableTomcatTask;
+import com.liferay.gradle.plugins.test.integration.tasks.SetUpArquillianTask;
+import com.liferay.gradle.plugins.test.integration.tasks.SetUpTestableTomcatTask;
 import com.liferay.gradle.plugins.test.integration.tasks.StartTestableTomcatTask;
 import com.liferay.gradle.plugins.test.integration.tasks.StopTestableTomcatTask;
 import com.liferay.gradle.plugins.test.integration.util.GradleUtil;
@@ -67,10 +67,10 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 
 	public static final String PLUGIN_NAME = "testIntegration";
 
-	public static final String SETUP_ARQUILLIAN_TASK_NAME = "setupArquillian";
+	public static final String SET_UP_ARQUILLIAN_TASK_NAME = "setUpArquillian";
 
-	public static final String SETUP_TESTABLE_TOMCAT_TASK_NAME =
-		"setupTestableTomcat";
+	public static final String SET_UP_TESTABLE_TOMCAT_TASK_NAME =
+		"setUpTestableTomcat";
 
 	public static final String START_TESTABLE_TOMCAT_TASK_NAME =
 		"startTestableTomcat";
@@ -93,14 +93,14 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 				project, PLUGIN_NAME + "Tomcat",
 				TestIntegrationTomcatExtension.class);
 
-		SetupTestableTomcatTask setupTestableTomcatTask =
-			addTaskSetupTestableTomcat(project, testIntegrationTomcatExtension);
+		SetUpTestableTomcatTask setUpTestableTomcatTask =
+			addTaskSetUpTestableTomcat(project, testIntegrationTomcatExtension);
 		StopTestableTomcatTask stopTestableTomcatTask =
 			addTaskStopTestableTomcat(
 				project, testIntegrationTask, testIntegrationTomcatExtension);
 		StartTestableTomcatTask startTestableTomcatTask =
 			addTaskStartTestableTomcat(
-				project, setupTestableTomcatTask, stopTestableTomcatTask,
+				project, setUpTestableTomcatTask, stopTestableTomcatTask,
 				testIntegrationTomcatExtension);
 
 		PluginContainer pluginContainer = project.getPlugins();
@@ -111,12 +111,12 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 
 				@Override
 				public void execute(WarPlugin warPlugin) {
-					SetupArquillianTask setupArquillianTask =
-						addTaskSetupArquillian(
+					SetUpArquillianTask setUpArquillianTask =
+						addTaskSetUpArquillian(
 							project, testIntegrationSourceSet,
 							testIntegrationTomcatExtension);
 
-					testIntegrationTask.dependsOn(setupArquillianTask);
+					testIntegrationTask.dependsOn(setUpArquillianTask);
 				}
 
 			});
@@ -126,18 +126,18 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 			testIntegrationTomcatExtension, startTestableTomcatTask);
 	}
 
-	protected SetupArquillianTask addTaskSetupArquillian(
+	protected SetUpArquillianTask addTaskSetUpArquillian(
 		final Project project, final SourceSet testIntegrationSourceSet,
 		TestIntegrationTomcatExtension testIntegrationTomcatExtension) {
 
-		SetupArquillianTask setupArquillianTask = GradleUtil.addTask(
-			project, SETUP_ARQUILLIAN_TASK_NAME, SetupArquillianTask.class);
+		SetUpArquillianTask setUpArquillianTask = GradleUtil.addTask(
+			project, SET_UP_ARQUILLIAN_TASK_NAME, SetUpArquillianTask.class);
 
-		setupArquillianTask.setDescription(
+		setUpArquillianTask.setDescription(
 			"Creates the Arquillian container configuration file for this " +
 				"project.");
 
-		setupArquillianTask.setOutputDir(
+		setUpArquillianTask.setOutputDir(
 			new Callable<File>() {
 
 				@Override
@@ -148,23 +148,23 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 			});
 
 		configureJmxRemotePortSpec(
-			setupArquillianTask, testIntegrationTomcatExtension);
+			setUpArquillianTask, testIntegrationTomcatExtension);
 		configureManagerSpec(
-			setupArquillianTask, testIntegrationTomcatExtension);
+			setUpArquillianTask, testIntegrationTomcatExtension);
 
-		return setupArquillianTask;
+		return setUpArquillianTask;
 	}
 
-	protected SetupTestableTomcatTask addTaskSetupTestableTomcat(
+	protected SetUpTestableTomcatTask addTaskSetUpTestableTomcat(
 		Project project,
 		final TestIntegrationTomcatExtension testIntegrationTomcatExtension) {
 
-		final SetupTestableTomcatTask setupTestableTomcatTask =
+		final SetUpTestableTomcatTask setUpTestableTomcatTask =
 			GradleUtil.addTask(
-				project, SETUP_TESTABLE_TOMCAT_TASK_NAME,
-				SetupTestableTomcatTask.class);
+				project, SET_UP_TESTABLE_TOMCAT_TASK_NAME,
+				SetUpTestableTomcatTask.class);
 
-		setupTestableTomcatTask.onlyIf(
+		setUpTestableTomcatTask.onlyIf(
 			new Spec<Task>() {
 
 				@Override
@@ -173,7 +173,7 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 
 					try {
 						if (_startedAppServerBinDirs.contains(
-								setupTestableTomcatTask.getBinDir())) {
+								setUpTestableTomcatTask.getBinDir())) {
 
 							return false;
 						}
@@ -187,11 +187,11 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 
 			});
 
-		setupTestableTomcatTask.setDescription(
+		setUpTestableTomcatTask.setDescription(
 			"Configures the local Liferay Tomcat bundle to run integration " +
 				"tests.");
 
-		setupTestableTomcatTask.setDir(
+		setUpTestableTomcatTask.setDir(
 			new Callable<File>() {
 
 				@Override
@@ -202,17 +202,17 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 			});
 
 		configureJmxRemotePortSpec(
-			setupTestableTomcatTask, testIntegrationTomcatExtension);
+			setUpTestableTomcatTask, testIntegrationTomcatExtension);
 		configureManagerSpec(
-			setupTestableTomcatTask, testIntegrationTomcatExtension);
+			setUpTestableTomcatTask, testIntegrationTomcatExtension);
 		configureModuleFrameworkBaseDirSpec(
-			setupTestableTomcatTask, testIntegrationTomcatExtension);
+			setUpTestableTomcatTask, testIntegrationTomcatExtension);
 
-		return setupTestableTomcatTask;
+		return setUpTestableTomcatTask;
 	}
 
 	protected StartTestableTomcatTask addTaskStartTestableTomcat(
-		Project project, SetupTestableTomcatTask setupTestableTomcatTask,
+		Project project, SetUpTestableTomcatTask setUpTestableTomcatTask,
 		StopTestableTomcatTask stopTestableTomcatTask,
 		final TestIntegrationTomcatExtension testIntegrationTomcatExtension) {
 
@@ -220,7 +220,7 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 			project, START_TESTABLE_TOMCAT_TASK_NAME,
 			StartTestableTomcatTask.class);
 
-		startTestableTomcatTask.dependsOn(setupTestableTomcatTask);
+		startTestableTomcatTask.dependsOn(setUpTestableTomcatTask);
 
 		Action<Task> action = new Action<Task>() {
 
@@ -333,10 +333,10 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 
 			@Override
 			public void execute(Task task) {
-				StopTestableTomcatTask setupTestableTomcatTask =
+				StopTestableTomcatTask setUpTestableTomcatTask =
 					(StopTestableTomcatTask)task;
 
-				File binDir = setupTestableTomcatTask.getBinDir();
+				File binDir = setUpTestableTomcatTask.getBinDir();
 
 				_startedAppServersReentrantLock.lock();
 
@@ -378,14 +378,14 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 
 			@Override
 			public void execute(Task task) {
-				StopTestableTomcatTask setupTestableTomcatTask =
+				StopTestableTomcatTask setUpTestableTomcatTask =
 					(StopTestableTomcatTask)task;
 
 				_startedAppServersReentrantLock.lock();
 
 				try {
 					_startedAppServerBinDirs.remove(
-						setupTestableTomcatTask.getBinDir());
+						setUpTestableTomcatTask.getBinDir());
 				}
 				finally {
 					_startedAppServersReentrantLock.unlock();
@@ -412,7 +412,7 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 
 		TaskExecutionGraph taskExecutionGraph = gradle.getTaskGraph();
 
-		Closure<Void> closure = new Closure<Void>(null) {
+		Closure<Void> closure = new Closure<Void>(gradle) {
 
 			@SuppressWarnings("unused")
 			public void doCall(TaskExecutionGraph taskExecutionGraph) {
@@ -549,7 +549,7 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 		final TestIntegrationTomcatExtension testIntegrationTomcatExtension,
 		final StartTestableTomcatTask startTestableTomcatTask) {
 
-		Closure<Task> closure = new Closure<Task>(null) {
+		Closure<Task> closure = new Closure<Task>(test.getProject()) {
 
 			@SuppressWarnings("unused")
 			public Task doCall(Test test) {
@@ -583,7 +583,8 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 
 				@Override
 				public void execute(Project project) {
-					configureTaskTestIntegrationEnabled(test);
+					configureTaskTestIntegrationEnabled(
+						test, testIntegrationSourceSet);
 
 					// GRADLE-2697
 
@@ -595,7 +596,9 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 			});
 	}
 
-	protected void configureTaskTestIntegrationEnabled(Test test) {
+	protected void configureTaskTestIntegrationEnabled(
+		Test test, SourceSet testIntegrationSourceSet) {
+
 		Project project = test.getProject();
 
 		Map<String, Object> args = new HashMap<>();
@@ -607,7 +610,10 @@ public class TestIntegrationPlugin implements Plugin<Project> {
 			"includes",
 			StringUtil.replaceEnding(test.getIncludes(), ".class", ".java"));
 
-		for (File dir : test.getTestSrcDirs()) {
+		SourceDirectorySet sourceDirectorySet =
+			testIntegrationSourceSet.getJava();
+
+		for (File dir : sourceDirectorySet.getSrcDirs()) {
 			args.put("dir", dir);
 
 			FileTree fileTree = project.fileTree(args);

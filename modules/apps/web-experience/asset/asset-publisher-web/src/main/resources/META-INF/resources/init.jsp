@@ -18,7 +18,8 @@
 
 <%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet" %>
 
-<%@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
+<%@ taglib uri="http://liferay.com/tld/asset" prefix="liferay-asset" %><%@
+taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
 taglib uri="http://liferay.com/tld/ddm" prefix="liferay-ddm" %><%@
 taglib uri="http://liferay.com/tld/flags" prefix="liferay-flags" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
@@ -41,10 +42,11 @@ page import="com.liferay.asset.kernel.service.AssetCategoryLocalServiceUtil" %><
 page import="com.liferay.asset.kernel.service.AssetVocabularyLocalServiceUtil" %><%@
 page import="com.liferay.asset.kernel.util.AssetEntryQueryProcessor" %><%@
 page import="com.liferay.asset.kernel.util.comparator.AssetRendererFactoryTypeNameComparator" %><%@
-page import="com.liferay.asset.publisher.web.configuration.AssetPublisherWebConfigurationValues" %><%@
+page import="com.liferay.asset.publisher.web.constants.AssetPublisherConstants" %><%@
 page import="com.liferay.asset.publisher.web.constants.AssetPublisherPortletKeys" %><%@
 page import="com.liferay.asset.publisher.web.display.context.AssetEntryResult" %><%@
 page import="com.liferay.asset.publisher.web.display.context.AssetPublisherDisplayContext" %><%@
+page import="com.liferay.asset.publisher.web.internal.configuration.AssetPublisherWebConfigurationValues" %><%@
 page import="com.liferay.asset.publisher.web.util.AssetPublisherHelper" %><%@
 page import="com.liferay.asset.publisher.web.util.AssetPublisherUtil" %><%@
 page import="com.liferay.document.library.kernel.util.DLUtil" %><%@
@@ -86,6 +88,7 @@ page import="com.liferay.portal.kernel.util.KeyValuePairComparator" %><%@
 page import="com.liferay.portal.kernel.util.ListUtil" %><%@
 page import="com.liferay.portal.kernel.util.LocaleUtil" %><%@
 page import="com.liferay.portal.kernel.util.LocalizationUtil" %><%@
+page import="com.liferay.portal.kernel.util.MapUtil" %><%@
 page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
 page import="com.liferay.portal.kernel.util.PortalUtil" %><%@
 page import="com.liferay.portal.kernel.util.PrefsParamUtil" %><%@
@@ -126,7 +129,7 @@ page import="javax.portlet.PortletURL" %>
 <portlet:defineObjects />
 
 <%
-AssetPublisherDisplayContext assetPublisherDisplayContext = new AssetPublisherDisplayContext(request, portletPreferences);
+AssetPublisherDisplayContext assetPublisherDisplayContext = new AssetPublisherDisplayContext(liferayPortletRequest, liferayPortletResponse, portletPreferences);
 
 Format dateFormatDate = FastDateFormatFactoryUtil.getDate(locale, timeZone);
 %>

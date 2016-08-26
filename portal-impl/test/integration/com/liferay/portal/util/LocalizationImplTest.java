@@ -192,7 +192,7 @@ public class LocalizationImplTest {
 
 		for (Locale locale : LanguageUtil.getAvailableLocales()) {
 			Assert.assertTrue(
-				"Key for " +locale + "included in XML",
+				"Key for " + locale + "included in XML",
 				xml.contains(
 					"<key language-id=\"" + locale + "\">defaultValue</key>"));
 		}
@@ -382,7 +382,7 @@ public class LocalizationImplTest {
 
 	@Test
 	public void testUpdateLocalization() {
-		Map<Locale, String>localizationMap = new HashMap<>();
+		Map<Locale, String> localizationMap = new HashMap<>();
 
 		localizationMap.put(LocaleUtil.US, _ENGLISH_HELLO);
 

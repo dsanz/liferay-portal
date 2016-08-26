@@ -1,19 +1,32 @@
 <#include "../init.ftl">
 
 <#if !(fields?? && fields.get(fieldName)??) && fieldRawValue == "">
-	<#assign fieldRawValue = predefinedValue>
+	<#assign fieldRawValue = predefinedValue />
 </#if>
 
-<#assign fieldRawValue = paramUtil.getString(request, "${namespacedFieldName}", fieldRawValue)>
+<#assign
+	fieldRawValue = paramUtil.getString(request, "${namespacedFieldName}", fieldRawValue)
 
-<#assign assetTitle = "">
+	assetTitle = ""
+/>
 
 <#if fieldRawValue != "">
-	<#assign fieldJournalJSONObject = jsonFactoryUtil.createJSONObject(fieldRawValue)>
+	<#assign
+		fieldJournalJSONObject = jsonFactoryUtil.createJSONObject(fieldRawValue)
 
-	<#assign selectedAssetTitle = getterUtil.getString(fieldJournalJSONObject.get("assettitle"))>
+		journalArticle = fetchLatestArticle(fieldJournalJSONObject)
+	/>
 
+	<#if journalArticle != "">
+		<#assign selectedAssetTitle = journalArticle.getTitle(requestedLocale) />
+	</#if>
 </#if>
+
+<#assign assetBrowserAuthToken = authTokenUtil.getToken(request, themeDisplay.getPlid(), "com_liferay_asset_browser_web_portlet_AssetBrowserPortlet") />
+
+<#assign data = data + {
+	"assetBrowserAuthToken": assetBrowserAuthToken
+}>
 
 <@liferay_aui["field-wrapper"] cssClass="form-builder-field" data=data required=required>
 	<div class="form-group">

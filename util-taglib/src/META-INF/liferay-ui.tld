@@ -656,6 +656,7 @@
 		<body-content>JSP</body-content>
 	</tag>
 	<tag>
+		<description>Deprecated as of 7.0.0, replaced by <![CDATA[<code>liferay-asset:asset-categories-selector</code>]]>.</description>
 		<name>asset-categories-selector</name>
 		<tag-class>com.liferay.taglib.ui.AssetCategoriesSelectorTag</tag-class>
 		<body-content>JSP</body-content>
@@ -867,6 +868,7 @@
 		<body-content>JSP</body-content>
 	</tag>
 	<tag>
+		<description>Deprecated as of 7.0.0, replaced by <![CDATA[<code>liferay-asset:asset-tags-selector</code>]]>.</description>
 		<name>asset-tags-navigation</name>
 		<tag-class>com.liferay.taglib.ui.AssetTagsNavigationTag</tag-class>
 		<body-content>JSP</body-content>
@@ -1845,6 +1847,11 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
+			<name>icon</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
 			<description>An ID for the component instance.</description>
 			<name>id</name>
 			<required>false</required>
@@ -1864,6 +1871,12 @@
 			<type>boolean</type>
 		</attribute>
 		<attribute>
+			<description>A CSS class for styling the icon's URL.</description>
+			<name>linkCssClass</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
 			<description>Text to display on mouse over of the icon.</description>
 			<name>message</name>
 			<required>false</required>
@@ -1872,6 +1885,11 @@
 		<attribute>
 			<description>An HTTP request method to invoke. Possible values are <![CDATA[<code>get</code>]]> and <![CDATA[<code>post</code>]]>.</description>
 			<name>method</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>showIcon</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
@@ -5434,7 +5452,7 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
-			<description>Whether to use the indexer for search. The default value is <![CDATA[<code>true</code>]]>.</description>
+			<description>Deprecated as of 7.0.0, with no direct replacement.</description>
 			<name>useIndexer</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>

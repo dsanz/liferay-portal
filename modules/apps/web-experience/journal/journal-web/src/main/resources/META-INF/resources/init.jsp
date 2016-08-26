@@ -18,7 +18,8 @@
 
 <%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet" %>
 
-<%@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
+<%@ taglib uri="http://liferay.com/tld/asset" prefix="liferay-asset" %><%@
+taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
 taglib uri="http://liferay.com/tld/ddm" prefix="liferay-ddm" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
 taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
@@ -53,11 +54,11 @@ page import="com.liferay.dynamic.data.mapping.service.permission.DDMStructurePer
 page import="com.liferay.dynamic.data.mapping.service.permission.DDMTemplatePermission" %><%@
 page import="com.liferay.dynamic.data.mapping.storage.DDMFormValues" %><%@
 page import="com.liferay.dynamic.data.mapping.util.DDMNavigationHelper" %><%@
+page import="com.liferay.frontend.taglib.servlet.taglib.util.AddMenuKeys" %><%@
 page import="com.liferay.item.selector.ItemSelector" %><%@
 page import="com.liferay.item.selector.ItemSelectorReturnType" %><%@
 page import="com.liferay.item.selector.criteria.UUIDItemSelectorReturnType" %><%@
 page import="com.liferay.journal.configuration.JournalGroupServiceConfiguration" %><%@
-page import="com.liferay.journal.configuration.JournalServiceConfigurationValues" %><%@
 page import="com.liferay.journal.constants.JournalConstants" %><%@
 page import="com.liferay.journal.constants.JournalPortletKeys" %><%@
 page import="com.liferay.journal.constants.JournalWebKeys" %><%@
@@ -80,6 +81,7 @@ page import="com.liferay.journal.exception.FeedTargetLayoutFriendlyUrlException"
 page import="com.liferay.journal.exception.FeedTargetPortletIdException" %><%@
 page import="com.liferay.journal.exception.FolderNameException" %><%@
 page import="com.liferay.journal.exception.InvalidDDMStructureException" %><%@
+page import="com.liferay.journal.exception.MaxAddMenuFavItemsException" %><%@
 page import="com.liferay.journal.exception.NoSuchArticleException" %><%@
 page import="com.liferay.journal.exception.NoSuchFolderException" %><%@
 page import="com.liferay.journal.model.JournalArticle" %><%@
@@ -103,15 +105,15 @@ page import="com.liferay.journal.util.comparator.ArticleVersionComparator" %><%@
 page import="com.liferay.journal.util.impl.JournalUtil" %><%@
 page import="com.liferay.journal.web.asset.JournalArticleAssetRenderer" %><%@
 page import="com.liferay.journal.web.configuration.JournalWebConfiguration" %><%@
-page import="com.liferay.journal.web.dao.search.JournalResultRowSplitter" %><%@
-page import="com.liferay.journal.web.display.context.JournalDisplayContext" %><%@
-page import="com.liferay.journal.web.display.context.JournalMoveEntriesDisplayContext" %><%@
-page import="com.liferay.journal.web.display.context.util.JournalWebRequestHelper" %><%@
-page import="com.liferay.journal.web.portlet.JournalPortlet" %><%@
-page import="com.liferay.journal.web.portlet.action.ActionUtil" %><%@
-page import="com.liferay.journal.web.search.ArticleSearch" %><%@
-page import="com.liferay.journal.web.search.FeedSearch" %><%@
-page import="com.liferay.journal.web.search.FeedSearchTerms" %><%@
+page import="com.liferay.journal.web.internal.dao.search.JournalResultRowSplitter" %><%@
+page import="com.liferay.journal.web.internal.display.context.JournalDisplayContext" %><%@
+page import="com.liferay.journal.web.internal.display.context.JournalMoveEntriesDisplayContext" %><%@
+page import="com.liferay.journal.web.internal.display.context.util.JournalWebRequestHelper" %><%@
+page import="com.liferay.journal.web.internal.portlet.JournalPortlet" %><%@
+page import="com.liferay.journal.web.internal.portlet.action.ActionUtil" %><%@
+page import="com.liferay.journal.web.internal.search.ArticleSearch" %><%@
+page import="com.liferay.journal.web.internal.search.FeedSearch" %><%@
+page import="com.liferay.journal.web.internal.search.FeedSearchTerms" %><%@
 page import="com.liferay.journal.web.util.JournalPortletUtil" %><%@
 page import="com.liferay.layout.item.selector.criterion.LayoutItemSelectorCriterion" %><%@
 page import="com.liferay.portal.kernel.bean.BeanParamUtil" %><%@
@@ -175,7 +177,6 @@ page import="com.liferay.trash.kernel.util.TrashUtil" %>
 <%@ page import="java.text.Format" %>
 
 <%@ page import="java.util.ArrayList" %><%@
-page import="java.util.Arrays" %><%@
 page import="java.util.Collections" %><%@
 page import="java.util.Date" %><%@
 page import="java.util.HashMap" %><%@

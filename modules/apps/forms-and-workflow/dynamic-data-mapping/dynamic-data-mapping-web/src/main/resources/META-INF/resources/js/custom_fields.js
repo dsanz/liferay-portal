@@ -162,14 +162,14 @@ AUI.add(
 						portletURL.setParameter('itemSelectedEventName', portletNamespace + 'selectDocumentLibrary');
 
 						var criterionJSON = {
-							desiredItemSelectorReturnTypes: 'com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType,com.liferay.item.selector.criteria.UploadableFileReturnType'
+							desiredItemSelectorReturnTypes: 'com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType'
 						};
 
 						portletURL.setParameter('0_json', JSON.stringify(criterionJSON));
 						portletURL.setParameter('1_json', JSON.stringify(criterionJSON));
 
 						var uploadCriterionJSON = {
-							desiredItemSelectorReturnTypes: 'com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType,com.liferay.item.selector.criteria.UploadableFileReturnType',
+							desiredItemSelectorReturnTypes: 'com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType',
 							URL: instance._getUploadURL()
 						};
 
@@ -923,10 +923,17 @@ AUI.add(
 				'keyword': Liferay.Language.get('yes')
 			};
 
-			if (type == 'ddm-text-html' || type == 'text' || type == 'textarea') {
+			if (type == 'text') {
 				indexTypeOptions = {
 					'': Liferay.Language.get('not-indexable'),
 					'keyword': Liferay.Language.get('indexable-keyword'),
+					'text': Liferay.Language.get('indexable-text')
+				};
+			}
+
+			if (type == 'ddm-text-html' || type == 'textarea') {
+				indexTypeOptions = {
+					'': Liferay.Language.get('not-indexable'),
 					'text': Liferay.Language.get('indexable-text')
 				};
 			}

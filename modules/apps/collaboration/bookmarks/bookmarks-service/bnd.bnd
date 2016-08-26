@@ -1,9 +1,8 @@
 Bundle-Name: Liferay Bookmarks Service
 Bundle-SymbolicName: com.liferay.bookmarks.service
-Bundle-Version: 1.0.6
+Bundle-Version: 1.0.13
 Export-Package:\
 	com.liferay.bookmarks.asset,\
-	com.liferay.bookmarks.lar,\
 	com.liferay.bookmarks.search,\
 	com.liferay.bookmarks.service.permission,\
 	com.liferay.bookmarks.social,\

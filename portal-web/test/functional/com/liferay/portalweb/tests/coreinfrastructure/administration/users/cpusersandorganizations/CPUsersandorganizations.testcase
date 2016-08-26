@@ -106,6 +106,12 @@
 			<var name="orgType" value="Organization" />
 		</execute>
 
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="UsersAndOrganizationsNavigator#gotoOrganizations" />
+
 		<execute macro="Suborganization#addCP">
 			<var name="orgName" value="Organization Name" />
 			<var name="orgType" value="Organization" />
@@ -122,9 +128,8 @@
 		<execute macro="Organization#viewSubOrganizationCP">
 			<var name="orgName" value="Organization Name" />
 			<var name="orgType" value="Organization" />
-			<var name="suborganizationCount" value="1 Suborganization" />
 			<var name="suborgName" value="Sub Organization Name" />
-			<var name="suborgType" value="Regular Organization" />
+			<var name="suborgType" value="Organization" />
 		</execute>
 	</command>
 
@@ -399,7 +404,7 @@
 		<execute macro="Page#add">
 			<var name="pageName" value="Private Page" />
 			<var name="siteName" value="Organization Name" />
-			<var name="sitePagePrivacy" value="Private Pages" />
+			<var name="sitePagePrivacy" value="Private" />
 		</execute>
 
 		<execute macro="Navigator#gotoSpecificURLPage">
@@ -452,6 +457,14 @@
 	</command>
 
 	<command name="AddOrganizationTeam" priority="4">
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="Server Administration" />
+		</execute>
+
+		<execute macro="ServerAdministration#executeServerResourcesActions">
+			<var name="actionsDescription" value="Reindex all search indexes." />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
@@ -1184,7 +1197,9 @@
 			<var name="userScreenName" value="usersn" />
 		</execute>
 
-		<execute macro="User#logoutPG" />
+		<execute macro="Navigator#openSpecificURL">
+			<var name="url" value="http://localhost:8080/c/portal/logout" />
+		</execute>
 
 		<execute macro="User#loginUserInvalidPG">
 			<var name="password" value="test" />
@@ -1699,6 +1714,8 @@
 		<execute macro="User#basicSearchCP">
 			<var name="userBasicSearch" value="Full Name" />
 			<var name="userEmailAddress" value="userea@liferay.com" />
+			<var name="userFirstName" value="userfn" />
+			<var name="userLastName" value="userln" />
 			<var name="userName" value="userfn userln" />
 			<var name="userScreenName" value="usersn" />
 		</execute>

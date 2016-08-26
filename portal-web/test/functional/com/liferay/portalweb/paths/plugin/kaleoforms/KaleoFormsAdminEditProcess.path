@@ -115,7 +115,7 @@
 <!--FIELD_SET_PAGINATION-->
 <tr>
 	<td>FIELD_SET_PAGINATION_SELECTOR_BUTTON</td>
-	<td>//div[@class='lfr-pagination-delta-selector']/div/a/span</td>
+	<td>//div[@class='dropdown pagination-items-per-page']//a[@type='button']</td>
 	<td></td>
 </tr>
 <tr>
@@ -190,12 +190,12 @@
 <!--WORKFLOW_NAVIGATION-->
 <tr>
 	<td>WORKFLOW_NAVIGATION_PUBLISHED_TAB</td>
-	<td>//ul[@class='nav nav-tabs']/li/a[contains(.,'Published')]</td>
+	<td>//a[@title='Published']/span</td>
 	<td></td>
 </tr>
 <tr>
 	<td>WORKFLOW_NAVIGATION_UNPUBLISHED_TAB</td>
-	<td>//ul[@class='nav nav-tabs']/li/a[contains(.,'Unpublished')]</td>
+	<td>//a[@title='Unpublished']/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -270,17 +270,17 @@
 <!--FORMS_TABLE-->
 <tr>
 	<td>FORMS_TABLE_TASK</td>
-	<td>//div[contains(@id,'kaleoformsportlet_taskForm')]//tr[contains(.,'${key_workflowTask}')]/td[1]</td>
+	<td>//table[contains(@class,'table-list')]//tr[contains(.,'${key_workflowTask}')]/td</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FORMS_TABLE_FORM</td>
-	<td>//div[contains(@id,'kaleoformsportlet_taskForm')]//tr[contains(.,'${key_workflowTask}')]/td[2]</td>
+	<td>//table[contains(@class,'table-list')]//tr[contains(.,'${key_workflowTask}')]//td[contains(@class,'form-column')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>FORMS_TABLE_ASSIGN_FORM_BUTTON</td>
-	<td>//tr[contains(.,'${key_workflowTask}')]//span[contains(.,'Assign Form')]</td>
+	<td></td>
+	<td></td>
 	<td></td>
 </tr>
 </tbody>

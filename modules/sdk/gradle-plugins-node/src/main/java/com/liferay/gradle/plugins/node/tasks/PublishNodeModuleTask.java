@@ -14,8 +14,8 @@
 
 package com.liferay.gradle.plugins.node.tasks;
 
-import com.liferay.gradle.util.FileUtil;
-import com.liferay.gradle.util.GradleUtil;
+import com.liferay.gradle.plugins.node.util.FileUtil;
+import com.liferay.gradle.plugins.node.util.GradleUtil;
 import com.liferay.gradle.util.Validator;
 
 import groovy.json.JsonOutput;
@@ -36,10 +36,8 @@ import java.util.Map;
 
 import org.codehaus.groovy.runtime.EncodingGroovyMethods;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Optional;
@@ -50,15 +48,12 @@ import org.gradle.api.tasks.Optional;
 public class PublishNodeModuleTask extends ExecuteNpmTask {
 
 	@Override
-	public void executeNode() {
+	public void executeNode() throws Exception {
 		try {
 			createNpmrcFile();
 			createPackageJsonFile();
 
 			super.executeNode();
-		}
-		catch (IOException ioe) {
-			throw new GradleException(ioe.getMessage(), ioe);
 		}
 		finally {
 			Project project = getProject();
@@ -200,6 +195,8 @@ public class PublishNodeModuleTask extends ExecuteNpmTask {
 	}
 
 	protected void createPackageJsonFile() throws IOException {
+		Logger logger = getLogger();
+
 		Map<String, Object> map = new HashMap<>();
 
 		String author = getModuleAuthor();
@@ -250,8 +247,8 @@ public class PublishNodeModuleTask extends ExecuteNpmTask {
 
 		String json = JsonOutput.toJson(map);
 
-		if (_logger.isInfoEnabled()) {
-			_logger.info(json);
+		if (logger.isInfoEnabled()) {
+			logger.info(json);
 		}
 
 		File packageJsonFile = getPackageJsonFile();
@@ -287,9 +284,6 @@ public class PublishNodeModuleTask extends ExecuteNpmTask {
 	protected File getPackageJsonFile() {
 		return new File(getWorkingDir(), "package.json");
 	}
-
-	private static final Logger _logger = Logging.getLogger(
-		PublishNodeModuleTask.class);
 
 	private Object _moduleAuthor;
 	private Object _moduleBugsUrl;

@@ -6995,6 +6995,291 @@ public class KBArticleUtil {
 	}
 
 	/**
+	* Returns all the k b articles where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @return the matching k b articles
+	*/
+	public static List<KBArticle> findByG_KBFI_L(long groupId, long kbFolderId,
+		boolean latest) {
+		return getPersistence().findByG_KBFI_L(groupId, kbFolderId, latest);
+	}
+
+	/**
+	* Returns a range of all the k b articles where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link KBArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @param start the lower bound of the range of k b articles
+	* @param end the upper bound of the range of k b articles (not inclusive)
+	* @return the range of matching k b articles
+	*/
+	public static List<KBArticle> findByG_KBFI_L(long groupId, long kbFolderId,
+		boolean latest, int start, int end) {
+		return getPersistence()
+				   .findByG_KBFI_L(groupId, kbFolderId, latest, start, end);
+	}
+
+	/**
+	* Returns an ordered range of all the k b articles where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link KBArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @param start the lower bound of the range of k b articles
+	* @param end the upper bound of the range of k b articles (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the ordered range of matching k b articles
+	*/
+	public static List<KBArticle> findByG_KBFI_L(long groupId, long kbFolderId,
+		boolean latest, int start, int end,
+		OrderByComparator<KBArticle> orderByComparator) {
+		return getPersistence()
+				   .findByG_KBFI_L(groupId, kbFolderId, latest, start, end,
+			orderByComparator);
+	}
+
+	/**
+	* Returns an ordered range of all the k b articles where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link KBArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @param start the lower bound of the range of k b articles
+	* @param end the upper bound of the range of k b articles (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @param retrieveFromCache whether to retrieve from the finder cache
+	* @return the ordered range of matching k b articles
+	*/
+	public static List<KBArticle> findByG_KBFI_L(long groupId, long kbFolderId,
+		boolean latest, int start, int end,
+		OrderByComparator<KBArticle> orderByComparator,
+		boolean retrieveFromCache) {
+		return getPersistence()
+				   .findByG_KBFI_L(groupId, kbFolderId, latest, start, end,
+			orderByComparator, retrieveFromCache);
+	}
+
+	/**
+	* Returns the first k b article in the ordered set where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching k b article
+	* @throws NoSuchArticleException if a matching k b article could not be found
+	*/
+	public static KBArticle findByG_KBFI_L_First(long groupId, long kbFolderId,
+		boolean latest, OrderByComparator<KBArticle> orderByComparator)
+		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
+		return getPersistence()
+				   .findByG_KBFI_L_First(groupId, kbFolderId, latest,
+			orderByComparator);
+	}
+
+	/**
+	* Returns the first k b article in the ordered set where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching k b article, or <code>null</code> if a matching k b article could not be found
+	*/
+	public static KBArticle fetchByG_KBFI_L_First(long groupId,
+		long kbFolderId, boolean latest,
+		OrderByComparator<KBArticle> orderByComparator) {
+		return getPersistence()
+				   .fetchByG_KBFI_L_First(groupId, kbFolderId, latest,
+			orderByComparator);
+	}
+
+	/**
+	* Returns the last k b article in the ordered set where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching k b article
+	* @throws NoSuchArticleException if a matching k b article could not be found
+	*/
+	public static KBArticle findByG_KBFI_L_Last(long groupId, long kbFolderId,
+		boolean latest, OrderByComparator<KBArticle> orderByComparator)
+		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
+		return getPersistence()
+				   .findByG_KBFI_L_Last(groupId, kbFolderId, latest,
+			orderByComparator);
+	}
+
+	/**
+	* Returns the last k b article in the ordered set where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching k b article, or <code>null</code> if a matching k b article could not be found
+	*/
+	public static KBArticle fetchByG_KBFI_L_Last(long groupId, long kbFolderId,
+		boolean latest, OrderByComparator<KBArticle> orderByComparator) {
+		return getPersistence()
+				   .fetchByG_KBFI_L_Last(groupId, kbFolderId, latest,
+			orderByComparator);
+	}
+
+	/**
+	* Returns the k b articles before and after the current k b article in the ordered set where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* @param kbArticleId the primary key of the current k b article
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the previous, current, and next k b article
+	* @throws NoSuchArticleException if a k b article with the primary key could not be found
+	*/
+	public static KBArticle[] findByG_KBFI_L_PrevAndNext(long kbArticleId,
+		long groupId, long kbFolderId, boolean latest,
+		OrderByComparator<KBArticle> orderByComparator)
+		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
+		return getPersistence()
+				   .findByG_KBFI_L_PrevAndNext(kbArticleId, groupId,
+			kbFolderId, latest, orderByComparator);
+	}
+
+	/**
+	* Returns all the k b articles that the user has permission to view where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @return the matching k b articles that the user has permission to view
+	*/
+	public static List<KBArticle> filterFindByG_KBFI_L(long groupId,
+		long kbFolderId, boolean latest) {
+		return getPersistence().filterFindByG_KBFI_L(groupId, kbFolderId, latest);
+	}
+
+	/**
+	* Returns a range of all the k b articles that the user has permission to view where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link KBArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @param start the lower bound of the range of k b articles
+	* @param end the upper bound of the range of k b articles (not inclusive)
+	* @return the range of matching k b articles that the user has permission to view
+	*/
+	public static List<KBArticle> filterFindByG_KBFI_L(long groupId,
+		long kbFolderId, boolean latest, int start, int end) {
+		return getPersistence()
+				   .filterFindByG_KBFI_L(groupId, kbFolderId, latest, start, end);
+	}
+
+	/**
+	* Returns an ordered range of all the k b articles that the user has permissions to view where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link KBArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @param start the lower bound of the range of k b articles
+	* @param end the upper bound of the range of k b articles (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the ordered range of matching k b articles that the user has permission to view
+	*/
+	public static List<KBArticle> filterFindByG_KBFI_L(long groupId,
+		long kbFolderId, boolean latest, int start, int end,
+		OrderByComparator<KBArticle> orderByComparator) {
+		return getPersistence()
+				   .filterFindByG_KBFI_L(groupId, kbFolderId, latest, start,
+			end, orderByComparator);
+	}
+
+	/**
+	* Returns the k b articles before and after the current k b article in the ordered set of k b articles that the user has permission to view where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* @param kbArticleId the primary key of the current k b article
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the previous, current, and next k b article
+	* @throws NoSuchArticleException if a k b article with the primary key could not be found
+	*/
+	public static KBArticle[] filterFindByG_KBFI_L_PrevAndNext(
+		long kbArticleId, long groupId, long kbFolderId, boolean latest,
+		OrderByComparator<KBArticle> orderByComparator)
+		throws com.liferay.knowledge.base.exception.NoSuchArticleException {
+		return getPersistence()
+				   .filterFindByG_KBFI_L_PrevAndNext(kbArticleId, groupId,
+			kbFolderId, latest, orderByComparator);
+	}
+
+	/**
+	* Removes all the k b articles where groupId = &#63; and kbFolderId = &#63; and latest = &#63; from the database.
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	*/
+	public static void removeByG_KBFI_L(long groupId, long kbFolderId,
+		boolean latest) {
+		getPersistence().removeByG_KBFI_L(groupId, kbFolderId, latest);
+	}
+
+	/**
+	* Returns the number of k b articles where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @return the number of matching k b articles
+	*/
+	public static int countByG_KBFI_L(long groupId, long kbFolderId,
+		boolean latest) {
+		return getPersistence().countByG_KBFI_L(groupId, kbFolderId, latest);
+	}
+
+	/**
+	* Returns the number of k b articles that the user has permission to view where groupId = &#63; and kbFolderId = &#63; and latest = &#63;.
+	*
+	* @param groupId the group ID
+	* @param kbFolderId the kb folder ID
+	* @param latest the latest
+	* @return the number of matching k b articles that the user has permission to view
+	*/
+	public static int filterCountByG_KBFI_L(long groupId, long kbFolderId,
+		boolean latest) {
+		return getPersistence()
+				   .filterCountByG_KBFI_L(groupId, kbFolderId, latest);
+	}
+
+	/**
 	* Returns all the k b articles where groupId = &#63; and kbFolderId = &#63; and status = &#63;.
 	*
 	* @param groupId the group ID

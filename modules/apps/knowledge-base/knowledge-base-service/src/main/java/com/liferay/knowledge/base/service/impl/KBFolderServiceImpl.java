@@ -20,8 +20,10 @@ import com.liferay.knowledge.base.constants.KBActionKeys;
 import com.liferay.knowledge.base.model.KBFolder;
 import com.liferay.knowledge.base.service.base.KBFolderServiceBaseImpl;
 import com.liferay.knowledge.base.service.permission.KBFolderPermission;
+import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.util.List;
 
@@ -52,6 +54,18 @@ public class KBFolderServiceImpl extends KBFolderServiceBaseImpl {
 			getPermissionChecker(), kbFolderId, KBActionKeys.DELETE);
 
 		return kbFolderLocalService.deleteKBFolder(kbFolderId);
+	}
+
+	@Override
+	public KBFolder fetchKBFolder(long kbFolderId) throws PortalException {
+		KBFolder kbFolder = kbFolderLocalService.fetchKBFolder(kbFolderId);
+
+		if (kbFolder != null) {
+			KBFolderPermission.check(
+				getPermissionChecker(), kbFolder, KBActionKeys.VIEW);
+		}
+
+		return kbFolder;
 	}
 
 	public KBFolder fetchKBFolderByUrlTitle(
@@ -99,6 +113,28 @@ public class KBFolderServiceImpl extends KBFolderServiceBaseImpl {
 
 		return kbFolderPersistence.filterFindByG_P(
 			groupId, parentKBFolderId, start, end);
+	}
+
+	@Override
+	public List<Object> getKBFoldersAndKBArticles(
+		long groupId, long parentResourcePrimKey, int status, int start,
+		int end, OrderByComparator<?> orderByComparator) {
+
+		QueryDefinition<?> queryDefinition = new QueryDefinition<>(
+			status, start, end, orderByComparator);
+
+		return kbFolderFinder.filterFindF_A_ByG_P(
+			groupId, parentResourcePrimKey, queryDefinition);
+	}
+
+	@Override
+	public int getKBFoldersAndKBArticlesCount(
+		long groupId, long parentResourcePrimKey, int status) {
+
+		QueryDefinition<?> queryDefinition = new QueryDefinition<>(status);
+
+		return kbFolderFinder.filterCountF_A_ByG_P(
+			groupId, parentResourcePrimKey, queryDefinition);
 	}
 
 	@Override

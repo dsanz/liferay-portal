@@ -23,6 +23,40 @@
 		<execute function="Click" locator1="Form#PUBLISH_FORM_SWITCHER" />
 	</command>
 
+	<command name="closeSidebar">
+		<execute function="Click" locator1="Form#SIDEBAR_CLOSE" />
+	</command>
+
+	<command name="configureEmailNotifications">
+		<execute function="AssertClick" locator1="Form#SETTINGS_TAB_EMAIL_NOTIFICATIONS" value1="Email Notifications" />
+
+		<execute macro="FormFields#enableSwitcher">
+			<var name="fieldName" value="sendEmailNotification" />
+		</execute>
+
+		<execute macro="FormFields#editText">
+			<var name="fieldName" value="emailFromName" />
+			<var name="fieldValue" value="${fromName}" />
+		</execute>
+
+		<execute macro="FormFields#editText">
+			<var name="fieldName" value="emailFromAddress" />
+			<var name="fieldValue" value="${fromAddress}" />
+		</execute>
+
+		<execute macro="FormFields#editText">
+			<var name="fieldName" value="emailToAddress" />
+			<var name="fieldValue" value="${toAddress}" />
+		</execute>
+
+		<execute macro="FormFields#editText">
+			<var name="fieldName" value="emailSubject" />
+			<var name="fieldValue" value="${subject}" />
+		</execute>
+
+		<execute macro="Button#clickDone" />
+	</command>
+
 	<command name="configureRequireCaptcha">
 		<execute macro="FormFields#enableSwitcher">
 			<var name="fieldName" value="requireCaptcha" />
@@ -59,17 +93,28 @@
 			<var name="fieldValue" value="${fieldValue}" />
 		</execute>
 
-		<var method="StringUtil#replace('${fieldValue}', ' ', '')" name="fieldName" />
+		<if>
+			<not>
+				<isset var="fieldName" />
+			</not>
+			<then>
+				<var method="StringUtil#replace('${fieldValue}', ' ', '')" name="fieldName" />
+			</then>
+		</if>
 
 		<execute macro="FormFields#viewFieldName">
 			<var name="fieldName" value="${fieldName}" />
 		</execute>
+
+		<var name="key_fieldName" value="${fieldName}" />
+
+		<execute function="AssertTextEquals" locator1="Form#FIELD_LABEL" value1="${fieldValue}" />
 	</command>
 
 	<command name="editName">
 		<var name="key_columnSize" value="${columnSize}" />
 
-		<execute function="AssertVisible" locator1="Form#ADD_FIRST_FIELD" />
+		<execute function="AssertVisible" locator1="Form#ADD_FIELD" />
 		<execute function="AssertVisible" locator1="Form#NAME_FIELD" />
 		<execute function="AssertVisible" locator1="Form#DESCRIPTION_FIELD" />
 
@@ -88,25 +133,28 @@
 		<execute function="Type" locator1="Form#PAGE_TITLE_FIELD" value1="${formPageName}" />
 	</command>
 
-	<command name="gotoAddAdditionalField">
-		<var name="key_columnSize" value="${columnSize}" />
-		<var name="key_previousFieldLabel" value="${previousFieldLabel}" />
+	<command name="getPublishedFormPublicURL" returns="publicURL">
+		<var locator="Form#PUBLISH_FORM_PUBLIC_URL" name="publicURL" />
 
-		<execute function="Click#makeVisibleClickAt" locator1="Form#ADD_ADDITIONAL_FIELD" />
+		<return name="publicURL" value="${publicURL}" />
+	</command>
+
+	<command name="gotoAddField">
+		<var name="key_columnSize" value="${columnSize}" />
+
+		<execute function="Click#makeVisibleClickAt" locator1="Form#ADD_FIELD" />
 
 		<var name="key_fieldType" value="${fieldType}" />
 
 		<execute function="AssertClick" locator1="Form#ADD_FIELD_TYPE" value1="${fieldType}" />
 	</command>
 
-	<command name="gotoAddFirstField">
-		<var name="key_columnSize" value="${columnSize}" />
+	<command name="goToAdvancedTab">
+		<execute function="AssertClick" locator1="Form#SIDEBAR_ADVANCED_TAB" value1="Advanced" />
+	</command>
 
-		<execute function="Click" locator1="Form#ADD_FIRST_FIELD" />
-
-		<var name="key_fieldType" value="${fieldType}" />
-
-		<execute function="AssertClick" locator1="Form#ADD_FIELD_TYPE" value1="${fieldType}" />
+	<command name="goToBasicTab">
+		<execute function="AssertClick" locator1="Form#SIDEBAR_BASIC_TAB" value1="Basic" />
 	</command>
 
 	<command name="previewForm">

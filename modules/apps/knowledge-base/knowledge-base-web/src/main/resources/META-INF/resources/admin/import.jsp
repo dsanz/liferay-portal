@@ -40,7 +40,7 @@ renderResponse.setTitle(LanguageUtil.get(resourceBundle, "import"));
 			KBArticleImportException kbaie = (KBArticleImportException)errorException;
 			%>
 
-			<%= LanguageUtil.format(locale, "an-unexpected-error-occurred-while-importing-articles-x", kbaie.getLocalizedMessage()) %>
+			<%= LanguageUtil.format(request, "an-unexpected-error-occurred-while-importing-articles-x", kbaie.getLocalizedMessage()) %>
 		</liferay-ui:error>
 
 		<liferay-ui:error exception="<%= UploadRequestSizeException.class %>">
@@ -69,13 +69,7 @@ renderResponse.setTitle(LanguageUtil.get(resourceBundle, "import"));
 		<aui:button-row>
 			<aui:button cssClass="btn-lg" name="submit" type="submit" />
 
-			<portlet:renderURL var="cancelURL">
-				<portlet:param name="mvcPath" value="/admin/view.jsp" />
-				<portlet:param name="parentResourceClassNameId" value="<%= String.valueOf(PortalUtil.getClassNameId(KBFolderConstants.getClassName())) %>" />
-				<portlet:param name="parentResourcePrimKey" value="<%= String.valueOf(parentKBFolderId) %>" />
-			</portlet:renderURL>
-
-			<aui:button cssClass="btn-lg" href="<%= cancelURL %>" type="cancel" />
+			<aui:button cssClass="btn-lg" href="<%= redirect %>" type="cancel" />
 		</aui:button-row>
 	</aui:form>
 </div>

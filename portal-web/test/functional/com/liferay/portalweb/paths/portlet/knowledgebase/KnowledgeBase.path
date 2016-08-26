@@ -14,6 +14,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>KB_TOOLS</td>
+	<td>//div[@class='kb-tools']//span[contains(.,'${key_kbTool}')]/a/span</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -26,7 +31,7 @@
 </tr>
 <tr>
 	<td>ADMIN_TABS_SUGGESTIONS</td>
-	<td>//ul[contains(@class,'nav-tabs')]/li[contains(.,'Suggestions')]/a</td>
+	<td>//ul[contains(@class,'navbar')]/li/a[contains(.,'Suggestions')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -53,6 +58,47 @@
 <tr>
 	<td>MENUBAR_PERMISSIONS</td>
 	<td>//ul[@role='menubar']//a[contains(.,'Permissions')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--ARTICLE_DESCRIPTIVE-->
+<tr>
+	<td>ARTICLE_DESCRIPTIVE_ARTICLE_TITLE</td>
+	<td>//ul[contains(@class,'descriptive')]//a[contains(.,'${key_kbArticleTitle}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ARTICLE_DESCRIPTIVE_ARTICLE_AUTHOR</td>
+	<td>//li[contains(.,'${key_kbArticleTitle}')]//h5[contains(.,'${key_userName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ARTICLE_DESCRIPTIVE_ARTICLE_CHECKBOX</td>
+	<td>//li[contains(.,'${key_kbArticleTitle}')]//input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ARTICLE_DESCRIPTIVE_ARTICLE_PRIORITY</td>
+	<td>//li[contains(.,'${key_kbArticleTitle}')]//span[contains(.,'Priority')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ARTICLE_DESCRIPTIVE_ARTICLE_STATUS</td>
+	<td>//li[contains(.,'${key_kbArticleTitle}')]//span[contains(@class,'status')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ARTICLE_DESCRIPTIVE_ARTICLE_TITLE_GENERIC</td>
+	<td>//ul[contains(@class,'descriptive')]//a</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
 	<td></td>
 </tr>
 <!--ARTICLE_TABLE-->
@@ -93,7 +139,7 @@
 </tr>
 <tr>
 	<td>ARTICLE_TABLE_ARTICLE_STATUS</td>
-	<td>//tr[contains(.,'${key_kbArticleTitle}')]/td[7]</td>
+	<td>//div[contains(.,'${key_kbArticleTitle}')]//h5//span</td>
 	<td></td>
 </tr>
 <tr>
@@ -121,6 +167,48 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--DESCRIPTIVE_VIEW-->
+<tr>
+	<td>DESCRIPTIVE_VIEW_ARTICLE_OPTIONS_DROPDOWN</td>
+	<td>//li[contains(.,'${key_kbArticleTitle}')]//span/*[name()='svg'][contains(@class,'icon-ellipsis-v')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DESCRIPTIVE_VIEW_ARTICLE_PRIORITY</td>
+	<td>//div[contains(.,'${key_kbArticleTitle}')]/h5/span[@class='kb-descriptive-details' and contains(.,'Priority')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DESCRIPTIVE_VIEW_ARTICLE_TITLE</td>
+	<td>//h4/a[contains(.,'${key_kbArticleTitle}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DESCRIPTIVE_VIEW_CHILD_ARTICLE_DETAILS</td>
+	<td>//li[contains(.,'${key_kbArticleTitle}')]//a[contains(.,'Child Article')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--CHILD_ARTICLES-->
+<tr>
+	<td>CHILD_PAGE_HEADER</td>
+	<td>//div[@class='sidenav-content']/h4</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHILD_PAGE_TITLE</td>
+	<td>//div[@class='list-group-item-content']//a[contains(.,'${key_kbChildArticleTitle}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
 <!--DISPLAY-->
 <tr>
 	<td>DISPLAY_ACTIONS_BUTTON</td>
@@ -139,12 +227,12 @@
 </tr>
 <tr>
 	<td>DISPLAY_CONTENT</td>
-	<td>//div[@class='kb-article-container']//div[@class='kb-article-body']</td>
+	<td>//div[contains(@class,'kb-entity-body')]//p</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DISPLAY_TITLE</td>
-	<td>//div[@class='kb-article-container']//h1</td>
+	<td>//h3[@class='header-title']//span</td>
 	<td></td>
 </tr>
 <tr>
@@ -163,11 +251,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>DISPLAY_READ_MORE_LINK</td>
-	<td>//div[@class='kb-article-child']//a[contains(.,'Read More')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -179,6 +262,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FOLDER_NAVIGATION_MENULIST</td>
+	<td>//div[contains(@class,'form-group')]/select</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FOLDER_SELECT_DROPDOWN</td>
 	<td>//select[contains(@id,'rootKBFolderId')]</td>
 	<td></td>
@@ -186,6 +274,22 @@
 <tr>
 	<td>FOLDER_SELECT_OPTION</td>
 	<td>//select[contains(@id,'rootKBFolderId')]/option[contains(.,'${key_kbFolderName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--FOLDER_DESCRIPTIVE-->
+<tr>
+	<td>FOLDER_DESCRIPTIVE_FOLDER_NAME</td>
+	<td>//ul[contains(@class,'descriptive')]//a[contains(.,'${key_kbFolderName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOLDER_DESCRIPTIVE_AUTHOR_NAME</td>
+	<td>//ul[contains(@class,'descriptive')]//h5[contains(.,'${key_userName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -299,7 +403,7 @@
 </tr>
 <tr>
 	<td>LINK_THERE_ARE_SUGGESTIONS</td>
-	<td>//div[@class='kb-article-container']//div[@class='kb-article-suggestion-actions']/a[2]</td>
+	<td>//div[@class='sidenav-content']//div[contains(.,'suggestion')]</td>
 	<td></td>
 </tr>
 <tr>

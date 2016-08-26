@@ -10,12 +10,22 @@
 <tbody>
 <tr>
 	<td>TITLE</td>
-	<td>//h3[@class='header-title']/span</td>
+	<td>//div[contains(@class,'panel-body')]/h1</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CONTENT</td>
-	<td>//div[@class='kb-article-body']</td>
+	<td>//div[contains(@class,'panel-body')]//p</td>
+	<td></td>
+</tr>
+<tr>
+	<td>HTML_BOLD_CONTENT</td>
+	<td>//div[contains(@class,'panel-body')]//b</td>
+	<td></td>
+</tr>
+<tr>
+	<td>HEADER_TITLE</td>
+	<td>//h3[@class='header-title']/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -26,6 +36,16 @@
 <tr>
 	<td>EDIT_ON_GITHUB</td>
 	<td>//span[contains(.,'Edit on GitHub')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ARTICLE_TITLE</td>
+	<td>//div[@class='kb-article-container']//h1[@class='kb-title']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ARTICLE_CONTENT</td>
+	<td>//div[@class='kb-article-container']//div[@class='kb-article-body']</td>
 	<td></td>
 </tr>
 <tr>
@@ -55,7 +75,7 @@
 </tr>
 <tr>
 	<td>DO_YOU_HAVE_ANY_SUGGESTIONS</td>
-	<td>//div[@class='kb-article-container']//div/a[contains(.,'Do you have any suggestions?')]</td>
+	<td>//div[contains(.,'Do you have any suggestions?')]/h5</td>
 	<td></td>
 </tr>
 <tr>
@@ -82,12 +102,12 @@
 <!--ATTACHMENTS-->
 <tr>
 	<td>ATTACHMENTS_HEADER_COLLAPSED</td>
-	<td>//div[contains(@class,'toggler-header-collapsed') and contains(.,'Attachments')]/div/span</td>
+	<td>//a[contains(@class,'collapse-icon') and contains(@aria-expanded,'false') and contains(.,'Attachments')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ATTACHMENTS_HEADER_EXPANDED</td>
-	<td>//div[contains(@class,'toggler-header-expanded') and contains(.,'Attachments')]/div/span</td>
+	<td>//a[contains(@class,'collapse-icon') and contains(@aria-expanded,'true') and contains(.,'Attachments')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -139,32 +159,32 @@
 <!--HISTORY-->
 <tr>
 	<td>HISTORY_TITLE</td>
-	<td>//div[@class='kb-title']</td>
+	<td>//div[contains(@class,'taglib-diff')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>HISTORY_CONTENT</td>
-	<td>//div[@class='kb-entity-body']</td>
+	<td>//div[contains(@class,'taglib-diff')]//p</td>
 	<td></td>
 </tr>
 <tr>
 	<td>HISTORY_CONTENT_ADDED_DIFF</td>
-	<td>//div[@class='kb-entity-body']//span[contains(@id,'added-diff')]</td>
+	<td>//div[@class='panel-body']//p//span[contains(@id,'added-diff')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>HISTORY_CONTENT_REMOVED_DIFF</td>
-	<td>//div[@class='kb-entity-body']//span[contains(@id,'removed-diff')]</td>
+	<td>//div[@class='panel-body']//p[contains(.,'${key_kbArticleContentRemovedDiff}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>HISTORY_TITLE_ADDED_DIFF</td>
-	<td>//div[@class='kb-title']//span[contains(@id,'added-diff')]</td>
+	<td>//div[@class='panel-body']//span[contains(@id,'added-diff')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>HISTORY_TITLE_REMOVED_DIFF</td>
-	<td>//div[@class='kb-title']//span[contains(@id,'removed-diff')]</td>
+	<td>//div[@class='panel-body']//p//span</td>
 	<td></td>
 </tr>
 <tr>
@@ -185,7 +205,12 @@
 <!--SECTIONS-->
 <tr>
 	<td>SECTIONS_SELECT</td>
-	<td>//select[contains(@id, 'knowledge_base_web') and contains(@id, 'sections')]</td>
+	<td>//select[contains(@id, 'knowledge_base_web') and contains(@id, 'sections')]//option[contains(.,'${key_kbArticleSection}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADMIN_KB_ARTICLE_SECTION</td>
+	<td>xpath=(//div[contains(@data-fieldname,'KBArticleSections')]//textarea)[${key_counter}]</td>
 	<td></td>
 </tr>
 <tr>

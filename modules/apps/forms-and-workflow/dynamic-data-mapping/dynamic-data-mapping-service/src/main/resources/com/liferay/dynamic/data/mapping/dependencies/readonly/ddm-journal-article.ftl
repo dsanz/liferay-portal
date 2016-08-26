@@ -16,12 +16,14 @@
 			/>
 		</#if>
 
-		<#assign jsonObject = getFileJSONObject(fieldRawValue)>
+		<#assign
+			jsonObject = getFileJSONObject(fieldRawValue)
 
-		<#assign assetTitle = jsonObject.getString("assettitle")>
+			journalArticle = fetchLatestArticle(jsonObject)
+		/>
 
-		<#if assetTitle != "">
-			${escape(assetTitle)}
+		<#if journalArticle != "">
+			${escape(journalArticle.getTitle(requestedLocale))}
 		</#if>
 	</#if>
 

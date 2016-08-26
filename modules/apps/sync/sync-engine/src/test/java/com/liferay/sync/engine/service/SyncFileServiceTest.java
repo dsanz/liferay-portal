@@ -15,7 +15,7 @@
 package com.liferay.sync.engine.service;
 
 import com.liferay.sync.engine.BaseTestCase;
-import com.liferay.sync.engine.documentlibrary.util.FileEventUtil;
+import com.liferay.sync.engine.document.library.util.FileEventUtil;
 import com.liferay.sync.engine.model.SyncFile;
 import com.liferay.sync.engine.service.persistence.SyncFilePersistence;
 import com.liferay.sync.engine.util.FileUtil;
@@ -43,7 +43,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 /**
  * @author Shinn Lok
  */
-@PrepareForTest({FileEventUtil.class})
+@PrepareForTest(FileEventUtil.class)
 @RunWith(PowerMockRunner.class)
 public class SyncFileServiceTest extends BaseTestCase {
 

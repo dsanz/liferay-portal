@@ -71,13 +71,12 @@ public class LegacyExternalRepositoryFactory implements RepositoryFactory {
 
 		com.liferay.portal.kernel.model.Repository repository = null;
 
+		ClassName className = _classNameLocalService.getClassName(classNameId);
+
+		String repositoryImplClassName = className.getValue();
+
 		try {
 			repository = _repositoryLocalService.getRepository(repositoryId);
-
-			ClassName className = _classNameLocalService.getClassName(
-				classNameId);
-
-			String repositoryImplClassName = className.getValue();
 
 			baseRepository = ExternalRepositoryFactoryUtil.getInstance(
 				repositoryImplClassName);
@@ -92,7 +91,12 @@ public class LegacyExternalRepositoryFactory implements RepositoryFactory {
 		setupRepository(repositoryId, repository, baseRepository);
 
 		if (!ExportImportThreadLocal.isImportInProcess()) {
-			baseRepository.initRepository();
+			try {
+				baseRepository.initRepository();
+			}
+			catch (Exception e) {
+				throw new RepositoryException(e);
+			}
 		}
 
 		return baseRepository;

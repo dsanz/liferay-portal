@@ -160,7 +160,7 @@
 </tr>
 <tr>
 	<td>CANCEL</td>
-	<td>//a[contains(@class,'cancel') and contains(@class,'btn')] | //button[contains(.,'Cancel')]</td>
+	<td>//a[contains(@class,'cancel') and contains(@class,'btn')] | //button[contains(.,'Cancel')] | //a[contains(@class,'btn') and contains(.,'Cancel')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -235,7 +235,7 @@
 </tr>
 <tr>
 	<td>CLOSE_MODAL</td>
-	<td>//button[contains(.,'×')]</td>
+	<td>//h3[contains(@class,'modal-title') and contains(.,'${key_modalTitle}')]/../div/button[contains(@class,'close')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -366,6 +366,11 @@
 <tr>
 	<td>FINISH_CONFIGURATION</td>
 	<td>//button[contains(.,'Finish Configuration')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GENERATE</td>
+	<td>//button[contains(.,'Generate')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -641,6 +646,11 @@
 <tr>
 	<td>SELECT_SCOPE</td>
 	<td>//div[contains(@class,'btn-group')]/a[@title='Default']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_VOCABULARY</td>
+	<td>//button[contains(@title,'Select Vocabulary')]</td>
 	<td></td>
 </tr>
 <tr>

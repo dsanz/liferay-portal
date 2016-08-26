@@ -34,7 +34,7 @@ public class PortletBagPoolTest {
 
 	@Test
 	public void test1() throws Exception {
-		PortletBagPool.get("1_WAR_flashportlet");
+		PortletBagPool.get("1_WAR_pacl_testportlet");
 	}
 
 	@Test
@@ -50,13 +50,13 @@ public class PortletBagPoolTest {
 
 	@Test
 	public void test3() throws Exception {
-		PortletBagPool.get("flash-portlet");
+		PortletBagPool.get("pacl-test-portlet");
 	}
 
 	@Test
 	public void test4() throws Exception {
 		PortletBagPool.put(
-			"1_WAR_flashportlet",
+			"1_WAR_pacl_testportlet",
 			new PortletBagImpl(
 				null, null, null, null, null, null, null, null, null, null,
 				null, null, null, null, null, null, null, null, null, null,
@@ -83,7 +83,7 @@ public class PortletBagPoolTest {
 	@Test
 	public void test6() throws Exception {
 		PortletBagPool.put(
-			"flash-portlet",
+			"pacl-test-portlet",
 			new PortletBagImpl(
 				null, null, null, null, null, null, null, null, null, null,
 				null, null, null, null, null, null, null, null, null, null,
@@ -92,7 +92,7 @@ public class PortletBagPoolTest {
 
 	@Test
 	public void test7() throws Exception {
-		PortletBagPool.remove("1_WAR_flashportlet");
+		PortletBagPool.remove("1_WAR_pacl_testportlet");
 	}
 
 	@Test
@@ -108,7 +108,7 @@ public class PortletBagPoolTest {
 
 	@Test
 	public void test9() throws Exception {
-		PortletBagPool.remove("flash-portlet");
+		PortletBagPool.remove("pacl-test-portlet");
 	}
 
 	@Test

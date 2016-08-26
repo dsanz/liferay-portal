@@ -140,6 +140,8 @@ public class SyncDevicePersistenceTest {
 
 		newSyncDevice.setFeatureSet(RandomTestUtil.nextInt());
 
+		newSyncDevice.setHostname(RandomTestUtil.randomString());
+
 		newSyncDevice.setStatus(RandomTestUtil.nextInt());
 
 		_syncDevices.add(_persistence.update(newSyncDevice));
@@ -168,6 +170,8 @@ public class SyncDevicePersistenceTest {
 			newSyncDevice.getBuildNumber());
 		Assert.assertEquals(existingSyncDevice.getFeatureSet(),
 			newSyncDevice.getFeatureSet());
+		Assert.assertEquals(existingSyncDevice.getHostname(),
+			newSyncDevice.getHostname());
 		Assert.assertEquals(existingSyncDevice.getStatus(),
 			newSyncDevice.getStatus());
 	}
@@ -188,6 +192,13 @@ public class SyncDevicePersistenceTest {
 		_persistence.countByUuid_C(StringPool.NULL, 0L);
 
 		_persistence.countByUuid_C((String)null, 0L);
+	}
+
+	@Test
+	public void testCountByUserId() throws Exception {
+		_persistence.countByUserId(RandomTestUtil.nextLong());
+
+		_persistence.countByUserId(0L);
 	}
 
 	@Test
@@ -225,7 +236,8 @@ public class SyncDevicePersistenceTest {
 		return OrderByComparatorFactoryUtil.create("SyncDevice", "uuid", true,
 			"syncDeviceId", true, "companyId", true, "userId", true,
 			"userName", true, "createDate", true, "modifiedDate", true, "type",
-			true, "buildNumber", true, "featureSet", true, "status", true);
+			true, "buildNumber", true, "featureSet", true, "hostname", true,
+			"status", true);
 	}
 
 	@Test
@@ -444,6 +456,8 @@ public class SyncDevicePersistenceTest {
 		syncDevice.setBuildNumber(RandomTestUtil.nextLong());
 
 		syncDevice.setFeatureSet(RandomTestUtil.nextInt());
+
+		syncDevice.setHostname(RandomTestUtil.randomString());
 
 		syncDevice.setStatus(RandomTestUtil.nextInt());
 

@@ -4,7 +4,7 @@ import org.apache.tools.ant.filters.FixCrLfFilter
 
 apply plugin: "antlr"
 
-String parserDirName = "com/liferay/wiki/engine/creole/parser/parser"
+String parserDirName = "com/liferay/wiki/engine/creole/internal/parser/parser"
 
 cleanGenerateGrammarSource {
 	delete "src/main/java/" + parserDirName
@@ -18,7 +18,7 @@ compileJava {
 dependencies {
 	antlr group: "org.antlr", name: "antlr", version: "3.0.1"
 
-	provided group: "com.liferay", name: "com.liferay.wiki.api", version: "2.0.0"
+	provided group: "com.liferay", name: "com.liferay.wiki.api", version: "2.2.0"
 	provided group: "com.liferay", name: "com.liferay.wiki.engine.input.editor.common", version: "2.0.0"
 	provided group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "2.0.0"
 	provided group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "2.0.0"

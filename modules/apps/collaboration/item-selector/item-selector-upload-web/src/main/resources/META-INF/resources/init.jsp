@@ -14,6 +14,8 @@
  */
 --%>
 
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
 <%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet" %>
 
 <%@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
@@ -21,9 +23,10 @@ taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %><%@
 taglib uri="http://liferay.com/tld/util" prefix="liferay-util" %>
 
-<%@ page import="com.liferay.item.selector.criteria.UploadableFileReturnType" %><%@
-page import="com.liferay.item.selector.upload.web.ItemSelectorUploadView" %><%@
-page import="com.liferay.item.selector.upload.web.display.context.ItemSelectorUploadViewDisplayContext" %><%@
+<%@ page import="com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType" %><%@
+page import="com.liferay.item.selector.upload.web.internal.ItemSelectorUploadView" %><%@
+page import="com.liferay.item.selector.upload.web.internal.display.context.ItemSelectorUploadViewDisplayContext" %><%@
+page import="com.liferay.portal.kernel.servlet.BrowserSnifferUtil" %><%@
 page import="com.liferay.portal.kernel.util.HtmlUtil" %>
 
 <liferay-theme:defineObjects />

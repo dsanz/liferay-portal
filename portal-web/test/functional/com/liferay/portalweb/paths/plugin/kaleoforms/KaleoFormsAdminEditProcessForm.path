@@ -14,8 +14,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>CHOOSE_FORM_BUTTON</td>
-	<td>//button[@data-name='${key_kfFormName}']</td>
+	<td>SAVE_BUTTON</td>
+	<td>//button[contains(.,'Save') and contains(@onclick,'saveTemplate')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -35,6 +35,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FORM_TABLE_NAME_LINK</td>
+	<td>//table[contains(@data-searchcontainerid,'ddmTemplatesSearchContainer')]//a[@data-name='${key_kfFormName}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FORM_TABLE_ACTIONS</td>
 	<td>//tr[contains(.,'${key_kfFormName}')]//a[contains(@class,'dropdown-toggle')]</td>
 	<td></td>
@@ -47,7 +52,7 @@
 <!--FORM_MENULIST-->
 <tr>
 	<td>FORM_MENULIST_EDIT</td>
-	<td>//a[@role='menuitem' and contains(.,'Edit')]</td>
+	<td>//a[@role='menuitem' and contains(.,'Edit Form')]</td>
 	<td></td>
 </tr>
 <tr>

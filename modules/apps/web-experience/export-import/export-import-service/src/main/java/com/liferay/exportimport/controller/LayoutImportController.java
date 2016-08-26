@@ -23,6 +23,7 @@ import static com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleCon
 import static com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleConstants.PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS;
 import static com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleConstants.PROCESS_FLAG_LAYOUT_STAGING_IN_PROCESS;
 
+import com.liferay.exportimport.constants.ExportImportConstants;
 import com.liferay.exportimport.kernel.controller.ExportImportController;
 import com.liferay.exportimport.kernel.controller.ImportController;
 import com.liferay.exportimport.kernel.exception.LARFileException;
@@ -40,6 +41,7 @@ import com.liferay.exportimport.kernel.lar.PortletDataHandler;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerStatusMessageSenderUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
+import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.exportimport.kernel.lar.UserIdStrategy;
 import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleManager;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
@@ -65,6 +67,7 @@ import com.liferay.portal.kernel.model.LayoutPrototype;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
 import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.plugin.Version;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutPrototypeLocalService;
@@ -103,7 +106,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiPredicate;
 
 import org.apache.commons.lang.time.StopWatch;
 
@@ -630,7 +635,13 @@ public class LayoutImportController implements ImportController {
 			_permissionImporter.readPortletDataPermissions(portletDataContext);
 		}
 
-		_portletImportController.readExpandoTables(portletDataContext);
+		if (!layoutsImportMode.equals(
+				PortletDataHandlerKeys.
+					LAYOUTS_IMPORT_MODE_CREATED_FROM_PROTOTYPE)) {
+
+			_portletImportController.readExpandoTables(portletDataContext);
+		}
+
 		_portletImportController.readLocks(portletDataContext);
 
 		// Layouts
@@ -1036,6 +1047,9 @@ public class LayoutImportController implements ImportController {
 			portletDataContext.addDeletionSystemEventStagedModelTypes(
 				portletDataHandler.getDeletionSystemEventStagedModelTypes());
 		}
+
+		portletDataContext.addDeletionSystemEventStagedModelTypes(
+			new StagedModelType(Layout.class));
 	}
 
 	@Reference(unbind = "-")
@@ -1265,19 +1279,77 @@ public class LayoutImportController implements ImportController {
 			throw new LARFileException(e);
 		}
 
-		// Build compatibility
-
-		int buildNumber = ReleaseInfo.getBuildNumber();
+		// Bundle compatibility
 
 		Element headerElement = rootElement.element("header");
 
 		int importBuildNumber = GetterUtil.getInteger(
 			headerElement.attributeValue("build-number"));
 
-		if (buildNumber != importBuildNumber) {
-			throw new LayoutImportException(
-				"LAR build number " + importBuildNumber + " does not match " +
-					"portal build number " + buildNumber);
+		if (importBuildNumber < ReleaseInfo.RELEASE_7_0_0_BUILD_NUMBER) {
+			int buildNumber = ReleaseInfo.getBuildNumber();
+
+			if (buildNumber != importBuildNumber) {
+				StringBundler sb = new StringBundler(4);
+
+				sb.append("LAR build number ");
+				sb.append(importBuildNumber);
+				sb.append(" does not match portal build number ");
+				sb.append(buildNumber);
+
+				throw new LayoutImportException(sb.toString());
+			}
+		}
+		else {
+			BiPredicate<Version, Version> majorVersionBiPredicate =
+				(currentVersion, importVersion) ->
+					Objects.equals(
+						currentVersion.getMajor(), importVersion.getMajor());
+
+			BiPredicate<Version, Version> minorVersionBiPredicate =
+				(currentVersion, importVersion) -> {
+					int currentMinorVersion = GetterUtil.getInteger(
+						currentVersion.getMinor(), -1);
+					int importedMinorVersion = GetterUtil.getInteger(
+						importVersion.getMinor(), -1);
+
+					if (((currentMinorVersion == -1) &&
+						 (importedMinorVersion == -1)) ||
+						(currentMinorVersion < importedMinorVersion)) {
+
+						return false;
+					}
+
+					return true;
+				};
+
+			BiPredicate<Version, Version> manifestVersionBiPredicate =
+				(currentVersion, importVersion) -> {
+					BiPredicate<Version, Version> versionBiPredicate =
+						majorVersionBiPredicate.and(minorVersionBiPredicate);
+
+					return versionBiPredicate.test(
+						currentVersion, importVersion);
+				};
+
+			String importSchemaVersion = GetterUtil.getString(
+				headerElement.attributeValue("schema-version"), "1.0.0");
+
+			if (!manifestVersionBiPredicate.test(
+					Version.getInstance(
+						ExportImportConstants.EXPORT_IMPORT_SCHEMA_VERSION),
+					Version.getInstance(importSchemaVersion))) {
+
+				StringBundler sb = new StringBundler(4);
+
+				sb.append("LAR schema version ");
+				sb.append(importSchemaVersion);
+				sb.append(
+					" does not match deployed export/import schema version ");
+				sb.append(ExportImportConstants.EXPORT_IMPORT_SCHEMA_VERSION);
+
+				throw new LayoutImportException(sb.toString());
+			}
 		}
 
 		// Type

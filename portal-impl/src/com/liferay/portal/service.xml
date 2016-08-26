@@ -658,6 +658,12 @@
 			<finder-column name="privateLayout" />
 			<finder-column name="sourcePrototypeLayoutUuid" />
 		</finder>
+		<finder name="G_P_P_LtP" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="privateLayout" />
+			<finder-column name="parentLayoutId" />
+			<finder-column comparator="&lt;=" name="priority" />
+		</finder>
 
 		<!-- References -->
 
@@ -2076,7 +2082,11 @@
 
 		<!-- References -->
 
+		<reference entity="Company" package-path="com.liferay.portal" />
+		<reference entity="ResourceBlock" package-path="com.liferay.portal" />
+		<reference entity="ResourceBlockPermission" package-path="com.liferay.portal" />
 		<reference entity="ResourcePermission" package-path="com.liferay.portal" />
+		<reference entity="ResourceTypePermission" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="ResourceBlock" remote-service="true">
 
@@ -2745,7 +2755,6 @@
 		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
 		<reference entity="AnnouncementsDelivery" package-path="com.liferay.portlet.announcements" />
 		<reference entity="AssetEntry" package-path="com.liferay.portlet.asset" />
-		<reference entity="BlogsStatsUser" package-path="com.liferay.portlet.blogs" />
 		<reference entity="DLFileEntry" package-path="com.liferay.portlet.documentlibrary" />
 		<reference entity="DLFileRank" package-path="com.liferay.portlet.documentlibrary" />
 		<reference entity="ExpandoRow" package-path="com.liferay.portlet.expando" />

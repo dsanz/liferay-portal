@@ -18,13 +18,17 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.security.permission.UserBag;
 import com.liferay.portal.kernel.security.permission.UserBagFactory;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserGroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PropsValues;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -57,18 +61,34 @@ public class UserBagFactoryImpl implements UserBagFactory {
 				userOrgGroups.add(organization.getGroup());
 			}
 
-			List<Role> userRoles = null;
+			List<UserGroup> userUserGroups =
+				UserGroupLocalServiceUtil.getUserUserGroups(userId);
 
-			if (!userGroups.isEmpty()) {
-				userRoles = RoleLocalServiceUtil.getUserRelatedRoles(
-					userId, userGroups);
+			List<Group> userUserGroupGroups =
+				GroupLocalServiceUtil.getUserGroupsGroups(userUserGroups);
+
+			List<Group> allUserGroups = new ArrayList<>();
+
+			allUserGroups.addAll(userGroups);
+			allUserGroups.addAll(userOrgGroups);
+			allUserGroups.addAll(userUserGroupGroups);
+
+			if (allUserGroups.isEmpty()) {
+				long[] userRoleIds = UserLocalServiceUtil.getRolePrimaryKeys(
+					userId);
+
+				userBag = new UserBagImpl(
+					userId, userGroups, userOrgs, userOrgGroups,
+					userUserGroupGroups, userRoleIds);
 			}
 			else {
-				userRoles = RoleLocalServiceUtil.getUserRoles(userId);
-			}
+				List<Role> userRoles = RoleLocalServiceUtil.getUserRelatedRoles(
+					userId, allUserGroups);
 
-			userBag = new UserBagImpl(
-				userId, userGroups, userOrgs, userOrgGroups, userRoles);
+				userBag = new UserBagImpl(
+					userId, userGroups, userOrgs, userOrgGroups,
+					userUserGroupGroups, userRoles);
+			}
 
 			PermissionCacheUtil.putUserBag(userId, userBag);
 

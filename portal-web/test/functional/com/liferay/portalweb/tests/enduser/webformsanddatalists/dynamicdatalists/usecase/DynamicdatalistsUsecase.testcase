@@ -74,7 +74,7 @@
 
 		<execute function="Click" locator1="Button#PLUS" />
 
-		<execute function="Type#clickAtSendKeys" locator1="TextInput#NAME" value1="${ddlListName}" />
+		<execute function="Type#clickAtType" locator1="TextInput#NAME" value1="${ddlListName}" />
 		<execute macro="Button#clickSave" />
 
 		<execute macro="Alert#viewRequestFailedToComplete" />
@@ -346,6 +346,233 @@
 		<execute macro="DDLRecord#viewSecondFieldCP">
 			<var name="ddlRecordFieldData" value="" />
 			<var name="fieldFieldLabel" value="Date" />
+		</execute>
+	</command>
+
+	<command name="AddRecordWithBlankDocumentsAndMediaField" priority="3">
+		<description message="This is a use case for LPS-66229." />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="Page#add">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="pageName" value="DDL Page" />
+			<var name="portletName" value="Dynamic Data Lists Display" />
+		</execute>
+
+		<execute macro="DDLList#addViaDDLDisplayPG" />
+
+		<execute macro="DDLDataDefinition#addViaDDLDisplayPG" />
+
+		<execute macro="DynamicDataMapping#addField">
+			<var name="field" value="Documents and Media" />
+			<var name="fieldFieldLabel" value="Documents and Media" />
+			<var name="fieldName" value="DocumentsAndMedia" />
+		</execute>
+
+		<execute macro="DDLDataDefinition#saveViaDDLDisplayPG" />
+
+		<execute macro="DDLDataDefinition#selectViaDDLDisplayPG" />
+
+		<execute macro="DDLList#saveViaDDLDisplayPG" />
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="DDLRecord#addViaDDLDisplayPG" />
+
+		<execute macro="PortletEntry#publish" />
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="DDLRecord#viewViaDDLDisplayTable">
+			<var name="ddlRecordFieldData" value="" />
+			<var name="fieldFieldLabel" value="Documents and Media" />
+		</execute>
+	</command>
+
+	<command name="AddRecordWithBlankLinkToPageField" priority="3">
+		<description message="This is a use case for LPS-66229." />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="Page#add">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="pageName" value="DDL Page" />
+			<var name="portletName" value="Dynamic Data Lists Display" />
+		</execute>
+
+		<execute macro="DDLList#addViaDDLDisplayPG" />
+
+		<execute macro="DDLDataDefinition#addViaDDLDisplayPG" />
+
+		<execute macro="DynamicDataMapping#addField">
+			<var name="field" value="Link to Page" />
+			<var name="fieldFieldLabel" value="Link to Page" />
+			<var name="fieldName" value="LinkToPage" />
+		</execute>
+
+		<execute macro="DDLDataDefinition#saveViaDDLDisplayPG" />
+
+		<execute macro="DDLDataDefinition#selectViaDDLDisplayPG" />
+
+		<execute macro="DDLList#saveViaDDLDisplayPG" />
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="DDLRecord#addViaDDLDisplayPG" />
+
+		<execute macro="PortletEntry#publish" />
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="DDLRecord#viewViaDDLDisplayTable">
+			<var name="ddlRecordFieldData" value="" />
+			<var name="fieldFieldLabel" value="Link to Page" />
+		</execute>
+	</command>
+
+	<command name="AddRecordWithBlankWebContentField" priority="3">
+		<description message="This is a use case for LPS-66229." />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="Page#add">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="pageName" value="DDL Page" />
+			<var name="portletName" value="Dynamic Data Lists Display" />
+		</execute>
+
+		<execute macro="DDLList#addViaDDLDisplayPG" />
+
+		<execute macro="DDLDataDefinition#addViaDDLDisplayPG" />
+
+		<execute macro="DynamicDataMapping#addField">
+			<var name="field" value="Web Content" />
+			<var name="fieldFieldLabel" value="Web Content" />
+			<var name="fieldName" value="WebContent" />
+		</execute>
+
+		<execute macro="DDLDataDefinition#saveViaDDLDisplayPG" />
+
+		<execute macro="DDLDataDefinition#selectViaDDLDisplayPG" />
+
+		<execute macro="DDLList#saveViaDDLDisplayPG" />
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="DDLRecord#addViaDDLDisplayPG" />
+
+		<execute macro="PortletEntry#publish" />
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="DDLRecord#viewViaDDLDisplayTable">
+			<var name="ddlRecordFieldData" value="" />
+			<var name="fieldFieldLabel" value="Web Content" />
+		</execute>
+	</command>
+
+	<command name="AddRecordWithPopulatedWebContentField" priority="5">
+		<description message="This is a use case for LPS-66439." />
+		<property name="portal.acceptance" value="false" />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentNavigator#gotoAddCP" />
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="WC WebContent Content" />
+			<var name="webContentTitle" value="WC WebContent Title" />
+		</execute>
+
+		<execute macro="PortletEntry#publish" />
+
+		<execute macro="Page#add">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="pageName" value="DDL Page" />
+			<var name="portletName" value="Dynamic Data Lists Display" />
+		</execute>
+
+		<execute macro="DDLList#addViaDDLDisplayPG" />
+
+		<execute macro="DDLDataDefinition#addViaDDLDisplayPG" />
+
+		<execute macro="DynamicDataMapping#addField">
+			<var name="field" value="Web Content" />
+			<var name="fieldFieldLabel" value="Web Content" />
+			<var name="fieldName" value="WebContent" />
+		</execute>
+
+		<execute macro="DDLDataDefinition#saveViaDDLDisplayPG" />
+
+		<execute macro="DDLDataDefinition#selectViaDDLDisplayPG" />
+
+		<execute macro="DDLList#saveViaDDLDisplayPG" />
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="DDLRecord#addViaDDLDisplayPG" />
+
+		<execute macro="DDLRecord#populateFieldWebContentChooseFromWebContentLibrary">
+			<var name="fieldName" value="WebContent" />
+			<var name="webContentTitle" value="WC WebContent Title" />
+		</execute>
+
+		<execute macro="PortletEntry#publish" />
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="DDL Page" />
+		</execute>
+
+		<execute macro="DDLRecord#viewViaDDLDisplayPG">
+			<var name="ddlRecordFieldData" value="WC WebContent Title" />
+			<var name="fieldFieldLabel" value="Web Content" />
 		</execute>
 	</command>
 
@@ -1236,6 +1463,11 @@
 	</command>
 
 	<command name="AssertUserCannotDeleteEntryAfterPermissionRemoved" priority="4">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
@@ -1335,6 +1567,7 @@
 		</execute>
 
 		<execute macro="User#impersonateCP">
+			<var name="siteName" value="${siteName}" />
 			<var name="userScreenName" value="usersn1" />
 		</execute>
 
@@ -1347,8 +1580,8 @@
 		</execute>
 
 		<execute macro="Navigator#closeSpecificWindow">
-			<var name="closeWindowTitle" value="Data Definition Page Name - Liferay" />
-			<var name="selectWindowTitle" value="Users and Organizations - Control Panel - Liferay" />
+			<var name="closeWindowTitle" value="Data Definition Page Name - ${siteName}" />
+			<var name="selectWindowTitle" value="Users and Organizations - Control Panel - ${siteName}" />
 		</execute>
 
 		<execute macro="Navigator#openURL" />
@@ -1375,6 +1608,7 @@
 		</execute>
 
 		<execute macro="User#impersonateCP">
+			<var name="siteName" value="${siteName}" />
 			<var name="userScreenName" value="usersn1" />
 		</execute>
 
@@ -2408,6 +2642,49 @@
 		</execute>
 	</command>
 
+	<command name="ViewDisplayTemplateClassLinks" priority="4">
+		<description message="This is a use case for LPS-66228." />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Dynamic Data Lists" />
+		</execute>
+
+		<execute macro="DDLNavigator#gotoManageTemplates">
+			<var name="ddlDataDefinitionName" value="Contacts" />
+		</execute>
+
+		<execute macro="DDLNavigator#gotoAddDisplayTemplate" />
+
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
+		<for list="Device,Company,PermissionChecker" param="fieldName">
+			<var name="key_fieldName" value="${fieldName}" />
+
+			<if>
+				<equals arg1="${fieldName}" arg2="PermissionChecker" />
+				<then>
+					<execute function="MouseOver" locator1="DDMEditTemplate#SCRIPT_UTIL" />
+				</then>
+				<else>
+					<execute function="MouseOver" locator1="DDMEditTemplate#SCRIPT_VARIABLE" />
+				</else>
+			</if>
+
+			<execute function="AssertClick" locator1="JavaDocs#TOOLTIP_JAVA_CLASS_LINK" value1="${fieldName}" />
+
+			<execute function="SelectWindow#selectPopUp" locator1="null" />
+
+			<execute function="AssertTextEquals" locator1="JavaDocs#JAVA_CLASS_NAME" value1="${fieldName}" />
+
+			<execute function="Close#closeAndSelectWindow" locator1="title=New Template for Structure: Contacts - ${siteName}" />
+		</for>
+	</command>
+
 	<command name="ViewFieldsNestedInDDLRecord" priority="3">
 		<description message="This is a use case for LPS-48913." />
 
@@ -2555,13 +2832,9 @@
 			<var name="fieldName" value="TextBox" />
 		</execute>
 
-		<execute macro="DynamicDataMapping#selectDynamicDataMappingFrame" />
-
-		<execute function="Click" locator1="Icon#ANGLE_LEFT_BACK" />
-
-		<execute function="Click" locator1="Button#PLUS" />
-
-		<execute function="AssertClick" locator1="MenuItem#ADD_FORM_TEMPLATE" value1="Add Form Template" />
+		<execute macro="DDLTemplate#addFormTemplateViaBackButton">
+			<var name="ddlFormTemplateName" value="Data Definition Form Template Name" />
+		</execute>
 
 		<execute macro="DynamicDataMapping#viewCannotAddField">
 			<var name="field" value="Text Box" />
@@ -2585,6 +2858,119 @@
 			<var name="field" value="Text Box" />
 			<var name="fieldFieldLabel" value="Text Box" />
 			<var name="fieldName" value="TextBox" />
+		</execute>
+	</command>
+
+	<command name="ViewLinkToPageBreadcrumb" priority="3">
+		<description message="This is a use case for LPS-67478 ." />
+
+		<execute macro="Page#add">
+			<var name="pageName" value="Parent Page Name" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Sites" />
+		</execute>
+
+		<execute macro="Page#addChild">
+			<var name="page" value="Public Pages" />
+			<var name="pageName" value="Parent Page Name" />
+			<var name="siteChildPageName" value="Child Page Name" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Dynamic Data Lists" />
+		</execute>
+
+		<execute macro="DDLDataDefinition#addCP">
+			<var name="ddlDataDefinitionName" value="Data Definition" />
+		</execute>
+
+		<execute macro="DynamicDataMapping#addField">
+			<var name="field" value="Link to Page" />
+			<var name="fieldFieldLabel" value="Link to Page" />
+			<var name="fieldName" value="LinkToPage" />
+		</execute>
+
+		<execute macro="DDLDataDefinition#save" />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Dynamic Data Lists" />
+		</execute>
+
+		<execute macro="DDLDataDefinition#viewCP">
+			<var name="ddlDataDefinitionName" value="Data Definition" />
+			<var name="fieldFieldLabel" value="Link to Page" />
+		</execute>
+
+		<execute macro="DynamicDataMapping#viewField">
+			<var name="field" value="Link to Page" />
+			<var name="fieldFieldLabel" value="Link to Page" />
+			<var name="fieldName" value="LinkToPage" />
+		</execute>
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Dynamic Data Lists" />
+		</execute>
+
+		<execute macro="DDLList#addCP">
+			<var name="ddlListName" value="List Name" />
+		</execute>
+
+		<execute macro="DDLDataDefinition#selectCP">
+			<var name="ddlDataDefinitionName" value="Data Definition" />
+		</execute>
+
+		<execute macro="DDLList#save" />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Dynamic Data Lists" />
+		</execute>
+
+		<execute macro="DDLRecord#addCP">
+			<var name="ddlDataDefinitionName" value="Data Definition" />
+			<var name="ddlListName" value="List Name" />
+		</execute>
+
+		<execute macro="DDLRecord#populateFieldLinkToPage">
+			<var name="ddlRecordFieldData" value="Child Page Name" />
+			<var name="fieldName" value="LinkToPage" />
+			<var name="pagePrivacy" value="Public" />
+			<var name="parentPage" value="Parent Page Name" />
+		</execute>
+
+		<execute macro="DDLRecord#gotoLinkToPageSelect">
+			<var name="fieldName" value="LinkToPage" />
+		</execute>
+
+		<execute macro="DDLRecord#viewLinkToPageBreadcrumbCount">
+			<var name="count" value="2" />
+		</execute>
+
+		<execute macro="DDLRecord#gotoLinkToPageNavItem">
+			<var name="pagePrivacy" value="Private" />
+		</execute>
+
+		<execute macro="DDLRecord#gotoLinkToPageNavItem">
+			<var name="pagePrivacy" value="Public" />
+		</execute>
+
+		<execute macro="DDLRecord#gotoLinkToPageChildPages">
+			<var name="parentPage" value="Parent Page Name" />
+		</execute>
+
+		<execute macro="DDLRecord#selectLinkToPageRadio">
+			<var name="ddlRecordFieldData" value="Child Page Name" />
+		</execute>
+
+		<execute macro="DDLRecord#viewLinkToPageBreadcrumbCount">
+			<var name="count" value="2" />
 		</execute>
 	</command>
 
@@ -2845,7 +3231,6 @@
 		<execute macro="DDLRecord#viewFieldCP">
 			<var name="ddlRecordFieldData" value="" />
 			<var name="ddlRecordNestedFieldData" value="253" />
-			<var name="fieldBlank" value="true" />
 			<var name="fieldFieldLabel" value="Text" />
 			<var name="nestedFieldFieldLabel" value="Integer" />
 		</execute>

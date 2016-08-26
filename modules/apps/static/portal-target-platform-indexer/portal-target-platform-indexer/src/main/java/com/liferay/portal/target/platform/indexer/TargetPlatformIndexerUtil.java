@@ -34,6 +34,7 @@ import java.util.jar.Manifest;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 
@@ -44,7 +45,7 @@ public class TargetPlatformIndexerUtil {
 
 	public static void indexTargetPlatform(
 			OutputStream outputStream, List<File> additionalJarFiles,
-			String... dirNames)
+			long stopWaitTimeout, String... dirNames)
 		throws Exception {
 
 		Framework framework = null;
@@ -90,6 +91,15 @@ public class TargetPlatformIndexerUtil {
 		}
 		finally {
 			framework.stop();
+
+			FrameworkEvent frameworkEvent = framework.waitForStop(
+				stopWaitTimeout);
+
+			if (frameworkEvent.getType() == FrameworkEvent.WAIT_TIMEDOUT) {
+				throw new Exception(
+					"OSGi framework event " + frameworkEvent +
+						" triggered after a " + stopWaitTimeout + "ms timeout");
+			}
 
 			PathUtil.deltree(tempPath);
 		}

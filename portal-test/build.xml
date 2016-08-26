@@ -5,6 +5,7 @@
 
 	<property name="deploy.dir" value="${liferay.home}/osgi/test" />
 	<property name="jar.file" value="${ant.project.name}" />
+	<property name="javac.classpathref" value="portal.test.classpath" />
 	<property name="manifest.bundle.name" value="Liferay Portal Test" />
 	<property name="manifest.bundle.symbolic.name" value="com.liferay.portal.test" />
 
@@ -14,30 +15,7 @@
 		<pathelement location="${project.dir}/modules/core/registry-api/classes" />
 	</path>
 
-	<macrodef name="compile-java">
-		<sequential>
-			<compile-java-cmd
-				javac.classpathref="portal.test.classpath"
-			/>
-		</sequential>
-	</macrodef>
-
-	<macrodef name="deploy">
-		<attribute name="deploy.dir" />
-		<attribute name="jar.file" />
-		<attribute name="src.dir" />
-
-		<sequential>
-			<deploy-cmd
-				copy.jar="false"
-				deploy.dir="@{deploy.dir}"
-				jar.file="@{jar.file}"
-				src.dir="@{src.dir}"
-			>
-				<deploy-post>
-					<copy file="@{jar.file}.jar" preservelastmodified="true" tofile="@{deploy.dir}/${manifest.bundle.symbolic.name}.jar" />
-				</deploy-post>
-			</deploy-cmd>
-		</sequential>
-	</macrodef>
+	<target depends="build-common-java.deploy" name="deploy">
+		<move file="${deploy.dir}/${jar.file}.jar" tofile="${deploy.dir}/${manifest.bundle.symbolic.name}.jar" />
+	</target>
 </project>

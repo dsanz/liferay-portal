@@ -47,13 +47,15 @@ public class JournalContentSearchLocalServiceImpl
 
 	@Override
 	public void afterPropertiesSet() {
+		super.afterPropertiesSet();
+
 		Bundle bundle = FrameworkUtil.getBundle(
 			JournalContentSearchLocalServiceImpl.class);
 
-		BundleContext _bundleContext = bundle.getBundleContext();
+		BundleContext bundleContext = bundle.getBundleContext();
 
 		_serviceTrackerMap = ServiceTrackerMapFactory.singleValueMap(
-			_bundleContext, DisplayInformationProvider.class,
+			bundleContext, DisplayInformationProvider.class,
 			"javax.portlet.name");
 
 		_serviceTrackerMap.open();
@@ -180,6 +182,8 @@ public class JournalContentSearchLocalServiceImpl
 
 	@Override
 	public void destroy() {
+		super.destroy();
+
 		_serviceTrackerMap.close();
 	}
 

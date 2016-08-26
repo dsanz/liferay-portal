@@ -170,7 +170,7 @@
 
 		<execute function="Click" locator1="DDLEditRecord#LINK_TO_PAGE_PAGE_RADIO" />
 
-		<execute function="AssertClick" locator1="DDLEditRecord#LINK_TO_PAGE_SELECT_BUTTON" value1="Select" />
+		<execute function="AssertClick" locator1="Button#SELECT" value1="Select" />
 
 		<execute function="AssertTextEquals" locator1="DDLEditRecord#LINK_TO_PAGE_PAGE_SELECT" value1="${ddlRecordFieldData}" />
 	</command>
@@ -466,7 +466,7 @@
 	</command>
 
 	<command name="viewNoPermissionPG">
-		<execute function="AssertTextEquals" locator1="PGKaleoforms#ERROR_MESSAGE_1_COLUMN_1" value1="You do not have the roles required to access this portlet." />
+		<execute function="AssertTextEquals" locator1="Message#ERROR_1_COLUMN_1" value1="You do not have the roles required to access this portlet." />
 	</command>
 
 	<command name="viewNoTasks">

@@ -46,6 +46,10 @@ if (delta > 0) {
 	navigationPortletURL.setParameter("delta", String.valueOf(delta));
 }
 
+PortletURL sortURL = PortletURLUtil.clone(navigationPortletURL, liferayPortletResponse);
+
+sortURL.setParameter("entriesNavigation", entriesNavigation);
+
 navigationPortletURL.setParameter("orderBycol", orderByCol);
 navigationPortletURL.setParameter("orderByType", orderByType);
 
@@ -86,7 +90,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 				orderByCol="<%= orderByCol %>"
 				orderByType="<%= orderByType %>"
 				orderColumns='<%= new String[] {"title", "display-date"} %>'
-				portletURL="<%= portletURL %>"
+				portletURL="<%= sortURL %>"
 			/>
 		</liferay-frontend:management-bar-filters>
 	</c:if>
@@ -130,7 +134,6 @@ String keywords = ParamUtil.getString(request, "keywords");
 				escapedModel="<%= true %>"
 				keyProperty="entryId"
 				modelVar="entry"
-				rowIdProperty="urlTitle"
 			>
 				<liferay-portlet:renderURL varImpl="rowURL">
 					<portlet:param name="mvcRenderCommandName" value="/blogs/edit_entry" />

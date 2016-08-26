@@ -70,29 +70,24 @@ portletURL.setParameter("displayStyle", displayStyle);
 					</c:when>
 					<c:otherwise>
 						<liferay-ui:search-container-column-text
-							cssClass="content-column title-column"
+							cssClass="table-cell-content"
 							href="<%= rowURL %>"
 							name="name"
-							truncate="<%= true %>"
 							value="<%= HtmlUtil.escape(recordSet.getName(locale)) %>"
 						/>
 
 						<liferay-ui:search-container-column-text
-							cssClass="content-column"
+							cssClass="table-cell-content"
 							name="description"
-							truncate="<%= true %>"
 							value="<%= HtmlUtil.escape(recordSet.getDescription(locale)) %>"
 						/>
 
 						<liferay-ui:search-container-column-date
-							cssClass="modified-date-column text-column"
 							name="modified-date"
 							value="<%= recordSet.getModifiedDate() %>"
 						/>
 
 						<liferay-ui:search-container-column-jsp
-							align="right"
-							cssClass="entry-action-column"
 							path="/admin/record_set_action.jsp"
 						/>
 					</c:otherwise>

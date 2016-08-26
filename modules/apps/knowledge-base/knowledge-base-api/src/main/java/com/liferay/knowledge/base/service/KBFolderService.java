@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.util.List;
 
@@ -63,6 +64,9 @@ public interface KBFolderService extends BaseService {
 	public KBFolder deleteKBFolder(long kbFolderId) throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public KBFolder fetchKBFolder(long kbFolderId) throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public KBFolder fetchKBFolderByUrlTitle(long groupId,
 		long parentKbFolderId, java.lang.String urlTitle)
 		throws PortalException;
@@ -79,6 +83,10 @@ public interface KBFolderService extends BaseService {
 		java.lang.String description) throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getKBFoldersAndKBArticlesCount(long groupId,
+		long parentResourcePrimKey, int status);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getKBFoldersCount(long groupId, long parentKBFolderId)
 		throws PortalException;
 
@@ -92,6 +100,11 @@ public interface KBFolderService extends BaseService {
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<KBFolder> getKBFolders(long groupId, long parentKBFolderId,
 		int start, int end) throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<java.lang.Object> getKBFoldersAndKBArticles(long groupId,
+		long parentResourcePrimKey, int status, int start, int end,
+		OrderByComparator<?> orderByComparator);
 
 	public void moveKBFolder(long kbFolderId, long parentKBFolderId)
 		throws PortalException;

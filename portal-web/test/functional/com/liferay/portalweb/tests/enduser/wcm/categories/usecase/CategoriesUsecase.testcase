@@ -272,7 +272,7 @@
 			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_CATEGORIES_RESOURCE_PERMISSIONS_ASSET_ENTRIES_ADD_CATEGORY_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Add Category" />
 			<var name="permissionNavigationKey" value="SITE_ADMIN_CONTENT_CATEGORIES" />
-			<var name="permissionNavigationValue" value="Categories" />
+			<var name="permissionNavigationValue" value="Tags" />
 			<var name="roleName" value="Category Role Name" />
 			<var name="roleType" value="Site" />
 		</execute>
@@ -285,7 +285,7 @@
 			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_CATEGORIES_RESOURCE_PERMISSIONS_ASSET_ENTRIES_ADD_VOCABULARY_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Add Vocabulary" />
 			<var name="permissionNavigationKey" value="SITE_ADMIN_CONTENT_CATEGORIES" />
-			<var name="permissionNavigationValue" value="Categories" />
+			<var name="permissionNavigationValue" value="Tags" />
 			<var name="roleName" value="Category Role Name" />
 			<var name="roleType" value="Site" />
 		</execute>
@@ -404,6 +404,51 @@
 			<var name="propertiesKeyField" value="Subcategory Key" />
 			<var name="propertiesValueField" value="Subcategory Value" />
 			<var name="subcategoryName" value="Subcategory Name" />
+			<var name="vocabularyName" value="Vocabulary Name" />
+		</execute>
+	</command>
+
+	<command name="AddVocabularyWithMultipleAssetTypes" priority="4">
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Categories" />
+		</execute>
+
+		<execute macro="Vocabulary#addWithAssociatedAssetTypeCP">
+			<var name="required" value="true" />
+			<var name="vocabularyAssociatedAssetTypeList" value="Blogs Entry,Web Content Article" />
+			<var name="vocabularyName" value="Vocabulary Name" />
+		</execute>
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Categories" />
+		</execute>
+
+		<execute macro="Category#addCP">
+			<var name="categoryName" value="Category Name" />
+			<var name="vocabularyName" value="Vocabulary Name" />
+		</execute>
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentNavigator#gotoAddCP" />
+
+		<execute macro="WebContent#addWithCategoryCP">
+			<var name="categoryName" value="Category Name" />
+			<var name="vocabularyName" value="Vocabulary Name" />
+			<var name="webContentContent" value="Web Content Content" />
+			<var name="webContentTitle" value="Web Content Title" />
+		</execute>
+
+		<execute macro="Page#viewNoSelectCategory">
+			<var name="pageName" value="page Name" />
 			<var name="vocabularyName" value="Vocabulary Name" />
 		</execute>
 	</command>

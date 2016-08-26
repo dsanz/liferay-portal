@@ -55,6 +55,7 @@ import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.servlet.PortletServlet;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.Sync;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
@@ -88,6 +89,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import javax.portlet.PortletPreferences;
+import javax.portlet.PortletRequest;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -99,6 +101,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.portlet.MockPortletRequest;
+import org.springframework.mock.web.portlet.MockPortletResponse;
 
 /**
  * @author Julio Camarero
@@ -1083,6 +1086,11 @@ public class AssetPublisherExportImportTest
 				ServiceContextTestUtil.getServiceContext());
 		}
 
+		PortletRequest portletRequest = new MockPortletRequest();
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest();
+
 		String scopeId = AssetPublisherUtil.getScopeId(
 			group, group.getGroupId());
 
@@ -1092,9 +1100,6 @@ public class AssetPublisherExportImportTest
 
 		PortletPreferences portletPreferences = getImportedPortletPreferences(
 			preferenceMap);
-
-		MockHttpServletRequest mockHttpServletRequest =
-			new MockHttpServletRequest();
 
 		ThemeDisplay themeDisplay = new ThemeDisplay();
 
@@ -1110,9 +1115,12 @@ public class AssetPublisherExportImportTest
 		mockHttpServletRequest.setAttribute(
 			WebKeys.THEME_DISPLAY, themeDisplay);
 
+		portletRequest.setAttribute(
+			PortletServlet.PORTLET_SERVLET_REQUEST, mockHttpServletRequest);
+
 		AssetPublisherDisplayContext assetPublisherDisplayContext =
 			new AssetPublisherDisplayContext(
-				mockHttpServletRequest, portletPreferences);
+				portletRequest, new MockPortletResponse(), portletPreferences);
 
 		SearchContainer<AssetEntry> searchContainer = new SearchContainer<>();
 

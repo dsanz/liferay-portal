@@ -63,7 +63,6 @@ if (Validator.isNotNull(keywords)) {
 
 		</ul>
 	</span>
-
 	<span class="pull-right" id="<portlet:namespace />displayStyleContainer">
 
 		<%
@@ -97,7 +96,7 @@ if (Validator.isNotNull(keywords)) {
 <div class="add-content-button">
 
 	<%
-	PortletURL redirectURL = PortletURLFactoryUtil.create(request, portletDisplay.getId(), plid, PortletRequest.RENDER_PHASE);
+	PortletURL redirectURL = PortletURLFactoryUtil.create(request, portletDisplay.getId(), PortletRequest.RENDER_PHASE);
 
 	redirectURL.setParameter("mvcPath", "/add_content_redirect.jsp");
 	redirectURL.setWindowState(LiferayWindowState.POP_UP);

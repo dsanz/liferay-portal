@@ -555,18 +555,29 @@ public abstract class BaseDB implements DB {
 				new Filter(dbType.getName())),
 			-1);
 
+		String replacement = "\\(" + stringIndexMaxLength + "\\)";
+
 		if (stringIndexMaxLength < 0) {
-			return matcher.replaceAll(StringPool.BLANK);
+			if (dbType.equals(DBType.SYBASE)) {
+				replacement = StringPool.BLANK;
+			}
+			else {
+				return matcher.replaceAll(StringPool.BLANK);
+			}
 		}
 
+		boolean remove = false;
 		StringBuffer sb = new StringBuffer();
-
-		String replacement = "\\(" + stringIndexMaxLength + "\\)";
 
 		while (matcher.find()) {
 			int length = Integer.valueOf(matcher.group(1));
 
-			if (length > stringIndexMaxLength) {
+			if (dbType.equals(DBType.SYBASE) && (length > 1250)) {
+				matcher.appendReplacement(sb, "%%REMOVE%%");
+
+				remove = true;
+			}
+			else if (length > stringIndexMaxLength) {
 				matcher.appendReplacement(sb, replacement);
 			}
 			else {
@@ -576,7 +587,21 @@ public abstract class BaseDB implements DB {
 
 		matcher.appendTail(sb);
 
-		return sb.toString();
+		String string = sb.toString();
+
+		if (dbType.equals(DBType.SYBASE) && remove) {
+			String[] strings = StringUtil.split(string, StringPool.NEW_LINE);
+
+			for (int i = 0; i < strings.length; i++) {
+				if (strings[i].contains("%%REMOVE%%")) {
+					strings[i] = StringPool.BLANK;
+				}
+			}
+
+			return StringUtil.merge(strings, StringPool.NEW_LINE);
+		}
+
+		return string;
 	}
 
 	protected String[] buildColumnNameTokens(String line) {

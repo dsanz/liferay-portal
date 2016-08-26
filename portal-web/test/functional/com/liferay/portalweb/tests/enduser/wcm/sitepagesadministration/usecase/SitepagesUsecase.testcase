@@ -67,6 +67,10 @@
 			<var name="webContentTitle" value="WC WebContent Title" />
 		</execute>
 
+		<execute macro="WebContent#viewPGViaWCD">
+			<var name="webContentContent" value="WC WebContent Content" />
+		</execute>
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="${sitePage3Name}" />
 		</execute>
@@ -182,8 +186,7 @@
 			<var name="page" value="Page Name" />
 		</execute>
 
-		<execute macro="Page#viewPageFriendURLPG">
-			<var name="localizedFriendlyURL" value="/german" />
+		<execute macro="Page#viewPageFriendlyURLPG">
 			<var name="pageName" value="page-name" />
 		</execute>
 	</command>
@@ -243,6 +246,15 @@
 
 		<execute macro="User#editPasswordCP">
 			<var name="userEmailAddress" value="userea@liferay.com" />
+			<var name="userScreenName" value="usersn" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Roles" />
+		</execute>
+
+		<execute macro="Role#assignRegRoleCP">
+			<var name="roleName" value="Power User" />
 			<var name="userScreenName" value="usersn" />
 		</execute>
 
@@ -415,6 +427,11 @@
 	</command>
 
 	<command name="ViewSecureContentAndPageAsGuest" priority="3">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="Server Administration" />
 		</execute>
@@ -545,13 +562,14 @@
 			<var name="gmailMessageBody" value="Blogs Entry Title" />
 			<var name="gmailMessageBodyClosing" value="Sincerely" />
 			<var name="gmailMessageBodyGreeting" value="Joe Bloggs" />
-			<var name="gmailMessageTitle" value="Test Test Published &quot;Blogs Entry Title&quot; on Liferay Blogs" />
+			<var name="gmailMessageTitle" value="Test Test Published &quot;Blogs Entry Title&quot; on ${siteName} Blogs" />
 		</execute>
 
 		<execute macro="Gmail#openMessageContinueReadingButton">
 			<var name="contentTitle" value="Blogs Entry Title" />
 			<var name="gmailAssetType" value="Blogs" />
 			<var name="pageName" value="Blog and Message Board Page" />
+			<var name="siteName" value="${siteName}" />
 		</execute>
 
 		<var method="selenium#getLocation()" name="blogEntryURL" />
@@ -580,6 +598,7 @@
 			<var name="contentTitle" value="MB Thread Message Subject" />
 			<var name="gmailAssetType" value="Message Boards" />
 			<var name="pageName" value="Blog and Message Board Page" />
+			<var name="siteName" value="${siteName}" />
 		</execute>
 
 		<var method="selenium#getLocation()" name="messageBoardsThreadURL" />
@@ -619,6 +638,11 @@
 	</command>
 
 	<command name="ViewSecureContentAndPageAsSiteMember" priority="3">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="Server Administration" />
 		</execute>
@@ -664,7 +688,7 @@
 		</execute>
 
 		<execute macro="Site#assignUserSitesCP">
-			<var name="siteName" value="Liferay" />
+			<var name="siteName" value="${siteName}" />
 			<var name="userScreenName" value="usersn2" />
 		</execute>
 
@@ -692,7 +716,7 @@
 
 		<execute macro="Page#add">
 			<var name="pageName" value="Test Private Page" />
-			<var name="siteName" value="Liferay" />
+			<var name="siteName" value="${siteName}" />
 			<var name="sitePagePrivacy" value="Private" />
 		</execute>
 
@@ -774,13 +798,14 @@
 			<var name="gmailMessageBody" value="Blogs Entry Title" />
 			<var name="gmailMessageBodyClosing" value="Sincerely" />
 			<var name="gmailMessageBodyGreeting" value="Joe Bloggs" />
-			<var name="gmailMessageTitle" value="Test Test Published &quot;Blogs Entry Title&quot; on Liferay Blogs" />
+			<var name="gmailMessageTitle" value="Test Test Published &quot;Blogs Entry Title&quot; on ${siteName} Blogs" />
 		</execute>
 
 		<execute macro="Gmail#openMessageContinueReadingButton">
 			<var name="contentTitle" value="Blogs Entry Title" />
 			<var name="gmailAssetType" value="Blogs" />
 			<var name="pageName" value="Blog and Message Board Page" />
+			<var name="siteName" value="${siteName}" />
 		</execute>
 
 		<var method="selenium#getLocation()" name="blogEntryURL" />
@@ -809,6 +834,7 @@
 			<var name="contentTitle" value="MB Thread Message Subject" />
 			<var name="gmailAssetType" value="Message Boards" />
 			<var name="pageName" value="Blog and Message Board Page" />
+			<var name="siteName" value="${siteName}" />
 		</execute>
 
 		<var method="selenium#getLocation()" name="messageBoardsThreadURL" />
@@ -869,6 +895,11 @@
 	</command>
 
 	<command name="ViewSecureContentAndPageAsUser" priority="3">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="Server Administration" />
 		</execute>
@@ -933,7 +964,7 @@
 
 		<execute macro="Page#add">
 			<var name="pageName" value="Test Private Page" />
-			<var name="siteName" value="Liferay" />
+			<var name="siteName" value="${siteName}" />
 			<var name="sitePagePrivacy" value="Private Pages" />
 		</execute>
 
@@ -1015,13 +1046,14 @@
 			<var name="gmailMessageBody" value="Blogs Entry Title" />
 			<var name="gmailMessageBodyClosing" value="Sincerely" />
 			<var name="gmailMessageBodyGreeting" value="Joe Bloggs" />
-			<var name="gmailMessageTitle" value="Test Test Published &quot;Blogs Entry Title&quot; on Liferay Blogs" />
+			<var name="gmailMessageTitle" value="Test Test Published &quot;Blogs Entry Title&quot; on ${siteName} Blogs" />
 		</execute>
 
 		<execute macro="Gmail#openMessageContinueReadingButton">
 			<var name="contentTitle" value="Blogs Entry Title" />
 			<var name="gmailAssetType" value="Blogs" />
 			<var name="pageName" value="Blog and Message Board Page" />
+			<var name="siteName" value="${siteName}" />
 		</execute>
 
 		<var method="selenium#getLocation()" name="blogEntryURL" />
@@ -1050,6 +1082,7 @@
 			<var name="contentTitle" value="MB Thread Message Subject" />
 			<var name="gmailAssetType" value="Message Boards" />
 			<var name="pageName" value="Blog and Message Board Page" />
+			<var name="siteName" value="${siteName}" />
 		</execute>
 
 		<var method="selenium#getLocation()" name="messageBoardsThreadURL" />
@@ -1249,9 +1282,9 @@
 
 		<execute function="AssertLocation" value1="http://localhost:8080/web/page-type-test-site-name/embedded-page" />
 
-		<execute function="SelectFrame" locator1="Embedded#EMBEDDED_IFRAME" />
-		<execute function="AssertTextEquals#assertPartialText" locator1="Embedded#EMBEDDED_SITE_TEXT" value1="Yes" />
-		<execute function="AssertTextEquals#assertPartialText" locator1="Embedded#EMBEDDED_SITE_TEXT" value1="updated" />
+		<execute function="SelectFrame" locator1="IFrame#EMBEDDED_IFRAME" />
+		<execute function="AssertTextEquals#assertPartialText" locator1="Embedded#EMBEDDED_TEXT_YES" value1="Yes" />
+		<execute function="AssertTextEquals#assertPartialText" locator1="Embedded#EMBEDDED_TEXT_UPDATED" value1="updated" />
 		<execute function="SelectFrameTop" value1="relative=top" />
 
 		<execute macro="Navigator#gotoSitePage">

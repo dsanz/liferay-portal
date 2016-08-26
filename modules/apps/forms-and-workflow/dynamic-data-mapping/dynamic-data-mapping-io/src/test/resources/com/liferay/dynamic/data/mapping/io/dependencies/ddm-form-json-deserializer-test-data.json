@@ -1,6 +1,6 @@
 {
-	"defaultLanguageId": "en_US",
 	"availableLanguageIds": ["en_US", "pt_BR"],
+	"defaultLanguageId": "en_US",
 	"fields": [
 		{
 			"dataType": "boolean",
@@ -137,7 +137,7 @@
 		{
 			"dataType": "html",
 			"fieldNamespace": "ddm",
-			"indexType": "keyword",
+			"indexType": "text",
 			"label": {
 				"en_US": "HTML",
 				"pt_BR": "HTML"
@@ -417,7 +417,7 @@
 		},
 		{
 			"dataType": "string",
-			"indexType": "keyword",
+			"indexType": "text",
 			"label": {
 				"en_US": "Text Box",
 				"pt_BR": "Caixa de Texto"
@@ -513,8 +513,8 @@
 						}
 					],
 					"predefinedValue": {
-						"pt_BR": "",
-						"en_US": ""
+						"en_US": "",
+						"pt_BR": ""
 					},
 					"readOnly": false,
 					"repeatable": false,
@@ -546,6 +546,23 @@
 			},
 			"type": "text",
 			"visibilityExpression": "true"
+		}
+	],
+	"rules": [
+		{
+			"actions": [
+				"Action 1",
+				"Action 2"
+			],
+			"condition": "Condition 1",
+			"enabled": true
+		},
+		{
+			"actions": [
+				"Action 3"
+			],
+			"condition": "Condition 2",
+			"enabled": false
 		}
 	]
 }
