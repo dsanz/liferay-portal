@@ -8,11 +8,11 @@ AUI.add(
 
 		FieldValidationSupport.ATTRS = {
 			required: {
+				state: true,
 				value: false
 			},
 
 			valid: {
-				repaint: false,
 				value: true
 			}
 		};

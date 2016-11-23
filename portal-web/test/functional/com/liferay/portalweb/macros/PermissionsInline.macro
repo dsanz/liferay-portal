@@ -1,10 +1,10 @@
 <definition>
 	<command name="addOrRemoveViewPermissionFromAllRoles">
-		<for list="${roleList}" param="roleName" >
-			<var name="roleName" value="${roleName}" />
+		<for list="${roleList}" param="roleTitle" >
+			<var name="roleTitle" value="${roleTitle}" />
 
-			<var method="StringUtil#replace('${roleName}', ' ', '-')" name="key_roleName" />
-			<var method="StringUtil#lowerCase('${key_roleName}')" name="key_roleName" />
+			<var method="StringUtil#replace('${roleTitle}', ' ', '-')" name="key_roleTitle" />
+			<var method="StringUtil#lowerCase('${key_roleTitle}')" name="key_roleTitle" />
 
 			<if>
 				<equals arg1="${addOrRemoveViewPermission}" arg2="Add" />
@@ -25,16 +25,16 @@
 	</command>
 
 	<command name="assertDefaultPG">
-		<for list="${roleList}" param="roleName" >
-			<var name="roleName" value="${roleName}" />
+		<for list="${roleList}" param="roleTitle" >
+			<var name="roleTitle" value="${roleTitle}" />
 
-			<var method="StringUtil#replace('${roleName}', ' ', '-')" name="key_roleName" />
-			<var method="StringUtil#lowerCase('${key_roleName}')" name="key_roleName" />
+			<var method="StringUtil#replace('${roleTitle}', ' ', '-')" name="key_roleTitle" />
+			<var method="StringUtil#lowerCase('${key_roleTitle}')" name="key_roleTitle" />
 
 			<if>
 				<or>
-					<equals arg1="${roleName}" arg2="Guest" />
-					<equals arg1="${roleName}" arg2="Site Member" />
+					<equals arg1="${roleTitle}" arg2="Guest" />
+					<equals arg1="${roleTitle}" arg2="Site Member" />
 				</or>
 				<then>
 					<execute function="AssertNotChecked" locator1="Permissions#CONFIGURATION_PERMISSIONS_ADD_TO_PAGE_CHECKBOX" />
@@ -46,10 +46,10 @@
 
 			<if>
 				<or>
-					<equals arg1="${roleName}" arg2="Guest" />
-					<equals arg1="${roleName}" arg2="Power User" />
-					<equals arg1="${roleName}" arg2="Site Member" />
-					<equals arg1="${roleName}" arg2="User" />
+					<equals arg1="${roleTitle}" arg2="Guest" />
+					<equals arg1="${roleTitle}" arg2="Power User" />
+					<equals arg1="${roleTitle}" arg2="Site Member" />
+					<equals arg1="${roleTitle}" arg2="User" />
 				</or>
 				<then>
 					<execute function="AssertNotChecked" locator1="Permissions#CONFIGURATION_PERMISSIONS_CONFIGURATION_CHECKBOX" />
@@ -63,8 +63,8 @@
 
 			<if>
 				<or>
-					<equals arg1="${roleName}" arg2="Power User" />
-					<equals arg1="${roleName}" arg2="User" />
+					<equals arg1="${roleTitle}" arg2="Power User" />
+					<equals arg1="${roleTitle}" arg2="User" />
 				</or>
 				<then>
 					<execute function="AssertNotChecked" locator1="Permissions#CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX" />
@@ -156,16 +156,6 @@
 		<execute function="Click#waitForMenuToggleJSClick" locator1="Icon#ROW_VERTICAL_ELLIPSIS" />
 
 		<execute function="AssertClick" locator1="MenuItem#PERMISSIONS_LEXICON" value1="Permissions" />
-
-		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
-	</command>
-
-	<command name="gotoDMDocumentPG">
-		<var name="key_dmDocumentTitle" value="${dmDocumentTitle}" />
-
-		<execute function="AssertElementPresent" locator1="DocumentsAndMedia#ICON_DOCUMENT" />
-		<execute function="AssertClick" locator1="DocumentsAndMedia#ICON_DOCUMENT_TITLE_LINK" value1="${dmDocumentTitle}" />
-		<execute function="AssertClick#assertTextClick" locator1="Button#PERMISSIONS" value1="Permissions" />
 
 		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
 	</command>
@@ -342,15 +332,15 @@
 	</command>
 
 	<command name="viewPermissionsChecked">
-		<var method="StringUtil#replace('${roleName}', ' ', '-')" name="key_roleName" />
-		<var method="StringUtil#lowerCase('${key_roleName}')" name="key_roleName" />
+		<var method="StringUtil#replace('${roleTitle}', ' ', '-')" name="key_roleTitle" />
+		<var method="StringUtil#lowerCase('${key_roleTitle}')" name="key_roleTitle" />
 
 		<execute function="AssertChecked" locator1="Permissions#${permissionDefinitionKey}" />
 	</command>
 
 	<command name="viewPermissionsRemoved">
-		<var method="StringUtil#replace('${roleName}', ' ', '-')" name="key_roleName" />
-		<var method="StringUtil#lowerCase('${key_roleName}')" name="key_roleName" />
+		<var method="StringUtil#replace('${roleTitle}', ' ', '-')" name="key_roleTitle" />
+		<var method="StringUtil#lowerCase('${key_roleTitle}')" name="key_roleTitle" />
 
 		<execute function="AssertNotChecked" locator1="Permissions#${permissionDefinitionKey}" />
 	</command>

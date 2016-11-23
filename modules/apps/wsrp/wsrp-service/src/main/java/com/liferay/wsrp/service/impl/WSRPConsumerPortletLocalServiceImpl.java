@@ -41,7 +41,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.kernel.xml.Namespace;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.wsrp.constants.WSRPPortletKeys;
 import com.liferay.wsrp.exception.NoSuchConsumerPortletException;
 import com.liferay.wsrp.exception.WSRPConsumerPortletHandleException;
@@ -77,6 +76,7 @@ import org.apache.axis.message.MessageElement;
 public class WSRPConsumerPortletLocalServiceImpl
 	extends WSRPConsumerPortletLocalServiceBaseImpl {
 
+	@Override
 	public WSRPConsumerPortlet addWSRPConsumerPortlet(
 			long wsrpConsumerId, String name, String portletHandle,
 			ServiceContext serviceContext)
@@ -110,6 +110,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 		return wsrpConsumerPortlet;
 	}
 
+	@Override
 	public WSRPConsumerPortlet addWSRPConsumerPortlet(
 			String wsrpConsumerUuid, String name, String portletHandle,
 			ServiceContext serviceContext)
@@ -136,6 +137,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 			wsrpConsumerPortlet);
 	}
 
+	@Override
 	public void deleteWSRPConsumerPortlet(String wsrpConsumerPortletUuid)
 		throws PortalException {
 
@@ -166,6 +168,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 		return wsrpConsumerPortlet;
 	}
 
+	@Override
 	public void deleteWSRPConsumerPortlets(long wsrpConsumerId)
 		throws PortalException {
 
@@ -179,6 +182,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 	}
 
 	@Clusterable
+	@Override
 	public void destroyWSRPConsumerPortlet(
 		long wsrpConsumerPortletId, String wsrpConsumerPortletUuid,
 		String url) {
@@ -210,6 +214,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 		}
 	}
 
+	@Override
 	public void destroyWSRPConsumerPortlets() throws PortalException {
 		List<WSRPConsumerPortlet> wsrpConsumerPortlets =
 			wsrpConsumerPortletPersistence.findAll();
@@ -225,6 +230,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 		}
 	}
 
+	@Override
 	public WSRPConsumerPortlet getWSRPConsumerPortlet(
 			long wsrpConsumerId, String portletHandle)
 		throws PortalException {
@@ -233,6 +239,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 			wsrpConsumerId, portletHandle);
 	}
 
+	@Override
 	public WSRPConsumerPortlet getWSRPConsumerPortlet(
 			String wsrpConsumerPortletUuid)
 		throws PortalException {
@@ -249,6 +256,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 		return wsrpConsumerPortlets.get(0);
 	}
 
+	@Override
 	public List<WSRPConsumerPortlet> getWSRPConsumerPortlets(
 		long wsrpConsumerId, int start, int end) {
 
@@ -256,12 +264,14 @@ public class WSRPConsumerPortletLocalServiceImpl
 			wsrpConsumerId, start, end);
 	}
 
+	@Override
 	public int getWSRPConsumerPortletsCount(long wsrpConsumerId) {
 		return wsrpConsumerPortletPersistence.countByWsrpConsumerId(
 			wsrpConsumerId);
 	}
 
 	@Clusterable
+	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public void initFailedWSRPConsumerPortlets() {
 		for (Map.Entry<Long, Tuple> entry :
@@ -293,6 +303,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 	}
 
 	@Clusterable
+	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public void initWSRPConsumerPortlet(
 			long companyId, long wsrpConsumerId, long wsrpConsumerPortletId,
@@ -338,6 +349,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 		}
 	}
 
+	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public void initWSRPConsumerPortlets() {
 		for (WSRPConsumerPortlet wsrpConsumerPortlet :
@@ -361,6 +373,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 		}
 	}
 
+	@Override
 	public WSRPConsumerPortlet updateWSRPConsumerPortlet(
 			long wsrpConsumerPortletId, String name)
 		throws PortalException {
@@ -491,9 +504,9 @@ public class WSRPConsumerPortletLocalServiceImpl
 		if (_consumerPortletClass == null) {
 			ClassLoader classLoader = getClassLoader();
 
-			_consumerPortletClass =
-				(Class<ConsumerPortlet>)classLoader.loadClass(
-					portlet.getPortletClass());
+			Class<?> clazz = classLoader.loadClass(portlet.getPortletClass());
+
+			_consumerPortletClass = clazz.asSubclass(ConsumerPortlet.class);
 		}
 
 		return _consumerPortletClass.newInstance();
@@ -516,7 +529,6 @@ public class WSRPConsumerPortletLocalServiceImpl
 
 		portlet.setCompanyId(companyId);
 		portlet.setDisplayName(portletId);
-		portlet.setPortletApp(_consumerPortlet.getPortletApp());
 		portlet.setPortletId(portletId);
 		portlet.setPortletName(portletId);
 
@@ -548,8 +560,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 
 		if (portletDescription != null) {
 			addPortletExtraInfo(
-				portlet, _consumerPortlet.getPortletApp(), portletDescription,
-				name);
+				portlet, portlet.getPortletApp(), portletDescription, name);
 
 			portlet.setActive(true);
 		}
@@ -678,13 +689,7 @@ public class WSRPConsumerPortletLocalServiceImpl
 	private static final Map<String, Portlet> _portletsPool =
 		new ConcurrentHashMap<>();
 
-	@ServiceReference(
-		filterString = "(javax.portlet.name=" + WSRPPortletKeys.WSRP_CONSUMER + ")",
-		type = Portlet.class
-	)
-	private Portlet _consumerPortlet;
-
-	private Class<ConsumerPortlet> _consumerPortletClass;
+	private Class<? extends ConsumerPortlet> _consumerPortletClass;
 	private final Map<Long, Tuple> _failedWSRPConsumerPortlets =
 		new ConcurrentHashMap<>();
 

@@ -5,13 +5,9 @@
 	white-space: normal;
 
 	li {
-		display: inline;
-		float: left;
+		display: inline-block;
 		margin: 0 1em 0 0;
-	}
-
-	a {
-		white-space: nowrap;
+		max-width: 100%;
 	}
 }
 

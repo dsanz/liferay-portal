@@ -78,6 +78,7 @@
 		</if>
 
 		<execute function="Type" locator1="TextInput#CITY" value1="${userAddressCity}" />
+
 		<execute function="Click" locator1="Radio#PRIMARY" />
 		<execute function="Check" locator1="Checkbox#MAILING" />
 
@@ -90,7 +91,9 @@
 
 	<command name="addCommentViaMyAccount">
 		<execute function="Click" locator1="NavListItem#COMMENTS" />
+
 		<execute function="Type" locator1="MyAccount#COMMENTS_FIELD" value1="${userIntroduction}" />
+
 		<execute function="Click" locator1="Button#SAVE" />
 
 		<execute macro="Alert#viewSuccessMessage" />
@@ -795,17 +798,17 @@
 
 		<execute function="AssertClick" locator1="UsersAndOrganizationsEditUser#ROLES_ORGANIZATION_ROLES_SELECT_LINK" value1="Select" />
 
-		<execute function="SelectFrame" locator1="CPUsersandorganizationsUser#ROLES_ORGANIZATION_SELECT_IFRAME" />
+		<execute function="SelectFrame" locator1="IFrame#SELECT_ORGANIZATION_ROLE" />
 
-		<var name="key_roleName" value="${roleName}" />
+		<var name="key_roleTitle" value="${roleTitle}" />
 
-		<execute function="AssertTextEquals" locator1="CPUsersandorganizationsUser#ROLES_ORGANIZATION_SELECT_ROLE_IFRAME_TITLE" value1="${roleName}" />
+		<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditUser#ROLES_REGULAR_ROLES_TABLE_TITLE" value1="${roleTitle}" />
 
-		<execute function="AssertClick" locator1="CPUsersandorganizationsUser#ROLES_ORGANIZATION_SELECT_CHOOSE_BUTTON" value1="Choose" />
+		<execute function="AssertClick" locator1="UsersAndOrganizationsEditUser#ROLES_ORGANIZATION_SELECT_CHOOSE_BUTTON" value1="Choose" />
 
 		<execute function="SelectFrame" value1="relative=top" />
 
-		<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditUser#ROLES_ORGANIZATION_ROLES_TABLE_TITLE" value1="${roleName}" />
+		<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditUser#ROLES_ORGANIZATION_ROLES_TABLE_TITLE" value1="${roleTitle}" />
 
 		<execute macro="PortletEntry#save" />
 	</command>
@@ -831,17 +834,17 @@
 
 		<execute function="Pause" locator1="5000" />
 
-		<execute function="SelectFrame" locator1="CPUsersandorganizationsUser#ROLES_REGULAR_SELECT_IFRAME" />
+		<execute function="SelectFrame" locator1="IFrame#SELECT_REGULAR_ROLE" />
 
-		<var name="key_roleName" value="${roleName}" />
+		<var name="key_roleTitle" value="${roleTitle}" />
 
-		<execute function="AssertTextEquals" locator1="CPUsersandorganizationsUser#ROLES_REGULAR_ROLE_TITLE" value1="${roleName}" />
+		<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditUser#ROLES_REGULAR_ROLES_TABLE_TITLE" value1="${roleTitle}" />
 
-		<execute function="AssertClick" locator1="CPUsersandorganizationsUser#ROLES_REGULAR_SELECT_CHOOSE_BUTTON" value1="Choose" />
+		<execute function="AssertClick" locator1="UsersAndOrganizationsEditUser#ROLES_ORGANIZATION_SELECT_CHOOSE_BUTTON" value1="Choose" />
 
 		<execute function="SelectFrame" value1="relative=top" />
 
-		<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditUser#ROLES_REGULAR_ROLES_TABLE_TITLE" value1="${roleName}" />
+		<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditUser#ROLES_REGULAR_ROLES_TABLE_TITLE" value1="${roleTitle}" />
 
 		<execute macro="PortletEntry#save" />
 	</command>
@@ -863,13 +866,14 @@
 
 		<execute function="AssertClick" locator1="UsersAndOrganizationsEditUser#ROLES_SITE_ROLES_SELECT_LINK" value1="Select" />
 
-		<execute function="SelectFrame" locator1="CPUsersandorganizationsUser#ROLES_SITE_ROLES_IFRAME" />
+		<execute function="SelectFrame" locator1="IFrame#SELECT_SITE_ROLE" />
 
+		<var name="key_roleTitle" value="${siteRoleName}" />
 		<var name="key_siteRoleName" value="${siteRoleName}" />
 
-		<execute function="AssertTextEquals" locator1="CPUsersandorganizationsUser#ROLES_SITE_ROLES_TITLE" value1="${siteRoleName}" />
+		<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditUser#ROLES_SITE_ROLES_TABLE_TITLE" value1="${siteRoleName}" />
 
-		<execute function="AssertClick" locator1="CPUsersandorganizationsUser#ROLES_SITE_ROLES_IFRAME_CHOOSE_BUTTON" value1="Choose" />
+		<execute function="AssertClick" locator1="UsersAndOrganizationsEditUser#ROLES_ORGANIZATION_SELECT_CHOOSE_BUTTON" value1="Choose" />
 
 		<execute function="SelectFrame" value1="relative=top" />
 
@@ -1117,9 +1121,13 @@
 
 	<command name="deleteProfilePictureViaMyAccount">
 		<execute function="Click" locator1="Button#DELETE" />
+
 		<execute function="Pause" value1="1000" />
+
 		<execute function="Click" locator1="Button#SAVE" />
+
 		<execute macro="Alert#viewSuccessMessage" />
+
 		<execute function="SelectFrame" value1="relative=top" />
 	</command>
 
@@ -1207,7 +1215,8 @@
 
 		<execute function="AssertClick" locator1="MenuItem#EDIT" value1="Edit" />
 
-		<execute function="Select" locator1="CPUsersandorganizationsUser#LANGUAGE_SELECT" value1="${languageName}" />
+		<execute function="Select" locator1="PortalSettingsDisplaySettings#DEFAULT_LANGUAGE_SELECT" value1="${languageName}" />
+
 		<execute macro="PortletEntry#save" />
 	</command>
 
@@ -1478,13 +1487,13 @@
 
 		<execute function="AssertClick" locator1="UsersAndOrganizationsEditUser#SITES_SELECT_LINK" value1="Select" />
 
-		<execute function="SelectFrame" locator1="CPUsersandorganizationsUser#SITES_SELECT_IFRAME" />
+		<execute function="SelectFrame" locator1="IFrame#SELECT_USER_SITES" />
 
-		<execute function="Type" locator1="CPUsersandorganizationsUser#SITES_SELECT_SEARCH_FIELD" value1="${siteName}" />
+		<execute function="Type" locator1="TextInput#SITE_SEARCH_KEYWORDS" value1="${siteName}" />
 
-		<execute function="KeyPress" locator1="CPUsersandorganizationsUser#SITES_SELECT_SEARCH_FIELD" value1="\RETURN" />
+		<execute function="KeyPress" locator1="TextInput#SEARCH" value1="\RETURN" />
 
-		<execute function="AssertTextEquals#assertPartialText" locator1="CPUsersandorganizationsUser#SITES_SELECT_TABLE_NAME" value1="${siteName}" />
+		<execute function="AssertTextEquals#assertPartialText" locator1="UsersAndOrganizationsEditUser#SITES_TABLE_NAME" value1="${siteName}" />
 
 		<execute function="Click" locator1="SitesSelectSite#SITES_TABLE_CHOOSE_SITE_LINK" />
 
@@ -1574,6 +1583,7 @@
 		<execute function="SelectWindow" locator1="title=Welcome - ${siteName}" />
 
 		<execute function="AssertElementPresent" locator1="UserBar#USER_AVATAR_IMAGE" />
+
 		<execute function="Click" locator1="UserBar#USER_AVATAR_IMAGE" />
 
 		<execute function="AssertElementPresent" locator1="ProductMenu#PRODUCT_MENU_TABS_USER_EXPANDED" />
@@ -1645,18 +1655,6 @@
 
 		<execute function="AssertElementNotPresent" locator1="Button#SIGN_IN" value1="Sign In" />
 
-		<var method="TestPropsUtil#get('browser.type')" name="browserType" />
-
-		<if>
-			<or>
-				<equals arg1="${browserType}" arg2="edge" />
-				<equals arg1="${browserType}" arg2="internetexplorer" />
-			</or>
-			<then>
-				<execute function="Open" locator1="/web/guest/home" />
-			</then>
-		</if>
-
 		<if>
 			<condition function="IsElementPresent" locator1="Button#I_AGREE" value1="I Agree" />
 			<then>
@@ -1706,13 +1704,14 @@
 			<condition function="IsElementPresent" locator1="TextInput#ANSWER" />
 			<then>
 				<execute function="Type" locator1="TextInput#ANSWER" value1="test" />
+
 				<execute macro="Button#clickSave" />
 
 				<execute function="AssertElementNotPresent" locator1="Button#SAVE" value1="Save" />
 			</then>
 		</if>
 
-		<execute function="AssertElementPresent" locator1="Dockbar#USER_AVATAR_IMAGE" />
+		<execute function="AssertElementPresent" locator1="UserBar#USER_AVATAR_IMAGE" />
 	</command>
 
 	<command name="loginUserInvalidPG">
@@ -1751,7 +1750,169 @@
 
 		<execute function="Click" locator1="Button#SIGN_IN" />
 
-		<execute function="AssertElementPresent" locator1="Dockbar#USER_AVATAR_IMAGE" />
+		<execute function="AssertElementPresent" locator1="UserBar#USER_AVATAR_IMAGE" />
+	</command>
+
+	<command name="loginUserWithCASEnabledPG">
+		<description message="Log into Liferay Portal as ${userEmailAddress} using the password ${password} with CAS authentication enabled." />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute function="AssertClick" locator1="UserBar#USER_SIGN_IN" value1="Sign In" />
+
+		<execute function="Type" locator1="CAS#NETID_FIELD" value1="${userScreenName}" />
+		<execute function="Type" locator1="CAS#PASSWORD_FIELD" value1="${userScreenName}" />
+
+		<execute function="AssertClick" locator1="CAS#LOGIN_BUTTON" value1="LOGIN" />
+
+		<execute function="AssertElementPresent" locator1="UserBar#USER_AVATAR_IMAGE" />
+	</command>
+
+	<command name="loginUserWithFacebookSSOEnabledPG">
+		<description message="Log into Facebook as ${facebookEmail} using the password ${facebookPassword}." />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute function="AssertClick" locator1="UserBar#USER_SIGN_IN" value1="Sign In" />
+
+		<execute function="AssertClick" locator1="Link#FACEBOOK_LOGIN" value1="Facebook" />
+
+		<execute function="SelectWindow" locator1="title=Log into Facebook | Facebook" />
+
+		<execute function="Type" locator1="FacebookLogin#LOGIN_EMAIL_FIELD" value1="${facebookEmail}" />
+		<execute function="Type" locator1="FacebookLogin#LOGIN_PASSWORD_FIELD" value1="${facebookPassword}" />
+
+		<execute function="Click" locator1="FacebookLogin#LOGIN_BUTTON" />
+
+		<if>
+			<condition function="IsElementPresent#pauseIsElementPresent" locator1="Button#I_AGREE" value1="I Agree" />
+			<then>
+				<execute function="AssertClick" locator1="Button#I_AGREE" value1="I Agree" />
+			</then>
+		</if>
+
+		<if>
+			<condition function="IsElementPresent#pauseIsElementPresent" locator1="TextInput#PASSWORD" />
+			<then>
+				<if>
+					<and>
+						<isset var="syntaxCheckingEnabled" />
+						<equals arg1="${syntaxCheckingEnabled}" arg2="true" />
+					</and>
+					<then>
+						<execute function="Type" locator1="TextInput#PASSWORD" value1="${resetPassword}" />
+						<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="${resetPassword}" />
+					</then>
+					<else>
+						<execute function="Type" locator1="TextInput#PASSWORD" value1="test" />
+						<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="test" />
+					</else>
+				</if>
+
+				<execute macro="Button#clickSave" />
+			</then>
+		</if>
+
+		<if>
+			<condition function="IsElementPresent#pauseIsElementPresent" locator1="TextInput#ANSWER" />
+			<then>
+				<execute function="Type" locator1="TextInput#ANSWER" value1="test" />
+
+				<execute function="KeyPress" locator1="TextInput#ANSWER" value1="\RETURN" />
+			</then>
+		</if>
+
+		<execute function="SelectWindow" locator1="title=Welcome - ${siteName}" />
+
+		<execute function="AssertElementPresent" locator1="UserBar#USER_AVATAR_IMAGE" />
+	</command>
+
+	<command name="loginUserWithGoogleSSOEnabledPG">
+		<execute macro="GoogleLogin#accountSignIn">
+			<var name="userEmailAddress" value="${userEmailAddress}" />
+			<var name="userPassword" value="${userPassword}" />
+		</execute>
+
+		<execute macro="GoogleLogin#acceptConditions" />
+
+		<execute function="Pause" locator1="5000" />
+
+		<execute function="SelectWindow" locator1="title=Welcome - ${siteName}" />
+
+		<execute function="AssertElementPresent" locator1="UserBar#USER_AVATAR_IMAGE" />
+	</command>
+
+	<command name="loginUserWithOpenIDEnabledPG">
+		<description message="Log into Liferay Portal as ${userEmailAddress} using the password ${password} with OpenID authentication enabled." />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute function="AssertClick" locator1="UserBar#USER_SIGN_IN" value1="Sign In" />
+
+		<execute function="AssertClick" locator1="Link#OPENID" value1="OpenID" />
+
+		<execute function="Type" locator1="SignInOpenID#OPENID_FIELD" value1="http://${openIDUsername}.openid.org.cn" />
+
+		<execute function="Click" locator1="Button#SIGN_IN" />
+
+		<execute function="Type" locator1="OpenIDLogin#LOGIN_OPENID_FIELD" value1="${openIDUsername}" />
+		<execute function="Type" locator1="OpenIDLogin#LOGIN_PASSWORD_FIELD" value1="${openIDPassword}" />
+
+		<execute function="AssertClick" locator1="OpenIDLogin#LOGIN_BUTTON" value1="Login" />
+
+		<if>
+			<condition function="IsElementPresent#pauseIsElementPresent" locator1="Button#I_AGREE" value1="I Agree" />
+			<then>
+				<execute function="AssertClick" locator1="Button#I_AGREE" value1="I Agree" />
+			</then>
+		</if>
+
+		<if>
+			<condition function="IsElementPresent#pauseIsElementPresent" locator1="TextInput#PASSWORD" />
+			<then>
+				<if>
+					<and>
+						<isset var="syntaxCheckingEnabled" />
+						<equals arg1="${syntaxCheckingEnabled}" arg2="true" />
+					</and>
+					<then>
+						<execute function="Type" locator1="TextInput#PASSWORD" value1="${resetPassword}" />
+						<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="${resetPassword}" />
+					</then>
+					<else>
+						<execute function="Type" locator1="TextInput#PASSWORD" value1="test" />
+						<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="test" />
+					</else>
+				</if>
+
+				<execute macro="Button#clickSave" />
+			</then>
+		</if>
+
+		<if>
+			<condition function="IsElementPresent#pauseIsElementPresent" locator1="TextInput#ANSWER" />
+			<then>
+				<execute function="Type" locator1="TextInput#ANSWER" value1="test" />
+				<execute macro="Button#clickSave" />
+			</then>
+		</if>
+
+		<execute function="AssertElementPresent" locator1="UserBar#USER_AVATAR_IMAGE" />
+	</command>
+
+	<command name="loginUserWithOpenSSOEnabledPG">
+		<description message="Log into OpenSSO as ${userScreenName} using the password ${password}." />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute function="AssertClick" locator1="UserBar#USER_SIGN_IN" value1="Sign In" />
+
+		<execute function="Type" locator1="OpenAM#USER_NAME" value1="${userScreenName}" />
+		<execute function="Type" locator1="OpenAM#PASSWORD" value1="${password}" />
+
+		<execute function="Click" locator1="OpenAM#LOG_IN" />
+
+		<execute function="AssertElementPresent" locator1="UserBar#USER_AVATAR_IMAGE" />
 	</command>
 
 	<command name="logoutAndLoginPG">
@@ -1932,11 +2093,11 @@
 			<var name="panelHeading" value="Roles" />
 		</execute>
 
-		<var name="key_roleName" value="${roleName}" />
+		<var name="key_roleTitle" value="${roleTitle}" />
 
 		<execute function="Click" locator1="UsersAndOrganizationsEditUser#ROLES_REGULAR_ROLES_TABLE_REMOVE_LINK" />
 
-		<execute function="AssertElementNotPresent" locator1="UsersAndOrganizationsEditUser#ROLES_REGULAR_ROLES_TABLE_TITLE" value1="${roleName}" />
+		<execute function="AssertElementNotPresent" locator1="UsersAndOrganizationsEditUser#ROLES_REGULAR_ROLES_TABLE_TITLE" value1="${roleTitle}" />
 
 		<execute macro="PortletEntry#save" />
 	</command>
@@ -2035,6 +2196,13 @@
 		<execute function="AssertTextEquals" locator1="UserBar#USER_SIGN_IN" value1="Sign In" />
 	</command>
 
+	<command name="viewLoggedOutWithCASEnabledPG">
+		<execute function="AssertTextEquals" locator1="CAS#APP_NAME_HEADER" value1="Central Authentication Service (CAS)" />
+		<execute function="AssertTextEquals" locator1="CAS#LOGOUT_SUCCESSFUL_HEADER" value1="Logout successful" />
+		<execute function="AssertTextEquals" locator1="CAS#LOGOUT_SUCCESSFUL_MESSAGE_1" value1="You have successfully logged out of the Central Authentication Service." />
+		<execute function="AssertTextEquals" locator1="CAS#LOGOUT_SUCCESSFUL_MESSAGE_2" value1="For security reasons, exit your web browser." />
+	</command>
+
 	<command name="viewLoginPG">
 		<if>
 			<equals arg1="${authenticationMethod}" arg2="By Screen Name" />
@@ -2072,9 +2240,9 @@
 			<var name="panelHeading" value="Roles" />
 		</execute>
 
-		<var name="key_roleName" value="${roleName}" />
+		<var name="key_roleTitle" value="${roleTitle}" />
 
-		<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditUser#ROLES_REGULAR_ROLES_TABLE_TITLE" value1="${roleName}" />
+		<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditUser#ROLES_REGULAR_ROLES_TABLE_TITLE" value1="${roleTitle}" />
 	</command>
 
 	<command name="viewUserInfomationSitesCP">

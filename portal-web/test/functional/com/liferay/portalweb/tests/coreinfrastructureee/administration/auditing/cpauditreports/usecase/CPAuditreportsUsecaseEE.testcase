@@ -1,5 +1,6 @@
 <definition component-name="portal-core-infrastructure-portal-services-ee">
 	<property name="portal.release" value="true" />
+	<property name="test.run.environment" value="EE" />
 	<property name="testray.main.component.name" value="Auditing" />
 	<property name="testray.testcase.product.edition" value="EE" />
 
@@ -39,13 +40,25 @@
 			<var name="siteName" value="${siteName}" />
 		</execute>
 
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
+		</execute>
+
+		<var name="key_userScreenName" value="test" />
+
+		<execute function="AssertClick" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="test" />
+
+		<execute function="Pause" locator1="5000" />
+
+		<var locator="UsersAndOrganizationsEditUser#DETAILS_USER_ID_FIELD" name="userId" />
+
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="Audit" />
 		</execute>
 
 		<execute macro="Audit#searchCP">
-			<var name="searchTerm" value="20164" />
-			<var name="userId" value="20164" />
+			<var name="searchTerm" value="${userId}" />
+			<var name="userId" value="${userId}" />
 			<var name="userName" value="Test Test" />
 		</execute>
 
@@ -63,8 +76,8 @@
 		</execute>
 
 		<execute macro="Audit#searchCP">
-			<var name="resourceId" value="20164" />
-			<var name="searchTerm" value="20164" />
+			<var name="resourceId" value="${userId}" />
+			<var name="searchTerm" value="${userId}" />
 			<var name="userName" value="Test Test" />
 		</execute>
 
@@ -155,7 +168,7 @@
 		</execute>
 
 		<execute macro="Role#addCP">
-			<var name="roleName" value="Role1" />
+			<var name="roleTitle" value="Role1" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
@@ -163,7 +176,7 @@
 		</execute>
 
 		<execute macro="Role#assignRegRoleCP">
-			<var name="roleName" value="Role1" />
+			<var name="roleTitle" value="Role1" />
 			<var name="userScreenName" value="test1" />
 		</execute>
 

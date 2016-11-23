@@ -1032,7 +1032,14 @@ AUI.add(
 								calendar: {
 									locale: Liferay.ThemeDisplay.getLanguageId()
 								},
-								trigger: instance.get('templateNode')
+								on: {
+									selectionChange: function(event) {
+										var date = event.newSelection;
+
+										instance.setValue(A.Date.format(date));
+									}
+								},
+								trigger: instance.get('templateNode').one('input')
 							}
 						).render();
 
@@ -1413,6 +1420,10 @@ AUI.add(
 
 					fieldNamespace: {
 						value: 'ddm'
+					},
+
+					indexType: {
+						value: 'text'
 					}
 				},
 
@@ -1492,6 +1503,20 @@ AUI.add(
 			}
 		);
 
+		var DDMTextAreaField = A.Component.create(
+			{
+				ATTRS: {
+					indexType: {
+						value: 'text'
+					}
+				},
+
+				EXTENDS: A.FormBuilderTextAreaField,
+
+				NAME: 'textarea'
+			}
+		);
+
 		var plugins = [
 			DDMDateField,
 			DDMDecimalField,
@@ -1504,7 +1529,8 @@ AUI.add(
 			DDMNumberField,
 			DDMParagraphField,
 			DDMSeparatorField,
-			DDMHTMLTextField
+			DDMHTMLTextField,
+			DDMTextAreaField
 		];
 
 		plugins.forEach(

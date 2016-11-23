@@ -17,6 +17,7 @@ package com.liferay.mentions.internal.util.impl;
 import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.mentions.constants.MentionsConstants;
+import com.liferay.mentions.matcher.MentionsMatcher;
 import com.liferay.mentions.util.MentionsNotifier;
 import com.liferay.mentions.util.MentionsUserFinder;
 import com.liferay.mentions.web.constants.MentionsPortletKeys;
@@ -37,6 +38,7 @@ import com.liferay.social.kernel.util.SocialInteractionsConfigurationUtil;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
@@ -58,7 +60,7 @@ public class DefaultMentionsNotifier implements MentionsNotifier {
 		throws PortalException {
 
 		String[] mentionedUsersScreenNames = getMentionedUsersScreenNames(
-			userId, content);
+			userId, className, content);
 
 		if (ArrayUtil.isEmpty(mentionedUsersScreenNames)) {
 			return;
@@ -86,15 +88,16 @@ public class DefaultMentionsNotifier implements MentionsNotifier {
 		subscriptionSender.setCompanyId(user.getCompanyId());
 		subscriptionSender.setContextAttribute("[$CONTENT$]", content, false);
 		subscriptionSender.setContextAttributes(
-			"[$ASSET_ENTRY_NAME$]",
-			getAssetEntryName(className, serviceContext), "[$USER_ADDRESS$]",
-			messageUserEmailAddress, "[$USER_NAME$]", messageUserName,
-			"[$CONTENT_URL$]", contentURL);
+			"[$USER_ADDRESS$]", messageUserEmailAddress, "[$USER_NAME$]",
+			messageUserName, "[$CONTENT_URL$]", contentURL);
 		subscriptionSender.setCurrentUserId(userId);
 		subscriptionSender.setEntryTitle(title);
 		subscriptionSender.setEntryURL(contentURL);
 		subscriptionSender.setFrom(fromAddress, fromName);
 		subscriptionSender.setHtmlFormat(true);
+		subscriptionSender.setLocalizedContextAttribute(
+			"[$ASSET_ENTRY_NAME$]",
+			locale -> getAssetEntryName(className, locale));
 		subscriptionSender.setMailId("mb_discussion", classPK);
 		subscriptionSender.setNotificationType(
 			MentionsConstants.NOTIFICATION_TYPE_MENTION);
@@ -121,21 +124,20 @@ public class DefaultMentionsNotifier implements MentionsNotifier {
 		subscriptionSender.flushNotificationsAsync();
 	}
 
-	protected String getAssetEntryName(
-		String className, ServiceContext serviceContext) {
-
+	protected String getAssetEntryName(String className, Locale locale) {
 		AssetRendererFactory<?> assetRendererFactory =
 			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
 				className);
 
 		if (assetRendererFactory != null) {
-			return assetRendererFactory.getTypeName(serviceContext.getLocale());
+			return assetRendererFactory.getTypeName(locale);
 		}
 
 		return StringPool.BLANK;
 	}
 
-	protected String[] getMentionedUsersScreenNames(long userId, String content)
+	protected String[] getMentionedUsersScreenNames(
+			long userId, String className, String content)
 		throws PortalException {
 
 		User user = _userLocalService.getUser(userId);
@@ -147,7 +149,10 @@ public class DefaultMentionsNotifier implements MentionsNotifier {
 
 		Set<String> mentionedUsersScreenNames = new HashSet<>();
 
-		for (String mentionedUserScreenName : MentionsMatcher.match(content)) {
+		MentionsMatcher mentionsMatcher =
+			_mentionsMatcherRegistry.getMentionsMatcher(className);
+
+		for (String mentionedUserScreenName : mentionsMatcher.match(content)) {
 			List<User> users = _mentionsUserFinder.getUsers(
 				user.getCompanyId(), userId, mentionedUserScreenName,
 				socialInteractionsConfiguration);
@@ -166,6 +171,13 @@ public class DefaultMentionsNotifier implements MentionsNotifier {
 	}
 
 	@Reference(unbind = "-")
+	protected void setMentionsMatcherRegistry(
+		MentionsMatcherRegistry mentionsMatcherRegistry) {
+
+		_mentionsMatcherRegistry = mentionsMatcherRegistry;
+	}
+
+	@Reference(unbind = "-")
 	protected void setMentionsUserFinder(
 		MentionsUserFinder mentionsUserFinder) {
 
@@ -177,6 +189,7 @@ public class DefaultMentionsNotifier implements MentionsNotifier {
 		_userLocalService = userLocalService;
 	}
 
+	private MentionsMatcherRegistry _mentionsMatcherRegistry;
 	private MentionsUserFinder _mentionsUserFinder;
 	private UserLocalService _userLocalService;
 

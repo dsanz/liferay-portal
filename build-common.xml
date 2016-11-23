@@ -57,9 +57,14 @@
 		<fileset dir="${project.dir}/lib/portal" includes="*.jar" />
 	</path>
 
+	<path id="lib.pre.classpath">
+		<fileset dir="${project.dir}/tmp/lib-pre" erroronmissingdir="false" includes="*.jar" />
+	</path>
+
 	<path id="project.classpath">
 		<pathelement path="${classpath.full}" />
 		<path refid="lib.classpath" />
+		<path refid="lib.pre.classpath" />
 	</path>
 
 	<path id="web.classpath">
@@ -67,6 +72,7 @@
 		<fileset dir="${project.dir}/lib/development" includes="jsp-api.jar,mail.jar,servlet-api.jar" />
 		<fileset dir="${project.dir}/lib/global" includes="*.jar" />
 		<fileset dir="${project.dir}/lib/portal" includes="bnd.jar" />
+		<path refid="lib.pre.classpath" />
 		<path refid="web-lib.classpath" />
 	</path>
 
@@ -79,11 +85,10 @@
 	<taskdef classpathref="lib.classpath" resource="tasks.properties" />
 
 	<taskdef classname="com.liferay.ant.beanshell.BeanShellTask" classpathref="lib.classpath" name="beanshell" />
-
 	<taskdef classname="com.liferay.ant.bnd.BaselineJarTask" classpathref="lib.classpath" name="baseline-jar" />
 	<taskdef classname="com.liferay.ant.bnd.ReleaseToRepoTask" classpathref="lib.classpath" name="release-to-repo" />
-
 	<taskdef classname="com.liferay.ant.build.logger.LiferayBuildLoggerInstallerTask" classpath="${project.dir}/lib/development/com.liferay.ant.build.logger.jar" name="liferay-build-logger-installer" />
+	<taskdef classname="com.liferay.ant.mirrors.get.MirrorsGetTask" classpathref="lib.classpath" name="mirrors-get" />
 
 	<liferay-build-logger-installer />
 
@@ -91,8 +96,19 @@
 
 	<taskdef classname="com.tonicsystems.jarjar.JarJarTask" classpath="${project.dir}/lib/development/jarjar.jar" name="jarjar" />
 
-	<import file="build-common-ivy.xml" />
+	<condition property="build.profile" value="portal">
+		<not>
+			<isset property="build.profile" />
+		</not>
+	</condition>
 
+	<condition property="app.server.type" value="tomcat">
+		<equals arg1="${build.profile}" arg2="slim" />
+	</condition>
+
+	<property name="aspectj.agent" value="-javaagent:${project.dir}/lib/portal/aspectj-weaver.jar" />
+	<property name="aspectj.configuration" value="com/liferay/aspectj/aop.xml" />
+	<property name="definitions.dir" value="${project.dir}/definitions" />
 	<property name="doc.dir" value="${project.dir}/api" />
 
 	<tempfile deleteonexit="true" destdir="${project.dir}" property="app.server.tmp.properties" suffix=".properties" />
@@ -163,8 +179,6 @@
 	<condition else="false" property="liferay.releng.supported">
 		<istrue value="${liferay.releng.ee}" />
 	</condition>
-
-	<property name="definitions.dir" value="${project.dir}/definitions" />
 
 	<condition property="correct.ant.version">
 		<antversion atleast="1.7.0" />
@@ -312,13 +326,45 @@ Error-Prone was automatically installed. Please rerun your task.
 							/>
 
 							<if>
-								<equals arg1="${fix.pack.requirement.type}" arg2="hotfix" />
+								<and>
+									<not>
+										<isset property="fix.pack.requirement.type" />
+									</not>
+									<contains string="@{fix.pack.requirement}" substring="de=" />
+								</and>
 								<then>
+									<property name="fix.pack.requirement.type" value="de" />
+								</then>
+							</if>
+
+							<if>
+								<equals arg1="${fix.pack.requirement.type}" arg2="de" />
+								<then>
+									<local name="fix.pack.requirement" />
+
+									<propertyregex
+										defaultValue="@{fix.pack.requirement}"
+										input="@{fix.pack.requirement}"
+										property="fix.pack.requirement"
+										override="true"
+										regexp="="
+										replace="-"
+									/>
+
 									<var
 										name="fix.pack.requirement.file.name"
-										value="liferay-@{fix.pack.requirement}-${fix.pack.build.version}.zip"
+										value="liferay-fix-pack-${fix.pack.requirement}-${fix.pack.build.version}.zip"
 									/>
 								</then>
+								<elseif>
+									<equals arg1="${fix.pack.requirement.type}" arg2="hotfix" />
+									<then>
+										<var
+											name="fix.pack.requirement.file.name"
+											value="liferay-@{fix.pack.requirement}-${fix.pack.build.version}.zip"
+										/>
+									</then>
+								</elseif>
 								<else>
 									<var
 										name="fix.pack.requirement.file.name"
@@ -334,15 +380,15 @@ Error-Prone was automatically installed. Please rerun your task.
 								<then>
 									<trycatch>
 										<try>
-											<get
+											<mirrors-get
 												dest="@{fix.pack.dir}"
-												src="http://mirrors/files.liferay.com/private/ee/fix-packs/${fix.pack.portal.version}/${fix.pack.requirement.type}/${fix.pack.requirement.file.name}"
+												src="http://files.liferay.com/private/ee/fix-packs/${fix.pack.portal.version}/${fix.pack.requirement.type}/${fix.pack.requirement.file.name}"
 											/>
 										</try>
 										<catch>
-											<get
+											<mirrors-get
 												dest="@{fix.pack.dir}"
-												src="http://mirrors/files.liferay.com/private/ee/fix-packs/incubation/${fix.pack.requirement.file.name}"
+												src="http://files.liferay.com/private/ee/fix-packs/incubation/${fix.pack.requirement.file.name}"
 											/>
 										</catch>
 									</trycatch>
@@ -693,6 +739,7 @@ Error-Prone was automatically installed. Please rerun your task.
 		<element name="test.classes" />
 
 		<sequential>
+			<local name="aspectj.weaver.enabled" />
 			<local name="junit.java.gc" />
 
 			<if>
@@ -709,6 +756,8 @@ Error-Prone was automatically installed. Please rerun your task.
 					</if>
 				</then>
 				<else>
+					<property name="aspectj.weaver.enabled" value="true" />
+
 					<local name="project.dir.name" />
 
 					<basename file="${project.dir}" property="project.dir.name" />
@@ -718,13 +767,17 @@ Error-Prone was automatically installed. Please rerun your task.
 			</if>
 
 			<junit dir="${project.dir}" fork="on" forkmode="@{forkmode}" haltonfailure="${junit.halt.on.failure}" jvm="${junit.jvm}" outputtoformatters="false" printsummary="on" showoutput="true">
+				<sysproperty if:true="${aspectj.weaver.enabled}" key="aspectj.agent" value="${aspectj.agent}" />
+				<sysproperty key="catalina.base" value="." />
 				<sysproperty file="woven-classes" key="junit.aspectj.dump" />
 				<sysproperty key="junit.code.coverage" value="${junit.code.coverage}" />
 				<sysproperty if:true="${jvm.debug}" key="jvm.debug" value="true" />
 				<sysproperty key="liferay.lib.portal.dir" value="${app.server.tomcat.lib.portal.dir}" />
+				<sysproperty if:true="${aspectj.weaver.enabled}" key="org.aspectj.weaver.loadtime.configuration" value="${aspectj.configuration}" />
 				<sysproperty key="whip.agent" value="${whip.agent}" />
 				<sysproperty file="test-coverage/@{test.type}/whip.dat" key="whip.datafile" />
 				<sysproperty key="whip.instrument.dump" value="${whip.instrument.dump}" />
+				<jvmarg if:true="${aspectj.weaver.enabled}" line="${aspectj.agent}" />
 				<jvmarg if:true="${jvm.debug}" line="${jpda.settings}" />
 				<jvmarg line="${junit.java.gc}" />
 				<jvmarg line="${whip.agent}" />
@@ -737,6 +790,7 @@ Error-Prone was automatically installed. Please rerun your task.
 				<jvmarg value="-Dliferay.mode=test" />
 				<jvmarg value="-Dosgi.state.dir=${liferay.home}/osgi/state" />
 				<jvmarg value="-Drelease.versions.test.other.dir=${release.versions.test.other.dir}" />
+				<jvmarg value="-Dsun.zip.disableMemoryMapping=true" />
 				<misc />
 				<jvmarg value="-Duser.timezone=GMT" />
 				<classpath location="test-coverage" />
@@ -1049,17 +1103,28 @@ Error-Prone was automatically installed. Please rerun your task.
 
 			<if>
 				<and>
-					<equals arg1="${basedir}" arg2="${project.dir}/portal-impl" />
+					<equals arg1="${basedir.unix}" arg2="${project.dir}/portal-impl" />
 					<equals arg1="@{test.type}" arg2="integration" />
 				</and>
 				<then>
 					<var name="junit.classpath" value="${classpath.portal-impl-integration}" />
+
+					<for param="lfrbuild-ci">
+						<fileset dir="${project.dir}/modules" includes="**/.lfrbuild-ci" />
+						<sequential>
+							<local name="module.dir" />
+
+							<dirname file="@{lfrbuild-ci}" property="module.dir" />
+
+							<var name="junit.classpath" value="${junit.classpath};${module.dir}/classes" />
+						</sequential>
+					</for>
 				</then>
 			</if>
 
 			<if>
 				<and>
-					<equals arg1="${basedir}" arg2="${project.dir}/portal-impl" />
+					<equals arg1="${basedir.unix}" arg2="${project.dir}/portal-impl" />
 					<equals arg1="@{test.type}" arg2="unit" />
 				</and>
 				<then>
@@ -1069,7 +1134,7 @@ Error-Prone was automatically installed. Please rerun your task.
 
 			<if>
 				<and>
-					<equals arg1="${basedir}" arg2="${project.dir}/portal-kernel" />
+					<equals arg1="${basedir.unix}" arg2="${project.dir}/portal-kernel" />
 					<equals arg1="@{test.type}" arg2="unit" />
 				</and>
 				<then>
@@ -1079,7 +1144,7 @@ Error-Prone was automatically installed. Please rerun your task.
 
 			<if>
 				<and>
-					<equals arg1="${basedir}" arg2="${project.dir}/util-java" />
+					<equals arg1="${basedir.unix}" arg2="${project.dir}/util-java" />
 					<equals arg1="@{test.type}" arg2="unit" />
 				</and>
 				<then>
@@ -1091,6 +1156,7 @@ Error-Prone was automatically installed. Please rerun your task.
 				<pathelement path="test-classes/@{test.type}" />
 				<pathelement path="${junit.classpath}" />
 				<pathelement path="${test.additional.classpath}" />
+				<path refid="lib.pre.classpath" />
 				<fileset dir="${project.dir}/lib/development" excludes="jalopy.jar,jetty*.jar,tomcat*.jar" includes="*.jar" />
 				<fileset dir="${project.dir}/lib/global" includes="*.jar" />
 				<fileset dir="${project.dir}/lib/portal" excludes="ant.jar" includes="*.jar" />

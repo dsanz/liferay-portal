@@ -126,6 +126,10 @@ public interface KBArticleLocalService extends BaseLocalService,
 	public KBArticle fetchKBArticle(long kbArticleId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public KBArticle fetchKBArticle(long resourcePrimKey, long groupId,
+		int version);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public KBArticle fetchKBArticleByUrlTitle(long groupId,
 		java.lang.String kbFolderUrlTitle, java.lang.String urlTitle)
 		throws PortalException;
@@ -147,6 +151,9 @@ public interface KBArticleLocalService extends BaseLocalService,
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public KBArticle fetchLatestKBArticle(long resourcePrimKey, int status);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public KBArticle fetchLatestKBArticle(long resourcePrimKey, long groupId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public KBArticle fetchLatestKBArticleByUrlTitle(long groupId,
@@ -285,7 +292,7 @@ public interface KBArticleLocalService extends BaseLocalService,
 		java.lang.String[] sections, int status);
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #getKBArticlesCount(long,
+	* @deprecated As of 1.1.0, replaced by {@link #getKBArticlesCount(long,
 	long, int)}
 	*/
 	@java.lang.Deprecated
@@ -361,7 +368,7 @@ public interface KBArticleLocalService extends BaseLocalService,
 		OrderByComparator<KBArticle> orderByComparator);
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	#getKBArticleAndAllDescendantKBArticles(long, int,
 	OrderByComparator)}
 	*/
@@ -433,7 +440,7 @@ public interface KBArticleLocalService extends BaseLocalService,
 		OrderByComparator<KBArticle> orderByComparator);
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #getKBArticles(long, long,
+	* @deprecated As of 1.1.0, replaced by {@link #getKBArticles(long, long,
 	int, int, int,
 	OrderByComparator)}
 	*/

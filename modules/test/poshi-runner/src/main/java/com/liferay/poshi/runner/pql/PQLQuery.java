@@ -53,6 +53,7 @@ public class PQLQuery extends PQLEntity {
 		_pqlEntity2 = PQLEntityFactory.newPQLEntity(queryTokens[2]);
 	}
 
+	@Override
 	public Object getPQLResult(Properties properties) throws Exception {
 		Object pqlResultObject = _pqlOperator.getPQLResult(
 			_pqlEntity1, _pqlEntity2, properties);
@@ -170,7 +171,7 @@ public class PQLQuery extends PQLEntity {
 
 		int operatorIndex = -1;
 
-		for (int i = (prioritizedOperatorList.size() - 1); i >= 0; i--) {
+		for (int i = prioritizedOperatorList.size() - 1; i >= 0; i--) {
 			List<String> operators = prioritizedOperatorList.get(i);
 
 			for (int j = 0; j < tokens.size(); j++) {

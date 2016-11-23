@@ -200,7 +200,7 @@ List<DDMTemplate> ddmTemplates = journalContentDisplayContext.getDDMTemplates();
 
 					var baseJournalArticleResourceUrl = '<%= journalArticleResource.toString() %>';
 
-					form.fm('assetEntryId').val(event.assetentryid);
+					form.fm('assetEntryId').val(event.entityid);
 					form.fm('ddmTemplateKey').val('');
 
 					hideError(articlePreviewNode);

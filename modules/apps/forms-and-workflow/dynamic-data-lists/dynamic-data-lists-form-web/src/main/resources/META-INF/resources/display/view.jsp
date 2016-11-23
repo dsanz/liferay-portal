@@ -25,7 +25,7 @@ long recordSetId = ddlFormDisplayContext.getRecordSetId();
 %>
 
 <c:choose>
-	<c:when test="<%= (recordSetId == 0) %>">
+	<c:when test="<%= recordSetId == 0 %>">
 		<div class="alert alert-info">
 			<liferay-ui:message key="select-an-existing-form-or-add-a-form-to-be-displayed-in-this-application" />
 		</div>
@@ -52,8 +52,6 @@ long recordSetId = ddlFormDisplayContext.getRecordSetId();
 
 						<aui:input name="groupId" type="hidden" value="<%= recordSet.getGroupId() %>" />
 						<aui:input name="recordSetId" type="hidden" value="<%= recordSet.getRecordSetId() %>" />
-						<aui:input name="availableLanguageId" type="hidden" value="<%= themeDisplay.getLanguageId() %>" />
-						<aui:input name="defaultLanguageId" type="hidden" value="<%= themeDisplay.getLanguageId() %>" />
 						<aui:input name="workflowAction" type="hidden" value="<%= WorkflowConstants.ACTION_PUBLISH %>" />
 
 						<liferay-ui:error exception="<%= CaptchaTextException.class %>" message="text-verification-failed" />
@@ -108,7 +106,7 @@ long recordSetId = ddlFormDisplayContext.getRecordSetId();
 								%>
 
 								<c:if test="<%= Validator.isNotNull(description) %>">
-									<h2 class="ddl-form-description"><%= description %></h2>
+									<h5 class="ddl-form-description"><%= description %></h5>
 								</c:if>
 							</div>
 						</div>

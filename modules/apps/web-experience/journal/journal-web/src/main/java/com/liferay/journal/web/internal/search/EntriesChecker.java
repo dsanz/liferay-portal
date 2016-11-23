@@ -14,11 +14,10 @@
 
 package com.liferay.journal.web.internal.search;
 
-import com.liferay.journal.exception.NoSuchArticleException;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
-import com.liferay.journal.service.JournalArticleServiceUtil;
-import com.liferay.journal.service.JournalFolderServiceUtil;
+import com.liferay.journal.service.JournalArticleLocalServiceUtil;
+import com.liferay.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.journal.service.permission.JournalArticlePermission;
 import com.liferay.journal.service.permission.JournalFolderPermission;
 import com.liferay.journal.web.internal.display.context.JournalDisplayContext;
@@ -84,26 +83,17 @@ public class EntriesChecker extends EmptyOnClickRowChecker {
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		JournalArticle article = null;
 		JournalFolder folder = null;
 
 		String articleId = GetterUtil.getString(primaryKey);
 
-		try {
-			article = JournalArticleServiceUtil.getArticle(
-				themeDisplay.getScopeGroupId(), articleId);
-		}
-		catch (Exception e1) {
-			if (e1 instanceof NoSuchArticleException) {
-				try {
-					long folderId = GetterUtil.getLong(primaryKey);
+		JournalArticle article = JournalArticleLocalServiceUtil.fetchArticle(
+			themeDisplay.getScopeGroupId(), articleId);
 
-					folder = JournalFolderServiceUtil.getFolder(folderId);
-				}
-				catch (Exception e2) {
-					return StringPool.BLANK;
-				}
-			}
+		if (article == null) {
+			long folderId = GetterUtil.getLong(primaryKey);
+
+			folder = JournalFolderLocalServiceUtil.fetchFolder(folderId);
 		}
 
 		String name = null;
@@ -161,7 +151,7 @@ public class EntriesChecker extends EmptyOnClickRowChecker {
 		return getRowCheckBox(
 			request, checked, disabled,
 			_liferayPortletResponse.getNamespace() + RowChecker.ROW_IDS + name +
-				"",
+				StringPool.BLANK,
 			primaryKey, checkBoxRowIds, "'#" + getAllRowIds() + "'",
 			StringPool.BLANK);
 	}

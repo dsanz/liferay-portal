@@ -258,8 +258,8 @@ public class UpgradeJournalArticles extends BaseUpgradePortletId {
 		throws Exception {
 
 		try (PreparedStatement ps = connection.prepareStatement(
-				"update PortletPreferences set preferences = ?, " +
-					"portletId = ? where portletPreferencesId = " +
+				"update PortletPreferences set preferences = ?, portletId = " +
+					"? where portletPreferencesId = " +
 						portletPreferencesId)) {
 
 			ps.setString(1, newPreferences);

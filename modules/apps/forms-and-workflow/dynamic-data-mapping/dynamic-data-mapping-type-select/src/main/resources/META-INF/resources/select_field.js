@@ -14,17 +14,18 @@ AUI.add(
 					},
 
 					multiple: {
+						state: true,
 						value: false
 					},
 
 					options: {
 						getter: '_getOptions',
+						state: true,
 						validator: Array.isArray,
 						value: []
 					},
 
 					strings: {
-						repaint: false,
 						value: {
 							chooseAnOption: Liferay.Language.get('choose-an-option'),
 							dynamicallyLoadedData: Liferay.Language.get('dynamically-loaded-data')
@@ -36,7 +37,6 @@ AUI.add(
 					},
 
 					value: {
-						repaint: false,
 						value: []
 					}
 				},
@@ -46,6 +46,16 @@ AUI.add(
 				NAME: 'liferay-ddm-form-field-select',
 
 				prototype: {
+					cleanSelect: function() {
+						var instance = this;
+
+						var inputNode = instance.getInputNode();
+
+						inputNode.setAttribute('selected', false);
+
+						instance.set('value', []);
+					},
+
 					getTemplateContext: function() {
 						var instance = this;
 
@@ -53,6 +63,7 @@ AUI.add(
 							SelectField.superclass.getTemplateContext.apply(instance, arguments),
 							{
 								options: instance.get('options'),
+								strings: instance.get('strings'),
 								value: instance.getValueArray()
 							}
 						);
@@ -75,6 +86,8 @@ AUI.add(
 									}
 								}
 							);
+
+							value = value.join();
 						}
 						else {
 							value = inputNode.val();

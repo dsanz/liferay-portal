@@ -168,6 +168,10 @@
 			<contains>Application exception overridden by commit exception</contains>
 			<matches></matches>
 		</ignore-error>
+		<ignore-error description="LPS-65131">
+			<contains></contains>
+			<matches>.*Table.*does not exist.*</matches>
+		</ignore-error>
 		<ignore-error description="LPS-65878, temporary workaround until Tina Tian fixes it">
 			<contains>The addSearchEngineConfigurator method has thrown an exception</contains>
 			<matches></matches>
@@ -175,6 +179,14 @@
 		<ignore-error description="LPS-66736, temporary workaround as the issue does not always occur">
 			<contains></contains>
 			<matches>.*Unable to process message.*product-app-theme.*</matches>
+		</ignore-error>
+		<ignore-error description="LPS-67925">
+			<contains></contains>
+			<matches>.*HotDeployException\: Error registering plugins for opensocial\-portlet.*</matches>
+		</ignore-error>
+		<ignore-error description="LPS-68366">
+			<contains></contains>
+			<matches>.*ServerAdminPortlet\_tabs1\=resources generates exception.*NullPointerException.*</matches>
 		</ignore-error>
 		<ignore-error description="LRQA-14442, temporary workaround until Kiyoshi Lee fixes it">
 			<contains>[org_eclipse_equinox_http_servlet.*Framework Event Dispatcher: Equinox Container:</contains>

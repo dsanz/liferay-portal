@@ -374,6 +374,7 @@ public class DLFileEntryLocalServiceImpl
 				dlFileEntry, majorVersion, serviceContext.getWorkflowAction());
 
 			latestDLFileVersion.setVersion(version);
+
 			latestDLFileVersion.setChangeLog(changeLog);
 
 			dlFileVersionPersistence.update(latestDLFileVersion);
@@ -986,6 +987,11 @@ public class DLFileEntryLocalServiceImpl
 		long groupId, long folderId, String title) {
 
 		return dlFileEntryPersistence.fetchByG_F_T(groupId, folderId, title);
+	}
+
+	@Override
+	public DLFileEntry fetchFileEntry(String uuid, long groupId) {
+		return dlFileEntryPersistence.fetchByUUID_G(uuid, groupId);
 	}
 
 	@Override
@@ -2409,6 +2415,13 @@ public class DLFileEntryLocalServiceImpl
 			return fileEntryTypeId;
 		}
 		catch (InvalidFileEntryTypeException ifete) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(ifete, ifete);
+			}
+
 			return dlFileEntryTypeLocalService.getDefaultFileEntryTypeId(
 				dlFileEntry.getFolderId());
 		}

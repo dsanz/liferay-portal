@@ -14,6 +14,8 @@
 
 package com.liferay.exportimport.search;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalService;
@@ -26,7 +28,7 @@ import com.liferay.portal.kernel.search.BaseIndexer;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.search.IndexWriterHelperUtil;
+import com.liferay.portal.kernel.search.IndexWriterHelper;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Summary;
@@ -54,6 +56,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Akos Thurzo
  */
 @Component(immediate = true, service = Indexer.class)
+@ProviderType
 public class ExportImportConfigurationIndexer
 	extends BaseIndexer<ExportImportConfiguration> {
 
@@ -159,7 +162,7 @@ public class ExportImportConfigurationIndexer
 
 		Document document = getDocument(exportImportConfiguration);
 
-		IndexWriterHelperUtil.updateDocument(
+		_indexWriterHelper.updateDocument(
 			getSearchEngineId(), exportImportConfiguration.getCompanyId(),
 			document, isCommitImmediately());
 	}
@@ -216,6 +219,12 @@ public class ExportImportConfigurationIndexer
 				layoutIds = ExportImportHelperUtil.getLayoutIds(layoutIdMap);
 			}
 			catch (PortalException pe) {
+
+				// LPS-52675
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(pe, pe);
+				}
 			}
 		}
 
@@ -352,5 +361,8 @@ public class ExportImportConfigurationIndexer
 
 	private ExportImportConfigurationLocalService
 		_exportImportConfigurationLocalService;
+
+	@Reference
+	private IndexWriterHelper _indexWriterHelper;
 
 }

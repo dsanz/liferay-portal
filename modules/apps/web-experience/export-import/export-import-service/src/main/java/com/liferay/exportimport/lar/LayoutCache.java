@@ -14,9 +14,13 @@
 
 package com.liferay.exportimport.lar;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.exportimport.internal.util.ExportImportPermissionUtil;
 import com.liferay.portal.kernel.exception.NoSuchRoleException;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.Team;
@@ -34,6 +38,7 @@ import java.util.Map;
 /**
  * @author Charles May
  */
+@ProviderType
 public class LayoutCache {
 
 	public Role getNameRole(long companyId, String roleName)
@@ -48,6 +53,12 @@ public class LayoutCache {
 				nameRolesMap.put(roleName, role);
 			}
 			catch (NoSuchRoleException nsre) {
+
+				// LPS-52675
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(nsre, nsre);
+				}
 			}
 		}
 
@@ -67,6 +78,12 @@ public class LayoutCache {
 				uuidRolesMap.put(uuid, role);
 			}
 			catch (NoSuchRoleException nsre) {
+
+				// LPS-52675
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(nsre, nsre);
+				}
 			}
 		}
 
@@ -136,5 +153,7 @@ public class LayoutCache {
 	protected Map<String, Role> nameRolesMap = new HashMap<>();
 	protected Map<Long, List<Role>> userRolesMap = new HashMap<>();
 	protected Map<String, Role> uuidRolesMap = new HashMap<>();
+
+	private static final Log _log = LogFactoryUtil.getLog(LayoutCache.class);
 
 }

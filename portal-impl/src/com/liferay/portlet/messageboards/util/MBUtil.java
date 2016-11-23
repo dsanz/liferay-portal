@@ -706,11 +706,12 @@ public class MBUtil {
 
 		String subject = message.getSubject();
 
-		if (subject.startsWith("RE:")) {
+		if (subject.startsWith(MBMessageConstants.MESSAGE_SUBJECT_PREFIX_RE)) {
 			return subject;
 		}
 		else {
-			return "RE: " + message.getSubject();
+			return MBMessageConstants.MESSAGE_SUBJECT_PREFIX_RE +
+				message.getSubject();
 		}
 	}
 
@@ -1095,14 +1096,14 @@ public class MBUtil {
 	}
 
 	private static String[] _getMessageIdStringParts(String messageIdString) {
-		int pos = messageIdString.indexOf(CharPool.AT);
+		int start =
+			messageIdString.indexOf(MBUtil.MESSAGE_POP_PORTLET_PREFIX) +
+				MBUtil.MESSAGE_POP_PORTLET_PREFIX.length();
+
+		int end = messageIdString.indexOf(CharPool.AT);
 
 		return StringUtil.split(
-			messageIdString.substring(
-				MBUtil.MESSAGE_POP_PORTLET_PREFIX.length() +
-					getMessageIdStringOffset(),
-				pos),
-			CharPool.PERIOD);
+			messageIdString.substring(start, end), CharPool.PERIOD);
 	}
 
 	private static String _getParentMessageIdFromSubject(Message message)

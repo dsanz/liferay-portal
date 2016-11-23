@@ -135,6 +135,7 @@ public class SerializerTest {
 
 		Assert.assertSame(buffer4, bufferNode1.buffer);
 		Assert.assertNotNull(bufferNode1.next);
+
 		Assert.assertSame(buffer2, bufferNode2.buffer);
 		Assert.assertNull(bufferNode2.next);
 
@@ -630,6 +631,7 @@ public class SerializerTest {
 		String className = clazz.getName();
 
 		Assert.assertEquals(className.length() + 11, byteBuffer.limit());
+
 		Assert.assertEquals(SerializationConstants.TC_CLASS, byteBuffer.get());
 		Assert.assertEquals(1, byteBuffer.get());
 		Assert.assertEquals(0, byteBuffer.getInt());
@@ -662,6 +664,7 @@ public class SerializerTest {
 
 		Assert.assertEquals(
 			className.length() + contextName.length() + 11, byteBuffer.limit());
+
 		Assert.assertEquals(SerializationConstants.TC_CLASS, byteBuffer.get());
 		Assert.assertEquals(1, byteBuffer.get());
 		Assert.assertEquals(contextName.length(), byteBuffer.getInt());
@@ -692,7 +695,7 @@ public class SerializerTest {
 
 		Assert.assertEquals(9, byteBuffer.limit());
 		Assert.assertEquals(SerializationConstants.TC_DOUBLE, byteBuffer.get());
-		Assert.assertTrue(17.58D == byteBuffer.getDouble());
+		Assert.assertTrue(byteBuffer.getDouble() == 17.58D);
 	}
 
 	@Test
@@ -705,7 +708,7 @@ public class SerializerTest {
 
 		Assert.assertEquals(5, byteBuffer.limit());
 		Assert.assertEquals(SerializationConstants.TC_FLOAT, byteBuffer.get());
-		Assert.assertTrue(17.58F == byteBuffer.getFloat());
+		Assert.assertTrue(byteBuffer.getFloat() == 17.58F);
 	}
 
 	@Test

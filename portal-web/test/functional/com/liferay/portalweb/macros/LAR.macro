@@ -400,6 +400,24 @@
 		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${exportTemplateDescription}" />
 	</command>
 
+	<command name="configureExportOptions">
+		<execute macro="LAR#_configureExportSiteOptions">
+			<var name="checkContentNameList" value="${checkContentNameList}" />
+			<var name="checkPageName" value="${checkPageName}" />
+			<var name="contentDeletion" value="${contentDeletion}" />
+			<var name="contentName" value="${contentName}" />
+			<var name="deleteMissingPages" value="${deleteMissingPages}" />
+			<var name="exportPermissions" value="${exportPermissions}" />
+			<var name="larFileName" value="${larFileName}" />
+			<var name="mainContent" value="${mainContent}" />
+			<var name="subContent" value="${subContent}" />
+			<var name="uncheckContentNameList" value="${uncheckContentNameList}" />
+			<var name="uncheckLogo" value="${uncheckLogo}" />
+			<var name="uncheckSubContent" value="${uncheckSubContent}" />
+			<var name="uncheckSubSubContent" value="${uncheckSubSubContent}" />
+		</execute>
+	</command>
+
 	<command name="configureExportSiteCP">
 		<execute macro="LAR#_gotoExportSite" />
 
@@ -419,31 +437,6 @@
 			<var name="uncheckLogo" value="${uncheckLogo}" />
 			<var name="uncheckSubContent" value="${uncheckSubContent}" />
 			<var name="uncheckSubSubContent" value="${uncheckSubSubContent}" />
-		</execute>
-	</command>
-
-	<command name="configureExportSiteOptions">
-		<execute macro="LAR#_configureExportSiteOptions">
-			<var name="checkContentNameList" value="${checkContentNameList}" />
-			<var name="checkPageName" value="${checkPageName}" />
-			<var name="contentDeletion" value="${contentDeletion}" />
-			<var name="contentName" value="${contentName}" />
-			<var name="deleteMissingPages" value="${deleteMissingPages}" />
-			<var name="exportPermissions" value="${exportPermissions}" />
-			<var name="larFileName" value="${larFileName}" />
-			<var name="mainContent" value="${mainContent}" />
-			<var name="subContent" value="${subContent}" />
-			<var name="uncheckContentNameList" value="${uncheckContentNameList}" />
-			<var name="uncheckLogo" value="${uncheckLogo}" />
-			<var name="uncheckSubContent" value="${uncheckSubContent}" />
-			<var name="uncheckSubSubContent" value="${uncheckSubSubContent}" />
-		</execute>
-	</command>
-
-	<command name="configureExportTemplateCP">
-		<execute macro="LAR#_configureExportSiteOptions">
-			<var name="checkContentNameList" value="${checkContentNameList}" />
-			<var name="uncheckContentNameList" value="${uncheckContentNameList}" />
 		</execute>
 	</command>
 
@@ -603,6 +596,13 @@
 		<execute function="Click" locator1="SitePagesExport#EXPORT_TEMPLATES_TABLE_MOVE_TO_THE_RECYCLE_BIN_BUTTON" />
 
 		<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
+	</command>
+
+	<command name="relaunchExport">
+		<var name="key_rowEntry" value="${larFileName}" />
+
+		<execute function="Click" locator1="Icon#ROW_VERTICAL_ELLIPSIS" />
+		<execute function="Click" locator1="SitePagesExport#CURRENT_AND_PREVIOUS_ACTIONS_MENULIST_RELAUNCH" />
 	</command>
 
 	<command name="saveExportTemplateCP">

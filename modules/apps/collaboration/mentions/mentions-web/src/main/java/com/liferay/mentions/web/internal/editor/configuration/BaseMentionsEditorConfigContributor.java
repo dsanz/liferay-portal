@@ -14,6 +14,7 @@
 
 package com.liferay.mentions.web.internal.editor.configuration;
 
+import com.liferay.mentions.matcher.MentionsMatcherUtil;
 import com.liferay.mentions.web.constants.MentionsPortletKeys;
 import com.liferay.portal.kernel.editor.configuration.BaseEditorConfigContributor;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -50,6 +51,10 @@ public class BaseMentionsEditorConfigContributor
 
 		JSONObject triggerJSONObject = JSONFactoryUtil.createJSONObject();
 
+		triggerJSONObject.put(
+			"regExp",
+			"(?:\\strigger|^trigger)(" +
+				MentionsMatcherUtil.getScreenNameRegularExpression() + ")");
 		triggerJSONObject.put(
 			"resultFilters", "function(query, results) {return results;}");
 		triggerJSONObject.put("resultTextLocator", "screenName");

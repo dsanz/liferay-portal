@@ -41,6 +41,7 @@ import java.util.List;
  */
 public class AttachmentLocalServiceImpl extends AttachmentLocalServiceBaseImpl {
 
+	@Override
 	public Attachment addAttachment(
 			long userId, long messageId, String contentPath, String fileName,
 			long size, File file)
@@ -48,7 +49,7 @@ public class AttachmentLocalServiceImpl extends AttachmentLocalServiceBaseImpl {
 
 		// Attachment
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 		Message message = messagePersistence.findByPrimaryKey(messageId);
 
 		long attachmentId = counterLocalService.increment();
@@ -80,6 +81,12 @@ public class AttachmentLocalServiceImpl extends AttachmentLocalServiceBaseImpl {
 					attachment.getCompanyId(), _REPOSITORY_ID, directoryPath);
 			}
 			catch (DuplicateDirectoryException dde) {
+
+				// LPS-52675
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(dde, dde);
+				}
 			}
 
 			String filePath = getFilePath(attachment.getMessageId(), fileName);
@@ -120,6 +127,7 @@ public class AttachmentLocalServiceImpl extends AttachmentLocalServiceBaseImpl {
 		return attachment;
 	}
 
+	@Override
 	public void deleteAttachments(long companyId, long messageId)
 		throws PortalException {
 
@@ -139,10 +147,12 @@ public class AttachmentLocalServiceImpl extends AttachmentLocalServiceBaseImpl {
 		DLStoreUtil.deleteDirectory(companyId, _REPOSITORY_ID, directoryPath);
 	}
 
+	@Override
 	public List<Attachment> getAttachments(long messageId) {
 		return attachmentPersistence.findByMessageId(messageId);
 	}
 
+	@Override
 	public File getFile(long attachmentId) throws PortalException {
 		try {
 			File file = FileUtil.createTempFile();
@@ -156,6 +166,7 @@ public class AttachmentLocalServiceImpl extends AttachmentLocalServiceBaseImpl {
 		}
 	}
 
+	@Override
 	public InputStream getInputStream(long attachmentId)
 		throws PortalException {
 

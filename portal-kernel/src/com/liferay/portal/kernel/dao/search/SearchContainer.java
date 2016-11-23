@@ -255,6 +255,7 @@ public class SearchContainer<R> {
 			id = id.concat("SearchContainer");
 
 			_id = PortalUtil.getUniqueElementId(request, namespace, id);
+
 			_uniqueId = true;
 
 			return _id;
@@ -263,6 +264,7 @@ public class SearchContainer<R> {
 		id = DeterminateKeyGenerator.generate("taglib_search_container");
 
 		_id = id.concat("SearchContainer");
+
 		_uniqueId = true;
 
 		return _id;
@@ -523,7 +525,7 @@ public class SearchContainer<R> {
 
 		if (isRecalculateCur()) {
 			if ((_total % _delta) == 0) {
-				_cur = (_total / _delta);
+				_cur = _total / _delta;
 			}
 			else {
 				_cur = (_total / _delta) + 1;

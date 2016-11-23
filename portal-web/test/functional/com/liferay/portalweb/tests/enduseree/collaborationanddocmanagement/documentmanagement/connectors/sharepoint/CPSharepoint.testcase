@@ -3,6 +3,7 @@
 	<property name="cmis.repository.type" value="sharepoint2010" />
 	<property name="custom.properties" value="session.store.password=true${line.separator}company.security.auth.type=screenName" />
 	<property name="hook.plugins.includes" value="sharepoint-hook" />
+	<property name="test.run.environment" value="EE" />
 	<property name="testray.main.component.name" value="Documents Management" />
 
 	<set-up>
@@ -118,6 +119,15 @@
 		<execute macro="DMNavigator#gotoDocumentCP">
 			<var name="dmDocumentTitle" value="Document_1.txt" />
 		</execute>
+
+		<if>
+			<condition function="IsElementNotPresent" locator1="xpath=(//div[contains(@class,'document-info')])" />
+			<then>
+				<execute macro="DMNavigator#gotoDocumentCP">
+					<var name="dmDocumentTitle" value="Document_1.txt" />
+				</execute>
+			</then>
+		</if>
 
 		<execute macro="DMDocument#viewCP">
 			<var name="dmDocumentTitle" value="Document_1.txt" />
@@ -237,7 +247,7 @@
 		</execute>
 
 		<execute macro="DMDocument#viewCheckedinCP" >
-			<var name="dmDocumentVersionNumber" value="1.1" />
+			<var name="dmDocumentVersionNumber" value="2.0" />
 			<var name="dmRepositoryName" value="true" />
 		</execute>
 	</command>
@@ -251,6 +261,8 @@
 			<var name="dmDocumentFile" value="Document_4.txt" />
 			<var name="dmDocumentTitle" value="Document_4.txt" />
 		</execute>
+
+		<execute function="Refresh" />
 
 		<execute macro="DMDocument#checkoutCP">
 			<var name="dmDocumentTitle" value="Document_4.txt" />

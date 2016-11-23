@@ -527,9 +527,9 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 					SyncConstants.SYNC_OAUTH_CONSUMER_SECRET);
 
 				syncContext.setOAuthConsumerSecret(oAuthConsumerSecret);
-			}
 
-			syncContext.setOAuthEnabled(oAuthEnabled);
+				syncContext.setOAuthEnabled(true);
+			}
 
 			syncContext.setPortletPreferencesMap(getPortletPreferencesMap());
 
@@ -538,6 +538,32 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 			syncContext.setPluginVersion(String.valueOf(bundle.getVersion()));
 
 			if (!user.isDefaultUser()) {
+				boolean lanEnabled = PrefsPropsUtil.getBoolean(
+					user.getCompanyId(),
+					SyncServiceConfigurationKeys.SYNC_LAN_ENABLED,
+					SyncServiceConfigurationValues.SYNC_LAN_ENABLED);
+
+				if (lanEnabled) {
+					String lanCertificate = PrefsPropsUtil.getString(
+						user.getCompanyId(),
+						SyncConstants.SYNC_LAN_CERTIFICATE);
+
+					syncContext.setLanCertificate(lanCertificate);
+
+					syncContext.setLanEnabled(true);
+
+					String lanKey = PrefsPropsUtil.getString(
+						user.getCompanyId(), SyncConstants.SYNC_LAN_KEY);
+
+					syncContext.setLanKey(lanKey);
+
+					String lanServerUuid = PrefsPropsUtil.getString(
+						user.getCompanyId(),
+						SyncConstants.SYNC_LAN_SERVER_UUID);
+
+					syncContext.setLanServerUuid(lanServerUuid);
+				}
+
 				syncContext.setPortalBuildNumber(ReleaseInfo.getBuildNumber());
 				syncContext.setUser(user);
 
@@ -750,7 +776,7 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 		}
 
 		catch (PortalException pe) {
-			Class clazz = pe.getClass();
+			Class<?> clazz = pe.getClass();
 
 			throw new PortalException(clazz.getName(), pe);
 		}
@@ -1230,13 +1256,13 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 				repositoryId, userId, ArrayUtil.toLongArray(typePKs));
 		}
 		else {
-			List<Long> subListTypePKs = typePKs.subList(
+			List<Long> sublistTypePKs = typePKs.subList(
 				0, _SQL_DATA_MAX_PARAMETERS);
 
 			List<Long> checkedTypePKs = syncDLObjectFinder.filterFindByR_U_T(
-				repositoryId, userId, ArrayUtil.toLongArray(subListTypePKs));
+				repositoryId, userId, ArrayUtil.toLongArray(sublistTypePKs));
 
-			subListTypePKs.clear();
+			sublistTypePKs.clear();
 
 			checkedTypePKs.addAll(checkTypePKs(repositoryId, userId, typePKs));
 
@@ -1386,7 +1412,14 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 
 		SyncDLObject syncDLObject = SyncUtil.toSyncDLObject(fileEntry, event);
 
-		return checkModifiedTime(syncDLObject, fileEntry.getFileEntryId());
+		checkModifiedTime(syncDLObject, fileEntry.getFileEntryId());
+
+		String lanTokenKey = SyncUtil.getLanTokenKey(
+			syncDLObject.getModifiedTime(), fileEntry.getFileEntryId(), true);
+
+		syncDLObject.setLanTokenKey(lanTokenKey);
+
+		return syncDLObject;
 	}
 
 	protected SyncDLObject toSyncDLObject(Folder folder, String event)

@@ -16,6 +16,8 @@ package com.liferay.portlet.configuration.web.internal.portlet.configuration.ico
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Portlet;
@@ -88,6 +90,7 @@ public class PermissionsPortletConfigurationIcon
 				"resourcePrimKey",
 				PortletPermissionUtil.getPrimaryKey(
 					themeDisplay.getPlid(), portletDisplay.getId()));
+
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 
 			return portletURL.toString();
@@ -137,6 +140,13 @@ public class PermissionsPortletConfigurationIcon
 				}
 			}
 			catch (PortalException pe) {
+
+				// LPS-52675
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(pe, pe);
+				}
+
 				showPermissionsIcon = false;
 			}
 		}
@@ -145,7 +155,7 @@ public class PermissionsPortletConfigurationIcon
 			showPermissionsIcon = false;
 		}
 
-		if (group.isControlPanel()) {
+		if (layout.isTypeControlPanel()) {
 			showPermissionsIcon = false;
 		}
 
@@ -167,6 +177,9 @@ public class PermissionsPortletConfigurationIcon
 	private static final boolean _STAGING_LIVE_GROUP_LOCKING_ENABLED =
 		GetterUtil.getBoolean(
 			PropsUtil.get(PropsKeys.STAGING_LIVE_GROUP_LOCKING_ENABLED));
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		PermissionsPortletConfigurationIcon.class);
 
 	private PortletLocalService _portletLocalService;
 

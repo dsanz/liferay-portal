@@ -180,7 +180,7 @@ public class JournalMoveEntriesDisplayContext {
 		}
 
 		ThemeDisplay themeDisplay =
-			(ThemeDisplay) _liferayPortletRequest.getAttribute(
+			(ThemeDisplay)_liferayPortletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
 		_permissionChecker = themeDisplay.getPermissionChecker();
@@ -250,7 +250,7 @@ public class JournalMoveEntriesDisplayContext {
 			LanguageUtil.get(_servletRequest, "move-web-content"), _currentURL);
 
 		ThemeDisplay themeDisplay =
-			(ThemeDisplay) _liferayPortletRequest.getAttribute(
+			(ThemeDisplay)_liferayPortletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();

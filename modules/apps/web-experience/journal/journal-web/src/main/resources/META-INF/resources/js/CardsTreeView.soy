@@ -51,7 +51,7 @@
 			<div class="treeview-node-wrapper{$node.expanded ? ' expanded' : ''}">
 				{let $nodeAttributes kind="attributes"}
 					class="treeview-node-main clearfix col-md-4
-					{$node.children ? ' hasChildren' : ''}					
+					{$node.children ? ' hasChildren' : ''}
 					{strContains($disabledNodes, ',' + $node.id + ',') ? ' disabled' : ''}
 					{strContains($selectedNodes, ',' + $node.id + ',') ? ' selected' : ''}
 					"

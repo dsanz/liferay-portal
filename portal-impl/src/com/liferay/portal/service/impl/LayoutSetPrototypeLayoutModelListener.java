@@ -14,7 +14,6 @@
 
 package com.liferay.portal.service.impl;
 
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.BaseModelListener;
@@ -55,16 +54,9 @@ public class LayoutSetPrototypeLayoutModelListener
 			return;
 		}
 
-		Group group = null;
+		Group group = layout.getGroup();
 
-		try {
-			group = layout.getGroup();
-
-			if (!group.isLayoutSetPrototype()) {
-				return;
-			}
-		}
-		catch (PortalException pe) {
+		if ((group == null) || !group.isLayoutSetPrototype()) {
 			return;
 		}
 

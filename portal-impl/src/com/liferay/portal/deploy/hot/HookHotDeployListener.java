@@ -499,7 +499,7 @@ public class HookHotDeployListener
 		}
 		catch (DuplicateCustomJspException dcje) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(servletContextName + " will be undeployed");
+				_log.warn(servletContextName + " will be undeployed", dcje);
 			}
 
 			HotDeployUtil.fireUndeployEvent(
@@ -1922,7 +1922,7 @@ public class HookHotDeployListener
 
 		filter = (Filter)ProxyUtil.newProxyInstance(
 			portletClassLoader,
-			interfaces.toArray(new Class[interfaces.size()]),
+			interfaces.toArray(new Class<?>[interfaces.size()]),
 			new ClassLoaderBeanHandler(filter, portletClassLoader));
 
 		return filter;
@@ -2011,6 +2011,7 @@ public class HookHotDeployListener
 			properties.put("after-filter", filterTuple.getObject(0));
 			properties.put("before-filter", filterTuple.getObject(1));
 			properties.put("dispatcher", filterTuple.getObject(2));
+
 			properties.put(
 				"servlet-context-name",
 				PortalContextLoaderListener.getPortalServletContextName());
@@ -2037,7 +2038,7 @@ public class HookHotDeployListener
 		if (strutsActionObject instanceof StrutsAction) {
 			StrutsAction strutsAction =
 				(StrutsAction)ProxyUtil.newProxyInstance(
-					portletClassLoader, new Class[] {StrutsAction.class},
+					portletClassLoader, new Class<?>[] {StrutsAction.class},
 					new ClassLoaderBeanHandler(
 						strutsActionObject, portletClassLoader));
 
@@ -2048,7 +2049,8 @@ public class HookHotDeployListener
 		else {
 			StrutsPortletAction strutsPortletAction =
 				(StrutsPortletAction)ProxyUtil.newProxyInstance(
-					portletClassLoader, new Class[] {StrutsPortletAction.class},
+					portletClassLoader,
+					new Class<?>[] {StrutsPortletAction.class},
 					new ClassLoaderBeanHandler(
 						strutsActionObject, portletClassLoader));
 
@@ -2292,8 +2294,8 @@ public class HookHotDeployListener
 		String[] value = null;
 
 		if (initPhase) {
-			if (stringArraysContainer
-					instanceof OverrideStringArraysContainer) {
+			if (stringArraysContainer instanceof
+					OverrideStringArraysContainer) {
 
 				OverrideStringArraysContainer overrideStringArraysContainer =
 					(OverrideStringArraysContainer)stringArraysContainer;

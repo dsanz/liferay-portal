@@ -1,4 +1,8 @@
 <definition>
+	<command name="viewClusterStatus">
+		<execute function="AssertTextPresent" locator1="//pre" value1="${clusterStatus}" />
+	</command>
+
 	<command name="viewClusterStatusViaClusterHealthAPI">
 		<description message="Elasticsearch provides a Cluster Health API (http://localhost:9200/_cluster/health?pretty=true) to easily view the current status of the cluster." />
 

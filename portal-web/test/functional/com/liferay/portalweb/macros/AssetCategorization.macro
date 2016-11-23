@@ -4,10 +4,12 @@
 
 		<execute function="AssertClick" locator1="AssetCategorization#CATEGORY_SELECT" value1="Select" />
 
+		<execute function="SelectFrameTop" />
+
 		<if>
-			<condition function="IsElementPresent" locator1="IFrame#DIALOG" />
+			<condition function="IsElementPresent" locator1="IFrame#SELECT_CATEGORY" />
 			<then>
-				<execute macro="IFrame#selectConfigurationFrame" />
+				<execute macro="IFrame#selectCategoryFrame" />
 			</then>
 		</if>
 
@@ -17,7 +19,7 @@
 
 		<execute function="AssertVisible" locator1="AssetCategorization#CATEGORIES_CATEGORY_CHECKBOX_CHECKED" />
 
-		<execute function="SelectFrame" value1="relative=top" />
+		<execute function="SelectFrameTop" />
 
 		<if>
 			<condition function="IsElementPresent" locator1="Button#DONE" />
@@ -27,6 +29,13 @@
 			<else>
 				<execute function="Click" locator1="Icon#CLOSE" />
 			</else>
+		</if>
+
+		<if>
+			<condition function="IsElementPresent" locator1="IFrame#MODAL_IFRAME" />
+			<then>
+				<execute macro="IFrame#selectModalFrame" />
+			</then>
 		</if>
 
 		<execute function="AssertTextEquals" locator1="AssetCategorization#CATEGORY" value1="${categoryName}" />
@@ -77,5 +86,45 @@
 		<execute function="Click" locator1="AssetCategorization#TAG_REMOVE" />
 
 		<execute function="AssertElementNotPresent" locator1="AssetCategorization#TAG" />
+	</command>
+
+	<command name="selectTag">
+		<execute function="Click" locator1="AssetCategorization#TAGS_SELECT_BUTTON" />
+
+		<execute function="SelectFrameTop" />
+
+		<if>
+			<condition function="IsElementPresent" locator1="IFrame#SELECT_TAG" />
+			<then>
+				<execute function="SelectFrame" locator1="IFrame#SELECT_TAG" />
+			</then>
+		</if>
+
+		<execute function="Click" locator1="AssetCategorization#TAG_CHECKBOX">
+			<var name="key_tagName" value="${tagName}" />
+		</execute>
+
+		<execute function="SelectFrameTop" />
+
+		<if>
+			<condition function="IsElementPresent" locator1="Button#DONE" />
+			<then>
+				<execute function="AssertClick" locator1="Button#DONE" value1="Done" />
+			</then>
+			<else>
+				<execute function="Click" locator1="Icon#CLOSE" />
+			</else>
+		</if>
+
+		<if>
+			<condition function="IsElementPresent" locator1="IFrame#MODAL_IFRAME" />
+			<then>
+				<execute macro="IFrame#selectModalFrame" />
+			</then>
+		</if>
+
+		<execute function="AssertTextEquals" locator1="AssetCategorization#TAG" value1="${tagName}">
+			<var name="key_tagName" value="${tagName}" />
+		</execute>
 	</command>
 </definition>

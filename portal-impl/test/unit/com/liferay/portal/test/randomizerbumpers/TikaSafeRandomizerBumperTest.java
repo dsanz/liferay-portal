@@ -16,15 +16,23 @@ package com.liferay.portal.test.randomizerbumpers;
 
 import com.liferay.portal.kernel.test.CaptureHandler;
 import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.CodeCoverageAssertor;
+import com.liferay.portal.kernel.test.rule.NewEnv;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.test.rule.AdviseWith;
+import com.liferay.portal.test.rule.AspectJNewEnvTestRule;
 
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 /**
@@ -33,8 +41,10 @@ import org.junit.Test;
 public class TikaSafeRandomizerBumperTest {
 
 	@ClassRule
-	public static final CodeCoverageAssertor codeCoverageAssertor =
-		CodeCoverageAssertor.INSTANCE;
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			CodeCoverageAssertor.INSTANCE, AspectJNewEnvTestRule.INSTANCE);
 
 	@Test
 	public void testAcceptAny() {
@@ -79,6 +89,40 @@ public class TikaSafeRandomizerBumperTest {
 		doAccept(tikaSafeRandomizerBumper, _EXE_BYTE_ARRAY, false, Level.INFO);
 		doAccept(
 			tikaSafeRandomizerBumper, _BROKEN_EXE_BYTES, false, Level.INFO);
+	}
+
+	@AdviseWith(adviceClasses = {ReflectionTestUtilAdvice.class})
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
+	@Test
+	public void testExceptionInInitializerError()
+		throws ClassNotFoundException {
+
+		try {
+			Class.forName(TikaSafeRandomizerBumper.class.getName());
+
+			Assert.fail();
+		}
+		catch (ExceptionInInitializerError eiie) {
+			Assert.assertSame(
+				ReflectionTestUtilAdvice._exception, eiie.getCause());
+		}
+	}
+
+	@Aspect
+	public static class ReflectionTestUtilAdvice {
+
+		@Before(
+			"execution(public static T " +
+				"com.liferay.portal.kernel.test.ReflectionTestUtil." +
+					"getFieldValue(java.lang.Class<?>, java.lang.String))"
+		)
+		public void getFieldValue() {
+			throw _exception;
+		}
+
+		private static final RuntimeException _exception =
+			new RuntimeException();
+
 	}
 
 	protected void doAccept(

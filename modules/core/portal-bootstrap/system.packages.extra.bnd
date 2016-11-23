@@ -125,6 +125,9 @@ Export-Package:\
 	\
 	javax.servlet.*;version='3.0',\
 	\
+	javax.websocket;version='1.1.0',\
+	javax.websocket.server;version='1.1.0',\
+	\
 	javax.xml;version='1.4',\
 	javax.xml.crypto.*;version='1.4.5',\
 	javax.xml.datatype.*;version='1.4',\
@@ -265,6 +268,8 @@ Export-Package:\
 	\
 	sun.misc,\
 	\
+	sun.net.util,\
+	\
 	sun.security.provider,\
 	*
 Import-Package: !*
@@ -323,6 +328,8 @@ Import-Package: !*
 	@../../../lib/portal/struts-extras.jar,\
 	@../../../lib/portal/struts-taglib.jar,\
 	@../../../lib/portal/struts-tiles.jar,\
+	@../../../lib/portal/tika-core.jar,\
+	@../../../lib/portal/tika-parsers.jar,\
 	@../../../lib/portal/xalan.jar,\
 	@../../../lib/portal/xercesImpl.jar,\
 	@../../../lib/portal/xml-apis.jar,\
@@ -332,5 +339,7 @@ Import-Package: !*
 	@../../../portal-kernel/portal-kernel.jar,\
 	@lib/com.liferay.osgi.service.tracker.collections.jar,\
 	@lib/com.liferay.portal.app.license.api.jar,\
+	@lib/com.liferay.portal.impl.compat.jar,\
+	@lib/com.liferay.portal.kernel.compat.jar,\
 	@lib/com.liferay.registry.api.jar
 -removeheaders: Private-Package, Service-Component

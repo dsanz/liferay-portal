@@ -34,22 +34,6 @@
 	</tear-down>
 
 	<command name="BlogsDemo" priority="4">
-		<var name="entryComment1" value="Blogs Entry Comment 1" />
-		<var name="entryComment2" value="Blogs Entry Comment 2" />
-		<var name="entryComment3" value="Guest Blogs Entry Comment" />
-		<var name="entryComment4" value="Blogs Entry Comment from userfn" />
-		<var name="entryComment5" value="Blogs Entry Comment 3" />
-		<var name="entryContent" value="Blogs Entry Content" />
-		<var name="entryTitle" value="Blogs Entry Title" />
-		<var name="user1Name" value="Test Test" />
-		<var name="user1Rank" value="Rank: 1" />
-		<var name="user2Name" value="userfn userln" />
-		<var name="user2Rank" value="Rank: 2" />
-		<var name="userAction1" value="Adds a Comment" />
-		<var name="userAction2" value="Reads a Blog" />
-		<var name="userAction3" value="Subscribes to a Blog" />
-		<var name="userAction4" value="Votes on a Blog" />
-
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
@@ -76,27 +60,27 @@
 			<var name="portlet" value="Social Activity" />
 		</execute>
 
-		<execute macro="SocialActivity#enableCP" />
+		<execute macro="SocialActivity#enableBlogsCP" />
 
 		<execute macro="SocialActivity#configureActionCP">
 			<var name="contributionIncrement" value="2" />
 			<var name="contributionLimitValue" value="2" />
 			<var name="participationIncrement" value="2" />
 			<var name="participationLimitValue" value="2" />
-			<var name="userAction" value="${userAction1}" />
+			<var name="userAction" value="Adds a Comment" />
 		</execute>
 
 		<execute macro="SocialActivity#removeActionCP">
-			<var name="userAction" value="${userAction2}" />
+			<var name="userAction" value="Reads a Blog" />
 		</execute>
 
 		<execute macro="SocialActivity#removeActionCP">
-			<var name="userAction" value="${userAction3}" />
+			<var name="userAction" value="Subscribes to a Blog" />
 		</execute>
 
 		<execute macro="SocialActivity#configureActionCP">
 			<var name="participationIncrement" value="0" />
-			<var name="userAction" value="${userAction4}" />
+			<var name="userAction" value="Votes on a Blog" />
 		</execute>
 
 		<execute macro="Page#add">
@@ -128,8 +112,8 @@
 		</execute>
 
 		<execute macro="Blogs#addEntry">
-			<var name="entryContent" value="${entryContent}" />
-			<var name="entryTitle" value="${entryTitle}" />
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -139,8 +123,8 @@
 		<execute macro="SocialActivity#viewPGViaUserStatistics">
 			<var name="contributionScore" value="Contribution Score: 0 (Total: 0)" />
 			<var name="participationScore" value="Participation Score: 5 (Total: 5)" />
-			<var name="userName" value="${user1Name}" />
-			<var name="userRank" value="${user1Rank}" />
+			<var name="userName" value="Test Test" />
+			<var name="userRank" value="Rank: 1" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -148,12 +132,12 @@
 		</execute>
 
 		<execute macro="BlogsNavigator#gotoEntryPG">
-			<var name="entryContent" value="${entryContent}" />
-			<var name="entryTitle" value="${entryTitle}" />
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
 		</execute>
 
 		<execute macro="BlogsEntryComment#add">
-			<var name="entryComment" value="${entryComment1}" />
+			<var name="entryComment" value="Blogs Entry Comment 1" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -163,8 +147,8 @@
 		<execute macro="SocialActivity#viewPGViaUserStatistics">
 			<var name="contributionScore" value="Contribution Score: 0 (Total: 0)" />
 			<var name="participationScore" value="Participation Score: 7 (Total: 7)" />
-			<var name="userName" value="${user1Name}" />
-			<var name="userRank" value="${user1Rank}" />
+			<var name="userName" value="Test Test" />
+			<var name="userRank" value="Rank: 1" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -172,12 +156,12 @@
 		</execute>
 
 		<execute macro="BlogsNavigator#gotoEntryPG">
-			<var name="entryContent" value="${entryContent}" />
-			<var name="entryTitle" value="${entryTitle}" />
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
 		</execute>
 
 		<execute macro="BlogsEntryComment#add">
-			<var name="entryComment" value="${entryComment2}" />
+			<var name="entryComment" value="Blogs Entry Comment 2" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -187,8 +171,8 @@
 		<execute macro="SocialActivity#viewPGViaUserStatistics">
 			<var name="contributionScore" value="Contribution Score: 0 (Total: 0)" />
 			<var name="participationScore" value="Participation Score: 9 (Total: 9)" />
-			<var name="userName" value="${user1Name}" />
-			<var name="userRank" value="${user1Rank}" />
+			<var name="userName" value="Test Test" />
+			<var name="userRank" value="Rank: 1" />
 		</execute>
 
 		<execute macro="User#logoutPG" />
@@ -198,9 +182,9 @@
 		</execute>
 
 		<execute macro="BlogsEntryComment#addPGAsGuest">
-			<var name="entryComment" value="${entryComment3}" />
-			<var name="entryContent" value="${entryContent}" />
-			<var name="entryTitle" value="${entryTitle}" />
+			<var name="entryComment" value="Guest Blogs Entry Comment" />
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
 			<var name="userEmailAddress" value="guest@liferay.com" />
 			<var name="userFirstName" value="Guest" />
 		</execute>
@@ -214,12 +198,12 @@
 		</execute>
 
 		<execute macro="BlogsNavigator#gotoEntryPG">
-			<var name="entryContent" value="${entryContent}" />
-			<var name="entryTitle" value="${entryTitle}" />
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
 		</execute>
 
 		<execute macro="BlogsEntryComment#add">
-			<var name="entryComment" value="${entryComment4}" />
+			<var name="entryComment" value="Blogs Entry Comment from userfn" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -229,15 +213,15 @@
 		<execute macro="SocialActivity#viewPGViaUserStatistics">
 			<var name="contributionScore" value="Contribution Score: 2 (Total: 2)" />
 			<var name="participationScore" value="Participation Score: 9 (Total: 9)" />
-			<var name="userName" value="${user1Name}" />
-			<var name="userRank" value="${user1Rank}" />
+			<var name="userName" value="Test Test" />
+			<var name="userRank" value="Rank: 1" />
 		</execute>
 
 		<execute macro="SocialActivity#viewPGViaUserStatistics">
 			<var name="contributionScore" value="Contribution Score: 0 (Total: 0)" />
 			<var name="participationScore" value="Participation Score: 2 (Total: 2)" />
-			<var name="userName" value="${user2Name}" />
-			<var name="userRank" value="${user2Rank}" />
+			<var name="userName" value="userfn userln" />
+			<var name="userRank" value="Rank: 2" />
 		</execute>
 
 		<execute macro="User#logoutAndLoginPG">
@@ -250,12 +234,12 @@
 		</execute>
 
 		<execute macro="BlogsNavigator#gotoEntryPG">
-			<var name="entryContent" value="${entryContent}" />
-			<var name="entryTitle" value="${entryTitle}" />
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
 		</execute>
 
 		<execute macro="BlogsEntryComment#add">
-			<var name="entryComment" value="${entryComment5}" />
+			<var name="entryComment" value="Blogs Entry Comment 3" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -265,15 +249,15 @@
 		<execute macro="SocialActivity#viewPGViaUserStatistics">
 			<var name="contributionScore" value="Contribution Score: 2 (Total: 2)" />
 			<var name="participationScore" value="Participation Score: 9 (Total: 9)" />
-			<var name="userName" value="${user1Name}" />
-			<var name="userRank" value="${user1Rank}" />
+			<var name="userName" value="Test Test" />
+			<var name="userRank" value="Rank: 1" />
 		</execute>
 
 		<execute macro="SocialActivity#viewPGViaUserStatistics">
 			<var name="contributionScore" value="Contribution Score: 0 (Total: 0)" />
 			<var name="participationScore" value="Participation Score: 2 (Total: 2)" />
-			<var name="userName" value="${user2Name}" />
-			<var name="userRank" value="${user2Rank}" />
+			<var name="userName" value="userfn userln" />
+			<var name="userRank" value="Rank: 2" />
 		</execute>
 	</command>
 
@@ -338,6 +322,8 @@
 			<var name="portletName" value="Atividade Social" />
 		</execute>
 
+		<execute function="AssertVisible" locator1="ControlMenu#HEADER_TITLE" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Social Activity Page" />
 		</execute>
@@ -357,50 +343,6 @@
 		</execute>
 
 		<execute function="AssertSelectedLabel" locator1="MyAccount#LANGUAGE_SELECT" value1="English (United States)" />
-	</command>
-
-	<command name="SaveGroupStatisticsConfiguration" priority="4">
-		<var name="siteStatistics" value="Votes by Users" />
-
-		<execute macro="Page#add">
-			<var name="pageName" value="Group Statistics Page" />
-		</execute>
-
-		<execute macro="Navigator#gotoPage">
-			<var name="pageName" value="Group Statistics Page" />
-		</execute>
-
-		<execute macro="Portlet#addPG">
-			<var name="portletName" value="Group Statistics" />
-		</execute>
-
-		<var name="key_portletName" value="Group Statistics" />
-
-		<execute function="AssertTextEquals" locator1="Portlet#BODY" value1="Please configure this portlet and select at least one activity counter." />
-
-		<execute macro="Portlet#gotoPortletOptions">
-			<var name="portletName" value="Group Statistics" />
-			<var name="portletOption" value="Configuration" />
-		</execute>
-
-		<execute function="SelectFrame" locator1="GroupStatisticsConfiguration#CONFIGURATION_IFRAME" />
-
-		<execute function="Select" locator1="GroupStatisticsConfiguration#SETUP_COUNTERS_DISPLAY_ACTIVITY_COUNTER_NAME_DROPDOWN" value1="votes by This site's users" />
-		<execute function="Select" locator1="GroupStatisticsConfiguration#SETUP_COUNTERS_CHART_TYPE_DROPDOWN" value1="column diagram" />
-		<execute function="Select" locator1="GroupStatisticsConfiguration#SETUP_COUNTERS_CHART_WIDTH_DROPDOWN" value1="55%" />
-		<execute function="Select" locator1="GroupStatisticsConfiguration#SETUP_COUNTERS_DATA_RANGE_DROPDOWN" value1="last 12 months" />
-
-		<execute macro="PortletEntry#save" />
-
-		<execute function="SelectFrameTop" value1="relative=top" />
-
-		<execute macro="Navigator#gotoPage">
-			<var name="pageName" value="Group Statistics Page" />
-		</execute>
-
-		<var name="key_siteStatistics" value="${siteStatistics}" />
-
-		<execute function="AssertTextEquals" locator1="GroupStatistics#SITE_STATISTICS_PANEL" value1="Site Statistics: ${siteStatistics}" />
 	</command>
 
 	<command name="SaveUserStatisticsConfiguration" priority="4">
@@ -455,5 +397,64 @@
 		<execute function="AssertNotChecked" locator1="Checkbox#DISPLAY_ADDITIONAL_ACTIVITY_COUNTERS" />
 
 		<execute function="SelectFrameTop" value1="relative=top" />
+	</command>
+
+	<command name="ViewActivityViaGroupStatistics" priority="4">
+		<execute macro="Page#add">
+			<var name="pageName" value="Group Statistics Page" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Group Statistics Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Group Statistics" />
+		</execute>
+
+		<var name="key_portletName" value="Group Statistics" />
+
+		<execute function="AssertTextEquals" locator1="Portlet#BODY" value1="Please configure this portlet and select at least one activity counter." />
+
+		<execute macro="SocialActivity#updateGroupStatisticsConfiguration">
+			<var name="chartType" value="column diagram" />
+			<var name="chartWidth" value="55%" />
+			<var name="dataRange" value="last 12 months" />
+			<var name="displayActivityCounterName" value="blog entries of This site's users" />
+		</execute>
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesConfiguration">
+			<var name="portlet" value="Social Activity" />
+		</execute>
+
+		<execute macro="SocialActivity#enableBlogsCP" />
+
+		<execute macro="Navigator#openURL" />
+
+		<var name="blogsEntryCounterList" value="1,2,3" />
+
+		<for list="${blogsEntryCounterList}" param="entryCount" >
+			<execute macro="Navigator#openURL" />
+
+			<execute macro="ProductMenu#gotoSitesContent">
+				<var name="portlet" value="Blogs" />
+			</execute>
+
+			<execute macro="Blogs#addEntry">
+				<var name="entryContent" value="Blogs Entry${entryCount} Content" />
+				<var name="entryTitle" value="Blogs Entry${entryCount} Title" />
+			</execute>
+		</for>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Group Statistics Page" />
+		</execute>
+
+		<execute macro="SocialActivity#viewPGViaGroupStatistics">
+			<var name="currentValue" value="3" />
+			<var name="siteStatistics" value="Users' Blog Entries" />
+		</execute>
 	</command>
 </definition>

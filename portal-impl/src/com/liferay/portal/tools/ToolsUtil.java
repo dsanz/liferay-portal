@@ -199,7 +199,7 @@ public class ToolsUtil {
 				if (c == delimeter) {
 					int precedingBackSlashCount = 0;
 
-					for (int j = (i - 1); j >= 0; j--) {
+					for (int j = i - 1; j >= 0; j--) {
 						if (line.charAt(j) == CharPool.BACK_SLASH) {
 							precedingBackSlashCount += 1;
 						}
@@ -460,8 +460,7 @@ public class ToolsUtil {
 			"(?m)^[ \t]*((?:package|import) .*;)\\s*^[ \t]*/\\*\\*",
 			"$1\n\n/**");
 
-		/*
-		// Remove blank lines after try {
+		/*// Remove blank lines after try {
 
 		newContent = StringUtil.replace(newContent, "try {\n\n", "try {\n");
 
@@ -475,8 +474,8 @@ public class ToolsUtil {
 
 		// Add space to last }
 
-		newContent = newContent.substring(0, newContent.length() - 2) + "\n\n}";
-		*/
+		newContent =
+			newContent.substring(0, newContent.length() - 2) + "\n\n}";*/
 
 		writeFileRaw(file, newContent, modifiedFileNames);
 

@@ -164,7 +164,7 @@ public class WikiPageServiceImpl extends WikiPageServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link #addTempFileEntry(long,
+	 * @deprecated As of 1.2.0, replaced by {@link #addTempFileEntry(long,
 	 *             String, String, InputStream, String)}
 	 */
 	@Deprecated
@@ -320,7 +320,7 @@ public class WikiPageServiceImpl extends WikiPageServiceBaseImpl {
 				nodeId, true, lastIntervalStart, lastIntervalStart + max);
 
 			lastIntervalStart += max;
-			listNotExhausted = (pageList.size() == max);
+			listNotExhausted = pageList.size() == max;
 
 			for (WikiPage page : pageList) {
 				if (pages.size() >= max) {

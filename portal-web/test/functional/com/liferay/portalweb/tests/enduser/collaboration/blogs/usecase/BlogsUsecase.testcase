@@ -103,7 +103,7 @@
 			<var name="uploadFileName" value="Document_1.jpg" />
 		</execute>
 
-		<execute macro="BlogsEntry#publish" />
+		<execute macro="PortletEntry#publishAndWait" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="${pageName}" />
@@ -725,8 +725,6 @@
 	<command name="RestoreBlogsEntry" priority="5">
 		<property name="portal.acceptance" value="true" />
 
-		<var name="assetRestoreLocation" value="Blogs" />
-
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -757,8 +755,7 @@
 
 		<execute macro="RecycleBin#restoreCP">
 			<var name="assetName" value="Blogs Entry Title" />
-			<var name="assetRestoreLocation" value="${assetRestoreLocation}" />
-			<var name="assetRestoreType" value="${assetRestoreType}" />
+			<var name="assetRestoreLocation" value="Blogs" />
 			<var name="assetType" value="Blogs Entry" />
 		</execute>
 
@@ -1100,7 +1097,7 @@
 
 		<execute macro="BlogsEntry#removeViewPermissionsPG">
 			<var name="entryTitle" value="Blogs Entry Title 2" />
-			<var name="roleName" value="Guest" />
+			<var name="roleTitle" value="Guest" />
 		</execute>
 
 		<execute macro="User#logoutPG" />
@@ -1698,7 +1695,7 @@
 			<var name="uploadFileName" value="Document_1.jpg" />
 		</execute>
 
-		<execute macro="BlogsEntry#publish" />
+		<execute macro="PortletEntry#publish" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Blogs Page" />
@@ -1869,7 +1866,7 @@
 
 		<execute macro="BlogsEntry#viewNoEntryViaBlogsAggregatorPG" />
 
-		<execute function="Pause" locator1="120000" />
+		<execute function="Pause" locator1="180000" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Blogs Aggregator Page" />
@@ -1918,7 +1915,7 @@
 		</execute>
 
 		<execute macro="DMDocument#addCP">
-			<var name="dmDocumentDescription" value="${dmDocumentDescription}" />
+			<var name="dmDocumentDescription" value="DM Document Description" />
 			<var name="dmDocumentFile" value="Document_2.jpg" />
 			<var name="dmDocumentTitle" value="Document_2.jpg" />
 		</execute>
@@ -2019,6 +2016,94 @@
 		<execute macro="BlogsEntry#viewEntry">
 			<var name="entryContent" value="Blogs Entry Content" />
 			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+	</command>
+
+	<command name="ViewNoBlogsDraftDisplaysInAP" priority="4">
+		<execute macro="Page#add">
+			<var name="pageName" value="Asset Publisher Page" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Asset Publisher Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Asset Publisher" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Blogs Page" />
+		</execute>
+
+		<execute macro="Blogs#addEntry">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Asset Publisher Page" />
+		</execute>
+
+		<execute macro="BlogsEntry#viewEntryViaAPPG">
+			<var name="assetTitle" value="Blogs Entry Title" />
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Blogs Page" />
+		</execute>
+
+		<execute macro="Blogs#editDraftPG">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryContentEdit" value="Blogs Entry Content Draft" />
+			<var name="entryTitle" value="Blogs Entry Title" />
+			<var name="entryTitleEdit" value="Blogs Entry Title Draft" />
+		</execute>
+
+		<execute function="Click" locator1="Icon#BACK" />
+
+		<execute function="AssertClick" locator1="MenuItem#NOT_PUBLISHED" value1="Not Published (1)" />
+
+		<execute macro="BlogsEntry#viewPG">
+			<var name="entryContent" value="Blogs Entry Content Draft" />
+			<var name="entryTitle" value="Blogs Entry Title Draft" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Asset Publisher Page" />
+		</execute>
+
+		<execute macro="AssetPublisherPortlet#viewManualNoAssetsMessagePG" />
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Blogs Page" />
+		</execute>
+
+		<execute function="AssertClick" locator1="MenuItem#NOT_PUBLISHED" value1="Not Published (1)" />
+
+		<execute macro="Blogs#editEntryPG">
+			<var name="entryContent" value="Blogs Entry Content Draft" />
+			<var name="entryContentEdit" value="Blogs Entry Content Edit" />
+			<var name="entryTitle" value="Blogs Entry Title Draft" />
+			<var name="entryTitleEdit" value="Blogs Entry Title Edit" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Asset Publisher Page" />
+		</execute>
+
+		<execute macro="BlogsEntry#viewEntryViaAPPG">
+			<var name="assetTitle" value="Blogs Entry Title Edit" />
+			<var name="entryContent" value="Blogs Entry Content Edit" />
+			<var name="entryTitle" value="Blogs Entry Title Edit" />
+		</execute>
+
+		<execute macro="BlogsEntry#viewNoEntryViaAPPG">
+			<var name="assetTitle" value="Blogs Entry Title Draft" />
+			<var name="entryContent" value="Blogs Entry Content Draft" />
+			<var name="entryTitle" value="Blogs Entry Title Draft" />
 		</execute>
 	</command>
 

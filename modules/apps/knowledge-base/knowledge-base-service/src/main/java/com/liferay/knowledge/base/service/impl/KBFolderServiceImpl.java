@@ -49,11 +49,34 @@ public class KBFolderServiceImpl extends KBFolderServiceBaseImpl {
 			parentResourcePrimKey, name, description, serviceContext);
 	}
 
+	@Override
 	public KBFolder deleteKBFolder(long kbFolderId) throws PortalException {
 		KBFolderPermission.check(
 			getPermissionChecker(), kbFolderId, KBActionKeys.DELETE);
 
 		return kbFolderLocalService.deleteKBFolder(kbFolderId);
+	}
+
+	@Override
+	public KBFolder fetchFirstChildKBFolder(long groupId, long kbFolderId)
+		throws PortalException {
+
+		return fetchFirstChildKBFolder(groupId, kbFolderId, null);
+	}
+
+	@Override
+	public KBFolder fetchFirstChildKBFolder(
+			long groupId, long kbFolderId, OrderByComparator<KBFolder> obc)
+		throws PortalException {
+
+		List<KBFolder> kbFolders = kbFolderPersistence.filterFindByG_P(
+			groupId, kbFolderId, 0, 1, obc);
+
+		if (kbFolders.isEmpty()) {
+			return null;
+		}
+
+		return kbFolders.get(0);
 	}
 
 	@Override
@@ -68,6 +91,7 @@ public class KBFolderServiceImpl extends KBFolderServiceBaseImpl {
 		return kbFolder;
 	}
 
+	@Override
 	public KBFolder fetchKBFolderByUrlTitle(
 			long groupId, long parentKbFolderId, String urlTitle)
 		throws PortalException {
@@ -93,6 +117,7 @@ public class KBFolderServiceImpl extends KBFolderServiceBaseImpl {
 		return kbFolderLocalService.getKBFolder(kbFolderId);
 	}
 
+	@Override
 	public KBFolder getKBFolderByUrlTitle(
 			long groupId, long parentKbFolderId, String urlTitle)
 		throws PortalException {

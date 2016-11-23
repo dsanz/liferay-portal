@@ -225,7 +225,7 @@ public class MapUtilTest {
 
 			Assert.assertEquals(1, map.size());
 			Assert.assertTrue(map.containsKey("one"));
-			Assert.assertTrue(map.containsValue((byte) 1));
+			Assert.assertTrue(map.containsValue((byte)1));
 			Assert.assertTrue(map.get("one") instanceof Byte);
 
 			map = MapUtil.toLinkedHashMap(
@@ -233,7 +233,7 @@ public class MapUtilTest {
 
 			Assert.assertEquals(1, map.size());
 			Assert.assertTrue(map.containsKey("one"));
-			Assert.assertTrue(map.containsValue((float) 1));
+			Assert.assertTrue(map.containsValue((float)1));
 			Assert.assertTrue(map.get("one") instanceof Float);
 		}
 
@@ -489,10 +489,10 @@ public class MapUtilTest {
 		public void shouldReturnMapFilteredByPrefix() {
 			Map<String, String> inputMap = new HashMap<>();
 
-			inputMap.put("x1", "one");
 			inputMap.put("2", "two");
-			inputMap.put("x3", "three");
 			inputMap.put("4", "four");
+			inputMap.put("x1", "one");
+			inputMap.put("x3", "three");
 			inputMap.put("x5", "five");
 
 			Map<String, String> outputMap = MapUtil.filterByKeys(

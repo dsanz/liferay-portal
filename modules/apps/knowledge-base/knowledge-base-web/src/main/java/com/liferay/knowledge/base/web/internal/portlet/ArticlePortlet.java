@@ -15,13 +15,16 @@
 package com.liferay.knowledge.base.web.internal.portlet;
 
 import com.liferay.knowledge.base.constants.KBActionKeys;
+import com.liferay.knowledge.base.constants.KBFolderConstants;
 import com.liferay.knowledge.base.constants.KBPortletKeys;
 import com.liferay.knowledge.base.exception.NoSuchArticleException;
 import com.liferay.knowledge.base.exception.NoSuchCommentException;
 import com.liferay.knowledge.base.model.KBArticle;
+import com.liferay.knowledge.base.service.KBArticleLocalService;
 import com.liferay.knowledge.base.service.permission.KBArticlePermission;
 import com.liferay.knowledge.base.web.internal.constants.KBWebKeys;
 import com.liferay.portal.kernel.exception.NoSuchSubscriptionException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -30,6 +33,8 @@ import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.IOException;
@@ -60,6 +65,7 @@ import org.osgi.service.component.annotations.Reference;
 		"com.liferay.portlet.icon=/icons/article.png",
 		"com.liferay.portlet.instanceable=true",
 		"com.liferay.portlet.scopeable=true",
+		"com.liferay.portlet.struts-path=knowledge_base",
 		"javax.portlet.display-name=Knowledge Base Article",
 		"javax.portlet.expiration-cache=0",
 		"javax.portlet.init-param.always-send-redirect=true",
@@ -78,7 +84,42 @@ import org.osgi.service.component.annotations.Reference;
 public class ArticlePortlet extends BaseKBPortlet {
 
 	@Override
-	public void render(
+	protected void addSuccessMessage(
+		ActionRequest actionRequest, ActionResponse actionResponse) {
+
+		String actionName = ParamUtil.getString(
+			actionRequest, ActionRequest.ACTION_NAME);
+
+		if (actionName.equals("deleteKBArticle")) {
+			return;
+		}
+
+		super.addSuccessMessage(actionRequest, actionResponse);
+	}
+
+	@Override
+	protected void doDispatch(
+			RenderRequest renderRequest, RenderResponse renderResponse)
+		throws IOException, PortletException {
+
+		if (SessionErrors.contains(
+				renderRequest, NoSuchArticleException.class.getName()) ||
+			SessionErrors.contains(
+				renderRequest, NoSuchCommentException.class.getName()) ||
+			SessionErrors.contains(
+				renderRequest, NoSuchSubscriptionException.class.getName()) ||
+			SessionErrors.contains(
+				renderRequest, PrincipalException.getNestedClasses())) {
+
+			include(templatePath + "error.jsp", renderRequest, renderResponse);
+		}
+		else {
+			super.doDispatch(renderRequest, renderResponse);
+		}
+	}
+
+	@Override
+	protected void doRender(
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
@@ -118,43 +159,6 @@ public class ArticlePortlet extends BaseKBPortlet {
 				throw new PortletException(e);
 			}
 		}
-
-		super.render(renderRequest, renderResponse);
-	}
-
-	@Override
-	protected void addSuccessMessage(
-		ActionRequest actionRequest, ActionResponse actionResponse) {
-
-		String actionName = ParamUtil.getString(
-			actionRequest, ActionRequest.ACTION_NAME);
-
-		if (actionName.equals("deleteKBArticle")) {
-			return;
-		}
-
-		super.addSuccessMessage(actionRequest, actionResponse);
-	}
-
-	@Override
-	protected void doDispatch(
-			RenderRequest renderRequest, RenderResponse renderResponse)
-		throws IOException, PortletException {
-
-		if (SessionErrors.contains(
-				renderRequest, NoSuchArticleException.class.getName()) ||
-			SessionErrors.contains(
-				renderRequest, NoSuchCommentException.class.getName()) ||
-			SessionErrors.contains(
-				renderRequest, NoSuchSubscriptionException.class.getName()) ||
-			SessionErrors.contains(
-				renderRequest, PrincipalException.getNestedClasses())) {
-
-			include(templatePath + "error.jsp", renderRequest, renderResponse);
-		}
-		else {
-			super.doDispatch(renderRequest, renderResponse);
-		}
 	}
 
 	protected long getResourcePrimKey(RenderRequest renderRequest)
@@ -181,8 +185,12 @@ public class ArticlePortlet extends BaseKBPortlet {
 			return 0;
 		}
 
-		long resourcePrimKey = ParamUtil.getLong(
-			renderRequest, "resourcePrimKey", defaultValue);
+		long resourcePrimKey = getResourcePrimKeyFromUrlTitle(renderRequest);
+
+		if (resourcePrimKey == 0) {
+			resourcePrimKey = ParamUtil.getLong(
+				renderRequest, "resourcePrimKey", defaultValue);
+		}
 
 		if ((resourcePrimKey == 0) || (resourcePrimKey != defaultValue)) {
 			return resourcePrimKey;
@@ -200,11 +208,52 @@ public class ArticlePortlet extends BaseKBPortlet {
 		return defaultValue;
 	}
 
+	protected long getResourcePrimKeyFromUrlTitle(RenderRequest renderRequest)
+		throws PortalException {
+
+		String urlTitle = ParamUtil.getString(renderRequest, "urlTitle");
+
+		if (Validator.isNull(urlTitle)) {
+			return 0;
+		}
+
+		String kbFolderUrlTitle = ParamUtil.getString(
+			renderRequest, "kbFolderUrlTitle");
+
+		KBArticle kbArticle = null;
+
+		if (Validator.isNull(kbFolderUrlTitle)) {
+			kbArticle = _kbArticleLocalService.fetchKBArticleByUrlTitle(
+				PortalUtil.getScopeGroupId(renderRequest),
+				KBFolderConstants.DEFAULT_PARENT_FOLDER_ID, urlTitle);
+		}
+		else {
+			kbArticle = _kbArticleLocalService.fetchKBArticleByUrlTitle(
+				PortalUtil.getScopeGroupId(renderRequest), kbFolderUrlTitle,
+				urlTitle);
+		}
+
+		if (kbArticle != null) {
+			return kbArticle.getResourcePrimKey();
+		}
+
+		return 0;
+	}
+
+	@Reference(unbind = "-")
+	protected void setKBArticleLocalService(
+		KBArticleLocalService kbArticleLocalService) {
+
+		_kbArticleLocalService = kbArticleLocalService;
+	}
+
 	@Reference(
 		target = "(&(release.bundle.symbolic.name=com.liferay.knowledge.base.web)(release.schema.version=1.0.0))",
 		unbind = "-"
 	)
 	protected void setRelease(Release release) {
 	}
+
+	private KBArticleLocalService _kbArticleLocalService;
 
 }

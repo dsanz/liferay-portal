@@ -68,7 +68,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 
 <%
 int entriesTotal = 0;
-List entriesResults = null;
+List<BlogsEntry> entriesResults = null;
 
 SearchContainer entriesSearchContainer = new SearchContainer(renderRequest, PortletURLUtil.clone(portletURL, liferayPortletResponse), null, "no-entries-were-found");
 
@@ -78,6 +78,8 @@ if ((assetCategoryId != 0) || Validator.isNotNull(assetTagName)) {
 	entriesSearchContainer.setTotal(searchContainerResults.getTotal());
 
 	List<AssetEntry> assetEntries = searchContainerResults.getResults();
+
+	entriesResults = new ArrayList<>(assetEntries.size());
 
 	for (AssetEntry assetEntry : assetEntries) {
 		entriesResults.add(BlogsEntryLocalServiceUtil.getEntry(assetEntry.getClassPK()));
@@ -110,6 +112,8 @@ else {
 	searchContext.setStart(entriesSearchContainer.getStart());
 
 	Hits hits = indexer.search(searchContext);
+
+	entriesResults = new ArrayList<>(hits.getLength());
 
 	entriesSearchContainer.setTotal(hits.getLength());
 
@@ -201,7 +205,7 @@ entriesSearchContainer.setResults(entriesResults);
 			searchContainer="<%= entriesSearchContainer %>"
 		>
 			<liferay-ui:search-container-row
-				className="com.liferay.blogs.kernel.model.BlogsEntry"
+				className="com.liferay.blogs.model.BlogsEntry"
 				escapedModel="<%= true %>"
 				keyProperty="entryId"
 				modelVar="entry"

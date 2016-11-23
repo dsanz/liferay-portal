@@ -33,6 +33,7 @@ import java.util.List;
 public class ScreensRatingsEntryServiceImpl
 	extends ScreensRatingsEntryServiceBaseImpl {
 
+	@Override
 	public JSONObject deleteRatingsEntry(
 			long classPK, String className, int ratingsLength)
 		throws PortalException {
@@ -42,6 +43,7 @@ public class ScreensRatingsEntryServiceImpl
 		return getRatingsEntries(classPK, className, ratingsLength);
 	}
 
+	@Override
 	public JSONObject getRatingsEntries(long assetEntryId, int ratingsLength)
 		throws PortalException {
 
@@ -51,6 +53,7 @@ public class ScreensRatingsEntryServiceImpl
 			assetEntry.getClassPK(), assetEntry.getClassName(), ratingsLength);
 	}
 
+	@Override
 	public JSONObject getRatingsEntries(
 			long classPK, String className, int ratingsLength)
 		throws PortalException {
@@ -79,7 +82,7 @@ public class ScreensRatingsEntryServiceImpl
 			}
 		}
 
-		if (ratingsEntries.size() > 0) {
+		if (!ratingsEntries.isEmpty()) {
 			jsonObject.put("average", totalScore / ratingsEntries.size());
 		}
 		else {
@@ -96,6 +99,7 @@ public class ScreensRatingsEntryServiceImpl
 		return jsonObject;
 	}
 
+	@Override
 	public JSONObject updateRatingsEntry(
 			long classPK, String className, double score, int ratingsLength)
 		throws PortalException {

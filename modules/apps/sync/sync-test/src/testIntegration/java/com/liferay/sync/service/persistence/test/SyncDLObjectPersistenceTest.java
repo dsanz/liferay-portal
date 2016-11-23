@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.TransactionalTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.util.IntegerWrapper;
@@ -34,6 +33,7 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PersistenceTestRule;
+import com.liferay.portal.test.rule.TransactionalTestRule;
 
 import com.liferay.sync.exception.NoSuchDLObjectException;
 import com.liferay.sync.model.SyncDLObject;
@@ -69,7 +69,8 @@ public class SyncDLObjectPersistenceTest {
 	@Rule
 	public static final AggregateTestRule aggregateTestRule = new AggregateTestRule(new LiferayIntegrationTestRule(),
 			PersistenceTestRule.INSTANCE,
-			new TransactionalTestRule(Propagation.REQUIRED));
+			new TransactionalTestRule(Propagation.REQUIRED,
+				"com.liferay.sync.service"));
 
 	@Before
 	public void setUp() {
@@ -162,6 +163,8 @@ public class SyncDLObjectPersistenceTest {
 
 		newSyncDLObject.setEvent(RandomTestUtil.randomString());
 
+		newSyncDLObject.setLanTokenKey(RandomTestUtil.randomString());
+
 		newSyncDLObject.setLastPermissionChangeDate(RandomTestUtil.nextDate());
 
 		newSyncDLObject.setLockExpirationDate(RandomTestUtil.nextDate());
@@ -220,6 +223,8 @@ public class SyncDLObjectPersistenceTest {
 			newSyncDLObject.getChecksum());
 		Assert.assertEquals(existingSyncDLObject.getEvent(),
 			newSyncDLObject.getEvent());
+		Assert.assertEquals(existingSyncDLObject.getLanTokenKey(),
+			newSyncDLObject.getLanTokenKey());
 		Assert.assertEquals(Time.getShortTimestamp(
 				existingSyncDLObject.getLastPermissionChangeDate()),
 			Time.getShortTimestamp(
@@ -378,7 +383,7 @@ public class SyncDLObjectPersistenceTest {
 			"repositoryId", true, "parentFolderId", true, "treePath", true,
 			"name", true, "extension", true, "mimeType", true, "description",
 			true, "changeLog", true, "version", true, "versionId", true,
-			"size", true, "checksum", true, "event", true,
+			"size", true, "checksum", true, "event", true, "lanTokenKey", true,
 			"lastPermissionChangeDate", true, "lockExpirationDate", true,
 			"lockUserId", true, "lockUserName", true, "type", true, "typePK",
 			true, "typeUuid", true);
@@ -636,6 +641,8 @@ public class SyncDLObjectPersistenceTest {
 		syncDLObject.setChecksum(RandomTestUtil.randomString());
 
 		syncDLObject.setEvent(RandomTestUtil.randomString());
+
+		syncDLObject.setLanTokenKey(RandomTestUtil.randomString());
 
 		syncDLObject.setLastPermissionChangeDate(RandomTestUtil.nextDate());
 

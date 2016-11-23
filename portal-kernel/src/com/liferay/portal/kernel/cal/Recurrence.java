@@ -110,7 +110,7 @@ public class Recurrence implements Serializable {
 		interval = 1;
 	}
 
-	/* Accessors */
+	// Accessors
 
 	/**
 	 * Method getByDay
@@ -242,7 +242,7 @@ public class Recurrence implements Serializable {
 
 			case DAILY :
 
-				/* No more adjustments needed */
+				// No more adjustments needed
 
 				break;
 
@@ -333,7 +333,11 @@ public class Recurrence implements Serializable {
 	 * @return Calendar
 	 */
 	public Calendar getUntil() {
-		return ((until != null) ? (Calendar)until.clone() : null);
+		if (until != null) {
+			return (Calendar)until.clone();
+		}
+
+		return null;
 	}
 
 	/**
@@ -388,7 +392,7 @@ public class Recurrence implements Serializable {
 
 		Calendar candidate = getCandidateStartTime(myCurrent);
 
-		/* Loop over ranges for the duration. */
+		// Loop over ranges for the duration.
 
 		while ((candidate.getTime().getTime() + duration.getInterval()) >
 					myCurrent.getTime().getTime()) {
@@ -397,11 +401,11 @@ public class Recurrence implements Serializable {
 				return true;
 			}
 
-			/* Roll back to one second previous, and try again. */
+			// Roll back to one second previous, and try again.
 
 			candidate.add(Calendar.SECOND, -1);
 
-			/* Make sure we haven't rolled back to before dtStart. */
+			// Make sure we haven't rolled back to before dtStart.
 
 			if (candidate.getTime().getTime() < dtStart.getTime().getTime()) {
 				if (debug) {
@@ -744,8 +748,7 @@ public class Recurrence implements Serializable {
 			throw new IllegalArgumentException("Not a constant length field");
 		}
 
-		int fieldLength =
-			(start.getMaximum(field) - start.getMinimum(field) + 1);
+		int fieldLength = start.getMaximum(field) - start.getMinimum(field) + 1;
 		int delta = start.get(field) - candidate.get(field);
 
 		if (delta > 0) {
@@ -793,7 +796,7 @@ public class Recurrence implements Serializable {
 			candidate.add(Calendar.YEAR, -1);
 		}
 
-		/* Set the candidate date to the start date. */
+		// Set the candidate date to the start date.
 
 		candidate.set(Calendar.MONTH, start.get(Calendar.MONTH));
 		candidate.set(Calendar.DATE, start.get(Calendar.DATE));
@@ -937,7 +940,7 @@ public class Recurrence implements Serializable {
 	protected boolean matchesByDay(Calendar candidate) {
 		if (ArrayUtil.isEmpty(byDay)) {
 
-			/* No byDay rules, so it matches trivially */
+			// No byDay rules, so it matches trivially
 
 			return true;
 		}
@@ -961,7 +964,7 @@ public class Recurrence implements Serializable {
 
 		if (ArrayUtil.isEmpty(array)) {
 
-			/* No rules, so it matches trivially */
+			// No rules, so it matches trivially
 
 			return true;
 		}
@@ -1056,7 +1059,7 @@ public class Recurrence implements Serializable {
 		}
 		else {
 
-			/* position < 0 */
+			// position < 0
 
 			int negativeCandidatePosition =
 				((candidate.getActualMaximum(field) - candidate.get(field)) /

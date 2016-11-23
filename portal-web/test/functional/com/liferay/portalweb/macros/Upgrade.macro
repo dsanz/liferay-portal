@@ -109,6 +109,8 @@
 			<var name="portlet" value="Web Content" />
 		</execute>
 
+		<execute macro="WebContentNavigator#gotoManageTemplates" />
+
 		<execute macro="WebContentTemplates#addCP">
 			<var name="templateDescription" value="WC Template Description" />
 			<var name="templateFieldNames" value="Text" />
@@ -413,7 +415,7 @@
 		</execute>
 	</command>
 
-	<command name="searchForAssetsAfterUpgrade">
+	<command name="reindexSearches">
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
@@ -434,8 +436,12 @@
 			<var name="key_actionsDescription" value="Reindex all search indexes." />
 		</execute>
 
-		<execute function="Pause" locator1="10000" />
+		<execute macro="Alert#viewSuccessMessage" />
 
+		<execute function="Pause" locator1="10000" />
+	</command>
+
+	<command name="searchForAssetsAfterUpgrade">
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="Search#searchPG">
@@ -520,7 +526,9 @@
 			<var name="eventTitle" value="Calendar Event Title Edited" />
 		</execute>
 
-		<execute macro="CalendarEvent#publish" />
+		<execute macro="CalendarEvent#publishRepeating">
+			<var name="saveOption" value="Entire Series" />
+		</execute>
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Calendar" />

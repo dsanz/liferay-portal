@@ -35,39 +35,43 @@ buildFixPackChangeLog {
 	ticketIdPrefixes "LRQA"
 }
 
-cleanReleng << {
-	File relengRootDir = file(".releng")
+cleanReleng {
+	doLast {
+		File relengRootDir = file(".releng")
 
-	FileTree relengFileTree = fileTree(dir: relengRootDir, include: "**/artifact.properties")
+		FileTree relengFileTree = fileTree(dir: relengRootDir, include: "**/artifact.properties")
 
-	relengFileTree.each {
-		File relengFile ->
+		relengFileTree.each {
+			File relengFile ->
 
-		File relengDir = relengFile.parentFile
+			File relengDir = relengFile.parentFile
 
-		File moduleDir = file(FileUtil.relativize(relengDir, relengRootDir))
+			File moduleDir = file(FileUtil.relativize(relengDir, relengRootDir))
 
-		if (!moduleDir.exists()) {
-			delete relengDir
+			if (!moduleDir.exists()) {
+				delete relengDir
 
-			println "Removed " + relativePath(relengDir)
+				println "Removed " + relativePath(relengDir)
+			}
 		}
 	}
 }
 
-cleanVersionOverride << {
-	String gitRepoPath = project.properties["gitRepoPath"]
+cleanVersionOverride {
+	doLast {
+		String gitRepoPath = project.properties["gitRepoPath"]
 
-	if (!gitRepoPath) {
-		throw new GradleException("Please set the property \"-PgitRepoPath\".")
-	}
+		if (!gitRepoPath) {
+			throw new GradleException("Please set the property \"-PgitRepoPath\".")
+		}
 
-	File gitRepoDir = file(gitRepoPath)
+		File gitRepoDir = file(gitRepoPath)
 
-	FileTree bndBndFileTree = fileTree(dir: gitRepoDir, include : "**/bnd.bnd")
+		FileTree bndBndFileTree = fileTree(dir: gitRepoDir, include : "**/bnd.bnd")
 
-	delete bndBndFileTree.collect {
-		new File(gitRepoDir.parentFile, ".version-override-${it.parentFile.name}.properties")
+		delete bndBndFileTree.collect {
+			new File(gitRepoDir.parentFile, ".version-override-${it.parentFile.name}.properties")
+		}
 	}
 }
 
@@ -85,21 +89,41 @@ wrapper {
 	distributionUrl = "../../tools/gradle-${gradle.gradleVersion}.LIFERAY-PATCHED-1-bin.zip"
 
 	doLast {
-		ant.replace(file: new File(wrapperDir, "gradlew")) {
-			replacefilter token: '# Split up the JVM_OPTS And GRADLE_OPTS values into an array, following the shell quoting and substitution rules', value: '''\
-# Split up the JVM_OPTS And GRADLE_OPTS values into an array, following the shell quoting and substitution rules
+		File gradlewFile = new File(wrapperDir, "gradlew")
+
+		ant.replace(
+			failOnNoReplacements: true,
+			file: gradlewFile,
+			token: '# Escape application args',
+			value: '''\
+# Escape application args
 DEFAULT_JVM_OPTS="$DEFAULT_JVM_OPTS \\\"-Dgradle.user.home=$APP_HOME/.gradle\\\""'''
+		)
 
-			replacefilter token: 'org.gradle.wrapper.GradleWrapperMain "$@"', value: 'org.gradle.wrapper.GradleWrapperMain "--init-script=$APP_HOME/modules/init.gradle" "$@"'
-		}
+		ant.replace(
+			failOnNoReplacements: true,
+			file: gradlewFile,
+			token: 'org.gradle.wrapper.GradleWrapperMain "$APP_ARGS"',
+			value: 'org.gradle.wrapper.GradleWrapperMain "--init-script=$APP_HOME/modules/init.gradle" "$APP_ARGS"'
+		)
 
-		ant.replace(file: new File(wrapperDir, "gradlew.bat")) {
-			replacefilter token: '@rem Setup the command line', value: '''\
+		File gradlewBatFile = new File(wrapperDir, "gradlew.bat")
+
+		ant.replace(
+			failOnNoReplacements: true,
+			file: gradlewBatFile,
+			token: '@rem Setup the command line',
+			value: '''\
 @rem Setup the command line
 set DEFAULT_JVM_OPTS=%DEFAULT_JVM_OPTS% "-Dgradle.user.home=%APP_HOME%\\.gradle"'''
+		)
 
-			replacefilter token: 'org.gradle.wrapper.GradleWrapperMain %CMD_LINE_ARGS%', value: 'org.gradle.wrapper.GradleWrapperMain "--init-script=%APP_HOME%\\modules\\init.gradle" %CMD_LINE_ARGS%'
-		}
+		ant.replace(
+			failOnNoReplacements: true,
+			file: gradlewBatFile,
+			token: 'org.gradle.wrapper.GradleWrapperMain %CMD_LINE_ARGS%',
+			value: 'org.gradle.wrapper.GradleWrapperMain "--init-script=%APP_HOME%\\modules\\init.gradle" %CMD_LINE_ARGS%'
+		)
 	}
 
 	jarFile = new File(wrapperDir, "gradle/wrapper/gradle-wrapper.jar")
@@ -118,32 +142,32 @@ private void _createSetUpTasks() {
 
 		File portalToolDir = ivyXmlFile.parentFile
 
-		String portalToolName = portalToolDir.name
-
-		String portalToolSuffix = _getPortalToolSuffix(portalToolName)
-		String portalToolVersion = PortalTools.getVersion(project, portalToolName)
+		String portalToolSuffix = _getPortalToolSuffix(portalToolDir.name)
 
 		Configuration portalToolConfiguration = configurations.create("portalTools" + portalToolSuffix)
 
 		portalToolConfiguration.exclude group: "com.liferay.portal"
 
-		if (portalToolVersion) {
-			dependencies.add portalToolConfiguration.name, "com.liferay:${portalToolName}:${portalToolVersion}"
-		}
-		else {
-			def ivyModuleNode = xmlSlurper.parse(ivyXmlFile)
+		def ivyModuleNode = xmlSlurper.parse(ivyXmlFile)
 
-			def dependencyNodes = ivyModuleNode.dependencies.children()
+		def dependencyNodes = ivyModuleNode.dependencies.children()
 
-			dependencyNodes.each {
-				String conf = it.@conf
+		dependencyNodes.each {
+			String dependencyConf = it.@conf
 
-				if (conf) {
-					return
-				}
-
-				dependencies.add portalToolConfiguration.name, "${it.@org}:${it.@name}:${it.@rev}"
+			if (dependencyConf) {
+				return
 			}
+
+			String dependencyGroup = it.@org
+			String dependencyName = it.@name
+			String dependencyVersion = PortalTools.getVersion(project, dependencyName)
+
+			if (!dependencyVersion) {
+				dependencyVersion = it.@rev
+			}
+
+			dependencies.add portalToolConfiguration.name, "${dependencyGroup}:${dependencyName}:${dependencyVersion}"
 		}
 
 		Task portalToolTask = tasks.create(name: "setUp" + portalToolSuffix, type: Copy) {

@@ -22,8 +22,13 @@ import aQute.bnd.annotation.ProviderType;
 @ProviderType
 public class NotExpression extends UnaryExpression {
 
-	public NotExpression(Expression operand) {
-		super(operand);
+	public NotExpression(Expression operandExpression) {
+		super(operandExpression);
+	}
+
+	@Override
+	public <T> T accept(ExpressionVisitor<T> visitor) {
+		return visitor.visit(this);
 	}
 
 }

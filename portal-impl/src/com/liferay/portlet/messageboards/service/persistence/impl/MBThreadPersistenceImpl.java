@@ -2450,11 +2450,15 @@ public class MBThreadPersistenceImpl extends BasePersistenceImpl<MBThread>
 						finderArgs, list);
 				}
 				else {
-					if ((list.size() > 1) && _log.isWarnEnabled()) {
-						_log.warn(
-							"MBThreadPersistenceImpl.fetchByRootMessageId(long, boolean) with parameters (" +
-							StringUtil.merge(finderArgs) +
-							") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+					if (list.size() > 1) {
+						Collections.sort(list, Collections.reverseOrder());
+
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"MBThreadPersistenceImpl.fetchByRootMessageId(long, boolean) with parameters (" +
+								StringUtil.merge(finderArgs) +
+								") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+						}
 					}
 
 					MBThread mbThread = list.get(0);
@@ -12983,7 +12987,7 @@ public class MBThreadPersistenceImpl extends BasePersistenceImpl<MBThread>
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
-		clearUniqueFindersCache((MBThreadModelImpl)mbThread);
+		clearUniqueFindersCache((MBThreadModelImpl)mbThread, true);
 	}
 
 	@Override
@@ -12995,68 +12999,42 @@ public class MBThreadPersistenceImpl extends BasePersistenceImpl<MBThread>
 			entityCache.removeResult(MBThreadModelImpl.ENTITY_CACHE_ENABLED,
 				MBThreadImpl.class, mbThread.getPrimaryKey());
 
-			clearUniqueFindersCache((MBThreadModelImpl)mbThread);
+			clearUniqueFindersCache((MBThreadModelImpl)mbThread, true);
 		}
 	}
 
-	protected void cacheUniqueFindersCache(
-		MBThreadModelImpl mbThreadModelImpl, boolean isNew) {
-		if (isNew) {
-			Object[] args = new Object[] {
-					mbThreadModelImpl.getUuid(), mbThreadModelImpl.getGroupId()
-				};
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_UUID_G, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_UUID_G, args,
-				mbThreadModelImpl);
-
-			args = new Object[] { mbThreadModelImpl.getRootMessageId() };
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_ROOTMESSAGEID, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_ROOTMESSAGEID, args,
-				mbThreadModelImpl);
-		}
-		else {
-			if ((mbThreadModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_UUID_G.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						mbThreadModelImpl.getUuid(),
-						mbThreadModelImpl.getGroupId()
-					};
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_UUID_G, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_UUID_G, args,
-					mbThreadModelImpl);
-			}
-
-			if ((mbThreadModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_ROOTMESSAGEID.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						mbThreadModelImpl.getRootMessageId()
-					};
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_ROOTMESSAGEID, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_ROOTMESSAGEID, args,
-					mbThreadModelImpl);
-			}
-		}
-	}
-
-	protected void clearUniqueFindersCache(MBThreadModelImpl mbThreadModelImpl) {
+	protected void cacheUniqueFindersCache(MBThreadModelImpl mbThreadModelImpl) {
 		Object[] args = new Object[] {
 				mbThreadModelImpl.getUuid(), mbThreadModelImpl.getGroupId()
 			};
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID_G, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_UUID_G, args);
+		finderCache.putResult(FINDER_PATH_COUNT_BY_UUID_G, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_UUID_G, args,
+			mbThreadModelImpl, false);
+
+		args = new Object[] { mbThreadModelImpl.getRootMessageId() };
+
+		finderCache.putResult(FINDER_PATH_COUNT_BY_ROOTMESSAGEID, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_ROOTMESSAGEID, args,
+			mbThreadModelImpl, false);
+	}
+
+	protected void clearUniqueFindersCache(
+		MBThreadModelImpl mbThreadModelImpl, boolean clearCurrent) {
+		if (clearCurrent) {
+			Object[] args = new Object[] {
+					mbThreadModelImpl.getUuid(), mbThreadModelImpl.getGroupId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID_G, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_UUID_G, args);
+		}
 
 		if ((mbThreadModelImpl.getColumnBitmask() &
 				FINDER_PATH_FETCH_BY_UUID_G.getColumnBitmask()) != 0) {
-			args = new Object[] {
+			Object[] args = new Object[] {
 					mbThreadModelImpl.getOriginalUuid(),
 					mbThreadModelImpl.getOriginalGroupId()
 				};
@@ -13065,14 +13043,18 @@ public class MBThreadPersistenceImpl extends BasePersistenceImpl<MBThread>
 			finderCache.removeResult(FINDER_PATH_FETCH_BY_UUID_G, args);
 		}
 
-		args = new Object[] { mbThreadModelImpl.getRootMessageId() };
+		if (clearCurrent) {
+			Object[] args = new Object[] { mbThreadModelImpl.getRootMessageId() };
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_ROOTMESSAGEID, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_ROOTMESSAGEID, args);
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_ROOTMESSAGEID, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_ROOTMESSAGEID, args);
+		}
 
 		if ((mbThreadModelImpl.getColumnBitmask() &
 				FINDER_PATH_FETCH_BY_ROOTMESSAGEID.getColumnBitmask()) != 0) {
-			args = new Object[] { mbThreadModelImpl.getOriginalRootMessageId() };
+			Object[] args = new Object[] {
+					mbThreadModelImpl.getOriginalRootMessageId()
+				};
 
 			finderCache.removeResult(FINDER_PATH_COUNT_BY_ROOTMESSAGEID, args);
 			finderCache.removeResult(FINDER_PATH_FETCH_BY_ROOTMESSAGEID, args);
@@ -13436,8 +13418,8 @@ public class MBThreadPersistenceImpl extends BasePersistenceImpl<MBThread>
 		entityCache.putResult(MBThreadModelImpl.ENTITY_CACHE_ENABLED,
 			MBThreadImpl.class, mbThread.getPrimaryKey(), mbThread, false);
 
-		clearUniqueFindersCache(mbThreadModelImpl);
-		cacheUniqueFindersCache(mbThreadModelImpl, isNew);
+		clearUniqueFindersCache(mbThreadModelImpl, false);
+		cacheUniqueFindersCache(mbThreadModelImpl);
 
 		mbThread.resetOriginalValues();
 

@@ -1894,11 +1894,15 @@ public class WSRPConsumerPortletPersistenceImpl extends BasePersistenceImpl<WSRP
 						list);
 				}
 				else {
-					if ((list.size() > 1) && _log.isWarnEnabled()) {
-						_log.warn(
-							"WSRPConsumerPortletPersistenceImpl.fetchByW_P(long, String, boolean) with parameters (" +
-							StringUtil.merge(finderArgs) +
-							") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+					if (list.size() > 1) {
+						Collections.sort(list, Collections.reverseOrder());
+
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"WSRPConsumerPortletPersistenceImpl.fetchByW_P(long, String, boolean) with parameters (" +
+								StringUtil.merge(finderArgs) +
+								") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+						}
 					}
 
 					WSRPConsumerPortlet wsrpConsumerPortlet = list.get(0);
@@ -2100,7 +2104,8 @@ public class WSRPConsumerPortletPersistenceImpl extends BasePersistenceImpl<WSRP
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
-		clearUniqueFindersCache((WSRPConsumerPortletModelImpl)wsrpConsumerPortlet);
+		clearUniqueFindersCache((WSRPConsumerPortletModelImpl)wsrpConsumerPortlet,
+			true);
 	}
 
 	@Override
@@ -2113,52 +2118,40 @@ public class WSRPConsumerPortletPersistenceImpl extends BasePersistenceImpl<WSRP
 				WSRPConsumerPortletImpl.class,
 				wsrpConsumerPortlet.getPrimaryKey());
 
-			clearUniqueFindersCache((WSRPConsumerPortletModelImpl)wsrpConsumerPortlet);
+			clearUniqueFindersCache((WSRPConsumerPortletModelImpl)wsrpConsumerPortlet,
+				true);
 		}
 	}
 
 	protected void cacheUniqueFindersCache(
-		WSRPConsumerPortletModelImpl wsrpConsumerPortletModelImpl, boolean isNew) {
-		if (isNew) {
-			Object[] args = new Object[] {
-					wsrpConsumerPortletModelImpl.getWsrpConsumerId(),
-					wsrpConsumerPortletModelImpl.getPortletHandle()
-				};
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_W_P, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_W_P, args,
-				wsrpConsumerPortletModelImpl);
-		}
-		else {
-			if ((wsrpConsumerPortletModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_W_P.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						wsrpConsumerPortletModelImpl.getWsrpConsumerId(),
-						wsrpConsumerPortletModelImpl.getPortletHandle()
-					};
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_W_P, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_W_P, args,
-					wsrpConsumerPortletModelImpl);
-			}
-		}
-	}
-
-	protected void clearUniqueFindersCache(
 		WSRPConsumerPortletModelImpl wsrpConsumerPortletModelImpl) {
 		Object[] args = new Object[] {
 				wsrpConsumerPortletModelImpl.getWsrpConsumerId(),
 				wsrpConsumerPortletModelImpl.getPortletHandle()
 			};
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_W_P, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_W_P, args);
+		finderCache.putResult(FINDER_PATH_COUNT_BY_W_P, args, Long.valueOf(1),
+			false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_W_P, args,
+			wsrpConsumerPortletModelImpl, false);
+	}
+
+	protected void clearUniqueFindersCache(
+		WSRPConsumerPortletModelImpl wsrpConsumerPortletModelImpl,
+		boolean clearCurrent) {
+		if (clearCurrent) {
+			Object[] args = new Object[] {
+					wsrpConsumerPortletModelImpl.getWsrpConsumerId(),
+					wsrpConsumerPortletModelImpl.getPortletHandle()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_W_P, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_W_P, args);
+		}
 
 		if ((wsrpConsumerPortletModelImpl.getColumnBitmask() &
 				FINDER_PATH_FETCH_BY_W_P.getColumnBitmask()) != 0) {
-			args = new Object[] {
+			Object[] args = new Object[] {
 					wsrpConsumerPortletModelImpl.getOriginalWsrpConsumerId(),
 					wsrpConsumerPortletModelImpl.getOriginalPortletHandle()
 				};
@@ -2407,8 +2400,8 @@ public class WSRPConsumerPortletPersistenceImpl extends BasePersistenceImpl<WSRP
 			WSRPConsumerPortletImpl.class, wsrpConsumerPortlet.getPrimaryKey(),
 			wsrpConsumerPortlet, false);
 
-		clearUniqueFindersCache(wsrpConsumerPortletModelImpl);
-		cacheUniqueFindersCache(wsrpConsumerPortletModelImpl, isNew);
+		clearUniqueFindersCache(wsrpConsumerPortletModelImpl, false);
+		cacheUniqueFindersCache(wsrpConsumerPortletModelImpl);
 
 		wsrpConsumerPortlet.resetOriginalValues();
 

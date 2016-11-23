@@ -7,7 +7,7 @@ task buildCKEditor(type: Copy)
 task buildCKEditorScayt(type: Copy)
 task buildCKEditorWsc(type: Copy)
 
-String ckEditorVersion = "4.5.8"
+String ckEditorVersion = "4.5.11"
 
 String ckEditorScaytUrl = "http://download.ckeditor.com/scayt/releases/scayt_${ckEditorVersion}.zip"
 String ckEditorWscUrl = "http://download.ckeditor.com/wsc/releases/wsc_${ckEditorVersion}.zip"
@@ -93,7 +93,6 @@ classes {
 }
 
 dependencies {
-	provided group: "com.liferay", name: "com.liferay.frontend.editor.lang", version: "1.0.0"
 	provided group: "com.liferay", name: "com.liferay.frontend.taglib", version: "2.0.0"
 	provided group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "2.0.0"
 	provided group: "com.liferay.portal", name: "com.liferay.util.taglib", version: "2.0.0"

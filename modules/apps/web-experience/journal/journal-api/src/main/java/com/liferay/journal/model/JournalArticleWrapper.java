@@ -496,7 +496,7 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* @deprecated As of 7.0.0, with no direct replacement
+	* @deprecated As of 4.0.0, with no direct replacement
 	*/
 	@Deprecated
 	@Override
@@ -505,14 +505,12 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	@Override
-	public com.liferay.dynamic.data.mapping.model.DDMStructure getDDMStructure()
-		throws com.liferay.portal.kernel.exception.PortalException {
+	public com.liferay.dynamic.data.mapping.model.DDMStructure getDDMStructure() {
 		return _journalArticle.getDDMStructure();
 	}
 
 	@Override
-	public com.liferay.dynamic.data.mapping.model.DDMTemplate getDDMTemplate()
-		throws com.liferay.portal.kernel.exception.PortalException {
+	public com.liferay.dynamic.data.mapping.model.DDMTemplate getDDMTemplate() {
 		return _journalArticle.getDDMTemplate();
 	}
 
@@ -735,7 +733,7 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* @deprecated As of 7.0.0
+	* @deprecated As of 4.0.0
 	*/
 	@Deprecated
 	@Override
@@ -744,7 +742,7 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* @deprecated As of 7.0.0
+	* @deprecated As of 4.0.0
 	*/
 	@Deprecated
 	@Override
@@ -789,7 +787,7 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #getDDMStructureKey()}
+	* @deprecated As of 4.0.0, replaced by {@link #getDDMStructureKey()}
 	*/
 	@Deprecated
 	@Override
@@ -798,7 +796,7 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #getDDMTemplateKey()}
+	* @deprecated As of 4.0.0, replaced by {@link #getDDMTemplateKey()}
 	*/
 	@Deprecated
 	@Override
@@ -1238,7 +1236,7 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* @deprecated As of 7.0.0
+	* @deprecated As of 4.0.0
 	*/
 	@Deprecated
 	@Override
@@ -1494,7 +1492,7 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #setDDMStructureKey(String)}
+	* @deprecated As of 4.0.0, replaced by {@link #setDDMStructureKey(String)}
 	*/
 	@Deprecated
 	@Override
@@ -1503,7 +1501,7 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #setDDMTemplateKey(String)}
+	* @deprecated As of 4.0.0, replaced by {@link #setDDMTemplateKey(String)}
 	*/
 	@Deprecated
 	@Override
@@ -1512,7 +1510,7 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* @deprecated As of 7.0.0
+	* @deprecated As of 4.0.0
 	*/
 	@Deprecated
 	@Override

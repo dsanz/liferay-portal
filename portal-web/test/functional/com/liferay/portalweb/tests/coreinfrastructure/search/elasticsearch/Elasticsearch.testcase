@@ -42,4 +42,33 @@
 			<var name="userScreenName" value="test" />
 		</execute>
 	</command>
+
+	<command name="AssertSystemSettingsPropogateToModule" priority="4">
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="System Settings" />
+		</execute>
+
+		<execute macro="SystemSettings#gotoCategory">
+			<var name="category" value="Foundation" />
+		</execute>
+
+		<execute macro="SystemSettings#viewConfiguration">
+			<var name="configurationName" value="Elasticsearch" />
+		</execute>
+
+		<execute macro="SystemSettings#editTextAreaSetting">
+			<var name="settingName" value="clusterName" />
+			<var name="settingValue" value="LiferayElasticsearchCluster1" />
+		</execute>
+
+		<execute macro="SystemSettings#saveConfiguration" />
+
+		<execute macro="Navigator#openSpecificURL">
+			<var name="url" value="http://localhost:9200" />
+		</execute>
+
+		<execute macro="Elasticsearch#viewClusterStatus">
+			<var name="clusterStatus" value="&quot;cluster_name&quot; : &quot;LiferayElasticsearchCluster1&quot;" />
+		</execute>
+	</command>
 </definition>

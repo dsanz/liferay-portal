@@ -33,6 +33,8 @@ page import="com.liferay.application.list.PanelCategoryRegistry" %><%@
 page import="com.liferay.application.list.constants.ApplicationListWebKeys" %><%@
 page import="com.liferay.application.list.constants.PanelCategoryKeys" %><%@
 page import="com.liferay.application.list.display.context.logic.PanelCategoryHelper" %><%@
+page import="com.liferay.expando.kernel.model.ExpandoBridge" %><%@
+page import="com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil" %><%@
 page import="com.liferay.portal.kernel.bean.BeanParamUtil" %><%@
 page import="com.liferay.portal.kernel.dao.orm.QueryUtil" %><%@
 page import="com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker" %><%@
@@ -134,6 +136,8 @@ page import="com.liferay.taglib.search.ResultRow" %><%@
 page import="com.liferay.users.admin.kernel.util.UsersAdmin" %><%@
 page import="com.liferay.users.admin.kernel.util.UsersAdminUtil" %>
 
+<%@ page import="java.io.Serializable" %>
+
 <%@ page import="java.util.ArrayList" %><%@
 page import="java.util.Collections" %><%@
 page import="java.util.HashMap" %><%@
@@ -193,6 +197,20 @@ private String _getActionLabel(HttpServletRequest request, ThemeDisplay themeDis
 	return actionLabel;
 }
 
+private String _getAssigneesMessage(HttpServletRequest request, Role role) throws Exception {
+	if (_isImpliedRole(role)) {
+		return LanguageUtil.get(request, "this-role-is-automatically-assigned");
+	}
+
+	int count = RoleLocalServiceUtil.getAssigneesTotal(role.getRoleId());
+
+	if (count == 1) {
+		return LanguageUtil.get(request, "one-assignee");
+	}
+
+	return LanguageUtil.format(request, "x-assignees", count);
+}
+
 private StringBundler _getResourceHtmlId(String resource) {
 	StringBundler sb = new StringBundler(2);
 
@@ -200,6 +218,21 @@ private StringBundler _getResourceHtmlId(String resource) {
 	sb.append(resource.replace('.', '_'));
 
 	return sb;
+}
+
+private boolean _isImpliedRole(Role role) {
+	String name = role.getName();
+
+	if (name.equals(RoleConstants.GUEST) ||
+		name.equals(RoleConstants.ORGANIZATION_USER) ||
+		name.equals(RoleConstants.OWNER) ||
+		name.equals(RoleConstants.SITE_MEMBER) ||
+		name.equals(RoleConstants.USER)) {
+
+		return true;
+	}
+
+	return false;
 }
 
 private boolean _isShowScope(HttpServletRequest request, Role role, String curModelResource, String curPortletResource) throws SystemException {

@@ -125,6 +125,7 @@ public class ShoppingUtil {
 		throws PortalException {
 
 		double shipping = calculateShipping(items);
+
 		double alternativeShipping = shipping;
 
 		ShoppingGroupServiceOverriddenConfiguration
@@ -214,7 +215,7 @@ public class ShoppingUtil {
 
 		String[] skus = StringUtil.split(coupon.getLimitSkus());
 
-		if ((categoryIds.size() > 0) || (skus.length > 0)) {
+		if (!categoryIds.isEmpty() || (skus.length > 0)) {
 			Set<String> skusSet = new HashSet<>();
 
 			for (String sku : skus) {

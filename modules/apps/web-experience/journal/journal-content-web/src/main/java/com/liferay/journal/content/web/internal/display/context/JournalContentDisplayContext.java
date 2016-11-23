@@ -173,7 +173,7 @@ public class JournalContentDisplayContext {
 
 		if (article.isApproved()) {
 			JournalContent journalContent =
-				(JournalContent) _portletRequest.getAttribute(
+				(JournalContent)_portletRequest.getAttribute(
 					JournalWebKeys.JOURNAL_CONTENT);
 
 			_articleDisplay = journalContent.getDisplay(
@@ -298,8 +298,9 @@ public class JournalContentDisplayContext {
 		}
 		catch (PortalException pe) {
 			_log.error(
-				"Unable to obtain ddm template for article " +
-					articleDisplay.getId());
+				"Unable to get DDM template for article " +
+					articleDisplay.getId(),
+				pe);
 		}
 
 		return _ddmTemplate;
@@ -354,8 +355,8 @@ public class JournalContentDisplayContext {
 		}
 		catch (PortalException pe) {
 			_log.error(
-				"Unable to obtain ddm temmplate for article " +
-					article.getId());
+				"Unable to get DDM temmplate for article " + article.getId(),
+				pe);
 		}
 
 		return _ddmTemplates;
@@ -798,16 +799,9 @@ public class JournalContentDisplayContext {
 		ThemeDisplay themeDisplay = (ThemeDisplay)_portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		try {
-			_showEditArticleIcon = JournalArticlePermission.contains(
-				themeDisplay.getPermissionChecker(), latestArticle.getGroupId(),
-				latestArticle.getArticleId(), ActionKeys.UPDATE);
-		}
-		catch (PortalException pe) {
-			_log.error(
-				"Unable to check permissions for article " +
-					latestArticle.getId());
-		}
+		_showEditArticleIcon = JournalArticlePermission.contains(
+			themeDisplay.getPermissionChecker(), latestArticle.getGroupId(),
+			latestArticle.getArticleId(), ActionKeys.UPDATE);
 
 		return _showEditArticleIcon;
 	}
@@ -838,8 +832,9 @@ public class JournalContentDisplayContext {
 		}
 		catch (PortalException pe) {
 			_log.error(
-				"Unable to check permission on ddm template " +
-					ddmTemplate.getTemplateId());
+				"Unable to check permission on DDM template " +
+					ddmTemplate.getTemplateId(),
+				pe);
 		}
 
 		return _showEditTemplateIcon;

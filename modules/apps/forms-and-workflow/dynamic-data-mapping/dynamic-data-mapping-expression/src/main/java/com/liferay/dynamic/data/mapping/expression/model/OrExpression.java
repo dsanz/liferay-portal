@@ -22,8 +22,15 @@ import aQute.bnd.annotation.ProviderType;
 @ProviderType
 public class OrExpression extends BinaryExpression {
 
-	public OrExpression(Expression leftOperand, Expression rightOperand) {
-		super(leftOperand, rightOperand);
+	public OrExpression(
+		Expression leftOperandExpression, Expression rightOperandExpression) {
+
+		super("or", leftOperandExpression, rightOperandExpression);
+	}
+
+	@Override
+	public <T> T accept(ExpressionVisitor<T> visitor) {
+		return visitor.visit(this);
 	}
 
 }

@@ -69,6 +69,7 @@ public class DownloadFileEntryPortletConfigurationIcon
 
 		try {
 			fileEntry = ActionUtil.getFileEntry(portletRequest);
+
 			fileVersion = ActionUtil.getFileVersion(portletRequest, fileEntry);
 		}
 		catch (Exception e) {
@@ -104,6 +105,7 @@ public class DownloadFileEntryPortletConfigurationIcon
 		return false;
 	}
 
+	@Override
 	public boolean isToolTip() {
 		return false;
 	}

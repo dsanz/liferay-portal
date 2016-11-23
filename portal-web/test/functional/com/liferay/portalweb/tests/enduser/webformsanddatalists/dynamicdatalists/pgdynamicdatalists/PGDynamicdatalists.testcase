@@ -1104,7 +1104,7 @@
 		</execute>
 
 		<execute macro="Role#addCP">
-			<var name="roleName" value="No Permissions Role" />
+			<var name="roleTitle" value="No Permissions Role" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
@@ -1132,7 +1132,7 @@
 		</execute>
 
 		<execute macro="User#assignRegularRoleCP">
-			<var name="roleName" value="No Permissions Role" />
+			<var name="roleTitle" value="No Permissions Role" />
 			<var name="userScreenName" value="usersn" />
 		</execute>
 
@@ -1181,7 +1181,7 @@
 
 		<execute macro="Role#removePermissionPG">
 			<var name="permissionDefinitionKey" value="CONTENT_PERMISSIONS_VIEW_CHECKBOX" />
-			<var name="roleName" value="Guest" />
+			<var name="roleTitle" value="Guest" />
 		</execute>
 
 		<execute macro="Navigator#openURL" />
@@ -1463,11 +1463,11 @@
 		<var name="field" value="Date" />
 		<var name="fieldFieldLabel" value="Date" />
 		<var name="fieldName" value="Date" />
-		<var name="fieldPredefinedValue" value="06/01/2015" />
+		<var name="fieldPredefinedValue" value="06/01/2016" />
 		<var name="fieldPredefinedValueDay" value="1" />
-		<var name="fieldPredefinedValueFormatted" value="6/1/15" />
+		<var name="fieldPredefinedValueFormatted" value="6/1/16" />
 		<var name="fieldPredefinedValueMonth" value="June" />
-		<var name="fieldPredefinedValueYear" value="2015" />
+		<var name="fieldPredefinedValueYear" value="2016" />
 
 		<execute macro="Navigator#openURL" />
 
@@ -1938,7 +1938,7 @@
 
 	<command name="ViewListRecordWithUploadedFreeMarkerDisplayTemplate" priority="5">
 		<property name="custom.properties" value="freemarker.engine.restricted.variables=${line.separator}restricted.variables=" />
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="quarantine" />
 
 		<var name="ddlDataDefinitionName" value="Data Definition" />
 		<var name="ddlDisplayTemplateLanguage" value="FreeMarker (.ftl)" />

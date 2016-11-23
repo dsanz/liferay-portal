@@ -122,7 +122,7 @@ public interface DDLRecordLocalService extends BaseLocalService,
 	the record.
 	* @return the record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #addRecord(long, long, int,
+	* @deprecated As of 1.1.0, replaced by {@link #addRecord(long, long, int,
 	DDMFormValues, ServiceContext)}
 	*/
 	@java.lang.Deprecated
@@ -146,7 +146,7 @@ public interface DDLRecordLocalService extends BaseLocalService,
 	the record.
 	* @return the record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #addRecord(long, long, int,
+	* @deprecated As of 1.1.0, replaced by {@link #addRecord(long, long, int,
 	DDMFormValues, ServiceContext)}
 	*/
 	@java.lang.Deprecated
@@ -201,7 +201,7 @@ public interface DDLRecordLocalService extends BaseLocalService,
 	set the record modified date.
 	* @return the affected record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #updateRecord(long, boolean,
+	* @deprecated As of 1.1.0, replaced by {@link #updateRecord(long, boolean,
 	int, DDMFormValues, ServiceContext)}
 	*/
 	@java.lang.Deprecated
@@ -289,6 +289,7 @@ public interface DDLRecordLocalService extends BaseLocalService,
 	* @return the record
 	* @throws PortalException if a portal exception occurred
 	*/
+	@Indexable(type = IndexableType.REINDEX)
 	public DDLRecord updateRecord(long userId, long recordId,
 		boolean majorVersion, int displayIndex, DDMFormValues ddmFormValues,
 		ServiceContext serviceContext) throws PortalException;
@@ -310,7 +311,7 @@ public interface DDLRecordLocalService extends BaseLocalService,
 	set the record modified date.
 	* @return the record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #updateRecord(long, long,
+	* @deprecated As of 1.1.0, replaced by {@link #updateRecord(long, long,
 	boolean, int, DDMFormValues, ServiceContext)}
 	*/
 	@java.lang.Deprecated
@@ -334,7 +335,7 @@ public interface DDLRecordLocalService extends BaseLocalService,
 	set the record modified date.
 	* @return the record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #updateRecord(long, long,
+	* @deprecated As of 1.1.0, replaced by {@link #updateRecord(long, long,
 	boolean, int, DDMFormValues, ServiceContext)}
 	*/
 	@java.lang.Deprecated
@@ -359,7 +360,7 @@ public interface DDLRecordLocalService extends BaseLocalService,
 		int status, ServiceContext serviceContext) throws PortalException;
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getLatestRecordVersion(long)}
 	*/
 	@java.lang.Deprecated
@@ -368,7 +369,7 @@ public interface DDLRecordLocalService extends BaseLocalService,
 		throws PortalException;
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getRecordVersion(
 	long, String)}
 	*/
@@ -378,7 +379,7 @@ public interface DDLRecordLocalService extends BaseLocalService,
 		java.lang.String version) throws PortalException;
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getRecordVersion(
 	long)}
 	*/
@@ -474,13 +475,16 @@ public interface DDLRecordLocalService extends BaseLocalService,
 	public int getDDLRecordsCount();
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getRecordVersionsCount(
 	long)}
 	*/
 	@java.lang.Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getRecordVersionsCount(long recordId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getRecordsCount(long recordSetId);
 
 	/**
 	* Returns the number of records matching the record set ID and workflow
@@ -494,6 +498,9 @@ public interface DDLRecordLocalService extends BaseLocalService,
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getRecordsCount(long recordSetId, int status);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getRecordsCount(long recordSetId, long userId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.lang.Long[] getMinAndMaxCompanyRecordIds(long companyId,
@@ -621,7 +628,7 @@ public interface DDLRecordLocalService extends BaseLocalService,
 		int status, int scope, long minRecordId, long maxRecordId);
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getRecordVersions(
 	long, int, int, OrderByComparator)}
 	*/
@@ -638,6 +645,10 @@ public interface DDLRecordLocalService extends BaseLocalService,
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<DDLRecord> getRecords(long recordSetId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<DDLRecord> getRecords(long recordSetId, int start, int end,
+		OrderByComparator<DDLRecord> obc);
 
 	/**
 	* Returns an ordered range of all the records matching the record set ID
@@ -675,6 +686,10 @@ public interface DDLRecordLocalService extends BaseLocalService,
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<DDLRecord> getRecords(long recordSetId, long userId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<DDLRecord> getRecords(long recordSetId, long userId, int start,
+		int end, OrderByComparator<DDLRecord> obc);
 
 	/**
 	* Returns the number of rows matching the dynamic query.
@@ -726,7 +741,7 @@ public interface DDLRecordLocalService extends BaseLocalService,
 		throws PortalException;
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #revertRecord(long, long,
+	* @deprecated As of 1.1.0, replaced by {@link #revertRecord(long, long,
 	String, ServiceContext)}
 	*/
 	@java.lang.Deprecated

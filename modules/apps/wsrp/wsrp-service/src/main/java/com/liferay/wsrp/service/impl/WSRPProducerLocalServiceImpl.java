@@ -43,12 +43,13 @@ import java.util.List;
 public class WSRPProducerLocalServiceImpl
 	extends WSRPProducerLocalServiceBaseImpl {
 
+	@Override
 	public WSRPProducer addWSRPProducer(
 			long userId, long groupId, String name, String version,
 			String portletIds, ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 		portletIds = transformPortletIds(portletIds);
 		Date now = new Date();
 
@@ -73,6 +74,7 @@ public class WSRPProducerLocalServiceImpl
 		return wsrpProducer;
 	}
 
+	@Override
 	public WSRPProducer addWSRPProducer(
 			long userId, String name, String version, String portletIds,
 			ServiceContext serviceContext)
@@ -124,6 +126,7 @@ public class WSRPProducerLocalServiceImpl
 		}
 	}
 
+	@Override
 	public WSRPProducer getWSRPProducer(String wsrpProducerUuid)
 		throws PortalException {
 
@@ -138,16 +141,19 @@ public class WSRPProducerLocalServiceImpl
 		return wsrpProducers.get(0);
 	}
 
+	@Override
 	public List<WSRPProducer> getWSRPProducers(
 		long companyId, int start, int end) {
 
 		return wsrpProducerPersistence.findByCompanyId(companyId, start, end);
 	}
 
+	@Override
 	public int getWSRPProducersCount(long companyId) {
 		return wsrpProducerPersistence.countByCompanyId(companyId);
 	}
 
+	@Override
 	public WSRPProducer updateWSRPProducer(
 			long wsrpProducerId, String name, String version, String portletIds)
 		throws PortalException {
@@ -176,7 +182,7 @@ public class WSRPProducerLocalServiceImpl
 	}
 
 	protected Group addGroup(long userId, String name) throws PortalException {
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 		name = getGroupName(name);
 
 		LinkedHashMap<String, Object> params = new LinkedHashMap<>();

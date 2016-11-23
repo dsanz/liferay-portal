@@ -1,6 +1,6 @@
 Bundle-Name: Liferay Project Templates
 Bundle-SymbolicName: com.liferay.project.templates
-Bundle-Version: 1.0.0
+Bundle-Version: 2.1.2
 Export-Package: com.liferay.project.templates
 Main-Class: com.liferay.project.templates.ProjectTemplates
 Private-Package:\
@@ -26,4 +26,4 @@ Private-Package:\
 	org.codehaus.plexus.util.xml.pull,\
 	org.codehaus.plexus.velocity,\
 	org.dom4j
--includeresource: @jcommander-*.jar
+-includeresource: @jcommander-[0-9]*.jar

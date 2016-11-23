@@ -59,9 +59,9 @@ public class ArticleSearch extends SearchContainer<JournalArticle> {
 
 		//orderableHeaders.put("id", "id");
 		//orderableHeaders.put("title", "title");
-		//orderableHeaders.put("version", "version");
+		//orderableHeaders.put("display-date", "display-date");
 		orderableHeaders.put("modified-date", "modified-date");
-		orderableHeaders.put("display-date", "display-date");
+		orderableHeaders.put("version", "version");
 	}
 
 	public ArticleSearch(

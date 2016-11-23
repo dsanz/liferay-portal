@@ -87,7 +87,7 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	the record.
 	* @return the record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #addRecord(long, long, int,
+	* @deprecated As of 1.1.0, replaced by {@link #addRecord(long, long, int,
 	DDMFormValues, ServiceContext)}
 	*/
 	@Deprecated
@@ -117,7 +117,7 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	the record.
 	* @return the record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #addRecord(long, long, int,
+	* @deprecated As of 1.1.0, replaced by {@link #addRecord(long, long, int,
 	DDMFormValues, ServiceContext)}
 	*/
 	@Deprecated
@@ -192,7 +192,7 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	set the record modified date.
 	* @return the affected record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #updateRecord(long, boolean,
+	* @deprecated As of 1.1.0, replaced by {@link #updateRecord(long, boolean,
 	int, DDMFormValues, ServiceContext)}
 	*/
 	@Deprecated
@@ -336,7 +336,7 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	set the record modified date.
 	* @return the record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #updateRecord(long, long,
+	* @deprecated As of 1.1.0, replaced by {@link #updateRecord(long, long,
 	boolean, int, DDMFormValues, ServiceContext)}
 	*/
 	@Deprecated
@@ -366,7 +366,7 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	set the record modified date.
 	* @return the record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #updateRecord(long, long,
+	* @deprecated As of 1.1.0, replaced by {@link #updateRecord(long, long,
 	boolean, int, DDMFormValues, ServiceContext)}
 	*/
 	@Deprecated
@@ -403,7 +403,7 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getLatestRecordVersion(long)}
 	*/
 	@Deprecated
@@ -415,7 +415,7 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getRecordVersion(
 	long, String)}
 	*/
@@ -428,7 +428,7 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getRecordVersion(
 	long)}
 	*/
@@ -554,7 +554,7 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getRecordVersionsCount(
 	long)}
 	*/
@@ -562,6 +562,11 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	@Override
 	public int getRecordVersionsCount(long recordId) {
 		return _ddlRecordLocalService.getRecordVersionsCount(recordId);
+	}
+
+	@Override
+	public int getRecordsCount(long recordSetId) {
+		return _ddlRecordLocalService.getRecordsCount(recordSetId);
 	}
 
 	/**
@@ -577,6 +582,11 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	@Override
 	public int getRecordsCount(long recordSetId, int status) {
 		return _ddlRecordLocalService.getRecordsCount(recordSetId, status);
+	}
+
+	@Override
+	public int getRecordsCount(long recordSetId, long userId) {
+		return _ddlRecordLocalService.getRecordsCount(recordSetId, userId);
 	}
 
 	@Override
@@ -741,7 +751,7 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getRecordVersions(
 	long, int, int, OrderByComparator)}
 	*/
@@ -764,6 +774,13 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	public java.util.List<com.liferay.dynamic.data.lists.model.DDLRecord> getRecords(
 		long recordSetId) {
 		return _ddlRecordLocalService.getRecords(recordSetId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.dynamic.data.lists.model.DDLRecord> getRecords(
+		long recordSetId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.lists.model.DDLRecord> obc) {
+		return _ddlRecordLocalService.getRecords(recordSetId, start, end, obc);
 	}
 
 	/**
@@ -808,6 +825,14 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	public java.util.List<com.liferay.dynamic.data.lists.model.DDLRecord> getRecords(
 		long recordSetId, long userId) {
 		return _ddlRecordLocalService.getRecords(recordSetId, userId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.dynamic.data.lists.model.DDLRecord> getRecords(
+		long recordSetId, long userId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.lists.model.DDLRecord> obc) {
+		return _ddlRecordLocalService.getRecords(recordSetId, userId, start,
+			end, obc);
 	}
 
 	/**
@@ -881,7 +906,7 @@ public class DDLRecordLocalServiceWrapper implements DDLRecordLocalService,
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #revertRecord(long, long,
+	* @deprecated As of 1.1.0, replaced by {@link #revertRecord(long, long,
 	String, ServiceContext)}
 	*/
 	@Deprecated

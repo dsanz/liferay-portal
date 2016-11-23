@@ -344,7 +344,7 @@ public abstract class BaseSocialActivityInterpreter
 			}
 		}
 		catch (JSONException jsone) {
-			_log.error("Unable to create a JSON object from " + json);
+			_log.error("Unable to create a JSON object from " + json, jsone);
 		}
 
 		return defaultValue;
@@ -412,7 +412,17 @@ public abstract class BaseSocialActivityInterpreter
 		Object[] titleArguments = getTitleArguments(
 			groupName, activity, link, entryTitle, serviceContext);
 
-		return serviceContext.translate(titlePattern, titleArguments);
+		ResourceBundleLoader resourceBundleLoader = getResourceBundleLoader();
+
+		if (resourceBundleLoader == null) {
+			return serviceContext.translate(titlePattern, titleArguments);
+		}
+
+		ResourceBundle resourceBundle = resourceBundleLoader.loadResourceBundle(
+			LanguageUtil.getLanguageId(serviceContext.getLocale()));
+
+		return LanguageUtil.format(
+			resourceBundle, titlePattern, titleArguments);
 	}
 
 	protected Object[] getTitleArguments(

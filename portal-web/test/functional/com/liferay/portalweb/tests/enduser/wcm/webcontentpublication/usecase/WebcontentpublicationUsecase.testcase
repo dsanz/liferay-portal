@@ -115,6 +115,7 @@
 			<var name="orgName" value="Organization Name" />
 			<var name="userFirstName" value="Test" />
 			<var name="userLastName" value="Test" />
+			<var name="userName" value="Test Test" />
 			<var name="userScreenName" value="test" />
 		</execute>
 
@@ -361,14 +362,6 @@
 		</execute>
 
 		<execute macro="Portlet#addPG">
-			<var name="portletName" value="Web Content Display" />
-		</execute>
-
-		<execute macro="Navigator#gotoPage">
-			<var name="pageName" value="Asset Publisher Page" />
-		</execute>
-
-		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Language Selector" />
 		</execute>
 
@@ -376,27 +369,45 @@
 			<var name="pageName" value="Asset Publisher Page" />
 		</execute>
 
-		<execute macro="WebContent#addPGViaWCD">
+		<execute macro="WebContent#addPGViaAP">
 			<var name="webContentContent" value="Web Content1 Content" />
 			<var name="webContentTitle" value="Web Content1 Title" />
 		</execute>
 
-		<execute macro="WebContent#viewPGViaWCD">
-			<var name="webContentContent" value="Web Content1 Content" />
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Web Content" />
 		</execute>
 
-		<execute macro="WebContentNavigator#gotoEditPGViaWCD" />
+		<execute macro="WebContentNavigator#gotoEditCP">
+			<var name="webContentTitle" value="Web Content1 Title" />
+		</execute>
 
-		<execute macro="WebContent#addCategoryPGViaWCD">
+		<execute macro="WebContent#selectCategory">
 			<var name="categoryName" value="Vocabulary1 Category" />
 			<var name="vocabularyName" value="Vocabulary Name" />
-			<var name="webContentContent" value="Web Content1 Content" />
+		</execute>
+
+		<execute macro="PortletEntry#publish" />
+
+		<execute macro="WebContentNavigator#gotoEditCP">
 			<var name="webContentTitle" value="Web Content1 Title" />
 		</execute>
 
-		<execute macro="WebContent#viewPGViaWCD">
-			<var name="webContentContent" value="Web Content1 Content" />
+		<execute macro="WebContent#addTranslation">
+			<var name="localizedContent" value="Netz Content1 Inhalt" />
+			<var name="localizedLanguage" value="German (Germany)" />
+			<var name="localizedTitle" value="Netz Content1 Titel" />
+			<var name="webContentTitle" value="Web Content1 Title" />
 		</execute>
+
+		<execute macro="WebContent#addTranslation">
+			<var name="localizedContent" value="Contenu de Contenu Web1" />
+			<var name="localizedLanguage" value="French (France)" />
+			<var name="localizedTitle" value="Titre de Contenu Web1" />
+			<var name="webContentTitle" value="Netz Content1 Titel" />
+		</execute>
+
+		<execute macro="PortletEntry#publish" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Asset Publisher Page" />
@@ -405,28 +416,6 @@
 		<execute macro="WebContent#viewPGViaAP">
 			<var name="webContentContent" value="Web Content1 Content" />
 			<var name="webContentTitle" value="Web Content1 Title" />
-		</execute>
-
-		<execute macro="WebContentNavigator#gotoEditPGViaWCD" />
-
-		<execute macro="WebContent#addTranslationPGViaWCD">
-			<var name="lowercaseLanguageCode" value="de" />
-			<var name="webContentContent" value="Web Content1 Content" />
-			<var name="webContentTitle" value="Web Content1 Title" />
-			<var name="webContentTranslationContent" value="Netz Content1 Inhalt" />
-			<var name="webContentTranslationLanguage" value="German (Germany)" />
-			<var name="webContentTranslationTitle" value="Netz Content1 Titel" />
-		</execute>
-
-		<execute macro="WebContentNavigator#gotoEditPGViaWCD" />
-
-		<execute macro="WebContent#addTranslationPGViaWCD">
-			<var name="lowercaseLanguageCode" value="fr" />
-			<var name="webContentContent" value="Web Content1 Content" />
-			<var name="webContentTitle" value="Web Content1 Title" />
-			<var name="webContentTranslationContent" value="Contenu de Contenu Web1" />
-			<var name="webContentTranslationLanguage" value="French (France)" />
-			<var name="webContentTranslationTitle" value="Titre de Contenu Web1" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -772,6 +761,8 @@
 		<execute macro="ProductMenu#gotoSitesContent">
 			<var name="portlet" value="Web Content" />
 		</execute>
+
+		<execute macro="WebContentNavigator#gotoManageTemplates" />
 
 		<execute macro="WebContentTemplates#addCP">
 			<var name="templateDescription" value="WC Template Description" />
@@ -1328,6 +1319,97 @@
 		</execute>
 	</command>
 
+	<command name="DisplayAssetsFilterByTagsOrCategoryViaAssetPublisher" priority="4">
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Tags" />
+		</execute>
+
+		<execute macro="Tag#addCP">
+			<var name="tagName" value="tagname" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Categories" />
+		</execute>
+
+		<execute macro="Vocabulary#addCP">
+			<var name="vocabularyName" value="Vocabulary Name" />
+		</execute>
+
+		<execute macro="Category#addCP">
+			<var name="categoryName" value="Category Name" />
+			<var name="vocabularyName" value="Vocabulary Name" />
+		</execute>
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentNavigator#gotoAddCP" />
+
+		<execute macro="WebContent#addWithCategoryCP">
+			<var name="categoryName" value="Category Name" />
+			<var name="vocabularyName" value="Vocabulary Name" />
+			<var name="webContentContent" value="Web Content Category Content" />
+			<var name="webContentTitle" value="Web Content Category Title" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentNavigator#gotoAddCP" />
+
+		<execute macro="WebContent#addWithTagCP">
+			<var name="tagNameList" value="tagname" />
+			<var name="webContentContent" value="Web Content Tag Content" />
+			<var name="webContentTitle" value="Web Content Tag Title" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Asset Publisher Page" />
+		</execute>
+
+		<execute macro="AssetPublisherPortlet#configureCategoriesFilterPG">
+			<var name="categoryName" value="Category Name" />
+			<var name="vocabularyName" value="Vocabulary Name" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Asset Publisher Page" />
+		</execute>
+
+		<execute macro="AssetPublisherPortlet#viewAssetNotPresentPG">
+			<var name="assetContent" value="Web Content Tag Content" />
+			<var name="assetTitle" value="Web Content Tag Title" />
+		</execute>
+
+		<execute macro="AssetPublisherPortlet#viewAssetPG">
+			<var name="assetContent" value="Web Content Category Content" />
+			<var name="assetTitle" value="Web Content Category Title" />
+		</execute>
+
+		<execute macro="AssetPublisherPortlet#configureTagsFilterPG">
+			<var name="tagName" value="tagname" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Asset Publisher Page" />
+		</execute>
+
+		<execute macro="AssetPublisherPortlet#viewAssetNotPresentPG">
+			<var name="assetContent" value="Web Content Category Content" />
+			<var name="assetTitle" value="Web Content Category Title" />
+		</execute>
+
+		<execute macro="AssetPublisherPortlet#viewAssetPG">
+			<var name="assetContent" value="Web Content Tag Content" />
+			<var name="assetTitle" value="Web Content Tag Title" />
+		</execute>
+	</command>
+
 	<command name="ViewAPPortletAsNewUserSiteAdministratorViaUserSite" priority="4">
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
@@ -1441,7 +1523,7 @@
 		</execute>
 
 		<execute macro="Role#addCP">
-			<var name="roleName" value="WC Author" />
+			<var name="roleTitle" value="WC Author" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
@@ -1450,7 +1532,7 @@
 
 		<execute macro="Role#definePermissionsCP">
 			<var name="permissionDefinitionKeys" value="SITE_ADMIN_CONTENT_WEB_CONTENT_GENERAL_PERMISSIONS_ACTION_CHECKBOX,SITE_ADMIN_CONTENT_WEB_CONTENT_RESOURCE_PERMISSIONS_WEB_CONTENT_ACTION_CHECKBOX,SITE_ADMIN_CONTENT_WEB_CONTENT_RESOURCE_PERMISSIONS_WEB_CONTENT_ARTICLE_ACTION_CHECKBOX" />
-			<var name="roleName" value="WC Author" />
+			<var name="roleTitle" value="WC Author" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
@@ -1483,7 +1565,7 @@
 			</execute>
 
 			<execute macro="Role#assignRegRoleCP">
-				<var name="roleName" value="WC Author" />
+				<var name="roleTitle" value="WC Author" />
 				<var name="userScreenName" value="${userScreenName}" />
 			</execute>
 

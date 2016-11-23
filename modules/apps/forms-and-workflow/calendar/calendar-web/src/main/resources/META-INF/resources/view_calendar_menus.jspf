@@ -125,6 +125,9 @@ String backURL = PortalUtil.getCurrentURL(request);
 									destroyOnHide: true,
 									modal: true
 								},
+								dialogIframe: {
+									bodyCssClass: 'dialog-with-footer'
+								},
 								refreshWindow: window,
 								title: '<liferay-ui:message key="permissions" />',
 								uri: decodeURIComponent('<%= permissionsURL %>')
@@ -293,6 +296,9 @@ String backURL = PortalUtil.getCurrentURL(request);
 								},
 								destroyOnHide: true,
 								modal: true
+							},
+							dialogIframe: {
+								bodyCssClass: 'dialog-with-footer'
 							},
 							refreshWindow: window,
 							title: '<liferay-ui:message key="permissions" />',

@@ -18,13 +18,12 @@ import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
-import com.liferay.exportimport.content.processor.ExportImportContentProcessorController;
-import com.liferay.exportimport.data.handler.base.BaseStagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.ExportImportPathUtil;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelModifiedDateComparator;
+import com.liferay.exportimport.lar.BaseStagedModelDataHandler;
 import com.liferay.journal.exception.FeedTargetLayoutFriendlyUrlException;
 import com.liferay.journal.internal.exportimport.content.processor.JournalFeedExportImportContentProcessor;
 import com.liferay.journal.internal.exportimport.creation.strategy.JournalCreationStrategy;
@@ -161,7 +160,7 @@ public class JournalFeedStagedModelDataHandler
 			}
 		}
 
-		_exportImportContentProcessorController.replaceExportContentReferences(
+		_journalFeedExportImportContentProcessor.replaceExportContentReferences(
 			portletDataContext, feed, StringPool.BLANK, true, true);
 
 		portletDataContext.addClassedModel(
@@ -182,7 +181,7 @@ public class JournalFeedStagedModelDataHandler
 			userId = authorId;
 		}
 
-		_exportImportContentProcessorController.replaceImportContentReferences(
+		_journalFeedExportImportContentProcessor.replaceImportContentReferences(
 			portletDataContext, feed, StringPool.BLANK);
 
 		String feedId = feed.getFeedId();
@@ -331,13 +330,13 @@ public class JournalFeedStagedModelDataHandler
 		_journalCreationStrategy = journalCreationStrategy;
 	}
 
-	/**
-	 * @deprecated As of 7.0.0
-	 */
-	@Deprecated
+	@Reference(unbind = "-")
 	protected void setJournalFeedExportImportContentProcessor(
 		JournalFeedExportImportContentProcessor
 			journalFeedExportImportContentProcessor) {
+
+		_journalFeedExportImportContentProcessor =
+			journalFeedExportImportContentProcessor;
 	}
 
 	@Reference(unbind = "-")
@@ -352,14 +351,9 @@ public class JournalFeedStagedModelDataHandler
 
 	private DDMStructureLocalService _ddmStructureLocalService;
 	private DDMTemplateLocalService _ddmTemplateLocalService;
-
-	@Reference
-	private ExportImportContentProcessorController
-		_exportImportContentProcessorController;
-
 	private JournalCreationStrategy _journalCreationStrategy;
-	private final JournalFeedExportImportContentProcessor
-		_journalFeedExportImportContentProcessor = null;
+	private JournalFeedExportImportContentProcessor
+		_journalFeedExportImportContentProcessor;
 	private JournalFeedLocalService _journalFeedLocalService;
 
 }

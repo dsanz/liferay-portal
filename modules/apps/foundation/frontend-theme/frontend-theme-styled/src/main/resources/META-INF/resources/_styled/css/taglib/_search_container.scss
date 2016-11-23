@@ -8,7 +8,7 @@
 	}
 }
 
-.lfr-completion-date-column, .lfr-create-date-column, .lfr-date-column, .lfr-display-date-column, .lfr-expiration-date-column, .lfr-last-post-date-column, .lfr-modified-date-column, .lfr-removed-date-column, .lfr-reply-date-column, .lfr-revision-column {
+.lfr-completion-date-column, .lfr-create-date-column, .lfr-date-column, .lfr-display-date-column, .lfr-expiration-date-column, .lfr-last-post-date-column, .lfr-modified-date-column, .lfr-removed-date-column, .lfr-reply-date-column, .lfr-revision-column, .lfr-size-column {
 	white-space: nowrap;
 }
 
@@ -20,10 +20,6 @@
 .lfr-email-address-column, .lfr-name-column, .lfr-parent-organization-column, .lfr-screen-name-column, .lfr-title-column, .lfr-url-column, .lfr-wiki-column {
 	max-width: 200px;
 	min-width: 200px;
-}
-
-.search-container-dd-toggle {
-	margin-left: $grid-gutter-width / 2;
 }
 
 .user-info .user-details {

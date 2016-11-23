@@ -40,6 +40,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.remote.UnreachableBrowserException;
 
@@ -87,6 +88,7 @@ public class PoshiRunner {
 
 	public PoshiRunner(String classCommandName) throws Exception {
 		_testClassCommandName = classCommandName;
+
 		_testClassName = PoshiRunnerGetterUtil.getClassNameFromClassCommandName(
 			_testClassCommandName);
 	}
@@ -187,7 +189,8 @@ public class PoshiRunner {
 	}
 
 	@Rule
-	public Retry retry = new Retry(3, UnreachableBrowserException.class);
+	public Retry retry = new Retry(
+		3, TimeoutException.class, UnreachableBrowserException.class);
 
 	private void _runClassCommandName(String classCommandName)
 		throws Exception {

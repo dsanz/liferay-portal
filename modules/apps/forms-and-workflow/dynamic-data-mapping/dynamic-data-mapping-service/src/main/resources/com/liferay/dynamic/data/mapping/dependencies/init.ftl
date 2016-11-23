@@ -114,8 +114,6 @@
 
 <#-- Util -->
 
-<#assign authTokenUtil = serviceLocator.findService("com.liferay.portal.kernel.security.auth.AuthTokenUtil") />
-
 <#function escape value="">
 	<#if value?is_string>
 		<#return htmlUtil.escape(value)>
@@ -177,3 +175,15 @@
 
 	<#return journalArticleLocalService.fetchLatestArticle(resourcePrimKey)!"">
 </#function>
+
+<#-- Token -->
+
+<#assign
+	authTokenUtil = serviceLocator.findService("com.liferay.portal.kernel.security.auth.AuthTokenUtil")
+
+	ddmAuthToken = authTokenUtil.getToken(request, themeDisplay.getPlid(), ddmPortletId)
+/>
+
+<#assign data = data + {
+	"ddmAuthToken": ddmAuthToken
+}>

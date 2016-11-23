@@ -933,11 +933,15 @@ public class OAuthTokenPersistenceImpl extends BasePersistenceImpl<OAuthToken>
 						finderArgs, list);
 				}
 				else {
-					if ((list.size() > 1) && _log.isWarnEnabled()) {
-						_log.warn(
-							"OAuthTokenPersistenceImpl.fetchByU_G_S_M_T(long, String, String, long, String, boolean) with parameters (" +
-							StringUtil.merge(finderArgs) +
-							") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+					if (list.size() > 1) {
+						Collections.sort(list, Collections.reverseOrder());
+
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"OAuthTokenPersistenceImpl.fetchByU_G_S_M_T(long, String, String, long, String, boolean) with parameters (" +
+								StringUtil.merge(finderArgs) +
+								") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+						}
 					}
 
 					OAuthToken oAuthToken = list.get(0);
@@ -1200,7 +1204,7 @@ public class OAuthTokenPersistenceImpl extends BasePersistenceImpl<OAuthToken>
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
-		clearUniqueFindersCache((OAuthTokenModelImpl)oAuthToken);
+		clearUniqueFindersCache((OAuthTokenModelImpl)oAuthToken, true);
 	}
 
 	@Override
@@ -1212,46 +1216,11 @@ public class OAuthTokenPersistenceImpl extends BasePersistenceImpl<OAuthToken>
 			entityCache.removeResult(OAuthTokenModelImpl.ENTITY_CACHE_ENABLED,
 				OAuthTokenImpl.class, oAuthToken.getPrimaryKey());
 
-			clearUniqueFindersCache((OAuthTokenModelImpl)oAuthToken);
+			clearUniqueFindersCache((OAuthTokenModelImpl)oAuthToken, true);
 		}
 	}
 
 	protected void cacheUniqueFindersCache(
-		OAuthTokenModelImpl oAuthTokenModelImpl, boolean isNew) {
-		if (isNew) {
-			Object[] args = new Object[] {
-					oAuthTokenModelImpl.getUserId(),
-					oAuthTokenModelImpl.getGadgetKey(),
-					oAuthTokenModelImpl.getServiceName(),
-					oAuthTokenModelImpl.getModuleId(),
-					oAuthTokenModelImpl.getTokenName()
-				};
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_U_G_S_M_T, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_U_G_S_M_T, args,
-				oAuthTokenModelImpl);
-		}
-		else {
-			if ((oAuthTokenModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_U_G_S_M_T.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						oAuthTokenModelImpl.getUserId(),
-						oAuthTokenModelImpl.getGadgetKey(),
-						oAuthTokenModelImpl.getServiceName(),
-						oAuthTokenModelImpl.getModuleId(),
-						oAuthTokenModelImpl.getTokenName()
-					};
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_U_G_S_M_T, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_U_G_S_M_T, args,
-					oAuthTokenModelImpl);
-			}
-		}
-	}
-
-	protected void clearUniqueFindersCache(
 		OAuthTokenModelImpl oAuthTokenModelImpl) {
 		Object[] args = new Object[] {
 				oAuthTokenModelImpl.getUserId(),
@@ -1261,12 +1230,30 @@ public class OAuthTokenPersistenceImpl extends BasePersistenceImpl<OAuthToken>
 				oAuthTokenModelImpl.getTokenName()
 			};
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_U_G_S_M_T, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_U_G_S_M_T, args);
+		finderCache.putResult(FINDER_PATH_COUNT_BY_U_G_S_M_T, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_U_G_S_M_T, args,
+			oAuthTokenModelImpl, false);
+	}
+
+	protected void clearUniqueFindersCache(
+		OAuthTokenModelImpl oAuthTokenModelImpl, boolean clearCurrent) {
+		if (clearCurrent) {
+			Object[] args = new Object[] {
+					oAuthTokenModelImpl.getUserId(),
+					oAuthTokenModelImpl.getGadgetKey(),
+					oAuthTokenModelImpl.getServiceName(),
+					oAuthTokenModelImpl.getModuleId(),
+					oAuthTokenModelImpl.getTokenName()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_U_G_S_M_T, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_U_G_S_M_T, args);
+		}
 
 		if ((oAuthTokenModelImpl.getColumnBitmask() &
 				FINDER_PATH_FETCH_BY_U_G_S_M_T.getColumnBitmask()) != 0) {
-			args = new Object[] {
+			Object[] args = new Object[] {
 					oAuthTokenModelImpl.getOriginalUserId(),
 					oAuthTokenModelImpl.getOriginalGadgetKey(),
 					oAuthTokenModelImpl.getOriginalServiceName(),
@@ -1465,8 +1452,8 @@ public class OAuthTokenPersistenceImpl extends BasePersistenceImpl<OAuthToken>
 		entityCache.putResult(OAuthTokenModelImpl.ENTITY_CACHE_ENABLED,
 			OAuthTokenImpl.class, oAuthToken.getPrimaryKey(), oAuthToken, false);
 
-		clearUniqueFindersCache(oAuthTokenModelImpl);
-		cacheUniqueFindersCache(oAuthTokenModelImpl, isNew);
+		clearUniqueFindersCache(oAuthTokenModelImpl, false);
+		cacheUniqueFindersCache(oAuthTokenModelImpl);
 
 		oAuthToken.resetOriginalValues();
 

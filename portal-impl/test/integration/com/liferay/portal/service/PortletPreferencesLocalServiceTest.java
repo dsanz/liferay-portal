@@ -97,6 +97,7 @@ public class PortletPreferencesLocalServiceTest {
 				portletPreferences);
 
 		assertOwner(_layout, portletPreferencesImpl);
+
 		assertValues(portletPreferences, _NAME, _MULTIPLE_VALUES);
 	}
 
@@ -156,6 +157,7 @@ public class PortletPreferencesLocalServiceTest {
 				portletPreferences);
 
 		assertOwner(_layout, portletPreferencesImpl);
+
 		assertValues(portletPreferences, _NAME, _SINGLE_VALUE);
 	}
 
@@ -176,6 +178,7 @@ public class PortletPreferencesLocalServiceTest {
 				portletPreferences);
 
 		assertOwner(_layout, portletPreferencesImpl);
+
 		assertValues(portletPreferences, _NAME, _SINGLE_VALUE);
 	}
 
@@ -1549,7 +1552,7 @@ public class PortletPreferencesLocalServiceTest {
 			try {
 				return ReflectionTestUtil.invoke(
 					classLoaderBeanHandler.getBean(), "getPreferences",
-					new Class[] {
+					new Class<?>[] {
 						long.class, long.class, int.class, long.class,
 						String.class, String.class, boolean.class
 					},

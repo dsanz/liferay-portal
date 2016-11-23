@@ -198,6 +198,7 @@ public class DefaultMBListDisplayContext implements MBListDisplayContext {
 				MBThreadServiceUtil.getGroupThreads(
 					themeDisplay.getScopeGroupId(), groupThreadsUserId, status,
 					searchContainer.getStart(), searchContainer.getEnd()));
+
 			searchContainer.setEmptyResultsMessage("you-do-not-have-any-posts");
 		}
 		else {
@@ -219,7 +220,8 @@ public class DefaultMBListDisplayContext implements MBListDisplayContext {
 			searchContainer.setResults(
 				MBCategoryServiceUtil.getCategoriesAndThreads(
 					themeDisplay.getScopeGroupId(), _categoryId, status,
-					searchContainer.getStart(), searchContainer.getEnd()));
+					searchContainer.getStart(), searchContainer.getEnd(),
+					searchContainer.getOrderByComparator()));
 		}
 	}
 

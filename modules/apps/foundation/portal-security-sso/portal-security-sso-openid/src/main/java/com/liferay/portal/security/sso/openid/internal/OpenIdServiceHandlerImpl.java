@@ -280,8 +280,11 @@ public class OpenIdServiceHandlerImpl implements OpenIdServiceHandler {
 		long creatorUserId = 0;
 		long companyId = themeDisplay.getCompanyId();
 		boolean autoPassword = false;
+
 		String password1 = PwdGenerator.getPassword();
+
 		String password2 = password1;
+
 		boolean autoScreenName = true;
 		String screenName = StringPool.BLANK;
 		long facebookId = 0;
@@ -436,7 +439,7 @@ public class OpenIdServiceHandlerImpl implements OpenIdServiceHandler {
 	}
 
 	protected String getFirstValue(List<String> values) {
-		if ((values == null) || (values.size() < 1)) {
+		if ((values == null) || values.isEmpty()) {
 			return null;
 		}
 

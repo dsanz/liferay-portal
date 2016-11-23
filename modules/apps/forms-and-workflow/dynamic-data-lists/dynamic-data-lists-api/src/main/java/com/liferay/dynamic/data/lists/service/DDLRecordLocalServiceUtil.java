@@ -95,7 +95,7 @@ public class DDLRecordLocalServiceUtil {
 	the record.
 	* @return the record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #addRecord(long, long, int,
+	* @deprecated As of 1.1.0, replaced by {@link #addRecord(long, long, int,
 	DDMFormValues, ServiceContext)}
 	*/
 	@Deprecated
@@ -125,7 +125,7 @@ public class DDLRecordLocalServiceUtil {
 	the record.
 	* @return the record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #addRecord(long, long, int,
+	* @deprecated As of 1.1.0, replaced by {@link #addRecord(long, long, int,
 	DDMFormValues, ServiceContext)}
 	*/
 	@Deprecated
@@ -196,7 +196,7 @@ public class DDLRecordLocalServiceUtil {
 	set the record modified date.
 	* @return the affected record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #updateRecord(long, boolean,
+	* @deprecated As of 1.1.0, replaced by {@link #updateRecord(long, boolean,
 	int, DDMFormValues, ServiceContext)}
 	*/
 	@Deprecated
@@ -330,7 +330,7 @@ public class DDLRecordLocalServiceUtil {
 	set the record modified date.
 	* @return the record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #updateRecord(long, long,
+	* @deprecated As of 1.1.0, replaced by {@link #updateRecord(long, long,
 	boolean, int, DDMFormValues, ServiceContext)}
 	*/
 	@Deprecated
@@ -360,7 +360,7 @@ public class DDLRecordLocalServiceUtil {
 	set the record modified date.
 	* @return the record
 	* @throws PortalException if a portal exception occurred
-	* @deprecated As of 7.0.0, replaced by {@link #updateRecord(long, long,
+	* @deprecated As of 1.1.0, replaced by {@link #updateRecord(long, long,
 	boolean, int, DDMFormValues, ServiceContext)}
 	*/
 	@Deprecated
@@ -396,7 +396,7 @@ public class DDLRecordLocalServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getLatestRecordVersion(long)}
 	*/
 	@Deprecated
@@ -407,7 +407,7 @@ public class DDLRecordLocalServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getRecordVersion(
 	long, String)}
 	*/
@@ -419,7 +419,7 @@ public class DDLRecordLocalServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getRecordVersion(
 	long)}
 	*/
@@ -533,13 +533,17 @@ public class DDLRecordLocalServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getRecordVersionsCount(
 	long)}
 	*/
 	@Deprecated
 	public static int getRecordVersionsCount(long recordId) {
 		return getService().getRecordVersionsCount(recordId);
+	}
+
+	public static int getRecordsCount(long recordSetId) {
+		return getService().getRecordsCount(recordSetId);
 	}
 
 	/**
@@ -554,6 +558,10 @@ public class DDLRecordLocalServiceUtil {
 	*/
 	public static int getRecordsCount(long recordSetId, int status) {
 		return getService().getRecordsCount(recordSetId, status);
+	}
+
+	public static int getRecordsCount(long recordSetId, long userId) {
+		return getService().getRecordsCount(recordSetId, userId);
 	}
 
 	public static java.lang.Long[] getMinAndMaxCompanyRecordIds(
@@ -710,7 +718,7 @@ public class DDLRecordLocalServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	DDLRecordVersionLocalService#getRecordVersions(
 	long, int, int, OrderByComparator)}
 	*/
@@ -731,6 +739,12 @@ public class DDLRecordLocalServiceUtil {
 	public static java.util.List<com.liferay.dynamic.data.lists.model.DDLRecord> getRecords(
 		long recordSetId) {
 		return getService().getRecords(recordSetId);
+	}
+
+	public static java.util.List<com.liferay.dynamic.data.lists.model.DDLRecord> getRecords(
+		long recordSetId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.lists.model.DDLRecord> obc) {
+		return getService().getRecords(recordSetId, start, end, obc);
 	}
 
 	/**
@@ -774,6 +788,12 @@ public class DDLRecordLocalServiceUtil {
 	public static java.util.List<com.liferay.dynamic.data.lists.model.DDLRecord> getRecords(
 		long recordSetId, long userId) {
 		return getService().getRecords(recordSetId, userId);
+	}
+
+	public static java.util.List<com.liferay.dynamic.data.lists.model.DDLRecord> getRecords(
+		long recordSetId, long userId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.lists.model.DDLRecord> obc) {
+		return getService().getRecords(recordSetId, userId, start, end, obc);
 	}
 
 	/**
@@ -841,7 +861,7 @@ public class DDLRecordLocalServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #revertRecord(long, long,
+	* @deprecated As of 1.1.0, replaced by {@link #revertRecord(long, long,
 	String, ServiceContext)}
 	*/
 	@Deprecated

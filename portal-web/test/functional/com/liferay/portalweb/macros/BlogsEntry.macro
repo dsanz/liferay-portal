@@ -30,11 +30,15 @@
 	</command>
 
 	<command name="addContent">
-		<execute function="Type#typeEditor" locator1="AlloyEditor#CONTENT_FIELD" value1="${entryContent}" />
+		<execute macro="AlloyEditor#addContent">
+			<var name="content" value="${entryContent}" />
+		</execute>
 	</command>
 
 	<command name="addContentWithInlineImage">
-		<execute function="Type#typeEditor" locator1="AlloyEditor#CONTENT_FIELD" value1="${entryContent}" />
+		<execute macro="AlloyEditor#addContent">
+			<var name="content" value="${entryContent}" />
+		</execute>
 
 		<execute function="Click" locator1="AlloyEditor#CONTENT_FIELD" />
 
@@ -112,7 +116,9 @@
 	</command>
 
 	<command name="addTitle">
-		<execute function="Type#typeEditor" locator1="AlloyEditor#TITLE_FIELD" value1="${entryTitle}" />
+		<execute macro="AlloyEditor#addTitle">
+			<var name="title" value="${entryTitle}" />
+		</execute>
 	</command>
 
 	<command name="addWithTrackbackURLPG">
@@ -186,7 +192,9 @@
 
 		<execute function="Type" locator1="BlogsEntry#TITLE" value1="${entryTitle}" />
 		<execute function="Type" locator1="BlogsEntry#CONTENT" value1="${entryContent}" />
+
 		<execute function="AssertClick" locator1="Button#SUBMIT_FOR_PUBLICATION" value1="Submit for Publication" />
+
 		<execute function="Pause" locator1="5000" />
 
 		<execute function="SelectFrame" value1="relative=top" />
@@ -205,7 +213,9 @@
 	<command name="editContent">
 		<execute function="AssertTextEquals" locator1="AlloyEditor#CONTENT_FIELD" value1="${entryContent}" />
 
-		<execute function="Type#typeEditor" locator1="AlloyEditor#CONTENT_FIELD" value1="${entryContentEdit}" />
+		<execute macro="AlloyEditor#addContent">
+			<var name="content" value="${entryContentEdit}" />
+		</execute>
 	</command>
 
 	<command name="editContentViaCardViewPG">
@@ -262,7 +272,9 @@
 	<command name="editTitle">
 		<execute function="AssertTextEquals" locator1="AlloyEditor#TITLE_FIELD" value1="${entryTitle}" />
 
-		<execute function="Type#typeEditor" locator1="AlloyEditor#TITLE_FIELD" value1="${entryTitleEdit}" />
+		<execute macro="AlloyEditor#addTitle">
+			<var name="title" value="${entryTitleEdit}" />
+		</execute>
 	</command>
 
 	<command name="editTitleViaCardViewPG">
@@ -293,7 +305,7 @@
 				</if>
 
 				<var name="key_permissionDefinitionKey" value="${permissionDefinitionKey}" />
-				<var name="key_roleName" value="${roleName}" />
+				<var name="key_roleTitle" value="${roleTitle}" />
 
 				<execute function="Check" locator1="AssetPermissions#PERMISSIONS_CHECKBOX" />
 			</then>
@@ -367,22 +379,12 @@
 		<var name="key_assetHeader" value="${entryTitle}" />
 
 		<execute function="Click" locator1="Icon#DESCRIPTIVE_HEADER_VERTICAL_ELLIPSIS" />
+
 		<execute macro="PortletEntry#clickMoveToRecycleBin" />
+
 		<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 		<execute function="AssertElementNotPresent" locator1="BlogsEntry#TITLE" />
 		<execute function="AssertElementNotPresent" locator1="BlogsEntry#CONTENT" />
-	</command>
-
-	<command name="publish">
-		<if>
-			<condition function="IsElementPresent" locator1="Message#DRAFT_AUTO_SAVE" />
-			<then>
-				<execute macro="Button#clickPublish" />
-			</then>
-			<else>
-				<execute macro="PortletEntry#publish" />
-			</else>
-		</if>
 	</command>
 
 	<command name="publishWithInvalidContent">
@@ -444,8 +446,8 @@
 
 	<command name="removeViewPermissionsPG">
 		<var name="key_assetHeader" value="${entryTitle}" />
-		<var method="StringUtil#replace('${roleName}', ' ', '-')" name="key_roleName" />
-		<var method="StringUtil#lowerCase('${key_roleName}')" name="key_roleName" />
+		<var method="StringUtil#replace('${roleTitle}', ' ', '-')" name="key_roleTitle" />
+		<var method="StringUtil#lowerCase('${key_roleTitle}')" name="key_roleTitle" />
 
 		<execute function="Click" locator1="Icon#DESCRIPTIVE_HEADER_VERTICAL_ELLIPSIS" />
 
@@ -453,7 +455,7 @@
 
 		<execute macro="IFrame#selectPermissionsFrame" />
 
-		<execute function="Uncheck" locator1="Permissions#CONTENT_PERMISSIONS_VIEW_CHECKBOX" value1="${roleName}" />
+		<execute function="Uncheck" locator1="Permissions#CONTENT_PERMISSIONS_VIEW_CHECKBOX" value1="${roleTitle}" />
 
 		<execute macro="Button#clickSave" />
 
@@ -461,19 +463,17 @@
 	</command>
 
 	<command name="saveAsDraft">
-		<if>
-			<condition function="IsElementPresent" locator1="Message#DRAFT_AUTO_SAVE" />
-			<then>
-				<execute function="AssertClick" locator1="Button#SAVE_AS_DRAFT" value1="Save as Draft" />
+		<execute function="AssertClick" locator1="Button#SAVE_AS_DRAFT" value1="Save as Draft" />
 
-				<execute function="AssertTextEquals" locator1="BlogsEntry#WORKFLOW_STATUS" value1="Draft" />
-			</then>
-			<else>
-				<execute function="AssertClick" locator1="Button#SAVE_AS_DRAFT" value1="Save as Draft" />
+		<execute macro="Alert#viewSuccessMessage" />
+	</command>
 
-				<execute macro="Alert#viewSuccessMessage" />
-			</else>
-		</if>
+	<command name="saveAsDraftAndWait">
+		<execute function="AssertClick" locator1="Button#SAVE_AS_DRAFT" value1="Save as Draft" />
+
+		<execute function="Pause" locator1="3000" />
+
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="scheduleBlogEntry">
@@ -501,7 +501,7 @@
 
 		<var locator="TextInput#DISPLAY_DATE_MINUTE" name="displayDateMinute" />
 
-		<var method="MathUtil#sum('${displayDateMinute}','2')" name="displayDateMinuteFuture" />
+		<var method="MathUtil#sum('${displayDateMinute}','3')" name="displayDateMinuteFuture" />
 
 		<var name="displayDateMinuteFutureLength" value="${displayDateMinuteFuture?length()}" />
 
@@ -839,6 +839,7 @@
 		<var name="key_assetTitle" value="${assetTitle}" />
 
 		<execute function="AssertClick" locator1="AP#ASSET_ABSTRACT_TITLE" value1="${entryTitle}" />
+
 		<execute function="AssertTextEquals" locator1="APAsset#ASSET_TITLE_HEADER" value1="${entryTitle}" />
 		<execute function="AssertTextEquals#assertPartialText" locator1="APAsset#ASSET_CONTENT" value1="${entryContent}" />
 	</command>
@@ -1071,6 +1072,7 @@
 					<var name="key_tagName" value="${tagName}" />
 
 					<execute function="AssertClick" locator1="BlogsEntry#TAG" value1="${tagName}" />
+
 					<execute function="AssertTextEquals" locator1="AssetCategorization#TAG_FILTER_TITLE" value1="Entries with tag ${tagName} ." />
 					<execute function="AssertTextEquals" locator1="BlogsEntry#TITLE" value1="${entryTitle}" />
 				</for>
@@ -1081,6 +1083,7 @@
 				<var name="key_tagName" value="${tagName}" />
 
 				<execute function="AssertClick" locator1="BlogsEntry#TAG" value1="${tagName}" />
+
 				<execute function="AssertTextEquals" locator1="AssetCategorization#TAG_FILTER_TITLE" value1="Entries with tag ${tagName} ." />
 				<execute function="AssertTextEquals" locator1="BlogsEntry#TITLE" value1="${entryTitle}" />
 			</else>
@@ -1150,8 +1153,8 @@
 
 	<command name="viewViewPermissionsPG">
 		<var name="key_entryTitle" value="${entryTitle}" />
-		<var method="StringUtil#replace('${roleName}', ' ', '-')" name="key_roleName" />
-		<var method="StringUtil#lowerCase('${key_roleName}')" name="key_roleName" />
+		<var method="StringUtil#replace('${roleTitle}', ' ', '-')" name="key_roleTitle" />
+		<var method="StringUtil#lowerCase('${key_roleTitle}')" name="key_roleTitle" />
 
 		<execute function="AssertClick" locator1="Link#PERMISSIONS" value1="Permissions" />
 
@@ -1160,16 +1163,16 @@
 		<if>
 			<equals arg1="${viewPermissionValue}" arg2="checked" />
 			<then>
-				<execute function="AssertChecked" locator1="Permissions#CONTENT_PERMISSIONS_VIEW_CHECKBOX" value1="${roleName}" />
+				<execute function="AssertChecked" locator1="Permissions#CONTENT_PERMISSIONS_VIEW_CHECKBOX" value1="${roleTitle}" />
 			</then>
 			<elseif>
 				<equals arg1="${viewPermissionValue}" arg2="unchecked" />
 				<then>
-					<execute function="AssertNotChecked" locator1="Permissions#CONTENT_PERMISSIONS_VIEW_CHECKBOX" value1="${roleName}" />
+					<execute function="AssertNotChecked" locator1="Permissions#CONTENT_PERMISSIONS_VIEW_CHECKBOX" value1="${roleTitle}" />
 				</then>
 			</elseif>
 			<else>
-				<execute function="AssertChecked" locator1="Permissions#CONTENT_PERMISSIONS_VIEW_CHECKBOX" value1="${roleName}" />
+				<execute function="AssertChecked" locator1="Permissions#CONTENT_PERMISSIONS_VIEW_CHECKBOX" value1="${roleTitle}" />
 			</else>
 		</if>
 
@@ -1216,6 +1219,7 @@
 		<execute function="AssertTextEquals" locator1="BlogsEntry#CONTENT" value1="${entryContent}" />
 		<execute function="AssertTextEquals" locator1="Comments#ENTRY_COUNT_PANEL" value1="1 Comments" />
 		<execute function="AssertTextEquals" locator1="Comments#COMMENT_BODY" value1="[...] ${entryContent2} [...] Read More" />
+
 		<execute function="AssertClick" locator1="Link#READ_MORE" value1="Read More" />
 
 		<var name="key_entryContent" value="${entryContent2}" />

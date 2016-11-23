@@ -17,8 +17,11 @@ package com.liferay.blogs.service.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
-import com.liferay.blogs.kernel.model.BlogsEntry;
+import com.liferay.blogs.exception.EntryTitleException;
+import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalServiceUtil;
+import com.liferay.blogs.social.BlogsActivityKeys;
+import com.liferay.blogs.util.test.BlogsTestUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
@@ -45,8 +48,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.portlet.blogs.social.BlogsActivityKeys;
-import com.liferay.portlet.blogs.util.test.BlogsTestUtil;
 import com.liferay.social.kernel.model.SocialActivity;
 import com.liferay.social.kernel.service.SocialActivityLocalServiceUtil;
 
@@ -163,6 +164,21 @@ public class BlogsEntryStatusTransitionTest {
 		checkSocialActivity(BlogsActivityKeys.UPDATE_ENTRY, 1);
 	}
 
+	@Test(expected = EntryTitleException.class)
+	public void testDraftToApprovedWithoutTitle() throws Exception {
+		ServiceContext serviceContext = getServiceContext(entry);
+		String title = "";
+
+		BlogsEntry entryWithoutTitle = BlogsEntryLocalServiceUtil.addEntry(
+			user.getUserId(), title, RandomTestUtil.randomString(),
+			serviceContext);
+
+		BlogsEntryLocalServiceUtil.updateStatus(
+			TestPropsValues.getUserId(), entryWithoutTitle.getEntryId(),
+			WorkflowConstants.STATUS_APPROVED, serviceContext,
+			new HashMap<String, Serializable>());
+	}
+
 	@Test
 	public void testDraftToScheduledByAdd() throws Exception {
 		Calendar displayDate = new GregorianCalendar();
@@ -265,7 +281,7 @@ public class BlogsEntryStatusTransitionTest {
 
 	@Test
 	public void testScheduledByUpdateToApproved() throws Exception {
-		BlogsEntryLocalServiceUtil.updateStatus(
+		entry = BlogsEntryLocalServiceUtil.updateStatus(
 			TestPropsValues.getUserId(), entry.getEntryId(),
 			WorkflowConstants.STATUS_APPROVED, getServiceContext(entry),
 			new HashMap<String, Serializable>());
@@ -275,6 +291,7 @@ public class BlogsEntryStatusTransitionTest {
 		displayDate.add(Calendar.DATE, 1);
 
 		entry.setDisplayDate(displayDate.getTime());
+
 		entry.setStatus(WorkflowConstants.STATUS_DRAFT);
 
 		BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);

@@ -14,11 +14,18 @@
 
 package com.liferay.source.formatter;
 
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.rule.TimeoutTestRule;
+import com.liferay.portal.kernel.util.ReleaseInfo;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 /**
  * @author Hugo Huijser
@@ -63,6 +70,19 @@ public class SourceFormatterTest {
 		SourceFormatter sourceFormatter = new SourceFormatter(
 			sourceFormatterArgs);
 
+		String name = ReleaseInfo.getName();
+
+		if (!name.contains(" DXP ")) {
+			List<String> defaultExcludes = new ArrayList<>(
+				ReflectionTestUtil.<List<String>>getFieldValue(
+					SourceFormatter.class, "_defaultExcludes"));
+
+			defaultExcludes.add("modules/private/**");
+
+			ReflectionTestUtil.setFieldValue(
+				SourceFormatter.class, "_defaultExcludes", defaultExcludes);
+		}
+
 		try {
 			sourceFormatter.format();
 		}
@@ -87,6 +107,9 @@ public class SourceFormatterTest {
 			}
 		}
 	}
+
+	@Rule
+	public final TestRule testRule = TimeoutTestRule.INSTANCE;
 
 	private static final int _MAX_MESSAGE_SIZE = 10000;
 

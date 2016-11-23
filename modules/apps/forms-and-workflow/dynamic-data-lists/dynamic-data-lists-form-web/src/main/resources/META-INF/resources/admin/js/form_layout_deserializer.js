@@ -116,13 +116,16 @@ AUI.add(
 						var fieldClass = FormBuilderUtil.getFieldClass(context.type, context);
 
 						return new fieldClass(
-							{
-								context: context,
-								evaluatorURL: builder.get('evaluatorURL'),
-								getFieldNameSettingFormContextURL: builder.get('getFieldNameSettingFormContextURL'),
-								getFieldTypeSettingFormContextURL: builder.get('getFieldTypeSettingFormContextURL'),
-								parent: builder
-							}
+							A.merge(
+								context,
+								{
+									context: context,
+									evaluatorURL: builder.get('evaluatorURL'),
+									getFieldNameSettingFormContextURL: builder.get('getFieldNameSettingFormContextURL'),
+									getFieldTypeSettingFormContextURL: builder.get('getFieldTypeSettingFormContextURL'),
+									parent: builder
+								}
+							)
 						);
 					},
 
@@ -157,7 +160,9 @@ AUI.add(
 					_deserializePage: function(page) {
 						var instance = this;
 
-						var languageId = themeDisplay.getLanguageId();
+						var definition = instance.get('definition');
+
+						var languageId = definition.defaultLanguageId;
 
 						var description = page.description && page.description[languageId];
 

@@ -13,7 +13,7 @@
 						{
 							"dataType": "html",
 							"fieldNamespace": "ddm",
-							"indexType": "keyword",
+							"indexType": "text",
 							"label": {
 								"[$LOCALE_DEFAULT$]": "Content"
 							},

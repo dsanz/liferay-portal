@@ -97,6 +97,12 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 					uuid, groupId);
 			}
 			catch (PortalException pe) {
+
+				// LPS-52675
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(pe, pe);
+				}
 			}
 
 			try {
@@ -155,7 +161,7 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 2.0.0
 	 */
 	@Deprecated
 	@Override
@@ -214,6 +220,12 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 							ddmTemplateKey, true);
 				}
 				catch (PortalException pe) {
+
+					// LPS-52675
+
+					if (_log.isDebugEnabled()) {
+						_log.debug(pe, pe);
+					}
 				}
 			}
 		}
@@ -228,7 +240,7 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 2.0.0
 	 */
 	@Deprecated
 	@Override

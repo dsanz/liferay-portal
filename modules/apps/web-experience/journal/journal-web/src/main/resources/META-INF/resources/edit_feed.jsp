@@ -338,7 +338,7 @@ renderResponse.setTitle((feed == null) ? LanguageUtil.get(request, "new-feed") :
 				groupId: <%= themeDisplay.getSiteGroupId() %>,
 				mvcPath: '/select_structure.jsp',
 				navigationStartsOn: '<%= DDMNavigationHelper.SELECT_STRUCTURE %>',
-				refererPortletName: '<%= JournalPortletKeys.JOURNAL + ".selectStructure" %>',
+				refererPortletName: '<%= JournalPortletKeys.JOURNAL + ".selectStructureFeed" %>',
 
 				<%
 				Portlet portlet = PortletLocalServiceUtil.getPortletById(portletDisplay.getId());

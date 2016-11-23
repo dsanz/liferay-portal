@@ -77,7 +77,7 @@ public class SpriteProcessorImpl implements SpriteProcessor {
 			int maxWidth, int maxSize)
 		throws IOException {
 
-		if (imageURLs.size() < 1) {
+		if (imageURLs.isEmpty()) {
 			return null;
 		}
 
@@ -371,6 +371,7 @@ public class SpriteProcessorImpl implements SpriteProcessor {
 		SampleModel sampleModel =
 			RasterFactory.createPixelInterleavedSampleModel(
 				DataBuffer.TYPE_BYTE, width, height, _NUM_OF_BANDS);
+
 		ColorModel colorModel = PlanarImage.createColorModel(sampleModel);
 
 		TiledImage tiledImage = new TiledImage(

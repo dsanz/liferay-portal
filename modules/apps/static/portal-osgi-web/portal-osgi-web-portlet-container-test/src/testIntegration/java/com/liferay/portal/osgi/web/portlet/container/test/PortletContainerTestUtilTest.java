@@ -80,6 +80,7 @@ public class PortletContainerTestUtilTest {
 			_layout.getCompanyId());
 
 		Assert.assertEquals(company, themeDisplay.getCompany());
+
 		Assert.assertEquals(
 			_layout.getCompanyId(), themeDisplay.getCompanyId());
 		Assert.assertSame(_layout, themeDisplay.getLayout());
@@ -124,9 +125,9 @@ public class PortletContainerTestUtilTest {
 	public void testRequestFromValidURLWithHeaders() throws Exception {
 		Map<String, List<String>> headers = new HashMap<>();
 
-		headers.put("key1", Collections.singletonList("value1"));
 		headers.put(
 			"Cookie", Collections.singletonList("JSSESSIONID=1234567890"));
+		headers.put("key1", Collections.singletonList("value1"));
 
 		Response response = PortletContainerTestUtil.request(
 			"http://www.google.com", headers);

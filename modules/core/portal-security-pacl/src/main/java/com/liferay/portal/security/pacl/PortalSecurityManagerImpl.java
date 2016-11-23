@@ -239,7 +239,7 @@ public class PortalSecurityManagerImpl
 	}
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 1.0.0
 	 */
 	@Deprecated
 	@Override
@@ -489,8 +489,8 @@ public class PortalSecurityManagerImpl
 		InitialContextFactoryBuilder initialContextFactoryBuilder =
 			(InitialContextFactoryBuilder)field.get(null);
 
-		if (initialContextFactoryBuilder
-				instanceof PACLInitialContextFactoryBuilder) {
+		if (initialContextFactoryBuilder instanceof
+				PACLInitialContextFactoryBuilder) {
 
 			return;
 		}

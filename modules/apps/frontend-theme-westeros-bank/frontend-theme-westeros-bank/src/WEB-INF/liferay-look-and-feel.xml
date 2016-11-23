@@ -12,16 +12,6 @@
 			<setting configurable="true" key="show-main-search" options="all-screens,big-screens,small-screen,no-screen" type="select" value="all-screens" />
 			<setting configurable="true" key="show-recursive-menu-on" options="all-screens,big-screens,small-screen,no-screen" type="select" value="big-screens" />
 		</settings>
-		<portlet-decorator id="barebone" name="Barebone">
-			<portlet-decorator-css-class>portlet-barebone</portlet-decorator-css-class>
-		</portlet-decorator>
-		<portlet-decorator id="solid" name="Solid">
-			<portlet-decorator-css-class>portlet-solid</portlet-decorator-css-class>
-		</portlet-decorator>
-		<portlet-decorator id="decorate" name="Decorate">
-			<default-portlet-decorator>true</default-portlet-decorator>
-			<portlet-decorator-css-class>portlet-decorate</portlet-decorator-css-class>
-		</portlet-decorator>
 		<layout-templates>
 			<custom>
 				<layout-template id="westeros_2_width_limited" name="Westeros 2 columns (90/10) width limited">
@@ -30,5 +20,15 @@
 				</layout-template>
 			</custom>
 		</layout-templates>
+		<portlet-decorator id="barebone" name="Barebone">
+			<portlet-decorator-css-class>portlet-barebone</portlet-decorator-css-class>
+		</portlet-decorator>
+		<portlet-decorator id="decorate" name="Decorate">
+			<default-portlet-decorator>true</default-portlet-decorator>
+			<portlet-decorator-css-class>portlet-decorate</portlet-decorator-css-class>
+		</portlet-decorator>
+		<portlet-decorator id="solid" name="Solid">
+			<portlet-decorator-css-class>portlet-solid</portlet-decorator-css-class>
+		</portlet-decorator>
 	</theme>
 </look-and-feel>

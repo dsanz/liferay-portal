@@ -127,6 +127,7 @@ public class VerifyAuditedModel extends VerifyProcess {
 					}
 					else {
 						userId = rs.getLong("userId");
+
 						userName = getUserName(con, userId);
 					}
 
@@ -151,8 +152,8 @@ public class VerifyAuditedModel extends VerifyProcess {
 		throws Exception {
 
 		try (PreparedStatement ps = con.prepareStatement(
-				"select userId, firstName, middleName, lastName from User_" +
-					" where companyId = ? and defaultUser = ?")) {
+				"select userId, firstName, middleName, lastName from User_ " +
+					"where companyId = ? and defaultUser = ?")) {
 
 			ps.setLong(1, companyId);
 			ps.setBoolean(2, true);
@@ -293,9 +294,7 @@ public class VerifyAuditedModel extends VerifyProcess {
 						verifiableAuditedModel.getPrimaryKeyColumnName());
 					long previousUserId = rs.getLong("userId");
 
-					if (verifiableAuditedModel.getJoinByTableName()
-							!= null) {
-
+					if (verifiableAuditedModel.getJoinByTableName() != null) {
 						long relatedPrimKey = rs.getLong(
 							verifiableAuditedModel.getJoinByTableName());
 

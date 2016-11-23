@@ -3112,28 +3112,50 @@ blank values are checked should be updated.
 
 Old Code:
 
-    return !val || val != A.one('#<portlet:namespace />publicVirtualHost').val();
+    <aui:input name="privateVirtualHost">
+        <aui:validator errorMessage="please-enter-a-unique-virtual-host" name="custom">
+            function(val, fieldNode, ruleValue) {
+                return !val || val != A.one('#<portlet:namespace />publicVirtualHost').val();
+            }
+        </aui:validator>
+    </aui:input>
 
 New Code:
 
-    return val != A.one('#<portlet:namespace />publicVirtualHost').val();
+    <aui:input name="privateVirtualHost">
+        <aui:validator errorMessage="please-enter-a-unique-virtual-host" name="custom">
+            function(val, fieldNode, ruleValue) {
+                return val != A.one('#<portlet:namespace />publicVirtualHost').val();
+            }
+        </aui:validator>
+    </aui:input>
 
 Also, instead of using custom validators to determine if a field is required,
 you should now use a conditional `required` validator.
 
 Old Code:
 
-    <aui:validator errorMessage="you-must-specify-a-file-or-a-title" name="custom">
-        function(val, fieldNode, ruleValue) {
-            return !!val || !!A.one('#<portlet:namespace />file').val();
-    }
+    <aui:input name="file" type="file" />
+
+    <aui:input name="title">
+        <aui:validator errorMessage="you-must-specify-a-file-or-a-title" name="custom">
+            function(val, fieldNode, ruleValue) {
+                return !!val || !!A.one('#<portlet:namespace />file').val();
+            }
+        </aui:validator>
+    </aui:input>
 
 New Code:
 
-    <aui:validator errorMessage="you-must-specify-a-file-or-a-title" name="required">
-        function(fieldNode) {
-            return !A.one('#<portlet:namespace />file').val();
-    }
+    <aui:input name="file" type="file" />
+
+    <aui:input name="title">
+        <aui:validator errorMessage="you-must-specify-a-file-or-a-title" name="required">
+            function(fieldNode) {
+                return !A.one('#<portlet:namespace />file').val();
+            }
+        </aui:validator>
+    </aui:input>
 
 Lastly, custom validators that assumed validation would always run must now
 explicitly pass the `required` validator. This is done by passing in the
@@ -3531,7 +3553,7 @@ else.
 
 - `com.liferay.portal.webserver` &rarr; `com.liferay.portal.kernel.webserver`
 
-- `com.liferay.portlet` &rarr; `com.liferay.kernel.portlet`
+- `com.liferay.portlet` &rarr; `com.liferay.portal.kernel.portlet`
 
 - `com.liferay.portlet.admin.util` &rarr; `com.liferay.admin.kernel.util`
 

@@ -106,6 +106,7 @@ public class DDMFormFieldTemplateContextFactory {
 
 		setDDMFormFieldTemplateContextDataType(
 			ddmFormFieldTemplateContext, ddmFormField.getDataType());
+
 		setDDMFormFieldTemplateContextDir(ddmFormFieldTemplateContext);
 		setDDMFormFieldTemplateContextLocalizedValue(
 			ddmFormFieldTemplateContext, "label", ddmFormField.getLabel());
@@ -123,14 +124,18 @@ public class DDMFormFieldTemplateContextFactory {
 			createNestedDDMFormFieldTemplateContext(
 				ddmFormFieldValue, ddmFormFieldParameterName);
 
+		setDDMFormFieldTemplateContextEvaluable(
+			ddmFormFieldTemplateContext, ddmFormFieldEvaluationResult,
+			ddmFormField.getProperty("evaluable"));
 		setDDMFormFieldTemplateContextNestedTemplateContexts(
 			ddmFormFieldTemplateContext, nestedDDMFormFieldTemplateContext);
+
 		setDDMFormFieldTemplateContextReadOnly(
-			ddmFormFieldTemplateContext, ddmFormField.isReadOnly());
+			ddmFormFieldTemplateContext, ddmFormFieldEvaluationResult);
 		setDDMFormFieldTemplateContextRepeatable(
 			ddmFormFieldTemplateContext, ddmFormField.isRepeatable());
 		setDDMFormFieldTemplateContextRequired(
-			ddmFormFieldTemplateContext, ddmFormField.isRequired());
+			ddmFormFieldTemplateContext, ddmFormFieldEvaluationResult);
 		setDDMFormFieldTemplateContextShowLabel(
 			ddmFormFieldTemplateContext, ddmFormField.isShowLabel());
 		setDDMFormFieldTemplateContextType(
@@ -141,7 +146,7 @@ public class DDMFormFieldTemplateContextFactory {
 			ddmFormFieldEvaluationResult, ddmFormFieldTemplateContext,
 			ddmFormFieldValue.getValue());
 		setDDMFormFieldTemplateContextVisible(
-			ddmFormFieldEvaluationResult, ddmFormFieldTemplateContext);
+			ddmFormFieldTemplateContext, ddmFormFieldEvaluationResult);
 		setDDMFormFieldTemplateContextOptions(
 			ddmFormFieldTemplateContext, ddmFormField.getDDMFormFieldOptions());
 
@@ -279,6 +284,24 @@ public class DDMFormFieldTemplateContextFactory {
 			"dir", LanguageUtil.get(_locale, LanguageConstants.KEY_DIR));
 	}
 
+	protected void setDDMFormFieldTemplateContextEvaluable(
+		Map<String, Object> ddmFormFieldTemplateContext,
+		DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult,
+		Object evaluable) {
+
+		if (ddmFormFieldEvaluationResult.isRequired()) {
+			ddmFormFieldTemplateContext.put("evaluable", true);
+
+			return;
+		}
+
+		if (evaluable == null) {
+			return;
+		}
+
+		ddmFormFieldTemplateContext.put("evaluable", evaluable);
+	}
+
 	protected void setDDMFormFieldTemplateContextLocalizedValue(
 		Map<String, Object> ddmFormFieldTemplateContext, String propertyName,
 		LocalizedValue localizedValue) {
@@ -329,6 +352,7 @@ public class DDMFormFieldTemplateContextFactory {
 			LocalizedValue localizedValue = entry.getValue();
 
 			option.put("label", localizedValue.getString(_locale));
+
 			option.put("value", entry.getKey());
 
 			list.add(option);
@@ -338,7 +362,10 @@ public class DDMFormFieldTemplateContextFactory {
 	}
 
 	protected void setDDMFormFieldTemplateContextReadOnly(
-		Map<String, Object> ddmFormFieldTemplateContext, boolean readOnly) {
+		Map<String, Object> ddmFormFieldTemplateContext,
+		DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult) {
+
+		boolean readOnly = ddmFormFieldEvaluationResult.isReadOnly();
 
 		if (_ddmFormRenderingContext.isReadOnly()) {
 			readOnly = true;
@@ -354,9 +381,11 @@ public class DDMFormFieldTemplateContextFactory {
 	}
 
 	protected void setDDMFormFieldTemplateContextRequired(
-		Map<String, Object> ddmFormFieldTemplateContext, boolean required) {
+		Map<String, Object> ddmFormFieldTemplateContext,
+		DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult) {
 
-		ddmFormFieldTemplateContext.put("required", required);
+		ddmFormFieldTemplateContext.put(
+			"required", ddmFormFieldEvaluationResult.isRequired());
 	}
 
 	protected void setDDMFormFieldTemplateContextShowLabel(
@@ -396,8 +425,8 @@ public class DDMFormFieldTemplateContextFactory {
 	}
 
 	protected void setDDMFormFieldTemplateContextVisible(
-		DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult,
-		Map<String, Object> ddmFormFieldTemplateContext) {
+		Map<String, Object> ddmFormFieldTemplateContext,
+		DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult) {
 
 		ddmFormFieldTemplateContext.put(
 			"visible", ddmFormFieldEvaluationResult.isVisible());

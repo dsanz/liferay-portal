@@ -17,11 +17,14 @@ package com.liferay.blogs.service.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
-import com.liferay.blogs.kernel.exception.EntryContentException;
-import com.liferay.blogs.kernel.exception.EntryTitleException;
-import com.liferay.blogs.kernel.exception.NoSuchEntryException;
-import com.liferay.blogs.kernel.model.BlogsEntry;
+import com.liferay.blogs.constants.BlogsConstants;
+import com.liferay.blogs.exception.EntryContentException;
+import com.liferay.blogs.exception.EntryTitleException;
+import com.liferay.blogs.exception.NoSuchEntryException;
+import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalServiceUtil;
+import com.liferay.blogs.util.BlogsUtil;
+import com.liferay.blogs.util.test.BlogsTestUtil;
 import com.liferay.message.boards.kernel.service.MBMessageLocalServiceUtil;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -57,9 +60,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.portlet.blogs.constants.BlogsConstants;
-import com.liferay.portlet.blogs.util.BlogsUtil;
-import com.liferay.portlet.blogs.util.test.BlogsTestUtil;
 
 import java.io.InputStream;
 
@@ -95,6 +95,46 @@ public class BlogsEntryLocalServiceTest {
 		_user = TestPropsValues.getUser();
 
 		ServiceTestUtil.setUser(TestPropsValues.getUser());
+	}
+
+	@Test
+	public void testAddDraftEntryWithBlankTitle() throws Exception {
+		int initialCount = BlogsEntryLocalServiceUtil.getGroupEntriesCount(
+			_group.getGroupId(), _statusAnyQueryDefinition);
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		BlogsEntryLocalServiceUtil.addEntry(
+			_user.getUserId(), StringPool.BLANK, RandomTestUtil.randomString(),
+			serviceContext);
+
+		int actualCount = BlogsEntryLocalServiceUtil.getGroupEntriesCount(
+			_group.getGroupId(), _statusAnyQueryDefinition);
+
+		Assert.assertEquals(initialCount + 1, actualCount);
+	}
+
+	@Test
+	public void testAddDraftEntryWithNullTitle() throws Exception {
+		int initialCount = BlogsEntryLocalServiceUtil.getGroupEntriesCount(
+			_group.getGroupId(), _statusAnyQueryDefinition);
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		BlogsEntryLocalServiceUtil.addEntry(
+			_user.getUserId(), null, RandomTestUtil.randomString(),
+			serviceContext);
+
+		int actualCount = BlogsEntryLocalServiceUtil.getGroupEntriesCount(
+			_group.getGroupId(), _statusAnyQueryDefinition);
+
+		Assert.assertEquals(initialCount + 1, actualCount);
 	}
 
 	@Test
@@ -361,6 +401,36 @@ public class BlogsEntryLocalServiceTest {
 	}
 
 	@Test
+	public void testGetEntryByGroupAndOldUrlTitle() throws Exception {
+		BlogsEntry expectedEntry = addEntry(false);
+
+		String oldUrlTitle = expectedEntry.getUrlTitle();
+
+		String urlTitle = "new-friendly-url";
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+
+		BlogsEntryLocalServiceUtil.updateEntry(
+			expectedEntry.getUserId(), expectedEntry.getEntryId(),
+			expectedEntry.getTitle(), expectedEntry.getSubtitle(), urlTitle,
+			expectedEntry.getDescription(), expectedEntry.getContent(),
+			expectedEntry.getDisplayDate(), expectedEntry.isAllowPingbacks(),
+			expectedEntry.isAllowTrackbacks(), new String[0],
+			expectedEntry.getCoverImageCaption(), null, null, serviceContext);
+
+		BlogsEntry actualEntry = BlogsEntryLocalServiceUtil.getEntry(
+			expectedEntry.getGroupId(), oldUrlTitle);
+
+		BlogsTestUtil.assertEquals(expectedEntry, actualEntry);
+
+		actualEntry = BlogsEntryLocalServiceUtil.getEntry(
+			expectedEntry.getGroupId(), urlTitle);
+
+		BlogsTestUtil.assertEquals(expectedEntry, actualEntry);
+	}
+
+	@Test
 	public void testGetEntryByGroupAndUrlTitle() throws Exception {
 		BlogsEntry expectedEntry = addEntry(false);
 
@@ -512,6 +582,36 @@ public class BlogsEntryLocalServiceTest {
 		testGetOrganizationEntries(false);
 	}
 
+	@Test(expected = EntryTitleException.class)
+	public void testPublishWithBlankTitle() throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+
+		BlogsEntryLocalServiceUtil.addEntry(
+			_user.getUserId(), StringPool.BLANK, RandomTestUtil.randomString(),
+			serviceContext);
+	}
+
+	@Test(expected = EntryTitleException.class)
+	public void testPublishWithNullTitle() throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+
+		BlogsEntryLocalServiceUtil.addEntry(
+			_user.getUserId(), null, RandomTestUtil.randomString(),
+			serviceContext);
+	}
+
+	@Test(expected = EntryTitleException.class)
+	public void testPublishWithoutTitle() throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+
+		BlogsEntryLocalServiceUtil.addEntry(
+			_user.getUserId(), StringPool.BLANK, RandomTestUtil.randomString(),
+			serviceContext);
+	}
+
 	@Test
 	public void testSubscribe() throws Exception {
 		int initialCount =
@@ -553,34 +653,6 @@ public class BlogsEntryLocalServiceTest {
 
 		BlogsEntryLocalServiceUtil.updateEntryResources(
 			entry, new String[] {ActionKeys.ADD_DISCUSSION}, null);
-	}
-
-	@Test
-	public void testURLTitleIsNotSavedWhenAddingDraftEntry() throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
-
-		serviceContext.setWorkflowAction(WorkflowConstants.STATUS_DRAFT);
-
-		BlogsEntry entry = BlogsEntryLocalServiceUtil.addEntry(
-			_user.getUserId(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), serviceContext);
-
-		Assert.assertTrue(Validator.isNull(entry.getUrlTitle()));
-	}
-
-	@Test
-	public void testURLTitleIsNotSavedWhenAddingDraftEntryWithWorkflow()
-		throws Exception {
-
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
-
-		BlogsEntry entry = BlogsTestUtil.addEntryWithWorkflow(
-			_user.getUserId(), RandomTestUtil.randomString(), false,
-			serviceContext);
-
-		Assert.assertTrue(Validator.isNull(entry.getUrlTitle()));
 	}
 
 	@Test
@@ -658,6 +730,34 @@ public class BlogsEntryLocalServiceTest {
 		Assert.assertEquals(
 			BlogsUtil.getUrlTitle(entry.getEntryId(), title),
 			entry.getUrlTitle());
+	}
+
+	@Test
+	public void testURLTitleIsSavedWhenAddingDraftEntry() throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+
+		serviceContext.setWorkflowAction(WorkflowConstants.STATUS_DRAFT);
+
+		BlogsEntry entry = BlogsEntryLocalServiceUtil.addEntry(
+			_user.getUserId(), RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(), serviceContext);
+
+		Assert.assertTrue(Validator.isNotNull(entry.getUrlTitle()));
+	}
+
+	@Test
+	public void testURLTitleIsSavedWhenAddingDraftEntryWithWorkflow()
+		throws Exception {
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group, _user.getUserId());
+
+		BlogsEntry entry = BlogsTestUtil.addEntryWithWorkflow(
+			_user.getUserId(), RandomTestUtil.randomString(), false,
+			serviceContext);
+
+		Assert.assertTrue(Validator.isNotNull(entry.getUrlTitle()));
 	}
 
 	protected BlogsEntry addEntry(boolean statusInTrash) throws Exception {

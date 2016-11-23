@@ -14,9 +14,10 @@
 
 package com.liferay.blogs.internal.util;
 
-import com.liferay.blogs.kernel.model.BlogsEntry;
+import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalService;
 import com.liferay.blogs.service.BlogsEntryLocalServiceUtil;
+import com.liferay.blogs.util.BlogsUtil;
 import com.liferay.blogs.web.constants.BlogsPortletKeys;
 import com.liferay.portal.kernel.comment.CommentManager;
 import com.liferay.portal.kernel.comment.DuplicateCommentException;
@@ -44,7 +45,6 @@ import com.liferay.portal.kernel.xmlrpc.XmlRpc;
 import com.liferay.portal.kernel.xmlrpc.XmlRpcConstants;
 import com.liferay.portal.kernel.xmlrpc.XmlRpcUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portlet.blogs.util.BlogsUtil;
 import com.liferay.registry.collections.ServiceTrackerCollections;
 import com.liferay.registry.collections.ServiceTrackerMap;
 
@@ -254,8 +254,8 @@ public class PingbackMethodImplTest extends PowerMockito {
 			Matchers.eq(_USER_ID), Matchers.eq(_GROUP_ID),
 			Matchers.eq(BlogsEntry.class.getName()), Matchers.eq(_ENTRY_ID),
 			Matchers.eq(
-				"[...] " + _EXCERPT_BODY + " [...] " + "[url=" + _SOURCE_URI +
-					"]" + _READ_MORE + "[/url]"),
+				"[...] " + _EXCERPT_BODY + " [...] [url=" + _SOURCE_URI + "]" +
+					_READ_MORE + "[/url]"),
 			Mockito.<ServiceContextFunction>any()
 		);
 	}
@@ -284,8 +284,8 @@ public class PingbackMethodImplTest extends PowerMockito {
 	@Test
 	public void testGetExcerptWhenAnchorHasParent() throws Exception {
 		whenHttpURLToString(
-			"<body><p>" + "Visit <a href='http://" + _TARGET_URI +
-				"'>Liferay</a>" + " to learn more</p></body>");
+			"<body><p>Visit <a href='http://" + _TARGET_URI + "'>Liferay</a> " +
+				"to learn more</p></body>");
 
 		execute();
 
@@ -301,9 +301,8 @@ public class PingbackMethodImplTest extends PowerMockito {
 
 		try {
 			whenHttpURLToString(
-				"<body>_____<p>12345<span>67890" + "<a href='http://" +
-					_TARGET_URI + "'>Liferay</a>" +
-						"12345</span>67890</p>_____</body>");
+				"<body>_____<p>12345<span>67890<a href='http://" + _TARGET_URI +
+					"'>Liferay</a>12345</span>67890</p>_____</body>");
 
 			execute();
 

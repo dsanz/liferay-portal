@@ -20,7 +20,6 @@ import com.liferay.dynamic.data.mapping.annotations.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.annotations.DDMFormLayoutColumn;
 import com.liferay.dynamic.data.mapping.annotations.DDMFormLayoutPage;
 import com.liferay.dynamic.data.mapping.annotations.DDMFormLayoutRow;
-import com.liferay.dynamic.data.mapping.annotations.DDMFormRule;
 import com.liferay.dynamic.data.mapping.form.field.type.DefaultDDMFormFieldTypeSettings;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
@@ -28,20 +27,7 @@ import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 /**
  * @author Bruno Basto
  */
-@DDMForm(
-	rules = {
-		@DDMFormRule(
-			actions = {
-				"set(fieldAt(\"predefinedValue\", 0), \"visible\", false)",
-				"set(fieldAt(\"repeatable\", 0), \"visible\", false)",
-				"set(fieldAt(\"required\", 0), \"visible\", false)",
-				"set(fieldAt(\"showLabel\", 0), \"visible\", false)",
-				"set(fieldAt(\"tip\", 0), \"visible\", false)",
-				"set(fieldAt(\"validation\", 0), \"visible\", false)"
-			}
-		)
-	}
-)
+@DDMForm
 @DDMFormLayout(
 	paginationMode = com.liferay.dynamic.data.mapping.model.DDMFormLayout.TABBED_MODE,
 	value = {
@@ -88,19 +74,19 @@ public interface ParagraphDDMFormFieldTypeSettings
 	@Override
 	public LocalizedValue label();
 
-	@DDMFormField
+	@DDMFormField(visibilityExpression = "FALSE")
 	@Override
 	public LocalizedValue predefinedValue();
 
-	@DDMFormField
+	@DDMFormField(visibilityExpression = "FALSE")
 	@Override
 	public boolean repeatable();
 
-	@DDMFormField
+	@DDMFormField(visibilityExpression = "FALSE")
 	@Override
 	public boolean required();
 
-	@DDMFormField
+	@DDMFormField(visibilityExpression = "FALSE")
 	@Override
 	public boolean showLabel();
 
@@ -111,11 +97,14 @@ public interface ParagraphDDMFormFieldTypeSettings
 	)
 	public String text();
 
-	@DDMFormField
+	@DDMFormField(visibilityExpression = "FALSE")
 	@Override
 	public LocalizedValue tip();
 
-	@DDMFormField(dataType = "ddm-validation", type = "validation")
+	@DDMFormField(
+		dataType = "ddm-validation", type = "validation",
+		visibilityExpression = "FALSE"
+	)
 	@Override
 	public DDMFormFieldValidation validation();
 

@@ -39,13 +39,11 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.PortalRunMode;
 import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -69,18 +67,9 @@ public class BookmarksFolderServiceTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_testMode = PortalRunMode.isTestMode();
-
-		PortalRunMode.setTestMode(true);
-
 		ServiceTestUtil.setUser(TestPropsValues.getUser());
 
 		_group = GroupTestUtil.addGroup();
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		PortalRunMode.setTestMode(_testMode);
 	}
 
 	@Test
@@ -152,6 +141,7 @@ public class BookmarksFolderServiceTest {
 		long companyId = entry.getCompanyId();
 		long groupId = entry.getFolder().getGroupId();
 		long folderId = entry.getFolderId();
+
 		String keywords = "test";
 
 		SearchContext searchContext = BookmarksTestUtil.getSearchContext(
@@ -244,7 +234,5 @@ public class BookmarksFolderServiceTest {
 
 	@DeleteAfterTestRun
 	private Group _group;
-
-	private boolean _testMode;
 
 }

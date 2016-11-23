@@ -111,6 +111,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.portlet.PortletMode;
 import javax.portlet.PortletRequest;
@@ -234,6 +235,13 @@ public class ServicePreAction extends Action {
 			user = PortalUtil.initUser(request);
 		}
 		catch (NoSuchUserException nsue) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(nsue, nsue);
+			}
+
 			return null;
 		}
 
@@ -546,11 +554,6 @@ public class ServicePreAction extends Action {
 
 			plid = layout.getPlid();
 
-			// Updates to shared layouts are not reflected until the next time
-			// the user logs in because group layouts are cached in the session
-
-			layout = (Layout)layout.clone();
-
 			layoutTypePortlet = (LayoutTypePortlet)layout.getLayoutType();
 
 			boolean customizable = layoutTypePortlet.isCustomizable();
@@ -668,10 +671,12 @@ public class ServicePreAction extends Action {
 				ColorSchemeFactoryUtil.getDefaultRegularColorSchemeId();
 
 			theme = ThemeLocalServiceUtil.getTheme(companyId, themeId);
+
 			colorScheme = ThemeLocalServiceUtil.getColorScheme(
 				companyId, theme.getThemeId(), colorSchemeId);
 
 			request.setAttribute(WebKeys.COLOR_SCHEME, colorScheme);
+
 			request.setAttribute(WebKeys.THEME, theme);
 		}
 
@@ -735,6 +740,7 @@ public class ServicePreAction extends Action {
 		themeDisplay.setCDNHost(cdnHost);
 		themeDisplay.setCDNDynamicResourcesHost(dynamicResourcesCDNHost);
 		themeDisplay.setFacebookCanvasPageURL(facebookCanvasPageURL);
+		themeDisplay.setPortalDomain(_getPortalDomain(portalURL));
 		themeDisplay.setPortalURL(portalURL);
 		themeDisplay.setRefererPlid(refererPlid);
 		themeDisplay.setSecure(secure);
@@ -2002,6 +2008,18 @@ public class ServicePreAction extends Action {
 
 	}
 
+	private static String _getPortalDomain(String portalURL) {
+		String portalDomain = _portalDomains.get(portalURL);
+
+		if (portalDomain == null) {
+			portalDomain = HttpUtil.getDomain(portalURL);
+
+			_portalDomains.put(portalURL, portalDomain);
+		}
+
+		return portalDomain;
+	}
+
 	private static final String _PATH_PORTAL_LAYOUT = "/portal/layout";
 
 	private static final String _PATH_PORTAL_LOGIN = "/portal/login";
@@ -2010,5 +2028,8 @@ public class ServicePreAction extends Action {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ServicePreAction.class);
+
+	private static final Map<String, String> _portalDomains =
+		new ConcurrentHashMap<>();
 
 }

@@ -86,8 +86,11 @@ public class OpenSSOAutoLogin extends BaseAutoLogin {
 
 		long creatorUserId = 0;
 		boolean autoPassword = false;
+
 		String password1 = PwdGenerator.getPassword();
+
 		String password2 = password1;
+
 		boolean autoScreenName = false;
 		long facebookId = 0;
 		String openId = StringPool.BLANK;
@@ -181,6 +184,12 @@ public class OpenSSOAutoLogin extends BaseAutoLogin {
 				}
 			}
 			catch (SystemException se) {
+
+				// LPS-52675
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(se, se);
+				}
 			}
 		}
 		else {

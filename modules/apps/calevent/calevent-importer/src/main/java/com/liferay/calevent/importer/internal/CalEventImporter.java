@@ -378,6 +378,7 @@ public class CalEventImporter {
 			_ratingsStatsLocalService.createRatingsStats(statsId);
 
 		long classNameId = _classNameLocalService.getClassNameId(className);
+
 		ratingsStats.setClassNameId(classNameId);
 
 		ratingsStats.setClassPK(classPK);
@@ -581,6 +582,13 @@ public class CalEventImporter {
 			user = _userLocalService.getUserById(companyId, userId);
 		}
 		catch (NoSuchUserException nsue) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(nsue, nsue);
+			}
+
 			user = _userLocalService.getDefaultUser(companyId);
 
 			userId = user.getUserId();
@@ -595,6 +603,13 @@ public class CalEventImporter {
 				groupId, _ASSET_VOCABULARY_NAME);
 		}
 		catch (NoSuchVocabularyException nsve) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(nsve, nsve);
+			}
+
 			assetVocabulary = _assetVocabularyLocalService.addVocabulary(
 				userId, groupId, _ASSET_VOCABULARY_NAME, serviceContext);
 		}
@@ -947,6 +962,7 @@ public class CalEventImporter {
 		long calendarBookingId = _counterLocalService.increment();
 
 		long startTime = startDate.getTime();
+
 		long endTime =
 			startTime + durationHour * Time.HOUR + durationMinute * Time.MINUTE;
 
@@ -1173,6 +1189,7 @@ public class CalEventImporter {
 		}
 
 		List<Long> oldClassPKs = new ArrayList<>();
+
 		oldClassPKs.add(oldClassPK);
 
 		List<RatingsStats> ratingsStatsList =
@@ -1442,17 +1459,14 @@ public class CalEventImporter {
 		CalEventImporter.class);
 
 	private static final Map<Integer, Frequency> _frequencies = new HashMap<>();
+	private static final Map<Integer, Weekday> _weekdays = new HashMap<>();
 
 	static {
 		_frequencies.put(TZSRecurrence.DAILY, Frequency.DAILY);
 		_frequencies.put(TZSRecurrence.WEEKLY, Frequency.WEEKLY);
 		_frequencies.put(TZSRecurrence.MONTHLY, Frequency.MONTHLY);
 		_frequencies.put(TZSRecurrence.YEARLY, Frequency.YEARLY);
-	}
 
-	private static final Map<Integer, Weekday> _weekdays = new HashMap<>();
-
-	static {
 		_weekdays.put(java.util.Calendar.SUNDAY, Weekday.SUNDAY);
 		_weekdays.put(java.util.Calendar.MONDAY, Weekday.MONDAY);
 		_weekdays.put(java.util.Calendar.TUESDAY, Weekday.TUESDAY);

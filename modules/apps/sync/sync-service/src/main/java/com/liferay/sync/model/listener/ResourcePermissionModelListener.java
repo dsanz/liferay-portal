@@ -41,50 +41,66 @@ public class ResourcePermissionModelListener
 	extends BaseModelListener<ResourcePermission> {
 
 	@Override
+	public void onBeforeCreate(ResourcePermission resourcePermission)
+		throws ModelListenerException {
+
+		SyncDLObject syncDLObject = getSyncDLObject(resourcePermission);
+
+		if (syncDLObject == null) {
+			return;
+		}
+
+		if (resourcePermission.hasActionId(ActionKeys.VIEW)) {
+			updateSyncDLObject(syncDLObject);
+		}
+	}
+
+	@Override
 	public void onBeforeUpdate(ResourcePermission resourcePermission)
 		throws ModelListenerException {
 
-		try {
-			SyncDLObject syncDLObject = null;
+		SyncDLObject syncDLObject = getSyncDLObject(resourcePermission);
 
-			String modelName = resourcePermission.getName();
-
-			if (modelName.equals(DLFileEntry.class.getName())) {
-				syncDLObject = _syncDLObjectLocalService.fetchSyncDLObject(
-					SyncDLObjectConstants.TYPE_FILE,
-					GetterUtil.getLong(resourcePermission.getPrimKey()));
-			}
-			else if (modelName.equals(DLFolder.class.getName())) {
-				syncDLObject = _syncDLObjectLocalService.fetchSyncDLObject(
-					SyncDLObjectConstants.TYPE_FOLDER,
-					GetterUtil.getLong(resourcePermission.getPrimKey()));
-			}
-
-			if (syncDLObject == null) {
-				return;
-			}
-
-			ResourcePermission originalResourcePermission =
-				_resourcePermissionLocalService.fetchResourcePermission(
-					resourcePermission.getResourcePermissionId());
-
-			if (originalResourcePermission.hasActionId(ActionKeys.VIEW) &&
-				!resourcePermission.hasActionId(ActionKeys.VIEW)) {
-
-				syncDLObject.setModifiedTime(System.currentTimeMillis());
-				syncDLObject.setLastPermissionChangeDate(new Date());
-
-				_syncDLObjectLocalService.updateSyncDLObject(syncDLObject);
-			}
-			else if (!originalResourcePermission.hasActionId(ActionKeys.VIEW) &&
-					 resourcePermission.hasActionId(ActionKeys.VIEW)) {
-
-				updateSyncDLObject(syncDLObject);
-			}
+		if (syncDLObject == null) {
+			return;
 		}
-		catch (Exception e) {
-			throw new ModelListenerException(e);
+
+		ResourcePermission originalResourcePermission =
+			_resourcePermissionLocalService.fetchResourcePermission(
+				resourcePermission.getResourcePermissionId());
+
+		if (originalResourcePermission.hasActionId(ActionKeys.VIEW) &&
+			!resourcePermission.hasActionId(ActionKeys.VIEW)) {
+
+			syncDLObject.setModifiedTime(System.currentTimeMillis());
+			syncDLObject.setLastPermissionChangeDate(new Date());
+
+			_syncDLObjectLocalService.updateSyncDLObject(syncDLObject);
 		}
+		else if (!originalResourcePermission.hasActionId(ActionKeys.VIEW) &&
+				 resourcePermission.hasActionId(ActionKeys.VIEW)) {
+
+			updateSyncDLObject(syncDLObject);
+		}
+	}
+
+	protected SyncDLObject getSyncDLObject(
+		ResourcePermission resourcePermission) {
+
+		String modelName = resourcePermission.getName();
+
+		if (modelName.equals(DLFileEntry.class.getName())) {
+			return _syncDLObjectLocalService.fetchSyncDLObject(
+				SyncDLObjectConstants.TYPE_FILE,
+				GetterUtil.getLong(resourcePermission.getPrimKey()));
+		}
+		else if (modelName.equals(DLFolder.class.getName())) {
+			return _syncDLObjectLocalService.fetchSyncDLObject(
+				SyncDLObjectConstants.TYPE_FOLDER,
+				GetterUtil.getLong(resourcePermission.getPrimKey()));
+		}
+
+		return null;
 	}
 
 	@Reference(unbind = "-")

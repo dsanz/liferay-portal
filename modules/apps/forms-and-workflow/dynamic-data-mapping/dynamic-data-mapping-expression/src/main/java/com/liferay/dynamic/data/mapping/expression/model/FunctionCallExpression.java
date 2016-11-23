@@ -25,25 +25,30 @@ import java.util.List;
 public class FunctionCallExpression extends Expression {
 
 	public FunctionCallExpression(
-		String functionName, List<Expression> parameters) {
+		String functionName, List<Expression> parameterExpressions) {
 
 		_functionName = functionName;
-		_parameters = parameters;
+		_parameterExpressions = parameterExpressions;
+	}
+
+	@Override
+	public <T> T accept(ExpressionVisitor<T> visitor) {
+		return visitor.visit(this);
 	}
 
 	public int getArity() {
-		return _parameters.size();
+		return _parameterExpressions.size();
 	}
 
 	public String getFunctionName() {
 		return _functionName;
 	}
 
-	public List<Expression> getParameters() {
-		return _parameters;
+	public List<Expression> getParameterExpressions() {
+		return _parameterExpressions;
 	}
 
 	private final String _functionName;
-	private final List<Expression> _parameters;
+	private final List<Expression> _parameterExpressions;
 
 }

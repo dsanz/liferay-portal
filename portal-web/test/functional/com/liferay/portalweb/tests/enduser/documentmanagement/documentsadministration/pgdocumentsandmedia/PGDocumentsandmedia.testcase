@@ -1975,7 +1975,7 @@
 			<var name="portlet" value="Site Memberships" />
 		</execute>
 
-		<execute macro="Site#addMemberUserGroupCP">
+		<execute macro="Site#assignUserGroupAsMemberCP">
 			<var name="userGroupName" value="UG UserGroup Name" />
 		</execute>
 
@@ -2013,9 +2013,13 @@
 			<var name="portlet" value="Site Memberships" />
 		</execute>
 
-		<execute macro="Site#assignSiteRolesUserGroupsCP">
-			<var name="roleName" value="Site Administrator" />
-			<var name="userGroupName" value="UG UserGroup Name" />
+		<execute macro="Navigator#gotoNavItem">
+			<var name="navItem" value="User Groups" />
+		</execute>
+
+		<execute macro="Site#assignSiteRoleCP">
+			<var name="resourceName" value="UG UserGroup Name" />
+			<var name="roleTitle" value="Site Administrator" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
@@ -2119,7 +2123,7 @@
 
 		<execute macro="PermissionsInline#viewPermissionsChecked">
 			<var name="permissionDefinitionKey" value="CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX" />
-			<var name="roleName" value="Guest" />
+			<var name="roleTitle" value="Guest" />
 		</execute>
 
 		<execute macro="IFrame#closeFrame" />
@@ -2161,7 +2165,7 @@
 
 		<execute macro="PermissionsInline#viewPermissionsChecked">
 			<var name="permissionDefinitionKey" value="CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX" />
-			<var name="roleName" value="Guest" />
+			<var name="roleTitle" value="Guest" />
 		</execute>
 
 		<execute macro="IFrame#closeFrame" />

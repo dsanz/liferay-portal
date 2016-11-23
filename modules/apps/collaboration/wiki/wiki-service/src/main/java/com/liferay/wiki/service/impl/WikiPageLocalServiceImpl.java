@@ -165,7 +165,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		// Page
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 		WikiNode node = wikiNodePersistence.findByPrimaryKey(nodeId);
 		Date now = new Date();
 
@@ -441,7 +441,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link #addTempFileEntry(long, long,
+	 * @deprecated As of 1.2.0, replaced by {@link #addTempFileEntry(long, long,
 	 *             String, String, InputStream, String)}
 	 */
 	@Deprecated
@@ -490,6 +490,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		double version = page.getVersion();
 		String content = page.getContent();
+
 		String summary = serviceContext.translate(
 			"changed-parent-from-x", originalParentTitle);
 		boolean minorEdit = false;
@@ -1524,7 +1525,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link #renamePage(long, long,
+	 * @deprecated As of 1.2.0, replaced by {@link #renamePage(long, long,
 	 *             String, String, ServiceContext)}
 	 */
 	@Deprecated
@@ -1589,7 +1590,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link #movePageFromTrash(long,
+	 * @deprecated As of 1.2.0, replaced by {@link #movePageFromTrash(long,
 	 *             long, String, long, String)} *
 	 */
 	@Deprecated
@@ -2034,7 +2035,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link #updateStatus(long, WikiPage,
+	 * @deprecated As of 1.2.0, replaced by {@link #updateStatus(long, WikiPage,
 	 *             int, ServiceContext, Map)}
 	 */
 	@Deprecated
@@ -2058,7 +2059,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		// Page
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 
 		int oldStatus = page.getStatus();
 
@@ -2236,7 +2237,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link
+	 * @deprecated As of 1.2.0, replaced by {@link
 	 *             WikiPageTitleValidator#validate(String)}
 	 */
 	@Deprecated
@@ -2304,7 +2305,9 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		String format = page.getFormat();
 		boolean head = true;
 		String parentTitle = page.getParentTitle();
+
 		String redirectTitle = page.getTitle();
+
 		String content =
 			StringPool.DOUBLE_OPEN_BRACKET + redirectTitle +
 				StringPool.DOUBLE_CLOSE_BRACKET;
@@ -2384,7 +2387,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		}
 		else {
 			portletURL = PortletURLFactoryUtil.create(
-				request, WikiConstants.SERVICE_NAME, plid,
+				request, WikiPortletKeys.WIKI, plid,
 				PortletRequest.RENDER_PHASE);
 		}
 
@@ -3150,7 +3153,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 
 		long pageId = 0;
 

@@ -139,11 +139,15 @@
 		<var method="StringUtil#replace('${portalURL}', 'http://', '')" name="portalURL" />
 		<var method="StringUtil#replace('${portalURL}', ':8080', '')" name="portalURL" />
 
-		<execute macro="PortalInstances#addCP">
-			<var name="mailDomain" value="liferay.com" />
-			<var name="virtualHost" value="${portalURL}" />
-			<var name="webId" value="${portalURL}" />
-		</execute>
+		<execute function="Click" locator1="Button#PLUS" />
+
+		<execute function="Type" locator1="TextInput#WEB_ID" value1="${portalURL}" />
+		<execute function="Type" locator1="TextInput#VIRTUAL_HOST" value1="${portalURL}" />
+		<execute function="Type" locator1="TextInput#MAIL_DOMAIN" value1="liferay.com" />
+
+		<execute macro="Button#clickSave" />
+
+		<execute function="AssertVisible" locator1="Message#GENERIC" />
 
 		<execute macro="Navigator#openURL" />
 	</command>
@@ -175,18 +179,6 @@
 
 		<execute macro="SignIn#signIn" />
 
-		<var method="TestPropsUtil#get('browser.type')" name="browserType" />
-
-		<if>
-			<or>
-				<equals arg1="${browserType}" arg2="edge" />
-				<equals arg1="${browserType}" arg2="internetexplorer" />
-			</or>
-			<then>
-				<execute function="Open" locator1="/web/guest/home" />
-			</then>
-		</if>
-
 		<if>
 			<condition function="IsElementPresent" locator1="Button#I_AGREE" />
 			<then>
@@ -200,21 +192,6 @@
 				<execute macro="SignIn#setPasswordReminder" />
 			</then>
 		</if>
-	</command>
-
-	<command name="signInViaGoogle">
-		<execute macro="Navigator#openURL" />
-
-		<execute function="AssertClick" locator1="Link#GOOGLE_LOGIN" value1="Google" />
-
-		<execute function="SelectWindow" locator1="GoogleLogin#PAGE_TITLE" />
-
-		<execute macro="GoogleLogin#accountSignIn">
-			<var name="userEmailAddress" value="${userEmailAddress}" />
-			<var name="userPassword" value="${userPassword}" />
-		</execute>
-
-		<execute macro="GoogleLogin#acceptConditions" />
 	</command>
 
 	<command name="viewSignInError">

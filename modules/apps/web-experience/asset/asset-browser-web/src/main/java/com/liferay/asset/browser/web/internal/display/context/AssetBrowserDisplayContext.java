@@ -29,7 +29,9 @@ import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
+import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -46,6 +48,7 @@ import com.liferay.portlet.asset.util.AssetUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
@@ -67,7 +70,7 @@ public class AssetBrowserDisplayContext {
 	}
 
 	public String getAddButtonLabel() {
-		ThemeDisplay themeDisplay = (ThemeDisplay) _request.getAttribute(
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		AssetRendererFactory assetRendererFactory = getAssetRendererFactory();
@@ -83,7 +86,7 @@ public class AssetBrowserDisplayContext {
 	}
 
 	public String getAddButtonURL() throws Exception {
-		ThemeDisplay themeDisplay = (ThemeDisplay) _request.getAttribute(
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		long groupId = getGroupId();
@@ -127,7 +130,7 @@ public class AssetBrowserDisplayContext {
 	}
 
 	public AssetBrowserSearch getAssetBrowserSearch() throws Exception {
-		ThemeDisplay themeDisplay = (ThemeDisplay) _request.getAttribute(
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		AssetBrowserSearch assetBrowserSearch = new AssetBrowserSearch(
@@ -156,18 +159,34 @@ public class AssetBrowserDisplayContext {
 					new long[] {assetRendererFactory.getClassNameId()},
 					getKeywords(), getKeywords(), getKeywords(), getKeywords(),
 					getListable(), false, false, assetBrowserSearch.getStart(),
-					assetBrowserSearch.getEnd(), "modifiedDate", "title",
-					"DESC", "ASC");
+					assetBrowserSearch.getEnd(), "modifiedDate",
+					StringPool.BLANK, getOrderByType(), StringPool.BLANK);
 
 			assetBrowserSearch.setResults(assetEntries);
 		}
 		else {
+			Sort sort = null;
+
+			boolean orderByAsc = false;
+
+			if (Objects.equals(getOrderByType(), "asc")) {
+				orderByAsc = true;
+			}
+
+			if (Objects.equals(getOrderByCol(), "modified-date")) {
+				sort = new Sort(
+					Field.MODIFIED_DATE, Sort.LONG_TYPE, orderByAsc);
+			}
+			else if (Objects.equals(getOrderByCol(), "title")) {
+				sort = new Sort(Field.TITLE, Sort.STRING_TYPE, orderByAsc);
+			}
+
 			Hits hits = AssetEntryLocalServiceUtil.search(
 				themeDisplay.getCompanyId(), getFilterGroupIds(),
 				themeDisplay.getUserId(), assetRendererFactory.getClassName(),
 				getSubtypeSelectionId(), getKeywords(), isShowNonindexable(),
 				getStatuses(), assetBrowserSearch.getStart(),
-				assetBrowserSearch.getEnd());
+				assetBrowserSearch.getEnd(), sort);
 
 			List<AssetEntry> assetEntries = AssetUtil.getAssetEntries(hits);
 
@@ -260,7 +279,7 @@ public class AssetBrowserDisplayContext {
 	public List<ManagementBarFilterItem> getManagementBarFilterItem()
 		throws PortalException {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay) _request.getAttribute(
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		List<ManagementBarFilterItem> managementBarFilterItems =
@@ -310,13 +329,42 @@ public class AssetBrowserDisplayContext {
 			return LanguageUtil.get(_request, "all");
 		}
 
-		ThemeDisplay themeDisplay = (ThemeDisplay) _request.getAttribute(
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		Group group = GroupLocalServiceUtil.fetchGroup(getGroupId());
 
 		return HtmlUtil.escape(
 			group.getDescriptiveName(themeDisplay.getLocale()));
+	}
+
+	public String getOrderByCol() {
+		if (Validator.isNotNull(_orderByCol)) {
+			return _orderByCol;
+		}
+
+		_orderByCol = ParamUtil.getString(
+			_request, "orderByCol", "modified-date");
+
+		return _orderByCol;
+	}
+
+	public String getOrderByType() {
+		if (Validator.isNotNull(_orderByType)) {
+			return _orderByType;
+		}
+
+		_orderByType = ParamUtil.getString(_request, "orderByType", "asc");
+
+		return _orderByType;
+	}
+
+	public String[] getOrderColumns() {
+		if (AssetBrowserWebConfigurationValues.SEARCH_WITH_DATABASE) {
+			return new String[] {"modified-date"};
+		}
+
+		return new String[] {"modified-date", "title"};
 	}
 
 	public PortletURL getPortletURL() {
@@ -394,7 +442,7 @@ public class AssetBrowserDisplayContext {
 	}
 
 	public int getTotal(long[] groupIds) {
-		ThemeDisplay themeDisplay = (ThemeDisplay) _request.getAttribute(
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		AssetRendererFactory assetRendererFactory = getAssetRendererFactory();
@@ -464,6 +512,8 @@ public class AssetBrowserDisplayContext {
 	private String _eventName;
 	private Long _groupId;
 	private String _keywords;
+	private String _orderByCol;
+	private String _orderByType;
 	private Long _refererAssetEntryId;
 	private final RenderRequest _renderRequest;
 	private final RenderResponse _renderResponse;

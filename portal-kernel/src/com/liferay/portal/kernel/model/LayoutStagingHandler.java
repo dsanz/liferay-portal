@@ -14,7 +14,6 @@
 
 package com.liferay.portal.kernel.model;
 
-import com.liferay.exportimport.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -138,7 +137,8 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 
 	private Object _clone() {
 		return ProxyUtil.newProxyInstance(
-			PortalClassLoaderUtil.getClassLoader(), new Class[] {Layout.class},
+			PortalClassLoaderUtil.getClassLoader(),
+			new Class<?>[] {Layout.class},
 			new LayoutStagingHandler(_layout, _layoutRevision));
 	}
 
@@ -222,11 +222,6 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 			LayoutBranchLocalServiceUtil.getMasterLayoutBranch(
 				layoutSetBranchId, layout.getPlid(), serviceContext);
 
-		if (!MergeLayoutPrototypesThreadLocal.isInProgress()) {
-			serviceContext.setWorkflowAction(
-				WorkflowConstants.ACTION_SAVE_DRAFT);
-		}
-
 		layoutRevision = LayoutRevisionLocalServiceUtil.addLayoutRevision(
 			serviceContext.getUserId(), layoutSetBranchId,
 			layoutBranch.getLayoutBranchId(),
@@ -255,7 +250,7 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 		return LayoutTypePortletFactoryUtil.create(
 			(Layout)ProxyUtil.newProxyInstance(
 				PortalClassLoaderUtil.getClassLoader(),
-				new Class[] {Layout.class},
+				new Class<?>[] {Layout.class},
 				new LayoutStagingHandler(_layout, _layoutRevision)));
 	}
 
@@ -275,7 +270,8 @@ public class LayoutStagingHandler implements InvocationHandler, Serializable {
 
 	private Object _toEscapedModel() {
 		return ProxyUtil.newProxyInstance(
-			PortalClassLoaderUtil.getClassLoader(), new Class[] {Layout.class},
+			PortalClassLoaderUtil.getClassLoader(),
+			new Class<?>[] {Layout.class},
 			new LayoutStagingHandler(
 				_layout.toEscapedModel(), _layoutRevision.toEscapedModel()));
 	}

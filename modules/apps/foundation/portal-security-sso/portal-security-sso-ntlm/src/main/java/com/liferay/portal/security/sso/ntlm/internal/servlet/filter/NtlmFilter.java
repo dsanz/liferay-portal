@@ -14,6 +14,7 @@
 
 package com.liferay.portal.security.sso.ntlm.internal.servlet.filter;
 
+import com.liferay.portal.instances.service.PortalInstancesLocalService;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.SingleVMPool;
 import com.liferay.portal.kernel.io.BigEndianCodec;
@@ -32,7 +33,6 @@ import com.liferay.portal.security.sso.ntlm.constants.NtlmWebKeys;
 import com.liferay.portal.security.sso.ntlm.internal.NetlogonConnectionManager;
 import com.liferay.portal.security.sso.ntlm.internal.NtlmManager;
 import com.liferay.portal.security.sso.ntlm.internal.NtlmUserAccount;
-import com.liferay.portal.util.PortalInstances;
 
 import java.util.Map;
 import java.util.Objects;
@@ -105,10 +105,11 @@ import org.osgi.service.component.annotations.Reference;
 	configurationPid = "com.liferay.portal.security.sso.ntlm.configuration.NtlmConfiguration",
 	immediate = true,
 	property = {
-		"dispatcher=FORWARD", "dispatcher=REQUEST", "servlet-context-name=",
+		"before-filter=Auto Login Filter", "dispatcher=FORWARD",
+		"dispatcher=REQUEST", "servlet-context-name=",
 		"servlet-filter-name=SSO Ntlm Filter", "url-pattern=/c/portal/login"
 	},
-	service = Filter.class
+	service = {Filter.class, NtlmFilter.class}
 )
 public class NtlmFilter extends BaseFilter {
 
@@ -120,7 +121,7 @@ public class NtlmFilter extends BaseFilter {
 			return false;
 		}
 
-		long companyId = PortalInstances.getCompanyId(request);
+		long companyId = _portalInstancesLocalService.getCompanyId(request);
 
 		try {
 			NtlmConfiguration ntlmConfiguration =
@@ -237,7 +238,7 @@ public class NtlmFilter extends BaseFilter {
 
 		HttpSession session = request.getSession(false);
 
-		long companyId = PortalInstances.getCompanyId(request);
+		long companyId = _portalInstancesLocalService.getCompanyId(request);
 
 		String authorization = GetterUtil.getString(
 			request.getHeader(HttpHeaders.AUTHORIZATION));
@@ -367,5 +368,8 @@ public class NtlmFilter extends BaseFilter {
 	private final Map<Long, NtlmManager> _ntlmManagers =
 		new ConcurrentHashMap<>();
 	private PortalCache<String, byte[]> _portalCache;
+
+	@Reference
+	private PortalInstancesLocalService _portalInstancesLocalService;
 
 }

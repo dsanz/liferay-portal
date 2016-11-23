@@ -169,6 +169,7 @@ public class DDMFormValuesFactoryImpl implements DDMFormValuesFactory {
 		String fieldName = getFieldName(lastDDMFormFieldParameterNameParts);
 
 		ddmFormFieldValue.setName(fieldName);
+
 		ddmFormFieldValue.setInstanceId(
 			getFieldInstanceId(lastDDMFormFieldParameterNameParts));
 
@@ -286,7 +287,7 @@ public class DDMFormValuesFactoryImpl implements DDMFormValuesFactory {
 		}
 
 		if (availableLocales.isEmpty()) {
-			availableLocales.add(LocaleThreadLocal.getThemeDisplayLocale());
+			availableLocales.add(LocaleThreadLocal.getSiteDefaultLocale());
 		}
 
 		return availableLocales;
@@ -436,7 +437,7 @@ public class DDMFormValuesFactoryImpl implements DDMFormValuesFactory {
 			httpServletRequest, "defaultLanguageId");
 
 		if (Validator.isNull(defaultLanguageId)) {
-			return LocaleThreadLocal.getThemeDisplayLocale();
+			return LocaleThreadLocal.getSiteDefaultLocale();
 		}
 
 		return LocaleUtil.fromLanguageId(defaultLanguageId);

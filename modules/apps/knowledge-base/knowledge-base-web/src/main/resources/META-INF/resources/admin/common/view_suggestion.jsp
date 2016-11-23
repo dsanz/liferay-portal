@@ -19,7 +19,7 @@
 <%
 KBComment kbComment = KBCommentServiceUtil.getKBComment(ParamUtil.getLong(request, "kbCommentId"));
 
-String kbCommentTitle = StringUtil.shorten(HtmlUtil.escape(kbComment.getContent()), 100);
+String kbCommentTitle = StringUtil.shorten(kbComment.getContent(), 100);
 
 KBSuggestionListDisplayContext kbSuggestionListDisplayContext = new KBSuggestionListDisplayContext(request, templatePath, scopeGroupId);
 
@@ -51,7 +51,7 @@ renderResponse.setTitle(kbCommentTitle);
 				</h5>
 
 				<h4>
-					<%= kbCommentTitle %>
+					<%= HtmlUtil.escape(kbCommentTitle) %>
 				</h4>
 
 				<h5>
@@ -111,6 +111,7 @@ int nextStatus = KBUtil.getNextStatus(kbComment.getStatus());
 
 		<c:if test="<%= KBCommentPermission.contains(permissionChecker, kbComment, KBActionKeys.DELETE) %>">
 			<liferay-portlet:actionURL name="deleteKBComment" varImpl="deleteURL">
+				<portlet:param name="redirect" value="<%= redirect %>" />
 				<portlet:param name="kbCommentId" value="<%= String.valueOf(kbComment.getKbCommentId()) %>" />
 			</liferay-portlet:actionURL>
 

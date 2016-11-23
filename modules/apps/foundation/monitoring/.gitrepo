@@ -3,7 +3,7 @@
 ;
 [subrepo]
 	cmdver = liferay
-	commit = d50e65e737de3605de2b4ba4c99de1945067f5df
+	commit = 87ecedd4453b11436d8b4a9a2c91452cb9f42b2e
 	mode = push
-	parent = c6fbe360733bd17ae67db05810ce0557883e2c98
+	parent = 1f9dab5b6adab649f7987f4c384fbc627763ebb3
 	remote = git@github.com:liferay/com-liferay-monitoring.git

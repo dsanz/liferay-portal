@@ -54,6 +54,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FACEBOOK_LOGIN</td>
+	<td>//span[contains(.,'Facebook')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>GOOGLE_LOGIN</td>
 	<td>//span[contains(.,'Google')]</td>
 	<td></td>
@@ -91,6 +96,11 @@
 <tr>
 	<td>NEW_PAGE</td>
 	<td>//a[contains(.,'New Page')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>OPENID</td>
+	<td>//span[contains(.,'OpenID')]</td>
 	<td></td>
 </tr>
 <tr>

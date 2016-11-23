@@ -93,6 +93,7 @@ public class UpgradeJournalArticleLocalizedValues extends UpgradeProcess {
 						rs.getString(2), defaultLocale);
 
 				ps2.setString(1, defaultLanguageId);
+
 				ps2.setLong(2, rs.getLong(1));
 
 				ps2.addBatch();

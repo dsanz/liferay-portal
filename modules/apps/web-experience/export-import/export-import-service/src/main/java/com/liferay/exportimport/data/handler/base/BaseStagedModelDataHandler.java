@@ -17,6 +17,7 @@ package com.liferay.exportimport.data.handler.base;
 import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.exportimport.content.processor.ExportImportContentProcessor;
+import com.liferay.exportimport.content.processor.ExportImportContentProcessorRegistryUtil;
 import com.liferay.exportimport.kernel.lar.ExportImportDateUtil;
 import com.liferay.exportimport.kernel.lar.ExportImportProcessCallbackRegistryUtil;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
@@ -27,6 +28,8 @@ import com.liferay.exportimport.staged.model.repository.StagedModelRepository;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.StagedGroupedModel;
 import com.liferay.portal.kernel.model.StagedModel;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.util.DateRange;
 import com.liferay.portal.kernel.util.MapUtil;
 
@@ -149,14 +152,14 @@ public abstract class BaseStagedModelDataHandler<T extends StagedModel>
 			portletDataContext, stagedModel);
 	}
 
-	/**
-	 * @deprecated As of 7.0.0
-	 */
-	@Deprecated
 	protected ExportImportContentProcessor getExportImportContentProcessor(
 		Class<T> clazz) {
 
-		return null;
+		ExportImportContentProcessor exportImportContentProcessor =
+			ExportImportContentProcessorRegistryUtil.
+				getExportImportContentProcessor(clazz.getName());
+
+		return exportImportContentProcessor;
 	}
 
 	protected StagedModelRepository<T> getStagedModelRepository() {
@@ -201,7 +204,18 @@ public abstract class BaseStagedModelDataHandler<T extends StagedModel>
 			ExportImportDateUtil.updateLastPublishDate(
 				(StagedGroupedModel)stagedModel, _dateRange, endDate);
 
-			stagedModelRepository.saveStagedModel(stagedModel);
+			ServiceContext serviceContext = new ServiceContext();
+
+			serviceContext.setModifiedDate(stagedModel.getModifiedDate());
+
+			ServiceContextThreadLocal.pushServiceContext(serviceContext);
+
+			try {
+				stagedModelRepository.saveStagedModel(stagedModel);
+			}
+			finally {
+				ServiceContextThreadLocal.popServiceContext();
+			}
 
 			return null;
 		}

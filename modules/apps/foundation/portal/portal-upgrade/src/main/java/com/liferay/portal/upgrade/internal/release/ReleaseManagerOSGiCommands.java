@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,7 +66,8 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 	configurationPolicy = ConfigurationPolicy.OPTIONAL, immediate = true,
 	property = {
 		"osgi.command.function=check", "osgi.command.function=execute",
-		"osgi.command.function=list", "osgi.command.scope=upgrade"
+		"osgi.command.function=executeAll", "osgi.command.function=list",
+		"osgi.command.scope=upgrade"
 	},
 	service = ReleaseManagerOSGiCommands.class
 )
@@ -96,9 +98,9 @@ public class ReleaseManagerOSGiCommands {
 				continue;
 			}
 
-			StringBundler sb = new StringBundler(7);
+			StringBundler sb = new StringBundler(6);
 
-			sb.append("Dry run upgrade ");
+			sb.append("There is an upgrade process available for ");
 			sb.append(bundleSymbolicName);
 			sb.append(" from ");
 			sb.append(schemaVersionString);
@@ -110,8 +112,6 @@ public class ReleaseManagerOSGiCommands {
 				upgradeInfos.size() - 1);
 
 			sb.append(lastUpgradeInfo.getToSchemaVersionString());
-
-			sb.append(" and its dependent modules");
 
 			System.out.println(sb.toString());
 		}
@@ -131,6 +131,36 @@ public class ReleaseManagerOSGiCommands {
 			bundleSymbolicName,
 			releaseGraphManager.getUpgradeInfos(
 				schemaVersionString, toVersionString));
+	}
+
+	public void executeAll() {
+		Set<String> upgradeThrewExceptionBundleSymbolicNames = new HashSet<>();
+
+		executeAll(upgradeThrewExceptionBundleSymbolicNames);
+
+		if (upgradeThrewExceptionBundleSymbolicNames.isEmpty()) {
+			System.out.println("All modules were successfully upgraded");
+
+			return;
+		}
+
+		StringBundler sb = new StringBundler(
+			(upgradeThrewExceptionBundleSymbolicNames.size() * 3) + 3);
+
+		sb.append("\nThe following modules had errors while upgrading:\n");
+
+		for (String upgradeThrewExceptionBundleSymbolicName :
+				upgradeThrewExceptionBundleSymbolicNames) {
+
+			sb.append("\t");
+			sb.append(upgradeThrewExceptionBundleSymbolicName);
+			sb.append("\n");
+		}
+
+		sb.append("Use the command upgrade:list <module name> to get more ");
+		sb.append("details about the status of a specific upgrade.");
+
+		System.out.println(sb.toString());
 	}
 
 	public void list() {
@@ -202,20 +232,15 @@ public class ReleaseManagerOSGiCommands {
 		String bundleSymbolicName,
 		ServiceTrackerMap<String, List<UpgradeInfo>> serviceTrackerMap) {
 
-		ReleaseGraphManager releaseGraphManager = new ReleaseGraphManager(
-			serviceTrackerMap.getService(bundleSymbolicName));
-
-		String schemaVersionString = getSchemaVersionString(bundleSymbolicName);
-
-		List<List<UpgradeInfo>> upgradeInfosList =
-			releaseGraphManager.getUpgradeInfosList(schemaVersionString);
+		List<List<UpgradeInfo>> upgradeInfosList = getUpgradeInfosList(
+			bundleSymbolicName, serviceTrackerMap);
 
 		int size = upgradeInfosList.size();
 
 		if (size > 1) {
 			throw new IllegalStateException(
 				"There are " + size + " possible end nodes for " +
-					schemaVersionString);
+					getSchemaVersionString(bundleSymbolicName));
 		}
 
 		if (size == 0) {
@@ -223,6 +248,34 @@ public class ReleaseManagerOSGiCommands {
 		}
 
 		executeUpgradeInfos(bundleSymbolicName, upgradeInfosList.get(0));
+	}
+
+	protected void executeAll(
+		Set<String> upgradeThrewExceptionBundleSymbolicNames) {
+
+		Set<String> upgradableBundleSymbolicNames =
+			getUpgradableBundleSymbolicNames();
+
+		upgradableBundleSymbolicNames.removeAll(
+			upgradeThrewExceptionBundleSymbolicNames);
+
+		if (upgradableBundleSymbolicNames.isEmpty()) {
+			return;
+		}
+
+		for (String upgradableBundleSymbolicName :
+				upgradableBundleSymbolicNames) {
+
+			try {
+				doExecute(upgradableBundleSymbolicName, _serviceTrackerMap);
+			}
+			catch (Exception e) {
+				upgradeThrewExceptionBundleSymbolicNames.add(
+					upgradableBundleSymbolicName);
+			}
+		}
+
+		executeAll(upgradeThrewExceptionBundleSymbolicNames);
 	}
 
 	protected void executeUpgradeInfos(
@@ -265,6 +318,41 @@ public class ReleaseManagerOSGiCommands {
 		}
 
 		return release.getSchemaVersion();
+	}
+
+	protected Set<String> getUpgradableBundleSymbolicNames() {
+		Set<String> upgradableBundleSymbolicNames = new HashSet<>();
+
+		for (String bundleSymbolicName : _serviceTrackerMap.keySet()) {
+			if (isUpgradable(bundleSymbolicName)) {
+				upgradableBundleSymbolicNames.add(bundleSymbolicName);
+			}
+		}
+
+		return upgradableBundleSymbolicNames;
+	}
+
+	protected List<List<UpgradeInfo>> getUpgradeInfosList(
+		String bundleSymbolicName,
+		ServiceTrackerMap<String, List<UpgradeInfo>> serviceTrackerMap) {
+
+		String schemaVersionString = getSchemaVersionString(bundleSymbolicName);
+
+		ReleaseGraphManager releaseGraphManager = new ReleaseGraphManager(
+			serviceTrackerMap.getService(bundleSymbolicName));
+
+		return releaseGraphManager.getUpgradeInfosList(schemaVersionString);
+	}
+
+	protected boolean isUpgradable(String bundleSymbolicName) {
+		List<List<UpgradeInfo>> upgradeInfosList = getUpgradeInfosList(
+			bundleSymbolicName, _serviceTrackerMap);
+
+		if (upgradeInfosList.size() == 1) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Reference(unbind = "-")

@@ -15,7 +15,7 @@
 </tr>
 <tr>
 	<td>KB_TOOLS</td>
-	<td>//div[@class='kb-tools']//span[contains(.,'${key_kbTool}')]</td>
+	<td>//div[@class='kb-tools']//span[.='${key_kbTool}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -184,7 +184,7 @@
 	<td></td>
 </tr>
 <tr>
-	<td>DESCRIPTIVE_VIEW_CHILD_ARTICLE_DETAILS</td>
+	<td>DESCRIPTIVE_VIEW_CHILD_ARTICLE_LINK</td>
 	<td>//li[contains(.,'${key_kbArticleTitle}')]//a[contains(.,'Child Article')]</td>
 	<td></td>
 </tr>
@@ -201,7 +201,7 @@
 </tr>
 <tr>
 	<td>CHILD_PAGE_TITLE</td>
-	<td>//div[@class='list-group-item-content']//a[contains(.,'${key_kbChildArticleTitle}')]</td>
+	<td>//li[@class='list-group-item']//a[contains(.,'${key_kbChildArticleTitle}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -258,7 +258,7 @@
 <!--FOLDER-->
 <tr>
 	<td>FOLDER_BREADCRUMBS</td>
-	<td>//ul[contains(@class,'breadcrumb')]//a[contains(.,'${key_kbFolderName}')]</td>
+	<td>//ul[contains(@class,'breadcrumb')]//li[contains(.,'${key_kbFolderName}')]</td>
 	<td></td>
 </tr>
 <tr>

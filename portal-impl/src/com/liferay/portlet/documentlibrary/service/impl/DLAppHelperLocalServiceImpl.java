@@ -72,6 +72,7 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
+import com.liferay.portal.repository.liferayrepository.model.LiferayFileShortcut;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileVersion;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFolder;
 import com.liferay.portlet.documentlibrary.DLGroupServiceSettings;
@@ -501,7 +502,7 @@ public class DLAppHelperLocalServiceImpl
 
 		int oldStatus = dlFileShortcut.getStatus();
 
-		dlFileShortcutLocalService.updateStatus(
+		dlFileShortcut = dlFileShortcutLocalService.updateStatus(
 			userId, fileShortcut.getFileShortcutId(),
 			WorkflowConstants.STATUS_IN_TRASH, new ServiceContext());
 
@@ -524,7 +525,7 @@ public class DLAppHelperLocalServiceImpl
 			fileShortcut.getFileShortcutId(), fileShortcut.getUuid(), null,
 			oldStatus, null, null);
 
-		return fileShortcut;
+		return new LiferayFileShortcut(dlFileShortcut);
 	}
 
 	@Override
@@ -830,11 +831,15 @@ public class DLAppHelperLocalServiceImpl
 		String[] assetTagNames = assetTagLocalService.getTagNames(
 			DLFileEntryConstants.getClassName(), assetClassPk);
 
-		AssetEntry assetEntry = assetEntryLocalService.getEntry(
+		AssetEntry assetEntry = assetEntryLocalService.fetchEntry(
 			DLFileEntryConstants.getClassName(), assetClassPk);
 
-		List<AssetLink> assetLinks = assetLinkLocalService.getDirectLinks(
-			assetEntry.getEntryId(), false);
+		List<AssetLink> assetLinks = null;
+
+		if (assetEntry != null) {
+			assetLinks = assetLinkLocalService.getDirectLinks(
+				assetEntry.getEntryId(), false);
+		}
 
 		long[] assetLinkIds = ListUtil.toLongArray(
 			assetLinks, AssetLink.ENTRY_ID2_ACCESSOR);
@@ -1694,13 +1699,6 @@ public class DLAppHelperLocalServiceImpl
 			folder = dlAppLocalService.getFolder(folderId);
 		}
 
-		String folderName = LanguageUtil.get(
-			serviceContext.getLocale(), "home");
-
-		if (folder != null) {
-			folderName = folder.getName();
-		}
-
 		SubscriptionSender subscriptionSender =
 			new GroupSubscriptionCheckSubscriptionSender(
 				DLPermission.RESOURCE_NAME);
@@ -1714,12 +1712,20 @@ public class DLAppHelperLocalServiceImpl
 		subscriptionSender.setClassPK(fileVersion.getFileEntryId());
 		subscriptionSender.setClassName(DLFileEntryConstants.getClassName());
 		subscriptionSender.setCompanyId(fileVersion.getCompanyId());
+
+		if (folder != null) {
+			subscriptionSender.setContextAttribute(
+				"[$FOLDER_NAME$]", folder.getName(), true);
+		}
+		else {
+			subscriptionSender.setLocalizedContextAttribute(
+				"[$FOLDER_NAME$]", locale -> LanguageUtil.get(locale, "home"));
+		}
+
 		subscriptionSender.setContextAttributes(
 			"[$DOCUMENT_STATUS_BY_USER_NAME$]",
 			fileVersion.getStatusByUserName(), "[$DOCUMENT_TITLE$]", entryTitle,
-			"[$DOCUMENT_TYPE$]",
-			dlFileEntryType.getName(serviceContext.getLocale()),
-			"[$DOCUMENT_URL$]", entryURL, "[$FOLDER_NAME$]", folderName);
+			"[$DOCUMENT_URL$]", entryURL);
 		subscriptionSender.setContextCreatorUserPrefix("DOCUMENT");
 		subscriptionSender.setCreatorUserId(fileVersion.getUserId());
 		subscriptionSender.setCurrentUserId(userId);
@@ -1729,6 +1735,8 @@ public class DLAppHelperLocalServiceImpl
 		subscriptionSender.setHtmlFormat(true);
 		subscriptionSender.setLocalizedBodyMap(
 			LocalizationUtil.getMap(bodyLocalizedValuesMap));
+		subscriptionSender.setLocalizedContextAttribute(
+			"[$DOCUMENT_TYPE$]", locale -> dlFileEntryType.getName(locale));
 		subscriptionSender.setLocalizedSubjectMap(
 			LocalizationUtil.getMap(subjectLocalizedValuesMap));
 		subscriptionSender.setMailId(

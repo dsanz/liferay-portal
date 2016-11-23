@@ -31,7 +31,6 @@
 						'liferay-ddm-form-renderer-context': {
 							path: 'form_context_support.js',
 							requires: [
-								'liferay-ddm-form-renderer-field-class-factory',
 								'liferay-ddm-form-renderer-layout-visitor',
 								'liferay-ddm-form-renderer-types',
 								'liferay-ddm-form-renderer-util'
@@ -45,8 +44,7 @@
 							path: 'expressions_evaluator.js',
 							requires: [
 								'aui-component',
-								'aui-io-request',
-								'aui-map'
+								'aui-io-request'
 							]
 						},
 						'liferay-ddm-form-renderer-feedback': {
@@ -61,6 +59,7 @@
 								'aui-datatype',
 								'aui-node',
 								'liferay-ddm-form-renderer',
+								'liferay-ddm-form-renderer-field-context-support',
 								'liferay-ddm-form-renderer-field-evaluation',
 								'liferay-ddm-form-renderer-field-events',
 								'liferay-ddm-form-renderer-field-feedback',
@@ -71,8 +70,8 @@
 								'liferay-ddm-form-renderer-util'
 							]
 						},
-						'liferay-ddm-form-renderer-field-class-factory': {
-							path: 'field_class_factory.js',
+						'liferay-ddm-form-renderer-field-context-support': {
+							path: 'field_context_support.js',
 							requires: [
 								'liferay-ddm-form-renderer-types',
 								'liferay-ddm-form-renderer-util'

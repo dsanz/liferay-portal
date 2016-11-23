@@ -49,9 +49,12 @@ public class ShoppingCategoryLocalServiceImpl
 
 		// Category
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
+
 		long groupId = serviceContext.getScopeGroupId();
+
 		parentCategoryId = getParentCategoryId(groupId, parentCategoryId);
+
 		Date now = new Date();
 
 		validate(name);

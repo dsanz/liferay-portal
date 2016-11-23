@@ -48,7 +48,7 @@
 				<else>
 					<pathconvert pathsep="," property="plugin.build.path" setonempty="false">
 						<path>
-							<fileset dir="${project.dir}/modules" includes="**/@{plugin}/build.xml" />
+							<fileset dir="${project.dir}/modules" includes="**/@{plugin}/build.gradle,**/@{plugin}/build.xml" />
 						</path>
 					</pathconvert>
 
@@ -75,21 +75,46 @@
 	<target name="deploy-extra-apps">
 		<for list="${plugins.includes}" param="plugin">
 			<sequential>
-				<pathconvert pathsep="," property="extraapps.zip" setonempty="false">
-					<path>
-						<fileset
-							dir="extraapps"
-							includes="@{plugin}*"
+				<if>
+					<available file="extraapps" />
+					<then>
+						<pathconvert pathsep="," property="extraapps.zip" setonempty="false">
+							<path>
+								<fileset
+									dir="extraapps"
+									includes="@{plugin}*"
+								/>
+							</path>
+						</pathconvert>
+					</then>
+				</if>
+
+				<if>
+					<isset property="extraapps.zip" />
+					<then>
+						<get-auto-deploy-dir />
+
+						<unzip
+							dest="${auto.deploy.dir}"
+							src="${extraapps.zip}"
 						/>
-					</path>
-				</pathconvert>
+					</then>
+					<elseif>
+						<and>
+							<available file="plugins" />
+							<isset property="marketplace.app[@{plugin}]" />
+						</and>
+						<then>
+							<local name="marketplace.app" />
 
-				<get-auto-deploy-dir />
+							<propertycopy from="marketplace.app[@{plugin}]" name="marketplace.app" />
 
-				<unzip
-					dest="${auto.deploy.dir}"
-					src="${extraapps.zip}"
-				/>
+							<get-auto-deploy-dir />
+
+							<copy file="plugins/${marketplace.app}" todir="${auto.deploy.dir}" />
+						</then>
+					</elseif>
+				</if>
 			</sequential>
 		</for>
 	</target>
@@ -256,6 +281,18 @@ app.server.tomcat.dir=${app.server.parent.dir}/tomcat-7.0.42</echo>
 
 								<ant dir="${plugin.path}" inheritAll="false" target="deploy" />
 							</else>
+						</if>
+
+						<if>
+							<equals arg1="@{plugin}" arg2="cas-web" />
+							<then>
+								<move todir="${app.server.dir}/webapps">
+								  <fileset dir="${app.server.dir}/webapps">
+								    <include name="cas-web-*.war" />
+								  </fileset>
+								  <mapper from="*" to="cas-web.war" type="glob" />
+								</move>
+							</then>
 						</if>
 					</else>
 				</if>

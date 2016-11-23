@@ -41,6 +41,7 @@ import org.osgi.service.component.annotations.Component;
 public class KeyValueDDMFormFieldTemplateContextContributor
 	implements DDMFormFieldTemplateContextContributor {
 
+	@Override
 	public Map<String, Object> getParameters(
 		DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
@@ -56,8 +57,8 @@ public class KeyValueDDMFormFieldTemplateContextContributor
 
 		Map<String, String> stringsMap = new HashMap<>();
 
-		stringsMap.put("done", LanguageUtil.get(locale, "done"));
 		stringsMap.put("cancel", LanguageUtil.get(locale, "cancel"));
+		stringsMap.put("done", LanguageUtil.get(locale, "done"));
 		stringsMap.put("keyLabel", LanguageUtil.get(locale, "field-name"));
 
 		parameters.put("strings", stringsMap);
