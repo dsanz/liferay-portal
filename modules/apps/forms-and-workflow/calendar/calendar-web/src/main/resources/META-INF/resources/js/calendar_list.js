@@ -19,8 +19,6 @@ AUI.add(
 
 		var STR_PLUS = '+';
 
-		var CSS_CALENDAR_LIST_EMPTY_MESSAGE = getClassName(STR_CALENDAR_LIST, 'empty', 'message');
-
 		var CSS_CALENDAR_LIST_ITEM = getClassName(STR_CALENDAR_LIST, STR_ITEM);
 
 		var CSS_CALENDAR_LIST_ITEM_ACTIVE = getClassName(STR_CALENDAR_LIST, STR_ITEM, 'active');
@@ -34,8 +32,6 @@ AUI.add(
 		var CSS_CALENDAR_LIST_ITEM_LABEL = getClassName(STR_CALENDAR_LIST, STR_ITEM, 'label');
 
 		var CSS_ICON_CARET_DOWN = 'icon-caret-down';
-
-		var TPL_CALENDAR_LIST_EMPTY_MESSAGE = '<div class="' + CSS_CALENDAR_LIST_EMPTY_MESSAGE + '">{message}</div>';
 
 		var TPL_CALENDAR_LIST_ITEM = new A.Template(
 			'<tpl for="calendars">',
@@ -70,12 +66,6 @@ AUI.add(
 						validator: isObject,
 						value: null,
 						zIndex: Liferay.zIndex.MENU
-					},
-
-					strings: {
-						value: {
-							emptyMessage: Liferay.Language.get('no-calendars-selected')
-						}
 					}
 				},
 
@@ -86,17 +76,6 @@ AUI.add(
 				prototype: {
 					initializer: function() {
 						var instance = this;
-
-						var emptyMessage = instance.get('strings.emptyMessage');
-
-						instance.emptyMessageNode = A.Node.create(
-							Lang.sub(
-								TPL_CALENDAR_LIST_EMPTY_MESSAGE,
-								{
-									message: emptyMessage
-								}
-							)
-						);
 
 						instance.simpleMenu = new Liferay.SimpleMenu(instance.get('simpleMenu'));
 					},
@@ -308,20 +287,16 @@ AUI.add(
 						var calendars = instance.get('calendars');
 						var contentBox = instance.get('contentBox');
 
-						if (calendars.length === 0) {
-							contentBox.setContent(instance.emptyMessageNode);
-						}
-						else {
-							instance.items = A.NodeList.create(
-								TPL_CALENDAR_LIST_ITEM.parse(
-									{
-										calendars: calendars
-									}
-								)
-							);
+						instance.items = A.NodeList.create(
+							TPL_CALENDAR_LIST_ITEM.parse(
+								{
+									calendars: calendars
+								}
+							)
+						);
 
-							contentBox.setContent(instance.items);
-						}
+						contentBox.setContent(instance.items);
+
 					},
 
 					_setCalendarColor: function(calendar, val) {

@@ -100,6 +100,9 @@ public class DefaultSocialActivitiesDisplayContext
 		ResourceURL rssURL = liferayPortletResponse.createResourceURL();
 
 		rssURL.setParameter("feedTitle", feedTitle);
+		rssURL.setParameter(
+			"max",
+			String.valueOf(_socialActivitiesRequestHelper.getRSSDelta()));
 		rssURL.setResourceID("rss");
 
 		return rssURL;
@@ -118,16 +121,13 @@ public class DefaultSocialActivitiesDisplayContext
 
 		Group group = _socialActivitiesRequestHelper.getScopeGroup();
 		Layout layout = _socialActivitiesRequestHelper.getLayout();
-
 		SocialActivitiesQueryHelper.Scope scope =
 			SocialActivitiesQueryHelper.Scope.fromValue(getSelectedTabName());
-
-		int start = _socialActivitiesRequestHelper.getEnd();
 
 		_socialActivitySets =
 			_socialActivitiesQueryHelper.getSocialActivitySets(
 				group, layout, scope, 0,
-				start + _socialActivitiesRequestHelper.getMax());
+				_socialActivitiesRequestHelper.getEnd());
 
 		return _socialActivitySets;
 	}
@@ -161,9 +161,15 @@ public class DefaultSocialActivitiesDisplayContext
 
 	@Override
 	public boolean isSeeMoreControlVisible() {
-		List<SocialActivitySet> socialActivitySets = getSocialActivitySets();
+		Group group = _socialActivitiesRequestHelper.getScopeGroup();
+		Layout layout = _socialActivitiesRequestHelper.getLayout();
+		SocialActivitiesQueryHelper.Scope scope =
+			SocialActivitiesQueryHelper.Scope.fromValue(getSelectedTabName());
 
-		if (socialActivitySets.size() == getMax()) {
+		int count = _socialActivitiesQueryHelper.getSocialActivitySetsCount(
+			group, layout, scope);
+
+		if (_socialActivitiesRequestHelper.getEnd() < count) {
 			return true;
 		}
 

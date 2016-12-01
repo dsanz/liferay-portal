@@ -22,12 +22,15 @@ import com.liferay.sync.engine.document.library.util.ServerEventUtil;
 import com.liferay.sync.engine.file.system.SyncWatchEventProcessor;
 import com.liferay.sync.engine.file.system.Watcher;
 import com.liferay.sync.engine.file.system.util.WatcherManager;
+import com.liferay.sync.engine.lan.server.LanEngine;
 import com.liferay.sync.engine.model.SyncAccount;
 import com.liferay.sync.engine.model.SyncFile;
+import com.liferay.sync.engine.model.SyncProp;
 import com.liferay.sync.engine.model.SyncSite;
 import com.liferay.sync.engine.model.SyncUser;
 import com.liferay.sync.engine.service.SyncAccountService;
 import com.liferay.sync.engine.service.SyncFileService;
+import com.liferay.sync.engine.service.SyncPropService;
 import com.liferay.sync.engine.service.SyncSiteService;
 import com.liferay.sync.engine.service.SyncUserService;
 import com.liferay.sync.engine.service.SyncWatchEventService;
@@ -45,7 +48,6 @@ import com.liferay.sync.engine.util.Validator;
 
 import java.io.IOException;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -295,7 +297,7 @@ public class SyncEngine {
 
 			Path syncSiteFilePath = Paths.get(syncSite.getFilePathName());
 
-			if (Files.notExists(syncSiteFilePath)) {
+			if (FileUtil.notExists(syncSiteFilePath)) {
 				if (_logger.isTraceEnabled()) {
 					_logger.trace(
 						"Missing sync site file path {}", syncSiteFilePath);
@@ -350,6 +352,10 @@ public class SyncEngine {
 			scheduleSyncAccountTasks(syncAccount.getSyncAccountId());
 		}
 
+		if (SyncPropService.getBoolean(SyncProp.KEY_LAN_ENABLED, true)) {
+			LanEngine.start();
+		}
+
 		SyncEngineUtil.fireSyncEngineStateChanged(
 			SyncEngineUtil.SYNC_ENGINE_STATE_STARTED);
 	}
@@ -372,6 +378,8 @@ public class SyncEngine {
 		_remoteEventsScheduledExecutorService.shutdownNow();
 
 		FileLockRetryUtil.shutdown();
+
+		LanEngine.stop();
 
 		LoggerUtil.shutdown();
 

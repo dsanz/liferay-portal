@@ -16,7 +16,10 @@ package com.liferay.portal.test.rule.callback;
 
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
+import com.liferay.portal.kernel.io.unsync.UnsyncPrintWriter;
+import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.test.rule.callback.TestCallback;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.test.log.CaptureAppender;
 import com.liferay.portal.test.log.Log4JLoggerTestUtil;
@@ -56,19 +59,22 @@ public class LogAssertionTestCallback
 	public static void caughtFailure(Error error) {
 		Thread currentThread = Thread.currentThread();
 
-		if (currentThread != _thread) {
-			_concurrentFailures.put(currentThread, error);
-
-			_thread.interrupt();
-		}
-		else {
+		if (currentThread == _thread) {
 			throw error;
+		}
+
+		Error previousError = _concurrentFailures.put(currentThread, error);
+
+		if (previousError != null) {
+			error.addSuppressed(previousError);
 		}
 	}
 
 	public static void endAssert(
 		List<ExpectedLogs> expectedLogsList,
 		List<CaptureAppender> captureAppenders) {
+
+		StringBundler sb = new StringBundler();
 
 		for (CaptureAppender captureAppender : captureAppenders) {
 			try {
@@ -78,13 +84,20 @@ public class LogAssertionTestCallback
 					String renderedMessage = loggingEvent.getRenderedMessage();
 
 					if (!isExpected(expectedLogsList, renderedMessage)) {
-						Assert.fail(renderedMessage);
+						sb.append(renderedMessage);
+						sb.append("\n\n");
 					}
 				}
 			}
 			finally {
 				captureAppender.close();
 			}
+		}
+
+		if (sb.index() != 0) {
+			sb.setIndex(sb.index() - 1);
+
+			Assert.fail(sb.toString());
 		}
 
 		Thread.setDefaultUncaughtExceptionHandler(_uncaughtExceptionHandler);
@@ -98,11 +111,25 @@ public class LogAssertionTestCallback
 				Thread thread = entry.getKey();
 				Error error = entry.getValue();
 
-				Assert.fail(
-					"Thread " + thread + " caught concurrent failure: " +
-						error);
+				UnsyncStringWriter unsyncStringWriter =
+					new UnsyncStringWriter();
 
-				throw error;
+				error.printStackTrace(
+					new UnsyncPrintWriter(unsyncStringWriter));
+
+				sb.append("Thread ");
+				sb.append(thread);
+				sb.append(" caught concurrent failure: ");
+				sb.append(error);
+				sb.append("\n");
+				sb.append(unsyncStringWriter.toString());
+				sb.append("\n\n");
+			}
+
+			if (sb.index() != 0) {
+				sb.setIndex(sb.index() - 1);
+
+				Assert.fail(sb.toString());
 			}
 		}
 		finally {

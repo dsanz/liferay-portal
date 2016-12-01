@@ -1,9 +1,11 @@
 AUI.add(
 	'liferay-ddm-form-renderer-field-repetition',
 	function(A) {
+		var AObject = A.Object;
+
 		var Renderer = Liferay.DDM.Renderer;
 
-		var FieldClassFactory = Renderer.FieldClassFactory;
+		var FieldTypes = Renderer.FieldTypes;
 
 		var SELECTOR_REPEAT_BUTTONS = '.lfr-ddm-form-field-repeatable-add-button, .lfr-ddm-form-field-repeatable-delete-button';
 
@@ -57,6 +59,28 @@ AUI.add(
 				repetitions.forEach(A.bind('_syncRepeatableField', instance));
 			},
 
+			copy: function() {
+				var instance = this;
+
+				var config = instance._copyConfiguration();
+
+				var fieldClass = instance.getFieldClass();
+
+				return new fieldClass(config);
+			},
+
+			getFieldClass: function() {
+				var instance = this;
+
+				var type = instance.get('type');
+
+				var fieldType = FieldTypes.get(type);
+
+				var fieldClassName = fieldType.get('className');
+
+				return AObject.getValue(window, fieldClassName.split('.'));
+			},
+
 			getRepeatedSiblings: function() {
 				var instance = this;
 
@@ -89,13 +113,9 @@ AUI.add(
 			repeat: function() {
 				var instance = this;
 
-				var config = instance._copyConfiguration();
+				var field = instance.copy();
 
-				var type = instance.get('type');
-
-				var fieldClass = FieldClassFactory.getFieldClass(type, config.context);
-
-				var field = new fieldClass(config).render();
+				field.render();
 
 				var repetitions = instance.getRepeatedSiblings();
 

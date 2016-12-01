@@ -23,9 +23,12 @@ import com.liferay.asset.kernel.model.AssetTagModel;
 import com.liferay.asset.kernel.model.AssetTagStatsModel;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.model.AssetVocabularyModel;
-import com.liferay.blogs.kernel.model.BlogsEntry;
-import com.liferay.blogs.kernel.model.BlogsEntryModel;
-import com.liferay.blogs.kernel.model.BlogsStatsUserModel;
+import com.liferay.blogs.model.BlogsEntry;
+import com.liferay.blogs.model.BlogsEntryModel;
+import com.liferay.blogs.model.BlogsStatsUserModel;
+import com.liferay.blogs.model.impl.BlogsEntryModelImpl;
+import com.liferay.blogs.model.impl.BlogsStatsUserModelImpl;
+import com.liferay.blogs.social.BlogsActivityKeys;
 import com.liferay.blogs.web.constants.BlogsPortletKeys;
 import com.liferay.counter.kernel.model.Counter;
 import com.liferay.counter.kernel.model.CounterModel;
@@ -75,6 +78,8 @@ import com.liferay.dynamic.data.mapping.model.impl.DDMStructureVersionModelImpl;
 import com.liferay.dynamic.data.mapping.model.impl.DDMTemplateLinkModelImpl;
 import com.liferay.dynamic.data.mapping.model.impl.DDMTemplateModelImpl;
 import com.liferay.dynamic.data.mapping.storage.StorageType;
+import com.liferay.friendly.url.model.FriendlyURLModel;
+import com.liferay.friendly.url.model.impl.FriendlyURLModelImpl;
 import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleConstants;
@@ -177,9 +182,6 @@ import com.liferay.portlet.asset.model.impl.AssetEntryModelImpl;
 import com.liferay.portlet.asset.model.impl.AssetTagModelImpl;
 import com.liferay.portlet.asset.model.impl.AssetTagStatsModelImpl;
 import com.liferay.portlet.asset.model.impl.AssetVocabularyModelImpl;
-import com.liferay.portlet.blogs.model.impl.BlogsEntryModelImpl;
-import com.liferay.portlet.blogs.model.impl.BlogsStatsUserModelImpl;
-import com.liferay.portlet.blogs.social.BlogsActivityKeys;
 import com.liferay.portlet.documentlibrary.model.impl.DLFileEntryMetadataModelImpl;
 import com.liferay.portlet.documentlibrary.model.impl.DLFileEntryModelImpl;
 import com.liferay.portlet.documentlibrary.model.impl.DLFileEntryTypeModelImpl;
@@ -890,6 +892,7 @@ public class DataFactory {
 		sb.append("</name></root>");
 
 		_defaultDLFileEntryTypeModel.setName(sb.toString());
+
 		_defaultDLFileEntryTypeModel.setLastPublishDate(nextFutureDate());
 
 		_defaultDLDDMStructureModel = newDDMStructureModel(
@@ -1245,6 +1248,7 @@ public class DataFactory {
 			userModel.getLastName());
 
 		contactModel.setUserName(fullName);
+
 		contactModel.setCreateDate(new Date());
 		contactModel.setModifiedDate(new Date());
 		contactModel.setClassNameId(getClassNameId(User.class));
@@ -1676,6 +1680,25 @@ public class DataFactory {
 		return dlFolderModels;
 	}
 
+	public FriendlyURLModel newFriendlyURLModel(
+		BlogsEntryModel blogsEntryModel) {
+
+		FriendlyURLModel friendlyURLModel = new FriendlyURLModelImpl();
+
+		friendlyURLModel.setUuid(SequentialUUID.generate());
+		friendlyURLModel.setFriendlyURLId(_counter.get());
+		friendlyURLModel.setGroupId(blogsEntryModel.getGroupId());
+		friendlyURLModel.setCompanyId(_companyId);
+		friendlyURLModel.setCreateDate(new Date());
+		friendlyURLModel.setModifiedDate(new Date());
+		friendlyURLModel.setClassNameId(getClassNameId(BlogsEntry.class));
+		friendlyURLModel.setClassPK(blogsEntryModel.getEntryId());
+		friendlyURLModel.setUrlTitle(blogsEntryModel.getUrlTitle());
+		friendlyURLModel.setMain(true);
+
+		return friendlyURLModel;
+	}
+
 	public GroupModel newGroupModel(UserModel userModel) throws Exception {
 		return newGroupModel(
 			_counter.get(), getClassNameId(User.class), userModel.getUserId(),
@@ -1870,6 +1893,7 @@ public class DataFactory {
 			typeSettingsProperties.toString(), '\n', "\\n");
 
 		layoutModel.setTypeSettings(typeSettings);
+
 		layoutModel.setLastPublishDate(new Date());
 
 		return layoutModel;
@@ -2519,6 +2543,7 @@ public class DataFactory {
 
 		for (int i = 0; i < _maxUserCount; i++) {
 			String[] userName = nextUserName(i);
+
 			userModels.add(
 				newUserModel(
 					_counter.get(), userName[0], userName[1],
@@ -2762,6 +2787,7 @@ public class DataFactory {
 		blogsEntryModel.setContent("This is test blog " + index + ".");
 		blogsEntryModel.setDisplayDate(new Date());
 		blogsEntryModel.setLastPublishDate(new Date());
+		blogsEntryModel.setStatusByUserId(_sampleUserId);
 		blogsEntryModel.setStatusDate(new Date());
 
 		return blogsEntryModel;

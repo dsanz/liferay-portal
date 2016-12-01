@@ -4,6 +4,7 @@ AUI.add(
 	'liferay-source-editor',
 	function(A) {
 		var Lang = A.Lang;
+		var UA = A.UA;
 
 		var CSS_ACTIVE_CELL = 'ace_gutter-active-cell';
 
@@ -56,11 +57,13 @@ AUI.add(
 							return [
 								{
 									cssClass: '',
-									icon: A.one(Liferay.Util.getLexiconIcon('sun'))
+									icon: A.one(Liferay.Util.getLexiconIcon('sun')),
+									tooltip: Liferay.Language.get('light-theme')
 								},
 								{
 									cssClass: 'ace_dark',
-									icon: A.one(Liferay.Util.getLexiconIcon('moon'))
+									icon: A.one(Liferay.Util.getLexiconIcon('moon')),
+									tooltip: Liferay.Language.get('dark-theme')
 								}
 							];
 						}
@@ -94,6 +97,12 @@ AUI.add(
 
 						instance._initializeThemes();
 						instance._highlightActiveGutterLine(0);
+
+						// LPS-67768
+
+						if (UA.linux && UA.chrome) {
+							aceEditor.renderer.$computeLayerConfig();
+						}
 					},
 
 					bindUI: function() {

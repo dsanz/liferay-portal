@@ -92,6 +92,7 @@ import org.apache.axis.message.MessageElement;
 public class V2MarkupServiceImpl
 	extends BaseServiceImpl implements WSRP_v2_Markup_PortType {
 
+	@Override
 	public MarkupResponse getMarkup(GetMarkup getMarkup)
 		throws RemoteException {
 
@@ -110,6 +111,7 @@ public class V2MarkupServiceImpl
 		}
 	}
 
+	@Override
 	public ResourceResponse getResource(GetResource getResource)
 		throws RemoteException {
 
@@ -128,6 +130,7 @@ public class V2MarkupServiceImpl
 		}
 	}
 
+	@Override
 	public HandleEventsResponse handleEvents(HandleEvents handleEvents)
 		throws RemoteException {
 
@@ -146,6 +149,7 @@ public class V2MarkupServiceImpl
 		}
 	}
 
+	@Override
 	public Extension[] initCookie(InitCookie initCookie)
 		throws RemoteException {
 
@@ -164,6 +168,7 @@ public class V2MarkupServiceImpl
 		}
 	}
 
+	@Override
 	public BlockingInteractionResponse performBlockingInteraction(
 			PerformBlockingInteraction performBlockingInteraction)
 		throws RemoteException {
@@ -183,6 +188,7 @@ public class V2MarkupServiceImpl
 		}
 	}
 
+	@Override
 	public Extension[] releaseSessions(ReleaseSessions releaseSessions)
 		throws RemoteException {
 
@@ -316,6 +322,7 @@ public class V2MarkupServiceImpl
 				String content = new String(itemBinary);
 
 				resourceContext.setItemString(content);
+
 				resourceContext.setRequiresRewriting(true);
 			}
 			else {
@@ -784,6 +791,7 @@ public class V2MarkupServiceImpl
 						ExtensionHelperUtil.getNameAttribute(formParameter));
 
 					sb.append(name);
+
 					sb.append(StringPool.EQUAL);
 					sb.append(HttpUtil.encodeURL(formParameter.getValue()));
 				}
@@ -866,6 +874,7 @@ public class V2MarkupServiceImpl
 				int pos = contentType.indexOf(StringPool.SEMICOLON);
 
 				charSet = contentType.substring(pos + 1);
+
 				charSet = StringUtil.trim(charSet);
 
 				contentType = contentType.substring(0, pos);

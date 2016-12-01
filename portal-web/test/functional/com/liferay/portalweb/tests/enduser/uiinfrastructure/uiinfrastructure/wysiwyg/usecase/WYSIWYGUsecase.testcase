@@ -45,7 +45,7 @@
 			<var name="uploadFileName" value="Document_1.jpg" />
 		</execute>
 
-		<execute macro="BlogsEntry#saveAsDraft" />
+		<execute macro="BlogsEntry#saveAsDraftAndWait" />
 
 		<execute function="Click" locator1="BlogsEditEntry#DELETE_COVER_IMAGE_BUTTON" />
 
@@ -78,7 +78,7 @@
 
 		<execute macro="WebContentNavigator#gotoAddCP" />
 
-		<execute function="Type#mouseOverFocusType" locator1="TextInput#TITLE" value1="Web Content Title" />
+		<execute function="Type" locator1="TextInput#TITLE" value1="Web Content Title" />
 
 		<execute function="Click#pauseClickAt" locator1="AlloyEditor#CONTENT_FIELD" />
 

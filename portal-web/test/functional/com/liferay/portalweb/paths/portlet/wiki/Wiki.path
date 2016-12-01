@@ -87,18 +87,23 @@
 </tr>
 <!--CHILD_PAGE-->
 <tr>
+	<td>CHILD_PAGE_CONTENT</td>
+	<td>//li[contains(@class,'list-group')]//p</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CHILD_PAGE_HEADER</td>
 	<td>//div[@class='sidenav-content']/h4</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CHILD_PAGE_TITLE</td>
-	<td>//div[@class='list-group-item-content']//a[contains(.,'${key_wikiChildPageTitle}')]</td>
+	<td>//li[@class='list-group-item']//a[contains(.,'${key_wikiChildPageTitle}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CHILD_PAGE_GENERIC</td>
-	<td>//div[@class='list-group-item-content']//a</td>
+	<td>//li[@class='list-group-item']//a</td>
 	<td></td>
 </tr>
 <tr>

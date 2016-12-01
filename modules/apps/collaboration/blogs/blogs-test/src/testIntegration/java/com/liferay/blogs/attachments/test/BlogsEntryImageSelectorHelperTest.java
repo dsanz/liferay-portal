@@ -15,6 +15,7 @@
 package com.liferay.blogs.attachments.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.blogs.util.BlogsEntryImageSelectorHelper;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -36,7 +37,6 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.portlet.blogs.BlogsEntryImageSelectorHelper;
 
 import java.io.InputStream;
 
@@ -121,6 +121,7 @@ public class BlogsEntryImageSelectorHelperTest {
 			Assert.assertEquals(
 				_IMAGE_CROP_REGION, imageSelector.getImageCropRegion());
 			Assert.assertEquals(StringPool.BLANK, imageSelector.getImageURL());
+
 			Assert.assertFalse(
 				blogsEntryImageSelectorHelper.isFileEntryTempFile());
 		}
@@ -144,6 +145,7 @@ public class BlogsEntryImageSelectorHelperTest {
 		Assert.assertEquals(
 			StringPool.BLANK, imageSelector.getImageCropRegion());
 		Assert.assertEquals(_IMAGE_URL, imageSelector.getImageURL());
+
 		Assert.assertFalse(blogsEntryImageSelectorHelper.isFileEntryTempFile());
 	}
 
@@ -222,6 +224,7 @@ public class BlogsEntryImageSelectorHelperTest {
 			Assert.assertEquals(
 				_IMAGE_CROP_REGION, imageSelector.getImageCropRegion());
 			Assert.assertEquals(StringPool.BLANK, imageSelector.getImageURL());
+
 			Assert.assertTrue(
 				blogsEntryImageSelectorHelper.isFileEntryTempFile());
 		}

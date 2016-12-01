@@ -38,6 +38,7 @@ import com.liferay.dynamic.data.mapping.validator.DDMFormValidationException.Mus
 import com.liferay.dynamic.data.mapping.validator.DDMFormValidator;
 import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -134,14 +135,15 @@ public class DDMFormValidatorImpl implements DDMFormValidator {
 
 		String fieldType = ddmFormField.getType();
 
-		if (!fieldType.equals(DDMFormFieldType.RADIO) &&
+		if (!fieldType.equals(DDMFormFieldType.CHECKBOX_MULTIPLE) &&
+			!fieldType.equals(DDMFormFieldType.RADIO) &&
 			!fieldType.equals(DDMFormFieldType.SELECT)) {
 
 			return;
 		}
 
-		String dataSourceType = (String)ddmFormField.getProperty(
-			"dataSourceType");
+		String dataSourceType = GetterUtil.getString(
+			ddmFormField.getProperty("dataSourceType"), "manual");
 
 		if (!Objects.equals(dataSourceType, "manual")) {
 			return;

@@ -14,6 +14,8 @@
 
 package com.liferay.exportimport.portlet.preferences.processor.capability;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataException;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
@@ -45,6 +47,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	service = {Capability.class, ReferencedStagedModelImporterCapability.class}
 )
+@ProviderType
 public class ReferencedStagedModelImporterCapability implements Capability {
 
 	@Override
@@ -105,6 +108,10 @@ public class ReferencedStagedModelImporterCapability implements Capability {
 							sb.append(portletDataContext.getGroupId());
 
 							_log.info(sb.toString());
+						}
+
+						if (_log.isDebugEnabled()) {
+							_log.debug(nsle, nsle);
 						}
 
 						continue;

@@ -296,6 +296,8 @@
 			<var name="portlet" value="Web Content" />
 		</execute>
 
+		<execute macro="WebContentNavigator#gotoManageTemplates" />
+
 		<execute macro="WebContentTemplates#addCP">
 			<var name="templateFieldNames" value="Text" />
 			<var name="templateLanguage" value="ftl" />
@@ -370,6 +372,8 @@
 		<execute macro="ProductMenu#gotoSitesContent">
 			<var name="portlet" value="Web Content" />
 		</execute>
+
+		<execute macro="WebContentNavigator#gotoManageTemplates" />
 
 		<execute macro="WebContentTemplates#addCP">
 			<var name="templateFieldNames" value="Content,Content,Content" />
@@ -477,12 +481,14 @@
 
 		<execute macro="WebContentNavigator#gotoEditPGViaWCD" />
 
-		<execute macro="WebContent#addTranslationPGViaWCD">
-			<var name="lowercaseLanguageCode" value="zh" />
-			<var name="webContentTranslationContent" value="世界您好 Content" />
-			<var name="webContentTranslationLanguage" value="Chinese (China)" />
-			<var name="webContentTranslationTitle" value="世界您好 Title" />
+		<execute macro="WebContent#addTranslation">
+			<var name="localizedContent" value="世界您好 Content" />
+			<var name="localizedLanguage" value="Chinese (China)" />
+			<var name="localizedTitle" value="世界您好 Title" />
+			<var name="webContentTitle" value="WC WebContent Title" />
 		</execute>
+
+		<execute macro="Button#clickPublish" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />
@@ -829,12 +835,12 @@
 		<execute macro="Role#viewPermissionPG">
 			<var name="permissionDefinitionKey" value="CONTENT_PERMISSIONS_VIEW_CHECKBOX" />
 			<var name="permissionFlagged" value="true" />
-			<var name="roleName" value="guest" />
+			<var name="roleTitle" value="guest" />
 		</execute>
 
 		<execute macro="Role#removePermissionPG">
 			<var name="permissionDefinitionKey" value="CONTENT_PERMISSIONS_VIEW_CHECKBOX" />
-			<var name="roleName" value="guest" />
+			<var name="roleTitle" value="guest" />
 		</execute>
 
 		<execute macro="User#logoutPG" />
@@ -860,7 +866,7 @@
 
 		<execute macro="Role#definePermissionPG">
 			<var name="permissionDefinitionKey" value="CONTENT_PERMISSIONS_VIEW_CHECKBOX" />
-			<var name="roleName" value="guest" />
+			<var name="roleTitle" value="guest" />
 		</execute>
 
 		<execute macro="Navigator#openURL" />
@@ -880,12 +886,12 @@
 		<execute macro="Role#viewPermissionPG">
 			<var name="permissionDefinitionKey" value="CONTENT_PERMISSIONS_VIEW_CHECKBOX" />
 			<var name="permissionFlagged" value="true" />
-			<var name="roleName" value="guest" />
+			<var name="roleTitle" value="guest" />
 		</execute>
 
 		<execute macro="Role#removePermissionPG">
 			<var name="permissionDefinitionKey" value="CONTENT_PERMISSIONS_VIEW_CHECKBOX" />
-			<var name="roleName" value="guest" />
+			<var name="roleTitle" value="guest" />
 		</execute>
 
 		<execute macro="User#logoutPG" />
@@ -943,13 +949,14 @@
 
 		<execute macro="WebContentNavigator#gotoEditPGViaWCD" />
 
-		<execute macro="WebContent#addTranslationPGViaWCD">
-			<var name="languageKey" value="zh_CN" />
-			<var name="lowercaseLanguageCode" value="zh" />
-			<var name="webContentTranslationContent" value="世界您好 Content" />
-			<var name="webContentTranslationLanguage" value="Chinese (China)" />
-			<var name="webContentTranslationTitle" value="世界您好 Title" />
+		<execute macro="WebContent#addTranslation">
+			<var name="localizedContent" value="世界您好 Content" />
+			<var name="localizedLanguage" value="Chinese (China)" />
+			<var name="localizedTitle" value="世界您好 Title" />
+			<var name="webContentTitle" value="WC WebContent Title" />
 		</execute>
+
+		<execute macro="Button#clickPublish" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />

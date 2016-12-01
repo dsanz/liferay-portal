@@ -51,10 +51,29 @@ public class PersistenceTestCallback extends BaseTestCallback<Object, Object> {
 	}
 
 	@Override
+	public Object beforeClass(Description description) {
+		if (_initialized || ArquillianUtil.isArquillianTest(description)) {
+			return null;
+		}
+
+		try {
+			DBUpgrader.upgrade();
+		}
+		catch (Throwable t) {
+			throw new ExceptionInInitializerError(t);
+		}
+		finally {
+			CacheRegistryUtil.setActive(true);
+		}
+
+		_initialized = true;
+
+		return null;
+	}
+
+	@Override
 	public Object beforeMethod(Description description, Object target)
 		throws Exception {
-
-		_initialize(description);
 
 		Object instance = ReflectionTestUtil.getFieldValue(
 			ModelListenerRegistrationUtil.class, "_instance");
@@ -71,28 +90,6 @@ public class PersistenceTestCallback extends BaseTestCallback<Object, Object> {
 		ServiceTestUtil.setUser(TestPropsValues.getUser());
 
 		return modelListeners;
-	}
-
-	private static void _initialize(Description description) {
-		if (ArquillianUtil.isArquillianTest(description)) {
-			return;
-		}
-
-		if (_initialized) {
-			return;
-		}
-
-		try {
-			DBUpgrader.upgrade();
-		}
-		catch (Throwable t) {
-			throw new ExceptionInInitializerError(t);
-		}
-		finally {
-			CacheRegistryUtil.setActive(true);
-		}
-
-		_initialized = true;
 	}
 
 	private PersistenceTestCallback() {

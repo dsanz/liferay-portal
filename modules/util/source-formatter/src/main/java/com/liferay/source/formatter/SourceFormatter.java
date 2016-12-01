@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -126,7 +127,7 @@ public class SourceFormatter {
 			boolean includeSubrepositories = ArgumentsUtil.getBoolean(
 				arguments, "include.subrepositories",
 				SourceFormatterArgs.INCLUDE_SUBREPOSITORIES);
-	
+
 			sourceFormatterArgs.setIncludeSubrepositories(
 				includeSubrepositories);
 
@@ -193,8 +194,10 @@ public class SourceFormatter {
 		sourceProcessors.add(new JSONSourceProcessor());
 		sourceProcessors.add(new JSPSourceProcessor());
 		sourceProcessors.add(new JSSourceProcessor());
+		sourceProcessors.add(new MarkdownSourceProcessor());
 		sourceProcessors.add(new PropertiesSourceProcessor());
 		sourceProcessors.add(new SHSourceProcessor());
+		sourceProcessors.add(new SoySourceProcessor());
 		sourceProcessors.add(new SQLSourceProcessor());
 		sourceProcessors.add(new TLDSourceProcessor());
 		sourceProcessors.add(new XMLSourceProcessor());
@@ -294,16 +297,20 @@ public class SourceFormatter {
 			ToolsUtil.PORTAL_MAX_DIR_LEVEL);
 
 		if (portalImplDir == null) {
+			Properties properties = null;
+
 			for (int i = 0; i <= ToolsUtil.PLUGINS_MAX_DIR_LEVEL; i++) {
 				try {
 					InputStream inputStream = new FileInputStream(
 						_sourceFormatterArgs.getBaseDirName() + fileName);
 
-					Properties properties = new Properties();
+					Properties props = new Properties();
 
-					properties.load(inputStream);
+					props.load(inputStream);
 
-					return properties;
+					properties = props;
+
+					break;
 				}
 				catch (FileNotFoundException fnfe) {
 				}
@@ -311,10 +318,27 @@ public class SourceFormatter {
 				fileName = "../" + fileName;
 			}
 
-			return new Properties();
+			if (properties == null) {
+				properties = new Properties();
+			}
+
+			String excludesValue = properties.getProperty(
+				"source.formatter.excludes");
+
+			if (Validator.isNull(excludesValue)) {
+				excludesValue = StringUtil.merge(_defaultExcludes);
+			}
+			else {
+				excludesValue +=
+					StringPool.COMMA + StringUtil.merge(_defaultExcludes);
+			}
+
+			properties.setProperty("source.formatter.excludes", excludesValue);
+
+			return properties;
 		}
 
-		String[] excludes = new String[0];
+		Set<String> excludes = new HashSet<>(_defaultExcludes);
 
 		List<Properties> propertiesList = new ArrayList<>();
 
@@ -339,7 +363,7 @@ public class SourceFormatter {
 			List<String> excludesList = ListUtil.fromString(
 				GetterUtil.getString(excludesValue), StringPool.COMMA);
 
-			excludes = excludesList.toArray(new String[excludesList.size()]);
+			excludes.addAll(excludesList);
 		}
 
 		// Find properties files in any parent directory
@@ -367,7 +391,8 @@ public class SourceFormatter {
 
 		List<String> modulePropertiesFileNames =
 			sourceFormatterHelper.getFileNames(
-				_sourceFormatterArgs.getBaseDirName(), null, excludes,
+				_sourceFormatterArgs.getBaseDirName(), null,
+				excludes.toArray(new String[excludes.size()]),
 				new String[] {"**/modules/**/" + fileName},
 				_sourceFormatterArgs.isIncludeSubrepositories());
 
@@ -382,15 +407,14 @@ public class SourceFormatter {
 			propertiesList.add(properties);
 		}
 
-		if (propertiesList.isEmpty()) {
-			return new Properties();
-		}
-
-		if (propertiesList.size() == 1) {
-			return propertiesList.get(0);
-		}
-
 		Properties properties = new Properties();
+
+		properties.setProperty(
+			"source.formatter.excludes", StringUtil.merge(excludes));
+
+		if (propertiesList.isEmpty()) {
+			return properties;
+		}
 
 		for (int i = 0; i < propertiesList.size(); i++) {
 			Properties props = propertiesList.get(i);
@@ -442,6 +466,12 @@ public class SourceFormatter {
 				sourceProcessor.getFirstSourceMismatchException();
 		}
 	}
+
+	private static final List<String> _defaultExcludes = Arrays.asList(
+		"**/.git/**", "**/.gradle/**", "**/bin/**", "**/build/**",
+		"**/classes/**", "**/node_modules/**", "**/npm-shrinkwrap.json",
+		"**/test-classes/**", "**/test-coverage/**", "**/test-results/**",
+		"**/tmp/**");
 
 	private volatile SourceMismatchException _firstSourceMismatchException;
 	private final List<String> _modifiedFileNames =

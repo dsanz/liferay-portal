@@ -17,7 +17,6 @@ package com.liferay.knowledge.base.internal.exportimport.data.handler;
 import com.liferay.document.library.kernel.exception.DuplicateFileEntryException;
 import com.liferay.document.library.kernel.exception.NoSuchFileException;
 import com.liferay.document.library.kernel.model.DLFileEntry;
-import com.liferay.exportimport.content.processor.ExportImportContentProcessorController;
 import com.liferay.exportimport.kernel.lar.BaseStagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.ExportImportPathUtil;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
@@ -27,11 +26,11 @@ import com.liferay.exportimport.kernel.lar.StagedModelModifiedDateComparator;
 import com.liferay.knowledge.base.constants.KBArticleConstants;
 import com.liferay.knowledge.base.constants.KBFolderConstants;
 import com.liferay.knowledge.base.constants.KBPortletKeys;
+import com.liferay.knowledge.base.internal.exportimport.content.processor.KBArticleExportImportContentProcessor;
 import com.liferay.knowledge.base.model.KBArticle;
 import com.liferay.knowledge.base.model.KBFolder;
 import com.liferay.knowledge.base.service.KBArticleLocalService;
 import com.liferay.knowledge.base.service.KBFolderLocalService;
-import com.liferay.knowledge.base.service.persistence.KBArticlePersistence;
 import com.liferay.knowledge.base.service.util.AdminUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -158,7 +157,7 @@ public class KBArticleStagedModelDataHandler
 			portletDataContext, kbArticleElement, kbArticle);
 
 		String content =
-			_exportImportContentProcessorController.
+			_kbArticleExportImportContentProcessor.
 				replaceExportContentReferences(
 					portletDataContext, kbArticle, kbArticle.getContent(), true,
 					true);
@@ -254,7 +253,7 @@ public class KBArticleStagedModelDataHandler
 		String[] sections = AdminUtil.unescapeSections(kbArticle.getSections());
 
 		String content =
-			_exportImportContentProcessorController.
+			_kbArticleExportImportContentProcessor.
 				replaceImportContentReferences(
 					portletDataContext, kbArticle, kbArticle.getContent());
 
@@ -266,7 +265,7 @@ public class KBArticleStagedModelDataHandler
 		KBArticle importedKBArticle = null;
 
 		if (portletDataContext.isDataStrategyMirror()) {
-			KBArticle existingKBArticle = _kbArticlePersistence.fetchByR_G_V(
+			KBArticle existingKBArticle = _kbArticleLocalService.fetchKBArticle(
 				resourcePrimaryKey, portletDataContext.getScopeGroupId(),
 				kbArticle.getVersion());
 
@@ -278,9 +277,8 @@ public class KBArticleStagedModelDataHandler
 			if (existingKBArticle == null) {
 				serviceContext.setUuid(kbArticle.getUuid());
 
-				existingKBArticle = _kbArticlePersistence.fetchByR_G_L_First(
-					resourcePrimaryKey, portletDataContext.getScopeGroupId(),
-					true, null);
+				existingKBArticle = _kbArticleLocalService.fetchLatestKBArticle(
+					resourcePrimaryKey, portletDataContext.getScopeGroupId());
 
 				if (existingKBArticle == null) {
 					importedKBArticle = _kbArticleLocalService.addKBArticle(
@@ -405,6 +403,12 @@ public class KBArticleStagedModelDataHandler
 						inputStream = FileEntryUtil.getContentStream(fileEntry);
 					}
 					catch (NoSuchFileException nsfe) {
+
+						// LPS-52675
+
+						if (_log.isDebugEnabled()) {
+							_log.debug(nsfe, nsfe);
+						}
 					}
 				}
 				else {
@@ -432,6 +436,12 @@ public class KBArticleStagedModelDataHandler
 					fileEntry.getFileName(), fileEntry.getMimeType(), true);
 			}
 			catch (DuplicateFileEntryException dfee) {
+
+				// LPS-52675
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(dfee, dfee);
+				}
 			}
 			finally {
 				StreamUtil.cleanUp(inputStream);
@@ -440,26 +450,10 @@ public class KBArticleStagedModelDataHandler
 	}
 
 	@Reference(unbind = "-")
-	protected void setExportImportContentProcessorController(
-		ExportImportContentProcessorController
-			exportImportContentProcessorController) {
-
-		_exportImportContentProcessorController =
-			exportImportContentProcessorController;
-	}
-
-	@Reference(unbind = "-")
 	protected void setKBArticleLocalService(
 		KBArticleLocalService kbArticleLocalService) {
 
 		_kbArticleLocalService = kbArticleLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setKBArticlePersistence(
-		KBArticlePersistence kbArticlePersistence) {
-
-		_kbArticlePersistence = kbArticlePersistence;
 	}
 
 	@Reference(unbind = "-")
@@ -484,10 +478,11 @@ public class KBArticleStagedModelDataHandler
 	private static final Log _log = LogFactoryUtil.getLog(
 		KBArticleStagedModelDataHandler.class);
 
-	private ExportImportContentProcessorController
-		_exportImportContentProcessorController;
+	@Reference
+	private KBArticleExportImportContentProcessor
+		_kbArticleExportImportContentProcessor;
+
 	private KBArticleLocalService _kbArticleLocalService;
-	private KBArticlePersistence _kbArticlePersistence;
 	private KBFolderLocalService _kbFolderLocalService;
 	private Portal _portal;
 	private PortletFileRepository _portletFileRepository;

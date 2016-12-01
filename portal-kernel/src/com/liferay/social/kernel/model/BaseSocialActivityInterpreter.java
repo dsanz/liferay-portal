@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ResourceBundleLoader;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -344,7 +345,7 @@ public abstract class BaseSocialActivityInterpreter
 			}
 		}
 		catch (JSONException jsone) {
-			_log.error("Unable to create a JSON object from " + json);
+			_log.error("Unable to create a JSON object from " + json, jsone);
 		}
 
 		return defaultValue;
@@ -376,8 +377,21 @@ public abstract class BaseSocialActivityInterpreter
 			return path;
 		}
 
-		return serviceContext.getPortalURL() + serviceContext.getPathMain() +
-			path;
+		StringBundler sb = new StringBundler(4);
+
+		sb.append(serviceContext.getPortalURL());
+
+		if (!path.startsWith(PortalUtil.getPathContext())) {
+			sb.append(PortalUtil.getPathContext());
+		}
+
+		if (!path.startsWith(serviceContext.getPathMain())) {
+			sb.append(serviceContext.getPathMain());
+		}
+
+		sb.append(path);
+
+		return sb.toString();
 	}
 
 	protected String getPath(
@@ -412,7 +426,17 @@ public abstract class BaseSocialActivityInterpreter
 		Object[] titleArguments = getTitleArguments(
 			groupName, activity, link, entryTitle, serviceContext);
 
-		return serviceContext.translate(titlePattern, titleArguments);
+		ResourceBundleLoader resourceBundleLoader = getResourceBundleLoader();
+
+		if (resourceBundleLoader == null) {
+			return serviceContext.translate(titlePattern, titleArguments);
+		}
+
+		ResourceBundle resourceBundle = resourceBundleLoader.loadResourceBundle(
+			LanguageUtil.getLanguageId(serviceContext.getLocale()));
+
+		return LanguageUtil.format(
+			resourceBundle, titlePattern, titleArguments);
 	}
 
 	protected Object[] getTitleArguments(

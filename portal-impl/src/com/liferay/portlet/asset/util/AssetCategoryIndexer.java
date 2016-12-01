@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portlet.asset.service.permission.AssetCategoryPermission;
 
@@ -169,10 +170,18 @@ public class AssetCategoryIndexer extends BaseIndexer<AssetCategory> {
 			assetCategory.getParentCategoryId());
 		document.addKeyword(
 			Field.ASSET_VOCABULARY_ID, assetCategory.getVocabularyId());
-		document.addLocalizedText(
-			Field.DESCRIPTION, assetCategory.getDescriptionMap());
+
+		Locale siteDefaultLocale = PortalUtil.getSiteDefaultLocale(
+			assetCategory.getGroupId());
+
+		addLocalizedField(
+			document, Field.DESCRIPTION, siteDefaultLocale,
+			assetCategory.getDescriptionMap());
+
 		document.addText(Field.NAME, assetCategory.getName());
-		document.addLocalizedText(Field.TITLE, assetCategory.getTitleMap());
+		addLocalizedField(
+			document, Field.TITLE, siteDefaultLocale,
+			assetCategory.getTitleMap());
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Document " + assetCategory + " indexed successfully");

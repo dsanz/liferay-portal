@@ -16,6 +16,8 @@ package com.liferay.portlet.configuration.web.internal.portlet.configuration.ico
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletProvider;
@@ -84,6 +86,7 @@ public class ConfigurationTemplatesPortletConfigurationIcon
 			PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
 
 			portletURL.setParameter("portletResource", portletDisplay.getId());
+
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 
 			return portletURL.toString();
@@ -116,6 +119,13 @@ public class ConfigurationTemplatesPortletConfigurationIcon
 			}
 		}
 		catch (PortalException pe) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(pe, pe);
+			}
+
 			return false;
 		}
 
@@ -140,5 +150,8 @@ public class ConfigurationTemplatesPortletConfigurationIcon
 	public boolean isUseDialog() {
 		return true;
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		ConfigurationTemplatesPortletConfigurationIcon.class);
 
 }

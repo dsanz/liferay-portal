@@ -3,7 +3,7 @@
 ;
 [subrepo]
 	cmdver = liferay
-	commit = 5c63febec86f2d2207d3b4e328c46beeee94d93b
+	commit = 08346b4dc6f58be0ce94528b6fc142e9c2a4aaa1
 	mode = push
-	parent = 81a831dd9229862858d4d7ae9b49d9f74fcf1f52
+	parent = 254da3878ad5f30445946b1f99396e76ed23d3f2
 	remote = git@github.com:liferay/com-liferay-portal-osgi-web.git

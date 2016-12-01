@@ -42,6 +42,7 @@ import org.osgi.service.component.annotations.Reference;
 public class RadioDDMFormFieldTemplateContextContributor
 	implements DDMFormFieldTemplateContextContributor {
 
+	@Override
 	public Map<String, Object> getParameters(
 		DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
@@ -73,7 +74,7 @@ public class RadioDDMFormFieldTemplateContextContributor
 				(List<Map<String, String>>)
 					ddmFormFieldRenderingContext.getProperty("options");
 
-			if (keyValuePairs.size() == 0) {
+			if (keyValuePairs.isEmpty()) {
 				return ddmFormField.getDDMFormFieldOptions();
 			}
 

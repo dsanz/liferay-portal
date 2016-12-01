@@ -98,16 +98,10 @@
 				{JournalArticle.*}
 			FROM
 				JournalArticle
-			LEFT JOIN JournalArticle tempJournalArticle ON
-				[$STATUS_JOIN$] AND
-				(JournalArticle.groupId = tempJournalArticle.groupId) AND
-				(JournalArticle.articleId = tempJournalArticle.articleId) AND
-				(JournalArticle.version < tempJournalArticle.version)
 			WHERE
-				(JournalArticle.classNameId = ?) AND
-				[$STATUS$] AND
-				(JournalArticle.expirationDate <= ?) AND
-				(tempJournalArticle.version is NULL)
+				(classNameId = ?) AND
+				([$STATUS$]) AND
+				(expirationDate <= ?)
 		]]>
 	</sql>
 	<sql id="com.liferay.journal.service.persistence.JournalArticleFinder.findByNoAssets">
@@ -133,7 +127,7 @@
 				ResourcePermission ON
 					(ResourcePermission.companyId = JournalArticle.companyId) AND
 					(ResourcePermission.name = 'com.liferay.journal.model.JournalArticle') AND
-					(ResourcePermission.primKey = CAST_TEXT(JournalArticle.resourcePrimKey)) AND
+					(ResourcePermission.primKeyId = JournalArticle.resourcePrimKey) AND
 					(ResourcePermission.scope = ?)
 			WHERE
 				ResourcePermission.primKey IS NULL

@@ -20,7 +20,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 /**
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
- * @see com.liferay.rss.util.Normalizer
+ * @see    com.liferay.rss.util.Normalizer
  */
 public class Normalizer {
 
@@ -52,7 +52,7 @@ public class Normalizer {
 
 	private static final Transliterator _transliterator =
 		Transliterator.getInstance(
-			"Greek-Latin; Cyrillic-Latin; NFD; [:Nonspacing Mark:] " +
-				"Remove; NFC");
+			"Greek-Latin; Cyrillic-Latin; NFD; [:Nonspacing Mark:] Remove; " +
+				"NFC");
 
 }

@@ -50,6 +50,21 @@ public class KBFolderServiceWrapper implements KBFolderService,
 	}
 
 	@Override
+	public com.liferay.knowledge.base.model.KBFolder fetchFirstChildKBFolder(
+		long groupId, long kbFolderId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _kbFolderService.fetchFirstChildKBFolder(groupId, kbFolderId);
+	}
+
+	@Override
+	public com.liferay.knowledge.base.model.KBFolder fetchFirstChildKBFolder(
+		long groupId, long kbFolderId,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.knowledge.base.model.KBFolder> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _kbFolderService.fetchFirstChildKBFolder(groupId, kbFolderId, obc);
+	}
+
+	@Override
 	public com.liferay.knowledge.base.model.KBFolder fetchKBFolder(
 		long kbFolderId)
 		throws com.liferay.portal.kernel.exception.PortalException {

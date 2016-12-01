@@ -28,6 +28,8 @@ import com.liferay.portal.kernel.exception.NoSuchUserException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ContactConstants;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.User;
@@ -60,9 +62,9 @@ import org.osgi.service.component.annotations.Reference;
  * @author Peter Fellwock
  */
 @Component(
-	configurationPid = "ccom.liferay.chat.configuration.ChatConfiguration",
-	configurationPolicy = ConfigurationPolicy.OPTIONAL, immediate = true,
-	property = {"javax.portlet.name=" + ChatPortletKeys.CHAT},
+	configurationPid = "com.liferay.chat.configuration.ChatConfiguration",
+	configurationPolicy = ConfigurationPolicy.OPTIONAL, enabled = false,
+	immediate = true, property = {"javax.portlet.name=" + ChatPortletKeys.CHAT},
 	service = PollerProcessor.class
 )
 public class ChatPollerProcessor extends BasePollerProcessor {
@@ -146,6 +148,12 @@ public class ChatPollerProcessor extends BasePollerProcessor {
 				}
 			}
 			catch (NoSuchLayoutSetException nslse) {
+
+				// LPS-52675
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(nslse, nslse);
+				}
 			}
 
 			curUserJSONObject.put("displayURL", displayURL);
@@ -154,6 +162,7 @@ public class ChatPollerProcessor extends BasePollerProcessor {
 				firstName, middleName, lastName);
 
 			curUserJSONObject.put("fullName", fullName);
+
 			curUserJSONObject.put("groupId", groupId);
 			curUserJSONObject.put("portraitId", portraitId);
 
@@ -167,6 +176,7 @@ public class ChatPollerProcessor extends BasePollerProcessor {
 			String statusMessage = buddyStatus.getMessage();
 
 			curUserJSONObject.put("statusMessage", statusMessage);
+
 			curUserJSONObject.put("userId", userId);
 
 			buddiesJSONArray.put(curUserJSONObject);
@@ -215,6 +225,13 @@ public class ChatPollerProcessor extends BasePollerProcessor {
 						"fromPortraitId", fromUser.getPortraitId());
 				}
 				catch (NoSuchUserException nsue) {
+
+					// LPS-52675
+
+					if (_log.isDebugEnabled()) {
+						_log.debug(nsue, nsue);
+					}
+
 					continue;
 				}
 			}
@@ -285,6 +302,9 @@ public class ChatPollerProcessor extends BasePollerProcessor {
 				activePanelIds, statusMessage, playSound);
 		}
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		ChatPollerProcessor.class);
 
 	private ChatGroupServiceConfiguration _chatGroupServiceConfiguration;
 	private LayoutSetLocalService _layoutSetLocalService;

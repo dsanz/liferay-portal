@@ -59,6 +59,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>IFRAME_PORTLET</td>
+	<td>//iframe[contains(@id,'IFramePortlet') and contains(@id,'iframe')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>INVITE_MEMBERS</td>
 	<td>//iframe[contains(@src,'InviteMembersPortlet')]</td>
 	<td></td>
@@ -89,6 +94,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SELECT_CATEGORY</td>
+	<td>//iframe[contains(@id,'selectCategory_iframe_')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SELECT_CONTENT</td>
 	<td>//iframe[contains(@id,'selectContent')]</td>
 	<td></td>
@@ -109,6 +119,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SELECT_TAG</td>
+	<td>//iframe[contains(@id,'AssetTagsSelectorPortlet')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>MANAGE_SITE_PAGES</td>
 	<td>//iframe[contains(@id,'iframe') and contains(@class,'dialog-iframe-node')]</td>
 	<td></td>
@@ -124,10 +139,30 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SELECT_ORGANIZATION_ROLE</td>
+	<td>//iframe[contains(@id,'selectOrganizationRole_iframe_')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_REGULAR_ROLE</td>
+	<td>//iframe[contains(@id,'selectRegularRole_iframe_')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_SITE_ROLE</td>
+	<td>//iframe[contains(@id,'selectSiteRole_iframe_')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SELECT_SITES</td>
 	<td>//iframe[contains(@src,'selectSite')]</td>
 	<td></td>
 </tr>
+<tr>
+ 	<td>SELECT_USER_SITES</td>
+ 	<td>//iframe[contains(@id,'selectSite_iframe_')]</td>
+ 	<td></td>
+ </tr>
 <tr>
 	<td>SELECT_STRUCTURE_FIELD</td>
 	<td>//div[contains(@class,'dialog-iframe-bd')]/iframe[contains(@src,'select_structure_field')]</td>

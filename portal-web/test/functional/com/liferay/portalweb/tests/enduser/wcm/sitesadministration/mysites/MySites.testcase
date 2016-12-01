@@ -218,6 +218,16 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
+		<execute macro="UserBar#gotoDashboard" />
+
+		<execute macro="Navigator#gotoNavItem">
+			<var name="navItem" value="Available Sites" />
+		</execute>
+
+		<execute macro="MySites#viewMembershipRequested">
+			<var name="siteName" value="Site Name" />
+		</execute>
+
 		<execute macro="User#logoutPG" />
 
 		<execute macro="User#loginPG">
@@ -387,7 +397,7 @@
 			<var name="portlet" value="Site Memberships" />
 		</execute>
 
-		<execute macro="Site#addMemberCP">
+		<execute macro="Site#assignUserAsMemberCP">
 			<var name="userFirstName" value="userfn" />
 			<var name="userLastName" value="userln" />
 			<var name="userScreenName" value="usersn" />
@@ -398,7 +408,7 @@
 		</execute>
 
 		<execute macro="User#assignRegularRoleCP">
-			<var name="roleName" value="Power User" />
+			<var name="roleTitle" value="Power User" />
 			<var name="userScreenName" value="usersn" />
 		</execute>
 
@@ -523,7 +533,7 @@
 			<var name="portlet" value="Site Memberships" />
 		</execute>
 
-		<execute macro="Site#addMemberCP">
+		<execute macro="Site#assignUserAsMemberCP">
 			<var name="userFirstName" value="userfn" />
 			<var name="userLastName" value="userln" />
 			<var name="userScreenName" value="usersn" />
@@ -534,7 +544,7 @@
 		</execute>
 
 		<execute macro="User#assignRegularRoleCP">
-			<var name="roleName" value="Administrator" />
+			<var name="roleTitle" value="Administrator" />
 			<var name="userScreenName" value="usersn" />
 		</execute>
 

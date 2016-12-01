@@ -14,7 +14,6 @@
 
 package com.liferay.dynamic.data.lists.exportimport.staged.model.repository;
 
-import com.liferay.dynamic.data.lists.model.DDLRecord;
 import com.liferay.dynamic.data.lists.model.DDLRecordSet;
 import com.liferay.dynamic.data.lists.model.DDLRecordSetConstants;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetLocalService;
@@ -34,15 +33,13 @@ import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.model.StagedModel;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -132,41 +129,6 @@ public class DDLRecordSetStagedModelRepository
 		deleteDDMStructures(recordSetDDMStructureIds);
 	}
 
-	public List<StagedModel> fetchChildrenStagedModels(
-		PortletDataContext portletDataContext, DDLRecordSet ddlRecordSet) {
-
-		List<DDLRecord> ddlRecords = ddlRecordSet.getRecords();
-
-		Stream<DDLRecord> ddlRecordsStream = ddlRecords.stream();
-
-		Stream<StagedModel> stagedModelsStream = ddlRecordsStream.map(
-			(ddlRecord) -> (StagedModel)ddlRecord);
-
-		return stagedModelsStream.collect(Collectors.toList());
-	}
-
-	public List<StagedModel> fetchDependencyStagedModels(
-		PortletDataContext portletDataContext, DDLRecordSet ddlRecordSet) {
-
-		List<StagedModel> dependencyStagedModels = new ArrayList<>();
-
-		try {
-			DDMStructure ddmStructure = ddlRecordSet.getDDMStructure();
-
-			dependencyStagedModels.add(ddmStructure);
-
-			List<DDMTemplate> ddmTemplates = ddmStructure.getTemplates();
-
-			for (DDMTemplate ddmTemplate : ddmTemplates) {
-				dependencyStagedModels.add(ddmTemplate);
-			}
-		}
-		catch (PortalException pe) {
-		}
-
-		return dependencyStagedModels;
-	}
-
 	@Override
 	public DDLRecordSet fetchStagedModelByUuidAndGroupId(
 		String uuid, long groupId) {
@@ -216,6 +178,7 @@ public class DDLRecordSetStagedModelRepository
 				}
 
 			});
+
 		exportActionableDynamicQuery.setPerformActionMethod(
 			new ActionableDynamicQuery.PerformActionMethod<DDLRecordSet>() {
 
@@ -276,6 +239,9 @@ public class DDLRecordSetStagedModelRepository
 			_ddmStructureLocalService.deleteStructure(ddmStructureId);
 		}
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		DDLRecordSetStagedModelRepository.class);
 
 	@Reference
 	private DDLRecordSetLocalService _ddlRecordSetLocalService;

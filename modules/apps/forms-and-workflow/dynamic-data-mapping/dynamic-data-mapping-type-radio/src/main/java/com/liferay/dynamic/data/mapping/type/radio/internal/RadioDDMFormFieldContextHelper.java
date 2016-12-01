@@ -19,6 +19,8 @@ import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -55,6 +57,7 @@ public class RadioDDMFormFieldContextHelper {
 				optionValue);
 
 			optionMap.put("label", optionLabel.getString(_locale));
+
 			optionMap.put("value", optionValue);
 
 			options.add(optionMap);
@@ -74,6 +77,13 @@ public class RadioDDMFormFieldContextHelper {
 			return jsonArray.getString(0);
 		}
 		catch (JSONException jsone) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(jsone, jsone);
+			}
+
 			String[] values = StringUtil.split(value);
 
 			if (values.length > 0) {
@@ -95,9 +105,19 @@ public class RadioDDMFormFieldContextHelper {
 			return ArrayUtil.toStringArray(jsonArray);
 		}
 		catch (JSONException jsone) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(jsone, jsone);
+			}
+
 			return StringUtil.split(value);
 		}
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		RadioDDMFormFieldContextHelper.class);
 
 	private final DDMFormFieldOptions _ddmFormFieldOptions;
 	private final JSONFactory _jsonFactory;

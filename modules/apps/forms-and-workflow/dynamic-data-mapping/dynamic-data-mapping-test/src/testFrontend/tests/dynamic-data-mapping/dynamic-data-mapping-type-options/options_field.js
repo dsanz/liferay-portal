@@ -2,8 +2,6 @@
 
 var A = AUI();
 
-var assert = chai.assert;
-
 var createField = function(config) {
 	return new Liferay.DDM.Field.Options(
 		A.merge(
@@ -70,7 +68,7 @@ describe(
 				var lastOption = optionsField.getLastOption();
 
 				lastOption.focus();
-				lastOption.setValue('First Option');
+				lastOption.set('value', 'First Option');
 
 				waitValueChange(
 					function() {

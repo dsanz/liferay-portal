@@ -594,6 +594,8 @@ public class DLFileEntryIndexer
 			});
 		indexableActionableDynamicQuery.setCompanyId(companyId);
 		indexableActionableDynamicQuery.setGroupId(groupId);
+		indexableActionableDynamicQuery.setInterval(
+			PropsValues.DL_FILE_INDEXING_INTERVAL);
 		indexableActionableDynamicQuery.setPerformActionMethod(
 			new ActionableDynamicQuery.PerformActionMethod<DLFileEntry>() {
 
@@ -659,6 +661,7 @@ public class DLFileEntryIndexer
 				@Override
 				public void performAction(Group group) throws PortalException {
 					long groupId = group.getGroupId();
+
 					long folderId = groupId;
 
 					String[] newIds = {

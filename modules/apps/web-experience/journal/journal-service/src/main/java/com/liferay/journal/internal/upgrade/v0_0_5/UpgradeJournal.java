@@ -547,8 +547,8 @@ public class UpgradeJournal extends UpgradeProcess {
 
 	protected void updateJournalArticles(long companyId) throws Exception {
 		try (PreparedStatement ps = connection.prepareStatement(
-				"select id_, content, DDMStructureKey from " +
-					"JournalArticle where companyId = " + companyId);
+				"select id_, content, DDMStructureKey from JournalArticle " +
+					"where companyId = " + companyId);
 			ResultSet rs = ps.executeQuery()) {
 
 			String name = addBasicWebContentStructureAndTemplate(companyId);

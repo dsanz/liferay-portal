@@ -68,8 +68,10 @@ public class BookmarksFolderLocalServiceImpl
 
 		// Folder
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
+
 		long groupId = serviceContext.getScopeGroupId();
+
 		parentFolderId = getParentFolderId(groupId, parentFolderId);
 
 		validate(name);
@@ -609,7 +611,7 @@ public class BookmarksFolderLocalServiceImpl
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link #updateFolder(long, long,
+	 * @deprecated As of 1.0.0, replaced by {@link #updateFolder(long, long,
 	 *             long, String, String, ServiceContext)} and {@link
 	 *             #mergeFolders(long, long)}
 	 */
@@ -692,7 +694,7 @@ public class BookmarksFolderLocalServiceImpl
 
 		// Folder
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 
 		folder.setStatus(status);
 		folder.setStatusByUserId(userId);

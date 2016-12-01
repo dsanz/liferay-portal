@@ -1,5 +1,6 @@
 <definition component-name="portal-search-ee">
 	<property name="portal.release" value="true" />
+	<property name="test.run.environment" value="EE" />
 	<property name="testray.main.component.name" value="Elastic Search Impl" />
 
 	<set-up>
@@ -36,13 +37,15 @@
 
 		<!-- Verify the total number of Elasticsearch replicas is two as there are two nodes/bundles running -->
 
-		<execute macro="Elasticsearch#viewClusterStatusViaClusterHealthAPI">
+		<!-- LRQA-28998 -->
+
+		<!--<execute macro="Elasticsearch#viewClusterStatusViaClusterHealthAPI">
 			<var name="numberOfNodes" value="2" />
-		</execute>
+		</execute>-->
 
-		<execute macro="Elasticsearch#viewReplicaAddedInConsole" />
+		<!--<execute macro="Elasticsearch#viewReplicaAddedInConsole" />-->
 
-		<execute macro="Navigator#openURL" />
+		<!--<execute macro="Navigator#openURL" />-->
 
 		<execute macro="ProductMenu#gotoSitesContent">
 			<var name="portlet" value="Message Boards" />
@@ -186,14 +189,6 @@
 			<var name="dmDocumentTitle" value="Apple" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoControlPanelConfiguration">
-			<var name="portlet" value="Server Administration" />
-		</execute>
-
-		<execute macro="ServerAdministration#executeServerResourcesActions">
-			<var name="actionsDescription" value="Reindex all search indexes." />
-		</execute>
-
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="Search#searchPG">
@@ -272,6 +267,39 @@
 			<var name="searchAssetTitle" value="Apple" />
 			<var name="searchAssetType" value="Message Boards Message" />
 		</execute>
+	</command>
+
+	<command name="ElasticsearchRemoteWithMarvelAndKibanaAndShieldSmokeTest" priority="5">
+		<property name="elastic.kibana.enabled" value="true" />
+		<property name="elastic.shield.enabled" value="true" />
+		<property name="remote.elasticsearch.enabled" value="true" />
+		<property name="test.name.skip.portal.instance" value="ElasticsearchEE#ElasticsearchRemoteMarvelKibanaSmokeTest" />
+
+		<execute macro="Page#add">
+			<var name="pageName" value="Marvel Page" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Marvel Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Marvel" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Marvel Page" />
+		</execute>
+
+		<execute macro="Marvel#viewPG" />
+
+		<execute macro="User#logoutPG" />
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Marvel Page" />
+		</execute>
+
+		<execute macro="Marvel#viewAsGuestPG" />
 	</command>
 
 	<command name="ElasticsearchRemoteWithMarvelAndKibanaSmokeTest" priority="5">

@@ -44,12 +44,14 @@ String coverImageCaption = BeanParamUtil.getString(entry, request, "coverImageCa
 long coverImageFileEntryId = BeanParamUtil.getLong(entry, request, "coverImageFileEntryId");
 long smallImageFileEntryId = BeanParamUtil.getLong(entry, request, "smallImageFileEntryId");
 
-boolean portletTitleBasedNavigation = GetterUtil.getBoolean(portletConfig.getInitParameter("portlet-title-based-navigation"));
-
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(redirect);
 
-renderResponse.setTitle((entry != null) ? entry.getTitle() : LanguageUtil.get(request, "new-blog-entry"));
+boolean portletTitleBasedNavigation = GetterUtil.getBoolean(portletConfig.getInitParameter("portlet-title-based-navigation"));
+
+if (portletTitleBasedNavigation) {
+	renderResponse.setTitle((entry != null) ? BlogsEntryUtil.getDisplayTitle(resourceBundle, entry) : LanguageUtil.get(request, "new-blog-entry"));
+}
 %>
 
 <liferay-util:buffer var="saveStatus">
@@ -87,6 +89,7 @@ renderResponse.setTitle((entry != null) ? entry.getTitle() : LanguageUtil.get(re
 		</c:if>
 
 		<div class="lfr-form-content">
+			<liferay-ui:error exception="<%= DuplicateFriendlyURLException.class %>" message="the-url-title-is-already-in-use-please-enter-a-unique-url-title" />
 			<liferay-ui:error exception="<%= EntryContentException.class %>" message="please-enter-valid-content" />
 			<liferay-ui:error exception="<%= EntryCoverImageCropException.class %>" message="an-error-occurred-while-cropping-the-cover-image" />
 			<liferay-ui:error exception="<%= EntryDescriptionException.class %>" message="please-enter-a-valid-abstract" />
@@ -448,7 +451,7 @@ if (entry != null) {
 	portletURL.setParameter("mvcRenderCommandName", "/blogs/view_entry");
 	portletURL.setParameter("entryId", String.valueOf(entry.getEntryId()));
 
-	PortalUtil.addPortletBreadcrumbEntry(request, entry.getTitle(), portletURL.toString());
+	PortalUtil.addPortletBreadcrumbEntry(request, BlogsEntryUtil.getDisplayTitle(resourceBundle, entry), portletURL.toString());
 	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "edit"), currentURL);
 }
 else {

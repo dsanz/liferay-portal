@@ -34,11 +34,12 @@ import java.util.List;
  */
 public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 
+	@Override
 	public Entry addEntry(
 			long userId, String fullName, String emailAddress, String comments)
 		throws PortalException {
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 		Date now = new Date();
 
 		validate(user.getCompanyId(), 0, userId, fullName, emailAddress);
@@ -61,24 +62,29 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 		return entry;
 	}
 
+	@Override
 	public List<Entry> getEntries(long userId, int start, int end) {
 		return entryPersistence.findByUserId(userId);
 	}
 
+	@Override
 	public int getEntriesCount(long userId) {
 		return entryPersistence.countByUserId(userId);
 	}
 
+	@Override
 	public List<Entry> search(
 		long userId, String keywords, int start, int end) {
 
 		return entryFinder.findByKeywords(userId, keywords, start, end);
 	}
 
+	@Override
 	public int searchCount(long userId, String keywords) {
 		return entryFinder.countByKeywords(userId, keywords);
 	}
 
+	@Override
 	public List<BaseModel<?>> searchUsersAndContacts(
 		long companyId, long userId, String keywords, int start, int end) {
 
@@ -86,12 +92,14 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 			companyId, userId, keywords, start, end);
 	}
 
+	@Override
 	public int searchUsersAndContactsCount(
 		long companyId, long userId, String keywords) {
 
 		return entryFinder.countByKeywords(companyId, userId, keywords);
 	}
 
+	@Override
 	public Entry updateEntry(
 			long entryId, String fullName, String emailAddress, String comments)
 		throws PortalException {
@@ -153,7 +161,8 @@ public class EntryLocalServiceImpl extends EntryLocalServiceBaseImpl {
 			throw new DuplicateEntryEmailAddressException();
 		}
 
-		User user = userPersistence.fetchByC_EA(companyId, emailAddress);
+		User user = userLocalService.fetchUserByEmailAddress(
+			companyId, emailAddress);
 
 		if (user != null) {
 			throw new DuplicateEntryEmailAddressException();

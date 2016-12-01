@@ -924,7 +924,7 @@ public class CMISRepository extends BaseCmisRepository {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 2.0.0
 	 */
 	@Deprecated
 	@Override
@@ -933,7 +933,7 @@ public class CMISRepository extends BaseCmisRepository {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 2.0.0
 	 */
 	@Deprecated
 	@Override
@@ -1840,6 +1840,7 @@ public class CMISRepository extends BaseCmisRepository {
 			String objectId = toFolderId(session, folderId);
 
 			sb.append(StringUtil.quote(objectId));
+
 			sb.append(StringPool.CLOSE_PARENTHESIS);
 		}
 
@@ -1918,6 +1919,7 @@ public class CMISRepository extends BaseCmisRepository {
 			String objectId = toFolderId(session, folderId);
 
 			sb.append(StringUtil.quote(objectId));
+
 			sb.append(StringPool.CLOSE_PARENTHESIS);
 		}
 

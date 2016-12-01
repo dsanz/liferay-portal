@@ -67,7 +67,7 @@ import javax.mail.internet.MimeMultipart;
  * @author Neil Griffin
  * @author Thiago Moreira
  * @author Brett Swaim
- * @see com.liferay.petra.mail.MailEngine
+ * @see    com.liferay.petra.mail.MailEngine
  */
 public class MailEngine {
 
@@ -308,6 +308,7 @@ public class MailEngine {
 					DataSource dataSource = new FileDataSource(file);
 
 					mimeBodyPart.setDataHandler(new DataHandler(dataSource));
+
 					mimeBodyPart.setDisposition(Part.ATTACHMENT);
 
 					if (fileAttachment.getFileName() != null) {
@@ -464,7 +465,7 @@ public class MailEngine {
 			return null;
 		}
 
-		int end = ((index + 1) * batchSize);
+		int end = (index + 1) * batchSize;
 
 		if (end > addresses.length) {
 			end = addresses.length;

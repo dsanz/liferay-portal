@@ -209,6 +209,7 @@ public class PortletInstanceFactoryImpl implements PortletInstanceFactory {
 			portlet, servletContext);
 
 		PortletContext portletContext = portletConfig.getPortletContext();
+
 		boolean checkAuthToken = rootInvokerPortletInstance.isCheckAuthToken();
 		boolean facesPortlet = rootInvokerPortletInstance.isFacesPortlet();
 		boolean strutsPortlet = rootInvokerPortletInstance.isStrutsPortlet();
@@ -246,12 +247,11 @@ public class PortletInstanceFactoryImpl implements PortletInstanceFactory {
 
 		// LPS-10473
 
+		_serviceTracker.close();
 	}
 
 	@Override
 	public void destroy(Portlet portlet) {
-		_serviceTracker.close();
-
 		clear(portlet);
 
 		destroyRelated(portlet);

@@ -70,6 +70,7 @@ public class VelocityManager extends BaseSingleTemplateManager {
 			request.getServletContext(), request, response, contextObjects);
 
 		contextObjects.put(themeName, velocityTaglib);
+
 		contextObjects.put("velocityTaglib_layoutIcon", _layoutIconMethod);
 
 		// Legacy support
@@ -284,7 +285,7 @@ public class VelocityManager extends BaseSingleTemplateManager {
 	static {
 		try {
 			_layoutIconMethod = VelocityTaglib.class.getMethod(
-				"layoutIcon", new Class[] {Layout.class});
+				"layoutIcon", new Class<?>[] {Layout.class});
 		}
 		catch (NoSuchMethodException nsme) {
 			throw new ExceptionInInitializerError(nsme);

@@ -118,6 +118,10 @@ public class HtmlImpl implements Html {
 
 			String replacement = null;
 
+			if ((c < 256) && ((c >= 128) || _VALID_CHARS[c])) {
+				continue;
+			}
+
 			if (c == '<') {
 				replacement = "&lt;";
 			}
@@ -150,20 +154,21 @@ public class HtmlImpl implements Html {
 
 				replacement = StringPool.SPACE;
 			}
-
-			if (replacement != null) {
-				if (sb == null) {
-					sb = new StringBundler();
-				}
-
-				if (i > lastReplacementIndex) {
-					sb.append(text.substring(lastReplacementIndex, i));
-				}
-
-				sb.append(replacement);
-
-				lastReplacementIndex = i + 1;
+			else {
+				continue;
 			}
+
+			if (sb == null) {
+				sb = new StringBundler();
+			}
+
+			if (i > lastReplacementIndex) {
+				sb.append(text.substring(lastReplacementIndex, i));
+			}
+
+			sb.append(replacement);
+
+			lastReplacementIndex = i + 1;
 		}
 
 		if (sb == null) {
@@ -225,50 +230,57 @@ public class HtmlImpl implements Html {
 
 		StringBuilder sb = new StringBuilder(text.length());
 
+		char[] hexBuffer = new char[4];
+
+		boolean modified = false;
+
 		for (int i = 0; i < text.length(); i++) {
 			char c = text.charAt(i);
 
-			if ((mode == ESCAPE_MODE_ATTRIBUTE) &&
-				(!_isValidXmlCharacter(c) ||
-				 _isUnicodeCompatibilityCharacter(c))) {
+			if (c < _VALID_CHARS.length) {
+				if (_VALID_CHARS[c]) {
+					sb.append(c);
+				}
+				else {
+					sb.append(prefix);
 
-				sb.append(StringPool.SPACE);
+					_appendHexChars(sb, hexBuffer, c);
+
+					sb.append(postfix);
+
+					if ((mode == ESCAPE_MODE_CSS) &&
+						(i < (text.length() - 1))) {
+
+						char nextChar = text.charAt(i + 1);
+
+						if ((nextChar >= CharPool.NUMBER_0) &&
+							(nextChar <= CharPool.NUMBER_9)) {
+
+							sb.append(CharPool.SPACE);
+						}
+					}
+
+					modified = true;
+				}
 			}
-			else if ((c > 255) || (c == CharPool.DASH) ||
-					 (c == CharPool.UNDERLINE) ||
-					 Character.isLetterOrDigit(c)) {
+			else if ((mode == ESCAPE_MODE_ATTRIBUTE) &&
+					 (!_isValidXmlCharacter(c) ||
+					  _isUnicodeCompatibilityCharacter(c))) {
 
-				sb.append(c);
+				sb.append(CharPool.SPACE);
+
+				modified = true;
 			}
 			else {
-				sb.append(prefix);
-
-				String hexString = StringUtil.toHexString(c);
-
-				if (hexString.length() == 1) {
-					sb.append(StringPool.ASCII_TABLE[48]);
-				}
-
-				sb.append(hexString);
-				sb.append(postfix);
-
-				if ((mode == ESCAPE_MODE_CSS) && (i < (text.length() - 1))) {
-					char nextChar = text.charAt(i + 1);
-
-					if ((nextChar >= CharPool.NUMBER_0) &&
-						(nextChar <= CharPool.NUMBER_9)) {
-
-						sb.append(StringPool.SPACE);
-					}
-				}
+				sb.append(c);
 			}
 		}
 
-		if ((mode != ESCAPE_MODE_ATTRIBUTE) && (sb.length() == text.length())) {
-			return text;
+		if (modified) {
+			return sb.toString();
 		}
 
-		return sb.toString();
+		return text;
 	}
 
 	/**
@@ -398,7 +410,7 @@ public class HtmlImpl implements Html {
 			}
 
 			if (hasToken) {
-				sb.append(StringPool.UNDERLINE);
+				sb.append(CharPool.UNDERLINE);
 			}
 			else {
 				sb.append(c);
@@ -488,13 +500,13 @@ public class HtmlImpl implements Html {
 				sb.append(text.substring(lastReplacementIndex, i));
 			}
 
-			sb.append(CharPool.UNDERLINE);
+			sb.append(StringPool.UNDERLINE);
 
 			if (c != CharPool.UNDERLINE) {
 				sb.append(StringUtil.toHexString(c));
 			}
 
-			sb.append(CharPool.UNDERLINE);
+			sb.append(StringPool.UNDERLINE);
 
 			lastReplacementIndex = i + 1;
 		}
@@ -824,6 +836,28 @@ public class HtmlImpl implements Html {
 		return pos;
 	}
 
+	private static void _appendHexChars(
+		StringBuilder sb, char[] buffer, char c) {
+
+		int index = buffer.length;
+
+		do {
+			buffer[--index] = _HEX_DIGITS[c & 15];
+
+			c >>>= 4;
+		}
+		while (c != 0);
+
+		if (index == (buffer.length - 1)) {
+			sb.append(CharPool.NUMBER_0);
+			sb.append(buffer[index]);
+
+			return;
+		}
+
+		sb.append(buffer, index, buffer.length - index);
+	}
+
 	private boolean _isUnicodeCompatibilityCharacter(char c) {
 		if (((c >= '\u007f') && (c <= '\u0084')) ||
 			((c >= '\u0086') && (c <= '\u009f')) ||
@@ -836,16 +870,21 @@ public class HtmlImpl implements Html {
 	}
 
 	private boolean _isValidXmlCharacter(char c) {
-		if ((c == '\u0009') || (c == CharPool.NEW_LINE) ||
-			(c == CharPool.RETURN) || ((c >= '\u0020') && (c <= '\ud7ff')) ||
-			((c >= '\ue000') && (c <= '\ufffd')) ||
-			Character.isLowSurrogate(c) || Character.isHighSurrogate(c)) {
+		if (((c >= CharPool.SPACE) && (c <= '\ud7ff')) ||
+			((c >= '\ue000') && (c <= '\ufffd')) || Character.isSurrogate(c) ||
+			(c == CharPool.TAB) || (c == CharPool.NEW_LINE) ||
+			(c == CharPool.RETURN)) {
 
 			return true;
 		}
 
 		return false;
 	}
+
+	private static final char[] _HEX_DIGITS = {
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
+		'e', 'f'
+	};
 
 	private static final String[] _MS_WORD_HTML = new String[] {
 		"&reg;", StringPool.APOSTROPHE, StringPool.QUOTE, StringPool.QUOTE
@@ -858,6 +897,8 @@ public class HtmlImpl implements Html {
 
 	private static final char[] _TAG_STYLE = {'s', 't', 'y', 'l', 'e'};
 
+	private static final boolean[] _VALID_CHARS = new boolean[256];
+
 	// See http://www.w3.org/TR/xpath20/#lexical-structure
 
 	private static final char[] _XPATH_TOKENS = {
@@ -868,21 +909,30 @@ public class HtmlImpl implements Html {
 	private static final Map<String, String> _unescapeMap = new HashMap<>();
 
 	static {
-		_unescapeMap.put("lt", "<");
-		_unescapeMap.put("gt", ">");
-		_unescapeMap.put("amp", "&");
-		_unescapeMap.put("rsquo", "\u2019");
 		_unescapeMap.put("#34", "\"");
+		_unescapeMap.put("#35", "#");
+		_unescapeMap.put("#37", "%");
 		_unescapeMap.put("#39", "'");
 		_unescapeMap.put("#40", "(");
 		_unescapeMap.put("#41", ")");
+		_unescapeMap.put("#43", "+");
 		_unescapeMap.put("#44", ",");
-		_unescapeMap.put("#35", "#");
-		_unescapeMap.put("#37", "%");
+		_unescapeMap.put("#45", "-");
 		_unescapeMap.put("#59", ";");
 		_unescapeMap.put("#61", "=");
-		_unescapeMap.put("#43", "+");
-		_unescapeMap.put("#45", "-");
+		_unescapeMap.put("amp", "&");
+		_unescapeMap.put("gt", ">");
+		_unescapeMap.put("lt", "<");
+		_unescapeMap.put("rsquo", "\u2019");
+
+		for (int i = 0; i < _VALID_CHARS.length; i++) {
+			if (Character.isLetterOrDigit(i)) {
+				_VALID_CHARS[i] = true;
+			}
+		}
+
+		_VALID_CHARS['-'] = true;
+		_VALID_CHARS['_'] = true;
 	}
 
 	private final Pattern _pattern = Pattern.compile("([\\s<&]|$)");

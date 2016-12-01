@@ -30,14 +30,14 @@ import org.mockito.Mockito;
 public class TestCluster {
 
 	public TestCluster(int size, Object object) {
+		String prefix = getPrefix(object);
+
 		_elasticsearchConfigurationProperties =
-			createElasticsearchConfigurationProperties(size);
+			createElasticsearchConfigurationProperties(prefix, size);
 
 		_elasticsearchFixtures = new ElasticsearchFixture[size];
 
-		Class<?> clazz = object.getClass();
-
-		_prefix = clazz.getSimpleName();
+		_prefix = prefix;
 	}
 
 	public ElasticsearchFixture createNode(int index) throws Exception {
@@ -87,7 +87,7 @@ public class TestCluster {
 	}
 
 	protected HashMap<String, Object>
-		createElasticsearchConfigurationProperties(int size) {
+		createElasticsearchConfigurationProperties(String prefix, int size) {
 
 		HashMap<String, Object> properties = new HashMap<>();
 
@@ -97,13 +97,21 @@ public class TestCluster {
 
 		if (size > 1) {
 			int endingPort = startingPort + size - 1;
+
 			range = range + StringPool.MINUS + endingPort;
 		}
 
+		properties.put("clusterName", prefix + "-Cluster");
 		properties.put("discoveryZenPingUnicastHostsPort", range);
 		properties.put("transportTcpPort", range);
 
 		return properties;
+	}
+
+	protected String getPrefix(Object object) {
+		Class<?> clazz = object.getClass();
+
+		return clazz.getSimpleName();
 	}
 
 	private final HashMap<String, Object> _elasticsearchConfigurationProperties;

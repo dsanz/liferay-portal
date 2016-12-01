@@ -127,7 +127,7 @@ public class DDMStructureLocalServiceImpl
 
 		// Structure
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 
 		if (Validator.isNull(structureKey)) {
 			structureKey = String.valueOf(counterLocalService.increment());
@@ -220,7 +220,7 @@ public class DDMStructureLocalServiceImpl
 	 *             UUID, creation date, modification date, guest permissions,
 	 *             and group permissions for the structure.
 	 * @return     the structure
-	 * @deprecated As of 7.0.0, replaced by {@link #addStructure(long, long,
+	 * @deprecated As of 2.1.0, replaced by {@link #addStructure(long, long,
 	 *             long, long, String, Map, Map, DDMForm, DDMFormLayout, String,
 	 *             int, ServiceContext)}
 	 */
@@ -276,7 +276,7 @@ public class DDMStructureLocalServiceImpl
 	 *             UUID, creation date, modification date, guest permissions,
 	 *             and group permissions for the structure.
 	 * @return     the structure
-	 * @deprecated As of 7.0.0, replaced by {@link #addStructure(long, long,
+	 * @deprecated As of 2.1.0, replaced by {@link #addStructure(long, long,
 	 *             long, Map, Map, DDMForm, DDMFormLayout, ServiceContext)}
 	 */
 	@Deprecated
@@ -343,7 +343,7 @@ public class DDMStructureLocalServiceImpl
 	 *             UUID, creation date, modification date, guest permissions and
 	 *             group permissions for the structure.
 	 * @return     the structure
-	 * @deprecated As of 7.0.0, replaced by {@link #addStructure(long, long,
+	 * @deprecated As of 2.1.0, replaced by {@link #addStructure(long, long,
 	 *             String, long, String, Map, Map, DDMForm, DDMFormLayout,
 	 *             String, int, ServiceContext)}
 	 */
@@ -1341,7 +1341,7 @@ public class DDMStructureLocalServiceImpl
 	 * @param      serviceContext the service context to be applied. Can set the
 	 *             structure's modification date.
 	 * @return     the updated structure
-	 * @deprecated As of 7.0.0, replaced by {@link #updateStructure(long, long,
+	 * @deprecated As of 2.1.0, replaced by {@link #updateStructure(long, long,
 	 *             long, long, String, Map, Map, DDMForm, DDMFormLayout,
 	 *             ServiceContext)}
 	 */
@@ -1386,7 +1386,7 @@ public class DDMStructureLocalServiceImpl
 	 * @param      serviceContext the service context to be applied. Can set the
 	 *             structure's modification date.
 	 * @return     the updated structure
-	 * @deprecated As of 7.0.0, replaced by {@link #updateStructure(long, long,
+	 * @deprecated As of 2.1.0, replaced by {@link #updateStructure(long, long,
 	 *             long, Map, Map, DDMForm, DDMFormLayout, ServiceContext)}
 	 */
 	@Deprecated
@@ -1423,7 +1423,7 @@ public class DDMStructureLocalServiceImpl
 	 * @param      serviceContext the service context to be applied. Can set the
 	 *             structure's modification date.
 	 * @return     the updated structure
-	 * @deprecated As of 7.0.0, replaced by {@link #updateStructure(long,
+	 * @deprecated As of 2.1.0, replaced by {@link #updateStructure(long,
 	 *             DDMForm, DDMFormLayout, ServiceContext)}
 	 */
 	@Deprecated
@@ -1540,7 +1540,7 @@ public class DDMStructureLocalServiceImpl
 
 		// Structure
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 
 		DDMForm parentDDMForm = getParentDDMForm(parentStructureId);
 
@@ -1560,6 +1560,7 @@ public class DDMStructureLocalServiceImpl
 			latestStructureVersion.getVersion(), majorVersion);
 
 		structure.setVersion(version);
+
 		structure.setNameMap(nameMap);
 		structure.setVersionUserId(user.getUserId());
 		structure.setVersionUserName(user.getFullName());
@@ -1946,7 +1947,7 @@ public class DDMStructureLocalServiceImpl
 	protected DDMXML ddmXML;
 
 	private final Pattern _callFunctionPattern = Pattern.compile(
-		"call\\(\\s*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-" +
-			"[0-9a-f]{12})");
+		"call\\(\\s*\"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-" +
+			"[0-9a-f]{12})\"\\s*,\\s*\"(.*)\"\\s*,\\s*\"(.*)\"\\s*\\)");
 
 }

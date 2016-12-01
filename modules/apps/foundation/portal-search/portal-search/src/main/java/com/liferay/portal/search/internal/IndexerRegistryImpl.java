@@ -110,6 +110,7 @@ public class IndexerRegistryImpl implements IndexerRegistry {
 		Class<?> clazz = indexer.getClass();
 
 		unregister(clazz.getName());
+
 		unregister(indexer.getClassName());
 	}
 
@@ -175,7 +176,7 @@ public class IndexerRegistryImpl implements IndexerRegistry {
 
 			proxiedIndexer = (Indexer<?>)ProxyUtil.newProxyInstance(
 				PortalClassLoaderUtil.getClassLoader(),
-				interfaces.toArray(new Class[interfaces.size()]),
+				interfaces.toArray(new Class<?>[interfaces.size()]),
 				bufferedIndexerInvocationHandler);
 
 			_proxiedIndexers.put(indexer.getClassName(), proxiedIndexer);

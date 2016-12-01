@@ -88,7 +88,7 @@ public class JournalTransformer {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link #JournalTransformer(boolean)}
+	 * @deprecated As of 4.0.0, replaced by {@link #JournalTransformer(boolean)}
 	 */
 	@Deprecated
 	public JournalTransformer(
@@ -98,7 +98,7 @@ public class JournalTransformer {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link #JournalTransformer(boolean)}
+	 * @deprecated As of 4.0.0, replaced by {@link #JournalTransformer(boolean)}
 	 */
 	@Deprecated
 	public JournalTransformer(

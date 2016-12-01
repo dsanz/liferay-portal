@@ -58,6 +58,19 @@ public class KBFolderServiceUtil {
 		return getService().deleteKBFolder(kbFolderId);
 	}
 
+	public static com.liferay.knowledge.base.model.KBFolder fetchFirstChildKBFolder(
+		long groupId, long kbFolderId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().fetchFirstChildKBFolder(groupId, kbFolderId);
+	}
+
+	public static com.liferay.knowledge.base.model.KBFolder fetchFirstChildKBFolder(
+		long groupId, long kbFolderId,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.knowledge.base.model.KBFolder> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService().fetchFirstChildKBFolder(groupId, kbFolderId, obc);
+	}
+
 	public static com.liferay.knowledge.base.model.KBFolder fetchKBFolder(
 		long kbFolderId)
 		throws com.liferay.portal.kernel.exception.PortalException {

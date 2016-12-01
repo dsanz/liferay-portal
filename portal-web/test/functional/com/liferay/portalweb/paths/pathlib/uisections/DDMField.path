@@ -75,7 +75,7 @@
 </tr>
 <tr>
 	<td>TEXT_BOX</td>
-	<td>//div[@data-fieldname='${key_fieldName}']//textarea</td>
+	<td>//div[contains(@data-fieldname,'${key_fieldName}')]//textarea</td>
 	<td></td>
 </tr>
 </tbody>

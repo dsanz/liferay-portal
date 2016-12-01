@@ -23,12 +23,12 @@ import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.kernel.service.persistence.OrganizationFinderUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.rule.TransactionalTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.OrganizationTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.test.rule.TransactionalTestRule;
 
 import java.util.LinkedHashMap;
 
@@ -71,7 +71,7 @@ public class OrganizationFinderTest {
 		params1.put("usersOrgs", _user.getUserId());
 		params1.put("groupOrganization", _group.getGroupId());
 
-		int count1 = OrganizationFinderUtil.countByKeywords(
+		int count1 = OrganizationFinderUtil.countO_ByKeywords(
 			_user.getCompanyId(),
 			OrganizationConstants.ANY_PARENT_ORGANIZATION_ID,
 			StringPool.NOT_EQUAL, null, null, null, null, params1);
@@ -83,7 +83,7 @@ public class OrganizationFinderTest {
 		params2.put("groupOrganization", _group.getGroupId());
 		params2.put("usersOrgs", _user.getUserId());
 
-		int count2 = OrganizationFinderUtil.countByKeywords(
+		int count2 = OrganizationFinderUtil.countO_ByKeywords(
 			_user.getCompanyId(),
 			OrganizationConstants.ANY_PARENT_ORGANIZATION_ID,
 			StringPool.NOT_EQUAL, null, null, null, null, params2);

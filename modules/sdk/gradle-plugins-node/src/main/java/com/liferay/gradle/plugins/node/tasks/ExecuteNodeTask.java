@@ -15,8 +15,8 @@
 package com.liferay.gradle.plugins.node.tasks;
 
 import com.liferay.gradle.plugins.node.NodePlugin;
-import com.liferay.gradle.plugins.node.util.GradleUtil;
-import com.liferay.gradle.plugins.node.util.NodeExecutor;
+import com.liferay.gradle.plugins.node.internal.NodeExecutor;
+import com.liferay.gradle.plugins.node.internal.util.GradleUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -105,6 +105,14 @@ public class ExecuteNodeTask extends DefaultTask {
 		return _nodeExecutor.getWorkingDir();
 	}
 
+	public boolean isInheritProxy() {
+		return _nodeExecutor.isInheritProxy();
+	}
+
+	public boolean isUseGradleExec() {
+		return _nodeExecutor.isUseGradleExec();
+	}
+
 	public void setArgs(Iterable<?> args) {
 		_nodeExecutor.setArgs(args);
 	}
@@ -117,12 +125,20 @@ public class ExecuteNodeTask extends DefaultTask {
 		_nodeExecutor.setCommand(command);
 	}
 
+	public void setInheritProxy(boolean inheritProxy) {
+		_nodeExecutor.setInheritProxy(inheritProxy);
+	}
+
 	public void setNodeDir(Object nodeDir) {
 		_nodeExecutor.setNodeDir(nodeDir);
 	}
 
 	public void setNpmInstallRetries(int npmInstallRetries) {
 		_npmInstallRetries = npmInstallRetries;
+	}
+
+	public void setUseGradleExec(boolean useGradleExec) {
+		_nodeExecutor.setUseGradleExec(useGradleExec);
 	}
 
 	public void setWorkingDir(Object workingDir) {

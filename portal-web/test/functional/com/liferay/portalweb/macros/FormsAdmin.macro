@@ -25,12 +25,34 @@
 			<var name="fieldValue" value="${url}" />
 		</execute>
 
-		<execute macro="FormFields#editText">
+		<var name="key_fieldName" value="$key" />
+
+		<while>
+			<condition function="IsTextNotEqual" locator1="FormFields#TEXT_FIELD" value1="${displayedAttribute}" />
+			<then>
+				<execute function="Type" locator1="FormFields#TEXT_FIELD" value1="" />
+
+				<execute function="Type#sendKeysAceEditorNoMouseOver" locator1="FormFields#TEXT_FIELD" value1="${displayedAttribute}" />
+			</then>
+		</while>
+
+		<execute macro="FormFields#viewTextValue">
 			<var name="fieldName" value="$key" />
 			<var name="fieldValue" value="${displayedAttribute}" />
 		</execute>
 
-		<execute macro="FormFields#editText">
+		<var name="key_fieldName" value="$value" />
+
+		<while>
+			<condition function="IsTextNotEqual" locator1="FormFields#TEXT_FIELD" value1="${storedAttribute}" />
+			<then>
+				<execute function="Type" locator1="FormFields#TEXT_FIELD" value1="" />
+
+				<execute function="Type#sendKeysAceEditorNoMouseOver" locator1="FormFields#TEXT_FIELD" value1="${storedAttribute}" />
+			</then>
+		</while>
+
+		<execute macro="FormFields#viewTextValue">
 			<var name="fieldName" value="$value" />
 			<var name="fieldValue" value="${storedAttribute}" />
 		</execute>
@@ -160,8 +182,18 @@
 		</execute>
 	</command>
 
+	<command name="viewNoDuplicateForms">
+		<var name="key_formName" value="${formName}" />
+
+		<execute function="AssertElementNotPresent" locator1="FormsAdmin#FORMS_TABLE_NAME_2" value1="${formName}" />
+	</command>
+
 	<command name="viewNoFormEntries">
 		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No entries were found." />
+	</command>
+
+	<command name="viewNoForms">
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="There are no forms. Click on the plus button to add the first one." />
 	</command>
 
 	<command name="viewParagraphEntry">

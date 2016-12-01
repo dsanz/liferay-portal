@@ -398,7 +398,14 @@ public class UIItemsBuilder {
 
 		PortletURL redirectURL = liferayPortletResponse.createRenderURL();
 
-		long folderId = _fileEntry.getFolderId();
+		long folderId = 0;
+
+		if (_fileShortcut != null) {
+			folderId = _fileShortcut.getFolderId();
+		}
+		else {
+			folderId = _fileEntry.getFolderId();
+		}
 
 		if (folderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 			redirectURL.setParameter(
@@ -413,8 +420,15 @@ public class UIItemsBuilder {
 
 		portletURL.setParameter("redirect", redirectURL.toString());
 
-		portletURL.setParameter(
-			"rowIdsFileEntry", String.valueOf(_fileEntry.getFileEntryId()));
+		if (_fileShortcut != null) {
+			portletURL.setParameter(
+				"rowIdsDLFileShortcut",
+				String.valueOf(_fileShortcut.getFileShortcutId()));
+		}
+		else {
+			portletURL.setParameter(
+				"rowIdsFileEntry", String.valueOf(_fileEntry.getFileEntryId()));
+		}
 
 		_addURLUIItem(
 			new URLMenuItem(), menuItems, DLUIItemKeys.MOVE, "move",
@@ -764,6 +778,7 @@ public class UIItemsBuilder {
 
 			_fileEntryDisplayContextHelper = new FileEntryDisplayContextHelper(
 				_themeDisplay.getPermissionChecker(), _fileEntry);
+
 			_fileVersionDisplayContextHelper =
 				new FileVersionDisplayContextHelper(fileVersion);
 		}
@@ -833,7 +848,7 @@ public class UIItemsBuilder {
 	}
 
 	private LiferayPortletRequest _getLiferayPortletRequest() {
-		PortletRequest portletRequest = (PortletRequest) _request.getAttribute(
+		PortletRequest portletRequest = (PortletRequest)_request.getAttribute(
 			JavaConstants.JAVAX_PORTLET_REQUEST);
 
 		return PortalUtil.getLiferayPortletRequest(portletRequest);
@@ -841,7 +856,7 @@ public class UIItemsBuilder {
 
 	private LiferayPortletResponse _getLiferayPortletResponse() {
 		PortletResponse portletResponse =
-			(PortletResponse) _request.getAttribute(
+			(PortletResponse)_request.getAttribute(
 				JavaConstants.JAVAX_PORTLET_RESPONSE);
 
 		return PortalUtil.getLiferayPortletResponse(portletResponse);

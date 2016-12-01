@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 public class ManagementBarSidenavTogglerButtonTag
 	extends ManagementBarButtonTag {
 
+	@Override
 	public void setHref(String href) {
 		_href = href;
 	}
@@ -34,7 +35,7 @@ public class ManagementBarSidenavTogglerButtonTag
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, with no direct replacement
+	 * @deprecated As of 2.0.0, with no direct replacement
 	 */
 	@Deprecated
 	public void setSidenavId(String sidenavId) {

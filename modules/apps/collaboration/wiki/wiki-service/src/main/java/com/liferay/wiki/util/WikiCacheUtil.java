@@ -38,8 +38,8 @@ import javax.portlet.PortletURL;
 import org.apache.commons.lang.time.StopWatch;
 
 /**
- * @author Jorge Ferrer
- * @deprecated As of 7.0.0, replaced by {@link WikiCacheHelper}
+ * @author     Jorge Ferrer
+ * @deprecated As of 1.2.0, replaced by {@link WikiCacheHelper}
  */
 @Deprecated
 public class WikiCacheUtil {

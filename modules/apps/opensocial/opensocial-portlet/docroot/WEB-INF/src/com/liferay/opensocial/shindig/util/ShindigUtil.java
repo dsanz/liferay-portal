@@ -177,7 +177,7 @@ public class ShindigUtil {
 		GadgetSpec gadgetSpec = null;
 
 		try {
-			gadgetSpec = ShindigUtil.getGadgetSpec(url);
+			gadgetSpec = getGadgetSpec(url);
 		}
 		catch (Exception e) {
 			throw new GadgetURLException(e);
@@ -186,6 +186,7 @@ public class ShindigUtil {
 		ModulePrefs modulePrefs = gadgetSpec.getModulePrefs();
 
 		gadget.setName(modulePrefs.getTitle());
+
 		gadget.setUrl(url);
 
 		return gadget;

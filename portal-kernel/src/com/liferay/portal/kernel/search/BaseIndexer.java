@@ -99,6 +99,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 
@@ -529,7 +530,7 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 				reindex(element);
 			}
 			catch (SearchException se) {
-				_log.error("Unable to index object: " + element);
+				_log.error("Unable to index object: " + element, se);
 			}
 		}
 	}
@@ -895,6 +896,25 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 			new String[selectedFieldNameSet.size()]);
 
 		queryConfig.setSelectedFieldNames(selectedFieldNames);
+	}
+
+	protected void addLocalizedField(
+		Document document, String field, Locale siteDefaultLocale,
+		Map<Locale, String> map) {
+
+		for (Entry<Locale, String> entry : map.entrySet()) {
+			Locale locale = entry.getKey();
+
+			if (locale.equals(siteDefaultLocale)) {
+				document.addText(field, entry.getValue());
+			}
+
+			String languageId = LocaleUtil.toLanguageId(locale);
+
+			document.addText(
+				LocalizationUtil.getLocalizedName(field, languageId),
+				entry.getValue());
+		}
 	}
 
 	protected void addSearchAssetCategoryIds(
@@ -1274,7 +1294,7 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 		}
 		catch (PortalException pe) {
 			if (_log.isDebugEnabled()) {
-				_log.debug("Unable to get trash entry for " + trashedModel);
+				_log.debug("Unable to get trash entry for " + trashedModel, pe);
 			}
 		}
 
@@ -1335,7 +1355,8 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 			if (_log.isDebugEnabled()) {
 				_log.debug(
 					"Unable to get trash renderer for " +
-						trashEntry.getClassName());
+						trashEntry.getClassName(),
+					pe);
 			}
 		}
 	}

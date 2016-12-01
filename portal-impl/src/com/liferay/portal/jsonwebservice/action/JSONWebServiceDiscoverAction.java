@@ -73,6 +73,7 @@ public class JSONWebServiceDiscoverAction implements JSONWebServiceAction {
 			ParamUtil.getString(
 				request, "contextName",
 				servletContext.getServletContextName()));
+
 		_jsonWebServiceNaming =
 			JSONWebServiceActionsManagerUtil.getJSONWebServiceNaming();
 	}
@@ -399,7 +400,7 @@ public class JSONWebServiceDiscoverAction implements JSONWebServiceAction {
 
 		Type[] genericTypes = parameterizedType.getActualTypeArguments();
 
-		Class<?>[] genericReturnTypes = new Class[genericTypes.length];
+		Class<?>[] genericReturnTypes = new Class<?>[genericTypes.length];
 
 		for (int i = 0; i < genericTypes.length; i++) {
 			Type genericType = genericTypes[i];

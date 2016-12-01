@@ -173,6 +173,7 @@ public class NewEnvTestRule implements TestRule {
 		}
 
 		arguments.add("-Dliferay.mode=test");
+		arguments.add("-Dsun.zip.disableMemoryMapping=true");
 
 		String whipAgentLine = System.getProperty("whip.agent");
 
@@ -351,6 +352,7 @@ public class NewEnvTestRule implements TestRule {
 
 			_afterMethodKeys = getMethodKeys(testClass, After.class);
 			_beforeMethodKeys = getMethodKeys(testClass, Before.class);
+
 			_newClassLoader = createClassLoader(description);
 			_testClassName = testClass.getName();
 			_testMethodKey = new MethodKey(

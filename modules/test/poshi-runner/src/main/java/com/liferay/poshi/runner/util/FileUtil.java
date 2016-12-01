@@ -62,14 +62,26 @@ public class FileUtil {
 		return read(file);
 	}
 
-	public static void write(File file, String s) throws IOException {
-		FileUtils.writeStringToFile(file, s);
+	public static void write(File file, byte[] bytes) throws IOException {
+		FileUtils.writeByteArrayToFile(file, bytes);
 	}
 
-	public static void write(String fileName, String s) throws IOException {
+	public static void write(File file, String string) throws IOException {
+		FileUtils.writeStringToFile(file, string);
+	}
+
+	public static void write(String fileName, byte[] bytes) throws IOException {
 		File file = new File(fileName);
 
-		write(file, s);
+		write(file, bytes);
+	}
+
+	public static void write(String fileName, String string)
+		throws IOException {
+
+		File file = new File(fileName);
+
+		write(file, string);
 	}
 
 }

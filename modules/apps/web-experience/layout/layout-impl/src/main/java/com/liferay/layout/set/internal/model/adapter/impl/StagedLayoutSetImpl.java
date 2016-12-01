@@ -18,6 +18,8 @@ import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.layout.set.model.adapter.StagedLayoutSet;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ColorScheme;
@@ -25,13 +27,18 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
 import com.liferay.portal.kernel.model.Theme;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
+
+import java.time.Instant;
 
 import java.util.Date;
 import java.util.Map;
@@ -53,6 +60,21 @@ public class StagedLayoutSetImpl implements StagedLayoutSet {
 
 		_layoutSet = layoutSet;
 
+		// Last publish date
+
+		UnicodeProperties settingsProperties =
+			_layoutSet.getSettingsProperties();
+
+		String lastPublishDateString = settingsProperties.getProperty(
+			"last-publish-date");
+
+		Instant instant = Instant.ofEpochMilli(
+			GetterUtil.getLong(lastPublishDateString));
+
+		_lastPublishDate = Date.from(instant);
+
+		// Layout set prototype
+
 		if (Validator.isNotNull(_layoutSet.getLayoutSetPrototypeUuid())) {
 			LayoutSetPrototype layoutSetPrototype =
 				LayoutSetPrototypeLocalServiceUtil.
@@ -63,6 +85,23 @@ public class StagedLayoutSetImpl implements StagedLayoutSet {
 			if (layoutSetPrototype != null) {
 				_layoutSetPrototypeName = layoutSetPrototype.getName(
 					LocaleUtil.getDefault());
+			}
+		}
+
+		try {
+			_userId = _layoutSet.getGroup().getCreatorUserId();
+
+			User user = UserLocalServiceUtil.getUser(_userId);
+
+			_userName = user.getFullName();
+			_userUuid = user.getUuid();
+		}
+		catch (PortalException pe) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(pe, pe);
 			}
 		}
 	}
@@ -120,6 +159,11 @@ public class StagedLayoutSetImpl implements StagedLayoutSet {
 	@Override
 	public long getGroupId() {
 		return _layoutSet.getGroupId();
+	}
+
+	@Override
+	public Date getLastPublishDate() {
+		return _lastPublishDate;
 	}
 
 	@Override
@@ -240,6 +284,21 @@ public class StagedLayoutSetImpl implements StagedLayoutSet {
 	@Override
 	public String getThemeSetting(String key, String device) {
 		return _layoutSet.getThemeSetting(key, device);
+	}
+
+	@Override
+	public long getUserId() {
+		return _userId;
+	}
+
+	@Override
+	public String getUserName() {
+		return _userName;
+	}
+
+	@Override
+	public String getUserUuid() {
+		return _userUuid;
 	}
 
 	@Override
@@ -365,6 +424,16 @@ public class StagedLayoutSetImpl implements StagedLayoutSet {
 		_layoutSet.setGroupId(groupId);
 	}
 
+	@Override
+	public void setLastPublishDate(Date lastPublishDate) {
+		_lastPublishDate = lastPublishDate;
+
+		UnicodeProperties settingsProperties = getSettingsProperties();
+
+		settingsProperties.setProperty(
+			"last-publish-date", String.valueOf(_lastPublishDate.getTime()));
+	}
+
 	public void setLayoutSet(LayoutSet layoutSet) {
 		_layoutSet = layoutSet;
 	}
@@ -452,6 +521,21 @@ public class StagedLayoutSetImpl implements StagedLayoutSet {
 	}
 
 	@Override
+	public void setUserId(long userId) {
+		_userId = userId;
+	}
+
+	@Override
+	public void setUserName(String userName) {
+		_userName = userName;
+	}
+
+	@Override
+	public void setUserUuid(String userUuid) {
+		_userUuid = userUuid;
+	}
+
+	@Override
 	public void setUuid(String uuid) {
 		throw new UnsupportedOperationException();
 	}
@@ -481,7 +565,14 @@ public class StagedLayoutSetImpl implements StagedLayoutSet {
 		return _layoutSet.toXmlString();
 	}
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		StagedLayoutSetImpl.class);
+
+	private Date _lastPublishDate;
 	private LayoutSet _layoutSet;
 	private String _layoutSetPrototypeName;
+	private long _userId;
+	private String _userName;
+	private String _userUuid;
 
 }

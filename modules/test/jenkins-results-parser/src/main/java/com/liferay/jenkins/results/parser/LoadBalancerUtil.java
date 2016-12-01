@@ -56,7 +56,10 @@ public class LoadBalancerUtil {
 				return baseInvocationURL;
 			}
 
-			List<String> masters = getMasters(masterPrefix, properties);
+			List<String> masters = JenkinsResultsParserUtil.getMasters(
+				properties, masterPrefix);
+
+			masters.removeAll(getBlacklist(properties));
 
 			if (masters.size() == 1) {
 				return "http://" + masterPrefix + "-1";
@@ -120,7 +123,7 @@ public class LoadBalancerUtil {
 					if (retryCount == 3) {
 						throw new RuntimeException(
 							"Retry limit exceeded. Unable to communicate " +
-								" with masters.");
+								"with masters.");
 					}
 
 					retryCount++;
@@ -128,13 +131,15 @@ public class LoadBalancerUtil {
 					continue;
 				}
 
-				if (maxIndices.size() > 0) {
+				if (!maxIndices.isEmpty()) {
 					x = maxIndices.get(
-						getRandomValue(0, maxIndices.size() - 1));
+						JenkinsResultsParserUtil.getRandomValue(
+							0, maxIndices.size() - 1));
 				}
 				else {
 					while (true) {
-						x = getRandomValue(0, masters.size() - 1);
+						x = JenkinsResultsParserUtil.getRandomValue(
+							0, masters.size() - 1);
 
 						if (badIndices.contains(x)) {
 							continue;
@@ -195,10 +200,7 @@ public class LoadBalancerUtil {
 			String... overridePropertiesArray)
 		throws Exception {
 
-		return getMostAvailableMasterURL(
-			"http://mirrors-no-cache.lax.liferay.com/github.com/liferay" +
-				"/liferay-jenkins-ee/commands/build.properties",
-			overridePropertiesArray);
+		return getMostAvailableMasterURL(null, overridePropertiesArray);
 	}
 
 	public static String getMostAvailableMasterURL(
@@ -207,10 +209,16 @@ public class LoadBalancerUtil {
 
 		Properties properties = new Properties();
 
-		String propertiesString = JenkinsResultsParserUtil.toString(
-			JenkinsResultsParserUtil.getLocalURL(propertiesURL), false);
+		if (propertiesURL == null) {
+			properties = JenkinsResultsParserUtil.getBuildProperties();
+		}
+		else {
+			properties = new Properties();
+			String propertiesString = JenkinsResultsParserUtil.toString(
+				JenkinsResultsParserUtil.getLocalURL(propertiesURL), false);
 
-		properties.load(new StringReader(propertiesString));
+			properties.load(new StringReader(propertiesString));
+		}
 
 		if ((overridePropertiesArray != null) &&
 			(overridePropertiesArray.length > 0) &&
@@ -259,49 +267,6 @@ public class LoadBalancerUtil {
 		}
 
 		return matcher.group("masterPrefix");
-	}
-
-	protected static List<String> getMasters(
-		String masterPrefix, Properties properties) {
-
-		List<String> blacklist = getBlacklist(properties);
-		List<String> masters = new ArrayList<>();
-		int i = 1;
-
-		while (true) {
-			String jenkinsLocalURL = properties.getProperty(
-				"jenkins.local.url[" + masterPrefix + "-" + i + "]");
-
-			if ((jenkinsLocalURL != null) && (jenkinsLocalURL.length() > 0)) {
-				Matcher matcher = _masterPattern.matcher(jenkinsLocalURL);
-
-				if (!matcher.find()) {
-					continue;
-				}
-
-				String jenkinsLocalMaster = matcher.group("master");
-
-				if (!blacklist.contains(jenkinsLocalMaster)) {
-					masters.add(jenkinsLocalMaster);
-				}
-
-				i++;
-				continue;
-			}
-
-			System.out.println("Master prefix: " + masterPrefix);
-			System.out.println("Masters: " + masters);
-
-			return masters;
-		}
-	}
-
-	protected static int getRandomValue(int start, int end) {
-		int size = Math.abs(end - start);
-
-		double randomDouble = Math.random();
-
-		return start + (int)Math.round(size * randomDouble);
 	}
 
 	protected static int getRecentBatchSizesTotal(String master)
@@ -360,8 +325,6 @@ public class LoadBalancerUtil {
 
 	protected static long RECENT_BATCH_AGE = 120 * 1000;
 
-	private static final Pattern _masterPattern =
-		Pattern.compile(".*/(?<master>[^/]+)/?");
 	private static final Map<String, List<BatchRecord>> _recentBatchRecordsMap =
 		new HashMap<>();
 	private static final Pattern _urlPattern = Pattern.compile(

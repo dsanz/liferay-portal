@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.TransactionalTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.util.IntegerWrapper;
@@ -34,6 +33,7 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PersistenceTestRule;
+import com.liferay.portal.test.rule.TransactionalTestRule;
 
 import com.liferay.push.notifications.exception.NoSuchDeviceException;
 import com.liferay.push.notifications.model.PushNotificationsDevice;
@@ -69,7 +69,8 @@ public class PushNotificationsDevicePersistenceTest {
 	@Rule
 	public static final AggregateTestRule aggregateTestRule = new AggregateTestRule(new LiferayIntegrationTestRule(),
 			PersistenceTestRule.INSTANCE,
-			new TransactionalTestRule(Propagation.REQUIRED));
+			new TransactionalTestRule(Propagation.REQUIRED,
+				"com.liferay.push.notifications.service"));
 
 	@Before
 	public void setUp() {
@@ -124,6 +125,8 @@ public class PushNotificationsDevicePersistenceTest {
 
 		PushNotificationsDevice newPushNotificationsDevice = _persistence.create(pk);
 
+		newPushNotificationsDevice.setCompanyId(RandomTestUtil.nextLong());
+
 		newPushNotificationsDevice.setUserId(RandomTestUtil.nextLong());
 
 		newPushNotificationsDevice.setCreateDate(RandomTestUtil.nextDate());
@@ -139,6 +142,8 @@ public class PushNotificationsDevicePersistenceTest {
 
 		Assert.assertEquals(existingPushNotificationsDevice.getPushNotificationsDeviceId(),
 			newPushNotificationsDevice.getPushNotificationsDeviceId());
+		Assert.assertEquals(existingPushNotificationsDevice.getCompanyId(),
+			newPushNotificationsDevice.getCompanyId());
 		Assert.assertEquals(existingPushNotificationsDevice.getUserId(),
 			newPushNotificationsDevice.getUserId());
 		Assert.assertEquals(Time.getShortTimestamp(
@@ -199,8 +204,8 @@ public class PushNotificationsDevicePersistenceTest {
 
 	protected OrderByComparator<PushNotificationsDevice> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("PushNotificationsDevice",
-			"pushNotificationsDeviceId", true, "userId", true, "createDate",
-			true, "platform", true, "token", true);
+			"pushNotificationsDeviceId", true, "companyId", true, "userId",
+			true, "createDate", true, "platform", true, "token", true);
 	}
 
 	@Test
@@ -427,6 +432,8 @@ public class PushNotificationsDevicePersistenceTest {
 		long pk = RandomTestUtil.nextLong();
 
 		PushNotificationsDevice pushNotificationsDevice = _persistence.create(pk);
+
+		pushNotificationsDevice.setCompanyId(RandomTestUtil.nextLong());
 
 		pushNotificationsDevice.setUserId(RandomTestUtil.nextLong());
 

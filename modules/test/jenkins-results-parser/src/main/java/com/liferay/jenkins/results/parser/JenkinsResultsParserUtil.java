@@ -23,10 +23,13 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.Writer;
 
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
+import java.net.UnknownHostException;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -91,6 +94,16 @@ public class JenkinsResultsParserUtil {
 		URL url = new URL(urlString);
 
 		return encode(url);
+	}
+
+	public static String decode(String url) throws Exception {
+		return URLDecoder.decode(url, "UTF-8");
+	}
+
+	public static String encode(String url) throws Exception {
+		URL encodedURL = encode(new URL(url));
+
+		return encodedURL.toExternalForm();
 	}
 
 	public static URL encode(URL url) throws Exception {
@@ -182,6 +195,7 @@ public class JenkinsResultsParserUtil {
 			String prefix = hostName.substring(0, y);
 
 			int first = Integer.parseInt(hostName.substring(y, x));
+
 			int last = Integer.parseInt(hostName.substring(x + 2));
 
 			for (int current = first; current <= last; current++) {
@@ -331,6 +345,53 @@ public class JenkinsResultsParserUtil {
 		return "";
 	}
 
+	public static String getAxisVariable(String axisBuildURL) throws Exception {
+		String url = decode(axisBuildURL);
+
+		String label = "AXIS_VARIABLE=";
+
+		int x = url.indexOf(label);
+
+		if (x != -1) {
+			url = url.substring(x + label.length());
+
+			int y = url.indexOf(",");
+
+			return url.substring(0, y);
+		}
+
+		return "";
+	}
+
+	public static Properties getBuildProperties() throws Exception {
+		Properties properties = new Properties();
+
+		String url =
+			"http://mirrors-no-cache.lax.liferay.com/github.com/liferay" +
+				"/liferay-jenkins-ee/build.properties";
+
+		properties.load(new StringReader(toString(getLocalURL(url), false)));
+
+		url =
+			"http://mirrors-no-cache.lax.liferay.com/github.com/liferay" +
+				"/liferay-jenkins-ee/commands/build.properties";
+
+		properties.load(new StringReader(toString(getLocalURL(url), false)));
+
+		return properties;
+	}
+
+	public static String getHostName(String defaultHostName) {
+		try {
+			InetAddress inetAddress = InetAddress.getLocalHost();
+
+			return inetAddress.getHostName();
+		}
+		catch (UnknownHostException uhe) {
+			return defaultHostName;
+		}
+	}
+
 	public static String getJobVariant(JSONObject jsonObject) throws Exception {
 		JSONArray actionsJSONArray = jsonObject.getJSONArray("actions");
 
@@ -418,30 +479,87 @@ public class JenkinsResultsParserUtil {
 		return remoteURL;
 	}
 
-	public static List<String> getSlaves(String master) throws Exception {
-		List<String> slaves = new ArrayList<>(100);
+	public static List<String> getMasters(
+		Properties buildProperties, String prefix) {
 
-		Properties properties = new Properties();
+		List<String> masters = new ArrayList<>();
 
-		properties.load(
-			new StringReader(
-				toString(
-					getLocalURL(
-						"http://mirrors-no-cache.lax.liferay.com/github.com" +
-							"/liferay/liferay-jenkins-ee/build.properties"))));
+		for (int i = 1; buildProperties.containsKey(
+				"master.slaves(" + prefix + "-" + i + ")"); i++) {
 
-		String masterSlavesKey = "master.slaves(" + master + ")";
+			masters.add(prefix + "-" + i);
+		}
 
-		if (properties.containsKey(masterSlavesKey)) {
-			String slavesString = expandSlaveRange(
-				properties.getProperty(masterSlavesKey));
+		return masters;
+	}
 
-			for (String slave : slavesString.split(",")) {
-				slaves.add(slave.trim());
+	public static List<String> getRandomList(List<String> list, int size) {
+		if (list.size() < size) {
+			throw new IllegalStateException(
+				"Size must not exceed the size of the list");
+		}
+
+		if (size == list.size()) {
+			return list;
+		}
+
+		List<String> randomList = new ArrayList<>(size);
+
+		for (int i = 0; i < size; i++) {
+			String item = null;
+
+			while (true) {
+				item = list.get(getRandomValue(0, list.size() - 1));
+
+				if (randomList.contains(item)) {
+					continue;
+				}
+
+				randomList.add(item);
+
+				break;
+			}
+		}
+
+		return randomList;
+	}
+
+	public static int getRandomValue(int start, int end) {
+		int size = Math.abs(end - start);
+
+		double randomDouble = Math.random();
+
+		return start + (int)Math.round(size * randomDouble);
+	}
+
+	public static List<String> getSlaves(
+		Properties buildProperties, String masterPatternString) {
+
+		List<String> slaves = new ArrayList<>();
+
+		Pattern masterPattern = Pattern.compile(
+			"master.slaves\\(" + masterPatternString + "\\)");
+
+		for (Object key : buildProperties.keySet()) {
+			Matcher keyMatcher = masterPattern.matcher(key.toString());
+
+			if (keyMatcher.find()) {
+				String slavesString = expandSlaveRange(
+					buildProperties.getProperty(key.toString()));
+
+				for (String slave : slavesString.split(",")) {
+					slaves.add(slave.trim());
+				}
 			}
 		}
 
 		return slaves;
+	}
+
+	public static List<String> getSlaves(String masterPatternString)
+		throws Exception {
+
+		return getSlaves(getBuildProperties(), masterPatternString);
 	}
 
 	public static String read(File file) throws IOException {
@@ -657,6 +775,16 @@ public class JenkinsResultsParserUtil {
 		}
 
 		Files.write(Paths.get(file.toURI()), content.getBytes());
+	}
+
+	public static void write(String path, String content) throws IOException {
+		if (path.startsWith("${dependencies.url}")) {
+			path = path.replace(
+				"${dependencies.url}",
+				DEPENDENCIES_URL_FILE.replace("file:", ""));
+		}
+
+		write(new File(path), content);
 	}
 
 	protected static final String DEPENDENCIES_URL_FILE;

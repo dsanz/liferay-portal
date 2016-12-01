@@ -40,6 +40,9 @@ public class GitHubMessageUtilTest extends BaseJenkinsResultsParserTestCase {
 	@Before
 	public void setUp() throws Exception {
 		downloadSample(
+			"ff-vnc-1", "37", "test-portal-acceptance-pullrequest(master)",
+			"test-1-12");
+		downloadSample(
 			"generic-1", "1609", "test-portal-acceptance-pullrequest(master)",
 			"test-1-1");
 		downloadSample(
@@ -48,6 +51,9 @@ public class GitHubMessageUtilTest extends BaseJenkinsResultsParserTestCase {
 		downloadSample(
 			"rebase-1", "58", "test-portal-acceptance-pullrequest(ee-6.2.x)",
 			"test-1-19");
+		downloadSample(
+			"sourceformat-1", "729",
+			"test-portal-acceptance-pullrequest(master)", "test-1-1");
 	}
 
 	@Test
@@ -121,12 +127,18 @@ public class GitHubMessageUtilTest extends BaseJenkinsResultsParserTestCase {
 
 			File reportFile = new File(sampleDir, jobCount + "-report.html");
 
-			JenkinsResultsParserUtil.write(
-				reportFile,
-				"<h5 job-result=\"" + jsonObject.getString("result") +
-					"\"><a href=\"" + urlString + "\">" +
-						jobNameMatcher.group("jobName") + "</a></h5>" +
-				project.getProperty("report.html.content"));
+			StringBuilder sb = new StringBuilder();
+
+			sb.append("<h5 job-result=\"");
+			sb.append(jsonObject.getString("result"));
+			sb.append("\"><a href=\"");
+			sb.append(urlString);
+			sb.append("\">");
+			sb.append(jobNameMatcher.group("jobName"));
+			sb.append("</a></h5>");
+			sb.append(project.getProperty("report.html.content"));
+
+			JenkinsResultsParserUtil.write(reportFile, sb.toString());
 
 			if (reportFilesSB.length() > 0) {
 				reportFilesSB.append(" ");
@@ -240,9 +252,9 @@ public class GitHubMessageUtilTest extends BaseJenkinsResultsParserTestCase {
 		new GitHubJobMessageUtilTest();
 
 	private static final Pattern _jobNamePattern = Pattern.compile(
-		".+://(?<hostName>[^.]+).liferay.com/job/(?<jobName>[^/]+).*/" +
+		".+://(?<hostName>[^.]+)[^/]*/job/(?<jobName>[^/]+).*/" +
 			"(?<buildNumber>\\d+)/");
 	private static final Pattern _progressiveTextPattern = Pattern.compile(
-		"\\'.*\\' completed at (?<url>.+)\\.");
+		"\\'.*\\' started at (?<url>.+)\\.");
 
 }

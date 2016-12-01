@@ -46,7 +46,7 @@ public class CalendarBookingServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #addCalendarBooking(long,
+	* @deprecated As of 2.2.0, replaced by {@link #addCalendarBooking(long,
 	long[], long, long, Map, Map, String, long, long, boolean,
 	String, long, String, long, String, ServiceContext)}
 	*/
@@ -75,7 +75,7 @@ public class CalendarBookingServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 7.0.0
+	* @deprecated As of 2.2.0
 	*/
 	@Deprecated
 	public static com.liferay.calendar.model.CalendarBooking addCalendarBooking(
@@ -177,6 +177,26 @@ public class CalendarBookingServiceUtil {
 		return getService()
 				   .getNewStartTimeAndDurationCalendarBooking(calendarBookingId,
 			offset, duration);
+	}
+
+	public static com.liferay.calendar.model.CalendarBooking invokeTransition(
+		long calendarBookingId, int instanceIndex, int status,
+		boolean updateInstance, boolean allFollowing,
+		com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .invokeTransition(calendarBookingId, instanceIndex, status,
+			updateInstance, allFollowing, serviceContext);
+	}
+
+	public static com.liferay.calendar.model.CalendarBooking invokeTransition(
+		long calendarBookingId, long startTime, int status,
+		boolean updateInstance, boolean allFollowing,
+		com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .invokeTransition(calendarBookingId, startTime, status,
+			updateInstance, allFollowing, serviceContext);
 	}
 
 	public static com.liferay.calendar.model.CalendarBooking moveCalendarBookingToTrash(
@@ -456,6 +476,15 @@ public class CalendarBookingServiceUtil {
 	}
 
 	public static void deleteCalendarBookingInstance(long calendarBookingId,
+		int instanceIndex, boolean allFollowing,
+		boolean deleteRecurringCalendarBookings)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService()
+			.deleteCalendarBookingInstance(calendarBookingId, instanceIndex,
+			allFollowing, deleteRecurringCalendarBookings);
+	}
+
+	public static void deleteCalendarBookingInstance(long calendarBookingId,
 		long startTime, boolean allFollowing)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		getService()
@@ -463,6 +492,11 @@ public class CalendarBookingServiceUtil {
 			allFollowing);
 	}
 
+	/**
+	* @deprecated As of 2.2.0, replaced by {@link #invokeTransition(long, int,
+	long, boolean, boolean, ServiceContext)}
+	*/
+	@Deprecated
 	public static void invokeTransition(long calendarBookingId, int status,
 		com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {

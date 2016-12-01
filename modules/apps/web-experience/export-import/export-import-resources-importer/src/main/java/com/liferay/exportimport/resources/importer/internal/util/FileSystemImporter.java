@@ -786,6 +786,13 @@ public class FileSystemImporter extends BaseImporter {
 					StringPool.BLANK, inputStream, length, serviceContext);
 			}
 			catch (DuplicateFileEntryException dfee) {
+
+				// LPS-52675
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(dfee, dfee);
+				}
+
 				fileEntry = dlAppLocalService.getFileEntry(
 					groupId, parentFolderId, title);
 
@@ -1645,12 +1652,14 @@ public class FileSystemImporter extends BaseImporter {
 				}
 				catch (SearchException se) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(
-							"Cannot index entry: className=" +
-								JournalArticle.class.getName() +
-								", primaryKey=" +
-								journalArticle.getPrimaryKey(),
-							se);
+						StringBundler sb = new StringBundler();
+
+						sb.append("Cannot index entry: className=");
+						sb.append(JournalArticle.class.getName());
+						sb.append(", primaryKey=");
+						sb.append(journalArticle.getPrimaryKey());
+
+						_log.warn(sb.toString(), se);
 					}
 				}
 			}
@@ -1969,7 +1978,7 @@ public class FileSystemImporter extends BaseImporter {
 			{"asset_category", "com.liferay.asset.kernel.model.AssetCategory"},
 			{"asset_entry", "com.liferay.asset.kernel.model.AssetEntry"},
 			{"asset_tag", "com.liferay.asset.kernel.model.AssetTag"},
-			{"blogs_entry", "com.liferay.blogs.kernel.model.BlogsEntry"},
+			{"blogs_entry", "com.liferay.blogs.model.BlogsEntry"},
 			{
 				"bread_crumb",
 				"com.liferay.portal.kernel.servlet.taglib.ui.BreadcrumbEntry"

@@ -16,6 +16,7 @@ package com.liferay.dynamic.data.lists.service.impl;
 
 import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.dynamic.data.lists.exception.NoSuchRecordException;
+import com.liferay.dynamic.data.lists.exception.RecordGroupIdException;
 import com.liferay.dynamic.data.lists.model.DDLFormRecord;
 import com.liferay.dynamic.data.lists.model.DDLRecord;
 import com.liferay.dynamic.data.lists.model.DDLRecordConstants;
@@ -107,10 +108,12 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		// Record
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 
 		DDLRecordSet recordSet = ddlRecordSetPersistence.findByPrimaryKey(
 			recordSetId);
+
+		validate(groupId, recordSet);
 
 		long recordId = counterLocalService.increment();
 
@@ -177,7 +180,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	 *             the record.
 	 * @return     the record
 	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of 7.0.0, replaced by {@link #addRecord(long, long, int,
+	 * @deprecated As of 1.1.0, replaced by {@link #addRecord(long, long, int,
 	 *             DDMFormValues, ServiceContext)}
 	 */
 	@Deprecated
@@ -214,7 +217,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	 *             the record.
 	 * @return     the record
 	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of 7.0.0, replaced by {@link #addRecord(long, long, int,
+	 * @deprecated As of 1.1.0, replaced by {@link #addRecord(long, long, int,
 	 *             DDMFormValues, ServiceContext)}
 	 */
 	@Deprecated
@@ -308,7 +311,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	 *             set the record modified date.
 	 * @return     the affected record
 	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of 7.0.0, replaced by {@link #updateRecord(long, boolean,
+	 * @deprecated As of 1.1.0, replaced by {@link #updateRecord(long, boolean,
 	 *             int, DDMFormValues, ServiceContext)}
 	 */
 	@Deprecated
@@ -438,7 +441,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link
+	 * @deprecated As of 1.1.0, replaced by {@link
 	 *             DDLRecordVersionLocalService#getLatestRecordVersion(long)}
 	 */
 	@Deprecated
@@ -521,6 +524,15 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 			recordSetId, status, start, end, orderByComparator);
 	}
 
+	@Override
+	public List<DDLRecord> getRecords(
+		long recordSetId, int start, int end,
+		OrderByComparator<DDLRecord> obc) {
+
+		return ddlRecordPersistence.findByRecordSetId(
+			recordSetId, start, end, obc);
+	}
+
 	/**
 	 * Returns all the records matching the record set ID and user ID.
 	 *
@@ -531,6 +543,20 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	@Override
 	public List<DDLRecord> getRecords(long recordSetId, long userId) {
 		return ddlRecordPersistence.findByR_U(recordSetId, userId);
+	}
+
+	@Override
+	public List<DDLRecord> getRecords(
+		long recordSetId, long userId, int start, int end,
+		OrderByComparator<DDLRecord> obc) {
+
+		return ddlRecordPersistence.findByR_U(
+			recordSetId, userId, start, end, obc);
+	}
+
+	@Override
+	public int getRecordsCount(long recordSetId) {
+		return ddlRecordPersistence.countByRecordSetId(recordSetId);
 	}
 
 	/**
@@ -548,8 +574,13 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 		return ddlRecordFinder.countByR_S(recordSetId, status);
 	}
 
+	@Override
+	public int getRecordsCount(long recordSetId, long userId) {
+		return ddlRecordPersistence.countByR_U(recordSetId, userId);
+	}
+
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link
+	 * @deprecated As of 1.1.0, replaced by {@link
 	 *             com.liferay.dynamic.data.lists.service.DDLRecordVersionLocalService#getRecordVersion(
 	 *             long)}
 	 */
@@ -563,7 +594,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link
+	 * @deprecated As of 1.1.0, replaced by {@link
 	 *             com.liferay.dynamic.data.lists.service.DDLRecordVersionLocalService#getRecordVersion(
 	 *             long, String)}
 	 */
@@ -577,7 +608,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link
+	 * @deprecated As of 1.1.0, replaced by {@link
 	 *             com.liferay.dynamic.data.lists.service.DDLRecordVersionLocalService#getRecordVersions(
 	 *             long, int, int, OrderByComparator)}
 	 */
@@ -593,7 +624,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link
+	 * @deprecated As of 1.1.0, replaced by {@link
 	 *             com.liferay.dynamic.data.lists.service.DDLRecordVersionLocalService#getRecordVersionsCount(
 	 *             long)}
 	 */
@@ -638,7 +669,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link #revertRecord(long, long,
+	 * @deprecated As of 1.1.0, replaced by {@link #revertRecord(long, long,
 	 *             String, ServiceContext)}
 	 */
 	@Deprecated
@@ -726,7 +757,8 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 		int scope = recordSet.getScope();
 
 		if ((scope != DDLRecordSetConstants.SCOPE_DYNAMIC_DATA_LISTS) &&
-			(scope != DDLRecordSetConstants.SCOPE_FORMS)) {
+			(scope != DDLRecordSetConstants.SCOPE_FORMS) &&
+			(scope != DDLRecordSetConstants.SCOPE_KALEO_FORMS)) {
 
 			return;
 		}
@@ -808,6 +840,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	 * @return the record
 	 * @throws PortalException if a portal exception occurred
 	 */
+	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public DDLRecord updateRecord(
 			long userId, long recordId, boolean majorVersion, int displayIndex,
@@ -816,7 +849,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		// Record
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 
 		DDLRecord record = ddlRecordPersistence.findByPrimaryKey(recordId);
 
@@ -834,6 +867,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 			long ddmStorageId = storageEngine.create(
 				recordSet.getCompanyId(), recordSet.getDDMStructureId(),
 				ddmFormValues, serviceContext);
+
 			String version = getNextVersion(
 				recordVersion.getVersion(), majorVersion,
 				serviceContext.getWorkflowAction());
@@ -892,7 +926,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	 *             set the record modified date.
 	 * @return     the record
 	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of 7.0.0, replaced by {@link #updateRecord(long, long,
+	 * @deprecated As of 1.1.0, replaced by {@link #updateRecord(long, long,
 	 *             boolean, int, DDMFormValues, ServiceContext)}
 	 */
 	@Deprecated
@@ -941,7 +975,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	 *             set the record modified date.
 	 * @return     the record
 	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of 7.0.0, replaced by {@link #updateRecord(long, long,
+	 * @deprecated As of 1.1.0, replaced by {@link #updateRecord(long, long,
 	 *             boolean, int, DDMFormValues, ServiceContext)}
 	 */
 	@Deprecated
@@ -991,7 +1025,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		// Record version
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 
 		DDLRecordVersion recordVersion =
 			ddlRecordVersionPersistence.findByPrimaryKey(recordVersionId);
@@ -1294,6 +1328,15 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 		recordVersion.setStatusDate(serviceContext.getModifiedDate(null));
 
 		ddlRecordVersionPersistence.update(recordVersion);
+	}
+
+	protected void validate(long groupId, DDLRecordSet recordSet)
+		throws PortalException {
+
+		if (recordSet.getGroupId() != groupId) {
+			throw new RecordGroupIdException(
+				"Record group ID is not the same as the record set group ID");
+		}
 	}
 
 	@ServiceReference(type = DDM.class)

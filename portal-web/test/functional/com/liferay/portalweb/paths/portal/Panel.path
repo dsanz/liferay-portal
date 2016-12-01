@@ -42,7 +42,7 @@
 <!--ENTRY-->
 <tr>
 	<td>ENTRY_ATTACHMENTS</td>
-	<td>//div[@id='attachmentsHeader']//a</td>
+	<td>//div[contains(@id,'attachmentsHeader')]//a</td>
 	<td></td>
 </tr>
 <tr>
@@ -58,6 +58,11 @@
 <tr>
 	<td>ENTRY_CONFIGURATION</td>
 	<td>//div[@id='configurationHeader']//a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_REPORT_PARAMETERS</td>
+	<td>//div[contains(@id,'report-parametersHeader')]//a</td>
 	<td></td>
 </tr>
 <tr>

@@ -5150,11 +5150,15 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 						finderArgs, list);
 				}
 				else {
-					if ((list.size() > 1) && _log.isWarnEnabled()) {
-						_log.warn(
-							"LayoutRevisionPersistenceImpl.fetchByL_H_P(long, boolean, long, boolean) with parameters (" +
-							StringUtil.merge(finderArgs) +
-							") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+					if (list.size() > 1) {
+						Collections.sort(list, Collections.reverseOrder());
+
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"LayoutRevisionPersistenceImpl.fetchByL_H_P(long, boolean, long, boolean) with parameters (" +
+								StringUtil.merge(finderArgs) +
+								") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+						}
 					}
 
 					LayoutRevision layoutRevision = list.get(0);
@@ -5933,7 +5937,7 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
-		clearUniqueFindersCache((LayoutRevisionModelImpl)layoutRevision);
+		clearUniqueFindersCache((LayoutRevisionModelImpl)layoutRevision, true);
 	}
 
 	@Override
@@ -5945,42 +5949,12 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 			entityCache.removeResult(LayoutRevisionModelImpl.ENTITY_CACHE_ENABLED,
 				LayoutRevisionImpl.class, layoutRevision.getPrimaryKey());
 
-			clearUniqueFindersCache((LayoutRevisionModelImpl)layoutRevision);
+			clearUniqueFindersCache((LayoutRevisionModelImpl)layoutRevision,
+				true);
 		}
 	}
 
 	protected void cacheUniqueFindersCache(
-		LayoutRevisionModelImpl layoutRevisionModelImpl, boolean isNew) {
-		if (isNew) {
-			Object[] args = new Object[] {
-					layoutRevisionModelImpl.getLayoutSetBranchId(),
-					layoutRevisionModelImpl.getHead(),
-					layoutRevisionModelImpl.getPlid()
-				};
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_L_H_P, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_L_H_P, args,
-				layoutRevisionModelImpl);
-		}
-		else {
-			if ((layoutRevisionModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_L_H_P.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						layoutRevisionModelImpl.getLayoutSetBranchId(),
-						layoutRevisionModelImpl.getHead(),
-						layoutRevisionModelImpl.getPlid()
-					};
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_L_H_P, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_L_H_P, args,
-					layoutRevisionModelImpl);
-			}
-		}
-	}
-
-	protected void clearUniqueFindersCache(
 		LayoutRevisionModelImpl layoutRevisionModelImpl) {
 		Object[] args = new Object[] {
 				layoutRevisionModelImpl.getLayoutSetBranchId(),
@@ -5988,12 +5962,28 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 				layoutRevisionModelImpl.getPlid()
 			};
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_L_H_P, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_L_H_P, args);
+		finderCache.putResult(FINDER_PATH_COUNT_BY_L_H_P, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_L_H_P, args,
+			layoutRevisionModelImpl, false);
+	}
+
+	protected void clearUniqueFindersCache(
+		LayoutRevisionModelImpl layoutRevisionModelImpl, boolean clearCurrent) {
+		if (clearCurrent) {
+			Object[] args = new Object[] {
+					layoutRevisionModelImpl.getLayoutSetBranchId(),
+					layoutRevisionModelImpl.getHead(),
+					layoutRevisionModelImpl.getPlid()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_L_H_P, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_L_H_P, args);
+		}
 
 		if ((layoutRevisionModelImpl.getColumnBitmask() &
 				FINDER_PATH_FETCH_BY_L_H_P.getColumnBitmask()) != 0) {
-			args = new Object[] {
+			Object[] args = new Object[] {
 					layoutRevisionModelImpl.getOriginalLayoutSetBranchId(),
 					layoutRevisionModelImpl.getOriginalHead(),
 					layoutRevisionModelImpl.getOriginalPlid()
@@ -6362,8 +6352,8 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 			LayoutRevisionImpl.class, layoutRevision.getPrimaryKey(),
 			layoutRevision, false);
 
-		clearUniqueFindersCache(layoutRevisionModelImpl);
-		cacheUniqueFindersCache(layoutRevisionModelImpl, isNew);
+		clearUniqueFindersCache(layoutRevisionModelImpl, false);
+		cacheUniqueFindersCache(layoutRevisionModelImpl);
 
 		layoutRevision.resetOriginalValues();
 

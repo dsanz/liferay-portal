@@ -15,12 +15,14 @@
 package com.liferay.journal.internal.exportimport.content.processor;
 
 import com.liferay.exportimport.content.processor.ExportImportContentProcessor;
+import com.liferay.exportimport.content.processor.base.BaseTextExportImportContentProcessor;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.journal.model.JournalFeed;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.StagedModel;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.util.StringPool;
@@ -33,24 +35,25 @@ import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Daniel Kocsis
- * @author Mate Thurzo
  */
 @Component(
-	property = {
-		"content.processor.order=1",
-		"model.class.name=com.liferay.journal.model.JournalFeed"
-	},
-	service = {ExportImportContentProcessor.class}
+	property = {"model.class.name=com.liferay.journal.model.JournalFeed"},
+	service = {
+		ExportImportContentProcessor.class,
+		JournalFeedExportImportContentProcessor.class
+	}
 )
 public class JournalFeedExportImportContentProcessor
-	implements ExportImportContentProcessor<JournalFeed, String> {
+	extends BaseTextExportImportContentProcessor {
 
 	@Override
 	public String replaceExportContentReferences(
-			PortletDataContext portletDataContext, JournalFeed feed,
+			PortletDataContext portletDataContext, StagedModel stagedModel,
 			String content, boolean exportReferencedContent,
 			boolean escapeContent)
 		throws Exception {
+
+		JournalFeed feed = (JournalFeed)stagedModel;
 
 		Group group = _groupLocalService.getGroup(
 			portletDataContext.getScopeGroupId());
@@ -68,7 +71,7 @@ public class JournalFeedExportImportContentProcessor
 			String targetLayoutFriendlyUrl = StringUtil.replaceFirst(
 				feed.getTargetLayoutFriendlyUrl(),
 				StringPool.SLASH + newGroupFriendlyURL + StringPool.SLASH,
-				StringPool.SLASH + _DATA_HANDLER_GROUP_FRIENDLY_URL +
+				StringPool.SLASH + DATA_HANDLER_GROUP_FRIENDLY_URL +
 					StringPool.SLASH);
 
 			feed.setTargetLayoutFriendlyUrl(targetLayoutFriendlyUrl);
@@ -103,9 +106,11 @@ public class JournalFeedExportImportContentProcessor
 
 	@Override
 	public String replaceImportContentReferences(
-			PortletDataContext portletDataContext, JournalFeed feed,
+			PortletDataContext portletDataContext, StagedModel stagedModel,
 			String content)
 		throws Exception {
+
+		JournalFeed feed = (JournalFeed)stagedModel;
 
 		Group group = _groupLocalService.getGroup(
 			portletDataContext.getScopeGroupId());
@@ -119,19 +124,14 @@ public class JournalFeedExportImportContentProcessor
 
 		String oldGroupFriendlyURL = friendlyURLParts[2];
 
-		if (oldGroupFriendlyURL.equals(_DATA_HANDLER_GROUP_FRIENDLY_URL)) {
+		if (oldGroupFriendlyURL.equals(DATA_HANDLER_GROUP_FRIENDLY_URL)) {
 			feed.setTargetLayoutFriendlyUrl(
 				StringUtil.replace(
 					feed.getTargetLayoutFriendlyUrl(),
-					_DATA_HANDLER_GROUP_FRIENDLY_URL, newGroupFriendlyURL));
+					DATA_HANDLER_GROUP_FRIENDLY_URL, newGroupFriendlyURL));
 		}
 
 		return content;
-	}
-
-	@Override
-	public boolean validateContentReferences(long groupId, String content) {
-		return true;
 	}
 
 	@Reference(unbind = "-")
@@ -145,9 +145,6 @@ public class JournalFeedExportImportContentProcessor
 
 		_layoutLocalService = layoutLocalService;
 	}
-
-	private static final String _DATA_HANDLER_GROUP_FRIENDLY_URL =
-		"@data_handler_group_friendly_url@";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalFeedExportImportContentProcessor.class);

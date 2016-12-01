@@ -17,8 +17,10 @@ package com.liferay.taglib.ui;
 import com.liferay.taglib.util.IncludeTag;
 
 /**
- * @author Brian Wing Shun Chan
+ * @author     Brian Wing Shun Chan
+ * @deprecated As of 7.0.0, with no direct replacement
  */
+@Deprecated
 public class SearchTag extends IncludeTag {
 
 	@Override

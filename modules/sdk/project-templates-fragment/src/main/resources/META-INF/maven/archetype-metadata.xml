@@ -24,12 +24,12 @@
 		</fileSet>
 	</fileSets>
 	<requiredProperties>
+		<requiredProperty key="buildType">
+			<defaultValue>maven</defaultValue>
+		</requiredProperty>
 		<requiredProperty key="hostBundleSymbolicName">
 		</requiredProperty>
 		<requiredProperty key="hostBundleVersion">
-		</requiredProperty>
-		<requiredProperty key="package">
-			<defaultValue>${groupId}.${artifactId}</defaultValue>
 		</requiredProperty>
 		<requiredProperty key="projectType">
 			<defaultValue>standalone</defaultValue>

@@ -24,20 +24,18 @@ import com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.StagedModel;
 import com.liferay.portal.kernel.model.adapter.ModelAdapterUtil;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutSetLocalService;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.site.model.adapter.StagedGroup;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -78,6 +76,7 @@ public class StagedLayoutSetStagedModelRepository
 
 	}
 
+	@Override
 	public void deleteStagedModel(
 			String uuid, long groupId, String className, String extraData)
 		throws PortalException {
@@ -86,6 +85,7 @@ public class StagedLayoutSetStagedModelRepository
 
 	}
 
+	@Override
 	public void deleteStagedModels(PortletDataContext portletDataContext)
 		throws PortalException {
 
@@ -100,32 +100,10 @@ public class StagedLayoutSetStagedModelRepository
 		List<Layout> layouts = _layoutLocalService.getLayouts(
 			stagedLayoutSet.getGroupId(), stagedLayoutSet.isPrivateLayout());
 
-		long[] layoutIds = portletDataContext.getLayoutIds();
-
 		Stream<Layout> layoutsStream = layouts.stream();
 
-		layoutsStream = layoutsStream.filter(
-			(layout) -> ArrayUtil.contains(layoutIds, layout.getLayoutId()));
-
-		return layoutsStream.collect(Collectors.toList());
-	}
-
-	public List<StagedModel> fetchDependencyStagedModels(
-		PortletDataContext portletDataContext,
-		StagedLayoutSet stagedLayoutSet) {
-
-		List<StagedModel> dependencyStagedModels = new ArrayList<>();
-
-		try {
-			Group group = stagedLayoutSet.getGroup();
-
-			dependencyStagedModels.add(
-				ModelAdapterUtil.adapt(group, Group.class, StagedGroup.class));
-		}
-		catch (PortalException pe) {
-		}
-
-		return dependencyStagedModels;
+		return layoutsStream.map((layout) -> (StagedModel)layout).collect(
+			Collectors.toList());
 	}
 
 	public Optional<StagedLayoutSet> fetchExistingLayoutSet(
@@ -141,11 +119,18 @@ public class StagedLayoutSetStagedModelRepository
 				layoutSet, LayoutSet.class, StagedLayoutSet.class);
 		}
 		catch (PortalException pe) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(pe, pe);
+			}
 		}
 
 		return Optional.ofNullable(stagedLayoutSet);
 	}
 
+	@Override
 	public StagedLayoutSet fetchStagedModelByUuidAndGroupId(
 		String uuid, long groupId) {
 
@@ -159,10 +144,18 @@ public class StagedLayoutSetStagedModelRepository
 				layoutSet, LayoutSet.class, StagedLayoutSet.class);
 		}
 		catch (PortalException pe) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(pe, pe);
+			}
+
 			return null;
 		}
 	}
 
+	@Override
 	public List<StagedLayoutSet> fetchStagedModelsByUuidAndCompanyId(
 		String uuid, long companyId) {
 
@@ -191,6 +184,7 @@ public class StagedLayoutSetStagedModelRepository
 		return stagedLayoutSetsStream.collect(Collectors.toList());
 	}
 
+	@Override
 	public ExportActionableDynamicQuery getExportActionableDynamicQuery(
 		PortletDataContext portletDataContext) {
 
@@ -212,21 +206,28 @@ public class StagedLayoutSetStagedModelRepository
 			StagedLayoutSet stagedLayoutSet)
 		throws PortalException {
 
+		LayoutSet existingLayoutSet = _layoutSetLocalService.fetchLayoutSet(
+			stagedLayoutSet.getLayoutSetId());
+
 		// Layout set prototype settings
 
+		boolean layoutSetPrototypeLinkEnabled = MapUtil.getBoolean(
+			portletDataContext.getParameterMap(),
+			PortletDataHandlerKeys.LAYOUT_SET_PROTOTYPE_LINK_ENABLED);
 		boolean layoutSetPrototypeSettings = MapUtil.getBoolean(
 			portletDataContext.getParameterMap(),
 			PortletDataHandlerKeys.LAYOUT_SET_PROTOTYPE_SETTINGS);
 
-		LayoutSet layoutSet = null;
+		if (layoutSetPrototypeSettings ||
+			Validator.isNotNull(stagedLayoutSet.getLayoutSetPrototypeUuid())) {
 
-		if (!layoutSetPrototypeSettings ||
-			Validator.isNull(stagedLayoutSet.getLayoutSetPrototypeUuid())) {
+			existingLayoutSet.setLayoutSetPrototypeUuid(
+				stagedLayoutSet.getLayoutSetPrototypeUuid());
+			existingLayoutSet.setLayoutSetPrototypeLinkEnabled(
+				layoutSetPrototypeLinkEnabled);
 
-			stagedLayoutSet.setLayoutSetPrototypeUuid(null);
-			stagedLayoutSet.setLayoutSetPrototypeLinkEnabled(false);
-
-			layoutSet = _layoutSetLocalService.updateLayoutSet(stagedLayoutSet);
+			existingLayoutSet = _layoutSetLocalService.updateLayoutSet(
+				existingLayoutSet);
 		}
 
 		// Layout set settings
@@ -236,15 +237,18 @@ public class StagedLayoutSetStagedModelRepository
 			PortletDataHandlerKeys.LAYOUT_SET_SETTINGS);
 
 		if (layoutSetSettings) {
-			layoutSet = _layoutSetLocalService.updateSettings(
-				portletDataContext.getGroupId(),
-				portletDataContext.isPrivateLayout(),
+			existingLayoutSet = _layoutSetLocalService.updateSettings(
+				existingLayoutSet.getGroupId(),
+				existingLayoutSet.isPrivateLayout(),
 				stagedLayoutSet.getSettings());
 		}
 
 		return ModelAdapterUtil.adapt(
-			layoutSet, LayoutSet.class, StagedLayoutSet.class);
+			existingLayoutSet, LayoutSet.class, StagedLayoutSet.class);
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		StagedLayoutSetStagedModelRepository.class);
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;

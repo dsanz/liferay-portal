@@ -14,6 +14,7 @@
 							requires: [
 								'aui-form-builder',
 								'aui-form-builder-pages',
+								'liferay-ddl-form-builder-confirmation-dialog',
 								'liferay-ddl-form-builder-field-list',
 								'liferay-ddl-form-builder-field-options-toolbar',
 								'liferay-ddl-form-builder-field-settings-sidebar',
@@ -23,6 +24,8 @@
 								'liferay-ddl-form-builder-layout-deserializer',
 								'liferay-ddl-form-builder-layout-visitor',
 								'liferay-ddl-form-builder-pages-manager',
+								'liferay-ddl-form-builder-rule',
+								'liferay-ddl-form-builder-rule-builder',
 								'liferay-ddl-form-builder-util',
 								'liferay-ddm-form-field-types',
 								'liferay-ddm-form-renderer'
@@ -33,6 +36,10 @@
 							requires: [
 								'soyutils'
 							]
+						},
+						'liferay-ddl-form-builder-confirmation-dialog': {
+							path: 'form_builder_confirmation_dialog.js',
+							requires: []
 						},
 						'liferay-ddl-form-builder-definition-serializer': {
 							path: 'form_definition_serializer.js',
@@ -68,7 +75,7 @@
 						},
 						'liferay-ddl-form-builder-field-settings-sidebar': {
 							path: 'form_builder_field_settings_sidebar.js',
-							requires: ['aui-tabview', 'liferay-ddl-form-builder-sidebar']
+							requires: ['aui-tabview', 'liferay-ddl-form-builder-sidebar', 'liferay-ddm-form-renderer-types']
 						},
 						'liferay-ddl-form-builder-field-support': {
 							path: 'form_builder_field_support.js',
@@ -124,6 +131,26 @@
 								'liferay-ddm-form-renderer-wizard'
 							]
 						},
+						'liferay-ddl-form-builder-rule': {
+							path: 'form_builder_rule.js',
+							requires: ['liferay-ddl-form-builder-rule-template', 'liferay-ddm-form-renderer-field']
+						},
+						'liferay-ddl-form-builder-rule-builder': {
+							path: 'form_builder_rule_builder.js',
+							requires: ['liferay-ddl-form-builder-rule-builder-template']
+						},
+						'liferay-ddl-form-builder-rule-builder-template': {
+							path: '../templates/rule_builder.soy.js',
+							requires: [
+								'soyutils'
+							]
+						},
+						'liferay-ddl-form-builder-rule-template': {
+							path: '../templates/rule.soy.js',
+							requires: [
+								'soyutils'
+							]
+						},
 						'liferay-ddl-form-builder-settings-retriever': {
 							path: 'form_builder_settings_retriever.js',
 							requires: [
@@ -159,6 +186,7 @@
 								'liferay-ddl-form-builder',
 								'liferay-ddl-form-builder-definition-serializer',
 								'liferay-ddl-form-builder-layout-serializer',
+								'liferay-ddl-form-builder-rule-builder',
 								'liferay-portlet-base',
 								'liferay-util-window'
 							]

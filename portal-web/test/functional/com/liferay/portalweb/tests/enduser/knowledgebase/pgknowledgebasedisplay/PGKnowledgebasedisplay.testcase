@@ -320,7 +320,7 @@
 		</execute>
 
 		<execute macro="KBArticle#configureKBSocialBookmarkSites">
-			<var name="enableSocialBookmarkSites" value="twitter,facebook,plusone,addthis,blinklist,delicious,digg,evernote,linkedin,newsvine,reddit,slashdot,stumbleupon,technorati,tuenti" />
+			<var name="enableSocialBookmarkSites" value="twitter,facebook,plusone,addthis,delicious,digg,evernote,linkedin,newsvine,reddit,slashdot,stumbleupon,tuenti" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -329,7 +329,7 @@
 
 		<execute function="Click" locator1="Icon#SHARE" />
 
-		<for list="Twitter,Facebook,Google+,LinkedIn,BlinkList,Delicious,Digg,Evernote,Newsvine,Reddit,Slashdot,StumbleUpon,Technorati,Tuenti" param="socialBookmarkSites" >
+		<for list="Twitter,Facebook,Google+,LinkedIn,Delicious,Digg,Evernote,Newsvine,Reddit,Slashdot,StumbleUpon,Tuenti" param="socialBookmarkSites" >
 			<execute macro="KBArticle#viewEnabledKBSocialBookmarkSites">
 				<var name="socialBookmarkSite" value="${socialBookmarkSites}" />
 			</execute>
@@ -345,21 +345,21 @@
 		</execute>
 
 		<execute macro="KBArticle#configureKBSocialBookmarkSites">
-			<var name="disableSocialBookmarkSites" value="twitter,newsvine,reddit,slashdot,stumbleupon,technorati,tuenti" />
-			<var name="enableSocialBookmarkSites" value="facebook,plusone,addthis,blinklist,delicious,digg,evernote,linkedin" />
+			<var name="disableSocialBookmarkSites" value="twitter,newsvine,reddit,slashdot,stumbleupon,tuenti" />
+			<var name="enableSocialBookmarkSites" value="facebook,plusone,addthis,delicious,digg,evernote,linkedin" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Knowledge Base Display Page" />
 		</execute>
 
-		<for list="Facebook,Google+,AddThis,LinkedIn,BlinkList,Delicious,Digg,Evernote" param="socialBookmarkSites" >
+		<for list="Facebook,Google+,AddThis,LinkedIn,Delicious,Digg,Evernote" param="socialBookmarkSites" >
 			<execute macro="KBArticle#viewEnabledKBSocialBookmarkSites">
 				<var name="socialBookmarkSite" value="${socialBookmarkSites}" />
 			</execute>
 		</for>
 
-		<for list="Twitter,Newsvine,Reddit,Slashdot,StumbleUpon,Technorati,Tuenti" param="socialBookmarkSites" >
+		<for list="Twitter,Newsvine,Reddit,Slashdot,StumbleUpon,Tuenti" param="socialBookmarkSites" >
 			<execute macro="KBArticle#viewDisabledKBSocialBookmarkSites">
 				<var name="socialBookmarkSite" value="${socialBookmarkSites}" />
 			</execute>
@@ -468,6 +468,10 @@
 			<var name="kbArticleTitleEdit" value="Knowledge Base Article Parent Title Edited 1" />
 		</execute>
 
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Knowledge Base Display Page" />
+		</execute>
+
 		<execute macro="KBArticle#gotoKBChildArticleViaKBDisplayHierarchyNavigationPG">
 			<var name="kbArticleTitle" value="Knowledge Base Article Parent Title Edited 1" />
 			<var name="kbChildArticleTitle" value="Knowledge Base Article Parent Title 1 Child 1" />
@@ -476,6 +480,10 @@
 		<execute macro="KBArticle#editPGViaKBDisplay">
 			<var name="kbArticleContentEdit" value="Knowledge Base Child Article Content Edited 1" />
 			<var name="kbArticleTitleEdit" value="Knowledge Base Article Parent Title Edited 1 Child 1" />
+		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Knowledge Base Display Page" />
 		</execute>
 
 		<execute macro="KBArticle#viewParentArticleHierarchyViaKBDisplayPG">
@@ -665,10 +673,8 @@
 		<execute macro="KBArticle#viewArticleHistoryPG">
 			<var name="kbArticleContent" value="KB Article Content Edit" />
 			<var name="kbArticleContentAddedDiff" value="Edit" />
-			<var name="kbArticleHistorySource" value="1 (Source)" />
-			<var name="kbArticleHistoryTarget" value="2 (Target)" />
-			<var name="kbArticleTitle" value="KB Article Title Edit" />
-			<var name="kbArticleTitleAddedDiff" value="Edit" />
+			<var name="kbArticleVersionNew" value="2" />
+			<var name="kbArticleVersionOld" value="1" />
 			<var name="viewNoXMLInTitle" value="true" />
 		</execute>
 	</command>
@@ -883,7 +889,7 @@
 	<command name="ViewKBArticleWithAllSocialBookmarkSites" priority="3">
 		<property name="hook.plugins.includes" value="social-bookmarks-hook" />
 
-		<var name="socialBookmarkSites" value="twitter,facebook,plusone,addthis,blinklist,delicious,digg,evernote,linkedin,newsvine,reddit,slashdot,stumbleupon,technorati,tuenti" />
+		<var name="socialBookmarkSites" value="twitter,facebook,plusone,addthis,delicious,digg,evernote,linkedin,newsvine,reddit,slashdot,stumbleupon,tuenti" />
 
 		<execute macro="Navigator#openURL" />
 
@@ -913,7 +919,7 @@
 			<var name="pageName" value="Knowledge Base Display Page" />
 		</execute>
 
-		<for list="Twitter,Facebook,Google+,AddThis,LinkedIn,BlinkList,Delicious,Digg,Evernote,Newsvine,Reddit,Slashdot,StumbleUpon,Technorati,Tuenti" param="socialBookmarkSites" >
+		<for list="Twitter,Facebook,Google+,AddThis,LinkedIn,Delicious,Digg,Evernote,Newsvine,Reddit,Slashdot,StumbleUpon,Tuenti" param="socialBookmarkSites" >
 			<execute macro="KBArticle#viewEnabledKBSocialBookmarkSites">
 				<var name="socialBookmarkSite" value="${socialBookmarkSites}" />
 			</execute>

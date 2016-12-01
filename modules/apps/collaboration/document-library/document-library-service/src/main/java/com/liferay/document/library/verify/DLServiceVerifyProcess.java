@@ -33,6 +33,7 @@ import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.document.library.kernel.util.DLValidatorUtil;
 import com.liferay.document.library.kernel.util.comparator.DLFileVersionVersionComparator;
+import com.liferay.portal.instances.service.PortalInstancesLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Criterion;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -57,7 +58,6 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileVersion;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFolder;
-import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.verify.VerifyProcess;
 import com.liferay.portlet.documentlibrary.webdav.DLWebDAVUtil;
 
@@ -409,14 +409,21 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 							catch (Exception e) {
 								if (_log.isWarnEnabled()) {
 									_log.warn(
-										"Unable to rename duplicate title for" +
-											" file entry " +
+										"Unable to rename duplicate title " +
+											"for file entry " +
 												dlFileEntry.getFileEntryId(),
 										e);
 								}
 							}
 						}
 						catch (PortalException pe) {
+
+							// LPS-52675
+
+							if (_log.isDebugEnabled()) {
+								_log.debug(pe, pe);
+							}
+
 							return;
 						}
 					}
@@ -586,6 +593,12 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 				return renameTitle(dlFileEntry, newTitle);
 			}
 			catch (DuplicateFileEntryException dfee) {
+
+				// LPS-52675
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(dfee, dfee);
+				}
 			}
 		}
 	}
@@ -741,7 +754,8 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 
 	protected void verifyTree() throws Exception {
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			long[] companyIds = PortalInstances.getCompanyIdsBySQL();
+			long[] companyIds =
+				_portalInstancesLocalService.getCompanyIdsBySQL();
 
 			for (long companyId : companyIds) {
 				_dlFolderLocalService.rebuildTree(companyId);
@@ -762,5 +776,8 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 	private DLFileEntryTypeLocalService _dlFileEntryTypeLocalService;
 	private DLFileVersionLocalService _dlFileVersionLocalService;
 	private DLFolderLocalService _dlFolderLocalService;
+
+	@Reference
+	private PortalInstancesLocalService _portalInstancesLocalService;
 
 }

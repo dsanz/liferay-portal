@@ -4712,7 +4712,8 @@ public class JournalContentSearchPersistenceImpl extends BasePersistenceImpl<Jou
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
-		clearUniqueFindersCache((JournalContentSearchModelImpl)journalContentSearch);
+		clearUniqueFindersCache((JournalContentSearchModelImpl)journalContentSearch,
+			true);
 	}
 
 	@Override
@@ -4725,47 +4726,12 @@ public class JournalContentSearchPersistenceImpl extends BasePersistenceImpl<Jou
 				JournalContentSearchImpl.class,
 				journalContentSearch.getPrimaryKey());
 
-			clearUniqueFindersCache((JournalContentSearchModelImpl)journalContentSearch);
+			clearUniqueFindersCache((JournalContentSearchModelImpl)journalContentSearch,
+				true);
 		}
 	}
 
 	protected void cacheUniqueFindersCache(
-		JournalContentSearchModelImpl journalContentSearchModelImpl,
-		boolean isNew) {
-		if (isNew) {
-			Object[] args = new Object[] {
-					journalContentSearchModelImpl.getGroupId(),
-					journalContentSearchModelImpl.getPrivateLayout(),
-					journalContentSearchModelImpl.getLayoutId(),
-					journalContentSearchModelImpl.getPortletId(),
-					journalContentSearchModelImpl.getArticleId()
-				};
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_G_P_L_P_A, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_G_P_L_P_A, args,
-				journalContentSearchModelImpl);
-		}
-		else {
-			if ((journalContentSearchModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_G_P_L_P_A.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						journalContentSearchModelImpl.getGroupId(),
-						journalContentSearchModelImpl.getPrivateLayout(),
-						journalContentSearchModelImpl.getLayoutId(),
-						journalContentSearchModelImpl.getPortletId(),
-						journalContentSearchModelImpl.getArticleId()
-					};
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_G_P_L_P_A, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_G_P_L_P_A, args,
-					journalContentSearchModelImpl);
-			}
-		}
-	}
-
-	protected void clearUniqueFindersCache(
 		JournalContentSearchModelImpl journalContentSearchModelImpl) {
 		Object[] args = new Object[] {
 				journalContentSearchModelImpl.getGroupId(),
@@ -4775,12 +4741,31 @@ public class JournalContentSearchPersistenceImpl extends BasePersistenceImpl<Jou
 				journalContentSearchModelImpl.getArticleId()
 			};
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_L_P_A, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_G_P_L_P_A, args);
+		finderCache.putResult(FINDER_PATH_COUNT_BY_G_P_L_P_A, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_G_P_L_P_A, args,
+			journalContentSearchModelImpl, false);
+	}
+
+	protected void clearUniqueFindersCache(
+		JournalContentSearchModelImpl journalContentSearchModelImpl,
+		boolean clearCurrent) {
+		if (clearCurrent) {
+			Object[] args = new Object[] {
+					journalContentSearchModelImpl.getGroupId(),
+					journalContentSearchModelImpl.getPrivateLayout(),
+					journalContentSearchModelImpl.getLayoutId(),
+					journalContentSearchModelImpl.getPortletId(),
+					journalContentSearchModelImpl.getArticleId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_L_P_A, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_G_P_L_P_A, args);
+		}
 
 		if ((journalContentSearchModelImpl.getColumnBitmask() &
 				FINDER_PATH_FETCH_BY_G_P_L_P_A.getColumnBitmask()) != 0) {
-			args = new Object[] {
+			Object[] args = new Object[] {
 					journalContentSearchModelImpl.getOriginalGroupId(),
 					journalContentSearchModelImpl.getOriginalPrivateLayout(),
 					journalContentSearchModelImpl.getOriginalLayoutId(),
@@ -5086,8 +5071,8 @@ public class JournalContentSearchPersistenceImpl extends BasePersistenceImpl<Jou
 			JournalContentSearchImpl.class,
 			journalContentSearch.getPrimaryKey(), journalContentSearch, false);
 
-		clearUniqueFindersCache(journalContentSearchModelImpl);
-		cacheUniqueFindersCache(journalContentSearchModelImpl, isNew);
+		clearUniqueFindersCache(journalContentSearchModelImpl, false);
+		cacheUniqueFindersCache(journalContentSearchModelImpl);
 
 		journalContentSearch.resetOriginalValues();
 

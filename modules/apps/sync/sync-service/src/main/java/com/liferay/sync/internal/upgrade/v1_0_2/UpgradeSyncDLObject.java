@@ -290,8 +290,8 @@ public class UpgradeSyncDLObject extends UpgradeProcess {
 			PreparedStatement ps2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
-					"update SyncDLObject set extraSettings = ? where " +
-						"typePK = ?");
+					"update SyncDLObject set extraSettings = ? where typePK " +
+						"= ?");
 			ResultSet rs = ps1.executeQuery()) {
 
 			while (rs.next()) {
@@ -313,6 +313,7 @@ public class UpgradeSyncDLObject extends UpgradeProcess {
 				extraSettingsJSONObject.put("macPackage", true);
 
 				ps2.setString(1, extraSettingsJSONObject.toString());
+
 				ps2.setLong(2, folderId);
 
 				ps2.addBatch();

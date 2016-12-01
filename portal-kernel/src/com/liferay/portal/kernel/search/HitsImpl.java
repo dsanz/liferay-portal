@@ -16,9 +16,10 @@ package com.liferay.portal.kernel.search;
 
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -212,13 +213,40 @@ public class HitsImpl implements Hits {
 
 	@Override
 	public List<Document> toList() {
-		List<Document> subset = new ArrayList<>(_docs.length);
+		return Arrays.asList(_docs);
+	}
 
-		for (Document doc : _docs) {
-			subset.add(doc);
+	@Override
+	public String toString() {
+		if ((_docs == null) || (_docs.length == 0)) {
+			StringBundler sb = new StringBundler(5);
+
+			sb.append("{docs={}, length=");
+			sb.append(_length);
+			sb.append(", query=");
+			sb.append(_query);
+			sb.append(StringPool.CLOSE_BRACKET);
+
+			return sb.toString();
 		}
 
-		return subset;
+		StringBundler sb = new StringBundler(2 * _docs.length + 4);
+
+		sb.append(StringPool.OPEN_BRACKET);
+
+		for (Document document : _docs) {
+			sb.append(document);
+			sb.append(StringPool.COMMA_AND_SPACE);
+		}
+
+		sb.setStringAt("}, length=", sb.index() - 1);
+
+		sb.append(_length);
+		sb.append(", query=");
+		sb.append(_query);
+		sb.append(StringPool.CLOSE_BRACKET);
+
+		return sb.toString();
 	}
 
 	private static final Document[] _EMPTY_DOCUMENTS = new Document[0];

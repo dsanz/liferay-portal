@@ -255,12 +255,9 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 	@Override
 	public SystemException processException(Exception e) {
 		if (!(e instanceof ORMException)) {
-			Class<?> clazz = e.getClass();
-
-			_log.error("Caught unexpected exception " + clazz.getName());
+			_log.error("Caught unexpected exception", e);
 		}
-
-		if (_log.isDebugEnabled()) {
+		else if (_log.isDebugEnabled()) {
 			_log.debug(e, e);
 		}
 
@@ -308,7 +305,9 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		_sessionFactory = sessionFactory;
+
 		_dialect = _sessionFactory.getDialect();
+
 		_db = DBManagerUtil.getDB(_dialect, getDataSource());
 
 		DBType dbType = _db.getDBType();

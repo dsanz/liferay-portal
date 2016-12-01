@@ -646,8 +646,8 @@ public class MailManager {
 			else if (me.getType() == MailException.MESSAGE_INVALID_ADDRESS) {
 				return createJSONResult(
 					"failure",
-					"please-make-sure-the-following-address-is-properly" +
-						"-formatted",
+					"please-make-sure-the-following-address-is-properly-" +
+						"formatted",
 					me.getValue());
 			}
 
@@ -675,6 +675,13 @@ public class MailManager {
 			return createJSONResult("success", "sent-successfully");
 		}
 		catch (FileSizeException fse) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(fse, fse);
+			}
+
 			return createJSONResult("failure", "attachment-is-too-large");
 		}
 		catch (MailException me) {
@@ -685,8 +692,8 @@ public class MailManager {
 			else if (me.getType() == MailException.MESSAGE_INVALID_ADDRESS) {
 				return createJSONResult(
 					"failure",
-					"please-make-sure-the-following-address-is-properly" +
-						"-formatted",
+					"please-make-sure-the-following-address-is-properly-" +
+						"formatted",
 					HtmlUtil.escape(me.getValue()));
 			}
 
@@ -812,8 +819,8 @@ public class MailManager {
 			else if (me.getType() == MailException.MESSAGE_INVALID_ADDRESS) {
 				return createJSONResult(
 					"failure",
-					"please-make-sure-the-following-address-is-properly" +
-						"-formatted",
+					"please-make-sure-the-following-address-is-properly-" +
+						"formatted",
 					me.getValue());
 			}
 

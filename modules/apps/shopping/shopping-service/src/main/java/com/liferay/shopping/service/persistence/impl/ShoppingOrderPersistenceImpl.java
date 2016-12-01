@@ -1310,11 +1310,15 @@ public class ShoppingOrderPersistenceImpl extends BasePersistenceImpl<ShoppingOr
 						finderArgs, list);
 				}
 				else {
-					if ((list.size() > 1) && _log.isWarnEnabled()) {
-						_log.warn(
-							"ShoppingOrderPersistenceImpl.fetchByPPTxnId(String, boolean) with parameters (" +
-							StringUtil.merge(finderArgs) +
-							") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+					if (list.size() > 1) {
+						Collections.sort(list, Collections.reverseOrder());
+
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"ShoppingOrderPersistenceImpl.fetchByPPTxnId(String, boolean) with parameters (" +
+								StringUtil.merge(finderArgs) +
+								") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+						}
 					}
 
 					ShoppingOrder shoppingOrder = list.get(0);
@@ -2587,7 +2591,7 @@ public class ShoppingOrderPersistenceImpl extends BasePersistenceImpl<ShoppingOr
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
-		clearUniqueFindersCache((ShoppingOrderModelImpl)shoppingOrder);
+		clearUniqueFindersCache((ShoppingOrderModelImpl)shoppingOrder, true);
 	}
 
 	@Override
@@ -2599,73 +2603,58 @@ public class ShoppingOrderPersistenceImpl extends BasePersistenceImpl<ShoppingOr
 			entityCache.removeResult(ShoppingOrderModelImpl.ENTITY_CACHE_ENABLED,
 				ShoppingOrderImpl.class, shoppingOrder.getPrimaryKey());
 
-			clearUniqueFindersCache((ShoppingOrderModelImpl)shoppingOrder);
+			clearUniqueFindersCache((ShoppingOrderModelImpl)shoppingOrder, true);
 		}
 	}
 
 	protected void cacheUniqueFindersCache(
-		ShoppingOrderModelImpl shoppingOrderModelImpl, boolean isNew) {
-		if (isNew) {
-			Object[] args = new Object[] { shoppingOrderModelImpl.getNumber() };
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_NUMBER, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_NUMBER, args,
-				shoppingOrderModelImpl);
-
-			args = new Object[] { shoppingOrderModelImpl.getPpTxnId() };
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_PPTXNID, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_PPTXNID, args,
-				shoppingOrderModelImpl);
-		}
-		else {
-			if ((shoppingOrderModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_NUMBER.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] { shoppingOrderModelImpl.getNumber() };
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_NUMBER, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_NUMBER, args,
-					shoppingOrderModelImpl);
-			}
-
-			if ((shoppingOrderModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_PPTXNID.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] { shoppingOrderModelImpl.getPpTxnId() };
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_PPTXNID, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_PPTXNID, args,
-					shoppingOrderModelImpl);
-			}
-		}
-	}
-
-	protected void clearUniqueFindersCache(
 		ShoppingOrderModelImpl shoppingOrderModelImpl) {
 		Object[] args = new Object[] { shoppingOrderModelImpl.getNumber() };
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_NUMBER, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_NUMBER, args);
+		finderCache.putResult(FINDER_PATH_COUNT_BY_NUMBER, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_NUMBER, args,
+			shoppingOrderModelImpl, false);
 
-		if ((shoppingOrderModelImpl.getColumnBitmask() &
-				FINDER_PATH_FETCH_BY_NUMBER.getColumnBitmask()) != 0) {
-			args = new Object[] { shoppingOrderModelImpl.getOriginalNumber() };
+		args = new Object[] { shoppingOrderModelImpl.getPpTxnId() };
+
+		finderCache.putResult(FINDER_PATH_COUNT_BY_PPTXNID, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_PPTXNID, args,
+			shoppingOrderModelImpl, false);
+	}
+
+	protected void clearUniqueFindersCache(
+		ShoppingOrderModelImpl shoppingOrderModelImpl, boolean clearCurrent) {
+		if (clearCurrent) {
+			Object[] args = new Object[] { shoppingOrderModelImpl.getNumber() };
 
 			finderCache.removeResult(FINDER_PATH_COUNT_BY_NUMBER, args);
 			finderCache.removeResult(FINDER_PATH_FETCH_BY_NUMBER, args);
 		}
 
-		args = new Object[] { shoppingOrderModelImpl.getPpTxnId() };
+		if ((shoppingOrderModelImpl.getColumnBitmask() &
+				FINDER_PATH_FETCH_BY_NUMBER.getColumnBitmask()) != 0) {
+			Object[] args = new Object[] {
+					shoppingOrderModelImpl.getOriginalNumber()
+				};
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_PPTXNID, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_PPTXNID, args);
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_NUMBER, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_NUMBER, args);
+		}
+
+		if (clearCurrent) {
+			Object[] args = new Object[] { shoppingOrderModelImpl.getPpTxnId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_PPTXNID, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_PPTXNID, args);
+		}
 
 		if ((shoppingOrderModelImpl.getColumnBitmask() &
 				FINDER_PATH_FETCH_BY_PPTXNID.getColumnBitmask()) != 0) {
-			args = new Object[] { shoppingOrderModelImpl.getOriginalPpTxnId() };
+			Object[] args = new Object[] {
+					shoppingOrderModelImpl.getOriginalPpTxnId()
+				};
 
 			finderCache.removeResult(FINDER_PATH_COUNT_BY_PPTXNID, args);
 			finderCache.removeResult(FINDER_PATH_FETCH_BY_PPTXNID, args);
@@ -2878,8 +2867,8 @@ public class ShoppingOrderPersistenceImpl extends BasePersistenceImpl<ShoppingOr
 			ShoppingOrderImpl.class, shoppingOrder.getPrimaryKey(),
 			shoppingOrder, false);
 
-		clearUniqueFindersCache(shoppingOrderModelImpl);
-		cacheUniqueFindersCache(shoppingOrderModelImpl, isNew);
+		clearUniqueFindersCache(shoppingOrderModelImpl, false);
+		cacheUniqueFindersCache(shoppingOrderModelImpl);
 
 		shoppingOrder.resetOriginalValues();
 

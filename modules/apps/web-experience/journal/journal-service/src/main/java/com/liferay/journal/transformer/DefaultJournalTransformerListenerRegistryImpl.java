@@ -35,6 +35,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 public class DefaultJournalTransformerListenerRegistryImpl
 	implements JournalTransformerListenerRegistry {
 
+	@Override
 	public List<TransformerListener> getTransformerListeners() {
 		return _transformerListeners;
 	}

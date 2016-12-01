@@ -58,8 +58,8 @@ public class UpgradeModules extends UpgradeProcess {
 		throws SQLException {
 
 		try (PreparedStatement ps = connection.prepareStatement(
-				"select serviceComponentId from ServiceComponent " +
-					"where buildNamespace = ?")) {
+				"select serviceComponentId from ServiceComponent where " +
+					"buildNamespace = ?")) {
 
 			ps.setString(1, buildNamespace);
 
@@ -83,8 +83,8 @@ public class UpgradeModules extends UpgradeProcess {
 				String buildNamespace = convertedLegacyModule[2];
 
 				try (PreparedStatement ps = connection.prepareStatement(
-						"select servletContextName, buildNumber from Release_" +
-							" where servletContextName = ?")) {
+						"select servletContextName, buildNumber from " +
+							"Release_ where servletContextName = ?")) {
 
 					ps.setString(1, oldServletContextName);
 
@@ -179,11 +179,12 @@ public class UpgradeModules extends UpgradeProcess {
 		{"calendar-portlet", "com.liferay.calendar.service", "Calendar"},
 		{
 			"kaleo-designer-portlet",
-			"com.liferay.portal.workflow.kaleo.designer.web", "KaleoDesigner"
+			"com.liferay.portal.workflow.kaleo.designer.service",
+			"KaleoDesigner"
 		},
 		{
 			"kaleo-forms-portlet",
-			"com.liferay.portal.workflow.kaleo.forms.web", "KaleoForms"
+			"com.liferay.portal.workflow.kaleo.forms.service", "KaleoForms"
 		},
 		{"kaleo-web", "com.liferay.portal.workflow.kaleo.service", "Kaleo"},
 		{

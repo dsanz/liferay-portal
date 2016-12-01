@@ -1,8 +1,8 @@
 # WSDD Builder Gradle Plugin
 
-The WSDD Builder Gradle plugin allows you to run the Liferay WSDD Builder tool
-in order to generate the [Apache Axis](http://axis.apache.org/axis/) Web Service
-Deployment Descriptor (WSDD) files from a [Service Builder](https://dev.liferay.com/develop/tutorials/-/knowledge_base/7-0/what-is-service-builder)
+The WSDD Builder Gradle plugin lets you run the [Liferay WSDD Builder](https://github.com/liferay/liferay-portal/tree/master/modules/util/portal-tools-wsdd-builder)
+tool in order to generate the [Apache Axis](http://axis.apache.org/axis/) Web
+Service Deployment Descriptor (WSDD) files from a [Service Builder](https://dev.liferay.com/develop/tutorials/-/knowledge_base/7-0/what-is-service-builder)
 `service.xml` file.
 
 ## Usage
@@ -12,7 +12,7 @@ To use the plugin, include it in your build script:
 ```gradle
 buildscript {
 	dependencies {
-		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.wsdd.builder", version: "1.0.8"
+		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.wsdd.builder", version: "1.0.9"
 	}
 
 	repositories {
@@ -86,11 +86,11 @@ Property Name | Default Value
 
 Property Name | Type | Default Value | Description
 ------------- | ---- | ------------- | -----------
-`builderClasspath` | `String` | `null` | A classpath that the Liferay WSDD Builder uses to generate WSDD files.
-`inputFile` | `File` | `null` | A `service.xml` from which to generate the WSDD files.
-`outputDir` | `File` | `null` | A directory where the `*_deploy.wsdd` and `*_undeploy.wsdd` files are generated.
-`serverConfigFile` | `File` | `${project.projectDir}/server-config.wsdd` | A `server-config.wsdd` file to generate.
-`serviceNamespace` | `String` | `"Plugin"` | A namespace for the WSDD Service.
+`builderClasspath` | `String` | `null` | A classpath that the Liferay WSDD Builder uses to generate WSDD files. It sets the `wsdd.class.path` argument.
+`inputFile` | `File` | `null` | A `service.xml` from which to generate the WSDD files. It sets the `wsdd.input.file` argument.
+`outputDir` | `File` | `null` | A directory where the `*_deploy.wsdd` and `*_undeploy.wsdd` files are generated. It sets the `wsdd.output.path` argument.
+`serverConfigFile` | `File` | `${project.projectDir}/server-config.wsdd` | A `server-config.wsdd` file to generate. It sets the `wsdd.server.config.file` argument.
+`serviceNamespace` | `String` | `"Plugin"` | A namespace for the WSDD Service. It sets the `wsdd.service.namespace` argument.
 
 The properties of type `File` support any type that can be resolved by [`project.file`](https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)).
 Moreover, it is possible to use Closures and Callables as values for the
@@ -109,6 +109,6 @@ manually adding a dependency to the `wsddBuilder` configuration:
 
 ```gradle
 dependencies {
-	wsddBuilder group: "com.liferay", name: "com.liferay.portal.tools.wsdd.builder", version: "1.0.4"
+	wsddBuilder group: "com.liferay", name: "com.liferay.portal.tools.wsdd.builder", version: "1.0.6"
 }
 ```

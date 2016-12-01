@@ -25,8 +25,6 @@ import com.liferay.taglib.ui.BreadcrumbTag;
 import com.liferay.taglib.ui.DiscussionTag;
 import com.liferay.taglib.ui.IconTag;
 import com.liferay.taglib.ui.JournalArticleTag;
-import com.liferay.taglib.ui.MySitesTag;
-import com.liferay.taglib.ui.PngImageTag;
 import com.liferay.taglib.ui.RatingsTag;
 
 import javax.portlet.PortletURL;
@@ -105,7 +103,7 @@ public class DummyVelocityTaglib implements VelocityTaglib {
 
 	/**
 	 * @deprecated As of 7.0.0, replaced by {@link #breadcrumb(long, String,
-	 * 				boolean, boolean, boolean, boolean)}}
+	 *             boolean, boolean, boolean, boolean)}}
 	 */
 	@Deprecated
 	@Override
@@ -160,8 +158,12 @@ public class DummyVelocityTaglib implements VelocityTaglib {
 		return null;
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	@Override
-	public MySitesTag getMySitesTag() {
+	public com.liferay.taglib.ui.MySitesTag getMySitesTag() {
 		return null;
 	}
 
@@ -170,8 +172,12 @@ public class DummyVelocityTaglib implements VelocityTaglib {
 		return null;
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	@Override
-	public PngImageTag getPngImageTag() {
+	public com.liferay.taglib.ui.PngImageTag getPngImageTag() {
 		return null;
 	}
 

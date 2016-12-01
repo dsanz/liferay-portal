@@ -74,6 +74,14 @@ public interface KBArticleService extends BaseService {
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public KBArticle fetchFirstChildKBArticle(long groupId,
+		long parentResourcePrimKey);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public KBArticle fetchKBArticleByUrlTitle(long groupId, long kbFolderId,
+		java.lang.String urlTitle) throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public KBArticle fetchLatestKBArticle(long resourcePrimKey, int status)
 		throws PortalException;
 
@@ -103,6 +111,10 @@ public interface KBArticleService extends BaseService {
 		OrderByComparator<KBArticle> orderByComparator)
 		throws PortalException;
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public KBArticle[] getPreviousAndNextKBArticles(long kbArticleId)
+		throws PortalException;
+
 	public int addKBArticlesMarkdown(long groupId, long parentKBFolderId,
 		java.lang.String fileName, boolean prioritizeByNumericalPrefix,
 		InputStream inputStream, ServiceContext serviceContext)
@@ -128,7 +140,7 @@ public interface KBArticleService extends BaseService {
 		java.lang.String[] sections, int status);
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #getKBArticlesCount(long,
+	* @deprecated As of 1.1.0, replaced by {@link #getKBArticlesCount(long,
 	long, int)}
 	*/
 	@java.lang.Deprecated
@@ -159,6 +171,18 @@ public interface KBArticleService extends BaseService {
 		java.lang.String tempFolderName) throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<KBArticle> getAllDescendantKBArticles(long groupId,
+		long resourcePrimKey, int status,
+		OrderByComparator<KBArticle> orderByComparator)
+		throws PortalException;
+
+	/**
+	* @deprecated As of 1.1.0, replaced by {@link
+	#getAllDescendantKBArticles(long, long, int,
+	OrderByComparator)}
+	*/
+	@java.lang.Deprecated
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<KBArticle> getAllDescendantKBArticles(long resourcePrimKey,
 		int status, OrderByComparator<KBArticle> orderByComparator)
 		throws PortalException;
@@ -174,7 +198,7 @@ public interface KBArticleService extends BaseService {
 		throws PortalException;
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link
+	* @deprecated As of 1.1.0, replaced by {@link
 	#getKBArticleAndAllDescendantKBArticles(long, int,
 	OrderByComparator)}
 	*/
@@ -209,9 +233,8 @@ public interface KBArticleService extends BaseService {
 		OrderByComparator<KBArticle> orderByComparator);
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #getKBArticles(long, long,
-	int, int, int,
-	OrderByComparator)}
+	* @deprecated As of 1.1.0, replaced by {@link #getKBArticles(long, long,
+	int, int, int, OrderByComparator)}
 	*/
 	@java.lang.Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)

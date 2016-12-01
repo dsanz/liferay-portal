@@ -27,13 +27,17 @@ import aQute.lib.io.IO;
 
 import aQute.service.reporter.Reporter;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
@@ -70,8 +74,8 @@ public abstract class Baseline {
 				!_oldJarFile.canRead()) {
 
 				baselineProcessor.warning(
-					"Baseline file %s is invalid. Check if it exists, " +
-						"is readable, and is not a directory.",
+					"Baseline file %s is invalid. Check if it exists, is " +
+						"readable, and is not a directory.",
 					_oldJarFile);
 			}
 			else {
@@ -98,15 +102,20 @@ public abstract class Baseline {
 
 			BundleInfo bundleInfo = baseline.getBundleInfo();
 
-			if (hasPackageDelta(infos, Delta.REMOVED)) {
+			if (_forceCalculatedVersion) {
+				bundleInfo.suggestedVersion = calculateVersion(
+					bundleInfo.olderVersion, infos);
+			}
+			else if (hasPackageRemoved(infos)) {
 				bundleInfo.suggestedVersion = new Version(
 					bundleInfo.olderVersion.getMajor() + 1, 0, 0);
+			}
 
-				if (bundleInfo.suggestedVersion.compareTo(
-						bundleInfo.newerVersion.getWithoutQualifier()) > 0) {
+			int compare = bundleInfo.suggestedVersion.compareTo(
+				bundleInfo.newerVersion.getWithoutQualifier());
 
-					bundleInfo.mismatch = true;
-				}
+			if ((compare > 0) || (_forceCalculatedVersion && (compare != 0))) {
+				bundleInfo.mismatch = true;
 			}
 
 			if (bundleInfo.mismatch) {
@@ -236,6 +245,10 @@ public abstract class Baseline {
 		_bndFile = bndFile;
 	}
 
+	public void setForceCalculatedVersion(boolean forceCalculatedVersion) {
+		_forceCalculatedVersion = forceCalculatedVersion;
+	}
+
 	public void setForcePackageInfo(boolean forcePackageInfo) {
 		_forcePackageInfo = forcePackageInfo;
 	}
@@ -268,6 +281,48 @@ public abstract class Baseline {
 
 	public void setSourceDir(File sourceDir) {
 		_sourceDir = sourceDir;
+	}
+
+	protected Version calculateVersion(Version version, Set<Info> infos)
+		throws IOException {
+
+		Delta highestDelta = Delta.UNCHANGED;
+
+		Set<String> movedPackages = getMovedPackages();
+
+		for (Info info : infos) {
+			Delta delta = info.packageDiff.getDelta();
+
+			if ((delta == Delta.ADDED) || (delta == Delta.CHANGED)) {
+				delta = Delta.MICRO;
+			}
+			else if (delta == Delta.REMOVED) {
+				if (movedPackages.contains(info.packageName)) {
+					delta = Delta.MICRO;
+				}
+				else {
+					delta = Delta.MAJOR;
+				}
+			}
+
+			if (delta.compareTo(highestDelta) > 0) {
+				highestDelta = delta;
+			}
+		}
+
+		if (highestDelta == Delta.MAJOR) {
+			version = new Version(version.getMajor() + 1, 0, 0);
+		}
+		else if (highestDelta == Delta.MINOR) {
+			version = new Version(
+				version.getMajor(), version.getMinor() + 1, 0);
+		}
+		else {
+			version = new Version(
+				version.getMajor(), version.getMinor(), version.getMicro() + 1);
+		}
+
+		return version;
 	}
 
 	protected void doDiff(Diff diff, StringBuilder sb) {
@@ -412,6 +467,29 @@ public abstract class Baseline {
 		return correct;
 	}
 
+	protected Set<String> getMovedPackages() throws IOException {
+		File movedPackagesFile = new File(
+			_bndFile.getParentFile(), "moved-packages.txt");
+
+		if (!movedPackagesFile.exists()) {
+			return Collections.emptySet();
+		}
+
+		Set<String> movedPackages = new HashSet<>();
+
+		try (BufferedReader bufferedReader = new BufferedReader(
+				new FileReader(movedPackagesFile))) {
+
+			String line = null;
+
+			while ((line = bufferedReader.readLine()) != null) {
+				movedPackages.add(line);
+			}
+		}
+
+		return movedPackages;
+	}
+
 	protected String getShortDelta(Delta delta) {
 		if (delta == Delta.ADDED) {
 			return "+";
@@ -437,9 +515,15 @@ public abstract class Baseline {
 		return String.valueOf(deltaString.charAt(0));
 	}
 
-	protected boolean hasPackageDelta(Iterable<Info> infos, Delta delta) {
+	protected boolean hasPackageRemoved(Iterable<Info> infos)
+		throws IOException {
+
+		Set<String> movedPackages = getMovedPackages();
+
 		for (Info info : infos) {
-			if (info.packageDiff.getDelta() == delta) {
+			if ((info.packageDiff.getDelta() == Delta.REMOVED) &&
+				!movedPackages.contains(info.packageName)) {
+
 				return true;
 			}
 		}
@@ -496,6 +580,7 @@ public abstract class Baseline {
 	}
 
 	private File _bndFile;
+	private boolean _forceCalculatedVersion;
 	private boolean _forcePackageInfo;
 	private boolean _forceVersionOneOnAddedPackages = true;
 	private boolean _headerPrinted;

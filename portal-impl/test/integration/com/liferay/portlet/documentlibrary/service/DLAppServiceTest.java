@@ -1166,9 +1166,9 @@ public class DLAppServiceTest extends BaseDLAppTestCase {
 				group.getGroupId(), parentFolder.getFolderId(), fileName,
 				fileName, assetTagNames);
 
-			search(fileEntry, false, "hello", true);
-			search(fileEntry, false, "world", true);
-			search(fileEntry, false, "liferay", false);
+			search(fileEntry, "hello", true);
+			search(fileEntry, "world", true);
+			search(fileEntry, "liferay", false);
 		}
 
 		@Ignore
@@ -1198,9 +1198,9 @@ public class DLAppServiceTest extends BaseDLAppTestCase {
 				fileEntry.getFileEntryId(), fileName, ContentTypes.TEXT_PLAIN,
 				fileName, description, changeLog, false, bytes, serviceContext);
 
-			search(fileEntry, false, "hello", true);
-			search(fileEntry, false, "world", true);
-			search(fileEntry, false, "liferay", true);
+			search(fileEntry, "hello", true);
+			search(fileEntry, "world", true);
+			search(fileEntry, "liferay", true);
 		}
 
 		@Ignore
@@ -1227,6 +1227,99 @@ public class DLAppServiceTest extends BaseDLAppTestCase {
 			new AggregateTestRule(
 				new LiferayIntegrationTestRule(),
 				SynchronousDestinationTestRule.INSTANCE);
+
+		@Test
+		public void assetEntryShouldBeAddedWhenDraft() throws Exception {
+			String fileName = RandomTestUtil.randomString();
+			byte[] bytes = CONTENT.getBytes();
+			String[] assetTagNames = new String[] {"hello"};
+
+			FileEntry fileEntry = addFileEntry(
+				group.getGroupId(), parentFolder.getFolderId(), fileName,
+				fileName, assetTagNames);
+
+			assetTagNames = new String[] {"hello", "world"};
+
+			ServiceContext serviceContext =
+				ServiceContextTestUtil.getServiceContext(group.getGroupId());
+
+			serviceContext.setAssetTagNames(assetTagNames);
+			serviceContext.setWorkflowAction(
+				WorkflowConstants.ACTION_SAVE_DRAFT);
+
+			fileEntry = DLAppServiceUtil.updateFileEntry(
+				fileEntry.getFileEntryId(), fileName, ContentTypes.TEXT_PLAIN,
+				fileName, StringPool.BLANK, StringPool.BLANK, false, bytes,
+				serviceContext);
+
+			FileVersion fileVersion = fileEntry.getLatestFileVersion();
+
+			AssetEntry latestAssetEntry = AssetEntryLocalServiceUtil.fetchEntry(
+				DLFileEntryConstants.getClassName(),
+				fileVersion.getFileVersionId());
+
+			Assert.assertNotNull(latestAssetEntry);
+
+			AssertUtils.assertEqualsSorted(
+				assetTagNames, latestAssetEntry.getTagNames());
+
+			AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(
+				DLFileEntryConstants.getClassName(),
+				fileEntry.getFileEntryId());
+
+			Assert.assertNotNull(assetEntry);
+
+			assetTagNames = assetEntry.getTagNames();
+
+			Assert.assertEquals(1, assetTagNames.length);
+		}
+
+		@Test
+		public void assetEntryShouldBeAddedWithNullBytesWhenDraft()
+			throws Exception {
+
+			String fileName = RandomTestUtil.randomString();
+			String[] assetTagNames = new String[] {"hello"};
+
+			FileEntry fileEntry = addFileEntry(
+				group.getGroupId(), parentFolder.getFolderId(), fileName,
+				fileName, assetTagNames);
+
+			assetTagNames = new String[] {"hello", "world"};
+
+			ServiceContext serviceContext =
+				ServiceContextTestUtil.getServiceContext(group.getGroupId());
+
+			serviceContext.setAssetTagNames(assetTagNames);
+			serviceContext.setWorkflowAction(
+				WorkflowConstants.ACTION_SAVE_DRAFT);
+
+			fileEntry = DLAppServiceUtil.updateFileEntry(
+				fileEntry.getFileEntryId(), fileName, ContentTypes.TEXT_PLAIN,
+				fileName, StringPool.BLANK, StringPool.BLANK, false, null, 0,
+				serviceContext);
+
+			FileVersion fileVersion = fileEntry.getLatestFileVersion();
+
+			AssetEntry latestAssetEntry = AssetEntryLocalServiceUtil.fetchEntry(
+				DLFileEntryConstants.getClassName(),
+				fileVersion.getFileVersionId());
+
+			Assert.assertNotNull(latestAssetEntry);
+
+			AssertUtils.assertEqualsSorted(
+				assetTagNames, latestAssetEntry.getTagNames());
+
+			AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(
+				DLFileEntryConstants.getClassName(),
+				fileEntry.getFileEntryId());
+
+			Assert.assertNotNull(assetEntry);
+
+			assetTagNames = assetEntry.getTagNames();
+
+			Assert.assertEquals(1, assetTagNames.length);
+		}
 
 		@Test
 		public void assetTagsShouldBeOrdered() throws Exception {
@@ -1717,8 +1810,7 @@ public class DLAppServiceTest extends BaseDLAppTestCase {
 	}
 
 	protected static void search(
-			FileEntry fileEntry, boolean rootFolder, String keywords,
-			boolean assertTrue)
+			FileEntry fileEntry, String keywords, boolean expected)
 		throws Exception {
 
 		SearchContext searchContext = new SearchContext();
@@ -1741,11 +1833,9 @@ public class DLAppServiceTest extends BaseDLAppTestCase {
 
 		Hits hits = indexer.search(searchContext);
 
-		List<Document> documents = hits.toList();
-
 		boolean found = false;
 
-		for (Document document : documents) {
+		for (Document document : hits.getDocs()) {
 			long fileEntryId = GetterUtil.getLong(
 				document.get(Field.ENTRY_CLASS_PK));
 
@@ -1756,23 +1846,7 @@ public class DLAppServiceTest extends BaseDLAppTestCase {
 			}
 		}
 
-		String message = "Search engine could not find ";
-
-		if (rootFolder) {
-			message += "root file entry by " + keywords;
-		}
-		else {
-			message += "file entry by " + keywords;
-		}
-
-		message += " using query " + hits.getQuery();
-
-		if (assertTrue) {
-			Assert.assertTrue(message, found);
-		}
-		else {
-			Assert.assertFalse(message, found);
-		}
+		Assert.assertEquals(hits.toString(), expected, found);
 	}
 
 	protected static void searchFile(long groupId, long folderId)
@@ -1780,14 +1854,8 @@ public class DLAppServiceTest extends BaseDLAppTestCase {
 
 		FileEntry fileEntry = addFileEntry(groupId, folderId);
 
-		boolean rootFolder = false;
-
-		if (folderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			rootFolder = true;
-		}
-
-		search(fileEntry, rootFolder, "title", true);
-		search(fileEntry, rootFolder, "content", true);
+		search(fileEntry, "title", true);
+		search(fileEntry, "content", true);
 
 		DLAppServiceUtil.deleteFileEntry(fileEntry.getFileEntryId());
 	}

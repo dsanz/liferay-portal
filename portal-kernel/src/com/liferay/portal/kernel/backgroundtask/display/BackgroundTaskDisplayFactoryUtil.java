@@ -19,7 +19,7 @@ import aQute.bnd.annotation.ProviderType;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatusRegistryUtil;
 import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
-import com.liferay.portal.kernel.util.ProxyFactory;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
 
 /**
  * @author Andrew Betts
@@ -42,7 +42,8 @@ public class BackgroundTaskDisplayFactoryUtil {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, replaced by {@link #_getBackgroundTaskDisplayFactory()}
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #_getBackgroundTaskDisplayFactory()}
 	 */
 	@Deprecated
 	public static BackgroundTaskDisplayFactory
@@ -61,9 +62,10 @@ public class BackgroundTaskDisplayFactoryUtil {
 	}
 
 	private static volatile BackgroundTaskDisplayFactory
-		_backgroundTaskDisplayFactory = ProxyFactory.newServiceTrackedInstance(
-			BackgroundTaskDisplayFactory.class,
-			BackgroundTaskDisplayFactoryUtil.class,
-			"_backgroundTaskDisplayFactory");
+		_backgroundTaskDisplayFactory =
+			ServiceProxyFactory.newServiceTrackedInstance(
+				BackgroundTaskDisplayFactory.class,
+				BackgroundTaskDisplayFactoryUtil.class,
+				"_backgroundTaskDisplayFactory", false);
 
 }

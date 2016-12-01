@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * @author Julio Camarero
+ * @author     Julio Camarero
  * @deprecated As of 7.0.0
  */
 @Deprecated
@@ -46,14 +46,17 @@ public abstract class BaseAssetEntryQueryProcessor
 	 * @deprecated As of 7.0.0
 	 */
 	@Deprecated
+	@Override
 	public String getTitle(Locale locale) {
 		return StringPool.BLANK;
 	}
 
 	/**
+	 * @throws     IOException
 	 * @deprecated As of 7.0.0
 	 */
 	@Deprecated
+	@Override
 	public void include(
 			HttpServletRequest request, HttpServletResponse response)
 		throws IOException {

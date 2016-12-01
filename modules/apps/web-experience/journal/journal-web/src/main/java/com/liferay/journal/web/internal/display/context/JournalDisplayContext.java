@@ -152,7 +152,7 @@ public class JournalDisplayContext {
 	}
 
 	public String[] getCharactersBlacklist() throws PortalException {
-		ThemeDisplay themeDisplay = (ThemeDisplay) _request.getAttribute(
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		JournalServiceConfiguration journalServiceConfiguration =
@@ -262,7 +262,7 @@ public class JournalDisplayContext {
 			return _ddmStructureName;
 		}
 
-		ThemeDisplay themeDisplay = (ThemeDisplay) _request.getAttribute(
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		DDMStructure ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(
@@ -363,7 +363,7 @@ public class JournalDisplayContext {
 	}
 
 	public String getFoldersJSON() {
-		ThemeDisplay themeDisplay = (ThemeDisplay) _request.getAttribute(
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		JSONArray jsonArray = _getFoldersJSONArray(

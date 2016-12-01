@@ -17,7 +17,10 @@ package com.liferay.jenkins.results.parser;
 import java.io.File;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -142,6 +145,7 @@ public class GitHubMessageUtil {
 				project.getProperty("top.level.fail.count")) + 1;
 
 			sb.append(topLevelFailCount);
+
 			sb.append(" Job");
 
 			if (topLevelFailCount != 1) {
@@ -192,12 +196,17 @@ public class GitHubMessageUtil {
 			sb.append("</ol>");
 		}
 
-		project.setProperty("github.post.comment.body", sb.toString());
+		project.setProperty("github.post.comment.body", redact(sb.toString()));
+	}
+
+	protected static String getRedactTokenKey(int index) {
+		return "github.message.redact.token[" + index + "]";
 	}
 
 	protected static boolean isHighPriorityJobFailure(String content) {
-		String[] contentFlags =
-			new String[] {"compileJSP", "Unable to compile JSPs"};
+		String[] contentFlags = new String[] {
+			"compileJSP", "SourceFormatterTest", "Unable to compile JSPs"
+		};
 
 		for (String contentFlag : contentFlags) {
 			if (content.contains(contentFlag)) {
@@ -206,6 +215,35 @@ public class GitHubMessageUtil {
 		}
 
 		return false;
+	}
+
+	protected static String redact(String string) throws Exception {
+		Set<String> redactTokens = new HashSet<>();
+
+		Properties properties = JenkinsResultsParserUtil.getBuildProperties();
+
+		for (int i = 1; properties.containsKey(getRedactTokenKey(i)); i++) {
+			String key = properties.getProperty(getRedactTokenKey(i));
+
+			String redactToken = key;
+
+			if (key.startsWith("${") && key.endsWith("}")) {
+				redactToken = properties.getProperty(
+					key.substring(2, key.length() - 1));
+			}
+
+			if ((redactToken != null) && !redactToken.isEmpty()) {
+				redactTokens.add(redactToken);
+			}
+		}
+
+		redactTokens.remove("test");
+
+		for (String redactToken : redactTokens) {
+			string = string.replace(redactToken, "[REDACTED]");
+		}
+
+		return string;
 	}
 
 	private static final Pattern _pattern = Pattern.compile(

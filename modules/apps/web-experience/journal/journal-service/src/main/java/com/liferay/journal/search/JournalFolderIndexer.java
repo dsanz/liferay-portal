@@ -26,7 +26,7 @@ import com.liferay.portal.kernel.search.BaseIndexer;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.FolderIndexer;
-import com.liferay.portal.kernel.search.IndexWriterHelperUtil;
+import com.liferay.portal.kernel.search.IndexWriterHelper;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Summary;
@@ -149,7 +149,7 @@ public class JournalFolderIndexer
 	protected void doReindex(JournalFolder journalFolder) throws Exception {
 		Document document = getDocument(journalFolder);
 
-		IndexWriterHelperUtil.updateDocument(
+		_indexWriterHelper.updateDocument(
 			getSearchEngineId(), journalFolder.getCompanyId(), document,
 			isCommitImmediately());
 	}
@@ -211,6 +211,9 @@ public class JournalFolderIndexer
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalFolderIndexer.class);
+
+	@Reference
+	private IndexWriterHelper _indexWriterHelper;
 
 	private JournalFolderLocalService _journalFolderLocalService;
 

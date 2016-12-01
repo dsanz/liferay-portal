@@ -18,9 +18,9 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.rule.TransactionalTestRule;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.test.rule.TransactionalTestRule;
 
 import java.util.List;
 
@@ -337,8 +337,8 @@ public class QueryUtilTest {
 	private static final int _SIZE = 20;
 
 	private static final String _SQL_CREATE_TABLE =
-		"CREATE TABLE QueryUtilTest (id INTEGER NOT NULL PRIMARY KEY, " +
-			"value INTEGER)";
+		"CREATE TABLE QueryUtilTest (id INTEGER NOT NULL PRIMARY KEY, value " +
+			"INTEGER)";
 
 	private static final String _SQL_DROP_TABLE = "DROP TABLE QueryUtilTest";
 
@@ -349,8 +349,8 @@ public class QueryUtilTest {
 		"SELECT id, value FROM QueryUtilTest ORDER BY id ASC";
 
 	private static final String _SQL_UNION_SELECT =
-		"( SELECT 'value' AS type, id as value from QueryUtilTest ) " +
-			"UNION ALL ( SELECT 'id' AS type, id as value from QueryUtilTest )";
+		"( SELECT 'value' AS type, id as value from QueryUtilTest ) UNION " +
+			"ALL ( SELECT 'id' AS type, id as value from QueryUtilTest )";
 
 	private static DB _db;
 

@@ -53,6 +53,7 @@ page import="com.liferay.portal.kernel.util.StringBundler" %><%@
 page import="com.liferay.portal.kernel.util.StringPool" %><%@
 page import="com.liferay.portal.kernel.util.StringUtil" %><%@
 page import="com.liferay.portal.kernel.util.TextFormatter" %><%@
+page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.portal.kernel.workflow.WorkflowConstants" %><%@
 page import="com.liferay.social.privatemessaging.model.UserThread" %><%@
 page import="com.liferay.social.privatemessaging.service.UserThreadLocalServiceUtil" %><%@
@@ -61,7 +62,8 @@ page import="com.liferay.social.privatemessaging.util.PrivateMessagingUtil" %>
 
 <%@ page import="java.text.Format" %>
 
-<%@ page import="java.util.List" %><%@
+<%@ page import="java.util.Date" %><%@
+page import="java.util.List" %><%@
 page import="java.util.regex.Matcher" %><%@
 page import="java.util.regex.Pattern" %>
 

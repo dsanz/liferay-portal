@@ -225,6 +225,7 @@ public class ContentTransformerListener extends BaseTransformerListener {
 		String script, String name, String type, String call) {
 
 		String field = "$" + name + "." + call;
+
 		String wrappedField =
 			"<span class=\"journal-content-eip-" + type + "\" " +
 				"id=\"journal-content-field-name-" + name + "\">" + field +

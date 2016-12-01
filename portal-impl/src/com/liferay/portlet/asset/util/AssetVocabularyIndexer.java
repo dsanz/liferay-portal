@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portlet.asset.service.permission.AssetVocabularyPermission;
 
@@ -113,10 +114,18 @@ public class AssetVocabularyIndexer extends BaseIndexer<AssetVocabulary> {
 
 		document.addKeyword(
 			Field.ASSET_VOCABULARY_ID, assetVocabulary.getVocabularyId());
-		document.addLocalizedText(
-			Field.DESCRIPTION, assetVocabulary.getDescriptionMap());
+
+		Locale siteDefaultLocale = PortalUtil.getSiteDefaultLocale(
+			assetVocabulary.getGroupId());
+
+		addLocalizedField(
+			document, Field.DESCRIPTION, siteDefaultLocale,
+			assetVocabulary.getDescriptionMap());
+
 		document.addText(Field.NAME, assetVocabulary.getName());
-		document.addLocalizedText(Field.TITLE, assetVocabulary.getTitleMap());
+		addLocalizedField(
+			document, Field.TITLE, siteDefaultLocale,
+			assetVocabulary.getTitleMap());
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Document " + assetVocabulary + " indexed successfully");

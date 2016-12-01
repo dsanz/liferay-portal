@@ -22,6 +22,8 @@ import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Image;
 import com.liferay.portal.kernel.model.Repository;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
@@ -170,6 +172,10 @@ public class UpgradeImageTypeContent extends UpgradeProcess {
 				groupId, folderId, fileName);
 		}
 		catch (PortalException pe) {
+			_log.error(
+				"Unable to get file entry with group ID " + groupId +
+					", folder ID " + folderId + ", and file name " + fileName,
+				pe);
 		}
 
 		return fileEntry;
@@ -256,6 +262,9 @@ public class UpgradeImageTypeContent extends UpgradeProcess {
 			}
 		}
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		UpgradeImageTypeContent.class);
 
 	private final ImageLocalService _imageLocalService;
 

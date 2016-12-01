@@ -19,6 +19,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FORM_CONTENT</td>
+	<td>//div[@id='Content']</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -230,7 +235,7 @@
 </tr>
 <tr>
 	<td>DETAILS_PERMISSIONS_CHECKBOX</td>
-	<td>//tr[contains(.,'${key_roleName}')]//input[@value='${key_permissionDefinitionKey}']</td>
+	<td>//tr[contains(.,'${key_roleTitle}')]//input[@value='${key_permissionDefinitionKey}']</td>
 	<td></td>
 </tr>
 <tr>

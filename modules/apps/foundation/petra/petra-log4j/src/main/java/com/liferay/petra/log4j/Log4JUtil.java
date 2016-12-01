@@ -55,7 +55,7 @@ import org.xml.sax.InputSource;
 /**
  * @author Brian Wing Shun Chan
  * @author Tomas Polesovsky
- * @see com.liferay.util.log4j.Log4JUtil
+ * @see    com.liferay.util.log4j.Log4JUtil
  */
 public class Log4JUtil {
 
@@ -171,7 +171,9 @@ public class Log4JUtil {
 		String serverId, String liferayHome, ClassLoader classLoader,
 		LogFactory logFactory, Map<String, String> customLogSettings) {
 
-		ServerDetector.init(serverId);
+		System.setProperty(
+			ServerDetector.SYSTEM_PROPERTY_KEY_SERVER_DETECTOR_SERVER_ID,
+			serverId);
 
 		_liferayHome = liferayHome;
 

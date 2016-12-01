@@ -1,7 +1,8 @@
 # XML Formatter Gradle Plugin
 
-The XML Formatter Gradle plugin allows you to format project XML files using the
-Liferay XML Formatter tool.
+The XML Formatter Gradle plugin lets you format a project's XML files using the
+[Liferay XML Formatter](https://github.com/liferay/liferay-portal/tree/master/modules/util/xml-formatter)
+tool.
 
 ## Usage
 
@@ -61,7 +62,7 @@ Property Name | Type | Default Value | Description
 ------------- | ---- | ------------- | -----------
 `classpath` | [`FileCollection`](https://docs.gradle.org/current/javadoc/org/gradle/api/file/FileCollection.html) | [`project.configurations.xmlFormatter`](#liferay-xml-formatter-dependency) | The classpath for executing the main class.
 `mainClassName` | `String` | `"com.liferay.xml.formatter.XMLFormatter"` | The fully qualified name of the XML Formatter Main class.
-`stripComments` | `boolean` | `false` | Whether to remove all the comments from the XML files.
+`stripComments` | `boolean` | `false` | Whether to remove all the comments from the XML files. It sets the `xml.formatter.strip.comments` argument.
 
 ## Additional Configuration
 
@@ -76,6 +77,6 @@ manually adding a dependency to the `xmlFormatter` configuration:
 
 ```gradle
 dependencies {
-	xmlFormatter group: "com.liferay", name: "com.liferay.xml.formatter", version: "1.0.0"
+	xmlFormatter group: "com.liferay", name: "com.liferay.xml.formatter", version: "1.0.1"
 }
 ```

@@ -206,7 +206,7 @@ public class JournalConverterImpl implements JournalConverter {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, with no direct replacement
+	 * @deprecated As of 4.0.0, with no direct replacement
 	 */
 	@Deprecated
 	@Override
@@ -217,7 +217,7 @@ public class JournalConverterImpl implements JournalConverter {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, with no direct replacement
+	 * @deprecated As of 4.0.0, with no direct replacement
 	 */
 	@Deprecated
 	@Override
@@ -243,7 +243,7 @@ public class JournalConverterImpl implements JournalConverter {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, with no direct replacement
+	 * @deprecated As of 4.0.0, with no direct replacement
 	 */
 	@Deprecated
 	@Override
@@ -450,7 +450,7 @@ public class JournalConverterImpl implements JournalConverter {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 4.0.0
 	 */
 	@Deprecated
 	protected Serializable getDocumentLibraryValue(String url) {
@@ -595,7 +595,7 @@ public class JournalConverterImpl implements JournalConverter {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 4.0.0
 	 */
 	@Deprecated
 	protected FileEntry getFileEntryByDocumentLibraryURL(String url) {
@@ -603,7 +603,7 @@ public class JournalConverterImpl implements JournalConverter {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 4.0.0
 	 */
 	@Deprecated
 	protected FileEntry getFileEntryByOldDocumentLibraryURL(String url)
@@ -646,7 +646,7 @@ public class JournalConverterImpl implements JournalConverter {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 4.0.0
 	 */
 	@Deprecated
 	@Reference(unbind = "-")
@@ -687,7 +687,7 @@ public class JournalConverterImpl implements JournalConverter {
 				childDynamicElementElement.addAttribute("name", childFieldName);
 
 				String instanceId = getFieldInstanceId(
-					ddmFields, fieldName, (count + i));
+					ddmFields, fieldName, count + i);
 
 				childDynamicElementElement.addAttribute(
 					"instance-id", instanceId);

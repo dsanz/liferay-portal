@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
-import com.liferay.portal.kernel.search.Query;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.AssertUtils;
@@ -39,13 +38,12 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.PortalRunMode;
 import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
+import java.util.Arrays;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -69,18 +67,9 @@ public class BookmarksFolderServiceTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_testMode = PortalRunMode.isTestMode();
-
-		PortalRunMode.setTestMode(true);
-
 		ServiceTestUtil.setUser(TestPropsValues.getUser());
 
 		_group = GroupTestUtil.addGroup();
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		PortalRunMode.setTestMode(_testMode);
 	}
 
 	@Test
@@ -135,7 +124,7 @@ public class BookmarksFolderServiceTest {
 
 		Hits hits = indexer.search(searchContext);
 
-		Assert.assertEquals(1, hits.getLength());
+		Assert.assertEquals(hits.toString(), 1, hits.getLength());
 	}
 
 	@Test
@@ -152,6 +141,7 @@ public class BookmarksFolderServiceTest {
 		long companyId = entry.getCompanyId();
 		long groupId = entry.getFolder().getGroupId();
 		long folderId = entry.getFolderId();
+
 		String keywords = "test";
 
 		SearchContext searchContext = BookmarksTestUtil.getSearchContext(
@@ -162,15 +152,13 @@ public class BookmarksFolderServiceTest {
 
 		Hits hits = indexer.search(searchContext);
 
-		Assert.assertEquals(1, hits.getLength());
+		Assert.assertEquals(hits.toString(), 1, hits.getLength());
 
 		BookmarksFolderLocalServiceUtil.deleteFolder(folderId);
 
 		hits = indexer.search(searchContext);
 
-		Query query = hits.getQuery();
-
-		Assert.assertEquals(query.toString(), 0, hits.getLength());
+		Assert.assertEquals(hits.toString(), 0, hits.getLength());
 	}
 
 	@Test
@@ -193,7 +181,7 @@ public class BookmarksFolderServiceTest {
 
 		Hits hits = indexer.search(searchContext);
 
-		Assert.assertEquals(1, hits.getLength());
+		Assert.assertEquals(hits.toString(), 1, hits.getLength());
 
 		List<Document> results = hits.toList();
 
@@ -235,16 +223,14 @@ public class BookmarksFolderServiceTest {
 
 		Hits hits = indexer.search(searchContext);
 
-		Assert.assertEquals(4, hits.getLength());
+		Assert.assertEquals(hits.toString(), 4, hits.getLength());
 
 		Document[] documents = hits.getDocs();
 
-		Assert.assertEquals(2, documents.length);
+		Assert.assertEquals(Arrays.toString(documents), 2, documents.length);
 	}
 
 	@DeleteAfterTestRun
 	private Group _group;
-
-	private boolean _testMode;
 
 }

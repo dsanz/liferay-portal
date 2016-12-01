@@ -8,6 +8,12 @@
 		<execute function="Click" locator1="FormFields#FIELD_ADD_SPECIFIC" />
 	</command>
 
+	<command name="deleteOptionsRow">
+		<var name="key_rowNumber" value="${rowNumber}" />
+
+		<execute function="Click" locator1="FormFields#OPTIONS_DELETE_ROW_BUTTON" />
+	</command>
+
 	<command name="disableCheckbox">
 		<var name="key_fieldName" value="${fieldName}" />
 
@@ -66,6 +72,9 @@
 		<var name="key_fieldName" value="${fieldName}" />
 
 		<execute function="Type" locator1="FormFields#TEXT_FIELD" value1="${fieldValue}" />
+
+		<execute function="AssertElementPresent" locator1="FormFields#TEXT_FIELD_2" />
+
 		<execute function="Type" locator1="FormFields#TEXT_FIELD_2" value1="${fieldValueRepeat}" />
 	</command>
 
@@ -102,6 +111,16 @@
 		<execute function="Click" locator1="FormFields#SWITCHER" />
 	</command>
 
+	<command name="moveOptionsRow">
+		<var name="key_rowNumber" value="${rowNumberStart}" />
+
+		<execute function="MouseDown" locator1="FormFields#OPTIONS_DRAG_ICON" />
+
+		<var name="key_rowNumber" value="${rowNumberEnd}" />
+
+		<execute function="MouseUp" locator1="FormFields#OPTIONS_DRAG_ICON" />
+	</command>
+
 	<command name="removeRepeatableField">
 		<execute function="Click" locator1="FormFields#FIELD_REMOVE" />
 	</command>
@@ -110,6 +129,13 @@
 		<var name="key_autocompleteOption" value="${autocompleteOption}" />
 
 		<execute function="Click" locator1="FormFields#AUTOCOMPLETE_OPTION" />
+	</command>
+
+	<command name="selectCheckboxOption">
+		<var name="key_checkboxOption" value="${checkboxOption}" />
+		<var name="key_fieldName" value="${fieldName}" />
+
+		<execute function="Click" locator1="FormFields#CHECKBOX_OPTION" />
 	</command>
 
 	<command name="selectRadioOption">
@@ -125,10 +151,32 @@
 		<execute function="Select" locator1="FormFields#SELECT_FIELD" value1="${selectOption}" />
 	</command>
 
+	<command name="selectSwitcherOption">
+		<var name="key_fieldName" value="${fieldName}" />
+		<var name="key_switcherOption" value="${switcherOption}" />
+
+		<var method="StringUtil#replace('${switcherOption}', ' ', '')" name="key_switcherOption" />
+
+		<execute function="Click" locator1="FormFields#SWITCHER_OPTION" />
+	</command>
+
 	<command name="selectTextFieldLineOption">
 		<var name="key_textFieldLineOption" value="${textFieldLineOption}" />
 
 		<execute function="Click" locator1="FormFields#TEXT_FIELD_LINE_OPTION" />
+	</command>
+
+	<command name="viewAutoCompleteOptions">
+		<var name="key_autocompleteOption" value="${autocompleteOption}" />
+
+		<execute function="AssertTextEquals" locator1="FormFields#AUTOCOMPLETE_OPTION" value1="${autocompleteOption}" />
+
+		<if>
+			<isset var="autocompleteOptionNotVisible" />
+			<then>
+				<execute function="AssertTextNotPresent" locator1="FormFields#AUTOCOMPLETE_LIST" value1="${autocompleteOptionNotVisible}" />
+			</then>
+		</if>
 	</command>
 
 	<command name="viewCaptchaField">
@@ -145,6 +193,7 @@
 	</command>
 
 	<command name="viewCheckboxLabel">
+		<var name="key_fieldLabel" value="${fieldLabel}" />
 		<var name="key_fieldName" value="${fieldName}" />
 
 		<execute function="AssertTextEquals#assertText" locator1="FormFields#CHECKBOX_LABEL" value1="${fieldLabel}" />
@@ -190,10 +239,22 @@
 		<execute function="AssertTextEquals" locator1="FormFields#DATE_FIELD" value1="${fieldValue}" />
 	</command>
 
+	<command name="viewDeletedSelectOptionsRowFieldValue">
+		<var name="key_rowNumber" value="${rowNumber}" />
+
+		<execute function="AssertTextNotPresent" locator1="FormFields#SELECT_OPTIONS_OPTION_VALUE_FIELD_VISIBLE" value1="${fieldValue}" />
+	</command>
+
 	<command name="viewFieldHelpText">
 		<var name="key_fieldName" value="${fieldName}" />
 
 		<execute function="AssertTextEquals" locator1="FormFields#HELP_TEXT" value1="${fieldHelpText}" />
+	</command>
+
+	<command name="viewFieldLabel">
+		<var name="key_fieldName" value="${fieldName}" />
+
+		<execute function="AssertTextEquals" locator1="FormFields#TEXT_FIELD" value1="${fieldValue}" />
 	</command>
 
 	<command name="viewFieldName">
@@ -231,6 +292,12 @@
 		<var name="key_rowNumber" value="${rowNumber}" />
 
 		<execute function="AssertTextEquals" locator1="FormFields#OPTIONS_OPTION_NAME_FIELD_EDIT" value1="${fieldName}" />
+	</command>
+
+	<command name="viewOptionsRowFieldValue">
+		<var name="key_rowNumber" value="${rowNumber}" />
+
+		<execute function="AssertTextEquals" locator1="FormFields#OPTIONS_OPTION_VALUE_FIELD_VISIBLE" value1="${fieldValue}" />
 	</command>
 
 	<command name="viewParagraphField">
@@ -335,6 +402,10 @@
 		<execute function="AssertElementPresent#assertVisible" locator1="Icon#ASTERISK" />
 	</command>
 
+	<command name="viewRequiredAsteriskNotPresent">
+		<execute function="AssertElementNotPresent" locator1="Icon#ASTERISK" />
+	</command>
+
 	<command name="viewSelectLabel">
 		<var name="key_fieldName" value="${fieldName}" />
 
@@ -346,6 +417,12 @@
 		<var name="key_selectOption" value="${selectOption}" />
 
 		<execute function="AssertTextEquals#assertText" locator1="FormFields#SELECT_OPTION" value1="${selectOption}" />
+	</command>
+
+	<command name="viewSelectOptionsRowFieldValue">
+		<var name="key_rowNumber" value="${rowNumber}" />
+
+		<execute function="AssertTextEquals" locator1="FormFields#SELECT_OPTIONS_OPTION_VALUE_FIELD_VISIBLE" value1="${fieldValue}" />
 	</command>
 
 	<command name="viewSelectValue">
@@ -361,6 +438,7 @@
 	</command>
 
 	<command name="viewSwitcherLabel">
+		<var name="key_fieldLabel" value="${fieldLabel}" />
 		<var name="key_fieldName" value="${fieldName}" />
 
 		<execute function="AssertTextEquals#assertText" locator1="FormFields#SWITCHER_LABEL" value1="${fieldLabel}" />

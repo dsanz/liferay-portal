@@ -35,6 +35,46 @@ public class WSRPServiceUpgrade implements UpgradeStepRegistrator {
 
 	@Override
 	public void register(Registry registry) {
+		registry.register(
+			"com.liferay.wsrp.service", "1.0.0", "1.0.11",
+			new DummyUpgradeStep());
+
+		registry.register(
+			"com.liferay.wsrp.service", "1.0.2", "1.0.11",
+			new DummyUpgradeStep());
+
+		registry.register(
+			"com.liferay.wsrp.service", "1.0.3", "1.0.11",
+			new DummyUpgradeStep());
+
+		registry.register(
+			"com.liferay.wsrp.service", "1.0.4", "1.0.11",
+			new DummyUpgradeStep());
+
+		registry.register(
+			"com.liferay.wsrp.service", "1.0.5", "1.0.11",
+			new DummyUpgradeStep());
+
+		registry.register(
+			"com.liferay.wsrp.service", "1.0.6", "1.0.11",
+			new DummyUpgradeStep());
+
+		registry.register(
+			"com.liferay.wsrp.service", "1.0.7", "1.0.11",
+			new DummyUpgradeStep());
+
+		registry.register(
+			"com.liferay.wsrp.service", "1.0.8", "1.0.11",
+			new DummyUpgradeStep());
+
+		registry.register(
+			"com.liferay.wsrp.service", "1.0.9", "1.0.11",
+			new DummyUpgradeStep());
+
+		registry.register(
+			"com.liferay.wsrp.service", "1.0.10", "1.0.11",
+			new DummyUpgradeStep());
+
 		BaseUpgradeWebModuleRelease upgradeWebModuleRelease =
 			new BaseUpgradeWebModuleRelease() {
 
@@ -74,9 +114,7 @@ public class WSRPServiceUpgrade implements UpgradeStepRegistrator {
 			"com.liferay.wsrp.web", "0.0.4", "1.0.0", new UpgradeWSRP());
 	}
 
-	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
-	protected void setModuleServiceLifecycle(
-		ModuleServiceLifecycle moduleServiceLifecycle) {
-	}
+	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED)
+	private ModuleServiceLifecycle _moduleServiceLifecycle;
 
 }

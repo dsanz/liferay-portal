@@ -63,7 +63,7 @@ public interface CalendarBookingService extends BaseService {
 	public boolean hasChildCalendarBookings(long parentCalendarBookingId);
 
 	/**
-	* @deprecated As of 7.0.0, replaced by {@link #addCalendarBooking(long,
+	* @deprecated As of 2.2.0, replaced by {@link #addCalendarBooking(long,
 	long[], long, long, Map, Map, String, long, long, boolean,
 	String, long, String, long, String, ServiceContext)}
 	*/
@@ -82,7 +82,7 @@ public interface CalendarBookingService extends BaseService {
 		throws PortalException;
 
 	/**
-	* @deprecated As of 7.0.0
+	* @deprecated As of 2.2.0
 	*/
 	@java.lang.Deprecated
 	public CalendarBooking addCalendarBooking(long calendarId,
@@ -142,6 +142,16 @@ public interface CalendarBookingService extends BaseService {
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public CalendarBooking getNewStartTimeAndDurationCalendarBooking(
 		long calendarBookingId, long offset, long duration)
+		throws PortalException;
+
+	public CalendarBooking invokeTransition(long calendarBookingId,
+		int instanceIndex, int status, boolean updateInstance,
+		boolean allFollowing, ServiceContext serviceContext)
+		throws PortalException;
+
+	public CalendarBooking invokeTransition(long calendarBookingId,
+		long startTime, int status, boolean updateInstance,
+		boolean allFollowing, ServiceContext serviceContext)
 		throws PortalException;
 
 	public CalendarBooking moveCalendarBookingToTrash(long calendarBookingId)
@@ -305,8 +315,17 @@ public interface CalendarBookingService extends BaseService {
 		int instanceIndex, boolean allFollowing) throws PortalException;
 
 	public void deleteCalendarBookingInstance(long calendarBookingId,
+		int instanceIndex, boolean allFollowing,
+		boolean deleteRecurringCalendarBookings) throws PortalException;
+
+	public void deleteCalendarBookingInstance(long calendarBookingId,
 		long startTime, boolean allFollowing) throws PortalException;
 
+	/**
+	* @deprecated As of 2.2.0, replaced by {@link #invokeTransition(long, int,
+	long, boolean, boolean, ServiceContext)}
+	*/
+	@java.lang.Deprecated
 	public void invokeTransition(long calendarBookingId, int status,
 		ServiceContext serviceContext) throws PortalException;
 }

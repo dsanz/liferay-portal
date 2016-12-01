@@ -1,7 +1,7 @@
 # CSS Builder Gradle Plugin
 
-The CSS Builder Gradle plugin allows you to run the Liferay CSS Builder tool
-in order to compile [Sass](http://sass-lang.com/) files in your project.
+The CSS Builder Gradle plugin lets you run the [Liferay CSS Builder](https://github.com/liferay/liferay-portal/tree/master/modules/util/css-builder)
+tool in order to compile [Sass](http://sass-lang.com/) files in your project.
 
 ## Usage
 
@@ -10,7 +10,7 @@ To use the plugin, include it in your build script:
 ```gradle
 buildscript {
 	dependencies {
-		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.css.builder", version: "1.0.5"
+		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.css.builder", version: "2.0.0"
 	}
 
 	repositories {
@@ -78,17 +78,17 @@ Property Name | Default Value
 Property Name | Type | Default Value | Description
 ------------- | ---- | ------------- | -----------
 `cssFiles` | `FileCollection` | \- | The SCSS files to compile. *(Read-only)*
-`dirNames` | `List<String>` | `["/"]` | The name of the directories, relative to [`docrootDir`](#docrootdir), which contain the SCSS files to compile. All the sub-directories will be searched for SCSS files as well.
-<a name="docrootdir"></a>`docrootDir` | `File` | `null` | The base directory which contains the SCSS files to compile.
-`generateSourceMap` | `boolean` | `false` | Whether to generate [source maps](https://developers.google.com/web/tools/chrome-devtools/debug/readability/source-maps) for easier debugging.
-`outputDirName` | `String` | `".sass-cache/"` | The name of the sub-directories where the SCSS files are compiled to. For each directory that contains SCSS files, a sub-directory with this name will be created.
+`dirNames` | `List<String>` | `["/"]` | The name of the directories, relative to [`docrootDir`](#docrootdir), which contain the SCSS files to compile. All sub-directories are searched for SCSS files as well. It sets the `sass.dir` argument.
+<a name="docrootdir"></a>`docrootDir` | `File` | `null` | The base directory which contains the SCSS files to compile. It sets the `sass.docroot.dir` argument.
+`generateSourceMap` | `boolean` | `false` | Whether to generate [source maps](https://developers.google.com/web/tools/chrome-devtools/debug/readability/source-maps) for easier debugging. It sets the `sass.generate.source.map` argument.
+`outputDirName` | `String` | `".sass-cache/"` | The name of the sub-directories where the SCSS files are compiled to. For each directory that contains SCSS files, a sub-directory with this name is created. It sets the `sass.output.dir` argument.
 `outputDirs` | `FileCollection` | \- | The directories where the SCSS files are compiled to. Usually, these directories are ignored by the Version Control System. *(Read-only)*
 <a name="portalcommondir"></a>`portalCommonDir` | `File` | `null` | The `META-INF/resources` directory of the [Liferay Frontend Common CSS](https://github.com/liferay/liferay-portal/tree/master/modules/apps/foundation/frontend-css/frontend-css-common) artifact. This is required in order to make [Bourbon](http://bourbon.io) and other CSS libraries available to the compilation.
 `portalCommonFile` | `File` | [`configurations.portalCommonCSS.singleFile`](#liferay-frontend-common-css-dependency) | The Liferay Frontend Common CSS JAR file. If [`portalCommonDir`](#portalcommondir) is set, this property has no effect.
-`portalCommonPath` | `File` | \- | The value of the `portalCommonDir` property if set; otherwise `portalCommonFile`. *(Read-only)*
-`precision` | `int` | `5` | The numeric precision of numbers in Sass.
-`rtlExcludedPathRegexps` | `List<String>` | `[]` | The SCSS file patterns to exclude when converting for right-to-left (RTL) support.
-`sassCompilerClassName` | `String` | `null` | The type of Sass compiler to use. Supported values are `"jni"` and `"ruby"`. If not set, defaults to `"jni"`.
+`portalCommonPath` | `File` | \- | The value of the `portalCommonDir` property if set; otherwise `portalCommonFile`. It sets the `sass.portal.common.path` argument. *(Read-only)*
+`precision` | `int` | `9` | The numeric precision of numbers in Sass. It sets the `sass.precision` argument.
+`rtlExcludedPathRegexps` | `List<String>` | `[]` | The SCSS file patterns to exclude when converting for right-to-left (RTL) support. It sets the `sass.rtl.excluded.path.regexps` argument.
+`sassCompilerClassName` | `String` | `null` | The type of Sass compiler to use. Supported values are `"jni"` and `"ruby"`. If not set, defaults to `"jni"`. It sets the `sass.compiler.class.name` argument.
 
 The properties of type `File` support any type that can be resolved by [`project.file`](https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:file(java.css.Object)).
 Moreover, it is possible to use Closures and Callables as values for the `int`
@@ -116,7 +116,7 @@ manually adding a dependency to the `cssBuilder` configuration:
 
 ```gradle
 dependencies {
-	cssBuilder group: "com.liferay", name: "com.liferay.css.builder", version: "1.0.19"
+	cssBuilder group: "com.liferay", name: "com.liferay.css.builder", version: "1.0.21"
 }
 ```
 

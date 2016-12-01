@@ -14,11 +14,13 @@
 
 package com.liferay.site.navigation.site.map.web.internal.display.context;
 
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutType;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.theme.PortletDisplay;
@@ -83,7 +85,10 @@ public class SiteNavigationSiteMapDisplayContext {
 			_siteNavigationSiteMapPortletInstanceConfiguration.
 				displayStyleGroupId();
 
-		if (_displayStyleGroupId <= 0) {
+		Group displayStyleGroup = GroupLocalServiceUtil.fetchGroup(
+			_displayStyleGroupId);
+
+		if (displayStyleGroup == null) {
 			_displayStyleGroupId = _themeDisplay.getSiteGroupId();
 		}
 
@@ -221,6 +226,14 @@ public class SiteNavigationSiteMapDisplayContext {
 		throws Exception {
 
 		if (layouts.isEmpty()) {
+			return;
+		}
+
+		if ((rootLayout != null) &&
+			!LayoutPermissionUtil.contains(
+				themeDisplay.getPermissionChecker(), rootLayout,
+				ActionKeys.VIEW)) {
+
 			return;
 		}
 

@@ -22,9 +22,9 @@ import java.util.Map;
 import org.osgi.util.tracker.ServiceTracker;
 
 /**
- * @author Michael C. Han
- * @author Raymond Augé
- * @deprecated As of 7.0.0
+ * @author     Michael C. Han
+ * @author     Raymond Augé
+ * @deprecated As of 2.0.0
  */
 @Deprecated
 public class RulesEngineUtil {

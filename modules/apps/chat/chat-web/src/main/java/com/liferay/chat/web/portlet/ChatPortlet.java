@@ -35,11 +35,12 @@ import org.osgi.service.component.annotations.Modified;
  * @author Peter Fellwock
  */
 @Component(
-	immediate = true,
+	enabled = false, immediate = true,
 	property = {
 		"com.liferay.portlet.add-default-resource=true",
 		"com.liferay.portlet.css-class-wrapper=portlet-chat",
 		"com.liferay.portlet.icon=/icons/chat.png",
+		"com.liferay.portlet.layout-cacheable=true",
 		"com.liferay.portlet.system=true",
 		"com.liferay.portlet.use-default-template=false",
 		"javax.portlet.display-name=Chat", "javax.portlet.expiration-cache=0",

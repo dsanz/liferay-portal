@@ -27,6 +27,7 @@
 	<bean class="com.liferay.mail.util.DummyHook" id="com.liferay.mail.util.DummyHook" />
 	<bean class="com.liferay.portal.convert.documentlibrary.DocumentLibraryConvertProcess" />
 	<bean class="com.liferay.portal.convert.documentlibrary.DocumentLibraryExtraSettingsConvertProcess" />
+	<bean class="com.liferay.portal.deploy.auto.ExtAutoDeployListener" />
 	<bean class="com.liferay.portal.events.StartupHelperUtil" id="com.liferay.portal.events.StartupHelperUtil">
 		<property name="startupHelper">
 			<bean class="com.liferay.portal.events.StartupHelper" />
@@ -297,6 +298,10 @@
 			<bean class="com.liferay.portal.servlet.DirectRequestDispatcherFactoryImpl" />
 		</property>
 	</bean>
+	<bean class="com.liferay.portal.servlet.SharedSessionImpl" id="com.liferay.portal.kernel.servlet.SharedSession" />
+	<bean class="com.liferay.portal.kernel.servlet.SharedSessionUtil" id="com.liferay.portal.kernel.servlet.SharedSessionUtil">
+		<property name="sharedSession" ref="com.liferay.portal.kernel.servlet.SharedSession" />
+	</bean>
 	<bean class="com.liferay.portal.servlet.DirectServletRegistryImpl" id="com.liferay.portal.kernel.servlet.DirectServletRegistry" />
 	<bean class="com.liferay.portal.kernel.servlet.DirectServletRegistryUtil" id="com.liferay.portal.kernel.servlet.DirectServletRegistryUtil">
 		<property name="directServletRegistry" ref="com.liferay.portal.kernel.servlet.DirectServletRegistry" />
@@ -505,7 +510,6 @@
 	<bean class="com.liferay.portal.verify.model.AssetCategoryVerifiableModel" />
 	<bean class="com.liferay.portal.verify.model.AssetTagVerifiableModel" />
 	<bean class="com.liferay.portal.verify.model.AssetVocabularyVerifiableModel" />
-	<bean class="com.liferay.portal.verify.model.BlogsEntryVerifiableModel" />
 	<bean class="com.liferay.portal.verify.model.DLFileEntryVerifiableModel" />
 	<bean class="com.liferay.portal.verify.model.DLFileShortcutVerifiableModel" />
 	<bean class="com.liferay.portal.verify.model.DLFileVersionVerifiableModel" />
@@ -552,8 +556,6 @@
 	<bean class="com.liferay.portlet.asset.util.AssetCategoryIndexer" id="com.liferay.portlet.asset.util.AssetCategoryIndexer" />
 	<bean class="com.liferay.portlet.asset.util.AssetEntryIndexer" id="com.liferay.portlet.asset.util.AssetEntryIndexer" />
 	<bean class="com.liferay.portlet.asset.util.AssetVocabularyIndexer" id="com.liferay.portlet.asset.util.AssetVocabularyIndexer" />
-	<bean class="com.liferay.portlet.blogs.service.permission.BlogsPermission" id="com.liferay.portlet.blogs.service.permission.BlogsPermission" />
-	<bean class="com.liferay.portlet.blogs.util.BlogsOpenSearchImpl" id="com.liferay.portlet.blogs.util.BlogsOpenSearchImpl" />
 	<bean class="com.liferay.document.library.kernel.antivirus.AntivirusScannerUtil" id="com.liferay.document.library.kernel.antivirus.AntivirusScannerUtil">
 		<property name="antivirusScanner">
 			<bean class="com.liferay.portlet.documentlibrary.antivirus.AntivirusScannerImpl" />

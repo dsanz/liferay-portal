@@ -2970,11 +2970,15 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 						finderArgs, list);
 				}
 				else {
-					if ((list.size() > 1) && _log.isWarnEnabled()) {
-						_log.warn(
-							"LayoutPersistenceImpl.fetchByIconImageId(long, boolean) with parameters (" +
-							StringUtil.merge(finderArgs) +
-							") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+					if (list.size() > 1) {
+						Collections.sort(list, Collections.reverseOrder());
+
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"LayoutPersistenceImpl.fetchByIconImageId(long, boolean) with parameters (" +
+								StringUtil.merge(finderArgs) +
+								") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+						}
 					}
 
 					Layout layout = list.get(0);
@@ -7881,11 +7885,15 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 						finderArgs, list);
 				}
 				else {
-					if ((list.size() > 1) && _log.isWarnEnabled()) {
-						_log.warn(
-							"LayoutPersistenceImpl.fetchByG_P_SPLU(long, boolean, String, boolean) with parameters (" +
-							StringUtil.merge(finderArgs) +
-							") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+					if (list.size() > 1) {
+						Collections.sort(list, Collections.reverseOrder());
+
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"LayoutPersistenceImpl.fetchByG_P_SPLU(long, boolean, String, boolean) with parameters (" +
+								StringUtil.merge(finderArgs) +
+								") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+						}
 					}
 
 					Layout layout = list.get(0);
@@ -9150,7 +9158,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
-		clearUniqueFindersCache((LayoutModelImpl)layout);
+		clearUniqueFindersCache((LayoutModelImpl)layout, true);
 	}
 
 	@Override
@@ -9162,143 +9170,74 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 			entityCache.removeResult(LayoutModelImpl.ENTITY_CACHE_ENABLED,
 				LayoutImpl.class, layout.getPrimaryKey());
 
-			clearUniqueFindersCache((LayoutModelImpl)layout);
+			clearUniqueFindersCache((LayoutModelImpl)layout, true);
 		}
 	}
 
-	protected void cacheUniqueFindersCache(LayoutModelImpl layoutModelImpl,
-		boolean isNew) {
-		if (isNew) {
-			Object[] args = new Object[] {
-					layoutModelImpl.getUuid(), layoutModelImpl.getGroupId(),
-					layoutModelImpl.getPrivateLayout()
-				};
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_UUID_G_P, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_UUID_G_P, args,
-				layoutModelImpl);
-
-			args = new Object[] { layoutModelImpl.getIconImageId() };
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_ICONIMAGEID, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_ICONIMAGEID, args,
-				layoutModelImpl);
-
-			args = new Object[] {
-					layoutModelImpl.getGroupId(),
-					layoutModelImpl.getPrivateLayout(),
-					layoutModelImpl.getLayoutId()
-				};
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_G_P_L, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_G_P_L, args,
-				layoutModelImpl);
-
-			args = new Object[] {
-					layoutModelImpl.getGroupId(),
-					layoutModelImpl.getPrivateLayout(),
-					layoutModelImpl.getFriendlyURL()
-				};
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_G_P_F, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_G_P_F, args,
-				layoutModelImpl);
-
-			args = new Object[] {
-					layoutModelImpl.getGroupId(),
-					layoutModelImpl.getPrivateLayout(),
-					layoutModelImpl.getSourcePrototypeLayoutUuid()
-				};
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_G_P_SPLU, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_G_P_SPLU, args,
-				layoutModelImpl);
-		}
-		else {
-			if ((layoutModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_UUID_G_P.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						layoutModelImpl.getUuid(), layoutModelImpl.getGroupId(),
-						layoutModelImpl.getPrivateLayout()
-					};
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_UUID_G_P, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_UUID_G_P, args,
-					layoutModelImpl);
-			}
-
-			if ((layoutModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_ICONIMAGEID.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] { layoutModelImpl.getIconImageId() };
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_ICONIMAGEID, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_ICONIMAGEID, args,
-					layoutModelImpl);
-			}
-
-			if ((layoutModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_G_P_L.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						layoutModelImpl.getGroupId(),
-						layoutModelImpl.getPrivateLayout(),
-						layoutModelImpl.getLayoutId()
-					};
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_G_P_L, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_G_P_L, args,
-					layoutModelImpl);
-			}
-
-			if ((layoutModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_G_P_F.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						layoutModelImpl.getGroupId(),
-						layoutModelImpl.getPrivateLayout(),
-						layoutModelImpl.getFriendlyURL()
-					};
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_G_P_F, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_G_P_F, args,
-					layoutModelImpl);
-			}
-
-			if ((layoutModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_G_P_SPLU.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						layoutModelImpl.getGroupId(),
-						layoutModelImpl.getPrivateLayout(),
-						layoutModelImpl.getSourcePrototypeLayoutUuid()
-					};
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_G_P_SPLU, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_G_P_SPLU, args,
-					layoutModelImpl);
-			}
-		}
-	}
-
-	protected void clearUniqueFindersCache(LayoutModelImpl layoutModelImpl) {
+	protected void cacheUniqueFindersCache(LayoutModelImpl layoutModelImpl) {
 		Object[] args = new Object[] {
 				layoutModelImpl.getUuid(), layoutModelImpl.getGroupId(),
 				layoutModelImpl.getPrivateLayout()
 			};
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID_G_P, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_UUID_G_P, args);
+		finderCache.putResult(FINDER_PATH_COUNT_BY_UUID_G_P, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_UUID_G_P, args,
+			layoutModelImpl, false);
+
+		args = new Object[] { layoutModelImpl.getIconImageId() };
+
+		finderCache.putResult(FINDER_PATH_COUNT_BY_ICONIMAGEID, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_ICONIMAGEID, args,
+			layoutModelImpl, false);
+
+		args = new Object[] {
+				layoutModelImpl.getGroupId(), layoutModelImpl.getPrivateLayout(),
+				layoutModelImpl.getLayoutId()
+			};
+
+		finderCache.putResult(FINDER_PATH_COUNT_BY_G_P_L, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_G_P_L, args,
+			layoutModelImpl, false);
+
+		args = new Object[] {
+				layoutModelImpl.getGroupId(), layoutModelImpl.getPrivateLayout(),
+				layoutModelImpl.getFriendlyURL()
+			};
+
+		finderCache.putResult(FINDER_PATH_COUNT_BY_G_P_F, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_G_P_F, args,
+			layoutModelImpl, false);
+
+		args = new Object[] {
+				layoutModelImpl.getGroupId(), layoutModelImpl.getPrivateLayout(),
+				layoutModelImpl.getSourcePrototypeLayoutUuid()
+			};
+
+		finderCache.putResult(FINDER_PATH_COUNT_BY_G_P_SPLU, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_G_P_SPLU, args,
+			layoutModelImpl, false);
+	}
+
+	protected void clearUniqueFindersCache(LayoutModelImpl layoutModelImpl,
+		boolean clearCurrent) {
+		if (clearCurrent) {
+			Object[] args = new Object[] {
+					layoutModelImpl.getUuid(), layoutModelImpl.getGroupId(),
+					layoutModelImpl.getPrivateLayout()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID_G_P, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_UUID_G_P, args);
+		}
 
 		if ((layoutModelImpl.getColumnBitmask() &
 				FINDER_PATH_FETCH_BY_UUID_G_P.getColumnBitmask()) != 0) {
-			args = new Object[] {
+			Object[] args = new Object[] {
 					layoutModelImpl.getOriginalUuid(),
 					layoutModelImpl.getOriginalGroupId(),
 					layoutModelImpl.getOriginalPrivateLayout()
@@ -9308,30 +9247,37 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 			finderCache.removeResult(FINDER_PATH_FETCH_BY_UUID_G_P, args);
 		}
 
-		args = new Object[] { layoutModelImpl.getIconImageId() };
-
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_ICONIMAGEID, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_ICONIMAGEID, args);
-
-		if ((layoutModelImpl.getColumnBitmask() &
-				FINDER_PATH_FETCH_BY_ICONIMAGEID.getColumnBitmask()) != 0) {
-			args = new Object[] { layoutModelImpl.getOriginalIconImageId() };
+		if (clearCurrent) {
+			Object[] args = new Object[] { layoutModelImpl.getIconImageId() };
 
 			finderCache.removeResult(FINDER_PATH_COUNT_BY_ICONIMAGEID, args);
 			finderCache.removeResult(FINDER_PATH_FETCH_BY_ICONIMAGEID, args);
 		}
 
-		args = new Object[] {
-				layoutModelImpl.getGroupId(), layoutModelImpl.getPrivateLayout(),
-				layoutModelImpl.getLayoutId()
-			};
+		if ((layoutModelImpl.getColumnBitmask() &
+				FINDER_PATH_FETCH_BY_ICONIMAGEID.getColumnBitmask()) != 0) {
+			Object[] args = new Object[] {
+					layoutModelImpl.getOriginalIconImageId()
+				};
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_L, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_G_P_L, args);
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_ICONIMAGEID, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_ICONIMAGEID, args);
+		}
+
+		if (clearCurrent) {
+			Object[] args = new Object[] {
+					layoutModelImpl.getGroupId(),
+					layoutModelImpl.getPrivateLayout(),
+					layoutModelImpl.getLayoutId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_L, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_G_P_L, args);
+		}
 
 		if ((layoutModelImpl.getColumnBitmask() &
 				FINDER_PATH_FETCH_BY_G_P_L.getColumnBitmask()) != 0) {
-			args = new Object[] {
+			Object[] args = new Object[] {
 					layoutModelImpl.getOriginalGroupId(),
 					layoutModelImpl.getOriginalPrivateLayout(),
 					layoutModelImpl.getOriginalLayoutId()
@@ -9341,17 +9287,20 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 			finderCache.removeResult(FINDER_PATH_FETCH_BY_G_P_L, args);
 		}
 
-		args = new Object[] {
-				layoutModelImpl.getGroupId(), layoutModelImpl.getPrivateLayout(),
-				layoutModelImpl.getFriendlyURL()
-			};
+		if (clearCurrent) {
+			Object[] args = new Object[] {
+					layoutModelImpl.getGroupId(),
+					layoutModelImpl.getPrivateLayout(),
+					layoutModelImpl.getFriendlyURL()
+				};
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_F, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_G_P_F, args);
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_F, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_G_P_F, args);
+		}
 
 		if ((layoutModelImpl.getColumnBitmask() &
 				FINDER_PATH_FETCH_BY_G_P_F.getColumnBitmask()) != 0) {
-			args = new Object[] {
+			Object[] args = new Object[] {
 					layoutModelImpl.getOriginalGroupId(),
 					layoutModelImpl.getOriginalPrivateLayout(),
 					layoutModelImpl.getOriginalFriendlyURL()
@@ -9361,17 +9310,20 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 			finderCache.removeResult(FINDER_PATH_FETCH_BY_G_P_F, args);
 		}
 
-		args = new Object[] {
-				layoutModelImpl.getGroupId(), layoutModelImpl.getPrivateLayout(),
-				layoutModelImpl.getSourcePrototypeLayoutUuid()
-			};
+		if (clearCurrent) {
+			Object[] args = new Object[] {
+					layoutModelImpl.getGroupId(),
+					layoutModelImpl.getPrivateLayout(),
+					layoutModelImpl.getSourcePrototypeLayoutUuid()
+				};
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_SPLU, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_G_P_SPLU, args);
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_SPLU, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_G_P_SPLU, args);
+		}
 
 		if ((layoutModelImpl.getColumnBitmask() &
 				FINDER_PATH_FETCH_BY_G_P_SPLU.getColumnBitmask()) != 0) {
-			args = new Object[] {
+			Object[] args = new Object[] {
 					layoutModelImpl.getOriginalGroupId(),
 					layoutModelImpl.getOriginalPrivateLayout(),
 					layoutModelImpl.getOriginalSourcePrototypeLayoutUuid()
@@ -9731,8 +9683,8 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		entityCache.putResult(LayoutModelImpl.ENTITY_CACHE_ENABLED,
 			LayoutImpl.class, layout.getPrimaryKey(), layout, false);
 
-		clearUniqueFindersCache(layoutModelImpl);
-		cacheUniqueFindersCache(layoutModelImpl, isNew);
+		clearUniqueFindersCache(layoutModelImpl, false);
+		cacheUniqueFindersCache(layoutModelImpl);
 
 		layout.resetOriginalValues();
 

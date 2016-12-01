@@ -78,12 +78,13 @@ public class SyncAccountService {
 	}
 
 	public static SyncAccount addSyncAccount(
-			String filePathName, String login, int maxConnections,
-			String oAuthConsumerKey, String oAuthConsumerSecret,
-			boolean oAuthEnabled, String oAuthToken, String oAuthTokenSecret,
-			String password, String pluginVersion, int pollInterval,
-			Map<SyncSite, List<SyncFile>> ignoredSyncFiles, SyncUser syncUser,
-			boolean trustSelfSigned, String url)
+			String filePathName, String lanCertificate, boolean lanEnabled,
+			String lanKey, String lanServerUuid, String login,
+			int maxConnections, String oAuthConsumerKey,
+			String oAuthConsumerSecret, boolean oAuthEnabled, String oAuthToken,
+			String oAuthTokenSecret, String password, String pluginVersion,
+			int pollInterval, Map<SyncSite, List<SyncFile>> ignoredSyncFiles,
+			SyncUser syncUser, boolean trustSelfSigned, String url)
 		throws Exception {
 
 		// Sync account
@@ -91,6 +92,10 @@ public class SyncAccountService {
 		SyncAccount syncAccount = new SyncAccount();
 
 		syncAccount.setFilePathName(filePathName);
+		syncAccount.setLanCertificate(lanCertificate);
+		syncAccount.setLanEnabled(lanEnabled);
+		syncAccount.setLanKey(lanKey);
+		syncAccount.setLanServerUuid(lanServerUuid);
 		syncAccount.setLogin(login);
 		syncAccount.setMaxConnections(maxConnections);
 		syncAccount.setPluginVersion(pluginVersion);
@@ -136,6 +141,7 @@ public class SyncAccountService {
 				syncAccount.getFilePathName(), syncSite.getSanitizedName());
 
 			syncSite.setFilePathName(siteFilePathName);
+
 			syncSite.setRemoteSyncTime(-1);
 			syncSite.setSyncAccountId(syncAccount.getSyncAccountId());
 
@@ -150,7 +156,7 @@ public class SyncAccountService {
 				SyncFile.TYPE_SYSTEM);
 
 			if (syncSite.isActive() &&
-				!Files.exists(Paths.get(syncSite.getFilePathName()))) {
+				!FileUtil.exists(Paths.get(syncSite.getFilePathName()))) {
 
 				Files.createDirectories(Paths.get(syncSite.getFilePathName()));
 			}
@@ -182,10 +188,10 @@ public class SyncAccountService {
 			String pluginVersion, String url)
 		throws Exception {
 
-		return SyncAccountService.addSyncAccount(
-			filePathName, login, 1, "", "", false, "", "", password,
-			pluginVersion, 5, Collections.<SyncSite, List<SyncFile>>emptyMap(),
-			null, false, url);
+		return addSyncAccount(
+			filePathName, "", false, "", "", login, 1, "", "", false, "", "",
+			password, pluginVersion, 5,
+			Collections.<SyncSite, List<SyncFile>>emptyMap(), null, false, url);
 	}
 
 	public static void deleteSyncAccount(long syncAccountId) {
@@ -295,6 +301,19 @@ public class SyncAccountService {
 			}
 
 			return Collections.emptyList();
+		}
+	}
+
+	public static List<SyncAccount> findSyncAccounts(String lanServerUuid) {
+		try {
+			return _syncAccountPersistence.findByLanServerUuid(lanServerUuid);
+		}
+		catch (SQLException sqle) {
+			if (_logger.isDebugEnabled()) {
+				_logger.debug(sqle.getMessage(), sqle);
+			}
+
+			return null;
 		}
 	}
 
@@ -424,8 +443,7 @@ public class SyncAccountService {
 			Path targetFilePath, long syncAccountId, boolean moveFile)
 		throws Exception {
 
-		SyncAccount syncAccount = SyncAccountService.fetchSyncAccount(
-			syncAccountId);
+		SyncAccount syncAccount = fetchSyncAccount(syncAccountId);
 
 		if (!moveFile) {
 			SyncFile syncFile = SyncFileService.fetchSyncFile(
@@ -441,7 +459,7 @@ public class SyncAccountService {
 
 		syncAccount.setActive(false);
 
-		SyncAccountService.update(syncAccount);
+		update(syncAccount);
 
 		boolean resetFileKeys = false;
 
@@ -463,7 +481,7 @@ public class SyncAccountService {
 				catch (Exception e2) {
 					syncAccount.setActive(true);
 
-					SyncAccountService.update(syncAccount);
+					update(syncAccount);
 
 					throw e2;
 				}
@@ -479,7 +497,7 @@ public class SyncAccountService {
 		syncAccount.setActive(true);
 		syncAccount.setUiEvent(SyncAccount.UI_EVENT_NONE);
 
-		SyncAccountService.update(syncAccount);
+		update(syncAccount);
 	}
 
 	protected static void deleteSyncFiles(SyncAccount syncAccount)
@@ -492,7 +510,7 @@ public class SyncAccountService {
 
 		Path filePath = Paths.get(syncAccount.getFilePathName());
 
-		if (!Files.exists(filePath)) {
+		if (!FileUtil.exists(filePath)) {
 			return;
 		}
 

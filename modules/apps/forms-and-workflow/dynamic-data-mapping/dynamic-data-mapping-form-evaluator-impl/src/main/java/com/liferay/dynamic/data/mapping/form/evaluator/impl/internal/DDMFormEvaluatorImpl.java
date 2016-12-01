@@ -14,26 +14,19 @@
 
 package com.liferay.dynamic.data.mapping.form.evaluator.impl.internal;
 
-import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderConsumerTracker;
+import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderTracker;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFactory;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationException;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationResult;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluator;
-import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormFieldEvaluationResult;
-import com.liferay.dynamic.data.mapping.form.evaluator.impl.internal.rules.DDMFormRuleEvaluatorHelper;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesJSONDeserializer;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
-import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceService;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
-import com.liferay.portal.kernel.language.LanguageUtil;
 
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -53,93 +46,18 @@ public class DDMFormEvaluatorImpl implements DDMFormEvaluator {
 		throws DDMFormEvaluationException {
 
 		try {
-			DDMFormRuleEvaluatorHelper ddmFormRuleEvaluatorHelper =
-				new DDMFormRuleEvaluatorHelper(
-					_ddmDataProviderConsumerTracker,
-					_ddmDataProviderInstanceService, _ddmExpressionFactory,
-					ddmForm, ddmFormValues, _ddmFormValuesJSONDeserializer,
-					_jsonFactory, locale);
+			DDMFormEvaluatorHelper ddmFormRuleEvaluatorHelper =
+				new DDMFormEvaluatorHelper(
+					_ddmDataProviderTracker, _ddmDataProviderInstanceService,
+					_ddmExpressionFactory, ddmForm, ddmFormValues,
+					_ddmFormValuesJSONDeserializer, _jsonFactory, locale);
 
-			List<DDMFormFieldEvaluationResult> ddmFormFieldEvaluationResults =
-				ddmFormRuleEvaluatorHelper.evaluate();
-
-			validateRequired(ddmForm, ddmFormFieldEvaluationResults, locale);
-
-			DDMFormEvaluationResult ddmFormEvaluationResult =
-				new DDMFormEvaluationResult();
-
-			ddmFormEvaluationResult.setDDMFormFieldEvaluationResults(
-				ddmFormFieldEvaluationResults);
-
-			return ddmFormEvaluationResult;
+			return ddmFormRuleEvaluatorHelper.evaluate();
 		}
 		catch (PortalException pe) {
 			throw new DDMFormEvaluationException(pe);
 		}
 	}
-
-	protected boolean isDDMFormFieldValueEmpty(
-		DDMFormField ddmFormField,
-		DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult) {
-
-		Object value = ddmFormFieldEvaluationResult.getValue();
-
-		if (value == null) {
-			return true;
-		}
-
-		String valueString = value.toString();
-
-		if (valueString.isEmpty()) {
-			return true;
-		}
-
-		String dataType = ddmFormField.getDataType();
-
-		if (Objects.equals(dataType, "boolean") &&
-			Objects.equals(valueString, "false")) {
-
-			return true;
-		}
-
-		return false;
-	}
-
-	protected void validateRequired(
-		DDMForm ddmForm,
-		List<DDMFormFieldEvaluationResult> ddmFormFieldEvaluationResults,
-		Locale locale) {
-
-		Map<String, DDMFormField> map = ddmForm.getDDMFormFieldsMap(true);
-
-		for (DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult :
-				ddmFormFieldEvaluationResults) {
-
-			DDMFormField ddmFormField = map.get(
-				ddmFormFieldEvaluationResult.getName());
-
-			if (ddmFormField.isRequired() &&
-				ddmFormFieldEvaluationResult.isVisible() &&
-				isDDMFormFieldValueEmpty(
-					ddmFormField, ddmFormFieldEvaluationResult)) {
-
-				ddmFormFieldEvaluationResult.setErrorMessage(
-					LanguageUtil.get(locale, "this-field-is-required"));
-
-				ddmFormFieldEvaluationResult.setValid(false);
-			}
-			else if (!ddmFormField.isRequired() &&
-					 isDDMFormFieldValueEmpty(
-						 ddmFormField, ddmFormFieldEvaluationResult)) {
-
-				ddmFormFieldEvaluationResult.setErrorMessage("");
-				ddmFormFieldEvaluationResult.setValid(true);
-			}
-		}
-	}
-
-	@Reference
-	private DDMDataProviderConsumerTracker _ddmDataProviderConsumerTracker;
 
 	@Reference(
 		cardinality = ReferenceCardinality.OPTIONAL,
@@ -148,6 +66,9 @@ public class DDMFormEvaluatorImpl implements DDMFormEvaluator {
 	)
 	private volatile DDMDataProviderInstanceService
 		_ddmDataProviderInstanceService;
+
+	@Reference
+	private DDMDataProviderTracker _ddmDataProviderTracker;
 
 	@Reference
 	private DDMExpressionFactory _ddmExpressionFactory;

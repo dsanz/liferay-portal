@@ -58,79 +58,69 @@ for (long userId : userIds) {
 to = sb.toString() + to;
 %>
 
-<div class="message-container" id="<portlet:namespace />messageContainer"></div>
+<div class="portlet-configuration-body-content">
+	<div class="container-fluid-1280">
+		<div class="message-container" id="<portlet:namespace />messageContainer"></div>
 
-<div class="message-body-container">
-	<aui:form enctype="multipart/form-data" method="post" name="fm" onSubmit="event.preventDefault();">
-		<aui:input name="mbThreadId" type="hidden" value="<%= mbThreadId %>" />
+		<div class="message-body-container">
+			<aui:form enctype="multipart/form-data" method="post" name="fm" onSubmit="event.preventDefault();">
+				<aui:input name="mbThreadId" type="hidden" value="<%= mbThreadId %>" />
 
-		<div id="<portlet:namespace />autoCompleteContainer">
-			<aui:input cssClass="message-to" name="to" value="<%= to %>" />
-		</div>
-
-		<aui:input cssClass="message-subject" name="subject" value="<%= subject %>" />
-
-		<label class="field-label">
-			<liferay-ui:message key="message" />
-		</label>
-
-		<textarea class="message-body" id="<portlet:namespace />body" name="<portlet:namespace />body"></textarea>
-
-		<label class="field-label">
-			<liferay-ui:message key="attachments" />
-		</label>
-
-		<%
-		long fileMaxSize = PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE);
-
-		if (fileMaxSize == 0) {
-			fileMaxSize = PrefsPropsUtil.getLong(PropsKeys.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE);
-		}
-
-		fileMaxSize /= 1024;
-		%>
-
-		<aui:field-wrapper>
-			<c:if test="<%= fileMaxSize != 0 %>">
-				<div class="portlet-msg-info">
-					<%= LanguageUtil.format(request, "upload-documents-no-larger-than-x-k", String.valueOf(fileMaxSize), false) %>
+				<div id="<portlet:namespace />autoCompleteContainer">
+					<aui:input name="to" required="<%= true %>" value="<%= to %>" />
 				</div>
-			</c:if>
-		</aui:field-wrapper>
 
-		<aui:input label="" name="msgFile1" type="file" />
+				<aui:input name="subject" required="<%= true %>" value="<%= subject %>" />
 
-		<aui:input label="" name="msgFile2" type="file" />
+				<aui:input cssClass="message-body" label="message" name="body" required="<%= true %>" type="textarea" />
 
-		<aui:input label="" name="msgFile3" type="file" />
+				<label class="field-label">
+					<liferay-ui:message key="attachments" />
+				</label>
 
-		<aui:button-row>
-			<aui:button type="submit" value="send" />
-		</aui:button-row>
-	</aui:form>
+				<%
+				long fileMaxSize = PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE);
+
+				if (fileMaxSize == 0) {
+					fileMaxSize = PrefsPropsUtil.getLong(PropsKeys.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE);
+				}
+
+				fileMaxSize /= 1024;
+				%>
+
+				<aui:field-wrapper>
+					<c:if test="<%= fileMaxSize != 0 %>">
+						<div class="alert alert-info">
+							<%= LanguageUtil.format(request, "upload-documents-no-larger-than-x-k", String.valueOf(fileMaxSize), false) %>
+						</div>
+					</c:if>
+				</aui:field-wrapper>
+
+				<aui:input label="" name="msgFile1" type="file" />
+
+				<aui:input label="" name="msgFile2" type="file" />
+
+				<aui:input label="" name="msgFile3" type="file" />
+
+				<aui:button-row>
+					<aui:button type="submit" value="send" />
+				</aui:button-row>
+			</aui:form>
+		</div>
+	</div>
 </div>
 
-<aui:script use="aui-io-request-deprecated,aui-loading-mask-deprecated,autocomplete,io-upload-iframe,json-parse">
+<aui:script use="aui-io-deprecated,aui-loading-mask-deprecated,autocomplete">
 	var form = A.one('#<portlet:namespace />fm');
 
 	form.on(
 		'submit',
 		function(event) {
-			var fields = A.allNS('<portlet:namespace />', '#body, #subject, #to');
+			var messageBody = form.one('#<portlet:namespace />body').val();
+			var messageSubject = form.one('#<portlet:namespace />subject').val();
+			var messageTo = form.one('#<portlet:namespace />to').val();
 
-			var missingRequiredValue = fields.some(
-				function(item, index) {
-					var missingValue = !item.val();
-
-					if (missingValue) {
-						item.focus();
-					}
-
-					return missingValue;
-				}
-			);
-
-			if (missingRequiredValue) {
+			if (!messageTo || !messageSubject || !messageBody) {
 				event.preventDefault();
 			}
 			else {
@@ -164,7 +154,7 @@ to = sb.toString() + to;
 									var messageContainer = A.one('#<portlet:namespace />messageContainer');
 
 									if (messageContainer) {
-										messageContainer.html('<span class="portlet-msg-error">' + responseData.message + '</span>');
+										messageContainer.html('<div class="alert alert-danger">' + responseData.message + '</div>');
 									}
 
 									loadingMask.hide();

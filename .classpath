@@ -34,7 +34,7 @@
 	<classpathentry kind="lib" path="lib/development/com.liferay.ant.beanshell.jar"/>
 	<classpathentry kind="lib" path="lib/development/com.liferay.ant.bnd.jar"/>
 	<classpathentry kind="lib" path="lib/development/com.liferay.ant.build.logger.jar"/>
-	<classpathentry kind="lib" path="lib/development/com.liferay.ant.heap.dump.jar"/>
+	<classpathentry kind="lib" path="lib/development/com.liferay.ant.mirrors.get.jar"/>
 	<classpathentry kind="lib" path="lib/development/deployment.jar"/>
 	<classpathentry kind="lib" path="lib/development/dtddoc.jar"/>
 	<classpathentry kind="lib" path="lib/development/dtdparser.jar"/>
@@ -94,6 +94,7 @@
 	<classpathentry kind="lib" path="lib/development/tomcat-coyote.jar"/>
 	<classpathentry kind="lib" path="lib/development/velocity.jar"/>
 	<classpathentry kind="lib" path="lib/development/velocity-tools.jar"/>
+	<classpathentry kind="lib" path="lib/development/websocket-api.jar"/>
 	<classpathentry kind="lib" path="lib/development/xmltask.jar"/>
 	<classpathentry kind="lib" path="lib/global/portlet.jar"/>
 	<classpathentry kind="lib" path="lib/portal/abdera.jar"/>
@@ -151,7 +152,6 @@
 	<classpathentry kind="lib" path="lib/portal/easyconf.jar"/>
 	<classpathentry kind="lib" path="lib/portal/eclipse-core-runtime.jar"/>
 	<classpathentry kind="lib" path="lib/portal/ecs.jar"/>
-	<classpathentry kind="lib" path="lib/portal/fastutil.jar"/>
 	<classpathentry kind="lib" path="lib/portal/fontbox.jar"/>
 	<classpathentry kind="lib" path="lib/portal/freshcookies-security.jar"/>
 	<classpathentry kind="lib" path="lib/portal/gif89.jar"/>
@@ -195,8 +195,6 @@
 	<classpathentry kind="lib" path="lib/portal/jrcs-diff.jar"/>
 	<classpathentry kind="lib" path="lib/portal/json-java.jar"/>
 	<classpathentry kind="lib" path="lib/portal/json-schema-validator.jar"/>
-	<classpathentry kind="lib" path="lib/portal/jsonrpc.jar"/>
-	<classpathentry kind="lib" path="lib/portal/jspwiki.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jsr107cache.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jstl-api.jar"/>
 	<classpathentry kind="lib" path="lib/portal/jstl-impl.jar"/>
@@ -219,7 +217,6 @@
 	<classpathentry kind="lib" path="lib/portal/netty-all.jar"/>
 	<classpathentry kind="lib" path="lib/portal/odmg.jar"/>
 	<classpathentry kind="lib" path="lib/portal/oro.jar"/>
-	<classpathentry kind="lib" path="lib/portal/oscache.jar"/>
 	<classpathentry kind="lib" path="lib/portal/pdfbox.jar"/>
 	<classpathentry kind="lib" path="lib/portal/poi.jar"/>
 	<classpathentry kind="lib" path="lib/portal/poi-ooxml.jar"/>

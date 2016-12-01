@@ -33,6 +33,7 @@ import com.liferay.sync.engine.util.IODeltaUtil;
 import com.liferay.sync.engine.util.MSOfficeFileUtil;
 import com.liferay.sync.engine.util.StreamUtil;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -128,7 +129,7 @@ public class DownloadFileHandler extends BaseHandler {
 				FileEventUtil.downloadFile(getSyncAccountId(), syncFile, false);
 			}
 			else {
-				SyncFileService.deleteSyncFile(syncFile);
+				handleException(syncFile);
 			}
 
 			return;
@@ -176,7 +177,11 @@ public class DownloadFileHandler extends BaseHandler {
 			return true;
 		}
 
-		return super.handlePortalException(exception);
+		removeEvent();
+
+		handleException(syncFile);
+
+		return true;
 	}
 
 	protected void copyFile(
@@ -191,7 +196,7 @@ public class DownloadFileHandler extends BaseHandler {
 		try {
 			Path tempFilePath = FileUtil.getTempFilePath(syncFile);
 
-			boolean exists = Files.exists(filePath);
+			boolean exists = FileUtil.exists(filePath);
 
 			if (append) {
 				outputStream = Files.newOutputStream(
@@ -264,6 +269,8 @@ public class DownloadFileHandler extends BaseHandler {
 		}
 		catch (FileSystemException fse) {
 			if (fse instanceof AccessDeniedException) {
+				_logger.error(fse.getMessage(), fse);
+
 				syncFile.setState(SyncFile.STATE_ERROR);
 				syncFile.setUiEvent(SyncFile.UI_EVENT_ACCESS_DENIED_LOCAL);
 
@@ -358,6 +365,24 @@ public class DownloadFileHandler extends BaseHandler {
 		}
 	}
 
+	protected void handleException(SyncFile syncFile) {
+		syncFile.setState(SyncFile.STATE_ERROR);
+		syncFile.setUiEvent(SyncFile.UI_EVENT_DOWNLOAD_EXCEPTION);
+
+		SyncFileService.update(syncFile);
+
+		Path filePathName = Paths.get(syncFile.getFilePathName());
+
+		if (FileUtil.notExists(filePathName)) {
+			try {
+				Files.createFile(filePathName);
+			}
+			catch (IOException ioe) {
+				_logger.error(ioe.getMessage(), ioe);
+			}
+		}
+	}
+
 	protected boolean isUnsynced(SyncFile syncFile) {
 		if (syncFile != null) {
 			syncFile = SyncFileService.fetchSyncFile(syncFile.getSyncFileId());
@@ -378,7 +403,7 @@ public class DownloadFileHandler extends BaseHandler {
 
 		Path filePath = Paths.get(syncFile.getFilePathName());
 
-		if (Files.notExists(filePath.getParent())) {
+		if (FileUtil.notExists(filePath.getParent())) {
 			if (_logger.isDebugEnabled()) {
 				_logger.debug(
 					"Skipping file {}. Missing parent file path {}.",

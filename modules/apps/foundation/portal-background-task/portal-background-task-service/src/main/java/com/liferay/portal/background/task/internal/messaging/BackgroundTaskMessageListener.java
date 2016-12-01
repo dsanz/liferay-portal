@@ -132,7 +132,8 @@ public class BackgroundTaskMessageListener extends BaseMessageListener {
 			if (_log.isDebugEnabled()) {
 				_log.debug(
 					"Unable to acquire lock, queuing background task " +
-						backgroundTaskId);
+						backgroundTaskId,
+					dle);
 			}
 		}
 		catch (Exception e) {
@@ -210,6 +211,12 @@ public class BackgroundTaskMessageListener extends BaseMessageListener {
 				_backgroundTaskExecutorRegistry.getBackgroundTaskExecutor(
 					backgroundTask.getTaskExecutorClassName());
 
+			if (backgroundTaskExecutor == null) {
+				throw new IllegalStateException(
+					"Unknown background task executor " +
+						backgroundTask.getTaskExecutorClassName());
+			}
+
 			backgroundTaskExecutor = backgroundTaskExecutor.clone();
 		}
 		else {
@@ -226,10 +233,10 @@ public class BackgroundTaskMessageListener extends BaseMessageListener {
 						classLoader, backgroundTask.getTaskExecutorClassName());
 			}
 			catch (Exception e) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(
-						"Unable to create new background task executor", e);
-				}
+				throw new IllegalStateException(
+					"Cannot instantiate BackgroundTaskExecutor: " +
+						backgroundTask.getTaskExecutorClassName(),
+					e);
 			}
 		}
 

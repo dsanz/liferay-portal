@@ -75,6 +75,8 @@ public class SyncFile extends StateAwareModel {
 
 	public static final int UI_EVENT_DELETED_REMOTE = 4;
 
+	public static final int UI_EVENT_DOWNLOAD_EXCEPTION = 29;
+
 	public static final int UI_EVENT_DOWNLOADED_NEW = 5;
 
 	public static final int UI_EVENT_DOWNLOADED_UPDATE = 6;
@@ -177,6 +179,10 @@ public class SyncFile extends StateAwareModel {
 
 	public String getFilePathName() {
 		return filePathName;
+	}
+
+	public String getLanTokenKey() {
+		return lanTokenKey;
 	}
 
 	public String getLocalExtraSettings() {
@@ -349,6 +355,10 @@ public class SyncFile extends StateAwareModel {
 		this.filePathName = filePathName;
 	}
 
+	public void setLanTokenKey(String lanTokenKey) {
+		this.lanTokenKey = lanTokenKey;
+	}
+
 	public void setLocalExtraSetting(String key, Object value)
 		throws IOException {
 
@@ -490,6 +500,9 @@ public class SyncFile extends StateAwareModel {
 
 	@DatabaseField(uniqueIndex = true, useGetSet = true, width = 16777216)
 	protected String filePathName;
+
+	@DatabaseField(useGetSet = true)
+	protected String lanTokenKey;
 
 	@DatabaseField(useGetSet = true, width = 16777216)
 	protected String localExtraSettings;

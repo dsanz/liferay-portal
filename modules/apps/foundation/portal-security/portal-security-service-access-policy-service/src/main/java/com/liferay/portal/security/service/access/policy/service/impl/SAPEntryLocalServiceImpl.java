@@ -65,7 +65,7 @@ public class SAPEntryLocalServiceImpl extends SAPEntryLocalServiceBaseImpl {
 
 		// Service access policy entry
 
-		User user = userPersistence.findByPrimaryKey(userId);
+		User user = userLocalService.getUser(userId);
 		allowedServiceSignatures = normalizeServiceSignatures(
 			allowedServiceSignatures);
 		name = StringUtil.trim(name);
@@ -336,6 +336,7 @@ public class SAPEntryLocalServiceImpl extends SAPEntryLocalServiceBaseImpl {
 
 		if (titleMap != null) {
 			Locale defaultLocale = LocaleUtil.getDefault();
+
 			String defaultTitle = titleMap.get(defaultLocale);
 
 			if (Validator.isNotNull(defaultTitle)) {

@@ -474,7 +474,7 @@ if (portletTitleBasedNavigation) {
 			</div>
 		</div>
 
-		<c:if test="<%= !childPages.isEmpty() %>">
+		<c:if test="<%= (wikiPage != null) && Validator.isNotNull(formattedContent) && (followRedirect || (redirectPage == null)) && !childPages.isEmpty() %>">
 			<h4 class="text-default">
 				<liferay-ui:message arguments="<%= childPages.size() %>" key="child-pages-x" translateArguments="<%= false %>" />
 			</h4>
@@ -487,20 +487,29 @@ if (portletTitleBasedNavigation) {
 					%>
 
 						<li class="list-group-item">
-							<div class="list-group-item-content">
-								<h3>
+							<h3>
 
-									<%
-									PortletURL rowURL = PortletURLUtil.clone(viewPageURL, renderResponse);
+								<%
+								PortletURL rowURL = PortletURLUtil.clone(viewPageURL, renderResponse);
 
-									rowURL.setParameter("title", childPage.getTitle());
-									%>
+								rowURL.setParameter("title", childPage.getTitle());
+								%>
 
-									<aui:a href="<%= rowURL.toString() %>"><%= childPage.getTitle() %></aui:a>
-								</h3>
+								<aui:a href="<%= rowURL.toString() %>"><%= childPage.getTitle() %></aui:a>
+							</h3>
 
-								<p class="text-default"><%= StringUtil.shorten(HtmlUtil.extractText(childPage.getContent()), 200) %></p>
-							</div>
+							<%
+							String childPageFormattedContent = null;
+
+							try {
+								childPageFormattedContent = wikiEngineRenderer.getFormattedContent(renderRequest, renderResponse, childPage, viewPageURL, editPageURL, childPage.getTitle(), false);
+							}
+							catch (Exception e) {
+								childPageFormattedContent = childPage.getContent();
+							}
+							%>
+
+							<p class="text-default"><%= StringUtil.shorten(HtmlUtil.extractText(childPageFormattedContent), 200) %></p>
 						</li>
 
 					<%

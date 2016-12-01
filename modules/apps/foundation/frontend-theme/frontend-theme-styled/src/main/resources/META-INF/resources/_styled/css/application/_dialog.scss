@@ -28,13 +28,19 @@
 	}
 
 	.dialog-body,
-	.lfr-form-content,
-	.portlet-configuration-body-content,
 	.export-dialog-tree,
 	.lfr-dynamic-uploader,
+	.lfr-form-content,
+	.portlet-configuration-body-content,
 	.process-list {
 		> .container-fluid-1280 {
 			padding-top: 20px;
+
+			> .nav-tabs-default {
+				margin-left: -$grid-gutter-width / 2;
+				margin-right: -$grid-gutter-width / 2;
+				margin-top: -20px;
+			}
 		}
 
 		> .lfr-nav + .container-fluid-1280 {
@@ -53,6 +59,10 @@
 		right: 0;
 		top: 0;
 		-webkit-overflow-scrolling: touch;
+	}
+
+	.login-container {
+		padding: $modal-inner-padding;
 	}
 
 	.management-bar-default,
@@ -133,6 +143,11 @@
 			background-color: $dialog-footer-bg;
 			border-top: 1px solid $dialog-footer-border-color;
 			bottom: 0;
+
+			@if (variable-exists(dialog-footer-box-shadow)) {
+				box-shadow: $dialog-footer-box-shadow;
+			}
+
 			left: 0;
 			margin: 0;
 			padding: 10px 15px;

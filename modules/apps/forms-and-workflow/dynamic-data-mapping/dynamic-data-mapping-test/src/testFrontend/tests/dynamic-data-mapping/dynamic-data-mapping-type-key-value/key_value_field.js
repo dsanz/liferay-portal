@@ -2,8 +2,6 @@
 
 var A = AUI();
 
-var assert = chai.assert;
-
 var createField = function(config) {
 	return new Liferay.DDM.Field.KeyValue(
 		A.merge(
@@ -39,6 +37,7 @@ describe(
 					function(A) {
 						Liferay.DDM.Renderer.FieldTypes.register(
 							{
+								'javaScriptClass': 'Liferay.DDM.Renderer.KeyValue',
 								'name': 'key_value',
 								'templateNamespace': 'ddm.key_value'
 							}
@@ -75,10 +74,8 @@ describe(
 
 				var value = 'Some value';
 
-				keyValueField.focus();
-				keyValueField.setValue(value);
-
-				waitValueChange(
+				keyValueField.after(
+					'valueChange',
 					function() {
 						var normalizedValue = keyValueField.normalizeKey(value);
 
@@ -87,6 +84,8 @@ describe(
 						done();
 					}
 				);
+
+				keyValueField.set('value', value);
 			}
 		);
 

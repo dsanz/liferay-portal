@@ -30,7 +30,7 @@ import java.util.List;
 
 /**
  * @author     Brian Wing Shun Chan
- * @deprecated As of 6.2.0, with no direct replacement
+ * @deprecated As of 6.2.0
  */
 @Deprecated
 public class ExtAutoDeployer extends ExtDeployer implements AutoDeployer {

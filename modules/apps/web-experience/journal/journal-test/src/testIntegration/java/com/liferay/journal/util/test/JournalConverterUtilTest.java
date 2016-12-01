@@ -160,16 +160,19 @@ public class JournalConverterUtilTest {
 
 		fields.put(linkToLayoutField);
 
+		StringBundler sb = new StringBundler(8);
+
+		sb.append("link_to_layout_INSTANCE_MiO7vIJu,");
+		sb.append("link_to_layout_INSTANCE_9FLzJNUX,");
+		sb.append("link_to_layout_INSTANCE_WqABvmxw,");
+		sb.append("link_to_layout_INSTANCE_31abnWkB,");
+		sb.append("link_to_layout_INSTANCE_pWIUF15B,");
+		sb.append("link_to_layout_INSTANCE_OGQypdcj,");
+		sb.append("link_to_layout_INSTANCE_TB2XZ3wn,");
+		sb.append("link_to_layout_INSTANCE_3IRNS4jM");
+
 		Field fieldsDisplayField = getFieldsDisplayField(
-			_ddmStructure.getStructureId(),
-			"link_to_layout_INSTANCE_MiO7vIJu," +
-			"link_to_layout_INSTANCE_9FLzJNUX," +
-			"link_to_layout_INSTANCE_WqABvmxw," +
-			"link_to_layout_INSTANCE_31abnWkB," +
-			"link_to_layout_INSTANCE_pWIUF15B," +
-			"link_to_layout_INSTANCE_OGQypdcj," +
-			"link_to_layout_INSTANCE_TB2XZ3wn," +
-			"link_to_layout_INSTANCE_3IRNS4jM");
+			_ddmStructure.getStructureId(), sb.toString());
 
 		fields.put(fieldsDisplayField);
 
@@ -783,13 +786,16 @@ public class JournalConverterUtilTest {
 
 		fields.put(ext);
 
+		StringBundler sb = new StringBundler(5);
+
+		sb.append("contact_INSTANCE_RF3do1m5,phone_INSTANCE_QK6B0wK9,");
+		sb.append("ext_INSTANCE_L67MPqQf,ext_INSTANCE_8uxzZl41,");
+		sb.append("ext_INSTANCE_S58K861T,contact_INSTANCE_CUeFxcrA,");
+		sb.append("phone_INSTANCE_lVTcTviF,ext_INSTANCE_cZalDSll,");
+		sb.append("ext_INSTANCE_HDrK2Um5");
+
 		Field fieldsDisplayField = new Field(
-			ddmStructureId, DDMImpl.FIELDS_DISPLAY_NAME,
-			"contact_INSTANCE_RF3do1m5,phone_INSTANCE_QK6B0wK9," +
-			"ext_INSTANCE_L67MPqQf,ext_INSTANCE_8uxzZl41," +
-			"ext_INSTANCE_S58K861T,contact_INSTANCE_CUeFxcrA," +
-			"phone_INSTANCE_lVTcTviF,ext_INSTANCE_cZalDSll," +
-			"ext_INSTANCE_HDrK2Um5");
+			ddmStructureId, DDMImpl.FIELDS_DISPLAY_NAME, sb.toString());
 
 		fields.put(fieldsDisplayField);
 

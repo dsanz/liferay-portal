@@ -12,12 +12,24 @@
 		</if>
 	</command>
 
+	<command name="closeMessageSpecific">
+		<var name="key_messageSpecific" value="${messageSpecific}" />
+
+		<execute function="Click" locator1="Icon#CLOSE_SPECIFIC" />
+	</command>
+
 	<command name="closePortalLocalizationWarning">
 		<execute macro="Alert#_closeMessage">
 			<var name="messageType" value="PORTAL_LOCALIZATION" />
 		</execute>
 
 		<execute function="Pause" locator1="2000" />
+	</command>
+
+	<command name="viewEmptyFieldMessage">
+		<var name="key_fieldLabel" value="${fieldLabel}" />
+
+		<execute function="AssertTextEquals" locator1="Message#ERROR_EMPTY_FIELD" value1="At least one option should be set for field ${fieldLabel}." />
 	</command>
 
 	<command name="viewErrorMessage">

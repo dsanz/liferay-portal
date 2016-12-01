@@ -65,7 +65,7 @@ import org.osgi.service.component.annotations.Reference;
 public class DDLImpl implements DDL {
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 1.1.0
 	 */
 	@Deprecated
 	@Override
@@ -158,7 +158,7 @@ public class DDLImpl implements DDL {
 
 				jsonObject.put(fieldName, (JSONArray)fieldValue);
 			}
-			else {
+			else if (Validator.isNotNull(fieldValue)) {
 				jsonObject.put(fieldName, String.valueOf(fieldValue));
 			}
 		}
@@ -213,7 +213,7 @@ public class DDLImpl implements DDL {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 1.1.0
 	 */
 	@Deprecated
 	@Override
@@ -227,7 +227,7 @@ public class DDLImpl implements DDL {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 1.1.0
 	 */
 	@Deprecated
 	@Override
@@ -264,7 +264,7 @@ public class DDLImpl implements DDL {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, with no direct replacement
+	 * @deprecated As of 1.1.0, with no direct replacement
 	 */
 	@Deprecated
 	@Override
@@ -277,7 +277,7 @@ public class DDLImpl implements DDL {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, with no direct replacement
+	 * @deprecated As of 1.1.0, with no direct replacement
 	 */
 	@Deprecated
 	@Override
@@ -342,7 +342,7 @@ public class DDLImpl implements DDL {
 	}
 
 	/**
-	 * @deprecated As of 7.0.0
+	 * @deprecated As of 1.1.0
 	 */
 	@Deprecated
 	@Override

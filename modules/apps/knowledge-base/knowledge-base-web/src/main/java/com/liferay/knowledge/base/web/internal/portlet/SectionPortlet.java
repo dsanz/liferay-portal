@@ -54,6 +54,7 @@ import org.osgi.service.component.annotations.Reference;
 		"com.liferay.portlet.icon=/icons/section.png",
 		"com.liferay.portlet.instanceable=true",
 		"com.liferay.portlet.scopeable=true",
+		"com.liferay.portlet.struts-path=knowledge_base",
 		"javax.portlet.display-name=Knowledge Base Section",
 		"javax.portlet.expiration-cache=0",
 		"javax.portlet.init-param.always-send-redirect=true",
@@ -72,7 +73,28 @@ import org.osgi.service.component.annotations.Reference;
 public class SectionPortlet extends BaseKBPortlet {
 
 	@Override
-	public void render(
+	protected void doDispatch(
+			RenderRequest renderRequest, RenderResponse renderResponse)
+		throws IOException, PortletException {
+
+		if (SessionErrors.contains(
+				renderRequest, NoSuchArticleException.class.getName()) ||
+			SessionErrors.contains(
+				renderRequest, NoSuchCommentException.class.getName()) ||
+			SessionErrors.contains(
+				renderRequest, NoSuchSubscriptionException.class.getName()) ||
+			SessionErrors.contains(
+				renderRequest, PrincipalException.getNestedClasses())) {
+
+			include(templatePath + "error.jsp", renderRequest, renderResponse);
+		}
+		else {
+			super.doDispatch(renderRequest, renderResponse);
+		}
+	}
+
+	@Override
+	protected void doRender(
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
@@ -99,29 +121,6 @@ public class SectionPortlet extends BaseKBPortlet {
 			else {
 				throw new PortletException(e);
 			}
-		}
-
-		super.render(renderRequest, renderResponse);
-	}
-
-	@Override
-	protected void doDispatch(
-			RenderRequest renderRequest, RenderResponse renderResponse)
-		throws IOException, PortletException {
-
-		if (SessionErrors.contains(
-				renderRequest, NoSuchArticleException.class.getName()) ||
-			SessionErrors.contains(
-				renderRequest, NoSuchCommentException.class.getName()) ||
-			SessionErrors.contains(
-				renderRequest, NoSuchSubscriptionException.class.getName()) ||
-			SessionErrors.contains(
-				renderRequest, PrincipalException.getNestedClasses())) {
-
-			include(templatePath + "error.jsp", renderRequest, renderResponse);
-		}
-		else {
-			super.doDispatch(renderRequest, renderResponse);
 		}
 	}
 

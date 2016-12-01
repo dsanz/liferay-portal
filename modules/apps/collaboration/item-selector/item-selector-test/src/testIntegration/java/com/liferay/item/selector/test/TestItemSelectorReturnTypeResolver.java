@@ -23,14 +23,17 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 public class TestItemSelectorReturnTypeResolver implements
 	ItemSelectorReturnTypeResolver<TestItemSelectorReturnType, String> {
 
+	@Override
 	public Class<TestItemSelectorReturnType> getItemSelectorReturnTypeClass() {
 		return TestItemSelectorReturnType.class;
 	}
 
+	@Override
 	public Class<String> getModelClass() {
 		return String.class;
 	}
 
+	@Override
 	public String getValue(String s, ThemeDisplay themeDisplay)
 		throws Exception {
 

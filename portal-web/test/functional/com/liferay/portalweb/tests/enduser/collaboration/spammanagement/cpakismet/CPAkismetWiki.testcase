@@ -1,4 +1,4 @@
-<definition component-name="portal-integrations">
+<definition component-name="portal-integrations" ignore="true">
 	<property name="portal.release" value="true" />
 	<property name="portlet.plugins.includes" value="akismet-portlet" />
 	<property name="testray.main.component.name" value="Akismet" />
@@ -81,7 +81,7 @@
 		<execute macro="Role#definePermissionCmdCP">
 			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_WIKI_GENERAL_PERMISSIONS_ACCESS_IN_SITE_ADMINISTRATION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Access in Site Administration" />
-			<var name="roleName" value="Authenticated" />
+			<var name="roleTitle" value="Authenticated" />
 			<var name="roleUser" value="User" />
 		</execute>
 
@@ -231,7 +231,7 @@
 		<execute macro="Role#definePermissionCmdCP">
 			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_WIKI_GENERAL_PERMISSIONS_ACCESS_IN_SITE_ADMINISTRATION_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Access in Site Administration" />
-			<var name="roleName" value="Authenticated" />
+			<var name="roleTitle" value="Authenticated" />
 			<var name="roleUser" value="User" />
 		</execute>
 

@@ -23,6 +23,7 @@ import com.liferay.gradle.plugins.whip.WhipTaskExtension;
 import com.liferay.gradle.util.Validator;
 
 import org.gradle.api.Action;
+import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.testing.Test;
@@ -32,6 +33,8 @@ import org.gradle.api.tasks.testing.Test;
  */
 public class WhipDefaultsPlugin
 	extends BasePortalToolDefaultsPlugin<WhipPlugin> {
+
+	public static final Plugin<Project> INSTANCE = new WhipDefaultsPlugin();
 
 	@Override
 	protected void addPortalToolDependencies(Project project) {
@@ -49,31 +52,7 @@ public class WhipDefaultsPlugin
 	protected void configureDefaults(Project project, WhipPlugin whipPlugin) {
 		super.configureDefaults(project, whipPlugin);
 
-		configureTasksTest(project);
-	}
-
-	protected void configureTasksTest(Project project) {
-		TaskContainer taskContainer = project.getTasks();
-
-		taskContainer.withType(
-			Test.class,
-			new Action<Test>() {
-
-				@Override
-				public void execute(Test test) {
-					configureTaskTest(test);
-				}
-
-			});
-	}
-
-	protected void configureTaskTest(Test test) {
-		WhipTaskExtension whipTaskExtension = GradleUtil.getExtension(
-			test, WhipTaskExtension.class);
-
-		whipTaskExtension.excludes(
-			".*Test", ".*Test\\$.*", ".*\\$Proxy.*", "com/liferay/whip/.*");
-		whipTaskExtension.includes("com/liferay/.*");
+		_configureTasksTest(project);
 	}
 
 	@Override
@@ -89,6 +68,33 @@ public class WhipDefaultsPlugin
 	@Override
 	protected String getPortalToolName() {
 		return _PORTAL_TOOL_NAME;
+	}
+
+	private WhipDefaultsPlugin() {
+	}
+
+	private void _configureTasksTest(Project project) {
+		TaskContainer taskContainer = project.getTasks();
+
+		taskContainer.withType(
+			Test.class,
+			new Action<Test>() {
+
+				@Override
+				public void execute(Test test) {
+					_configureTaskTest(test);
+				}
+
+			});
+	}
+
+	private void _configureTaskTest(Test test) {
+		WhipTaskExtension whipTaskExtension = GradleUtil.getExtension(
+			test, WhipTaskExtension.class);
+
+		whipTaskExtension.excludes(
+			".*Test", ".*Test\\$.*", ".*\\$Proxy.*", "com/liferay/whip/.*");
+		whipTaskExtension.includes("com/liferay/.*");
 	}
 
 	private static final String _PORTAL_TOOL_NAME = "com.liferay.whip";

@@ -3,6 +3,10 @@
 
 <routes>
 	<route>
+		<pattern></pattern>
+		<implicit-parameter name="mvcRenderCommandName">/calendar</implicit-parameter>
+	</route>
+	<route>
 		<pattern>/{instanceId}/event/{calendarBookingId}</pattern>
 		<implicit-parameter name="mvcPath">/view_calendar_booking.jsp</implicit-parameter>
 	</route>

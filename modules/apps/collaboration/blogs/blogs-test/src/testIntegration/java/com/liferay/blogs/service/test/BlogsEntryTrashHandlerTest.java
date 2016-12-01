@@ -16,8 +16,9 @@ package com.liferay.blogs.service.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.asset.kernel.model.AssetEntry;
-import com.liferay.blogs.kernel.model.BlogsEntry;
+import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalServiceUtil;
+import com.liferay.blogs.util.test.BlogsTestUtil;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.ClassedModel;
@@ -29,7 +30,6 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.portlet.blogs.util.test.BlogsTestUtil;
 import com.liferay.portlet.trash.test.BaseTrashHandlerTestCase;
 import com.liferay.portlet.trash.test.DefaultWhenIsAssetable;
 import com.liferay.portlet.trash.test.DefaultWhenIsIndexableBaseModel;
@@ -107,6 +107,7 @@ public class BlogsEntryTrashHandlerTest
 	}
 
 	@Before
+	@Override
 	public void setUp() throws Exception {
 		ServiceTestUtil.setUser(TestPropsValues.getUser());
 

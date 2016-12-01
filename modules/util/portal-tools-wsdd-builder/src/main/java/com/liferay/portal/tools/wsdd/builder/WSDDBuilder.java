@@ -75,8 +75,8 @@ public class WSDDBuilder {
 
 			String serverConfigContent = StringUtil.read(
 				classLoader,
-				"com/liferay/portal/tools/wsdd/builder/dependencies/" +
-					"server-config.wsdd");
+				"com/liferay/portal/tools/wsdd/builder/dependencies" +
+					"/server-config.wsdd");
 
 			_writeFile(serverConfigFile, serverConfigContent);
 		}
@@ -154,7 +154,7 @@ public class WSDDBuilder {
 			serviceName = _serviceNamespace + "_" + serviceName;
 		}
 
-		serviceName += ("_" + entityName + "Service");
+		serviceName += "_" + entityName + "Service";
 
 		String[] wsdds = Java2WsddTask.generateWsdd(
 			className, _classPath, serviceName);

@@ -2265,11 +2265,15 @@ public class KaleoTaskFormPersistenceImpl extends BasePersistenceImpl<KaleoTaskF
 						finderArgs, list);
 				}
 				else {
-					if ((list.size() > 1) && _log.isWarnEnabled()) {
-						_log.warn(
-							"KaleoTaskFormPersistenceImpl.fetchByFormUuid_KTI(long, String, boolean) with parameters (" +
-							StringUtil.merge(finderArgs) +
-							") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+					if (list.size() > 1) {
+						Collections.sort(list, Collections.reverseOrder());
+
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"KaleoTaskFormPersistenceImpl.fetchByFormUuid_KTI(long, String, boolean) with parameters (" +
+								StringUtil.merge(finderArgs) +
+								") yields a result set with more than 1 result. This violates the logical unique restriction. There is no order guarantee on which result is returned by this finder.");
+						}
 					}
 
 					KaleoTaskForm kaleoTaskForm = list.get(0);
@@ -2468,7 +2472,7 @@ public class KaleoTaskFormPersistenceImpl extends BasePersistenceImpl<KaleoTaskF
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 
-		clearUniqueFindersCache((KaleoTaskFormModelImpl)kaleoTaskForm);
+		clearUniqueFindersCache((KaleoTaskFormModelImpl)kaleoTaskForm, true);
 	}
 
 	@Override
@@ -2480,52 +2484,38 @@ public class KaleoTaskFormPersistenceImpl extends BasePersistenceImpl<KaleoTaskF
 			entityCache.removeResult(KaleoTaskFormModelImpl.ENTITY_CACHE_ENABLED,
 				KaleoTaskFormImpl.class, kaleoTaskForm.getPrimaryKey());
 
-			clearUniqueFindersCache((KaleoTaskFormModelImpl)kaleoTaskForm);
+			clearUniqueFindersCache((KaleoTaskFormModelImpl)kaleoTaskForm, true);
 		}
 	}
 
 	protected void cacheUniqueFindersCache(
-		KaleoTaskFormModelImpl kaleoTaskFormModelImpl, boolean isNew) {
-		if (isNew) {
-			Object[] args = new Object[] {
-					kaleoTaskFormModelImpl.getKaleoTaskId(),
-					kaleoTaskFormModelImpl.getFormUuid()
-				};
-
-			finderCache.putResult(FINDER_PATH_COUNT_BY_FORMUUID_KTI, args,
-				Long.valueOf(1));
-			finderCache.putResult(FINDER_PATH_FETCH_BY_FORMUUID_KTI, args,
-				kaleoTaskFormModelImpl);
-		}
-		else {
-			if ((kaleoTaskFormModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_FORMUUID_KTI.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						kaleoTaskFormModelImpl.getKaleoTaskId(),
-						kaleoTaskFormModelImpl.getFormUuid()
-					};
-
-				finderCache.putResult(FINDER_PATH_COUNT_BY_FORMUUID_KTI, args,
-					Long.valueOf(1));
-				finderCache.putResult(FINDER_PATH_FETCH_BY_FORMUUID_KTI, args,
-					kaleoTaskFormModelImpl);
-			}
-		}
-	}
-
-	protected void clearUniqueFindersCache(
 		KaleoTaskFormModelImpl kaleoTaskFormModelImpl) {
 		Object[] args = new Object[] {
 				kaleoTaskFormModelImpl.getKaleoTaskId(),
 				kaleoTaskFormModelImpl.getFormUuid()
 			};
 
-		finderCache.removeResult(FINDER_PATH_COUNT_BY_FORMUUID_KTI, args);
-		finderCache.removeResult(FINDER_PATH_FETCH_BY_FORMUUID_KTI, args);
+		finderCache.putResult(FINDER_PATH_COUNT_BY_FORMUUID_KTI, args,
+			Long.valueOf(1), false);
+		finderCache.putResult(FINDER_PATH_FETCH_BY_FORMUUID_KTI, args,
+			kaleoTaskFormModelImpl, false);
+	}
+
+	protected void clearUniqueFindersCache(
+		KaleoTaskFormModelImpl kaleoTaskFormModelImpl, boolean clearCurrent) {
+		if (clearCurrent) {
+			Object[] args = new Object[] {
+					kaleoTaskFormModelImpl.getKaleoTaskId(),
+					kaleoTaskFormModelImpl.getFormUuid()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_FORMUUID_KTI, args);
+			finderCache.removeResult(FINDER_PATH_FETCH_BY_FORMUUID_KTI, args);
+		}
 
 		if ((kaleoTaskFormModelImpl.getColumnBitmask() &
 				FINDER_PATH_FETCH_BY_FORMUUID_KTI.getColumnBitmask()) != 0) {
-			args = new Object[] {
+			Object[] args = new Object[] {
 					kaleoTaskFormModelImpl.getOriginalKaleoTaskId(),
 					kaleoTaskFormModelImpl.getOriginalFormUuid()
 				};
@@ -2774,8 +2764,8 @@ public class KaleoTaskFormPersistenceImpl extends BasePersistenceImpl<KaleoTaskF
 			KaleoTaskFormImpl.class, kaleoTaskForm.getPrimaryKey(),
 			kaleoTaskForm, false);
 
-		clearUniqueFindersCache(kaleoTaskFormModelImpl);
-		cacheUniqueFindersCache(kaleoTaskFormModelImpl, isNew);
+		clearUniqueFindersCache(kaleoTaskFormModelImpl, false);
+		cacheUniqueFindersCache(kaleoTaskFormModelImpl);
 
 		kaleoTaskForm.resetOriginalValues();
 

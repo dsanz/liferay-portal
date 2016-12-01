@@ -37,6 +37,13 @@
 				managementBarFilterItems="<%= assetBrowserDisplayContext.getManagementBarFilterItem() %>"
 				value="<%= assetBrowserDisplayContext.getManagementBarFilterLabel() %>"
 			/>
+
+			<liferay-frontend:management-bar-sort
+				orderByCol="<%= assetBrowserDisplayContext.getOrderByCol() %>"
+				orderByType="<%= assetBrowserDisplayContext.getOrderByType() %>"
+				orderColumns="<%= assetBrowserDisplayContext.getOrderColumns() %>"
+				portletURL="<%= assetBrowserDisplayContext.getPortletURL() %>"
+			/>
 		</liferay-frontend:management-bar-filters>
 
 		<liferay-portlet:actionURL name="changeDisplayStyle" varImpl="changeDisplayStyleURL">
@@ -73,11 +80,11 @@
 			Map<String, Object> data = new HashMap<String, Object>();
 
 			if (assetEntry.getEntryId() != assetBrowserDisplayContext.getRefererAssetEntryId()) {
-				data.put("assetentryid", assetEntry.getEntryId());
 				data.put("assetclassname", assetEntry.getClassName());
 				data.put("assetclasspk", assetEntry.getClassPK());
-				data.put("assettype", assetRendererFactory.getTypeName(locale, assetBrowserDisplayContext.getSubtypeSelectionId()));
 				data.put("assettitle", assetEntry.getTitle(locale));
+				data.put("assettype", assetRendererFactory.getTypeName(locale, assetBrowserDisplayContext.getSubtypeSelectionId()));
+				data.put("entityid", assetEntry.getEntryId());
 				data.put("groupdescriptivename", group.getDescriptiveName(locale));
 
 				cssClass = "selector-button";

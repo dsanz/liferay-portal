@@ -22,6 +22,10 @@ AUI.add(
 						value: {}
 					},
 
+					enableEvaluations: {
+						value: true
+					},
+
 					layout: {
 						value: {}
 					},
@@ -112,6 +116,24 @@ AUI.add(
 						return (formNode || container).one('[type="submit"]');
 					},
 
+					hasFocus: function() {
+						var instance = this;
+
+						var container = instance.get('container');
+
+						var hasFocus = false;
+
+						instance.eachField(
+							function(field) {
+								hasFocus = field.hasFocus();
+
+								return hasFocus;
+							}
+						);
+
+						return hasFocus || container.contains(document.activeElement);
+					},
+
 					submit: function() {
 						var instance = this;
 
@@ -131,7 +153,7 @@ AUI.add(
 					toJSON: function() {
 						var instance = this;
 
-						var defaultLanguageId = themeDisplay.getLanguageId();
+						var defaultLanguageId = themeDisplay.getDefaultLanguageId();
 
 						return {
 							availableLanguageIds: [defaultLanguageId],

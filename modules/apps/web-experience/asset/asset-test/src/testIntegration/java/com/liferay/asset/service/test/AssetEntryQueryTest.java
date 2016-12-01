@@ -24,7 +24,7 @@ import com.liferay.asset.kernel.service.AssetEntryServiceUtil;
 import com.liferay.asset.kernel.service.AssetTagLocalServiceUtil;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalServiceUtil;
 import com.liferay.asset.kernel.service.persistence.AssetEntryQuery;
-import com.liferay.blogs.kernel.model.BlogsEntry;
+import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalServiceUtil;
 import com.liferay.portal.kernel.cache.thread.local.Lifecycle;
 import com.liferay.portal.kernel.cache.thread.local.ThreadLocalCache;
@@ -33,6 +33,8 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.rule.Sync;
+import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -63,12 +65,15 @@ import org.junit.runner.RunWith;
  * @author Sergio González
  */
 @RunWith(Arquillian.class)
+@Sync
 public class AssetEntryQueryTest {
 
 	@ClassRule
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
-		new LiferayIntegrationTestRule();
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(),
+			SynchronousDestinationTestRule.INSTANCE);
 
 	@Before
 	public void setUp() throws Exception {
@@ -123,6 +128,7 @@ public class AssetEntryQueryTest {
 			_healthAssetCategoryId, _sportAssetCategoryId,
 			_travelAssetCategoryId
 		};
+
 		_assetCategoryIds2 = new long[] {
 			_fashionAssetCategoryId, _foodAssetCategoryId,
 			_healthAssetCategoryId, _sportAssetCategoryId

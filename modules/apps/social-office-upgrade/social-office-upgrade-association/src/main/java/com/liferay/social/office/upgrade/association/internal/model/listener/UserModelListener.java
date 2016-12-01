@@ -19,6 +19,8 @@ import com.liferay.portal.kernel.cache.thread.local.ThreadLocalCacheManager;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ModelListener;
@@ -102,6 +104,12 @@ public class UserModelListener extends BaseModelListener<User> {
 			}
 		}
 		catch (NoSuchGroupException nsge) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(nsge, nsge);
+			}
 		}
 		catch (Exception e) {
 			throw new ModelListenerException(e);
@@ -174,6 +182,12 @@ public class UserModelListener extends BaseModelListener<User> {
 			}
 		}
 		catch (NoSuchGroupException nsge) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(nsge, nsge);
+			}
 		}
 		catch (Exception e) {
 			throw new ModelListenerException(e);
@@ -226,15 +240,20 @@ public class UserModelListener extends BaseModelListener<User> {
 	protected UserLocalService userLocalService;
 
 	/**
-	 * {@link com.liferay.portal.kernel.service.persistence.impl.TableMapperImpl}
+	 * {@link
+	 * com.liferay.portal.kernel.service.persistence.impl.TableMapperImpl}
 	 */
 	private static final String _MAPPING_TABLE_USERS_ROLES_NAME_LEFT_TO_RIGHT =
 		TableMapper.class.getName() + "-Users_Roles-LeftToRight";
 
 	/**
-	 * {@link com.liferay.portal.kernel.service.persistence.impl.TableMapperImpl}
+	 * {@link
+	 * com.liferay.portal.kernel.service.persistence.impl.TableMapperImpl}
 	 */
 	private static final String _MAPPING_TABLE_USERS_ROLES_NAME_RIGHT_TO_LEFT =
 		TableMapper.class.getName() + "-Users_Roles-RightToLeft";
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		UserModelListener.class);
 
 }

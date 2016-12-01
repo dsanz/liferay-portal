@@ -17,6 +17,7 @@ package com.liferay.gradle.plugins.js.module.config.generator;
 import com.liferay.gradle.plugins.node.tasks.ExecuteNodeScriptTask;
 import com.liferay.gradle.util.FileUtil;
 import com.liferay.gradle.util.GradleUtil;
+import com.liferay.gradle.util.Validator;
 
 import groovy.lang.Closure;
 
@@ -24,6 +25,8 @@ import java.io.File;
 
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -36,8 +39,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -108,6 +109,23 @@ public class ConfigJSModulesTask
 
 				@Override
 				public void execute(CopySpec copySpec) {
+					String customDefine = getCustomDefine();
+
+					if (Validator.isNotNull(customDefine)) {
+						final String replacement = Matcher.quoteReplacement(
+							customDefine + "(");
+
+						copySpec.filter(
+							new Closure<String>(getProject()) {
+
+								@SuppressWarnings("unused")
+								public String doCall(String line) {
+									return _replaceDefines(line, replacement);
+								}
+
+							});
+					}
+
 					copySpec.from(outputDir);
 					copySpec.into(getSourceDir());
 				}
@@ -119,6 +137,12 @@ public class ConfigJSModulesTask
 	@Optional
 	public String getConfigVariable() {
 		return GradleUtil.toString(_configVariable);
+	}
+
+	@Input
+	@Optional
+	public String getCustomDefine() {
+		return GradleUtil.toString(_customDefine);
 	}
 
 	@Override
@@ -149,12 +173,10 @@ public class ConfigJSModulesTask
 		return GradleUtil.toString(_moduleFormat);
 	}
 
-	@OutputDirectory
 	public File getOutputDir() {
 		return new File(getTemporaryDir(), "files");
 	}
 
-	@OutputFile
 	public File getOutputFile() {
 		return GradleUtil.toFile(getProject(), _outputFile);
 	}
@@ -224,6 +246,10 @@ public class ConfigJSModulesTask
 
 	public void setConfigVariable(Object configVariable) {
 		_configVariable = configVariable;
+	}
+
+	public void setCustomDefine(Object customDefine) {
+		_customDefine = customDefine;
 	}
 
 	@Override
@@ -334,7 +360,21 @@ public class ConfigJSModulesTask
 		return completeArgs;
 	}
 
+	private static String _replaceDefines(String line, String replacement) {
+		if (Validator.isNull(line)) {
+			return line;
+		}
+
+		Matcher matcher = _definePattern.matcher(line);
+
+		return matcher.replaceAll(replacement);
+	}
+
+	private static final Pattern _definePattern = Pattern.compile(
+		"(?:^|\\s)define\\(");
+
 	private Object _configVariable;
+	private Object _customDefine = "Liferay.Loader.define";
 	private boolean _ignorePath;
 	private boolean _keepFileExtension;
 	private boolean _lowerCase;

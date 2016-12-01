@@ -82,7 +82,7 @@ public class CommentAssetRenderer
 	}
 
 	/**
-	 * @deprecated As of 7.0.0, with no direct replacement
+	 * @deprecated As of 1.1.0, with no direct replacement
 	 */
 	@Deprecated
 	@Override
@@ -156,7 +156,8 @@ public class CommentAssetRenderer
 			liferayPortletRequest, group, CommentPortletKeys.COMMENT, 0, 0,
 			PortletRequest.RENDER_PHASE);
 
-		editPortletURL.setParameter("mvcPath", "/edit_discussion.jsp");
+		editPortletURL.setParameter(
+			"mvcRenderCommandName", "/discussion/edit_discussion");
 		editPortletURL.setParameter(
 			"commentId", String.valueOf(_workflowableComment.getCommentId()));
 

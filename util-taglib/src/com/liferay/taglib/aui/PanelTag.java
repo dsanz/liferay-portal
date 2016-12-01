@@ -26,9 +26,11 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * @author Julio Camarero
- * @author Brian Wing Shun Chan
+ * @author     Julio Camarero
+ * @author     Brian Wing Shun Chan
+ * @deprecated As of 7.0.0, with no direct replacement
  */
+@Deprecated
 public class PanelTag extends BasePanelTag {
 
 	public void addToolTag(ToolTag toolTag) {

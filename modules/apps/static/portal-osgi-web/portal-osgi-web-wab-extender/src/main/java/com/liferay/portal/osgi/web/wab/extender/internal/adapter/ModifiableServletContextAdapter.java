@@ -96,6 +96,7 @@ public class ModifiableServletContextAdapter
 		Class<? extends Filter> filterClass = filter.getClass();
 
 		filterRegistrationImpl.setClassName(filterClass.getName());
+
 		filterRegistrationImpl.setName(filterName);
 		filterRegistrationImpl.setInstance(filter);
 
@@ -169,6 +170,7 @@ public class ModifiableServletContextAdapter
 		Class<? extends Servlet> servetClass = servlet.getClass();
 
 		servletRegistrationImpl.setClassName(servetClass.getName());
+
 		servletRegistrationImpl.setName(servletName);
 		servletRegistrationImpl.setInstance(servlet);
 
@@ -286,14 +288,14 @@ public class ModifiableServletContextAdapter
 		for (Entry<Class<? extends EventListener>, EventListener> entry :
 				_eventListeners.entrySet()) {
 
-			if (entry.getValue() != null) {
-				continue;
-			}
-
 			Class<? extends EventListener> eventListenerClass = entry.getKey();
 
 			try {
-				EventListener eventListener = eventListenerClass.newInstance();
+				EventListener eventListener = entry.getValue();
+
+				if (eventListener == null) {
+					eventListener = eventListenerClass.newInstance();
+				}
 
 				ListenerDefinition listenerDefinition =
 					new ListenerDefinition();
@@ -372,21 +374,21 @@ public class ModifiableServletContextAdapter
 		for (FilterRegistrationImpl filterRegistrationImpl :
 				_filterRegistrations.values()) {
 
-			if (filterRegistrationImpl.getInstance() != null) {
-				continue;
-			}
-
 			String filterClassName = filterRegistrationImpl.getClassName();
 
 			try {
-				Class<?> clazz = _bundle.loadClass(filterClassName);
+				Filter filter = filterRegistrationImpl.getInstance();
 
-				Class<? extends Filter> filterClass = clazz.asSubclass(
-					Filter.class);
+				if (filter == null) {
+					Class<?> clazz = _bundle.loadClass(filterClassName);
 
-				Filter filter = filterClass.newInstance();
+					Class<? extends Filter> filterClass = clazz.asSubclass(
+						Filter.class);
 
-				filterRegistrationImpl.setInstance(filter);
+					filter = filterClass.newInstance();
+
+					filterRegistrationImpl.setInstance(filter);
+				}
 
 				FilterDefinition filterDefinition = new FilterDefinition();
 
@@ -433,30 +435,28 @@ public class ModifiableServletContextAdapter
 		for (ServletRegistrationImpl servletRegistrationImpl :
 				_servletRegistrations.values()) {
 
-			if (servletRegistrationImpl.getInstance() != null) {
-				continue;
-			}
-
 			String servletClassName = servletRegistrationImpl.getClassName();
 
 			try {
 				String jspFile = servletRegistrationImpl.getJspFile();
 
-				Servlet servlet = null;
+				Servlet servlet = servletRegistrationImpl.getInstance();
 
-				if (Validator.isNotNull(jspFile)) {
-					servlet = new JspServletWrapper(jspFile);
+				if (servlet == null) {
+					if (Validator.isNotNull(jspFile)) {
+						servlet = new JspServletWrapper(jspFile);
+					}
+					else {
+						Class<?> clazz = _bundle.loadClass(servletClassName);
+
+						Class<? extends Servlet> servletClass =
+							clazz.asSubclass(Servlet.class);
+
+						servlet = servletClass.newInstance();
+					}
+
+					servletRegistrationImpl.setInstance(servlet);
 				}
-				else {
-					Class<?> clazz = _bundle.loadClass(servletClassName);
-
-					Class<? extends Servlet> servletClass = clazz.asSubclass(
-						Servlet.class);
-
-					servlet = servletClass.newInstance();
-				}
-
-				servletRegistrationImpl.setInstance(servlet);
 
 				ServletDefinition servletDefinition = new ServletDefinition();
 
@@ -518,6 +518,7 @@ public class ModifiableServletContextAdapter
 			Method equalsHandlerMethod =
 				ModifiableServletContextAdapter.class.getMethod(
 					"equals", Object.class);
+
 			methods.put(equalsMethod, equalsHandlerMethod);
 
 			Method hashCodeMethod = Object.class.getMethod(
@@ -526,6 +527,7 @@ public class ModifiableServletContextAdapter
 			Method hashCodeHandlerMethod =
 				ModifiableServletContextAdapter.class.getMethod(
 					"hashCode", (Class<?>[])null);
+
 			methods.put(hashCodeMethod, hashCodeHandlerMethod);
 		}
 		catch (NoSuchMethodException nsme) {

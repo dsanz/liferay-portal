@@ -235,7 +235,7 @@
 		</execute>
 	</command>
 
-	<command name="AddBlogsEntryWithInlineImageViaURL" priority="4">
+	<!-- <command name="AddBlogsEntryWithInlineImageViaURL" priority="4">
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -258,7 +258,7 @@
 			<var name="imageSourceURL" value="https://cdn.lfrs.sl/www.liferay.com/osb-community-theme/images/custom/heading.png" />
 		</execute>
 
-		<execute macro="BlogsEntry#publish" />
+		<execute macro="PortletEntry#publishAndWait" />
 
 		<execute macro="Navigator#openURL" />
 
@@ -278,7 +278,7 @@
 		<execute macro="BlogsEntry#viewInlineImage">
 			<var name="uploadFileName" value="https://cdn.lfrs.sl/www.liferay.com/osb-community-theme/images/custom/heading.png" />
 		</execute>
-	</command>
+	</command> -->
 
 	<command name="AddBlogsEntryWithSubtitle" priority="4">
 		<execute macro="Navigator#openURL" />
@@ -699,7 +699,7 @@
 			<var name="uploadFileName" value="Document_1.jpg" />
 		</execute>
 
-		<execute macro="PortletEntry#publish" />
+		<execute macro="PortletEntry#publishAndWait" />
 
 		<execute macro="BlogsNavigator#gotoEntryCP">
 			<var name="entryTitle" value="Blogs Entry Title" />
@@ -734,7 +734,7 @@
 			<var name="uploadFileName" value="Document_1.jpg" />
 		</execute>
 
-		<execute macro="BlogsEntry#publish" />
+		<execute macro="PortletEntry#publish" />
 
 		<execute macro="BlogsNavigator#gotoEntryCP">
 			<var name="entryTitle" value="Blogs Entry Title" />
@@ -769,7 +769,7 @@
 			<var name="uploadFileName" value="Document_1.jpg" />
 		</execute>
 
-		<execute macro="BlogsEntry#saveAsDraft" />
+		<execute macro="BlogsEntry#saveAsDraftAndWait" />
 
 		<execute function="Click" locator1="Icon#BACK" />
 
@@ -792,7 +792,7 @@
 		</execute>
 	</command>
 
-	<command name="ViewCoverImageDetails" priority="3">
+	<!-- <command name="ViewCoverImageDetails" priority="3">
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -807,7 +807,7 @@
 			<var name="uploadFileName" value="Document_1.jpg" />
 		</execute>
 
-		<execute macro="PortletEntry#publish" />
+		<execute macro="PortletEntry#publishAndWait" />
 
 		<execute macro="BlogsNavigator#gotoEntryCP">
 			<var name="entryTitle" value="Blogs Entry Title" />
@@ -831,7 +831,7 @@
 			<var name="uploadFileName" value="Document_1.jpg" />
 			<var name="versionNumber" value="1.0" />
 		</execute>
-	</command>
+	</command> -->
 
 	<command name="ViewErrorMessageForNullCustomAbstract" priority="4">
 		<execute macro="Navigator#openURL" />

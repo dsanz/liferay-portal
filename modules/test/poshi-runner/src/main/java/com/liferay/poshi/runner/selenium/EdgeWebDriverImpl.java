@@ -15,6 +15,7 @@
 package com.liferay.poshi.runner.selenium;
 
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 /**
  * @author Brian Wing Shun Chan
@@ -23,6 +24,34 @@ public class EdgeWebDriverImpl extends BaseWebDriverImpl {
 
 	public EdgeWebDriverImpl(String browserURL, WebDriver webDriver) {
 		super(browserURL, webDriver);
+	}
+
+	@Override
+	public void click(String locator) {
+		if (locator.contains("x:")) {
+			String url = getHtmlNodeHref(locator);
+
+			open(url);
+		}
+		else {
+			WebElement webElement = getWebElement(locator);
+
+			try {
+				scrollWebElementIntoView(webElement);
+
+				webElement.click();
+			}
+			catch (Exception e) {
+				String message = e.getMessage();
+
+				if (message.contains("Element is obscured")) {
+					javaScriptClick(locator);
+				}
+				else {
+					throw e;
+				}
+			}
+		}
 	}
 
 }

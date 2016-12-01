@@ -460,6 +460,7 @@ public class JSLoaderModulesServletTest extends PowerMockito {
 		mockServletContext.setContextPath("/loader");
 
 		jsLoaderModulesServlet.init(new MockServletConfig(mockServletContext));
+
 		jsLoaderModulesServlet.setDetails(
 			Converter.cnv(Details.class, properties));
 
@@ -507,7 +508,9 @@ public class JSLoaderModulesServletTest extends PowerMockito {
 			url
 		).when(
 			bundle
-		).getEntry(Details.CONFIG_JSON);
+		).getEntry(
+			Details.CONFIG_JSON
+		);
 
 		doReturn(
 			new Hashtable<String, String>()
@@ -531,7 +534,9 @@ public class JSLoaderModulesServletTest extends PowerMockito {
 			mockBundleWiring(bsn, capability)
 		).when(
 			bundle
-		).adapt(BundleWiring.class);
+		).adapt(
+			BundleWiring.class
+		);
 	}
 
 	protected BundleCapability mockBundleCapability(String bsn) {

@@ -44,10 +44,12 @@ public class FailureMessageUtil {
 	}
 
 	private static final FailureMessageGenerator[] _failureMessageGenerators = {
+		new IntegrationTestTimeoutFailureMessageGenerator(),
 		new LocalGitMirrorFailureMessageGenerator(),
 		new PluginFailureMessageGenerator(),
 		new PluginGitIDFailureMessageGenerator(),
 		new RebaseFailureMessageGenerator(),
+		new SemanticVersioningFailureMessageGenerator(),
 		new SourceFormatFailureMessageGenerator()
 	};
 	private static final GenericFailureMessageGenerator

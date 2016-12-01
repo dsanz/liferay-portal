@@ -21,6 +21,8 @@ import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
@@ -602,7 +604,9 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 
 			if (ArrayUtil.contains(classNames, Group.class.getName())) {
 				for (Group group : userBag.getUserGroups()) {
-					if (group.isActive() && group.isSite()) {
+					if (groupLocalService.isLiveGroupActive(group) &&
+						group.isSite()) {
+
 						if (userSiteGroups.add(group) &&
 							(userSiteGroups.size() == max)) {
 
@@ -619,7 +623,9 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 
 			if (ArrayUtil.contains(classNames, Organization.class.getName())) {
 				for (Group group : userBag.getUserOrgGroups()) {
-					if (group.isActive() && group.isSite()) {
+					if (groupLocalService.isLiveGroupActive(group) &&
+						group.isSite()) {
+
 						if (userSiteGroups.add(group) &&
 							(userSiteGroups.size() == max)) {
 
@@ -718,6 +724,13 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 				getPermissionChecker(), userId, ActionKeys.VIEW);
 		}
 		catch (PrincipalException pe) {
+
+			// LPS-52675
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(pe, pe);
+			}
+
 			GroupPermissionUtil.check(
 				getPermissionChecker(), groupId, ActionKeys.VIEW_MEMBERS);
 		}
@@ -1078,5 +1091,8 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 
 		return map;
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		GroupServiceImpl.class);
 
 }

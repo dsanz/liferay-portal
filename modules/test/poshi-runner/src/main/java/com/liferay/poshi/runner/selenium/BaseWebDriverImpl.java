@@ -126,7 +126,11 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 			_TEST_DEPENDENCIES_DIR_NAME + "//sikuli//linux//";
 		String testDependenciesDirName = _TEST_DEPENDENCIES_DIR_NAME;
 
-		if (OSDetector.isWindows()) {
+		if (OSDetector.isApple()) {
+			sikuliImagesDirName = StringUtil.replace(
+				sikuliImagesDirName, "linux", "osx");
+		}
+		else if (OSDetector.isWindows()) {
 			outputDirName = StringUtil.replace(outputDirName, "//", "\\");
 
 			sikuliImagesDirName = StringUtil.replace(
@@ -484,6 +488,20 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 		if (isNotPartialText(locator, pattern)) {
 			String text = getText(locator);
+
+			throw new Exception(
+				"\"" + text + "\" does not contain \"" + pattern + "\" at \"" +
+					locator + "\"");
+		}
+	}
+
+	public void assertPartialTextAceEditor(String locator, String pattern)
+		throws Exception {
+
+		assertElementPresent(locator);
+
+		if (isNotPartialTextAceEditor(locator, pattern)) {
+			String text = getTextAceEditor(locator);
 
 			throw new Exception(
 				"\"" + text + "\" does not contain \"" + pattern + "\" at \"" +
@@ -1372,6 +1390,29 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		return text.replace("\n", " ");
 	}
 
+	public String getTextAceEditor(String locator) throws Exception {
+		return getTextAceEditor(locator, null);
+	}
+
+	public String getTextAceEditor(String locator, String timeout)
+		throws Exception {
+
+		WebElement webElement = getWebElement(locator, timeout);
+
+		if (webElement == null) {
+			throw new Exception(
+				"Element is not present at \"" + locator + "\"");
+		}
+
+		scrollWebElementIntoView(webElement);
+
+		String text = webElement.getText();
+
+		text = text.trim();
+
+		return text.replace("\n", "");
+	}
+
 	@Override
 	public String getTitle() {
 		return _webDriver.getTitle();
@@ -1559,6 +1600,10 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		return !isPartialText(locator, value);
 	}
 
+	public boolean isNotPartialTextAceEditor(String locator, String value) {
+		return !isPartialTextAceEditor(locator, value);
+	}
+
 	@Override
 	public boolean isNotSelectedLabel(String selectLocator, String pattern) {
 		return WebDriverHelper.isNotSelectedLabel(this, selectLocator, pattern);
@@ -1587,6 +1632,10 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	@Override
 	public boolean isPartialText(String locator, String value) {
 		return WebDriverHelper.isPartialText(this, locator, value);
+	}
+
+	public boolean isPartialTextAceEditor(String locator, String value) {
+		return WebDriverHelper.isPartialTextAceEditor(this, locator, value);
 	}
 
 	@Override
@@ -1662,6 +1711,12 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		scrollWebElementIntoView(webElement);
 
 		return webElement.isDisplayed();
+	}
+
+	@Override
+	public void javaScriptClick(String locator) {
+		WebDriverHelper.executeJavaScriptEvent(
+			this, locator, "MouseEvent", "click");
 	}
 
 	@Override
@@ -2013,6 +2068,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 			int y = GetterUtil.getInteger(coords[1]);
 
 			actions.moveToElement(webElement, x, y);
+
 			actions.release();
 		}
 		else {
@@ -2152,8 +2208,8 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		}
 
 		LiferaySeleniumHelper.captureScreen(
-			_CURRENT_DIR_NAME + "test-results/functional/screenshots/" +
-				"ScreenshotBeforeAction" + _screenshotErrorCount + ".jpg");
+			_CURRENT_DIR_NAME + "test-results/functional/screenshots" +
+				"/ScreenshotBeforeAction" + _screenshotErrorCount + ".jpg");
 	}
 
 	@Override
@@ -2583,23 +2639,36 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 		Keyboard keyboard = new DesktopKeyboard();
 
-		keyboard.keyDown(Key.CTRL);
-
-		keyboard.type("a");
-
-		keyboard.keyUp(Key.CTRL);
-
 		String filePath =
 			FileUtil.getSeparator() + _TEST_DEPENDENCIES_DIR_NAME +
 				FileUtil.getSeparator() + value;
 
 		filePath = LiferaySeleniumHelper.getSourceDirFilePath(filePath);
 
-		if (OSDetector.isWindows()) {
-			filePath = StringUtil.replace(filePath, "/", "\\");
-		}
+		filePath = StringUtil.replace(filePath, "/", FileUtil.getSeparator());
 
-		sikuliType(image, filePath);
+		if (OSDetector.isApple()) {
+			keyboard.keyDown(Key.CMD);
+			keyboard.keyDown(Key.SHIFT);
+
+			keyboard.type("g");
+
+			keyboard.keyUp(Key.CMD);
+			keyboard.keyUp(Key.SHIFT);
+
+			sikuliType(image, filePath);
+
+			keyboard.type(Key.ENTER);
+		}
+		else {
+			keyboard.keyDown(Key.CTRL);
+
+			keyboard.type("a");
+
+			keyboard.keyUp(Key.CTRL);
+
+			sikuliType(image, filePath);
+		}
 
 		keyboard.type(Key.ENTER);
 	}
@@ -2752,6 +2821,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		String idAttribute = getAttribute(locator + "@id");
 
 		int x = idAttribute.indexOf("cke__");
+
 		int y = idAttribute.indexOf("cke__", x + 1);
 
 		if (y == -1) {
@@ -3053,6 +3123,28 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 			try {
 				if (isPartialText(locator, value)) {
+					break;
+				}
+			}
+			catch (Exception e) {
+			}
+
+			Thread.sleep(1000);
+		}
+	}
+
+	public void waitForPartialTextAceEditor(String locator, String value)
+		throws Exception {
+
+		value = RuntimeVariables.replace(value);
+
+		for (int second = 0;; second++) {
+			if (second >= PropsValues.TIMEOUT_EXPLICIT_WAIT) {
+				assertPartialTextAceEditor(locator, value);
+			}
+
+			try {
+				if (isPartialTextAceEditor(locator, value)) {
 					break;
 				}
 			}
