@@ -22,14 +22,26 @@
 			acceptsGzip: function() {
 				return <%= BrowserSnifferUtil.acceptsGzip(request) %>;
 			},
+
+			<%
+			String version = BrowserSnifferUtil.getVersion(request);
+
+			String majorVersion = version;
+
+			if (version.isEmpty()) {
+				majorVersion = "0";
+			}
+			%>
+
 			getMajorVersion: function() {
-				return <%= BrowserSnifferUtil.getMajorVersion(request) %>;
+				return <%= majorVersion %>;
 			},
+
 			getRevision: function() {
 				return '<%= BrowserSnifferUtil.getRevision(request) %>';
 			},
 			getVersion: function() {
-				return '<%= BrowserSnifferUtil.getVersion(request) %>';
+				return '<%= version %>';
 			},
 			isAir: function() {
 				return <%= BrowserSnifferUtil.isAir(request) %>;
@@ -267,25 +279,7 @@
 				return '<%= PortalUtil.getStaticResourceURL(request, themeDisplay.getCDNDynamicResourcesHost() + themeDisplay.getPathContext() + "/combo/", "minifierType=", jsLastModified) %>&';
 			},
 			getDateFormat: function() {
-
-				<%
-				String dateFormatPattern = "%m/%d/%Y";
-
-				DateFormat shortDateFormat = DateFormat.getDateInstance(DateFormat.SHORT, locale);
-
-				SimpleDateFormat shortDateFormatSimpleDateFormat = (SimpleDateFormat)shortDateFormat;
-
-				String shortDateFormatSimpleDateFormatPattern = shortDateFormatSimpleDateFormat.toPattern();
-
-				if (shortDateFormatSimpleDateFormatPattern.indexOf("y") == 0) {
-					dateFormatPattern = "%Y/%m/%d";
-				}
-				else if (shortDateFormatSimpleDateFormatPattern.indexOf("d") == 0) {
-					dateFormatPattern = "%d/%m/%Y";
-				}
-				%>
-
-				return '<%= dateFormatPattern %>';
+				return '<%= _getDateFormatPattern(locale) %>';
 			},
 			getEditorCKEditorPath: function() {
 				return '<%= PortalWebResourcesUtil.getContextPath(PortalWebResourceConstants.RESOURCE_TYPE_EDITOR_CKEDITOR) %>';
@@ -511,4 +505,34 @@ for (String analyticsType : analyticsTypes) {
 
 <%
 }
+%>
+
+<%!
+private static String _getDateFormatPattern(Locale locale) {
+	String languageId = LocaleUtil.toLanguageId(locale);
+
+	String dateFormatPattern = _dateFormatPatterns.get(languageId);
+
+	if (dateFormatPattern == null) {
+		SimpleDateFormat simpleDateFormat = (SimpleDateFormat)DateFormat.getDateInstance(DateFormat.SHORT, locale);
+
+		dateFormatPattern = simpleDateFormat.toPattern();
+
+		if (dateFormatPattern.indexOf("y") == 0) {
+			dateFormatPattern = "%Y/%m/%d";
+		}
+		else if (dateFormatPattern.indexOf("d") == 0) {
+			dateFormatPattern = "%d/%m/%Y";
+		}
+		else {
+			dateFormatPattern = "%m/%d/%Y";
+		}
+
+		_dateFormatPatterns.put(languageId, dateFormatPattern);
+	}
+
+	return dateFormatPattern;
+}
+
+private static final Map<String, String> _dateFormatPatterns = new ConcurrentHashMap<>();
 %>

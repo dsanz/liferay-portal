@@ -1925,7 +1925,7 @@ public class BlogsEntryLocalServiceImpl extends BlogsEntryLocalServiceBaseImpl {
 				LocalizationUtil.getMap(bodyLocalizedValuesMap));
 		}
 
-		subscriptionSender.setLocalizedContextAttribute(
+		subscriptionSender.setLocalizedContextAttributeWithFunction(
 			"[$BLOGS_ENTRY_SITE_NAME$]",
 			locale -> _getGroupDescriptiveName(group, locale));
 
