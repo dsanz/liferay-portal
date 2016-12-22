@@ -87,8 +87,8 @@ public class CopyArticleMVCActionCommand extends BaseMVCActionCommand {
 
 				portletRequestDispatcher.include(actionRequest, actionResponse);
 			}
-			else if (e instanceof DuplicateArticleIdException ||
-					 e instanceof ArticleIdException) {
+			else if (e instanceof ArticleIdException ||
+					 e instanceof DuplicateArticleIdException) {
 
 				SessionErrors.add(actionRequest, e.getClass());
 			}

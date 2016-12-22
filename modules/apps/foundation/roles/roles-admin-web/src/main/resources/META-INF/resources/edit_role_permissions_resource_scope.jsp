@@ -80,6 +80,12 @@ List groupNames = (List)objArray[8];
 			AUI.$('#<portlet:namespace /><%= HtmlUtil.escapeJS(targetId) %>').on(
 				'click',
 				function(event) {
+					var selectedGroupIds = AUI.$('#<portlet:namespace />groupIds<%= HtmlUtil.escapeAttribute(target) %>').val() || [];
+
+					if (selectedGroupIds.length) {
+						selectedGroupIds = selectedGroupIds.split(',');
+					}
+
 					Liferay.Util.selectEntity(
 						{
 							dialog: {
@@ -88,6 +94,7 @@ List groupNames = (List)objArray[8];
 								width: 600
 							},
 							id: '<portlet:namespace />selectGroup<%= HtmlUtil.escapeJS(targetId) %>',
+							selectedData: selectedGroupIds,
 							title: '<liferay-ui:message arguments="site" key="select-x" />',
 
 							<%

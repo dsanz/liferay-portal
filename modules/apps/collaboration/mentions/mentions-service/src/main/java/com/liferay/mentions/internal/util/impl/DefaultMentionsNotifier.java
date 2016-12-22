@@ -95,7 +95,7 @@ public class DefaultMentionsNotifier implements MentionsNotifier {
 		subscriptionSender.setEntryURL(contentURL);
 		subscriptionSender.setFrom(fromAddress, fromName);
 		subscriptionSender.setHtmlFormat(true);
-		subscriptionSender.setLocalizedContextAttribute(
+		subscriptionSender.setLocalizedContextAttributeWithFunction(
 			"[$ASSET_ENTRY_NAME$]",
 			locale -> getAssetEntryName(className, locale));
 		subscriptionSender.setMailId("mb_discussion", classPK);

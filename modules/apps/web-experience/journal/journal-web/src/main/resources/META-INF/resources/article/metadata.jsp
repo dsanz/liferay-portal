@@ -70,7 +70,7 @@ if (article != null) {
 </aui:input>
 
 <c:if test="<%= CustomAttributesUtil.hasCustomAttributes(company.getCompanyId(), JournalArticle.class.getName(), classPK, null) %>">
-	<liferay-ui:custom-attribute-list
+	<liferay-expando:custom-attribute-list
 		className="<%= JournalArticle.class.getName() %>"
 		classPK="<%= (article != null) ? article.getPrimaryKey() : 0 %>"
 		editable="<%= true %>"

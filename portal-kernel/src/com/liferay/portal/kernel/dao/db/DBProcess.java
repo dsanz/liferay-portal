@@ -30,6 +30,16 @@ public interface DBProcess {
 	public void runSQL(Connection connection, String template)
 		throws IOException, SQLException;
 
+	/**
+	 * @throws IOException
+	 * @throws SQLException
+	 */
+	public default void runSQL(DBTypeToSQLMap dbTypeToSQLMap)
+		throws IOException, SQLException {
+
+		throw new UnsupportedOperationException();
+	}
+
 	public void runSQL(String template) throws IOException, SQLException;
 
 	public void runSQL(String[] templates) throws IOException, SQLException;

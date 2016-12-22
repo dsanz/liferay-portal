@@ -42,6 +42,20 @@ public abstract class BaseDBProcess implements DBProcess {
 	}
 
 	@Override
+	public void runSQL(DBTypeToSQLMap dbTypeToSQLMap)
+		throws IOException, SQLException {
+
+		DB db = DBManagerUtil.getDB();
+
+		if (connection == null) {
+			db.runSQL(dbTypeToSQLMap);
+		}
+		else {
+			db.runSQL(connection, dbTypeToSQLMap);
+		}
+	}
+
+	@Override
 	public void runSQL(String template) throws IOException, SQLException {
 		DB db = DBManagerUtil.getDB();
 

@@ -1197,17 +1197,17 @@ public class JournalPortlet extends MVCPortlet {
 			cause instanceof AssetCategoryException ||
 			cause instanceof AssetTagException ||
 			cause instanceof DuplicateArticleIdException ||
+			cause instanceof DuplicateFeedIdException ||
 			cause instanceof DuplicateFileEntryException ||
 			cause instanceof DuplicateFolderNameException ||
-			cause instanceof DuplicateFeedIdException ||
 			cause instanceof FeedContentFieldException ||
 			cause instanceof FeedIdException ||
 			cause instanceof FeedNameException ||
 			cause instanceof FeedTargetLayoutFriendlyUrlException ||
 			cause instanceof FeedTargetPortletIdException ||
+			cause instanceof FileSizeException ||
 			cause instanceof FolderNameException ||
 			cause instanceof InvalidDDMStructureException ||
-			cause instanceof FileSizeException ||
 			cause instanceof LiferayFileItemException ||
 			cause instanceof LocaleException ||
 			cause instanceof MaxAddMenuFavItemsException ||

@@ -367,13 +367,28 @@ public class SubscriptionSender implements Serializable {
 		_localizedContext.put(key, value);
 	}
 
-	public void setLocalizedContextAttribute(
-		String key, Function<Locale, String> function) {
+	public <T extends Serializable & Function<Locale, String>>
+		void setLocalizedContextAttribute(
+			String key, T function) {
 
 		setLocalizedContextAttribute(key, function, true);
 	}
 
-	public void setLocalizedContextAttribute(
+	public <T extends Serializable & Function<Locale, String>>
+		void setLocalizedContextAttribute(
+			String key, T function, boolean escape) {
+
+		setLocalizedContextAttribute(
+			key, new EscapableLocalizableFunction(function, escape));
+	}
+
+	public void setLocalizedContextAttributeWithFunction(
+		String key, Function<Locale, String> function) {
+
+		setLocalizedContextAttributeWithFunction(key, function, true);
+	}
+
+	public void setLocalizedContextAttributeWithFunction(
 		String key, Function<Locale, String> function, boolean escape) {
 
 		setLocalizedContextAttribute(

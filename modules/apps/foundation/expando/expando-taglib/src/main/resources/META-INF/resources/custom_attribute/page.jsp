@@ -45,9 +45,7 @@ ExpandoBridge expandoBridge = ExpandoBridgeFactoryUtil.getExpandoBridge(company.
 	String propertyDisplayType = GetterUtil.getString(properties.getProperty(ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE), ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_TEXT_BOX);
 
 	if (editable && propertyVisibleWithUpdatePermission) {
-		propertyHidden = !ExpandoColumnPermissionUtil.contains(
-			permissionChecker, company.getCompanyId(), className,
-			ExpandoTableConstants.DEFAULT_TABLE_NAME, name, ActionKeys.UPDATE);
+		propertyHidden = !ExpandoColumnPermissionUtil.contains(permissionChecker, company.getCompanyId(), className, ExpandoTableConstants.DEFAULT_TABLE_NAME, name, ActionKeys.UPDATE);
 	}
 
 	String localizedName = LanguageUtil.get(resourceBundle, name);

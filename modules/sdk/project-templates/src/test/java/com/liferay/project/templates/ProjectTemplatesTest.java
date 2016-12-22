@@ -27,13 +27,12 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 
-import java.lang.reflect.Method;
+import java.lang.ProcessBuilder.Redirect;
 
 import java.net.URI;
-import java.net.URL;
-import java.net.URLClassLoader;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
@@ -94,24 +93,8 @@ public class ProjectTemplatesTest {
 		_httpProxyHost = System.getProperty("http.proxyHost");
 		_httpProxyPort = System.getProperty("http.proxyPort");
 
-		List<URL> mavenEmbedderDependencyURLs = new ArrayList<>();
-
-		try (BufferedReader bufferedReader = Files.newBufferedReader(
-				Paths.get("build", "maven-embedder-dependencies.txt"))) {
-
-			String line;
-
-			while ((line = bufferedReader.readLine()) != null) {
-				Path path = Paths.get(line);
-
-				URI uri = path.toUri();
-
-				mavenEmbedderDependencyURLs.add(uri.toURL());
-			}
-		}
-
-		_mavenEmbedderDependencyURLs = mavenEmbedderDependencyURLs.toArray(
-			new URL[mavenEmbedderDependencyURLs.size()]);
+		_mavenDistributionDir = new File(
+			System.getProperty("maven.distribution.dir"));
 
 		_projectTemplateVersions = FileTestUtil.readProperties(
 			Paths.get("build", "project-template-versions.properties"));
@@ -890,6 +873,13 @@ public class ProjectTemplatesTest {
 
 		_testExists(workspaceProjectDir, "configs/dev/portal-ext.properties");
 		_testExists(workspaceProjectDir, "gradle.properties");
+		_testExists(workspaceProjectDir, "modules");
+		_testExists(workspaceProjectDir, "themes");
+		_testExists(workspaceProjectDir, "wars");
+
+		_testNotExists(workspaceProjectDir, "modules/pom.xml");
+		_testNotExists(workspaceProjectDir, "themes/pom.xml");
+		_testNotExists(workspaceProjectDir, "wars/pom.xml");
 
 		_testContains(
 			workspaceProjectDir, "settings.gradle", "version: \"1.2.0\"");
@@ -915,7 +905,8 @@ public class ProjectTemplatesTest {
 
 		Assert.assertTrue(file.createNewFile());
 
-		_buildTemplateWithGradle(destinationDir, "workspace", "foo");
+		_buildTemplateWithGradle(
+			destinationDir, WorkspaceUtil.WORKSPACE, "foo");
 	}
 
 	@Test
@@ -927,7 +918,33 @@ public class ProjectTemplatesTest {
 		Assert.assertTrue(file.createNewFile());
 
 		_buildTemplateWithGradle(
-			destinationDir, "workspace", "forced", "--force");
+			destinationDir, WorkspaceUtil.WORKSPACE, "forced", "--force");
+	}
+
+	@Test
+	public void testBuildTemplateWorkspaceWithPortlet() throws Exception {
+		File gradleWorkspaceProjectDir = _buildTemplateWithGradle(
+			WorkspaceUtil.WORKSPACE, "withportlet");
+
+		File gradleModulesDir = new File(gradleWorkspaceProjectDir, "modules");
+
+		_buildTemplateWithGradle(
+			gradleModulesDir, "mvc-portlet", "foo-portlet");
+
+		File mavenWorkspaceProjectDir = _buildTemplateWithMaven(
+			WorkspaceUtil.WORKSPACE, "withportlet");
+
+		File mavenModulesDir = new File(mavenWorkspaceProjectDir, "modules");
+
+		_buildTemplateWithMaven(
+			mavenModulesDir, "mvc-portlet", "foo-portlet", "-DclassName=Foo",
+			"-Dpackage=foo.portlet");
+
+		_buildProjects(
+			gradleWorkspaceProjectDir, mavenWorkspaceProjectDir,
+			"modules/foo-portlet/build/libs/foo.portlet-1.0.0.jar",
+			"modules/foo-portlet/target/foo-portlet-1.0.0.jar",
+			":modules:foo-portlet" + _GRADLE_TASK_PATH_BUILD);
 	}
 
 	@Test
@@ -1016,7 +1033,18 @@ public class ProjectTemplatesTest {
 			String gradleBundleFileName, String mavenBundleFileName)
 		throws Exception {
 
-		_executeGradle(gradleProjectDir, _GRADLE_TASK_PATH_BUILD);
+		_buildProjects(
+			gradleProjectDir, mavenProjectDir, gradleBundleFileName,
+			mavenBundleFileName, _GRADLE_TASK_PATH_BUILD);
+	}
+
+	private void _buildProjects(
+			File gradleProjectDir, File mavenProjectDir,
+			String gradleBundleFileName, String mavenBundleFileName,
+			String gradleTaskPath)
+		throws Exception {
+
+		_executeGradle(gradleProjectDir, gradleTaskPath);
 
 		File gradleBundleFile = _testExists(
 			gradleProjectDir, gradleBundleFileName);
@@ -1091,10 +1119,8 @@ public class ProjectTemplatesTest {
 	}
 
 	private File _buildTemplateWithMaven(
-			String template, String name, String... args)
+			File destinationDir, String template, String name, String... args)
 		throws Exception {
-
-		File destinationDir = temporaryFolder.newFolder("maven");
 
 		List<String> completeArgs = new ArrayList<>();
 
@@ -1136,6 +1162,15 @@ public class ProjectTemplatesTest {
 		_testNotExists(projectDir, "gradle/wrapper/gradle-wrapper.properties");
 
 		return projectDir;
+	}
+
+	private File _buildTemplateWithMaven(
+			String template, String name, String... args)
+		throws Exception {
+
+		File destinationDir = temporaryFolder.newFolder("maven");
+
+		return _buildTemplateWithMaven(destinationDir, template, name, args);
 	}
 
 	private void _executeGradle(File projectDir, String... taskPaths)
@@ -1194,55 +1229,68 @@ public class ProjectTemplatesTest {
 	private void _executeMaven(File projectDir, String... args)
 		throws Exception {
 
-		List<String> completeArgs = new ArrayList<>();
+		List<String> commands = new ArrayList<>();
+
+		String mavenExecutableFileName = "mvn";
+
+		if (File.pathSeparatorChar == ';') {
+			mavenExecutableFileName += ".cmd";
+		}
+
+		File mavenExecutableFile = new File(
+			_mavenDistributionDir, "bin/" + mavenExecutableFileName);
+
+		Assert.assertTrue(
+			"Missing " + mavenExecutableFile, mavenExecutableFile.exists());
+
+		commands.add(mavenExecutableFile.getAbsolutePath());
+
+		commands.add("--errors");
 
 		if (_mavenSettingsXmlFile != null) {
-			completeArgs.add(
+			commands.add(
 				"--settings=" + _mavenSettingsXmlFile.getAbsolutePath());
 		}
 
-		completeArgs.add("--update-snapshots");
+		commands.add("--update-snapshots");
 
 		for (String arg : args) {
-			completeArgs.add(arg);
+			commands.add(arg);
 		}
 
-		Thread currentThread = Thread.currentThread();
+		ProcessBuilder processBuilder = new ProcessBuilder(commands);
 
-		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+		processBuilder.directory(projectDir);
 
-		try (URLClassLoader urlClassLoader = new URLClassLoader(
-				_mavenEmbedderDependencyURLs, null)) {
+		Map<String, String> environment = processBuilder.environment();
 
-			currentThread.setContextClassLoader(urlClassLoader);
+		environment.put("M2_HOME", _mavenDistributionDir.getAbsolutePath());
+		environment.put("MAVEN_OPTS", "-Dfile.encoding=UTF-8");
 
-			Class<?> mavenCliClass = urlClassLoader.loadClass(
-				"org.apache.maven.cli.MavenCli");
+		processBuilder.redirectOutput(Redirect.INHERIT);
 
-			Method doMainMethod = mavenCliClass.getMethod(
-				"doMain", String[].class, String.class, PrintStream.class,
-				PrintStream.class);
+		Process process = processBuilder.start();
 
-			System.setProperty(
-				"maven.multiModuleProjectDirectory",
-				projectDir.getAbsolutePath());
+		StringBuilder sb = new StringBuilder();
 
-			Object mavenCli = mavenCliClass.newInstance();
+		try (BufferedReader bufferedReader = new BufferedReader(
+				new InputStreamReader(
+					process.getErrorStream(), StandardCharsets.UTF_8))) {
 
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
+			String line = null;
 
-			Integer exitCode = (Integer)doMainMethod.invoke(
-				mavenCli, completeArgs.toArray(new String[completeArgs.size()]),
-				projectDir.getAbsolutePath(),
-				new PrintStream(outputStream, true),
-				new PrintStream(errorStream, true));
+			while ((line = bufferedReader.readLine()) != null) {
+				if (sb.length() > 0) {
+					sb.append(System.lineSeparator());
+				}
 
-			Assert.assertEquals(errorStream.toString(), 0, exitCode.intValue());
+				sb.append(line);
+			}
 		}
-		finally {
-			currentThread.setContextClassLoader(contextClassLoader);
-		}
+
+		int exitCode = process.waitFor();
+
+		Assert.assertEquals(sb.toString(), 0, exitCode);
 	}
 
 	private void _testBuildTemplateServiceBuilder(
@@ -1539,7 +1587,7 @@ public class ProjectTemplatesTest {
 	private static URI _gradleDistribution;
 	private static String _httpProxyHost;
 	private static String _httpProxyPort;
-	private static URL[] _mavenEmbedderDependencyURLs;
+	private static File _mavenDistributionDir;
 	private static File _mavenSettingsXmlFile;
 	private static Properties _projectTemplateVersions;
 	private static String _repositoryUrl;

@@ -138,7 +138,9 @@ public class ChannelHubManagerImpl implements ChannelHubManager {
 			channelHub.destroyChannel(userId);
 		}
 
-		if (!ClusterInvokeThreadLocal.isEnabled()) {
+		if (!ClusterExecutorUtil.isEnabled() ||
+			!ClusterInvokeThreadLocal.isEnabled()) {
+
 			return;
 		}
 
@@ -341,7 +343,9 @@ public class ChannelHubManagerImpl implements ChannelHubManager {
 			channelHub.sendNotificationEvent(userId, notificationEvent);
 		}
 
-		if (!ClusterInvokeThreadLocal.isEnabled()) {
+		if (!ClusterExecutorUtil.isEnabled() ||
+			!ClusterInvokeThreadLocal.isEnabled()) {
+
 			return;
 		}
 

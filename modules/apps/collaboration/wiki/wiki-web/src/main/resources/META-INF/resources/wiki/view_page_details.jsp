@@ -95,7 +95,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "details
 			<liferay-ui:message key="last-changed-by" />
 		</th>
 		<td class="table-cell">
-			<%= HtmlUtil.escape(wikiPage.getUserName()) %> (<%= dateFormatDateTime.format(wikiPage.getCreateDate()) %>)
+			<%= HtmlUtil.escape(wikiPage.getUserName()) %> (<%= dateFormatDateTime.format(wikiPage.getModifiedDate()) %>)
 		</td>
 	</tr>
 	<tr>
@@ -302,7 +302,6 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "details
 						PortletURL copyPageURL = PortletURLUtil.clone(viewPageURL, renderResponse);
 
 						copyPageURL.setParameter("mvcRenderCommandName", "/wiki/edit_page");
-						copyPageURL.setParameter("redirect", viewPageURL.toString());
 						copyPageURL.setParameter("nodeId", String.valueOf(wikiPage.getNodeId()));
 						copyPageURL.setParameter("title", StringPool.BLANK);
 						copyPageURL.setParameter("editTitle", "1");

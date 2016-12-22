@@ -829,16 +829,16 @@ public class DLAppHelperLocalServiceImpl
 	@Override
 	public AssetEntry updateAsset(
 			long userId, FileEntry fileEntry, FileVersion fileVersion,
-			long assetClassPk)
+			long assetClassPK)
 		throws PortalException {
 
 		long[] assetCategoryIds = assetCategoryLocalService.getCategoryIds(
-			DLFileEntryConstants.getClassName(), assetClassPk);
+			DLFileEntryConstants.getClassName(), assetClassPK);
 		String[] assetTagNames = assetTagLocalService.getTagNames(
-			DLFileEntryConstants.getClassName(), assetClassPk);
+			DLFileEntryConstants.getClassName(), assetClassPK);
 
 		AssetEntry assetEntry = assetEntryLocalService.fetchEntry(
-			DLFileEntryConstants.getClassName(), assetClassPk);
+			DLFileEntryConstants.getClassName(), assetClassPK);
 
 		List<AssetLink> assetLinks = null;
 
@@ -1014,7 +1014,7 @@ public class DLAppHelperLocalServiceImpl
 	@Override
 	public void updateFileEntry(
 			long userId, FileEntry fileEntry, FileVersion sourceFileVersion,
-			FileVersion destinationFileVersion, long assetClassPk)
+			FileVersion destinationFileVersion, long assetClassPK)
 		throws PortalException {
 
 		if (!DLAppHelperThreadLocal.isEnabled()) {
@@ -1032,7 +1032,7 @@ public class DLAppHelperLocalServiceImpl
 
 		if (updateAsset) {
 			updateAsset(
-				userId, fileEntry, destinationFileVersion, assetClassPk);
+				userId, fileEntry, destinationFileVersion, assetClassPK);
 		}
 	}
 
@@ -1724,7 +1724,7 @@ public class DLAppHelperLocalServiceImpl
 				"[$FOLDER_NAME$]", folder.getName(), true);
 		}
 		else {
-			subscriptionSender.setLocalizedContextAttribute(
+			subscriptionSender.setLocalizedContextAttributeWithFunction(
 				"[$FOLDER_NAME$]", locale -> LanguageUtil.get(locale, "home"));
 		}
 
@@ -1741,7 +1741,7 @@ public class DLAppHelperLocalServiceImpl
 		subscriptionSender.setHtmlFormat(true);
 		subscriptionSender.setLocalizedBodyMap(
 			LocalizationUtil.getMap(bodyLocalizedValuesMap));
-		subscriptionSender.setLocalizedContextAttribute(
+		subscriptionSender.setLocalizedContextAttributeWithFunction(
 			"[$DOCUMENT_TYPE$]", locale -> dlFileEntryType.getName(locale));
 		subscriptionSender.setLocalizedSubjectMap(
 			LocalizationUtil.getMap(subjectLocalizedValuesMap));
