@@ -1979,11 +1979,15 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 
 		subject = HtmlUtil.extractText(body);
 
-		if (subject.length() <= 50) {
+		if (subject.length() <= MBMessageConstants.MAXIMUM_SUBJECT_LENGTH) {
 			return subject;
 		}
 
-		return subject.substring(50) + StringPool.TRIPLE_PERIOD;
+		String subjectSubstring =
+			subject.substring(0, MBMessageConstants.MAXIMUM_SUBJECT_LENGTH) +
+				StringPool.TRIPLE_PERIOD;
+
+		return subjectSubstring;
 	}
 
 	protected String getMessageURL(
@@ -2073,7 +2077,7 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 				"[$CATEGORY_NAME$]", category.getName(), true);
 		}
 		else {
-			subscriptionSender.setLocalizedContextAttribute(
+			subscriptionSender.setLocalizedContextAttributeWithFunction(
 				"[$CATEGORY_NAME$]",
 				locale -> _getLocalizedRootCategoryName(groupId, locale));
 		}
