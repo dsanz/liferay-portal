@@ -251,7 +251,7 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 		subscriptionSender.setCreatorUserId(reporterUserId);
 		subscriptionSender.setFrom(fromAddress, fromName);
 		subscriptionSender.setHtmlFormat(true);
-		subscriptionSender.setLocalizedContextAttribute(
+		subscriptionSender.setLocalizedContextAttributeWithFunction(
 			"[$SITE_NAME$]", locale -> _getGroupDescriptiveName(group, locale));
 		subscriptionSender.setMailId("flags_request", contentId);
 		subscriptionSender.setPortletId(PortletKeys.FLAGS);

@@ -341,7 +341,7 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 			userId, layout, serviceContext.getAssetCategoryIds(),
 			serviceContext.getAssetTagNames());
 
-		return layout;
+		return layoutLocalService.getLayout(layout.getPlid());
 	}
 
 	/**
@@ -481,11 +481,6 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 
 		portletPreferencesLocalService.deletePortletPreferencesByPlid(
 			layout.getPlid());
-
-		// Subscriptions
-
-		subscriptionLocalService.deleteSubscriptions(
-			layout.getCompanyId(), Layout.class.getName(), layout.getPlid());
 
 		// Asset
 

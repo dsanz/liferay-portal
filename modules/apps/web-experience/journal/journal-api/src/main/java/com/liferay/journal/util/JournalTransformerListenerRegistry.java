@@ -23,6 +23,8 @@ import java.util.List;
  */
 public interface JournalTransformerListenerRegistry {
 
+	public TransformerListener getTransformerListener(String className);
+
 	public List<TransformerListener> getTransformerListeners();
 
 }

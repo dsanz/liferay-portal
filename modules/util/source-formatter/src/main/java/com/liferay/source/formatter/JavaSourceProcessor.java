@@ -617,7 +617,9 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 	protected void checkSystemEventAnnotations(String content, String fileName)
 		throws Exception {
 
-		if (!portalSource || !fileName.endsWith("PortletDataHandler.java")) {
+		if ((!portalSource && !subrepository) ||
+			!fileName.endsWith("PortletDataHandler.java")) {
+
 			return;
 		}
 
@@ -717,7 +719,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 
 		// LPS-34911
 
-		if (portalSource &&
+		if ((portalSource ||subrepository) &&
 			!isExcludedPath(_UPGRADE_SERVICE_UTIL_EXCLUDES, absolutePath) &&
 			fileName.contains("/portal/upgrade/") &&
 			!fileName.contains("/test/") &&
@@ -991,7 +993,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			processMessage(fileName, "package");
 		}
 
-		if (portalSource && !_allowUseServiceUtilInServiceImpl &&
+		if ((portalSource ||subrepository) &&
+			!_allowUseServiceUtilInServiceImpl &&
 			!fileName.contains("/wsrp/internal/bind/") &&
 			!className.equals("BaseServiceImpl") &&
 			className.endsWith("ServiceImpl") &&
@@ -1120,7 +1123,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 
 		// LPS-47648
 
-		if (portalSource &&
+		if ((portalSource || subrepository) &&
 			(fileName.contains("/test/integration/") ||
 			 fileName.contains("/testIntegration/java"))) {
 
@@ -1180,7 +1183,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 					"LPS-55690");
 		}
 
-		if (portalSource && isModulesFile(absolutePath) &&
+		if ((portalSource || subrepository) && isModulesFile(absolutePath) &&
 			packagePath.startsWith("com.liferay")) {
 
 			newContent = formatModulesFile(
@@ -1242,7 +1245,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 
 		// LPS-65213
 
-		if (portalSource) {
+		if (portalSource || subrepository) {
 			checkVerifyUpgradeConnection(fileName, className, newContent);
 		}
 
@@ -1350,7 +1353,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 	protected List<String> doGetFileNames() throws Exception {
 		Collection<String> fileNames = null;
 
-		if (portalSource) {
+		if (portalSource || subrepository) {
 			fileNames = getPortalJavaFiles();
 
 			_checkRegistryInTestClasses = GetterUtil.getBoolean(
@@ -2434,6 +2437,11 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 
 				String trimmedLine = StringUtil.trimLeading(line);
 
+				if (trimmedLine.startsWith(StringPool.SEMICOLON)) {
+					processMessage(
+						fileName, "Line should not start with ';'", lineCount);
+				}
+
 				if (!trimmedLine.startsWith(StringPool.DOUBLE_SLASH) &&
 					!trimmedLine.startsWith(StringPool.STAR)) {
 
@@ -3298,6 +3306,13 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 						if (Validator.isNull(nextLine) ||
 							nextLine.endsWith(") {")) {
 
+							if (trimmedPreviousLine.startsWith("try (") &&
+								trimmedLine.startsWith("new ") &&
+								(getLevel(nextLine) == -1)) {
+
+								return null;
+							}
+
 							processMessage(
 								fileName,
 								"'" + trimmedLine + "' should be added to " +
@@ -3334,16 +3349,25 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			}
 		}
 
-		if (((trimmedLine.length() + previousLineLength) <= _maxLineLength) &&
-			((previousLine.endsWith(StringPool.PERIOD) &&
-			  !line.endsWith(StringPool.OPEN_PARENTHESIS)) ||
-			 ((previousLine.endsWith(StringPool.OPEN_BRACKET) ||
-			   previousLine.endsWith(StringPool.OPEN_PARENTHESIS)) &&
-			  line.endsWith(StringPool.SEMICOLON)))) {
+		if ((trimmedLine.length() + previousLineLength) <= _maxLineLength) {
+			if (previousLine.endsWith(StringPool.OPEN_PARENTHESIS) &&
+				line.endsWith(") {") && (getLevel(line) < 0)) {
 
-			return getCombinedLinesContent(
-				content, fileName, line, trimmedLine, lineLength, lineCount,
-				previousLine, null, false, false, 0);
+				return getCombinedLinesContent(
+					content, fileName, line, trimmedLine, lineLength, lineCount,
+					previousLine, null, false, false, 0);
+			}
+
+			if ((previousLine.endsWith(StringPool.PERIOD) &&
+				 !line.endsWith(StringPool.OPEN_PARENTHESIS)) ||
+				((previousLine.endsWith(StringPool.OPEN_BRACKET) ||
+				  previousLine.endsWith(StringPool.OPEN_PARENTHESIS)) &&
+				 line.endsWith(StringPool.SEMICOLON))) {
+
+				return getCombinedLinesContent(
+					content, fileName, line, trimmedLine, lineLength, lineCount,
+					previousLine, null, false, false, 0);
+			}
 		}
 
 		if (previousLine.endsWith(StringPool.EQUAL) &&
@@ -4180,7 +4204,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		int maxDirLevel = PLUGINS_MAX_DIR_LEVEL;
 		String parentDirName = sourceFormatterArgs.getBaseDirName();
 
-		if (portalSource) {
+		if (portalSource || subrepository) {
 			maxDirLevel = PORTAL_MAX_DIR_LEVEL - 1;
 			parentDirName += "../";
 		}
@@ -4195,7 +4219,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			parentDirName += "../";
 		}
 
-		if (!portalSource) {
+		if (!portalSource && !subrepository) {
 			return suppressionsFiles;
 		}
 

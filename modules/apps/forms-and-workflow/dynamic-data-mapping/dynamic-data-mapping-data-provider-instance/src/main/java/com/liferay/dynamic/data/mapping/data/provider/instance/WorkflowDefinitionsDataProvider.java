@@ -72,8 +72,7 @@ public class WorkflowDefinitionsDataProvider implements DDMDataProvider {
 			ddmDataProviderContext.getHttpServletRequest());
 
 		data.add(
-			createMap(
-				LanguageUtil.get(locale, "no-workflow"), StringPool.BLANK));
+			createMap(LanguageUtil.get(locale, "no-workflow"), "no-workflow"));
 
 		if (!_workflowEngineManager.isDeployed()) {
 			return new DDMDataProviderResponse(data);

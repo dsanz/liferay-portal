@@ -82,7 +82,6 @@ import com.liferay.portal.kernel.service.persistence.RecentLayoutRevisionPersist
 import com.liferay.portal.kernel.service.persistence.RecentLayoutSetBranchPersistence;
 import com.liferay.portal.kernel.service.persistence.RoleFinder;
 import com.liferay.portal.kernel.service.persistence.RolePersistence;
-import com.liferay.portal.kernel.service.persistence.SubscriptionPersistence;
 import com.liferay.portal.kernel.service.persistence.TeamFinder;
 import com.liferay.portal.kernel.service.persistence.TeamPersistence;
 import com.liferay.portal.kernel.service.persistence.TicketPersistence;
@@ -446,19 +445,16 @@ public abstract class UserLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * @throws PortalException
 	 */
 	@Override
-	public void addGroupUser(long groupId, long userId)
-		throws PortalException {
+	public void addGroupUser(long groupId, long userId) {
 		groupPersistence.addUser(groupId, userId);
 	}
 
 	/**
-	 * @throws PortalException
 	 */
 	@Override
-	public void addGroupUser(long groupId, User user) throws PortalException {
+	public void addGroupUser(long groupId, User user) {
 		groupPersistence.addUser(groupId, user);
 	}
 
@@ -577,20 +573,16 @@ public abstract class UserLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * @throws PortalException
 	 */
 	@Override
-	public void addOrganizationUser(long organizationId, long userId)
-		throws PortalException {
+	public void addOrganizationUser(long organizationId, long userId) {
 		organizationPersistence.addUser(organizationId, userId);
 	}
 
 	/**
-	 * @throws PortalException
 	 */
 	@Override
-	public void addOrganizationUser(long organizationId, User user)
-		throws PortalException {
+	public void addOrganizationUser(long organizationId, User user) {
 		organizationPersistence.addUser(organizationId, user);
 	}
 
@@ -711,18 +703,16 @@ public abstract class UserLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * @throws PortalException
 	 */
 	@Override
-	public void addRoleUser(long roleId, long userId) throws PortalException {
+	public void addRoleUser(long roleId, long userId) {
 		rolePersistence.addUser(roleId, userId);
 	}
 
 	/**
-	 * @throws PortalException
 	 */
 	@Override
-	public void addRoleUser(long roleId, User user) throws PortalException {
+	public void addRoleUser(long roleId, User user) {
 		rolePersistence.addUser(roleId, user);
 	}
 
@@ -847,18 +837,16 @@ public abstract class UserLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * @throws PortalException
 	 */
 	@Override
-	public void addTeamUser(long teamId, long userId) throws PortalException {
+	public void addTeamUser(long teamId, long userId) {
 		teamPersistence.addUser(teamId, userId);
 	}
 
 	/**
-	 * @throws PortalException
 	 */
 	@Override
-	public void addTeamUser(long teamId, User user) throws PortalException {
+	public void addTeamUser(long teamId, User user) {
 		teamPersistence.addUser(teamId, user);
 	}
 
@@ -977,20 +965,16 @@ public abstract class UserLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * @throws PortalException
 	 */
 	@Override
-	public void addUserGroupUser(long userGroupId, long userId)
-		throws PortalException {
+	public void addUserGroupUser(long userGroupId, long userId) {
 		userGroupPersistence.addUser(userGroupId, userId);
 	}
 
 	/**
-	 * @throws PortalException
 	 */
 	@Override
-	public void addUserGroupUser(long userGroupId, User user)
-		throws PortalException {
+	public void addUserGroupUser(long userGroupId, User user) {
 		userGroupPersistence.addUser(userGroupId, user);
 	}
 
@@ -1860,44 +1844,6 @@ public abstract class UserLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 */
 	public void setRoleFinder(RoleFinder roleFinder) {
 		this.roleFinder = roleFinder;
-	}
-
-	/**
-	 * Returns the subscription local service.
-	 *
-	 * @return the subscription local service
-	 */
-	public com.liferay.portal.kernel.service.SubscriptionLocalService getSubscriptionLocalService() {
-		return subscriptionLocalService;
-	}
-
-	/**
-	 * Sets the subscription local service.
-	 *
-	 * @param subscriptionLocalService the subscription local service
-	 */
-	public void setSubscriptionLocalService(
-		com.liferay.portal.kernel.service.SubscriptionLocalService subscriptionLocalService) {
-		this.subscriptionLocalService = subscriptionLocalService;
-	}
-
-	/**
-	 * Returns the subscription persistence.
-	 *
-	 * @return the subscription persistence
-	 */
-	public SubscriptionPersistence getSubscriptionPersistence() {
-		return subscriptionPersistence;
-	}
-
-	/**
-	 * Sets the subscription persistence.
-	 *
-	 * @param subscriptionPersistence the subscription persistence
-	 */
-	public void setSubscriptionPersistence(
-		SubscriptionPersistence subscriptionPersistence) {
-		this.subscriptionPersistence = subscriptionPersistence;
 	}
 
 	/**
@@ -2914,10 +2860,6 @@ public abstract class UserLocalServiceBaseImpl extends BaseLocalServiceImpl
 	protected RolePersistence rolePersistence;
 	@BeanReference(type = RoleFinder.class)
 	protected RoleFinder roleFinder;
-	@BeanReference(type = com.liferay.portal.kernel.service.SubscriptionLocalService.class)
-	protected com.liferay.portal.kernel.service.SubscriptionLocalService subscriptionLocalService;
-	@BeanReference(type = SubscriptionPersistence.class)
-	protected SubscriptionPersistence subscriptionPersistence;
 	@BeanReference(type = com.liferay.portal.kernel.service.TeamLocalService.class)
 	protected com.liferay.portal.kernel.service.TeamLocalService teamLocalService;
 	@BeanReference(type = TeamPersistence.class)

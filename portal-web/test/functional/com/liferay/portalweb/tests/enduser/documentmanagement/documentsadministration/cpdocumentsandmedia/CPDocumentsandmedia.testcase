@@ -1,5 +1,6 @@
 <definition component-name="portal-document-management">
 	<property name="portal.release" value="true" />
+	<property name="portal.upstream" value="true" />
 	<property name="testray.main.component.name" value="Documents Management" />
 
 	<set-up>
@@ -354,7 +355,7 @@
 	</command>
 
 	<command name="ViewImageEditorControls" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="quarantine" />
 
 		<execute macro="Navigator#openURL" />
 

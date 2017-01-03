@@ -128,6 +128,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PUBLISH_URL_FORM_PAGE</td>
+	<td>//div[contains(@class,'form-builder-app')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -136,6 +141,16 @@
 <tr>
 	<td>SETTINGS_TAB_EMAIL_NOTIFICATIONS</td>
 	<td>//a[contains(@class,'tab-content') and contains(.,'Email Notifications')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SETTINGS_TAB_WORKFLOW_CONFIGURATION_FIELD</td>
+	<td>//div[contains(@data-fieldname,'workflowDefinition')]//a[contains(@id,'workflowDefinition')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SETTINGS_TAB_WORKFLOW_CONFIGURATION</td>
+	<td>//div[contains(@data-fieldname,'workflowDefinition')]//a[contains(@id,'workflowDefinition')]/following-sibling::div[@class='drop-chosen']//li[contains(.,'${key_workflowDefinition}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -207,23 +222,43 @@
 	<td></td>
 </tr>
 <tr>
+	<td>RULE_BUILDER_CONDITION_FIELD</td>
+	<td>//li[contains(@class,'rule-condition-container')][${key_conditionRowNumber}]//a[contains(@id,'condition-first') and contains(@class,'select-field-trigger')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>RULE_BUILDER_SELECT_CONDITION_FIELD</td>
-	<td>//li[contains(@class,'form-builder-rule-condition')][${key_conditionRowNumber}]//div[contains(@class,'condition-if')]//select[contains(@id,'condition-first')]</td>
+	<td>//li[contains(@class,'form-builder-rule-condition')][${key_conditionRowNumber}]//a[contains(@id,'condition-first')]/following-sibling::div[@class='drop-chosen']//li[contains(.,'${key_conditionField}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RULE_BUILDER_CONDITION_OPERATOR_FIELD</td>
+	<td>//li[contains(@class,'rule-condition-container')][${key_conditionRowNumber}]//a[contains(@id,'condition-operator') and contains(@class,'select-field-trigger')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>RULE_BUILDER_SELECT_CONDITION_OPERATOR</td>
-	<td>//li[contains(@class,'form-builder-rule-condition')][${key_conditionRowNumber}]//div[contains(@class,'condition-operator')]//select[contains(@id,'condition-operator')]</td>
+	<td>//li[contains(@class,'form-builder-rule-condition')][${key_conditionRowNumber}]//a[contains(@id,'condition-operator')]/following-sibling::div[@class='drop-chosen']//li[contains(.,'${key_conditionOperator}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RULE_BUILDER_CONDITION_VALUE_TYPE_FIELD</td>
+	<td>//li[contains(@class,'rule-condition-container')][${key_conditionRowNumber}]//a[contains(@id,'condition-second-oper') and contains(@class,'select-field-trigger')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>RULE_BUILDER_SELECT_CONDITION_VALUE_TYPE</td>
-	<td>//li[contains(@class,'form-builder-rule-condition')][${key_conditionRowNumber}]//div[contains(@class,'condition-the')]//select[contains(@id,'type')]</td>
+	<td>//li[contains(@class,'form-builder-rule-condition')][${key_conditionRowNumber}]//a[contains(@id,'condition-second-operand-type')]/following-sibling::div[@class='drop-chosen']//li[contains(.,'${key_conditionValueType}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RULE_BUILDER_CONDITION_VALUE_FIELD</td>
+	<td>//li[contains(@class,'rule-condition-container')][${key_conditionRowNumber}]//div[contains(@data-fieldname,'condition-second-operand-options')]//a[contains(@id,'condition-second-oper') and contains(@class,'select-field-trigger')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>RULE_BUILDER_SELECT_CONDITION_VALUE_FIELD</td>
-	<td>//li[contains(@class,'form-builder-rule-condition')][${key_conditionRowNumber}]//div[contains(@class,'condition-type-value-options')]//select[contains(@id,'select')]</td>
+	<td>//li[contains(@class,'form-builder-rule-condition')][${key_conditionRowNumber}]//a[contains(@id,'condition-second-operand-options')]/following-sibling::div[@class='drop-chosen']//ul[contains(.,'${key_conditionValueField}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -237,13 +272,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>RULE_BUILDER_ACTION_FIELD</td>
+	<td>//a[contains(@id,'target') and contains(@class,'select-field-trigger')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>RULE_BUILDER_SELECT_ACTION</td>
-	<td>//li[contains(@class,'form-builder-rule-action')][${key_actionRowNumber}]//div[contains(@class,'action')]//select[contains(@id,'target')]</td>
+	<td>//li[contains(@class,'form-builder-rule-action')][${key_actionRowNumber}]//a[contains(@id,'target')]/following-sibling::div[@class='drop-chosen']//li[contains(.,'${key_action}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RULE_BUILDER_ACTION_TARGET_FIELD</td>
+	<td>//li[contains(@class,'form-builder-rule-action')][${key_actionRowNumber}]//a[contains(@id,'action') and contains(@class,'select-field-trigger')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>RULE_BUILDER_SELECT_ACTION_TARGET</td>
-	<td>//li[contains(@class,'form-builder-rule-action')][${key_actionRowNumber}]//div[contains(@class,'target')]//select[contains(@id,'action')]</td>
+	<td>//li[contains(@class,'form-builder-rule-action')][${key_actionRowNumber}]//a[contains(@id,'action')]/following-sibling::div[@class='drop-chosen']//li[contains(.,'${key_actionTarget}')]</td>
 	<td></td>
 </tr>
 <tr>

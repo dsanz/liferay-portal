@@ -29,6 +29,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CONFIGURE_TWITTER</td>
+	<td>//a[contains(.,'Please configure your Twitter screen name.')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CHANGE_EMAIL_ADDRESS</td>
 	<td>//div/a[contains(.,'Change Email Address')]</td>
 	<td></td>

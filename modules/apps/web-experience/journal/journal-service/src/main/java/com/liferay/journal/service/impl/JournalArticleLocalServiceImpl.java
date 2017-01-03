@@ -6206,10 +6206,10 @@ public class JournalArticleLocalServiceImpl
 			FileEntry fileEntry =
 				dlAppLocalService.getFileEntryByUuidAndGroupId(uuid, groupId);
 
-			boolean isTempFile = fileEntry.isRepositoryCapabilityProvided(
+			boolean tempFile = fileEntry.isRepositoryCapabilityProvided(
 				TemporaryFileEntriesCapability.class);
 
-			if (isTempFile) {
+			if (tempFile) {
 				FileEntry tempFileEntry = fileEntry;
 
 				Folder folder = article.addImagesFolder();
@@ -6619,17 +6619,29 @@ public class JournalArticleLocalServiceImpl
 		newArticle.setContent(contentDocument.formattedString());
 	}
 
+	/**
+	 * @deprecated As of 3.4.0, replaced by {@link
+	 *             #createFieldsValuesMap(Element, Locale)}
+	 */
+	@Deprecated
 	protected Map<String, LocalizedValue> createFieldsValuesMap(
 		Element parentElement) {
+
+		Locale defaultLocale = LocaleUtil.fromLanguageId(
+			parentElement.attributeValue("default-locale"));
+
+		return createFieldsValuesMap(parentElement, defaultLocale);
+	}
+
+	protected Map<String, LocalizedValue> createFieldsValuesMap(
+		Element parentElement, Locale defaultLocale) {
 
 		Map<String, LocalizedValue> fieldsValuesMap = new HashMap<>();
 
 		List<Element> dynamicElementElements = parentElement.elements(
 			"dynamic-element");
 
-		LocalizedValue fieldLocalizedValue = new LocalizedValue(
-			LocaleUtil.fromLanguageId(
-				parentElement.attributeValue("default-locale")));
+		LocalizedValue fieldLocalizedValue = new LocalizedValue(defaultLocale);
 
 		for (Element dynamicElementElement : dynamicElementElements) {
 			String fieldName = dynamicElementElement.attributeValue(
@@ -6650,7 +6662,7 @@ public class JournalArticleLocalServiceImpl
 			fieldsValuesMap.put(fieldName, fieldLocalizedValue);
 
 			fieldsValuesMap.putAll(
-				createFieldsValuesMap(dynamicElementElement));
+				createFieldsValuesMap(dynamicElementElement, defaultLocale));
 		}
 
 		return fieldsValuesMap;
@@ -6664,7 +6676,10 @@ public class JournalArticleLocalServiceImpl
 
 			Element rootElement = document.getRootElement();
 
-			return createFieldsValuesMap(rootElement);
+			Locale defaultLocale = LocaleUtil.fromLanguageId(
+				rootElement.attributeValue("default-locale"));
+
+			return createFieldsValuesMap(rootElement, defaultLocale);
 		}
 		catch (DocumentException de) {
 			throw new SystemException(de);
@@ -7714,9 +7729,11 @@ public class JournalArticleLocalServiceImpl
 			String ddmFormFieldName = fieldValue.getKey();
 			LocalizedValue ddmFormFieldValue = fieldValue.getValue();
 
-			updateDDMFormFieldPredefinedValue(
-				fullHierarchyDDMFormFieldsMap.get(ddmFormFieldName),
-				ddmFormFieldValue);
+			if (fullHierarchyDDMFormFieldsMap.containsKey(ddmFormFieldName)) {
+				updateDDMFormFieldPredefinedValue(
+					fullHierarchyDDMFormFieldsMap.get(ddmFormFieldName),
+					ddmFormFieldValue);
+			}
 
 			if (ddmFormFieldsMap.containsKey(ddmFormFieldName)) {
 				updateDDMFormFieldPredefinedValue(

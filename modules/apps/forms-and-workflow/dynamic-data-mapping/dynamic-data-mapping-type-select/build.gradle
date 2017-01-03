@@ -2,6 +2,7 @@ configJSModules {
 	enabled = false
 }
 
+apply plugin: "com.liferay.gulp"
 apply plugin: "com.liferay.lang.merger"
 
 dependencies {
@@ -15,10 +16,15 @@ dependencies {
 	provided project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-form-field-type")
 }
 
+task testJS
 task wrapSoyTemplates
 
 classes {
 	dependsOn wrapSoyTemplates
+}
+
+testJS {
+	dependsOn gulpTest
 }
 
 transpileJS {

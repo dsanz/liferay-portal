@@ -1,5 +1,6 @@
 <definition component-name="portal-collaboration">
 	<property name="portal.release" value="true" />
+	<property name="portal.upstream" value="true" />
 	<property name="custom.properties" value="default.layout.template.id=1_column" />
 	<property name="testray.main.component.name" value="Blogs" />
 
@@ -256,6 +257,7 @@
 		</execute>
 
 		<execute macro="Blogs#addEntryWithUploadedCoverImage">
+			<var name="coverImageName" value="Document_3" />
 			<var name="entryContent" value="Blogs Entry Content" />
 			<var name="entrySubtitle" value="Blogs Entry Subtitle" />
 			<var name="entryTitle" value="Blogs Entry Title" />
@@ -1684,6 +1686,7 @@
 		</execute>
 
 		<execute macro="Blogs#addEntryWithUploadedCoverImage">
+			<var name="coverImageName" value="Document_1" />
 			<var name="entryContent" value="Blogs Entry Content" />
 			<var name="entrySubtitle" value="Blogs Entry Subtitle" />
 			<var name="entryTitle" value="Blogs Entry Title" />
@@ -1993,6 +1996,7 @@
 		</execute>
 
 		<execute macro="Blogs#addEntryWithUploadedCoverImage">
+			<var name="coverImageName" value="Document_1" />
 			<var name="entryContent" value="Blogs Entry Content" />
 			<var name="entrySubtitle" value="Blogs Entry Subtitle" />
 			<var name="entryTitle" value="Blogs Entry Title" />

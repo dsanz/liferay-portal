@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.osgi.web.servlet.jsp.compiler.internal.JspBundleClassloader;
 import com.liferay.portal.osgi.web.servlet.jsp.compiler.internal.JspServletContext;
 import com.liferay.portal.osgi.web.servlet.jsp.compiler.internal.JspTagHandlerPool;
+import com.liferay.portal.servlet.delegate.ServletContextDelegate;
 import com.liferay.taglib.servlet.JspFactorySwapper;
 
 import java.io.File;
@@ -55,7 +56,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
@@ -229,7 +232,8 @@ public class JspServlet extends HttpServlet {
 	public void init(final ServletConfig servletConfig)
 		throws ServletException {
 
-		final ServletContext servletContext = servletConfig.getServletContext();
+		final ServletContext servletContext = ServletContextDelegate.create(
+			servletConfig.getServletContext());
 
 		ClassLoader classLoader = servletContext.getClassLoader();
 
@@ -296,6 +300,12 @@ public class JspServlet extends HttpServlet {
 
 		defaults.put(
 			TagHandlerPool.OPTION_TAGPOOL, JspTagHandlerPool.class.getName());
+
+		for (Entry<Object, Object> entry : _initParams.entrySet()) {
+			defaults.put(
+				String.valueOf(entry.getKey()),
+				String.valueOf(entry.getValue()));
+		}
 
 		Enumeration<String> names = servletConfig.getInitParameterNames();
 
@@ -521,7 +531,7 @@ public class JspServlet extends HttpServlet {
 		catch (NoSuchMethodException nsme) {
 		}
 
-		return Collections.unmodifiableMap(methods);
+		return methods;
 	}
 
 	private void _deleteOutdatedJspFiles(String dir, List<Path> paths) {
@@ -557,6 +567,8 @@ public class JspServlet extends HttpServlet {
 			File.separator;
 
 	private static final Map<Method, Method> _contextAdapterMethods;
+	private static final Properties _initParams = PropsUtil.getProperties(
+		"jsp.servlet.init.param.", true);
 	private static final Bundle _jspBundle = FrameworkUtil.getBundle(
 		JspServlet.class);
 	private static final Pattern _originalJspPattern = Pattern.compile(

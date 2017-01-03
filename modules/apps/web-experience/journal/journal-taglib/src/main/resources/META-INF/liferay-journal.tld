@@ -15,6 +15,11 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
+			<name>ddmTemplateKey</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
 			<name>groupId</name>
 			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -30,11 +35,6 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<type>boolean</type>
-		</attribute>
-		<attribute>
-			<name>templateKey</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
 </taglib>

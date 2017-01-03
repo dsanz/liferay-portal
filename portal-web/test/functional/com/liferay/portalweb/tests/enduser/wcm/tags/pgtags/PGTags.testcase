@@ -1,5 +1,6 @@
 <definition component-name="portal-tags">
 	<property name="portal.release" value="true" />
+	<property name="portal.upstream" value="true" />
 	<property name="testray.main.component.name" value="Tags" />
 
 	<set-up>
@@ -761,25 +762,6 @@
 		</execute>
 
 		<execute macro="Page#add">
-			<var name="pageName" value="Page Name" />
-			<var name="siteName" value="Site Name" />
-		</execute>
-
-		<for list="blue,blue green,yellow" param="tagName">
-			<execute macro="Navigator#openSiteURL">
-				<var name="siteName" value="Site Name" />
-			</execute>
-
-			<execute macro="ProductMenu#gotoSitesContent">
-				<var name="portlet" value="Tags" />
-			</execute>
-
-			<execute macro="Tag#addCP">
-				<var name="tagName" value="${tagName}" />
-			</execute>
-		</for>
-
-		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Page Name" />
 			<var name="siteName" value="Site Name" />
 		</execute>

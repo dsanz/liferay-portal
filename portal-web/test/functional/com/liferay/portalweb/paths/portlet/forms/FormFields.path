@@ -243,7 +243,17 @@
 <!--SELECT-->
 <tr>
 	<td>SELECT_FIELD</td>
-	<td>//div[contains(@data-fieldname,'${key_fieldName}')]//select</td>
+	<td>//div[contains(@data-fieldname,'${key_fieldName}')]//div[contains(@class,'form-builder-select-field')]//a[contains(@class,'select-field-trigger')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_FIELD_DATA_PROVIDER_LIST</td>
+	<td>//div[contains(@data-fieldname,'${key_fieldName}')]//div[contains(@class,'form-builder-select-field')]//li[contains(.,'${key_selectOption}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_FIELD_OPTIONS_LIST</td>
+	<td>//div[contains(@data-fieldname,'${key_fieldName}')]//div[contains(@class,'form-builder-select-field')]//ul[@class='results-chosen']//li[contains(.,'${key_selectOption}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -253,7 +263,7 @@
 </tr>
 <tr>
 	<td>SELECT_OPTIONS_OPTION_VALUE_FIELD_VISIBLE</td>
-	<td>//div[@class='input-select-wrapper']//option[${key_rowNumber}]</td>
+	<td>//div[@class='options']/div[${key_rowNumber}]//input</td>
 	<td></td>
 </tr>
 <tr>

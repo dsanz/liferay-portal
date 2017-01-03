@@ -1,5 +1,6 @@
 <definition component-name="portal-wcm">
 	<property name="portal.release" value="true" />
+	<property name="portal.upstream" value="true" />
 	<property name="testray.main.component.name" value="Web Content Administration" />
 
 	<var name="globalSiteName" value="Global" />
@@ -358,7 +359,7 @@
 	</command>
 
 	<command name="AddEmbeddedPortletFreemarkerTemplate" priority="3">
-		<property name="osgi.modules.includes" value="currency-converter-web" />
+		<property name="osgi.app.includes" value="currency-converter" />
 
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
@@ -454,7 +455,7 @@
 	</command>
 
 	<command name="AddEmbeddedPortletVelocityTemplate" priority="3">
-		<property name="osgi.modules.includes" value="currency-converter-web" />
+		<property name="osgi.app.includes" value="currency-converter" />
 
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
@@ -1806,6 +1807,8 @@
 		<execute macro="WebContentNavigator#gotoAddWithStructureCP">
 			<var name="structureName" value="WC Structure Name" />
 		</execute>
+
+		<execute function="Click" locator1="TextInput#TITLE" />
 
 		<execute macro="WebContent#addCP">
 			<var name="webContentContent" value="WC WebContent Content" />

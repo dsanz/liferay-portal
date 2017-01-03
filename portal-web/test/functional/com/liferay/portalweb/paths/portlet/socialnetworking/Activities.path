@@ -18,6 +18,16 @@
 	<td>//div[contains(@class,'card-col-content')]/a</td>
 	<td></td>
 </tr>
+<tr>
+	<td>ENTRY_CONTENT</td>
+	<td>//div[contains(@class,'content')]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_DATE</td>
+	<td>//div[contains(@class,'social-activities')]//li[contains(.,'${key_entryDate}')]</td>
+	<td></td>
+</tr>
 </tbody>
 </table>
 </body>

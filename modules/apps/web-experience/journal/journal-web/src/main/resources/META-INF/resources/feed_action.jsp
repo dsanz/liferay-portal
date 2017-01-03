@@ -43,11 +43,14 @@ JournalFeed feed = (JournalFeed)row.getObject();
 			modelResourceDescription="<%= feed.getName() %>"
 			resourcePrimKey="<%= String.valueOf(feed.getId()) %>"
 			var="permissionsFeedURL"
+			windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 		/>
 
 		<liferay-ui:icon
 			message="permissions"
+			method="get"
 			url="<%= permissionsFeedURL %>"
+			useDialog="<%= true %>"
 		/>
 	</c:if>
 

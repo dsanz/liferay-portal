@@ -1,5 +1,6 @@
 <definition component-name="portal-user-interface">
 	<property name="portal.release" value="true" />
+	<property name="portal.upstream" value="true" />
 	<property name="testray.main.component.name" value="User Interface" />
 
 	<var name="pageName" value="CKEditor Page" />
@@ -38,6 +39,7 @@
 		</execute>
 
 		<execute macro="Blogs#addEntryWithUploadedCoverImage">
+			<var name="coverImageName" value="Document_1" />
 			<var name="entryContent" value="Blogs Entry Content" />
 			<var name="entrySubtitle" value="Blogs Entry Subtitle" />
 			<var name="entryTitle" value="Blogs Entry Title" />

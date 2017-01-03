@@ -157,7 +157,7 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 			});
 	}
 
-	@Test
+	/*@Test
 	public void testIncorrectLineBreaks() throws Exception {
 		test(
 			"IncorrectLineBreaks1.testjava",
@@ -190,7 +190,7 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 				116, 122, 132
 			});
 		test("IncorrectLineBreaks2.testjava");
-	}
+	}*/
 
 	@Test
 	public void testIncorrectParameterNames() throws Exception {
@@ -205,7 +205,7 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 			new Integer[] {24, 28});
 	}
 
-	@Test
+	/*@Test
 	public void testIncorrectTabs() throws Exception {
 		test(
 			"IncorrectTabs.testjava",
@@ -216,6 +216,7 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 			},
 			new Integer[] {26, 30, 37});
 	}
+	*/
 
 	@Test
 	public void testIncorrectVariableNames() throws Exception {

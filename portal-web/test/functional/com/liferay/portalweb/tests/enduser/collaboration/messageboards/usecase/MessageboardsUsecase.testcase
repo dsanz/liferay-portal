@@ -1,5 +1,6 @@
 <definition component-name="portal-collaboration">
 	<property name="portal.release" value="true" />
+	<property name="portal.upstream" value="true" />
 	<property name="custom.properties" value="default.layout.template.id=1_column" />
 	<property name="testray.main.component.name" value="Message Boards" />
 
@@ -1088,7 +1089,7 @@
 		</execute>
 
 		<execute macro="User#editEmailViaMyAccount">
-			<var method="TestPropsUtil#get('email.address.2')" name="userEmailAddress" />
+			<var method="TestPropsUtil#get('email.address.4')" name="userEmailAddress" />
 		</execute>
 
 		<execute macro="MessageboardsPortlet#configureMessageEmailFromCP">
@@ -1146,7 +1147,7 @@
 
 		<execute macro="User#loginPG">
 			<var name="password" value="test" />
-			<var method="TestPropsUtil#get('email.address.2')" name="userEmailAddress" />
+			<var method="TestPropsUtil#get('email.address.4')" name="userEmailAddress" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">

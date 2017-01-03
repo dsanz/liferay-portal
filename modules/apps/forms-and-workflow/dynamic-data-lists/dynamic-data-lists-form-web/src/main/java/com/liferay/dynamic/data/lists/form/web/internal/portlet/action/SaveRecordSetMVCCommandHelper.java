@@ -360,6 +360,10 @@ public class SaveRecordSetMVCCommandHelper {
 
 		String workflowDefinition = getWorkflowDefinition(ddmFormValues);
 
+		if (workflowDefinition.equals("no-workflow")) {
+			workflowDefinition = "";
+		}
+
 		workflowDefinitionLinkLocalService.updateWorkflowDefinitionLink(
 			themeDisplay.getUserId(), themeDisplay.getCompanyId(), groupId,
 			DDLRecordSet.class.getName(), recordSet.getRecordSetId(), 0,

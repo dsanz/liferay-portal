@@ -12,7 +12,7 @@ To use the plugin, include it in your build script:
 ```gradle
 buildscript {
 	dependencies {
-		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.node", version: "1.4.2"
+		classpath group: "com.liferay", name: "com.liferay.gradle.plugins.node", version: "1.5.1"
 	}
 
 	repositories {
@@ -61,12 +61,14 @@ to defer evaluation until execution.
 
 ## Tasks
 
-The plugin adds two tasks to your project:
+The plugin adds four tasks to your project:
 
 Name | Depends On | Type | Description
 ---- | ---------- | ---- | -----------
+`cleanNPM` | \- | [`Delete`](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.Delete.html) | Deletes the `node_modules` directory and the `npm-shrinkwrap.json` file from the project, if present.
 <a name="downloadnode"></a>`downloadNode` | \- | [`DownloadNodeTask`](#downloadnodetask) | Downloads and unpacks the local Node.js distribution for the project. If `node.download` is `false`, this task is disabled.
-`npmInstall` | `downloadNode` | [`NpmInstallTask`](#npminstalltask) | Runs `npm install` to install the dependencies declared in the project's `package.json` file, if present.
+`npmInstall` | `downloadNode` | [`NpmInstallTask`](#npminstalltask) | Runs `npm install` to install the dependencies declared in the project's `package.json` file, if present. By default, the task is [configured](#npminstallretries) to run `npm install` 2 more times if it fails.
+`npmShrinkwrap` | `cleanNPM`, `npmInstall` | [`NpmShrinkwrapTask`](#npmshrinkwraptask) | Locks down the versions of a package's dependencies in order to control which dependency versions are used.
 
 ### DownloadNodeTask
 
@@ -97,7 +99,7 @@ Property Name | Type | Default Value | Description
 `command` | `String` | `"node"` | The file name of the executable to invoke.
 `inheritProxy` | `boolean` | `true` | Whether to set the `http_proxy`, `https_proxy`, and `no_proxy` environment variables in the Node.js invocation based on the values of the system properties `https.proxyHost`, `https.proxyPort`, `https.proxyUser`, `https.proxyPassword`, `https.nonProxyHosts`, `https.proxyHost`, `https.proxyPort`, `https.proxyUser`, `https.proxyPassword`, and `https.nonProxyHosts`. If these environment variables are already set, their values will not be overwritten.
 `nodeDir` | `File` | <p>**If [`node.download`](#download) is `true`:** [`node.nodeDir`](#nodedir)</p><p>**Otherwise:** `null`</p> | The directory that contains the executable to invoke. If `null`, the executable must be available in the system `PATH`.
-`npmInstallRetries` | `int` | `0` | The number of times the `node_modules` is deleted and `npm install` is retried in case the Node.js invocation defined by this task fails. This can help solving corrupted `node_modules` directories by re-downloading the project's dependencies.
+<a name="npminstallretries"></a>`npmInstallRetries` | `int` | `0` | The number of times the `node_modules` is deleted and `npm install` is retried in case the Node.js invocation defined by this task fails. This can help solving corrupted `node_modules` directories by re-downloading the project's dependencies.
 `useGradleExec` | `boolean` | <p>**If running in a [Gradle Daemon](https://docs.gradle.org/current/userguide/gradle_daemon.html):** `true`</p><p>**Otherwise:** `false`</p> | Whether to invoke Node.js using [`project.exec`](https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:exec(org.gradle.api.Action)), which can solve hanging problems with the Gradle Daemon.
 `workingDir` | `File` | `project.projectDir` | The working directory to use in the Node.js invocation.
 
@@ -156,7 +158,7 @@ The purpose of this task is to download a Node.js package. The packages are
 downloaded in the `${workingDir}/node_modules` directory, which is equal, by
 default, to the `node_modules` directory of the project. Tasks of type
 `DownloadNodeModuleTask` extend [`ExecuteNpmTask`](#executenpmtask) in order to
-execute the command `npm install ${moduleName}@${moduleVersion}`.
+execute the command [`npm install ${moduleName}@${moduleVersion}`](https://docs.npmjs.com/cli/install).
 
 `DownloadNodeModuleTask` instances are automatically disabled if the project's
 `package.json` file already lists a module with the same name in its
@@ -176,7 +178,7 @@ properties, to defer evaluation until task execution.
 
 Purpose of these tasks is to install the dependencies declared in a
 `package.json` file. Tasks of type `NpmInstallTask` extend
-[`ExecuteNpmTask`](#executenpmtask) in order to run the command `npm install`.
+[`ExecuteNpmTask`](#executenpmtask) in order to run the command [`npm install`](https://docs.npmjs.com/cli/install).
 
 `NpmInstallTask` instances are automatically disabled if the `package.json` file
 does not declare any dependency in the `dependency` or `devDependencies` object.
@@ -192,12 +194,40 @@ Property Name | Type | Default Value | Description
 
 The properties of type `File` support any type that can be resolved by [`project.file`](https://docs.gradle.org/current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:file(java.css.Object)).
 
+### NpmShrinkwrapTask
+
+The purpose of this task is to lock down the versions of a package's
+dependencies so that you can control exactly which dependency versions are used
+when your package is installed. Tasks of type `NpmShrinkwrapTask` extend
+[`ExecuteNpmTask`](#executenpmtask) to execute the command
+[`npm shrinkwrap`](https://docs.npmjs.com/cli/shrinkwrap).
+
+The generated `npm-shrinkwrap.json` file is automatically sorted and formatted,
+so it's easier to see the changes with the previous version.
+
+#### Task Properties
+
+Property Name | Type | Default Value | Description
+------------- | ---- | ------------- | -----------
+`excludedDependencies` | `List<String>` | `[]` | The package names to exclude from the generated `npm-shrinkwrap.json` file.
+`includeDevDependencies` | `boolean` | `true` | Whether to include the package's `devDependencies`. It sets the [`--dev`](https://docs.npmjs.com/cli/shrinkwrap#other-notes) argument.
+
+It is possible to use Closures and Callables as values for the `String`
+properties to defer evaluation until task execution.
+
+#### Task Methods
+
+Method | Description
+------ | -----------
+`NpmShrinkwrapTask excludeDependencies(Iterable<?> excludedDependencies)` | Adds package names to exclude from the generated `npm-shrinkwrap.json` file.
+`NpmShrinkwrapTask excludeDependencies(Object... excludedDependencies)` | Adds package names to exclude from the generated `npm-shrinkwrap.json` file.
+
 ### PublishNodeModuleTask
 
 The purpose of this task is to publish a package to the
 [NPM registry](#https://www.npmjs.com/). Tasks of type `PublishNodeModuleTask`
 extend [`ExecuteNpmTask`](#executenpmtask) in order to execute the command
-`npm publish`.
+[`npm publish`](https://docs.npmjs.com/cli/publish).
 
 These tasks generate a new temporary `package.json` file in the root of the
 project directory, based on the values provided for the task properties. If the

@@ -119,6 +119,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>IDENTIFICATION</td>
+	<td>//li[contains(@class,'tab')]/a[contains(.,'Identification')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>IDENTITY_PROVIDER</td>
 	<td>//ul[contains(@class,'nav-tabs')]/li/a[contains(.,'Identity Provider')]</td>
 	<td></td>

@@ -1,5 +1,6 @@
 <definition component-name="portal-wcm">
 	<property name="portal.release" value="true" />
+	<property name="portal.upstream" value="true" />
 	<property name="testray.main.component.name" value="Asset Publisher" />
 
 	<var name="globalSiteName" value="Global" />
@@ -93,7 +94,7 @@
 			<execute macro="Page#add">
 				<var name="pageName" value="${sitePageName}" />
 				<var name="siteName" value="Organization Name" />
-				<var name="sitePagePrivacy" value="Private Pages" />
+				<var name="sitePagePrivacy" value="Private" />
 			</execute>
 		</for>
 
@@ -153,9 +154,21 @@
 			<var name="virtualHostsURL" value="http://www.baker.com:8080" />
 		</execute>
 
-		<execute function="AssertElementNotPresent" locator1="Home#PAGE" value1="Asset Publisher Page">
-			<var name="key_pageName" value="Asset Publisher Page" />
+		<for list="Home,Documents and Media,News" param="sitePageName">
+			<execute function="AssertElementPresent" locator1="Home#PAGE" value1="${sitePageName}">
+				<var name="key_pageName" value="${sitePageName}" />
+			</execute>
+		</for>
+
+		<execute macro="Navigator#openSpecificURL">
+			<var name="url" value="http://www.able.com:8080" />
 		</execute>
+
+		<for list="Documents and Media,News" param="sitePageName">
+			<execute function="AssertElementNotPresent" locator1="Home#PAGE" value1="${sitePageName}">
+				<var name="key_pageName" value="${sitePageName}" />
+			</execute>
+		</for>
 
 		<execute macro="User#firstLoginPG">
 			<var name="password" value="test" />

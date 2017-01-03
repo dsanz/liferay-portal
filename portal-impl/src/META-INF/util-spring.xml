@@ -186,12 +186,7 @@
 		</property>
 	</bean>
 	<bean class="com.liferay.portal.kernel.metadata.RawMetadataProcessorUtil" id="com.liferay.portal.kernel.metadata.RawMetadataProcessorUtil">
-		   <property name="rawMetadataProcessor" ref="com.liferay.portal.kernel.metadata.RawMetadataProcessor" />
-	</bean>
-	<bean class="com.liferay.portal.kernel.microsofttranslator.MicrosoftTranslatorFactoryUtil" id="com.liferay.portal.kernel.microsofttranslator.MicrosoftTranslatorFactoryUtil">
-		<property name="microsoftTranslatorFactory">
-			<bean class="com.liferay.portal.microsofttranslator.MicrosoftTranslatorFactoryImpl" />
-		</property>
+		<property name="rawMetadataProcessor" ref="com.liferay.portal.kernel.metadata.RawMetadataProcessor" />
 	</bean>
 	<bean class="com.liferay.portal.kernel.oauth.OAuthFactoryUtil" id="com.liferay.portal.kernel.oauth.OAuthFactoryUtil">
 		<property name="OAuthFactory">
@@ -379,9 +374,7 @@
 		</property>
 	</bean>
 	<bean class="com.liferay.portal.kernel.util.HtmlUtil" id="com.liferay.portal.kernel.util.HtmlUtil">
-		<property name="html">
-			<bean class="com.liferay.portal.util.HtmlImpl" />
-		</property>
+		<property name="html" ref="com.liferay.portal.util.HtmlImpl" />
 	</bean>
 	<bean class="com.liferay.portal.kernel.util.HttpUtil" id="com.liferay.portal.kernel.util.HttpUtil">
 		<property name="http">
@@ -504,6 +497,7 @@
 	<bean class="com.liferay.portal.template.ClassLoaderResourceParser" id="com.liferay.portal.template.ClassLoaderResourceParser" />
 	<bean class="com.liferay.portal.template.DDMTemplateResourceParser" id="com.liferay.portal.template.DDMTemplateResourceParser" />
 	<bean class="com.liferay.portal.template.ThemeResourceParser" id="com.liferay.portal.template.ThemeResourceParser" />
+	<bean class="com.liferay.portal.util.HtmlImpl" id="com.liferay.portal.util.HtmlImpl" />
 	<bean class="com.liferay.portal.util.PortalImpl" id="com.liferay.portal.util.Portal" />
 	<bean class="com.liferay.portal.verify.model.AddressVerifiableModel" />
 	<bean class="com.liferay.portal.verify.model.AnnouncementsEntryVerifiableModel" />
@@ -541,7 +535,6 @@
 	<bean class="com.liferay.portal.verify.model.WebSiteVerifiableModel" />
 	<bean class="com.liferay.portal.workflow.LayoutRevisionWorkflowHandler" id="com.liferay.portal.workflow.LayoutRevisionWorkflowHandler" />
 	<bean class="com.liferay.portal.workflow.UserWorkflowHandler" id="com.liferay.portal.workflow.UserWorkflowHandler" />
-	<bean class="com.liferay.portlet.DefaultControlPanelEntryFactory" id="com.liferay.portlet.DefaultControlPanelEntryFactory" />
 	<bean class="com.liferay.portlet.PortletContainerImpl" id="com.liferay.portlet.PortletContainerImpl">
 		<property name="portletConfigurationIconMenu" ref="com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIconMenu" />
 		<property name="portletToolbar" ref="com.liferay.portal.kernel.portlet.toolbar.PortletToolbar" />

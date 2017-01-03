@@ -967,6 +967,41 @@
 				(ResourceTypePermission.roleId = ?)
 		]]>
 	</sql>
+	<sql id="com.liferay.portal.kernel.service.persistence.RoleFinder.countByGroupRoleAndTeamRole">
+		<![CDATA[
+			SELECT
+				COUNT(Role_.roleId) AS COUNT_VALUE
+			FROM
+				Role_
+			WHERE
+				(Role_.companyId = ?) AND
+				(
+					(
+						(lower(Role_.name) LIKE ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]
+						(lower(Role_.description) LIKE ? [$AND_OR_NULL_CHECK$])
+					)
+					[$EXCLUDED_NAMES$]
+					[$TYPE$]
+				) OR
+				(
+					(Role_.classNameId = ?) AND
+					(Role_.roleId != ?) AND
+					(Role_.classPK IN (
+						SELECT
+							Team.teamId
+						FROM
+							Team
+						WHERE
+							(groupId = ?) AND
+							(
+								(lower(Team.name) LIKE ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]
+								(lower(Team.description) LIKE ? [$AND_OR_NULL_CHECK$])
+							)
+						)
+					)
+				)
+		]]>
+	</sql>
 	<sql id="com.liferay.portal.kernel.service.persistence.RoleFinder.countByOrganization">
 		<![CDATA[
 			SELECT
@@ -1111,6 +1146,43 @@
 					(lower(Role_.description) LIKE ? [$AND_OR_NULL_CHECK$])
 				)
 				[$TYPE$]
+		]]>
+	</sql>
+	<sql id="com.liferay.portal.kernel.service.persistence.RoleFinder.findByGroupRoleAndTeamRole">
+		<![CDATA[
+			SELECT
+				{Role_.*}
+			FROM
+				Role_
+			WHERE
+				(Role_.companyId = ?) AND
+				(
+					(
+						(lower(Role_.name) LIKE ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]
+						(lower(Role_.description) LIKE ? [$AND_OR_NULL_CHECK$])
+					)
+					[$EXCLUDED_NAMES$]
+					[$TYPE$]
+				) OR
+				(
+					(Role_.classNameId = ?) AND
+					(Role_.roleId != ?) AND
+					(Role_.classPK IN (
+						SELECT
+							Team.teamId
+						FROM
+							Team
+						WHERE
+							(groupId = ?) AND
+							(
+								(lower(Team.name) LIKE ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]
+								(lower(Team.description) LIKE ? [$AND_OR_NULL_CHECK$])
+							)
+						)
+					)
+				)
+			ORDER BY
+				Role_.name ASC
 		]]>
 	</sql>
 	<sql id="com.liferay.portal.kernel.service.persistence.RoleFinder.findBySystem">
@@ -1550,7 +1622,7 @@
 	<sql id="com.liferay.portal.kernel.service.persistence.UserFinder.findByC_FN_MN_LN_SN_EA_S">
 		<![CDATA[
 			SELECT
-				User_.userId AS userId, User_.screenName AS screenName, User_.firstName AS firstName, User_.middleName AS middleName, User_.lastName AS lastName, User_.loginDate as loginDate
+				[$COLUMN_NAMES$]
 			FROM
 				User_
 			[$JOIN$]

@@ -1629,11 +1629,27 @@ jdbc.counter.connectionProperties=oracle.jdbc.ReadTimeout=0;oracle.net.CONNECT_T
 
 			<delete file="@{bundles.dir}/patching-tool/default.properties" />
 
-			<execute dir="@{bundles.dir}/patching-tool">
-				patching-tool${file.suffix.bat} auto-discovery
-				patching-tool${file.suffix.bat} install -force
-				patching-tool${file.suffix.bat} update-plugins
-			</execute>
+			<if>
+				<equals arg1="${app.server.type}" arg2="weblogic" />
+				<then>
+					<echo file="@{bundles.dir}/patching-tool/default.properties">global.lib.path=${app.server.weblogic.lib.global.dir}
+liferay.home=${liferay.home}
+patching.mode=binary
+war.path=${app.server.weblogic.portal.dir}/</echo>
+
+					<execute dir="@{bundles.dir}/patching-tool">
+						patching-tool${file.suffix.bat} install -force
+						patching-tool${file.suffix.bat} update-plugins
+					</execute>
+				</then>
+				<else>
+					<execute dir="@{bundles.dir}/patching-tool">
+						patching-tool${file.suffix.bat} auto-discovery
+						patching-tool${file.suffix.bat} install -force
+						patching-tool${file.suffix.bat} update-plugins
+					</execute>
+				</else>
+			</if>
 
 			<local name="patching.tool.file.name" />
 
@@ -1656,10 +1672,7 @@ jdbc.counter.connectionProperties=oracle.jdbc.ReadTimeout=0;oracle.net.CONNECT_T
 			</if>
 
 			<if>
-				<and>
-					<equals arg1="${app.server.type}" arg2="tomcat" />
-					<matches pattern="https?://" string="${test.build.fix.pack.zip.url}" />
-				</and>
+				<matches pattern="https?://" string="${test.build.fix.pack.zip.url}" />
 				<then>
 					<mirrors-get
 						dest="${basedir}"
@@ -2122,10 +2135,11 @@ tell application "Safari" to quit
 						src="${test.build.plugins.war.zip.url}"
 					/>
 
-					<unzip
-						dest="."
-						src="plugins.war.zip"
-					/>
+					<unzip dest="." src="plugins.war.zip">
+						<mapper>
+							<globmapper from="plugins/*" to="plugins/marketplace/*" />
+						</mapper>
+					</unzip>
 
 					<delete file="plugins.war.zip" />
 				</then>
@@ -4649,6 +4663,64 @@ go]]></replacevalue>
 		</if>
 	</target>
 
+	<target name="deploy-osgi-apps">
+		<get-testcase-property property.name="osgi.app.includes" />
+
+		<if>
+			<isset property="osgi.app.includes" />
+			<then>
+				<for list="${osgi.app.includes}" param="osgi.app.name">
+					<sequential>
+						<for param="app.dir">
+							<path>
+								<dirset dir="modules">
+									<include name="apps/@{osgi.app.name}" />
+									<include name="private/apps/@{osgi.app.name}" />
+								</dirset>
+							</path>
+							<sequential>
+								<local name="Liferay-Releng-App-Title" />
+
+								<property file="@{app.dir}/app.bnd" />
+
+								<if>
+									<available file="${liferay.home}/osgi/marketplace/${Liferay-Releng-App-Title}.lpkg" />
+									<then>
+										<echo>${liferay.home}/osgi/marketplace/${Liferay-Releng-App-Title}.lpkg already exists.</echo>
+									</then>
+									<elseif>
+										<available file="${project.dir}/plugins/marketplace/${Liferay-Releng-App-Title}.lpkg" />
+										<then>
+											<echo>Copying ${project.dir}/plugins/marketplace/${Liferay-Releng-App-Title}.lpkg to ${liferay.home}/osgi/marketplace</echo>
+
+											<copy file="${project.dir}/plugins/marketplace/${Liferay-Releng-App-Title}.lpkg" todir="${liferay.home}/osgi/marketplace" />
+										</then>
+									</elseif>
+									<else>
+										<echo>Deploying all relevant modules that make up '${Liferay-Releng-App-Title}.lpkg'</echo>
+
+										<for param="osgi.module.bnd.file">
+											<fileset dir="@{app.dir}">
+												<include name="**/bnd.bnd" />
+											</fileset>
+											<sequential>
+												<local name="osgi.module.dir" />
+
+												<dirname file="@{osgi.module.bnd.file}" property="osgi.module.dir" />
+
+												<gradle-execute dir="${osgi.module.dir}" task="deploy" />
+											</sequential>
+										</for>
+									</else>
+								</if>
+							</sequential>
+						</for>
+					</sequential>
+				</for>
+			</then>
+		</if>
+	</target>
+
 	<target name="deploy-osgi-module-configurations">
 		<var name="osgi.module.configurations.index" value="1" />
 
@@ -5721,6 +5793,8 @@ cluster.link.channel.system.properties=\
 	jgroups.mping.mcast_addr:${multicast.group.address["cluster-link-mping"]},\
 	jgroups.mping.mcast_port:${multicast.group.port["cluster-link-mping"]},\
 	jgroups.mping.ip_ttl:8
+
+cluster.link.autodetect.address=
 
 web.server.display.node=true</echo>
 			</then>
@@ -7461,8 +7535,6 @@ ANT_OPTS=${env.ANT_OPTS}</echo>
 						<include name="*.sh" />
 					</fileset>
 				</chmod>
-
-				<prepare-fix-pack-bundle />
 			</then>
 			<else>
 				<if>
@@ -7541,12 +7613,12 @@ ANT_OPTS=${env.ANT_OPTS}</echo>
 				/>
 
 				<unzip
-					dest="${liferay.home}"
+					dest="${liferay.home}/osgi"
 					src="liferay-portal-osgi.zip"
 				>
 					<mapper
-						from="[^/]+/(osgi.*)"
-						to="\1"
+						from="[^/]+/(osgi/)?(.*)"
+						to="\2"
 						type="regexp"
 					/>
 				</unzip>
@@ -7554,6 +7626,8 @@ ANT_OPTS=${env.ANT_OPTS}</echo>
 				<delete file="liferay-portal-osgi.zip" />
 			</else>
 		</if>
+
+		<prepare-fix-pack-bundle />
 	</target>
 
 	<target name="prepare-virtual-host-name-properties">
@@ -8712,29 +8786,105 @@ jdbc.default.password=${database.mysql.password}</echo>
 				<equals arg1="${cmis.repository.type}" arg2="sharepoint2013" />
 			</or>
 			<then>
-				<if>
-					<os family="unix" />
-					<then>
-						<exec executable="/bin/bash" os="${os.unix}" outputproperty="cmis.repository.vm.host.name">
-							<arg value="-c" />
-							<arg value="curl &quot;http://it.liferay.com/osb-ici-controller-web/vm/allocation/borrow?leaseTime=900000&amp;resourceType=qa%2E${cmis.repository.type}&quot;" />
-						</exec>
-					</then>
-					<else>
-						<exec executable="cmd" outputproperty="cmis.repository.vm.host.name">
-							<arg value="/c" />
-							<arg value="curl &quot;http://it.liferay.com/osb-ici-controller-web/vm/allocation/borrow?leaseTime=900000&amp;resourceType=qa%2E${cmis.repository.type}&quot;" />
-						</exec>
-					</else>
-				</if>
+				<local name="cmis.repository.lease.time" />
 
-				<propertyregex
-					input="${cmis.repository.vm.host.name}"
-					override="true"
-					property="cmis.repository.vm.host.name"
-					regexp="&quot;(cloud.*?)&quot;"
-					select="\1"
-				/>
+				<property name="cmis.repository.lease.time" value="1200000" />
+
+				<beanshell>
+					<![CDATA[
+						import org.json.JSONObject;
+
+						public JSONObject toJSONObject(String url) {
+							return new JSONObject(toString(url));
+						}
+
+						public String toString(String url) {
+							int retryCount = 0;
+
+							while (true) {
+								try {
+									System.out.println("Downloading URL " + url);
+
+									StringBuilder sb = new StringBuilder();
+
+									URL urlObject = new URL(url);
+
+									HttpURLConnection httpURLConnection = (HttpURLConnection)urlObject.openConnection();
+
+									httpURLConnection.setRequestMethod("GET");
+									httpURLConnection.setRequestProperty("Content-Type", "application/json");
+
+									InputStream inputStream = httpURLConnection.getInputStream();
+
+									InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+
+									BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+									String line = null;
+
+									while ((line = bufferedReader.readLine()) != null) {
+										sb.append(line);
+									}
+
+									bufferedReader.close();
+
+									System.out.println(sb.toString());
+
+									return sb.toString();
+								}
+								catch (Exception e) {
+									if (retryCount >= 5) {
+										throw e;
+									}
+
+									System.out.println("Retry in 5 seconds: " + e.getMessage());
+
+									retryCount++;
+
+									Thread.sleep(5000);
+								}
+							}
+						}
+
+						String cmisRepositoryLeaseTime = project.getProperty("cmis.repository.lease.time");
+						String cmisRepositoryType = project.getProperty("cmis.repository.type");
+						String cmisRepositoryVMHostName = "";
+						int minutes = 0;
+
+						StringBuilder sb = new StringBuilder();
+
+						sb.append("http://it.liferay.com/osb-ici-controller-web/vm/allocation/borrow?leaseTime=");
+						sb.append(cmisRepositoryLeaseTime);
+						sb.append("&resourceType=qa.");
+						sb.append(cmisRepositoryType);
+
+						while (true) {
+							JSONObject jsonObject = toJSONObject(sb.toString());
+
+							if (minutes >= 30) {
+								throw new Exception("No available CMIS servers");
+							}
+
+							if (!jsonObject.has("hostname")) {
+								System.out.println("Waiting for next available CMIS server: " + cmisRepositoryType);
+
+								Thread.sleep(60000);
+
+								minutes++;
+
+								continue;
+							}
+
+							cmisRepositoryVMHostName = jsonObject.get("hostname");
+
+							break;
+						}
+
+						System.out.println("Borrowing " + cmisRepositoryVMHostName);
+
+						project.setProperty("cmis.repository.vm.host.name", cmisRepositoryVMHostName);
+					]]>
+				</beanshell>
 
 				<if>
 					<equals arg1="${cmis.repository.type}" arg2="documentum6" />
@@ -8833,6 +8983,8 @@ jdbc.default.password=${database.mysql.password}</echo>
 				<start-test-smtp-server />
 			</then>
 		</if>
+
+		<antcall target="deploy-osgi-apps" />
 
 		<antcall target="deploy-osgi-modules" />
 
@@ -8983,6 +9135,19 @@ jdbc.default.password=${database.mysql.password}</echo>
 			</or>
 			<then>
 				<property file="${project.dir}/${test.ext.properties.file}" />
+
+				<if>
+					<contains string="${cmis.repository.type}" substring="documentum" />
+					<then>
+						<ssh-execute ssh.host="${cmis.repository.vm.host.name}">perl C:/Windows/resetdocumentum.pl</ssh-execute>
+					</then>
+					<elseif>
+						<contains string="${cmis.repository.type}" substring="sharepoint" />
+						<then>
+							<ssh-execute ssh.host="${cmis.repository.vm.host.name}">perl C:/Windows/resetsharepointrepo.pl</ssh-execute>
+						</then>
+					</elseif>
+				</if>
 
 				<if>
 					<os family="unix" />

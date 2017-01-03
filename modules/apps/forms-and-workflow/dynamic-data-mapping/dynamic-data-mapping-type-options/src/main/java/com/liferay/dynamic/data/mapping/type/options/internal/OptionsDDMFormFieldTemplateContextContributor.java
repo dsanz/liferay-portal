@@ -18,6 +18,7 @@ import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTemplateCont
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.util.GetterUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +47,10 @@ public class OptionsDDMFormFieldTemplateContextContributor
 
 		Map<String, Object> parameters = new HashMap<>();
 
+		parameters.put(
+			"allowEmptyOptions",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("allowEmptyOptions")));
 		parameters.put(
 			"value", getValue(ddmFormField, ddmFormFieldRenderingContext));
 

@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.PublicRenderParameter;
 import com.liferay.portal.kernel.portlet.PortletConfigurationLayoutUtil;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portal.kernel.portlet.PortletQNameUtil;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -159,11 +160,15 @@ public class ActionUtil {
 		for (PublicRenderParameter publicRenderParameter :
 				portlet.getPublicRenderParameters()) {
 
+			String publicRenderParameterName =
+				PortletQNameUtil.getPublicRenderParameterName(
+					publicRenderParameter.getQName());
+
 			String mappingKey =
 				PublicRenderParameterConfiguration.getMappingKey(
-					publicRenderParameter);
+					publicRenderParameterName);
 			String ignoreKey = PublicRenderParameterConfiguration.getIgnoreKey(
-				publicRenderParameter);
+				publicRenderParameterName);
 
 			String mappingValue = null;
 			boolean ignoreValue = false;

@@ -40,41 +40,44 @@ PortletURL redirectURL = layoutsAdminDisplayContext.getRedirectURL();
 	<aui:input name="layoutId" type="hidden" value="<%= layoutsAdminDisplayContext.getLayoutId() %>" />
 </aui:form>
 
-<aui:script use="liferay-util-window">
-	A.one('#<portlet:namespace />copyApplications').on(
-		'click',
-		function() {
-			var content = A.one('#<portlet:namespace />copyPortletsFromPage');
+<aui:script use="liferay-item-selector-dialog">
+	<portlet:renderURL var="selectPageURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+		<portlet:param name="mvcPath" value="/configuration/icon/select_page.jsp" />
+		<portlet:param name="redirect" value="<%= currentURL %>" />
+		<portlet:param name="plid" value="<%= String.valueOf(layoutsAdminDisplayContext.getSelPlid()) %>" />
+	</portlet:renderURL>
 
-			var popUp = Liferay.Util.Window.getWindow(
+	$('#<portlet:namespace />copyApplications').on(
+		'click',
+		function(event) {
+			event.preventDefault();
+
+			var itemSelectorDialog = new A.LiferayItemSelectorDialog(
 				{
-					dialog: {
-						bodyContent: content.show()
+					eventName: '<portlet:namespace />selectPage',
+					on: {
+						selectedItemChange: function(event) {
+							var selectedItem = event.newVal;
+
+							if (selectedItem) {
+								var form = A.one('#<portlet:namespace />copyApplicationsFm');
+
+								form.append(selectedItem);
+
+								submitForm(form);
+							}
+						}
 					},
-					title: '<%= UnicodeLanguageUtil.get(request, "copy-applications") %>'
+					strings: {
+						add: '<liferay-ui:message key="done" />',
+						cancel: '<liferay-ui:message key="cancel" />'
+					},
+					title: '<liferay-ui:message key="copy-applications" />',
+					url: '<%= selectPageURL %>'
 				}
 			);
 
-			popUp.show();
-
-			var submitButton = popUp.get('contentBox').one('#<portlet:namespace />copySubmitButton');
-
-			if (submitButton) {
-				submitButton.on(
-					'click',
-					function(event) {
-						popUp.hide();
-
-						var form = A.one('#<portlet:namespace />copyApplicationsFm');
-
-						if (form) {
-							form.append(content);
-
-							submitForm(form);
-						}
-					}
-				);
-			}
+			itemSelectorDialog.open();
 		}
 	);
 </aui:script>

@@ -517,7 +517,7 @@
 	</command>
 
 	<command name="gotoIdentificationCP">
-		<execute function="AssertClick" locator1="UsersAndOrganizations#IDENTIFICATION" value1="Identification" />
+		<execute function="AssertClick" locator1="NavTab#IDENTIFICATION" value1="Identification" />
 
 		<if>
 			<isset var="panelHeading" />

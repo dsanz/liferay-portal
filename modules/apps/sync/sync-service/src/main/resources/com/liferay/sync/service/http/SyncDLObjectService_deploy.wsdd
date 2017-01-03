@@ -2,7 +2,7 @@
 
 <deployment xmlns="http://xml.apache.org/axis/wsdd/" xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
 	<service name="Plugin_Sync_SyncDLObjectService" provider="java:RPC" style="rpc" use="encoded">
-		<arrayMapping xmlns:ns="urn:http.service.sync.liferay.com" xmlns:cmp-ns="http://model.kernel.portal.liferay.com" qname="ns:ArrayOf_tns6_GroupSoap" type="java:com.liferay.portal.kernel.model.GroupSoap[]" innerType="cmp-ns:GroupSoap" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"></arrayMapping>
+		<arrayMapping xmlns:ns="urn:http.service.sync.liferay.com" xmlns:cmp-ns="http://model.kernel.portal.liferay.com" qname="ns:ArrayOf_tns2_GroupSoap" type="java:com.liferay.portal.kernel.model.GroupSoap[]" innerType="cmp-ns:GroupSoap" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"></arrayMapping>
 		<arrayMapping xmlns:ns="urn:http.service.sync.liferay.com" xmlns:cmp-ns="http://model.sync.liferay.com" qname="ns:ArrayOf_tns16_SyncDLObjectSoap" type="java:com.liferay.sync.model.SyncDLObjectSoap[]" innerType="cmp-ns:SyncDLObjectSoap" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"></arrayMapping>
 		<arrayMapping xmlns:ns="urn:http.service.sync.liferay.com" xmlns:cmp-ns="http://www.w3.org/2001/XMLSchema" qname="ns:ArrayOf_xsd_anyType" type="java:java.lang.Object[]" innerType="cmp-ns:anyType" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"></arrayMapping>
 		<arrayMapping xmlns:ns="urn:http.service.sync.liferay.com" xmlns:cmp-ns="http://www.w3.org/2001/XMLSchema" qname="ns:ArrayOf_xsd_long" type="java:long[]" innerType="cmp-ns:long" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"></arrayMapping>
@@ -79,7 +79,7 @@
 			<parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="groupId" type="tns:long"></parameter>
 		</operation>
 		<operation xmlns:operNS="urn:http.service.sync.liferay.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getLatestModifiedTime" qname="operNS:getLatestModifiedTime" returnQName="getLatestModifiedTimeReturn" returnType="rtns:long" soapAction=""> </operation>
-		<operation xmlns:operNS="urn:http.service.sync.liferay.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getSyncContext" qname="operNS:getSyncContext" returnQName="getSyncContextReturn" returnType="rtns:string" soapAction=""> </operation>
+		<operation xmlns:operNS="urn:http.service.sync.liferay.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getSyncContext" qname="operNS:getSyncContext" returnQName="getSyncContextReturn" returnType="rtns:anyType" soapAction=""> </operation>
 		<operation xmlns:operNS="urn:http.service.sync.liferay.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getSyncDLObjectUpdate" qname="operNS:getSyncDLObjectUpdate" returnQName="getSyncDLObjectUpdateReturn" returnType="rtns:string" soapAction="">
 			<parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="repositoryId" type="tns:long"></parameter>
 			<parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="lastAccessTime" type="tns:long"></parameter>
@@ -96,7 +96,7 @@
 			<parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="parentFolderId" type="tns:long"></parameter>
 			<parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="lastAccessTime" type="tns:long"></parameter>
 		</operation>
-		<operation xmlns:operNS="urn:http.service.sync.liferay.com" xmlns:rtns="urn:http.service.sync.liferay.com" xmlns:tns2="http://model.kernel.portal.liferay.com" name="getUserSitesGroups" qname="operNS:getUserSitesGroups" returnQName="getUserSitesGroupsReturn" returnType="rtns:ArrayOf_tns6_GroupSoap" returnItemType="tns2:GroupSoap" soapAction=""> </operation>
+		<operation xmlns:operNS="urn:http.service.sync.liferay.com" xmlns:rtns="urn:http.service.sync.liferay.com" xmlns:tns2="http://model.kernel.portal.liferay.com" name="getUserSitesGroups" qname="operNS:getUserSitesGroups" returnQName="getUserSitesGroupsReturn" returnType="rtns:ArrayOf_tns2_GroupSoap" returnItemType="tns2:GroupSoap" soapAction=""> </operation>
 		<operation xmlns:operNS="urn:http.service.sync.liferay.com" xmlns:rtns="http://model.sync.liferay.com" name="moveFileEntryToTrash" qname="operNS:moveFileEntryToTrash" returnQName="moveFileEntryToTrashReturn" returnType="rtns:SyncDLObjectSoap" soapAction="">
 			<parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="fileEntryId" type="tns:long"></parameter>
 		</operation>

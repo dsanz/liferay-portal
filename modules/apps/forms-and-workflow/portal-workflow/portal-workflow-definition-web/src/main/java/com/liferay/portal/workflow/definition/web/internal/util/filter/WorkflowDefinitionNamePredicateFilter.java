@@ -36,8 +36,14 @@ public class WorkflowDefinitionNamePredicateFilter
 			return true;
 		}
 
+		String delimiter = StringPool.SPACE;
+
+		if (!StringUtil.contains(_keywords, StringPool.SPACE)) {
+			delimiter = StringPool.BLANK;
+		}
+
 		return StringUtil.containsIgnoreCase(
-			workflowDefinition.getName(), _keywords, StringPool.SPACE);
+			workflowDefinition.getName(), _keywords, delimiter);
 	}
 
 	private final String _keywords;

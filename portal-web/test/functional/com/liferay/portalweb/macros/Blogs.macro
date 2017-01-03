@@ -185,6 +185,10 @@
 			<var name="entrySubtitle" value="${entrySubtitle}" />
 			<var name="entryTitle" value="${entryTitle}" />
 		</execute>
+
+		<execute function="AssertVisible" locator1="BlogsEntry#ENTRY_COVER_IMAGE_UNPUBLISHED">
+			<var name="key_coverImageName" value="${coverImageName}" />
+		</execute>
 	</command>
 
 	<command name="addViaAP">

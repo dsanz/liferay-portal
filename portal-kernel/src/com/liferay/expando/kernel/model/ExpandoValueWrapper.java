@@ -168,6 +168,12 @@ public class ExpandoValueWrapper implements ExpandoValue,
 	}
 
 	@Override
+	public com.liferay.portal.kernel.json.JSONObject getGeolocationJSONObject()
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _expandoValue.getGeolocationJSONObject();
+	}
+
+	@Override
 	public com.liferay.portal.kernel.model.CacheModel<ExpandoValue> toCacheModel() {
 		return _expandoValue.toCacheModel();
 	}
@@ -347,9 +353,9 @@ public class ExpandoValueWrapper implements ExpandoValue,
 	}
 
 	/**
-	* Returns the class p k of this expando value.
+	* Returns the class pk of this expando value.
 	*
-	* @return the class p k of this expando value
+	* @return the class pk of this expando value
 	*/
 	@Override
 	public long getClassPK() {
@@ -478,9 +484,9 @@ public class ExpandoValueWrapper implements ExpandoValue,
 	}
 
 	/**
-	* Sets the class p k of this expando value.
+	* Sets the class pk of this expando value.
 	*
-	* @param classPK the class p k of this expando value
+	* @param classPK the class pk of this expando value
 	*/
 	@Override
 	public void setClassPK(long classPK) {
@@ -572,6 +578,13 @@ public class ExpandoValueWrapper implements ExpandoValue,
 	public void setFloatArray(float[] data)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		_expandoValue.setFloatArray(data);
+	}
+
+	@Override
+	public void setGeolocationJSONObject(
+		com.liferay.portal.kernel.json.JSONObject data)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_expandoValue.setGeolocationJSONObject(data);
 	}
 
 	@Override

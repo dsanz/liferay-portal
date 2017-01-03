@@ -24,7 +24,15 @@
 	</command>
 
 	<command name="submit">
-		<execute function="Click" locator1="FormPortlet#FORM_CONTENT" />
+		<if>
+			<condition function="IsElementPresent" locator1="FormPortlet#PORTLET_CONTENT" />
+			<then>
+				<execute function="Click" locator1="FormPortlet#PORTLET_CONTENT" />
+			</then>
+			<else>
+				<execute function="Click" locator1="Form#PUBLISH_URL_FORM_PAGE" />
+			</else>
+		</if>
 
 		<execute macro="FormPortlet#clickSubmit" />
 	</command>

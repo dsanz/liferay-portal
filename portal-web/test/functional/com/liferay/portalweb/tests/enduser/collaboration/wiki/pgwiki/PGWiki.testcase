@@ -1,5 +1,6 @@
 <definition component-name="portal-collaboration">
 	<property name="portal.release" value="true" />
+	<property name="portal.upstream" value="true" />
 	<property name="custom.properties" value="default.layout.template.id=1_column" />
 	<property name="testray.main.component.name" value="Wiki" />
 
@@ -524,24 +525,13 @@
 			<var name="pageName" value="Wiki Test Page" />
 		</execute>
 
-		<execute macro="WikiPage#_editEmptyFrontPage">
+		<execute macro="WikiPage#addFrontPagePG">
+			<var name="htmlSource" value="true" />
 			<var name="wikiPageContent">
 			<![CDATA[<p><a href="/">Home</a></p>
 			]]>
 			</var>
 		</execute>
-
-		<execute function="Click" locator1="AlloyEditor#CONTENT_FIELD" />
-
-		<execute function="Click" locator1="AlloyEditor#CONTENT_EDITOR_SWITCH_ACE_EDITOR" />
-
-		<execute macro="WikiEntry#selectPageFormat">
-			<var name="pageFormat" value="HTML" />
-		</execute>
-
-		<execute macro="WikiEntry#confirmHTML" />
-
-		<execute macro="PortletEntry#publish" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Wiki Test Page" />
@@ -690,7 +680,7 @@
 	</command>
 
 	<command name="AddWikiPageFormatJSPWiki" priority="4">
-		<property name="osgi.modules.includes" value="wiki-engine-jspwiki" />
+		<property name="osgi.app.includes" value="wiki-engine-jspwiki" />
 
 		<execute macro="ProductMenu#gotoControlPanelApps">
 			<var name="portlet" value="App Manager" />
@@ -1183,7 +1173,7 @@
 	</command>
 
 	<command name="EditWikiPageFormatMediaWiki" priority="5">
-		<property name="osgi.modules.includes" value="wiki-engine-mediawiki" />
+		<property name="osgi.app.includes" value="wiki-engine-mediawiki" />
 		<property name="test.assert.warning.exceptions" value="true" />
 
 		<execute macro="Navigator#gotoPage">

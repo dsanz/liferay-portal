@@ -8,6 +8,11 @@
 <tr><td rowspan="1" colspan="3">Dropdown</td></tr>
 </thead>
 <tbody>
+<tr>
+	<td>ENTRIES</td>
+	<td>//a[contains(@class,'dropdown') and contains(.,'Entries')]</td>
+	<td></td>
+</tr>
 <!--FILTER-->
 <tr>
 	<td>FILTER</td>

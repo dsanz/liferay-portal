@@ -27,6 +27,14 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class JournalTransformerListenerRegistryUtil {
 
+	public static TransformerListener getTransformerListener(String className) {
+		JournalTransformerListenerRegistry journalTransformerListenerRegistry =
+			_serviceTracker.getService();
+
+		return journalTransformerListenerRegistry.getTransformerListener(
+			className);
+	}
+
 	public static List<TransformerListener> getTransformerListeners() {
 		JournalTransformerListenerRegistry journalTransformerListenerRegistry =
 			_serviceTracker.getService();

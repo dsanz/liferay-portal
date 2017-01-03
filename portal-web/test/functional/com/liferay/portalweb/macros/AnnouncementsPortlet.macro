@@ -17,10 +17,8 @@
 		<execute function="SelectFrameTop" />
 	</command>
 
-	<command name="configurePaginationManageEntriesPG">
-		<execute function="Select#selectAndWait" locator1="AnnouncementsManageEntries#DISTRIBUTION_SCOPE_SELECT" value1="${distributionScope}" />
-
-		<execute function="Click" locator1="Button#ITEMS_PER_PAGE" />
+	<command name="configurePaginationCP">
+		<execute function="Click" locator1="Dropdown#ENTRIES" />
 
 		<var name="key_itemsPerPage" value="${itemsPerPage}" />
 
