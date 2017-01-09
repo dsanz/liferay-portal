@@ -1,0 +1,74 @@
+<html>
+<head>
+<title>SiteMapConf</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">SiteMapConf</td></tr>
+</thead>
+<tbody>
+<tr>
+	<td>CONF_WINDOW_TITLE</td>
+	<td>//h3[@class='feed-title']/a[contains(.,'${key_feedTitle}')]</td>   
+	<td></td>
+</tr>
+<!--MMMMMMMM-->
+<tr>
+	<td>ROOT_PAGE_MENU_SELECT</td>
+	<td>//select[contains(@id,'rootLayoutUuid')]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>DISPLAY_DEPTH_MENU_SELECT</td>
+	<td>//select[contains(@id,'displayDepth')]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>INCLUDE_ROOT_IN_TREE_OPTION</td>
+	<td>//label[contains(@for,'includeRootInTree')]//span[contains(@class,"toggle-switch-bar")]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>SHOW_CURRENT_PAGE_OPTION</td>
+	<td>//label[contains(@for,'showCurrentPage')]//span[contains(@class,"toggle-switch-bar")]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>SHOW_HIDDEN_PAGES_OPTION</td>
+	<td>//label[contains(@for,'showHiddenPages')]//span[contains(@class,"toggle-switch-bar")]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>USE_HTML_TITLE_OPTION</td>
+	<td>//label[contains(@for,'useHtmlTitle')]//span[contains(@class,"toggle-switch-bar")]</td>
+	<td></td>
+</tr>
+
+
+<tr>
+	<td>DISPLAY_TEMPLATE_MENU</td>
+	<td>//select[contains(@id,'displayStyle')]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>DISPLAY_TEMPLATE_LINK</td>
+	<td>//a[contains(@id,'selectDDMTemplate')//[contains(@class,'taglib-text')]]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>SAVE_BUTTON</td>
+	<td>//span[contains(@class='lfr-button-label',"Save")]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

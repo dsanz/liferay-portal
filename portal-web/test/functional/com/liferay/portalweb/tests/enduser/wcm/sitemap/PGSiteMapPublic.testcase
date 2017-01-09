@@ -1,0 +1,84 @@
+<definition component-name="portal-Sitemap">
+	<property name="testray.main.component.name" value="Site Map" />
+
+	<set-up>
+		<execute macro="TestCase#setUpPortalInstance" />
+
+		<execute macro="User#firstLoginPG" />
+
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Sites" />
+		</execute>
+
+		<execute macro="Site#addBlankCP">
+			<var name="siteName" value="Site Name" />
+		</execute>
+		
+		<for list="1,2,3" param="N">
+
+			<execute macro="ProductMenu#gotoControlPanelSites">
+				<var name="portlet" value="Sites" />
+			</execute>
+
+			<execute macro="Page#add">
+				<var name="page" value="Public Pages" />
+				<var name="siteName" value="Site Name" />
+				<var name="sitePageName" value="QA team Public Page ${N}" />
+			</execute>
+		
+			<for list="1,2" param="M">
+
+				<execute macro="ProductMenu#gotoControlPanelSites">
+					<var name="portlet" value="Sites" />
+				</execute>
+
+				<execute macro="Page#addChild">
+					<var name="childSitepageName" value="true" />
+					<var name="page" value="Public Pages" />
+					<var name="siteChildPageName" value="QA Child Public Page ${N}${M} "/>
+					<var name="siteName" value="Site Name" />
+					<var name="sitePageName" value="QA team Public Page ${N}" />
+				</execute>
+			</for>
+		</for>	
+	</set-up>
+
+		<tear-down>
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
+
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="PortalInstances#tearDownCP" />
+			</then>
+			<else>
+				<execute macro="Site#tearDownCP">
+				<var name="siteName" value="Site Name"/>
+			</execute>
+			</else>
+		</if>
+		</tear-down>
+
+		<command name="DisplayPublicPagesWChildrenPagesasAdm" priority="5">
+			<property name="portal.acceptance" value="true" />
+
+			<execute macro="Portlet#addPG">
+				<var name="portletName" value="Site Map"/>
+            </execute>
+
+		<for list="1,2,3" param="N">
+			<execute macro= "Portlet#viewSpecificPG">
+				<var name="portletName" value="Site Map"/>
+			</execute>
+		
+			<for list="1,2" param="M">
+				<execute macro= "SiteMapPortlet#viewDefaultPG">
+					<var name="sitePageName" value='QA team Public Page ${N}'/>
+					<var name="siteChildPageName" value="QA Child Public Page ${N}${M}"/>
+					<var name="listPageName" value="${N}"/>
+					<var name="listChildPageName" value="${M}" />				
+				</execute>
+			</for>
+		</for>	
+		</command>
+</definition>
