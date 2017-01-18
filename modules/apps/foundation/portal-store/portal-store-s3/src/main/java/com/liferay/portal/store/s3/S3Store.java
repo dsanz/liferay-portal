@@ -67,6 +67,7 @@ import java.io.InputStream;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -734,6 +735,11 @@ public class S3Store extends BaseStore {
 			upload.waitForCompletion();
 		}
 		catch (AmazonClientException ace) {
+			Calendar calendar = Calendar.getInstance();
+
+			_transferManager.abortMultipartUploads(
+				_bucketName, calendar.getTime());
+
 			throw transform(ace);
 		}
 		catch (InterruptedException ie) {
