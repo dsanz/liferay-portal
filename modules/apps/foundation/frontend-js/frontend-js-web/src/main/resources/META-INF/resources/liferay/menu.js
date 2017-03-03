@@ -122,7 +122,7 @@ AUI.add(
 
 					var alignPoints = DEFAULT_ALIGN_POINTS;
 
-					var defaultOverlayHorizontalAlign = STR_RIGHT;
+					var defaultOverlayHorizontalAlign = STR_LEFT;
 
 					var defaultTriggerHorizontalAlign = STR_LEFT;
 
@@ -133,7 +133,7 @@ AUI.add(
 					var langDir = Liferay.Language.direction[themeDisplay.getLanguageId()] || STR_LTR;
 
 					if (langDir === STR_RTL) {
-						defaultOverlayHorizontalAlign = STR_LEFT;
+						defaultOverlayHorizontalAlign = STR_RIGHT;
 						defaultTriggerHorizontalAlign = STR_RIGHT;
 
 						mapAlignHorizontalOverlay = MAP_ALIGN_HORIZONTAL_OVERLAY_RTL;
