@@ -14,11 +14,15 @@
 
 package com.liferay.taglib.aui;
 
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.taglib.aui.base.BaseFieldsetTag;
+import com.liferay.taglib.ui.IconHelpTag;
+import com.liferay.taglib.ui.MessageTag;
+import com.liferay.taglib.util.InlineUtil;
 
 import javax.portlet.PortletResponse;
 
@@ -77,6 +81,63 @@ public class FieldsetTag extends BaseFieldsetTag {
 		jspWriter.write("</div></fieldset>");
 
 		return EVAL_PAGE;
+	}
+
+	@Override
+	protected int processStartTag() throws Exception {
+		JspWriter jspWriter = pageContext.getOut();
+
+		jspWriter.write("<fieldset class=\"fieldset ");
+		jspWriter.write(GetterUtil.getString(getCssClass()));
+		jspWriter.write("\" ");
+
+		String id = getId();
+
+		if (id != null) {
+			jspWriter.write("id=\"");
+			jspWriter.write(id);
+			jspWriter.write("\" ");
+		}
+
+		jspWriter.write(
+			InlineUtil.buildDynamicAttributes(getDynamicAttributes()));
+
+		jspWriter.write(StringPool.GREATER_THAN);
+
+		String lable = getLabel();
+
+		if (lable != null) {
+			jspWriter.write(
+				"<legend class=\"fieldset-legend\"><span class=\"legend\">");
+
+			MessageTag messageTag = new MessageTag();
+
+			messageTag.setKey(lable);
+			messageTag.setLocalizeKey(getLocalizeLabel());
+
+			messageTag.doTag(pageContext);
+
+			String helpMessage = getHelpMessage();
+
+			if (helpMessage != null) {
+				IconHelpTag iconHelpTag = new IconHelpTag();
+
+				iconHelpTag.setMessage(helpMessage);
+
+				iconHelpTag.doTag(pageContext);
+			}
+
+			jspWriter.write("</span></legend>");
+		}
+
+		if (getColumn()) {
+			jspWriter.write("<div class=\"row\">");
+		}
+		else {
+			jspWriter.write("<div class=\"\">");
+		}
+
+		return EVAL_BODY_INCLUDE;
 	}
 
 	@Override

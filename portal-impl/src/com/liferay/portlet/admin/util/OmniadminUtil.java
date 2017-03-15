@@ -16,9 +16,7 @@ package com.liferay.portlet.admin.util;
 
 import com.liferay.admin.kernel.util.Omniadmin;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceTracker;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
 
 /**
  * Provides utility methods for determining if a user is a universal
@@ -37,27 +35,15 @@ import com.liferay.registry.ServiceTracker;
 public class OmniadminUtil {
 
 	public static boolean isOmniadmin(long userId) {
-		return _getInstance().isOmniadmin(userId);
+		return _omniadmin.isOmniadmin(userId);
 	}
 
 	public static boolean isOmniadmin(User user) {
-		return _getInstance().isOmniadmin(user);
+		return _omniadmin.isOmniadmin(user);
 	}
 
-	private static Omniadmin _getInstance() {
-		return _instance._serviceTracker.getService();
-	}
-
-	private OmniadminUtil() {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_serviceTracker = registry.trackServices(Omniadmin.class);
-
-		_serviceTracker.open();
-	}
-
-	private static final OmniadminUtil _instance = new OmniadminUtil();
-
-	private final ServiceTracker<?, Omniadmin> _serviceTracker;
+	private static volatile Omniadmin _omniadmin =
+		ServiceProxyFactory.newServiceTrackedInstance(
+			Omniadmin.class, OmniadminUtil.class, "_omniadmin", true);
 
 }

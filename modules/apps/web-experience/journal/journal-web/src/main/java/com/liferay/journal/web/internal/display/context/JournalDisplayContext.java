@@ -31,6 +31,7 @@ import com.liferay.journal.service.JournalArticleServiceUtil;
 import com.liferay.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.journal.service.JournalFolderServiceUtil;
 import com.liferay.journal.util.JournalConverter;
+import com.liferay.journal.util.comparator.FolderArticleArticleIdComparator;
 import com.liferay.journal.util.comparator.FolderArticleDisplayDateComparator;
 import com.liferay.journal.util.comparator.FolderArticleModifiedDateComparator;
 import com.liferay.journal.util.comparator.FolderArticleTitleComparator;
@@ -49,6 +50,7 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -56,6 +58,7 @@ import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.search.Document;
+import com.liferay.portal.kernel.search.DocumentImpl;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
@@ -68,6 +71,7 @@ import com.liferay.portal.kernel.search.SearchResultUtil;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.Summary;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -77,6 +81,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PrefsParamUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -86,9 +91,11 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -361,7 +368,7 @@ public class JournalDisplayContext {
 		return _folderId;
 	}
 
-	public String getFoldersJSON() {
+	public String getFoldersJSON() throws Exception {
 		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -403,6 +410,50 @@ public class JournalDisplayContext {
 		_keywords = ParamUtil.getString(_request, "keywords");
 
 		return _keywords;
+	}
+
+	public String getLayoutBreadcrumb(Layout layout) throws Exception {
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		Locale locale = themeDisplay.getLocale();
+
+		List<Layout> ancestors = layout.getAncestors();
+
+		StringBundler sb = new StringBundler(4 * ancestors.size() + 5);
+
+		if (layout.isPrivateLayout()) {
+			sb.append(LanguageUtil.get(_request, "private-pages"));
+		}
+		else {
+			sb.append(LanguageUtil.get(_request, "public-pages"));
+		}
+
+		sb.append(StringPool.SPACE);
+		sb.append(StringPool.GREATER_THAN);
+		sb.append(StringPool.SPACE);
+
+		Collections.reverse(ancestors);
+
+		for (Layout ancestor : ancestors) {
+			sb.append(HtmlUtil.escape(ancestor.getName(locale)));
+			sb.append(StringPool.SPACE);
+			sb.append(StringPool.GREATER_THAN);
+			sb.append(StringPool.SPACE);
+		}
+
+		sb.append(HtmlUtil.escape(layout.getName(locale)));
+
+		return sb.toString();
+	}
+
+	public JSONObject getLayoutsJSON() throws Exception {
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		jsonObject.put("private", _getLayoutsJSONObject(true));
+		jsonObject.put("public", _getLayoutsJSONObject(false));
+
+		return jsonObject;
 	}
 
 	public List<ManagementBarFilterItem> getManagementBarStatusFilterItems()
@@ -514,6 +565,21 @@ public class JournalDisplayContext {
 		}
 
 		return _orderByType;
+	}
+
+	public String[] getOrderColumns() {
+		JournalWebConfiguration journalWebConfiguration =
+			(JournalWebConfiguration)_request.getAttribute(
+				JournalWebConfiguration.class.getName());
+
+		String[] orderColumns =
+			new String[] {"display-date", "modified-date", "title"};
+
+		if (!journalWebConfiguration.journalArticleForceAutogenerateId()) {
+			orderColumns = ArrayUtil.append(orderColumns, "id");
+		}
+
+		return orderColumns;
 	}
 
 	public PortletURL getPortletURL() throws PortalException {
@@ -738,6 +804,11 @@ public class JournalDisplayContext {
 				if (Objects.equals(getOrderByCol(), "display-date")) {
 					sort = new Sort("displayDate", Sort.LONG_TYPE, orderByAsc);
 				}
+				else if (Objects.equals(getOrderByCol(), "id")) {
+					sort = new Sort(
+						DocumentImpl.getSortableFieldName(Field.ARTICLE_ID),
+						Sort.STRING_TYPE, !orderByAsc);
+				}
 				else if (Objects.equals(getOrderByCol(), "modified-date")) {
 					sort = new Sort(
 						Field.MODIFIED_DATE, Sort.LONG_TYPE, orderByAsc);
@@ -840,6 +911,10 @@ public class JournalDisplayContext {
 			if (Objects.equals(getOrderByCol(), "display-date")) {
 				folderOrderByComparator =
 					new FolderArticleDisplayDateComparator(orderByAsc);
+			}
+			else if (Objects.equals(getOrderByCol(), "id")) {
+				folderOrderByComparator = new FolderArticleArticleIdComparator(
+					orderByAsc);
 			}
 			else if (Objects.equals(getOrderByCol(), "modified-date")) {
 				folderOrderByComparator =
@@ -1169,7 +1244,9 @@ public class JournalDisplayContext {
 			portletURL.toString());
 	}
 
-	private JSONArray _getFoldersJSONArray(long groupId, long folderId) {
+	private JSONArray _getFoldersJSONArray(long groupId, long folderId)
+		throws Exception {
+
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
 		List<JournalFolder> folders = JournalFolderLocalServiceUtil.getFolders(
@@ -1178,21 +1255,91 @@ public class JournalDisplayContext {
 		for (JournalFolder folder : folders) {
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
-			JSONArray childrenJsonArray = _getFoldersJSONArray(
+			JSONArray childrenJSONArray = _getFoldersJSONArray(
 				groupId, folder.getFolderId());
 
-			if (childrenJsonArray.length() > 0) {
-				jsonObject.put("children", childrenJsonArray);
+			if (childrenJSONArray.length() > 0) {
+				jsonObject.put("children", childrenJSONArray);
 			}
 
 			jsonObject.put("icon", "folder");
 			jsonObject.put("id", folder.getFolderId());
 			jsonObject.put("name", folder.getName());
 
+			if (folder.getFolderId() == getFolderId()) {
+				jsonObject.put("selected", true);
+			}
+
 			jsonArray.put(jsonObject);
 		}
 
 		return jsonArray;
+	}
+
+	private JSONArray _getLayoutsJSONArray(
+			long groupId, boolean privateLayout, long parentLayoutId,
+			String selectedLayoutUuid)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
+
+		List<Layout> layouts = LayoutLocalServiceUtil.getLayouts(
+			groupId, privateLayout, parentLayoutId);
+
+		for (Layout layout : layouts) {
+			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+			jsonObject.put("icon", "page");
+			jsonObject.put("id", layout.getUuid());
+			jsonObject.put("name", layout.getName(themeDisplay.getLocale()));
+			jsonObject.put("value", getLayoutBreadcrumb(layout));
+
+			if (layout.getUuid().equals(selectedLayoutUuid)) {
+				jsonObject.put("expanded", true);
+				jsonObject.put("selected", true);
+			}
+
+			if (!layout.isContentDisplayPage()) {
+				jsonObject.put("disabled", true);
+			}
+
+			JSONArray childrenJSONArray = _getLayoutsJSONArray(
+				groupId, privateLayout, layout.getLayoutId(),
+				selectedLayoutUuid);
+
+			if (childrenJSONArray.length() > 0) {
+				jsonObject.put("children", childrenJSONArray);
+			}
+
+			jsonArray.put(jsonObject);
+		}
+
+		return jsonArray;
+	}
+
+	private JSONObject _getLayoutsJSONObject(boolean privateLayout)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		String layoutUuid = ParamUtil.getString(_request, "layoutUuid");
+
+		JSONArray jsonArray = _getLayoutsJSONArray(
+			themeDisplay.getScopeGroupId(), privateLayout, 0, layoutUuid);
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		jsonObject.put("children", jsonArray);
+		jsonObject.put("disabled", true);
+		jsonObject.put("expanded", true);
+		jsonObject.put("icon", "home");
+		jsonObject.put("name", themeDisplay.getScopeGroupName());
+
+		return jsonObject;
 	}
 
 	private String[] _addMenuFavItems;

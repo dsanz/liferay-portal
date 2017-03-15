@@ -3418,7 +3418,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns all the journal articles where DDMStructureKey = &#63;.
 	 *
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @return the matching journal articles
 	 */
 	@Override
@@ -3434,7 +3434,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @return the range of matching journal articles
@@ -3452,7 +3452,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -3472,7 +3472,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -3605,7 +3605,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns the first journal article in the ordered set where DDMStructureKey = &#63;.
 	 *
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -3636,7 +3636,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns the first journal article in the ordered set where DDMStructureKey = &#63;.
 	 *
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -3656,7 +3656,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns the last journal article in the ordered set where DDMStructureKey = &#63;.
 	 *
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -3687,7 +3687,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns the last journal article in the ordered set where DDMStructureKey = &#63;.
 	 *
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -3714,7 +3714,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the journal articles before and after the current journal article in the ordered set where DDMStructureKey = &#63;.
 	 *
 	 * @param id the primary key of the current journal article
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal article
 	 * @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -3878,7 +3878,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param DDMStructureKeies the d d m structure keies
+	 * @param DDMStructureKeies the ddm structure keies
 	 * @return the matching journal articles
 	 */
 	@Override
@@ -3895,7 +3895,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param DDMStructureKeies the d d m structure keies
+	 * @param DDMStructureKeies the ddm structure keies
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @return the range of matching journal articles
@@ -3913,7 +3913,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param DDMStructureKeies the d d m structure keies
+	 * @param DDMStructureKeies the ddm structure keies
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -3934,7 +3934,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -4089,7 +4089,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Removes all the journal articles where DDMStructureKey = &#63; from the database.
 	 *
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 */
 	@Override
 	public void removeByDDMStructureKey(String DDMStructureKey) {
@@ -4102,7 +4102,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns the number of journal articles where DDMStructureKey = &#63;.
 	 *
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @return the number of matching journal articles
 	 */
 	@Override
@@ -4167,7 +4167,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns the number of journal articles where DDMStructureKey = any &#63;.
 	 *
-	 * @param DDMStructureKeies the d d m structure keies
+	 * @param DDMStructureKeies the ddm structure keies
 	 * @return the number of matching journal articles
 	 */
 	@Override
@@ -4290,7 +4290,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns all the journal articles where DDMTemplateKey = &#63;.
 	 *
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @return the matching journal articles
 	 */
 	@Override
@@ -4306,7 +4306,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @return the range of matching journal articles
@@ -4324,7 +4324,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -4344,7 +4344,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -4477,7 +4477,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns the first journal article in the ordered set where DDMTemplateKey = &#63;.
 	 *
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -4508,7 +4508,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns the first journal article in the ordered set where DDMTemplateKey = &#63;.
 	 *
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -4528,7 +4528,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns the last journal article in the ordered set where DDMTemplateKey = &#63;.
 	 *
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -4559,7 +4559,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns the last journal article in the ordered set where DDMTemplateKey = &#63;.
 	 *
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -4586,7 +4586,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the journal articles before and after the current journal article in the ordered set where DDMTemplateKey = &#63;.
 	 *
 	 * @param id the primary key of the current journal article
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal article
 	 * @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -4746,7 +4746,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Removes all the journal articles where DDMTemplateKey = &#63; from the database.
 	 *
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 */
 	@Override
 	public void removeByDDMTemplateKey(String DDMTemplateKey) {
@@ -4759,7 +4759,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	/**
 	 * Returns the number of journal articles where DDMTemplateKey = &#63;.
 	 *
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @return the number of matching journal articles
 	 */
 	@Override
@@ -11664,7 +11664,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns all the journal articles where groupId = &#63; and DDMStructureKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @return the matching journal articles
 	 */
 	@Override
@@ -11682,7 +11682,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @return the range of matching journal articles
@@ -11701,7 +11701,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -11723,7 +11723,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -11862,7 +11862,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the first journal article in the ordered set where groupId = &#63; and DDMStructureKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -11898,7 +11898,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the first journal article in the ordered set where groupId = &#63; and DDMStructureKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -11920,7 +11920,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the last journal article in the ordered set where groupId = &#63; and DDMStructureKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -11956,7 +11956,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the last journal article in the ordered set where groupId = &#63; and DDMStructureKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -11985,7 +11985,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param id the primary key of the current journal article
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal article
 	 * @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -12150,7 +12150,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns all the journal articles that the user has permission to view where groupId = &#63; and DDMStructureKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @return the matching journal articles that the user has permission to view
 	 */
 	@Override
@@ -12168,7 +12168,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @return the range of matching journal articles that the user has permission to view
@@ -12187,7 +12187,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -12300,7 +12300,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param id the primary key of the current journal article
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal article
 	 * @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -12505,7 +12505,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Removes all the journal articles where groupId = &#63; and DDMStructureKey = &#63; from the database.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 */
 	@Override
 	public void removeByG_DDMSK(long groupId, String DDMStructureKey) {
@@ -12519,7 +12519,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the number of journal articles where groupId = &#63; and DDMStructureKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @return the number of matching journal articles
 	 */
 	@Override
@@ -12589,7 +12589,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the number of journal articles that the user has permission to view where groupId = &#63; and DDMStructureKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @return the number of matching journal articles that the user has permission to view
 	 */
 	@Override
@@ -12685,7 +12685,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns all the journal articles where groupId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @return the matching journal articles
 	 */
 	@Override
@@ -12703,7 +12703,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @return the range of matching journal articles
@@ -12722,7 +12722,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -12744,7 +12744,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -12883,7 +12883,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the first journal article in the ordered set where groupId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -12919,7 +12919,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the first journal article in the ordered set where groupId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -12941,7 +12941,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the last journal article in the ordered set where groupId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -12977,7 +12977,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the last journal article in the ordered set where groupId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -13006,7 +13006,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param id the primary key of the current journal article
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal article
 	 * @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -13171,7 +13171,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns all the journal articles that the user has permission to view where groupId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @return the matching journal articles that the user has permission to view
 	 */
 	@Override
@@ -13189,7 +13189,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @return the range of matching journal articles that the user has permission to view
@@ -13208,7 +13208,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -13321,7 +13321,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param id the primary key of the current journal article
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal article
 	 * @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -13526,7 +13526,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Removes all the journal articles where groupId = &#63; and DDMTemplateKey = &#63; from the database.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 */
 	@Override
 	public void removeByG_DDMTK(long groupId, String DDMTemplateKey) {
@@ -13540,7 +13540,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the number of journal articles where groupId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @return the number of matching journal articles
 	 */
 	@Override
@@ -13610,7 +13610,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the number of journal articles that the user has permission to view where groupId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @return the number of matching journal articles that the user has permission to view
 	 */
 	@Override
@@ -18827,7 +18827,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns all the journal articles where classNameId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @return the matching journal articles
 	 */
 	@Override
@@ -18845,7 +18845,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @return the range of matching journal articles
@@ -18864,7 +18864,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -18886,7 +18886,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * </p>
 	 *
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -19025,7 +19025,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the first journal article in the ordered set where classNameId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -19061,7 +19061,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the first journal article in the ordered set where classNameId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -19083,7 +19083,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the last journal article in the ordered set where classNameId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -19119,7 +19119,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the last journal article in the ordered set where classNameId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -19148,7 +19148,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param id the primary key of the current journal article
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal article
 	 * @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -19313,7 +19313,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Removes all the journal articles where classNameId = &#63; and DDMTemplateKey = &#63; from the database.
 	 *
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 */
 	@Override
 	public void removeByC_DDMTK(long classNameId, String DDMTemplateKey) {
@@ -19327,7 +19327,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * Returns the number of journal articles where classNameId = &#63; and DDMTemplateKey = &#63;.
 	 *
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @return the number of matching journal articles
 	 */
 	@Override
@@ -23407,7 +23407,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @return the matching journal articles
 	 */
 	@Override
@@ -23426,7 +23426,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @return the range of matching journal articles
@@ -23446,7 +23446,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -23469,7 +23469,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -23599,7 +23599,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -23638,7 +23638,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -23660,7 +23660,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -23699,7 +23699,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -23728,7 +23728,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * @param id the primary key of the current journal article
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal article
 	 * @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -23885,7 +23885,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @return the matching journal articles that the user has permission to view
 	 */
 	@Override
@@ -23904,7 +23904,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @return the range of matching journal articles that the user has permission to view
@@ -23924,7 +23924,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -24028,7 +24028,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * @param id the primary key of the current journal article
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal article
 	 * @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -24225,7 +24225,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 */
 	@Override
 	public void removeByG_C_C(long groupId, long classNameId, long classPK) {
@@ -24240,7 +24240,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @return the number of matching journal articles
 	 */
 	@Override
@@ -24301,7 +24301,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param classPK the class p k
+	 * @param classPK the class pk
 	 * @return the number of matching journal articles that the user has permission to view
 	 */
 	@Override
@@ -24381,7 +24381,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @return the matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
 	 */
@@ -24422,7 +24422,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @return the matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
 	@Override
@@ -24436,7 +24436,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @param retrieveFromCache whether to retrieve from the finder cache
 	 * @return the matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -24563,7 +24563,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @return the journal article that was removed
 	 */
 	@Override
@@ -24580,7 +24580,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMStructureKey the d d m structure key
+	 * @param DDMStructureKey the ddm structure key
 	 * @return the number of matching journal articles
 	 */
 	@Override
@@ -24695,7 +24695,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @return the matching journal articles
 	 */
 	@Override
@@ -24714,7 +24714,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @return the range of matching journal articles
@@ -24735,7 +24735,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -24758,7 +24758,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -24903,7 +24903,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -24943,7 +24943,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -24966,7 +24966,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article
 	 * @throws NoSuchArticleException if a matching journal article could not be found
@@ -25006,7 +25006,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	 */
@@ -25036,7 +25036,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * @param id the primary key of the current journal article
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal article
 	 * @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -25209,7 +25209,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @return the matching journal articles that the user has permission to view
 	 */
 	@Override
@@ -25228,7 +25228,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @return the range of matching journal articles that the user has permission to view
@@ -25249,7 +25249,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param start the lower bound of the range of journal articles
 	 * @param end the upper bound of the range of journal articles (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -25367,7 +25367,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 * @param id the primary key of the current journal article
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal article
 	 * @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -25580,7 +25580,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 */
 	@Override
 	public void removeByG_C_DDMTK(long groupId, long classNameId,
@@ -25597,7 +25597,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @return the number of matching journal articles
 	 */
 	@Override
@@ -25673,7 +25673,7 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 	 *
 	 * @param groupId the group ID
 	 * @param classNameId the class name ID
-	 * @param DDMTemplateKey the d d m template key
+	 * @param DDMTemplateKey the ddm template key
 	 * @return the number of matching journal articles that the user has permission to view
 	 */
 	@Override
@@ -31870,8 +31870,278 @@ public class JournalArticlePersistenceImpl extends BasePersistenceImpl<JournalAr
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (isNew || !JournalArticleModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!JournalArticleModelImpl.COLUMN_BITMASK_ENABLED) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+		else
+		 if (isNew) {
+			Object[] args = new Object[] { journalArticleModelImpl.getUuid() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_UUID,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getUuid(),
+					journalArticleModelImpl.getCompanyId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID_C, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_UUID_C,
+				args);
+
+			args = new Object[] { journalArticleModelImpl.getResourcePrimKey() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_RESOURCEPRIMKEY, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_RESOURCEPRIMKEY,
+				args);
+
+			args = new Object[] { journalArticleModelImpl.getGroupId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_GROUPID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_GROUPID,
+				args);
+
+			args = new Object[] { journalArticleModelImpl.getCompanyId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_COMPANYID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_COMPANYID,
+				args);
+
+			args = new Object[] { journalArticleModelImpl.getDDMStructureKey() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_DDMSTRUCTUREKEY, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_DDMSTRUCTUREKEY,
+				args);
+
+			args = new Object[] { journalArticleModelImpl.getDDMTemplateKey() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_DDMTEMPLATEKEY, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_DDMTEMPLATEKEY,
+				args);
+
+			args = new Object[] { journalArticleModelImpl.getLayoutUuid() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_LAYOUTUUID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_LAYOUTUUID,
+				args);
+
+			args = new Object[] { journalArticleModelImpl.getSmallImageId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_SMALLIMAGEID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_SMALLIMAGEID,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getResourcePrimKey(),
+					journalArticleModelImpl.getIndexable()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_I, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_I,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getResourcePrimKey(),
+					journalArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_ST, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_ST,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getUserId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_U, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_U,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getFolderId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_F, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_F,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getArticleId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_A, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_A,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getUrlTitle()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_UT, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_UT,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getDDMStructureKey()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_DDMSK, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_DDMSK,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getDDMTemplateKey()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_DDMTK, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_DDMTK,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getLayoutUuid()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_L, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_L,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_ST, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_ST,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getCompanyId(),
+					journalArticleModelImpl.getVersion()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_C_V, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_V,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getCompanyId(),
+					journalArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_C_ST, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_ST,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getClassNameId(),
+					journalArticleModelImpl.getDDMTemplateKey()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_C_DDMTK, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_DDMTK,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getResourcePrimKey(),
+					journalArticleModelImpl.getIndexable(),
+					journalArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_I_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_I_S,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getUserId(),
+					journalArticleModelImpl.getClassNameId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_U_C, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_U_C,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getFolderId(),
+					journalArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_F_ST, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_F_ST,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getClassNameId(),
+					journalArticleModelImpl.getClassPK()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_C_C, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_C_C,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getClassNameId(),
+					journalArticleModelImpl.getDDMTemplateKey()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_C_DDMTK, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_C_DDMTK,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getClassNameId(),
+					journalArticleModelImpl.getLayoutUuid()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_C_L, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_C_L,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getArticleId(),
+					journalArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_A_ST, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_A_ST,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getGroupId(),
+					journalArticleModelImpl.getUrlTitle(),
+					journalArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_UT_ST, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_UT_ST,
+				args);
+
+			args = new Object[] {
+					journalArticleModelImpl.getCompanyId(),
+					journalArticleModelImpl.getVersion(),
+					journalArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_C_V_ST, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_V_ST,
+				args);
+
+			finderCache.removeResult(FINDER_PATH_COUNT_ALL, FINDER_ARGS_EMPTY);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL,
+				FINDER_ARGS_EMPTY);
 		}
 
 		else {

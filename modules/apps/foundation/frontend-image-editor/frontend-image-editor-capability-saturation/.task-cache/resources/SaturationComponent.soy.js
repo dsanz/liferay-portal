@@ -1,4 +1,4 @@
-define("frontend-image-editor-capability-saturation@1.0.7/SaturationComponent.soy", ['exports', 'metal-component/src/Component', 'metal-soy/src/Soy'], function (exports, _Component2, _Soy) {
+define("frontend-image-editor-capability-saturation@1.0.8/SaturationComponent.soy", ['exports', 'metal-component/src/Component', 'metal-soy/src/Soy'], function (exports, _Component2, _Soy) {
   'use strict';
 
   Object.defineProperty(exports, "__esModule", {

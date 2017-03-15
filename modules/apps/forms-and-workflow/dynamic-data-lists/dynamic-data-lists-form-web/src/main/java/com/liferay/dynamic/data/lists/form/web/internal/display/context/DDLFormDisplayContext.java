@@ -27,6 +27,7 @@ import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayoutColumn;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayoutPage;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayoutRow;
+import com.liferay.dynamic.data.mapping.model.DDMFormSuccessPageSettings;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -35,6 +36,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
+import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -115,6 +117,14 @@ public class DDLFormDisplayContext {
 
 		return _ddmFormRenderer.render(
 			ddmForm, ddmFormLayout, ddmFormRenderingContext);
+	}
+
+	public DDMFormSuccessPageSettings getDDMFormSuccessPageSettings()
+		throws PortalException {
+
+		DDMForm ddmForm = getDDMForm();
+
+		return ddmForm.getDDMFormSuccessPageSettings();
 	}
 
 	public DDLRecordSet getRecordSet() {
@@ -206,6 +216,17 @@ public class DDLFormDisplayContext {
 		return _showConfigurationIcon;
 	}
 
+	public boolean isShowSuccessPage() throws PortalException {
+		if (SessionMessages.isEmpty(_renderRequest)) {
+			return false;
+		}
+
+		DDMFormSuccessPageSettings ddmFormSuccessPageSettings =
+			getDDMFormSuccessPageSettings();
+
+		return ddmFormSuccessPageSettings.isEnabled();
+	}
+
 	protected String createCaptchaResourceURL() {
 		ResourceURL resourceURL = _renderResponse.createResourceURL();
 
@@ -244,6 +265,14 @@ public class DDLFormDisplayContext {
 		ddmFormLayoutRow.addDDMFormLayoutColumn(ddmFormLayoutColumn);
 
 		return ddmFormLayoutRow;
+	}
+
+	protected DDMForm getDDMForm() throws PortalException {
+		DDLRecordSet recordSet = getRecordSet();
+
+		DDMStructure ddmStructure = recordSet.getDDMStructure();
+
+		return ddmStructure.getDDMForm();
 	}
 
 	protected DDMForm getDDMForm(

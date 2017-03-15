@@ -39,7 +39,6 @@ AUI.add(
 						var instance = this;
 
 						return {
-							action: 'jump-to-page',
 							source: instance._sourceField.getValue(),
 							target: instance._targetField.getValue()
 						};
@@ -48,20 +47,20 @@ AUI.add(
 					render: function() {
 						var instance = this;
 
-						var boundingBox = instance.get('boundingBox');
-
 						var strings = instance.get('strings');
 
-						instance._createLabel(strings.from);
-						instance._createSourceField().render(boundingBox);
-						instance._createLabel(strings.to);
-						instance._createTargetField().render(boundingBox);
+						var index = instance.get('index');
+
+						var fieldsListContainer = instance.get('boundingBox').one('.target-' + index);
+
+						fieldsListContainer.append(instance._createLabel(strings.from));
+						instance._createSourceField().render(fieldsListContainer);
+						fieldsListContainer.append(instance._createLabel(strings.do));
+						instance._createTargetField().render(fieldsListContainer);
 					},
 
 					_createLabel: function(text) {
 						var instance = this;
-
-						var boundingBox = instance.get('boundingBox');
 
 						var label =	A.Node.create(
 							Lang.sub(
@@ -72,7 +71,7 @@ AUI.add(
 							)
 						);
 
-						boundingBox.append(label);
+						return label;
 					},
 
 					_createSourceField: function() {
@@ -95,6 +94,7 @@ AUI.add(
 
 						instance._sourceField = new Liferay.DDM.Field.Select(
 							{
+								bubbleTargets: [instance],
 								fieldName: instance.get('index') + '-action',
 								label: Liferay.Language.get('the'),
 								options: instance.get('options'),
@@ -129,6 +129,7 @@ AUI.add(
 
 						instance._targetField = new Liferay.DDM.Field.Select(
 							{
+								bubbleTargets: [instance],
 								fieldName: instance.get('index') + '-action',
 								label: Liferay.Language.get('the'),
 								options: instance.get('options'),

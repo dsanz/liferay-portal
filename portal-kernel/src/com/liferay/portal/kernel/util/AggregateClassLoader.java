@@ -73,7 +73,7 @@ public class AggregateClassLoader extends ClassLoader {
 	}
 
 	public AggregateClassLoader(ClassLoader classLoader) {
-		_parentClassLoaderReference = new WeakReference<>(classLoader);
+		super(classLoader);
 	}
 
 	public void addClassLoader(ClassLoader classLoader) {
@@ -171,13 +171,7 @@ public class AggregateClassLoader extends ClassLoader {
 			}
 		}
 
-		ClassLoader parentClassLoader = _parentClassLoaderReference.get();
-
-		if (parentClassLoader == null) {
-			return null;
-		}
-
-		return parentClassLoader.getResource(name);
+		return super.getResource(name);
 	}
 
 	@Override
@@ -188,12 +182,7 @@ public class AggregateClassLoader extends ClassLoader {
 			urls.addAll(Collections.list(_getResources(classLoader, name)));
 		}
 
-		ClassLoader parentClassLoader = _parentClassLoaderReference.get();
-
-		if (parentClassLoader != null) {
-			urls.addAll(
-				Collections.list(_getResources(parentClassLoader, name)));
-		}
+		urls.addAll(Collections.list(_getResources(getParent(), name)));
 
 		return Collections.enumeration(urls);
 	}
@@ -238,14 +227,7 @@ public class AggregateClassLoader extends ClassLoader {
 		}
 
 		if (loadedClass == null) {
-			ClassLoader parentClassLoader = _parentClassLoaderReference.get();
-
-			if (parentClassLoader == null) {
-				throw new ClassNotFoundException(
-					"Parent class loader has been garbage collected");
-			}
-
-			loadedClass = _loadClass(parentClassLoader, name, resolve);
+			loadedClass = _loadClass(getParent(), name, resolve);
 		}
 		else if (resolve) {
 			resolveClass(loadedClass);
@@ -345,6 +327,5 @@ public class AggregateClassLoader extends ClassLoader {
 
 	private final List<EqualityWeakReference<ClassLoader>>
 		_classLoaderReferences = new ArrayList<>();
-	private final WeakReference<ClassLoader> _parentClassLoaderReference;
 
 }

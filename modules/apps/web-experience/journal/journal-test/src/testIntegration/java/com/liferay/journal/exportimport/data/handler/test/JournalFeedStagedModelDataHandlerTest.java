@@ -153,7 +153,8 @@ public class JournalFeedStagedModelDataHandlerTest
 			List<LoggingEvent> loggingEvents =
 				captureAppender.getLoggingEvents();
 
-			Assert.assertEquals(1, loggingEvents.size());
+			Assert.assertEquals(
+				loggingEvents.toString(), 1, loggingEvents.size());
 
 			LoggingEvent loggingEvent = loggingEvents.get(0);
 
@@ -180,7 +181,8 @@ public class JournalFeedStagedModelDataHandlerTest
 			List<LoggingEvent> loggingEvents =
 				captureAppender.getLoggingEvents();
 
-			Assert.assertEquals(1, loggingEvents.size());
+			Assert.assertEquals(
+				loggingEvents.toString(), 1, loggingEvents.size());
 
 			LoggingEvent loggingEvent = loggingEvents.get(0);
 
@@ -272,7 +274,9 @@ public class JournalFeedStagedModelDataHandlerTest
 		List<StagedModel> ddmStructureDependentStagedModels =
 			dependentStagedModelsMap.get(DDMStructure.class.getSimpleName());
 
-		Assert.assertEquals(1, ddmStructureDependentStagedModels.size());
+		Assert.assertEquals(
+			ddmStructureDependentStagedModels.toString(), 1,
+			ddmStructureDependentStagedModels.size());
 
 		DDMStructure ddmStructure =
 			(DDMStructure)ddmStructureDependentStagedModels.get(0);
@@ -283,7 +287,9 @@ public class JournalFeedStagedModelDataHandlerTest
 		List<StagedModel> ddmTemplateDependentStagedModels =
 			dependentStagedModelsMap.get(DDMTemplate.class.getSimpleName());
 
-		Assert.assertEquals(2, ddmTemplateDependentStagedModels.size());
+		Assert.assertEquals(
+			ddmTemplateDependentStagedModels.toString(), 2,
+			ddmTemplateDependentStagedModels.size());
 
 		for (StagedModel ddmTemplateDependentStagedModel :
 				ddmTemplateDependentStagedModels) {

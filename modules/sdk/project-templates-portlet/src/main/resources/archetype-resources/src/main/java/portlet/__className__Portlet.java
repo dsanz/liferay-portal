@@ -1,5 +1,7 @@
 package ${package}.portlet;
 
+import ${package}.constants.${className}PortletKeys;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -20,6 +22,7 @@ import org.osgi.service.component.annotations.Component;
 		"com.liferay.portlet.display-category=category.sample",
 		"com.liferay.portlet.instanceable=true",
 		"javax.portlet.display-name=${artifactId} Portlet",
+		"javax.portlet.name=" + ${className}PortletKeys.${className},
 		"javax.portlet.security-role-ref=power-user,user"
 	},
 	service = Portlet.class

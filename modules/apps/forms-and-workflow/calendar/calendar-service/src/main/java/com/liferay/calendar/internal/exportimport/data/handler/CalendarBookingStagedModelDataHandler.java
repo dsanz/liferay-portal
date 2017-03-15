@@ -189,6 +189,14 @@ public class CalendarBookingStagedModelDataHandler
 				calendarBooking.getParentCalendarBookingId());
 		}
 
+		long recurringCalendarBookingId =
+			CalendarBookingConstants.RECURRING_CALENDAR_BOOKING_ID_DEFAULT;
+
+		if (!calendarBooking.isMasterRecurringBooking()) {
+			recurringCalendarBookingId =
+				calendarBooking.getRecurringCalendarBookingId();
+		}
+
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
 			calendarBooking);
 
@@ -206,8 +214,7 @@ public class CalendarBookingStagedModelDataHandler
 				importedCalendarBooking =
 					_calendarBookingLocalService.addCalendarBooking(
 						userId, calendarId, new long[0],
-						parentCalendarBookingId,
-						calendarBooking.getRecurringCalendarBookingId(),
+						parentCalendarBookingId, recurringCalendarBookingId,
 						calendarBooking.getTitleMap(),
 						calendarBooking.getDescriptionMap(),
 						calendarBooking.getLocation(),
@@ -243,8 +250,7 @@ public class CalendarBookingStagedModelDataHandler
 			importedCalendarBooking =
 				_calendarBookingLocalService.addCalendarBooking(
 					userId, calendarId, new long[0], parentCalendarBookingId,
-					calendarBooking.getRecurringCalendarBookingId(),
-					calendarBooking.getTitleMap(),
+					recurringCalendarBookingId, calendarBooking.getTitleMap(),
 					calendarBooking.getDescriptionMap(),
 					calendarBooking.getLocation(),
 					calendarBooking.getStartTime(),

@@ -401,7 +401,7 @@ public class WorkflowDefinitionManagerTest {
 		ClassLoader classLoader = clazz.getClassLoader();
 
 		return classLoader.getResourceAsStream(
-			"com/liferay/portal/workflow/kaleo/runtime/dependencies/" + name);
+			"com/liferay/portal/workflow/kaleo/dependencies/" + name);
 	}
 
 	private BundleContext _bundleContext;

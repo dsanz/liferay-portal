@@ -133,13 +133,19 @@ public class DownloadFilesHandler extends BaseHandler {
 					break;
 				}
 
-				DownloadFileHandler downloadFileHandler = handlers.remove(
+				DownloadFileHandler downloadFileHandler = handlers.get(
 					zipEntryName);
+
+				if (downloadFileHandler == null) {
+					continue;
+				}
 
 				SyncFile syncFile =
 					(SyncFile)downloadFileHandler.getParameterValue("syncFile");
 
 				if (downloadFileHandler.isUnsynced(syncFile)) {
+					handlers.remove(zipEntryName);
+
 					continue;
 				}
 
@@ -166,6 +172,8 @@ public class DownloadFilesHandler extends BaseHandler {
 					}
 				}
 				finally {
+					handlers.remove(zipEntryName);
+
 					downloadFileHandler.removeEvent();
 				}
 			}

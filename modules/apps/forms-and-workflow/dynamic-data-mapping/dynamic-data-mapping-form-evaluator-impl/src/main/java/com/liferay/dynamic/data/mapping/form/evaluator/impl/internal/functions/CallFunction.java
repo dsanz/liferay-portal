@@ -430,6 +430,12 @@ public class CallFunction extends BaseDDMFormRuleFunction {
 
 			options.add(keyValuePair);
 		}
+
+		if (options.size() == 1) {
+			KeyValuePair keyValuePair = options.get(0);
+
+			ddmFormFieldEvaluationResult.setValue(keyValuePair.getValue());
+		}
 	}
 
 	protected void setDDMFormFieldValue(

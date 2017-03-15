@@ -16,7 +16,9 @@ package com.liferay.dynamic.data.mapping.form.renderer;
 
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,6 +27,10 @@ import javax.servlet.http.HttpServletResponse;
  * @author Marcellus Tavares
  */
 public class DDMFormRenderingContext {
+
+	public void addProperty(String key, Object value) {
+		_properties.put(key, value);
+	}
 
 	public String getContainerId() {
 		return _containerId;
@@ -48,6 +54,10 @@ public class DDMFormRenderingContext {
 
 	public String getPortletNamespace() {
 		return _portletNamespace;
+	}
+
+	public <T> T getProperty(String key) {
+		return (T)_properties.get(key);
 	}
 
 	public String getSubmitLabel() {
@@ -116,6 +126,7 @@ public class DDMFormRenderingContext {
 	private HttpServletResponse _httpServletResponse;
 	private Locale _locale;
 	private String _portletNamespace;
+	private final Map<String, Object> _properties = new HashMap<>();
 	private boolean _readOnly;
 	private boolean _showRequiredFieldsWarning = true;
 	private boolean _showSubmitButton;

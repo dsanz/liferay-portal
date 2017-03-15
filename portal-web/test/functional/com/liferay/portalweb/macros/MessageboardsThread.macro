@@ -679,7 +679,7 @@
 			</else>
 		</if>
 
-		<execute function="Type#typeEditor" locator1="AlloyEditor#CONTENT_FIELD" value1="${threadReplyBody}" />
+		<execute function="Type#typeEditor" locator1="MessageBoardsThread#THREAD_REPLY_EDITOR" value1="${threadReplyBody}" />
 
 		<if>
 			<equals arg1="${anonymous}" arg2="true" />
@@ -688,23 +688,7 @@
 			</then>
 		</if>
 
-		<if>
-			<isset var="mbThreadAttachment" />
-			<then>
-				<execute function="AssertClick" locator1="Button#ADVANCED_REPLY" value1="Advanced Reply" />
-
-				<if>
-					<condition function="IsNotVisible" locator1="MessageBoardsEditMessage#ATTACHMENTS_FILE_FIELD_1" />
-					<then>
-						<execute function="AssertClick" locator1="Panel#ENTRY_ATTACHMENTS" value1="Attachments" />
-					</then>
-				</if>
-
-				<execute function="UploadCommonFile" locator1="MessageBoardsEditMessage#ATTACHMENTS_FILE_FIELD_1" value1="${mbThreadAttachment}" />
-			</then>
-		</if>
-
-		<execute function="Click" locator1="Button#PUBLISH" />
+		<execute function="Click" locator1="MessageBoardsThread#THREAD_PUBLISH_BUTTON" />
 
 		<execute macro="Alert#viewSuccessMessage" />
 
@@ -716,6 +700,31 @@
 				</execute>
 			</then>
 		</if>
+	</command>
+
+	<command name="replyWithAttachmentPG">
+		<var name="key_threadSubject" value="${threadSubject}" />
+
+		<execute function="AssertClick" locator1="MessageBoards#THREAD_LIST_THREAD" value1="${threadSubject}" />
+
+		<execute function="AssertClick" locator1="MessageBoardsThread#THREAD_REPLY_BUTTON" value1="Reply to Main Thread" />
+
+		<execute function="Type#typeEditor" locator1="MessageBoardsThread#THREAD_REPLY_EDITOR" value1="${threadReplyBody}" />
+
+		<execute function="AssertClick" locator1="Button#ADVANCED_REPLY" value1="Advanced Reply" />
+
+		<if>
+			<condition function="IsNotVisible" locator1="MessageBoardsEditMessage#ATTACHMENTS_FILE_FIELD_1" />
+			<then>
+				<execute function="AssertClick" locator1="Panel#ENTRY_ATTACHMENTS" value1="Attachments" />
+			</then>
+		</if>
+
+		<execute function="UploadCommonFile" locator1="MessageBoardsEditMessage#ATTACHMENTS_FILE_FIELD_1" value1="${mbThreadAttachment}" />
+
+		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
+
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="replyWithQuotePG">

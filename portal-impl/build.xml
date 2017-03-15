@@ -477,6 +477,10 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 	</target>
 
 	<target name="build-yui-compressor-jar">
+		<setup-libs />
+
+		<taskdef classname="com.tonicsystems.jarjar.JarJarTask" classpath="${project.dir}/lib/development/jarjar.jar" name="jarjar" />
+
 		<jarjar jarfile="${project.dir}/lib/portal/liferay-yui-compressor.jar.new">
 			<rule pattern="org.mozilla.**" result="com.yahoo.platform.yui.mozilla.@1" />
 			<zipfileset src="${project.dir}/tools/yuicompressor-2.4.7.jar" />
@@ -580,9 +584,11 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 			<arg value="include.subrepositories=${source.formatter.include.subrepositories}" />
 			<arg value="max.line.length=${source.formatter.max.line.length}" />
 			<arg value="processor.thread.count=${source.formatter.processor.thread.count}" />
+			<arg value="show.documentation=${source.formatter.show.documentation}" />
 			<arg value="source.auto.fix=${source.auto.fix}" />
 			<arg value="source.base.dir=${source.base.dir}" />
 			<arg value="source.copyright.file=${source.copyright.file}" />
+			<arg value="source.file.extensions=${source.file.extensions}" />
 			<arg value="source.files=${source.files}" />
 			<arg value="source.print.errors=${source.print.errors}" />
 			<arg value="source.throw.exception=${source.throw.exception}" />
@@ -590,6 +596,12 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 		</java>
 
 		<delete file="ServiceBuilder.temp" />
+	</target>
+
+	<target name="format-source-bnd">
+		<antcall target="format-source">
+			<param name="source.file.extensions" value="bnd,gradle" />
+		</antcall>
 	</target>
 
 	<target name="format-source-current-branch">

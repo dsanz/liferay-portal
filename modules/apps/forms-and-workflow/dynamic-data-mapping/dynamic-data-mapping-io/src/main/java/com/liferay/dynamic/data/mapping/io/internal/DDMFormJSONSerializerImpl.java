@@ -24,6 +24,7 @@ import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
 import com.liferay.dynamic.data.mapping.model.DDMFormRule;
+import com.liferay.dynamic.data.mapping.model.DDMFormSuccessPageSettings;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -55,6 +56,8 @@ public class DDMFormJSONSerializerImpl implements DDMFormJSONSerializer {
 		addDefaultLanguageId(jsonObject, ddmForm.getDefaultLocale());
 		addFields(jsonObject, ddmForm.getDDMFormFields());
 		addRules(jsonObject, ddmForm.getDDMFormRules());
+		addSuccessPageSettings(
+			jsonObject, ddmForm.getDDMFormSuccessPageSettings());
 
 		return jsonObject.toString();
 	}
@@ -141,6 +144,13 @@ public class DDMFormJSONSerializerImpl implements DDMFormJSONSerializer {
 		}
 
 		jsonObject.put("rules", rulesToJSONArray(ddmFormRules));
+	}
+
+	protected void addSuccessPageSettings(
+		JSONObject jsonObject,
+		DDMFormSuccessPageSettings ddmFormSuccessPageSettings) {
+
+		jsonObject.put("successPage", toJSONObject(ddmFormSuccessPageSettings));
 	}
 
 	protected JSONArray fieldsToJSONArray(List<DDMFormField> ddmFormFields) {
@@ -281,6 +291,18 @@ public class DDMFormJSONSerializerImpl implements DDMFormJSONSerializer {
 			"actions", ruleActionsToJSONArray(ddmFormRule.getActions()));
 		jsonObject.put("condition", ddmFormRule.getCondition());
 		jsonObject.put("enabled", ddmFormRule.isEnabled());
+
+		return jsonObject;
+	}
+
+	protected JSONObject toJSONObject(
+		DDMFormSuccessPageSettings ddmFormSuccessPageSettings) {
+
+		JSONObject jsonObject = _jsonFactory.createJSONObject();
+
+		jsonObject.put("body", ddmFormSuccessPageSettings.getBody());
+		jsonObject.put("enabled", ddmFormSuccessPageSettings.isEnabled());
+		jsonObject.put("title", ddmFormSuccessPageSettings.getTitle());
 
 		return jsonObject;
 	}

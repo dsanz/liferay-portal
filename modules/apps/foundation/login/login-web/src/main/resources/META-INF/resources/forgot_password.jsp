@@ -167,4 +167,4 @@ if (reminderAttempts == null) {
 	</aui:fieldset>
 </aui:form>
 
-<liferay-util:include page="/navigation.jsp" servletContext="<%= application %>" />
+<%@ include file="/navigation.jspf" %>

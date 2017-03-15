@@ -738,6 +738,14 @@ public class DDMStructureLocalServiceWrapper implements DDMStructureLocalService
 			andOperator);
 	}
 
+	@Override
+	public int searchCount(long companyId, long[] groupIds, long classNameId,
+		long classPK, java.lang.String keywords)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _ddmStructureLocalService.searchCount(companyId, groupIds,
+			classNameId, classPK, keywords);
+	}
+
 	/**
 	* Returns the OSGi service identifier.
 	*
@@ -1121,6 +1129,40 @@ public class DDMStructureLocalServiceWrapper implements DDMStructureLocalService
 	}
 
 	/**
+	* Returns an ordered range of all the structures matching the group,
+	* class name ID, name, and description.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end -
+	* start</code> instances. <code>start</code> and <code>end</code> are not
+	* primary keys, they are indexes in the result set. Thus, <code>0</code>
+	* refers to the first result in the set. Setting both <code>start</code>
+	* and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full
+	* result set.
+	* </p>
+	*
+	* @param groupIds the primary keys of the groups
+	* @param classNameId the primary key of the class name for the structure's
+	related model
+	* @param name the name keywords
+	* @param description the description keywords
+	* @param start the lower bound of the range of structures to return
+	* @param end the upper bound of the range of structures to return (not
+	inclusive)
+	* @param orderByComparator the comparator to order the structures
+	(optionally <code>null</code>)
+	* @return the range of matching structures ordered by the comparator
+	*/
+	@Override
+	public java.util.List<com.liferay.dynamic.data.mapping.model.DDMStructure> getStructures(
+		long[] groupIds, long classNameId, java.lang.String name,
+		java.lang.String description, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.mapping.model.DDMStructure> orderByComparator) {
+		return _ddmStructureLocalService.getStructures(groupIds, classNameId,
+			name, description, start, end, orderByComparator);
+	}
+
+	/**
 	* Returns an ordered range of all the structures matching the groups and
 	* class name IDs, and matching the keywords in the structure names and
 	* descriptions.
@@ -1198,6 +1240,16 @@ public class DDMStructureLocalServiceWrapper implements DDMStructureLocalService
 		return _ddmStructureLocalService.search(companyId, groupIds,
 			classNameId, name, description, storageType, type, status,
 			andOperator, start, end, orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.dynamic.data.mapping.model.DDMStructure> search(
+		long companyId, long[] groupIds, long classNameId, long classPK,
+		java.lang.String keywords, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.mapping.model.DDMStructure> orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _ddmStructureLocalService.search(companyId, groupIds,
+			classNameId, classPK, keywords, start, end, orderByComparator);
 	}
 
 	/**

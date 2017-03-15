@@ -23,6 +23,10 @@ import com.liferay.sync.engine.service.SyncWatchEventService;
 import com.liferay.sync.engine.util.FileUtil;
 import com.liferay.sync.engine.util.test.SyncSiteTestUtil;
 
+import java.io.IOException;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import java.util.Collections;
@@ -72,7 +76,7 @@ public class SyncSiteWatchEventListenerTest extends BaseTestCase {
 	}
 
 	@Test
-	public void testWatchEvent1() {
+	public void testSyncWatchEventTypeCreate() {
 		SyncSiteWatchEventListener syncSiteWatchEventListener =
 			new SyncSiteWatchEventListener(syncAccount.getSyncAccountId());
 
@@ -99,7 +103,7 @@ public class SyncSiteWatchEventListenerTest extends BaseTestCase {
 	}
 
 	@Test
-	public void testWatchEvent2() {
+	public void testSyncWatchEventTypeMove() {
 		SyncSiteWatchEventListener syncSiteWatchEventListener =
 			new SyncSiteWatchEventListener(syncAccount.getSyncAccountId());
 
@@ -122,6 +126,42 @@ public class SyncSiteWatchEventListenerTest extends BaseTestCase {
 
 		Assert.assertEquals(
 			SyncWatchEvent.EVENT_TYPE_MOVE, lastSyncWatchEvent.getEventType());
+	}
+
+	@Test
+	public void testSyncWatchEventTypeRename() throws IOException {
+		SyncSiteWatchEventListener syncSiteWatchEventListener =
+			new SyncSiteWatchEventListener(syncAccount.getSyncAccountId());
+
+		String sourceFilePathName = FileUtil.getFilePathName(
+			filePathName, "test-site1", "a");
+
+		Path sourceFilePath = Files.createDirectory(
+			Paths.get(sourceFilePathName));
+
+		syncSiteWatchEventListener.watchEvent(
+			SyncWatchEvent.EVENT_TYPE_RENAME_FROM, sourceFilePath);
+
+		String targetFilePathName = FileUtil.getFilePathName(
+			filePathName, "test-site1", "A");
+
+		Path targetFilePath = Paths.get(targetFilePathName);
+
+		Files.move(sourceFilePath, targetFilePath);
+
+		syncSiteWatchEventListener.watchEvent(
+			SyncWatchEvent.EVENT_TYPE_RENAME_TO, targetFilePath);
+
+		SyncWatchEvent lastSyncWatchEvent =
+			SyncWatchEventService.getLastSyncWatchEvent(
+				syncAccount.getSyncAccountId());
+
+		Assert.assertEquals(
+			SyncWatchEvent.EVENT_TYPE_RENAME,
+			lastSyncWatchEvent.getEventType());
+
+		Files.deleteIfExists(targetFilePath);
+		Files.deleteIfExists(sourceFilePath);
 	}
 
 	private static SyncSite _syncSite1;

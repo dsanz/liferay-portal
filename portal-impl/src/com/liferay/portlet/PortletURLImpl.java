@@ -505,7 +505,7 @@ public class PortletURLImpl
 			throw new IllegalArgumentException();
 		}
 
-		if (value == null) {
+		if ((value == null) || value.isEmpty()) {
 			removeParameter(name);
 
 			return;

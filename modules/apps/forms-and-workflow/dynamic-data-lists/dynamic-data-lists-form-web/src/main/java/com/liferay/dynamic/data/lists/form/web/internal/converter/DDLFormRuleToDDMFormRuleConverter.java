@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.lang.math.NumberUtils;
+
 import org.osgi.service.component.annotations.Component;
 
 /**
@@ -105,7 +107,13 @@ public class DDLFormRuleToDDMFormRuleConverter {
 				StringUtil.quote(operand.getValue()));
 		}
 
-		return StringUtil.quote(operand.getValue());
+		String value = operand.getValue();
+
+		if (NumberUtils.isNumber(value)) {
+			return value;
+		}
+
+		return StringUtil.quote(value);
 	}
 
 	protected String convertOperands(
@@ -147,10 +155,13 @@ public class DDLFormRuleToDDMFormRuleConverter {
 	private static final Map<String, String> _operatorMap = new HashMap<>();
 
 	static {
+		_operatorFunctionNameMap.put("belongs-to", "belongsTo");
 		_operatorFunctionNameMap.put("contains", "contains");
 		_operatorFunctionNameMap.put("equals-to", "equals");
+		_operatorFunctionNameMap.put("is-empty", "isEmpty");
 		_operatorFunctionNameMap.put("not-contains", "contains");
 		_operatorFunctionNameMap.put("not-equals-to", "equals");
+		_operatorFunctionNameMap.put("not-is-empty", "isEmpty");
 
 		_operatorMap.put("greater-than", ">");
 		_operatorMap.put("greater-than-equals", ">=");

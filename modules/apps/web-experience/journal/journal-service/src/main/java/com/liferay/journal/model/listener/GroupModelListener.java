@@ -14,11 +14,12 @@
 
 package com.liferay.journal.model.listener;
 
+import com.liferay.journal.model.JournalArticle;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ModelListener;
-import com.liferay.portal.kernel.service.SubscriptionLocalService;
+import com.liferay.subscription.service.SubscriptionLocalService;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -31,15 +32,26 @@ public class GroupModelListener extends BaseModelListener<Group> {
 
 	@Override
 	public void onBeforeRemove(Group group) throws ModelListenerException {
+		try {
+			_subscriptionLocalService.deleteSubscriptions(
+				group.getCompanyId(), JournalArticle.class.getName(),
+				group.getGroupId());
+		}
+		catch (Exception e) {
+			throw new ModelListenerException(e);
+		}
 	}
 
-	@Reference(unbind = "-")
+	/**
+	 * @deprecated As of 4.0.0, with no direct replacement
+	 */
+	@Deprecated
 	protected void setSubscriptionLocalService(
-		SubscriptionLocalService subscriptionLocalService) {
-
-		_subscriptionLocalService = subscriptionLocalService;
+		com.liferay.portal.kernel.service.SubscriptionLocalService
+			subscriptionLocalService) {
 	}
 
+	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;
 
 }

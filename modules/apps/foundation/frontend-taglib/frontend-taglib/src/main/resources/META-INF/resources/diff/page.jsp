@@ -29,10 +29,10 @@ List<DiffResult> targetResults = diffResults[1];
 	<c:when test="<%= !sourceResults.isEmpty() %>">
 		<table class="table table-bordered table-hover table-striped" id="taglib-diff-results">
 			<tr>
-				<td class="table-cell">
+				<td>
 					<%= HtmlUtil.escape(sourceName) %>
 				</td>
-				<td class="table-cell">
+				<td>
 					<%= HtmlUtil.escape(targetName) %>
 				</td>
 			</tr>
@@ -52,7 +52,7 @@ List<DiffResult> targetResults = diffResults[1];
 					</th>
 				</tr>
 				<tr>
-					<td class="table-cell" width="50%">
+					<td width="50%">
 						<table class="taglib-diff-table">
 
 							<%

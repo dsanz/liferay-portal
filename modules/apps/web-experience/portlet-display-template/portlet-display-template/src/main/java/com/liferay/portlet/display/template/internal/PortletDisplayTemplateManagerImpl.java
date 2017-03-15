@@ -15,8 +15,7 @@
 package com.liferay.portlet.display.template.internal;
 
 import com.liferay.dynamic.data.mapping.kernel.DDMTemplate;
-import com.liferay.dynamic.data.mapping.kernel.DDMTemplateManager;
-import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.petra.model.adapter.util.ModelAdapterUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portletdisplaytemplate.PortletDisplayTemplateManager;
@@ -52,19 +51,7 @@ public class PortletDisplayTemplateManagerImpl
 			return null;
 		}
 
-		try {
-			return _ddmTemplateManager.getTemplate(ddmTemplate.getTemplateId());
-		}
-		catch (PortalException pe) {
-
-			// LPS-52675
-
-			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
-			}
-		}
-
-		return null;
+		return ModelAdapterUtil.adapt(DDMTemplate.class, ddmTemplate);
 	}
 
 	@Override
@@ -82,19 +69,27 @@ public class PortletDisplayTemplateManagerImpl
 	@Override
 	public String renderDDMTemplate(
 			HttpServletRequest request, HttpServletResponse response,
+			DDMTemplate ddmTemplate, List<?> entries,
+			Map<String, Object> contextObjects)
+		throws Exception {
+
+		return _portletDisplayTemplate.renderDDMTemplate(
+			request, response,
+			ModelAdapterUtil.adapt(
+				com.liferay.dynamic.data.mapping.model.DDMTemplate.class,
+				ddmTemplate),
+			entries, contextObjects);
+	}
+
+	@Override
+	public String renderDDMTemplate(
+			HttpServletRequest request, HttpServletResponse response,
 			long templateId, List<?> entries,
 			Map<String, Object> contextObjects)
 		throws Exception {
 
 		return _portletDisplayTemplate.renderDDMTemplate(
 			request, response, templateId, entries, contextObjects);
-	}
-
-	@Reference(unbind = "-")
-	protected void setDDMTemplateManager(
-		DDMTemplateManager ddmTemplateManager) {
-
-		_ddmTemplateManager = ddmTemplateManager;
 	}
 
 	@Reference(unbind = "-")
@@ -107,7 +102,6 @@ public class PortletDisplayTemplateManagerImpl
 	private static final Log _log = LogFactoryUtil.getLog(
 		PortletDisplayTemplateManagerImpl.class);
 
-	private DDMTemplateManager _ddmTemplateManager;
 	private PortletDisplayTemplate _portletDisplayTemplate;
 
 }

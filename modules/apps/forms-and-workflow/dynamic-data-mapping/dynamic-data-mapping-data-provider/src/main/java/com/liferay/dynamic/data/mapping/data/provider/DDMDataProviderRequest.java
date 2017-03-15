@@ -29,6 +29,24 @@ public class DDMDataProviderRequest {
 		return _ddmDataProviderContext;
 	}
 
+	public int getPaginationEnd() {
+		return _paginationEnd;
+	}
+
+	public int getPaginationStart() {
+		return _paginationStart;
+	}
+
+	public void setPaginationEnd(int paginationEnd) {
+		_paginationEnd = paginationEnd;
+	}
+
+	public void setPaginationStart(int paginationStart) {
+		_paginationStart = paginationStart;
+	}
+
 	private final DDMDataProviderContext _ddmDataProviderContext;
+	private int _paginationEnd;
+	private int _paginationStart;
 
 }

@@ -661,9 +661,9 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* Returns the d d m structure key of this journal article.
+	* Returns the ddm structure key of this journal article.
 	*
-	* @return the d d m structure key of this journal article
+	* @return the ddm structure key of this journal article
 	*/
 	@Override
 	public java.lang.String getDDMStructureKey() {
@@ -671,9 +671,9 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* Returns the d d m template key of this journal article.
+	* Returns the ddm template key of this journal article.
 	*
-	* @return the d d m template key of this journal article
+	* @return the ddm template key of this journal article
 	*/
 	@Override
 	public java.lang.String getDDMTemplateKey() {
@@ -757,9 +757,9 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* Returns the small image u r l of this journal article.
+	* Returns the small image url of this journal article.
 	*
-	* @return the small image u r l of this journal article
+	* @return the small image url of this journal article
 	*/
 	@Override
 	public java.lang.String getSmallImageURL() {
@@ -1016,9 +1016,9 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* Returns the class p k of this journal article.
+	* Returns the class pk of this journal article.
 	*
-	* @return the class p k of this journal article
+	* @return the class pk of this journal article
 	*/
 	@Override
 	public long getClassPK() {
@@ -1166,9 +1166,9 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* Sets the class p k of this journal article.
+	* Sets the class pk of this journal article.
 	*
-	* @param classPK the class p k of this journal article
+	* @param classPK the class pk of this journal article
 	*/
 	@Override
 	public void setClassPK(long classPK) {
@@ -1206,9 +1206,9 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* Sets the d d m structure key of this journal article.
+	* Sets the ddm structure key of this journal article.
 	*
-	* @param DDMStructureKey the d d m structure key of this journal article
+	* @param DDMStructureKey the ddm structure key of this journal article
 	*/
 	@Override
 	public void setDDMStructureKey(java.lang.String DDMStructureKey) {
@@ -1216,9 +1216,9 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* Sets the d d m template key of this journal article.
+	* Sets the ddm template key of this journal article.
 	*
-	* @param DDMTemplateKey the d d m template key of this journal article
+	* @param DDMTemplateKey the ddm template key of this journal article
 	*/
 	@Override
 	public void setDDMTemplateKey(java.lang.String DDMTemplateKey) {
@@ -1432,9 +1432,9 @@ public class JournalArticleWrapper implements JournalArticle,
 	}
 
 	/**
-	* Sets the small image u r l of this journal article.
+	* Sets the small image url of this journal article.
 	*
-	* @param smallImageURL the small image u r l of this journal article
+	* @param smallImageURL the small image url of this journal article
 	*/
 	@Override
 	public void setSmallImageURL(java.lang.String smallImageURL) {

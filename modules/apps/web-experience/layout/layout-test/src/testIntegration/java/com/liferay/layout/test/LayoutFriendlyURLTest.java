@@ -172,7 +172,9 @@ public class LayoutFriendlyURLTest {
 			List<Exception> layoutFriendlyURLExceptions =
 				ListUtil.fromCollection(localizedExceptionsMap.values());
 
-			Assert.assertEquals(1, layoutFriendlyURLExceptions.size());
+			Assert.assertEquals(
+				layoutFriendlyURLExceptions.toString(), 1,
+				layoutFriendlyURLExceptions.size());
 
 			LayoutFriendlyURLException layoutFriendlyURLException =
 				(LayoutFriendlyURLException)layoutFriendlyURLExceptions.get(0);
@@ -197,7 +199,9 @@ public class LayoutFriendlyURLTest {
 			List<Exception> layoutFriendlyURLExceptions =
 				ListUtil.fromCollection(localizedExceptionsMap.values());
 
-			Assert.assertEquals(1, layoutFriendlyURLExceptions.size());
+			Assert.assertEquals(
+				layoutFriendlyURLExceptions.toString(), 1,
+				layoutFriendlyURLExceptions.size());
 
 			LayoutFriendlyURLException layoutFriendlyURLException =
 				(LayoutFriendlyURLException)layoutFriendlyURLExceptions.get(0);
@@ -222,7 +226,9 @@ public class LayoutFriendlyURLTest {
 			List<Exception> layoutFriendlyURLExceptions =
 				ListUtil.fromCollection(localizedExceptionsMap.values());
 
-			Assert.assertEquals(1, layoutFriendlyURLExceptions.size());
+			Assert.assertEquals(
+				layoutFriendlyURLExceptions.toString(), 1,
+				layoutFriendlyURLExceptions.size());
 
 			LayoutFriendlyURLException layoutFriendlyURLException =
 				(LayoutFriendlyURLException)layoutFriendlyURLExceptions.get(0);
@@ -247,7 +253,9 @@ public class LayoutFriendlyURLTest {
 			List<Exception> layoutFriendlyURLExceptions =
 				ListUtil.fromCollection(localizedExceptionsMap.values());
 
-			Assert.assertEquals(1, layoutFriendlyURLExceptions.size());
+			Assert.assertEquals(
+				layoutFriendlyURLExceptions.toString(), 1,
+				layoutFriendlyURLExceptions.size());
 
 			LayoutFriendlyURLException layoutFriendlyURLException =
 				(LayoutFriendlyURLException)layoutFriendlyURLExceptions.get(0);
@@ -292,8 +300,7 @@ public class LayoutFriendlyURLTest {
 	}
 
 	@Test(expected = LayoutFriendlyURLsException.class)
-	public void
-			testInvalidFriendlyURLStartingWithLowerCaseLanguageIdAndCountryId()
+	public void testInvalidFriendlyURLStartingWithLowerCaseLanguageIdAndCountryId()
 		throws Exception {
 
 		Map<Locale, String> friendlyURLMap = new HashMap<>();
@@ -320,7 +327,9 @@ public class LayoutFriendlyURLTest {
 			List<Exception> layoutFriendlyURLExceptions =
 				ListUtil.fromCollection(localizedExceptionsMap.values());
 
-			Assert.assertEquals(2, layoutFriendlyURLExceptions.size());
+			Assert.assertEquals(
+				layoutFriendlyURLExceptions.toString(), 2,
+				layoutFriendlyURLExceptions.size());
 
 			for (Exception e : layoutFriendlyURLExceptions) {
 				String keywordsConflict =

@@ -63,8 +63,9 @@ public class JUnitBridgeAuxiliaryArchiveAppender
 		osgiManifestBuilder.addImportPackages(
 			"org.junit.internal", "org.junit.internal.runners",
 			"org.junit.internal.runners.statements",
-			"org.junit.internal.runners.model", "org.junit.runners",
-			"org.junit.runners.model", "org.junit.runner.notification");
+			"org.junit.internal.runners.model", "org.junit.rules",
+			"org.junit.runners", "org.junit.runners.model",
+			"org.junit.runner.notification");
 
 		javaArchive.add(
 			new ByteArrayAsset(osgiManifestBuilder.openStream()),

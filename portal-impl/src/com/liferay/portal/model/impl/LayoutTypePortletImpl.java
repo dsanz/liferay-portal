@@ -1335,10 +1335,7 @@ public class LayoutTypePortletImpl
 				return null;
 			}
 
-			if ((PortletConstants.hasInstanceId(portletId) ||
-				 portlet.isPreferencesUniquePerLayout()) &&
-				hasUserPreferences()) {
-
+			if (hasUserPreferences()) {
 				portletId = PortletConstants.assemblePortletId(
 					portletId, userId);
 			}

@@ -498,7 +498,7 @@ public class JournalArticleIndexer
 			articleId = TrashUtil.getOriginalTitle(articleId);
 		}
 
-		document.addKeyword(Field.ARTICLE_ID, articleId);
+		document.addKeywordSortable(Field.ARTICLE_ID, articleId);
 
 		document.addKeyword(Field.LAYOUT_UUID, journalArticle.getLayoutUuid());
 		document.addKeyword(

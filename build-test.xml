@@ -1567,13 +1567,13 @@ jdbc.counter.connectionProperties=oracle.jdbc.ReadTimeout=0;oracle.net.CONNECT_T
 			<echo file="${liferay.home}/osgi/portal/com.liferay.portal.search.elasticsearch.configuration.ElasticsearchConfiguration.cfg">
 				additionalConfigurations=\
 					cluster.routing.allocation.disk.threshold_enabled: false\n\
-					cluster.service.slow_task_logging_threshold: 600s\n\
+					cluster.service.slow_task_logging_threshold: 1800s\n\
 					httpEnabled: false\n\
-					index.indexing.slowlog.threshold.index.warn: 600s\n\
-					index.search.slowlog.threshold.fetch.warn: 600s\n\
-					index.search.slowlog.threshold.query.warn: 600s\n\
-					monitor.jvm.gc.old.warn: 600s\n\
-					monitor.jvm.gc.young.warn: 600s\n\
+					index.indexing.slowlog.threshold.index.warn: 1800s\n\
+					index.search.slowlog.threshold.fetch.warn: 1800s\n\
+					index.search.slowlog.threshold.query.warn: 1800s\n\
+					monitor.jvm.gc.old.warn: 1800s\n\
+					monitor.jvm.gc.young.warn: 1800s\n\
 					threadpool.bulk.size: 1\n\
 					threadpool.fetch_shard_started.size: 1\n\
 					threadpool.fetch_shard_store.size: 1\n\
@@ -2407,9 +2407,11 @@ ${tomcat-gc-log}
 								"modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test/src/test/java/com/liferay/portal/lpkg/LPKGVersionChangeLogAssertorTest.java",
 								"modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test/src/testIntegration/java/com/liferay/portal/lpkg/deployer/test/LPKGDeployerCleanStartupTest.java",
 								"modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test/src/testIntegration/java/com/liferay/portal/lpkg/deployer/test/LPKGDeployerDowngradeTest.java",
+								"modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test/src/testIntegration/java/com/liferay/portal/lpkg/deployer/test/LPKGDeployerTest.java",
 								"modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test/src/testIntegration/java/com/liferay/portal/lpkg/deployer/test/LPKGDeployerUpgradeTest.java",
 								"modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test/src/testIntegration/java/com/liferay/portal/lpkg/override/test/LPKGOverrideVerifyCleanStartupTest.java",
 								"modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test/src/testIntegration/java/com/liferay/portal/lpkg/override/test/LPKGOverrideVerifySecondStartupTest.java",
+								"modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test/src/testIntegration/java/com/liferay/portal/lpkg/override/test/LPKGOverrideVerifyTest.java",
 								"modules/apps/static/portal-lpkg-deployer/portal-lpkg-deployer-test/src/testIntegration/java/com/liferay/portal/lpkg/override/test/LPKGRevertOverrideVerifyTest.java",
 								"modules/apps/web-experience/export-import/export-import-resources-importer-test/src/testIntegration/java/com/liferay/exportimport/resources/importer/test/ResourcesImporterTest.java",
 								"modules/private/apps/osb-lcs/**",
@@ -2495,6 +2497,200 @@ ${tomcat-gc-log}
 			</beanshell>
 
 			<echo file="test.class.file.names.properties">${test.class.file.names.properties.content}</echo>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="request-cmis-repository-vm">
+		<attribute name="cmis.repository.type" />
+
+		<sequential>
+			<local name="cmis.repository.lease.time" />
+
+			<property name="cmis.repository.lease.time" value="1200000" />
+
+			<beanshell>
+				<![CDATA[
+					import org.json.JSONObject;
+
+					public JSONObject toJSONObject(String url) {
+						return new JSONObject(toString(url));
+					}
+
+					public String toString(String url) {
+						int retryCount = 0;
+
+						while (true) {
+							try {
+								System.out.println("Downloading URL " + url);
+
+								StringBuilder sb = new StringBuilder();
+
+								URL urlObject = new URL(url);
+
+								HttpURLConnection httpURLConnection = (HttpURLConnection)urlObject.openConnection();
+
+								httpURLConnection.setRequestMethod("GET");
+								httpURLConnection.setRequestProperty("Content-Type", "application/json");
+
+								InputStream inputStream = httpURLConnection.getInputStream();
+
+								InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+
+								BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+								String line = null;
+
+								while ((line = bufferedReader.readLine()) != null) {
+									sb.append(line);
+								}
+
+								bufferedReader.close();
+
+								System.out.println(sb.toString());
+
+								return sb.toString();
+							}
+							catch (Exception e) {
+								if (retryCount >= 5) {
+									throw e;
+								}
+
+								System.out.println("Retry in 5 seconds: " + e.getMessage());
+
+								retryCount++;
+
+								Thread.sleep(5000);
+							}
+						}
+					}
+
+					String cmisRepositoryLeaseTime = project.getProperty("cmis.repository.lease.time");
+					String cmisRepositoryType = project.getProperty("cmis.repository.type");
+					String cmisRepositoryVMHostName = "";
+					int minutes = 0;
+
+					StringBuilder sb = new StringBuilder();
+
+					sb.append("http://it.liferay.com/osb-ici-controller-web/vm/allocation/borrow?leaseTime=");
+					sb.append(cmisRepositoryLeaseTime);
+					sb.append("&resourceType=qa.");
+					sb.append(cmisRepositoryType);
+
+					while (true) {
+						JSONObject jsonObject = toJSONObject(sb.toString());
+
+						if (minutes >= 30) {
+							throw new Exception("No available CMIS servers");
+						}
+
+						if (!jsonObject.has("hostname")) {
+							System.out.println("Waiting for next available CMIS server: " + cmisRepositoryType);
+
+							Thread.sleep(60000);
+
+							minutes++;
+
+							continue;
+						}
+
+						cmisRepositoryVMHostName = jsonObject.get("hostname");
+
+						break;
+					}
+
+					System.out.println("Borrowing " + cmisRepositoryVMHostName);
+
+					project.setProperty("cmis.repository.vm.host.name", cmisRepositoryVMHostName);
+				]]>
+			</beanshell>
+
+			<if>
+				<contains string="@{cmis.repository.type}" substring="documentum" />
+				<then>
+					<get-testcase-property property.name="osgi.app.includes" />
+
+					<if>
+						<contains string="${osgi.app.includes}" substring="documentum" />
+						<then>
+							<pathconvert property="app.bnd.file">
+								<fileset dir="modules" includes="private/apps/documentum/app.bnd" />
+							</pathconvert>
+
+							<loadproperties srcFile="${app.bnd.file}">
+								<filterchain>
+									<linecontains>
+										<contains value="Liferay-Releng-App-Title" />
+									</linecontains>
+								</filterchain>
+							</loadproperties>
+
+							<if>
+								<available file="${project.dir}/plugins/dist/${Liferay-Releng-App-Title}.lpkg" />
+								<then>
+									<property name="lpkg.path" value="${project.dir}/plugins/dist/${Liferay-Releng-App-Title}.lpkg" />
+								</then>
+								<elseif>
+									<available file="${project.dir}/plugins/marketplace/${Liferay-Releng-App-Title}.lpkg" />
+									<then>
+										<property name="lpkg.path" value="${project.dir}/plugins/marketplace/${Liferay-Releng-App-Title}.lpkg" />
+									</then>
+								</elseif>
+							</if>
+
+							<if>
+								<isset property="lpkg.path" />
+								<then>
+									<tstamp>
+										<format pattern="yyyyMMddkkmmssSSS" property="tstamp.value" />
+									</tstamp>
+
+									<mkdir dir="${tstamp.value}" />
+
+									<unzip dest="${tstamp.value}" src="${lpkg.path}">
+										<patternset>
+											<include name="documentum-hook-*.war" />
+										</patternset>
+									</unzip>
+
+									<pathconvert property="war.path" setonempty="false">
+										<path>
+											<fileset dir="${tstamp.value}" includes="documentum-hook-*.war" />
+										</path>
+									</pathconvert>
+
+									<unzip dest="${tstamp.value}" src="${war.path}">
+										<flattenmapper />
+										<patternset>
+											<include name="WEB-INF/src/dfc.properties" />
+										</patternset>
+									</unzip>
+
+									<propertyfile file="${tstamp.value}/dfc.properties">
+										<entry key="dfc.docbroker.host[0]" value="${cmis.repository.vm.host.name}" />
+									</propertyfile>
+
+									<war destfile="${war.path}" update="true">
+										<zipfileset file="${tstamp.value}/dfc.properties" fullpath="WEB-INF/src/dfc.properties" />
+									</war>
+
+									<delete file="${tstamp.value}/dfc.properties" />
+
+									<zip destfile="${lpkg.path}" update="true">
+										<zipfileset dir="${tstamp.value}" includes="documentum-hook-*.war" />
+									</zip>
+
+									<delete dir="${tstamp.value}" />
+								</then>
+							</if>
+						</then>
+						<else>
+							<propertyfile file="${project.dir}/modules/private/apps/documentum/documentum-hook/docroot/WEB-INF/src/dfc.properties">
+								<entry key="dfc.docbroker.host[0]" value="${cmis.repository.vm.host.name}" />
+							</propertyfile>
+						</else>
+					</if>
+				</then>
+			</if>
 		</sequential>
 	</macrodef>
 
@@ -4780,11 +4976,15 @@ go]]></replacevalue>
 			<then>
 				<for list="${osgi.app.includes}" param="osgi.app.name">
 					<sequential>
+						<antelope:stringutil property="osgi.app.name" string="@{osgi.app.name}">
+							<antelope:trim />
+						</antelope:stringutil>
+
 						<for param="app.dir">
 							<path>
 								<dirset dir="modules">
-									<include name="apps/@{osgi.app.name}" />
-									<include name="private/apps/@{osgi.app.name}" />
+									<include name="apps/${osgi.app.name}" />
+									<include name="private/apps/${osgi.app.name}" />
 								</dirset>
 							</path>
 							<sequential>
@@ -4817,18 +5017,16 @@ go]]></replacevalue>
 									<else>
 										<echo>Deploying all relevant modules that make up ${Liferay-Releng-App-Title}.lpkg.</echo>
 
-										<for param="osgi.module.bnd.file">
-											<fileset dir="@{app.dir}">
-												<include name="**/bnd.bnd" />
-											</fileset>
-											<sequential>
-												<local name="osgi.module.dir" />
+										<gradle-execute dir="@{app.dir}" task="deploy">
+											<arg value="clean" />
+										</gradle-execute>
 
-												<dirname file="@{osgi.module.bnd.file}" property="osgi.module.dir" />
+										<ant antfile="build.xml" dir="modules" target="build-app-lpkg">
+											<property name="app.name" value="${osgi.app.name}" />
+											<property name="osgi.dir" value="${liferay.home}/osgi" />
+										</ant>
 
-												<gradle-execute dir="${osgi.module.dir}" task="deploy" />
-											</sequential>
-										</for>
+										<gradle-execute dir="@{app.dir}" task="clean" />
 									</else>
 								</if>
 							</sequential>
@@ -4895,20 +5093,23 @@ go]]></replacevalue>
 
 				<for list="${osgi.modules.includes}" param="osgi.module">
 					<sequential>
-						<local name="osgi.module.bnd.file" />
+						<local name="osgi.module.build.file" />
 						<local name="osgi.module.dir" />
 
-						<path id="osgi.module.bnd.file">
+						<path id="osgi.module.build.file">
 							<fileset dir="${project.dir}/modules">
-								<include name="**/@{osgi.module}/bnd.bnd" />
+								<include name="**/@{osgi.module}/build.gradle" />
+								<include name="**/@{osgi.module}/build.xml" />
 							</fileset>
 						</path>
 
-						<property name="osgi.module.bnd.file" refid="osgi.module.bnd.file" />
+						<property name="osgi.module.build.file" refid="osgi.module.build.file" />
 
-						<dirname file="${osgi.module.bnd.file}" property="osgi.module.dir" />
+						<dirname file="${osgi.module.build.file}" property="osgi.module.dir" />
 
-						<gradle-execute dir="${osgi.module.dir}" task="deploy" />
+						<gradle-execute dir="${osgi.module.dir}" task="deploy">
+							<arg value="clean" />
+						</gradle-execute>
 					</sequential>
 				</for>
 			</then>
@@ -4920,6 +5121,18 @@ go]]></replacevalue>
 		<!--
 		Deploy plugin files to the deploy directory.
 		-->
+
+		<get-testcase-property property.name="ext.plugins.includes" />
+
+		<if>
+			<isset property="ext.plugins.includes" />
+			<then>
+				<ant antfile="build-test-plugins.xml" target="deploy-simple-server-plugins">
+					<property name="plugin.types" value="ext" />
+					<property name="plugins.includes" value="${ext.plugins.includes}" />
+				</ant>
+			</then>
+		</if>
 
 		<get-testcase-property property.name="hook.plugins.includes" />
 
@@ -7651,6 +7864,8 @@ ANT_OPTS=${env.ANT_OPTS}</echo>
 	</target>
 
 	<target name="prepare-test-bundle">
+		<setup-libs />
+
 		<if>
 			<not>
 				<isset property="app.server.name" />
@@ -8056,8 +8271,6 @@ cluster.link.bind.addr["cluster-link-udp"]=127.0.0.1</echo>
 						<arg value="--password=${database.password}" />
 						<arg value="--user=${database.username}" />
 					</exec>
-
-					<exec executable="mysql_upgrade" />
 				</then>
 			</elseif>
 			<elseif>
@@ -8239,6 +8452,8 @@ if (ppstate.equals("normal")) {
 	</target>
 
 	<target name="record-test-case-method-names">
+		<setup-libs />
+
 		<delete failonerror="false" file="${test.ext.properties.file}" />
 
 		<if>
@@ -8314,6 +8529,8 @@ if (ppstate.equals("normal")) {
 	</target>
 
 	<target name="record-test-generated-properties">
+		<setup-libs />
+
 		<delete failonerror="false" file="${test.ext.properties.file}" />
 
 		<if>
@@ -8891,153 +9108,6 @@ jdbc.default.password=${database.mysql.password}</echo>
 			</then>
 		</if>
 
-		<get-testcase-property property.name="cmis.repository.type" />
-
-		<if>
-			<or>
-				<equals arg1="${cmis.repository.type}" arg2="documentum6" />
-				<equals arg1="${cmis.repository.type}" arg2="sharepoint2010" />
-				<equals arg1="${cmis.repository.type}" arg2="sharepoint2013" />
-			</or>
-			<then>
-				<local name="cmis.repository.lease.time" />
-
-				<property name="cmis.repository.lease.time" value="1200000" />
-
-				<beanshell>
-					<![CDATA[
-						import org.json.JSONObject;
-
-						public JSONObject toJSONObject(String url) {
-							return new JSONObject(toString(url));
-						}
-
-						public String toString(String url) {
-							int retryCount = 0;
-
-							while (true) {
-								try {
-									System.out.println("Downloading URL " + url);
-
-									StringBuilder sb = new StringBuilder();
-
-									URL urlObject = new URL(url);
-
-									HttpURLConnection httpURLConnection = (HttpURLConnection)urlObject.openConnection();
-
-									httpURLConnection.setRequestMethod("GET");
-									httpURLConnection.setRequestProperty("Content-Type", "application/json");
-
-									InputStream inputStream = httpURLConnection.getInputStream();
-
-									InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-
-									BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-									String line = null;
-
-									while ((line = bufferedReader.readLine()) != null) {
-										sb.append(line);
-									}
-
-									bufferedReader.close();
-
-									System.out.println(sb.toString());
-
-									return sb.toString();
-								}
-								catch (Exception e) {
-									if (retryCount >= 5) {
-										throw e;
-									}
-
-									System.out.println("Retry in 5 seconds: " + e.getMessage());
-
-									retryCount++;
-
-									Thread.sleep(5000);
-								}
-							}
-						}
-
-						String cmisRepositoryLeaseTime = project.getProperty("cmis.repository.lease.time");
-						String cmisRepositoryType = project.getProperty("cmis.repository.type");
-						String cmisRepositoryVMHostName = "";
-						int minutes = 0;
-
-						StringBuilder sb = new StringBuilder();
-
-						sb.append("http://it.liferay.com/osb-ici-controller-web/vm/allocation/borrow?leaseTime=");
-						sb.append(cmisRepositoryLeaseTime);
-						sb.append("&resourceType=qa.");
-						sb.append(cmisRepositoryType);
-
-						while (true) {
-							JSONObject jsonObject = toJSONObject(sb.toString());
-
-							if (minutes >= 30) {
-								throw new Exception("No available CMIS servers");
-							}
-
-							if (!jsonObject.has("hostname")) {
-								System.out.println("Waiting for next available CMIS server: " + cmisRepositoryType);
-
-								Thread.sleep(60000);
-
-								minutes++;
-
-								continue;
-							}
-
-							cmisRepositoryVMHostName = jsonObject.get("hostname");
-
-							break;
-						}
-
-						System.out.println("Borrowing " + cmisRepositoryVMHostName);
-
-						project.setProperty("cmis.repository.vm.host.name", cmisRepositoryVMHostName);
-					]]>
-				</beanshell>
-
-				<if>
-					<equals arg1="${cmis.repository.type}" arg2="documentum6" />
-					<then>
-						<replace
-							file="${project.dir}/modules/private/apps/documentum/documentum-hook/docroot/WEB-INF/src/dfc.properties"
-							token="dfc.docbroker.host[0]=localhost"
-							value="dfc.docbroker.host[0]=${cmis.repository.vm.host.name}"
-						/>
-					</then>
-				</if>
-
-				<if>
-					<equals arg1="${cmis.repository.type}" arg2="documentum6" />
-					<then>
-						<echo file="tools/sdk/build.${user.name}.properties">auto.deploy.dir=${liferay.home}/deploy</echo>
-
-						<gradle-execute dir="${project.dir}/modules/private/apps/documentum/documentum-hook" task="deploy">
-							<arg value="clean" />
-						</gradle-execute>
-					</then>
-				</if>
-
-				<if>
-					<or>
-						<equals arg1="${cmis.repository.type}" arg2="sharepoint2010" />
-						<equals arg1="${cmis.repository.type}" arg2="sharepoint2013" />
-					</or>
-					<then>
-						<echo file="tools/sdk/build.${user.name}.properties">auto.deploy.dir=${liferay.home}/deploy</echo>
-
-						<gradle-execute dir="${project.dir}/modules/private/apps/sharepoint/sharepoint-hook" task="deploy">
-							<arg value="clean" />
-						</gradle-execute>
-					</then>
-				</if>
-			</then>
-		</if>
-
 		<get-testcase-property property.name="apacheds.blank.user.password.enabled" />
 		<get-testcase-property property.name="apacheds.enabled" />
 
@@ -9102,6 +9172,21 @@ jdbc.default.password=${database.mysql.password}</echo>
 			<equals arg1="${test.latest.marketplace.apps}" arg2="true" />
 			<then>
 				<antcall target="deploy-latest-marketplace-apps" />
+			</then>
+		</if>
+
+		<get-testcase-property property.name="cmis.repository.type" />
+
+		<if>
+			<or>
+				<equals arg1="${cmis.repository.type}" arg2="documentum6" />
+				<equals arg1="${cmis.repository.type}" arg2="sharepoint2010" />
+				<equals arg1="${cmis.repository.type}" arg2="sharepoint2013" />
+			</or>
+			<then>
+				<request-cmis-repository-vm
+					cmis.repository.type="${cmis.repository.type}"
+				/>
 			</then>
 		</if>
 

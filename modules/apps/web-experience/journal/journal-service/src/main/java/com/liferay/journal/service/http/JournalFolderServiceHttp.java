@@ -892,12 +892,48 @@ public class JournalFolderServiceHttp {
 		}
 	}
 
+	public static java.util.List<com.liferay.dynamic.data.mapping.model.DDMStructure> searchDDMStructures(
+		HttpPrincipal httpPrincipal, long companyId, long[] groupIds,
+		long folderId, int restrictionType, java.lang.String keywords,
+		int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.mapping.model.DDMStructure> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		try {
+			MethodKey methodKey = new MethodKey(JournalFolderServiceUtil.class,
+					"searchDDMStructures", _searchDDMStructuresParameterTypes29);
+
+			MethodHandler methodHandler = new MethodHandler(methodKey,
+					companyId, groupIds, folderId, restrictionType, keywords,
+					start, end, obc);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception e) {
+				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
+					throw (com.liferay.portal.kernel.exception.PortalException)e;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(e);
+			}
+
+			return (java.util.List<com.liferay.dynamic.data.mapping.model.DDMStructure>)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException se) {
+			_log.error(se, se);
+
+			throw se;
+		}
+	}
+
 	public static void subscribe(HttpPrincipal httpPrincipal, long groupId,
 		long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(JournalFolderServiceUtil.class,
-					"subscribe", _subscribeParameterTypes29);
+					"subscribe", _subscribeParameterTypes30);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
 					folderId);
@@ -925,7 +961,7 @@ public class JournalFolderServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(JournalFolderServiceUtil.class,
-					"unsubscribe", _unsubscribeParameterTypes30);
+					"unsubscribe", _unsubscribeParameterTypes31);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
 					folderId);
@@ -956,7 +992,7 @@ public class JournalFolderServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(JournalFolderServiceUtil.class,
-					"updateFolder", _updateFolderParameterTypes31);
+					"updateFolder", _updateFolderParameterTypes32);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
 					folderId, parentFolderId, name, description,
@@ -993,7 +1029,7 @@ public class JournalFolderServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
 			MethodKey methodKey = new MethodKey(JournalFolderServiceUtil.class,
-					"updateFolder", _updateFolderParameterTypes32);
+					"updateFolder", _updateFolderParameterTypes33);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
 					folderId, parentFolderId, name, description,
@@ -1119,18 +1155,23 @@ public class JournalFolderServiceHttp {
 	private static final Class<?>[] _restoreFolderFromTrashParameterTypes28 = new Class[] {
 			long.class
 		};
-	private static final Class<?>[] _subscribeParameterTypes29 = new Class[] {
+	private static final Class<?>[] _searchDDMStructuresParameterTypes29 = new Class[] {
+			long.class, long[].class, long.class, int.class,
+			java.lang.String.class, int.class, int.class,
+			com.liferay.portal.kernel.util.OrderByComparator.class
+		};
+	private static final Class<?>[] _subscribeParameterTypes30 = new Class[] {
 			long.class, long.class
 		};
-	private static final Class<?>[] _unsubscribeParameterTypes30 = new Class[] {
+	private static final Class<?>[] _unsubscribeParameterTypes31 = new Class[] {
 			long.class, long.class
 		};
-	private static final Class<?>[] _updateFolderParameterTypes31 = new Class[] {
+	private static final Class<?>[] _updateFolderParameterTypes32 = new Class[] {
 			long.class, long.class, long.class, java.lang.String.class,
 			java.lang.String.class, boolean.class,
 			com.liferay.portal.kernel.service.ServiceContext.class
 		};
-	private static final Class<?>[] _updateFolderParameterTypes32 = new Class[] {
+	private static final Class<?>[] _updateFolderParameterTypes33 = new Class[] {
 			long.class, long.class, long.class, java.lang.String.class,
 			java.lang.String.class, long[].class, int.class, boolean.class,
 			com.liferay.portal.kernel.service.ServiceContext.class

@@ -1,0 +1,26 @@
+[
+	{
+		"actions": [
+			{
+				"action": "show",
+				"target": "Field1"
+			}
+		],
+		"conditions": [
+			{
+
+				"operands": [
+					{
+						"type": "constant",
+						"value": "Role1"
+					},
+					{
+						"type": "constant",
+						"value": "Role2"
+					}
+				],
+				"operator": "belongs-to"
+			}
+		]
+	}
+]

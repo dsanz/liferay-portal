@@ -58,7 +58,7 @@ import org.junit.Before;
  * @author Eduardo Garcia
  * @author Rafael Praxedes
  */
-public class BaseDDMServiceTestCase {
+public abstract class BaseDDMServiceTestCase {
 
 	@Before
 	public void setUp() throws Exception {

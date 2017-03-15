@@ -238,6 +238,16 @@ public class JournalFolderServiceWrapper implements JournalFolderService,
 	}
 
 	@Override
+	public java.util.List<com.liferay.dynamic.data.mapping.model.DDMStructure> searchDDMStructures(
+		long companyId, long[] groupIds, long folderId, int restrictionType,
+		java.lang.String keywords, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.mapping.model.DDMStructure> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _journalFolderService.searchDDMStructures(companyId, groupIds,
+			folderId, restrictionType, keywords, start, end, obc);
+	}
+
+	@Override
 	public void deleteFolder(long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		_journalFolderService.deleteFolder(folderId);

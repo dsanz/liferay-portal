@@ -45,6 +45,15 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
+		<execute macro="Page#add">
+			<var name="pageName" value="Private Staging Page" />
+			<var name="sitePagePrivacy" value="Private" />
+		</execute>
+
+		<execute macro="Navigator#openSiteURL">
+			<var name="siteName" value="Site Name" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoSitesConfiguration">
 			<var name="portlet" value="Site Settings" />
 		</execute>
@@ -122,6 +131,24 @@
 		</execute>
 	</command>
 
+	<command name="ModifyInitalPageVariationSetup" priority="3">
+		<execute macro="ProductMenu#gotoSitesPublishing">
+			<var name="portlet" value="Staging" />
+		</execute>
+
+		<execute macro="Staging#activateStagingCP">
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesPublishing">
+			<var name="portlet" value="Staging" />
+		</execute>
+
+		<execute macro="Staging#modifyVariation">
+			<var name="enableOnPublicPages" value="true" />
+		</execute>
+	</command>
+
 	<command name="PublishRenamedTags" priority="4">
 		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Staging Test Page" />
@@ -190,10 +217,16 @@
 			<var name="portlet" value="Tags" />
 		</execute>
 
-		<execute macro="Tag#editCP">
-			<var name="tagName" value="tag name" />
-			<var name="tagNameEdit" value="tag name edit" />
+		<execute macro="LexiconEntry#gotoEntryMenuItem">
+			<var name="menuItem" value="Edit" />
+			<var name="rowEntry" value="tag name" />
 		</execute>
+
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="tag name edit" />
+		</execute>
+
+		<execute macro="PortletEntry#save" />
 
 		<execute macro="Navigator#gotoStagedSitePage">
 			<var name="pageName" value="Staging Test Page" />

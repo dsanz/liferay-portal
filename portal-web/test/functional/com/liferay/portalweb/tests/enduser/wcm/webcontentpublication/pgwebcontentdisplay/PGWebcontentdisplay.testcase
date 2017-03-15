@@ -181,14 +181,8 @@
 			<var name="pageName" value="Web Content Display Page3" />
 		</execute>
 
-		<execute macro="TestCase#getSiteName">
-			<return from="siteName" name="siteName" />
-			<var name="siteName" value="${siteName}" />
-		</execute>
-
-		<execute macro="WebContentDisplayPortlet#viewConfigureScopePG">
-			<var name="scopeSelection" value="${siteName}" />
-			<var name="scopeSelectionDefault" value="true" />
+		<execute macro="WebContentDisplayPortlet#configureScopePG">
+			<var name="scopeSelection" value="Web Content Display Page3" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -480,11 +474,14 @@
 
 		<execute macro="WebContentNavigator#gotoEditPGViaWCD" />
 
-		<execute macro="WebContent#addTranslation">
-			<var name="localizedContent" value="世界您好 Content" />
-			<var name="localizedLanguage" value="Chinese (China)" />
-			<var name="localizedTitle" value="世界您好 Title" />
-			<var name="webContentTitle" value="WC WebContent Title" />
+		<execute macro="WebContent#addLocale">
+			<var name="language" value="Chinese (China)" />
+			<var name="locale" value="zh-CN" />
+		</execute>
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="世界您好 Content" />
+			<var name="webContentTitle" value="世界您好 Title" />
 		</execute>
 
 		<execute macro="Button#clickPublish" />
@@ -948,11 +945,14 @@
 
 		<execute macro="WebContentNavigator#gotoEditPGViaWCD" />
 
-		<execute macro="WebContent#addTranslation">
-			<var name="localizedContent" value="世界您好 Content" />
-			<var name="localizedLanguage" value="Chinese (China)" />
-			<var name="localizedTitle" value="世界您好 Title" />
-			<var name="webContentTitle" value="WC WebContent Title" />
+		<execute macro="WebContent#addLocale">
+			<var name="language" value="Chinese (China)" />
+			<var name="locale" value="zh-CN" />
+		</execute>
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="世界您好 Content" />
+			<var name="webContentTitle" value="世界您好 Title" />
 		</execute>
 
 		<execute macro="Button#clickPublish" />

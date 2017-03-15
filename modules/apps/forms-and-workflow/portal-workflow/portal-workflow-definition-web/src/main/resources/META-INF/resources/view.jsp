@@ -125,24 +125,36 @@ WorkflowDefinitionSearch workflowDefinitionSearch = new WorkflowDefinitionSearch
 			className="com.liferay.portal.kernel.workflow.WorkflowDefinition"
 			modelVar="workflowDefinition"
 		>
+
+			<%
+			PortletURL rowURL = renderResponse.createRenderURL();
+
+			rowURL.setParameter("mvcPath", "/edit_workflow_definition.jsp");
+			rowURL.setParameter("redirect", currentURL);
+			rowURL.setParameter("name", workflowDefinition.getName());
+			rowURL.setParameter("version", String.valueOf(workflowDefinition.getVersion()));
+			%>
+
 			<liferay-ui:search-container-column-text
-				cssClass="table-cell-content"
+				href="<%= rowURL %>"
 				name="name"
 				value="<%= workflowDefinitionDisplayContext.getName(workflowDefinition) %>"
 			/>
 
 			<liferay-ui:search-container-column-text
-				cssClass="table-cell-content"
+				href="<%= rowURL %>"
 				name="title"
 				value="<%= workflowDefinitionDisplayContext.getTitle(workflowDefinition) %>"
 			/>
 
 			<liferay-ui:search-container-column-text
+				href="<%= rowURL %>"
 				name="version"
 				value="<%= workflowDefinitionDisplayContext.getVersion(workflowDefinition) %>"
 			/>
 
 			<liferay-ui:search-container-column-text
+				href="<%= rowURL %>"
 				name="active"
 				value="<%= workflowDefinitionDisplayContext.getActive(workflowDefinition) %>"
 			/>

@@ -116,6 +116,15 @@ public class ThemeDisplay
 	}
 
 	public Account getAccount() {
+		if ((_account == null) && (_company != null)) {
+			try {
+				_account = _company.getAccount();
+			}
+			catch (PortalException pe) {
+				ReflectionUtil.throwException(pe);
+			}
+		}
+
 		return _account;
 	}
 
@@ -1244,8 +1253,6 @@ public class ThemeDisplay
 	public void setCompany(Company company) throws PortalException {
 		_company = company;
 		_companyGroupId = company.getGroupId();
-
-		setAccount(company.getAccount());
 	}
 
 	public void setCompanyLogo(String companyLogo) {

@@ -30,17 +30,27 @@ import com.liferay.message.boards.kernel.model.MBCategory;
 import com.liferay.message.boards.kernel.model.MBCategoryConstants;
 import com.liferay.message.boards.kernel.model.MBMessage;
 import com.liferay.message.boards.kernel.service.MBCategoryService;
+import com.liferay.message.boards.kernel.service.MBMessageLocalService;
 import com.liferay.message.boards.kernel.service.MBMessageService;
 import com.liferay.message.boards.kernel.service.MBThreadLocalService;
 import com.liferay.message.boards.kernel.service.MBThreadService;
 import com.liferay.message.boards.web.constants.MBPortletKeys;
+import com.liferay.message.boards.web.internal.upload.format.MBMessageFormatUploadHandler;
+import com.liferay.message.boards.web.internal.upload.format.MBMessageFormatUploadHandlerProvider;
+import com.liferay.message.boards.web.internal.util.MBAttachmentFileEntryReference;
+import com.liferay.message.boards.web.internal.util.MBAttachmentFileEntryUtil;
 import com.liferay.portal.kernel.captcha.CaptchaConfigurationException;
 import com.liferay.portal.kernel.captcha.CaptchaTextException;
 import com.liferay.portal.kernel.captcha.CaptchaUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -49,6 +59,9 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.transaction.Propagation;
+import com.liferay.portal.kernel.transaction.TransactionConfig;
+import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
 import com.liferay.portal.kernel.upload.LiferayFileItemException;
 import com.liferay.portal.kernel.upload.UploadException;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
@@ -147,7 +160,9 @@ public class EditMessageMVCActionCommand extends BaseMVCActionCommand {
 			else if (cmd.equals(Constants.ADD) ||
 					 cmd.equals(Constants.UPDATE)) {
 
-				message = updateMessage(actionRequest, actionResponse);
+				message = TransactionInvokerUtil.invoke(
+					_transactionConfig,
+					() -> updateMessage(actionRequest, actionResponse));
 			}
 			else if (cmd.equals(Constants.ADD_ANSWER)) {
 				addAnswer(actionRequest);
@@ -225,6 +240,14 @@ public class EditMessageMVCActionCommand extends BaseMVCActionCommand {
 				throw e;
 			}
 		}
+		catch (Throwable t) {
+			_log.error(t);
+
+			actionResponse.setRenderParameter(
+				"mvcPath", "/message_boards/error.jsp");
+
+			hideDefaultSuccessMessage(actionRequest);
+		}
 	}
 
 	protected String getRedirect(
@@ -296,28 +319,6 @@ public class EditMessageMVCActionCommand extends BaseMVCActionCommand {
 				_mbThreadService.lockThread(threadIds[i]);
 			}
 		}
-	}
-
-	@Reference(unbind = "-")
-	protected void setMBCategoryService(MBCategoryService mbCategoryService) {
-		_mbCategoryService = mbCategoryService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setMBMessageService(MBMessageService mbMessageService) {
-		_mbMessageService = mbMessageService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setMBThreadLocalService(
-		MBThreadLocalService mbThreadLocalService) {
-
-		_mbThreadLocalService = mbThreadLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setMBThreadService(MBThreadService mbThreadService) {
-		_mbThreadService = mbThreadService;
 	}
 
 	protected void subscribeMessage(ActionRequest actionRequest)
@@ -455,6 +456,21 @@ public class EditMessageMVCActionCommand extends BaseMVCActionCommand {
 						inputStreamOVPs, anonymous, priority, allowPingbacks,
 						serviceContext);
 				}
+
+				MBMessageFormatUploadHandler formatHandler =
+					_formatHandlerProvider.provide(message.getFormat());
+
+				if (formatHandler != null) {
+					body = _addBodyAttachmentTempFiles(
+						themeDisplay, body, message, new ArrayList<String>(),
+						formatHandler);
+
+					_mbMessageLocalService.updateMessage(
+						themeDisplay.getUserId(), message.getMessageId(),
+						message.getSubject(), body, null, null,
+						message.getPriority(), message.getAllowPingbacks(),
+						serviceContext);
+				}
 			}
 			else {
 				List<String> existingFiles = new ArrayList<>();
@@ -466,6 +482,17 @@ public class EditMessageMVCActionCommand extends BaseMVCActionCommand {
 					if (Validator.isNotNull(path)) {
 						existingFiles.add(path);
 					}
+				}
+
+				message = _mbMessageService.getMessage(messageId);
+
+				MBMessageFormatUploadHandler formatHandler =
+					_formatHandlerProvider.provide(message.getFormat());
+
+				if (formatHandler != null) {
+					body = _addBodyAttachmentTempFiles(
+						themeDisplay, body, message, existingFiles,
+						formatHandler);
 				}
 
 				// Update message
@@ -506,9 +533,70 @@ public class EditMessageMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
+	private String _addBodyAttachmentTempFiles(
+			ThemeDisplay themeDisplay, String body, MBMessage message,
+			List<String> existingFiles,
+			MBMessageFormatUploadHandler formatHandler)
+		throws PortalException {
+
+		List<FileEntry> tempMBAttachmentFileEntries =
+			MBAttachmentFileEntryUtil.getTempMBAttachmentFileEntries(body);
+
+		if (!tempMBAttachmentFileEntries.isEmpty()) {
+			Folder folder = message.addAttachmentsFolder();
+
+			List<MBAttachmentFileEntryReference>
+				mbAttachmentFileEntryReferences =
+					MBAttachmentFileEntryUtil.addMBAttachmentFileEntries(
+						message.getGroupId(), themeDisplay.getUserId(),
+						message.getMessageId(), folder.getFolderId(),
+						tempMBAttachmentFileEntries);
+
+			for (MBAttachmentFileEntryReference mbAttachmentFileEntryReference :
+					mbAttachmentFileEntryReferences) {
+
+				FileEntry mbAttachmentFileEntry =
+					mbAttachmentFileEntryReference.getMBAttachmentFileEntry();
+
+				existingFiles.add(
+					String.valueOf(mbAttachmentFileEntry.getFileEntryId()));
+			}
+
+			body = formatHandler.replaceImageReferences(
+				body, mbAttachmentFileEntryReferences);
+
+			for (FileEntry tempMBAttachment : tempMBAttachmentFileEntries) {
+				PortletFileRepositoryUtil.deletePortletFileEntry(
+					tempMBAttachment.getFileEntryId());
+			}
+		}
+
+		return body;
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		EditMessageMVCActionCommand.class);
+
+	private static final TransactionConfig _transactionConfig =
+		TransactionConfig.Factory.create(
+			Propagation.REQUIRED, new Class<?>[] {Exception.class});
+
+	@Reference
+	private MBMessageFormatUploadHandlerProvider _formatHandlerProvider;
+
+	@Reference
 	private MBCategoryService _mbCategoryService;
+
+	@Reference
+	private MBMessageLocalService _mbMessageLocalService;
+
+	@Reference
 	private MBMessageService _mbMessageService;
+
+	@Reference
 	private MBThreadLocalService _mbThreadLocalService;
+
+	@Reference
 	private MBThreadService _mbThreadService;
 
 	@Reference

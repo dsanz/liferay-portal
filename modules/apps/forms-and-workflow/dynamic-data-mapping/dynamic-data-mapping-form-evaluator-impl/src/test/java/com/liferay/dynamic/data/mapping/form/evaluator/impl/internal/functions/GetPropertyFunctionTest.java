@@ -27,7 +27,7 @@ import org.junit.Test;
 /**
  * @author Leonardo Barros
  */
-public class GetPropertyFunctionTest extends BaseDDMFormRuleFunctionTest {
+public class GetPropertyFunctionTest extends BaseDDMFormRuleFunctionTestCase {
 
 	@Test
 	public void testGetBooleanProperty() {

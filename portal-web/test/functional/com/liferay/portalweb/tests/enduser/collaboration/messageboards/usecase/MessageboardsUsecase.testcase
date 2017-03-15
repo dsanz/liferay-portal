@@ -821,7 +821,7 @@
 			<var name="categoryName" value="MB Category3 Name" />
 		</execute>
 
-		<execute macro="MessageboardsThread#replyPG">
+		<execute macro="MessageboardsThread#replyWithAttachmentPG">
 			<var name="mbThreadAttachment" value="Document_4.jpeg" />
 			<var name="threadReplyBody" value="MB Thread1 Reply Body" />
 			<var name="threadSubject" value="MB Thread3 Message Subject" />

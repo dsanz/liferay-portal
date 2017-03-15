@@ -86,4 +86,4 @@
 	</aui:button-row>
 </aui:form>
 
-<liferay-util:include page="/navigation.jsp" servletContext="<%= application %>" />
+<%@ include file="/navigation.jspf" %>

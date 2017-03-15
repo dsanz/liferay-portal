@@ -19,6 +19,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>BLOGS_ENTRY_URL</td>
+	<td>//input[contains(@id,'_urlTitle')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CITY</td>
 	<td>//div[label[contains(.,'City')]]//input[@type='text']</td>
 	<td></td>

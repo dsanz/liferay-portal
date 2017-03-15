@@ -233,7 +233,7 @@ public class JournalArticleFinderTest {
 				JournalArticleConstants.CLASSNAME_ID_DEFAULT, new Date(),
 				queryDefinition);
 
-		Assert.assertEquals(1, articles.size());
+		Assert.assertEquals(articles.toString(), 1, articles.size());
 
 		JournalArticle article = articles.get(0);
 
@@ -247,7 +247,7 @@ public class JournalArticleFinderTest {
 			JournalArticleConstants.CLASSNAME_ID_DEFAULT, new Date(),
 			queryDefinition);
 
-		Assert.assertEquals(1, articles.size());
+		Assert.assertEquals(articles.toString(), 1, articles.size());
 
 		article = articles.get(0);
 
@@ -261,7 +261,7 @@ public class JournalArticleFinderTest {
 			JournalArticleConstants.CLASSNAME_ID_DEFAULT, new Date(),
 			queryDefinition);
 
-		Assert.assertEquals(0, articles.size());
+		Assert.assertEquals(articles.toString(), 0, articles.size());
 	}
 
 	@Test
@@ -284,7 +284,7 @@ public class JournalArticleFinderTest {
 			JournalArticleConstants.CLASSNAME_ID_DEFAULT, new Date(),
 			calendar.getTime());
 
-		Assert.assertEquals(1, articles.size());
+		Assert.assertEquals(articles.toString(), 1, articles.size());
 
 		JournalArticle article = articles.get(0);
 

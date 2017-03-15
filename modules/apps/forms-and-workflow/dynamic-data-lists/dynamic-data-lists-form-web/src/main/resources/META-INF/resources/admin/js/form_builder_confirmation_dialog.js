@@ -54,7 +54,7 @@ AUI.add(
 							width: false
 						},
 						id: config.id,
-						title: Liferay.Language.get('cancel-field-changes')
+						title: Liferay.Language.get('cancel-field-changes-question')
 					}
 				);
 			}

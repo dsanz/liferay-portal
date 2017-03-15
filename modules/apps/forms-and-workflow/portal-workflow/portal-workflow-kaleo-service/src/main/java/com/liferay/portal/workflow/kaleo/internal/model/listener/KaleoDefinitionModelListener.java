@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.ModelListener;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
 
@@ -40,9 +41,7 @@ public class KaleoDefinitionModelListener
 
 			message.put("command", "delete");
 			message.put("name", kaleoDefinition.getName());
-			message.put(
-				"serviceContext",
-				ServiceContextThreadLocal.getServiceContext());
+			message.put("serviceContext", getServiceContext(kaleoDefinition));
 			message.put("version", kaleoDefinition.getVersion());
 
 			MessageBusUtil.sendMessage("liferay/kaleo_definition", message);
@@ -50,6 +49,22 @@ public class KaleoDefinitionModelListener
 		catch (Exception e) {
 			throw new ModelListenerException(e);
 		}
+	}
+
+	protected ServiceContext getServiceContext(
+		KaleoDefinition kaleoDefinition) {
+
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		if (serviceContext == null) {
+			serviceContext = new ServiceContext();
+
+			serviceContext.setCompanyId(kaleoDefinition.getCompanyId());
+			serviceContext.setUserId(kaleoDefinition.getUserId());
+		}
+
+		return serviceContext;
 	}
 
 }

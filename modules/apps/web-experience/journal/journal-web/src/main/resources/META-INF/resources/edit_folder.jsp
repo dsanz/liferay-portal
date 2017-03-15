@@ -144,9 +144,9 @@ renderResponse.setTitle(title);
 												if (selectedItem) {
 													var folderData = {
 														idString: 'parentFolderId',
-														idValue: selectedItem.folderid,
+														idValue: selectedItem.folderId,
 														nameString: 'parentFolderName',
-														nameValue: selectedItem.foldername
+														nameValue: selectedItem.folderName
 													};
 
 													Liferay.Util.selectFolder(folderData, '<portlet:namespace />');

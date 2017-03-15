@@ -20,14 +20,12 @@ import java.io.File;
 
 import java.lang.reflect.Method;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.gradle.StartParameter;
@@ -37,6 +35,12 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencySubstitutions;
+import org.gradle.api.artifacts.DependencySubstitutions.Substitution;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
@@ -44,6 +48,7 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.util.GUtil;
 
 /**
  * @author Andrea Di Giorgi
@@ -93,10 +98,54 @@ public class GradleUtil extends com.liferay.gradle.util.GradleUtil {
 		return basePluginConvention.getArchivesBaseName();
 	}
 
+	public static String getGradlePropertiesValue(
+		Project project, String key, String defaultValue) {
+
+		File dir = getRootDir(project, "gradle.properties");
+
+		if (dir == null) {
+			return defaultValue;
+		}
+
+		Properties properties = GUtil.loadProperties(
+			new File(dir, "gradle.properties"));
+
+		return properties.getProperty(key, defaultValue);
+	}
+
+	public static File getMavenLocalFile(
+		Project project, String group, String name, String version) {
+
+		File dir = _getMavenLocalDir(project);
+
+		if (dir == null) {
+			return null;
+		}
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(group.replace('.', File.separatorChar));
+		sb.append(File.separatorChar);
+		sb.append(name);
+		sb.append(File.separatorChar);
+		sb.append(version);
+		sb.append(File.separatorChar);
+		sb.append(name);
+		sb.append('-');
+		sb.append(version);
+		sb.append(".jar");
+
+		return new File(dir, sb.toString());
+	}
+
 	public static Project getProject(Project rootProject, String name) {
 		for (Project project : rootProject.getAllprojects()) {
 			if (name.equals(project.getName())) {
-				return project;
+				Set<Project> subprojects = project.getSubprojects();
+
+				if (subprojects.isEmpty()) {
+					return project;
+				}
 			}
 		}
 
@@ -198,21 +247,9 @@ public class GradleUtil extends com.liferay.gradle.util.GradleUtil {
 	}
 
 	public static boolean isFromMavenLocal(Project project, File file) {
-		RepositoryHandler repositoryHandler = project.getRepositories();
+		File mavenLocalDir = _getMavenLocalDir(project);
 
-		ArtifactRepository artifactRepository = repositoryHandler.findByName(
-			ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME);
-
-		if (!(artifactRepository instanceof MavenArtifactRepository)) {
-			return false;
-		}
-
-		MavenArtifactRepository mavenArtifactRepository =
-			(MavenArtifactRepository)artifactRepository;
-
-		Path repositoryPath = Paths.get(mavenArtifactRepository.getUrl());
-
-		if (FileUtil.isChild(file, repositoryPath.toFile())) {
+		if ((mavenLocalDir != null) && FileUtil.isChild(file, mavenLocalDir)) {
 			return true;
 		}
 
@@ -267,12 +304,65 @@ public class GradleUtil extends com.liferay.gradle.util.GradleUtil {
 		}
 	}
 
+	public static void substituteModuleDependencyWithProject(
+		Configuration configuration,
+		ModuleVersionSelector moduleVersionSelector, Project project) {
+
+		ResolutionStrategy resolutionStrategy =
+			configuration.getResolutionStrategy();
+
+		DependencySubstitutions dependencySubstitutions =
+			resolutionStrategy.getDependencySubstitution();
+
+		ComponentSelector moduleComponentSelector =
+			dependencySubstitutions.module(
+				_getDependencyNotation(moduleVersionSelector));
+
+		Substitution substitution = dependencySubstitutions.substitute(
+			moduleComponentSelector);
+
+		ComponentSelector projectComponentSelector =
+			dependencySubstitutions.project(project.getPath());
+
+		substitution.with(projectComponentSelector);
+	}
+
 	public static <P extends Plugin<? extends Project>> void withPlugin(
 		Project project, Class<P> pluginClass, Action<P> action) {
 
 		PluginContainer pluginContainer = project.getPlugins();
 
 		pluginContainer.withType(pluginClass, action);
+	}
+
+	private static String _getDependencyNotation(
+		ModuleVersionSelector moduleVersionSelector) {
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(moduleVersionSelector.getGroup());
+		sb.append(':');
+		sb.append(moduleVersionSelector.getName());
+		sb.append(':');
+		sb.append(moduleVersionSelector.getVersion());
+
+		return sb.toString();
+	}
+
+	private static File _getMavenLocalDir(Project project) {
+		RepositoryHandler repositoryHandler = project.getRepositories();
+
+		ArtifactRepository artifactRepository = repositoryHandler.findByName(
+			ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME);
+
+		if (!(artifactRepository instanceof MavenArtifactRepository)) {
+			return null;
+		}
+
+		MavenArtifactRepository mavenArtifactRepository =
+			(MavenArtifactRepository)artifactRepository;
+
+		return new File(mavenArtifactRepository.getUrl());
 	}
 
 }

@@ -8,6 +8,8 @@
 	<bean class="com.liferay.portal.workflow.kaleo.service.impl.KaleoDefinitionLocalServiceImpl" id="com.liferay.portal.workflow.kaleo.service.KaleoDefinitionLocalService" />
 	<bean class="com.liferay.portal.workflow.kaleo.service.impl.KaleoDefinitionServiceImpl" id="com.liferay.portal.workflow.kaleo.service.KaleoDefinitionService" />
 	<bean class="com.liferay.portal.workflow.kaleo.service.persistence.impl.KaleoDefinitionPersistenceImpl" id="com.liferay.portal.workflow.kaleo.service.persistence.KaleoDefinitionPersistence" parent="basePersistence" />
+	<bean class="com.liferay.portal.workflow.kaleo.service.impl.KaleoDefinitionVersionLocalServiceImpl" id="com.liferay.portal.workflow.kaleo.service.KaleoDefinitionVersionLocalService" />
+	<bean class="com.liferay.portal.workflow.kaleo.service.persistence.impl.KaleoDefinitionVersionPersistenceImpl" id="com.liferay.portal.workflow.kaleo.service.persistence.KaleoDefinitionVersionPersistence" parent="basePersistence" />
 	<bean class="com.liferay.portal.workflow.kaleo.service.impl.KaleoInstanceLocalServiceImpl" id="com.liferay.portal.workflow.kaleo.service.KaleoInstanceLocalService" />
 	<bean class="com.liferay.portal.workflow.kaleo.service.persistence.impl.KaleoInstancePersistenceImpl" id="com.liferay.portal.workflow.kaleo.service.persistence.KaleoInstancePersistence" parent="basePersistence" />
 	<bean class="com.liferay.portal.workflow.kaleo.service.impl.KaleoInstanceTokenLocalServiceImpl" id="com.liferay.portal.workflow.kaleo.service.KaleoInstanceTokenLocalService" />

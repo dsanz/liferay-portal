@@ -123,6 +123,16 @@ public class SourceFormatter {
 			if (ArrayUtil.isNotEmpty(fileNames)) {
 				sourceFormatterArgs.setFileNames(Arrays.asList(fileNames));
 			}
+			else {
+				String fileExtensionsString = ArgumentsUtil.getString(
+					arguments, "source.file.extensions", StringPool.BLANK);
+
+				String[] fileExtensions = StringUtil.split(
+					fileExtensionsString, StringPool.COMMA);
+
+				sourceFormatterArgs.setFileExtensions(
+					Arrays.asList(fileExtensions));
+			}
 
 			boolean includeSubrepositories = ArgumentsUtil.getBoolean(
 				arguments, "include.subrepositories",
@@ -148,6 +158,12 @@ public class SourceFormatter {
 				SourceFormatterArgs.PROCESSOR_THREAD_COUNT);
 
 			sourceFormatterArgs.setProcessorThreadCount(processorThreadCount);
+
+			boolean showDocumentation = ArgumentsUtil.getBoolean(
+				arguments, "show.documentation",
+				SourceFormatterArgs.SHOW_DOCUMENTATION);
+
+			sourceFormatterArgs.setShowDocumentation(showDocumentation);
 
 			boolean throwException = ArgumentsUtil.getBoolean(
 				arguments, "source.throw.exception",

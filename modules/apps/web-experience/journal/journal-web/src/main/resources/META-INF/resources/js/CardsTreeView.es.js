@@ -17,6 +17,92 @@ import templates from './CardsTreeView.soy';
  * - Improved accessibility for keyboard navigation following common tree widget patterns
  */
 class CardsTreeview extends Treeview {
+
+	/**
+	 * @inheritDoc
+	 */
+	created() {
+		this.expandSelectedNodesParentNodes_(this.nodes);
+		this.addSelectedNodes_(this.nodes);
+	}
+
+	/**
+	 * Adds nodes with selected attribute to selectedNodes list in case when
+	 * they are still not there.
+	 *
+	 * @param nodes Nodes to check and add to selectedNodes list.
+	 * @protected
+	 */
+	addSelectedNodes_(nodes) {
+		nodes.forEach(
+			(node) => {
+				if (node.children) {
+					this.addSelectedNodes_(node.children);
+				}
+
+				if (node.selected) {
+					this.selectNode_(node);
+				}
+			}
+		);
+	}
+
+	/**
+	 * Deselects all selected tree nodes
+	 *
+	 * @protected
+	 */
+	deselectAll_() {
+		for (let i = this.selectedNodes.length - 1; i >= 0; i--) {
+			this.selectedNodes[i].selected = false;
+			this.selectedNodes.pop();
+		}
+	}
+
+	/**
+	 * Selects specific nodes
+	 *
+	 * @param node to deselect.
+	 * @protected
+	 */
+	deselectNode_(node) {
+		node.selected = false;
+
+		this.selectedNodes.splice(this.selectedNodes.indexOf(node), 1);
+
+		this.selectedNodes = this.selectedNodes;
+	}
+
+	/**
+	 * Expands all parent nodes of expanded children.
+	 *
+	 * @param nodes List of nodes to expand all parent nodes of expanded children.
+	 * @protected
+	 */
+	expandSelectedNodesParentNodes_(nodes) {
+		let expanded,
+			expandedParent;
+
+		nodes.forEach(
+			(node) => {
+				expanded = node.expanded;
+
+				if (node.selected) {
+					expandedParent = true;
+				}
+
+				if (node.children) {
+					expanded = this.expandSelectedNodesParentNodes_(node.children) || expanded;
+				}
+
+				node.expanded = expanded;
+			},
+			this
+		);
+
+		return expandedParent;
+	}
+
 	/**
 	 * Focus the given tree node.
 	 * @param {!Object} nodeObj
@@ -92,30 +178,26 @@ class CardsTreeview extends Treeview {
 	 * @protected
 	 */
 	handleNodeClicked_(event) {
-		let currentTarget = event.delegateTarget.parentNode;
+		let path = event.delegateTarget.parentNode.parentNode.parentNode.getAttribute('data-treeview-path').split('-');
 
-		let currentTargetId = currentTarget.getAttribute('data-treeitemid');
+		let node = this.getNodeObj(path);
 
 		if (this.multiSelection) {
-			if (this.selectedNodes.indexOf(currentTargetId + ',') !== -1) {
-				this.selectedNodes = this.selectedNodes.replace(currentTargetId + ',', '');
+			if (node.selected) {
+				this.deselectNode_(node);
 			}
 			else {
-				this.selectedNodes += currentTargetId + ',';
+				this.selectNode_(node);
 			}
 		}
 		else {
-			this.selectedNodes = ',' + currentTargetId + ',';
+			if (!node.selected) {
+				this.deselectAll_();
+				this.selectNode_(node);
+			}
 		}
-	}
 
-	/**
-	 * This is called when one of this tree view's nodes toggler is clicked.
-	 * @param {!Event} event
-	 * @protected
-	 */
-	handleNodeTogglerClicked_(event) {
-		this.toggleExpandedState_(event.delegateTarget.parentNode.parentNode.parentNode);
+		this.nodes = this.nodes;
 	}
 
 	/**
@@ -145,10 +227,31 @@ class CardsTreeview extends Treeview {
 			this.focusNextNode_(node);
 		}
 		else if (event.keyCode === 13 || event.keyCode === 32) {
-			if (!dom.hasClass(event.delegateTarget.parentNode.parentNode, 'disabled')) {
-				this.handleNodeClicked_(event);
-			}
+			this.handleNodeClicked_(event);
 		}
+	}
+
+	/**
+	 * This is called when one of this tree view's nodes toggler is clicked.
+	 * @param {!Event} event
+	 * @protected
+	 */
+	handleNodeTogglerClicked_(event) {
+		this.toggleExpandedState_(event.delegateTarget.parentNode.parentNode.parentNode);
+	}
+
+	/**
+	 * Selects specific node.
+	 *
+	 * @param node to select.
+	 * @protected
+	 */
+	selectNode_(node) {
+		node.selected = true;
+
+		this.selectedNodes.push(node);
+
+		this.selectedNodes = this.selectedNodes;
 	}
 
 	/**
@@ -181,6 +284,11 @@ CardsTreeview.STATE = {
 	multiSelection: {
 		validator: core.isBoolean,
 		value: false
+	},
+
+	selectedNodes: {
+		validator: core.isArray,
+		value: []
 	}
 };
 

@@ -398,6 +398,12 @@ public interface JournalFolderLocalService extends BaseLocalService,
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<JournalFolder> getNoAssetFolders();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<DDMStructure> searchDDMStructures(long companyId,
+		long[] groupIds, long folderId, int restrictionType,
+		java.lang.String keywords, int start, int end,
+		OrderByComparator<DDMStructure> obc) throws PortalException;
+
 	/**
 	* Returns the number of rows matching the dynamic query.
 	*

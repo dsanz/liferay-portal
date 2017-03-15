@@ -27,7 +27,7 @@ import org.junit.Test;
 /**
  * @author Leonardo Barros
  */
-public class SetPropertyFunctionTest extends BaseDDMFormRuleFunctionTest {
+public class SetPropertyFunctionTest extends BaseDDMFormRuleFunctionTestCase {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testInvalidArguments() {

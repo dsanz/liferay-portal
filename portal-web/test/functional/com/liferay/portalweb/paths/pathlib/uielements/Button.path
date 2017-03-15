@@ -334,6 +334,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EDIT_PENCIL</td>
+	<td>//a[contains(@class,'btn')]//i[contains(@class,'icon-pencil')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ENTER</td>
 	<td>//button[contains(.,'Enter')]</td>
 	<td></td>
@@ -585,12 +590,12 @@
 </tr>
 <tr>
 	<td>ROTATE_LEFT</td>
-	<td>//a[contains(@class,'btn') and (@data-onclick='rotateLeft')]</td>
+	<td>//a[contains(@class,'btn-link') and (@data-onclick='data-onclick')][1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ROTATE_RIGHT</td>
-	<td>//a[contains(@class,'btn') and (@data-onclick='rotateRight')]</td>
+	<td>//a[contains(@class,'btn-link') and (@data-onclick='data-onclick')][2]</td>
 	<td></td>
 </tr>
 <tr>

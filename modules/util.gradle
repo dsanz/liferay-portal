@@ -13,8 +13,18 @@ buildscript {
 task buildFixPackChangeLog(type: BuildChangeLogTask)
 task cleanReleng
 task cleanVersionOverride
+task printDependencyPath
+task setUpLibs
 task setUpPortalTools
 task wrapper(type: Wrapper)
+
+FileTree libDependenciesFileTree = fileTree(dir: "../lib", include: "*/dependencies.properties")
+
+Map<File, Properties> libDependenciesMap = libDependenciesFileTree.collectEntries {
+	Properties properties = GUtil.loadProperties(it)
+
+	[it.parentFile, properties]
+}
 
 buildFixPackChangeLog {
 	changeLogHeader = {
@@ -51,7 +61,7 @@ cleanReleng {
 			if (!moduleDir.exists()) {
 				delete relengDir
 
-				println "Removed " + relativePath(relengDir)
+				logger.lifecycle "Removed {}", relativePath(relengDir)
 			}
 		}
 	}
@@ -72,6 +82,20 @@ cleanVersionOverride {
 		delete bndBndFileTree.collect {
 			new File(gitRepoDir.parentFile, ".version-override-${it.parentFile.name}.properties")
 		}
+	}
+}
+
+printDependencyPath {
+	doLast {
+		assert project.properties["dependencyNotation"] : "Please provide a value for the '-PdependencyNotation' property"
+
+		Dependency dependency = dependencies.create dependencyNotation
+
+		Configuration configuration = configurations.detachedConfiguration dependency
+
+		configuration.transitive = false
+
+		logger.quiet configuration.singleFile.absolutePath
 	}
 }
 
@@ -130,9 +154,44 @@ set DEFAULT_JVM_OPTS=%DEFAULT_JVM_OPTS% "-Dgradle.user.home=%APP_HOME%\\.gradle"
 	scriptFile = new File(wrapperDir, "gradlew")
 }
 
-_createSetUpTasks()
+_createSetUpLibTasks(libDependenciesMap)
+_createSetUpPortalToolTasks()
 
-private void _createSetUpTasks() {
+private void _createSetUpLibTasks(Map<File, Properties> libDependenciesMap) {
+	libDependenciesMap.each {
+		File dir, Properties properties ->
+
+		String libSuffix = StringUtil.capitalize(dir.name)
+
+		Configuration libConfiguration = configurations.create("lib" + libSuffix)
+
+		libConfiguration.transitive = false
+
+		Task libTask = tasks.create(name: "setUpLib" + libSuffix, type: Copy) {
+			from libConfiguration
+			into dir
+		}
+
+		for (String fileTitle in properties.stringPropertyNames()) {
+			String dependencyNotation = properties.getProperty(fileTitle)
+
+			def dependency = dependencies.add(libConfiguration.name, dependencyNotation)
+
+			DependencyArtifact dependencyArtifact = dependency.artifacts.find()
+
+			if (dependencyArtifact) {
+				libTask.rename "${dependency.name}-${dependency.version}-${dependencyArtifact.classifier}.jar", "${fileTitle}.jar"
+			}
+			else {
+				libTask.rename "${dependency.name}-${dependency.version}.jar", "${fileTitle}.jar"
+			}
+		}
+
+		setUpLibs.dependsOn libTask
+	}
+}
+
+private void _createSetUpPortalToolTasks() {
 	FileTree ivyXmlFileTree = fileTree(dir: "../tools/sdk", includes: ["ivy.xml", "dependencies/*/ivy.xml"])
 
 	XmlSlurper xmlSlurper = new XmlSlurper()

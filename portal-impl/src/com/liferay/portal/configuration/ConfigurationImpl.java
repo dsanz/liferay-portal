@@ -117,7 +117,7 @@ public class ConfigurationImpl
 				(List<Configuration>)field1.get(classLoaderAggregateProperties);
 
 			MapConfiguration newConfiguration = new MapConfiguration(
-				properties);
+				_castPropertiesToMap(properties));
 
 			newConfiguration.setTrimmingDisabled(true);
 
@@ -477,6 +477,13 @@ public class ConfigurationImpl
 
 			System.out.println(info);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Map<String, Object> _castPropertiesToMap(
+		Properties properties) {
+
+		return (Map)properties;
 	}
 
 	private static final String _ARRAY_KEY_PREFIX = "ARRAY_";

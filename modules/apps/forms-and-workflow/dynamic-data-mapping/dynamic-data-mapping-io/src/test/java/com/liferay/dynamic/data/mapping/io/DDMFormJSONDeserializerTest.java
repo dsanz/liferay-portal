@@ -23,6 +23,7 @@ import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
 import com.liferay.dynamic.data.mapping.model.DDMFormRule;
+import com.liferay.dynamic.data.mapping.model.DDMFormSuccessPageSettings;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormFieldTypeSettingsTestUtil;
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -173,7 +174,7 @@ public class DDMFormJSONDeserializerTest
 
 	@Override
 	protected void testDDMFormRules(List<DDMFormRule> ddmFormRules) {
-		Assert.assertEquals(2, ddmFormRules.size());
+		Assert.assertEquals(ddmFormRules.toString(), 2, ddmFormRules.size());
 
 		DDMFormRule ddmFormRule1 = ddmFormRules.get(0);
 
@@ -188,6 +189,17 @@ public class DDMFormJSONDeserializerTest
 		Assert.assertEquals(
 			Arrays.asList("Action 3"), ddmFormRule2.getActions());
 		Assert.assertFalse(ddmFormRule2.isEnabled());
+	}
+
+	@Override
+	protected void testDDMFormSuccessPageSettings(
+		DDMFormSuccessPageSettings ddmFormSuccessPageSettings) {
+
+		Assert.assertNotNull(ddmFormSuccessPageSettings);
+		Assert.assertEquals("Body Text", ddmFormSuccessPageSettings.getBody());
+		Assert.assertEquals(
+			"Title Text", ddmFormSuccessPageSettings.getTitle());
+		Assert.assertTrue(ddmFormSuccessPageSettings.isEnabled());
 	}
 
 	@Override

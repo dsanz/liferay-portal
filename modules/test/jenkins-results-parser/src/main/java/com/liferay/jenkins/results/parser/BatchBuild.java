@@ -64,7 +64,7 @@ public class BatchBuild extends BaseBuild {
 
 		String result = getResult();
 
-		if (result.equals("ABORTED")) {
+		if (result.equals("ABORTED") && (getDownstreamBuildCount(null) == 0)) {
 			return messageElement;
 		}
 
@@ -193,7 +193,9 @@ public class BatchBuild extends BaseBuild {
 	}
 
 	@Override
-	protected List<String> findDownstreamBuildsInConsoleText() {
+	protected List<String> findDownstreamBuildsInConsoleText(
+		String consoleText) {
+
 		return Collections.emptyList();
 	}
 

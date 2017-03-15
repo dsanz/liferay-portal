@@ -94,9 +94,15 @@
 			<var name="portletOption" value="Editar contenido web" />
 		</execute>
 
-		<execute macro="WebContent#viewTranslationPGViaWCD">
-			<var name="localizedTitle" value="WC Titulo" />
-			<var name="webContentTranslationLanguage" value="español (España)" />
+		<execute macro="IFrame#selectEditAssetFrame" />
+
+		<execute macro="WebContent#selectLocale">
+			<var name="locale" value="es-ES" />
+		</execute>
+
+		<execute macro="WebContent#viewCP">
+			<var name="webContentContent" value="WC Contenido" />
+			<var name="webContentTitle" value="WC Titulo" />
 		</execute>
 
 		<execute macro="Navigator#gotoSitePage">
@@ -121,9 +127,15 @@
 			<var name="portletOption" value="Webcontent bearbeiten" />
 		</execute>
 
-		<execute macro="WebContent#viewTranslationPGViaWCD">
-			<var name="localizedTitle" value="WC Titel" />
-			<var name="webContentTranslationLanguage" value="Deutsch (Deutschland)" />
+		<execute macro="IFrame#selectEditAssetFrame" />
+
+		<execute macro="WebContent#selectLocale">
+			<var name="locale" value="de-DE" />
+		</execute>
+
+		<execute macro="WebContent#viewCP">
+			<var name="webContentContent" value="WC Inhalt" />
+			<var name="webContentTitle" value="WC Titel" />
 		</execute>
 
 		<execute macro="Navigator#gotoSitePage">
@@ -148,14 +160,20 @@
 			<var name="portletOption" value="Muokkaa web-sisältöä" />
 		</execute>
 
-		<execute macro="WebContent#viewTranslationPGViaWCD">
-			<var name="localizedTitle" value="WC Otsikko" />
-			<var name="webContentTranslationLanguage" value="suomi (Suomi)" />
+		<execute macro="IFrame#selectEditAssetFrame" />
+
+		<execute macro="WebContent#selectLocale">
+			<var name="locale" value="fi-FI" />
+		</execute>
+
+		<execute macro="WebContent#viewCP">
+			<var name="webContentContent" value="WC Pitoisuus" />
+			<var name="webContentTitle" value="WC Otsikko" />
 		</execute>
 	</command>
 
 	<command name="AddWCWithTranslation" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="quarantine" />
 		<property name="test.name.skip.portal.instance" value="LanguageUsecase#AddWCWithTranslation" />
 
 		<execute macro="ProductMenu#gotoSite">
@@ -173,11 +191,14 @@
 			<var name="webContentTitle" value="WC Title" />
 		</execute>
 
-		<execute macro="WebContent#addTranslation">
-			<var name="localizedContent" value="WC Contenido" />
-			<var name="localizedLanguage" value="Spanish (Spain)" />
-			<var name="localizedTitle" value="WC Titulo" />
-			<var name="webContentTitle" value="WC Title" />
+		<execute macro="WebContent#addLocale">
+			<var name="language" value="Spanish (Spain)" />
+			<var name="locale" value="es-ES" />
+		</execute>
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="WC Contenido" />
+			<var name="webContentTitle" value="WC Titulo" />
 		</execute>
 
 		<execute macro="PortletEntry#publish" />
@@ -187,33 +208,16 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<execute macro="Portlet#addPG">
-			<var name="portletName" value="Web Content Display" />
-		</execute>
-
-		<execute macro="WebContentDisplayPortlet#selectWebContent">
-			<var name="webContentTitle" value="WC Title" />
-		</execute>
-
-		<execute macro="Navigator#gotoSitePage">
-			<var name="pageName" value="Test Page Name" />
-			<var name="siteName" value="Site Name" />
+		<execute macro="Content#addPG">
+			<var name="assetTitle" value="WC Title" />
 		</execute>
 
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Language Selector" />
 		</execute>
 
-		<execute macro="Navigator#openSiteURL">
-			<var name="siteName" value="Site Name" />
-		</execute>
-
 		<execute macro="LanguagePortlet#selectLanguagePG">
 			<var name="language" value="Spanish (Spain)" />
-		</execute>
-
-		<execute macro="Navigator#openSiteURL">
-			<var name="siteName" value="Site Name" />
 		</execute>
 
 		<execute macro="WebContent#viewPGViaWCD">
@@ -225,9 +229,15 @@
 			<var name="portletOption" value="Editar contenido web" />
 		</execute>
 
-		<execute macro="WebContent#viewTranslationPGViaWCD">
-			<var name="localizedTitle" value="WC Titulo" />
-			<var name="webContentTranslationLanguage" value="español (España)" />
+		<execute macro="IFrame#selectEditAssetFrame" />
+
+		<execute macro="WebContent#selectLocale">
+			<var name="locale" value="es-ES" />
+		</execute>
+
+		<execute macro="WebContent#viewCP">
+			<var name="webContentContent" value="WC Contenido" />
+			<var name="webContentTitle" value="WC Titulo" />
 		</execute>
 	</command>
 
@@ -290,7 +300,7 @@
 		<execute macro="WebContentNavigator#gotoAddCP" />
 
 		<execute macro="WebContent#viewDefaultLanguage">
-			<var name="localizedLanguage" value="Spanish (Spain)" />
+			<var name="locale" value="es-ES" />
 		</execute>
 	</command>
 

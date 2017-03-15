@@ -47,6 +47,10 @@ public abstract class ExpressionVisitor<T> {
 		return null;
 	}
 
+	public T visit(Parenthesis parenthesis) {
+		return null;
+	}
+
 	public T visit(Term term) {
 		return null;
 	}

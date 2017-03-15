@@ -38,9 +38,6 @@ import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectory;
 
 /**
  * @author Andrea Di Giorgi
@@ -76,11 +73,11 @@ public class NpmInstallTask extends ExecuteNpmTask {
 
 					JsonSlurper jsonSlurper = new JsonSlurper();
 
-					Map<String, Object> packageJson =
+					Map<String, Object> packageJsonMap =
 						(Map<String, Object>)jsonSlurper.parse(packageJsonFile);
 
-					if (packageJson.containsKey("dependencies") ||
-						packageJson.containsKey("devDependencies")) {
+					if (packageJsonMap.containsKey("dependencies") ||
+						packageJsonMap.containsKey("devDependencies")) {
 
 						return true;
 					}
@@ -100,22 +97,18 @@ public class NpmInstallTask extends ExecuteNpmTask {
 		return GradleUtil.toFile(getProject(), _nodeModulesCacheDir);
 	}
 
-	@OutputDirectory
 	public File getNodeModulesDir() {
 		Project project = getProject();
 
 		return project.file("node_modules");
 	}
 
-	@InputFile
 	public File getPackageJsonFile() {
 		Project project = getProject();
 
 		return project.file("package.json");
 	}
 
-	@InputFile
-	@Optional
 	public File getShrinkwrapJsonFile() {
 		Project project = getProject();
 

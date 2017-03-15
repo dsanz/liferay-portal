@@ -1175,6 +1175,8 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 	protected void populateServiceContext(
 		ServiceContext serviceContext, FileEntry fileEntry) {
 
+		serviceContext.setScopeGroupId(fileEntry.getGroupId());
+
 		String className = DLFileEntryConstants.getClassName();
 
 		long[] assetCategoryIds = _assetCategoryLocalService.getCategoryIds(

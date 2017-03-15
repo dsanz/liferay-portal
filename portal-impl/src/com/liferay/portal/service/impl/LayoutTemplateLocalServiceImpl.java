@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.model.LayoutTemplate;
 import com.liferay.portal.kernel.model.LayoutTemplateConstants;
 import com.liferay.portal.kernel.model.PluginSetting;
 import com.liferay.portal.kernel.plugin.PluginPackage;
+import com.liferay.portal.kernel.spring.aop.Skip;
 import com.liferay.portal.kernel.template.StringTemplateResource;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
@@ -44,6 +45,7 @@ import com.liferay.portal.util.PropsValues;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -59,6 +61,7 @@ import javax.servlet.ServletContext;
  * @author Brian Wing Shun Chan
  * @author Raymond Augé
  */
+@Skip
 public class LayoutTemplateLocalServiceImpl
 	extends LayoutTemplateLocalServiceBaseImpl {
 
@@ -153,8 +156,8 @@ public class LayoutTemplateLocalServiceImpl
 		List<LayoutTemplate> customLayoutTemplates = new ArrayList<>(
 			_portalCustom.size() + _warCustom.size());
 
-		customLayoutTemplates.addAll(ListUtil.fromMapValues(_portalCustom));
-		customLayoutTemplates.addAll(ListUtil.fromMapValues(_warCustom));
+		customLayoutTemplates.addAll(_portalCustom.values());
+		customLayoutTemplates.addAll(_warCustom.values());
 
 		return customLayoutTemplates;
 	}
@@ -498,28 +501,26 @@ public class LayoutTemplateLocalServiceImpl
 	}
 
 	private Map<String, LayoutTemplate> _getThemesCustom(String themeId) {
-		String key = themeId.concat(LayoutTemplateConstants.CUSTOM_SEPARATOR);
-
-		Map<String, LayoutTemplate> layoutTemplates = _themes.get(key);
+		Map<String, LayoutTemplate> layoutTemplates = _customThemes.get(
+			themeId);
 
 		if (layoutTemplates == null) {
 			layoutTemplates = new LinkedHashMap<>();
 
-			_themes.put(key, layoutTemplates);
+			_customThemes.put(themeId, layoutTemplates);
 		}
 
 		return layoutTemplates;
 	}
 
 	private Map<String, LayoutTemplate> _getThemesStandard(String themeId) {
-		String key = themeId + LayoutTemplateConstants.STANDARD_SEPARATOR;
-
-		Map<String, LayoutTemplate> layoutTemplates = _themes.get(key);
+		Map<String, LayoutTemplate> layoutTemplates = _standardThemes.get(
+			themeId);
 
 		if (layoutTemplates == null) {
 			layoutTemplates = new LinkedHashMap<>();
 
-			_themes.put(key, layoutTemplates);
+			_standardThemes.put(themeId, layoutTemplates);
 		}
 
 		return layoutTemplates;
@@ -562,15 +563,17 @@ public class LayoutTemplateLocalServiceImpl
 	private static final Log _log = LogFactoryUtil.getLog(
 		LayoutTemplateLocalServiceImpl.class);
 
+	private static final Map<String, Map<String, LayoutTemplate>>
+		_customThemes = new HashMap<>();
 	private static final Map<String, LayoutTemplate> _portalCustom =
 		new LinkedHashMap<>();
 	private static final Map<String, LayoutTemplate> _portalStandard =
-		new LinkedHashMap<>();
-	private static final Map<String, Map<String, LayoutTemplate>> _themes =
-		new LinkedHashMap<>();
+		new HashMap<>();
+	private static final Map<String, Map<String, LayoutTemplate>>
+		_standardThemes = new HashMap<>();
 	private static final Map<String, LayoutTemplate> _warCustom =
 		new LinkedHashMap<>();
 	private static final Map<String, LayoutTemplate> _warStandard =
-		new LinkedHashMap<>();
+		new HashMap<>();
 
 }

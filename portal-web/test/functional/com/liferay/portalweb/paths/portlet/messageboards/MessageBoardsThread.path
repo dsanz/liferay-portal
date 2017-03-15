@@ -30,8 +30,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>THREAD_PUBLISH_BUTTON</td>
+	<td>//div[@class='card list-group-card panel']//button[span[contains(.,'Publish')]]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>THREAD_REPLY_BUTTON</td>
 	<td>//div[@class='thread-container' and contains(.,'${key_threadSubject}')]//span[contains(.,'Reply to Main Thread')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>THREAD_REPLY_EDITOR</td>
+	<td>//div[(contains(@id,'replyMessageBody') or contains(@id,'content')) and contains(@class,'alloy-editor-container')]//div[contains(@class,'alloy-editor-placeholder')]</td>
 	<td></td>
 </tr>
 <tr>

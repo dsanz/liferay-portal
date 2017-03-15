@@ -41,7 +41,7 @@ import org.junit.BeforeClass;
 /**
  * @author Hugo Huijser
  */
-public class BaseSourceProcessorTestCase {
+public abstract class BaseSourceProcessorTestCase {
 
 	@BeforeClass
 	public static void setUpClass() {
@@ -151,7 +151,8 @@ public class BaseSourceProcessorTestCase {
 			(expectedMessages.length > 0)) {
 
 			Assert.assertEquals(
-				expectedMessages.length, sourceFormatterMessages.size());
+				sourceFormatterMessages.toString(), expectedMessages.length,
+				sourceFormatterMessages.size());
 
 			for (int i = 0; i < sourceFormatterMessages.size(); i++) {
 				SourceFormatterMessage sourceFormatterMessage =

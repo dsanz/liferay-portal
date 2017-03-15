@@ -78,8 +78,8 @@ import com.liferay.dynamic.data.mapping.model.impl.DDMStructureVersionModelImpl;
 import com.liferay.dynamic.data.mapping.model.impl.DDMTemplateLinkModelImpl;
 import com.liferay.dynamic.data.mapping.model.impl.DDMTemplateModelImpl;
 import com.liferay.dynamic.data.mapping.storage.StorageType;
-import com.liferay.friendly.url.model.FriendlyURLModel;
-import com.liferay.friendly.url.model.impl.FriendlyURLModelImpl;
+import com.liferay.friendly.url.model.FriendlyURLEntryModel;
+import com.liferay.friendly.url.model.impl.FriendlyURLEntryModelImpl;
 import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleConstants;
@@ -138,8 +138,6 @@ import com.liferay.portal.kernel.model.ResourcePermissionModel;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.RoleModel;
-import com.liferay.portal.kernel.model.SubscriptionConstants;
-import com.liferay.portal.kernel.model.SubscriptionModel;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserModel;
 import com.liferay.portal.kernel.model.VirtualHostModel;
@@ -178,7 +176,6 @@ import com.liferay.portal.model.impl.PortletPreferencesModelImpl;
 import com.liferay.portal.model.impl.ReleaseModelImpl;
 import com.liferay.portal.model.impl.ResourcePermissionModelImpl;
 import com.liferay.portal.model.impl.RoleModelImpl;
-import com.liferay.portal.model.impl.SubscriptionModelImpl;
 import com.liferay.portal.model.impl.UserModelImpl;
 import com.liferay.portal.model.impl.VirtualHostModelImpl;
 import com.liferay.portal.util.PropsValues;
@@ -207,6 +204,9 @@ import com.liferay.portlet.social.model.impl.SocialActivityModelImpl;
 import com.liferay.social.kernel.model.SocialActivity;
 import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.social.kernel.model.SocialActivityModel;
+import com.liferay.subscription.model.SubscriptionConstants;
+import com.liferay.subscription.model.SubscriptionModel;
+import com.liferay.subscription.model.impl.SubscriptionModelImpl;
 import com.liferay.util.SimpleCounter;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.model.WikiNode;
@@ -1742,23 +1742,24 @@ public class DataFactory {
 		return dlFolderModels;
 	}
 
-	public FriendlyURLModel newFriendlyURLModel(
+	public FriendlyURLEntryModel newFriendlyURLEntryModel(
 		BlogsEntryModel blogsEntryModel) {
 
-		FriendlyURLModel friendlyURLModel = new FriendlyURLModelImpl();
+		FriendlyURLEntryModel friendlyURLEntryModel =
+			new FriendlyURLEntryModelImpl();
 
-		friendlyURLModel.setUuid(SequentialUUID.generate());
-		friendlyURLModel.setFriendlyURLId(_counter.get());
-		friendlyURLModel.setGroupId(blogsEntryModel.getGroupId());
-		friendlyURLModel.setCompanyId(_companyId);
-		friendlyURLModel.setCreateDate(new Date());
-		friendlyURLModel.setModifiedDate(new Date());
-		friendlyURLModel.setClassNameId(getClassNameId(BlogsEntry.class));
-		friendlyURLModel.setClassPK(blogsEntryModel.getEntryId());
-		friendlyURLModel.setUrlTitle(blogsEntryModel.getUrlTitle());
-		friendlyURLModel.setMain(true);
+		friendlyURLEntryModel.setUuid(SequentialUUID.generate());
+		friendlyURLEntryModel.setFriendlyURLEntryId(_counter.get());
+		friendlyURLEntryModel.setGroupId(blogsEntryModel.getGroupId());
+		friendlyURLEntryModel.setCompanyId(_companyId);
+		friendlyURLEntryModel.setCreateDate(new Date());
+		friendlyURLEntryModel.setModifiedDate(new Date());
+		friendlyURLEntryModel.setClassNameId(getClassNameId(BlogsEntry.class));
+		friendlyURLEntryModel.setClassPK(blogsEntryModel.getEntryId());
+		friendlyURLEntryModel.setUrlTitle(blogsEntryModel.getUrlTitle());
+		friendlyURLEntryModel.setMain(true);
 
-		return friendlyURLModel;
+		return friendlyURLEntryModel;
 	}
 
 	public GroupModel newGroupModel(UserModel userModel) throws Exception {
@@ -1898,23 +1899,24 @@ public class DataFactory {
 	public LayoutFriendlyURLModel newLayoutFriendlyURLModel(
 		LayoutModel layoutModel) {
 
-		LayoutFriendlyURLModel layoutFriendlyURLModel =
+		LayoutFriendlyURLModel layoutFriendlyURLEntryModel =
 			new LayoutFriendlyURLModelImpl();
 
-		layoutFriendlyURLModel.setUuid(SequentialUUID.generate());
-		layoutFriendlyURLModel.setLayoutFriendlyURLId(_counter.get());
-		layoutFriendlyURLModel.setGroupId(layoutModel.getGroupId());
-		layoutFriendlyURLModel.setCompanyId(_companyId);
-		layoutFriendlyURLModel.setUserId(_sampleUserId);
-		layoutFriendlyURLModel.setUserName(_SAMPLE_USER_NAME);
-		layoutFriendlyURLModel.setCreateDate(new Date());
-		layoutFriendlyURLModel.setModifiedDate(new Date());
-		layoutFriendlyURLModel.setPlid(layoutModel.getPlid());
-		layoutFriendlyURLModel.setFriendlyURL(layoutModel.getFriendlyURL());
-		layoutFriendlyURLModel.setLanguageId("en_US");
-		layoutFriendlyURLModel.setLastPublishDate(new Date());
+		layoutFriendlyURLEntryModel.setUuid(SequentialUUID.generate());
+		layoutFriendlyURLEntryModel.setLayoutFriendlyURLId(_counter.get());
+		layoutFriendlyURLEntryModel.setGroupId(layoutModel.getGroupId());
+		layoutFriendlyURLEntryModel.setCompanyId(_companyId);
+		layoutFriendlyURLEntryModel.setUserId(_sampleUserId);
+		layoutFriendlyURLEntryModel.setUserName(_SAMPLE_USER_NAME);
+		layoutFriendlyURLEntryModel.setCreateDate(new Date());
+		layoutFriendlyURLEntryModel.setModifiedDate(new Date());
+		layoutFriendlyURLEntryModel.setPlid(layoutModel.getPlid());
+		layoutFriendlyURLEntryModel.setFriendlyURL(
+			layoutModel.getFriendlyURL());
+		layoutFriendlyURLEntryModel.setLanguageId("en_US");
+		layoutFriendlyURLEntryModel.setLastPublishDate(new Date());
 
-		return layoutFriendlyURLModel;
+		return layoutFriendlyURLEntryModel;
 	}
 
 	public LayoutModel newLayoutModel(

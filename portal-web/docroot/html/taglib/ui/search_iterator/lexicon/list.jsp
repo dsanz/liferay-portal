@@ -312,7 +312,7 @@ if (!resultRowSplitterEntries.isEmpty()) {
 					for (int i = 0; i < headerNames.size(); i++) {
 					%>
 
-						<td class="table-cell"></td>
+						<td></td>
 
 					<%
 					}

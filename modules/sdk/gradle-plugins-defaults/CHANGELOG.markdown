@@ -988,6 +988,232 @@ version 1.1.2.
 - [LPS-69926]: Move the `compileInclude` dependencies at the beginning of the
 test compile and runtime classpaths.
 
+## 2.4.24 - 2017-02-02
+
+### Changed
+- [LPS-67352]: Update the [Liferay Gradle Plugins] dependency to version 3.1.6.
+
+## 2.4.25 - 2017-02-03
+
+### Added
+- [LPS-70424]: Add the ability to set a custom value for the project group by
+setting the property `project.group` in a `gradle.properties` file located in
+any parent directory of the project.
+
+### Changed
+- [LPS-69271]: Update the [Liferay Gradle Plugins] dependency to version 3.1.7.
+
+## 2.4.26 - 2017-02-04
+
+### Changed
+- [LPS-69926]: Set the `liferayOSGi.expandCompileInclude` property to `false` by
+default.
+
+## 2.4.27 - 2017-02-08
+
+### Changed
+- [LPS-70486]: Make the `compileClasspath` configuration non-transitive for
+Liferay apps.
+- [LPS-70486]: Use the `compileClasspath` configuration in the compile and
+runtime classpaths of the `test` and `testIntegration` source sets.
+- [LPS-70515]: Update the [Liferay Gradle Plugins] dependency to version 3.1.8.
+
+## 2.4.28 - 2017-02-09
+
+### Added
+- [LPS-69920]: Set the system property `clean.node.modules` to `true` to delete
+the `node_modules` directory of a project with the `clean` task.
+
+### Changed
+- [LPS-70451]: Update the [Liferay Gradle Plugins] dependency to version 3.1.9.
+
+## 2.4.29 - 2017-02-09
+
+### Changed
+- [LPS-70555]: Update the [Liferay Gradle Plugins] dependency to version 3.2.0.
+
+## 2.4.30 - 2017-02-12
+
+### Changed
+- [LPS-66853]: Update the [Liferay Gradle Plugins] dependency to version 3.2.1.
+
+### Fixed
+- [LPS-70584]: Avoid internet connection requirement when parsing `service.xml`
+files.
+
+## 2.4.31 - 2017-02-12
+
+### Changed
+- [LPS-66853]: Update the [Liferay Gradle Plugins] dependency to version 3.2.2.
+
+## 2.4.32 - 2017-02-13
+
+### Changed
+- [LPS-70618]: Update the [Liferay Gradle Plugins] dependency to version 3.2.3.
+
+## 2.4.33 - 2017-02-14
+
+### Changed
+- [LPS-70494]: Update the [Liferay Gradle Plugins] dependency to version 3.2.4.
+
+### Fixed
+- [LPS-67863]: Exclude test projects from the `gradlew baseline -PsyncRelease`
+process.
+
+## 2.4.34 - 2017-02-16
+
+### Changed
+- [LPS-70677]: Update the [Liferay Gradle Plugins] dependency to version 3.2.5.
+
+### Removed
+- [LPS-70677]: Remove exclusion of `com.liferay.portal` transitive dependencies
+from the `com.liferay.jasper.jspc` default dependency in the `jspCTool`
+configuration.
+- [LPS-70699]: Disable the update check when building themes.
+
+## 2.4.35 - 2017-02-17
+
+### Changed
+- [LPS-70707]: Update the [Liferay Gradle Plugins] dependency to version 3.2.6.
+
+## 2.4.36 - 2017-02-21
+
+### Added
+- [LPS-70170]: Print out implicit dependency replacements in the `jspC`
+configuration.
+
+## 2.5.0 - 2017-02-22
+
+### Added
+- [LPS-70819]: Publish a JAR file with the compiled JSP classes of an OSGi
+project with the `install` and `uploadArchives` tasks.
+
+### Changed
+- [LPS-66853]: Update the [Liferay Gradle Plugins] dependency to version 3.2.7.
+
+## 3.0.0 - 2017-02-23
+
+### Changed
+- [LPS-63943]: Refactor the `PrintArtifactPublishCommandsTask` class and rename
+it to `WriteArtifactPublishCommandsTask`. Executing
+`gradlew writeArtifactPublishCommands` in a parent directory generates the file
+`build/artifacts-publish-commands/artifacts-publish-commands.sh` with the
+following commands for all publishable subprojects:
+	- `gradlew baseline` (failing when semantic versioning errors are detected).
+	- `gradlew baseline` (ignoring semantic versioning errors) and Git commands
+	to commit the files modified by the `baseline` task.
+	- the publish commands returned by the previous version of the plugin.
+- [LPS-63943]: Rename the `printArtifactPublishCommands` task to
+`writeArtifactPublishCommands`.
+
+## 3.1.0 - 2017-02-23
+
+### Added
+- [LPS-70819]: Set the `jsp.precompile.from.source` project property to `false`
+to make the `compileJSP` task download the archive listed in the
+`artifact.jspc.url` artifact property instead of compiling the JSP pages of the
+OSGi project.
+
+### Changed
+- [LPS-70870]: Update the [Liferay Gradle Plugins] dependency to version 3.2.8.
+
+## 3.1.1 - 2017-02-24
+
+### Changed
+- [LPS-70170]: Change dependency replacements in the `jspC` configuration:
+	- always use the deployed `util-taglib.jar` file; fail if it's not found.
+	- substitute module taglib dependencies with project dependencies if they're
+	found, falling back to the deployed JAR file; fail if neither the project nor
+	the deployed JAR file are found.
+
+## 3.1.2 - 2017-02-25
+
+### Changed
+- [LPS-66853]: Update the [Liferay Gradle Plugins] dependency to version 3.2.9.
+
+## 3.1.3 - 2017-02-27
+
+### Changed
+- [LPS-70170]: Lower the log level of `jspC` configuration dependency
+replacement messages if the `compileJSP` task is not explicitly invoked.
+
+## 3.1.4 - 2017-02-28
+
+### Changed
+- [LPS-70929]: Disable `-check: exports` if the `bnd.bnd` file contains the
+`-exportcontents` instruction.
+- [LPS-70941]: Update the [Liferay Gradle Plugins] dependency to version 3.2.10.
+
+## 3.2.0 - 2017-03-01
+
+### Added
+- [LPS-63943]: Add Bash shebang and `set -e` at the beginning of the file
+generated by the `mergeArtifactsPublishCommands` task.
+- [LPS-63943]: Add the ability to set a header and/or a footer in the output
+file generated by `MergeFilesTask` instances.
+- [LPS-63943]: Make the file generated by the `mergeArtifactsPublishCommands`
+task executable.
+
+### Changed
+- [LPS-70890]: Update the [Liferay Gradle Plugins] dependency to version 3.2.11.
+
+## 3.2.1 - 2017-03-02
+
+### Changed
+- [LPS-62970]: Update the [Liferay Gradle Plugins] dependency to version 3.2.12.
+
+## 3.2.2 - 2017-03-02
+
+### Added
+- [LPS-67039]: Add the ability to invoke PMD from a sub-repository by using
+`gradle.gradleUserHomeDir` as the root for the `standard-rules.xml` file path.
+- [LPS-71005]: Update the [Liferay Gradle Plugins] dependency to version 3.2.13.
+
+## 3.2.3 - 2017-03-03
+
+### Changed
+- [LPS-71048]: Update the [Liferay Gradle Plugins] dependency to version 3.2.14.
+
+## 3.2.4 - 2017-03-06
+
+### Changed
+- [LPS-70604]: Check whether the `:util:` or `:private:util:` projects have
+their dependencies published before enabling the `printArtifactPublishCommands`
+task.
+- [LPS-71005]: Update the [Liferay Gradle Plugins] dependency to version 3.2.15.
+
+## 3.2.5 - 2017-03-08
+
+### Added
+- [LPS-63943]: Print out artifacts publish commands file path.
+
+### Changed
+- [LPS-68405]: Update the [Liferay Gradle Plugins] dependency to version 3.2.16.
+
+### Fixed
+- [LPS-63943]: Avoid executing `writeArtifactPublishCommands` tasks if not
+explicitly invoked.
+
+## 3.3.0 - 2017-03-09
+
+### Added
+- [LPS-70634]: Automatically publish public themes to the NPM registry while
+executing the `uploadArchives` task.
+
+### Changed
+- [LPS-70634]: Update the [Liferay Gradle Plugins] dependency to version 3.2.17.
+
+## 3.3.1 - 2017-03-09
+
+### Changed
+- [LPS-67688]: Update the [Liferay Gradle Plugins] dependency to version 3.2.18.
+
+## 3.4.0 - 2017-03-10
+
+### Added
+- [LPS-71201]: Fail release tasks if the project is being published from the
+master branch, but it was previously already published from a release branch.
+
 [Liferay CDN]: https://cdn.lfrs.sl/repository.liferay.com/nexus/content/groups/public
 [Liferay Gradle Plugins]: https://github.com/liferay/liferay-portal/tree/master/modules/sdk/gradle-plugins
 [Liferay Gradle Plugins App Javadoc Builder]: https://github.com/liferay/liferay-portal/tree/master/modules/sdk/gradle-plugins-app-javadoc-builder
@@ -999,16 +1225,20 @@ test compile and runtime classpaths.
 [LPS-58672]: https://issues.liferay.com/browse/LPS-58672
 [LPS-61099]: https://issues.liferay.com/browse/LPS-61099
 [LPS-61987]: https://issues.liferay.com/browse/LPS-61987
+[LPS-62970]: https://issues.liferay.com/browse/LPS-62970
+[LPS-63943]: https://issues.liferay.com/browse/LPS-63943
 [LPS-65179]: https://issues.liferay.com/browse/LPS-65179
 [LPS-66396]: https://issues.liferay.com/browse/LPS-66396
 [LPS-66762]: https://issues.liferay.com/browse/LPS-66762
 [LPS-66853]: https://issues.liferay.com/browse/LPS-66853
 [LPS-66906]: https://issues.liferay.com/browse/LPS-66906
 [LPS-67023]: https://issues.liferay.com/browse/LPS-67023
+[LPS-67039]: https://issues.liferay.com/browse/LPS-67039
 [LPS-67352]: https://issues.liferay.com/browse/LPS-67352
 [LPS-67434]: https://issues.liferay.com/browse/LPS-67434
 [LPS-67573]: https://issues.liferay.com/browse/LPS-67573
 [LPS-67658]: https://issues.liferay.com/browse/LPS-67658
+[LPS-67688]: https://issues.liferay.com/browse/LPS-67688
 [LPS-67694]: https://issues.liferay.com/browse/LPS-67694
 [LPS-67766]: https://issues.liferay.com/browse/LPS-67766
 [LPS-67804]: https://issues.liferay.com/browse/LPS-67804
@@ -1027,6 +1257,7 @@ test compile and runtime classpaths.
 [LPS-68306]: https://issues.liferay.com/browse/LPS-68306
 [LPS-68334]: https://issues.liferay.com/browse/LPS-68334
 [LPS-68402]: https://issues.liferay.com/browse/LPS-68402
+[LPS-68405]: https://issues.liferay.com/browse/LPS-68405
 [LPS-68415]: https://issues.liferay.com/browse/LPS-68415
 [LPS-68448]: https://issues.liferay.com/browse/LPS-68448
 [LPS-68485]: https://issues.liferay.com/browse/LPS-68485
@@ -1083,6 +1314,27 @@ test compile and runtime classpaths.
 [LPS-70335]: https://issues.liferay.com/browse/LPS-70335
 [LPS-70336]: https://issues.liferay.com/browse/LPS-70336
 [LPS-70379]: https://issues.liferay.com/browse/LPS-70379
+[LPS-70424]: https://issues.liferay.com/browse/LPS-70424
+[LPS-70451]: https://issues.liferay.com/browse/LPS-70451
+[LPS-70486]: https://issues.liferay.com/browse/LPS-70486
+[LPS-70494]: https://issues.liferay.com/browse/LPS-70494
+[LPS-70515]: https://issues.liferay.com/browse/LPS-70515
+[LPS-70555]: https://issues.liferay.com/browse/LPS-70555
+[LPS-70584]: https://issues.liferay.com/browse/LPS-70584
+[LPS-70604]: https://issues.liferay.com/browse/LPS-70604
+[LPS-70618]: https://issues.liferay.com/browse/LPS-70618
+[LPS-70634]: https://issues.liferay.com/browse/LPS-70634
+[LPS-70677]: https://issues.liferay.com/browse/LPS-70677
+[LPS-70699]: https://issues.liferay.com/browse/LPS-70699
+[LPS-70707]: https://issues.liferay.com/browse/LPS-70707
+[LPS-70819]: https://issues.liferay.com/browse/LPS-70819
+[LPS-70870]: https://issues.liferay.com/browse/LPS-70870
+[LPS-70890]: https://issues.liferay.com/browse/LPS-70890
+[LPS-70929]: https://issues.liferay.com/browse/LPS-70929
+[LPS-70941]: https://issues.liferay.com/browse/LPS-70941
+[LPS-71005]: https://issues.liferay.com/browse/LPS-71005
+[LPS-71048]: https://issues.liferay.com/browse/LPS-71048
+[LPS-71201]: https://issues.liferay.com/browse/LPS-71201
 [LRDOCS-2594]: https://issues.liferay.com/browse/LRDOCS-2594
 [LRDOCS-2841]: https://issues.liferay.com/browse/LRDOCS-2841
 [LRDOCS-2981]: https://issues.liferay.com/browse/LRDOCS-2981

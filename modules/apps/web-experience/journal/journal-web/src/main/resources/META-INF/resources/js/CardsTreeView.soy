@@ -3,16 +3,13 @@
 /**
  * This renders the main element.
  *
- * @param disabledNodes
  * @param? elementClasses
  * @param nodes
- * @param selectedNodes
  */
 {template .render}
 	<div class="treeview{$elementClasses ? ' ' + $elementClasses : ''}" role="tree">
 		{call .nodes data="all"}
 			{param nodes: $nodes /}
-			{param selectedNodes: $selectedNodes /}
 		{/call}
 	</div>
 {/template}
@@ -40,10 +37,8 @@
 /**
  * Overrides the parent Treeview node template to show a Lexicon card instead of the simple label
  *
- * @param disabledNodes
  * @param node
  * @param path
- * @param selectedNodes
  */
 {template .node}
 	<li class="treeview-node" data-treeview-path="{$path}">
@@ -52,11 +47,12 @@
 				{let $nodeAttributes kind="attributes"}
 					class="treeview-node-main clearfix col-md-4
 					{$node.children ? ' hasChildren' : ''}
-					{strContains($disabledNodes, ',' + $node.id + ',') ? ' disabled' : ''}
-					{strContains($selectedNodes, ',' + $node.id + ',') ? ' selected' : ''}
+					{$node.disabled ? ' disabled' : ''}
+					{$node.selected ? ' selected' : ''}
 					"
 					data-treeitemid="{$node.id}"
 					data-treeitemname="{$node.name}"
+					data-treeitemvalue="{$node.value}"
 					aria-expanded="{$node.expanded ? 'true' : 'false'}"
 					role="treeitem"
 				{/let}
@@ -69,9 +65,8 @@
 					{/if}
 
 					{call .card data="all"}
-						{param disabledNodes: $disabledNodes /}
+						{param disabled: $node.disabled /}
 						{param icon: $node.icon /}
-						{param id: $node.id /}
 						{param title: $node.name /}
 					{/call}
 				</div>
@@ -90,9 +85,8 @@
 /**
  * Renders a Lexicon Horizontal Card
  *
- * @param disabledNodes
+ * @param disabled
  * @param icon
- * @param id
  * @param path
  * @param pathThemeImages
  * @param title
@@ -100,7 +94,7 @@
 {template .card}
 	{let $nodeAttributes kind="attributes"}
 		class="card card-horizontal"
-		{if not strContains($disabledNodes, $id)}
+		{if not $disabled}
 			data-onclick="handleNodeClicked_"
 		{/if}
 		data-onkeyup="handleNodeKeyUp_"

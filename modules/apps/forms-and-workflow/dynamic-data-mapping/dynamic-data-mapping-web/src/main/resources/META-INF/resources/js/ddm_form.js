@@ -1021,9 +1021,8 @@ AUI.add(
 
 						var portletNamespace = instance.get('portletNamespace');
 
-						var portletURL = Liferay.PortletURL.createRenderURL(themeDisplay.getURLControlPanel());
+						var portletURL = Liferay.PortletURL.createURL(themeDisplay.getSiteAdminURL());
 
-						portletURL.setDoAsGroupId(instance.get('doAsGroupId'));
 						portletURL.setParameter('criteria', criteria);
 						portletURL.setParameter('itemSelectedEventName', portletNamespace + 'selectDocumentLibrary');
 						portletURL.setParameter('p_p_auth', container.getData('itemSelectorAuthToken'));
@@ -1067,9 +1066,8 @@ AUI.add(
 					getUploadURL: function() {
 						var instance = this;
 
-						var portletURL = Liferay.PortletURL.createURL(themeDisplay.getURLControlPanel());
+						var portletURL = Liferay.PortletURL.createURL(themeDisplay.getSiteAdminURL());
 
-						portletURL.setDoAsGroupId(instance.get('doAsGroupId'));
 						portletURL.setLifecycle(Liferay.PortletURL.ACTION_PHASE);
 						portletURL.setParameter('cmd', 'add_temp');
 						portletURL.setParameter('javax.portlet.action', '/document_library/upload_file_entry');
@@ -1676,8 +1674,6 @@ AUI.add(
 
 						instance._clearedModal = true;
 
-						instance._navbar.one('.active').removeClass('active');
-
 						instance.setValue('');
 
 						instance.set('selectedLayout', instance.get('selectedLayoutPath')[0]);
@@ -1794,7 +1790,7 @@ AUI.add(
 								}
 							}
 							else if (scrollTop + innerHeight === scrollHeight) {
-								start = end + 1;
+								start = end;
 								end = start + delta;
 
 								if (start <= cache.total) {
@@ -1899,6 +1895,8 @@ AUI.add(
 							listNode.on('scroll', instance._handleModalScroll, instance);
 						}
 						else if (instance._clearedModal) {
+							instance._navbar.one('.active').removeClass('active');
+
 							var activeClass = privateLayout ? '.private' : '.public';
 
 							instance._navbar.one(activeClass).addClass('active');
@@ -2345,9 +2343,8 @@ AUI.add(
 
 						var portletNamespace = instance.get('portletNamespace');
 
-						var portletURL = Liferay.PortletURL.createRenderURL(themeDisplay.getURLControlPanel());
+						var portletURL = Liferay.PortletURL.createURL(themeDisplay.getSiteAdminURL());
 
-						portletURL.setDoAsGroupId(instance.get('doAsGroupId'));
 						portletURL.setParameter('criteria', criteria);
 						portletURL.setParameter('itemSelectedEventName', portletNamespace + 'selectDocumentLibrary');
 						portletURL.setParameter('p_p_auth', container.getData('itemSelectorAuthToken'));

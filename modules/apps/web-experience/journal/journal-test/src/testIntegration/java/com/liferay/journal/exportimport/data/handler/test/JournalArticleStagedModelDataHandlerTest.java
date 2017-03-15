@@ -328,7 +328,9 @@ public class JournalArticleStagedModelDataHandlerTest
 		List<StagedModel> ddmStructureDependentStagedModels =
 			dependentStagedModelsMap.get(DDMStructure.class.getSimpleName());
 
-		Assert.assertEquals(1, ddmStructureDependentStagedModels.size());
+		Assert.assertEquals(
+			ddmStructureDependentStagedModels.toString(), 1,
+			ddmStructureDependentStagedModels.size());
 
 		DDMStructure ddmStructure =
 			(DDMStructure)ddmStructureDependentStagedModels.get(0);
@@ -341,7 +343,9 @@ public class JournalArticleStagedModelDataHandlerTest
 		List<StagedModel> ddmTemplateDependentStagedModels =
 			dependentStagedModelsMap.get(DDMTemplate.class.getSimpleName());
 
-		Assert.assertEquals(1, ddmTemplateDependentStagedModels.size());
+		Assert.assertEquals(
+			ddmTemplateDependentStagedModels.toString(), 1,
+			ddmTemplateDependentStagedModels.size());
 
 		DDMTemplate ddmTemplate =
 			(DDMTemplate)ddmTemplateDependentStagedModels.get(0);
@@ -354,7 +358,9 @@ public class JournalArticleStagedModelDataHandlerTest
 		List<StagedModel> folderDependentStagedModels =
 			dependentStagedModelsMap.get(JournalFolder.class.getSimpleName());
 
-		Assert.assertEquals(1, folderDependentStagedModels.size());
+		Assert.assertEquals(
+			folderDependentStagedModels.toString(), 1,
+			folderDependentStagedModels.size());
 
 		JournalFolder folder = (JournalFolder)folderDependentStagedModels.get(
 			0);
@@ -372,7 +378,9 @@ public class JournalArticleStagedModelDataHandlerTest
 		List<StagedModel> ddmStructureDependentStagedModels =
 			dependentStagedModelsMap.get(DDMStructure.class.getSimpleName());
 
-		Assert.assertEquals(1, ddmStructureDependentStagedModels.size());
+		Assert.assertEquals(
+			ddmStructureDependentStagedModels.toString(), 1,
+			ddmStructureDependentStagedModels.size());
 
 		DDMStructure ddmStructure =
 			(DDMStructure)ddmStructureDependentStagedModels.get(0);
@@ -383,7 +391,9 @@ public class JournalArticleStagedModelDataHandlerTest
 		List<StagedModel> ddmTemplateDependentStagedModels =
 			dependentStagedModelsMap.get(DDMTemplate.class.getSimpleName());
 
-		Assert.assertEquals(1, ddmTemplateDependentStagedModels.size());
+		Assert.assertEquals(
+			ddmTemplateDependentStagedModels.toString(), 1,
+			ddmTemplateDependentStagedModels.size());
 
 		DDMTemplate ddmTemplate =
 			(DDMTemplate)ddmTemplateDependentStagedModels.get(0);
@@ -394,7 +404,9 @@ public class JournalArticleStagedModelDataHandlerTest
 		List<StagedModel> folderDependentStagedModels =
 			dependentStagedModelsMap.get(JournalFolder.class.getSimpleName());
 
-		Assert.assertEquals(1, folderDependentStagedModels.size());
+		Assert.assertEquals(
+			folderDependentStagedModels.toString(), 1,
+			folderDependentStagedModels.size());
 
 		JournalFolder folder = (JournalFolder)folderDependentStagedModels.get(
 			0);

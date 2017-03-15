@@ -27,4 +27,14 @@ else if (displayStyle.equals("vertical")) {
 }
 %>
 
-<script src="<%= HttpUtil.getProtocol(request) %>://www.stumbleupon.com/hostedbadge.php?s=<%= stumbleUponDisplayStyle %>&r=<%= HttpUtil.encodeURL(url) %>" type="text/javascript"></script>
+<liferay-util:html-bottom outputKey="taglib_ui_social_bookmark_stumble_upon">
+	<script data-senna-track="temporary" type="text/javascript">
+		if (window.STMBLPN) {
+			delete window.STMBLPN;
+		}
+	</script>
+
+	<script data-senna-track="temporary" src="<%= HttpUtil.getProtocol(request) %>://platform.stumbleupon.com/1/widgets.js" type="text/javascript"></script>
+</liferay-util:html-bottom>
+
+<su:badge layout="<%= stumbleUponDisplayStyle %>" location="<%= HttpUtil.encodeURL(url) %>"></su:badge>

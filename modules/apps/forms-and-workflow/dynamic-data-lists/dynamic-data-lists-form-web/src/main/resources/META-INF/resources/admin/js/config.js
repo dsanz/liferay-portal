@@ -35,9 +35,27 @@
 							path: 'form_builder_action.js',
 							requires: ['liferay-ddl-form-builder-action-template', 'liferay-ddm-form-renderer-field']
 						},
+						'liferay-ddl-form-builder-action-autofill': {
+							path: 'form_builder_action_autofill.js',
+							requires: [
+								'aui-component',
+								'aui-io-request',
+								'liferay-ddl-form-builder-action',
+								'liferay-ddl-form-builder-data-provider-parameter-template'
+							]
+						},
+						'liferay-ddl-form-builder-action-calculate': {
+							path: 'form_builder_action_calculate.js',
+							requires: ['liferay-ddl-form-builder-action']
+						},
 						'liferay-ddl-form-builder-action-factory': {
 							path: 'form_builder_action_factory.js',
-							requires: ['liferay-ddl-form-builder-action-jump-to-page', 'liferay-ddl-form-builder-action-property']
+							requires: [
+								'liferay-ddl-form-builder-action-autofill',
+								'liferay-ddl-form-builder-action-jump-to-page',
+								'liferay-ddl-form-builder-action-property',
+								'liferay-ddl-form-builder-action-calculate'
+							]
 						},
 						'liferay-ddl-form-builder-action-jump-to-page': {
 							path: 'form_builder_action_jump_to_page.js',
@@ -149,11 +167,21 @@
 						},
 						'liferay-ddl-form-builder-render-rule': {
 							path: 'form_builder_render_rule.js',
-							requires: ['liferay-ddl-form-builder-action-factory', 'liferay-ddl-form-builder-rule-template', 'liferay-ddm-form-renderer-field']
+							requires: ['liferay-ddl-form-builder-action-factory', 'liferay-ddl-form-builder-rule-template', 'liferay-ddl-form-builder-rule-validator', 'liferay-ddm-form-renderer-field']
+						},
+						'liferay-ddl-form-builder-render-rule-condition': {
+							path: 'form_builder_render_rule_condition.js',
+							requires: [
+								'liferay-ddm-form-renderer-field'
+							]
 						},
 						'liferay-ddl-form-builder-rule-builder': {
 							path: 'form_builder_rule_builder.js',
-							requires: ['liferay-ddl-form-builder-render-rule', 'liferay-ddl-form-builder-rule-builder-template']
+							requires: [
+								'liferay-ddl-form-builder-render-rule',
+								'liferay-ddl-form-builder-render-rule-condition',
+								'liferay-ddl-form-builder-rule-builder-template'
+							]
 						},
 						'liferay-ddl-form-builder-rule-builder-template': {
 							path: '../templates/rule_builder.soy.js',
@@ -161,11 +189,23 @@
 								'soyutils'
 							]
 						},
+
+						'liferay-ddl-form-builder-data-provider-parameter-template': {
+							path: '../templates/data_provider_parameter.soy.js',
+							requires: [
+								'soyutils'
+							]
+						},
+
 						'liferay-ddl-form-builder-rule-template': {
 							path: '../templates/rule.soy.js',
 							requires: [
 								'soyutils'
 							]
+						},
+						'liferay-ddl-form-builder-rule-validator': {
+							path: 'form_builder_rule_validator.js',
+							requires: []
 						},
 						'liferay-ddl-form-builder-settings-retriever': {
 							path: 'form_builder_settings_retriever.js',

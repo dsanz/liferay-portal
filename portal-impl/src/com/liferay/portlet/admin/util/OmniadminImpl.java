@@ -32,6 +32,10 @@ public class OmniadminImpl implements Omniadmin {
 
 	@Override
 	public boolean isOmniadmin(long userId) {
+		if (userId <= 0) {
+			return false;
+		}
+
 		try {
 			User user = UserLocalServiceUtil.fetchUser(userId);
 
@@ -55,16 +59,10 @@ public class OmniadminImpl implements Omniadmin {
 
 	@Override
 	public boolean isOmniadmin(User user) {
-		long userId = user.getUserId();
-
-		if (userId <= 0) {
-			return false;
-		}
-
 		try {
 			if (PropsValues.OMNIADMIN_USERS.length > 0) {
 				for (int i = 0; i < PropsValues.OMNIADMIN_USERS.length; i++) {
-					if (PropsValues.OMNIADMIN_USERS[i] == userId) {
+					if (PropsValues.OMNIADMIN_USERS[i] == user.getUserId()) {
 						if (user.getCompanyId() !=
 								PortalInstances.getDefaultCompanyId()) {
 
@@ -78,12 +76,16 @@ public class OmniadminImpl implements Omniadmin {
 				return false;
 			}
 
-			if (user.getCompanyId() != PortalInstances.getDefaultCompanyId()) {
+			if (user.isDefaultUser() ||
+				(user.getCompanyId() !=
+					PortalInstances.getDefaultCompanyId())) {
+
 				return false;
 			}
 
 			return RoleLocalServiceUtil.hasUserRole(
-				userId, user.getCompanyId(), RoleConstants.ADMINISTRATOR, true);
+				user.getUserId(), user.getCompanyId(),
+				RoleConstants.ADMINISTRATOR, true);
 		}
 		catch (Exception e) {
 			_log.error(e);

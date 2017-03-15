@@ -364,6 +364,19 @@ public class JournalFolderServiceImpl extends JournalFolderServiceBaseImpl {
 	}
 
 	@Override
+	public List<DDMStructure> searchDDMStructures(
+			long companyId, long[] groupIds, long folderId, int restrictionType,
+			String keywords, int start, int end,
+			OrderByComparator<DDMStructure> obc)
+		throws PortalException {
+
+		return filterStructures(
+			journalFolderLocalService.searchDDMStructures(
+				companyId, groupIds, folderId, restrictionType, keywords, start,
+				end, obc));
+	}
+
+	@Override
 	public void subscribe(long groupId, long folderId) throws PortalException {
 		JournalFolderPermission.check(
 			getPermissionChecker(), groupId, folderId, ActionKeys.SUBSCRIBE);

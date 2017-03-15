@@ -45,14 +45,16 @@
 
 							<b class="text-lowercase"><em> {$strings[$condition.operator]} </em></b>
 
-							{call .condition}
-								{param operandType: $condition.operands[1].type /}
-								{param operandValue: isNonnull($condition.operands[1].label) ? $condition.operands[1].label : $condition.operands[1].value /}
-							{/call}
+							{if $condition.operands[1].visible}
+								{call .condition}
+									{param operandType: $condition.operands[1].type /}
+									{param operandValue: isNonnull($condition.operands[1].label) ? $condition.operands[1].label : $condition.operands[1].value /}
+								{/call}
+							{/if}
 
 							{if not isLast($condition)}
-							, <br />
-							<b> and </b>
+							<br />
+							<b> {$condition.logicOperator} </b>
 							{/if}
 						{/foreach}
 

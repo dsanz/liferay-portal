@@ -19,13 +19,14 @@ buildAlloyEditor {
 	doLast {
 		FileTree alloyEditorJsFileTree = fileTree(dir: alloyEditorDestinationDir, include : "alloy-editor*.js")
 		FileTree buttonsJsFileTree = fileTree(dir: new File(alloyEditorSrcDir, "buttons"), include: "**/*.js")
+		FileTree selectionsJsFileTree = fileTree(dir: new File(alloyEditorSrcDir, "selections"), include: "**/*.js")
 
 		alloyEditorJsFileTree.each {
 			File alloyEditorJsFile ->
 
 			File liferayAlloyEditorJsFile = new File(alloyEditorDestinationDir, "liferay-" + alloyEditorJsFile.name)
 
-			FileUtil.concatenate(liferayAlloyEditorJsFile, files(alloyEditorJsFile, buttonsJsFileTree))
+			FileUtil.concatenate(liferayAlloyEditorJsFile, files(alloyEditorJsFile, buttonsJsFileTree, selectionsJsFileTree))
 		}
 	}
 
@@ -47,6 +48,10 @@ classes {
 	dependsOn buildAlloyEditor
 }
 
+clean {
+	delete "tmp"
+}
+
 configJSModules {
 	enabled = false
 }
@@ -54,7 +59,7 @@ configJSModules {
 dependencies {
 	provided group: "com.liferay", name: "com.liferay.frontend.taglib", version: "2.0.0"
 	provided group: "com.liferay", name: "com.liferay.petra.encryptor", version: "1.0.0"
-	provided group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "2.0.0"
+	provided group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "default"
 	provided group: "com.liferay.portal", name: "com.liferay.util.java", version: "2.0.0"
 	provided group: "com.liferay.portal", name: "com.liferay.util.taglib", version: "2.0.0"
 	provided group: "javax.portlet", name: "portlet-api", version: "2.0"

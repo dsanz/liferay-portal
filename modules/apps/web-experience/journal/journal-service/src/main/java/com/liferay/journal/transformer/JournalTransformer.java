@@ -529,14 +529,15 @@ public class JournalTransformer {
 			Map<String, String> attributes = new HashMap<>();
 
 			if (type.equals("image")) {
-				JSONObject dataJSON = JSONFactoryUtil.createJSONObject(data);
+				JSONObject dataJSONObject = JSONFactoryUtil.createJSONObject(
+					data);
 
-				Iterator<String> itr = dataJSON.keys();
+				Iterator<String> itr = dataJSONObject.keys();
 
 				while (itr.hasNext()) {
 					String key = itr.next();
 
-					String value = dataJSON.getString(key);
+					String value = dataJSONObject.getString(key);
 
 					attributes.put(key, value);
 				}

@@ -40,8 +40,9 @@ import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.Field;
 import com.liferay.dynamic.data.mapping.storage.Fields;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormFieldTypeSettingsTestUtil;
-import com.liferay.portal.configuration.ConfigurationFactoryImpl;
 import com.liferay.portal.json.JSONFactoryImpl;
+import com.liferay.portal.kernel.configuration.Configuration;
+import com.liferay.portal.kernel.configuration.ConfigurationFactory;
 import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.language.Language;
@@ -51,9 +52,6 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
-import com.liferay.portal.kernel.util.Props;
-import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -64,6 +62,7 @@ import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.util.HtmlImpl;
 import com.liferay.portal.util.LocalizationImpl;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.xml.SAXReaderImpl;
 
 import java.io.IOException;
@@ -547,8 +546,16 @@ public abstract class BaseDDMTestCase extends PowerMockito {
 	}
 
 	protected void setUpConfigurationFactoryUtil() {
-		ConfigurationFactoryUtil.setConfigurationFactory(
-			new ConfigurationFactoryImpl());
+		mockStatic(ConfigurationFactoryUtil.class);
+
+		when(
+			_configurationFactory.getConfiguration(
+				Matchers.any(ClassLoader.class), Matchers.anyString())
+		).thenReturn(
+			_configuration
+		);
+
+		ConfigurationFactoryUtil.setConfigurationFactory(_configurationFactory);
 	}
 
 	protected void setUpDDMFormJSONDeserializer() throws Exception {
@@ -797,22 +804,8 @@ public abstract class BaseDDMTestCase extends PowerMockito {
 		);
 	}
 
-	protected void setUpPropsUtil() throws Exception {
-		Props props = mock(Props.class);
-
-		when(
-			props.get(PropsKeys.INDEX_DATE_FORMAT_PATTERN)
-		).thenReturn(
-			"yyyyMMddHHmmss"
-		);
-
-		when(
-			props.get(PropsKeys.XML_SECURITY_ENABLED)
-		).thenReturn(
-			Boolean.TRUE.toString()
-		);
-
-		PropsUtil.setProps(props);
+	protected void setUpPropsValues() {
+		mockStatic(PropsValues.class);
 	}
 
 	protected void setUpResourceBundleUtil() {
@@ -932,6 +925,12 @@ public abstract class BaseDDMTestCase extends PowerMockito {
 
 	@Mock
 	private ClassLoader _classLoader;
+
+	@Mock
+	private Configuration _configuration;
+
+	@Mock
+	private ConfigurationFactory _configurationFactory;
 
 	@Mock
 	private DDMFormFieldType _defaultDDMFormFieldType;

@@ -29,6 +29,7 @@ import com.liferay.portal.osgi.web.wab.extender.internal.adapter.ModifiableServl
 import com.liferay.portal.osgi.web.wab.extender.internal.adapter.ServletContextListenerExceptionAdapter;
 import com.liferay.portal.osgi.web.wab.extender.internal.adapter.ServletExceptionAdapter;
 import com.liferay.portal.osgi.web.wab.extender.internal.registration.FilterRegistrationImpl;
+import com.liferay.portal.osgi.web.wab.extender.internal.registration.ListenerServiceRegistrationComparator;
 import com.liferay.portal.osgi.web.wab.extender.internal.registration.ServletRegistrationImpl;
 
 import java.io.IOException;
@@ -347,7 +348,7 @@ public class WabBundleProcessor {
 
 	protected void destroyFilters() {
 		for (ServiceRegistration<?> serviceRegistration :
-				_filterRegistrations) {
+				_filterServiceRegistrations) {
 
 			try {
 				serviceRegistration.unregister();
@@ -357,12 +358,12 @@ public class WabBundleProcessor {
 			}
 		}
 
-		_filterRegistrations.clear();
+		_filterServiceRegistrations.clear();
 	}
 
 	protected void destroyListeners() {
 		for (ServiceRegistration<?> serviceRegistration :
-				_listenerRegistrations) {
+				_listenerServiceRegistrations) {
 
 			try {
 				serviceRegistration.unregister();
@@ -372,12 +373,12 @@ public class WabBundleProcessor {
 			}
 		}
 
-		_listenerRegistrations.clear();
+		_listenerServiceRegistrations.clear();
 	}
 
 	protected void destroyServlets() {
 		for (ServiceRegistration<?> serviceRegistration :
-				_servletRegistrations) {
+				_servletServiceRegistrations) {
 
 			try {
 				serviceRegistration.unregister();
@@ -387,7 +388,7 @@ public class WabBundleProcessor {
 			}
 		}
 
-		_servletRegistrations.clear();
+		_servletServiceRegistrations.clear();
 	}
 
 	protected String[] getClassNames(EventListener eventListener) {
@@ -520,7 +521,7 @@ public class WabBundleProcessor {
 				throw exception;
 			}
 
-			_filterRegistrations.add(serviceRegistration);
+			_filterServiceRegistrations.add(serviceRegistration);
 		}
 	}
 
@@ -548,7 +549,7 @@ public class WabBundleProcessor {
 						classNames, listenerDefinition.getEventListener(),
 						properties);
 
-				_listenerRegistrations.add(serviceRegistration);
+				_listenerServiceRegistrations.add(serviceRegistration);
 			}
 
 			if (!ServletContextListener.class.isInstance(
@@ -578,7 +579,7 @@ public class WabBundleProcessor {
 				throw exception;
 			}
 
-			_listenerRegistrations.add(serviceRegistration);
+			_listenerServiceRegistrations.add(serviceRegistration);
 		}
 	}
 
@@ -675,7 +676,7 @@ public class WabBundleProcessor {
 				throw exception;
 			}
 
-			_servletRegistrations.add(serviceRegistration);
+			_servletServiceRegistrations.add(serviceRegistration);
 		}
 	}
 
@@ -802,14 +803,15 @@ public class WabBundleProcessor {
 	private final ClassLoader _bundleClassLoader;
 	private final BundleContext _bundleContext;
 	private String _contextName;
-	private final Set<ServiceRegistration<Filter>> _filterRegistrations =
+	private final Set<ServiceRegistration<Filter>> _filterServiceRegistrations =
 		new ConcurrentSkipListSet<>();
-	private final Set<ServiceRegistration<?>> _listenerRegistrations =
-		new ConcurrentSkipListSet<>();
+	private final Set<ServiceRegistration<?>> _listenerServiceRegistrations =
+		new ConcurrentSkipListSet<>(
+			new ListenerServiceRegistrationComparator());
 	private final Logger _logger;
 	private ServiceReference<ServletContextHelperRegistration>
 		_servletContextHelperRegistrationServiceReference;
-	private final Set<ServiceRegistration<Servlet>> _servletRegistrations =
-		new ConcurrentSkipListSet<>();
+	private final Set<ServiceRegistration<Servlet>>
+		_servletServiceRegistrations = new ConcurrentSkipListSet<>();
 
 }

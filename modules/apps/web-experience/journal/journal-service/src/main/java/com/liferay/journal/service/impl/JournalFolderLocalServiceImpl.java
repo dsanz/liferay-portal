@@ -62,6 +62,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.social.kernel.model.SocialActivityConstants;
+import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.kernel.exception.RestoreEntryException;
 import com.liferay.trash.kernel.exception.TrashEntryException;
 import com.liferay.trash.kernel.model.TrashEntry;
@@ -529,6 +530,16 @@ public class JournalFolderLocalServiceImpl
 		}
 	}
 
+	/**
+	 * @deprecated As of 4.0.0, with no direct replacement
+	 */
+	@Deprecated
+	public com.liferay.portal.kernel.service.SubscriptionLocalService
+		getSubscriptionLocalService() {
+
+		return subscriptionLocalService;
+	}
+
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public JournalFolder moveFolder(
@@ -758,6 +769,49 @@ public class JournalFolderLocalServiceImpl
 	}
 
 	@Override
+	public List<DDMStructure> searchDDMStructures(
+			long companyId, long[] groupIds, long folderId, int restrictionType,
+			String keywords, int start, int end,
+			OrderByComparator<DDMStructure> obc)
+		throws PortalException {
+
+		if (restrictionType ==
+				JournalFolderConstants.
+					RESTRICTION_TYPE_DDM_STRUCTURES_AND_WORKFLOW) {
+
+			return ddmStructureLocalService.search(
+				companyId, groupIds,
+				classNameLocalService.getClassNameId(JournalFolder.class),
+				folderId, keywords, start, end, obc);
+		}
+
+		folderId = getOverridedDDMStructuresFolderId(folderId);
+
+		if (folderId != JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			return ddmStructureLocalService.search(
+				companyId, groupIds,
+				classNameLocalService.getClassNameId(JournalFolder.class),
+				folderId, keywords, start, end, obc);
+		}
+
+		return ddmStructureLocalService.search(
+			companyId, groupIds,
+			classNameLocalService.getClassNameId(JournalArticle.class),
+			keywords, WorkflowConstants.STATUS_ANY, start, end, obc);
+	}
+
+	/**
+	 * @deprecated As of 4.0.0, with no direct replacement
+	 */
+	@Deprecated
+	public void setSubscriptionLocalService(
+		com.liferay.portal.kernel.service.SubscriptionLocalService
+			subscriptionLocalService) {
+
+		this.subscriptionLocalService = subscriptionLocalService;
+	}
+
+	@Override
 	public void subscribe(long userId, long groupId, long folderId)
 		throws PortalException {
 
@@ -765,7 +819,7 @@ public class JournalFolderLocalServiceImpl
 			folderId = groupId;
 		}
 
-		subscriptionLocalService.addSubscription(
+		_subscriptionLocalService.addSubscription(
 			userId, groupId, JournalFolder.class.getName(), folderId);
 	}
 
@@ -777,7 +831,7 @@ public class JournalFolderLocalServiceImpl
 			folderId = groupId;
 		}
 
-		subscriptionLocalService.deleteSubscription(
+		_subscriptionLocalService.deleteSubscription(
 			userId, JournalFolder.class.getName(), folderId);
 	}
 
@@ -1491,5 +1545,18 @@ public class JournalFolderLocalServiceImpl
 
 	@ServiceReference(type = JournalValidator.class)
 	protected JournalValidator journalValidator;
+
+	/**
+	 * @deprecated As of 4.0.0, with no direct replacement
+	 */
+	@Deprecated
+	@ServiceReference(
+		type = com.liferay.portal.kernel.service.SubscriptionLocalService.class
+	)
+	protected com.liferay.portal.kernel.service.SubscriptionLocalService
+		subscriptionLocalService;
+
+	@ServiceReference(type = SubscriptionLocalService.class)
+	private SubscriptionLocalService _subscriptionLocalService;
 
 }

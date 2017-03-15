@@ -212,13 +212,7 @@ public class ListUtil {
 			return new ArrayList<>();
 		}
 
-		List<E> list = new ArrayList<>(map.size());
-
-		for (Map.Entry<? extends E, ?> entry : map.entrySet()) {
-			list.add(entry.getKey());
-		}
-
-		return list;
+		return new ArrayList<>(map.keySet());
 	}
 
 	public static <E> List<E> fromMapValues(Map<?, ? extends E> map) {
@@ -226,13 +220,7 @@ public class ListUtil {
 			return new ArrayList<>();
 		}
 
-		List<E> list = new ArrayList<>(map.size());
-
-		for (Map.Entry<?, ? extends E> entry : map.entrySet()) {
-			list.add(entry.getValue());
-		}
-
-		return list;
+		return new ArrayList<>(map.values());
 	}
 
 	public static List<String> fromString(String s) {

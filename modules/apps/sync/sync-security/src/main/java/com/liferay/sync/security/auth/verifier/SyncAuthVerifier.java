@@ -26,8 +26,9 @@ import com.liferay.portal.kernel.security.auth.http.HttpAuthorizationHeader;
 import com.liferay.portal.kernel.security.auth.verifier.AuthVerifier;
 import com.liferay.portal.kernel.security.auth.verifier.AuthVerifierResult;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PwdGenerator;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
@@ -126,25 +127,61 @@ public class SyncAuthVerifier implements AuthVerifier {
 			}
 		}
 
-		try {
-			String[] credentials = getCredentials(
-				request, accessControlContext.getResponse());
+		String token = request.getHeader(_TOKEN_HEADER);
 
-			if (credentials != null) {
-				authVerifierResult.setPassword(credentials[1]);
+		if (Validator.isNotNull(token)) {
+			String userIdString = getUserId(token);
+
+			if (userIdString != null) {
 				authVerifierResult.setState(AuthVerifierResult.State.SUCCESS);
-				authVerifierResult.setUserId(
-					GetterUtil.getLong(credentials[0]));
+				authVerifierResult.setUserId(Long.valueOf(userIdString));
+
+				return authVerifierResult;
+			}
+		}
+
+		HttpAuthorizationHeader httpAuthorizationHeader =
+			HttpAuthManagerUtil.parse(request);
+
+		if (httpAuthorizationHeader == null) {
+
+			// SYNC-1463
+
+			Map<String, Object> settings = accessControlContext.getSettings();
+
+			settings.remove("basic_auth");
+
+			return authVerifierResult;
+		}
+
+		String scheme = httpAuthorizationHeader.getScheme();
+
+		if (!StringUtil.equalsIgnoreCase(
+				scheme, HttpAuthorizationHeader.SCHEME_BASIC)) {
+
+			return authVerifierResult;
+		}
+
+		try {
+			long userId = HttpAuthManagerUtil.getBasicUserId(request);
+
+			if (userId > 0) {
+				token = createToken(userId);
+
+				if (token != null) {
+					HttpServletResponse response =
+						accessControlContext.getResponse();
+
+					response.addHeader(_TOKEN_HEADER, token);
+				}
 			}
 			else {
-
-				// SYNC-1463
-
-				Map<String, Object> settings =
-					accessControlContext.getSettings();
-
-				settings.remove("basic_auth");
+				userId = _userLocalService.getDefaultUserId(
+					PortalUtil.getCompanyId(request));
 			}
+
+			authVerifierResult.setState(AuthVerifierResult.State.SUCCESS);
+			authVerifierResult.setUserId(userId);
 
 			return authVerifierResult;
 		}
@@ -180,48 +217,6 @@ public class SyncAuthVerifier implements AuthVerifier {
 		catch (Exception e) {
 			return null;
 		}
-	}
-
-	protected String[] getCredentials(
-			HttpServletRequest request, HttpServletResponse response)
-		throws Exception {
-
-		String token = request.getHeader(_TOKEN_HEADER);
-
-		if (Validator.isNotNull(token)) {
-			String userId = getUserId(token);
-
-			if (userId != null) {
-				return new String[] {userId, null};
-			}
-		}
-
-		HttpAuthorizationHeader httpAuthorizationHeader =
-			HttpAuthManagerUtil.parse(request);
-
-		if (httpAuthorizationHeader == null) {
-			return null;
-		}
-
-		long userId = HttpAuthManagerUtil.getBasicUserId(request);
-
-		if (userId <= 0) {
-			throw new AuthException();
-		}
-
-		token = createToken(userId);
-
-		if (token != null) {
-			response.addHeader(_TOKEN_HEADER, token);
-		}
-
-		String[] credentials = new String[2];
-
-		credentials[0] = String.valueOf(userId);
-		credentials[1] = httpAuthorizationHeader.getAuthParameter(
-			HttpAuthorizationHeader.AUTH_PARAMETER_NAME_PASSWORD);
-
-		return credentials;
 	}
 
 	protected JsonTokenParser getJsonTokenParser() throws Exception {

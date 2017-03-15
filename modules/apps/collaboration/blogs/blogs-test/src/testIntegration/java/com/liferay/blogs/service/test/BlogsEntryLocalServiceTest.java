@@ -38,7 +38,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.service.SubscriptionLocalServiceUtil;
 import com.liferay.portal.kernel.servlet.taglib.ui.ImageSelector;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -60,6 +59,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.subscription.service.SubscriptionLocalServiceUtil;
 
 import java.io.InputStream;
 
@@ -511,7 +511,9 @@ public class BlogsEntryLocalServiceTest {
 				_user.getCompanyId(), _group.getGroupId(), new Date(),
 				_statusInTrashQueryDefinition);
 
-		Assert.assertEquals(initialCount + 1, groupsEntriesInTrash.size());
+		Assert.assertEquals(
+			groupsEntriesInTrash.toString(), initialCount + 1,
+			groupsEntriesInTrash.size());
 
 		for (BlogsEntry groupsEntry : groupsEntriesInTrash) {
 			Assert.assertEquals(
@@ -558,7 +560,7 @@ public class BlogsEntryLocalServiceTest {
 		List<BlogsEntry> entries =
 			BlogsEntryLocalServiceUtil.getNoAssetEntries();
 
-		Assert.assertEquals(1, entries.size());
+		Assert.assertEquals(entries.toString(), 1, entries.size());
 		Assert.assertEquals(entry, entries.get(0));
 	}
 
@@ -855,7 +857,8 @@ public class BlogsEntryLocalServiceTest {
 			BlogsEntryLocalServiceUtil.getCompanyEntries(
 				_user.getCompanyId(), new Date(), queryDefinition);
 
-		Assert.assertEquals(initialCount + 1, actualEntries.size());
+		Assert.assertEquals(
+			actualEntries.toString(), initialCount + 1, actualEntries.size());
 
 		assertBlogsEntriesStatus(actualEntries, statusInTrash);
 	}
@@ -920,7 +923,8 @@ public class BlogsEntryLocalServiceTest {
 				_group.getGroupId(), queryDefinition);
 		}
 
-		Assert.assertEquals(initialCount + 1, actualEntries.size());
+		Assert.assertEquals(
+			actualEntries.toString(), initialCount + 1, actualEntries.size());
 
 		assertBlogsEntriesStatus(actualEntries, statusInTrash);
 	}
@@ -989,7 +993,8 @@ public class BlogsEntryLocalServiceTest {
 				_group.getGroupId(), _user.getUserId(), new Date(),
 				queryDefinition);
 
-		Assert.assertEquals(initialCount + 1, actualEntries.size());
+		Assert.assertEquals(
+			actualEntries.toString(), initialCount + 1, actualEntries.size());
 
 		assertBlogsEntriesStatus(actualEntries, statusInTrash);
 	}
@@ -1046,7 +1051,8 @@ public class BlogsEntryLocalServiceTest {
 			BlogsEntryLocalServiceUtil.getOrganizationEntries(
 				_organization.getOrganizationId(), new Date(), queryDefinition);
 
-		Assert.assertEquals(initialCount + 1, actualEntries.size());
+		Assert.assertEquals(
+			actualEntries.toString(), initialCount + 1, actualEntries.size());
 
 		assertBlogsEntriesStatus(actualEntries, statusInTrash);
 	}
@@ -1100,15 +1106,15 @@ public class BlogsEntryLocalServiceTest {
 	private User _organizationUser;
 
 	private final QueryDefinition<BlogsEntry> _statusAnyQueryDefinition =
-		new QueryDefinition<BlogsEntry>(
+		new QueryDefinition<>(
 			WorkflowConstants.STATUS_ANY, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			null);
 	private final QueryDefinition<BlogsEntry> _statusApprovedQueryDefinition =
-		new QueryDefinition<BlogsEntry>(
+		new QueryDefinition<>(
 			WorkflowConstants.STATUS_APPROVED, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	private final QueryDefinition<BlogsEntry> _statusInTrashQueryDefinition =
-		new QueryDefinition<BlogsEntry>(
+		new QueryDefinition<>(
 			WorkflowConstants.STATUS_IN_TRASH, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS, null);
 	private User _user;

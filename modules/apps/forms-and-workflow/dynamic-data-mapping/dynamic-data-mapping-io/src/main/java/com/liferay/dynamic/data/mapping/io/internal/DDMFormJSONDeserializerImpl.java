@@ -24,6 +24,7 @@ import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
 import com.liferay.dynamic.data.mapping.model.DDMFormRule;
+import com.liferay.dynamic.data.mapping.model.DDMFormSuccessPageSettings;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -68,6 +69,8 @@ public class DDMFormJSONDeserializerImpl implements DDMFormJSONDeserializer {
 			setDDMFormFields(jsonObject.getJSONArray("fields"), ddmForm);
 			setDDMFormRules(jsonObject.getJSONArray("rules"), ddmForm);
 			setDDMFormLocalizedValuesDefaultLocale(ddmForm);
+			setDDMFormSuccessPageSettings(
+				jsonObject.getJSONObject("successPage"), ddmForm);
 
 			return ddmForm;
 		}
@@ -412,6 +415,21 @@ public class DDMFormJSONDeserializerImpl implements DDMFormJSONDeserializer {
 		List<DDMFormRule> ddmFormRules = getDDMFormRules(jsonArray);
 
 		ddmForm.setDDMFormRules(ddmFormRules);
+	}
+
+	protected void setDDMFormSuccessPageSettings(
+		JSONObject jsonObject, DDMForm ddmForm) {
+
+		if (jsonObject == null) {
+			return;
+		}
+
+		DDMFormSuccessPageSettings ddmFormSuccessPageSettings =
+			new DDMFormSuccessPageSettings(
+				jsonObject.getString("body"), jsonObject.getString("title"),
+				jsonObject.getBoolean("enabled"));
+
+		ddmForm.setDDMFormSuccessPageSettings(ddmFormSuccessPageSettings);
 	}
 
 	@Reference(unbind = "-")

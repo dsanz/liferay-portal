@@ -17,6 +17,7 @@ package com.liferay.dynamic.data.mapping.form.renderer.internal;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationException;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationResult;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluator;
+import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluatorContext;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
@@ -280,8 +281,13 @@ public class DDMFormPagesTemplateContextFactory {
 
 	private DDMFormEvaluationResult _createDDMFormEvaluationResult() {
 		try {
-			return _ddmFormEvaluator.evaluate(
-				_ddmForm, _ddmFormValues, _locale);
+			DDMFormEvaluatorContext ddmFormEvaluatorContext =
+				new DDMFormEvaluatorContext(_ddmForm, _ddmFormValues, _locale);
+
+			ddmFormEvaluatorContext.addProperty(
+				"request", _ddmFormRenderingContext.getHttpServletRequest());
+
+			return _ddmFormEvaluator.evaluate(ddmFormEvaluatorContext);
 		}
 		catch (DDMFormEvaluationException ddmfee) {
 			_log.error("Unable to evaluate the form", ddmfee);

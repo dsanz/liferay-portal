@@ -68,7 +68,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import org.springframework.context.ApplicationContext;
@@ -77,12 +76,10 @@ import org.springframework.context.ApplicationContext;
  * @author Raymond Augé
  * @author Douglas Wong
  * @author Alexander Chow
+ * @deprecated As of 1.1.0, replaced by {@link
+ *             com.liferay.document.library.internal.verify.DLServiceVerifyProcess}
  */
-@Component(
-	immediate = true,
-	property = {"verify.process.name=com.liferay.document.library.service"},
-	service = VerifyProcess.class
-)
+@Deprecated
 public class DLServiceVerifyProcess extends VerifyProcess {
 
 	protected void addDLFileVersion(DLFileEntry dlFileEntry) {

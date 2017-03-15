@@ -96,6 +96,24 @@ JavaScript dependencies for the `transpileJS` task.
 - [LPS-69920]: Update the [Liferay Gradle Plugins Node] dependency to version
 1.5.1.
 
+## 2.3.6 - 2017-02-09
+
+### Changed
+- [LPS-69920]: Update the [Liferay Gradle Plugins Node] dependency to version
+1.5.2.
+
+## 2.3.7 - 2017-02-23
+
+### Changed
+- [LPS-70870]: Update the [Liferay Gradle Plugins Node] dependency to version
+2.0.0.
+
+## 2.3.8 - 2017-03-09
+
+### Changed
+- [LPS-70634]: Update the [Liferay Gradle Plugins Node] dependency to version
+2.0.1.
+
 [Liferay Gradle Plugins Node]: https://github.com/liferay/liferay-portal/tree/master/modules/sdk/gradle-plugins-node
 [LPS-66906]: https://issues.liferay.com/browse/LPS-66906
 [LPS-67023]: https://issues.liferay.com/browse/LPS-67023
@@ -110,3 +128,5 @@ JavaScript dependencies for the `transpileJS` task.
 [LPS-69677]: https://issues.liferay.com/browse/LPS-69677
 [LPS-69802]: https://issues.liferay.com/browse/LPS-69802
 [LPS-69920]: https://issues.liferay.com/browse/LPS-69920
+[LPS-70634]: https://issues.liferay.com/browse/LPS-70634
+[LPS-70870]: https://issues.liferay.com/browse/LPS-70870

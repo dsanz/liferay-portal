@@ -16,7 +16,11 @@ package com.liferay.dynamic.data.mapping.expression.model;
 
 import aQute.bnd.annotation.ProviderType;
 
+import com.liferay.portal.kernel.util.StringPool;
+
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Leonardo Barros
@@ -46,6 +50,25 @@ public class FunctionCallExpression extends Expression {
 
 	public List<Expression> getParameterExpressions() {
 		return _parameterExpressions;
+	}
+
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+
+		sb.append(_functionName);
+		sb.append("(");
+
+		Stream<String> expressionStream = _parameterExpressions.stream().map(
+			expression -> expression.toString());
+
+		sb.append(
+			expressionStream.collect(
+				Collectors.joining(StringPool.COMMA_AND_SPACE)));
+
+		sb.append(")");
+
+		return sb.toString();
 	}
 
 	private final String _functionName;

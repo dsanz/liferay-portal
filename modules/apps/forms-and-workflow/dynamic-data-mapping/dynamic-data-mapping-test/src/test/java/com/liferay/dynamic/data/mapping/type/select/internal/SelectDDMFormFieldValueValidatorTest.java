@@ -15,7 +15,7 @@
 package com.liferay.dynamic.data.mapping.type.select.internal;
 
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldValueValidator;
-import com.liferay.dynamic.data.mapping.type.BaseDDMFormFieldOptionsValidationTest;
+import com.liferay.dynamic.data.mapping.type.BaseDDMFormFieldOptionsValidationTestCase;
 import com.liferay.portal.json.JSONFactoryImpl;
 
 import org.junit.Before;
@@ -24,7 +24,7 @@ import org.junit.Before;
  * @author Marcellus Tavares
  */
 public class SelectDDMFormFieldValueValidatorTest
-	extends BaseDDMFormFieldOptionsValidationTest {
+	extends BaseDDMFormFieldOptionsValidationTestCase {
 
 	@Before
 	public void setUp() {

@@ -18,6 +18,7 @@ import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormRule;
+import com.liferay.dynamic.data.mapping.model.DDMFormSuccessPageSettings;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -100,6 +101,8 @@ public abstract class BaseDDMFormDeserializerTestCase extends BaseDDMTestCase {
 		testHTMLDDMFormField(ddmFormFieldsMap.get("HTML4512"));
 		testNestedDDMFormFields(ddmFormFieldsMap.get("Text6980"));
 		testRadioDDMFormField(ddmFormFieldsMap.get("Radio5699"));
+
+		testDDMFormSuccessPageSettings(ddmForm.getDDMFormSuccessPageSettings());
 	}
 
 	protected abstract DDMForm deserialize(String serializedDDMForm)
@@ -112,7 +115,8 @@ public abstract class BaseDDMFormDeserializerTestCase extends BaseDDMTestCase {
 	protected void testAvailableLocales(DDMForm ddmForm) {
 		Set<Locale> availableLocales = ddmForm.getAvailableLocales();
 
-		Assert.assertEquals(2, availableLocales.size());
+		Assert.assertEquals(
+			availableLocales.toString(), 2, availableLocales.size());
 		Assert.assertTrue(availableLocales.contains(LocaleUtil.US));
 		Assert.assertTrue(availableLocales.contains(LocaleUtil.BRAZIL));
 	}
@@ -146,6 +150,15 @@ public abstract class BaseDDMFormDeserializerTestCase extends BaseDDMTestCase {
 	}
 
 	protected void testDDMFormRules(List<DDMFormRule> ddmFormRules) {
+	}
+
+	protected void testDDMFormSuccessPageSettings(
+		DDMFormSuccessPageSettings ddmFormSuccessPageSettings) {
+
+		Assert.assertNotNull(ddmFormSuccessPageSettings);
+		Assert.assertNull(ddmFormSuccessPageSettings.getBody());
+		Assert.assertNull(ddmFormSuccessPageSettings.getTitle());
+		Assert.assertFalse(ddmFormSuccessPageSettings.isEnabled());
 	}
 
 	protected void testDecimalDDMFormField(DDMFormField ddmFormField) {
@@ -186,7 +199,8 @@ public abstract class BaseDDMFormDeserializerTestCase extends BaseDDMTestCase {
 		List<DDMFormField> nestedDDMFormFields =
 			ddmFormField.getNestedDDMFormFields();
 
-		Assert.assertEquals(1, nestedDDMFormFields.size());
+		Assert.assertEquals(
+			nestedDDMFormFields.toString(), 1, nestedDDMFormFields.size());
 
 		DDMFormField separatorDDMFormField = nestedDDMFormFields.get(0);
 
@@ -194,7 +208,8 @@ public abstract class BaseDDMFormDeserializerTestCase extends BaseDDMTestCase {
 
 		nestedDDMFormFields = separatorDDMFormField.getNestedDDMFormFields();
 
-		Assert.assertEquals(1, nestedDDMFormFields.size());
+		Assert.assertEquals(
+			nestedDDMFormFields.toString(), 1, nestedDDMFormFields.size());
 
 		DDMFormField selectDDMFormField = nestedDDMFormFields.get(0);
 
@@ -205,7 +220,7 @@ public abstract class BaseDDMFormDeserializerTestCase extends BaseDDMTestCase {
 
 		Set<String> optionValues = selectDDMFormFieldOptions.getOptionsValues();
 
-		Assert.assertEquals(3, optionValues.size());
+		Assert.assertEquals(optionValues.toString(), 3, optionValues.size());
 	}
 
 	protected void testRadioDDMFormField(DDMFormField ddmFormField) {
@@ -223,7 +238,7 @@ public abstract class BaseDDMFormDeserializerTestCase extends BaseDDMTestCase {
 
 		Set<String> optionsValues = ddmFormFieldOptions.getOptionsValues();
 
-		Assert.assertEquals(3, optionsValues.size());
+		Assert.assertEquals(optionsValues.toString(), 3, optionsValues.size());
 		Assert.assertTrue(optionsValues.contains("Value 1"));
 		Assert.assertTrue(optionsValues.contains("Value 2"));
 		Assert.assertTrue(optionsValues.contains("Value 3"));

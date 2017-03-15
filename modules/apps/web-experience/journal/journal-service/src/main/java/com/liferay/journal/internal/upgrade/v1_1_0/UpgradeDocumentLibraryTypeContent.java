@@ -19,10 +19,14 @@ import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -133,8 +137,16 @@ public class UpgradeDocumentLibraryTypeContent extends UpgradeProcess {
 
 		long groupId = GetterUtil.getLong(parts[2]);
 
-		return _dlAppLocalService.getFileEntryByUuidAndGroupId(
-			parts[5], groupId);
+		String uuid = null;
+
+		if (parts.length == 5) {
+			uuid = getUuidByDocumentLibraryURLWithoutUuid(parts);
+		}
+		else {
+			uuid = parts[5];
+		}
+
+		return _dlAppLocalService.getFileEntryByUuidAndGroupId(uuid, groupId);
 	}
 
 	protected FileEntry getFileEntryByOldDocumentLibraryURL(String url)
@@ -150,6 +162,29 @@ public class UpgradeDocumentLibraryTypeContent extends UpgradeProcess {
 
 		return _dlAppLocalService.getFileEntryByUuidAndGroupId(
 			matcher.group(1), groupId);
+	}
+
+	protected String getUuidByDocumentLibraryURLWithoutUuid(String[] splitURL)
+		throws PortalException {
+
+		long groupId = GetterUtil.getLong(splitURL[2]);
+		long folderId = GetterUtil.getLong(splitURL[3]);
+		String title = HttpUtil.decodeURL(HtmlUtil.escape(splitURL[4]));
+
+		try {
+			FileEntry fileEntry = _dlAppLocalService.getFileEntry(
+				groupId, folderId, title);
+
+			return fileEntry.getUuid();
+		}
+		catch (PortalException pe) {
+			_log.error(
+				"Unable to get file entry with group ID " + groupId +
+					", folder ID " + folderId + ", and title " + title,
+				pe);
+
+			throw pe;
+		}
 	}
 
 	protected void updateContent() throws Exception {
@@ -180,6 +215,9 @@ public class UpgradeDocumentLibraryTypeContent extends UpgradeProcess {
 			}
 		}
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		UpgradeDocumentLibraryTypeContent.class);
 
 	private final DLAppLocalService _dlAppLocalService;
 	private final Pattern _oldDocumentLibraryURLPattern = Pattern.compile(

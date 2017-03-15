@@ -103,6 +103,59 @@ AUI.add(
 						}
 					},
 
+					addRule: function(fieldName, validatorName, errorMessage, body, custom) {
+						var instance = this;
+
+						var fieldRules = instance.get('fieldRules');
+
+						var ruleIndex = instance._findRuleIndex(fieldRules, fieldName, validatorName);
+
+						if (ruleIndex == -1) {
+							fieldRules.push(
+								{
+									body: body || '',
+									custom: custom || false,
+									errorMessage: errorMessage || '',
+									fieldName: fieldName,
+									validatorName: validatorName
+								}
+							);
+
+							instance._processFieldRules(fieldRules);
+						}
+					},
+
+					removeRule: function(fieldName, validatorName) {
+						var instance = this;
+
+						var fieldRules = instance.get('fieldRules');
+
+						var ruleIndex = instance._findRuleIndex(fieldRules, fieldName, validatorName);
+
+						if (ruleIndex != -1) {
+							var rule = fieldRules[ruleIndex];
+
+							instance.formValidator.resetField(rule.fieldName);
+
+							fieldRules.splice(ruleIndex, 1);
+
+							instance._processFieldRules(fieldRules);
+						}
+					},
+
+					_afterGetFieldsByName: function(fieldName) {
+						var instance = this;
+
+						if (fieldName.endsWith('Editor')) {
+							var formNode = instance.formNode;
+
+							return new A.Do.AlterReturn(
+								'Return editor dom element',
+								formNode.one('#' + fieldName)
+							);
+						}
+					},
+
 					_bindForm: function() {
 						var instance = this;
 
@@ -113,6 +166,9 @@ AUI.add(
 						formValidator.on('submitError', A.bind('_onSubmitError', instance));
 
 						formNode.delegate(['blur', 'focus'], A.bind('_onFieldFocusChange', instance), 'button,input,select,textarea');
+						formNode.delegate(['blur', 'input'], A.bind('_onEditorBlur', instance), 'div[contenteditable="true"]');
+
+						A.Do.after('_afterGetFieldsByName', formValidator, 'getFieldsByName', instance);
 					},
 
 					_defaultSubmitFn: function(event) {
@@ -123,13 +179,30 @@ AUI.add(
 						}
 					},
 
+					_findRuleIndex: function(fieldRules, fieldName, validatorName) {
+						return fieldRules.findIndex(
+							function(element) {
+								return element.fieldName === fieldName &&
+									element.validatorName === validatorName;
+							}
+						);
+					},
+
+					_onEditorBlur: function(event) {
+						var instance = this;
+
+						var formValidator = instance.formValidator;
+
+						formValidator.validateField(event.target);
+					},
+
 					_onFieldFocusChange: function(event) {
 						var instance = this;
 
 						var row = event.currentTarget.ancestor('.field');
 
 						if (row) {
-							row.toggleClass('field-focused', (event.type == 'focus'));
+							row.toggleClass('field-focused', event.type === 'focus');
 						}
 					},
 

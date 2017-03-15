@@ -35,11 +35,6 @@ import java.util.regex.Pattern;
 public class CSSSourceProcessor extends BaseSourceProcessor {
 
 	@Override
-	public String[] getIncludes() {
-		return _INCLUDES;
-	}
-
-	@Override
 	protected String doFormat(
 			File file, String fileName, String absolutePath, String content)
 		throws Exception {
@@ -52,6 +47,8 @@ public class CSSSourceProcessor extends BaseSourceProcessor {
 		newContent = sortProperties(newContent);
 
 		newContent = formatComments(newContent);
+
+		newContent = fixEmptyLines(newContent);
 
 		return fixHexColors(newContent);
 	}
@@ -67,6 +64,29 @@ public class CSSSourceProcessor extends BaseSourceProcessor {
 		};
 
 		return getFileNames(excludes, getIncludes());
+	}
+
+	@Override
+	protected String[] doGetIncludes() {
+		return _INCLUDES;
+	}
+
+	protected String fixEmptyLines(String content) {
+		Matcher matcher = _emptyLineAfterOpenCurlyBrace.matcher(content);
+
+		if (matcher.find()) {
+			return StringUtil.replaceFirst(
+				content, "\n\n", "\n", matcher.start());
+		}
+
+		matcher = _emptyLineBeforeCloseCurlyBrace.matcher(content);
+
+		if (matcher.find()) {
+			return StringUtil.replaceFirst(
+				content, "\n\n", "\n", matcher.start());
+		}
+
+		return content;
 	}
 
 	protected String fixHexColors(String content) {
@@ -171,6 +191,10 @@ public class CSSSourceProcessor extends BaseSourceProcessor {
 		"^-* ?(\\S.*?\\S) ?-*$");
 	private final Pattern _commentPattern = Pattern.compile(
 		"/\\*[\n ](.*)[\n ]\\*/");
+	private final Pattern _emptyLineAfterOpenCurlyBrace = Pattern.compile(
+		"\\{\n\n");
+	private final Pattern _emptyLineBeforeCloseCurlyBrace = Pattern.compile(
+		"\n\n\t*\\}");
 	private final Pattern _hexColorPattern = Pattern.compile(
 		"#([0-9a-f]+)[\\( ;,]");
 	private final Pattern _propertiesPattern = Pattern.compile(

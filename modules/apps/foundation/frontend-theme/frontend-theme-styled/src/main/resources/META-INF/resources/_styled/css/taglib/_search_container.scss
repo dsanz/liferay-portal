@@ -12,7 +12,7 @@
 	white-space: nowrap;
 }
 
-.lfr-description-column {
+.lfr-description-column, .lfr-role-column {
 	max-width: 375px;
 	min-width: 375px;
 }
@@ -32,6 +32,11 @@
 	.checkbox-container .form-group {
 		margin-bottom: 0;
 	}
+}
+
+.lfr-role-column {
+	word-break: break-all \9;
+	word-wrap: break-word;
 }
 
 .user-info .user-details {

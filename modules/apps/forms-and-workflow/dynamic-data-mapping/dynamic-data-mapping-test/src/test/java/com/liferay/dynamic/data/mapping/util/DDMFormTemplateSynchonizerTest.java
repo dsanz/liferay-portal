@@ -24,9 +24,11 @@ import com.liferay.dynamic.data.mapping.model.DDMTemplateConstants;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.model.impl.DDMTemplateImpl;
 import com.liferay.dynamic.data.mapping.service.impl.DDMTemplateLocalServiceImpl;
+import com.liferay.dynamic.data.mapping.service.util.ServiceProps;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.util.PropsValues;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -36,13 +38,24 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Marcellus Tavares
  */
-@PrepareForTest(LocaleUtil.class)
+@PrepareForTest({LocaleUtil.class, PropsValues.class, ServiceProps.class})
+@RunWith(PowerMockRunner.class)
+@SuppressStaticInitializationFor(
+	{
+		"com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil",
+		"com.liferay.portal.kernel.xml.SAXReaderUtil",
+		"com.liferay.portal.util.PropsValues"
+	}
+)
 public class DDMFormTemplateSynchonizerTest extends BaseDDMTestCase {
 
 	@Before
@@ -57,8 +70,9 @@ public class DDMFormTemplateSynchonizerTest extends BaseDDMTestCase {
 		setUpLanguageUtil();
 		setUpLocaleUtil();
 		setUpHtmlUtil();
-		setUpPropsUtil();
+		setUpPropsValues();
 		setUpSAXReaderUtil();
+		setUpServiceProps();
 	}
 
 	@Test
@@ -292,6 +306,10 @@ public class DDMFormTemplateSynchonizerTest extends BaseDDMTestCase {
 				itr.remove();
 			}
 		}
+	}
+
+	protected void setUpServiceProps() {
+		mockStatic(ServiceProps.class);
 	}
 
 	protected void testFormTemplatesAfterAddRequiredFields() throws Exception {

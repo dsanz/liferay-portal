@@ -547,6 +547,16 @@ public class JournalFolderLocalServiceWrapper
 		return _journalFolderLocalService.getNoAssetFolders();
 	}
 
+	@Override
+	public java.util.List<com.liferay.dynamic.data.mapping.model.DDMStructure> searchDDMStructures(
+		long companyId, long[] groupIds, long folderId, int restrictionType,
+		java.lang.String keywords, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.mapping.model.DDMStructure> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _journalFolderLocalService.searchDDMStructures(companyId,
+			groupIds, folderId, restrictionType, keywords, start, end, obc);
+	}
+
 	/**
 	* Returns the number of rows matching the dynamic query.
 	*

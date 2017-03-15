@@ -18,8 +18,9 @@ import com.liferay.dynamic.data.mapping.expression.DDMExpression;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionException;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFactory;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFunction;
-import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationException;
 import com.liferay.dynamic.data.mapping.model.DDMFormRule;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,25 +37,20 @@ public class DDMFormRuleEvaluator {
 		_ddmExpressionFactory = ddmExpressionFactory;
 	}
 
-	public void evaluate() throws DDMFormEvaluationException {
+	public void evaluate() {
 		if (!_ddmFormRule.isEnabled()) {
 			return;
 		}
 
-		try {
-			boolean conditionEvaluationResult = evaluateDDMExpression(
-				_ddmFormRule.getCondition());
+		boolean conditionEvaluationResult = evaluateCondition(
+			_ddmFormRule.getCondition());
 
-			if (!conditionEvaluationResult) {
-				return;
-			}
-
-			for (String action : _ddmFormRule.getActions()) {
-				evaluateDDMExpression(action);
-			}
+		if (!conditionEvaluationResult) {
+			return;
 		}
-		catch (DDMExpressionException ddmee) {
-			throw new DDMFormEvaluationException(ddmee);
+
+		for (String action : _ddmFormRule.getActions()) {
+			executeAction(action);
 		}
 	}
 
@@ -62,6 +58,19 @@ public class DDMFormRuleEvaluator {
 		String functionName, DDMExpressionFunction ddmExpressionFunction) {
 
 		_ddmExpressionFunctionsMap.put(functionName, ddmExpressionFunction);
+	}
+
+	protected boolean evaluateCondition(String condition) {
+		try {
+			return evaluateDDMExpression(_ddmFormRule.getCondition());
+		}
+		catch (DDMExpressionException ddmee) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(ddmee);
+			}
+
+			return false;
+		}
 	}
 
 	protected boolean evaluateDDMExpression(String ddmExpressionString)
@@ -76,6 +85,17 @@ public class DDMFormRuleEvaluator {
 		return ddmExpression.evaluate();
 	}
 
+	protected void executeAction(String action) {
+		try {
+			evaluateDDMExpression(action);
+		}
+		catch (DDMExpressionException ddmee) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(ddmee);
+			}
+		}
+	}
+
 	protected void setDDMExpressionFunctions(DDMExpression<?> ddmExpression) {
 		for (Map.Entry<String, DDMExpressionFunction> entry :
 				_ddmExpressionFunctionsMap.entrySet()) {
@@ -84,6 +104,9 @@ public class DDMFormRuleEvaluator {
 				entry.getKey(), entry.getValue());
 		}
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		DDMFormRuleEvaluator.class);
 
 	private final DDMExpressionFactory _ddmExpressionFactory;
 	private final Map<String, DDMExpressionFunction>

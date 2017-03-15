@@ -234,11 +234,6 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		}
 	}
 
-	@Override
-	public String[] getIncludes() {
-		return _INCLUDES;
-	}
-
 	protected void checkAntXMLProjectName(String fileName, Document document) {
 		Matcher matcher = _projectNamePattern.matcher(fileName);
 
@@ -411,7 +406,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			newContent = formatAntXML(fileName, absolutePath, newContent);
 		}
 		else if (fileName.contains("/custom-sql/")) {
-			formatCustomSQLXML(fileName, newContent);
+			newContent = formatCustomSQLXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("structures.xml")) {
 			newContent = formatDDLStructuresXML(newContent);
@@ -421,19 +416,19 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 				fileName, absolutePath, newContent);
 		}
 		else if (fileName.endsWith("-hbm.xml")) {
-			formatHBMXML(fileName, newContent);
+			newContent = formatHBMXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("-log4j.xml")) {
-			formatLog4jXML(fileName, newContent);
+			newContent = formatLog4jXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("-look-and-feel.xml")) {
-			formatLookAndFeelXML(fileName, newContent);
+			newContent = formatLookAndFeelXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("-model-hints.xml")) {
-			formatModelHintsXML(fileName, newContent);
+			newContent = formatModelHintsXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("portlet-preferences.xml")) {
-			formatPortletPreferencesXML(fileName, newContent);
+			newContent = formatPortletPreferencesXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("/liferay-portlet.xml") ||
 				 ((portalSource || subrepository) &&
@@ -451,32 +446,37 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			newContent = formatPoshiXML(fileName, newContent);
 		}
 		else if (fileName.contains("/resource-actions/")) {
-			formatResourceActionXML(fileName, newContent, "model");
-			formatResourceActionXML(fileName, newContent, "portlet");
+			newContent = formatResourceActionXML(fileName, newContent, "model");
+			newContent = formatResourceActionXML(
+				fileName, newContent, "portlet");
 		}
 		else if (fileName.endsWith("/service.xml")) {
-			formatServiceXML(fileName, absolutePath, newContent);
+			newContent = formatServiceXML(fileName, absolutePath, newContent);
 		}
 		else if (fileName.endsWith("/schema.xml") &&
 				 absolutePath.contains("solr")) {
 
-			formatSolrSchemaXML(fileName, newContent);
+			newContent = formatSolrSchemaXML(fileName, newContent);
 		}
 		else if (fileName.endsWith("-spring.xml")) {
-			formatSpringXML(fileName, newContent);
+			newContent = formatSpringXML(fileName, newContent);
 		}
 		else if ((portalSource || subrepository) &&
 				 fileName.endsWith("/struts-config.xml")) {
-			formatStrutsConfigXML(fileName, newContent);
+
+			newContent = formatStrutsConfigXML(fileName, newContent);
 		}
 		else if ((portalSource || subrepository) &&
 				 fileName.endsWith("/test-ignorable-error-lines.xml")) {
 
-			formatTestIgnorableErrorLinesXml(fileName, newContent);
+			newContent = formatTestIgnorableErrorLinesXml(fileName, newContent);
 		}
 		else if ((portalSource || subrepository) &&
 				 fileName.endsWith("/tiles-defs.xml")) {
 			formatTilesDefsXML(fileName, newContent);
+		}
+		else if (fileName.endsWith(".toggle")) {
+			newContent = formatToggleXML(fileName, newContent);
 		}
 		else if (((portalSource || subrepository) &&
 				  fileName.endsWith("portal-web/docroot/WEB-INF/web.xml")) ||
@@ -487,6 +487,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		}
 
 		newContent = sortAttributes(fileName, newContent);
+
+		newContent = fixEmptyLinesInMultiLineTags(newContent);
 
 		newContent = fixEmptyLinesInNestedTags(newContent);
 
@@ -505,6 +507,28 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		};
 
 		return getFileNames(excludes, getIncludes());
+	}
+
+	@Override
+	protected String[] doGetIncludes() {
+		return _INCLUDES;
+	}
+
+	protected String fixEmptyLinesBetweenTags(
+		String content, boolean allowEmptyLinesBetweenTags) {
+
+		if (allowEmptyLinesBetweenTags) {
+			return fixEmptyLinesBetweenTags(content);
+		}
+
+		Matcher matcher = _emptyLineBetweenTagsPattern.matcher(content);
+
+		if (matcher.find()) {
+			return StringUtil.replaceFirst(
+				content, "\n\n", "\n", matcher.end(1));
+		}
+
+		return content;
 	}
 
 	protected String fixPoshiXMLElementWithNoChild(String content) {
@@ -702,7 +726,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		return newContent;
 	}
 
-	protected void formatCustomSQLXML(String fileName, String content)
+	protected String formatCustomSQLXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -713,20 +737,20 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 		Matcher matcher = _whereNotInSQLPattern.matcher(content);
 
-		if (!matcher.find()) {
-			return;
+		if (matcher.find()) {
+			int x = content.lastIndexOf("<sql id=", matcher.start());
+
+			int y = content.indexOf(CharPool.QUOTE, x);
+
+			int z = content.indexOf(CharPool.QUOTE, y + 1);
+
+			processMessage(
+				fileName,
+				"Avoid using WHERE ... NOT IN: " + content.substring(y + 1, z) +
+					", see LPS-51315");
 		}
 
-		int x = content.lastIndexOf("<sql id=", matcher.start());
-
-		int y = content.indexOf(CharPool.QUOTE, x);
-
-		int z = content.indexOf(CharPool.QUOTE, y + 1);
-
-		processMessage(
-			fileName,
-			"Avoid using WHERE ... NOT IN: " + content.substring(y + 1, z) +
-				", see LPS-51315");
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
 	protected String formatDDLStructuresXML(String content) throws Exception {
@@ -785,7 +809,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		int pos = content.indexOf("<routes>\n");
 
 		if (pos == -1) {
-			return content;
+			return fixEmptyLinesBetweenTags(content, false);
 		}
 
 		StringBundler sb = new StringBundler(9);
@@ -807,10 +831,10 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		sb.append(".dtd\">\n\n");
 		sb.append(content.substring(pos));
 
-		return sb.toString();
+		return fixEmptyLinesBetweenTags(sb.toString(), false);
 	}
 
-	protected void formatHBMXML(String fileName, String content)
+	protected String formatHBMXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -818,9 +842,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, document.getRootElement(), "import", null,
 			new ElementComparator("class"));
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatLog4jXML(String fileName, String content)
+	protected String formatLog4jXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -828,9 +854,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, document.getRootElement(), "category", null,
 			new ElementComparator(true));
+
+		return fixEmptyLinesBetweenTags(content, true);
 	}
 
-	protected void formatLookAndFeelXML(String fileName, String content)
+	protected String formatLookAndFeelXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -850,9 +878,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 				fileName, settingsElement, "setting", null,
 				new ElementComparator("key"));
 		}
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatModelHintsXML(String fileName, String content)
+	protected String formatModelHintsXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -864,9 +894,12 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			new ElementComparator());
 		checkOrder(
 			fileName, rootElement, "model", null, new ElementComparator());
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatPortletPreferencesXML(String fileName, String content)
+	protected String formatPortletPreferencesXML(
+			String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -884,6 +917,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 			processMessage(fileName, "Rename file to " + correctFileName);
 		}
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
 	protected String formatPortletXML(
@@ -968,7 +1003,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		return fixPoshiXMLNumberOfTabs(content);
 	}
 
-	protected void formatResourceActionXML(
+	protected String formatResourceActionXML(
 			String fileName, String content, String type)
 		throws Exception {
 
@@ -1007,9 +1042,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, rootElement, type + "-resource", null,
 			new ResourceActionResourceElementComparator(type + "-name"));
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatServiceXML(
+	protected String formatServiceXML(
 			String fileName, String absolutePath, String content)
 		throws Exception {
 
@@ -1017,16 +1054,36 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 		Element rootElement = document.getRootElement();
 
-		List<Element> entityElements = rootElement.elements("entity");
-
 		ServiceReferenceElementComparator serviceReferenceElementComparator =
 			new ServiceReferenceElementComparator("entity");
 
-		for (Element entityElement : entityElements) {
+		for (Element entityElement :
+				(List<Element>)rootElement.elements("entity")) {
+
 			String entityName = entityElement.attributeValue("name");
 
 			List<String> columnNames = getColumnNames(
 				fileName, absolutePath, entityName);
+
+			ServiceFinderColumnElementComparator
+				serviceFinderColumnElementComparator =
+					new ServiceFinderColumnElementComparator(columnNames);
+
+			if (!isExcludedPath(
+					_SERVICE_FINDER_COLUMN_SORT_EXCLUDES, absolutePath,
+					entityName)) {
+
+				for (Element finderElement :
+						(List<Element>)entityElement.elements("finder")) {
+
+					String finderName = finderElement.attributeValue("name");
+
+					checkOrder(
+						fileName, finderElement, "finder-column",
+						entityName + "#" + finderName,
+						serviceFinderColumnElementComparator);
+				}
+			}
 
 			checkOrder(
 				fileName, entityElement, "finder", entityName,
@@ -1041,9 +1098,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, rootElement.element("exceptions"), "exception", null,
 			new ServiceExceptionElementComparator());
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatSolrSchemaXML(String fileName, String content)
+	protected String formatSolrSchemaXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -1056,9 +1115,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, rootElement.element("types"), "fieldType", null,
 			new ElementComparator());
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatSpringXML(String fileName, String content)
+	protected String formatSpringXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -1066,9 +1127,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, document.getRootElement(), "bean", null,
 			new SpringBeanElementComparator("id"));
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatStrutsConfigXML(String fileName, String content)
+	protected String formatStrutsConfigXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -1078,9 +1141,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, rootElement.element("action-mappings"), "action", null,
 			new StrutsActionElementComparator("path"));
+
+		return fixEmptyLinesBetweenTags(content, true);
 	}
 
-	protected void formatTestIgnorableErrorLinesXml(
+	protected String formatTestIgnorableErrorLinesXml(
 			String fileName, String content)
 		throws Exception {
 
@@ -1103,9 +1168,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 				fileName, logElement, "ignore-error", null,
 				new ElementComparator("description"));
 		}
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
-	protected void formatTilesDefsXML(String fileName, String content)
+	protected String formatTilesDefsXML(String fileName, String content)
 		throws Exception {
 
 		Document document = readXML(content);
@@ -1113,6 +1180,20 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 		checkOrder(
 			fileName, document.getRootElement(), "definition", null,
 			new TilesDefinitionElementComparator());
+
+		return fixEmptyLinesBetweenTags(content, true);
+	}
+
+	protected String formatToggleXML(String fileName, String content)
+		throws Exception {
+
+		Document document = readXML(content);
+
+		checkOrder(
+			fileName, document.getRootElement(), "toggle", null,
+			new ElementComparator());
+
+		return fixEmptyLinesBetweenTags(content, false);
 	}
 
 	protected String formatWebXML(String fileName, String content)
@@ -1126,7 +1207,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 				processMessage(fileName, StringPool.BLANK);
 			}
 
-			return content;
+			return fixEmptyLinesBetweenTags(content, false);
 		}
 
 		Properties properties = new Properties();
@@ -1200,8 +1281,11 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			sb.append("/c/portal/protected</url-pattern>\n");
 		}
 
-		return newContent.substring(0, x) + sb.toString() +
-			newContent.substring(y);
+		newContent =
+			newContent.substring(0, x) + sb.toString() +
+				newContent.substring(y);
+
+		return fixEmptyLinesBetweenTags(newContent, false); 
 	}
 
 	protected List<String> getColumnNames(
@@ -1555,11 +1639,14 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 	private static final String[] _INCLUDES = new String[] {
 		"**/*.action", "**/*.function", "**/*.jrxml", "**/*.macro",
-		"**/*.testcase", "**/*.xml"
+		"**/*.testcase", "**/*.toggle", "**/*.xml"
 	};
 
 	private static final String _NUMERICAL_PORTLET_NAME_ELEMENT_EXCLUDES =
 		"numerical.portlet.name.element.excludes";
+
+	private static final String _SERVICE_FINDER_COLUMN_SORT_EXCLUDES =
+		"service.finder.column.sort.excludes";
 
 	private static final String _XML_EXCLUDES = "xml.excludes";
 
@@ -1568,6 +1655,8 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 	private static final Pattern _commentPattern2 = Pattern.compile(
 		"[\t ]-->\n[\t<]");
 
+	private final Pattern _emptyLineBetweenTagsPattern = Pattern.compile(
+		"\n(\t*)<[\\w/].*>(\n\n)(\t*)<(\\w)");
 	private final Pattern _importFilePattern = Pattern.compile(
 		"<import file=\"(.*)\"");
 	private final Pattern _incorrectDefaultPreferencesFileName =
@@ -1613,8 +1702,89 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 	private final Pattern _whereNotInSQLPattern = Pattern.compile(
 		"WHERE[ \t\n]+\\(*[a-zA-z0-9.]+ NOT IN");
 
-	private static class PortletPreferenceElementComparator
-		extends ElementComparator {
+	private class CustomSQLElementComparator extends ElementComparator {
+
+		public CustomSQLElementComparator(String nameAttribute) {
+			super(nameAttribute);
+		}
+
+		@Override
+		public int compare(Element sqlElement1, Element sqlElement2) {
+			String sqlElementName1 = getElementName(sqlElement1);
+			String sqlElementName2 = getElementName(sqlElement2);
+
+			String finderObjectName1 = _getFinderObjectName(sqlElementName1);
+			String finderObjectName2 = _getFinderObjectName(sqlElementName2);
+
+			if ((finderObjectName1 == null) || (finderObjectName2 == null)) {
+				return 0;
+			}
+
+			int value = finderObjectName1.compareToIgnoreCase(
+				finderObjectName2);
+
+			if (value != 0) {
+				return value;
+			}
+
+			String finderKeyName1 = _getFinderKeyName(sqlElementName1);
+			String finderKeyName2 = _getFinderKeyName(sqlElementName2);
+
+			int startsWithWeight = StringUtil.startsWithWeight(
+				finderKeyName1, finderKeyName2);
+
+			if (startsWithWeight == 0) {
+				return finderKeyName1.compareTo(finderKeyName2);
+			}
+
+			String startFinder = finderKeyName1.substring(0, startsWithWeight);
+
+			if (!startFinder.contains("By")) {
+				NaturalOrderStringComparator comparator =
+					new NaturalOrderStringComparator();
+
+				return comparator.compare(finderKeyName1, finderKeyName2);
+			}
+
+			int columnCount1 = StringUtil.count(
+				sqlElementName1, CharPool.UNDERLINE);
+			int columnCount2 = StringUtil.count(
+				sqlElementName2, CharPool.UNDERLINE);
+
+			return columnCount1 - columnCount2;
+		}
+
+		private String _getFinderKeyName(String elementName) {
+			if (Validator.isNull(elementName)) {
+				return null;
+			}
+
+			int pos = elementName.lastIndexOf(StringPool.PERIOD);
+
+			if (pos == -1) {
+				return null;
+			}
+
+			return elementName.substring(pos + 1);
+		}
+
+		private String _getFinderObjectName(String elementName) {
+			if (Validator.isNull(elementName)) {
+				return null;
+			}
+
+			int pos = elementName.lastIndexOf(StringPool.PERIOD);
+
+			if (pos == -1) {
+				return null;
+			}
+
+			return elementName.substring(0, pos);
+		}
+
+	}
+
+	private class PortletPreferenceElementComparator extends ElementComparator {
 
 		@Override
 		protected String getElementName(Element preferenceElement) {
@@ -1625,7 +1795,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 	}
 
-	private static class ResourceActionActionKeyElementComparator
+	private class ResourceActionActionKeyElementComparator
 		extends ElementComparator {
 
 		@Override
@@ -1635,7 +1805,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 	}
 
-	private static class ResourceActionResourceElementComparator
+	private class ResourceActionResourceElementComparator
 		extends ElementComparator {
 
 		public ResourceActionResourceElementComparator(String nameAttribute) {
@@ -1656,8 +1826,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 	}
 
-	private static class ServiceExceptionElementComparator
-		extends ElementComparator {
+	private class ServiceExceptionElementComparator extends ElementComparator {
 
 		@Override
 		protected String getElementName(Element exceptionElement) {
@@ -1666,8 +1835,105 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 	}
 
-	private static class ServiceReferenceElementComparator
+	private class ServiceFinderColumnElementComparator
 		extends ElementComparator {
+
+		public ServiceFinderColumnElementComparator(List<String> columnNames) {
+			_columnNames = columnNames;
+		}
+
+		@Override
+		public int compare(
+			Element finderColumnElement1, Element finderColumnElement2) {
+
+			String finderColumnName1 = finderColumnElement1.attributeValue(
+				"name");
+			String finderColumnName2 = finderColumnElement2.attributeValue(
+				"name");
+
+			int index1 = _columnNames.indexOf(finderColumnName1);
+			int index2 = _columnNames.indexOf(finderColumnName2);
+
+			return index1 - index2;
+		}
+
+		private final List<String> _columnNames;
+
+	}
+
+	private class ServiceFinderElementComparator extends ElementComparator {
+
+		public ServiceFinderElementComparator(List<String> columnNames) {
+			_columnNames = columnNames;
+		}
+
+		@Override
+		public int compare(Element finderElement1, Element finderElement2) {
+			List<Element> finderColumnElements1 = finderElement1.elements(
+				"finder-column");
+			List<Element> finderColumnElements2 = finderElement2.elements(
+				"finder-column");
+
+			int finderColumnCount1 = finderColumnElements1.size();
+			int finderColumnCount2 = finderColumnElements2.size();
+
+			if (finderColumnCount1 != finderColumnCount2) {
+				return finderColumnCount1 - finderColumnCount2;
+			}
+
+			for (int i = 0; i < finderColumnCount1; i++) {
+				Element finderColumnElement1 = finderColumnElements1.get(i);
+				Element finderColumnElement2 = finderColumnElements2.get(i);
+
+				String finderColumnName1 = finderColumnElement1.attributeValue(
+					"name");
+				String finderColumnName2 = finderColumnElement2.attributeValue(
+					"name");
+
+				int index1 = _columnNames.indexOf(finderColumnName1);
+				int index2 = _columnNames.indexOf(finderColumnName2);
+
+				if (index1 != index2) {
+					return index1 - index2;
+				}
+			}
+
+			String finderName1 = finderElement1.attributeValue("name");
+			String finderName2 = finderElement2.attributeValue("name");
+
+			int startsWithWeight = StringUtil.startsWithWeight(
+				finderName1, finderName2);
+
+			String strippedFinderName1 = finderName1.substring(
+				startsWithWeight);
+			String strippedFinderName2 = finderName2.substring(
+				startsWithWeight);
+
+			if (strippedFinderName1.startsWith("Gt") ||
+				strippedFinderName1.startsWith("Like") ||
+				strippedFinderName1.startsWith("Lt") ||
+				strippedFinderName1.startsWith("Not")) {
+
+				if (!strippedFinderName2.startsWith("Gt") &&
+					!strippedFinderName2.startsWith("Like") &&
+					!strippedFinderName2.startsWith("Lt") &&
+					!strippedFinderName2.startsWith("Not")) {
+
+					return 1;
+				}
+				else {
+					return strippedFinderName1.compareTo(strippedFinderName2);
+				}
+			}
+
+			return 0;
+		}
+
+		private final List<String> _columnNames;
+
+	}
+
+	private class ServiceReferenceElementComparator extends ElementComparator {
 
 		public ServiceReferenceElementComparator(String nameAttribute) {
 			super(nameAttribute);
@@ -1694,7 +1960,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 	}
 
-	private static class SpringBeanElementComparator extends ElementComparator {
+	private class SpringBeanElementComparator extends ElementComparator {
 
 		public SpringBeanElementComparator(String nameAttribute) {
 			super(nameAttribute);
@@ -1760,7 +2026,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 			return springBeanServiceElemen1.compareTo(springBeanServiceElemen2);
 		}
 
-		private static class SpringBeanServiceElement
+		private class SpringBeanServiceElement
 			implements Comparable<SpringBeanServiceElement> {
 
 			public SpringBeanServiceElement(String name) {
@@ -1851,8 +2117,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 	}
 
-	private static class StrutsActionElementComparator
-		extends ElementComparator {
+	private class StrutsActionElementComparator extends ElementComparator {
 
 		public StrutsActionElementComparator(String nameAttribute) {
 			super(nameAttribute);
@@ -1876,8 +2141,7 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 	}
 
-	private static class TilesDefinitionElementComparator
-		extends ElementComparator {
+	private class TilesDefinitionElementComparator extends ElementComparator {
 
 		@Override
 		public int compare(
@@ -1891,160 +2155,6 @@ public class XMLSourceProcessor extends BaseSourceProcessor {
 
 			return super.compare(definitionElement1, definitionElement2);
 		}
-
-	}
-
-	private class CustomSQLElementComparator extends ElementComparator {
-
-		public CustomSQLElementComparator(String nameAttribute) {
-			super(nameAttribute);
-		}
-
-		@Override
-		public int compare(Element sqlElement1, Element sqlElement2) {
-			String sqlElementName1 = getElementName(sqlElement1);
-			String sqlElementName2 = getElementName(sqlElement2);
-
-			String finderObjectName1 = _getFinderObjectName(sqlElementName1);
-			String finderObjectName2 = _getFinderObjectName(sqlElementName2);
-
-			if ((finderObjectName1 == null) || (finderObjectName2 == null)) {
-				return 0;
-			}
-
-			int value = finderObjectName1.compareToIgnoreCase(
-				finderObjectName2);
-
-			if (value != 0) {
-				return value;
-			}
-
-			String finderKeyName1 = _getFinderKeyName(sqlElementName1);
-			String finderKeyName2 = _getFinderKeyName(sqlElementName2);
-
-			int startsWithWeight = StringUtil.startsWithWeight(
-				finderKeyName1, finderKeyName2);
-
-			if (startsWithWeight == 0) {
-				return finderKeyName1.compareTo(finderKeyName2);
-			}
-
-			String startFinder = finderKeyName1.substring(0, startsWithWeight);
-
-			if (!startFinder.contains("By")) {
-				NaturalOrderStringComparator comparator =
-					new NaturalOrderStringComparator();
-
-				return comparator.compare(finderKeyName1, finderKeyName2);
-			}
-
-			int columnCount1 = StringUtil.count(
-				sqlElementName1, CharPool.UNDERLINE);
-			int columnCount2 = StringUtil.count(
-				sqlElementName2, CharPool.UNDERLINE);
-
-			return columnCount1 - columnCount2;
-		}
-
-		private String _getFinderKeyName(String elementName) {
-			if (Validator.isNull(elementName)) {
-				return null;
-			}
-
-			int pos = elementName.lastIndexOf(StringPool.PERIOD);
-
-			if (pos == -1) {
-				return null;
-			}
-
-			return elementName.substring(pos + 1);
-		}
-
-		private String _getFinderObjectName(String elementName) {
-			if (Validator.isNull(elementName)) {
-				return null;
-			}
-
-			int pos = elementName.lastIndexOf(StringPool.PERIOD);
-
-			if (pos == -1) {
-				return null;
-			}
-
-			return elementName.substring(0, pos);
-		}
-
-	}
-
-	private class ServiceFinderElementComparator extends ElementComparator {
-
-		public ServiceFinderElementComparator(List<String> columnNames) {
-			_columnNames = columnNames;
-		}
-
-		@Override
-		public int compare(Element finderElement1, Element finderElement2) {
-			List<Element> finderColumnElements1 = finderElement1.elements(
-				"finder-column");
-			List<Element> finderColumnElements2 = finderElement2.elements(
-				"finder-column");
-
-			int finderColumnCount1 = finderColumnElements1.size();
-			int finderColumnCount2 = finderColumnElements2.size();
-
-			if (finderColumnCount1 != finderColumnCount2) {
-				return finderColumnCount1 - finderColumnCount2;
-			}
-
-			for (int i = 0; i < finderColumnCount1; i++) {
-				Element finderColumnElement1 = finderColumnElements1.get(i);
-				Element finderColumnElement2 = finderColumnElements2.get(i);
-
-				String finderColumnName1 = finderColumnElement1.attributeValue(
-					"name");
-				String finderColumnName2 = finderColumnElement2.attributeValue(
-					"name");
-
-				int index1 = _columnNames.indexOf(finderColumnName1);
-				int index2 = _columnNames.indexOf(finderColumnName2);
-
-				if (index1 != index2) {
-					return index1 - index2;
-				}
-			}
-
-			String finderName1 = finderElement1.attributeValue("name");
-			String finderName2 = finderElement2.attributeValue("name");
-
-			int startsWithWeight = StringUtil.startsWithWeight(
-				finderName1, finderName2);
-
-			String strippedFinderName1 = finderName1.substring(
-				startsWithWeight);
-			String strippedFinderName2 = finderName2.substring(
-				startsWithWeight);
-
-			if (strippedFinderName1.startsWith("Gt") ||
-				strippedFinderName1.startsWith("Like") ||
-				strippedFinderName1.startsWith("Lt") ||
-				strippedFinderName1.startsWith("Not")) {
-
-				if (!strippedFinderName2.startsWith("Gt") &&
-					!strippedFinderName2.startsWith("Like") &&
-					!strippedFinderName2.startsWith("Lt") &&
-					!strippedFinderName2.startsWith("Not")) {
-
-					return 1;
-				}
-				else {
-					return strippedFinderName1.compareTo(strippedFinderName2);
-				}
-			}
-
-			return 0;
-		}
-
-		private final List<String> _columnNames;
 
 	}
 

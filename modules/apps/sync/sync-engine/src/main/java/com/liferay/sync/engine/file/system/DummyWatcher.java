@@ -58,7 +58,7 @@ public class DummyWatcher extends Watcher {
 	}
 
 	@Override
-	public void walkFileTree(Path filePath) {
+	public void walkFileTree(Path filePath, boolean skipRoot) {
 	}
 
 	@Override

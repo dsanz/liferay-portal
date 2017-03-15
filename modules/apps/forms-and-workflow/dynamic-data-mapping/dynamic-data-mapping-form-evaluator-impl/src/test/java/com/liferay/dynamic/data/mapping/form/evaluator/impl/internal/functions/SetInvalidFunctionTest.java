@@ -26,7 +26,7 @@ import org.junit.Test;
 /**
  * @author Leonardo Barros
  */
-public class SetInvalidFunctionTest extends BaseDDMFormRuleFunctionTest {
+public class SetInvalidFunctionTest extends BaseDDMFormRuleFunctionTestCase {
 
 	@Test
 	public void testEvaluate() {

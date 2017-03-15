@@ -38,25 +38,27 @@ boolean viewInContext = ((Boolean)request.getAttribute("view.jsp-viewInContext")
 String viewURL = AssetPublisherHelper.getAssetViewURL(liferayPortletRequest, liferayPortletResponse, assetEntry, viewInContext);
 %>
 
-	<c:if test="<%= assetEntryIndex == 0 %>">
-		<ul class="list-unstyled">
-	</c:if>
+<c:if test="<%= assetEntryIndex == 0 %>">
+	<ul class="list-unstyled">
+</c:if>
 
-	<li class="h3 <%= assetRendererFactory.getType() %>">
-		<aui:a href="<%= viewURL %>">
-			<%= HtmlUtil.escape(title) %>
-		</aui:a>
+<li class="h3 <%= assetRendererFactory.getType() %>">
+	<span class="asset-anchor lfr-asset-anchor" id="<%= assetEntry.getEntryId() %>"></span>
 
-		<liferay-util:include page="/asset_actions.jsp" servletContext="<%= application %>" />
+	<aui:a href="<%= viewURL %>">
+		<%= HtmlUtil.escape(title) %>
+	</aui:a>
 
-		<liferay-ui:asset-metadata
-			className="<%= assetEntry.getClassName() %>"
-			classPK="<%= assetEntry.getClassPK() %>"
-			filterByMetadata="<%= true %>"
-			metadataFields="<%= assetPublisherDisplayContext.getMetadataFields() %>"
-		/>
-	</li>
+	<liferay-util:include page="/asset_actions.jsp" servletContext="<%= application %>" />
 
-	<c:if test="<%= (assetEntryIndex + 1) == results.size() %>">
-		</ul>
-	</c:if>
+	<liferay-ui:asset-metadata
+		className="<%= assetEntry.getClassName() %>"
+		classPK="<%= assetEntry.getClassPK() %>"
+		filterByMetadata="<%= true %>"
+		metadataFields="<%= assetPublisherDisplayContext.getMetadataFields() %>"
+	/>
+</li>
+
+<c:if test="<%= (assetEntryIndex + 1) == results.size() %>">
+	</ul>
+</c:if>

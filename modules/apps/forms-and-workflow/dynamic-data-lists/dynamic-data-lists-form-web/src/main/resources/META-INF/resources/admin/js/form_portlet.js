@@ -52,15 +52,23 @@ AUI.add(
 						valueFn: '_valueFormBuilder'
 					},
 
+					functionsMetadata: {
+						value: []
+					},
+
+					getDataProviderInstancesURL: {
+						value: ''
+					},
+
 					getDataProviderParametersSettingsURL: {
 						value: ''
 					},
 
-					getDataProvidersURL: {
+					getFieldTypeSettingFormContextURL: {
 						value: ''
 					},
 
-					getFieldTypeSettingFormContextURL: {
+					getRolesURL: {
 						value: ''
 					},
 
@@ -422,7 +430,7 @@ AUI.add(
 						var modifiedDate = new Date(event.modifiedDate);
 
 						var autosaveMessage = A.Lang.sub(
-							Liferay.Language.get('draft-saved-at-x'),
+							Liferay.Language.get('draft-saved-on-x'),
 							[
 								modifiedDate
 							]
@@ -758,6 +766,10 @@ AUI.add(
 						return new Liferay.DDL.FormBuilderRuleBuilder(
 							{
 								formBuilder: instance.get('formBuilder'),
+								functionsMetadata: instance.get('functionsMetadata'),
+								getDataProviderInstancesURL: instance.get('getDataProviderInstancesURL'),
+								getDataProviderParametersSettingsURL: instance.get('getDataProviderParametersSettingsURL'),
+								portletNamespace: instance.get('namespace'),
 								rules: instance.get('rules'),
 								visible: false
 							}

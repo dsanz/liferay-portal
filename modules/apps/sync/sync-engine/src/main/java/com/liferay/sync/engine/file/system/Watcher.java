@@ -82,13 +82,15 @@ public abstract class Watcher implements Runnable {
 
 	public abstract void unregisterFilePath(Path filePath);
 
-	public void walkFileTree(Path filePath) throws IOException {
-		if (isIgnoredFilePath(filePath)) {
+	public void walkFileTree(final Path rootFilePath, final boolean skipRoot)
+		throws IOException {
+
+		if (isIgnoredFilePath(rootFilePath)) {
 			return;
 		}
 
 		Files.walkFileTree(
-			filePath,
+			rootFilePath,
 			new SimpleFileVisitor<Path>() {
 
 				@Override
@@ -109,6 +111,10 @@ public abstract class Watcher implements Runnable {
 				public FileVisitResult preVisitDirectory(
 						Path filePath, BasicFileAttributes basicFileAttributes)
 					throws IOException {
+
+					if (skipRoot && rootFilePath.equals(filePath)) {
+						return FileVisitResult.CONTINUE;
+					}
 
 					if (filePath.equals(_baseFilePath.resolve(".data")) ||
 						isIgnoredFilePath(filePath)) {
@@ -322,7 +328,7 @@ public abstract class Watcher implements Runnable {
 			fireWatchEventListener(eventType, filePath);
 
 			if (!OSDetector.isApple() && Files.isDirectory(filePath)) {
-				walkFileTree(filePath);
+				walkFileTree(filePath, false);
 			}
 		}
 		else if (eventType.equals(SyncWatchEvent.EVENT_TYPE_DELETE)) {

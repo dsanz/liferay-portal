@@ -1265,6 +1265,8 @@
 
 		<execute function="AssertTextEquals" locator1="SitePages#SITE_NAME" value1="www.able.com" />
 
+		<execute macro="ProductMenu#gotoPrivatePages" />
+
 		<execute macro="BlogsNavigator#gotoEntryPG">
 			<var name="entryContent" value="Blogs Entry2 Content" />
 			<var name="entryTitle"><![CDATA[Blogs Entry Title `~!@#$%^&*(){}[],.<>/?|]]></var>

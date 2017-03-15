@@ -33,6 +33,7 @@ page import="com.liferay.dynamic.data.lists.service.DDLRecordSetServiceUtil" %><
 page import="com.liferay.dynamic.data.mapping.exception.NoSuchStructureException" %><%@
 page import="com.liferay.dynamic.data.mapping.exception.NoSuchStructureLayoutException" %><%@
 page import="com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingException" %><%@
+page import="com.liferay.dynamic.data.mapping.model.DDMFormSuccessPageSettings" %><%@
 page import="com.liferay.dynamic.data.mapping.validator.DDMFormValuesValidationException" %><%@
 page import="com.liferay.portal.kernel.captcha.CaptchaTextException" %><%@
 page import="com.liferay.portal.kernel.dao.search.SearchContainer" %><%@

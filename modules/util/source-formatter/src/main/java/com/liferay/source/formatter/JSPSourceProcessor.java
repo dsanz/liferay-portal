@@ -27,6 +27,8 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.tools.ImportsFormatter;
+import com.liferay.source.formatter.checks.FileCheck;
+import com.liferay.source.formatter.checks.JSPIfStatementCheck;
 import com.liferay.source.formatter.util.FileUtil;
 import com.liferay.source.formatter.util.ThreadSafeClassLibrary;
 
@@ -40,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,11 +60,6 @@ import org.dom4j.Element;
  * @author Hugo Huijser
  */
 public class JSPSourceProcessor extends BaseSourceProcessor {
-
-	@Override
-	public String[] getIncludes() {
-		return _INCLUDES;
-	}
 
 	protected void addImportCounts(String content) {
 		Matcher matcher = _importsPattern.matcher(content);
@@ -246,31 +244,6 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		}
 	}
 
-	protected void checkIfClauseParentheses(
-		String trimmedLine, String fileName, int lineCount,
-		boolean javaSource) {
-
-		if (javaSource) {
-			if ((trimmedLine.startsWith("if (") ||
-				 trimmedLine.startsWith("else if (") ||
-				 trimmedLine.startsWith("while (")) &&
-				trimmedLine.endsWith(") {")) {
-
-				checkIfClauseParentheses(trimmedLine, fileName, lineCount);
-			}
-
-			return;
-		}
-
-		Matcher matcher = _testTagPattern.matcher(trimmedLine);
-
-		if (matcher.find()) {
-			String ifClause = "if (" + matcher.group(2) + ") {";
-
-			checkIfClauseParentheses(ifClause, fileName, lineCount);
-		}
-	}
-
 	protected void checkSubnames(String fileName, String content) {
 		Matcher matcher = _subnamePattern.matcher(content);
 
@@ -347,6 +320,8 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		newContent = fixRedirectBackURL(newContent);
 
 		newContent = fixCompatClassImports(absolutePath, newContent);
+
+		newContent = fixEmptyLinesInMultiLineTags(newContent);
 
 		newContent = fixEmptyLinesInNestedTags(newContent);
 
@@ -567,6 +542,11 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		}
 
 		return fileNames;
+	}
+
+	@Override
+	protected String[] doGetIncludes() {
+		return _INCLUDES;
 	}
 
 	protected String fixEmptyJavaSourceTag(String content) {
@@ -842,9 +822,6 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 						fileName, "There should be a line break after '}'",
 						lineCount);
 				}
-
-				checkIfClauseParentheses(
-					trimmedLine, fileName, lineCount, javaSource);
 
 				Matcher matcher = _jspTaglibPattern.matcher(line);
 
@@ -1298,6 +1275,11 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		}
 
 		return content;
+	}
+
+	@Override
+	protected List<FileCheck> getFileChecks() {
+		return Arrays.asList(new FileCheck[] {new JSPIfStatementCheck()});
 	}
 
 	protected List<String> getJSPDuplicateImports(
@@ -2193,8 +2175,6 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		"<%@\\s+taglib uri=.* prefix=\"(.*?)\" %>");
 	private final Pattern _taglibVariablePattern = Pattern.compile(
 		"(\n\t*String (taglib\\w+) = (.*);)\n\\s*%>\\s+(<[\\S\\s]*?>)\n");
-	private final Pattern _testTagPattern = Pattern.compile(
-		"^<c:(if|when) test=['\"]<%= (.+) %>['\"]>$");
 	private final Pattern _uncompressedJSPImportPattern = Pattern.compile(
 		"(<.*page import=\".*>\n*)+", Pattern.MULTILINE);
 	private final Pattern _uncompressedJSPTaglibPattern = Pattern.compile(

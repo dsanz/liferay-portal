@@ -21,6 +21,7 @@ import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeSettings
 import com.liferay.dynamic.data.mapping.io.internal.DDMFormJSONSerializerImpl;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormRule;
+import com.liferay.dynamic.data.mapping.model.DDMFormSuccessPageSettings;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormFieldTypeSettingsTestUtil;
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.util.ReflectionUtil;
@@ -63,6 +64,8 @@ public class DDMFormJSONSerializerTest extends BaseDDMFormSerializerTestCase {
 		DDMForm ddmForm = createDDMForm();
 
 		ddmForm.setDDMFormRules(createDDMFormRules());
+		ddmForm.setDDMFormSuccessPageSettings(
+			createDDMFormSuccessPageSettings());
 
 		String actualJSON = _ddmFormJSONSerializer.serialize(ddmForm);
 
@@ -85,6 +88,10 @@ public class DDMFormJSONSerializerTest extends BaseDDMFormSerializerTestCase {
 		ddmFormRules.add(ddmFormRule2);
 
 		return ddmFormRules;
+	}
+
+	protected DDMFormSuccessPageSettings createDDMFormSuccessPageSettings() {
+		return new DDMFormSuccessPageSettings("Body Text", "Title Text", true);
 	}
 
 	protected DDMFormFieldTypeServicesTracker

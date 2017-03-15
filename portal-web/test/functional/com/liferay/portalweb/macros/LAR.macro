@@ -21,7 +21,7 @@
 					<var name="panelHeading" value="Deletions" />
 				</execute>
 
-				<execute function="Check#checkToggleSwitch" locator1="ToggleSwitch#REPLICATE_INDIVIDUAL_DELETIONS" />
+				<execute function="Check#checkToggleSwitch" locator1="ToggleSwitch#EXPORT_INDIVIDUAL_DELETIONS" />
 			</then>
 		</if>
 
@@ -29,6 +29,20 @@
 			<equals arg1="${uncheckLogo}" arg2="true" />
 			<then>
 				<execute function="Uncheck" locator1="PagesConfiguration#PAGES_LOGO_CHECKBOX" />
+			</then>
+		</if>
+
+		<if>
+			<equals arg1="${uncheckSitePagesSettings}" arg2="true" />
+			<then>
+				<execute function="Uncheck" locator1="PagesConfiguration#PAGES_SITE_PAGES_SETTINGS_CHECKBOX" />
+			</then>
+		</if>
+
+		<if>
+			<equals arg1="${uncheckSiteTemplateSettings}" arg2="true" />
+			<then>
+				<execute function="Uncheck" locator1="PagesConfiguration#PAGES_SITE_TEMPLATE_SETTINGS_CHECKBOX" />
 			</then>
 		</if>
 
@@ -61,7 +75,7 @@
 					<var name="panelHeading" value="Deletions" />
 				</execute>
 
-				<execute function="Check#checkToggleSwitch" locator1="ToggleSwitch#REPLICATE_INDIVIDUAL_DELETIONS" />
+				<execute function="Check#checkToggleSwitch" locator1="ToggleSwitch#EXPORT_INDIVIDUAL_DELETIONS" />
 			</then>
 		</if>
 
@@ -351,6 +365,13 @@
 					<execute function="AssertTextEquals" locator1="SitePagesImport#VALIDATION_ERROR_MESSAGE" value1="An unexpected error occurred while uploading your file." />
 				</then>
 			</elseif>
+			<elseif>
+				<isset var="import6210buildNumber" />
+				<then>
+					<execute function="AssertTextEquals" locator1="SitePagesImport#VALIDATION_ERROR_MESSAGE_HEADER" value1="The file ${larFileName} cannot be imported." />
+					<execute function="AssertTextPresent" locator1="SitePagesImport#VALIDATION_ERROR_MESSAGE" value1="LAR build number 6210 does not match portal build number" />
+				</then>
+			</elseif>
 			<else>
 				<execute function="AssertClickNoError" locator1="Button#CONTINUE" value1="Continue" />
 
@@ -419,8 +440,13 @@
 
 		<execute function="Click" locator1="ExportImport#PLUS" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${exportTemplateName}" />
-		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${exportTemplateDescription}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${exportTemplateName}" />
+		</execute>
+
+		<execute macro="PortletEntry#inputDescription">
+			<var name="description" value="${exportTemplateDescription}" />
+		</execute>
 	</command>
 
 	<command name="configureExportOptions">
@@ -460,6 +486,8 @@
 			<var name="subContent" value="${subContent}" />
 			<var name="uncheckContentNameList" value="${uncheckContentNameList}" />
 			<var name="uncheckLogo" value="${uncheckLogo}" />
+			<var name="uncheckSitesPageSettings" value="${uncheckSitesPageSettings}" />
+			<var name="uncheckSiteTemplateSettings" value="${uncheckSiteTemplateSettings}" />
 			<var name="uncheckSubContent" value="${uncheckSubContent}" />
 			<var name="uncheckSubSubContent" value="${uncheckSubSubContent}" />
 		</execute>
@@ -484,8 +512,13 @@
 
 		<execute function="AssertClick" locator1="SitePagesExport#EXPORT_TEMPLATES_TABLE_NAME" value1="${exportTemplateName}" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${exportTemplateNameEdit}" />
-		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${exportTemplateDescriptionEdit}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${exportTemplateNameEdit}" />
+		</execute>
+
+		<execute macro="PortletEntry#inputDescription">
+			<var name="description" value="${exportTemplateDescriptionEdit}" />
+		</execute>
 	</command>
 
 	<command name="exportDDL">
@@ -571,6 +604,8 @@
 	</command>
 
 	<command name="filterCompletedProcesses">
+		<execute function="Pause" locator1="5000" />
+
 		<execute function="Click" locator1="Dropdown#FILTER" />
 
 		<var name="key_filterValue" value="Completed" />

@@ -19,7 +19,6 @@ import com.liferay.asset.publisher.web.display.context.ParentSitesItemSelectorVi
 import com.liferay.item.selector.ItemSelectorReturnType;
 import com.liferay.item.selector.ItemSelectorView;
 import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -91,16 +90,11 @@ public class ParentSitesItemSelectorView
 			return false;
 		}
 
-		Layout layout = themeDisplay.getLayout();
-
-		int groupsCount = _groupLocalService.getGroupsCount(
-			themeDisplay.getCompanyId(), layout.getGroupId(), Boolean.TRUE);
-
-		if (groupsCount > 0) {
-			return true;
+		if (siteGroup.isRoot()) {
+			return false;
 		}
 
-		return false;
+		return true;
 	}
 
 	@Override

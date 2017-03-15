@@ -37,19 +37,4 @@
 	<command name="MarketplaceSmoke" priority="5">
 		<execute macro="Marketplace#smoke" />
 	</command>
-
-	<command name="MarketplaceSmokeSites" priority="5">
-		<execute macro="ProductMenu#gotoControlPanelSites">
-			<var name="portlet" value="Sites" />
-		</execute>
-
-		<execute macro="Site#addBlankCP">
-			<var name="siteName" value="Site Name" />
-		</execute>
-
-		<execute macro="Marketplace#smokeSites">
-			<var name="siteName" value="Site Name" />
-			<var name="siteURL" value="true" />
-		</execute>
-	</command>
 </definition>

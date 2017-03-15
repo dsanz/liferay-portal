@@ -1383,7 +1383,7 @@ public class JournalArticleFinderImpl
 				titles);
 			sql = CustomSQLUtil.replaceKeywords(
 				sql, "JournalArticleLocalization.description", StringPool.LIKE,
-				false, descriptions);
+				true, descriptions);
 			sql = CustomSQLUtil.replaceKeywords(
 				sql, "JournalArticle.content", StringPool.LIKE, false,
 				contents);

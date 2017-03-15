@@ -88,12 +88,16 @@
 			</then>
 		</if>
 
-		<execute function="Type" locator1="TextInput#TITLE" value1="${dmDocumentTitle}" />
+		<execute macro="PortletEntry#inputTitle">
+			<var name="title" value="${dmDocumentTitle}" />
+		</execute>
 
 		<if>
 			<isset var="dmDocumentDescription" />
 			<then>
-				<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${dmDocumentDescription}" />
+				<execute macro="PortletEntry#inputDescription">
+					<var name="description" value="${dmDocumentDescription}" />
+				</execute>
 			</then>
 		</if>
 
@@ -109,8 +113,13 @@
 
 		<execute function="UploadCommonFile" locator1="TextInput#FILE" value1="${dmDocumentFile}" />
 
-		<execute function="Type" locator1="TextInput#TITLE" value1="${dmDocumentTitle}" />
-		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${dmDocumentDescription}" />
+		<execute macro="PortletEntry#inputTitle">
+			<var name="title" value="${dmDocumentTitle}" />
+		</execute>
+
+		<execute macro="PortletEntry#inputDescription">
+			<var name="description" value="${dmDocumentDescription}" />
+		</execute>
 
 		<execute function="Select" locator1="DocumentsAndMediaEditMarketingBanner#MARKETING_SELECT" value1="${marketingSelect}" />
 		<execute function="Select" locator1="DocumentsAndMediaEditMarketingBanner#CAMPAIGN_THEME_SELECT" value1="${campaignTheme}" />
@@ -122,6 +131,43 @@
 		<execute macro="PortletEntry#publish" />
 	</command>
 
+	<command name="addDMShortcutCP">
+		<execute macro="DMNavigator#gotoAddDocumentType">
+			<var name="dmDocumentTypeName" value="Shortcut" />
+		</execute>
+
+		<execute function="Click" locator1="DocumentsAndMediaAddShortcut#SELECT_SITE_BUTTON" />
+
+		<var name="key_siteName" value="${siteName}" />
+
+		<execute macro="IFrame#selectModalFrame" />
+
+		<execute function="AssertClick" locator1="SitesSelectSite#CHOOSE_BUTTON" value1="Choose" />
+
+		<execute function="SelectFrameTop" value1="relative=top" />
+
+		<execute function="Click" locator1="DocumentsAndMediaAddShortcut#SELECT_DOCUMENT_BUTTON" />
+
+		<execute macro="IFrame#selectModalFrame" />
+
+		<if>
+			<isset var="dmFolderName" />
+			<then>
+				<var name="key_dmFolderName" value="${dmFolderName}" />
+
+				<execute function="AssertClick" locator1="DocumentsAndMediaAddShortcut#SELECT_FILE_FOLDER_NAME" value1="${dmFolderName}" />
+			</then>
+		</if>
+
+		<var name="key_dmDocumentTitle" value="${dmDocumentTitle}" />
+
+		<execute function="AssertClick#assertPartialTextClickAt" locator1="DocumentsAndMediaAddShortcut#SELECT_FILE_DOCUMENT_TITLE" value1="${dmDocumentTitle}" />
+
+		<execute function="SelectFrameTop" value1="relative=top" />
+
+		<execute macro="PortletEntry#save" />
+	</command>
+
 	<command name="addDocumentTypeCmdCP">
 		<execute macro="DMNavigator#gotoAddDocumentType">
 			<var name="dmDocumentTypeName" value="${dmDocumentTypeName}" />
@@ -129,8 +175,13 @@
 
 		<execute function="UploadCommonFile" locator1="TextInput#FILE" value1="${dmDocumentFile}" />
 
-		<execute function="Type" locator1="TextInput#TITLE" value1="${dmDocumentTitle}" />
-		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${dmDocumentDescription}" />
+		<execute macro="PortletEntry#inputTitle">
+			<var name="title" value="${dmDocumentTitle}" />
+		</execute>
+
+		<execute macro="PortletEntry#inputDescription">
+			<var name="description" value="${dmDocumentDescription}" />
+		</execute>
 
 		<if>
 			<isset var="selectOption" />
@@ -479,9 +530,13 @@
 
 		<execute function="UploadCommonFile" locator1="TextInput#FILE" value1="${mgDocumentFile}" />
 
-		<execute function="Type" locator1="TextInput#TITLE" value1="${mgDocumentTitle}" />
+		<execute macro="PortletEntry#inputTitle">
+			<var name="title" value="${mgDocumentTitle}" />
+		</execute>
 
-		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${mgDocumentDescription}" />
+		<execute macro="PortletEntry#inputDescription">
+			<var name="description" value="${mgDocumentDescription}" />
+		</execute>
 
 		<execute macro="PortletEntry#publish" />
 	</command>
@@ -971,7 +1026,9 @@
 				<contains string="${dmDocumentDescriptionEdit}" substring="{dmDocumentDescriptionEdit}" />
 			</not>
 			<then>
-				<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${dmDocumentDescriptionEdit}" />
+				<execute macro="PortletEntry#inputDescription">
+					<var name="description" value="${dmDocumentDescriptionEdit}" />
+				</execute>
 			</then>
 		</if>
 
@@ -1112,9 +1169,13 @@
 
 		<execute function="Click" locator1="MenuItem#EDIT" value1="Edit" />
 
-		<execute function="Type" locator1="TextInput#TITLE" value1="${mgDocumentTitleEdit}" />
+		<execute macro="PortletEntry#inputTitle">
+			<var name="title" value="${mgDocumentTitleEdit}" />
+		</execute>
 
-		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${mgDocumentDescriptionEdit}" />
+		<execute macro="PortletEntry#inputDescription">
+			<var name="description" value="${mgDocumentDescriptionEdit}" />
+		</execute>
 
 		<execute macro="PortletEntry#publish" />
 

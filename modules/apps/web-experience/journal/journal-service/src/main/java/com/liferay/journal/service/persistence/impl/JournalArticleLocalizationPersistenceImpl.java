@@ -114,7 +114,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	/**
 	 * Returns all the journal article localizations where articlePK = &#63;.
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @return the matching journal article localizations
 	 */
 	@Override
@@ -130,7 +130,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleLocalizationModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param start the lower bound of the range of journal article localizations
 	 * @param end the upper bound of the range of journal article localizations (not inclusive)
 	 * @return the range of matching journal article localizations
@@ -148,7 +148,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleLocalizationModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param start the lower bound of the range of journal article localizations
 	 * @param end the upper bound of the range of journal article localizations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -168,7 +168,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleLocalizationModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param start the lower bound of the range of journal article localizations
 	 * @param end the upper bound of the range of journal article localizations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -282,7 +282,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	/**
 	 * Returns the first journal article localization in the ordered set where articlePK = &#63;.
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article localization
 	 * @throws NoSuchArticleLocalizationException if a matching journal article localization could not be found
@@ -313,7 +313,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	/**
 	 * Returns the first journal article localization in the ordered set where articlePK = &#63;.
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching journal article localization, or <code>null</code> if a matching journal article localization could not be found
 	 */
@@ -333,7 +333,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	/**
 	 * Returns the last journal article localization in the ordered set where articlePK = &#63;.
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article localization
 	 * @throws NoSuchArticleLocalizationException if a matching journal article localization could not be found
@@ -364,7 +364,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	/**
 	 * Returns the last journal article localization in the ordered set where articlePK = &#63;.
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching journal article localization, or <code>null</code> if a matching journal article localization could not be found
 	 */
@@ -391,7 +391,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	 * Returns the journal article localizations before and after the current journal article localization in the ordered set where articlePK = &#63;.
 	 *
 	 * @param articleLocalizationId the primary key of the current journal article localization
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next journal article localization
 	 * @throws NoSuchArticleLocalizationException if a journal article localization with the primary key could not be found
@@ -541,7 +541,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	/**
 	 * Removes all the journal article localizations where articlePK = &#63; from the database.
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 */
 	@Override
 	public void removeByArticlePK(long articlePK) {
@@ -554,7 +554,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	/**
 	 * Returns the number of journal article localizations where articlePK = &#63;.
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @return the number of matching journal article localizations
 	 */
 	@Override
@@ -619,7 +619,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	/**
 	 * Returns the journal article localization where articlePK = &#63; and languageId = &#63; or throws a {@link NoSuchArticleLocalizationException} if it could not be found.
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param languageId the language ID
 	 * @return the matching journal article localization
 	 * @throws NoSuchArticleLocalizationException if a matching journal article localization could not be found
@@ -656,7 +656,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	/**
 	 * Returns the journal article localization where articlePK = &#63; and languageId = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param languageId the language ID
 	 * @return the matching journal article localization, or <code>null</code> if a matching journal article localization could not be found
 	 */
@@ -669,7 +669,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	/**
 	 * Returns the journal article localization where articlePK = &#63; and languageId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param languageId the language ID
 	 * @param retrieveFromCache whether to retrieve from the finder cache
 	 * @return the matching journal article localization, or <code>null</code> if a matching journal article localization could not be found
@@ -777,7 +777,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	/**
 	 * Removes the journal article localization where articlePK = &#63; and languageId = &#63; from the database.
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param languageId the language ID
 	 * @return the journal article localization that was removed
 	 */
@@ -793,7 +793,7 @@ public class JournalArticleLocalizationPersistenceImpl
 	/**
 	 * Returns the number of journal article localizations where articlePK = &#63; and languageId = &#63;.
 	 *
-	 * @param articlePK the article p k
+	 * @param articlePK the article pk
 	 * @param languageId the language ID
 	 * @return the number of matching journal article localizations
 	 */
@@ -1139,9 +1139,22 @@ public class JournalArticleLocalizationPersistenceImpl
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (isNew ||
-				!JournalArticleLocalizationModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!JournalArticleLocalizationModelImpl.COLUMN_BITMASK_ENABLED) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+		else
+		 if (isNew) {
+			Object[] args = new Object[] {
+					journalArticleLocalizationModelImpl.getArticlePK()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_ARTICLEPK, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_ARTICLEPK,
+				args);
+
+			finderCache.removeResult(FINDER_PATH_COUNT_ALL, FINDER_ARGS_EMPTY);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL,
+				FINDER_ARGS_EMPTY);
 		}
 
 		else {

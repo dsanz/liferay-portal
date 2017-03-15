@@ -166,6 +166,12 @@ public interface JournalFolderService extends BaseService {
 	public List<java.lang.Long> getSubfolderIds(long groupId, long folderId,
 		boolean recurse);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<DDMStructure> searchDDMStructures(long companyId,
+		long[] groupIds, long folderId, int restrictionType,
+		java.lang.String keywords, int start, int end,
+		OrderByComparator<DDMStructure> obc) throws PortalException;
+
 	public void deleteFolder(long folderId) throws PortalException;
 
 	public void deleteFolder(long folderId, boolean includeTrashedEntries)

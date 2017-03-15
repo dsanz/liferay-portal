@@ -124,6 +124,20 @@ public class GetSyncDLObjectUpdateHandler extends BaseSyncDLObjectHandler {
 				}
 			}
 
+			protected void doCancel() {
+				if (_firedProcessingState) {
+					SyncEngineUtil.fireSyncEngineStateChanged(
+						getSyncAccountId(),
+						SyncEngineUtil.SYNC_ENGINE_STATE_PROCESSED);
+
+					_firedProcessingState = false;
+				}
+
+				event.cancel();
+
+				_scheduledFuture.cancel(true);
+			}
+
 			@Override
 			protected void doRun() {
 				SyncAccount syncAccount = SyncAccountService.fetchSyncAccount(
@@ -143,20 +157,6 @@ public class GetSyncDLObjectUpdateHandler extends BaseSyncDLObjectHandler {
 				}
 
 				super.doRun();
-			}
-
-			protected void doCancel() {
-				if (_firedProcessingState) {
-					SyncEngineUtil.fireSyncEngineStateChanged(
-						getSyncAccountId(),
-						SyncEngineUtil.SYNC_ENGINE_STATE_PROCESSED);
-
-					_firedProcessingState = false;
-				}
-
-				event.cancel();
-
-				_scheduledFuture.cancel(true);
 			}
 
 			private boolean _firedProcessingState;
@@ -643,14 +643,26 @@ public class GetSyncDLObjectUpdateHandler extends BaseSyncDLObjectHandler {
 	}
 
 	protected void processSyncFile(SyncFile targetSyncFile) {
+		SyncFile sourceSyncFile = SyncFileService.fetchSyncFile(
+			targetSyncFile.getRepositoryId(), getSyncAccountId(),
+			targetSyncFile.getTypePK());
+
+		if ((sourceSyncFile != null) &&
+			(sourceSyncFile.getState() == SyncFile.STATE_ERROR)) {
+
+			if (_logger.isDebugEnabled()) {
+				_logger.debug(
+					"Skipping file {}. File is in an error state.",
+					sourceSyncFile.getFilePathName());
+			}
+
+			return;
+		}
+
 		String event = targetSyncFile.getEvent();
 
 		if (event.equals(SyncFile.EVENT_DELETE) ||
 			event.equals(SyncFile.EVENT_TRASH)) {
-
-			SyncFile sourceSyncFile = SyncFileService.fetchSyncFile(
-				targetSyncFile.getRepositoryId(), getSyncAccountId(),
-				targetSyncFile.getTypePK());
 
 			if (sourceSyncFile != null) {
 				try {
@@ -679,10 +691,6 @@ public class GetSyncDLObjectUpdateHandler extends BaseSyncDLObjectHandler {
 				parentSyncFile.getFilePathName(),
 				FileUtil.getSanitizedFileName(
 					targetSyncFile.getName(), targetSyncFile.getExtension()));
-
-			SyncFile sourceSyncFile = SyncFileService.fetchSyncFile(
-				targetSyncFile.getRepositoryId(), getSyncAccountId(),
-				targetSyncFile.getTypePK());
 
 			if (sourceSyncFile == null) {
 				sourceSyncFile = SyncFileService.fetchSyncFile(filePathName);

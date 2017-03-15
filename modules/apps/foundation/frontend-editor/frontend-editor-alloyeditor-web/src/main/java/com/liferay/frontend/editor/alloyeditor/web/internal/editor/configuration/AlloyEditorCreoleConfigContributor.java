@@ -18,16 +18,24 @@ import com.liferay.portal.kernel.editor.configuration.EditorConfigContributor;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.AggregateResourceBundleLoader;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.ResourceBundleLoader;
+import com.liferay.portal.kernel.util.ResourceBundleLoaderUtil;
+import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Sergio González
@@ -82,8 +90,6 @@ public class AlloyEditorCreoleConfigContributor
 
 		String extraPlugins = jsonObject.getString("extraPlugins");
 
-		extraPlugins = extraPlugins.replace(
-			",ae_tableresize", StringPool.BLANK);
 		extraPlugins = extraPlugins.concat(",creole,itemselector,media");
 
 		jsonObject.put("extraPlugins", extraPlugins);
@@ -92,18 +98,94 @@ public class AlloyEditorCreoleConfigContributor
 
 		String removePlugins = jsonObject.getString("removePlugins");
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(4);
 
-		sb.append("bidi,colorbutton,colordialog,div,flash,font,forms,");
-		sb.append("indentblock,justify,keystrokes,maximize,newpage,pagebreak,");
-		sb.append("preview,print,save,showblocks,smiley,stylescombo,");
-		sb.append("templates,video");
+		sb.append("ae_dragresize,ae_tableresize,bidi,colorbutton,colordialog,");
+		sb.append("div,flash,font,forms,indentblock,justify,keystrokes,");
+		sb.append("maximize,newpage,pagebreak,preview,print,save,showblocks,");
+		sb.append("smiley,stylescombo,templates,video");
 
 		jsonObject.put(
 			"removePlugins", removePlugins.concat(",").concat(sb.toString()));
 
 		jsonObject.put(
 			"toolbars", getToolbarsJSONObject(themeDisplay.getLocale()));
+	}
+
+	protected JSONObject getStyleFormatJSONObject(
+		String styleFormatName, String element, int type) {
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		jsonObject.put("name", styleFormatName);
+
+		JSONObject styleJSONObject = JSONFactoryUtil.createJSONObject();
+
+		styleJSONObject.put("element", element);
+		styleJSONObject.put("type", type);
+
+		jsonObject.put("style", styleJSONObject);
+
+		return jsonObject;
+	}
+
+	protected JSONArray getStyleFormatsJSONArray(Locale locale) {
+		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
+
+		ResourceBundle resourceBundle = null;
+
+		try {
+			resourceBundle = _resourceBundleLoader.loadResourceBundle(
+				LocaleUtil.toLanguageId(locale));
+		}
+		catch (MissingResourceException mre) {
+			resourceBundle = ResourceBundleUtil.EMPTY_RESOURCE_BUNDLE;
+		}
+
+		jsonArray.put(
+			getStyleFormatJSONObject(
+				LanguageUtil.get(resourceBundle, "normal"), "p",
+				_CKEDITOR_STYLE_BLOCK));
+		jsonArray.put(
+			getStyleFormatJSONObject(
+				LanguageUtil.format(resourceBundle, "heading-x", "1"), "h1",
+				_CKEDITOR_STYLE_BLOCK));
+		jsonArray.put(
+			getStyleFormatJSONObject(
+				LanguageUtil.format(resourceBundle, "heading-x", "2"), "h2",
+				_CKEDITOR_STYLE_BLOCK));
+		jsonArray.put(
+			getStyleFormatJSONObject(
+				LanguageUtil.format(resourceBundle, "heading-x", "3"), "h3",
+				_CKEDITOR_STYLE_BLOCK));
+		jsonArray.put(
+			getStyleFormatJSONObject(
+				LanguageUtil.format(resourceBundle, "heading-x", "4"), "h4",
+				_CKEDITOR_STYLE_BLOCK));
+		jsonArray.put(
+			getStyleFormatJSONObject(
+				LanguageUtil.format(resourceBundle, "heading-x", "5"), "h5",
+				_CKEDITOR_STYLE_BLOCK));
+		jsonArray.put(
+			getStyleFormatJSONObject(
+				LanguageUtil.format(resourceBundle, "heading-x", "6"), "h6",
+				_CKEDITOR_STYLE_BLOCK));
+
+		return jsonArray;
+	}
+
+	protected JSONObject getStyleFormatsJSONObject(Locale locale) {
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		JSONObject stylesJSONObject = JSONFactoryUtil.createJSONObject();
+
+		stylesJSONObject.put("styles", getStyleFormatsJSONArray(locale));
+
+		jsonObject.put("cfg", stylesJSONObject);
+
+		jsonObject.put("name", "styles");
+
+		return jsonObject;
 	}
 
 	protected JSONObject getToolbarsAddJSONObject() {
@@ -154,9 +236,27 @@ public class AlloyEditorCreoleConfigContributor
 		return jsonObject;
 	}
 
+	protected JSONObject getToolbarsStylesSelectionsHeadingTextJSONObject(
+		Locale locale) {
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
+
+		jsonArray.put(getStyleFormatsJSONObject(locale));
+
+		jsonObject.put("buttons", jsonArray);
+
+		jsonObject.put("name", "headertext");
+		jsonObject.put("test", "AlloyEditor.SelectionTest.headingtext");
+
+		return jsonObject;
+	}
+
 	protected JSONArray getToolbarsStylesSelectionsJSONArray(Locale locale) {
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
+		jsonArray.put(getToolbarsStylesSelectionsHeadingTextJSONObject(locale));
 		jsonArray.put(getToolbarsStylesSelectionsLinkJSONObject());
 		jsonArray.put(getToolbarsStylesSelectionsTextJSONObject(locale));
 		jsonArray.put(getToolbarsStylesSelectionsTableJSONObject());
@@ -213,6 +313,7 @@ public class AlloyEditorCreoleConfigContributor
 
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
+		jsonArray.put(getStyleFormatsJSONObject(locale));
 		jsonArray.put("bold");
 		jsonArray.put("italic");
 		jsonArray.put("ul");
@@ -227,5 +328,28 @@ public class AlloyEditorCreoleConfigContributor
 
 		return jsonObject;
 	}
+
+	@Reference(
+		target = "(bundle.symbolic.name=com.liferay.frontend.editor.lang)",
+		unbind = "-"
+	)
+	protected void setResourceBundleLoader(
+		ResourceBundleLoader resourceBundleLoader) {
+
+		ClassLoader classLoader =
+			AlloyEditorConfigContributor.class.getClassLoader();
+
+		_resourceBundleLoader = new AggregateResourceBundleLoader(
+			ResourceBundleUtil.getResourceBundleLoader(
+				"content.Language", classLoader),
+			resourceBundleLoader,
+			ResourceBundleLoaderUtil.getPortalResourceBundleLoader());
+	}
+
+	private static final int _CKEDITOR_STYLE_BLOCK = 1;
+
+	private static final int _CKEDITOR_STYLE_INLINE = 2;
+
+	private volatile ResourceBundleLoader _resourceBundleLoader;
 
 }

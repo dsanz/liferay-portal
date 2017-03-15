@@ -34,6 +34,7 @@ page import="com.liferay.portal.kernel.model.MembershipRequestConstants" %><%@
 page import="com.liferay.portal.kernel.portlet.PortletURLUtil" %><%@
 page import="com.liferay.portal.kernel.security.membershippolicy.SiteMembershipPolicyUtil" %><%@
 page import="com.liferay.portal.kernel.service.GroupLocalServiceUtil" %><%@
+page import="com.liferay.portal.kernel.service.LayoutServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.MembershipRequestLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.UserLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.util.HtmlUtil" %><%@

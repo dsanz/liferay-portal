@@ -109,7 +109,8 @@ public class JournalFolderStagedModelDataHandlerTest
 		List<StagedModel> dependentStagedModels = dependentStagedModelsMap.get(
 			JournalFolder.class.getSimpleName());
 
-		Assert.assertEquals(1, dependentStagedModels.size());
+		Assert.assertEquals(
+			dependentStagedModels.toString(), 1, dependentStagedModels.size());
 
 		JournalFolder folder = (JournalFolder)dependentStagedModels.get(0);
 

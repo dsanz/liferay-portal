@@ -1153,14 +1153,18 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 
 			});
 
-		File utilTaglibFile = new File(
-			PropsValues.LIFERAY_LIB_PORTAL_DIR, "util-taglib.jar");
+		for (String staticJarFileName :
+				PropsValues.MODULE_FRAMEWORK_STATIC_JARS) {
 
-		if (utilTaglibFile.exists()) {
-			jarPaths.add(utilTaglibFile.toPath());
-		}
-		else {
-			_log.error("Missing " + utilTaglibFile);
+			File staticJarFile = new File(
+				PropsValues.LIFERAY_LIB_PORTAL_DIR, staticJarFileName);
+
+			if (staticJarFile.exists()) {
+				jarPaths.add(staticJarFile.toPath());
+			}
+			else {
+				_log.error("Missing " + staticJarFile);
+			}
 		}
 
 		Collections.sort(jarPaths);

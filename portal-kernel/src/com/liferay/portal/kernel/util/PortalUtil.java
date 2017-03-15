@@ -263,6 +263,14 @@ public class PortalUtil {
 		return getPortal().addPreservedParameters(themeDisplay, url);
 	}
 
+	public static String addPreservedParameters(
+		ThemeDisplay themeDisplay, String url, boolean typeControlPanel,
+		boolean doAsUser) {
+
+		return getPortal().addPreservedParameters(
+			themeDisplay, url, typeControlPanel, doAsUser);
+	}
+
 	public static void addUserLocaleOptionsMessage(HttpServletRequest request) {
 		getPortal().addUserLocaleOptionsMessage(request);
 	}
@@ -1711,6 +1719,26 @@ public class PortalUtil {
 
 		return getPortal().getSiteAdministrationURL(
 			portletResponse, themeDisplay, portletName);
+	}
+
+	public static String getSiteAdminURL(
+			Company company, Group group, String ppid,
+			Map<String, String[]> params)
+		throws PortalException {
+
+		return getPortal().getSiteAdminURL(company, group, ppid, params);
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #getSiteAdminURL(Company, Group, String, Map)}
+	 */
+	@Deprecated
+	public static String getSiteAdminURL(
+			Group group, String ppid, Map<String, String[]> params)
+		throws PortalException {
+
+		return getPortal().getSiteAdminURL(group, ppid, params);
 	}
 
 	/**

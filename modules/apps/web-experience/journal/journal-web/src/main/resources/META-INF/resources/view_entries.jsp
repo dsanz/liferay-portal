@@ -162,6 +162,13 @@ String searchContainerId = ParamUtil.getString(request, "searchContainerId");
 						</liferay-ui:search-container-column-text>
 					</c:when>
 					<c:otherwise>
+						<c:if test="<%= !journalWebConfiguration.journalArticleForceAutogenerateId() %>">
+							<liferay-ui:search-container-column-text
+								name="id"
+								value="<%= HtmlUtil.escape(curArticle.getArticleId()) %>"
+							/>
+						</c:if>
+
 						<liferay-ui:search-container-column-jsp
 							cssClass="table-cell-content"
 							href="<%= previewArticleContentURL %>"
@@ -295,6 +302,13 @@ String searchContainerId = ParamUtil.getString(request, "searchContainerId");
 						</liferay-ui:search-container-column-text>
 					</c:when>
 					<c:otherwise>
+						<c:if test="<%= !journalWebConfiguration.journalArticleForceAutogenerateId() %>">
+							<liferay-ui:search-container-column-text
+								name="id"
+								value="<%= HtmlUtil.escape(String.valueOf(curFolder.getFolderId())) %>"
+							/>
+						</c:if>
+
 						<liferay-ui:search-container-column-text
 							cssClass="table-cell-content"
 							href="<%= rowURL.toString() %>"

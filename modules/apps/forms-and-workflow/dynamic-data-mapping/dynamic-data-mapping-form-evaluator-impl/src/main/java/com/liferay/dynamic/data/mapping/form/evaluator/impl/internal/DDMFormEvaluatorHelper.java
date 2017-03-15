@@ -20,7 +20,9 @@ import com.liferay.dynamic.data.mapping.expression.DDMExpressionException;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFactory;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationException;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationResult;
+import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluatorContext;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormFieldEvaluationResult;
+import com.liferay.dynamic.data.mapping.form.evaluator.impl.internal.functions.BelongsToRoleFunction;
 import com.liferay.dynamic.data.mapping.form.evaluator.impl.internal.functions.CallFunction;
 import com.liferay.dynamic.data.mapping.form.evaluator.impl.internal.functions.GetPropertyFunction;
 import com.liferay.dynamic.data.mapping.form.evaluator.impl.internal.functions.JumpPageFunction;
@@ -43,6 +45,7 @@ import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -58,6 +61,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * @author Leonardo Barros
  */
@@ -66,21 +71,26 @@ public class DDMFormEvaluatorHelper {
 	public DDMFormEvaluatorHelper(
 		DDMDataProviderTracker ddmDataProviderTracker,
 		DDMDataProviderInstanceService ddmDataProviderInstanceService,
-		DDMExpressionFactory ddmExpressionFactory, DDMForm ddmForm,
-		DDMFormValues ddmFormValues,
+		DDMExpressionFactory ddmExpressionFactory,
+		DDMFormEvaluatorContext ddmFormEvaluatorContext,
 		DDMFormValuesJSONDeserializer ddmFormValuesJSONDeserializer,
-		JSONFactory jsonFactory, Locale locale) {
+		JSONFactory jsonFactory, UserLocalService userLocalService) {
 
 		_ddmDataProviderTracker = ddmDataProviderTracker;
 		_ddmDataProviderInstanceService = ddmDataProviderInstanceService;
 		_ddmExpressionFactory = ddmExpressionFactory;
-		_ddmForm = ddmForm;
-		_ddmFormFieldsMap = ddmForm.getDDMFormFieldsMap(true);
+		_ddmForm = ddmFormEvaluatorContext.getDDMForm();
+
+		_ddmFormFieldsMap = _ddmForm.getDDMFormFieldsMap(true);
+
 		_ddmFormValuesJSONDeserializer = ddmFormValuesJSONDeserializer;
 		_jsonFactory = jsonFactory;
-		_locale = locale;
+		_userLocalService = userLocalService;
+		_locale = ddmFormEvaluatorContext.getLocale();
 
-		createDDMFormFieldValues(ddmFormValues);
+		_request = ddmFormEvaluatorContext.getProperty("request");
+
+		createDDMFormFieldValues(ddmFormEvaluatorContext.getDDMFormValues());
 
 		createDDMFormFieldRuleEvaluationResultsMap();
 	}
@@ -118,6 +128,8 @@ public class DDMFormEvaluatorHelper {
 			new DDMFormFieldEvaluationResult(
 				ddmFormField.getName(), ddmFormFieldValue.getInstanceId());
 
+		setDDMFormFieldEvaluationResultDataType(
+			ddmFormField, ddmFormFieldEvaluationResult);
 		setDDMFormFieldEvaluationResultReadOnly(
 			ddmFormFieldEvaluationResult, ddmFormField);
 		setDDMFormFieldEvaluationResultRequired(
@@ -367,6 +379,13 @@ public class DDMFormEvaluatorHelper {
 		DDMFormRuleEvaluator ddmFormRuleEvaluator) {
 
 		ddmFormRuleEvaluator.setDDMExpressionFunction(
+			"belongsTo",
+			new BelongsToRoleFunction(_request, _userLocalService));
+		ddmFormRuleEvaluator.setDDMExpressionFunction(
+			"calculate",
+			new SetPropertyFunction(
+				_ddmFormFieldEvaluationResultsMap, "value"));
+		ddmFormRuleEvaluator.setDDMExpressionFunction(
 			"call",
 			new CallFunction(
 				_ddmDataProviderTracker, _ddmDataProviderInstanceService,
@@ -421,10 +440,10 @@ public class DDMFormEvaluatorHelper {
 
 			String dataType = ddmFormField.getDataType();
 
-			if (ddmFormField.getDataType().equals(FieldConstants.INTEGER)) {
+			if (FieldConstants.isNumericType(ddmFormField.getDataType())) {
 				if (Validator.isNotNull(valueString)) {
-					ddmExpression.setIntegerVariableValue(
-						ddmFormFieldName, GetterUtil.getInteger(valueString));
+					ddmExpression.setDoubleVariableValue(
+						ddmFormFieldName, GetterUtil.getDouble(valueString));
 				}
 			}
 			else if (dataType.equals(FieldConstants.BOOLEAN)) {
@@ -438,6 +457,14 @@ public class DDMFormEvaluatorHelper {
 					ddmFormFieldName, valueString);
 			}
 		}
+	}
+
+	protected void setDDMFormFieldEvaluationResultDataType(
+		DDMFormField ddmFormField,
+		DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult) {
+
+		ddmFormFieldEvaluationResult.setProperty(
+			"dataType", ddmFormField.getDataType());
 	}
 
 	protected void setDDMFormFieldEvaluationResultReadOnly(
@@ -595,5 +622,7 @@ public class DDMFormEvaluatorHelper {
 	private final JSONFactory _jsonFactory;
 	private final Locale _locale;
 	private final Map<Integer, Integer> _pageFlow = new HashMap<>();
+	private final HttpServletRequest _request;
+	private final UserLocalService _userLocalService;
 
 }

@@ -490,12 +490,16 @@ public class LayoutImpl extends LayoutBaseImpl {
 	 */
 	@Override
 	public String getFriendlyURL(Locale locale) {
-		Layout layout = this;
+		String friendlyURL = _friendlyURLs.get(locale);
 
-		String friendlyURL = layout.getFriendlyURL();
+		if (friendlyURL != null) {
+			return friendlyURL;
+		}
+
+		friendlyURL = getFriendlyURL();
 
 		try {
-			Group group = layout.getGroup();
+			Group group = getGroup();
 
 			UnicodeProperties typeSettingsProperties =
 				group.getTypeSettingsProperties();
@@ -511,18 +515,22 @@ public class LayoutImpl extends LayoutBaseImpl {
 				if (!ArrayUtil.contains(
 						locales, LanguageUtil.getLanguageId(locale))) {
 
+					_friendlyURLs.put(locale, friendlyURL);
+
 					return friendlyURL;
 				}
 			}
 
 			LayoutFriendlyURL layoutFriendlyURL =
 				LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURL(
-					layout.getPlid(), LocaleUtil.toLanguageId(locale));
+					getPlid(), LocaleUtil.toLanguageId(locale));
 
 			friendlyURL = layoutFriendlyURL.getFriendlyURL();
 		}
 		catch (Exception e) {
 		}
+
+		_friendlyURLs.put(locale, friendlyURL);
 
 		return friendlyURL;
 	}
@@ -1045,19 +1053,52 @@ public class LayoutImpl extends LayoutBaseImpl {
 
 	@Override
 	public boolean isPortletEmbedded(String portletId, long groupId) {
-		List<Portlet> embeddedPortlets = getEmbeddedPortlets(groupId);
+		PortletPreferences portletPreferences =
+			PortletPreferencesLocalServiceUtil.fetchPortletPreferences(
+				PortletKeys.PREFS_OWNER_ID_DEFAULT,
+				PortletKeys.PREFS_OWNER_TYPE_LAYOUT, getPlid(), portletId);
 
-		if (embeddedPortlets.isEmpty()) {
+		if (portletPreferences == null) {
 			return false;
 		}
 
-		for (Portlet portlet : embeddedPortlets) {
-			if (Objects.equals(portlet.getPortletId(), portletId)) {
-				return true;
+		portletPreferences =
+			PortletPreferencesLocalServiceUtil.fetchPortletPreferences(
+				groupId, PortletKeys.PREFS_OWNER_TYPE_LAYOUT,
+				PortletKeys.PREFS_PLID_SHARED, portletId);
+
+		if ((portletPreferences == null) && isTypePortlet()) {
+			LayoutTypePortlet layoutTypePortlet =
+				(LayoutTypePortlet)getLayoutType();
+
+			PortalPreferences portalPreferences =
+				layoutTypePortlet.getPortalPreferences();
+
+			if ((portalPreferences != null) &&
+				layoutTypePortlet.isCustomizable()) {
+
+				portletPreferences =
+					PortletPreferencesLocalServiceUtil.fetchPortletPreferences(
+						portalPreferences.getUserId(),
+						PortletKeys.PREFS_OWNER_TYPE_USER, getPlid(),
+						portletId);
 			}
 		}
 
-		return false;
+		if (portletPreferences == null) {
+			return false;
+		}
+
+		Portlet portlet = PortletLocalServiceUtil.getPortletById(
+			getCompanyId(), portletId);
+
+		if ((portlet == null) || !portlet.isReady() ||
+			portlet.isUndeployedPortlet() || !portlet.isActive()) {
+
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -1481,6 +1522,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 		_initFriendlyURLKeywords();
 	}
 
+	private final Map<Locale, String> _friendlyURLs = new HashMap<>();
 	private LayoutSet _layoutSet;
 	private transient LayoutType _layoutType;
 	private UnicodeProperties _typeSettingsProperties;

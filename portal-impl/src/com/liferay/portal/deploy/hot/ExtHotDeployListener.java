@@ -222,7 +222,8 @@ public class ExtHotDeployListener extends BaseHotDeployListener {
 		String portalLibDir = PortalUtil.getPortalLibDir();
 		String pluginWebDir = WebDirDetector.getRootDir(portletClassLoader);
 
-		copyJar(servletContext, globalLibDir, "ext-service");
+		copyJar(servletContext, globalLibDir, "ext-kernel");
+
 		copyJar(servletContext, portalLibDir, "ext-impl");
 		copyJar(servletContext, portalLibDir, "ext-util-bridges");
 		copyJar(servletContext, portalLibDir, "ext-util-java");

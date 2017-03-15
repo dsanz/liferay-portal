@@ -14,11 +14,14 @@
 
 package com.liferay.users.admin.demo.data.creator;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 
 /**
  * @author Sergio González
  */
+@ProviderType
 public interface UserDemoDataCreator {
 
 	public void delete() throws PortalException;

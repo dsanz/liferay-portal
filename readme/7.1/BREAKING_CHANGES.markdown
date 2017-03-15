@@ -105,3 +105,41 @@ parameters. This was done as a preliminary step of a bigger story to create
 portlet URLs without passing the request as a necessary parameter.
 
 ---------------------------------------
+
+### Moved Users File Uploads Portlet Properties to OSGi Configuration
+- **Date:** 2017-Feb-06
+- **JIRA Ticket:** LPS-69211
+
+#### What changed?
+
+The Users File Uploads portlet properties have been moved from Server
+Administration to an OSGI configuration named `UserFileUploadsConfiguration`
+in the `users-admin-api` module.
+
+#### Who is affected?
+
+This affects anyone who is using the following portlet properties:
+
+- `users.image.check.token`
+- `users.image.max.size`
+- `users.image.max.height`
+- `users.image.max.width`
+
+#### How should I update my code?
+
+Instead of overriding the `portal.properties` file, you can manage the
+properties from Portal's configuration administrator. This can be accessed by
+navigating to Liferay's *Control Panel* &rarr; *Configuration* &rarr; *System
+Settings* &rarr; *Foundation* &rarr; *User Images* and editing the settings
+there.
+
+If you would like to include the new configuration in your application, follow
+the instructions for
+[making your applications configurable in Liferay 7.0](https://dev.liferay.com/develop/tutorials/-/knowledge_base/7-0/making-your-applications-configurable).
+
+#### Why was this change made?
+
+This change was made as part of the modularization efforts to ease portal
+configuration changes.
+
+---------------------------------------

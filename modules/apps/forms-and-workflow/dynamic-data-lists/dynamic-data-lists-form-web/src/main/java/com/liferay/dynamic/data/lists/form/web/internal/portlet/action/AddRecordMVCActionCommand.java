@@ -24,6 +24,7 @@ import com.liferay.dynamic.data.lists.service.DDLRecordService;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetService;
 import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
+import com.liferay.dynamic.data.mapping.model.DDMFormSuccessPageSettings;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.portal.kernel.captcha.CaptchaTextException;
@@ -97,10 +98,25 @@ public class AddRecordMVCActionCommand extends BaseMVCActionCommand {
 			String portletId = _portal.getPortletId(actionRequest);
 
 			SessionMessages.add(
-				actionRequest, portletId,
-				SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
+				actionRequest,
+				portletId.concat(
+					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE));
 
 			actionResponse.sendRedirect(redirectURL);
+		}
+
+		DDMFormSuccessPageSettings ddmFormSuccessPageSettings =
+			ddmForm.getDDMFormSuccessPageSettings();
+
+		if (SessionErrors.isEmpty(actionRequest) &&
+			ddmFormSuccessPageSettings.isEnabled()) {
+
+			String portletId = _portal.getPortletId(actionRequest);
+
+			SessionMessages.add(
+				actionRequest,
+				portletId.concat(
+					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE));
 		}
 	}
 

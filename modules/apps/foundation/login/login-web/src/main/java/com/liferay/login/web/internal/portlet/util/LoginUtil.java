@@ -27,7 +27,6 @@ import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.CookieKeys;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -152,14 +151,13 @@ public class LoginUtil {
 		String login = request.getParameter(paramName);
 
 		if ((login == null) || login.equals(StringPool.NULL)) {
-			login = GetterUtil.getString(
-				CookieKeys.getCookie(request, CookieKeys.LOGIN, false));
+			login = CookieKeys.getCookie(request, CookieKeys.LOGIN, false);
 
 			if (PropsValues.COMPANY_LOGIN_PREPOPULATE_DOMAIN &&
 				Validator.isNull(login) &&
 				company.getAuthType().equals(CompanyConstants.AUTH_TYPE_EA)) {
 
-				login = "@" + company.getMx();
+				login = "@".concat(company.getMx());
 			}
 		}
 

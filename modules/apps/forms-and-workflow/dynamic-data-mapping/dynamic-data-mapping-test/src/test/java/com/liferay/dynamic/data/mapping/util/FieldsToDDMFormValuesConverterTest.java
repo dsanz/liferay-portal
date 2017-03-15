@@ -26,22 +26,32 @@ import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.Field;
 import com.liferay.dynamic.data.mapping.storage.Fields;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.util.PropsValues;
 
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Marcellus Tavares
  */
-@PrepareForTest({DDMStructureLocalServiceUtil.class, LocaleUtil.class})
+@PrepareForTest(
+	{DDMStructureLocalServiceUtil.class, LocaleUtil.class, PropsValues.class}
+)
+@RunWith(PowerMockRunner.class)
 @SuppressStaticInitializationFor(
-	"com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil"
+	{
+		"com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil",
+		"com.liferay.portal.kernel.xml.SAXReaderUtil",
+		"com.liferay.portal.util.PropsValues"
+	}
 )
 public class FieldsToDDMFormValuesConverterTest extends BaseDDMTestCase {
 
@@ -58,7 +68,7 @@ public class FieldsToDDMFormValuesConverterTest extends BaseDDMTestCase {
 		setUpJSONFactoryUtil();
 		setUpLanguageUtil();
 		setUpLocaleUtil();
-		setUpPropsUtil();
+		setUpPropsValues();
 		setUpSAXReaderUtil();
 	}
 
@@ -135,7 +145,8 @@ public class FieldsToDDMFormValuesConverterTest extends BaseDDMTestCase {
 		List<DDMFormFieldValue> ddmFormFieldValues =
 			ddmFormValues.getDDMFormFieldValues();
 
-		Assert.assertEquals(2, ddmFormFieldValues.size());
+		Assert.assertEquals(
+			ddmFormFieldValues.toString(), 2, ddmFormFieldValues.size());
 
 		DDMFormFieldValue paulDDMFormFieldValue = ddmFormFieldValues.get(0);
 
@@ -144,7 +155,9 @@ public class FieldsToDDMFormValuesConverterTest extends BaseDDMTestCase {
 		List<DDMFormFieldValue> paulNestedDDMFormFieldValues =
 			paulDDMFormFieldValue.getNestedDDMFormFieldValues();
 
-		Assert.assertEquals(2, paulNestedDDMFormFieldValues.size());
+		Assert.assertEquals(
+			paulNestedDDMFormFieldValues.toString(), 2,
+			paulNestedDDMFormFieldValues.size());
 
 		testDDMFormFieldValue(
 			"ovho", "Paul's Phone 1", "Telefone de Paulo 1",
@@ -161,7 +174,9 @@ public class FieldsToDDMFormValuesConverterTest extends BaseDDMTestCase {
 		List<DDMFormFieldValue> joeNestedDDMFormFieldValues =
 			joeDDMFormFieldValue.getNestedDDMFormFieldValues();
 
-		Assert.assertEquals(3, joeNestedDDMFormFieldValues.size());
+		Assert.assertEquals(
+			joeNestedDDMFormFieldValues.toString(), 3,
+			joeNestedDDMFormFieldValues.size());
 
 		testDDMFormFieldValue(
 			"latb", "Joe's Phone 1", "Telefone de Joao 1",
@@ -200,7 +215,8 @@ public class FieldsToDDMFormValuesConverterTest extends BaseDDMTestCase {
 		List<DDMFormFieldValue> ddmFormFieldValues =
 			ddmFormValues.getDDMFormFieldValues();
 
-		Assert.assertEquals(3, ddmFormFieldValues.size());
+		Assert.assertEquals(
+			ddmFormFieldValues.toString(), 3, ddmFormFieldValues.size());
 
 		testDDMFormFieldValue(
 			"rztm", "Name 1", "Nome 1", ddmFormFieldValues.get(0));
@@ -243,7 +259,8 @@ public class FieldsToDDMFormValuesConverterTest extends BaseDDMTestCase {
 		List<DDMFormFieldValue> ddmFormFieldValues =
 			ddmFormValues.getDDMFormFieldValues();
 
-		Assert.assertEquals(2, ddmFormFieldValues.size());
+		Assert.assertEquals(
+			ddmFormFieldValues.toString(), 2, ddmFormFieldValues.size());
 
 		testDDMFormFieldValue(
 			"rztm", "Title Example", "Titulo Exemplo",

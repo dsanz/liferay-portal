@@ -84,8 +84,8 @@ public class NavigationTag extends IncludeTag {
 		contextObjects.put("rootLayoutType", _rootLayoutType);
 
 		String result = PortletDisplayTemplateManagerUtil.renderDDMTemplate(
-			request, response, portletDisplayDDMTemplate.getTemplateId(),
-			navItems, contextObjects);
+			request, response, portletDisplayDDMTemplate, navItems,
+			contextObjects);
 
 		JspWriter jspWriter = pageContext.getOut();
 

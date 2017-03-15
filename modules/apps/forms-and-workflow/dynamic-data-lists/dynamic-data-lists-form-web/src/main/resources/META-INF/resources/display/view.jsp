@@ -32,6 +32,22 @@ long recordSetId = ddlFormDisplayContext.getRecordSetId();
 	</c:when>
 	<c:otherwise>
 		<c:choose>
+			<c:when test="<%= ddlFormDisplayContext.isShowSuccessPage() %>">
+
+				<%
+				DDMFormSuccessPageSettings ddmFormSuccessPageSettings = ddlFormDisplayContext.getDDMFormSuccessPageSettings();
+				%>
+
+				<div class="portlet-forms">
+					<div class="ddl-form-basic-info">
+						<div class="container-fluid-1280">
+							<h1 class="ddl-form-name"><%= ddmFormSuccessPageSettings.getTitle() %></h1>
+
+							<h5 class="ddl-form-description"><%= ddmFormSuccessPageSettings.getBody() %></h5>
+						</div>
+					</div>
+				</div>
+			</c:when>
 			<c:when test="<%= ddlFormDisplayContext.isFormAvailable() %>">
 				<portlet:actionURL name="addRecord" var="addRecordActionURL" />
 

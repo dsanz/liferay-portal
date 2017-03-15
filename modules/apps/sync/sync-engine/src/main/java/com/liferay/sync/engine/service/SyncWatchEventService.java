@@ -167,22 +167,6 @@ public class SyncWatchEventService {
 		}
 	}
 
-	public static List<SyncWatchEvent> findBySyncAccountId(
-		long syncAccountId, String orderByColumn, boolean ascending) {
-
-		try {
-			return _syncWatchEventPersistence.findBySyncAccountId(
-				syncAccountId, orderByColumn, ascending);
-		}
-		catch (SQLException sqle) {
-			if (_logger.isDebugEnabled()) {
-				_logger.debug(sqle.getMessage(), sqle);
-			}
-
-			return Collections.emptyList();
-		}
-	}
-
 	public static SyncWatchEvent getLastSyncWatchEvent(long syncAccountId) {
 		return _lastSyncWatchEvents.get(syncAccountId);
 	}

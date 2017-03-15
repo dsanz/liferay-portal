@@ -42,7 +42,7 @@ public class ReplaceTranslationTaskTest extends ReplaceTranslationCommandTest {
 		super.setUp();
 
 		URL url = ReplaceTranslationTaskTest.class.getResource(
-			"dependencies/replace-translation/build.xml");
+			"dependencies/replace_translation/build.xml");
 
 		File buildXmlFile = new File(url.toURI());
 
@@ -55,7 +55,7 @@ public class ReplaceTranslationTaskTest extends ReplaceTranslationCommandTest {
 	public final BuildFileRule buildFileRule = new BuildFileRule();
 
 	@Override
-	protected void replaceTranslation(File dir) throws Exception {
+	protected void testSoyJs(File dir) throws Exception {
 		Project project = buildFileRule.getProject();
 
 		project.setProperty("replace.translation.dir", dir.getAbsolutePath());

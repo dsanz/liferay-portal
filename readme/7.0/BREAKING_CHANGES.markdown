@@ -20,7 +20,7 @@ Here are some of the types of changes documented in this file:
   replaces an old API, in spite of the old API being kept in Liferay Portal for
   backwards compatibility.
 
-*This document has been reviewed through commit `d5f10c3`.*
+*This document has been reviewed through commit `93f3807`.*
 
 ## Breaking Changes Contribution Guidelines
 
@@ -4341,5 +4341,29 @@ the instructions for
 
 This change was made as part of the modularization efforts to ease portal
 configuration changes.
+
+---------------------------------------
+
+### Deprecated the aui:tool Tag with No Direct Replacement
+- **Date:** 2017-Feb-02
+- **JIRA Ticket:** LPS-70422
+
+#### What changed?
+
+The `aui:tool` tag has been deprecated with no direct replacement.
+
+#### Who is affected?
+
+Plugins or templates that are using the `aui:tool` tag must remove their usage
+of the tag.
+
+#### How should I update my code?
+
+There is no direct replacement. You should remove all usages of the `aui:tool`
+tag.
+
+#### Why was this change made?
+
+This change was made as a part of the ongoing strategy to deprecate unused tags.
 
 ---------------------------------------

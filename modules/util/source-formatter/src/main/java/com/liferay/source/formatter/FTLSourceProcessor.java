@@ -23,9 +23,12 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.tools.ImportsFormatter;
 import com.liferay.portal.tools.ToolsUtil;
+import com.liferay.source.formatter.checks.FTLIfStatementCheck;
+import com.liferay.source.formatter.checks.FileCheck;
 
 import java.io.File;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,28 +37,6 @@ import java.util.regex.Pattern;
  * @author Hugo Huijser
  */
 public class FTLSourceProcessor extends BaseSourceProcessor {
-
-	@Override
-	public String[] getIncludes() {
-		return _INCLUDES;
-	}
-
-	protected void checkIfStatement(
-		String line, String fileName, int lineCount) {
-
-		if ((!line.startsWith("<#elseif ") && !line.startsWith("<#if ")) ||
-			!line.endsWith(">") || line.contains("?")) {
-
-			return;
-		}
-
-		int pos = line.indexOf(StringPool.SPACE);
-
-		String ifClause =
-			"if (" + line.substring(pos + 1, line.length() - 1) + ") {";
-
-		checkIfClauseParentheses(ifClause, fileName, lineCount);
-	}
 
 	@Override
 	protected String doFormat(
@@ -151,9 +132,13 @@ public class FTLSourceProcessor extends BaseSourceProcessor {
 
 		content = importsFormatter.format(content, null, null);
 
+		content = fixEmptyLinesInMultiLineTags(content);
+
 		content = fixEmptyLinesInNestedTags(content);
 
 		content = fixEmptyLinesBetweenTags(content);
+
+		content = fixMissingEmptyLinesAroundComments(content);
 
 		content = formatFTL(fileName, content);
 
@@ -168,6 +153,29 @@ public class FTLSourceProcessor extends BaseSourceProcessor {
 		};
 
 		return getFileNames(excludes, getIncludes());
+	}
+
+	@Override
+	protected String[] doGetIncludes() {
+		return _INCLUDES;
+	}
+
+	protected String fixMissingEmptyLinesAroundComments(String content) {
+		Matcher matcher = _missingEmptyLineAfterCommentPattern.matcher(content);
+
+		if (matcher.find()) {
+			return StringUtil.replaceFirst(
+				content, "\n", "\n\n", matcher.start());
+		}
+
+		matcher = _missingEmptyLineBeforeCommentPattern.matcher(content);
+
+		if (matcher.find()) {
+			return StringUtil.replaceFirst(
+				content, "\n", "\n\n", matcher.start());
+		}
+
+		return content;
 	}
 
 	protected String formatAssignTags(String content) {
@@ -218,13 +226,9 @@ public class FTLSourceProcessor extends BaseSourceProcessor {
 		try (UnsyncBufferedReader unsyncBufferedReader =
 				new UnsyncBufferedReader(new UnsyncStringReader(content))) {
 
-			int lineCount = 0;
-
 			String line = null;
 
 			while ((line = unsyncBufferedReader.readLine()) != null) {
-				lineCount++;
-
 				line = trimLine(line, false);
 
 				String trimmedLine = StringUtil.trimLeading(line);
@@ -235,8 +239,6 @@ public class FTLSourceProcessor extends BaseSourceProcessor {
 					line = formatIncorrectSyntax(line, "=[", "= [", false);
 					line = formatIncorrectSyntax(line, "+[", "+ [", false);
 				}
-
-				checkIfStatement(trimmedLine, fileName, lineCount);
 
 				sb.append(line);
 				sb.append("\n");
@@ -304,6 +306,11 @@ public class FTLSourceProcessor extends BaseSourceProcessor {
 			content, match, replacement, matcher.start());
 	}
 
+	@Override
+	protected List<FileCheck> getFileChecks() {
+		return Arrays.asList(new FileCheck[] {new FTLIfStatementCheck()});
+	}
+
 	protected String sortLiferayVariables(String content) {
 		Matcher matcher = _liferayVariablesPattern.matcher(content);
 
@@ -345,6 +352,10 @@ public class FTLSourceProcessor extends BaseSourceProcessor {
 		"^\t*<#assign liferay_.*>\n", Pattern.MULTILINE);
 	private final Pattern _liferayVariablesPattern = Pattern.compile(
 		"(^\t*<#assign liferay_.*>\n)+", Pattern.MULTILINE);
+	private final Pattern _missingEmptyLineAfterCommentPattern =
+		Pattern.compile("-->\n[^\n]");
+	private final Pattern _missingEmptyLineBeforeCommentPattern =
+		Pattern.compile("[^\n]\n\t*<#--");
 	private final Pattern _multiParameterTagPattern = Pattern.compile(
 		"\n(\t*)<@.+=.+=.+/>");
 	private final Pattern _singleParameterTagPattern = Pattern.compile(

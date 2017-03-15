@@ -190,7 +190,7 @@
 </tr>
 <tr>
 	<td>SEARCH_TOGGLE_ADVANCED</td>
-	<td>//a[contains(@id,'searchtoggleAdvanced')]</td>
+	<td>//button[contains(@id,'searchtoggleAdvanced')]/span</td>
 	<td></td>
 </tr>
 <tr>

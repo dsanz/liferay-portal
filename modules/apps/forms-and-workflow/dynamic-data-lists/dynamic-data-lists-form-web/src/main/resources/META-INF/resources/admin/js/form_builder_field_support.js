@@ -53,7 +53,7 @@ AUI.add(
 
 				var builder = instance.get('builder');
 
-				var config = instance._copyConfiguration();
+				var config = instance.copyConfiguration();
 
 				var type = instance.get('type');
 

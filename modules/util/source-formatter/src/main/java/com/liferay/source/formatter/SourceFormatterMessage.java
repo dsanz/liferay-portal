@@ -30,8 +30,16 @@ public class SourceFormatterMessage
 	public SourceFormatterMessage(
 		String fileName, String message, int lineCount) {
 
+		this(fileName, message, null, lineCount);
+	}
+
+	public SourceFormatterMessage(
+		String fileName, String message, String markdownFileName,
+		int lineCount) {
+
 		_fileName = fileName;
 		_message = message;
+		_markdownFileName = markdownFileName;
 		_lineCount = lineCount;
 	}
 
@@ -41,9 +49,7 @@ public class SourceFormatterMessage
 			return _fileName.compareTo(sourceFormatterMessage.getFileName());
 		}
 
-		if ((_lineCount != -1) ||
-			(sourceFormatterMessage.getLineCount() != -1)) {
-
+		if (_lineCount != sourceFormatterMessage.getLineCount()) {
 			return _lineCount - sourceFormatterMessage.getLineCount();
 		}
 
@@ -56,6 +62,10 @@ public class SourceFormatterMessage
 
 	public int getLineCount() {
 		return _lineCount;
+	}
+
+	public String getMarkdownFileName() {
+		return _markdownFileName;
 	}
 
 	public String getMessage() {
@@ -80,6 +90,7 @@ public class SourceFormatterMessage
 
 	private final String _fileName;
 	private final int _lineCount;
+	private final String _markdownFileName;
 	private final String _message;
 
 }

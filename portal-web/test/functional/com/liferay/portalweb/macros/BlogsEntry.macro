@@ -8,8 +8,13 @@
 
 		<execute function="UploadCommonFile" locator1="TextInput#FILE" value1="${dmDocumentFile}" />
 
-		<execute function="Type" locator1="TextInput#TITLE" value1="${dmDocumentTitle}" />
-		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${dmDocumentDescription}" />
+		<execute macro="PortletEntry#inputTitle">
+			<var name="title" value="${dmDocumentTitle}" />
+		</execute>
+
+		<execute macro="PortletEntry#inputDescription">
+			<var name="description" value="${dmDocumentDescription}" />
+		</execute>
 
 		<execute macro="PortletEntry#publish" />
 	</command>
@@ -56,6 +61,12 @@
 		<execute function="Click" locator1="Radio#CUSTOM_ABSTRACT" />
 
 		<execute function="Type#typeEditor" locator1="AlloyEditor#DESCRIPTION_FIELD" value1="${entryAbstractDescription}" />
+	</command>
+
+	<command name="addCustomURL">
+		<execute function="Click" locator1="Radio#CUSTOM_URL" />
+
+		<execute function="Type" locator1="TextInput#BLOGS_ENTRY_URL" value1="${customURL}" />
 	</command>
 
 	<command name="addEntryContent">
@@ -673,6 +684,12 @@
 		<execute function="AssertTextEquals" locator1="BlogsEntry#CONTENT" value1="${entryContent}" />
 		<execute function="AssertTextEquals" locator1="AssetRelatedAssets#HEADER" value1="Related Assets:" />
 		<execute function="AssertTextEquals" locator1="AssetRelatedAssets#ASSET_TITLE" value1="${assetTitle}" />
+	</command>
+
+	<command name="viewAutomaticURL">
+		<execute function="Click" locator1="Radio#CUSTOM_ABSTRACT" />
+
+		<execute function="Type#typeEditor" locator1="AlloyEditor#DESCRIPTION_FIELD" value1="${entryAbstractDescription}" />
 	</command>
 
 	<command name="viewCategory">

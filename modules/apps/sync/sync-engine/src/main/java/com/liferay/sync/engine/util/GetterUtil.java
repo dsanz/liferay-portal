@@ -50,7 +50,12 @@ public class GetterUtil {
 			return defaultValue;
 		}
 
-		return Integer.parseInt(value);
+		try {
+			return Integer.parseInt(value);
+		}
+		catch (NumberFormatException nfe) {
+			return defaultValue;
+		}
 	}
 
 	public static long getLong(String value) {
@@ -62,7 +67,12 @@ public class GetterUtil {
 			return defaultValue;
 		}
 
-		return Long.parseLong(value);
+		try {
+			return Long.parseLong(value);
+		}
+		catch (NumberFormatException nfe) {
+			return defaultValue;
+		}
 	}
 
 }

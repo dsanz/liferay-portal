@@ -160,7 +160,7 @@ public class SyncSiteWatchEventListener extends BaseWatchEventListener {
 					Watcher watcher = WatcherManager.getWatcher(
 						getSyncAccountId());
 
-					watcher.walkFileTree(Paths.get(filePathName));
+					watcher.walkFileTree(Paths.get(filePathName), true);
 				}
 			}
 			else if (filePath.equals(previousFilePath)) {
@@ -182,6 +182,7 @@ public class SyncSiteWatchEventListener extends BaseWatchEventListener {
 				lastSyncWatchEvent.setEventType(
 					SyncWatchEvent.EVENT_TYPE_RENAME);
 				lastSyncWatchEvent.setFilePathName(filePathName);
+				lastSyncWatchEvent.setFileType(fileType);
 				lastSyncWatchEvent.setPreviousFilePathName(
 					previousFilePath.toString());
 
@@ -191,7 +192,7 @@ public class SyncSiteWatchEventListener extends BaseWatchEventListener {
 					Watcher watcher = WatcherManager.getWatcher(
 						getSyncAccountId());
 
-					watcher.walkFileTree(Paths.get(filePathName));
+					watcher.walkFileTree(Paths.get(filePathName), true);
 				}
 			}
 			else {
@@ -205,7 +206,7 @@ public class SyncSiteWatchEventListener extends BaseWatchEventListener {
 					Watcher watcher = WatcherManager.getWatcher(
 						getSyncAccountId());
 
-					watcher.walkFileTree(Paths.get(filePathName));
+					watcher.walkFileTree(Paths.get(filePathName), true);
 
 					watchEvent(SyncWatchEvent.EVENT_TYPE_DELETE, filePath);
 				}
@@ -222,7 +223,7 @@ public class SyncSiteWatchEventListener extends BaseWatchEventListener {
 						Watcher watcher = WatcherManager.getWatcher(
 							getSyncAccountId());
 
-						watcher.walkFileTree(Paths.get(filePathName));
+						watcher.walkFileTree(Paths.get(filePathName), true);
 					}
 				}
 			}
@@ -233,7 +234,9 @@ public class SyncSiteWatchEventListener extends BaseWatchEventListener {
 	}
 
 	protected String getFileType(String eventType, Path filePath) {
-		if (eventType.equals(SyncWatchEvent.EVENT_TYPE_DELETE)) {
+		if (eventType.equals(SyncWatchEvent.EVENT_TYPE_DELETE) ||
+			eventType.equals(SyncWatchEvent.EVENT_TYPE_RENAME_FROM)) {
+
 			SyncFile syncFile = SyncFileService.fetchSyncFile(
 				filePath.toString());
 

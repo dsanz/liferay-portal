@@ -30,12 +30,14 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
 
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -65,6 +67,28 @@ public class FileUtil {
 					throws IOException {
 
 					Files.delete(path);
+
+					return FileVisitResult.CONTINUE;
+				}
+
+			});
+	}
+
+	public static void deleteFiles(Path dirPath, final String... fileNames)
+		throws IOException {
+
+		Files.walkFileTree(
+			dirPath,
+			new SimpleFileVisitor<Path>() {
+
+				@Override
+				public FileVisitResult preVisitDirectory(
+						Path dirPath, BasicFileAttributes basicFileAttributes)
+					throws IOException {
+
+					for (String fileName : fileNames) {
+						Files.deleteIfExists(dirPath.resolve(fileName));
+					}
 
 					return FileVisitResult.CONTINUE;
 				}
@@ -189,6 +213,17 @@ public class FileUtil {
 			Files.readAllBytes(path), StandardCharsets.UTF_8);
 
 		return content.replace("\r\n", "\n");
+	}
+
+	public static void setPosixFilePermissions(
+			Path path, Set<PosixFilePermission> posixFilePermissions)
+		throws IOException {
+
+		try {
+			Files.setPosixFilePermissions(path, posixFilePermissions);
+		}
+		catch (UnsupportedOperationException uoe) {
+		}
 	}
 
 }

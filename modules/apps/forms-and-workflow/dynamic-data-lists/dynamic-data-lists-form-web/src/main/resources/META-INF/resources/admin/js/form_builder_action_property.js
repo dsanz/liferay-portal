@@ -26,13 +26,22 @@ AUI.add(
 				NAME: 'liferay-ddl-form-builder-action-property',
 
 				prototype: {
+					destructor: function() {
+						var instance = this;
+
+						var boundingBox = instance.get('boundingBox');
+
+						var index = instance.get('index');
+
+						boundingBox.one('.additional-info-' + index).empty();
+
+						boundingBox.one('.target-' + index).empty();
+					},
+
 					getValue: function() {
 						var instance = this;
 
-						var type = instance.get('type');
-
 						return {
-							action: type,
 							target: instance._field.getValue()
 						};
 					},
@@ -40,7 +49,11 @@ AUI.add(
 					render: function() {
 						var instance = this;
 
-						instance._createField().render(instance.get('boundingBox'));
+						var index = instance.get('index');
+
+						var fieldsListContainer = instance.get('boundingBox').one('.target-' + index);
+
+						instance._createField().render(fieldsListContainer);
 					},
 
 					_createField: function() {
@@ -56,6 +69,7 @@ AUI.add(
 
 						instance._field = new Liferay.DDM.Field.Select(
 							{
+								bubbleTargets: [instance],
 								fieldName: instance.get('index') + '-action',
 								label: Liferay.Language.get('the'),
 								options: instance.get('options'),

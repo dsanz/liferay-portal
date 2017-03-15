@@ -32,7 +32,7 @@ import org.junit.runner.RunWith;
  * @author Marcellus Tavares
  */
 @RunWith(Arquillian.class)
-public class BaseJournalServiceTestCase {
+public abstract class BaseJournalServiceTestCase {
 
 	@Before
 	public void setUp() throws Exception {

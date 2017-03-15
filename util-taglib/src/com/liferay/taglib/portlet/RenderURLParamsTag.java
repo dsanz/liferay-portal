@@ -14,14 +14,15 @@
 
 package com.liferay.taglib.portlet;
 
+import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.taglib.servlet.PipingPageContext;
 
 import javax.portlet.PortletURL;
 
@@ -39,13 +40,25 @@ public class RenderURLParamsTag extends TagSupport {
 	public static String doTag(PortletURL portletURL, PageContext pageContext)
 		throws Exception {
 
-		return _doTag(portletURL, null, pageContext);
+		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
+
+		_doTag(
+			portletURL, null,
+			new PipingPageContext(pageContext, unsyncStringWriter));
+
+		return unsyncStringWriter.toString();
 	}
 
 	public static String doTag(String varImpl, PageContext pageContext)
 		throws Exception {
 
-		return _doTag(null, varImpl, pageContext);
+		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
+
+		_doTag(
+			null, varImpl,
+			new PipingPageContext(pageContext, unsyncStringWriter));
+
+		return unsyncStringWriter.toString();
 	}
 
 	@Override
@@ -68,7 +81,7 @@ public class RenderURLParamsTag extends TagSupport {
 		_varImpl = varImpl;
 	}
 
-	private static String _doTag(
+	private static void _doTag(
 			PortletURL portletURL, String varImpl, PageContext pageContext)
 		throws Exception {
 
@@ -76,24 +89,14 @@ public class RenderURLParamsTag extends TagSupport {
 			portletURL = (PortletURL)pageContext.getAttribute(varImpl);
 		}
 
-		String paramsString = StringPool.BLANK;
-
 		if (portletURL != null) {
-			paramsString = _toParamsString(portletURL, pageContext);
-
-			JspWriter jspWriter = pageContext.getOut();
-
-			jspWriter.write(paramsString);
+			_writeParamsString(portletURL, pageContext);
 		}
-
-		return paramsString;
 	}
 
-	private static String _toParamsString(
+	private static void _writeParamsString(
 			PortletURL portletURL, PageContext pageContext)
 		throws Exception {
-
-		StringBundler sb = new StringBundler();
 
 		String url = portletURL.toString();
 
@@ -105,6 +108,8 @@ public class RenderURLParamsTag extends TagSupport {
 
 			url = url.substring(0, x);
 		}
+
+		JspWriter jspWriter = pageContext.getOut();
 
 		String queryString = HttpUtil.getQueryString(url);
 
@@ -124,16 +129,14 @@ public class RenderURLParamsTag extends TagSupport {
 
 					value = HttpUtil.decodeURL(value);
 
-					sb.append("<input name=\"");
-					sb.append(key);
-					sb.append("\" type=\"hidden\" value=\"");
-					sb.append(HtmlUtil.escapeAttribute(value));
-					sb.append("\" />");
+					jspWriter.write("<input name=\"");
+					jspWriter.write(key);
+					jspWriter.write("\" type=\"hidden\" value=\"");
+					jspWriter.write(HtmlUtil.escapeAttribute(value));
+					jspWriter.write("\" />");
 				}
 			}
 		}
-
-		return sb.toString();
 	}
 
 	private PortletURL _portletURL;

@@ -259,10 +259,12 @@ public class LayoutLocalServiceStagingAdvice implements MethodInterceptor {
 		layoutLocalServiceHelper.validateParentLayoutId(
 			groupId, privateLayout, layoutId, parentLayoutId);
 
-		Layout originalLayout = LayoutUtil.findByG_P_L(
+		Layout layout = LayoutUtil.findByG_P_L(
 			groupId, privateLayout, layoutId);
 
-		Layout layout = wrapLayout(originalLayout);
+		if (LayoutStagingUtil.isBranchingLayout(layout)) {
+			layout = getProxiedLayout(layout);
+		}
 
 		LayoutRevision layoutRevision = LayoutStagingUtil.getLayoutRevision(
 			layout);
@@ -274,23 +276,23 @@ public class LayoutLocalServiceStagingAdvice implements MethodInterceptor {
 				friendlyURLMap, iconImage, iconBytes, serviceContext);
 		}
 
-		if (parentLayoutId != originalLayout.getParentLayoutId()) {
+		if (parentLayoutId != layout.getParentLayoutId()) {
 			int priority = layoutLocalServiceHelper.getNextPriority(
 				groupId, privateLayout, parentLayoutId,
-				originalLayout.getSourcePrototypeLayoutUuid(), -1);
+				layout.getSourcePrototypeLayoutUuid(), -1);
 
-			originalLayout.setPriority(priority);
+			layout.setPriority(priority);
 		}
 
-		originalLayout.setParentLayoutId(parentLayoutId);
+		layout.setParentLayoutId(parentLayoutId);
 		layoutRevision.setNameMap(nameMap);
 		layoutRevision.setTitleMap(titleMap);
 		layoutRevision.setDescriptionMap(descriptionMap);
 		layoutRevision.setKeywordsMap(keywordsMap);
 		layoutRevision.setRobotsMap(robotsMap);
-		originalLayout.setType(type);
-		originalLayout.setHidden(hidden);
-		originalLayout.setFriendlyURL(friendlyURL);
+		layout.setType(type);
+		layout.setHidden(hidden);
+		layout.setFriendlyURL(friendlyURL);
 
 		PortalUtil.updateImageId(
 			layoutRevision, iconImage, iconBytes, "iconImageId", 0, 0, 0);
@@ -298,17 +300,15 @@ public class LayoutLocalServiceStagingAdvice implements MethodInterceptor {
 		boolean layoutPrototypeLinkEnabled = ParamUtil.getBoolean(
 			serviceContext, "layoutPrototypeLinkEnabled");
 
-		originalLayout.setLayoutPrototypeLinkEnabled(
-			layoutPrototypeLinkEnabled);
+		layout.setLayoutPrototypeLinkEnabled(layoutPrototypeLinkEnabled);
 
-		originalLayout.setExpandoBridgeAttributes(serviceContext);
+		layout.setExpandoBridgeAttributes(serviceContext);
 
-		LayoutUtil.update(originalLayout);
+		LayoutUtil.update(layout);
 
 		LayoutFriendlyURLLocalServiceUtil.updateLayoutFriendlyURLs(
-			originalLayout.getUserId(), originalLayout.getCompanyId(),
-			originalLayout.getGroupId(), originalLayout.getPlid(),
-			originalLayout.isPrivateLayout(), layoutFriendlyURLMap,
+			layout.getUserId(), layout.getCompanyId(), layout.getGroupId(),
+			layout.getPlid(), layout.isPrivateLayout(), layoutFriendlyURLMap,
 			serviceContext);
 
 		boolean hasWorkflowTask = StagingUtil.hasWorkflowTask(
@@ -348,7 +348,9 @@ public class LayoutLocalServiceStagingAdvice implements MethodInterceptor {
 		Layout layout = LayoutUtil.findByG_P_L(
 			groupId, privateLayout, layoutId);
 
-		layout = wrapLayout(layout);
+		if (LayoutStagingUtil.isBranchingLayout(layout)) {
+			layout = getProxiedLayout(layout);
+		}
 
 		LayoutRevision layoutRevision = LayoutStagingUtil.getLayoutRevision(
 			layout);
@@ -395,7 +397,9 @@ public class LayoutLocalServiceStagingAdvice implements MethodInterceptor {
 		Layout layout = LayoutUtil.findByG_P_L(
 			groupId, privateLayout, layoutId);
 
-		layout = wrapLayout(layout);
+		if (LayoutStagingUtil.isBranchingLayout(layout)) {
+			layout = getProxiedLayout(layout);
+		}
 
 		LayoutRevision layoutRevision = LayoutStagingUtil.getLayoutRevision(
 			layout);

@@ -55,7 +55,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 	{LocaleUtil.class, PortalClassLoaderUtil.class, ResourceBundleUtil.class}
 )
 @RunWith(PowerMockRunner.class)
-public class BaseDDMTestCase extends PowerMockito {
+public abstract class BaseDDMTestCase extends PowerMockito {
 
 	@Before
 	public void setUp() throws Exception {

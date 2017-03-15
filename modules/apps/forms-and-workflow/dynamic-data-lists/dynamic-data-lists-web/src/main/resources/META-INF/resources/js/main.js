@@ -540,6 +540,21 @@ AUI.add(
 								config.multiple = multiple;
 								config.options = options;
 							}
+							else if (type === 'textarea') {
+								item.allowHTML = true;
+
+								item.formatter = function(obj) {
+									var data = obj.data;
+
+									var value = data[name];
+
+									if (!value) {
+										return value;
+									}
+
+									return value.split('\n').join('<br>');
+								};
+							}
 
 							var validatorRuleName = instance.DATATYPE_VALIDATOR[dataType];
 

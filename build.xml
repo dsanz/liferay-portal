@@ -54,6 +54,7 @@
 		<gradle-execute dir="modules" task="clean">
 			<arg value="--parallel" />
 			<arg value="-Dbuild.profile=portal-pre" />
+			<arg value="-Dclean.node.modules=${clean.node.modules}" />
 		</gradle-execute>
 
 		<parallel failonany="true" threadcount="${parallel.thread.count}">
@@ -81,6 +82,7 @@
 
 				<gradle-execute dir="${project.dir}/modules" task="clean">
 					<arg value="-Dbuild.profile=${build.profile}" />
+					<arg value="-Dclean.node.modules=${clean.node.modules}" />
 				</gradle-execute>
 			</sequential>
 
@@ -158,6 +160,7 @@
 	</target>
 
 	<target name="compile">
+		<setup-libs />
 		<setup-sdk />
 
 		<delete file="javac.output.txt" />
@@ -212,6 +215,7 @@
 	</target>
 
 	<target name="deploy">
+		<setup-libs />
 		<setup-sdk />
 
 		<if>
@@ -284,6 +288,17 @@
 			</then>
 		</if>
 
+		<if>
+			<equals arg1="${app.server.type}" arg2="websphere" />
+			<then>
+				<replace file="${app.server.websphere.instance.dir}/config/cells/liferay-cell/applications/liferay-portal.ear/deployments/liferay-portal/liferay-portal.war/WEB-INF/ibm-web-ext.xml">
+					<replacetoken><![CDATA[</web-ext>]]></replacetoken>
+					<replacevalue><![CDATA[  <jsp-attribute name="jdkSourceLevel" value="18" />
+</web-ext>]]></replacevalue>
+				</replace>
+			</then>
+		</if>
+
 		<ant dir="portal-web" inheritAll="false" target="war" />
 
 		<antcall target="install-portal-snapshots" />
@@ -298,40 +313,11 @@
 					<arg value="-Dbuild.profile=portal-pre" />
 				</gradle-execute>
 
-				<if>
-					<equals arg1="${jsp.precompile}" arg2="on" />
-					<then>
-						<if>
-							<equals arg1="${jsp.precompile.parallel}" arg2="on" />
-							<then>
-								<gradle-execute dir="${project.dir}/modules" task="compileJSP">
-									<arg value="deploy" />
-									<arg value="--parallel" />
-									<arg value="-Dbuild.profile=${build.profile}" />
-									<env key="WAS_HOME" value="${app.server.websphere.dir}" />
-								</gradle-execute>
-							</then>
-							<else>
-								<gradle-execute dir="${project.dir}/modules" task="deploy">
-									<arg value="--parallel" />
-									<arg value="-Dbuild.profile=${build.profile}" />
-									<env key="WAS_HOME" value="${app.server.websphere.dir}" />
-								</gradle-execute>
-
-								<gradle-execute dir="${project.dir}/modules" task="compileJSP">
-									<arg value="-Dbuild.profile=${build.profile}" />
-								</gradle-execute>
-							</else>
-						</if>
-					</then>
-					<else>
-						<gradle-execute dir="${project.dir}/modules" task="deploy">
-							<arg value="--parallel" />
-							<arg value="-Dbuild.profile=${build.profile}" />
-							<env key="WAS_HOME" value="${app.server.websphere.dir}" />
-						</gradle-execute>
-					</else>
-				</if>
+				<gradle-execute dir="${project.dir}/modules" task="deploy">
+					<arg value="--parallel" />
+					<arg value="-Dbuild.profile=${build.profile}" />
+					<env key="WAS_HOME" value="${app.server.websphere.dir}" />
+				</gradle-execute>
 			</then>
 			<else>
 				<gradle-execute dir="${project.dir}/modules/core" task="deploy">
@@ -350,6 +336,7 @@
 							<arg value="--parallel" />
 							<arg value="-Dbuild.profile=${build.profile}" />
 							<arg value="deployAppServerLib" />
+							<arg value="deployAppServerPortalFile" />
 							<arg value="deployConfigs" />
 						</gradle-execute>
 					</then>
@@ -357,31 +344,32 @@
 						<gradle-execute dir="${project.dir}/modules" task="deployTool">
 							<arg value="--parallel" />
 							<arg value="-Dbuild.profile=${build.profile}" />
+							<arg value="deployAppServerPortalFile" />
 							<arg value="deployConfigs" />
 						</gradle-execute>
 					</else>
 				</if>
-
-				<if>
-					<equals arg1="${jsp.precompile}" arg2="on" />
-					<then>
-						<if>
-							<equals arg1="${jsp.precompile.parallel}" arg2="on" />
-							<then>
-								<gradle-execute dir="${project.dir}/modules" task="compileJSP">
-									<arg value="--parallel" />
-									<arg value="-Dbuild.profile=${build.profile}" />
-								</gradle-execute>
-							</then>
-							<else>
-								<gradle-execute dir="${project.dir}/modules" task="compileJSP">
-									<arg value="-Dbuild.profile=${build.profile}" />
-								</gradle-execute>
-							</else>
-						</if>
-					</then>
-				</if>
 			</else>
+		</if>
+
+		<if>
+			<equals arg1="${jsp.precompile}" arg2="on" />
+			<then>
+				<if>
+					<equals arg1="${jsp.precompile.parallel}" arg2="on" />
+					<then>
+						<gradle-execute dir="${project.dir}/modules" task="compileJSP">
+							<arg value="--parallel" />
+							<arg value="-Dbuild.profile=${build.profile}" />
+						</gradle-execute>
+					</then>
+					<else>
+						<gradle-execute dir="${project.dir}/modules" task="compileJSP">
+							<arg value="-Dbuild.profile=${build.profile}" />
+						</gradle-execute>
+					</else>
+				</if>
+			</then>
 		</if>
 
 		<if>
@@ -831,6 +819,10 @@
 		<echo append="true" file="portal-impl/src/system-ext.properties" message="liferay.lib.portal.dir=${app.server.lib.portal.dir}" />
 
 		<copy file="portal-impl/src/system-ext.properties" overwrite="true" tofile="portal-impl/classes/system-ext.properties" />
+	</target>
+
+	<target name="setup-libs">
+		<setup-libs />
 	</target>
 
 	<target name="setup-sdk">

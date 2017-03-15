@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFactory;
 import com.liferay.dynamic.data.mapping.expression.internal.DDMExpressionFactoryImpl;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationResult;
+import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluatorContext;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormFieldEvaluationResult;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
@@ -33,8 +34,13 @@ import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringPool;
 
 import java.util.Arrays;
@@ -43,21 +49,87 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  * @author Leonardo Barros
  * @author Marcellus Tavares
  */
+@RunWith(MockitoJUnitRunner.class)
 public class DDMFormEvaluatorHelperTest {
 
 	@Before
-	public void setUp() {
+	public void setUp() throws Exception {
+		setPortalUtil();
 		setUpLanguageUtil();
+	}
+
+	@Test
+	public void testBelongsToCondition() throws Exception {
+		DDMForm ddmForm = new DDMForm();
+
+		DDMFormField ddmFormField0 = createDDMFormField(
+			"field0", "text", FieldConstants.STRING);
+
+		ddmForm.addDDMFormField(ddmFormField0);
+
+		String condition = "belongsTo(\"Role1\")";
+
+		String action = "setEnabled(\"field0\", false)";
+
+		DDMFormRule ddmFormRule = new DDMFormRule(
+			condition, Arrays.asList(action));
+
+		ddmForm.addDDMFormRule(ddmFormRule);
+
+		DDMFormValues ddmFormValues = new DDMFormValues(ddmForm);
+
+		ddmFormValues.addDDMFormFieldValue(
+			DDMFormValuesTestUtil.createDDMFormFieldValue(
+				"field0_instanceId", "field0", new UnlocalizedValue("")));
+
+		DDMFormEvaluatorContext ddmFormEvaluatorContext =
+			new DDMFormEvaluatorContext(ddmForm, ddmFormValues, LocaleUtil.US);
+
+		ddmFormEvaluatorContext.addProperty("request", _request);
+
+		when(
+			_userLocalService.hasRoleUser(
+				_company.getCompanyId(), "Role1", _user.getUserId(), true)
+		).thenReturn(
+			true
+		);
+
+		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
+			new DDMFormEvaluatorHelper(
+				null, null, _ddmExpressionFactory, ddmFormEvaluatorContext,
+				null, _jsonFactory, _userLocalService);
+
+		DDMFormEvaluationResult ddmFormEvaluationResult =
+			ddmFormEvaluatorHelper.evaluate();
+
+		Map<String, DDMFormFieldEvaluationResult>
+			ddmFormFieldEvaluationResultMap =
+				ddmFormEvaluationResult.getDDMFormFieldEvaluationResultsMap();
+
+		Assert.assertEquals(
+			ddmFormFieldEvaluationResultMap.toString(), 1,
+			ddmFormFieldEvaluationResultMap.size());
+
+		DDMFormFieldEvaluationResult field0DDMFormFieldEvaluationResult =
+			ddmFormEvaluationResult.geDDMFormFieldEvaluationResult(
+				"field0", "field0_instanceId");
+
+		Assert.assertTrue(field0DDMFormFieldEvaluationResult.isReadOnly());
 	}
 
 	@Test
@@ -86,8 +158,10 @@ public class DDMFormEvaluatorHelperTest {
 
 		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
 			new DDMFormEvaluatorHelper(
-				null, null, _ddmExpressionFactory, ddmForm, ddmFormValues, null,
-				_jsonFactory, LocaleUtil.US);
+				null, null, _ddmExpressionFactory,
+				new DDMFormEvaluatorContext(
+					ddmForm, ddmFormValues, LocaleUtil.US),
+				null, _jsonFactory, null);
 
 		DDMFormEvaluationResult ddmFormEvaluationResult =
 			ddmFormEvaluatorHelper.evaluate();
@@ -96,6 +170,65 @@ public class DDMFormEvaluatorHelperTest {
 			ddmFormEvaluationResult.getDisabledPagesIndexes();
 
 		Assert.assertTrue(disabledPagesIndexes.contains(2));
+	}
+
+	@Test
+	public void testNotBelongsToCondition() throws Exception {
+		DDMForm ddmForm = new DDMForm();
+
+		DDMFormField ddmFormField0 = createDDMFormField(
+			"field0", "text", FieldConstants.STRING);
+
+		ddmForm.addDDMFormField(ddmFormField0);
+
+		String condition = "not(belongsTo(\"Role1\"))";
+
+		String action = "setVisible(\"field0\", false)";
+
+		DDMFormRule ddmFormRule = new DDMFormRule(
+			condition, Arrays.asList(action));
+
+		ddmForm.addDDMFormRule(ddmFormRule);
+
+		DDMFormValues ddmFormValues = new DDMFormValues(ddmForm);
+
+		ddmFormValues.addDDMFormFieldValue(
+			DDMFormValuesTestUtil.createDDMFormFieldValue(
+				"field0_instanceId", "field0", new UnlocalizedValue("")));
+
+		DDMFormEvaluatorContext ddmFormEvaluatorContext =
+			new DDMFormEvaluatorContext(ddmForm, ddmFormValues, LocaleUtil.US);
+
+		ddmFormEvaluatorContext.addProperty("request", _request);
+
+		when(
+			_userLocalService.hasRoleUser(
+				_company.getCompanyId(), "Role1", _user.getUserId(), true)
+		).thenReturn(
+			false
+		);
+
+		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
+			new DDMFormEvaluatorHelper(
+				null, null, _ddmExpressionFactory, ddmFormEvaluatorContext,
+				null, _jsonFactory, _userLocalService);
+
+		DDMFormEvaluationResult ddmFormEvaluationResult =
+			ddmFormEvaluatorHelper.evaluate();
+
+		Map<String, DDMFormFieldEvaluationResult>
+			ddmFormFieldEvaluationResultMap =
+				ddmFormEvaluationResult.getDDMFormFieldEvaluationResultsMap();
+
+		Assert.assertEquals(
+			ddmFormFieldEvaluationResultMap.toString(), 1,
+			ddmFormFieldEvaluationResultMap.size());
+
+		DDMFormFieldEvaluationResult field0DDMFormFieldEvaluationResult =
+			ddmFormEvaluationResult.geDDMFormFieldEvaluationResult(
+				"field0", "field0_instanceId");
+
+		Assert.assertFalse(field0DDMFormFieldEvaluationResult.isVisible());
 	}
 
 	@Test
@@ -124,8 +257,10 @@ public class DDMFormEvaluatorHelperTest {
 
 		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
 			new DDMFormEvaluatorHelper(
-				null, null, _ddmExpressionFactory, ddmForm, ddmFormValues, null,
-				_jsonFactory, LocaleUtil.US);
+				null, null, _ddmExpressionFactory,
+				new DDMFormEvaluatorContext(
+					ddmForm, ddmFormValues, LocaleUtil.US),
+				null, _jsonFactory, null);
 
 		DDMFormEvaluationResult ddmFormEvaluationResult =
 			ddmFormEvaluatorHelper.evaluate();
@@ -155,8 +290,10 @@ public class DDMFormEvaluatorHelperTest {
 
 		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
 			new DDMFormEvaluatorHelper(
-				null, null, _ddmExpressionFactory, ddmForm, ddmFormValues, null,
-				_jsonFactory, LocaleUtil.US);
+				null, null, _ddmExpressionFactory,
+				new DDMFormEvaluatorContext(
+					ddmForm, ddmFormValues, LocaleUtil.US),
+				null, _jsonFactory, null);
 
 		DDMFormEvaluationResult ddmFormEvaluationResult =
 			ddmFormEvaluatorHelper.evaluate();
@@ -165,7 +302,9 @@ public class DDMFormEvaluatorHelperTest {
 			ddmFormFieldEvaluationResultMap =
 				ddmFormEvaluationResult.getDDMFormFieldEvaluationResultsMap();
 
-		Assert.assertEquals(1, ddmFormFieldEvaluationResultMap.size());
+		Assert.assertEquals(
+			ddmFormFieldEvaluationResultMap.toString(), 1,
+			ddmFormFieldEvaluationResultMap.size());
 
 		DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult =
 			ddmFormEvaluationResult.geDDMFormFieldEvaluationResult(
@@ -205,8 +344,10 @@ public class DDMFormEvaluatorHelperTest {
 
 		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
 			new DDMFormEvaluatorHelper(
-				null, null, _ddmExpressionFactory, ddmForm, ddmFormValues, null,
-				_jsonFactory, LocaleUtil.US);
+				null, null, _ddmExpressionFactory,
+				new DDMFormEvaluatorContext(
+					ddmForm, ddmFormValues, LocaleUtil.US),
+				null, _jsonFactory, null);
 
 		DDMFormEvaluationResult ddmFormEvaluationResult =
 			ddmFormEvaluatorHelper.evaluate();
@@ -215,7 +356,9 @@ public class DDMFormEvaluatorHelperTest {
 			ddmFormFieldEvaluationResultMap =
 				ddmFormEvaluationResult.getDDMFormFieldEvaluationResultsMap();
 
-		Assert.assertEquals(2, ddmFormFieldEvaluationResultMap.size());
+		Assert.assertEquals(
+			ddmFormFieldEvaluationResultMap.toString(), 2,
+			ddmFormFieldEvaluationResultMap.size());
 
 		DDMFormFieldEvaluationResult field1DDMFormFieldEvaluationResult =
 			ddmFormEvaluationResult.geDDMFormFieldEvaluationResult(
@@ -261,8 +404,10 @@ public class DDMFormEvaluatorHelperTest {
 
 		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
 			new DDMFormEvaluatorHelper(
-				null, null, _ddmExpressionFactory, ddmForm, ddmFormValues, null,
-				_jsonFactory, LocaleUtil.US);
+				null, null, _ddmExpressionFactory,
+				new DDMFormEvaluatorContext(
+					ddmForm, ddmFormValues, LocaleUtil.US),
+				null, _jsonFactory, null);
 
 		DDMFormEvaluationResult ddmFormEvaluationResult =
 			ddmFormEvaluatorHelper.evaluate();
@@ -271,7 +416,9 @@ public class DDMFormEvaluatorHelperTest {
 			ddmFormFieldEvaluationResultMap =
 				ddmFormEvaluationResult.getDDMFormFieldEvaluationResultsMap();
 
-		Assert.assertEquals(2, ddmFormFieldEvaluationResultMap.size());
+		Assert.assertEquals(
+			ddmFormFieldEvaluationResultMap.toString(), 2,
+			ddmFormFieldEvaluationResultMap.size());
 
 		DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult =
 			ddmFormEvaluationResult.geDDMFormFieldEvaluationResult(
@@ -302,8 +449,10 @@ public class DDMFormEvaluatorHelperTest {
 
 		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
 			new DDMFormEvaluatorHelper(
-				null, null, _ddmExpressionFactory, ddmForm, ddmFormValues, null,
-				_jsonFactory, LocaleUtil.US);
+				null, null, _ddmExpressionFactory,
+				new DDMFormEvaluatorContext(
+					ddmForm, ddmFormValues, LocaleUtil.US),
+				null, _jsonFactory, null);
 
 		DDMFormEvaluationResult ddmFormEvaluationResult =
 			ddmFormEvaluatorHelper.evaluate();
@@ -312,7 +461,9 @@ public class DDMFormEvaluatorHelperTest {
 			ddmFormFieldEvaluationResultMap =
 				ddmFormEvaluationResult.getDDMFormFieldEvaluationResultsMap();
 
-		Assert.assertEquals(1, ddmFormFieldEvaluationResultMap.size());
+		Assert.assertEquals(
+			ddmFormFieldEvaluationResultMap.toString(), 1,
+			ddmFormFieldEvaluationResultMap.size());
 
 		DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult =
 			ddmFormEvaluationResult.geDDMFormFieldEvaluationResult(
@@ -364,8 +515,10 @@ public class DDMFormEvaluatorHelperTest {
 
 		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
 			new DDMFormEvaluatorHelper(
-				null, null, _ddmExpressionFactory, ddmForm, ddmFormValues, null,
-				_jsonFactory, LocaleUtil.US);
+				null, null, _ddmExpressionFactory,
+				new DDMFormEvaluatorContext(
+					ddmForm, ddmFormValues, LocaleUtil.US),
+				null, _jsonFactory, null);
 
 		DDMFormEvaluationResult ddmFormEvaluationResult =
 			ddmFormEvaluatorHelper.evaluate();
@@ -374,7 +527,9 @@ public class DDMFormEvaluatorHelperTest {
 			ddmFormFieldEvaluationResultMap =
 				ddmFormEvaluationResult.getDDMFormFieldEvaluationResultsMap();
 
-		Assert.assertEquals(3, ddmFormFieldEvaluationResultMap.size());
+		Assert.assertEquals(
+			ddmFormFieldEvaluationResultMap.toString(), 3,
+			ddmFormFieldEvaluationResultMap.size());
 
 		// Field 0
 
@@ -447,7 +602,8 @@ public class DDMFormEvaluatorHelperTest {
 			"getValue(\"field0\") > 0 && getValue(\"field1\") > 0";
 
 		String action =
-			"setValue(\"field2\", getValue(\"field0\") * getValue(\"field1\"))";
+			"calculate(\"field2\", getValue(\"field0\") * " +
+				"getValue(\"field1\"))";
 
 		DDMFormRule ddmFormRule = new DDMFormRule(
 			condition, Arrays.asList(action));
@@ -456,8 +612,10 @@ public class DDMFormEvaluatorHelperTest {
 
 		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
 			new DDMFormEvaluatorHelper(
-				null, null, _ddmExpressionFactory, ddmForm, ddmFormValues, null,
-				_jsonFactory, LocaleUtil.US);
+				null, null, _ddmExpressionFactory,
+				new DDMFormEvaluatorContext(
+					ddmForm, ddmFormValues, LocaleUtil.US),
+				null, _jsonFactory, null);
 
 		DDMFormEvaluationResult ddmFormEvaluationResult =
 			ddmFormEvaluatorHelper.evaluate();
@@ -466,7 +624,9 @@ public class DDMFormEvaluatorHelperTest {
 			ddmFormFieldEvaluationResultMap =
 				ddmFormEvaluationResult.getDDMFormFieldEvaluationResultsMap();
 
-		Assert.assertEquals(3, ddmFormFieldEvaluationResultMap.size());
+		Assert.assertEquals(
+			ddmFormFieldEvaluationResultMap.toString(), 3,
+			ddmFormFieldEvaluationResultMap.size());
 
 		// Field 0
 
@@ -530,8 +690,10 @@ public class DDMFormEvaluatorHelperTest {
 
 		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
 			new DDMFormEvaluatorHelper(
-				null, null, _ddmExpressionFactory, ddmForm, ddmFormValues, null,
-				_jsonFactory, LocaleUtil.US);
+				null, null, _ddmExpressionFactory,
+				new DDMFormEvaluatorContext(
+					ddmForm, ddmFormValues, LocaleUtil.US),
+				null, _jsonFactory, null);
 
 		DDMFormEvaluationResult ddmFormEvaluationResult =
 			ddmFormEvaluatorHelper.evaluate();
@@ -540,7 +702,9 @@ public class DDMFormEvaluatorHelperTest {
 			ddmFormFieldEvaluationResultMap =
 				ddmFormEvaluationResult.getDDMFormFieldEvaluationResultsMap();
 
-		Assert.assertEquals(1, ddmFormFieldEvaluationResultMap.size());
+		Assert.assertEquals(
+			ddmFormFieldEvaluationResultMap.toString(), 1,
+			ddmFormFieldEvaluationResultMap.size());
 
 		DDMFormFieldEvaluationResult ddmFormFieldEvaluationResult =
 			ddmFormEvaluationResult.geDDMFormFieldEvaluationResult(
@@ -577,8 +741,10 @@ public class DDMFormEvaluatorHelperTest {
 
 		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
 			new DDMFormEvaluatorHelper(
-				null, null, _ddmExpressionFactory, ddmForm, ddmFormValues, null,
-				_jsonFactory, LocaleUtil.US);
+				null, null, _ddmExpressionFactory,
+				new DDMFormEvaluatorContext(
+					ddmForm, ddmFormValues, LocaleUtil.US),
+				null, _jsonFactory, null);
 
 		DDMFormEvaluationResult ddmFormEvaluationResult =
 			ddmFormEvaluatorHelper.evaluate();
@@ -587,7 +753,9 @@ public class DDMFormEvaluatorHelperTest {
 			ddmFormFieldEvaluationResultMap =
 				ddmFormEvaluationResult.getDDMFormFieldEvaluationResultsMap();
 
-		Assert.assertEquals(1, ddmFormFieldEvaluationResultMap.size());
+		Assert.assertEquals(
+			ddmFormFieldEvaluationResultMap.toString(), 1,
+			ddmFormFieldEvaluationResultMap.size());
 
 		DDMFormFieldEvaluationResult actualDDMFormFieldEvaluationResult =
 			ddmFormEvaluationResult.geDDMFormFieldEvaluationResult(
@@ -626,8 +794,10 @@ public class DDMFormEvaluatorHelperTest {
 
 		DDMFormEvaluatorHelper ddmFormEvaluatorHelper =
 			new DDMFormEvaluatorHelper(
-				null, null, _ddmExpressionFactory, ddmForm, ddmFormValues, null,
-				_jsonFactory, LocaleUtil.US);
+				null, null, _ddmExpressionFactory,
+				new DDMFormEvaluatorContext(
+					ddmForm, ddmFormValues, LocaleUtil.US),
+				null, _jsonFactory, null);
 
 		DDMFormEvaluationResult ddmFormEvaluationResult =
 			ddmFormEvaluatorHelper.evaluate();
@@ -636,7 +806,9 @@ public class DDMFormEvaluatorHelperTest {
 			ddmFormFieldEvaluationResultMap =
 				ddmFormEvaluationResult.getDDMFormFieldEvaluationResultsMap();
 
-		Assert.assertEquals(2, ddmFormFieldEvaluationResultMap.size());
+		Assert.assertEquals(
+			ddmFormFieldEvaluationResultMap.toString(), 2,
+			ddmFormFieldEvaluationResultMap.size());
 
 		DDMFormFieldEvaluationResult field1DDMFormFieldEvaluationResult =
 			ddmFormEvaluationResult.geDDMFormFieldEvaluationResult(
@@ -712,6 +884,17 @@ public class DDMFormEvaluatorHelperTest {
 		return ddmFormFieldEvaluationResult;
 	}
 
+	protected void setPortalUtil() throws Exception {
+		PortalUtil portalUtil = new PortalUtil();
+
+		Portal portal = mock(Portal.class);
+
+		when(portal.getUser(_request)).thenReturn(_user);
+		when(portal.getCompany(_request)).thenReturn(_company);
+
+		portalUtil.setPortal(portal);
+	}
+
 	protected void setUpLanguageUtil() {
 		LanguageUtil languageUtil = new LanguageUtil();
 
@@ -727,9 +910,21 @@ public class DDMFormEvaluatorHelperTest {
 		languageUtil.setLanguage(_language);
 	}
 
+	@Mock
+	private Company _company;
+
 	private final DDMExpressionFactory _ddmExpressionFactory =
 		new DDMExpressionFactoryImpl();
 	private final JSONFactory _jsonFactory = new JSONFactoryImpl();
 	private Language _language;
+
+	@Mock
+	private HttpServletRequest _request;
+
+	@Mock
+	private User _user;
+
+	@Mock
+	private UserLocalService _userLocalService;
 
 }

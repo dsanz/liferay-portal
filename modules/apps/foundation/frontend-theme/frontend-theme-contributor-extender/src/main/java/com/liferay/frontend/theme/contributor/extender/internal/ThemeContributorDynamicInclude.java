@@ -19,8 +19,9 @@ import com.liferay.portal.kernel.servlet.PortalWebResourceConstants;
 import com.liferay.portal.kernel.servlet.PortalWebResourcesUtil;
 import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.io.IOException;
@@ -28,7 +29,6 @@ import java.io.PrintWriter;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.TreeSet;
 
 import javax.servlet.http.HttpServletRequest;
@@ -60,43 +60,45 @@ public class ThemeContributorDynamicInclude implements DynamicInclude {
 		long themeLastModified = PortalWebResourcesUtil.getLastModified(
 			PortalWebResourceConstants.RESOURCE_TYPE_THEME_CONTRIBUTOR);
 
-		PortalResourceURLRenderer portalResourceURLRenderer = _create(
-			themeDisplay.isThemeCssFastLoad(), "css", themeLastModified);
+		if (_cssResourceURLs.length > 0) {
+			if (themeDisplay.isThemeCssFastLoad()) {
+				_renderComboCSS(
+					themeLastModified, request, response.getWriter());
+			}
+			else {
+				_renderSimpleCSS(
+					themeLastModified, request, themeDisplay.getPortalURL(),
+					response.getWriter(), _cssResourceURLs);
+			}
+		}
 
-		portalResourceURLRenderer.render(
-			request, response.getWriter(), _cssResourceURLs,
-			new LinkRenderer() {
+		if (_jsResourceURLs.length == 0) {
+			return;
+		}
 
-				@Override
-				public void render(PrintWriter printWriter, String href) {
-					printWriter.println(
-						"<link data-senna-track=\"temporary\" href=\"" + href +
-							"\" rel=\"stylesheet\" type = \"text/css\" />");
-				}
-
-			});
-
-		portalResourceURLRenderer = _create(
-			themeDisplay.isThemeJsFastLoad(), "js", themeLastModified);
-
-		portalResourceURLRenderer.render(
-			request, response.getWriter(), _jsResourceURLs,
-			new LinkRenderer() {
-
-				@Override
-				public void render(PrintWriter printWriter, String href) {
-					printWriter.println(
-						"<script data-senna-track=\"temporary\" src=\"" + href +
-							"\" \" type = \"text/javascript\"></script>");
-				}
-
-			});
+		if (themeDisplay.isThemeJsFastLoad()) {
+			_renderComboJS(themeLastModified, request, response.getWriter());
+		}
+		else {
+			_renderSimpleJS(
+				themeLastModified, request, themeDisplay.getPortalURL(),
+				response.getWriter(), _jsResourceURLs);
+		}
 	}
 
 	@Override
 	public void register(DynamicIncludeRegistry dynamicIncludeRegistry) {
 		dynamicIncludeRegistry.register(
 			"/html/common/themes/top_head.jsp#post");
+	}
+
+	@Reference(unbind = "-")
+	public void setPortal(Portal portal) {
+		String pathContext = portal.getPathContext();
+
+		_comboContextPath = pathContext.concat("/combo");
+
+		_portal = portal;
 	}
 
 	@Activate
@@ -132,19 +134,6 @@ public class ThemeContributorDynamicInclude implements DynamicInclude {
 		}
 	}
 
-	private static PortalResourceURLRenderer _create(
-		boolean combo, final String minifierType,
-		final long themeLastModified) {
-
-		if (combo) {
-			return new ComboPortalResourceURLRenderer(
-				minifierType, themeLastModified);
-		}
-		else {
-			return new SimplePortalResourceURLRenderer(themeLastModified);
-		}
-	}
-
 	private void _rebuild() {
 		Collection<String> cssResourceURLs = new ArrayList<>();
 		Collection<String> jsResourceURLs = new ArrayList<>();
@@ -163,13 +152,15 @@ public class ThemeContributorDynamicInclude implements DynamicInclude {
 				for (String cssResourcePath :
 						bundleWebResources.getCssResourcePaths()) {
 
-					cssResourceURLs.add(servletContextPath + cssResourcePath);
+					cssResourceURLs.add(
+						servletContextPath.concat(cssResourcePath));
 				}
 
 				for (String jsResourcePath :
 						bundleWebResources.getJsResourcePaths()) {
 
-					jsResourceURLs.add(servletContextPath + jsResourcePath);
+					jsResourceURLs.add(
+						servletContextPath.concat(jsResourcePath));
 				}
 			}
 			finally {
@@ -177,99 +168,103 @@ public class ThemeContributorDynamicInclude implements DynamicInclude {
 			}
 		}
 
-		_cssResourceURLs = cssResourceURLs;
-		_jsResourceURLs = jsResourceURLs;
+		_cssResourceURLs = cssResourceURLs.toArray(
+			new String[cssResourceURLs.size()]);
+
+		StringBundler sb = new StringBundler(cssResourceURLs.size() * 2 + 1);
+
+		for (String cssResourceURL : cssResourceURLs) {
+			sb.append("&");
+			sb.append(cssResourceURL);
+		}
+
+		sb.append("\" rel=\"stylesheet\" type = \"text/css\" />\n");
+
+		_mergedCSSResourceURLs = sb.toString();
+
+		_jsResourceURLs = jsResourceURLs.toArray(
+			new String[jsResourceURLs.size()]);
+
+		sb = new StringBundler(jsResourceURLs.size() * 2 + 1);
+
+		for (String jsResourceURL : jsResourceURLs) {
+			sb.append("&");
+			sb.append(jsResourceURL);
+		}
+
+		sb.append("\" \" type = \"text/javascript\"></script>\n");
+
+		_mergedJSResourceURLs = sb.toString();
+	}
+
+	private void _renderComboCSS(
+		long themeLastModified, HttpServletRequest request,
+		PrintWriter printWriter) {
+
+		printWriter.write("<link data-senna-track=\"temporary\" href=\"");
+
+		printWriter.write(
+			_portal.getStaticResourceURL(
+				request, _comboContextPath, "minifierType=css",
+				themeLastModified));
+
+		printWriter.write(_mergedCSSResourceURLs);
+	}
+
+	private void _renderComboJS(
+		long themeLastModified, HttpServletRequest request,
+		PrintWriter printWriter) {
+
+		printWriter.write("<script data-senna-track=\"temporary\" src=\"");
+
+		printWriter.write(
+			_portal.getStaticResourceURL(
+				request, _comboContextPath, "minifierType=js",
+				themeLastModified));
+
+		printWriter.write(_mergedJSResourceURLs);
+	}
+
+	private void _renderSimpleCSS(
+		long themeLastModified, HttpServletRequest request, String portalURL,
+		PrintWriter printWriter, String[] resourceURLs) {
+
+		for (String resourceURL : resourceURLs) {
+			String staticResourceURL = _portal.getStaticResourceURL(
+				request,
+				portalURL.concat(_portal.getPathProxy()).concat(resourceURL),
+				themeLastModified);
+
+			printWriter.write("<link data-senna-track=\"temporary\" href=\"");
+			printWriter.write(staticResourceURL);
+			printWriter.write("\" rel=\"stylesheet\" type = \"text/css\" />\n");
+		}
+	}
+
+	private void _renderSimpleJS(
+		long themeLastModified, HttpServletRequest request, String portalURL,
+		PrintWriter printWriter, String[] resourceURLs) {
+
+		for (String resourceURL : resourceURLs) {
+			String staticResourceURL = _portal.getStaticResourceURL(
+				request,
+				portalURL.concat(_portal.getPathProxy()).concat(resourceURL),
+				themeLastModified);
+
+			printWriter.write("<script data-senna-track=\"temporary\" src=\"");
+			printWriter.write(staticResourceURL);
+			printWriter.write("\" \" type = \"text/javascript\"></script>\n");
+		}
 	}
 
 	private BundleContext _bundleContext;
 	private final Collection<ServiceReference<BundleWebResources>>
 		_bundleWebResourcesServiceReferences = new TreeSet<>();
-	private volatile Collection<String> _cssResourceURLs =
-		Collections.emptyList();
-	private volatile Collection<String> _jsResourceURLs =
-		Collections.emptyList();
-
-	private static class ComboPortalResourceURLRenderer
-		implements PortalResourceURLRenderer {
-
-		public ComboPortalResourceURLRenderer(
-			String minifierType, long themeLastModified) {
-
-			_minifierType = minifierType;
-			_themeLastModified = themeLastModified;
-		}
-
-		@Override
-		public void render(
-			HttpServletRequest request, PrintWriter printWriter,
-			Collection<String> resourceURLs, LinkRenderer linkRenderer) {
-
-			if (resourceURLs.isEmpty()) {
-				return;
-			}
-
-			StringBundler sb = new StringBundler();
-
-			sb.append(
-				PortalUtil.getStaticResourceURL(
-					request, PortalUtil.getPathContext() + "/combo",
-					"minifierType=" + _minifierType, _themeLastModified));
-
-			for (String resourceURL : resourceURLs) {
-				sb.append("&");
-				sb.append(resourceURL);
-			}
-
-			linkRenderer.render(printWriter, sb.toString());
-		}
-
-		private final String _minifierType;
-		private final long _themeLastModified;
-
-	}
-
-	private static class SimplePortalResourceURLRenderer
-		implements PortalResourceURLRenderer {
-
-		public SimplePortalResourceURLRenderer(long themeLastModified) {
-			_themeLastModified = themeLastModified;
-		}
-
-		@Override
-		public void render(
-			HttpServletRequest request, PrintWriter printWriter,
-			Collection<String> resourceURLs, LinkRenderer linkRenderer) {
-
-			ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-			for (String resourceURL : resourceURLs) {
-				String staticResourceURL = PortalUtil.getStaticResourceURL(
-					request,
-					themeDisplay.getPortalURL() + PortalUtil.getPathProxy() +
-						resourceURL,
-					_themeLastModified);
-
-				linkRenderer.render(printWriter, staticResourceURL);
-			}
-		}
-
-		private final long _themeLastModified;
-
-	}
-
-	private interface LinkRenderer {
-
-		public void render(PrintWriter printWriter, String href);
-
-	}
-
-	private interface PortalResourceURLRenderer {
-
-		public void render(
-			HttpServletRequest request, PrintWriter printWriter,
-			Collection<String> resourceURLs, LinkRenderer linkRenderer);
-
-	}
+	private String _comboContextPath;
+	private volatile String[] _cssResourceURLs = StringPool.EMPTY_ARRAY;
+	private volatile String[] _jsResourceURLs = StringPool.EMPTY_ARRAY;
+	private volatile String _mergedCSSResourceURLs;
+	private volatile String _mergedJSResourceURLs;
+	private Portal _portal;
 
 }

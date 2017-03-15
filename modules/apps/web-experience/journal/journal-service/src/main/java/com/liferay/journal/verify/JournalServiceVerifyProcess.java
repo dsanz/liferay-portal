@@ -16,11 +16,7 @@ package com.liferay.journal.verify;
 
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
-import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.dynamic.data.mapping.exception.NoSuchStructureException;
-import com.liferay.dynamic.data.mapping.model.DDMStructure;
-import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
-import com.liferay.dynamic.data.mapping.storage.Fields;
 import com.liferay.journal.configuration.JournalServiceConfiguration;
 import com.liferay.journal.internal.verify.model.JournalArticleResourceVerifiableModel;
 import com.liferay.journal.internal.verify.model.JournalArticleVerifiableModel;
@@ -34,7 +30,6 @@ import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.service.JournalArticleResourceLocalService;
 import com.liferay.journal.service.JournalContentSearchLocalService;
 import com.liferay.journal.service.JournalFolderLocalService;
-import com.liferay.journal.util.JournalConverter;
 import com.liferay.journal.util.comparator.ArticleVersionComparator;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -47,26 +42,17 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
-import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
-import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.SystemEventLocalService;
-import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
-import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
@@ -85,7 +71,6 @@ import java.sql.Timestamp;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import javax.portlet.PortletPreferences;
 
@@ -131,40 +116,11 @@ public class JournalServiceVerifyProcess extends VerifyLayout {
 		verifyProcess.verify();
 	}
 
-	protected String getContextFromDLUrl(String url) {
-		int x = url.indexOf("/documents/");
-
-		if (x < 1) {
-			return StringPool.BLANK;
-		}
-
-		return url.substring(0, x);
-	}
-
 	@Reference(unbind = "-")
 	protected void setAssetEntryLocalService(
 		AssetEntryLocalService assetEntryLocalService) {
 
 		_assetEntryLocalService = assetEntryLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setCompanyLocalService(
-		CompanyLocalService companyLocalService) {
-
-		_companyLocalService = companyLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setDDMStructureLocalService(
-		DDMStructureLocalService ddmStructureLocalService) {
-
-		_ddmStructureLocalService = ddmStructureLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setDLAppLocalService(DLAppLocalService dlAppLocalService) {
-		_dlAppLocalService = dlAppLocalService;
 	}
 
 	@Reference(unbind = "-")
@@ -187,11 +143,6 @@ public class JournalServiceVerifyProcess extends VerifyLayout {
 		JournalContentSearchLocalService journalContentSearchLocalService) {
 
 		_journalContentSearchLocalService = journalContentSearchLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setJournalConverter(JournalConverter journalConverter) {
-		_journalConverter = journalConverter;
 	}
 
 	@Reference(unbind = "-")
@@ -312,89 +263,6 @@ public class JournalServiceVerifyProcess extends VerifyLayout {
 		}
 	}
 
-	protected void updateDocumentLibraryElements(Element element) {
-		Element dynamicContentElement = element.element("dynamic-content");
-
-		String path = dynamicContentElement.getStringValue();
-
-		String context = getContextFromDLUrl(path);
-
-		if (!context.isEmpty()) {
-			path = path.replaceFirst(context, StringPool.BLANK);
-		}
-
-		String[] pathArray = StringUtil.split(path, CharPool.SLASH);
-
-		if (pathArray.length != 5) {
-			return;
-		}
-
-		long groupId = GetterUtil.getLong(pathArray[2]);
-		long folderId = GetterUtil.getLong(pathArray[3]);
-		String title = HttpUtil.decodeURL(HtmlUtil.escape(pathArray[4]));
-
-		FileEntry fileEntry = null;
-
-		try {
-			fileEntry = _dlAppLocalService.getFileEntry(
-				groupId, folderId, title);
-		}
-		catch (PortalException pe) {
-			_log.error(
-				"Unable to get file entry with group ID " + groupId +
-					", folder ID " + folderId + ", and title " + title,
-				pe);
-
-			return;
-		}
-
-		Node node = dynamicContentElement.node(0);
-
-		node.setText(context + path + StringPool.SLASH + fileEntry.getUuid());
-	}
-
-	protected void updateDynamicElements(JournalArticle article)
-		throws Exception {
-
-		if (Validator.isNull(article.getDDMStructureKey())) {
-			return;
-		}
-
-		DDMStructure ddmStructure = _ddmStructureLocalService.getStructure(
-			article.getGroupId(), _portal.getClassNameId(JournalArticle.class),
-			article.getDDMStructureKey(), true);
-
-		Locale originalefaultLocale = LocaleThreadLocal.getDefaultLocale();
-		Locale originalSiteDefaultLocale =
-			LocaleThreadLocal.getSiteDefaultLocale();
-
-		try {
-			Company company = _companyLocalService.getCompany(
-				article.getCompanyId());
-
-			LocaleThreadLocal.setDefaultLocale(company.getLocale());
-
-			LocaleThreadLocal.setSiteDefaultLocale(
-				_portal.getSiteDefaultLocale(article.getGroupId()));
-
-			Fields ddmFields = _journalConverter.getDDMFields(
-				ddmStructure, article.getContent());
-
-			String content = _journalConverter.getContent(
-				ddmStructure, ddmFields);
-
-			if (!content.equals(article.getContent())) {
-				article.setContent(content);
-
-				_journalArticleLocalService.updateJournalArticle(article);
-			}
-		}
-		finally {
-			LocaleThreadLocal.setDefaultLocale(originalefaultLocale);
-			LocaleThreadLocal.setSiteDefaultLocale(originalSiteDefaultLocale);
-		}
-	}
-
 	protected void updateElement(long groupId, Element element) {
 		List<Element> dynamicElementElements = element.elements(
 			"dynamic-element");
@@ -405,10 +273,7 @@ public class JournalServiceVerifyProcess extends VerifyLayout {
 
 		String type = element.attributeValue("type");
 
-		if (type.equals("document_library")) {
-			updateDocumentLibraryElements(element);
-		}
-		else if (type.equals("link_to_layout")) {
+		if (type.equals("link_to_layout")) {
 			updateLinkToLayoutElements(groupId, element);
 		}
 	}
@@ -612,8 +477,7 @@ public class JournalServiceVerifyProcess extends VerifyLayout {
 		try (LoggingTimer loggingTimer = new LoggingTimer();
 			PreparedStatement ps = connection.prepareStatement(
 				"select id_ from JournalArticle where (content like " +
-					"'%document_library%' or content like " +
-						"'%link_to_layout%') and DDMStructureKey != ''");
+					"'%link_to_layout%') and DDMStructureKey != ''");
 			ResultSet rs = ps.executeQuery()) {
 
 			while (rs.next()) {
@@ -742,16 +606,6 @@ public class JournalServiceVerifyProcess extends VerifyLayout {
 						catch (Exception e) {
 							_log.error(
 								"Unable to check the structure for article " +
-									article.getId(),
-								e);
-						}
-
-						try {
-							updateDynamicElements(article);
-						}
-						catch (Exception e) {
-							_log.error(
-								"Unable to update content for article " +
 									article.getId(),
 								e);
 						}
@@ -954,14 +808,10 @@ public class JournalServiceVerifyProcess extends VerifyLayout {
 		JournalServiceVerifyProcess.class);
 
 	private AssetEntryLocalService _assetEntryLocalService;
-	private CompanyLocalService _companyLocalService;
-	private DDMStructureLocalService _ddmStructureLocalService;
-	private DLAppLocalService _dlAppLocalService;
 	private JournalArticleLocalService _journalArticleLocalService;
 	private JournalArticleResourceLocalService
 		_journalArticleResourceLocalService;
 	private JournalContentSearchLocalService _journalContentSearchLocalService;
-	private JournalConverter _journalConverter;
 	private JournalFolderLocalService _journalFolderLocalService;
 
 	@Reference

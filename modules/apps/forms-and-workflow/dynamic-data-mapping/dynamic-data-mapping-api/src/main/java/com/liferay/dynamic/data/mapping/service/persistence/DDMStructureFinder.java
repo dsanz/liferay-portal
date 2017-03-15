@@ -23,6 +23,9 @@ import aQute.bnd.annotation.ProviderType;
 @ProviderType
 public interface DDMStructureFinder {
 	public int countByKeywords(long companyId, long[] groupIds,
+		long classNameId, long classPK, java.lang.String keywords);
+
+	public int countByKeywords(long companyId, long[] groupIds,
 		long classNameId, java.lang.String keywords, int status);
 
 	public int countByC_G_C_S(long companyId, long[] groupIds,
@@ -74,6 +77,11 @@ public interface DDMStructureFinder {
 		java.lang.String[] names, java.lang.String[] descriptions,
 		java.lang.String storageType, int type, int status,
 		boolean andOperator, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.mapping.model.DDMStructure> orderByComparator);
+
+	public java.util.List<com.liferay.dynamic.data.mapping.model.DDMStructure> findByKeywords(
+		long companyId, long[] groupIds, long classNameId, long classPK,
+		java.lang.String keywords, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.mapping.model.DDMStructure> orderByComparator);
 
 	public java.util.List<com.liferay.dynamic.data.mapping.model.DDMStructure> findByKeywords(

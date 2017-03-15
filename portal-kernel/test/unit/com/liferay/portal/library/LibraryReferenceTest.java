@@ -14,11 +14,16 @@
 
 package com.liferay.portal.library;
 
+import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.PropertiesUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 
 import java.nio.charset.Charset;
 import java.nio.file.FileVisitResult;
@@ -29,6 +34,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -55,6 +61,7 @@ public class LibraryReferenceTest {
 	public static void setUpClass() throws Exception {
 		_portalPath = Paths.get(System.getProperty("user.dir"));
 
+		_initGitIgnoreJars();
 		_initLibJars();
 		_initModuleSourceDirs();
 
@@ -78,6 +85,11 @@ public class LibraryReferenceTest {
 	public void testEclipseSourceDirsInModules() {
 		testNonexistentModuleSourceDirReferences(
 			_eclipseModuleSourceDirs, _ECLIPSE_FILE_NAME);
+	}
+
+	@Test
+	public void testLibDependencyJarsInGitIgnore() {
+		testMissingJarReferences(_gitIgnoreJars, _GIT_IGNORE_FILE_NAME);
 	}
 
 	@Test
@@ -124,15 +136,28 @@ public class LibraryReferenceTest {
 	}
 
 	protected void testMissingJarReferences(Set<String> jars, String fileName) {
-		for (String jar : _libJars) {
+		Set<String> libJars = _libJars;
+
+		if (fileName.equals(_GIT_IGNORE_FILE_NAME)) {
+			libJars = _libDependencyJars;
+		}
+
+		for (String jar : libJars) {
 			if (fileName.equals(_VERSIONS_FILE_NAME) &&
-				_excludeJars.contains(jar)) {
+				(_excludeJars.contains(jar) ||
+				 _libDependencyJars.contains(jar))) {
 
 				continue;
 			}
 
+			String referenceJar = jar;
+
+			if (fileName.equals(_GIT_IGNORE_FILE_NAME)) {
+				referenceJar = CharPool.SLASH + referenceJar;
+			}
+
 			Assert.assertTrue(
-				fileName + " is missing a reference to " + jar,
+				fileName + " is missing a reference to " + referenceJar,
 				jars.contains(jar));
 		}
 	}
@@ -151,6 +176,12 @@ public class LibraryReferenceTest {
 		Set<String> jars, String fileName) {
 
 		for (String jar : jars) {
+			if (fileName.equals(_VERSIONS_FILE_NAME)) {
+				Assert.assertFalse(
+					fileName + " has a forbidden reference to " + jar,
+					_libDependencyJars.contains(jar));
+			}
+
 			Assert.assertTrue(
 				fileName + " has a nonexistent reference to " + jar,
 				_libJars.contains(jar));
@@ -196,10 +227,29 @@ public class LibraryReferenceTest {
 		}
 	}
 
+	private static void _initGitIgnoreJars() throws IOException {
+		try (UnsyncBufferedReader unsyncBufferedReader =
+				new UnsyncBufferedReader(
+					new FileReader(new File(_GIT_IGNORE_FILE_NAME)))) {
+
+			String line = null;
+
+			while ((line = unsyncBufferedReader.readLine()) != null) {
+				if (line.startsWith(
+						CharPool.SLASH + _LIB_DIR_NAME + CharPool.SLASH)) {
+
+					_gitIgnoreJars.add(line.substring(1));
+				}
+			}
+		}
+	}
+
 	private static void _initLibJars() throws IOException {
+		Path libDirPath = Paths.get(_LIB_DIR_NAME);
+
 		for (String line :
 				Files.readAllLines(
-					Paths.get(_LIB_DIR_NAME, "/versions-ignore.txt"),
+					libDirPath.resolve("versions-ignore.txt"),
 					Charset.forName("UTF-8"))) {
 
 			line = line.trim();
@@ -210,8 +260,45 @@ public class LibraryReferenceTest {
 		}
 
 		Files.walkFileTree(
-			Paths.get(_LIB_DIR_NAME),
+			libDirPath,
 			new SimpleFileVisitor<Path>() {
+
+				@Override
+				public FileVisitResult preVisitDirectory(
+						Path dirPath, BasicFileAttributes basicFileAttributes)
+					throws IOException {
+
+					Path path = dirPath.resolve("dependencies.properties");
+
+					if (Files.notExists(path)) {
+						return FileVisitResult.CONTINUE;
+					}
+
+					Properties properties;
+
+					try (InputStream inputStream = Files.newInputStream(path)) {
+						properties = PropertiesUtil.load(
+							inputStream, StringPool.UTF8);
+					}
+
+					String dirPathString = dirPath.toString();
+
+					if (File.separatorChar != CharPool.SLASH) {
+						dirPathString = dirPathString.replace(
+							File.separatorChar, CharPool.SLASH);
+					}
+
+					dirPathString += CharPool.SLASH;
+
+					for (String fileTitle : properties.stringPropertyNames()) {
+						String jar = dirPathString + fileTitle + ".jar";
+
+						_libDependencyJars.add(jar);
+						_libJars.add(jar);
+					}
+
+					return FileVisitResult.CONTINUE;
+				}
 
 				@Override
 				public FileVisitResult visitFile(
@@ -321,6 +408,8 @@ public class LibraryReferenceTest {
 
 	private static final String _ECLIPSE_FILE_NAME = ".classpath";
 
+	private static final String _GIT_IGNORE_FILE_NAME = ".gitignore";
+
 	private static final String _LIB_DIR_NAME = "lib";
 
 	private static final String _MODULES_DIR_NAME = "modules";
@@ -335,6 +424,8 @@ public class LibraryReferenceTest {
 	private static final Set<String> _eclipseJars = new HashSet<>();
 	private static final Set<String> _eclipseModuleSourceDirs = new HashSet<>();
 	private static final Set<String> _excludeJars = new HashSet<>();
+	private static final Set<String> _gitIgnoreJars = new HashSet<>();
+	private static final Set<String> _libDependencyJars = new HashSet<>();
 	private static final Set<String> _libJars = new HashSet<>();
 	private static final Set<String> _moduleSourceDirs = new HashSet<>();
 	private static final Set<String> _netBeansJars = new HashSet<>();

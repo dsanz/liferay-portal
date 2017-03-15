@@ -194,7 +194,7 @@ public class VirtualHostFilter extends BasePortalFilter {
 		if (!friendlyURL.equals(StringPool.SLASH) && !_contextPath.isEmpty() &&
 			(friendlyURL.length() > _contextPath.length()) &&
 			friendlyURL.startsWith(_contextPath) &&
-			friendlyURL.charAt(_contextPath.length()) == CharPool.SLASH) {
+			(friendlyURL.charAt(_contextPath.length()) == CharPool.SLASH)) {
 
 			friendlyURL = friendlyURL.substring(_contextPath.length());
 		}
@@ -224,14 +224,14 @@ public class VirtualHostFilter extends BasePortalFilter {
 			_log.debug("Friendly URL is not valid");
 
 			if (i18nLanguageId != null) {
-				String forwardURL = originalFriendlyURL;
-
 				int offset =
 					originalFriendlyURL.length() - friendlyURL.length() -
 						i18nLanguageId.length();
 
 				if (!originalFriendlyURL.regionMatches(
 						offset, i18nLanguageId, 0, i18nLanguageId.length())) {
+
+					String forwardURL = originalFriendlyURL;
 
 					if (offset > 0) {
 						String prefix = originalFriendlyURL.substring(
@@ -244,22 +244,21 @@ public class VirtualHostFilter extends BasePortalFilter {
 					}
 
 					forwardURL = forwardURL.concat(friendlyURL);
+
+					RequestDispatcher requestDispatcher =
+						_servletContext.getRequestDispatcher(forwardURL);
+
+					requestDispatcher.forward(request, response);
+
+					return;
 				}
-
-				RequestDispatcher requestDispatcher =
-					_servletContext.getRequestDispatcher(forwardURL);
-
-				requestDispatcher.forward(request, response);
-
-				return;
 			}
-			else {
-				processFilter(
-					VirtualHostFilter.class.getName(), request, response,
-					filterChain);
 
-				return;
-			}
+			processFilter(
+				VirtualHostFilter.class.getName(), request, response,
+				filterChain);
+
+			return;
 		}
 
 		LayoutSet layoutSet = (LayoutSet)request.getAttribute(

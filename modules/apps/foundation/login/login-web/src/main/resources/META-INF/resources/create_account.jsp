@@ -203,4 +203,4 @@ birthdayCalendar.set(Calendar.YEAR, 1970);
 	</aui:button-row>
 </aui:form>
 
-<liferay-util:include page="/navigation.jsp" servletContext="<%= application %>" />
+<%@ include file="/navigation.jspf" %>

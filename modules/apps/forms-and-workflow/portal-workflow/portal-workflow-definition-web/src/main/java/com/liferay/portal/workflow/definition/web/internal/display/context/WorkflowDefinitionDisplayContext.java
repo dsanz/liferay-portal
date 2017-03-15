@@ -106,6 +106,14 @@ public class WorkflowDefinitionDisplayContext {
 		return String.valueOf(workflowDefinition.getVersion());
 	}
 
+	public List<WorkflowDefinition> getWorkflowDefinitions(String name)
+		throws PortalException {
+
+		return WorkflowDefinitionManagerUtil.getWorkflowDefinitions(
+			_workflowDefinitionRequestHelper.getCompanyId(), name,
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
 	protected PredicateFilter<WorkflowDefinition> createPredicateFilter(
 		String name, String title, boolean andOperator) {
 

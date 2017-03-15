@@ -37,13 +37,11 @@ String eventName = ParamUtil.getString(request, "eventName", liferayPortletRespo
 		{
 			events: {
 				selectedNodesChanged: function(event) {
-					var treeItemId = event.newVal.replace(/(^,)|(,$)/g, '');
-
-					var selectedFolderNode = dom.toElement('[data-treeitemid="' + treeItemId + '"]');
+					var node = event.newVal[0];
 
 					var data = {
-						folderId: treeItemId,
-						folderName: selectedFolderNode.getAttribute('data-treeitemname')
+						folderId: node.id,
+						folderName: node.name
 					};
 
 					Liferay.Util.getOpener().Liferay.fire(

@@ -564,5 +564,10 @@
 			"condition": "Condition 2",
 			"enabled": false
 		}
-	]
+	],
+	"successPage": {
+		"body": "Body Text",
+		"enabled": true,
+		"title": "Title Text"
+	}
 }

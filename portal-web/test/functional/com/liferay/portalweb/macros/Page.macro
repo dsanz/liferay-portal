@@ -176,7 +176,9 @@
 
 		<execute function="Click" locator1="SitePages#ADD_CHILD_PAGE" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${siteChildPageName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${siteChildPageName}" />
+		</execute>
 
 		<execute function="AssertClick" locator1="Button#ADD_PAGE_BTN" value1="Add Page" />
 
@@ -236,7 +238,9 @@
 	</command>
 
 	<command name="addPageTitle">
-		<execute function="Type" locator1="TextInput#NAME" value1="${pageName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${pageName}" />
+		</execute>
 	</command>
 
 	<command name="addPageToSiteTemplates">
@@ -264,7 +268,9 @@
 
 		<execute function="Click" locator1="SitePages#DETAILS_LANGUAGE_TRANSLATIONS" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${pageTranslationName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${pageTranslationName}" />
+		</execute>
 
 		<execute macro="PortletEntry#save" />
 	</command>
@@ -306,6 +312,28 @@
 		<var name="key_nodePort" value="${nodePort}" />
 
 		<execute function="AssertTextEquals#assertPartialText" locator1="Home#NODE_NAME" value1="${nodePort}" />
+	</command>
+
+	<command name="changeCurrentTheme">
+		<execute macro="SitePageNavigator#gotoEditPage">
+			<var name="page" value="${page}" />
+		</execute>
+
+		<execute function="Click" locator1="SitePagesEditPage#CHANGE_CURRENT_THEME_BUTTON" />
+
+		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
+
+		<var name="key_cardText" value="${themeName}" />
+
+		<execute function="AssertTextPresent" locator1="Card#SPECIFIC_LARGE_TEXT" value1="${key_cardText}" />
+
+		<execute function="Click" locator1="Card#SPECIFIC_LARGE_TEXT" />
+
+		<execute function="SelectFrameTop" value1="relative=top" />
+
+		<execute macro="Button#clickSave" />
+
+		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="changeLogoViaPageCP">
@@ -412,7 +440,9 @@
 	</command>
 
 	<command name="editName">
-		<execute function="Type" locator1="TextInput#NAME" value1="${pageNameEdit}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${pageNameEdit}" />
+		</execute>
 
 		<execute function="AssertClick#pauseAssertTextClickAt" locator1="Button#SAVE" value1="Save" />
 
@@ -575,8 +605,13 @@
 	</command>
 
 	<command name="tearDownPG" summary="Delete all pages except the Welcome Page">
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
 		<execute macro="ProductMenu#gotoSite">
-			<var name="site" value="Liferay" />
+			<var name="site" value="${siteName}" />
 		</execute>
 
 		<while>
@@ -638,6 +673,14 @@
 		<var name="key_childPageName" value="${childPageName}" />
 
 		<execute function="AssertTextEquals" locator1="Home#PAGE_CHILD_PAGE" value1="${childPageName}" />
+	</command>
+
+	<command name="viewCurrentTheme">
+		<execute macro="SitePageNavigator#gotoEditPage">
+			<var name="page" value="${page}" />
+		</execute>
+
+		<execute function="AssertTextPresent" locator1="SitePagesEditPage#VIEW_THEME" value1="${themeName}" />
 	</command>
 
 	<command name="viewCustomLogoPG">
@@ -983,6 +1026,14 @@
 
 			<execute function="AssertTextEquals" locator1="Panel#MENU_ITEM" value1="${portletName}" />
 		</for>
+	</command>
+
+	<command name="viewSiteNameTranslationsPG">
+		<execute function="Click" locator1="Language#SELECT_LANGUAGE">
+			<var name="key_language" value="${language}" />
+		</execute>
+
+		<execute function="AssertTextEquals" locator1="Home#SITE_NAME" value1="${siteName}" />
 	</command>
 
 	<command name="viewSiteTemplatePages">

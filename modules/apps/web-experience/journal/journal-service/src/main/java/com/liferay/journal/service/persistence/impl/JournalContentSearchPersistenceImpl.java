@@ -4914,8 +4914,77 @@ public class JournalContentSearchPersistenceImpl extends BasePersistenceImpl<Jou
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (isNew || !JournalContentSearchModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!JournalContentSearchModelImpl.COLUMN_BITMASK_ENABLED) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+		else
+		 if (isNew) {
+			Object[] args = new Object[] {
+					journalContentSearchModelImpl.getPortletId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_PORTLETID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_PORTLETID,
+				args);
+
+			args = new Object[] { journalContentSearchModelImpl.getArticleId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_ARTICLEID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_ARTICLEID,
+				args);
+
+			args = new Object[] {
+					journalContentSearchModelImpl.getGroupId(),
+					journalContentSearchModelImpl.getPrivateLayout()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_P,
+				args);
+
+			args = new Object[] {
+					journalContentSearchModelImpl.getGroupId(),
+					journalContentSearchModelImpl.getArticleId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_A, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_A,
+				args);
+
+			args = new Object[] {
+					journalContentSearchModelImpl.getGroupId(),
+					journalContentSearchModelImpl.getPrivateLayout(),
+					journalContentSearchModelImpl.getLayoutId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_L, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_P_L,
+				args);
+
+			args = new Object[] {
+					journalContentSearchModelImpl.getGroupId(),
+					journalContentSearchModelImpl.getPrivateLayout(),
+					journalContentSearchModelImpl.getArticleId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_A, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_P_A,
+				args);
+
+			args = new Object[] {
+					journalContentSearchModelImpl.getGroupId(),
+					journalContentSearchModelImpl.getPrivateLayout(),
+					journalContentSearchModelImpl.getLayoutId(),
+					journalContentSearchModelImpl.getPortletId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_L_P, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_P_L_P,
+				args);
+
+			finderCache.removeResult(FINDER_PATH_COUNT_ALL, FINDER_ARGS_EMPTY);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL,
+				FINDER_ARGS_EMPTY);
 		}
 
 		else {

@@ -278,17 +278,17 @@ public interface JournalArticleModel extends AttachedModel,
 	public void setClassNameId(long classNameId);
 
 	/**
-	 * Returns the class p k of this journal article.
+	 * Returns the class pk of this journal article.
 	 *
-	 * @return the class p k of this journal article
+	 * @return the class pk of this journal article
 	 */
 	@Override
 	public long getClassPK();
 
 	/**
-	 * Sets the class p k of this journal article.
+	 * Sets the class pk of this journal article.
 	 *
-	 * @param classPK the class p k of this journal article
+	 * @param classPK the class pk of this journal article
 	 */
 	@Override
 	public void setClassPK(long classPK);
@@ -368,32 +368,32 @@ public interface JournalArticleModel extends AttachedModel,
 	public void setContent(String content);
 
 	/**
-	 * Returns the d d m structure key of this journal article.
+	 * Returns the ddm structure key of this journal article.
 	 *
-	 * @return the d d m structure key of this journal article
+	 * @return the ddm structure key of this journal article
 	 */
 	@AutoEscape
 	public String getDDMStructureKey();
 
 	/**
-	 * Sets the d d m structure key of this journal article.
+	 * Sets the ddm structure key of this journal article.
 	 *
-	 * @param DDMStructureKey the d d m structure key of this journal article
+	 * @param DDMStructureKey the ddm structure key of this journal article
 	 */
 	public void setDDMStructureKey(String DDMStructureKey);
 
 	/**
-	 * Returns the d d m template key of this journal article.
+	 * Returns the ddm template key of this journal article.
 	 *
-	 * @return the d d m template key of this journal article
+	 * @return the ddm template key of this journal article
 	 */
 	@AutoEscape
 	public String getDDMTemplateKey();
 
 	/**
-	 * Sets the d d m template key of this journal article.
+	 * Sets the ddm template key of this journal article.
 	 *
-	 * @param DDMTemplateKey the d d m template key of this journal article
+	 * @param DDMTemplateKey the ddm template key of this journal article
 	 */
 	public void setDDMTemplateKey(String DDMTemplateKey);
 
@@ -526,17 +526,17 @@ public interface JournalArticleModel extends AttachedModel,
 	public void setSmallImageId(long smallImageId);
 
 	/**
-	 * Returns the small image u r l of this journal article.
+	 * Returns the small image url of this journal article.
 	 *
-	 * @return the small image u r l of this journal article
+	 * @return the small image url of this journal article
 	 */
 	@AutoEscape
 	public String getSmallImageURL();
 
 	/**
-	 * Sets the small image u r l of this journal article.
+	 * Sets the small image url of this journal article.
 	 *
-	 * @param smallImageURL the small image u r l of this journal article
+	 * @param smallImageURL the small image url of this journal article
 	 */
 	public void setSmallImageURL(String smallImageURL);
 

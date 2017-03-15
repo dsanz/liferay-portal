@@ -97,6 +97,7 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.WorkflowDefinitionLink;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.notifications.UserNotificationDefinition;
@@ -155,6 +156,7 @@ import com.liferay.portal.kernel.util.SubscriptionSender;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.workflow.WorkflowHandler;
 import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.DocumentException;
@@ -164,6 +166,7 @@ import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.XPath;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.social.kernel.model.SocialActivityConstants;
+import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.kernel.exception.RestoreEntryException;
 import com.liferay.trash.kernel.exception.TrashEntryException;
 import com.liferay.trash.kernel.model.TrashEntry;
@@ -320,7 +323,7 @@ public class JournalArticleLocalServiceImpl
 		// Article
 
 		User user = userLocalService.getUser(userId);
-		articleId = StringUtil.toUpperCase(articleId.trim());
+		articleId = StringUtil.toUpperCase(StringUtil.trim(articleId));
 
 		Date displayDate = null;
 		Date expirationDate = null;
@@ -761,8 +764,8 @@ public class JournalArticleLocalServiceImpl
 		// Article
 
 		User user = userLocalService.getUser(userId);
-		oldArticleId = StringUtil.toUpperCase(oldArticleId.trim());
-		newArticleId = StringUtil.toUpperCase(newArticleId.trim());
+		oldArticleId = StringUtil.toUpperCase(StringUtil.trim(oldArticleId));
+		newArticleId = StringUtil.toUpperCase(StringUtil.trim(newArticleId));
 
 		JournalArticle oldArticle = journalArticlePersistence.findByG_A_V(
 			groupId, oldArticleId, version);
@@ -828,10 +831,16 @@ public class JournalArticleLocalServiceImpl
 		newArticle.setSmallImageId(counterLocalService.increment());
 		newArticle.setSmallImageURL(oldArticle.getSmallImageURL());
 
-		if (oldArticle.isPending() ||
-			workflowDefinitionLinkLocalService.hasWorkflowDefinitionLink(
-				user.getCompanyId(), groupId, JournalArticle.class.getName())) {
+		WorkflowHandler workflowHandler =
+			WorkflowHandlerRegistryUtil.getWorkflowHandler(
+				JournalArticle.class.getName());
 
+		WorkflowDefinitionLink workflowDefinitionLink =
+			workflowHandler.getWorkflowDefinitionLink(
+				oldArticle.getCompanyId(), oldArticle.getGroupId(),
+				oldArticle.getId());
+
+		if (oldArticle.isPending() || (workflowDefinitionLink != null)) {
 			newArticle.setStatus(WorkflowConstants.STATUS_DRAFT);
 		}
 		else {
@@ -2846,7 +2855,7 @@ public class JournalArticleLocalServiceImpl
 		}
 
 		QueryDefinition<JournalArticle> approvedQueryDefinition =
-			new QueryDefinition<JournalArticle>(
+			new QueryDefinition<>(
 				WorkflowConstants.STATUS_APPROVED, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, new ArticleVersionComparator());
 
@@ -2858,7 +2867,7 @@ public class JournalArticleLocalServiceImpl
 				ddmStructureKeys, approvedQueryDefinition));
 
 		QueryDefinition<JournalArticle> trashQueryDefinition =
-			new QueryDefinition<JournalArticle>(
+			new QueryDefinition<>(
 				WorkflowConstants.STATUS_IN_TRASH, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, new ArticleVersionComparator());
 
@@ -3283,6 +3292,16 @@ public class JournalArticleLocalServiceImpl
 	public int getStructureArticlesCount(long groupId, String ddmStructureKey) {
 		return journalArticlePersistence.countByG_DDMSK(
 			groupId, ddmStructureKey);
+	}
+
+	/**
+	 * @deprecated As of 4.0.0, with no direct replacement
+	 */
+	@Deprecated
+	public com.liferay.portal.kernel.service.SubscriptionLocalService
+		getSubscriptionLocalService() {
+
+		return subscriptionLocalService;
 	}
 
 	/**
@@ -4916,6 +4935,17 @@ public class JournalArticleLocalServiceImpl
 		return searchJournalArticles(searchContext);
 	}
 
+	/**
+	 * @deprecated As of 4.0.0, with no direct replacement
+	 */
+	@Deprecated
+	public void setSubscriptionLocalService(
+		com.liferay.portal.kernel.service.SubscriptionLocalService
+			subscriptionLocalService) {
+
+		this.subscriptionLocalService = subscriptionLocalService;
+	}
+
 	@Override
 	public void setTreePaths(
 			final long folderId, final String treePath, final boolean reindex)
@@ -4991,7 +5021,7 @@ public class JournalArticleLocalServiceImpl
 			long groupId, long userId, long ddmStructureId)
 		throws PortalException {
 
-		subscriptionLocalService.addSubscription(
+		_subscriptionLocalService.addSubscription(
 			userId, groupId, DDMStructure.class.getName(), ddmStructureId);
 	}
 
@@ -5008,7 +5038,7 @@ public class JournalArticleLocalServiceImpl
 			long groupId, long userId, long ddmStructureId)
 		throws PortalException {
 
-		subscriptionLocalService.deleteSubscription(
+		_subscriptionLocalService.deleteSubscription(
 			userId, DDMStructure.class.getName(), ddmStructureId);
 	}
 
@@ -5253,7 +5283,7 @@ public class JournalArticleLocalServiceImpl
 		// Article
 
 		User user = userLocalService.getUser(userId);
-		articleId = StringUtil.toUpperCase(articleId.trim());
+		articleId = StringUtil.toUpperCase(StringUtil.trim(articleId));
 
 		byte[] smallImageBytes = null;
 
@@ -8134,6 +8164,16 @@ public class JournalArticleLocalServiceImpl
 	@ServiceReference(type = JournalConverter.class)
 	protected JournalConverter journalConverter;
 
+	/**
+	 * @deprecated As of 4.0.0, with no direct replacement
+	 */
+	@Deprecated
+	@ServiceReference(
+		type = com.liferay.portal.kernel.service.SubscriptionLocalService.class
+	)
+	protected com.liferay.portal.kernel.service.SubscriptionLocalService
+		subscriptionLocalService;
+
 	private List<JournalArticleLocalization> _addArticleLocalizedFields(
 			long companyId, long articlePK, Map<Locale, String> titleMap,
 			Map<Locale, String> descriptionMap)
@@ -8269,5 +8309,8 @@ public class JournalArticleLocalServiceImpl
 	private JournalFileUploadsConfiguration _journalFileUploadsConfiguration;
 
 	private Date _previousCheckDate;
+
+	@ServiceReference(type = SubscriptionLocalService.class)
+	private SubscriptionLocalService _subscriptionLocalService;
 
 }
