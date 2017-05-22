@@ -29,6 +29,31 @@
 
 	<target depends="dist-module-artifacts,update-app-marketplace-verson,write-app-change-log" name="build-app">
 		<delete file="${dist.dir}/ticket.list.tmp" />
+
+		<antcall target="git-clean-up" />
+	</target>
+
+	<target name="build-app-all">
+		<fail message="Please provide a comma delimited list of app names.${line.separator}(e.g. -Dapp.names=collaboration,forms-and-workflow,foundation,static,web-experience)">
+			<condition>
+				<not>
+					<isset property="app.names" />
+				</not>
+			</condition>
+		</fail>
+
+		<for list="${app.names}" param="app.name">
+			<sequential>
+				<antcall inheritall="false" target="build-app">
+					<param name="app.name" value="@{app.name}" />
+					<param name="git.clean.up" value="true" />
+				</antcall>
+			</sequential>
+		</for>
+	</target>
+
+	<target depends="dist-module-artifacts,get-app-change-log" name="build-app-from-changelog">
+		<delete file="${dist.dir}/ticket.list.tmp" />
 	</target>
 
 	<target depends="dist-module-artifacts-lpkg,write-lpkg-marketplace-properties" name="build-app-lpkg" unless="module.dirs.null">
@@ -110,7 +135,7 @@
 			</filterchain>
 		</loadfile>
 
-		<echo message="Checking out public releng info from commit ID: ${git.commit.portal.public}" />
+		<echo message="Checking out ${app.name} public releng info from commit ID: ${git.commit.portal.public}" />
 
 		<exec dir="${project.dir}" executable="git">
 			<arg value="fetch" />
@@ -120,7 +145,7 @@
 		<exec dir="${project.dir}/modules" executable="git">
 			<arg value="checkout" />
 			<arg value="${git.commit.portal.public}" />
-			<arg value=".releng" />
+			<arg value=".releng/apps/${app.name}" />
 		</exec>
 	</target>
 
@@ -164,14 +189,14 @@
 			<flattenmapper />
 
 			<path>
-				<fileset dir="${dist.dir}" includes="*.jar" />
+				<fileset dir="${dist.dir}" includes="*.jar,*.war" />
 			</path>
 		</pathconvert>
 
 		<property name="app.artifacts" value="app.artifacts-${app.version}=\${line.separator}&#x0009;${module.versions.list}" />
 	</target>
 
-	<target depends="init-build-app,get-app-version" name="get-app-change-log">
+	<target depends="dist-module-artifacts,init-build-app,get-app-version" name="get-app-change-log">
 		<loadfile failonerror="false" property="app.ticket.list" srcfile="${dist.dir}/ticket.list.tmp">
 			<filterchain>
 				<tokenfilter>
@@ -205,7 +230,7 @@
 	<target depends="get-app-version" name="get-app-git-id">
 		<exec dir="${project.dir}" executable="git" outputproperty="git.rev.parse.output">
 			<arg value="rev-parse" />
-			<arg value="head" />
+			<arg value="HEAD" />
 		</exec>
 
 		<property name="app.git.id" value="app.git.id-${app.version}=${git.rev.parse.output}" />
@@ -214,10 +239,14 @@
 	<target depends="init-build-app" name="get-app-properties">
 		<property file="${releng.app.dir}/app.properties" />
 
+		<condition property="app.version" value="${app.marketplace.version}">
+			<istrue value="${build.app.from.changelog}" />
+		</condition>
+
 		<property name="app.version.previous.release" value="${app.marketplace.version}" />
 	</target>
 
-	<target depends="get-app-properties" name="get-app-version">
+	<target depends="get-app-properties" name="get-app-version" unless="build.app.from.changelog">
 		<loadfile property="app.major.minor.version.previous.release">
 			<filterchain>
 				<replaceregex pattern="(\d{1,2}\.\d{1,2})\.\d{1,2}" replace="\1" />
@@ -256,12 +285,34 @@
 		</pathconvert>
 	</target>
 
-	<target depends="init-build-app" name="get-osgi-static-modules">
+	<target depends="init-build-app" if="osgi.static.dir.available" name="get-osgi-static-modules">
 		<pathconvert property="osgi.static.modules">
 			<fileset dir="${osgi.dir}/static" includes="*.jar" />
 
 			<flattenmapper />
 		</pathconvert>
+	</target>
+
+	<target if="git.clean.up" name="git-clean-up">
+		<exec dir="${modules.dir}" executable="git" failonerror="true">
+			<arg value="reset" />
+		</exec>
+
+		<exec dir="${modules.dir}" executable="git" failonerror="true">
+			<arg value="clean" />
+			<arg value="-df" />
+		</exec>
+
+		<exec dir="${modules.dir}" executable="git" failonerror="true">
+			<arg value="add" />
+			<arg value=".releng" />
+		</exec>
+
+		<exec dir="${modules.dir}" executable="git" failonerror="true">
+			<arg value="commit" />
+			<arg value="-m" />
+			<arg value="${Liferay-Releng-App-Title} ${app.version}" />
+		</exec>
 	</target>
 
 	<target name="index-modules-and-app-lpkgs">
@@ -378,6 +429,10 @@
 				</not>
 			</and>
 		</condition>
+
+		<condition property="osgi.static.dir.available">
+			<available file="${osgi.dir}/static" />
+		</condition>
 	</target>
 
 	<target name="reset-all">
@@ -415,7 +470,7 @@
 		</subant>
 	</target>
 
-	<target depends="get-app-version,get-artifact-versions-previous-release" name="update-app-marketplace-verson">
+	<target depends="get-app-version,get-artifact-versions-previous-release" name="update-app-marketplace-verson" unless="build.app.from.changelog">
 		<echo message="app.version.previous.release = ${app.version.previous.release}" />
 
 		<echo message="app.version = ${app.version}" />
@@ -429,7 +484,7 @@
 		/>
 	</target>
 
-	<target depends="dist-module-artifacts,get-app-artifacts,get-app-change-log,get-app-change-log-header,get-app-git-id,release-tool-dependencies" name="write-app-change-log">
+	<target depends="dist-module-artifacts,get-app-artifacts,get-app-change-log,get-app-change-log-header,get-app-git-id,release-tool-dependencies" name="write-app-change-log" unless="build.app.from.changelog">
 		<property name="double.space" value="${line.separator}${line.separator}" />
 
 		<echo append="true" file="${releng.app.dir}/app.changelog" message="${app.change.log.header}" />

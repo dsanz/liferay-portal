@@ -15,10 +15,12 @@
 package com.liferay.document.library.verify.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryMetadata;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.model.DLFileVersion;
+import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.document.library.kernel.service.DLAppServiceUtil;
@@ -63,6 +65,7 @@ import com.liferay.portal.test.randomizerbumpers.TikaSafeRandomizerBumper;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.verify.VerifyProcess;
 import com.liferay.portal.verify.test.BaseVerifyProcessTestCase;
+import com.liferay.portlet.documentlibrary.util.test.DLTestUtil;
 import com.liferay.registry.Filter;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
@@ -263,6 +266,32 @@ public class DLServiceVerifyProcessTest extends BaseVerifyProcessTestCase {
 	}
 
 	@Test
+	public void testDLFileEntryWithNoAssetEntryGetsAssetEntryAdded()
+		throws Exception {
+
+		DLFileEntry dlFileEntry = addDLFileEntry();
+
+		long fileEntryId = dlFileEntry.getFileEntryId();
+
+		AssetEntryLocalServiceUtil.deleteEntry(
+			DLFileEntry.class.getName(), fileEntryId);
+
+		Assert.assertNotNull(
+			DLFileEntryLocalServiceUtil.fetchDLFileEntry(fileEntryId));
+		Assert.assertNull(
+			AssetEntryLocalServiceUtil.fetchEntry(
+				DLFileEntry.class.getName(), fileEntryId));
+
+		doVerify();
+
+		Assert.assertNotNull(
+			DLFileEntryLocalServiceUtil.fetchDLFileEntry(fileEntryId));
+		Assert.assertNotNull(
+			AssetEntryLocalServiceUtil.fetchEntry(
+				DLFileEntry.class.getName(), fileEntryId));
+	}
+
+	@Test
 	public void testDLFileShortcutTreePathWithDLFileShortcutInTrash()
 		throws Exception {
 
@@ -372,6 +401,30 @@ public class DLServiceVerifyProcessTest extends BaseVerifyProcessTestCase {
 			grandparentFolder.getFolderId(), false);
 
 		doVerify();
+	}
+
+	@Test
+	public void testDLFolderWithNoAssetEntryGetsAssetEntryAdded()
+		throws Exception {
+
+		DLFolder dlFolder = DLTestUtil.addDLFolder(_group.getGroupId());
+
+		long folderId = dlFolder.getFolderId();
+
+		AssetEntryLocalServiceUtil.deleteEntry(
+			DLFolder.class.getName(), folderId);
+
+		Assert.assertNotNull(DLFolderLocalServiceUtil.fetchDLFolder(folderId));
+		Assert.assertNull(
+			AssetEntryLocalServiceUtil.fetchEntry(
+				DLFolder.class.getName(), folderId));
+
+		doVerify();
+
+		Assert.assertNotNull(DLFolderLocalServiceUtil.fetchDLFolder(folderId));
+		Assert.assertNotNull(
+			AssetEntryLocalServiceUtil.fetchEntry(
+				DLFolder.class.getName(), folderId));
 	}
 
 	protected DLFileEntry addDLFileEntry() throws Exception {

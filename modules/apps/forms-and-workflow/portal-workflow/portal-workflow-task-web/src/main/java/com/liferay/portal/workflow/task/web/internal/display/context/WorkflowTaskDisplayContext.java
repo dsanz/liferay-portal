@@ -384,14 +384,6 @@ public class WorkflowTaskDisplayContext {
 		return _orderByType;
 	}
 
-	public long[] getPooledActorsIds(WorkflowTask workflowTask)
-		throws PortalException {
-
-		return WorkflowTaskManagerUtil.getPooledActorsIds(
-			_workflowTaskRequestHelper.getCompanyId(),
-			workflowTask.getWorkflowTaskId());
-	}
-
 	public PortletURL getPortletURL() {
 		PortletURL portletURL = _liferayPortletResponse.createRenderURL();
 
@@ -448,8 +440,9 @@ public class WorkflowTaskDisplayContext {
 		String className = getWorkflowContextEntryClassName(workflowTask);
 		long classPK = getWorkflowContextEntryClassPK(workflowTask);
 
-		String state = WorkflowInstanceLinkLocalServiceUtil.getState(
-			companyId, groupId, className, classPK);
+		String state = HtmlUtil.escape(
+			WorkflowInstanceLinkLocalServiceUtil.getState(
+				companyId, groupId, className, classPK));
 
 		return LanguageUtil.get(_workflowTaskRequestHelper.getRequest(), state);
 	}
@@ -979,6 +972,14 @@ public class WorkflowTaskDisplayContext {
 		}
 
 		return curParam;
+	}
+
+	protected long[] getPooledActorsIds(WorkflowTask workflowTask)
+		throws PortalException {
+
+		return WorkflowTaskManagerUtil.getPooledActorsIds(
+			_workflowTaskRequestHelper.getCompanyId(),
+			workflowTask.getWorkflowTaskId());
 	}
 
 	protected Role getRole(long roleId) throws PortalException {

@@ -24,6 +24,7 @@ import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.constants.JournalWebKeys;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleConstants;
+import com.liferay.journal.model.JournalArticleDisplay;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.model.JournalFolderConstants;
 import com.liferay.journal.service.JournalArticleLocalServiceUtil;
@@ -31,6 +32,7 @@ import com.liferay.journal.service.JournalArticleServiceUtil;
 import com.liferay.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.journal.service.JournalFolderServiceUtil;
 import com.liferay.journal.util.JournalConverter;
+import com.liferay.journal.util.comparator.FolderArticleArticleIdComparator;
 import com.liferay.journal.util.comparator.FolderArticleDisplayDateComparator;
 import com.liferay.journal.util.comparator.FolderArticleModifiedDateComparator;
 import com.liferay.journal.util.comparator.FolderArticleTitleComparator;
@@ -49,13 +51,18 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portal.kernel.portlet.PortletRequestModel;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.search.Document;
+import com.liferay.portal.kernel.search.DocumentImpl;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
@@ -63,32 +70,34 @@ import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchContextFactory;
-import com.liferay.portal.kernel.search.SearchResult;
-import com.liferay.portal.kernel.search.SearchResultUtil;
 import com.liferay.portal.kernel.search.Sort;
-import com.liferay.portal.kernel.search.Summary;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PrefsParamUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.trash.kernel.util.TrashUtil;
 
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -148,6 +157,41 @@ public class JournalDisplayContext {
 		_article = ActionUtil.getArticle(_request);
 
 		return _article;
+	}
+
+	public JournalArticleDisplay getArticleDisplay() throws Exception {
+		if (_articleDisplay != null) {
+			return _articleDisplay;
+		}
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		int page = ParamUtil.getInteger(_liferayPortletRequest, "page");
+
+		_articleDisplay = JournalArticleLocalServiceUtil.getArticleDisplay(
+			getArticle(), null, null, themeDisplay.getLanguageId(), page,
+			new PortletRequestModel(
+				_liferayPortletRequest, _liferayPortletResponse),
+			themeDisplay);
+
+		return _articleDisplay;
+	}
+
+	public List<Locale> getAvailableArticleLocales() throws PortalException {
+		JournalArticle article = getArticle();
+
+		if (article == null) {
+			return Collections.emptyList();
+		}
+
+		List<Locale> availableLocales = new ArrayList<>();
+
+		for (String languageId : article.getAvailableLanguageIds()) {
+			availableLocales.add(LocaleUtil.fromLanguageId(languageId));
+		}
+
+		return availableLocales;
 	}
 
 	public String[] getCharactersBlacklist() throws PortalException {
@@ -361,7 +405,7 @@ public class JournalDisplayContext {
 		return _folderId;
 	}
 
-	public String getFoldersJSON() {
+	public JSONArray getFoldersJSONArray() throws Exception {
 		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -377,7 +421,11 @@ public class JournalDisplayContext {
 		jsonObject.put(
 			"name", LanguageUtil.get(themeDisplay.getLocale(), "home"));
 
-		return jsonObject.toString();
+		JSONArray rootJSONArray = JSONFactoryUtil.createJSONArray();
+
+		rootJSONArray.put(jsonObject);
+
+		return rootJSONArray;
 	}
 
 	public String getFolderTitle() throws PortalException {
@@ -403,6 +451,41 @@ public class JournalDisplayContext {
 		_keywords = ParamUtil.getString(_request, "keywords");
 
 		return _keywords;
+	}
+
+	public String getLayoutBreadcrumb(Layout layout) throws Exception {
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		Locale locale = themeDisplay.getLocale();
+
+		List<Layout> ancestors = layout.getAncestors();
+
+		StringBundler sb = new StringBundler(4 * ancestors.size() + 5);
+
+		if (layout.isPrivateLayout()) {
+			sb.append(LanguageUtil.get(_request, "private-pages"));
+		}
+		else {
+			sb.append(LanguageUtil.get(_request, "public-pages"));
+		}
+
+		sb.append(StringPool.SPACE);
+		sb.append(StringPool.GREATER_THAN);
+		sb.append(StringPool.SPACE);
+
+		Collections.reverse(ancestors);
+
+		for (Layout ancestor : ancestors) {
+			sb.append(HtmlUtil.escape(ancestor.getName(locale)));
+			sb.append(StringPool.SPACE);
+			sb.append(StringPool.GREATER_THAN);
+			sb.append(StringPool.SPACE);
+		}
+
+		sb.append(HtmlUtil.escape(layout.getName(locale)));
+
+		return sb.toString();
 	}
 
 	public List<ManagementBarFilterItem> getManagementBarStatusFilterItems()
@@ -516,6 +599,21 @@ public class JournalDisplayContext {
 		return _orderByType;
 	}
 
+	public String[] getOrderColumns() {
+		JournalWebConfiguration journalWebConfiguration =
+			(JournalWebConfiguration)_request.getAttribute(
+				JournalWebConfiguration.class.getName());
+
+		String[] orderColumns =
+			new String[] {"display-date", "modified-date", "title"};
+
+		if (!journalWebConfiguration.journalArticleForceAutogenerateId()) {
+			orderColumns = ArrayUtil.append(orderColumns, "id");
+		}
+
+		return orderColumns;
+	}
+
 	public PortletURL getPortletURL() throws PortalException {
 		PortletURL portletURL = _liferayPortletResponse.createRenderURL();
 
@@ -581,6 +679,12 @@ public class JournalDisplayContext {
 				"showEditActions", String.valueOf(isShowEditActions()));
 		}
 
+		String tabs1 = getTabs1();
+
+		if (Validator.isNotNull(tabs1)) {
+			portletURL.setParameter("tabs1", tabs1);
+		}
+
 		return portletURL;
 	}
 
@@ -601,10 +705,8 @@ public class JournalDisplayContext {
 		return _restrictionType;
 	}
 
-	public SearchContainer getSearchContainer() throws PortalException {
-		if (_articleSearchContainer != null) {
-			return _articleSearchContainer;
-		}
+	public SearchContainer getSearchContainer(boolean showVersions)
+		throws PortalException {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -639,7 +741,7 @@ public class JournalDisplayContext {
 		articleSearchContainer.setRowChecker(entriesChecker);
 
 		EntriesMover entriesMover = new EntriesMover(
-			themeDisplay.getScopeGroupId());
+			TrashUtil.isTrashEnabled(themeDisplay.getScopeGroupId()));
 
 		articleSearchContainer.setRowMover(entriesMover);
 
@@ -738,6 +840,11 @@ public class JournalDisplayContext {
 				if (Objects.equals(getOrderByCol(), "display-date")) {
 					sort = new Sort("displayDate", Sort.LONG_TYPE, orderByAsc);
 				}
+				else if (Objects.equals(getOrderByCol(), "id")) {
+					sort = new Sort(
+						DocumentImpl.getSortableFieldName(Field.ARTICLE_ID),
+						Sort.STRING_TYPE, !orderByAsc);
+				}
 				else if (Objects.equals(getOrderByCol(), "modified-date")) {
 					sort = new Sort(
 						Field.MODIFIED_DATE, Sort.LONG_TYPE, orderByAsc);
@@ -750,14 +857,22 @@ public class JournalDisplayContext {
 
 				params.put("expandoAttributes", getKeywords());
 
-				Indexer indexer = JournalSearcher.getInstance();
+				Indexer indexer = null;
+
+				if (!showVersions) {
+					indexer = JournalSearcher.getInstance();
+				}
+				else {
+					indexer = IndexerRegistryUtil.getIndexer(
+						JournalArticle.class);
+				}
 
 				SearchContext searchContext = buildSearchContext(
 					themeDisplay.getCompanyId(), themeDisplay.getScopeGroupId(),
 					folderIds, JournalArticleConstants.CLASSNAME_ID_DEFAULT,
 					getDDMStructureKey(), getDDMTemplateKey(), getKeywords(),
 					params, articleSearchContainer.getStart(),
-					articleSearchContainer.getEnd(), sort);
+					articleSearchContainer.getEnd(), sort, showVersions);
 
 				Hits hits = indexer.search(searchContext);
 
@@ -767,34 +882,43 @@ public class JournalDisplayContext {
 
 				List results = new ArrayList<>();
 
-				List<SearchResult> searchResults =
-					SearchResultUtil.getSearchResults(
-						hits, searchContext.getLocale(), _liferayPortletRequest,
-						_liferayPortletResponse);
+				Document[] documents = hits.getDocs();
 
-				for (int i = 0; i < searchResults.size(); i++) {
-					SearchResult searchResult = searchResults.get(i);
-
-					Summary summary = searchResult.getSummary();
-
-					summary.setQueryTerms(hits.getQueryTerms());
+				for (int i = 0; i < documents.length; i++) {
+					Document document = documents[i];
 
 					JournalArticle article = null;
 					JournalFolder folder = null;
 
-					String className = searchResult.getClassName();
+					String className = document.get(Field.ENTRY_CLASS_NAME);
+					long classPK = GetterUtil.getLong(
+						document.get(Field.ENTRY_CLASS_PK));
 
 					if (className.equals(JournalArticle.class.getName())) {
-						article =
-							JournalArticleLocalServiceUtil.fetchLatestArticle(
-								searchResult.getClassPK(),
-								WorkflowConstants.STATUS_ANY, false);
+						if (!showVersions) {
+							article =
+								JournalArticleLocalServiceUtil.
+									fetchLatestArticle(
+										classPK, WorkflowConstants.STATUS_ANY,
+										false);
+						}
+						else {
+							String articleId = document.get(Field.ARTICLE_ID);
+							long groupId = GetterUtil.getLong(
+								document.get(Field.GROUP_ID));
+							double version = GetterUtil.getDouble(
+								document.get(Field.VERSION));
+
+							article =
+								JournalArticleLocalServiceUtil.fetchArticle(
+									groupId, articleId, version);
+						}
 
 						results.add(article);
 					}
 					else if (className.equals(JournalFolder.class.getName())) {
 						folder = JournalFolderLocalServiceUtil.getFolder(
-							searchResult.getClassPK());
+							classPK);
 
 						results.add(folder);
 					}
@@ -841,6 +965,10 @@ public class JournalDisplayContext {
 				folderOrderByComparator =
 					new FolderArticleDisplayDateComparator(orderByAsc);
 			}
+			else if (Objects.equals(getOrderByCol(), "id")) {
+				folderOrderByComparator = new FolderArticleArticleIdComparator(
+					orderByAsc);
+			}
 			else if (Objects.equals(getOrderByCol(), "modified-date")) {
 				folderOrderByComparator =
 					new FolderArticleModifiedDateComparator(orderByAsc);
@@ -858,9 +986,7 @@ public class JournalDisplayContext {
 			articleSearchContainer.setResults(results);
 		}
 
-		_articleSearchContainer = articleSearchContainer;
-
-		return _articleSearchContainer;
+		return articleSearchContainer;
 	}
 
 	public int getStatus() {
@@ -888,8 +1014,24 @@ public class JournalDisplayContext {
 		return _status;
 	}
 
+	public String getTabs1() {
+		if (_tabs1 != null) {
+			return _tabs1;
+		}
+
+		_tabs1 = ParamUtil.getString(_request, "tabs1");
+
+		return _tabs1;
+	}
+
 	public int getTotal() throws PortalException {
-		SearchContainer articleSearch = getSearchContainer();
+		SearchContainer articleSearch = getSearchContainer(false);
+
+		return articleSearch.getTotal();
+	}
+
+	public int getVersionsTotal() throws PortalException {
+		SearchContainer articleSearch = getSearchContainer(true);
 
 		return articleSearch.getTotal();
 	}
@@ -904,6 +1046,14 @@ public class JournalDisplayContext {
 
 	public boolean hasResults() throws PortalException {
 		if (getTotal() > 0) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public boolean hasVersionsResults() throws PortalException {
+		if (getVersionsTotal() > 0) {
 			return true;
 		}
 
@@ -1039,7 +1189,7 @@ public class JournalDisplayContext {
 		long companyId, long groupId, List<java.lang.Long> folderIds,
 		long classNameId, String ddmStructureKey, String ddmTemplateKey,
 		String keywords, LinkedHashMap<String, Object> params, int start,
-		int end, Sort sort) {
+		int end, Sort sort, boolean showVersions) {
 
 		String articleId = null;
 		String title = null;
@@ -1094,7 +1244,7 @@ public class JournalDisplayContext {
 			}
 		}
 
-		searchContext.setAttribute("head", Boolean.FALSE.toString());
+		searchContext.setAttribute("head", !showVersions);
 		searchContext.setAttribute("params", params);
 		searchContext.setEnd(end);
 		searchContext.setFolderIds(folderIds);
@@ -1169,7 +1319,9 @@ public class JournalDisplayContext {
 			portletURL.toString());
 	}
 
-	private JSONArray _getFoldersJSONArray(long groupId, long folderId) {
+	private JSONArray _getFoldersJSONArray(long groupId, long folderId)
+		throws Exception {
+
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
 		List<JournalFolder> folders = JournalFolderLocalServiceUtil.getFolders(
@@ -1178,16 +1330,20 @@ public class JournalDisplayContext {
 		for (JournalFolder folder : folders) {
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
-			JSONArray childrenJsonArray = _getFoldersJSONArray(
+			JSONArray childrenJSONArray = _getFoldersJSONArray(
 				groupId, folder.getFolderId());
 
-			if (childrenJsonArray.length() > 0) {
-				jsonObject.put("children", childrenJsonArray);
+			if (childrenJSONArray.length() > 0) {
+				jsonObject.put("children", childrenJSONArray);
 			}
 
 			jsonObject.put("icon", "folder");
 			jsonObject.put("id", folder.getFolderId());
 			jsonObject.put("name", folder.getName());
+
+			if (folder.getFolderId() == getFolderId()) {
+				jsonObject.put("selected", true);
+			}
 
 			jsonArray.put(jsonObject);
 		}
@@ -1195,9 +1351,12 @@ public class JournalDisplayContext {
 		return jsonArray;
 	}
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		JournalDisplayContext.class);
+
 	private String[] _addMenuFavItems;
 	private JournalArticle _article;
-	private SearchContainer _articleSearchContainer;
+	private JournalArticleDisplay _articleDisplay;
 	private DDMFormValues _ddmFormValues;
 	private String _ddmStructureKey;
 	private String _ddmStructureName;
@@ -1219,5 +1378,6 @@ public class JournalDisplayContext {
 	private Integer _restrictionType;
 	private Boolean _showEditActions;
 	private Integer _status;
+	private String _tabs1;
 
 }

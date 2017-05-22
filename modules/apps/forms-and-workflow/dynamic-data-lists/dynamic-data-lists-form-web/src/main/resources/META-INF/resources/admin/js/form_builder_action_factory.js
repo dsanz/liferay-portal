@@ -4,11 +4,32 @@ AUI.add(
 		var FormBuilderActionFactory = A.Component.create(
 			{
 				ATTRS: {
+					dataProviders: {
+						value: []
+					},
+
 					fields: {
 						value: []
 					},
+
+					getDataProviderParametersSettingsURL: {
+						value: ''
+					},
+
+					getDataProviders: {
+						value: []
+					},
+
+					getFunctionsURL: {
+						value: ''
+					},
+
 					pages: {
 						value: []
+					},
+
+					portletNamespace: {
+						value: ''
 					}
 				},
 
@@ -27,6 +48,7 @@ AUI.add(
 								{
 									action: act,
 									boundingBox: container,
+									bubbleTargets: [instance],
 									index: index,
 									options: instance.get('fields'),
 									type: type
@@ -38,8 +60,37 @@ AUI.add(
 								{
 									action: act,
 									boundingBox: container,
+									bubbleTargets: [instance],
 									index: index,
 									options: instance.get('pages')
+								}
+							);
+						}
+						else if (type === 'auto-fill') {
+							action = new Liferay.DDL.FormBuilderActionAutofill(
+								{
+									action: act,
+									boundingBox: container,
+									bubbleTargets: [instance],
+									fields: instance.get('fields'),
+									getDataProviderParametersSettingsURL: instance.get('getDataProviderParametersSettingsURL'),
+									getDataProviders: instance.get('getDataProviders'),
+									index: index,
+									options: instance.get('dataProviders'),
+									portletNamespace: instance.get('portletNamespace')
+								}
+							);
+						}
+						else if (type === 'calculate') {
+							action = new Liferay.DDL.FormBuilderActionCalculate(
+								{
+									action: act,
+									boundingBox: container,
+									bubbleTargets: [instance],
+									getFunctionsURL: instance.get('getFunctionsURL'),
+									index: index,
+									options: instance.get('fields'),
+									portletNamespace: instance.get('portletNamespace')
 								}
 							);
 						}

@@ -18,45 +18,17 @@
 
 <%
 String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectFolder");
+
+Map<String, Object> context = new HashMap<>();
+
+context.put("itemSelectorSaveEvent", eventName);
+context.put("namespace", liferayPortletResponse.getNamespace());
+context.put("nodes", journalDisplayContext.getFoldersJSONArray());
+context.put("pathThemeImages", themeDisplay.getPathThemeImages());
 %>
 
-<aui:form cssClass="container-fluid-1280" name="selectFolderFm">
-	<aui:fieldset-group markupView="lexicon">
-		<aui:fieldset>
-			<div class="portlet-journal-tree" id="<portlet:namespace />folderContainer">
-			</div>
-		</aui:fieldset>
-	</aui:fieldset-group>
-</aui:form>
-
-<aui:script require="journal-web/js/CardsTreeView.es,metal-dom/src/dom">
-	var CardsTreeView = journalWebJsCardsTreeViewEs.default;
-	var dom = metalDomSrcDom.default;
-
-	new CardsTreeView(
-		{
-			events: {
-				selectedNodesChanged: function(event) {
-					var treeItemId = event.newVal.replace(/(^,)|(,$)/g, '');
-
-					var selectedFolderNode = dom.toElement('[data-treeitemid="' + treeItemId + '"]');
-
-					var data = {
-						folderId: treeItemId,
-						folderName: selectedFolderNode.getAttribute('data-treeitemname')
-					};
-
-					Liferay.Util.getOpener().Liferay.fire(
-						'<%= HtmlUtil.escapeJS(eventName) %>',
-						{
-							data: data
-						}
-					);
-				}
-			},
-			nodes: [<%= journalDisplayContext.getFoldersJSON() %>],
-			pathThemeImages: '<%= themeDisplay.getPathThemeImages() %>'
-		},
-		'#<portlet:namespace />folderContainer'
-	);
-</aui:script>
+<soy:template-renderer
+	context="<%= context %>"
+	module="journal-web/js/SelectFolder.es"
+	templateNamespace="SelectFolder.render"
+/>

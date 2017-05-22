@@ -66,11 +66,78 @@ public abstract class DoulosServlet extends HttpServlet {
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
 		throws IOException {
 
-		doPost(request, response);
+		service(request, response);
 	}
 
 	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
+		throws IOException {
+
+		service(request, response);
+	}
+
+	@Override
+	public void init(ServletConfig servletConfig) throws ServletException {
+		try {
+			registerDoulosRequestProcessors();
+		}
+		catch (Exception e) {
+			throw new ServletException(e);
+		}
+
+		String validIpsString = servletConfig.getInitParameter("validIps");
+
+		if (validIpsString != null) {
+			_validIps = validIpsString.split(",");
+		}
+		else {
+			_validIps = new String[0];
+		}
+	}
+
+	protected boolean isBlank(String s) {
+		if ((s == null) || s.equals("")) {
+			return true;
+		}
+
+		return false;
+	}
+
+	protected boolean isValidIP(String remoteAddr) {
+		if (_validIps.length == 0) {
+			return true;
+		}
+
+		for (String validIp : _validIps) {
+			if (remoteAddr.equals(validIp) ||
+				remoteAddr.startsWith(validIp + ".")) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	protected void registerDoulosRequestProcessor(
+		String doulosRequestProcessorKey,
+		DoulosRequestProcessor doulosRequestProcessor) {
+
+		_doulosRequestProcessors.put(
+			doulosRequestProcessorKey, doulosRequestProcessor);
+	}
+
+	protected abstract void registerDoulosRequestProcessors() throws Exception;
+
+	protected void sendError(HttpServletResponse response, String message)
+		throws IOException {
+
+		write(response, new ByteArrayInputStream(message.getBytes()));
+	}
+
+	@Override
+	protected void service(
+			HttpServletRequest request, HttpServletResponse response)
 		throws IOException {
 
 		String remoteAddr = request.getRemoteAddr();
@@ -157,7 +224,7 @@ public abstract class DoulosServlet extends HttpServlet {
 				String redirect = responseJSONObject.optString(
 					"doulosRedirect");
 
-				if (redirect != null) {
+				if (!isBlank(redirect)) {
 					response.sendRedirect(redirect);
 
 					return;
@@ -188,57 +255,6 @@ public abstract class DoulosServlet extends HttpServlet {
 		}
 
 		sendError(response, "Unregistered path " + request.getPathInfo() + ".");
-	}
-
-	@Override
-	public void init(ServletConfig servletConfig) throws ServletException {
-		try {
-			registerDoulosRequestProcessors();
-		}
-		catch (Exception e) {
-			throw new ServletException(e);
-		}
-
-		String validIpsString = servletConfig.getInitParameter("validIps");
-
-		if (validIpsString != null) {
-			_validIps = validIpsString.split(",");
-		}
-		else {
-			_validIps = new String[0];
-		}
-	}
-
-	protected boolean isValidIP(String remoteAddr) {
-		if (_validIps.length == 0) {
-			return true;
-		}
-
-		for (String validIp : _validIps) {
-			if (remoteAddr.equals(validIp) ||
-				remoteAddr.startsWith(validIp + ".")) {
-
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	protected void registerDoulosRequestProcessor(
-		String doulosRequestProcessorKey,
-		DoulosRequestProcessor doulosRequestProcessor) {
-
-		_doulosRequestProcessors.put(
-			doulosRequestProcessorKey, doulosRequestProcessor);
-	}
-
-	protected abstract void registerDoulosRequestProcessors() throws Exception;
-
-	protected void sendError(HttpServletResponse response, String message)
-		throws IOException {
-
-		write(response, new ByteArrayInputStream(message.getBytes()));
 	}
 
 	protected void write(HttpServletResponse response, InputStream inputStream)

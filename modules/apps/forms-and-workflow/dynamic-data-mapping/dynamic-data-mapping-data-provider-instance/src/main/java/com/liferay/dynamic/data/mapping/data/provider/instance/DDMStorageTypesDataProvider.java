@@ -19,15 +19,14 @@ import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderContext;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderException;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderRequest;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponse;
+import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponseOutput;
 import com.liferay.dynamic.data.mapping.storage.StorageAdapter;
 import com.liferay.dynamic.data.mapping.storage.StorageAdapterRegistry;
 import com.liferay.portal.kernel.util.KeyValuePair;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
@@ -55,14 +54,14 @@ public class DDMStorageTypesDataProvider implements DDMDataProvider {
 			DDMDataProviderRequest ddmDataProviderRequest)
 		throws DDMDataProviderException {
 
-		List<Map<Object, Object>> data = new ArrayList<>();
+		List<KeyValuePair> data = new ArrayList<>();
 
 		StorageAdapter storageAdapter =
 			_storageAdapterRegistry.getDefaultStorageAdapter();
 
 		String storageTypeDefault = storageAdapter.getStorageType();
 
-		data.add(createMap(storageTypeDefault));
+		data.add(new KeyValuePair(storageTypeDefault, storageTypeDefault));
 
 		Set<String> storageTypes = _storageAdapterRegistry.getStorageTypes();
 
@@ -71,23 +70,16 @@ public class DDMStorageTypesDataProvider implements DDMDataProvider {
 				continue;
 			}
 
-			data.add(createMap(storageType));
+			data.add(new KeyValuePair(storageType, storageType));
 		}
 
-		return new DDMDataProviderResponse(data);
+		return DDMDataProviderResponse.of(
+			DDMDataProviderResponseOutput.of("Default-Output", "list", data));
 	}
 
 	@Override
 	public Class<?> getSettings() {
 		throw new UnsupportedOperationException();
-	}
-
-	protected Map<Object, Object> createMap(String storageType) {
-		Map<Object, Object> map = new HashMap<>();
-
-		map.put(storageType, storageType);
-
-		return map;
 	}
 
 	@Reference

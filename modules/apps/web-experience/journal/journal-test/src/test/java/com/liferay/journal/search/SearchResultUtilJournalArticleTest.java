@@ -99,7 +99,7 @@ public class SearchResultUtilJournalArticleTest
 
 			List<LogRecord> logRecords = captureHandler.getLogRecords();
 
-			Assert.assertEquals(1, logRecords.size());
+			Assert.assertEquals(logRecords.toString(), 1, logRecords.size());
 
 			LogRecord logRecord = logRecords.get(0);
 
@@ -119,7 +119,7 @@ public class SearchResultUtilJournalArticleTest
 		List<String> versions = searchResult.getVersions();
 
 		Assert.assertEquals(_DOCUMENT_VERSION, versions.get(0));
-		Assert.assertEquals(1, versions.size());
+		Assert.assertEquals(versions.toString(), 1, versions.size());
 
 		assertEmptyCommentRelatedSearchResults(searchResult);
 		assertEmptyFileEntryRelatedSearchResults(searchResult);

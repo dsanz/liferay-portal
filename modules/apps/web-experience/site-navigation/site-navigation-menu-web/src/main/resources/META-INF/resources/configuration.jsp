@@ -50,7 +50,7 @@ String rootLayoutType = siteNavigationMenuDisplayContext.getRootLayoutType();
 									<aui:option label="select" value="select" />
 								</aui:select>
 
-								<div class="<%= rootLayoutType.equals("parent-at-level") || rootLayoutType.equals("relative-parent-up-by") ? "" : "hide" %>" id="<portlet:namespace />rootLayoutLevel">
+								<div class="<%= rootLayoutType.equals("parent-at-level") || rootLayoutType.equals("relative-parent-up-by") ? StringPool.BLANK : "hide" %>" id="<portlet:namespace />rootLayoutLevel">
 									<aui:select name="preferences--rootLayoutLevel--">
 
 										<%
@@ -66,25 +66,11 @@ String rootLayoutType = siteNavigationMenuDisplayContext.getRootLayoutType();
 									</aui:select>
 								</div>
 
-								<div class="<%= rootLayoutType.equals("select") ? "" : "hide" %>" id="<portlet:namespace />rootLayoutUuid">
-									<aui:select label="" name="preferences--rootLayoutUuid--">
-										<aui:option value="" />
+								<div class="<%= rootLayoutType.equals("select") ? StringPool.BLANK : "hide" %>" id="<portlet:namespace />rootLayoutUuidPanel">
+									<aui:input label="" name="rootLayoutName" type="resource" value="<%= siteNavigationMenuDisplayContext.getRootLayoutName() %>" />
+									<aui:input id="rootLayoutUuid" ignoreRequestValue="<%= true %>" name="preferences--rootLayoutUuid--" type="hidden" value="<%= siteNavigationMenuDisplayContext.getRootLayoutUuid() %>" />
 
-										<%
-										for (LayoutDescription layoutDescription : siteNavigationMenuDisplayContext.getLayoutDescriptions()) {
-											Layout layoutDescriptionLayout = LayoutLocalServiceUtil.fetchLayout(layoutDescription.getPlid());
-
-											if (layoutDescriptionLayout != null) {
-										%>
-
-												<aui:option label="<%= layoutDescription.getDisplayName() %>" selected="<%= Objects.equals(layoutDescriptionLayout.getUuid(), siteNavigationMenuDisplayContext.getRootLayoutUuid()) %>" value="<%= layoutDescriptionLayout.getUuid() %>" />
-
-										<%
-											}
-										}
-										%>
-
-									</aui:select>
+									<aui:button name="chooseRootPage" value="choose" />
 								</div>
 
 								<aui:select name="preferences--displayDepth--">
@@ -101,18 +87,6 @@ String rootLayoutType = siteNavigationMenuDisplayContext.getRootLayoutType();
 									%>
 
 								</aui:select>
-
-								<aui:script>
-									Liferay.Util.toggleSelectBox('<portlet:namespace />rootLayoutType', 'select', '<portlet:namespace />rootLayoutUuid');
-
-									Liferay.Util.toggleSelectBox(
-										'<portlet:namespace />rootLayoutType',
-										function(currentValue, value) {
-											return currentValue === 'absolute' || currentValue === 'relative';
-										},
-										'<portlet:namespace />rootLayoutLevel'
-									);
-								</aui:script>
 
 								<aui:select name="preferences--includedLayouts--" value="<%= siteNavigationMenuDisplayContext.getIncludedLayouts() %>">
 									<aui:option label="auto" />
@@ -169,5 +143,48 @@ String rootLayoutType = siteNavigationMenuDisplayContext.getRootLayoutType();
 
 			Liferay.Portlet.refresh(curPortletBoundaryId, data);
 		}
+	);
+</aui:script>
+
+<aui:script use="liferay-item-selector-dialog">
+	$('#<portlet:namespace />chooseRootPage').on(
+		'click',
+		function(event) {
+			event.preventDefault();
+
+			var itemSelectorDialog = new A.LiferayItemSelectorDialog(
+				{
+					eventName: '<%= siteNavigationMenuDisplayContext.getEventName() %>',
+					on: {
+						selectedItemChange: function(event) {
+							var selectedItem = event.newVal;
+
+							var rootLayoutName = A.one('#<portlet:namespace />rootLayoutName');
+							var rootLayoutUuid = A.one('#<portlet:namespace />rootLayoutUuid');
+
+							if (selectedItem) {
+								rootLayoutName.val(selectedItem.name);
+								rootLayoutUuid.val(selectedItem.id);
+							}
+						}
+					},
+					'strings.add': '<liferay-ui:message key="done" />',
+					title: '<liferay-ui:message key="select-layout" />',
+					url: '<%= siteNavigationMenuDisplayContext.getItemSelectorURL() %>'
+				}
+			);
+
+			itemSelectorDialog.open();
+		}
+	);
+
+	Liferay.Util.toggleSelectBox('<portlet:namespace />rootLayoutType', 'select', '<portlet:namespace />rootLayoutUuidPanel');
+
+	Liferay.Util.toggleSelectBox(
+		'<portlet:namespace />rootLayoutType',
+		function(currentValue, value) {
+			return currentValue === 'absolute' || currentValue === 'relative';
+		},
+		'<portlet:namespace />rootLayoutLevel'
 	);
 </aui:script>

@@ -15,11 +15,13 @@
 package com.liferay.portal.kernel.portlet.bridges.mvc;
 
 import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.bridges.mvc.bundle.mvcactioncommand.TestMVCActionCommand1;
 import com.liferay.portal.kernel.portlet.bridges.mvc.bundle.mvcactioncommand.TestMVCActionCommand2;
 import com.liferay.portal.kernel.portlet.bridges.mvc.bundle.mvcactioncommand.TestPortlet;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.SyntheticBundleRule;
@@ -47,6 +49,7 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.portlet.MockActionRequest;
 import org.springframework.mock.web.portlet.MockActionResponse;
+import org.springframework.mock.web.portlet.MockPortletConfig;
 
 /**
  * @author Manuel de la Peña
@@ -167,6 +170,31 @@ public class MVCActionCommandTest {
 	private static ServiceTracker<GenericPortlet, GenericPortlet>
 		_genericPortletServiceTracker;
 
+	private static class MockLiferayPortletConfig
+		extends MockPortletConfig implements LiferayPortletConfig {
+
+		@Override
+		public Portlet getPortlet() {
+			return null;
+		}
+
+		@Override
+		public String getPortletId() {
+			return "testPortlet";
+		}
+
+		@Override
+		public boolean isCopyRequestParameters() {
+			return false;
+		}
+
+		@Override
+		public boolean isWARFile() {
+			return false;
+		}
+
+	}
+
 	private static class MockLiferayPortletRequest
 		extends MockActionRequest implements LiferayPortletRequest {
 
@@ -185,6 +213,15 @@ public class MVCActionCommandTest {
 		@Override
 		public void defineObjects(
 			PortletConfig portletConfig, PortletResponse portletResponse) {
+		}
+
+		@Override
+		public Object getAttribute(String name) {
+			if (name.equals(JavaConstants.JAVAX_PORTLET_CONFIG)) {
+				return new MockLiferayPortletConfig();
+			}
+
+			return super.getAttribute(name);
 		}
 
 		@Override

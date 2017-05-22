@@ -18,11 +18,16 @@ import com.liferay.gradle.plugins.BaseDefaultsPlugin;
 import com.liferay.gradle.plugins.defaults.internal.util.GradleUtil;
 import com.liferay.gradle.plugins.node.NodePlugin;
 import com.liferay.gradle.plugins.node.tasks.NpmShrinkwrapTask;
+import com.liferay.gradle.plugins.node.tasks.PublishNodeModuleTask;
 
 import java.util.Collections;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.plugins.BasePlugin;
+import org.gradle.api.tasks.Delete;
+import org.gradle.api.tasks.TaskContainer;
 
 /**
  * @author Andrea Di Giorgi
@@ -33,7 +38,9 @@ public class NodeDefaultsPlugin extends BaseDefaultsPlugin<NodePlugin> {
 
 	@Override
 	protected void configureDefaults(Project project, NodePlugin nodePlugin) {
+		_configureTaskClean(project);
 		_configureTaskNpmShrinkwrap(project);
+		_configureTasksPublishNodeModule(project);
 	}
 
 	@Override
@@ -44,6 +51,17 @@ public class NodeDefaultsPlugin extends BaseDefaultsPlugin<NodePlugin> {
 	private NodeDefaultsPlugin() {
 	}
 
+	private void _configureTaskClean(Project project) {
+		boolean cleanNodeModules = Boolean.getBoolean("clean.node.modules");
+
+		if (cleanNodeModules) {
+			Delete delete = (Delete)GradleUtil.getTask(
+				project, BasePlugin.CLEAN_TASK_NAME);
+
+			delete.delete("node_modules");
+		}
+	}
+
 	private void _configureTaskNpmShrinkwrap(Project project) {
 		NpmShrinkwrapTask npmShrinkwrapTask =
 			(NpmShrinkwrapTask)GradleUtil.getTask(
@@ -51,6 +69,24 @@ public class NodeDefaultsPlugin extends BaseDefaultsPlugin<NodePlugin> {
 
 		npmShrinkwrapTask.excludeDependencies(
 			_NPM_SHRINKWRAP_EXCLUDED_DEPENDENCIES);
+	}
+
+	private void _configureTasksPublishNodeModule(Project project) {
+		TaskContainer taskContainer = project.getTasks();
+
+		taskContainer.withType(
+			PublishNodeModuleTask.class,
+			new Action<PublishNodeModuleTask>() {
+
+				@Override
+				public void execute(
+					PublishNodeModuleTask publishNodeModuleTask) {
+
+					publishNodeModuleTask.doFirst(
+						MavenDefaultsPlugin.failReleaseOnWrongBranchAction);
+				}
+
+			});
 	}
 
 	private static final Iterable<String>

@@ -23,6 +23,7 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -71,8 +72,8 @@ public class NodeExecutor {
 		}
 	}
 
-	public List<String> getArgs() {
-		return GradleUtil.toStringList(_args);
+	public List<Object> getArgs() {
+		return _args;
 	}
 
 	public String getCommand() {
@@ -174,7 +175,7 @@ public class NodeExecutor {
 		}
 		else {
 			commandLine.add(_getExecutable());
-			commandLine.addAll(getArgs());
+			commandLine.addAll(GradleUtil.toStringList(getArgs()));
 		}
 
 		return commandLine;
@@ -234,7 +235,9 @@ public class NodeExecutor {
 			sb.append('"');
 		}
 
-		for (String arg : getArgs()) {
+		List<String> args = GradleUtil.toStringList(getArgs());
+
+		for (String arg : args) {
 			sb.append(" \"");
 
 			if (Validator.isNotNull(arg)) {
@@ -267,13 +270,13 @@ public class NodeExecutor {
 		String hosts = System.getProperty("http.nonProxyHosts");
 
 		if (Validator.isNotNull(hosts)) {
-			nonProxyHosts.addAll(Arrays.asList(hosts.split("\\|")));
+			Collections.addAll(nonProxyHosts, hosts.split("\\|"));
 		}
 
 		hosts = System.getProperty("https.nonProxyHosts");
 
 		if (Validator.isNotNull(hosts)) {
-			nonProxyHosts.addAll(Arrays.asList(hosts.split("\\|")));
+			Collections.addAll(nonProxyHosts, hosts.split("\\|"));
 		}
 
 		if (nonProxyHosts.isEmpty()) {

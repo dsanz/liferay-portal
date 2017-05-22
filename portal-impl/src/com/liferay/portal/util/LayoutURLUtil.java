@@ -43,7 +43,7 @@ public class LayoutURLUtil {
 			com.liferay.portal.kernel.util.WebKeys.THEME_DISPLAY);
 
 		try {
-			return PortalUtil.getLayoutURL(layout, themeDisplay);
+			return PortalUtil.getLayoutURL(layout, themeDisplay, false);
 		}
 		catch (Exception e) {
 			return StringPool.BLANK;

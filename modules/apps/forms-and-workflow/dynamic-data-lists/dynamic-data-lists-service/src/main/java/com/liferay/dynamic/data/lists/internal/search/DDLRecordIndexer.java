@@ -50,6 +50,7 @@ import com.liferay.portal.kernel.search.filter.QueryFilter;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -57,6 +58,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import java.io.Serializable;
 
 import java.util.Locale;
+import java.util.Set;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
@@ -158,7 +160,41 @@ public class DDLRecordIndexer extends BaseIndexer<DDLRecord> {
 
 		addSearchTerm(searchQuery, searchContext, Field.USER_NAME, false);
 
-		addSearchTerm(searchQuery, searchContext, "ddmContent", false);
+		addDDMContentSearchTerm(searchQuery, searchContext);
+	}
+
+	protected void addDDMContent(
+			DDLRecordVersion recordVersion, DDMFormValues ddmFormValues,
+			Document document)
+		throws Exception {
+
+		Set<Locale> locales = ddmFormValues.getAvailableLocales();
+
+		for (Locale locale : locales) {
+			StringBundler sb = new StringBundler(3);
+
+			sb.append("ddmContent");
+			sb.append(StringPool.UNDERLINE);
+			sb.append(LocaleUtil.toLanguageId(locale));
+
+			document.addText(
+				sb.toString(), extractDDMContent(recordVersion, locale));
+		}
+	}
+
+	protected void addDDMContentSearchTerm(
+			BooleanQuery searchQuery, SearchContext searchContext)
+		throws Exception {
+
+		Locale locale = searchContext.getLocale();
+
+		StringBundler sb = new StringBundler(3);
+
+		sb.append("ddmContent");
+		sb.append(StringPool.UNDERLINE);
+		sb.append(LocaleUtil.toLanguageId(locale));
+
+		addSearchTerm(searchQuery, searchContext, sb.toString(), false);
 	}
 
 	@Override
@@ -184,9 +220,6 @@ public class DDLRecordIndexer extends BaseIndexer<DDLRecord> {
 		document.addKeyword(Field.STATUS, recordVersion.getStatus());
 		document.addKeyword(Field.VERSION, recordVersion.getVersion());
 
-		document.addText(
-			"ddmContent",
-			extractDDMContent(recordVersion, LocaleUtil.getSiteDefault()));
 		document.addKeyword("recordSetId", recordSet.getRecordSetId());
 		document.addKeyword("recordSetScope", recordSet.getScope());
 
@@ -194,6 +227,8 @@ public class DDLRecordIndexer extends BaseIndexer<DDLRecord> {
 
 		DDMFormValues ddmFormValues = storageEngine.getDDMFormValues(
 			recordVersion.getDDMStorageId());
+
+		addDDMContent(recordVersion, ddmFormValues, document);
 
 		ddmIndexer.addAttributes(document, ddmStructure, ddmFormValues);
 

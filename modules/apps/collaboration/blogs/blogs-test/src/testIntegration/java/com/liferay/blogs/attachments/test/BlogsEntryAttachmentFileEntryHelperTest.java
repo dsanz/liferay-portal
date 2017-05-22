@@ -17,7 +17,6 @@ package com.liferay.blogs.attachments.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalServiceUtil;
-import com.liferay.blogs.util.BlogsEntryAttachmentFileEntryReference;
 import com.liferay.blogs.util.BlogsEntryAttachmentFileEntryUtil;
 import com.liferay.blogs.util.test.BlogsTestUtil;
 import com.liferay.portal.kernel.editor.EditorConstants;
@@ -43,6 +42,7 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portlet.blogs.BlogsEntryAttachmentFileEntryReference;
 
 import java.io.InputStream;
 
@@ -90,7 +90,9 @@ public class BlogsEntryAttachmentFileEntryHelperTest {
 			blogsEntryAttachmentFileEntryReferences =
 				getBlogsEntryAttachmentFileEntryReferences(tempFileEntry);
 
-		Assert.assertEquals(1, blogsEntryAttachmentFileEntryReferences.size());
+		Assert.assertEquals(
+			blogsEntryAttachmentFileEntryReferences.toString(), 1,
+			blogsEntryAttachmentFileEntryReferences.size());
 
 		BlogsEntryAttachmentFileEntryReference
 			blogsEntryAttachmentFileEntryReference =
@@ -130,7 +132,9 @@ public class BlogsEntryAttachmentFileEntryHelperTest {
 				getTempBlogsEntryAttachmentFileEntries(
 					getContent(tempFileEntryImgTag));
 
-		Assert.assertEquals(1, tempBlogsEntryAttachmentFileEntries.size());
+		Assert.assertEquals(
+			tempBlogsEntryAttachmentFileEntries.toString(), 1,
+			tempBlogsEntryAttachmentFileEntries.size());
 
 		for (FileEntry tempBlogsEntryAttachmentFileEntry :
 				tempBlogsEntryAttachmentFileEntries) {
@@ -157,7 +161,9 @@ public class BlogsEntryAttachmentFileEntryHelperTest {
 				getTempBlogsEntryAttachmentFileEntries(
 					getContent(tempFileEntryImgTag));
 
-		Assert.assertEquals(1, tempBlogsEntryAttachmentFileEntries.size());
+		Assert.assertEquals(
+			tempBlogsEntryAttachmentFileEntries.toString(), 1,
+			tempBlogsEntryAttachmentFileEntries.size());
 
 		for (FileEntry tempBlogsEntryAttachmentFileEntry :
 				tempBlogsEntryAttachmentFileEntries) {

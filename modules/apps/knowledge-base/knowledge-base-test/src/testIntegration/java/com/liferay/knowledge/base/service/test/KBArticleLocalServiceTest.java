@@ -36,7 +36,6 @@ import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.service.SubscriptionLocalServiceUtil;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -53,6 +52,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.ratings.kernel.service.RatingsEntryLocalServiceUtil;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalServiceUtil;
+import com.liferay.subscription.service.SubscriptionLocalServiceUtil;
 
 import java.io.InputStream;
 
@@ -619,7 +619,9 @@ public class KBArticleLocalServiceTest {
 				WorkflowConstants.STATUS_APPROVED,
 				new KBArticlePriorityComparator(true));
 
-		Assert.assertEquals(5, kbArticleAndAllDescendantKBArticles.size());
+		Assert.assertEquals(
+			kbArticleAndAllDescendantKBArticles.toString(), 5,
+			kbArticleAndAllDescendantKBArticles.size());
 
 		KBArticle currentChildKBArticle =
 			kbArticleAndAllDescendantKBArticles.get(0);
@@ -697,7 +699,9 @@ public class KBArticleLocalServiceTest {
 				WorkflowConstants.STATUS_APPROVED,
 				new KBArticlePriorityComparator(true));
 
-		Assert.assertEquals(6, kbArticleAndAllDescendantKBArticles.size());
+		Assert.assertEquals(
+			kbArticleAndAllDescendantKBArticles.toString(), 6,
+			kbArticleAndAllDescendantKBArticles.size());
 
 		KBArticle currentParentKBArticle =
 			kbArticleAndAllDescendantKBArticles.get(0);

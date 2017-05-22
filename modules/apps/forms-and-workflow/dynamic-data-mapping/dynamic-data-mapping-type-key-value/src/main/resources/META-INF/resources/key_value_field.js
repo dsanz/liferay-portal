@@ -139,7 +139,12 @@ AUI.add(
 					_afterKeyChange: function(event) {
 						var instance = this;
 
-						instance.set('generationLocked', event.newVal !== instance.normalizeKey(instance.getValue()));
+						if (event.newVal && event.newVal !== instance.normalizeKey(instance.getValue())) {
+							instance.set('generationLocked', true);
+						}
+						else {
+							instance.set('generationLocked', false);
+						}
 
 						instance._uiSetKey(event.newVal);
 					},
@@ -184,9 +189,13 @@ AUI.add(
 
 						var value = inputNode.val();
 
-						if (value === '') {
-							instance._updateInputValue(inputNode, instance.normalizeKey(value));
+						if (!value) {
+							value = instance.getValue();
 						}
+
+						instance._updateInputValue(inputNode, instance.normalizeKey(value));
+
+						instance.fire('blur', instance._getEventPayload(event));
 					},
 
 					_onKeyUpKeyInput: function(event) {

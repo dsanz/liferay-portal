@@ -40,7 +40,7 @@ processSanitizerConfiguration {
 			line = line.replace "20000", "200000"
 		}
 		else if (line.contains('<tag-rules>')) {
-			line = """
+			line = """\
 				|	<allowed-empty-tags>
 				|		<literal-list>
 				|			<literal value="br"/>
@@ -58,12 +58,17 @@ processSanitizerConfiguration {
 				|	</allowed-empty-tags>
 				|
 				|${line}
-				|		<tag name="picture" action="validate" />
+				|		<tag name="picture" action="validate">
+				|			<attribute name="data-fileEntryId" onInvalid="removeAttribute">
+				|				<regexp-list>
+				|					<regexp name="positiveInteger" />
+				|				</regexp-list>
+				|			</attribute>
+				|		</tag>
 				|		<tag name="source" action="validate">
 				|			<attribute name="srcset">
 				|				<regexp-list>
-				|					<regexp name="onsiteURL"/>
-				|					<regexp name="offsiteURL"/>
+				|					<regexp name="anything"/>
 				|				</regexp-list>
 				|			</attribute>
 				|			<attribute name="media">
@@ -77,6 +82,15 @@ processSanitizerConfiguration {
 				|				</regexp-list>
 				|			</attribute>
 				|		</tag>""".stripMargin()
+		}
+		else if (line.contains('<tag name="img"')) {
+			line = """\
+				|${line}
+				|			<attribute name="data-fileEntryId" onInvalid="removeAttribute">
+				|				<regexp-list>
+				|					<regexp name="positiveInteger"/>
+				|				</regexp-list>
+				|			</attribute>""".stripMargin()
 		}
 
 		return line

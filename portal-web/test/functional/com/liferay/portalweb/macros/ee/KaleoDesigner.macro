@@ -60,13 +60,17 @@
 	<command name="addNewDefinitionViaKDCP">
 		<execute function="Click" locator1="Button#PLUS" />
 
-		<execute function="Type" locator1="TextInput#TITLE" value1="${workflowDefinitionTitle}" />
+		<execute macro="PortletEntry#inputTitle">
+			<var name="title" value="${workflowDefinitionTitle}" />
+		</execute>
 	</command>
 
 	<command name="addNewDefinitionViaWorkflowCP">
 		<execute function="Click" locator1="Button#PLUS" />
 
-		<execute function="Type" locator1="TextInput#TITLE" value1="${workflowDefinitionTitle}" />
+		<execute macro="PortletEntry#inputTitle">
+			<var name="title" value="${workflowDefinitionTitle}" />
+		</execute>
 	</command>
 
 	<command name="addNodeSettingsSection">
@@ -415,7 +419,9 @@
 	</command>
 
 	<command name="editWorkflowDefinitionTitleViaWorkflowCP">
-		<execute function="Type" locator1="TextInput#TITLE" value1="${workflowDefinitionTitle}" />
+		<execute macro="PortletEntry#inputTitle">
+			<var name="title" value="${workflowDefinitionTitle}" />
+		</execute>
 	</command>
 
 	<command name="editWorkflowDefinitionViaKDCP">
@@ -726,12 +732,22 @@
 				<execute function="AssertTextEquals" locator1="KaleoDesigner#DEFINITION_TABLE_NAME" value1="${workflowDefinitionName}" />
 			</then>
 			<else>
-				<execute function="AssertTextEquals" locator1="KaleoDesigner#DEFINITION_TABLE_NAME" value1="${workflowDefinitionTitle}" />
+				<execute function="AssertTextEquals" locator1="KaleoDesigner#DEFINITION_TABLE_TITLE" value1="${workflowDefinitionTitle}" />
 			</else>
 		</if>
 
 		<execute function="AssertTextEquals" locator1="KaleoDesigner#DEFINITION_TABLE_TITLE" value1="${workflowDefinitionTitle}" />
-		<execute function="AssertTextEquals" locator1="KaleoDesigner#DEFINITION_TABLE_VERSION" value1="1" />
+
+		<if>
+			<isset var="workflowDefinitionVersionNumber" />
+			<then>
+				<execute function="AssertTextEquals" locator1="KaleoDesigner#DEFINITION_TABLE_VERSION" value1="${workflowDefinitionVersionNumber}" />
+			</then>
+			<else>
+				<execute function="AssertTextEquals" locator1="KaleoDesigner#DEFINITION_TABLE_VERSION" value1="1" />
+			</else>
+		</if>
+
 		<execute function="AssertTextEquals" locator1="KaleoDesigner#DEFINITION_TABLE_DRAFT_VERSION" value1="1" />
 		<execute function="AssertTextEquals" locator1="KaleoDesigner#DEFINITION_TABLE_PUBLISHED" value1="Yes" />
 		<execute function="AssertElementPresent" locator1="Icon#BODY_VERTICAL_ELLIPSIS" />

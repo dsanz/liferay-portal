@@ -15,7 +15,6 @@
 package com.liferay.sync.engine.file.system;
 
 import com.liferay.sync.engine.SyncEngine;
-import com.liferay.sync.engine.file.system.listener.WatchEventListener;
 import com.liferay.sync.engine.util.BidirectionalMap;
 import com.liferay.sync.engine.util.FileUtil;
 import com.liferay.sync.engine.util.OSDetector;
@@ -46,8 +45,8 @@ import org.slf4j.LoggerFactory;
  */
 public class JPathWatcher extends Watcher {
 
-	public JPathWatcher(Path filePath, WatchEventListener watchEventListener) {
-		super(filePath, watchEventListener);
+	public JPathWatcher(long syncAccountId, Path filePath) {
+		super(syncAccountId, filePath);
 	}
 
 	@Override

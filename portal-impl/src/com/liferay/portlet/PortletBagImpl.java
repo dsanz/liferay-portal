@@ -36,9 +36,9 @@ import com.liferay.portal.kernel.servlet.URLEncoder;
 import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.util.ClassUtil;
-import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ResourceBundleLoader;
-import com.liferay.portal.kernel.util.ResourceBundleLoaderUtil;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.workflow.WorkflowHandler;
 import com.liferay.portal.kernel.xmlrpc.Method;
@@ -260,18 +260,22 @@ public class PortletBagImpl implements PortletBag {
 
 	@Override
 	public ResourceBundle getResourceBundle(Locale locale) {
-		ResourceBundleLoader resourceBundleLoader =
-			ResourceBundleLoaderUtil.
-				getResourceBundleLoaderByServletContextNameAndBaseName(
-					_servletContext.getServletContextName(),
-					getResourceBundleBaseName());
+		if (_resourceBundleLoader == null) {
+			StringBundler sb = new StringBundler(5);
 
-		if (resourceBundleLoader == null) {
-			return null;
+			sb.append("(resource.bundle.base.name=");
+			sb.append(getResourceBundleBaseName());
+			sb.append(")(servlet.context.name=");
+			sb.append(_servletContext.getServletContextName());
+			sb.append(")");
+
+			_resourceBundleLoader =
+				ServiceProxyFactory.newServiceTrackedInstance(
+					ResourceBundleLoader.class, PortletBagImpl.class, this,
+					"_resourceBundleLoader", sb.toString(), false);
 		}
 
-		return resourceBundleLoader.loadResourceBundle(
-			LocaleUtil.toLanguageId(locale));
+		return _resourceBundleLoader.loadResourceBundle(locale);
 	}
 
 	@Override
@@ -395,6 +399,7 @@ public class PortletBagImpl implements PortletBag {
 	private String _portletName;
 	private final List<PreferencesValidator> _preferencesValidatorInstances;
 	private final String _resourceBundleBaseName;
+	private volatile ResourceBundleLoader _resourceBundleLoader;
 	private final List<SchedulerEventMessageListener>
 		_schedulerEventMessageListeners;
 	private final ServletContext _servletContext;

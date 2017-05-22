@@ -171,7 +171,8 @@ public class ManifestSummaryTest
 		Map<String, LongWrapper> modelAdditionCounters =
 			manifestSummary.getModelAdditionCounters();
 
-		Assert.assertEquals(4, modelAdditionCounters.size());
+		Assert.assertEquals(
+			modelAdditionCounters.toString(), 4, modelAdditionCounters.size());
 
 		Assert.assertEquals(
 			1,
@@ -223,7 +224,8 @@ public class ManifestSummaryTest
 		Map<String, LongWrapper> modelAdditionCounters =
 			manifestSummary.getModelAdditionCounters();
 
-		Assert.assertEquals(4, modelAdditionCounters.size());
+		Assert.assertEquals(
+			modelAdditionCounters.toString(), 4, modelAdditionCounters.size());
 
 		Assert.assertEquals(
 			1,

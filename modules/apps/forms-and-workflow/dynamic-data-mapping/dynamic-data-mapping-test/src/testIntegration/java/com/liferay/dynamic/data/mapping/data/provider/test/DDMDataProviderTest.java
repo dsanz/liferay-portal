@@ -20,9 +20,9 @@ import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderContext;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderException;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderRequest;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponse;
+import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponseOutput;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderTracker;
 import com.liferay.portal.kernel.util.KeyValuePair;
-import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
@@ -77,15 +77,20 @@ public class DDMDataProviderTest {
 			_ddmDataProviderTracker.getDDMDataProviderByInstanceId("test");
 
 		DDMDataProviderRequest ddmDataProviderRequest =
-			new DDMDataProviderRequest(null);
+			new DDMDataProviderRequest(null, null);
 
 		DDMDataProviderResponse ddmDataProviderResponse =
 			testDataProvider.getData(ddmDataProviderRequest);
 
-		List<Map<Object, Object>> data = ddmDataProviderResponse.getData();
+		DDMDataProviderResponseOutput ddmDataProviderResponseOutput =
+			ddmDataProviderResponse.get("Default-Output");
 
-		Assert.assertNotNull(data);
-		Assert.assertEquals(2, data.size());
+		Assert.assertNotNull(ddmDataProviderResponseOutput);
+
+		List<KeyValuePair> data = ddmDataProviderResponseOutput.getValue(
+			List.class);
+
+		Assert.assertEquals(data.toString(), 2, data.size());
 	}
 
 	protected static void setUpDDMDataProviderTracker() {
@@ -116,20 +121,12 @@ public class DDMDataProviderTest {
 				DDMDataProviderContext ddmDataProviderContext)
 			throws DDMDataProviderException {
 
-			return null;
-		}
+			List<KeyValuePair> data = new ArrayList<>();
 
-		@Override
-		public DDMDataProviderResponse getData(
-				DDMDataProviderRequest ddmDataProviderRequest)
-			throws DDMDataProviderException {
+			data.add(new KeyValuePair("1", "A"));
+			data.add(new KeyValuePair("2", "B"));
 
-			List<Map<Object, Object>> data = new ArrayList<>();
-
-			data.add(MapUtil.fromArray(new Object[] {"A", "1"}));
-			data.add(MapUtil.fromArray(new Object[] {"B", "2"}));
-
-			return new DDMDataProviderResponse(data);
+			return data;
 		}
 
 		@Override

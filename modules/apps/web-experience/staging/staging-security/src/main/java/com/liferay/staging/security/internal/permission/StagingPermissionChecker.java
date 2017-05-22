@@ -17,11 +17,15 @@ package com.liferay.staging.security.internal.permission;
 import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.exportimport.kernel.staging.StagingUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.UserBag;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.ResourceBlockLocalService;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Tomas Polesovsky
@@ -29,13 +33,18 @@ import java.util.List;
 @ProviderType
 public class StagingPermissionChecker implements PermissionChecker {
 
-	public StagingPermissionChecker(PermissionChecker permissionChecker) {
+	public StagingPermissionChecker(
+		PermissionChecker permissionChecker,
+		ResourceBlockLocalService resourceBlockLocalService) {
+
 		_permissionChecker = permissionChecker;
+		_resourceBlockLocalService = resourceBlockLocalService;
 	}
 
 	@Override
 	public PermissionChecker clone() {
-		return new StagingPermissionChecker(_permissionChecker.clone());
+		return new StagingPermissionChecker(
+			_permissionChecker.clone(), _resourceBlockLocalService);
 	}
 
 	@Override
@@ -44,13 +53,16 @@ public class StagingPermissionChecker implements PermissionChecker {
 	}
 
 	@Override
+	public long[] getGuestUserRoleIds() {
+		return _permissionChecker.getGuestUserRoleIds();
+	}
+
+	@Override
 	public List<Long> getOwnerResourceBlockIds(
 		long companyId, long groupId, String name, String actionId) {
 
-		long liveGroupId = StagingUtil.getLiveGroupId(groupId);
-
 		return _permissionChecker.getOwnerResourceBlockIds(
-			companyId, liveGroupId, name, actionId);
+			companyId, groupId, name, actionId);
 	}
 
 	@Override
@@ -59,14 +71,17 @@ public class StagingPermissionChecker implements PermissionChecker {
 	}
 
 	@Override
+	public Map<Object, Object> getPermissionChecksMap() {
+		return _permissionChecker.getPermissionChecksMap();
+	}
+
+	@Override
 	public List<Long> getResourceBlockIds(
 		long companyId, long groupId, long userId, String name,
 		String actionId) {
 
-		long liveGroupId = StagingUtil.getLiveGroupId(groupId);
-
 		return _permissionChecker.getResourceBlockIds(
-			companyId, liveGroupId, userId, name, actionId);
+			companyId, groupId, userId, name, actionId);
 	}
 
 	@Override
@@ -111,34 +126,60 @@ public class StagingPermissionChecker implements PermissionChecker {
 
 	@Override
 	public boolean hasPermission(
-		long groupId, String name, long primKey, String actionId) {
+		Group group, String name, long primKey, String actionId) {
 
-		long liveGroupId = StagingUtil.getLiveGroupId(groupId);
+		if ((group == null) || _resourceBlockLocalService.isSupported(name)) {
+			return _permissionChecker.hasPermission(
+				group, name, primKey, actionId);
+		}
 
-		if (liveGroupId != groupId) {
-			if (primKey == groupId) {
-				primKey = liveGroupId;
+		Group liveGroup = StagingUtil.getLiveGroup(group);
+
+		if (liveGroup != group) {
+			if (primKey == group.getGroupId()) {
+				primKey = liveGroup.getGroupId();
 			}
 		}
 
 		return _permissionChecker.hasPermission(
-			liveGroupId, name, primKey, actionId);
+			liveGroup, name, primKey, actionId);
+	}
+
+	@Override
+	public boolean hasPermission(
+		Group group, String name, String primKey, String actionId) {
+
+		if ((group == null) || _resourceBlockLocalService.isSupported(name)) {
+			return _permissionChecker.hasPermission(
+				group, name, primKey, actionId);
+		}
+
+		Group liveGroup = StagingUtil.getLiveGroup(group);
+
+		if (liveGroup != group) {
+			if (primKey.equals(String.valueOf(group.getGroupId()))) {
+				primKey = String.valueOf(liveGroup.getGroupId());
+			}
+		}
+
+		return _permissionChecker.hasPermission(
+			liveGroup, name, primKey, actionId);
+	}
+
+	@Override
+	public boolean hasPermission(
+		long groupId, String name, long primKey, String actionId) {
+
+		return hasPermission(
+			GroupLocalServiceUtil.fetchGroup(groupId), name, primKey, actionId);
 	}
 
 	@Override
 	public boolean hasPermission(
 		long groupId, String name, String primKey, String actionId) {
 
-		long liveGroupId = StagingUtil.getLiveGroupId(groupId);
-
-		if (liveGroupId != groupId) {
-			if (primKey.equals(String.valueOf(groupId))) {
-				primKey = String.valueOf(liveGroupId);
-			}
-		}
-
-		return _permissionChecker.hasPermission(
-			liveGroupId, name, primKey, actionId);
+		return hasPermission(
+			GroupLocalServiceUtil.fetchGroup(groupId), name, primKey, actionId);
 	}
 
 	@Override
@@ -210,5 +251,6 @@ public class StagingPermissionChecker implements PermissionChecker {
 	}
 
 	private final PermissionChecker _permissionChecker;
+	private final ResourceBlockLocalService _resourceBlockLocalService;
 
 }

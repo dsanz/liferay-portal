@@ -17,6 +17,7 @@ package com.liferay.portal.security.permission;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.portal.kernel.cache.MultiVMPoolUtil;
 import com.liferay.portal.kernel.cache.PortalCache;
+import com.liferay.portal.kernel.cache.PortalCacheHelperUtil;
 import com.liferay.portal.kernel.cache.index.IndexEncoder;
 import com.liferay.portal.kernel.cache.index.PortalCacheIndexer;
 import com.liferay.portal.kernel.cluster.ClusterExecutorUtil;
@@ -96,6 +97,16 @@ public class PermissionCacheUtil {
 		_resourceBlockIdsBagCache.removeAll();
 
 		_sendClearCacheClusterMessage(_clearCacheMethodKey, userIds);
+	}
+
+	public static void clearPrimaryKeyRoleCache() {
+		if (ExportImportThreadLocal.isImportInProcess()) {
+			return;
+		}
+
+		_permissionPortalCache.removeAll();
+		_resourceBlockIdsBagCache.removeAll();
+		_userPrimaryKeyRolePortalCache.removeAll();
 	}
 
 	public static void clearResourceBlockCache(
@@ -208,7 +219,8 @@ public class PermissionCacheUtil {
 
 		userRole = userBag.hasRole(role);
 
-		_userRolePortalCache.put(userRoleKey, userRole);
+		PortalCacheHelperUtil.putWithoutReplicator(
+			_userRolePortalCache, userRoleKey, userRole);
 
 		return userRole;
 	}
@@ -220,7 +232,8 @@ public class PermissionCacheUtil {
 		PermissionKey permissionKey = new PermissionKey(
 			groupId, name, primKey, roleIds, actionId);
 
-		_permissionPortalCache.put(permissionKey, value);
+		PortalCacheHelperUtil.putWithoutReplicator(
+			_permissionPortalCache, permissionKey, value);
 	}
 
 	public static void putResourceBlockIdsBag(
@@ -234,12 +247,14 @@ public class PermissionCacheUtil {
 		ResourceBlockIdsBagKey resourceBlockIdsBagKey =
 			new ResourceBlockIdsBagKey(companyId, groupId, userId, name);
 
-		_resourceBlockIdsBagCache.put(
-			resourceBlockIdsBagKey, resourceBlockIdsBag);
+		PortalCacheHelperUtil.putWithoutReplicator(
+			_resourceBlockIdsBagCache, resourceBlockIdsBagKey,
+			resourceBlockIdsBag);
 	}
 
 	public static void putUserBag(long userId, UserBag userBag) {
-		_userBagPortalCache.put(userId, userBag);
+		PortalCacheHelperUtil.putWithoutReplicator(
+			_userBagPortalCache, userId, userBag);
 	}
 
 	public static void putUserGroupRoleIds(
@@ -252,7 +267,8 @@ public class PermissionCacheUtil {
 		UserGroupRoleIdsKey userGroupRoleIdsKey = new UserGroupRoleIdsKey(
 			userId, groupId);
 
-		_userGroupRoleIdsPortalCache.put(userGroupRoleIdsKey, roleIds);
+		PortalCacheHelperUtil.putWithoutReplicator(
+			_userGroupRoleIdsPortalCache, userGroupRoleIdsKey, roleIds);
 	}
 
 	public static void putUserPrimaryKeyRole(
@@ -265,7 +281,8 @@ public class PermissionCacheUtil {
 		UserPrimaryKeyRoleKey userPrimaryKeyRoleKey = new UserPrimaryKeyRoleKey(
 			userId, primaryKey, roleName);
 
-		_userPrimaryKeyRolePortalCache.put(userPrimaryKeyRoleKey, value);
+		PortalCacheHelperUtil.putWithoutReplicator(
+			_userPrimaryKeyRolePortalCache, userPrimaryKeyRoleKey, value);
 	}
 
 	public static void putUserRole(long userId, Role role, Boolean value) {
@@ -275,7 +292,8 @@ public class PermissionCacheUtil {
 
 		UserRoleKey userRoleKey = new UserRoleKey(userId, role.getRoleId());
 
-		_userRolePortalCache.put(userRoleKey, value);
+		PortalCacheHelperUtil.putWithoutReplicator(
+			_userRolePortalCache, userRoleKey, value);
 	}
 
 	public static void removePermission(

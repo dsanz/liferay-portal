@@ -177,6 +177,7 @@ page import="com.liferay.portlet.usersadmin.search.UserSearchTerms" %><%@
 page import="com.liferay.roles.admin.kernel.util.RolesAdminUtil" %><%@
 page import="com.liferay.taglib.search.ResultRow" %><%@
 page import="com.liferay.taglib.search.SearchEntry" %><%@
+page import="com.liferay.users.admin.configuration.UserFileUploadsConfiguration" %><%@
 page import="com.liferay.users.admin.constants.UsersAdminPortletKeys" %><%@
 page import="com.liferay.users.admin.kernel.util.UsersAdmin" %><%@
 page import="com.liferay.users.admin.kernel.util.UsersAdminUtil" %><%@
@@ -215,7 +216,7 @@ boolean filterManageableGroups = true;
 
 boolean filterManageableOrganizations = true;
 
-if (permissionChecker.hasPermission(0, Organization.class.getName(), Organization.class.getName(), ActionKeys.VIEW)) {
+if (permissionChecker.hasPermission(null, Organization.class.getName(), Organization.class.getName(), ActionKeys.VIEW)) {
 	filterManageableOrganizations = false;
 }
 

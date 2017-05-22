@@ -35,12 +35,15 @@ import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
 import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.service.permission.PortletPermission;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.PortletCategoryKeys;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.sites.kernel.util.SitesUtil;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import javax.portlet.PortletMode;
 
@@ -249,8 +252,43 @@ public class PortletPermissionImpl implements PortletPermission {
 		}
 
 		return contains(
-			permissionChecker, groupId, layout, portlet.getPortletId(),
-			actionId, strict);
+			permissionChecker, groupId, layout, portlet, actionId, strict,
+			_CHECK_STAGING_PERMISSION_DEFAULT);
+	}
+
+	@Override
+	public boolean contains(
+			PermissionChecker permissionChecker, long groupId, Layout layout,
+			Portlet portlet, String actionId, boolean strict,
+			boolean checkStagingPermission)
+		throws PortalException {
+
+		long plid = -1;
+		long layoutMvccVersion = -1;
+
+		if (layout != null) {
+			plid = layout.getPlid();
+			layoutMvccVersion = layout.getMvccVersion();
+		}
+
+		Map<Object, Object> permissionChecksMap =
+			permissionChecker.getPermissionChecksMap();
+
+		CacheKey cacheKey = new CacheKey(
+			groupId, plid, layoutMvccVersion, portlet.getPortletId(),
+			portlet.getMvccVersion(), actionId, strict, checkStagingPermission);
+
+		Boolean contains = (Boolean)permissionChecksMap.get(cacheKey);
+
+		if (contains == null) {
+			contains = _contains(
+				permissionChecker, groupId, layout, portlet, actionId, strict,
+				checkStagingPermission);
+
+			permissionChecksMap.put(cacheKey, contains);
+		}
+
+		return contains;
 	}
 
 	@Override
@@ -289,83 +327,9 @@ public class PortletPermissionImpl implements PortletPermission {
 			return false;
 		}
 
-		String name = null;
-		String resourcePermissionPrimKey = null;
-
-		if (layout == null) {
-			name = portletId;
-			resourcePermissionPrimKey = portletId;
-
-			return permissionChecker.hasPermission(
-				groupId, name, resourcePermissionPrimKey, actionId);
-		}
-
-		Group group = GroupLocalServiceUtil.fetchGroup(groupId);
-
-		if (group == null) {
-			group = layout.getGroup();
-
-			groupId = layout.getGroupId();
-		}
-
-		if ((group.isControlPanel() || layout.isTypeControlPanel()) &&
-			actionId.equals(ActionKeys.VIEW)) {
-
-			return true;
-		}
-
-		if (layout instanceof VirtualLayout) {
-			if (layout.isCustomizable() && !actionId.equals(ActionKeys.VIEW)) {
-				if (actionId.equals(ActionKeys.ADD_TO_PAGE)) {
-					return hasAddToPagePermission(
-						permissionChecker, layout, portletId, actionId);
-				}
-
-				return hasCustomizePermission(
-					permissionChecker, layout, portletId, actionId);
-			}
-
-			VirtualLayout virtualLayout = (VirtualLayout)layout;
-
-			layout = virtualLayout.getSourceLayout();
-		}
-
-		if (!group.isLayoutSetPrototype() &&
-			actionId.equals(ActionKeys.CONFIGURATION) &&
-			!SitesUtil.isLayoutUpdateable(layout)) {
-
-			return false;
-		}
-
-		String rootPortletId = PortletConstants.getRootPortletId(portletId);
-
-		if (checkStagingPermission) {
-			Boolean hasPermission = StagingPermissionUtil.hasPermission(
-				permissionChecker, groupId, rootPortletId, groupId,
-				rootPortletId, actionId);
-
-			if (hasPermission != null) {
-				return hasPermission.booleanValue();
-			}
-		}
-
-		resourcePermissionPrimKey = getPrimaryKey(layout.getPlid(), portletId);
-
-		if (strict) {
-			return permissionChecker.hasPermission(
-				groupId, rootPortletId, resourcePermissionPrimKey, actionId);
-		}
-
-		if (hasConfigurePermission(
-				permissionChecker, layout, portletId, actionId) ||
-			hasCustomizePermission(
-				permissionChecker, layout, portletId, actionId)) {
-
-			return true;
-		}
-
-		return permissionChecker.hasPermission(
-			groupId, rootPortletId, resourcePermissionPrimKey, actionId);
+		return contains(
+			permissionChecker, groupId, layout, portlet, actionId, strict,
+			checkStagingPermission);
 	}
 
 	public boolean contains(
@@ -624,8 +588,8 @@ public class PortletPermissionImpl implements PortletPermission {
 	}
 
 	protected boolean hasConfigurePermission(
-			PermissionChecker permissionChecker, Layout layout,
-			String portletId, String actionId)
+			PermissionChecker permissionChecker, Layout layout, Portlet portlet,
+			String actionId)
 		throws PortalException {
 
 		if (!actionId.equals(ActionKeys.CONFIGURATION) &&
@@ -634,9 +598,6 @@ public class PortletPermissionImpl implements PortletPermission {
 
 			return false;
 		}
-
-		Portlet portlet = PortletLocalServiceUtil.getPortletById(
-			layout.getCompanyId(), portletId);
 
 		if (portlet.isPreferencesUniquePerLayout()) {
 			return LayoutPermissionUtil.contains(
@@ -648,16 +609,34 @@ public class PortletPermissionImpl implements PortletPermission {
 			ActionKeys.CONFIGURE_PORTLETS);
 	}
 
-	protected boolean hasCustomizePermission(
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #hasConfigurePermission(
+	 *             PermissionChecker, Layout, Portlet, String)}
+	 */
+	@Deprecated
+	protected boolean hasConfigurePermission(
 			PermissionChecker permissionChecker, Layout layout,
 			String portletId, String actionId)
+		throws PortalException {
+
+		Portlet portlet = PortletLocalServiceUtil.getPortletById(
+			layout.getCompanyId(), portletId);
+
+		return hasConfigurePermission(
+			permissionChecker, layout, portlet, actionId);
+	}
+
+	protected boolean hasCustomizePermission(
+			PermissionChecker permissionChecker, Layout layout, Portlet portlet,
+			String actionId)
 		throws PortalException {
 
 		LayoutTypePortlet layoutTypePortlet =
 			(LayoutTypePortlet)layout.getLayoutType();
 
 		if (layoutTypePortlet.isCustomizedView() &&
-			layoutTypePortlet.isPortletCustomizable(portletId) &&
+			layoutTypePortlet.isPortletCustomizable(portlet.getPortletId()) &&
 			LayoutPermissionUtil.contains(
 				permissionChecker, layout, ActionKeys.CUSTOMIZE)) {
 
@@ -665,9 +644,6 @@ public class PortletPermissionImpl implements PortletPermission {
 				return true;
 			}
 			else if (actionId.equals(ActionKeys.CONFIGURATION)) {
-				Portlet portlet = PortletLocalServiceUtil.getPortletById(
-					layout.getCompanyId(), portletId);
-
 				if (portlet.isInstanceable() ||
 					portlet.isPreferencesUniquePerLayout()) {
 
@@ -679,11 +655,188 @@ public class PortletPermissionImpl implements PortletPermission {
 		return false;
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #hasCustomizePermission(
+	 *             PermissionChecker, Layout, Portlet, String)}
+	 */
+	@Deprecated
+	protected boolean hasCustomizePermission(
+			PermissionChecker permissionChecker, Layout layout,
+			String portletId, String actionId)
+		throws PortalException {
+
+		Portlet portlet = PortletLocalServiceUtil.getPortletById(
+			layout.getCompanyId(), portletId);
+
+		return hasCustomizePermission(
+			permissionChecker, layout, portlet, actionId);
+	}
+
+	private boolean _contains(
+			PermissionChecker permissionChecker, long groupId, Layout layout,
+			Portlet portlet, String actionId, boolean strict,
+			boolean checkStagingPermission)
+		throws PortalException {
+
+		String portletId = portlet.getPortletId();
+
+		String name = null;
+		String resourcePermissionPrimKey = null;
+
+		if (layout == null) {
+			name = portletId;
+			resourcePermissionPrimKey = portletId;
+
+			return permissionChecker.hasPermission(
+				groupId, name, resourcePermissionPrimKey, actionId);
+		}
+
+		Group group = null;
+
+		if (groupId > 0) {
+			group = GroupLocalServiceUtil.fetchGroup(groupId);
+		}
+
+		if (group == null) {
+			group = layout.getGroup();
+
+			groupId = layout.getGroupId();
+		}
+
+		if ((group.isControlPanel() || layout.isTypeControlPanel()) &&
+			actionId.equals(ActionKeys.VIEW)) {
+
+			return true;
+		}
+
+		if (layout instanceof VirtualLayout) {
+			if (layout.isCustomizable() && !actionId.equals(ActionKeys.VIEW)) {
+				if (actionId.equals(ActionKeys.ADD_TO_PAGE)) {
+					return hasAddToPagePermission(
+						permissionChecker, layout, portletId, actionId);
+				}
+
+				return hasCustomizePermission(
+					permissionChecker, layout, portlet, actionId);
+			}
+
+			VirtualLayout virtualLayout = (VirtualLayout)layout;
+
+			layout = virtualLayout.getSourceLayout();
+		}
+
+		if (!group.isLayoutSetPrototype() &&
+			actionId.equals(ActionKeys.CONFIGURATION) &&
+			!SitesUtil.isLayoutUpdateable(layout)) {
+
+			return false;
+		}
+
+		String rootPortletId = PortletConstants.getRootPortletId(portletId);
+
+		if (checkStagingPermission) {
+			Boolean hasPermission = StagingPermissionUtil.hasPermission(
+				permissionChecker, group, rootPortletId, groupId, rootPortletId,
+				actionId);
+
+			if (hasPermission != null) {
+				return hasPermission.booleanValue();
+			}
+		}
+
+		resourcePermissionPrimKey = getPrimaryKey(layout.getPlid(), portletId);
+
+		if (strict) {
+			return permissionChecker.hasPermission(
+				groupId, rootPortletId, resourcePermissionPrimKey, actionId);
+		}
+
+		if (hasConfigurePermission(
+				permissionChecker, layout, portlet, actionId) ||
+			hasCustomizePermission(
+				permissionChecker, layout, portlet, actionId)) {
+
+			return true;
+		}
+
+		return permissionChecker.hasPermission(
+			group, rootPortletId, resourcePermissionPrimKey, actionId);
+	}
+
 	private static final boolean _CHECK_STAGING_PERMISSION_DEFAULT = true;
 
 	private static final boolean _STRICT_DEFAULT = false;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		PortletPermissionImpl.class);
+
+	private static class CacheKey {
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+
+			if (!(obj instanceof CacheKey)) {
+				return false;
+			}
+
+			CacheKey cacheKey = (CacheKey)obj;
+
+			if ((_groupId == cacheKey._groupId) && (_plid == cacheKey._plid) &&
+				(_layoutMvccVersion == cacheKey._layoutMvccVersion) &&
+				Objects.equals(_portletId, cacheKey._portletId) &&
+				(_portletMvccVersion == cacheKey._portletMvccVersion) &&
+				Objects.equals(_actionId, cacheKey._actionId) &&
+				(_strict == cacheKey._strict) &&
+				(_checkStagingPermission == cacheKey._checkStagingPermission)) {
+
+				return true;
+			}
+
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			int hash = HashUtil.hash(0, _groupId);
+
+			hash = HashUtil.hash(hash, _plid);
+			hash = HashUtil.hash(hash, _layoutMvccVersion);
+			hash = HashUtil.hash(hash, _portletId);
+			hash = HashUtil.hash(hash, _portletMvccVersion);
+			hash = HashUtil.hash(hash, _actionId);
+			hash = HashUtil.hash(hash, _strict);
+
+			return HashUtil.hash(hash, _checkStagingPermission);
+		}
+
+		private CacheKey(
+			long groupId, long plid, long layoutMvccVersion, String portletId,
+			long portletMvccVersion, String actionId, boolean strict,
+			boolean checkStagingPermission) {
+
+			_groupId = groupId;
+			_plid = plid;
+			_layoutMvccVersion = layoutMvccVersion;
+			_portletId = portletId;
+			_portletMvccVersion = portletMvccVersion;
+			_actionId = actionId;
+			_strict = strict;
+			_checkStagingPermission = checkStagingPermission;
+		}
+
+		private final String _actionId;
+		private final boolean _checkStagingPermission;
+		private final long _groupId;
+		private final long _layoutMvccVersion;
+		private final long _plid;
+		private final String _portletId;
+		private final long _portletMvccVersion;
+		private final boolean _strict;
+
+	}
 
 }

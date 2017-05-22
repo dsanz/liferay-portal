@@ -38,7 +38,9 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutSetBranch;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
+import com.liferay.portal.kernel.model.LayoutSetStagingHandler;
 import com.liferay.portal.kernel.model.StagedModel;
+import com.liferay.portal.kernel.model.adapter.ModelAdapterUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
@@ -69,6 +71,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -154,9 +157,13 @@ public class StagedLayoutSetStagedModelDataHandler
 			portletDataContext.getGroupId(),
 			portletDataContext.isPrivateLayout());
 
-		List<String> sourceLayoutUuids = layoutElements.stream().map(
-			(layoutElement) -> layoutElement.attributeValue("uuid")).collect(
-				Collectors.toList());
+		Stream<Element> layoutElementsStream = layoutElements.stream();
+
+		List<String> sourceLayoutUuids = layoutElementsStream.map(
+			(layoutElement) -> layoutElement.attributeValue("uuid")
+		).collect(
+			Collectors.toList()
+		);
 
 		if (_log.isDebugEnabled() && !sourceLayoutUuids.isEmpty()) {
 			_log.debug("Delete missing layouts");
@@ -203,6 +210,10 @@ public class StagedLayoutSetStagedModelDataHandler
 
 		settingsProperties.remove("last-publish-date");
 
+		// Page versioning
+
+		stagedLayoutSet = unwrapLayoutSetStagingHandler(stagedLayoutSet);
+
 		portletDataContext.addClassedModel(
 			stagedLayoutSetElement,
 			ExportImportPathUtil.getModelPath(stagedLayoutSet),
@@ -218,6 +229,7 @@ public class StagedLayoutSetStagedModelDataHandler
 			updateLastPublishDate) {
 
 			ExportImportProcessCallbackRegistryUtil.registerCallback(
+				portletDataContext.getExportImportProcessId(),
 				new UpdateLayoutSetLastPublishDateCallable(
 					portletDataContext.getDateRange(),
 					portletDataContext.getGroupId(),
@@ -333,7 +345,7 @@ public class StagedLayoutSetStagedModelDataHandler
 				if (!LayoutStagingUtil.prepareLayoutStagingHandler(
 						portletDataContext, layout)) {
 
-					return;
+					continue;
 				}
 
 				StagedModelDataHandlerUtil.exportReferenceStagedModel(
@@ -512,6 +524,24 @@ public class StagedLayoutSetStagedModelDataHandler
 		}
 	}
 
+	protected StagedLayoutSet unwrapLayoutSetStagingHandler(
+		StagedLayoutSet stagedLayoutSet) {
+
+		LayoutSet layoutSet = ModelAdapterUtil.adapt(
+			stagedLayoutSet, StagedLayoutSet.class, LayoutSet.class);
+
+		LayoutSetStagingHandler layoutSetStagingHandler =
+			LayoutStagingUtil.getLayoutSetStagingHandler(layoutSet);
+
+		if (layoutSetStagingHandler == null) {
+			return stagedLayoutSet;
+		}
+
+		return ModelAdapterUtil.adapt(
+			layoutSetStagingHandler.getLayoutSet(), LayoutSet.class,
+			StagedLayoutSet.class);
+	}
+
 	protected void updateLastMergeTime(
 			PortletDataContext portletDataContext, Set<Layout> modifiedLayouts)
 		throws PortalException {
@@ -567,9 +597,7 @@ public class StagedLayoutSetStagedModelDataHandler
 		String mergeFailFriendlyURLLayouts = settingsProperties.getProperty(
 			Sites.MERGE_FAIL_FRIENDLY_URL_LAYOUTS);
 
-		if (Validator.isNull(mergeFailFriendlyURLLayouts) &&
-			modifiedLayouts.isEmpty()) {
-
+		if (Validator.isNull(mergeFailFriendlyURLLayouts)) {
 			settingsProperties.setProperty(
 				Sites.LAST_MERGE_TIME, String.valueOf(lastMergeTime));
 

@@ -32,13 +32,23 @@ import com.liferay.dynamic.data.mapping.storage.StorageEngine;
 import com.liferay.dynamic.data.mapping.util.DDMFormValuesMerger;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ResourceBundleLoader;
+import com.liferay.portal.kernel.util.ResourceBundleLoaderUtil;
+import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowEngineManager;
+import com.liferay.registry.collections.ServiceTrackerCollections;
+import com.liferay.registry.collections.ServiceTrackerMap;
+
+import java.util.Locale;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.RenderRequest;
@@ -49,19 +59,34 @@ import javax.servlet.http.HttpServletRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Adam Brandizzi
  */
+@PrepareForTest( {
+	LocaleUtil.class, ResourceBundleUtil.class, ResourceBundleLoaderUtil.class,
+	ServiceTrackerCollections.class
+})
+@RunWith(PowerMockRunner.class)
 public class DDLFormAdminDisplayContextTest extends PowerMockito {
 
 	@Before
 	public void setUp() throws PortalException {
 		setUpPortalUtil();
+		setUpServiceTrackerCollections();
+
+		setUpLanguageUtil();
+		setUpResourceBundleUtil();
+		setUpResourceBundleLoaderUtil();
 
 		setUpDDLFormDisplayContext();
 	}
@@ -264,6 +289,24 @@ public class DDLFormAdminDisplayContextTest extends PowerMockito {
 			mock(StorageEngine.class), mock(WorkflowEngineManager.class));
 	}
 
+	protected void setUpLanguageUtil() {
+		LanguageUtil languageUtil = new LanguageUtil();
+
+		Language language = mock(Language.class);
+
+		languageUtil.setLanguage(language);
+	}
+
+	protected void setUpLocaleUtil() {
+		mockStatic(LocaleUtil.class);
+
+		when(
+			LocaleUtil.toLanguageId(Matchers.any(Locale.class))
+		).thenReturn(
+			"en_US"
+		);
+	}
+
 	protected void setUpPortalUtil() {
 		PortalUtil portalUtil = new PortalUtil();
 
@@ -278,6 +321,44 @@ public class DDLFormAdminDisplayContextTest extends PowerMockito {
 		);
 
 		portalUtil.setPortal(portal);
+	}
+
+	protected void setUpResourceBundleLoaderUtil() {
+		ResourceBundleLoader resourceBundleLoader = mock(
+			ResourceBundleLoader.class);
+
+		ResourceBundleLoaderUtil.setPortalResourceBundleLoader(
+			resourceBundleLoader);
+
+		when(
+			resourceBundleLoader.loadResourceBundle(Matchers.anyString())
+		).thenReturn(
+			ResourceBundleUtil.EMPTY_RESOURCE_BUNDLE
+		);
+	}
+
+	protected void setUpResourceBundleUtil() {
+		mockStatic(ResourceBundleUtil.class);
+
+		when(
+			ResourceBundleUtil.getBundle(
+				Matchers.anyString(), Matchers.any(Locale.class),
+				Matchers.any(ClassLoader.class))
+		).thenReturn(
+			ResourceBundleUtil.EMPTY_RESOURCE_BUNDLE
+		);
+	}
+
+	protected void setUpServiceTrackerCollections() {
+		mockStatic(ServiceTrackerCollections.class, Mockito.RETURNS_MOCKS);
+
+		stub(
+			method(
+				ServiceTrackerCollections.class, "singleValueMap", Class.class,
+				String.class)
+		).toReturn(
+			_serviceTrackerMap
+		);
 	}
 
 	private static final String _FORM_APPLICATION_PATH =
@@ -303,5 +384,8 @@ public class DDLFormAdminDisplayContextTest extends PowerMockito {
 
 	private DDLFormAdminDisplayContext _ddlFormAdminDisplayContext;
 	private RenderRequest _renderRequest;
+
+	@Mock
+	private ServiceTrackerMap<String, ResourceBundleLoader> _serviceTrackerMap;
 
 }

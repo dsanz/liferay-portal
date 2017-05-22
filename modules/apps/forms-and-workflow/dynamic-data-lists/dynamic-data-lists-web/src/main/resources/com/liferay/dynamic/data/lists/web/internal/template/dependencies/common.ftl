@@ -1,7 +1,11 @@
 <#include "init.ftl">
 
 <#if stringUtil.equals(language, "ftl")>
-	${r"${"}ddlDisplayTemplateHelper.renderRecordFieldValue(${fieldValueVariable}, ${localeVariable})${r"}"}
+	${r"<#if cur_record?has_content>"}
+		${r"${"}ddlDisplayTemplateHelper.renderRecordFieldValue(${fieldValueVariable}, ${localeVariable})${r"}"}
+	${r"</#if>"}
 <#else>
-	$ddlDisplayTemplateHelper.renderRecordFieldValue(${fieldValueVariable}, ${localeVariable})
+	${r"#if($cur_record)"}
+		$ddlDisplayTemplateHelper.renderRecordFieldValue(${fieldValueVariable}, ${localeVariable})
+	${r"#end"}
 </#if>

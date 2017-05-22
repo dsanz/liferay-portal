@@ -17,6 +17,7 @@ package com.liferay.source.formatter.checkstyle.util;
 import com.liferay.portal.kernel.util.ArrayUtil;
 
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
+import com.puppycrawl.tools.checkstyle.api.FullIdent;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 
 import java.util.ArrayList;
@@ -194,6 +195,14 @@ public class DetailASTUtil {
 		return startLine;
 	}
 
+	public static String getTypeName(DetailAST detailAST) {
+		DetailAST typeAST = detailAST.findFirstToken(TokenTypes.TYPE);
+
+		FullIdent typeIdent = FullIdent.createFullIdentBelow(typeAST);
+
+		return typeIdent.getText();
+	}
+
 	public static boolean hasParentWithTokenType(
 		DetailAST detailAST, int... tokenTypes) {
 
@@ -210,21 +219,34 @@ public class DetailASTUtil {
 		return false;
 	}
 
-	public static boolean isCollection(DetailAST detailAST) {
-		if (detailAST.getType() != TokenTypes.VARIABLE_DEF) {
+	public static boolean isArray(DetailAST detailAST) {
+		if (detailAST.getType() != TokenTypes.TYPE) {
 			return false;
 		}
 
-		DetailAST typeAST = detailAST.findFirstToken(TokenTypes.TYPE);
+		DetailAST arrayDeclaratorAST = detailAST.findFirstToken(
+			TokenTypes.ARRAY_DECLARATOR);
 
-		DetailAST typeArgumentsAST = typeAST.findFirstToken(
+		if (arrayDeclaratorAST != null) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public static boolean isCollection(DetailAST detailAST) {
+		if (detailAST.getType() != TokenTypes.TYPE) {
+			return false;
+		}
+
+		DetailAST typeArgumentsAST = detailAST.findFirstToken(
 			TokenTypes.TYPE_ARGUMENTS);
 
 		if (typeArgumentsAST == null) {
 			return false;
 		}
 
-		DetailAST nameAST = typeAST.findFirstToken(TokenTypes.IDENT);
+		DetailAST nameAST = detailAST.findFirstToken(TokenTypes.IDENT);
 
 		String name = nameAST.getText();
 

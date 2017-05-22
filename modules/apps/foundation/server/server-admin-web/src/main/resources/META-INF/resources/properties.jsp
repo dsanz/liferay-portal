@@ -59,9 +59,21 @@ serverURL.setParameter("tabs2", tabs2);
 	<%
 	Map<String, String> filteredProperties = new TreeMap<String, String>();
 
+	List<String> overriddenProperties = new ArrayList<>();
+
+	PortletPreferences serverPortletPreferences = PrefsPropsUtil.getPreferences();
+
+	Map<String, String[]> serverPortletPreferencesMap = serverPortletPreferences.getMap();
+
+	PortletPreferences companyPortletPreferences = PrefsPropsUtil.getPreferences(company.getCompanyId());
+
+	Map<String, String[]> companyPortletPreferencesMap = companyPortletPreferences.getMap();
+
 	Properties properties = null;
 
-	if (tabs2.equals("portal-properties")) {
+	boolean portalPropertiesTab = tabs2.equals("portal-properties");
+
+	if (portalPropertiesTab) {
 		properties = PropsUtil.getProperties(true);
 	}
 	else {
@@ -72,8 +84,16 @@ serverURL.setParameter("tabs2", tabs2);
 		String property = (String)entry.getKey();
 		String value = StringPool.BLANK;
 
+		boolean overriddenPropertyValue = portalPropertiesTab && (serverPortletPreferencesMap.containsKey(property) || companyPortletPreferencesMap.containsKey(property));
+
 		if (ArrayUtil.contains(PropsValues.ADMIN_OBFUSCATED_PROPERTIES, property)) {
 			value = StringPool.EIGHT_STARS;
+		}
+		else if (portalPropertiesTab && serverPortletPreferencesMap.containsKey(property)) {
+			value = serverPortletPreferences.getValue(property, StringPool.BLANK);
+		}
+		else if (portalPropertiesTab && companyPortletPreferencesMap.containsKey(property)) {
+			value = companyPortletPreferences.getValue(property, StringPool.BLANK);
 		}
 		else {
 			value = (String)entry.getValue();
@@ -81,18 +101,14 @@ serverURL.setParameter("tabs2", tabs2);
 
 		if (Validator.isNull(keywords) || property.contains(keywords) || value.contains(keywords)) {
 			filteredProperties.put(property, value);
+
+			if (overriddenPropertyValue) {
+				overriddenProperties.add(property);
+			}
 		}
 	}
 
 	List filteredPropertiesList = ListUtil.fromCollection(filteredProperties.entrySet());
-
-	PortletPreferences serverPortletPreferences = PrefsPropsUtil.getPreferences();
-
-	Map<String, String[]> serverPortletPreferencesMap = serverPortletPreferences.getMap();
-
-	PortletPreferences companyPortletPreferences = PrefsPropsUtil.getPreferences(company.getCompanyId());
-
-	Map<String, String[]> companyPortletPreferencesMap = companyPortletPreferences.getMap();
 	%>
 
 	<liferay-ui:search-container
@@ -113,21 +129,7 @@ serverURL.setParameter("tabs2", tabs2);
 			String property = (String)entry.getKey();
 			String value = (String)entry.getValue();
 
-			boolean overriddenPropertyValue = false;
-
-			if (tabs2.equals("portal-properties")) {
-				if (serverPortletPreferencesMap.containsKey(property)) {
-					value = serverPortletPreferences.getValue(property, StringPool.BLANK);
-
-					overriddenPropertyValue = true;
-				}
-
-				if (companyPortletPreferencesMap.containsKey(property)) {
-					value = companyPortletPreferences.getValue(property, StringPool.BLANK);
-
-					overriddenPropertyValue = true;
-				}
-			}
+			boolean overriddenPropertyValue = portalPropertiesTab && overriddenProperties.contains(property);
 			%>
 
 			<liferay-ui:search-container-column-text

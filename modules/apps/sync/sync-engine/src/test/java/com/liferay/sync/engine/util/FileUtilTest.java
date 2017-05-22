@@ -86,6 +86,8 @@ public class FileUtilTest {
 	@Test
 	public void testGetSanitizedFileName() {
 		for (String blacklistChar : PropsValues.SYNC_FILE_BLACKLIST_CHARS) {
+			blacklistChar = FileUtil.unescapeJava(blacklistChar);
+
 			String fileName = "test" + blacklistChar + "test";
 
 			Assert.assertEquals(
@@ -96,9 +98,7 @@ public class FileUtilTest {
 		for (String blacklistChar :
 				PropsValues.SYNC_FILE_BLACKLIST_CHARS_LAST) {
 
-			if (blacklistChar.startsWith("\\u")) {
-				blacklistChar = StringEscapeUtils.unescapeJava(blacklistChar);
-			}
+			blacklistChar = FileUtil.unescapeJava(blacklistChar);
 
 			String fileName = "test" + blacklistChar;
 

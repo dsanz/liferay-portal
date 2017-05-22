@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.servlet.PortalWebResourceConstants;
 import com.liferay.portal.kernel.servlet.PortalWebResourcesUtil;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.template.TemplateConstants;
+import com.liferay.portal.kernel.theme.PortletDecoratorFactoryUtil;
 import com.liferay.portal.kernel.theme.ThemeCompanyId;
 import com.liferay.portal.kernel.theme.ThemeCompanyLimit;
 import com.liferay.portal.kernel.theme.ThemeGroupLimit;
@@ -160,6 +161,29 @@ public class ThemeImpl extends PluginBaseImpl implements Theme {
 	@Override
 	public String getCssPath() {
 		return _cssPath;
+	}
+
+	public PortletDecorator getDefaultPortletDecorator() {
+		if (_defaultPortletDecorator == null) {
+			List<PortletDecorator> portletDecorators = getPortletDecorators();
+
+			for (int i = portletDecorators.size() - 1; i >= 0; i--) {
+				PortletDecorator portletDecorator = portletDecorators.get(i);
+
+				if (portletDecorator.isDefaultPortletDecorator()) {
+					_defaultPortletDecorator = portletDecorator;
+
+					break;
+				}
+			}
+
+			if (_defaultPortletDecorator == null) {
+				_defaultPortletDecorator =
+					PortletDecoratorFactoryUtil.getDefaultPortletDecorator();
+			}
+		}
+
+		return _defaultPortletDecorator;
 	}
 
 	@Override
@@ -668,6 +692,7 @@ public class ThemeImpl extends PluginBaseImpl implements Theme {
 	private final Map<String, ColorScheme> _colorSchemesMap = new HashMap<>();
 	private boolean _controlPanelTheme;
 	private String _cssPath = "${root-path}/css";
+	private PortletDecorator _defaultPortletDecorator;
 	private String _imagesPath = "${root-path}/images";
 	private String _javaScriptPath = "${root-path}/js";
 	private boolean _loadFromServletContext;

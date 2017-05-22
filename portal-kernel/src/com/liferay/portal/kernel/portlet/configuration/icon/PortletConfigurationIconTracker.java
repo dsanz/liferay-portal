@@ -15,23 +15,22 @@
 package com.liferay.portal.kernel.portlet.configuration.icon;
 
 import com.liferay.portal.kernel.portlet.configuration.icon.locator.PortletConfigurationIconLocator;
-import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.PredicateFilter;
-import com.liferay.portal.kernel.util.SetUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.registry.collections.ServiceTrackerCollections;
 import com.liferay.registry.collections.ServiceTrackerList;
 import com.liferay.registry.collections.ServiceTrackerMap;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.portlet.PortletRequest;
+import javax.portlet.filter.PortletRequestWrapper;
 
 /**
  * @author Eudaldo Alonso
@@ -41,28 +40,7 @@ public class PortletConfigurationIconTracker {
 	public static List<PortletConfigurationIcon> getPortletConfigurationIcons(
 		String portletId, PortletRequest portletRequest) {
 
-		Set<PortletConfigurationIcon> portletConfigurationIcons =
-			new HashSet<>();
-
-		for (String path : getPaths(portletId, portletRequest)) {
-			List<PortletConfigurationIcon> portletPortletConfigurationIcons =
-				_serviceTrackerMap.getService(getKey(StringPool.STAR, path));
-
-			if (portletPortletConfigurationIcons != null) {
-				portletConfigurationIcons.addAll(
-					portletPortletConfigurationIcons);
-			}
-
-			portletPortletConfigurationIcons = _serviceTrackerMap.getService(
-				getKey(portletId, path));
-
-			if (portletPortletConfigurationIcons != null) {
-				portletConfigurationIcons.addAll(
-					portletPortletConfigurationIcons);
-			}
-		}
-
-		return new ArrayList<>(portletConfigurationIcons);
+		return _getPortletConfigurationIcons(portletId, portletRequest, false);
 	}
 
 	public static List<PortletConfigurationIcon> getPortletConfigurationIcons(
@@ -70,20 +48,9 @@ public class PortletConfigurationIconTracker {
 		Comparator<?> comparator) {
 
 		List<PortletConfigurationIcon> portletConfigurationIcons =
-			ListUtil.filter(
-				getPortletConfigurationIcons(portletId, portletRequest),
-				new PredicateFilter<PortletConfigurationIcon>() {
+			_getPortletConfigurationIcons(portletId, portletRequest, true);
 
-					@Override
-					public boolean filter(
-						PortletConfigurationIcon portletConfigurationIcon) {
-
-						return portletConfigurationIcon.isShow(portletRequest);
-					}
-
-				});
-
-		portletConfigurationIcons = ListUtil.sort(
+		Collections.sort(
 			portletConfigurationIcons,
 			(Comparator<PortletConfigurationIcon>)comparator);
 
@@ -91,13 +58,13 @@ public class PortletConfigurationIconTracker {
 	}
 
 	protected static String getKey(String portletId, String path) {
-		return portletId + StringPool.COLON + path;
+		return portletId.concat(StringPool.COLON).concat(path);
 	}
 
 	protected static Set<String> getPaths(
 		String portletId, PortletRequest portletRequest) {
 
-		Set<String> paths = new HashSet<>();
+		Set<String> paths = _defaultPaths;
 
 		for (PortletConfigurationIconLocator portletConfigurationIconLocator :
 				_serviceTrackerList) {
@@ -105,29 +72,93 @@ public class PortletConfigurationIconTracker {
 			String path = portletConfigurationIconLocator.getPath(
 				portletRequest);
 
-			List<String> defaultViews =
-				portletConfigurationIconLocator.getDefaultViews(portletId);
+			if (!path.isEmpty()) {
+				if (paths == _defaultPaths) {
+					paths = new HashSet<>();
+				}
 
-			String[] defaultViewsArray = ArrayUtil.toStringArray(defaultViews);
-
-			if (Validator.isNotNull(path)) {
 				paths.add(path);
 
-				if (ArrayUtil.isNotEmpty(defaultViewsArray) &&
-					ArrayUtil.contains(defaultViewsArray, path)) {
+				if (!path.equals(StringPool.DASH)) {
+					List<String> defaultViews =
+						portletConfigurationIconLocator.getDefaultViews(
+							portletId);
 
-					paths.add(StringPool.DASH);
+					if (defaultViews.contains(path)) {
+						paths.add(StringPool.DASH);
+					}
 				}
 			}
-		}
-
-		if (SetUtil.isEmpty(paths)) {
-			paths.add(StringPool.DASH);
 		}
 
 		return paths;
 	}
 
+	private static List<PortletConfigurationIcon> _getPortletConfigurationIcons(
+		String portletId, PortletRequest portletRequest, boolean filter) {
+
+		List<PortletConfigurationIcon> portletConfigurationIcons =
+			new ArrayList<>();
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PortletRequestWrapper portletRequestWrapper =
+			new PortletRequestWrapper(portletRequest) {
+
+				@Override
+				public Object getAttribute(String name) {
+					if (name == WebKeys.THEME_DISPLAY) {
+						return themeDisplay;
+					}
+
+					return super.getAttribute(name);
+				}
+
+			};
+
+		for (String path : getPaths(portletId, portletRequest)) {
+			List<PortletConfigurationIcon> portletPortletConfigurationIcons =
+				_serviceTrackerMap.getService(getKey(StringPool.STAR, path));
+
+			if (portletPortletConfigurationIcons != null) {
+				for (PortletConfigurationIcon portletConfigurationIcon :
+						portletPortletConfigurationIcons) {
+
+					if (!filter ||
+						portletConfigurationIcon.isShow(
+							portletRequestWrapper)) {
+
+						portletConfigurationIcons.add(portletConfigurationIcon);
+					}
+				}
+			}
+
+			portletPortletConfigurationIcons = _serviceTrackerMap.getService(
+				getKey(portletId, path));
+
+			if (portletPortletConfigurationIcons == null) {
+				continue;
+			}
+
+			for (PortletConfigurationIcon portletConfigurationIcon :
+					portletPortletConfigurationIcons) {
+
+				if (!portletConfigurationIcons.contains(
+						portletConfigurationIcon) &&
+					(!filter ||
+					 portletConfigurationIcon.isShow(portletRequestWrapper))) {
+
+					portletConfigurationIcons.add(portletConfigurationIcon);
+				}
+			}
+		}
+
+		return portletConfigurationIcons;
+	}
+
+	private static final Set<String> _defaultPaths = Collections.singleton(
+		StringPool.DASH);
 	private static final ServiceTrackerList<PortletConfigurationIconLocator>
 		_serviceTrackerList = ServiceTrackerCollections.openList(
 			PortletConfigurationIconLocator.class);

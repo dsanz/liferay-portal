@@ -4,28 +4,7 @@ Bundle-Version: 1.0.0
 Export-Package:\
 	com.liferay.portal.security.sso.openid.connect,\
 	com.liferay.portal.security.sso.openid.connect.configuration,\
-	com.liferay.portal.security.sso.openid.connect.constants,\
-	\
-	com.nimbusds.jose.util,\
-	com.nimbusds.jwt,\
-	com.nimbusds.langtag,\
-	com.nimbusds.oauth2.sdk,\
-	com.nimbusds.oauth2.sdk.assertions,\
-	com.nimbusds.oauth2.sdk.assertions.jwt,\
-	com.nimbusds.oauth2.sdk.auth,\
-	com.nimbusds.oauth2.sdk.http,\
-	com.nimbusds.oauth2.sdk.id,\
-	com.nimbusds.oauth2.sdk.pkce,\
-	com.nimbusds.oauth2.sdk.token,\
-	com.nimbusds.oauth2.sdk.util,\
-	com.nimbusds.openid.connect.sdk,\
-	com.nimbusds.openid.connect.sdk.claims,\
-	com.nimbusds.openid.connect.sdk.token,\
-	\
-	net.jcip.annotations,\
-	\
-	net.minidev.json,\
-	net.minidev.json.parser
+	com.liferay.portal.security.sso.openid.connect.constants
 Import-Package:\
 	!org.apache.avalon.*,\
 	!org.apache.html.dom.*,\
@@ -43,3 +22,25 @@ Import-Package:\
 	*
 Liferay-Releng-Module-Group-Description:
 Liferay-Releng-Module-Group-Title: Security Frameworks
+-exportcontents:\
+	com.nimbusds.jose.util,\
+	com.nimbusds.jwt,\
+	com.nimbusds.langtag,\
+	com.nimbusds.oauth2.sdk,\
+	com.nimbusds.oauth2.sdk.assertions,\
+	com.nimbusds.oauth2.sdk.assertions.jwt,\
+	com.nimbusds.oauth2.sdk.auth,\
+	com.nimbusds.oauth2.sdk.http,\
+	com.nimbusds.oauth2.sdk.id,\
+	com.nimbusds.oauth2.sdk.pkce,\
+	com.nimbusds.oauth2.sdk.token,\
+	com.nimbusds.oauth2.sdk.util,\
+	com.nimbusds.openid.connect.sdk,\
+	com.nimbusds.openid.connect.sdk.claims,\
+	com.nimbusds.openid.connect.sdk.op,\
+	com.nimbusds.openid.connect.sdk.token,\
+	\
+	net.jcip.annotations,\
+	\
+	net.minidev.json,\
+	net.minidev.json.parser

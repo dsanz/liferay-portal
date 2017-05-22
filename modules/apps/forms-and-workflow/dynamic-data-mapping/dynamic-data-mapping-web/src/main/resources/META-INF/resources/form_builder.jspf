@@ -121,6 +121,23 @@ for (Locale availableLocale : LanguageUtil.getAvailableLocales(themeDisplay.getS
 	var STR_VALUE = 'value';
 
 	var availableFields;
+
+	var displayWarning = function(message) {
+		new Liferay.Notification(
+			{
+				closeable: true,
+				delay: {
+					hide: 5000,
+					show: 0,
+				},
+				duration: 500,
+				message: message,
+				title: Liferay.Language.get('warning'),
+				type: 'warning'
+			}
+		).render('body');
+	};
+
 	var formEditor;
 
 	var getContentValue = function() {
@@ -163,9 +180,25 @@ for (Locale availableLocale : LanguageUtil.getAvailableLocales(themeDisplay.getS
 
 		content = content.replace(/nestedFields/g, 'fields');
 
-		content = formBuilder.deserializeDefinitionFields(JSON.parse(content));
+		if (content.indexOf('availableLanguageIds') === -1 || content.indexOf('defaultLanguageId') === -1 || content.indexOf('fields') === -1) {
+			displayWarning('<%= UnicodeLanguageUtil.get(resourceBundle, "you-cannot-remove-default-attributes") %>');
+		}
+		else {
+			try {
+				content = JSON.parse(content);
+			}
+			catch (e) {
+				displayWarning('<%= UnicodeLanguageUtil.get(resourceBundle, "you-have-entered-invalid-json") %>');
 
-		formBuilder.set('fields', content);
+				return;
+			}
+
+			formBuilder.translationManager.set('availableLocales', content.availableLanguageIds);
+
+			content = formBuilder.deserializeDefinitionFields(content);
+
+			formBuilder.set('fields', content);
+		}
 	};
 
 	var setEditorSize = function() {
@@ -183,7 +216,7 @@ for (Locale availableLocale : LanguageUtil.getAvailableLocales(themeDisplay.getS
 	};
 
 	var switchToView = function() {
-		reloadFormBuilderData(getContentValue());
+		reloadFormBuilderData(formEditor.get(STR_VALUE));
 	};
 
 	<c:if test="<%= Validator.isNotNull(scopeAvailableFields) %>">

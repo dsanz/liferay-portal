@@ -14,6 +14,8 @@
 
 package com.liferay.journal.content.web.internal.exportimport.portlet.preferences.processor;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
@@ -254,33 +256,51 @@ public class JournalContentExportImportPortletPreferencesProcessor
 
 		try {
 			if (Validator.isNotNull(articleId)) {
-				Map<String, String> articleIds =
-					(Map<String, String>)
-						portletDataContext.getNewPrimaryKeysMap(
-							JournalArticle.class + ".articleId");
-
-				articleId = MapUtil.getString(articleIds, articleId, articleId);
-
-				portletPreferences.setValue("articleId", articleId);
-
 				Group importedArticleGroup = _groupLocalService.getGroup(
 					groupId);
 
 				if (importedArticleGroup.isStagedPortlet(
 						JournalPortletKeys.JOURNAL)) {
 
+					Map<String, String> articleIds =
+						(Map<String, String>)
+							portletDataContext.getNewPrimaryKeysMap(
+								JournalArticle.class + ".articleId");
+
+					articleId = MapUtil.getString(
+						articleIds, articleId, articleId);
+
+					portletPreferences.setValue("articleId", articleId);
+
 					portletPreferences.setValue(
 						"groupId", String.valueOf(groupId));
-				}
 
-				if (portletDataContext.getPlid() > 0) {
-					Layout layout = _layoutLocalService.fetchLayout(
-						portletDataContext.getPlid());
+					JournalArticle article =
+						_journalArticleLocalService.fetchLatestArticle(
+							groupId, articleId, WorkflowConstants.STATUS_ANY);
 
-					_journalContentSearchLocalService.updateContentSearch(
-						layout.getGroupId(), layout.isPrivateLayout(),
-						layout.getLayoutId(), portletDataContext.getPortletId(),
-						articleId, true);
+					if (article != null) {
+						AssetEntry assetEntry =
+							_assetEntryLocalService.fetchEntry(
+								JournalArticle.class.getName(),
+								article.getResourcePrimKey());
+
+						if (assetEntry != null) {
+							portletPreferences.setValue(
+								"assetEntryId",
+								String.valueOf(assetEntry.getEntryId()));
+						}
+					}
+
+					if (portletDataContext.getPlid() > 0) {
+						Layout layout = _layoutLocalService.fetchLayout(
+							portletDataContext.getPlid());
+
+						_journalContentSearchLocalService.updateContentSearch(
+							layout.getGroupId(), layout.isPrivateLayout(),
+							layout.getLayoutId(),
+							portletDataContext.getPortletId(), articleId, true);
+					}
 				}
 			}
 
@@ -313,6 +333,13 @@ public class JournalContentExportImportPortletPreferencesProcessor
 		portletDataContext.setScopeType(previousScopeType);
 
 		return portletPreferences;
+	}
+
+	@Reference(unbind = "-")
+	protected void setAssetEntryLocalService(
+		AssetEntryLocalService assetEntryLocalService) {
+
+		_assetEntryLocalService = assetEntryLocalService;
 	}
 
 	@Reference(unbind = "-")
@@ -360,6 +387,7 @@ public class JournalContentExportImportPortletPreferencesProcessor
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalContentExportImportPortletPreferencesProcessor.class);
 
+	private AssetEntryLocalService _assetEntryLocalService;
 	private DDMTemplateLocalService _ddmTemplateLocalService;
 	private GroupLocalService _groupLocalService;
 	private JournalArticleLocalService _journalArticleLocalService;

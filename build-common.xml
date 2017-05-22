@@ -77,8 +77,6 @@
 	</path>
 
 	<taskdef classpathref="lib.classpath" resource="aQute/bnd/ant/taskdef.properties" />
-	<taskdef classpathref="lib.classpath" resource="axis-tasks.properties" />
-	<taskdef classpathref="lib.classpath" resource="com/orangevolt/tools/ant/taskdefs.properties" />
 	<taskdef classpathref="lib.classpath" resource="ise/antelope/tasks/antlib.xml" uri="antlib:ise.antelope.tasks" />
 	<taskdef classpathref="lib.classpath" resource="net/sf/antcontrib/antlib.xml" />
 	<typedef classpathref="lib.classpath" resource="org/apache/maven/artifact/ant/antlib.xml" uri="antlib:org.apache.maven.artifact.ant" />
@@ -93,8 +91,6 @@
 	<liferay-build-logger-installer />
 
 	<taskdef classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="${project.dir}/lib/development/xmltask.jar" name="xmltask" />
-
-	<taskdef classname="com.tonicsystems.jarjar.JarJarTask" classpath="${project.dir}/lib/development/jarjar.jar" name="jarjar" />
 
 	<condition property="build.profile" value="portal">
 		<not>
@@ -170,6 +166,12 @@
 		</not>
 	</condition>
 
+	<condition else="Liferay DXP" property="liferay.releng.product.display.name" value="Liferay Portal CE">
+		<not>
+			<istrue value="${liferay.releng.ee}" />
+		</not>
+	</condition>
+
 	<condition else="false" property="liferay.releng.public">
 		<not>
 			<istrue value="${liferay.releng.ee}" />
@@ -179,6 +181,17 @@
 	<condition else="false" property="liferay.releng.supported">
 		<istrue value="${liferay.releng.ee}" />
 	</condition>
+
+	<fail message="Please use Java 1.8.">
+		<condition>
+			<not>
+				<or>
+					<equals arg1="${java.specification.version}" arg2="1.8" />
+					<isset property="env.JENKINS_HOME" />
+				</or>
+			</not>
+		</condition>
+	</fail>
 
 	<condition property="correct.ant.version">
 		<antversion atleast="1.7.0" />
@@ -239,14 +252,28 @@ Error-Prone was automatically installed. Please rerun your task.
 		</condition>
 	</fail>
 
-	<condition property="jdk.7.home" value="${env.JAVA_HOME}">
-		<and>
-			<not>
-				<isset property="jdk.7.home" />
-			</not>
-			<equals arg1="${java.specification.version}" arg2="1.6" />
-		</and>
-	</condition>
+	<fail>
+		<condition>
+			<and>
+				<equals arg1="${microsoft.translator.subscription.key}" arg2="" />
+				<or>
+					<isset property="microsoft.translator.client.id" />
+					<isset property="microsoft.translator.client.secret" />
+				</or>
+			</and>
+		</condition>
+.
+
+Properties "microsoft.translator.client.id" and
+"microsoft.translator.client.secret" are deprecated. Please remove these
+properties, or set "microsoft.translator.subscription.key" instead, then rerun
+your task.
+
+Subscription to the Translator Text Translation API on Microsoft Cognitive
+Services is required. Basic subscriptions, up to 2 million characters a month,
+are free. See http://docs.microsofttranslator.com/text-translate.html for more
+information.
+	</fail>
 
 	<property name="whip.agent" value="-javaagent:${project.dir}/${junit.whip.jar}=${junit.whip.includes};${junit.whip.excludes}" />
 
@@ -265,144 +292,6 @@ Error-Prone was automatically installed. Please rerun your task.
 			<echo file="app.server.${user.name}.properties">@{properties.content}</echo>
 
 			<echo file="${sdk.dir}/build.${user.name}.properties">@{properties.content}</echo>
-		</sequential>
-	</macrodef>
-
-	<macrodef name="check-fix-pack-requirements">
-		<attribute default="${app.server.dir}/patching-tool/patches" name="fix.pack.dir" />
-		<attribute name="fix.pack.file.name" />
-
-		<sequential>
-			<propertyregex
-				input="@{fix.pack.file.name}"
-				property="fix.pack.build.version"
-				regexp=".+(\d{4})\.zip"
-				replace="\1"
-			/>
-
-			<propertyregex
-				input="@{fix.pack.file.name}"
-				property="fix.pack.portal.version"
-				regexp=".+(\d)(\d)(\d\d)\.zip"
-				replace="\1.\2.\3"
-			/>
-
-			<property
-				name="fix.pack.temp.dir"
-				value="@{fix.pack.dir}/temp"
-			/>
-
-			<mkdir dir="${fix.pack.temp.dir}" />
-
-			<unzip
-				dest="${fix.pack.temp.dir}"
-				src="@{fix.pack.dir}/@{fix.pack.file.name}"
-			/>
-
-			<xmlproperty file="${fix.pack.temp.dir}/fixpack_documentation.xml" />
-
-			<delete dir="${fix.pack.temp.dir}" />
-
-			<antelope:stringutil property="fix.pack.requirements" string="${patch.requirements}">
-				<antelope:replace regex="!" replacement="" />
-				<antelope:replace regex="&gt;=" replacement="-" />
-			</antelope:stringutil>
-
-			<var name="patch.requirements" unset="true" />
-
-			<if>
-				<not>
-					<equals arg1="${fix.pack.requirements}" arg2="" />
-				</not>
-				<then>
-					<for list="${fix.pack.requirements}" param="fix.pack.requirement">
-						<sequential>
-							<propertyregex
-								input="@{fix.pack.requirement}"
-								property="fix.pack.requirement.type"
-								override="true"
-								regexp="-\d+"
-								replace=""
-							/>
-
-							<if>
-								<and>
-									<not>
-										<isset property="fix.pack.requirement.type" />
-									</not>
-									<contains string="@{fix.pack.requirement}" substring="de=" />
-								</and>
-								<then>
-									<property name="fix.pack.requirement.type" value="de" />
-								</then>
-							</if>
-
-							<if>
-								<equals arg1="${fix.pack.requirement.type}" arg2="de" />
-								<then>
-									<local name="fix.pack.requirement" />
-
-									<propertyregex
-										defaultValue="@{fix.pack.requirement}"
-										input="@{fix.pack.requirement}"
-										property="fix.pack.requirement"
-										override="true"
-										regexp="="
-										replace="-"
-									/>
-
-									<var
-										name="fix.pack.requirement.file.name"
-										value="liferay-fix-pack-${fix.pack.requirement}-${fix.pack.build.version}.zip"
-									/>
-								</then>
-								<elseif>
-									<equals arg1="${fix.pack.requirement.type}" arg2="hotfix" />
-									<then>
-										<var
-											name="fix.pack.requirement.file.name"
-											value="liferay-@{fix.pack.requirement}-${fix.pack.build.version}.zip"
-										/>
-									</then>
-								</elseif>
-								<else>
-									<var
-										name="fix.pack.requirement.file.name"
-										value="liferay-fix-pack-@{fix.pack.requirement}-${fix.pack.build.version}.zip"
-									/>
-								</else>
-							</if>
-
-							<if>
-								<not>
-									<available file="@{fix.pack.dir}/${fix.pack.requirement.file.name}" />
-								</not>
-								<then>
-									<trycatch>
-										<try>
-											<mirrors-get
-												dest="@{fix.pack.dir}"
-												src="http://files.liferay.com/private/ee/fix-packs/${fix.pack.portal.version}/${fix.pack.requirement.type}/${fix.pack.requirement.file.name}"
-											/>
-										</try>
-										<catch>
-											<mirrors-get
-												dest="@{fix.pack.dir}"
-												src="http://files.liferay.com/private/ee/fix-packs/incubation/${fix.pack.requirement.file.name}"
-											/>
-										</catch>
-									</trycatch>
-
-									<check-fix-pack-requirements
-										fix.pack.dir="@{fix.pack.dir}"
-										fix.pack.file.name="${fix.pack.requirement.file.name}"
-									/>
-								</then>
-							</if>
-						</sequential>
-					</for>
-				</then>
-			</if>
 		</sequential>
 	</macrodef>
 
@@ -674,6 +563,7 @@ Error-Prone was automatically installed. Please rerun your task.
 		<attribute default="${basedir}" name="dir" />
 		<attribute default="true" name="failonerror" />
 		<attribute default="true" name="forcedcacheenabled" />
+		<attribute default="" name="outputproperty" />
 		<attribute name="task" />
 		<element implicit="true" name="args" optional="true" />
 
@@ -700,6 +590,7 @@ Error-Prone was automatically installed. Please rerun your task.
 				<arg value="-Dliferay.home=${liferay.home}" />
 				<arg value="@{task}" />
 				<env key="GRADLE_OPTS" value="${env.ANT_OPTS}" />
+				<redirector errorproperty="@{outputproperty}.error" outputproperty="@{outputproperty}" unless:blank="@{outputproperty}" />
 			</exec>
 		</sequential>
 	</macrodef>
@@ -711,16 +602,24 @@ Error-Prone was automatically installed. Please rerun your task.
 		<element implicit="true" name="attach-files" optional="true" />
 
 		<sequential>
+			<local name="build.repository.local.actual.dir" />
+			<local name="snapshot.version.suffix" />
+
+			<condition else="${build.repository.local.dir}" property="build.repository.local.actual.dir" value="${user.home}/.m2/repository">
+				<equals arg1="${build.repository.local.dir}" arg2="" />
+			</condition>
+
 			<condition else="" property="snapshot.version.suffix" value="-SNAPSHOT">
 				<istrue value="@{snapshot}" />
 			</condition>
 
 			<prepare-portal-artifact-pom snapshot.version.suffix="${snapshot.version.suffix}" />
 
-			<delete dir="${user.home}/.m2/repository/com/liferay/portal/com.liferay.${processed.artifact.name}" />
+			<delete dir="${build.repository.local.actual.dir}/com/liferay/portal/com.liferay.${processed.artifact.name}" />
 
 			<artifact:install file="${artifact.name}.@{packaging}">
 				<attach-files />
+				<localRepository path="${build.repository.local.dir}" unless:blank="${build.repository.local.dir}" />
 				<pom file="pom.xml" />
 			</artifact:install>
 
@@ -1060,13 +959,29 @@ Error-Prone was automatically installed. Please rerun your task.
 		</sequential>
 	</macrodef>
 
+	<macrodef name="setup-libs">
+		<sequential>
+			<gradle-execute task="setUpLibs">
+				<arg value="--build-file=${project.dir}/modules/util.gradle" />
+			</gradle-execute>
+		</sequential>
+	</macrodef>
+
 	<macrodef name="setup-sdk">
 		<sequential>
+			<gradle-execute forcedcacheenabled="true" outputproperty="sdk.zip.file" task="printDependencyPath">
+				<arg value="--build-file=${project.dir}/modules/util.gradle" />
+				<arg value="--quiet" />
+				<arg value="-PdependencyNotation=com.liferay.portal:com.liferay.portal.plugins.sdk:${build.sdk.version}" />
+			</gradle-execute>
+
+			<dirname file="${sdk.zip.file}" property="sdk.zip.dir" />
+
 			<if>
 				<not>
 					<uptodate>
 						<mapper to="${sdk.dir}" type="merge" />
-						<srcfiles dir="${project.dir}/tools" includes="com.liferay.portal.plugins.sdk-7.0.0.zip" />
+						<srcfiles dir="${sdk.zip.dir}" includes="com.liferay.portal.plugins.sdk-${build.sdk.version}.zip" />
 					</uptodate>
 				</not>
 				<then>
@@ -1074,11 +989,11 @@ Error-Prone was automatically installed. Please rerun your task.
 
 					<unzip
 						dest="${project.dir}/tools"
-						src="${project.dir}/tools/com.liferay.portal.plugins.sdk-7.0.0.zip"
+						src="${sdk.zip.dir}/com.liferay.portal.plugins.sdk-${build.sdk.version}.zip"
 					>
 						<mapper
 							type="glob"
-							from="com.liferay.portal.plugins.sdk-7.0.0/*"
+							from="com.liferay.portal.plugins.sdk-${build.sdk.version}/*"
 							to="sdk/*"
 						/>
 					</unzip>
@@ -1089,7 +1004,7 @@ Error-Prone was automatically installed. Please rerun your task.
 
 			<update-gradle-properties />
 
-			<gradle-execute task="setupPortalTools">
+			<gradle-execute task="setUpPortalTools">
 				<arg value="--build-file=${project.dir}/modules/util.gradle" />
 			</gradle-execute>
 		</sequential>
@@ -1311,7 +1226,7 @@ rerun your task.
 			<delete file="${gradle.properties.file}" />
 
 			<condition else="false" property="jsp.precompile.enabled">
-				<istrue value="${jsp.precompile}" />
+				<istrue value="${jsp.precompile.modules}" />
 			</condition>
 
 			<echoproperties destfile="${gradle.properties.file}" >
@@ -1321,14 +1236,14 @@ rerun your task.
 					<propertyref name="baseline.jar.report.only.dirty.packages" />
 					<propertyref name="git.working.branch.name" />
 					<propertyref name="jsp.precompile.enabled" />
+					<propertyref name="jsp.precompile.from.source" />
 					<propertyref name="junit.java.integration.gc" />
 					<propertyref name="junit.java.unit.gc" />
 					<propertyref name="liferay.home" />
 					<propertyref name="liferay.releng.app.title.prefix" />
+					<propertyref name="liferay.releng.product.display.name" />
 					<propertyref name="liferay.releng.public" />
 					<propertyref name="liferay.releng.supported" />
-					<propertyref name="microsoft.translator.client.id" />
-					<propertyref name="microsoft.translator.client.secret" />
 					<propertyref name="release.versions.test.other.dir" />
 					<propertyref name="sass.compiler.class.name" />
 					<propertyref name="sass.generate.source.map" />
@@ -1337,9 +1252,12 @@ rerun your task.
 					<propertyref name="source.formatter.max.line.length" />
 					<propertyref name="source.formatter.processor.thread.count" />
 					<propertyref name="timeout.app.server.wait" />
+					<propertyref name="upgrade.table.dir" />
 					<propertyref prefix="ivy.pom." />
+					<propertyref prefix="microsoft.translator." />
 					<propertyref prefix="nodejs.npm." />
 					<propertyref prefix="sonatype." />
+					<propertyref regex=".+\.ignore\.local$" />
 					<propertyref regex="^\s*app\.server\.(?:glassfish|jboss|jetty|jonas|resin|tcat|tcserver|tomcat|weblogic|websphere|wildfly).*" />
 				</propertyset>
 			</echoproperties>
@@ -1377,8 +1295,10 @@ rerun your task.
 				<entry key="database.jdbc.drivers.url" value="${test.jdbc.drivers.url}" />
 				<entry key="database.jdbc.oracle.driver" value="${jdbc.oracle.driver}" />
 				<entry key="database.oracle.version" value="${database.oracle.version}" />
+				<entry key="plugins.sdk.version" value="${build.sdk.version}" />
 				<entry key="systemProp.build.bnd.print.enabled" value="${build.bnd.print.enabled}" />
 				<entry key="systemProp.build.performance.logger.enabled" value="${build.performance.logger.enabled}" />
+				<entry key="systemProp.maven.repo.local" value="${build.repository.local.dir}" unless:blank="${build.repository.local.dir}" />
 				<entry key="systemProp.repository.private.password" value="${build.repository.private.password}" />
 				<entry key="systemProp.repository.private.url" value="${build.repository.private.proxied.url}" />
 				<entry key="systemProp.repository.private.username" value="${build.repository.private.username}" />
@@ -1410,8 +1330,6 @@ rerun your task.
 					<propertyref name="junit.test.excludes" />
 					<propertyref name="liferay.home" />
 					<propertyref name="lp.version" />
-					<propertyref name="microsoft.translator.client.id" />
-					<propertyref name="microsoft.translator.client.secret" />
 					<propertyref name="sass.compiler.class.name" />
 					<propertyref name="snapshot.check.enabled" />
 					<propertyref name="upgrade.table.dir" />
@@ -1420,6 +1338,7 @@ rerun your task.
 					<propertyref name="-plugin" />
 					<propertyref name="-releaserepo" />
 					<propertyref prefix="ivy.pom." />
+					<propertyref prefix="microsoft.translator." />
 					<propertyref prefix="sonatype." />
 					<propertyref regex="^\s*app\.server\.(?:glassfish|jboss|jetty|jonas|resin|tcat|tcserver|tomcat|weblogic|websphere|wildfly).*\.dir" />
 				</propertyset>

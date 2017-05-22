@@ -77,7 +77,9 @@ public class LanEngine {
 				catch (Exception e) {
 					String message = e.getMessage();
 
-					if (!message.equals("Network is unreachable")) {
+					if (!message.equals("Network is down") &&
+						!message.equals("Network is unreachable")) {
+
 						_logger.error(e.getMessage(), e);
 					}
 				}

@@ -63,7 +63,6 @@
 
 		<reference entity="Group" package-path="com.liferay.portal" />
 		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="Subscription" package-path="com.liferay.portal" />
 		<reference entity="SystemEvent" package-path="com.liferay.portal" />
 		<reference entity="User" package-path="com.liferay.portal" />
 		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
@@ -281,7 +280,6 @@
 		<reference entity="Layout" package-path="com.liferay.portal" />
 		<reference entity="PortletPreferences" package-path="com.liferay.portal" />
 		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="Subscription" package-path="com.liferay.portal" />
 		<reference entity="SystemEvent" package-path="com.liferay.portal" />
 		<reference entity="User" package-path="com.liferay.portal" />
 		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
@@ -295,10 +293,6 @@
 		<reference entity="TrashVersion" package-path="com.liferay.portlet.trash" />
 		<reference entity="WikiNode" package-path="com.liferay.wiki" />
 		<reference entity="WikiPageResource" package-path="com.liferay.wiki" />
-
-		<!-- Transactions -->
-
-		<tx-required>getPage</tx-required>
 	</entity>
 	<entity local-service="true" name="WikiPageResource" remote-service="false" uuid="true">
 

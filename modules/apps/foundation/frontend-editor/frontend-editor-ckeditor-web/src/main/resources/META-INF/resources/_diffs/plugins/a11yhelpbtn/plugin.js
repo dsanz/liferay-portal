@@ -25,7 +25,7 @@
 						if (a11ybtnIndex !== -1) {
 							var a11ToolbarIndex = toolbarHTML.lastIndexOf('class="cke_toolbar"', a11ybtnIndex);
 
-							var toolbarText = toolbarHTML.substr(a11ToolbarIndex).replace('class="cke_toolbar"', 'class="cke_toolbar cke_toolbar__a11yhelpbtn"');
+							var toolbarText = toolbarHTML.substr(a11ToolbarIndex).replace('class="cke_toolbar cke_toolbar_last"', 'class="cke_toolbar cke_toolbar_last cke_toolbar__a11yhelpbtn"');
 
 							event.data.html = toolbarHTML.substr(0, a11ToolbarIndex) + toolbarText;
 						}

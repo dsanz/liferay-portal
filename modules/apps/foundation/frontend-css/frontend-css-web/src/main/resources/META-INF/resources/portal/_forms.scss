@@ -224,14 +224,3 @@
 .field-wrapper .btn {
 	margin-top: 6px;
 }
-
-@include respond-to(phone, tablet) {
-	#{$form_text_fields},
-	select,
-	.input-group .input-group-addon,
-	.navbar-search .search-query {
-		font-size: 18px;
-		height: auto;
-		line-height: normal;
-	}
-}

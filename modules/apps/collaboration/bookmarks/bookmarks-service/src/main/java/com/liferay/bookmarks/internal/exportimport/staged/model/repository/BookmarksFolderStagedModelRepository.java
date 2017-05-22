@@ -21,12 +21,13 @@ import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataException;
 import com.liferay.exportimport.kernel.lar.StagedModelModifiedDateComparator;
 import com.liferay.exportimport.staged.model.repository.StagedModelRepository;
-import com.liferay.exportimport.staged.model.repository.base.BaseStagedModelRepository;
+import com.liferay.exportimport.staged.model.repository.StagedModelRepositoryHelper;
 import com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 
 import java.util.List;
 
@@ -35,6 +36,7 @@ import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Daniel Kocsis
+ * @author Mate Thurzo
  */
 @Component(
 	immediate = true,
@@ -42,7 +44,7 @@ import org.osgi.service.component.annotations.Reference;
 	service = StagedModelRepository.class
 )
 public class BookmarksFolderStagedModelRepository
-	extends BaseStagedModelRepository<BookmarksFolder> {
+	implements StagedModelRepository<BookmarksFolder> {
 
 	@Override
 	public BookmarksFolder addStagedModel(
@@ -95,6 +97,13 @@ public class BookmarksFolderStagedModelRepository
 	}
 
 	@Override
+	public BookmarksFolder fetchMissingReference(String uuid, long groupId) {
+		return
+			(BookmarksFolder)_stagedModelRepositoryHelper.fetchMissingReference(
+				uuid, groupId, this);
+	}
+
+	@Override
 	public BookmarksFolder fetchStagedModelByUuidAndGroupId(
 		String uuid, long groupId) {
 
@@ -132,11 +141,15 @@ public class BookmarksFolderStagedModelRepository
 		BookmarksFolder existingFolder = fetchStagedModelByUuidAndGroupId(
 			bookmarksFolder.getUuid(), portletDataContext.getScopeGroupId());
 
-		if ((existingFolder == null) || !isStagedModelInTrash(existingFolder)) {
+		if ((existingFolder == null) ||
+			!_stagedModelRepositoryHelper.isStagedModelInTrash(
+				existingFolder)) {
+
 			return;
 		}
 
-		TrashHandler trashHandler = existingFolder.getTrashHandler();
+		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
+			BookmarksFolder.class.getName());
 
 		try {
 			if (trashHandler.isRestorable(existingFolder.getFolderId())) {
@@ -186,5 +199,8 @@ public class BookmarksFolderStagedModelRepository
 	private BookmarksEntryLocalService _bookmarksEntryLocalService;
 
 	private BookmarksFolderLocalService _bookmarksFolderLocalService;
+
+	@Reference
+	private StagedModelRepositoryHelper _stagedModelRepositoryHelper;
 
 }

@@ -78,6 +78,8 @@ public class ItemSelectorImplTest extends PowerMockito {
 			_stubItemSelectorCriterionSerializer);
 
 		ReflectionTestUtil.setFieldValue(
+			_itemSelectorImpl, "_http", new HttpImpl());
+		ReflectionTestUtil.setFieldValue(
 			_itemSelectorImpl, "_portal", new PortalImpl());
 
 		_mediaItemSelectorCriterion = new MediaItemSelectorCriterion();
@@ -131,7 +133,8 @@ public class ItemSelectorImplTest extends PowerMockito {
 		List<ItemSelectorCriterion> itemSelectorCriteria =
 			_itemSelectorImpl.getItemSelectorCriteria(itemSelectorURL);
 
-		Assert.assertEquals(2, itemSelectorCriteria.size());
+		Assert.assertEquals(
+			itemSelectorCriteria.toString(), 2, itemSelectorCriteria.size());
 
 		MediaItemSelectorCriterion mediaItemSelectorCriterion =
 			(MediaItemSelectorCriterion)itemSelectorCriteria.get(0);
@@ -143,7 +146,9 @@ public class ItemSelectorImplTest extends PowerMockito {
 		List<ItemSelectorReturnType> desiredItemSelectorReturnTypes =
 			mediaItemSelectorCriterion.getDesiredItemSelectorReturnTypes();
 
-		Assert.assertEquals(2, desiredItemSelectorReturnTypes.size());
+		Assert.assertEquals(
+			desiredItemSelectorReturnTypes.toString(), 2,
+			desiredItemSelectorReturnTypes.size());
 		Assert.assertTrue(
 			desiredItemSelectorReturnTypes.get(0) instanceof
 				TestFileEntryItemSelectorReturnType);
@@ -173,7 +178,7 @@ public class ItemSelectorImplTest extends PowerMockito {
 		Assert.assertNull(parameters.get("0_desiredItemSelectorReturnTypes"));
 		Assert.assertNotNull(parameters.get("0_json")[0]);
 		Assert.assertNotNull(parameters.get("1_json")[0]);
-		Assert.assertEquals(4, parameters.size());
+		Assert.assertEquals(parameters.toString(), 4, parameters.size());
 	}
 
 	@Test
@@ -224,7 +229,9 @@ public class ItemSelectorImplTest extends PowerMockito {
 			(ItemSelectorView<?>)
 				flickrItemSelectorViewRenderer.getItemSelectorView() instanceof
 					FlickrItemSelectorView);
-		Assert.assertEquals(2, itemSelectorViewRenderers.size());
+		Assert.assertEquals(
+			itemSelectorViewRenderers.toString(), 2,
+			itemSelectorViewRenderers.size());
 	}
 
 	protected ItemSelectorRendering getItemSelectorRendering() {

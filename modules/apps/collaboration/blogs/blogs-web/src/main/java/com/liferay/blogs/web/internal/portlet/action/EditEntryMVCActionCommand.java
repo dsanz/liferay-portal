@@ -28,15 +28,14 @@ import com.liferay.blogs.exception.NoSuchEntryException;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalService;
 import com.liferay.blogs.service.BlogsEntryService;
-import com.liferay.blogs.util.BlogsEntryAttachmentFileEntryReference;
+import com.liferay.blogs.util.BlogsEntryAttachmentContentUpdater;
 import com.liferay.blogs.util.BlogsEntryAttachmentFileEntryUtil;
 import com.liferay.blogs.util.BlogsEntryImageSelectorHelper;
 import com.liferay.blogs.web.constants.BlogsPortletKeys;
 import com.liferay.document.library.kernel.exception.FileSizeException;
-import com.liferay.friendly.url.exception.DuplicateFriendlyURLException;
+import com.liferay.friendly.url.exception.DuplicateFriendlyURLEntryException;
 import com.liferay.portal.kernel.editor.EditorConstants;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
@@ -56,7 +55,6 @@ import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.servlet.SessionErrors;
-import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.servlet.taglib.ui.ImageSelector;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.transaction.Propagation;
@@ -66,7 +64,7 @@ import com.liferay.portal.kernel.upload.LiferayFileItemException;
 import com.liferay.portal.kernel.upload.UploadException;
 import com.liferay.portal.kernel.upload.UploadRequestSizeException;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -75,12 +73,14 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portlet.blogs.BlogsEntryAttachmentFileEntryReference;
 import com.liferay.trash.kernel.service.TrashEntryService;
-import com.liferay.trash.kernel.util.TrashUtil;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import javax.portlet.ActionRequest;
@@ -91,6 +91,7 @@ import javax.portlet.WindowState;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Brian Wing Shun Chan
@@ -143,12 +144,11 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 		}
 
 		if (moveToTrash && !trashedModels.isEmpty()) {
-			TrashUtil.addTrashSessionMessages(actionRequest, trashedModels);
+			Map<String, Object> data = new HashMap<>();
 
-			SessionMessages.add(
-				actionRequest,
-				_portal.getPortletId(actionRequest) +
-					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
+			data.put("trashedModels", trashedModels);
+
+			addDeleteSuccessData(actionRequest, data);
 		}
 	}
 
@@ -161,8 +161,6 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 
 		try {
 			BlogsEntry entry = null;
-			List<BlogsEntryAttachmentFileEntryReference>
-				blogsEntryAttachmentFileEntryReferences = null;
 
 			UploadException uploadException =
 				(UploadException)actionRequest.getAttribute(
@@ -188,16 +186,11 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 			else if (cmd.equals(Constants.ADD) ||
 					 cmd.equals(Constants.UPDATE)) {
 
-				Callable<Object[]> updateEntryCallable =
+				Callable<BlogsEntry> updateEntryCallable =
 					new UpdateEntryCallable(actionRequest);
 
-				Object[] returnValue = TransactionInvokerUtil.invoke(
+				entry = TransactionInvokerUtil.invoke(
 					_transactionConfig, updateEntryCallable);
-
-				entry = (BlogsEntry)returnValue[0];
-				blogsEntryAttachmentFileEntryReferences =
-					(List<BlogsEntryAttachmentFileEntryReference>)
-						returnValue[1];
 			}
 			else if (cmd.equals(Constants.DELETE)) {
 				deleteEntries(actionRequest, false);
@@ -217,7 +210,7 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
 
-			String portletId = HttpUtil.getParameter(redirect, "p_p_id", false);
+			String portletId = _http.getParameter(redirect, "p_p_id", false);
 
 			int workflowAction = ParamUtil.getInteger(
 				actionRequest, "workflowAction",
@@ -228,35 +221,10 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 			if (ajax) {
 				JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
-				JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
-
-				for (BlogsEntryAttachmentFileEntryReference
-						blogsEntryAttachmentFileEntryReference :
-							blogsEntryAttachmentFileEntryReferences) {
-
-					JSONObject blogsEntryFileEntryReferencesJSONObject =
-						JSONFactoryUtil.createJSONObject();
-
-					blogsEntryFileEntryReferencesJSONObject.put(
-						"attributeDataImageId",
-						EditorConstants.ATTRIBUTE_DATA_IMAGE_ID);
-					blogsEntryFileEntryReferencesJSONObject.put(
-						"fileEntryId",
-						String.valueOf(
-							blogsEntryAttachmentFileEntryReference.
-								getTempBlogsEntryAttachmentFileEntryId()));
-					blogsEntryFileEntryReferencesJSONObject.put(
-						"fileEntryUrl",
-						PortletFileRepositoryUtil.getPortletFileEntryURL(
-							null,
-							blogsEntryAttachmentFileEntryReference.
-								getBlogsEntryAttachmentFileEntry(),
-							StringPool.BLANK));
-
-					jsonArray.put(blogsEntryFileEntryReferencesJSONObject);
-				}
-
-				jsonObject.put("blogsEntryAttachmentReferences", jsonArray);
+				jsonObject.put(
+					"attributeDataImageId",
+					EditorConstants.ATTRIBUTE_DATA_IMAGE_ID);
+				jsonObject.put("content", entry.getContent());
 				jsonObject.put(
 					"coverImageFileEntryId", entry.getCoverImageFileEntryId());
 				jsonObject.put("entryId", entry.getEntryId());
@@ -290,10 +258,10 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 							String namespace = _portal.getPortletNamespace(
 								portletId);
 
-							redirect = HttpUtil.addParameter(
+							redirect = _http.addParameter(
 								redirect, namespace + "className",
 								BlogsEntry.class.getName());
-							redirect = HttpUtil.addParameter(
+							redirect = _http.addParameter(
 								redirect, namespace + "classPK",
 								entry.getEntryId());
 						}
@@ -311,7 +279,7 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 
 			hideDefaultSuccessMessage(actionRequest);
 		}
-		catch (DuplicateFriendlyURLException | EntryContentException |
+		catch (DuplicateFriendlyURLEntryException | EntryContentException |
 			   EntryCoverImageCropException | EntryDescriptionException |
 			   EntryDisplayDateException | EntrySmallImageNameException |
 			   EntrySmallImageScaleException | EntryTitleException |
@@ -377,6 +345,14 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
+	@Reference(policyOption = ReferencePolicyOption.GREEDY, unbind = "-")
+	protected void setBlogsEntryAttachmentContentUpdater(
+		BlogsEntryAttachmentContentUpdater blogsEntryAttachmentContentUpdater) {
+
+		_blogsEntryAttachmentContentUpdater =
+			blogsEntryAttachmentContentUpdater;
+	}
+
 	@Reference(unbind = "-")
 	protected void setBlogsEntryLocalService(
 		BlogsEntryLocalService blogsEntryLocalService) {
@@ -408,7 +384,7 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 		_blogsEntryService.unsubscribe(themeDisplay.getScopeGroupId());
 	}
 
-	protected Object[] updateEntry(ActionRequest actionRequest)
+	protected BlogsEntry updateEntry(ActionRequest actionRequest)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -509,7 +485,7 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 
 		BlogsEntry entry = null;
 		List<BlogsEntryAttachmentFileEntryReference>
-			blogsEntryAttachmentFileEntryReferences = new ArrayList<>();
+			blogsEntryAttachmentFileEntryReferences = null;
 
 		if (entryId <= 0) {
 
@@ -538,7 +514,7 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 							entry.getEntryId(), folder.getFolderId(),
 							tempBlogsEntryAttachments);
 
-				content = BlogsEntryAttachmentFileEntryUtil.updateContent(
+				content = _blogsEntryAttachmentContentUpdater.updateContent(
 					content, blogsEntryAttachmentFileEntryReferences);
 
 				entry.setContent(content);
@@ -586,7 +562,7 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 							entry.getEntryId(), folder.getFolderId(),
 							tempBlogsEntryAttachmentFileEntries);
 
-				content = BlogsEntryAttachmentFileEntryUtil.updateContent(
+				content = _blogsEntryAttachmentContentUpdater.updateContent(
 					content, blogsEntryAttachmentFileEntryReferences);
 			}
 
@@ -624,7 +600,7 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 				smallImageFileEntryId);
 		}
 
-		return new Object[] {entry, blogsEntryAttachmentFileEntryReferences};
+		return entry;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -634,18 +610,23 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 		TransactionConfig.Factory.create(
 			Propagation.REQUIRED, new Class<?>[] {Exception.class});
 
+	private BlogsEntryAttachmentContentUpdater
+		_blogsEntryAttachmentContentUpdater;
 	private BlogsEntryLocalService _blogsEntryLocalService;
 	private BlogsEntryService _blogsEntryService;
+
+	@Reference
+	private Http _http;
 
 	@Reference
 	private Portal _portal;
 
 	private TrashEntryService _trashEntryService;
 
-	private class UpdateEntryCallable implements Callable<Object[]> {
+	private class UpdateEntryCallable implements Callable<BlogsEntry> {
 
 		@Override
-		public Object[] call() throws Exception {
+		public BlogsEntry call() throws Exception {
 			return updateEntry(_actionRequest);
 		}
 

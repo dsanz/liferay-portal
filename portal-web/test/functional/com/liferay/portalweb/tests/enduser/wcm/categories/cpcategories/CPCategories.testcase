@@ -1,6 +1,7 @@
 <definition component-name="portal-categories">
 	<property name="portal.release" value="true" />
 	<property name="portal.upstream" value="true" />
+	<property name="testray.component.names" value="Categories" />
 	<property name="testray.main.component.name" value="Categories" />
 
 	<set-up>
@@ -101,9 +102,7 @@
 		</execute>
 	</command>
 
-	<command description="Ensure that a user can add a category." name="AddCategory" priority="5">
-		<property name="portal.acceptance" value="true" />
-
+	<command description="Ensure that a user can add a category." name="AddCategory" priority="4">
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -392,9 +391,7 @@
 		</execute>
 	</command>
 
-	<command name="AddSubcategory" priority="5">
-		<property name="portal.acceptance" value="true" />
-
+	<command name="AddSubcategory" priority="4">
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -473,9 +470,7 @@
 		</execute>
 	</command>
 
-	<command name="AddVocabulary" priority="5">
-		<property name="portal.acceptance" value="true" />
-
+	<command name="AddVocabulary" priority="4">
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -1316,7 +1311,10 @@
 		</execute>
 
 		<execute function="Click" locator1="Button#PLUS" />
-		<execute function="Type" locator1="TextInput#NAME" value1="Vocabulary Name" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="Vocabulary Name" />
+		</execute>
+
 		<execute function="Click" locator1="Button#CANCEL" />
 
 		<execute macro="Navigator#openURL" />

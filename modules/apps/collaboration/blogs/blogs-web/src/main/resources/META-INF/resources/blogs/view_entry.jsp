@@ -76,6 +76,7 @@ if (portletTitleBasedNavigation) {
 							<aui:col cssClass="entry-navigation-item" md="4" sm="6">
 								<portlet:renderURL var="previousEntryURL">
 									<portlet:param name="mvcRenderCommandName" value="/blogs/view_entry" />
+									<portlet:param name="redirect" value="<%= redirect %>" />
 									<portlet:param name="urlTitle" value="<%= previousEntry.getUrlTitle() %>" />
 								</portlet:renderURL>
 
@@ -118,6 +119,7 @@ if (portletTitleBasedNavigation) {
 							<aui:col cssClass="entry-navigation-item" md="4" sm="6">
 								<portlet:renderURL var="nextEntryURL">
 									<portlet:param name="mvcRenderCommandName" value="/blogs/view_entry" />
+									<portlet:param name="redirect" value="<%= redirect %>" />
 									<portlet:param name="urlTitle" value="<%= nextEntry.getUrlTitle() %>" />
 								</portlet:renderURL>
 
@@ -168,8 +170,13 @@ if (portletTitleBasedNavigation) {
 	<div class="row">
 		<div class="col-md-8 col-md-offset-2">
 			<c:if test="<%= (discussion != null) && blogsPortletInstanceConfiguration.enableComments() %>">
+
+				<%
+				int commentsCount = CommentManagerUtil.getCommentsCount(BlogsEntry.class.getName(), entry.getEntryId());
+				%>
+
 				<h2>
-					<strong><liferay-ui:message arguments="<%= CommentManagerUtil.getCommentsCount(BlogsEntry.class.getName(), entry.getEntryId()) %>" key="x-comments" /></strong>
+					<strong><liferay-ui:message arguments="<%= commentsCount %>" key='<%= commentsCount == 1 ? "x-comment" : "x-comments" %>' /></strong>
 				</h2>
 
 				<c:if test="<%= PropsValues.BLOGS_TRACKBACK_ENABLED && entry.isAllowTrackbacks() && Validator.isNotNull(entry.getUrlTitle()) %>">

@@ -103,6 +103,14 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
  */
 public class SyncUtil {
 
+	public static void addChecksum(
+		long modifiedTime, long typePK, String checksum) {
+
+		String id = modifiedTime + StringPool.PERIOD + typePK;
+
+		_checksums.put(id, checksum);
+	}
+
 	public static void addSyncDLObject(SyncDLObject syncDLObject)
 		throws PortalException {
 
@@ -317,6 +325,12 @@ public class SyncUtil {
 		finally {
 			StreamUtil.cleanUp(fileInputStream);
 		}
+	}
+
+	public static String getChecksum(long modifiedTime, long typePK) {
+		String id = modifiedTime + StringPool.PERIOD + typePK;
+
+		return _checksums.remove(id);
 	}
 
 	public static File getFileDelta(File sourceFile, File targetFile)
@@ -701,6 +715,8 @@ public class SyncUtil {
 
 	private static final Log _log = LogFactoryUtil.getLog(SyncUtil.class);
 
+	private static final Map<String, String> _checksums =
+		new ConcurrentHashMap<>();
 	private static final Map<String, String> _lanTokenKeys =
 		new ConcurrentHashMap<>();
 	private static final Provider _provider = new BouncyCastleProvider();

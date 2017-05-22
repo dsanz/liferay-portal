@@ -26,6 +26,8 @@
 	</tear-down>
 
 	<command name="AddAutoAssertionTagViaBlogs" priority="4">
+		<property name="testray.component.names" value="Blogs,Tags" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -90,6 +92,8 @@
 	</command>
 
 	<command name="AddFrontPageTag" priority="4">
+		<property name="testray.component.names" value="Tags,Wiki" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -124,6 +128,8 @@
 	</command>
 
 	<command name="AddMultipleTagsViaBlogs" priority="4">
+		<property name="testray.component.names" value="Blogs,Tags" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -177,6 +183,7 @@
 
 	<command name="AddSelectTagViaBlogs" priority="5">
 		<property name="portal.acceptance" value="true" />
+		<property name="testray.component.names" value="Blogs,Tags" />
 
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
@@ -223,22 +230,11 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<execute macro="BlogsNavigator#gotoAddEntry" />
-
-		<execute macro="BlogsEntry#addEntryContent">
+		<execute macro="Blogs#addEntryWithTags">
 			<var name="entryContent" value="Entry Content" />
 			<var name="entryTitle" value="Entry Title" />
-		</execute>
-
-		<execute macro="Panel#expandPanel">
-			<var name="panelHeading" value="Categorization" />
-		</execute>
-
-		<execute macro="BlogsEntry#addTagList">
 			<var name="tagNameList" value="tag1,tag3" />
 		</execute>
-
-		<execute macro="PortletEntry#publish" />
 
 		<for list="tag1,tag3" param="tagName">
 			<execute macro="Navigator#gotoSitePage">
@@ -259,6 +255,7 @@
 
 	<command name="AddTagViaBlogs" priority="5">
 		<property name="portal.acceptance" value="true" />
+		<property name="testray.component.names" value="Blogs,Tags" />
 
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
@@ -310,42 +307,9 @@
 		</execute>
 	</command>
 
-	<command name="AddUTFTagViaBlogs" priority="4">
-		<execute macro="ProductMenu#gotoControlPanelSites">
-			<var name="portlet" value="Sites" />
-		</execute>
-
-		<execute macro="Site#addBlankCP">
-			<var name="siteName" value="Site Name" />
-		</execute>
-
-		<execute macro="ProductMenu#gotoControlPanelSites">
-			<var name="portlet" value="Sites" />
-		</execute>
-
-		<execute macro="Page#add">
-			<var name="pageName" value="Page Name" />
-			<var name="siteName" value="Site Name" />
-		</execute>
-
-		<execute macro="Navigator#gotoSitePage">
-			<var name="pageName" value="Page Name" />
-			<var name="siteName" value="Site Name" />
-		</execute>
-
-		<execute macro="Portlet#addPG">
-			<var name="portletName" value="Blogs" />
-		</execute>
-
-		<execute macro="Blogs#addEntryWithTag">
-			<var name="entryContent" value="Entry Content" />
-			<var name="entryTitle" value="Entry Title" />
-			<var name="tagName" value="硒1 liferay1" />
-		</execute>
-	</command>
-
 	<command name="DisplayTagCloud" priority="5">
 		<property name="portal.acceptance" value="true" />
+		<property name="testray.component.names" value="Tags" />
 
 		<execute macro="Page#add">
 			<var name="pageName" value="Tags Navigation Page" />
@@ -440,6 +404,8 @@
 	</command>
 
 	<command name="DisplayTagUsageStatistics" priority="3">
+		<property name="testray.component.names" value="Tags" />
+
 		<execute macro="Page#add">
 			<var name="pageName" value="Tags Navigation Page" />
 		</execute>
@@ -531,6 +497,8 @@
 	</command>
 
 	<command name="DisplayUnusedTags" priority="3">
+		<property name="testray.component.names" value="Tags" />
+
 		<execute macro="Page#add">
 			<var name="pageName" value="Tags Navigation Page" />
 		</execute>
@@ -573,6 +541,8 @@
 	</command>
 
 	<command name="RemoveSelectTagViaBlogs" priority="3">
+		<property name="testray.component.names" value="Blogs,Tags" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -665,6 +635,7 @@
 
 	<command name="RemoveTagViaBlogs" priority="5">
 		<property name="portal.acceptance" value="true" />
+		<property name="testray.component.names" value="Blogs,Tags" />
 
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
@@ -749,6 +720,8 @@
 	</command>
 
 	<command name="SearchMultipleTagsViaBlogs" priority="3">
+		<property name="testray.component.names" value="Blogs,Tags" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -827,8 +800,36 @@
 		</execute>
 	</command>
 
+	<command name="ViewDuplicateTagWarningMessage" priority="3">
+		<property name="testray.component.names" value="Tags" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentNavigator#gotoAddCP" />
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="WC Content" />
+			<var name="webContentTitle" value="WC Title" />
+		</execute>
+
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Metadata" />
+		</execute>
+
+		<execute macro="AssetCategorization#addTag">
+			<var name="tagName" value="tagname" />
+		</execute>
+
+		<execute macro="AssetCategorization#addDuplicateTag">
+			<var name="tagName" value="tagname" />
+		</execute>
+	</command>
+
 	<command name="ViewTagCloudDisplayConfiguration" priority="5">
 		<property name="portal.acceptance" value="true" />
+		<property name="testray.component.names" value="Tags" />
 
 		<execute macro="Page#add">
 			<var name="pageName" value="Tag Cloud Page" />
@@ -853,6 +854,7 @@
 
 	<command name="ViewTagCloudIncrease" priority="5">
 		<property name="portal.acceptance" value="true" />
+		<property name="testray.component.names" value="Tags" />
 
 		<execute macro="Page#add">
 			<var name="pageName" value="Tags Navigation Page" />

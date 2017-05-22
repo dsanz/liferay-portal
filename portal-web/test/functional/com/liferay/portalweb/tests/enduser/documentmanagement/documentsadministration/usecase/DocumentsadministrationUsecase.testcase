@@ -78,6 +78,59 @@
 		</execute>
 	</command>
 
+	<command name="AddDocumentTypeAndMetadata" priority="3">
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Documents and Media" />
+		</execute>
+
+		<execute macro="DMNavigator#gotoMetadataSets" />
+
+		<execute macro="DMMetadataSet#add">
+			<var name="dmMetadataSetFieldNames" value="Boolean" />
+			<var name="metadataSetName" value="Document Metadata Set Name" />
+		</execute>
+
+		<execute macro="DMMetadataSet#save" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Documents and Media" />
+		</execute>
+
+		<execute macro="DMNavigator#gotoDocumentType" />
+
+		<execute macro="DMDocumentType#add">
+			<var name="dmDocumentTypeDescription" value="DM Document Type Description" />
+			<var name="dmDocumentTypeFieldNames" value="Boolean" />
+			<var name="dmDocumentTypeName" value="DM Document Type Name" />
+			<var name="metadataSetName" value="Document Metadata Set Name" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Documents and Media" />
+		</execute>
+
+		<execute macro="DMDocument#addCP">
+			<var name="dmDocumentDescription" value="DM Document Type Contract Description" />
+			<var name="dmDocumentFile" value="Document_1.doc" />
+			<var name="dmDocumentTitle" value="DM Document Type Contract Title" />
+			<var name="dmDocumentTypeName" value="DM Document Type Name" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Documents and Media" />
+		</execute>
+
+		<execute macro="DMPortlet#setDescriptiveView" />
+
+		<execute macro="DMNavigator#gotoDocumentCP">
+			<var name="dmDocumentTitle" value="DM Document Type Contract Title" />
+		</execute>
+
+		<execute macro="DMDocument#viewCP">
+			<var name="dmDocumentTitle" value="DM Document Type Contract Title" />
+		</execute>
+	</command>
+
 	<command name="AllowMultiplePortletConfigurationsPerSite" priority="4">
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
@@ -142,6 +195,8 @@
 
 	<command name="AssertFileSizeValidation">
 		<description message="This is a use case for LPS-50760." />
+
+		<property name="test.name.skip.portal.instance" value="DocumentsadministrationUsecase#AssertFileSizeValidation" />
 
 		<execute macro="Navigator#openURL" />
 
@@ -600,6 +655,7 @@
 
 	<command name="ConfigureXugglerVideoPreviewSizePG" priority="3">
 		<property name="custom.properties" value="xuggler.enabled=true${line.separator}dl.file.entry.preview.video.width=0${line.separator}dl.file.entry.preview.video.height=0" />
+		<property name="test.name.skip.portal.instance" value="DocumentsadministrationUsecase#ConfigureXugglerVideoPreviewSizePG" />
 
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="Server Administration" />
@@ -845,6 +901,8 @@
 	</command>
 
 	<command name="UpdateDocumentTypeWithPermissions" priority="3">
+		<property name="test.name.skip.portal.instance" value="DocumentsadministrationUsecase#UpdateDocumentTypeWithPermissions" />
+
 		<execute macro="TestCase#getSiteName">
 			<return from="siteName" name="siteName" />
 			<var name="siteName" value="${siteName}" />
@@ -874,12 +932,13 @@
 			<var name="portlet" value="Roles" />
 		</execute>
 
-		<execute macro="Role#addCP">
+		<execute macro="RoleNavigator#gotoRoleType" />
+
+		<execute macro="Role#add">
 			<var name="roleDescription" value="This is the technical writer role" />
 			<var name="roleKey" value="Technical Writer" />
 			<var name="roleName" value="Writer" />
 			<var name="roleTitle" value="Technical Writer" />
-			<var name="roleType" value="Regular Role" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">

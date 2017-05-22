@@ -19,6 +19,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>BLOGS_ENTRY_URL</td>
+	<td>//input[contains(@id,'_urlTitle')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CITY</td>
 	<td>//div[label[contains(.,'City')]]//input[@type='text']</td>
 	<td></td>
@@ -164,6 +169,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>IMAGE_ID</td>
+	<td>//input[contains(@id,'newUuid')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>IMAGE_URL</td>
 	<td>//div[label[contains(.,'Image URL')]]//input[@type='text']</td>
 	<td></td>
@@ -229,8 +239,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>MAX_HEIGHT</td>
+	<td>//input[contains(@id,'maxHeight')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>MAX_USERS</td>
 	<td>//input[contains(@id,'maxUsers') and contains(@class,'input-text')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MAX_WIDTH</td>
+	<td>//input[contains(@id,'maxWidth')]</td>
 	<td></td>
 </tr>
 <tr>

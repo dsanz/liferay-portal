@@ -29,28 +29,33 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.product.navigation.control.menu.BaseJSPProductNavigationControlMenuEntry;
+import com.liferay.product.navigation.control.menu.BaseProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.ProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.constants.ProductNavigationControlMenuCategoryKeys;
 import com.liferay.product.navigation.simulation.application.list.SimulationPanelCategory;
 import com.liferay.product.navigation.simulation.web.constants.ProductNavigationSimulationPortletKeys;
 import com.liferay.taglib.aui.IconTag;
+import com.liferay.taglib.aui.ScriptTag;
+import com.liferay.taglib.ui.MessageTag;
+import com.liferay.taglib.util.BodyBottomTag;
 
 import java.io.IOException;
 import java.io.Writer;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
 import javax.portlet.WindowStateException;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.PageContext;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -68,8 +73,7 @@ import org.osgi.service.component.annotations.Reference;
 	service = ProductNavigationControlMenuEntry.class
 )
 public class SimulationProductNavigationControlMenuEntry
-	extends BaseJSPProductNavigationControlMenuEntry
-	implements ProductNavigationControlMenuEntry {
+	extends BaseProductNavigationControlMenuEntry {
 
 	@Activate
 	public void activate() {
@@ -79,13 +83,33 @@ public class SimulationProductNavigationControlMenuEntry
 	}
 
 	@Override
-	public String getBodyJspPath() {
-		return "/portlet/control_menu/simulation_control_menu_body.jsp";
+	public String getLabel(Locale locale) {
+		return null;
 	}
 
 	@Override
-	public String getIconJspPath() {
+	public String getURL(HttpServletRequest request) {
 		return null;
+	}
+
+	@Override
+	public boolean includeBody(
+			HttpServletRequest request, HttpServletResponse response)
+		throws IOException {
+
+		BodyBottomTag bodyBottomTag = new BodyBottomTag();
+
+		bodyBottomTag.setOutputKey("simulationMenu");
+
+		try {
+			bodyBottomTag.doBodyTag(
+				request, response, this::_processBodyBottomTagBody);
+		}
+		catch (JspException je) {
+			throw new IOException(je);
+		}
+
+		return true;
 	}
 
 	@Override
@@ -108,17 +132,17 @@ public class SimulationProductNavigationControlMenuEntry
 
 		Map<String, String> values = new HashMap<>();
 
+		IconTag iconTag = new IconTag();
+
+		iconTag.setCssClass("icon-monospaced");
+		iconTag.setImage("simulation-menu-closed");
+		iconTag.setMarkupView("lexicon");
+
 		try {
-			String iconTag = IconTag.doTag(
-				"icon-monospaced", "simulation-menu-closed", "lexicon", request,
-				response);
-
-			values.put("iconTag", iconTag);
+			values.put("iconTag", iconTag.doTagAsString(request, response));
 		}
-		catch (ServletException se) {
-			_log.error(se, se);
-
-			return false;
+		catch (JspException je) {
+			ReflectionUtil.throwException(je);
 		}
 
 		values.put("portletNamespace", _portletNamespace);
@@ -127,7 +151,7 @@ public class SimulationProductNavigationControlMenuEntry
 
 		Writer writer = response.getWriter();
 
-		writer.write(StringUtil.replace(_TMPL_CONTENT, "${", "}", values));
+		writer.write(StringUtil.replace(_ICON_TMPL_CONTENT, "${", "}", values));
 
 		return true;
 	}
@@ -154,15 +178,6 @@ public class SimulationProductNavigationControlMenuEntry
 		return super.isShow(request);
 	}
 
-	@Override
-	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.product.navigation.simulation.web)",
-		unbind = "-"
-	)
-	public void setServletContext(ServletContext servletContext) {
-		super.setServletContext(servletContext);
-	}
-
 	@Reference(unbind = "-")
 	public void setSimulationPanelCategory(
 		SimulationPanelCategory simulationPanelCategory) {
@@ -173,7 +188,65 @@ public class SimulationProductNavigationControlMenuEntry
 		_panelAppRegistry = panelAppRegistry;
 	}
 
-	private static final String _TMPL_CONTENT = StringUtil.read(
+	private void _processBodyBottomTagBody(PageContext pageContext) {
+		try {
+			Map<String, String> values = new HashMap<>();
+
+			values.put("portletNamespace", _portletNamespace);
+
+			MessageTag messageTag = new MessageTag();
+
+			messageTag.setKey("simulation");
+
+			values.put("sidebarMessage", messageTag.doTagAsString(pageContext));
+
+			IconTag iconTag = new IconTag();
+
+			iconTag.setCssClass("icon-monospaced sidenav-close");
+			iconTag.setImage("times");
+			iconTag.setMarkupView("lexicon");
+			iconTag.setUrl("javascript:;");
+
+			values.put("sidebarIcon", iconTag.doTagAsString(pageContext));
+
+			Writer writer = pageContext.getOut();
+
+			writer.write(
+				StringUtil.replace(_BODY_TMPL_CONTENT, "${", "}", values));
+
+			ScriptTag scriptTag = new ScriptTag();
+
+			scriptTag.setUse("liferay-store,io-request,parse-content");
+
+			scriptTag.doBodyTag(pageContext, this::_processScriptTagBody);
+		}
+		catch (Exception e) {
+			ReflectionUtil.throwException(e);
+		}
+	}
+
+	private void _processScriptTagBody(PageContext pageContext) {
+		Writer writer = pageContext.getOut();
+
+		try {
+			writer.write(
+				StringUtil.replace(
+					_BODY_SCRIPT_TMPL_CONTENT, "${", "}",
+					Collections.singletonMap(
+						"portletNamespace", _portletNamespace)));
+		}
+		catch (IOException ioe) {
+			ReflectionUtil.throwException(ioe);
+		}
+	}
+
+	private static final String _BODY_SCRIPT_TMPL_CONTENT = StringUtil.read(
+		SimulationProductNavigationControlMenuEntry.class, "body_script.tmpl");
+
+	private static final String _BODY_TMPL_CONTENT = StringUtil.read(
+		SimulationProductNavigationControlMenuEntry.class, "body.tmpl");
+
+	private static final String _ICON_TMPL_CONTENT = StringUtil.read(
 		SimulationProductNavigationControlMenuEntry.class, "icon.tmpl");
 
 	private static final Log _log = LogFactoryUtil.getLog(

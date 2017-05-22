@@ -41,7 +41,7 @@ public class AUIUtil {
 		boolean inlineField, String inlineLabel, String wrapperCssClass,
 		String baseType) {
 
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append("form-group");
 
@@ -59,8 +59,7 @@ public class AUIUtil {
 		}
 
 		if (Validator.isNotNull(baseType)) {
-			sb.append(StringPool.SPACE);
-			sb.append("input-");
+			sb.append(" input-");
 			sb.append(baseType);
 			sb.append("-wrapper");
 		}
@@ -72,13 +71,12 @@ public class AUIUtil {
 		String prefix, boolean disabled, boolean first, boolean last,
 		String cssClass) {
 
-		StringBundler sb = new StringBundler(8);
+		StringBundler sb = new StringBundler(7);
 
 		sb.append(prefix);
 
 		if (disabled) {
-			sb.append(StringPool.SPACE);
-			sb.append("disabled");
+			sb.append(" disabled");
 		}
 
 		if (first) {
@@ -108,6 +106,13 @@ public class AUIUtil {
 		String baseType, boolean inlineField, boolean showForLabel,
 		String forLabel) {
 
+		return buildLabel(baseType, inlineField, showForLabel, forLabel, false);
+	}
+
+	public static String buildLabel(
+		String baseType, boolean inlineField, boolean showForLabel,
+		String forLabel, boolean disabled) {
+
 		StringBundler sb = new StringBundler(7);
 
 		if (baseType.equals("boolean")) {
@@ -122,7 +127,13 @@ public class AUIUtil {
 			}
 		}
 		else {
-			sb.append("class=\"control-label\" ");
+			sb.append("class=\"control-label");
+
+			if (disabled) {
+				sb.append(" disabled");
+			}
+
+			sb.append("\"");
 		}
 
 		if (showForLabel) {

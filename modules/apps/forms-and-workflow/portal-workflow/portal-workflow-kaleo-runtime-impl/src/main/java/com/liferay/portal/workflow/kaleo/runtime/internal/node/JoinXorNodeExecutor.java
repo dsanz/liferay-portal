@@ -15,8 +15,12 @@
 package com.liferay.portal.workflow.kaleo.runtime.internal.node;
 
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.workflow.kaleo.model.KaleoInstanceToken;
 import com.liferay.portal.workflow.kaleo.model.KaleoNode;
+import com.liferay.portal.workflow.kaleo.model.KaleoTask;
+import com.liferay.portal.workflow.kaleo.model.KaleoTaskInstanceToken;
 import com.liferay.portal.workflow.kaleo.model.KaleoTimer;
 import com.liferay.portal.workflow.kaleo.model.KaleoTransition;
 import com.liferay.portal.workflow.kaleo.runtime.ExecutionContext;
@@ -24,7 +28,12 @@ import com.liferay.portal.workflow.kaleo.runtime.graph.PathElement;
 import com.liferay.portal.workflow.kaleo.runtime.node.BaseNodeExecutor;
 import com.liferay.portal.workflow.kaleo.runtime.node.NodeExecutor;
 import com.liferay.portal.workflow.kaleo.service.KaleoInstanceTokenLocalService;
+import com.liferay.portal.workflow.kaleo.service.KaleoTaskAssignmentInstanceLocalService;
+import com.liferay.portal.workflow.kaleo.service.KaleoTaskInstanceTokenLocalService;
+import com.liferay.portal.workflow.kaleo.service.KaleoTaskLocalService;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
@@ -78,6 +87,10 @@ public class JoinXorNodeExecutor extends BaseNodeExecutor {
 				childrenKaleoInstanceToken.getKaleoInstanceTokenId());
 		}
 
+		_completeChildrenKaleoTaskInstanceTokens(
+			parentKaleoInstanceToken, currentKaleoNode,
+			executionContext.getServiceContext());
+
 		return true;
 	}
 
@@ -130,7 +143,129 @@ public class JoinXorNodeExecutor extends BaseNodeExecutor {
 		List<PathElement> remainingPathElements) {
 	}
 
+	private void _completeChildrenKaleoTaskInstanceTokens(
+			KaleoInstanceToken kaleoInstanceToken, KaleoNode stopKaleoNode,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		List<KaleoTaskInstanceToken> kaleoTaskInstanceTokens =
+			_getChildrentKaleoTaskInstanceTokens(
+				kaleoInstanceToken, stopKaleoNode, serviceContext);
+
+		for (KaleoTaskInstanceToken kaleoTaskInstanceToken :
+				kaleoTaskInstanceTokens) {
+
+			_completeKaleoTaskInstanceToken(
+				kaleoTaskInstanceToken, serviceContext);
+		}
+	}
+
+	private void _completeKaleoTaskInstanceToken(
+			KaleoTaskInstanceToken kaleoTaskInstanceToken,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		_kaleoTaskAssignmentInstanceLocalService.
+			assignKaleoTaskAssignmentInstance(
+				kaleoTaskInstanceToken, User.class.getName(),
+				serviceContext.getUserId(), serviceContext);
+
+		long kaleoTaskInstanceTokenId =
+			kaleoTaskInstanceToken.getKaleoTaskInstanceTokenId();
+
+		_kaleoTaskAssignmentInstanceLocalService.completeKaleoTaskInstanceToken(
+			kaleoTaskInstanceTokenId, serviceContext);
+
+		_kaleoTaskInstanceTokenLocalService.completeKaleoTaskInstanceToken(
+			kaleoTaskInstanceTokenId, serviceContext);
+	}
+
+	private List<KaleoTaskInstanceToken> _getChildrentKaleoTaskInstanceTokens(
+			KaleoInstanceToken currentKaleoInstanceToken,
+			KaleoNode stopKaleoNode, ServiceContext serviceContext)
+		throws PortalException {
+
+		if (_isFinalKaleoInstanceToken(
+				currentKaleoInstanceToken, stopKaleoNode)) {
+
+			return Collections.emptyList();
+		}
+
+		KaleoNode currentKaleoNode =
+			currentKaleoInstanceToken.getCurrentKaleoNode();
+
+		List<KaleoTaskInstanceToken> kaleoTaskInstanceTokens =
+			new ArrayList<>();
+
+		String type = currentKaleoNode.getType();
+
+		if (type.equals("TASK")) {
+			KaleoTaskInstanceToken kaleoTaskInstanceToken =
+				_getKaleoTaksInstanceToken(
+					currentKaleoNode, currentKaleoInstanceToken);
+
+			kaleoTaskInstanceTokens.add(kaleoTaskInstanceToken);
+		}
+
+		for (KaleoInstanceToken childKaleoInstanceToken :
+				currentKaleoInstanceToken.getChildrenKaleoInstanceTokens()) {
+
+			kaleoTaskInstanceTokens.addAll(
+				_getChildrentKaleoTaskInstanceTokens(
+					childKaleoInstanceToken, stopKaleoNode, serviceContext));
+		}
+
+		return kaleoTaskInstanceTokens;
+	}
+
+	private KaleoTaskInstanceToken _getKaleoTaksInstanceToken(
+			KaleoNode kaleoNode, KaleoInstanceToken kaleoInstanceToken)
+		throws PortalException {
+
+		long kaleoNodeId = kaleoNode.getKaleoNodeId();
+
+		KaleoTask kaleoTask = _kaleoTaskLocalService.getKaleoNodeKaleoTask(
+			kaleoNodeId);
+
+		long kaleoTaskId = kaleoTask.getKaleoTaskId();
+
+		long kaleoInstanceId = kaleoInstanceToken.getKaleoInstanceId();
+
+		return _kaleoTaskInstanceTokenLocalService.getKaleoTaskInstanceTokens(
+			kaleoInstanceId, kaleoTaskId);
+	}
+
+	private boolean _isFinalKaleoInstanceToken(
+			KaleoInstanceToken kaleoInstanceToken, KaleoNode stopKaleoNode)
+		throws PortalException {
+
+		if (kaleoInstanceToken.getCurrentKaleoNodeId() ==
+				stopKaleoNode.getKaleoNodeId()) {
+
+			return true;
+		}
+
+		KaleoNode kaleoNode = kaleoInstanceToken.getCurrentKaleoNode();
+
+		if (kaleoNode.isTerminal()) {
+			return true;
+		}
+
+		return false;
+	}
+
 	@Reference
 	private KaleoInstanceTokenLocalService _kaleoInstanceTokenLocalService;
+
+	@Reference
+	private KaleoTaskAssignmentInstanceLocalService
+		_kaleoTaskAssignmentInstanceLocalService;
+
+	@Reference
+	private KaleoTaskInstanceTokenLocalService
+		_kaleoTaskInstanceTokenLocalService;
+
+	@Reference
+	private KaleoTaskLocalService _kaleoTaskLocalService;
 
 }

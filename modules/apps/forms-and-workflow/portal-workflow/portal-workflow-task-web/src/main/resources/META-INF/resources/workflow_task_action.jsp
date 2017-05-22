@@ -86,27 +86,17 @@ redirectURL.setParameter("mvcPath", "/view.jsp");
 		/>
 	</c:if>
 
-	<c:if test="<%= workflowTaskDisplayContext.hasOtherAssignees(workflowTask) %>">
-		<liferay-portlet:renderURL portletName="<%= PortletKeys.MY_WORKFLOW_TASK %>" var="renderURL">
-			<portlet:param name="mvcPath" value="/view.jsp" />
-		</liferay-portlet:renderURL>
+	<liferay-portlet:renderURL var="assignURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+		<portlet:param name="mvcPath" value="/workflow_task_assign.jsp" />
+		<portlet:param name="closeRedirect" value="<%= currentURL %>" />
+		<portlet:param name="workflowTaskId" value="<%= String.valueOf(workflowTask.getWorkflowTaskId()) %>" />
+	</liferay-portlet:renderURL>
 
-		<liferay-portlet:actionURL name="assignWorkflowTask" portletName="<%= PortletKeys.MY_WORKFLOW_TASK %>" var="assignURL">
-			<portlet:param name="mvcPath" value="/edit_workflow_task.jsp" />
-			<portlet:param name="redirect" value="<%= renderURL %>" />
-			<portlet:param name="closeRedirect" value="<%= closeRedirect %>" />
-			<portlet:param name="workflowTaskId" value="<%= String.valueOf(workflowTask.getWorkflowTaskId()) %>" />
-		</liferay-portlet:actionURL>
-
-		<liferay-ui:icon
-			cssClass='<%= "workflow-task-" + randomId + " task-assign-link" %>'
-			data="<%= workflowTaskDisplayContext.getWorkflowTaskActionLinkData() %>"
-			id='<%= randomId + "taskAssignLink" %>'
-			message="assign-to-..."
-			method="get"
-			url="<%= assignURL %>"
-		/>
-	</c:if>
+	<liferay-ui:icon
+		message="assign-to-..."
+		onClick='<%= "javascript:" + renderResponse.getNamespace() + "taskAssign('" + assignURL + "');" %>'
+		url="javascript:;"
+	/>
 
 	<c:if test="<%= !workflowTask.isCompleted() %>">
 		<liferay-portlet:actionURL name="updateWorkflowTask" portletName="<%= PortletKeys.MY_WORKFLOW_TASK %>" var="updateDueDateURL">
@@ -125,24 +115,6 @@ redirectURL.setParameter("mvcPath", "/view.jsp");
 		/>
 	</c:if>
 </liferay-ui:icon-menu>
-
-<div class="hide" id="<%= randomId %>updateAsignee">
-	<c:if test="<%= workflowTaskDisplayContext.hasOtherAssignees(workflowTask) %>">
-		<aui:select label="assign-to" name="assigneeUserId">
-
-			<%
-			for (long pooledActorId : workflowTaskDisplayContext.getActorsIds(workflowTask)) {
-			%>
-
-				<aui:option label="<%= workflowTaskDisplayContext.getActorName(pooledActorId) %>" selected="<%= workflowTask.getAssigneeUserId() == pooledActorId %>" value="<%= String.valueOf(pooledActorId) %>" />
-
-			<%
-			}
-			%>
-
-		</aui:select>
-	</c:if>
-</div>
 
 <div class="hide" id="<%= randomId %>updateAsigneeToMe">
 	<aui:input name="asigneeUserId" type="hidden" value="<%= user.getUserId() %>" />
@@ -177,6 +149,30 @@ redirectURL.setParameter("mvcPath", "/view.jsp");
 	</c:if>
 
 	Liferay.delegateClick('<portlet:namespace /><%= randomId %>taskAssignToMeLink', onTaskClickFn);
-	Liferay.delegateClick('<portlet:namespace /><%= randomId %>taskAssignLink', onTaskClickFn);
 	Liferay.delegateClick('<portlet:namespace /><%= randomId %>taskDueDateLink', onTaskClickFn);
+
+	Liferay.provide(
+		window,
+		'<portlet:namespace />taskAssign',
+		function(uri) {
+			Liferay.Util.openWindow(
+				{
+					dialog: {
+						destroyOnHide: true,
+						height: 290,
+						on: {
+							destroy: function() {
+								Liferay.Portlet.refresh('#p_p_id<portlet:namespace />');
+							}
+						},
+						width: 720
+					},
+					id: '<portlet:namespace />assignToDialog',
+					title: '<liferay-ui:message key="assign-to-..." />',
+					uri: uri
+				}
+			);
+		},
+		['liferay-util']
+	);
 </aui:script>

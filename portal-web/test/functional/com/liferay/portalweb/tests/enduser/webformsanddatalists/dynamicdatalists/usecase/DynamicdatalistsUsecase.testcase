@@ -497,7 +497,7 @@
 
 	<command name="AddRecordWithPopulatedWebContentField" priority="5">
 		<description message="This is a use case for LPS-66439." />
-		<property name="portal.acceptance" value="false" />
+		<property name="portal.acceptance" value="quarantine" />
 
 		<execute macro="Navigator#openURL" />
 
@@ -808,7 +808,7 @@
 			<var name="portlet" value="Roles" />
 		</execute>
 
-		<execute macro="Role#addCP">
+		<execute macro="Role#add">
 			<var name="roleTitle" value="DDMRegRole Name" />
 		</execute>
 
@@ -942,6 +942,8 @@
 	<command name="AddSelectFieldWithTranslationAndViewInSpreadsheetView" priority="4">
 		<description message="This is a use case for LPS-68216." />
 
+		<var method="TestPropsUtil#get('portal.url')" name="portalURL" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -1059,7 +1061,7 @@
 		</execute>
 
 		<execute macro="Navigator#openSpecificURL">
-			<var name="url" value="http://localhost:8080/ja/" />
+			<var name="url" value="${portalURL}/ja/" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -2150,6 +2152,8 @@
 	<command name="EditDefaultLanguageAndPublishRecord" priority="3">
 		<description message="This is a use case for LPS-59154 and LPS-62523." />
 
+		<property name="test.name.skip.portal.instance" value="DynamicdatalistUsecase#EditDefaultLanguageAndPublishRecord" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
@@ -2739,6 +2743,74 @@
 		</execute>
 	</command>
 
+	<command name="SelectLinkToPagePage" priority="2">
+		<description message="This is a use case for LPS-69667." />
+
+		<execute macro="Navigator#openURL" />
+
+		<for list="P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12" param="pageName">
+			<execute macro="Page#add">
+				<var name="pageName" value="${pageName}" />
+			</execute>
+		</for>
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Dynamic Data Lists" />
+		</execute>
+
+		<execute macro="DDLDataDefinition#addCP">
+			<var name="ddlDataDefinitionName" value="Link To Page Data Definition" />
+		</execute>
+
+		<execute macro="DynamicDataMapping#addField">
+			<var name="field" value="Link to Page" />
+			<var name="fieldFieldLabel" value="Link to Page" />
+			<var name="fieldName" value="LinkToPage" />
+		</execute>
+
+		<execute macro="DDLDataDefinition#save" />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Dynamic Data Lists" />
+		</execute>
+
+		<execute macro="DDLList#addCP">
+			<var name="ddlListName" value="List Name" />
+		</execute>
+
+		<execute macro="DDLDataDefinition#selectCP">
+			<var name="ddlDataDefinitionName" value="Link To Page Data Definition" />
+		</execute>
+
+		<execute macro="DDLList#save" />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Dynamic Data Lists" />
+		</execute>
+
+		<execute macro="DDLRecord#addCP">
+			<var name="ddlDataDefinitionName" value="Link To Page Data Definition" />
+			<var name="ddlListName" value="List Name" />
+		</execute>
+
+		<execute macro="DDLRecord#populateFieldLinkToPage">
+			<var name="ddlRecordFieldData" value="P10" />
+			<var name="fieldName" value="LinkToPage" />
+			<var name="pagePrivacy" value="Public" />
+		</execute>
+
+		<execute macro="PortletEntry#publish" />
+
+		<execute macro="DDLRecord#viewFirstFieldCP">
+			<var name="ddlRecordFieldData" value="P10" />
+			<var name="fieldFieldLabel" value="Link to Page" />
+		</execute>
+	</command>
+
 	<command name="TemplateAddDeletedField" priority="3">
 		<description message="This is a use case for LPS-48743." />
 
@@ -3167,9 +3239,19 @@
 			<var name="parentPage" value="Parent Page Name" />
 		</execute>
 
-		<execute macro="DDLRecord#selectLinkToPageRadio">
-			<var name="ddlRecordFieldData" value="Child Page Name" />
-		</execute>
+		<toggle name="LPS-68869">
+			<on>
+				<execute macro="DDLRecord#selectLinkToPagePage">
+					<var name="ddlRecordFieldData" value="Child Page Name" />
+				</execute>
+			</on>
+
+			<off>
+				<execute macro="DDLRecord#selectLinkToPageRadio">
+					<var name="ddlRecordFieldData" value="Child Page Name" />
+				</execute>
+			</off>
+		</toggle>
 
 		<execute macro="DDLRecord#viewLinkToPageBreadcrumbCount">
 			<var name="count" value="2" />

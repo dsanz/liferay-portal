@@ -1,36 +1,10 @@
 <definition>
-	<command name="addADTviaPortletPG">
-		<execute macro="Portlet#gotoPortletOptions">
-			<var name="portletName" value="${portletName}" />
-			<var name="portletOption" value="Configuration" />
-		</execute>
-
-		<execute function="SelectFrame" locator1="IFrame#CONFIGURATION" />
-
-		<var name="key_tab" value="Display Settings" />
-
-		<if>
-			<condition function="IsElementPresent" locator1="NavTab#TAB_LINK" />
-			<then>
-				<execute macro="Navigator#gotoNavTab">
-					<var name="navTab" value="Display Settings" />
-				</execute>
-			</then>
-		</if>
-
-		<execute function="Select" locator1="Select#DISPLAY_TEMPLATE" value1="${adtType} Test ADT" />
-
-		<execute macro="Button#clickSave" />
-
-		<execute macro="Alert#viewSuccessMessage" />
-
-		<execute function="SelectFrameTop" />
-	</command>
-
 	<command name="addCP">
 		<var name="key_adtType" value="${adtType}" />
 
-		<execute macro="Portlet#viewEmptyMessage" />
+		<execute macro="Portlet#viewEmptyMessage">
+			<var name="message" value="There are no results." />
+		</execute>
 
 		<execute function="Click" locator1="Button#PLUS" />
 
@@ -40,7 +14,9 @@
 			<var name="portletTitle" value="New ${adtType} Template" />
 		</execute>
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${adtType} Test ADT" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${adtType} Test ADT" />
+		</execute>
 
 		<execute function="UploadCommonFile" locator1="DDMEditTemplate#SCRIPT_FILE_FIELD" value1="${adtFile}" />
 
@@ -74,7 +50,9 @@
 		<execute function="AssertVisible" locator1="ApplicationDisplayTemplates#RSS_FEEDS" />
 		<execute function="AssertElementPresent" locator1="ApplicationDisplayTemplates#RSS_FEEDS" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="RSS Test ADT" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="RSS Test ADT" />
+		</execute>
 
 		<execute function="Click" locator1="ApplicationDisplayTemplates#RSS_FEEDS" />
 
@@ -121,7 +99,9 @@
 		<execute function="AssertVisible" locator1="ApplicationDisplayTemplates#PORTLET_PREFERENCES" />
 		<execute function="AssertElementPresent" locator1="ApplicationDisplayTemplates#PORTLET_PREFERENCES" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${adtType} Test ADT" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${adtType} Test ADT" />
+		</execute>
 
 		<execute function="UploadCommonFile" locator1="DDMEditTemplate#SCRIPT_FILE_FIELD" value1="${adtFile}" />
 
@@ -130,6 +110,65 @@
 		<execute function="AssertTextEquals" locator1="ApplicationDisplayTemplates#ADT_TABLE_NAME_1" value1="${adtType} Test ADT" />
 
 		<execute function="SelectFrameTop" value1="relative=top" />
+	</command>
+
+	<command name="addPortletADTWithFieldEntry">
+		<execute macro="Portlet#gotoPortletOptions">
+			<var name="portletName" value="${portletName}" />
+			<var name="portletOption" value="Configuration" />
+		</execute>
+
+		<execute function="SelectFrame" locator1="IFrame#CONFIGURATION" />
+
+		<execute function="Pause" locator1="3000" />
+
+		<execute function="AssertClick#assertPartialTextClickAt" locator1="ApplicationDisplayTemplatesConfiguration#MANAGE_DISPLAY_TEMPLATES_LINK" value1="Manage Display Templates" />
+
+		<execute function="SelectFrameTop" />
+
+		<execute function="SelectFrame" locator1="ApplicationDisplayTemplates#ADT_IFRAME" />
+
+		<execute macro="LexiconEntry#gotoAdd" />
+
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${portletName} Test ADT" />
+		</execute>
+
+		<execute function="Click" locator1="DDMEditTemplate#SCRIPT_FIELD">
+			<var name="key_fieldName" value="${fieldName}" />
+		</execute>
+
+		<execute macro="PortletEntry#save" />
+
+		<execute function="SelectFrameTop" value1="relative=top" />
+	</command>
+
+	<command name="selectPortletADT">
+		<execute macro="Portlet#gotoPortletOptions">
+			<var name="portletName" value="${portletName}" />
+			<var name="portletOption" value="Configuration" />
+		</execute>
+
+		<execute function="SelectFrame" locator1="IFrame#CONFIGURATION" />
+
+		<var name="key_tab" value="Display Settings" />
+
+		<if>
+			<condition function="IsElementPresent" locator1="NavTab#TAB_LINK" />
+			<then>
+				<execute macro="Navigator#gotoNavTab">
+					<var name="navTab" value="Display Settings" />
+				</execute>
+			</then>
+		</if>
+
+		<execute function="Select" locator1="Select#DISPLAY_TEMPLATE" value1="${adtType} Test ADT" />
+
+		<execute macro="Button#clickSave" />
+
+		<execute macro="Alert#viewSuccessMessage" />
+
+		<execute function="SelectFrameTop" />
 	</command>
 
 	<command name="tearDownADTviaPortletPG">
@@ -195,7 +234,9 @@
 			</then>
 		</if>
 
-		<execute macro="Portlet#viewEmptyMessage" />
+		<execute macro="Portlet#viewEmptyMessage">
+			<var name="message" value="There are no results." />
+		</execute>
 	</command>
 
 	<command name="viewADTviaPortletPG">

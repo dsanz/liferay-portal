@@ -33,20 +33,35 @@ import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.util.PropsValues;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import org.skyscreamer.jsonassert.JSONAssert;
 
 /**
  * @author Marcellus Tavares
  */
+@PrepareForTest(PropsValues.class)
+@RunWith(PowerMockRunner.class)
+@SuppressStaticInitializationFor(
+	{
+		"com.liferay.portal.kernel.xml.SAXReaderUtil",
+		"com.liferay.portal.util.PropsValues"
+	}
+)
 public class DDMImplTest extends BaseDDMTestCase {
 
 	@Before
@@ -65,7 +80,7 @@ public class DDMImplTest extends BaseDDMTestCase {
 		setUpHtmlUtil();
 		setUpLanguageUtil();
 		setUpLocaleUtil();
-		setUpPropsUtil();
+		setUpPropsValues();
 		setUpSAXReaderUtil();
 	}
 
@@ -78,14 +93,16 @@ public class DDMImplTest extends BaseDDMTestCase {
 		List<DDMFormLayoutPage> ddmFormLayoutPages =
 			ddmFormLayout.getDDMFormLayoutPages();
 
-		Assert.assertEquals(1, ddmFormLayoutPages.size());
+		Assert.assertEquals(
+			ddmFormLayoutPages.toString(), 1, ddmFormLayoutPages.size());
 
 		DDMFormLayoutPage ddmFormLayoutPage = ddmFormLayoutPages.get(0);
 
 		List<DDMFormLayoutRow> ddmFormLayoutRows =
 			ddmFormLayoutPage.getDDMFormLayoutRows();
 
-		Assert.assertEquals(2, ddmFormLayoutRows.size());
+		Assert.assertEquals(
+			ddmFormLayoutRows.toString(), 2, ddmFormLayoutRows.size());
 
 		assertDefaultDDMFormLayoutRow("Text1", ddmFormLayoutRows.get(0));
 		assertDefaultDDMFormLayoutRow("Text2", ddmFormLayoutRows.get(1));
@@ -650,7 +667,9 @@ public class DDMImplTest extends BaseDDMTestCase {
 		List<DDMFormLayoutColumn> actualDDMFormLayoutColumns =
 			actualDDMFormLayoutRow.getDDMFormLayoutColumns();
 
-		Assert.assertEquals(1, actualDDMFormLayoutColumns.size());
+		Assert.assertEquals(
+			actualDDMFormLayoutColumns.toString(), 1,
+			actualDDMFormLayoutColumns.size());
 
 		DDMFormLayoutColumn actualDDMFormLayoutColumn =
 			actualDDMFormLayoutColumns.get(0);
@@ -699,7 +718,9 @@ public class DDMImplTest extends BaseDDMTestCase {
 	protected void testValues(
 		List<Serializable> actualValues, String... expectedValues) {
 
-		Assert.assertEquals(expectedValues.length, actualValues.size());
+		Assert.assertEquals(
+			actualValues.toString(), expectedValues.length,
+			actualValues.size());
 
 		for (int i = 0; i < expectedValues.length; i++) {
 			Assert.assertEquals(expectedValues[i], actualValues.get(i));
@@ -707,7 +728,9 @@ public class DDMImplTest extends BaseDDMTestCase {
 	}
 
 	protected void testValues(String[] actualValues, String... expectedValues) {
-		Assert.assertEquals(expectedValues.length, actualValues.length);
+		Assert.assertEquals(
+			Arrays.toString(actualValues), expectedValues.length,
+			actualValues.length);
 
 		for (int i = 0; i < expectedValues.length; i++) {
 			Assert.assertEquals(expectedValues[i], actualValues[i]);

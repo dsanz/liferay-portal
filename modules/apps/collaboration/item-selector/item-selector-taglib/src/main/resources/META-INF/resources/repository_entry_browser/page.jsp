@@ -323,7 +323,7 @@ if (Validator.isNotNull(keywords)) {
 									<liferay-ui:search-container-column-text colspan="<%= 3 %>">
 										<liferay-frontend:horizontal-card
 											resultRow="<%= row %>"
-											text="<%= HtmlUtil.escape(folder.getName()) %>"
+											text="<%= folder.getName() %>"
 											url="<%= viewFolderURL.toString() %>"
 										>
 											<liferay-frontend:horizontal-card-col>
@@ -503,7 +503,14 @@ if (Validator.isNotNull(keywords)) {
 			validExtensions: '<%= ListUtil.isEmpty(extensions) ? "*" : StringUtil.merge(extensions) %>'
 
 			<c:if test="<%= uploadURL != null %>">
-				, uploadItemReturnType: '<%= ItemSelectorRepositoryEntryBrowserUtil.getItemSelectorReturnTypeClassName(itemSelectorReturnTypeResolver, existingFileEntryReturnType) %>',
+
+				<%
+				String returnType = ItemSelectorRepositoryEntryBrowserUtil.getItemSelectorReturnTypeClassName(itemSelectorReturnTypeResolver, existingFileEntryReturnType);
+
+				uploadURL.setParameter("returnType", returnType);
+				%>
+
+				, uploadItemReturnType: '<%= HtmlUtil.escapeAttribute(returnType) %>',
 				uploadItemURL: '<%= uploadURL.toString() %>'
 			</c:if>
 		}

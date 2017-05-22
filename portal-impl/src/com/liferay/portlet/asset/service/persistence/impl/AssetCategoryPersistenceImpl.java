@@ -49,6 +49,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -60,6 +61,8 @@ import com.liferay.portlet.asset.model.impl.AssetCategoryImpl;
 import com.liferay.portlet.asset.model.impl.AssetCategoryModelImpl;
 
 import java.io.Serializable;
+
+import java.lang.reflect.Field;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -10638,6 +10641,22 @@ public class AssetCategoryPersistenceImpl extends BasePersistenceImpl<AssetCateg
 
 	public AssetCategoryPersistenceImpl() {
 		setModelClass(AssetCategory.class);
+
+		try {
+			Field field = ReflectionUtil.getDeclaredField(BasePersistenceImpl.class,
+					"_dbColumnNames");
+
+			Map<String, String> dbColumnNames = new HashMap<String, String>();
+
+			dbColumnNames.put("uuid", "uuid_");
+
+			field.set(this, dbColumnNames);
+		}
+		catch (Exception e) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(e, e);
+			}
+		}
 	}
 
 	/**
@@ -11002,8 +11021,104 @@ public class AssetCategoryPersistenceImpl extends BasePersistenceImpl<AssetCateg
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (isNew || !AssetCategoryModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!AssetCategoryModelImpl.COLUMN_BITMASK_ENABLED) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+		else
+		 if (isNew) {
+			Object[] args = new Object[] { assetCategoryModelImpl.getUuid() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_UUID,
+				args);
+
+			args = new Object[] {
+					assetCategoryModelImpl.getUuid(),
+					assetCategoryModelImpl.getCompanyId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID_C, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_UUID_C,
+				args);
+
+			args = new Object[] { assetCategoryModelImpl.getGroupId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_GROUPID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_GROUPID,
+				args);
+
+			args = new Object[] { assetCategoryModelImpl.getParentCategoryId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_PARENTCATEGORYID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_PARENTCATEGORYID,
+				args);
+
+			args = new Object[] { assetCategoryModelImpl.getVocabularyId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_VOCABULARYID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_VOCABULARYID,
+				args);
+
+			args = new Object[] {
+					assetCategoryModelImpl.getGroupId(),
+					assetCategoryModelImpl.getVocabularyId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_V, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_V,
+				args);
+
+			args = new Object[] {
+					assetCategoryModelImpl.getParentCategoryId(),
+					assetCategoryModelImpl.getName()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_P_N, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_P_N,
+				args);
+
+			args = new Object[] {
+					assetCategoryModelImpl.getParentCategoryId(),
+					assetCategoryModelImpl.getVocabularyId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_P_V, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_P_V,
+				args);
+
+			args = new Object[] {
+					assetCategoryModelImpl.getName(),
+					assetCategoryModelImpl.getVocabularyId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_N_V, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_N_V,
+				args);
+
+			args = new Object[] {
+					assetCategoryModelImpl.getGroupId(),
+					assetCategoryModelImpl.getParentCategoryId(),
+					assetCategoryModelImpl.getVocabularyId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_V, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_P_V,
+				args);
+
+			args = new Object[] {
+					assetCategoryModelImpl.getGroupId(),
+					assetCategoryModelImpl.getParentCategoryId(),
+					assetCategoryModelImpl.getName(),
+					assetCategoryModelImpl.getVocabularyId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_N_V, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_P_N_V,
+				args);
+
+			finderCache.removeResult(FINDER_PATH_COUNT_ALL, FINDER_ARGS_EMPTY);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL,
+				FINDER_ARGS_EMPTY);
 		}
 
 		else {
@@ -11422,7 +11537,7 @@ public class AssetCategoryPersistenceImpl extends BasePersistenceImpl<AssetCateg
 		query.append(_SQL_SELECT_ASSETCATEGORY_WHERE_PKS_IN);
 
 		for (Serializable primaryKey : uncachedPrimaryKeys) {
-			query.append(String.valueOf(primaryKey));
+			query.append((long)primaryKey);
 
 			query.append(StringPool.COMMA);
 		}

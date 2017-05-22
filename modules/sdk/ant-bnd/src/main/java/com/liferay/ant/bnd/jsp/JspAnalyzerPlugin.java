@@ -83,6 +83,7 @@ public class JspAnalyzerPlugin implements AnalyzerPlugin {
 		Map<String, Resource> resources = jar.getResources();
 
 		Set<String> keys = new HashSet<String>(resources.keySet());
+		Set<String> taglibURIs = new HashSet<>();
 
 		for (String key : keys) {
 			for (Instruction instruction : instructions.keySet()) {
@@ -97,7 +98,7 @@ public class JspAnalyzerPlugin implements AnalyzerPlugin {
 						resource.openInputStream(), "UTF-8");
 
 					addApiUses(analyzer, jsp);
-					addTaglibRequirements(analyzer, jsp);
+					addTaglibRequirements(analyzer, jsp, taglibURIs);
 
 					matches = true;
 				}
@@ -135,18 +136,33 @@ public class JspAnalyzerPlugin implements AnalyzerPlugin {
 			if ((importX != -1) && (importY != -1)) {
 				String contentFragment = content.substring(importX, importY);
 
-				int index = contentFragment.lastIndexOf('.');
+				String[] packageFragments = contentFragment.split("\\s*,\\s*");
 
-				if (index != -1) {
-					Packages packages = analyzer.getReferred();
+				for (String packageFragment : packageFragments) {
+					int index = packageFragment.lastIndexOf('.');
 
-					String packageName = contentFragment.substring(0, index);
+					Matcher matcher = _staticImportPattern.matcher(
+						packageFragment);
 
-					PackageRef packageRef = analyzer.getPackageRef(packageName);
+					if (matcher.matches()) {
+						packageFragment = matcher.group("package");
 
-					packages.put(packageRef, new Attrs());
+						packageFragment = packageFragment.substring(0, packageFragment.length() - 1);
 
-					addApiUses(analyzer, contentFragment, packageRef);
+						index = packageFragment.length();
+					}
+
+					if (index != -1) {
+						Packages packages = analyzer.getReferred();
+
+						String packageName = packageFragment.substring(0, index);
+
+						PackageRef packageRef = analyzer.getPackageRef(packageName);
+
+						packages.put(packageRef, new Attrs());
+
+						addApiUses(analyzer, packageFragment, packageRef);
+					}
 				}
 			}
 
@@ -289,10 +305,17 @@ public class JspAnalyzerPlugin implements AnalyzerPlugin {
 		taglibRequirements.add(parameters.toString());
 	}
 
-	protected void addTaglibRequirements(Analyzer analyzer, String content) {
-		Set<String> taglibRequirements = new TreeSet<String>();
+	protected void addTaglibRequirements(
+		Analyzer analyzer, String content, Set<String> taglibURIs) {
+
+		Set<String> taglibRequirements = new TreeSet<>();
 
 		for (String uri : getTaglibURIs(content)) {
+			if (taglibURIs.contains(uri)) {
+				continue;
+			}
+
+			taglibURIs.add(uri);
 
 			// Check to see if the JAR provides this TLD itself which would
 			// indicate that it already has access to the required classes
@@ -502,6 +525,13 @@ public class JspAnalyzerPlugin implements AnalyzerPlugin {
 
 	private static final Pattern _packagePattern = Pattern.compile(
 		"[_A-Za-z$][_A-Za-z0-9$]*(\\.[_A-Za-z$][_A-Za-z0-9$]*)*");
+
+	private static final Pattern _staticImportPattern = Pattern.compile(
+		"\\s*static\\s+((?<package>(\\p{javaJavaIdentifierStart}" +
+			"\\p{javaJavaIdentifierPart}*\\.)+)(\\p{javaJavaIdentifierStart}" +
+				"\\p{javaJavaIdentifierPart}*\\.)" +
+					"(\\*|(\\p{javaJavaIdentifierStart}" +
+						"\\p{javaJavaIdentifierPart}*)))\\s*");
 
 	private static final Pattern _tldPattern = Pattern.compile(".*\\.tld");
 

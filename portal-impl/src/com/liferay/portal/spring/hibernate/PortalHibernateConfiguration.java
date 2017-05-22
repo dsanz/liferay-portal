@@ -17,11 +17,13 @@ package com.liferay.portal.spring.hibernate;
 import com.liferay.portal.dao.orm.hibernate.event.MVCCSynchronizerPostUpdateEventListener;
 import com.liferay.portal.dao.orm.hibernate.event.NestableAutoFlushEventListener;
 import com.liferay.portal.dao.orm.hibernate.event.NestableFlushEventListener;
+import com.liferay.portal.kernel.concurrent.ConcurrentReferenceKeyHashMap;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.memory.FinalizeManager;
 import com.liferay.portal.kernel.util.ClassLoaderUtil;
 import com.liferay.portal.kernel.util.Converter;
 import com.liferay.portal.kernel.util.PreloadClassLoader;
@@ -39,7 +41,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.WeakHashMap;
 
 import javassist.util.proxy.ProxyFactory;
 
@@ -269,7 +270,8 @@ public class PortalHibernateConfiguration extends LocalSessionFactoryBean {
 		PortalHibernateConfiguration.class);
 
 	private static final Map<ProxyFactory, ClassLoader>
-		_proxyFactoryClassLoaders = new WeakHashMap<>();
+		_proxyFactoryClassLoaders = new ConcurrentReferenceKeyHashMap<>(
+			FinalizeManager.WEAK_REFERENCE_FACTORY);
 
 	static {
 		ProxyFactory.classLoaderProvider =
@@ -277,30 +279,23 @@ public class PortalHibernateConfiguration extends LocalSessionFactoryBean {
 
 				@Override
 				public ClassLoader get(ProxyFactory proxyFactory) {
-					synchronized (_proxyFactoryClassLoaders) {
-						ClassLoader classLoader = _proxyFactoryClassLoaders.get(
-							proxyFactory);
+					return _proxyFactoryClassLoaders.computeIfAbsent(
+						proxyFactory,
+						(ProxyFactory pf) -> {
+							ClassLoader classLoader =
+								ClassLoaderUtil.getPortalClassLoader();
 
-						if (classLoader != null) {
+							ClassLoader contextClassLoader =
+								ClassLoaderUtil.getContextClassLoader();
+
+							if (classLoader != contextClassLoader) {
+								classLoader = new PreloadClassLoader(
+									contextClassLoader,
+									getPreloadClassLoaderClasses());
+							}
+
 							return classLoader;
-						}
-
-						classLoader = ClassLoaderUtil.getPortalClassLoader();
-
-						ClassLoader contextClassLoader =
-							ClassLoaderUtil.getContextClassLoader();
-
-						if (classLoader != contextClassLoader) {
-							classLoader = new PreloadClassLoader(
-								contextClassLoader,
-								getPreloadClassLoaderClasses());
-						}
-
-						_proxyFactoryClassLoaders.put(
-							proxyFactory, classLoader);
-
-						return classLoader;
-					}
+						});
 				}
 
 			};

@@ -22,7 +22,6 @@ import com.liferay.sync.engine.model.SyncFile;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -32,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -59,7 +59,6 @@ public class IODeltaUtil {
 		}
 
 		FileChannel fileChannel = null;
-		OutputStream outputStream = null;
 		WritableByteChannel writableByteChannel = null;
 
 		try {
@@ -71,9 +70,8 @@ public class IODeltaUtil {
 				Files.createFile(checksumsFilePath);
 			}
 
-			outputStream = Files.newOutputStream(checksumsFilePath);
-
-			writableByteChannel = Channels.newChannel(outputStream);
+			writableByteChannel = Files.newByteChannel(
+				checksumsFilePath, StandardOpenOption.WRITE);
 
 			ByteChannelWriter byteChannelWriter = new ByteChannelWriter(
 				writableByteChannel);
@@ -90,7 +88,6 @@ public class IODeltaUtil {
 			return null;
 		}
 		finally {
-			StreamUtil.cleanUp(outputStream);
 			StreamUtil.cleanUp(fileChannel);
 			StreamUtil.cleanUp(writableByteChannel);
 		}
@@ -137,29 +134,22 @@ public class IODeltaUtil {
 			return null;
 		}
 
-		InputStream targetInputStream = null;
 		ReadableByteChannel targetReadableByteChannel = null;
-		InputStream checksumsInputStream = null;
 		ReadableByteChannel checksumsReadableByteChannel = null;
-		OutputStream deltaOutputStream = null;
 		WritableByteChannel deltaWritableByteChannel = null;
 
 		try {
-			targetInputStream = Files.newInputStream(targetFilePath);
+			targetReadableByteChannel = Files.newByteChannel(
+				targetFilePath, StandardOpenOption.READ);
 
-			targetReadableByteChannel = Channels.newChannel(targetInputStream);
-
-			checksumsInputStream = Files.newInputStream(checksumsFilePath);
-
-			checksumsReadableByteChannel = Channels.newChannel(
-				checksumsInputStream);
+			checksumsReadableByteChannel = Files.newByteChannel(
+				checksumsFilePath, StandardOpenOption.READ);
 
 			ByteChannelReader checksumsByteChannelReader =
 				new ByteChannelReader(checksumsReadableByteChannel);
 
-			deltaOutputStream = Files.newOutputStream(deltaFilePath);
-
-			deltaWritableByteChannel = Channels.newChannel(deltaOutputStream);
+			deltaWritableByteChannel = Files.newByteChannel(
+				deltaFilePath, StandardOpenOption.WRITE);
 
 			ByteChannelWriter deltaByteChannelWriter = new ByteChannelWriter(
 				deltaWritableByteChannel);
@@ -178,11 +168,8 @@ public class IODeltaUtil {
 			return null;
 		}
 		finally {
-			StreamUtil.cleanUp(targetInputStream);
 			StreamUtil.cleanUp(targetReadableByteChannel);
-			StreamUtil.cleanUp(checksumsInputStream);
 			StreamUtil.cleanUp(checksumsReadableByteChannel);
-			StreamUtil.cleanUp(deltaOutputStream);
 			StreamUtil.cleanUp(deltaWritableByteChannel);
 		}
 	}
@@ -208,7 +195,6 @@ public class IODeltaUtil {
 		FileInputStream targetInputStream = null;
 		FileChannel targetFileChannel = null;
 		Path patchedFilePath = null;
-		OutputStream patchedFileOutputStream = null;
 		WritableByteChannel patchedWritableByteChannel = null;
 		ReadableByteChannel deltaReadableByteChannel = null;
 
@@ -220,10 +206,8 @@ public class IODeltaUtil {
 			patchedFilePath = Files.createTempFile(
 				String.valueOf(targetFilePath.getFileName()), ".tmp");
 
-			patchedFileOutputStream = Files.newOutputStream(patchedFilePath);
-
-			patchedWritableByteChannel = Channels.newChannel(
-				patchedFileOutputStream);
+			patchedWritableByteChannel = Files.newByteChannel(
+				patchedFilePath, StandardOpenOption.WRITE);
 
 			deltaReadableByteChannel = Channels.newChannel(deltaInputStream);
 
@@ -242,7 +226,6 @@ public class IODeltaUtil {
 		finally {
 			StreamUtil.cleanUp(targetInputStream);
 			StreamUtil.cleanUp(targetFileChannel);
-			StreamUtil.cleanUp(patchedFileOutputStream);
 			StreamUtil.cleanUp(patchedWritableByteChannel);
 			StreamUtil.cleanUp(deltaReadableByteChannel);
 		}
@@ -272,7 +255,7 @@ public class IODeltaUtil {
 		IODeltaUtil.class);
 
 	private static final Set<String> _syncFilePatchingIgnoreFileExtensions =
-		new HashSet<String>(
+		new HashSet<>(
 			Arrays.asList(
 				PropsValues.SYNC_FILE_PATCHING_IGNORE_FILE_EXTENSIONS));
 

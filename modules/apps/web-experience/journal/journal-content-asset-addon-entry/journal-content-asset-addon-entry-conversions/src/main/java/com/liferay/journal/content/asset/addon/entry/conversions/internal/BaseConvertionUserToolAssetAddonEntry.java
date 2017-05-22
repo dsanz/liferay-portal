@@ -18,11 +18,8 @@ import com.liferay.journal.content.asset.addon.entry.common.UserToolAssetAddonEn
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.servlet.taglib.ui.BaseJSPAssetAddonEntry;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.PrefsPropsUtil;
-import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.documentlibrary.util.DocumentConversionUtil;
 
 import java.io.IOException;
@@ -68,10 +65,7 @@ public abstract class BaseConvertionUserToolAssetAddonEntry
 
 	@Override
 	public boolean isEnabled() {
-		if (!PrefsPropsUtil.getBoolean(
-				PropsKeys.OPENOFFICE_SERVER_ENABLED,
-				PropsValues.OPENOFFICE_SERVER_ENABLED)) {
-
+		if (!DocumentConversionUtil.isEnabled()) {
 			return false;
 		}
 

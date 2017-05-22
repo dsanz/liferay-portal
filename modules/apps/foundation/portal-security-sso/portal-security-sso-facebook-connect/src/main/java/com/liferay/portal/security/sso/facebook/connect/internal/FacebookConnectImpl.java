@@ -23,9 +23,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.settings.CompanyServiceSettingsLocator;
-import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.Http;
-import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.sso.facebook.connect.configuration.FacebookConnectConfiguration;
@@ -63,25 +61,25 @@ public class FacebookConnectImpl implements FacebookConnect {
 		FacebookConnectConfiguration facebookConnectConfiguration =
 			getFacebookConnectConfiguration(companyId);
 
-		String url = HttpUtil.addParameter(
+		String url = _http.addParameter(
 			facebookConnectConfiguration.oauthTokenURL(), "client_id",
 			facebookConnectConfiguration.appId());
 
 		String facebookConnectRedirectURL =
 			facebookConnectConfiguration.oauthRedirectURL();
 
-		url = HttpUtil.addParameter(
+		url = _http.addParameter(
 			url, "redirect_uri", facebookConnectRedirectURL);
 
-		facebookConnectRedirectURL = HttpUtil.addParameter(
+		facebookConnectRedirectURL = _http.addParameter(
 			facebookConnectRedirectURL, "redirect", redirect);
 
-		url = HttpUtil.addParameter(
+		url = _http.addParameter(
 			url, "redirect_uri", facebookConnectRedirectURL);
 
-		url = HttpUtil.addParameter(
+		url = _http.addParameter(
 			url, "client_secret", facebookConnectConfiguration.appSecret());
-		url = HttpUtil.addParameter(url, "code", code);
+		url = _http.addParameter(url, "code", code);
 
 		Http.Options options = new Http.Options();
 
@@ -89,20 +87,15 @@ public class FacebookConnectImpl implements FacebookConnect {
 		options.setPost(true);
 
 		try {
-			String content = HttpUtil.URLtoString(options);
+			String content = _http.URLtoString(options);
 
-			if (Validator.isNotNull(content)) {
-				int x = content.indexOf("access_token=");
+			JSONObject contentJSONObject = JSONFactoryUtil.createJSONObject(
+				content);
 
-				if (x >= 0) {
-					int y = content.indexOf(CharPool.AMPERSAND, x);
+			String accessToken = contentJSONObject.getString("access_token");
 
-					if (y < x) {
-						y = content.length();
-					}
-
-					return content.substring(x + 13, y);
-				}
+			if (Validator.isNotNull(accessToken)) {
+				return accessToken;
 			}
 		}
 		catch (Exception e) {
@@ -150,19 +143,19 @@ public class FacebookConnectImpl implements FacebookConnect {
 		long companyId, String path, String accessToken, String fields) {
 
 		try {
-			String url = HttpUtil.addParameter(
+			String url = _http.addParameter(
 				getGraphURL(companyId).concat(path), "access_token",
 				accessToken);
 
 			if (Validator.isNotNull(fields)) {
-				url = HttpUtil.addParameter(url, "fields", fields);
+				url = _http.addParameter(url, "fields", fields);
 			}
 
 			Http.Options options = new Http.Options();
 
 			options.setLocation(url);
 
-			String json = HttpUtil.URLtoString(options);
+			String json = _http.URLtoString(options);
 
 			return JSONFactoryUtil.createJSONObject(json);
 		}
@@ -264,6 +257,9 @@ public class FacebookConnectImpl implements FacebookConnect {
 		FacebookConnectImpl.class);
 
 	private ConfigurationProvider _configurationProvider;
+
+	@Reference
+	private Http _http;
 
 	@Reference
 	private Portal _portal;

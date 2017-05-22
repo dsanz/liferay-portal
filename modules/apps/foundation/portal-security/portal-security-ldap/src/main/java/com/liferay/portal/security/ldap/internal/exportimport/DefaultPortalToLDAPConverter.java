@@ -30,6 +30,8 @@ import com.liferay.portal.kernel.security.pwd.PasswordEncryptor;
 import com.liferay.portal.kernel.security.pwd.PasswordEncryptorUtil;
 import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.Props;
+import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
@@ -59,6 +61,7 @@ import javax.naming.directory.DirContext;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Michael C. Han
@@ -434,7 +437,9 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 		try {
 			StringBundler sb = new StringBundler(4);
 
-			if (!algorithm.equals(PasswordEncryptorUtil.TYPE_NONE)) {
+			if (!algorithm.equals(PasswordEncryptorUtil.TYPE_NONE) &&
+				!hasLegacyPasswordEncryptionAlgorithm()) {
+
 				sb.append(StringPool.OPEN_CURLY_BRACE);
 				sb.append(algorithm);
 				sb.append(StringPool.CLOSE_CURLY_BRACE);
@@ -526,6 +531,18 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 		return bytes;
 	}
 
+	protected boolean hasLegacyPasswordEncryptionAlgorithm() {
+		if (Validator.isNotNull(
+				GetterUtil.getString(
+					_props.get(
+						PropsKeys.PASSWORDS_ENCRYPTION_ALGORITHM_LEGACY)))) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	protected void populateCustomAttributeModifications(
 		Object object, ExpandoBridge expandoBridge,
 		Map<String, Serializable> expandoAttributes, Properties expandoMappings,
@@ -601,7 +618,7 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 		_passwordEncryptor = passwordEncryptor;
 	}
 
-	@Reference(unbind = "-")
+	@Reference(policyOption = ReferencePolicyOption.GREEDY, unbind = "-")
 	protected void setPortalLDAP(PortalLDAP portalLDAP) {
 		_portalLDAP = portalLDAP;
 	}
@@ -621,6 +638,10 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 	private LDAPSettings _ldapSettings;
 	private PasswordEncryptor _passwordEncryptor;
 	private PortalLDAP _portalLDAP;
+
+	@Reference
+	private Props _props;
+
 	private final Map<String, String> _reservedContactFieldNames =
 		new HashMap<>();
 	private final Map<String, String> _reservedUserFieldNames = new HashMap<>();

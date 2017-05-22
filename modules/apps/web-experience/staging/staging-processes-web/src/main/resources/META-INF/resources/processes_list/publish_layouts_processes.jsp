@@ -106,6 +106,12 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 			BackgroundTaskDisplay backgroundTaskDisplay = BackgroundTaskDisplayFactoryUtil.getBackgroundTaskDisplay(backgroundTask);
 
 			String backgroundTaskName = backgroundTaskDisplay.getDisplayName(request);
+
+			boolean processPrivateLayout = MapUtil.getBoolean(backgroundTask.getTaskContextMap(), "privateLayout");
+
+			String publicPagesDescription = (processPrivateLayout) ? LanguageUtil.get(request, "private-pages") : LanguageUtil.get(request, "public-pages");
+
+			backgroundTaskName = String.format("%s (%s)", backgroundTaskName, publicPagesDescription);
 			%>
 
 			<c:choose>
@@ -146,9 +152,7 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 							<c:if test="<%= backgroundTaskStatus != null %>">
 
 								<%
-								Map<String, Serializable> taskContextMap = backgroundTask.getTaskContextMap();
-
-								String cmd = (String)taskContextMap.get(Constants.CMD);
+								String cmd = ArrayUtil.toString(ExportImportConfigurationHelper.getExportImportConfigurationParameter(backgroundTask, Constants.CMD), StringPool.BLANK);
 
 								int percentage = 100;
 

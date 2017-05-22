@@ -130,7 +130,7 @@ public class PermissionsPortletConfigurationIcon
 
 		Group group = themeDisplay.getScopeGroup();
 
-		if (!group.hasStagingGroup() || _STAGING_LIVE_GROUP_LOCKING_ENABLED) {
+		if (_STAGING_LIVE_GROUP_LOCKING_ENABLED || !group.hasStagingGroup()) {
 			try {
 				if (PortletPermissionUtil.contains(
 						themeDisplay.getPermissionChecker(), layout,

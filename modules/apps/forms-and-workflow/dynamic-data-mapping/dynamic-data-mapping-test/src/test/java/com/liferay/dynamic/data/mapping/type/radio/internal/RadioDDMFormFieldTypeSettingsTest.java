@@ -16,7 +16,7 @@ package com.liferay.dynamic.data.mapping.type.radio.internal;
 
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
-import com.liferay.dynamic.data.mapping.type.BaseDDMFormFieldTypeSettingsTest;
+import com.liferay.dynamic.data.mapping.type.BaseDDMFormFieldTypeSettingsTestCase;
 import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -36,7 +36,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest({PortalClassLoaderUtil.class, ResourceBundleUtil.class})
 @RunWith(PowerMockRunner.class)
 public class RadioDDMFormFieldTypeSettingsTest
-	extends BaseDDMFormFieldTypeSettingsTest {
+	extends BaseDDMFormFieldTypeSettingsTestCase {
 
 	@Test
 	public void testCreateRadioDDMFormFieldTypeSettingsDDMForm() {

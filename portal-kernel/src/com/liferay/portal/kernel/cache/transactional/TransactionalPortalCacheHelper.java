@@ -264,16 +264,16 @@ public class TransactionalPortalCacheHelper {
 
 	private static final ThreadLocal<List<List<PortalCacheMap>>>
 		_backupPortalCacheMapsThreadLocal =
-			new InitialThreadLocal<List<List<PortalCacheMap>>>(
+			new InitialThreadLocal<>(
 				TransactionalPortalCacheHelper.class.getName() +
 					"._backupPortalCacheMapsThreadLocal",
-				new ArrayList<List<PortalCacheMap>>());
+				ArrayList::new);
 	private static final ThreadLocal<List<PortalCacheMap>>
 		_portalCacheMapsThreadLocal =
-			new InitialThreadLocal<List<PortalCacheMap>>(
+			new InitialThreadLocal<>(
 				TransactionalPortalCacheHelper.class.getName() +
 					"._portalCacheMapsThreadLocal",
-				new ArrayList<PortalCacheMap>());
+				ArrayList::new);
 	private static volatile Boolean _transactionalCacheEnabled;
 
 	private static class UncommittedBuffer {

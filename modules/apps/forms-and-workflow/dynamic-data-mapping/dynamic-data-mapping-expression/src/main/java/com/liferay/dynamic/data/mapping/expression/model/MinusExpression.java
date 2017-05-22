@@ -31,4 +31,9 @@ public class MinusExpression extends UnaryExpression {
 		return visitor.visit(this);
 	}
 
+	@Override
+	public String toString() {
+		return String.format("-%s", getOperandExpression());
+	}
+
 }

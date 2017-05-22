@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.messaging.async.Async;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.PersistedModel;
 import com.liferay.portal.kernel.search.Hits;
@@ -582,6 +583,10 @@ public interface CompanyLocalService extends BaseLocalService,
 	*/
 	public void updateDisplay(long companyId, java.lang.String languageId,
 		java.lang.String timeZoneId) throws PortalException;
+
+	@Async
+	public void updateDisplayGroupNames(long companyId)
+		throws PortalException;
 
 	/**
 	* Updates the company's preferences. The company's default properties are

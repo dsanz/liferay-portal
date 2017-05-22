@@ -43,7 +43,7 @@ public class VariablesEvaluationTest {
 		ddmExpression.setDoubleVariableValue("x", 1.0);
 		ddmExpression.setDoubleVariableValue("y", .5);
 
-		Assert.assertEquals(1.5d, ddmExpression.evaluate(), .001);
+		Assert.assertEquals(1.5D, ddmExpression.evaluate(), .001);
 	}
 
 	@Test
@@ -51,10 +51,10 @@ public class VariablesEvaluationTest {
 		DDMExpression<Float> ddmExpression = new DDMExpressionImpl<>(
 			"x + y", Float.class);
 
-		ddmExpression.setFloatVariableValue("x", 1.0f);
-		ddmExpression.setFloatVariableValue("y", .5f);
+		ddmExpression.setFloatVariableValue("x", 1.0F);
+		ddmExpression.setFloatVariableValue("y", .5F);
 
-		Assert.assertEquals(1.5f, ddmExpression.evaluate(), .001);
+		Assert.assertEquals(1.5F, ddmExpression.evaluate(), .001);
 	}
 
 	@Test

@@ -8,7 +8,7 @@ buildPluginDescriptor {
 	finalizedBy formatSource
 	finalizedBy formatXML
 
-	goalPrefix = "liferay"
+	goalPrefix = "deplyment-helper"
 }
 
 dependencies {
@@ -25,6 +25,10 @@ dependencies {
 
 formatSource {
 	mustRunAfter formatXML
+}
+
+liferayOSGi {
+	expandCompileInclude = true
 }
 
 updateFileVersions {

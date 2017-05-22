@@ -1,6 +1,7 @@
 <definition component-name="portal-wcm">
 	<property name="portal.release" value="true" />
 	<property name="portal.upstream" value="true" />
+	<property name="testray.component.names" value="Navigation" />
 	<property name="testray.main.component.name" value="Navigation" />
 
 	<set-up>
@@ -24,7 +25,7 @@
 	</tear-down>
 
 	<command name="DisplayStyleOptions" priority="5">
-		<property name="portal.acceptance" value="quarantine" />
+		<property name="portal.acceptance" value="true" />
 
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />

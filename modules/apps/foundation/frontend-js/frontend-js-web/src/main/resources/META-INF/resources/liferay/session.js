@@ -327,6 +327,9 @@ AUI.add(
 
 									elapsed = timeOffset;
 								}
+								else {
+									timestamp = 'expired';
+								}
 
 								var extend = instance.get('autoExtend');
 
@@ -339,6 +342,7 @@ AUI.add(
 								if (hasWarned) {
 									if (timestamp == 'expired') {
 										expirationMoment = true;
+										extend = false;
 										hasExpired = true;
 									}
 
@@ -411,9 +415,9 @@ AUI.add(
 								show: Liferay.Language.get('show')
 							};
 
-							instance._expiredText = Liferay.Language.get('warning-your-session-has-expired');
+							instance._expiredText = Liferay.Language.get('due-to-inactivity-your-session-has-expired');
 
-							instance._warningText = Liferay.Language.get('warning-your-session-will-expire');
+							instance._warningText = Liferay.Language.get('due-to-inactivity-your-session-will-expire');
 							instance._warningText = Lang.sub(
 								instance._warningText,
 								[

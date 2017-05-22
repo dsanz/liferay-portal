@@ -54,7 +54,9 @@ public class CheckboxMultipleDDMFormFieldValueAccessor
 			return jsonFactory.createJSONArray(valueString);
 		}
 		catch (JSONException jsone) {
-			_log.error("Unable to parse JSON array", jsone);
+			if (_log.isDebugEnabled()) {
+				_log.debug("Unable to parse JSON array", jsone);
+			}
 
 			JSONArray jsonArray = jsonFactory.createJSONArray();
 

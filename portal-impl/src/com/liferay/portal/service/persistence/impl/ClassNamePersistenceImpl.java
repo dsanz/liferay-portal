@@ -559,8 +559,14 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (isNew || !ClassNameModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!ClassNameModelImpl.COLUMN_BITMASK_ENABLED) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+		else
+		 if (isNew) {
+			finderCache.removeResult(FINDER_PATH_COUNT_ALL, FINDER_ARGS_EMPTY);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL,
+				FINDER_ARGS_EMPTY);
 		}
 
 		entityCache.putResult(ClassNameModelImpl.ENTITY_CACHE_ENABLED,
@@ -740,7 +746,7 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 		query.append(_SQL_SELECT_CLASSNAME_WHERE_PKS_IN);
 
 		for (Serializable primaryKey : uncachedPrimaryKeys) {
-			query.append(String.valueOf(primaryKey));
+			query.append((long)primaryKey);
 
 			query.append(StringPool.COMMA);
 		}

@@ -71,6 +71,8 @@
 
 	<logger level="ERROR" name="com.liferay.nativity" />
 
+	<logger level="ERROR" name="com.liferay.sync.engine.lan.session.SNISSLConnectionSocketFactory" />
+
 	<logger level="ERROR" name="io.netty" />
 
 	<logger level="ERROR" name="org.apache" />

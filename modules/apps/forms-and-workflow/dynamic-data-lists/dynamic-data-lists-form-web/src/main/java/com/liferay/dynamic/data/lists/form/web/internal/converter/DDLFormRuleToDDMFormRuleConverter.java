@@ -27,6 +27,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang.math.NumberUtils;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -63,15 +68,13 @@ public class DDLFormRuleToDDMFormRuleConverter {
 				_operatorMap.get(operator), convertOperand(operands.get(1)));
 		}
 
-		String action = String.format(
-			_functionCallUnaryExpressionFormat, functionName,
-			convertOperands(operands));
+		String condition = createCondition(functionName, operands);
 
 		if (operator.startsWith("not")) {
-			return String.format(_notExpressionFormat, action);
+			return String.format(_notExpressionFormat, condition);
 		}
 
-		return action;
+		return condition;
 	}
 
 	protected String convertConditions(
@@ -105,7 +108,24 @@ public class DDLFormRuleToDDMFormRuleConverter {
 				StringUtil.quote(operand.getValue()));
 		}
 
-		return StringUtil.quote(operand.getValue());
+		String value = operand.getValue();
+
+		if (NumberUtils.isNumber(value)) {
+			return value;
+		}
+
+		String[] values = StringUtil.split(value);
+
+		UnaryOperator<String> quoteOperation = StringUtil::quote;
+		UnaryOperator<String> trimOperation = StringUtil::trim;
+
+		Stream<String> valuesStream = Stream.of(values);
+
+		Stream<String> valueStream = valuesStream.map(
+			trimOperation.andThen(quoteOperation));
+
+		return valueStream.collect(
+			Collectors.joining(StringPool.COMMA_AND_SPACE));
 	}
 
 	protected String convertOperands(
@@ -139,6 +159,18 @@ public class DDLFormRuleToDDMFormRuleConverter {
 		return new DDMFormRule(condition, actions);
 	}
 
+	protected String createCondition(
+		String functionName, List<DDLFormRuleCondition.Operand> operands) {
+
+		if (Objects.equals(functionName, "belongsTo")) {
+			operands.remove(0);
+		}
+
+		return String.format(
+			_functionCallUnaryExpressionFormat, functionName,
+			convertOperands(operands));
+	}
+
 	private static final String _comparisonExpressionFormat = "%s %s %s";
 	private static final String _functionCallUnaryExpressionFormat = "%s(%s)";
 	private static final String _notExpressionFormat = "not(%s)";
@@ -147,10 +179,13 @@ public class DDLFormRuleToDDMFormRuleConverter {
 	private static final Map<String, String> _operatorMap = new HashMap<>();
 
 	static {
+		_operatorFunctionNameMap.put("belongs-to", "belongsTo");
 		_operatorFunctionNameMap.put("contains", "contains");
 		_operatorFunctionNameMap.put("equals-to", "equals");
+		_operatorFunctionNameMap.put("is-empty", "isEmpty");
 		_operatorFunctionNameMap.put("not-contains", "contains");
 		_operatorFunctionNameMap.put("not-equals-to", "equals");
+		_operatorFunctionNameMap.put("not-is-empty", "isEmpty");
 
 		_operatorMap.put("greater-than", ">");
 		_operatorMap.put("greater-than-equals", ">=");

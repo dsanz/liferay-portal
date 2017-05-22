@@ -10,12 +10,17 @@
 <tbody>
 <tr>
 	<td>SAVE_NOTIFICATION</td>
-	<td>//div[contains(@class,'autosave-bar')]/span</td>
+	<td>//div[contains(@class,'autosave-bar')]//span</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SAVE_FORM_BUTTON</td>
 	<td>//div[@class='button-holder ddl-form-builder-buttons']//button[contains(.,'Save Form') and not (contains(@class,'disabled'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SAVE_FORM_BUTTON_LOCALIZED</td>
+	<td>//div[@class='button-holder ddl-form-builder-buttons']//button[contains(.,'${key_saveButton}') and not (contains(@class,'disabled'))]</td>
 	<td></td>
 </tr>
 <tr>
@@ -63,6 +68,22 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--ALT_PAGINATION-->
+<tr>
+	<td>ALT_PAGINATION_PAGE</td>
+	<td>//div[contains(@class,'form-builder-pagination')]//li[contains(.,'${key_page}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ALT_PAGINATION_SUCCESS_PAGE</td>
+	<td>//div[contains(@class,'form-builder-pagination')]//li[@class='pagination-success-page']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
 <!--PAGE_CONTROLS-->
 <tr>
 	<td>PAGE_CONTROLS_ELLIPSIS_ICON</td>
@@ -72,6 +93,21 @@
 <tr>
 	<td>PAGE_CONTROLS_ADD_NEW_PAGE</td>
 	<td>//li[@class='form-builder-page-manager-add-last-position' and contains(text(),'Add New Page')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_CONTROLS_ADD_SUCCESS_PAGE</td>
+	<td>//li[@class='form-builder-page-manager-add-success-page' and contains(text(),'Add Success Page')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_CONTROLS_DELETE_CURRENT_PAGE</td>
+	<td>//li[@class='form-builder-page-manager-delete-page' and contains(text(),'Delete Current Page')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PAGE_CONTROLS_SWITCH_PAGINATION_MODE</td>
+	<td>//li[@class='form-builder-page-manager-switch-mode' and contains(text(),'Switch Pagination Mode')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -116,6 +152,22 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--SUCCESS_PAGE-->
+<tr>
+	<td>SUCCESS_PAGE_TITLE_FIELD</td>
+	<td>//div[@class='form-builder-success-page']//input[contains(@class,'success-page-title')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUCCESS_PAGE_DESCRIPTION_FIELD</td>
+	<td>//div[@class='form-builder-success-page']//input[contains(@class,'success-page-content')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
 <!--PUBLISH-->
 <tr>
 	<td>PUBLISH_FORM_NAME_FIELD</td>
@@ -138,6 +190,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PUBLISH_ICON</td>
+	<td>//button[contains(@id,'publishIcon')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PUBLISH_UNPUBLISH_ICON_CLOSE</td>
+	<td>//div[contains(@class,'alert-dismissable')]//div[contains(.,'${key_alertMessage}')]/preceding-sibling::button[@class='close']</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -150,12 +212,12 @@
 </tr>
 <tr>
 	<td>SETTINGS_TAB_WORKFLOW_CONFIGURATION_FIELD</td>
-	<td>//div[contains(@data-fieldname,'workflowDefinition')]//a[contains(@id,'workflowDefinition')]</td>
+	<td>//div[contains(@data-fieldname,'workflowDefinition')]//div[contains(@id,'workflowDefinition')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SETTINGS_TAB_WORKFLOW_CONFIGURATION</td>
-	<td>//div[contains(@data-fieldname,'workflowDefinition')]//a[contains(@id,'workflowDefinition')]/following-sibling::div[@class='drop-chosen']//li[contains(.,'${key_workflowDefinition}')]</td>
+	<td>//div[contains(@data-fieldname,'workflowDefinition')]//div[contains(@id,'workflowDefinition')]/following-sibling::div[@class='drop-chosen']//li[contains(.,'${key_workflowDefinition}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -217,6 +279,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DATA_PROVIDER_OUTPUT_PARAMETER_LABEL_FIELD</td>
+	<td>//div[contains(@data-fieldname,'outputParameters')]//input[@type='text' and contains(@id,'outputParameters') and contains(@placeholder,'label')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DATA_PROVIDER_OUTPUT_PARAMETER_LABEL_FIELD_2</td>
+	<td>//div[contains(@data-fieldname,'outputParameters')]/../following-sibling::div/div//input[@type='text' and contains(@id,'outputParameters') and contains(@placeholder,'label')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DATA_PROVIDER_OUTPUT_PARAMETER_NAME_FIELD</td>
 	<td>//div[contains(@data-fieldname,'outputParameters')]//input[@type='text' and contains(@id,'outputParameters') and contains(@placeholder,'name')]</td>
 	<td></td>
@@ -228,12 +300,12 @@
 </tr>
 <tr>
 	<td>DATA_PROVIDER_OUTPUT_PARAMETER_TYPE_FIELD</td>
-	<td>//div[contains(@data-fieldname,'outputParameters')]//div[contains(@class,'select-field')]//a[contains(@id,'outputParameterType')]</td>
+	<td>//div[contains(@data-fieldname,'outputParameters')]//div[contains(@class,'select-field')]//div[contains(@id,'outputParameterType')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DATA_PROVIDER_OUTPUT_PARAMETER_TYPE_FIELD_2</td>
-	<td>//div[contains(@data-fieldname,'outputParameters')]/../following-sibling::div//div[contains(@class,'select-field')]//a[contains(@id,'outputParameterType')]</td>
+	<td>//div[contains(@data-fieldname,'outputParameters')]/../following-sibling::div//div[contains(@class,'select-field')]//div[contains(@id,'outputParameterType')]</td>
 	<td></td>
 </tr>
 <tr>

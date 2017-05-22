@@ -138,7 +138,7 @@
 			<var name="portlet" value="Roles" />
 		</execute>
 
-		<execute macro="Role#addCP">
+		<execute macro="Role#add">
 			<var name="roleTitle" value="Impersonating Role Name" />
 		</execute>
 
@@ -325,6 +325,8 @@
 	</command>
 
 	<command name="MultipleUsersandOrganizations" priority="4">
+		<property name="test.name.skip.portal.instance" value="UsersandorganizationsUsecase#MultipleUsersandOrganizations" />
+
 		<execute macro="TestCase#getSiteName">
 			<return from="siteName" name="siteName" />
 			<var name="siteName" value="${siteName}" />
@@ -861,6 +863,8 @@
 	</command>
 
 	<command name="OrganizationSiteDefaultUserAssociations" priority="3">
+		<property name="test.name.skip.portal.instance" value="UsersandorganizationsUsecase#OrganizationSiteDefaultUserAssociations" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -1151,22 +1155,30 @@
 	<command name="ViewContentInLocationOrganizationSite" priority="4">
 		<property name="custom.properties" value="organizations.types=organization,location${line.separator}organizations.rootable[location]=true${line.separator}organizations.children.types[organization]=organization,location" />
 
+		<var method="TestPropsUtil#get('portal.url')" name="portalURL" />
+
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Roles" />
 		</execute>
 
-		<execute macro="Role#addCP">
+		<execute macro="RoleNavigator#gotoRoleType">
+			<var name="roleType" value="Organization" />
+		</execute>
+
+		<execute macro="Role#add">
 			<var name="roleTitle" value="Canada Orgrole" />
-			<var name="roleType" value="Organization" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Roles" />
 		</execute>
 
-		<execute macro="Role#addCP">
-			<var name="roleTitle" value="United States Orgrole" />
+		<execute macro="RoleNavigator#gotoRoleType">
 			<var name="roleType" value="Organization" />
+		</execute>
+
+		<execute macro="Role#add">
+			<var name="roleTitle" value="United States Orgrole" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
@@ -1303,7 +1315,7 @@
 		</execute>
 
 		<execute macro="Navigator#openSpecificURL">
-			<var name="url" value="http://localhost:8080/web/canada" />
+			<var name="url" value="${portalURL}/web/canada" />
 		</execute>
 
 		<execute macro="MessageboardsPortlet#gotoInlinePermissionsPG" />
@@ -1314,7 +1326,7 @@
 		</execute>
 
 		<execute macro="Navigator#openSpecificURL">
-			<var name="url" value="http://localhost:8080/web/canada" />
+			<var name="url" value="${portalURL}/web/canada" />
 		</execute>
 
 		<execute macro="MessageboardsPortlet#gotoInlinePermissionsPG" />
@@ -1325,7 +1337,7 @@
 		</execute>
 
 		<execute macro="Navigator#openSpecificURL">
-			<var name="url" value="http://localhost:8080/web/canada" />
+			<var name="url" value="${portalURL}/web/canada" />
 		</execute>
 
 		<execute macro="MessageboardsThread#addPG">
@@ -1334,7 +1346,7 @@
 		</execute>
 
 		<execute macro="Navigator#openSpecificURL">
-			<var name="url" value="http://localhost:8080/web/united-states" />
+			<var name="url" value="${portalURL}/web/united-states" />
 		</execute>
 
 		<execute macro="MessageboardsPortlet#gotoInlinePermissionsPG" />
@@ -1345,7 +1357,7 @@
 		</execute>
 
 		<execute macro="Navigator#openSpecificURL">
-			<var name="url" value="http://localhost:8080/web/united-states" />
+			<var name="url" value="${portalURL}/web/united-states" />
 		</execute>
 
 		<execute macro="MessageboardsPortlet#gotoInlinePermissionsPG" />
@@ -1356,7 +1368,7 @@
 		</execute>
 
 		<execute macro="Navigator#openSpecificURL">
-			<var name="url" value="http://localhost:8080/web/united-states" />
+			<var name="url" value="${portalURL}/web/united-states" />
 		</execute>
 
 		<execute macro="MessageboardsThread#addPG">
@@ -1372,7 +1384,7 @@
 		</execute>
 
 		<execute macro="Navigator#openSpecificURL">
-			<var name="url" value="http://localhost:8080/web/united-states" />
+			<var name="url" value="${portalURL}/web/united-states" />
 		</execute>
 
 		<execute macro="MessageboardsThread#viewDoNotHaveRequiredPermissionsPG">
@@ -1387,7 +1399,7 @@
 		</execute>
 
 		<execute macro="Navigator#openSpecificURL">
-			<var name="url" value="http://localhost:8080/web/canada" />
+			<var name="url" value="${portalURL}/web/canada" />
 		</execute>
 
 		<execute macro="MessageboardsThread#viewDoNotHaveRequiredPermissionsPG">

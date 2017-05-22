@@ -18,7 +18,6 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.exportimport.constants.ExportImportPortletKeys;
 import com.liferay.exportimport.kernel.lifecycle.BaseProcessExportImportLifecycleListener;
-import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleListener;
 import com.liferay.portal.background.task.model.BackgroundTask;
 import com.liferay.portal.background.task.service.BackgroundTaskLocalService;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskConstants;
@@ -35,13 +34,14 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Akos Thurzo
+ *
+ * @deprecated As of 4.0.0
  */
-@Component(immediate = true, service = {ExportImportLifecycleListener.class})
+@Deprecated
 @ProviderType
 public class NotificationExportImportLifecycleListener
 	extends BaseProcessExportImportLifecycleListener {

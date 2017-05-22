@@ -1,4 +1,5 @@
 configJSModules {
+	dependsOn = []
 	enabled = false
 }
 
@@ -7,9 +8,22 @@ copyLibs {
 }
 
 dependencies {
+	provided group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "2.0.0"
+	provided group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "2.6.0"
 	provided group: "org.json", name: "json", version: "20090211"
 	provided group: "org.skyscreamer", name: "jsonassert", version: "1.2.3"
 
+	testCompile group: "com.liferay.portal", name: "com.liferay.util.java", version: "2.0.0"
+	testCompile group: "commons-collections", name: "commons-collections", version: "3.2.2"
+	testCompile group: "commons-lang", name: "commons-lang", version: "2.6"
+	testCompile group: "javax.portlet", name: "portlet-api", version: "2.0"
+	testCompile group: "org.dom4j", name: "dom4j", version: "2.0.0"
+	testCompile group: "org.jabsorb", name: "jabsorb", version: "1.3.1"
+	testCompile group: "org.jodd", name: "jodd-bean", version: "3.6.4"
+	testCompile group: "org.jodd", name: "jodd-core", version: "3.6.4"
+	testCompile group: "org.jodd", name: "jodd-json", version: "3.6.4"
+	testCompile group: "org.slf4j", name: "slf4j-api", version: "1.7.22"
+	testCompile group: "xerces", name: "xercesImpl", version: "2.11.0"
 	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-api")
 	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-data-provider")
 	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-form-evaluator")
@@ -20,16 +34,18 @@ dependencies {
 	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-type-checkbox")
 	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-type-checkbox-multiple")
 	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-type-date")
+	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-type-grid")
 	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-type-key-value")
+	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-type-numeric")
 	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-type-paragraph")
 	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-type-radio")
 	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-type-select")
 	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-type-text")
 	testCompile project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-validator")
 
-	testIntegrationCompile group: "com.liferay", name: "com.liferay.arquillian.extension.junit.bridge", version: "1.0.5"
+	testIntegrationCompile group: "com.liferay", name: "com.liferay.arquillian.extension.junit.bridge", version: "1.0.7"
 	testIntegrationCompile group: "com.liferay", name: "com.liferay.portal.upgrade", version: "2.0.0"
 	testIntegrationCompile group: "com.liferay", name: "com.liferay.registry.api", version: "1.0.0"
-	testIntegrationCompile group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "2.0.0"
-	testIntegrationCompile group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "2.6.0"
+	testIntegrationCompile group: "javax.servlet", name: "javax.servlet-api", version: "3.0.1"
+	testIntegrationCompile group: "org.springframework", name: "spring-web", version: "4.1.9.RELEASE"
 }

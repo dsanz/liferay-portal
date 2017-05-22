@@ -91,6 +91,14 @@ public class WorkflowDefinitionDisplayContext {
 
 		searchContainer.setTotal(workflowDefinitions.size());
 
+		if (workflowDefinitions.size() >
+				(searchContainer.getEnd() - searchContainer.getStart())) {
+
+			workflowDefinitions = ListUtil.subList(
+				workflowDefinitions, searchContainer.getStart(),
+				searchContainer.getEnd());
+		}
+
 		return workflowDefinitions;
 	}
 
@@ -104,6 +112,14 @@ public class WorkflowDefinitionDisplayContext {
 
 	public String getVersion(WorkflowDefinition workflowDefinition) {
 		return String.valueOf(workflowDefinition.getVersion());
+	}
+
+	public List<WorkflowDefinition> getWorkflowDefinitions(String name)
+		throws PortalException {
+
+		return WorkflowDefinitionManagerUtil.getWorkflowDefinitions(
+			_workflowDefinitionRequestHelper.getCompanyId(), name,
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
 	protected PredicateFilter<WorkflowDefinition> createPredicateFilter(

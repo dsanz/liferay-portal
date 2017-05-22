@@ -1,6 +1,7 @@
 <definition component-name="portal-wcm">
 	<property name="portal.release" value="true" />
 	<property name="portal.upstream" value="true" />
+	<property name="testray.component.names" value="Site and Page Templates" />
 	<property name="testray.main.component.name" value="Site and Page Templates" />
 
 	<set-up>
@@ -24,9 +25,7 @@
 		</if>
 	</tear-down>
 
-	<command name="AddPageTemplate" priority="5">
-		<property name="portal.acceptance" value="true" />
-
+	<command name="AddPageTemplate" priority="4">
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Page Templates" />
 		</execute>

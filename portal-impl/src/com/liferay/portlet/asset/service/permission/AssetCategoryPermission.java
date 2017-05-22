@@ -80,19 +80,21 @@ public class AssetCategoryPermission {
 		if (actionId.equals(ActionKeys.VIEW) &&
 			PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
 
-			long categoryId = category.getCategoryId();
-
-			while (categoryId !=
-						AssetCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) {
-
-				category = AssetCategoryLocalServiceUtil.getCategory(
-					categoryId);
-
+			while (true) {
 				if (!_hasPermission(permissionChecker, category, actionId)) {
 					return false;
 				}
 
-				categoryId = category.getParentCategoryId();
+				long parentCategoryId = category.getParentCategoryId();
+
+				if (parentCategoryId ==
+						AssetCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) {
+
+					break;
+				}
+
+				category = AssetCategoryLocalServiceUtil.getCategory(
+					parentCategoryId);
 			}
 
 			return AssetVocabularyPermission.contains(
@@ -108,7 +110,7 @@ public class AssetCategoryPermission {
 		throws PortalException {
 
 		if (categoryId == AssetCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) {
-			return AssetPermission.contains(
+			return AssetCategoriesPermission.contains(
 				permissionChecker, groupId, actionId);
 		}
 		else {

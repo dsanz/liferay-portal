@@ -23,7 +23,6 @@ import com.liferay.journal.test.util.JournalArticleContent;
 import com.liferay.journal.test.util.JournalArticleTitle;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.search.Document;
-import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.QueryConfig;
@@ -49,7 +48,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -154,25 +152,6 @@ public class JournalArticleIndexerLocalizedContentTest {
 
 		localizedTitleStrings.put("localized_title", originalTitle);
 
-		Map<String, String> ddmContentStrings = _withSortableValues(
-			new HashMap<String, String>() {
-				{
-					put("ddm__text__NNNNN__content_en_US", originalContent);
-					put("ddm__text__NNNNN__content_hu_HU", translatedContent);
-
-					put("ddm__text__NNNNN__content_ca_ES", originalContent);
-					put("ddm__text__NNNNN__content_de_DE", originalContent);
-					put("ddm__text__NNNNN__content_es_ES", originalContent);
-					put("ddm__text__NNNNN__content_fi_FI", originalContent);
-					put("ddm__text__NNNNN__content_fr_FR", originalContent);
-					put("ddm__text__NNNNN__content_iw_IL", originalContent);
-					put("ddm__text__NNNNN__content_ja_JP", originalContent);
-					put("ddm__text__NNNNN__content_nl_NL", originalContent);
-					put("ddm__text__NNNNN__content_pt_BR", originalContent);
-					put("ddm__text__NNNNN__content_zh_CN", originalContent);
-				}
-			});
-
 		String searchTerm = "nev";
 
 		Document document = _search(searchTerm, LocaleUtil.HUNGARY);
@@ -185,12 +164,6 @@ public class JournalArticleIndexerLocalizedContentTest {
 
 		FieldValuesAssert.assertFieldValues(
 			localizedTitleStrings, "localized_title", document, searchTerm);
-
-		String ddmNumber = _getDDMNumber(document);
-
-		FieldValuesAssert.assertFieldValues(
-			_replaceKeys("NNNNN", ddmNumber, ddmContentStrings), "ddm__text",
-			document, searchTerm);
 	}
 
 	@Test
@@ -315,25 +288,6 @@ public class JournalArticleIndexerLocalizedContentTest {
 
 		localizedTitleStrings.put("localized_title", title);
 
-		Map<String, String> ddmContentStrings = _withSortableValues(
-			new HashMap<String, String>() {
-				{
-					put("ddm__text__NNNNN__content_ja_JP", content);
-
-					put("ddm__text__NNNNN__content_ca_ES", content);
-					put("ddm__text__NNNNN__content_de_DE", content);
-					put("ddm__text__NNNNN__content_en_US", content);
-					put("ddm__text__NNNNN__content_es_ES", content);
-					put("ddm__text__NNNNN__content_fi_FI", content);
-					put("ddm__text__NNNNN__content_fr_FR", content);
-					put("ddm__text__NNNNN__content_hu_HU", content);
-					put("ddm__text__NNNNN__content_iw_IL", content);
-					put("ddm__text__NNNNN__content_nl_NL", content);
-					put("ddm__text__NNNNN__content_pt_BR", content);
-					put("ddm__text__NNNNN__content_zh_CN", content);
-				}
-			});
-
 		String word1 = "新規";
 		String word2 = "作成";
 		String prefix1 = "新";
@@ -352,12 +306,6 @@ public class JournalArticleIndexerLocalizedContentTest {
 
 			FieldValuesAssert.assertFieldValues(
 				localizedTitleStrings, "localized_title", document, searchTerm);
-
-			String ddmNumber = _getDDMNumber(document);
-
-			FieldValuesAssert.assertFieldValues(
-				_replaceKeys("NNNNN", ddmNumber, ddmContentStrings),
-				"ddm__text", document, searchTerm);
 		});
 	}
 
@@ -429,19 +377,6 @@ public class JournalArticleIndexerLocalizedContentTest {
 		_journalArticleBuilder.setTitle(journalArticleTitle);
 	}
 
-	private static Map<String, String> _replaceKeys(
-		String oldSub, String newSub, Map<String, String> map) {
-
-		Set<Entry<String, String>> entrySet = map.entrySet();
-
-		Stream<Entry<String, String>> entries = entrySet.stream();
-
-		return entries.collect(
-			Collectors.toMap(
-				entry -> StringUtil.replace(entry.getKey(), oldSub, newSub),
-				Map.Entry::getValue));
-	}
-
 	private static Map<String, String> _withSortableValues(
 		Map<String, String> map) {
 
@@ -457,25 +392,6 @@ public class JournalArticleIndexerLocalizedContentTest {
 		map2.putAll(map);
 
 		return map2;
-	}
-
-	private String _getDDMNumber(Document document) {
-		Map<String, Field> map = document.getFields();
-
-		Set<String> keys = map.keySet();
-
-		Stream<String> names = keys.stream();
-
-		String prefix = "ddm__text__";
-
-		Stream<String> ddmNames = names.filter(name -> name.startsWith(prefix));
-
-		Stream<String> ddmNumbers = ddmNames.map(
-			name -> name.substring(prefix.length(), prefix.length() + 5));
-
-		Optional<String> ddmNumberOptional = ddmNumbers.findAny();
-
-		return ddmNumberOptional.orElseThrow(IllegalStateException::new);
 	}
 
 	private SearchContext _getSearchContext(String searchTerm, Locale locale)

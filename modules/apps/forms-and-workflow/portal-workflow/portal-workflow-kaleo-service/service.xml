@@ -161,6 +161,51 @@
 			<finder-column name="active" />
 		</finder>
 	</entity>
+	<entity local-service="true" name="KaleoDefinitionVersion" remote-service="false">
+
+		<!-- PK fields -->
+
+		<column name="kaleoDefinitionVersionId" primary="true" type="long" />
+
+		<!-- Group instance -->
+
+		<column name="groupId" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="statusByUserId" type="long" />
+		<column name="statusByUserName" type="String" />
+		<column name="statusDate" type="Date" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="name" type="String" />
+		<column localized="true" name="title" type="String" />
+		<column name="description" type="String" />
+		<column name="content" type="String" />
+		<column name="version" type="String" />
+		<column name="status" type="int" />
+
+		<!-- Finder methods -->
+
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
+		<finder name="C_N" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="name" />
+		</finder>
+		<finder name="C_N_V" return-type="KaleoDefinitionVersion" unique="true">
+			<finder-column name="companyId" />
+			<finder-column name="name" />
+			<finder-column name="version" />
+		</finder>
+	</entity>
 	<entity local-service="true" name="KaleoInstance" remote-service="false">
 
 		<!-- PK fields -->
@@ -954,10 +999,10 @@
 			<finder-column name="kaleoInstanceTokenId" />
 			<finder-column name="completed" />
 		</finder>
-		<finder name="KITI_C_B" return-type="Collection">
+		<finder name="KITI_B_C" return-type="Collection">
 			<finder-column name="kaleoInstanceTokenId" />
-			<finder-column name="completed" />
 			<finder-column name="blocking" />
+			<finder-column name="completed" />
 		</finder>
 	</entity>
 	<entity local-service="true" name="KaleoTransition" remote-service="false">
@@ -1016,4 +1061,9 @@
 			<finder-column name="defaultTransition" />
 		</finder>
 	</entity>
+	<exceptions>
+		<exception>DuplicateKaleoDefinitionName</exception>
+		<exception>KaleoDefinitionContent</exception>
+		<exception>KaleoDefinitionName</exception>
+	</exceptions>
 </service-builder>

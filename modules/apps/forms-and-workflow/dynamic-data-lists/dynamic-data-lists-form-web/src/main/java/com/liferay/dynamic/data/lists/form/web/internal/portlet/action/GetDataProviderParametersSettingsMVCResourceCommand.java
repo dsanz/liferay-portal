@@ -59,7 +59,8 @@ public class GetDataProviderParametersSettingsMVCResourceCommand
 	extends BaseMVCResourceCommand {
 
 	protected JSONObject createParametersJSONObject(
-		DDMDataProvider ddmDataProvider, DDMFormValues ddmFormValues) {
+			DDMDataProvider ddmDataProvider, DDMFormValues ddmFormValues)
+		throws Exception {
 
 		JSONObject parametersJSONObject = _jsonFactory.createJSONObject();
 
@@ -132,8 +133,9 @@ public class GetDataProviderParametersSettingsMVCResourceCommand
 	}
 
 	protected JSONArray getInputParametersJSONObject(
-		DDMDataProviderInputParametersSettings[]
-			ddmDataProviderInputParametersSettings) {
+			DDMDataProviderInputParametersSettings[]
+				ddmDataProviderInputParametersSettings)
+		throws Exception {
 
 		JSONArray inputsJSONArray = _jsonFactory.createJSONArray();
 
@@ -141,10 +143,12 @@ public class GetDataProviderParametersSettingsMVCResourceCommand
 				ddmDataProviderInputParameterSetting :
 					ddmDataProviderInputParametersSettings) {
 
+			String label =
+				ddmDataProviderInputParameterSetting.inputParameterLabel();
 			String name =
 				ddmDataProviderInputParameterSetting.inputParameterName();
-			String type =
-				ddmDataProviderInputParameterSetting.inputParameterType();
+			String type = getType(
+				ddmDataProviderInputParameterSetting.inputParameterType());
 
 			if (Validator.isNull(name) || Validator.isNull(type)) {
 				continue;
@@ -152,12 +156,17 @@ public class GetDataProviderParametersSettingsMVCResourceCommand
 
 			JSONObject inputJSONObject = _jsonFactory.createJSONObject();
 
-			inputJSONObject.put("name", name);
+			if (Validator.isNotNull(label)) {
+				inputJSONObject.put("label", label);
+			}
+			else {
+				inputJSONObject.put("label", name);
+			}
 
+			inputJSONObject.put("name", name);
 			inputJSONObject.put(
 				"required",
 				ddmDataProviderInputParameterSetting.inputParameterRequired());
-
 			inputJSONObject.put("type", type);
 
 			inputsJSONArray.put(inputJSONObject);
@@ -167,8 +176,9 @@ public class GetDataProviderParametersSettingsMVCResourceCommand
 	}
 
 	protected JSONArray getOutputParametersJSONObject(
-		DDMDataProviderOutputParametersSettings[]
-			ddmDataProviderOutputParametersSettings) {
+			DDMDataProviderOutputParametersSettings[]
+				ddmDataProviderOutputParametersSettings)
+		throws Exception {
 
 		JSONArray outputsJSONArray = _jsonFactory.createJSONArray();
 
@@ -178,22 +188,36 @@ public class GetDataProviderParametersSettingsMVCResourceCommand
 
 			String name =
 				ddmDataProviderOutputParameterSetting.outputParameterName();
-			String type =
-				ddmDataProviderOutputParameterSetting.outputParameterType();
+			String path =
+				ddmDataProviderOutputParameterSetting.outputParameterPath();
+			String type = getType(
+				ddmDataProviderOutputParameterSetting.outputParameterType());
 
-			if (Validator.isNull(name) || Validator.isNull(type)) {
+			if (Validator.isNull(path) || Validator.isNull(type)) {
 				continue;
 			}
 
 			JSONObject outputJSONObject = _jsonFactory.createJSONObject();
 
-			outputJSONObject.put("name", name);
+			if (Validator.isNotNull(name)) {
+				outputJSONObject.put("name", name);
+			}
+			else {
+				outputJSONObject.put("name", path);
+			}
+
 			outputJSONObject.put("type", type);
 
 			outputsJSONArray.put(outputJSONObject);
 		}
 
 		return outputsJSONArray;
+	}
+
+	protected String getType(String type) throws Exception {
+		JSONArray typeJSONArray = _jsonFactory.createJSONArray(type);
+
+		return typeJSONArray.getString(0);
 	}
 
 	@Reference

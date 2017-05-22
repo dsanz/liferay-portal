@@ -14,9 +14,11 @@
 
 package com.liferay.portal.dao.orm.custom.sql;
 
+import com.liferay.portal.kernel.concurrent.ConcurrentReferenceKeyHashMap;
+import com.liferay.portal.kernel.memory.FinalizeManager;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.WeakHashMap;
 
 import org.osgi.framework.BundleContext;
 
@@ -28,13 +30,15 @@ import org.osgi.framework.BundleContext;
 public class CustomSQLPool {
 
 	public CustomSQLPool() {
-		_maps = new WeakHashMap<>();
+		_maps = new ConcurrentReferenceKeyHashMap<>(
+			FinalizeManager.WEAK_REFERENCE_FACTORY);
 	}
 
 	public void clear() {
 		_maps = null;
 
-		_maps = new WeakHashMap<>();
+		_maps = new ConcurrentReferenceKeyHashMap<>(
+			FinalizeManager.WEAK_REFERENCE_FACTORY);
 	}
 
 	public String get(BundleContext bundleContext, String id) {
@@ -98,6 +102,7 @@ public class CustomSQLPool {
 	}
 
 	private static Map<BundleContext, Map<String, String>> _maps =
-		new WeakHashMap<>();
+		new ConcurrentReferenceKeyHashMap<>(
+			FinalizeManager.WEAK_REFERENCE_FACTORY);
 
 }

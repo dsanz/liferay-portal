@@ -14,16 +14,40 @@
 
 package com.liferay.layout.admin.web.internal.control.menu;
 
+import com.liferay.layout.admin.web.internal.constants.LayoutAdminPortletKeys;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.Html;
+import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.ReflectionUtil;
+import com.liferay.portal.kernel.util.ResourceBundleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.product.navigation.control.menu.BaseJSPProductNavigationControlMenuEntry;
+import com.liferay.product.navigation.control.menu.BaseProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.ProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.constants.ProductNavigationControlMenuCategoryKeys;
+import com.liferay.taglib.aui.IconTag;
+import com.liferay.taglib.servlet.PageContextFactoryUtil;
+import com.liferay.taglib.ui.SuccessTag;
 
-import javax.servlet.ServletContext;
+import java.io.IOException;
+import java.io.Writer;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
+
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletURL;
+
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.PageContext;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -40,12 +64,89 @@ import org.osgi.service.component.annotations.Reference;
 	service = ProductNavigationControlMenuEntry.class
 )
 public class ManageLayoutProductNavigationControlMenuEntry
-	extends BaseJSPProductNavigationControlMenuEntry
-	implements ProductNavigationControlMenuEntry {
+	extends BaseProductNavigationControlMenuEntry {
 
 	@Override
-	public String getIconJspPath() {
-		return "/control/menu/edit_layout_control_menu_entry_icon.jsp";
+	public String getLabel(Locale locale) {
+		return null;
+	}
+
+	@Override
+	public String getURL(HttpServletRequest request) {
+		return null;
+	}
+
+	@Override
+	public boolean includeIcon(
+			HttpServletRequest request, HttpServletResponse response)
+		throws IOException {
+
+		Map<String, String> values = new HashMap<>();
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
+			"content.Language", themeDisplay.getLocale(), getClass());
+
+		values.put(
+			"configurePage",
+			_html.escape(_language.get(resourceBundle, "configure-page")));
+
+		String portletId = LayoutAdminPortletKeys.GROUP_PAGES;
+
+		Group group = themeDisplay.getScopeGroup();
+
+		if (group.isLayoutPrototype()) {
+			portletId = LayoutAdminPortletKeys.LAYOUT_PROTOTYPE_PAGE;
+		}
+
+		PortletURL editPageURL = _portal.getControlPanelPortletURL(
+			request, portletId, PortletRequest.RENDER_PHASE);
+
+		Layout layout = themeDisplay.getLayout();
+
+		editPageURL.setParameter("backURL", _portal.getCurrentURL(request));
+		editPageURL.setParameter(
+			"groupId", String.valueOf(layout.getGroupId()));
+		editPageURL.setParameter("selPlid", String.valueOf(layout.getPlid()));
+		editPageURL.setParameter(
+			"privateLayout", String.valueOf(layout.isPrivateLayout()));
+
+		values.put("editPageURL", editPageURL.toString());
+
+		try {
+			IconTag iconTag = new IconTag();
+
+			iconTag.setCssClass("icon-monospaced");
+			iconTag.setImage("cog");
+			iconTag.setMarkupView("lexicon");
+
+			PageContext pageContext = PageContextFactoryUtil.create(
+				request, response);
+
+			values.put("iconCog", iconTag.doTagAsString(pageContext));
+
+			SuccessTag successTag = new SuccessTag();
+
+			successTag.setKey("layoutUpdated");
+			successTag.setMessage(
+				_language.get(
+					resourceBundle, "the-page-was-updated-succesfully"));
+			successTag.setTargetNode("#controlMenuAlertsContainer");
+
+			values.put(
+				"layoutUpdatedMessage", successTag.doTagAsString(pageContext));
+		}
+		catch (JspException je) {
+			ReflectionUtil.throwException(je);
+		}
+
+		Writer writer = response.getWriter();
+
+		writer.write(StringUtil.replace(_TMPL_CONTENT, "${", "}", values));
+
+		return true;
 	}
 
 	@Override
@@ -68,13 +169,18 @@ public class ManageLayoutProductNavigationControlMenuEntry
 		return super.isShow(request);
 	}
 
-	@Override
-	@Reference(
-		target = "(osgi.web.symbolicname=com.liferay.layout.admin.web)",
-		unbind = "-"
-	)
-	public void setServletContext(ServletContext servletContext) {
-		super.setServletContext(servletContext);
-	}
+	private static final String _TMPL_CONTENT = StringUtil.read(
+		ManageLayoutProductNavigationControlMenuEntry.class,
+		"/META-INF/resources/control/menu/edit_layout_control_menu_entry_" +
+			"icon.tmpl");
+
+	@Reference
+	private Html _html;
+
+	@Reference
+	private Language _language;
+
+	@Reference
+	private Portal _portal;
 
 }

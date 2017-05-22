@@ -159,6 +159,8 @@ public interface PropsKeys {
 
 	public static final String AUTH_TOKEN_SHARED_SECRET = "auth.token.shared.secret";
 
+	public static final String AUTH_USER_UUID_STORE_ENABLED = "auth.user.uuid.store.enabled";
+
 	public static final String AUTH_VERIFIER = "auth.verifier.";
 
 	public static final String AUTH_VERIFIER_PIPELINE = "auth.verifier.pipeline";
@@ -299,40 +301,112 @@ public interface PropsKeys {
 
 	public static final String CALENDAR_PUBLISH_TO_LIVE_BY_DEFAULT = "calendar.publish.to.live.by.default";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_CHECK_PORTAL_CREATE_ACCOUNT = "captcha.check.portal.create_account";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_CHECK_PORTAL_SEND_PASSWORD = "captcha.check.portal.send_password";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_CHECK_PORTLET_MESSAGE_BOARDS_EDIT_CATEGORY = "captcha.check.portlet.message_boards.edit_category";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_CHECK_PORTLET_MESSAGE_BOARDS_EDIT_MESSAGE = "captcha.check.portlet.message_boards.edit_message";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_IMPL = "captcha.engine.impl";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_RECAPTCHA_KEY_PRIVATE = "captcha.engine.recaptcha.key.private";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_RECAPTCHA_KEY_PUBLIC = "captcha.engine.recaptcha.key.public";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_RECAPTCHA_URL_NOSCRIPT = "captcha.engine.recaptcha.url.noscript";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_RECAPTCHA_URL_SCRIPT = "captcha.engine.recaptcha.url.script";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_RECAPTCHA_URL_VERIFY = "captcha.engine.recaptcha.url.verify";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_SIMPLECAPTCHA_BACKGROUND_PRODUCERS = "captcha.engine.simplecaptcha.background.producers";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_SIMPLECAPTCHA_GIMPY_RENDERERS = "captcha.engine.simplecaptcha.gimpy.renderers";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_SIMPLECAPTCHA_HEIGHT = "captcha.engine.simplecaptcha.height";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_SIMPLECAPTCHA_NOISE_PRODUCERS = "captcha.engine.simplecaptcha.noise.producers";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_SIMPLECAPTCHA_TEXT_PRODUCERS = "captcha.engine.simplecaptcha.text.producers";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_SIMPLECAPTCHA_WIDTH = "captcha.engine.simplecaptcha.width";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_ENGINE_SIMPLECAPTCHA_WORD_RENDERERS = "captcha.engine.simplecaptcha.word.renderers";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String CAPTCHA_MAX_CHALLENGES = "captcha.max.challenges";
 
 	public static final String CAS_AUTH_ENABLED = "cas.auth.enabled";
@@ -1023,6 +1097,8 @@ public interface PropsKeys {
 
 	public static final String JSONWS_WEB_SERVICE_STRICT_HTTP_METHOD = "jsonws.web.service.strict.http.method";
 
+	public static final String JSP_PAGE_CONTEXT_FORCE_GET_ATTRIBUTE = "jsp.page.context.force.get.attribute";
+
 	public static final String JSP_WRITER_BUFFER_SIZE = "jsp.writer.buffer.size";
 
 	public static final String LAYOUT_AJAX_RENDER_ENABLE = "layout.ajax.render.enable";
@@ -1395,6 +1471,8 @@ public interface PropsKeys {
 
 	public static final String MODULE_FRAMEWORK_STATE_DIR = "module.framework.state.dir";
 
+	public static final String MODULE_FRAMEWORK_STATIC_JARS = "module.framework.static.jars";
+
 	public static final String MODULE_FRAMEWORK_STOP_WAIT_TIMEOUT = "module.framework.stop.wait.timeout";
 
 	public static final String MODULE_FRAMEWORK_SYSTEM_PACKAGES_EXTRA = "module.framework.system.packages.extra";
@@ -1485,16 +1563,32 @@ public interface PropsKeys {
 
 	public static final String OPEN_SSO_SERVICE_URL = "open.sso.service.url";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String OPENOFFICE_CACHE_ENABLED = "openoffice.cache.enabled";
 
 	public static final String OPENOFFICE_CONVERSION_SOURCE_EXTENSIONS = "openoffice.conversion.source.extensions";
 
 	public static final String OPENOFFICE_CONVERSION_TARGET_EXTENSIONS = "openoffice.conversion.target.extensions";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String OPENOFFICE_SERVER_ENABLED = "openoffice.server.enabled";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String OPENOFFICE_SERVER_HOST = "openoffice.server.host";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String OPENOFFICE_SERVER_PORT = "openoffice.server.port";
 
 	public static final String ORGANIZATIONS_ASSIGNMENT_STRICT = "organizations.assignment.strict";
@@ -2308,12 +2402,34 @@ public interface PropsKeys {
 
 	public static final String USERS_FULL_NAME_VALIDATOR = "users.full.name.validator";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String USERS_IMAGE_CHECK_TOKEN = "users.image.check.token";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
+	public static final String USERS_IMAGE_DEFAULT_USE_INITIALS = "users.image.default.use.initials";
+
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String USERS_IMAGE_MAX_HEIGHT = "users.image.max.height";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String USERS_IMAGE_MAX_SIZE = "users.image.max.size";
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	public static final String USERS_IMAGE_MAX_WIDTH = "users.image.max.width";
 
 	public static final String USERS_LIST_VIEWS = "users.list.views";

@@ -8,6 +8,17 @@
 <tr><td rowspan="1" colspan="3">RolesAssignMembers</td></tr>
 </thead>
 <tbody>
+<!--ADD_ASSIGNEE_TABLE-->
+<tr>
+	<td>ADD_ASSIGNEE_TABLE_CHECKBOX</td>
+	<td>//div[contains(@id,'assigneesSearchSearchContainer')]//tr[contains(.,'${key_assigneeName}')]/td[1]//input[contains(@name,'rowIds')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_ASSIGNEE_TABLE_NAME</td>
+	<td>//div[contains(@id,'assigneesSearchSearchContainer')]//tr[contains(.,'${key_assigneeName}')]/td[2]</td>
+	<td></td>
+</tr>
 <!--ORGANIZATION_TABLE-->
 <tr>
 	<td>ORGANIZATION_TABLE_CHECKBOX</td>

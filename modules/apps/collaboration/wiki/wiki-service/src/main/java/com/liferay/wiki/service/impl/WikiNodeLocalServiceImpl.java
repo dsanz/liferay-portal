@@ -34,10 +34,11 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.spring.extender.service.ServiceReference;
+import com.liferay.subscription.service.SubscriptionLocalService;
+import com.liferay.trash.TrashHelper;
 import com.liferay.trash.kernel.exception.RestoreEntryException;
 import com.liferay.trash.kernel.exception.TrashEntryException;
 import com.liferay.trash.kernel.model.TrashEntry;
-import com.liferay.trash.kernel.util.TrashUtil;
 import com.liferay.wiki.configuration.WikiGroupServiceConfiguration;
 import com.liferay.wiki.constants.WikiConstants;
 import com.liferay.wiki.exception.DuplicateNodeNameException;
@@ -222,7 +223,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 			node.getCompanyId(), WikiNode.class.getName(), node.getNodeId());
 
 		if (node.isInTrash()) {
-			node.setName(TrashUtil.getOriginalTitle(node.getName()));
+			node.setName(trashHelper.getOriginalTitle(node.getName()));
 
 			// Trash
 
@@ -401,7 +402,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 			node.getNodeId(), node.getUuid(), null, oldStatus, null,
 			typeSettingsProperties);
 
-		node.setName(TrashUtil.getTrashTitle(trashEntry.getEntryId()));
+		node.setName(trashHelper.getTrashTitle(trashEntry.getEntryId()));
 
 		wikiNodePersistence.update(node);
 
@@ -423,7 +424,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 				RestoreEntryException.INVALID_STATUS);
 		}
 
-		node.setName(TrashUtil.getOriginalTitle(node.getName()));
+		node.setName(trashHelper.getOriginalTitle(node.getName()));
 
 		wikiNodePersistence.update(node);
 
@@ -572,6 +573,12 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 	protected void validate(long groupId, String name) throws PortalException {
 		validate(0, groupId, name);
 	}
+
+	@ServiceReference(type = SubscriptionLocalService.class)
+	protected SubscriptionLocalService subscriptionLocalService;
+
+	@ServiceReference(type = TrashHelper.class)
+	protected TrashHelper trashHelper;
 
 	@ServiceReference(type = WikiGroupServiceConfiguration.class)
 	protected WikiGroupServiceConfiguration wikiGroupServiceConfiguration;

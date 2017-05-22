@@ -42,7 +42,7 @@
 						</div>
 
 						<div class="h6 sidebar-caption">
-							<liferay-ui:message arguments="<%= new Object[] {curKBArticle.getUserName(), dateFormatDateTime.format(curKBArticle.getModifiedDate())} %>" key="by-x-on-x" />
+							<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(curKBArticle.getUserName()), dateFormatDateTime.format(curKBArticle.getModifiedDate())} %>" key="by-x-on-x" />
 						</div>
 					</div>
 
@@ -117,7 +117,7 @@
 													<portlet:param name="resourcePrimKey" value="<%= String.valueOf(kbArticle.getResourcePrimKey()) %>" />
 												</portlet:renderURL>
 
-												var uri = '<%= compareVersionURL %>';
+												var uri = '<%= HtmlUtil.escapeJS(compareVersionURL) %>';
 
 												uri = Liferay.Util.addParams('<portlet:namespace />sourceVersion=' + event.sourceversion, uri);
 												uri = Liferay.Util.addParams('<portlet:namespace />targetVersion=' + event.targetversion, uri);

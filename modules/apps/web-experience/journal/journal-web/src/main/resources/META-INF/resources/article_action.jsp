@@ -115,19 +115,64 @@ else {
 			/>
 		</c:if>
 
-		<c:if test="<%= JournalFolderPermission.contains(permissionChecker, scopeGroupId, article.getFolderId(), ActionKeys.ADD_ARTICLE) %>">
-			<portlet:renderURL var="copyURL">
-				<portlet:param name="mvcPath" value="/copy_article.jsp" />
-				<portlet:param name="redirect" value="<%= currentURL %>" />
-				<portlet:param name="groupId" value="<%= String.valueOf(article.getGroupId()) %>" />
-				<portlet:param name="oldArticleId" value="<%= article.getArticleId() %>" />
-				<portlet:param name="version" value="<%= String.valueOf(article.getVersion()) %>" />
-			</portlet:renderURL>
+		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.SUBSCRIBE) %>">
+			<c:choose>
+				<c:when test="<%= JournalUtil.isSubscribedToArticle(article.getCompanyId(), scopeGroupId, themeDisplay.getUserId(), article.getResourcePrimKey()) %>">
+					<portlet:actionURL name="unsubscribeArticle" var="subscribeArticleURL">
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="articleId" value="<%= String.valueOf(article.getResourcePrimKey()) %>" />
+					</portlet:actionURL>
 
-			<liferay-ui:icon
-				message="copy"
-				url="<%= copyURL.toString() %>"
-			/>
+					<liferay-ui:icon
+						message="unsubscribe"
+						url="<%= subscribeArticleURL.toString() %>"
+					/>
+				</c:when>
+				<c:otherwise>
+					<portlet:actionURL name="subscribeArticle " var="subscribeArticleURL">
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="articleId" value="<%= String.valueOf(article.getResourcePrimKey()) %>" />
+					</portlet:actionURL>
+
+					<liferay-ui:icon
+						message="subscribe"
+						url="<%= subscribeArticleURL.toString() %>"
+					/>
+				</c:otherwise>
+			</c:choose>
+		</c:if>
+
+		<c:if test="<%= JournalFolderPermission.contains(permissionChecker, scopeGroupId, article.getFolderId(), ActionKeys.ADD_ARTICLE) %>">
+			<c:choose>
+				<c:when test="<%= journalWebConfiguration.journalArticleForceAutogenerateId() %>">
+					<portlet:actionURL name="copyArticle" var="copyArticleURL">
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="groupId" value="<%= String.valueOf(article.getGroupId()) %>" />
+						<portlet:param name="oldArticleId" value="<%= article.getArticleId() %>" />
+						<portlet:param name="version" value="<%= String.valueOf(article.getVersion()) %>" />
+						<portlet:param name="autoArticleId" value="<%= Boolean.TRUE.toString() %>" />
+					</portlet:actionURL>
+
+					<liferay-ui:icon
+						message="copy"
+						url="<%= copyArticleURL.toString() %>"
+					/>
+				</c:when>
+				<c:otherwise>
+					<portlet:renderURL var="copyURL">
+						<portlet:param name="mvcPath" value="/copy_article.jsp" />
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="groupId" value="<%= String.valueOf(article.getGroupId()) %>" />
+						<portlet:param name="oldArticleId" value="<%= article.getArticleId() %>" />
+						<portlet:param name="version" value="<%= String.valueOf(article.getVersion()) %>" />
+					</portlet:renderURL>
+
+					<liferay-ui:icon
+						message="copy"
+						url="<%= copyURL.toString() %>"
+					/>
+				</c:otherwise>
+			</c:choose>
 		</c:if>
 	</c:if>
 

@@ -179,7 +179,7 @@ public class NettyFabricWorkerExecutionChannelHandlerTest {
 
 			List<LogRecord> logRecords = captureHandler.getLogRecords();
 
-			Assert.assertEquals(2, logRecords.size());
+			Assert.assertEquals(logRecords.toString(), 2, logRecords.size());
 
 			LogRecord logRecord = logRecords.get(0);
 
@@ -374,7 +374,7 @@ public class NettyFabricWorkerExecutionChannelHandlerTest {
 
 		URL[] urls = urlClassLoader.getURLs();
 
-		Assert.assertEquals(2, urls.length);
+		Assert.assertEquals(Arrays.toString(urls), 2, urls.length);
 
 		File file = new File(newBootstrapClassPath);
 
@@ -516,7 +516,8 @@ public class NettyFabricWorkerExecutionChannelHandlerTest {
 
 		Map<Path, Path> loadedInputPaths = loadedPaths.getInputPaths();
 
-		Assert.assertEquals(2, loadedInputPaths.size());
+		Assert.assertEquals(
+			loadedInputPaths.toString(), 2, loadedInputPaths.size());
 		Assert.assertEquals(mappedInputPath1, loadedInputPaths.get(inputPath1));
 		Assert.assertEquals(mappedInputPath2, loadedInputPaths.get(inputPath2));
 
@@ -605,7 +606,7 @@ public class NettyFabricWorkerExecutionChannelHandlerTest {
 
 			List<LogRecord> logRecords = captureHandler.getLogRecords();
 
-			Assert.assertEquals(1, logRecords.size());
+			Assert.assertEquals(logRecords.toString(), 1, logRecords.size());
 
 			LogRecord logRecord = logRecords.get(0);
 
@@ -807,7 +808,7 @@ public class NettyFabricWorkerExecutionChannelHandlerTest {
 
 			List<LogRecord> logRecords = captureHandler.getLogRecords();
 
-			Assert.assertEquals(1, logRecords.size());
+			Assert.assertEquals(logRecords.toString(), 1, logRecords.size());
 
 			LogRecord logRecord = logRecords.get(0);
 
@@ -930,10 +931,8 @@ public class NettyFabricWorkerExecutionChannelHandlerTest {
 		DefaultNoticeableFuture<Serializable> processNoticeableFuture =
 			new DefaultNoticeableFuture<>();
 
-		FabricWorker<Serializable> fabricWorker =
-			new LocalFabricWorker<Serializable>(
-				new EmbeddedProcessChannel<Serializable>(
-					processNoticeableFuture));
+		FabricWorker<Serializable> fabricWorker = new LocalFabricWorker<>(
+			new EmbeddedProcessChannel<Serializable>(processNoticeableFuture));
 
 		defaultPromise.setSuccess(fabricWorker);
 
@@ -950,7 +949,7 @@ public class NettyFabricWorkerExecutionChannelHandlerTest {
 
 			List<LogRecord> logRecords = captureHandler.getLogRecords();
 
-			Assert.assertEquals(1, logRecords.size());
+			Assert.assertEquals(logRecords.toString(), 1, logRecords.size());
 
 			LogRecord logRecord = logRecords.get(0);
 
@@ -967,7 +966,8 @@ public class NettyFabricWorkerExecutionChannelHandlerTest {
 			ReflectionTestUtil.getFieldValue(
 				processNoticeableFuture, "_futureListeners");
 
-		Assert.assertEquals(2, futureListeners.size());
+		Assert.assertEquals(
+			futureListeners.toString(), 2, futureListeners.size());
 
 		Iterator<FutureListener<Serializable>> iterator =
 			futureListeners.iterator();
@@ -1180,7 +1180,7 @@ public class NettyFabricWorkerExecutionChannelHandlerTest {
 		Collection<? extends FabricWorker<?>> fabricWorkers =
 			fabricAgent.getFabricWorkers();
 
-		Assert.assertEquals(1, fabricWorkers.size());
+		Assert.assertEquals(fabricWorkers.toString(), 1, fabricWorkers.size());
 
 		Assert.assertFalse(noticeableFuture.isDone());
 	}
@@ -1213,7 +1213,7 @@ public class NettyFabricWorkerExecutionChannelHandlerTest {
 
 			List<LogRecord> logRecords = captureHandler.getLogRecords();
 
-			Assert.assertEquals(1, logRecords.size());
+			Assert.assertEquals(logRecords.toString(), 1, logRecords.size());
 
 			LogRecord logRecord = logRecords.get(0);
 
@@ -1271,7 +1271,7 @@ public class NettyFabricWorkerExecutionChannelHandlerTest {
 		builder.setBootstrapClassPath(StringPool.BLANK);
 		builder.setRuntimeClassPath(StringPool.BLANK);
 
-		return new NettyFabricWorkerConfig<Serializable>(
+		return new NettyFabricWorkerConfig<>(
 			0, builder.build(), new ReturnProcessCallable<Serializable>(null),
 			Collections.<Path, Path>emptyMap());
 	}
@@ -1298,7 +1298,7 @@ public class NettyFabricWorkerExecutionChannelHandlerTest {
 				nettyFabricAgentStub, "_nettyFabricWorkerStubs");
 
 		NettyFabricWorkerStub<Serializable> nettyFabricWorkerStub =
-			new NettyFabricWorkerStub<Serializable>(
+			new NettyFabricWorkerStub<>(
 				0, _embeddedChannel, new MockRepository<Channel>(),
 				Collections.<Path, Path>emptyMap(), 0);
 

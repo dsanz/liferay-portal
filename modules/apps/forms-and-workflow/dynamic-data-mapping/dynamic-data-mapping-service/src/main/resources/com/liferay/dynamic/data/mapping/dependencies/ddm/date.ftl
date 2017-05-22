@@ -17,9 +17,11 @@
 		/>
 	<#elseif validator.isNotNull(predefinedValue)>
 		<#assign
-			predefinedDate = dateUtil.parseDate(predefinedValue, requestedLocale)
+			dateValue = predefinedValue?date["MM/dd/yyyy"]
 
-			fieldValue = calendarFactory.getCalendar(predefinedDate?long)
+			fieldValue = calendarFactory.getCalendar(requestedLocale)
+
+			void = fieldValue.setTimeInMillis(dateValue?long)
 		/>
 	<#else>
 		<#assign

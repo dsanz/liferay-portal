@@ -41,6 +41,17 @@
 	</tear-down>
 
 	<command name="ActivateStagingPageVersioningWithCustomDefaultLanguage" priority="5">
+		<property name="test.name.skip.portal.instance" value="Staging#ActivateStagingPageVersioningWithCustomDefaultLanguage" />
+
+		<execute macro="Navigator#openSiteURL">
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="Page#add">
+			<var name="pageName" value="Private Staging Page" />
+			<var name="sitePagePrivacy" value="Private" />
+		</execute>
+
 		<execute macro="Navigator#openSiteURL">
 			<var name="siteName" value="Site Name" />
 		</execute>
@@ -122,6 +133,24 @@
 		</execute>
 	</command>
 
+	<command name="ModifyInitalPageVariationSetup" priority="3">
+		<execute macro="ProductMenu#gotoSitesPublishing">
+			<var name="portlet" value="Staging" />
+		</execute>
+
+		<execute macro="Staging#activateStagingCP">
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesPublishing">
+			<var name="portlet" value="Staging" />
+		</execute>
+
+		<execute macro="Staging#modifyVariation">
+			<var name="enableOnPublicPages" value="true" />
+		</execute>
+	</command>
+
 	<command name="PublishRenamedTags" priority="4">
 		<execute macro="Navigator#gotoSitePage">
 			<var name="pageName" value="Staging Test Page" />
@@ -190,10 +219,16 @@
 			<var name="portlet" value="Tags" />
 		</execute>
 
-		<execute macro="Tag#editCP">
-			<var name="tagName" value="tag name" />
-			<var name="tagNameEdit" value="tag name edit" />
+		<execute macro="LexiconEntry#gotoEntryMenuItem">
+			<var name="menuItem" value="Edit" />
+			<var name="rowEntry" value="tag name" />
 		</execute>
+
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="tag name edit" />
+		</execute>
+
+		<execute macro="PortletEntry#save" />
 
 		<execute macro="Navigator#gotoStagedSitePage">
 			<var name="pageName" value="Staging Test Page" />
@@ -494,6 +529,7 @@
 
 	<command name="StagingDemoDocumentsAndMedia" priority="3">
 		<property name="custom.properties" value="default.layout.template.id=1_column" />
+		<property name="test.name.skip.portal.instance" value="Staging#StagingDemoDocumentsAndMedia" />
 
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="Server Administration" />
@@ -1110,7 +1146,7 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<execute function="AssertTextEquals" locator1="Message#ERROR" value1="The selected web content no longer exists." />
+		<execute macro="WebContentDisplayPortlet#viewDeletedArticle" />
 
 		<execute macro="Staging#gotoPublishToLive" />
 
@@ -1121,11 +1157,12 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<execute function="AssertTextEquals" locator1="Message#ERROR" value1="The selected web content no longer exists." />
+		<execute macro="WebContentDisplayPortlet#viewDeletedArticle" />
 	</command>
 
 	<command name="StagingRemoteDocumentSubtypeViaAP" priority="3">
 		<property name="custom.properties" value="tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=" />
+		<property name="test.name.skip.portal.instance" value="Staging#StagingRemoteDocumentSubtypeViaAP" />
 
 		<execute macro="Staging#remoteStagingSetUp">
 			<var name="siteName" value="Site Name" />
@@ -1201,6 +1238,7 @@
 
 	<command name="StagingRemoteLiveWebContent" priority="4">
 		<property name="custom.properties" value="tunneling.servlet.shared.secret=1234567890123456${line.separator}auth.verifier.TunnelAuthVerifier.hosts.allowed=" />
+		<property name="test.name.skip.portal.instance" value="Staging#StagingRemoteLiveWebContent" />
 
 		<execute macro="Staging#remoteStagingSetUp">
 			<var name="siteName" value="Site Name" />

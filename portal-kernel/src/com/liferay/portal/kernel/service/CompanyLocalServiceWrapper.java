@@ -708,6 +708,12 @@ public class CompanyLocalServiceWrapper implements CompanyLocalService,
 		_companyLocalService.updateDisplay(companyId, languageId, timeZoneId);
 	}
 
+	@Override
+	public void updateDisplayGroupNames(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		_companyLocalService.updateDisplayGroupNames(companyId);
+	}
+
 	/**
 	* Updates the company's preferences. The company's default properties are
 	* found in portal.properties.

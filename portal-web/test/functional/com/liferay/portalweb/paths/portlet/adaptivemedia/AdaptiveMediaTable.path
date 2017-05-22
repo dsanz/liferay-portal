@@ -1,0 +1,70 @@
+<html>
+<head>
+<title>AdaptiveMediaTable</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">AdaptiveMediaTable</td></tr>
+</thead>
+<tbody>
+<tr>
+	<td>IMAGE_RESOLUTION_OPTIONS</td>
+	<td>//a[contains(.,'${key_imageName}')]/../..//td//span/*[name()='svg'][contains(@class,'icon-ellipsis-v')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_ICON</td>
+	<td>//div[contains(@class,'management-bar-no-collapse')]//div[contains(@class,'container-fluid-1280')]//div[contains(@class,'management-bar-header-right')]/a/span/*[name()='svg'][contains(@class,'lexicon-icon-info-circle')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NAME</td>
+	<td>//td[contains(@class,'name-column')]/a[contains(.,'${key_imageName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MAX_WIDTH</td>
+	<td>//a[contains(.,'${key_imageName}')]/../..//td[contains(@class,'max-width')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MAX_HEIGHT</td>
+	<td>//a[contains(.,'${key_imageName}')]/../..//td[contains(@class,'max-height')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROGRESS</td>
+	<td>//td[contains(.,'${key_imageName}')]/../..//div[contains(@class,'progress')]/div[@aria-valuenow='${key_percentOptimized}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>STATE</td>
+	<td>//a[contains(.,'${key_imageName}')]/../..//td[contains(@class,'lfr-state-column') and contains(.,'${key_imageState}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--IMAGE_INFO_DETAILS-->
+<tr>
+	<td>IMAGE_INFO_DETAILS_DESCRIPTION</td>
+	<td>//dl[contains(@class,'sidebar-block')]/dt[contains(.,'Description')]/following-sibling::dd[contains(.,'${key_imageDescription}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IMAGE_INFO_DETAILS_OPTIMIZED_IMAGES</td>
+	<td>//dl[contains(@class,'sidebar-block')]/dt[contains(.,'Optimized Images')]/following-sibling::dd[contains(.,'${key_numberOfOptimizedImages}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>IMAGE_INFO_DETAILS_ID</td>
+	<td>//dl[contains(@class,'sidebar-block')]/dt[contains(.,'IDs')]/following-sibling::dd[contains(.,'${key_imageID}')]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

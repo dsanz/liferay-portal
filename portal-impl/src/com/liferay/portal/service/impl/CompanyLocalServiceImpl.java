@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.instance.lifecycle.PortalInstanceLifecycleManag
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.messaging.async.Async;
 import com.liferay.portal.kernel.model.Account;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.CompanyConstants;
@@ -70,10 +71,12 @@ import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TimeZoneUtil;
@@ -988,6 +991,90 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		user.setTimeZoneId(timeZoneId);
 
 		userPersistence.update(user);
+
+		updateDisplayGroupNames(companyId);
+	}
+
+	@Async
+	@Override
+	public void updateDisplayGroupNames(long companyId) throws PortalException {
+		User user = userLocalService.getDefaultUser(companyId);
+
+		Locale locale = user.getLocale();
+
+		if (locale.equals(LocaleUtil.getDefault())) {
+			return;
+		}
+
+		ActionableDynamicQuery groupActionableDynamicQuery =
+			groupLocalService.getActionableDynamicQuery();
+
+		groupActionableDynamicQuery.setAddCriteriaMethod(
+			new ActionableDynamicQuery.AddCriteriaMethod() {
+
+				@Override
+				public void addCriteria(DynamicQuery dynamicQuery) {
+					Property activeProperty = PropertyFactoryUtil.forName(
+						"active");
+
+					dynamicQuery.add(activeProperty.eq(Boolean.TRUE));
+
+					Property nameProperty = PropertyFactoryUtil.forName("name");
+
+					dynamicQuery.add(nameProperty.isNotNull());
+
+					Property typeProperty = PropertyFactoryUtil.forName("type");
+
+					dynamicQuery.add(
+						typeProperty.ne(GroupConstants.TYPE_SITE_SYSTEM));
+				}
+
+			});
+		groupActionableDynamicQuery.setCompanyId(user.getCompanyId());
+		groupActionableDynamicQuery.setPerformActionMethod(
+			new ActionableDynamicQuery.PerformActionMethod<Group>() {
+
+				@Override
+				public void performAction(Group group) {
+					Map<Locale, String> nameMap = group.getNameMap();
+
+					if (MapUtil.isEmpty(nameMap)) {
+						return;
+					}
+
+					Locale locale = user.getLocale();
+
+					String groupDefaultName = nameMap.get(locale);
+
+					if (Validator.isNotNull(groupDefaultName)) {
+						return;
+					}
+
+					String oldGroupDefaultName = nameMap.get(
+						LocaleUtil.getDefault());
+
+					if (_log.isWarnEnabled()) {
+						StringBundler sb = new StringBundler(5);
+
+						sb.append("No name was found for locale ");
+						sb.append(locale);
+						sb.append(". Using \"");
+						sb.append(oldGroupDefaultName);
+						sb.append("\" as the name instead.");
+
+						_log.warn(sb.toString());
+					}
+
+					nameMap.put(locale, oldGroupDefaultName);
+
+					group.setNameMap(nameMap);
+
+					groupLocalService.updateGroup(group);
+				}
+
+			});
+
+		groupActionableDynamicQuery.performActions();
 	}
 
 	/**

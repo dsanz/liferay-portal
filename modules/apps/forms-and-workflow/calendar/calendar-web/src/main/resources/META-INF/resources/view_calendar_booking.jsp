@@ -157,7 +157,7 @@ AssetEntry layoutAssetEntry = AssetEntryLocalServiceUtil.getEntry(CalendarBookin
 		<c:if test="<%= calendar.isEnableComments() %>">
 			<liferay-ui:panel-container extended="<%= false %>" id="calendarBookingPanelContainer" persistState="<%= true %>">
 				<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" id="calendarBookingCommentsPanel" persistState="<%= true %>" title="comments">
-					<liferay-ui:discussion
+					<liferay-comment:discussion
 						className="<%= CalendarBooking.class.getName() %>"
 						classPK="<%= calendarBooking.getCalendarBookingId() %>"
 						formName="fm2"
@@ -190,7 +190,7 @@ AssetEntry layoutAssetEntry = AssetEntryLocalServiceUtil.getEntry(CalendarBookin
 					<c:when test="<%= untilJCalendar != null %>">
 						endValue = 'on';
 
-						untilDate = new Date('<%= dateFormatLongDate.format(untilJCalendar.getTimeInMillis()) %>');
+						untilDate = new Date(<%= untilJCalendar.get(java.util.Calendar.YEAR) %>, <%= untilJCalendar.get(java.util.Calendar.MONTH) %>, <%= untilJCalendar.get(java.util.Calendar.DATE) %>);
 					</c:when>
 					<c:when test="<%= recurrence.getCount() > 0 %>">
 						endValue = 'after';

@@ -43,6 +43,13 @@ public abstract class BinaryExpression extends Expression {
 		return _rightOperandExpression;
 	}
 
+	@Override
+	public String toString() {
+		return String.format(
+			"%s %s %s", _leftOperandExpression, _operator,
+			_rightOperandExpression);
+	}
+
 	private final Expression _leftOperandExpression;
 	private final String _operator;
 	private final Expression _rightOperandExpression;

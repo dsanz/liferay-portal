@@ -626,6 +626,17 @@ public interface RoleLocalService extends BaseLocalService,
 		throws PortalException;
 
 	/**
+	* Returns the team roles in the company.
+	*
+	* @param companyId the primary key of the company
+	* @param teamIds the primary keys of the teams
+	* @return the team roles in the company
+	*/
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<Role> getTeamsRoles(long companyId, long[] teamIds)
+		throws PortalException;
+
+	/**
 	* Returns all the roles of the type.
 	*
 	* @param type the role's type (optionally <code>0</code>)
@@ -719,6 +730,9 @@ public interface RoleLocalService extends BaseLocalService,
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<Role> getUserRoles(long userId, int start, int end,
 		OrderByComparator<Role> orderByComparator);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<Role> getUserTeamRoles(long userId, long groupId);
 
 	/**
 	* Returns an ordered range of all the roles that match the keywords and

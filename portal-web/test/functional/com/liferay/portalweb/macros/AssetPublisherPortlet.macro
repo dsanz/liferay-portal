@@ -1,4 +1,14 @@
 <definition>
+	<command name="addAsset">
+		<execute function="Click#makeVisibleClickAt" locator1="AP#ADD_ASSET_PLUS_ICON" />
+
+		<execute function="AssertClick" locator1="MenuItem#ANY_MENU_ITEM" value1="${assetType}">
+			<var name="key_menuItem" value="${assetType}" />
+		</execute>
+
+		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
+	</command>
+
 	<command name="assertSiteScopeSearch">
 		<execute macro="AssetPublisherPortlet#gotoConfigurationPG" />
 
@@ -14,15 +24,9 @@
 
 		<execute function="SelectFrame" locator1="IFrame#SELECT_SITES" />
 
-		<var name="key_siteName" value="${siteName}" />
-
-		<execute function="Type" locator1="NavBar#BASIC_SEARCH_FIELD" value1="${siteName}" />
-
-		<execute function="Click" locator1="Icon#BASIC_SEARCH" />
-
-		<execute function="AssertTextEquals" locator1="APConfigurationSites#SITES_TABLE_NAME" value1="${siteName}" />
-
-		<execute function="SelectFrame" value1="relative=top" />
+		<execute macro="SiteSelector#viewSite">
+			<var name="site" value="${siteName}" />
+		</execute>
 	</command>
 
 	<command name="configureAddSiteScopes">
@@ -620,7 +624,9 @@
 
 		<execute function="AssertClick" locator1="Configuration#SAVE_CONFIGURATION_TEMPLATE" value1="Save Current Configuration as Template" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${configurationName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${configurationName}" />
+		</execute>
 
 		<execute macro="Button#clickSave" />
 
@@ -897,6 +903,10 @@
 
 				<var name="key_siteName" value="${liferaySiteName}" />
 
+				<execute macro="Portlet#changeDisplayStyle">
+					<var name="displayStyle" value="list" />
+				</execute>
+
 				<if>
 					<isset var="currentSite" />
 					<then>
@@ -1090,9 +1100,9 @@
 		<execute function="Click" locator1="APConfigurationManual#ASSET_SELECTION_MANUAL_ASSET_ENTRIES_SELECT" />
 
 		<for list="${assetEntryTypes}" param="assetEntryType">
-			<var name="key_assetEntryType" value="${assetEntryType}" />
-
-			<execute function="AssertTextEquals#assertPartialText" locator1="APConfigurationManual#ASSET_SELECTION_MANUAL_ASSET_ENTRIES_MENULIST_ITEM" value1="${assetEntryType}" />
+			<execute function="AssertTextEquals#assertPartialText" locator1="MenuItem#ANY_MENU_ITEM" value1="${assetEntryType}">
+				<var name="key_menuItem" value="${assetEntryType}" />
+			</execute>
 		</for>
 
 		<execute macro="IFrame#selectTopFrame" />

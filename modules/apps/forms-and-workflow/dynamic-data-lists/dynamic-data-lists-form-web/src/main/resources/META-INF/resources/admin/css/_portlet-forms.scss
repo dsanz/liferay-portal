@@ -28,14 +28,12 @@
 			font-weight: normal;
 			line-height: 24px;
 			padding: $baseline * 2 0 0 0;
-			word-break: break-all;
 		}
 
 		.ddl-form-name {
 			font-size: 32px;
 			font-weight: 300;
 			padding: $baseline * 5 0 0 0;
-			word-break: break-all;
 		}
 	}
 
@@ -46,7 +44,7 @@
 	.form-builder-field-list-container {
 		hyphens: auto;
 		padding: 0;
-		word-break: break-all;
+		word-break: normal;
 	}
 
 	.form-builder-page-header {
@@ -60,7 +58,7 @@
 		color: #728694;
 		font-weight: 400;
 		resize: none;
-		word-break: break-all;
+		word-break: normal;
 	}
 
 	.form-builder-page-header-description.form-control,

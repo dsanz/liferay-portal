@@ -136,7 +136,7 @@ public class JournalFolderFinderTest {
 		List<Object> results = _journalFolderFinder.findF_A_ByG_F(
 			_group.getGroupId(), _folder1.getFolderId(), queryDefinition);
 
-		Assert.assertEquals(3, results.size());
+		Assert.assertEquals(results.toString(), 3, results.size());
 
 		for (Object result : results) {
 			if (result instanceof JournalFolder) {
@@ -160,7 +160,7 @@ public class JournalFolderFinderTest {
 		results = _journalFolderFinder.findF_A_ByG_F(
 			_group.getGroupId(), _folder1.getFolderId(), queryDefinition);
 
-		Assert.assertEquals(1, results.size());
+		Assert.assertEquals(results.toString(), 1, results.size());
 
 		for (Object result : results) {
 			if (result instanceof JournalFolder) {
@@ -181,7 +181,7 @@ public class JournalFolderFinderTest {
 		results = _journalFolderFinder.findF_A_ByG_F(
 			_group.getGroupId(), _folder1.getFolderId(), queryDefinition);
 
-		Assert.assertEquals(2, results.size());
+		Assert.assertEquals(results.toString(), 2, results.size());
 
 		for (Object result : results) {
 			if (result instanceof JournalFolder) {
@@ -207,7 +207,7 @@ public class JournalFolderFinderTest {
 
 		List<JournalFolder> folders = _journalFolderFinder.findF_ByNoAssets();
 
-		Assert.assertEquals(1, folders.size());
+		Assert.assertEquals(folders.toString(), 1, folders.size());
 
 		JournalFolder folder = folders.get(0);
 

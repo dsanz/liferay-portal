@@ -26,21 +26,27 @@ import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.service.test.ServiceTestUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.portlet.trash.test.BaseTrashHandlerTestCase;
-import com.liferay.portlet.trash.test.DefaultWhenIsAssetable;
-import com.liferay.portlet.trash.test.DefaultWhenIsIndexableBaseModel;
-import com.liferay.portlet.trash.test.WhenCanBeDuplicatedInTrash;
-import com.liferay.portlet.trash.test.WhenHasParent;
-import com.liferay.portlet.trash.test.WhenIsAssetable;
-import com.liferay.portlet.trash.test.WhenIsAssetableBaseModel;
-import com.liferay.portlet.trash.test.WhenIsIndexableBaseModel;
-import com.liferay.portlet.trash.test.WhenIsUpdatableBaseModel;
+import com.liferay.registry.Registry;
+import com.liferay.registry.RegistryUtil;
+import com.liferay.registry.ServiceTracker;
+import com.liferay.trash.TrashHelper;
+import com.liferay.trash.test.util.BaseTrashHandlerTestCase;
+import com.liferay.trash.test.util.DefaultWhenIsAssetable;
+import com.liferay.trash.test.util.DefaultWhenIsIndexableBaseModel;
+import com.liferay.trash.test.util.WhenCanBeDuplicatedInTrash;
+import com.liferay.trash.test.util.WhenHasParent;
+import com.liferay.trash.test.util.WhenIsAssetable;
+import com.liferay.trash.test.util.WhenIsAssetableBaseModel;
+import com.liferay.trash.test.util.WhenIsIndexableBaseModel;
+import com.liferay.trash.test.util.WhenIsUpdatableBaseModel;
 import com.liferay.wiki.asset.WikiPageAssetRenderer;
 import com.liferay.wiki.model.WikiNode;
 import com.liferay.wiki.model.WikiPage;
 import com.liferay.wiki.util.test.WikiPageTrashHandlerTestUtil;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,6 +70,20 @@ public class WikiPageTrashHandlerTest
 		new AggregateTestRule(
 			new LiferayIntegrationTestRule(),
 			SynchronousDestinationTestRule.INSTANCE);
+
+	@BeforeClass
+	public static void setUpClass() {
+		Registry registry = RegistryUtil.getRegistry();
+
+		_serviceTracker = registry.trackServices(TrashHelper.class.getName());
+
+		_serviceTracker.open();
+	}
+
+	@AfterClass
+	public static void tearDownClass() {
+		_serviceTracker.close();
+	}
 
 	@Override
 	public AssetEntry fetchAssetEntry(ClassedModel classedModel)
@@ -120,6 +140,8 @@ public class WikiPageTrashHandlerTest
 	@Before
 	@Override
 	public void setUp() throws Exception {
+		_trashHelper = _serviceTracker.getService();
+
 		ServiceTestUtil.setUser(TestPropsValues.getUser());
 
 		super.setUp();
@@ -187,7 +209,11 @@ public class WikiPageTrashHandlerTest
 
 	@Override
 	protected String getUniqueTitle(BaseModel<?> baseModel) {
-		return WikiPageTrashHandlerTestUtil.getUniqueTitle(baseModel);
+		WikiPage page = (WikiPage)baseModel;
+
+		String title = page.getTitle();
+
+		return _trashHelper.getOriginalTitle(title);
 	}
 
 	@Override
@@ -195,6 +221,9 @@ public class WikiPageTrashHandlerTest
 		WikiPageTrashHandlerTestUtil.moveBaseModelToTrash(primaryKey);
 	}
 
+	private static ServiceTracker<TrashHelper, TrashHelper> _serviceTracker;
+
+	private TrashHelper _trashHelper;
 	private final WhenIsAssetable _whenIsAssetable =
 		new DefaultWhenIsAssetable();
 	private final WhenIsIndexableBaseModel _whenIsIndexableBaseModel =

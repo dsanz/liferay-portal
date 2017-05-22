@@ -67,7 +67,7 @@ public class BaseMentionsEditorConfigContributor
 		sb.append("<div class=\"user-icon\"><img class=\"img-circle\" ");
 		sb.append("src=\"{portraitURL}\" height=\"32px\" width=\"32px\">");
 		sb.append("</img></div></div><div class=\"nameplate-content\"><h4>");
-		sb.append("{fullName}<small>@{screenName}</small></h4></div></div>");
+		sb.append("{fullName} <small>@{screenName}</small></h4></div></div>");
 
 		triggerJSONObject.put("tplResults", sb.toString());
 

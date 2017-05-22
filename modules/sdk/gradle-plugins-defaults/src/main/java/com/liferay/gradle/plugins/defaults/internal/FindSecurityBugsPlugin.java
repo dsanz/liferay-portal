@@ -22,20 +22,27 @@ import com.liferay.gradle.plugins.jasper.jspc.JspCPlugin;
 
 import java.io.File;
 
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 /**
  * @author Andrea Di Giorgi
@@ -66,9 +73,11 @@ public class FindSecurityBugsPlugin implements Plugin<Project> {
 		WriteFindBugsProjectTask writeFindBugsProjectTask =
 			_addTaskWriteFindBugsProject(project);
 
-		_addTaskFindSecurityBugs(
+		Task findSecurityBugsTask = _addTaskFindSecurityBugs(
 			writeFindBugsProjectTask, findSecurityBugsConfiguration,
 			findSecurityBugsPluginsConfiguration);
+
+		_checkTaskCheck(findSecurityBugsTask);
 	}
 
 	private FindSecurityBugsPlugin() {
@@ -177,6 +186,22 @@ public class FindSecurityBugsPlugin implements Plugin<Project> {
 
 			});
 
+		final Transformer<File, Task> outputFileGetter =
+			new Transformer<File, Task>() {
+
+				@Override
+				public File transform(Task task) {
+					ReportingExtension reportingExtension =
+						GradleUtil.getExtension(
+							task.getProject(), ReportingExtension.class);
+
+					return new File(
+						reportingExtension.getBaseDir(),
+						task.getName() + "/reports.html");
+				}
+
+			};
+
 		javaExec.doFirst(
 			new Action<Task>() {
 
@@ -184,29 +209,93 @@ public class FindSecurityBugsPlugin implements Plugin<Project> {
 				public void execute(Task task) {
 					JavaExec javaExec = (JavaExec)task;
 
-					ReportingExtension reportingExtension =
-						GradleUtil.getExtension(
-							javaExec.getProject(), ReportingExtension.class);
+					Logger logger = javaExec.getLogger();
 
-					File outputDir = new File(
-						reportingExtension.getBaseDir(), javaExec.getName());
+					File outputFile = outputFileGetter.transform(javaExec);
+
+					File outputDir = outputFile.getParentFile();
 
 					outputDir.mkdirs();
-
-					File outputFile = new File(outputDir, "reports.html");
 
 					javaExec.args(
 						"-outputFile", FileUtil.getAbsolutePath(outputFile));
 
 					javaExec.args("-pluginList", pluginClasspath.getAsPath());
+
+					if (logger.isLifecycleEnabled()) {
+						logger.lifecycle(
+							"Using Find Security Bugs version " + _VERSION);
+					}
+				}
+
+			});
+
+		javaExec.doLast(
+			new Action<Task>() {
+
+				@Override
+				public void execute(Task task) {
+					Logger logger = task.getLogger();
+
+					File outputFile = outputFileGetter.transform(task);
+
+					if (logger.isLifecycleEnabled()) {
+						logger.lifecycle(
+							"Find Security Bugs report saved to {}.",
+							outputFile.getAbsolutePath());
+					}
 				}
 
 			});
 
 		javaExec.dependsOn(writeFindBugsProjectTask);
 
+		javaExec.onlyIf(
+			new Spec<Task>() {
+
+				@Override
+				public boolean isSatisfiedBy(Task task) {
+					FileCollection fileCollection =
+						writeFindBugsProjectTask.getClasspath();
+
+					if (fileCollection == null) {
+						return true;
+					}
+
+					Set<File> files = fileCollection.getFiles();
+
+					return _containsClassOrJar(
+						files.toArray(new File[files.size()]));
+				}
+
+				private boolean _containsClassOrJar(File[] files) {
+					for (File file : files) {
+						if (!file.exists()) {
+							continue;
+						}
+
+						if (file.isFile()) {
+							String fileName = file.getName();
+
+							if (fileName.endsWith(".class") ||
+								fileName.endsWith(".jar")) {
+
+								return true;
+							}
+						}
+						else if (_containsClassOrJar(file.listFiles())) {
+							return true;
+						}
+					}
+
+					return false;
+				}
+
+			});
+
 		javaExec.setClasspath(classpath);
 		javaExec.setDescription("Runs FindSecurityBugs on this project.");
+		javaExec.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
 		javaExec.setMain("edu.umd.cs.findbugs.FindBugs2");
 
 		javaExec.systemProperty(
@@ -257,7 +346,7 @@ public class FindSecurityBugsPlugin implements Plugin<Project> {
 		writeFindBugsProjectTask.dependsOn(
 			_UNZIP_JAR_TASK_NAME, compileJSPTask);
 
-		SourceSet sourceSet = GradleUtil.getSourceSet(
+		final SourceSet sourceSet = GradleUtil.getSourceSet(
 			project, SourceSet.MAIN_SOURCE_SET_NAME);
 
 		FileCollection auxClasspath = project.files(
@@ -266,7 +355,17 @@ public class FindSecurityBugsPlugin implements Plugin<Project> {
 		writeFindBugsProjectTask.setAuxClasspath(auxClasspath);
 
 		FileCollection classpath = project.files(
-			compileJSPTask.getDestinationDir(), _getUnzippedJarDir(project));
+			compileJSPTask.getDestinationDir(),
+			new Callable<File>() {
+
+				@Override
+				public File call() throws Exception {
+					SourceSetOutput sourceSetOutput = sourceSet.getOutput();
+
+					return sourceSetOutput.getClassesDir();
+				}
+
+			});
 
 		writeFindBugsProjectTask.setClasspath(classpath);
 
@@ -298,11 +397,12 @@ public class FindSecurityBugsPlugin implements Plugin<Project> {
 		return writeFindBugsProjectTask;
 	}
 
-	/**
-	 * Copied from <code>com.liferay.gradle.plugins.internal.JspCDefaultsPlugin</code>.
-	 */
-	private File _getUnzippedJarDir(Project project) {
-		return new File(project.getBuildDir(), "unzipped-jar");
+	private void _checkTaskCheck(Task findSecurityBugsTask) {
+		Task task = GradleUtil.getTask(
+			findSecurityBugsTask.getProject(),
+			LifecycleBasePlugin.CHECK_TASK_NAME);
+
+		task.dependsOn(findSecurityBugsTask);
 	}
 
 	private static final String _FIND_SECURITY_BUGS_EXCLUDE_FILE_NAME =
@@ -316,6 +416,6 @@ public class FindSecurityBugsPlugin implements Plugin<Project> {
 	 */
 	private static final String _UNZIP_JAR_TASK_NAME = "unzipJar";
 
-	private static final String _VERSION = "1.5.0.LIFERAY-PATCHED-1";
+	private static final String _VERSION = "1.6.0.LIFERAY-PATCHED-2";
 
 }

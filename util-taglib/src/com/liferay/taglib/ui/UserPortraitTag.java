@@ -19,10 +19,12 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -30,6 +32,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.util.IncludeTag;
 import com.liferay.taglib.util.LexiconUtil;
 import com.liferay.taglib.util.TagResourceBundleUtil;
+import com.liferay.users.admin.kernel.file.uploads.UserFileUploadsSettings;
 
 import java.util.ResourceBundle;
 
@@ -45,25 +48,19 @@ public class UserPortraitTag extends IncludeTag {
 	public int processEndTag() throws Exception {
 		User user = getUser();
 
-		String portraitURL = null;
-
-		if ((user != null) && (user.getPortraitId() > 0)) {
-			ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-			try {
-				portraitURL = user.getPortraitURL(themeDisplay);
-			}
-			catch (PortalException pe) {
-				_log.error(pe);
-			}
-		}
-
 		JspWriter jspWriter = pageContext.getOut();
 
 		jspWriter.write("<div class=\"");
 
-		if (portraitURL == null) {
+		long userPortraitId = 0;
+
+		if (user != null) {
+			userPortraitId = user.getPortraitId();
+		}
+
+		if (_userFileUploadsSettings.isImageDefaultUseInitials() &&
+			(userPortraitId == 0)) {
+
 			jspWriter.write(LexiconUtil.getUserColorCssClass(user));
 			jspWriter.write(" ");
 			jspWriter.write(_cssClass);
@@ -76,7 +73,7 @@ public class UserPortraitTag extends IncludeTag {
 			jspWriter.write(
 				" aspect-ratio-bg-cover user-icon\" style=\"background-image:" +
 					"url(");
-			jspWriter.write(HtmlUtil.escape(portraitURL));
+			jspWriter.write(HtmlUtil.escape(getPortraitURL(user)));
 			jspWriter.write(")\"></div>");
 		}
 
@@ -94,8 +91,12 @@ public class UserPortraitTag extends IncludeTag {
 	public void setImageCssClass(String imageCssClass) {
 	}
 
+	public void setUser(User user) {
+		_user = user;
+	}
+
 	public void setUserId(long userId) {
-		_userId = userId;
+		_user = UserLocalServiceUtil.fetchUser(userId);
 	}
 
 	public void setUserName(String userName) {
@@ -105,7 +106,7 @@ public class UserPortraitTag extends IncludeTag {
 	@Override
 	protected void cleanUp() {
 		_cssClass = StringPool.BLANK;
-		_userId = 0;
+		_user = null;
 		_userName = StringPool.BLANK;
 	}
 
@@ -114,8 +115,30 @@ public class UserPortraitTag extends IncludeTag {
 		return _PAGE;
 	}
 
+	protected String getPortraitURL(User user) {
+		String portraitURL = null;
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		if (user != null) {
+			try {
+				portraitURL = user.getPortraitURL(themeDisplay);
+			}
+			catch (PortalException pe) {
+				_log.error(pe, pe);
+			}
+		}
+		else {
+			portraitURL = UserConstants.getPortraitURL(
+				themeDisplay.getPathImage(), true, 0, StringPool.BLANK);
+		}
+
+		return portraitURL;
+	}
+
 	protected User getUser() {
-		return UserLocalServiceUtil.fetchUser(_userId);
+		return _user;
 	}
 
 	protected String getUserInitials(User user) {
@@ -163,8 +186,13 @@ public class UserPortraitTag extends IncludeTag {
 	private static final Log _log = LogFactoryUtil.getLog(
 		UserPortraitTag.class);
 
+	private static volatile UserFileUploadsSettings _userFileUploadsSettings =
+		ServiceProxyFactory.newServiceTrackedInstance(
+			UserFileUploadsSettings.class, UserPortraitTag.class,
+			"_userFileUploadsSettings", false);
+
 	private String _cssClass = StringPool.BLANK;
-	private long _userId;
+	private User _user;
 	private String _userName = StringPool.BLANK;
 
 }

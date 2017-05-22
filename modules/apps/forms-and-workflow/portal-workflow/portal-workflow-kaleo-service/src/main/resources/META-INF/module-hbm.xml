@@ -5,6 +5,7 @@
 	<import class="com.liferay.portal.workflow.kaleo.model.KaleoAction" />
 	<import class="com.liferay.portal.workflow.kaleo.model.KaleoCondition" />
 	<import class="com.liferay.portal.workflow.kaleo.model.KaleoDefinition" />
+	<import class="com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion" />
 	<import class="com.liferay.portal.workflow.kaleo.model.KaleoInstance" />
 	<import class="com.liferay.portal.workflow.kaleo.model.KaleoInstanceToken" />
 	<import class="com.liferay.portal.workflow.kaleo.model.KaleoLog" />
@@ -75,6 +76,26 @@
 		<property name="version" type="com.liferay.portal.dao.orm.hibernate.IntegerType" />
 		<property column="active_" name="active" type="com.liferay.portal.dao.orm.hibernate.BooleanType" />
 		<property name="startKaleoNodeId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+	</class>
+	<class name="com.liferay.portal.workflow.kaleo.model.impl.KaleoDefinitionVersionImpl" table="KaleoDefinitionVersion">
+		<id name="kaleoDefinitionVersionId" type="long">
+			<generator class="assigned" />
+		</id>
+		<property name="groupId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property name="companyId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property name="userId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property name="userName" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="statusByUserId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property name="statusByUserName" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="statusDate" type="org.hibernate.type.TimestampType" />
+		<property name="createDate" type="org.hibernate.type.TimestampType" />
+		<property name="modifiedDate" type="org.hibernate.type.TimestampType" />
+		<property name="name" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="title" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="description" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="content" type="com.liferay.portal.dao.orm.hibernate.StringClobType" />
+		<property name="version" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+		<property name="status" type="com.liferay.portal.dao.orm.hibernate.IntegerType" />
 	</class>
 	<class name="com.liferay.portal.workflow.kaleo.model.impl.KaleoInstanceImpl" table="KaleoInstance">
 		<id name="kaleoInstanceId" type="long">

@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.ServiceLoaderCondition;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.util.PropsValues;
 
 import java.net.URL;
@@ -40,6 +41,9 @@ public class RuntimeServiceLoaderCondition implements ServiceLoaderCondition {
 		String moduleFrameworkBaseDirName =
 			PropsValues.MODULE_FRAMEWORK_BASE_DIR.replace(
 				StringPool.DOUBLE_SLASH, StringPool.SLASH);
+
+		moduleFrameworkBaseDirName = URLCodec.encodeURL(
+			moduleFrameworkBaseDirName, StringPool.UTF8, true);
 
 		return path.contains(moduleFrameworkBaseDirName);
 	}

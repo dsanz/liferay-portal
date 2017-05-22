@@ -119,7 +119,10 @@ public class LayoutStagingImpl implements LayoutStaging {
 				layout.getGroup(), layout.isPrivateLayout());
 		}
 		catch (Exception e) {
-			throw new IllegalStateException(e);
+			throw new IllegalStateException(
+				"Unable to determine if layout " + layout.getPlid() +
+					" is enabled for versioning",
+				e);
 		}
 	}
 
@@ -199,9 +202,17 @@ public class LayoutStagingImpl implements LayoutStaging {
 			return false;
 		}
 
-		LayoutRevision layoutRevision =
-			_layoutRevisionLocalService.fetchLayoutRevision(
+		LayoutRevision layoutRevision = getLayoutRevision(layout);
+
+		if (layoutRevision != null) {
+			layoutRevision = _layoutRevisionLocalService.fetchLayoutRevision(
+				layoutSetBranchId, layoutRevision.getLayoutBranchId(), true,
+				layout.getPlid());
+		}
+		else {
+			layoutRevision = _layoutRevisionLocalService.fetchLayoutRevision(
 				layoutSetBranchId, true, layout.getPlid());
+		}
 
 		if (layoutRevision == null) {
 			return false;

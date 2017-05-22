@@ -14,13 +14,13 @@
 
 package com.liferay.screens.service.impl;
 
-import aQute.bnd.annotation.ProviderType;
-
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portlet.asset.service.permission.AssetEntryPermission;
 import com.liferay.ratings.kernel.model.RatingsEntry;
 import com.liferay.screens.service.base.ScreensRatingsEntryServiceBaseImpl;
 
@@ -29,7 +29,6 @@ import java.util.List;
 /**
  * @author Alejandro Hernández Malillos
  */
-@ProviderType
 public class ScreensRatingsEntryServiceImpl
 	extends ScreensRatingsEntryServiceBaseImpl {
 
@@ -37,6 +36,9 @@ public class ScreensRatingsEntryServiceImpl
 	public JSONObject deleteRatingsEntry(
 			long classPK, String className, int ratingsLength)
 		throws PortalException {
+
+		AssetEntryPermission.check(
+			getPermissionChecker(), className, classPK, ActionKeys.DELETE);
 
 		ratingsEntryLocalService.deleteEntry(getUserId(), className, classPK);
 
@@ -48,6 +50,9 @@ public class ScreensRatingsEntryServiceImpl
 		throws PortalException {
 
 		AssetEntry assetEntry = assetEntryLocalService.fetchEntry(assetEntryId);
+
+		AssetEntryPermission.check(
+			getPermissionChecker(), assetEntry, ActionKeys.VIEW);
 
 		return getRatingsEntries(
 			assetEntry.getClassPK(), assetEntry.getClassName(), ratingsLength);
@@ -103,6 +108,9 @@ public class ScreensRatingsEntryServiceImpl
 	public JSONObject updateRatingsEntry(
 			long classPK, String className, double score, int ratingsLength)
 		throws PortalException {
+
+		AssetEntryPermission.check(
+			getPermissionChecker(), className, classPK, ActionKeys.UPDATE);
 
 		ratingsEntryLocalService.updateEntry(
 			getUserId(), className, classPK, score, new ServiceContext());

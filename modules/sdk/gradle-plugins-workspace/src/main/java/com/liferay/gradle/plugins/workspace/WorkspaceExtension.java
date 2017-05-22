@@ -14,11 +14,11 @@
 
 package com.liferay.gradle.plugins.workspace;
 
-import com.liferay.gradle.plugins.workspace.internal.configurators.ModulesProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.internal.configurators.PluginsProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.internal.configurators.RootProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.internal.configurators.ThemesProjectConfigurator;
-import com.liferay.gradle.plugins.workspace.internal.configurators.WarsProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurators.ModulesProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurators.PluginsProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurators.RootProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurators.ThemesProjectConfigurator;
+import com.liferay.gradle.plugins.workspace.configurators.WarsProjectConfigurator;
 import com.liferay.gradle.plugins.workspace.internal.util.GradleUtil;
 
 import groovy.lang.MissingPropertyException;
@@ -54,6 +54,7 @@ public class WorkspaceExtension {
 		_configsDir = _getProperty(settings, "configs.dir", _CONFIGS_DIR);
 		_environment = _getProperty(settings, "environment", _ENVIRONMENT);
 		_homeDir = _getProperty(settings, "home.dir", _HOME_DIR);
+		_rootProjectConfigurator = new RootProjectConfigurator(settings);
 	}
 
 	public String getBundleDistRootDirName() {
@@ -141,7 +142,6 @@ public class WorkspaceExtension {
 	private Object _homeDir;
 	private final Set<ProjectConfigurator> _projectConfigurators =
 		new HashSet<>();
-	private final Plugin<Project> _rootProjectConfigurator =
-		new RootProjectConfigurator();
+	private final Plugin<Project> _rootProjectConfigurator;
 
 }

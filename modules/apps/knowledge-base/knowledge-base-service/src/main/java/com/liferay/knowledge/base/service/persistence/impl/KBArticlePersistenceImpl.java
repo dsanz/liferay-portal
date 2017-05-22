@@ -30,8 +30,13 @@ import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.sanitizer.Sanitizer;
+import com.liferay.portal.kernel.sanitizer.SanitizerException;
+import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -40,7 +45,10 @@ import com.liferay.portal.kernel.service.persistence.CompanyProviderWrapper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -50,6 +58,8 @@ import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
+
+import java.lang.reflect.Field;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -31804,6 +31814,22 @@ public class KBArticlePersistenceImpl extends BasePersistenceImpl<KBArticle>
 
 	public KBArticlePersistenceImpl() {
 		setModelClass(KBArticle.class);
+
+		try {
+			Field field = ReflectionUtil.getDeclaredField(BasePersistenceImpl.class,
+					"_dbColumnNames");
+
+			Map<String, String> dbColumnNames = new HashMap<String, String>();
+
+			dbColumnNames.put("uuid", "uuid_");
+
+			field.set(this, dbColumnNames);
+		}
+		catch (Exception e) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(e, e);
+			}
+		}
 	}
 
 	/**
@@ -32140,6 +32166,30 @@ public class KBArticlePersistenceImpl extends BasePersistenceImpl<KBArticle>
 			}
 		}
 
+		long userId = GetterUtil.getLong(PrincipalThreadLocal.getName());
+
+		if (userId > 0) {
+			long companyId = kbArticle.getCompanyId();
+
+			long groupId = kbArticle.getGroupId();
+
+			long kbArticleId = 0;
+
+			if (!isNew) {
+				kbArticleId = kbArticle.getPrimaryKey();
+			}
+
+			try {
+				kbArticle.setContent(SanitizerUtil.sanitize(companyId, groupId,
+						userId, KBArticle.class.getName(), kbArticleId,
+						ContentTypes.TEXT_HTML, Sanitizer.MODE_ALL,
+						kbArticle.getContent(), null));
+			}
+			catch (SanitizerException se) {
+				throw new SystemException(se);
+			}
+		}
+
 		Session session = null;
 
 		try {
@@ -32163,8 +32213,253 @@ public class KBArticlePersistenceImpl extends BasePersistenceImpl<KBArticle>
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (isNew || !KBArticleModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!KBArticleModelImpl.COLUMN_BITMASK_ENABLED) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+		else
+		 if (isNew) {
+			Object[] args = new Object[] { kbArticleModelImpl.getUuid() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_UUID,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getUuid(),
+					kbArticleModelImpl.getCompanyId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID_C, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_UUID_C,
+				args);
+
+			args = new Object[] { kbArticleModelImpl.getResourcePrimKey() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_RESOURCEPRIMKEY, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_RESOURCEPRIMKEY,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getResourcePrimKey(),
+					kbArticleModelImpl.getGroupId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_G, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_G,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getResourcePrimKey(),
+					kbArticleModelImpl.getLatest()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_L, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_L,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getResourcePrimKey(),
+					kbArticleModelImpl.getMain()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_M, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_M,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getResourcePrimKey(),
+					kbArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_S,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getLatest()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_L, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_L,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getMain()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_M, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_M,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_S,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getCompanyId(),
+					kbArticleModelImpl.getLatest()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_C_L, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_L,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getCompanyId(),
+					kbArticleModelImpl.getMain()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_C_M, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_M,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getCompanyId(),
+					kbArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_C_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_S,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getParentResourcePrimKey(),
+					kbArticleModelImpl.getLatest()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_P_L, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_P_L,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getParentResourcePrimKey(),
+					kbArticleModelImpl.getMain()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_P_M, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_P_M,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getParentResourcePrimKey(),
+					kbArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_P_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_P_S,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getResourcePrimKey(),
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getLatest()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_G_L, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_G_L,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getResourcePrimKey(),
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getMain()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_G_M, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_G_M,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getResourcePrimKey(),
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_G_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_G_S,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getParentResourcePrimKey(),
+					kbArticleModelImpl.getLatest()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_L, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_P_L,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getParentResourcePrimKey(),
+					kbArticleModelImpl.getMain()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_M, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_P_M,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getParentResourcePrimKey(),
+					kbArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_P_S,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getKbFolderId(),
+					kbArticleModelImpl.getUrlTitle()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_KBFI_UT, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_KBFI_UT,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getKbFolderId(),
+					kbArticleModelImpl.getLatest()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_KBFI_L, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_KBFI_L,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getKbFolderId(),
+					kbArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_KBFI_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_KBFI_S,
+				args);
+
+			args = new Object[] {
+					kbArticleModelImpl.getGroupId(),
+					kbArticleModelImpl.getKbFolderId(),
+					kbArticleModelImpl.getUrlTitle(),
+					kbArticleModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_KBFI_UT_ST, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_KBFI_UT_ST,
+				args);
+
+			finderCache.removeResult(FINDER_PATH_COUNT_ALL, FINDER_ARGS_EMPTY);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL,
+				FINDER_ARGS_EMPTY);
 		}
 
 		else {
@@ -32934,7 +33229,7 @@ public class KBArticlePersistenceImpl extends BasePersistenceImpl<KBArticle>
 		query.append(_SQL_SELECT_KBARTICLE_WHERE_PKS_IN);
 
 		for (Serializable primaryKey : uncachedPrimaryKeys) {
-			query.append(String.valueOf(primaryKey));
+			query.append((long)primaryKey);
 
 			query.append(StringPool.COMMA);
 		}

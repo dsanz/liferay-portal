@@ -215,9 +215,9 @@ public class JournalArticleLocalizationWrapper
 	}
 
 	/**
-	* Returns the article p k of this journal article localization.
+	* Returns the article pk of this journal article localization.
 	*
-	* @return the article p k of this journal article localization
+	* @return the article pk of this journal article localization
 	*/
 	@Override
 	public long getArticlePK() {
@@ -255,9 +255,9 @@ public class JournalArticleLocalizationWrapper
 	}
 
 	/**
-	* Sets the article p k of this journal article localization.
+	* Sets the article pk of this journal article localization.
 	*
-	* @param articlePK the article p k of this journal article localization
+	* @param articlePK the article pk of this journal article localization
 	*/
 	@Override
 	public void setArticlePK(long articlePK) {

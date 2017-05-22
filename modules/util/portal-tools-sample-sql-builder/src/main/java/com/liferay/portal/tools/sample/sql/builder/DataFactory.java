@@ -78,8 +78,8 @@ import com.liferay.dynamic.data.mapping.model.impl.DDMStructureVersionModelImpl;
 import com.liferay.dynamic.data.mapping.model.impl.DDMTemplateLinkModelImpl;
 import com.liferay.dynamic.data.mapping.model.impl.DDMTemplateModelImpl;
 import com.liferay.dynamic.data.mapping.storage.StorageType;
-import com.liferay.friendly.url.model.FriendlyURLModel;
-import com.liferay.friendly.url.model.impl.FriendlyURLModelImpl;
+import com.liferay.friendly.url.model.FriendlyURLEntryModel;
+import com.liferay.friendly.url.model.impl.FriendlyURLEntryModelImpl;
 import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleConstants;
@@ -138,8 +138,6 @@ import com.liferay.portal.kernel.model.ResourcePermissionModel;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.RoleModel;
-import com.liferay.portal.kernel.model.SubscriptionConstants;
-import com.liferay.portal.kernel.model.SubscriptionModel;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserModel;
 import com.liferay.portal.kernel.model.VirtualHostModel;
@@ -178,7 +176,6 @@ import com.liferay.portal.model.impl.PortletPreferencesModelImpl;
 import com.liferay.portal.model.impl.ReleaseModelImpl;
 import com.liferay.portal.model.impl.ResourcePermissionModelImpl;
 import com.liferay.portal.model.impl.RoleModelImpl;
-import com.liferay.portal.model.impl.SubscriptionModelImpl;
 import com.liferay.portal.model.impl.UserModelImpl;
 import com.liferay.portal.model.impl.VirtualHostModelImpl;
 import com.liferay.portal.util.PropsValues;
@@ -207,6 +204,9 @@ import com.liferay.portlet.social.model.impl.SocialActivityModelImpl;
 import com.liferay.social.kernel.model.SocialActivity;
 import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.social.kernel.model.SocialActivityModel;
+import com.liferay.subscription.model.SubscriptionConstants;
+import com.liferay.subscription.model.SubscriptionModel;
+import com.liferay.subscription.model.impl.SubscriptionModelImpl;
 import com.liferay.util.SimpleCounter;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.model.WikiNode;
@@ -277,6 +277,11 @@ public class DataFactory {
 
 			_classNameModels.put(model, classNameModel);
 		}
+
+		_assetClassNameIds = new long[] {
+			getClassNameId(BlogsEntry.class),
+			getClassNameId(JournalArticle.class), getClassNameId(WikiPage.class)
+		};
 
 		_accountId = _counter.get();
 		_companyId = _counter.get();
@@ -360,21 +365,31 @@ public class DataFactory {
 		return _administratorRoleModel;
 	}
 
-	public List<Long> getAssetCategoryIds(long groupId) {
-		SimpleCounter counter = _assetCategoryCounters.get(groupId);
+	public List<Long> getAssetCategoryIds(AssetEntryModel assetEntryModel) {
+		Map<Long, List<AssetCategoryModel>> assetCategoryModelsMap =
+			_assetCategoryModelsMaps[(int)assetEntryModel.getGroupId() - 1];
 
-		if (counter == null) {
-			counter = new SimpleCounter(0);
+		if ((assetCategoryModelsMap == null) ||
+			assetCategoryModelsMap.isEmpty()) {
 
-			_assetCategoryCounters.put(groupId, counter);
+			return Collections.emptyList();
 		}
 
 		List<AssetCategoryModel> assetCategoryModels =
-			_assetCategoryModelsArray[(int)groupId - 1];
+			assetCategoryModelsMap.get(assetEntryModel.getClassNameId());
 
 		if ((assetCategoryModels == null) || assetCategoryModels.isEmpty()) {
 			return Collections.emptyList();
 		}
+
+		if (_assetCategoryCounters == null) {
+			_assetCategoryCounters =
+				(Map<Long, SimpleCounter>[])new HashMap<?, ?>[_maxGroupsCount];
+		}
+
+		SimpleCounter counter = getSimpleCounter(
+			_assetCategoryCounters, assetEntryModel.getGroupId(),
+			assetEntryModel.getClassNameId());
 
 		List<Long> assetCategoryIds = new ArrayList<>(
 			_maxAssetEntryToAssetCategoryCount);
@@ -394,30 +409,42 @@ public class DataFactory {
 	public List<AssetCategoryModel> getAssetCategoryModels() {
 		List<AssetCategoryModel> allAssetCategoryModels = new ArrayList<>();
 
-		for (List<AssetCategoryModel> assetCategoryModels :
-				_assetCategoryModelsArray) {
+		for (Map<Long, List<AssetCategoryModel>> assetCategoryModelsMap :
+				_assetCategoryModelsMaps) {
 
-			allAssetCategoryModels.addAll(assetCategoryModels);
+			for (List<AssetCategoryModel> assetCategoryModels :
+					assetCategoryModelsMap.values()) {
+
+				allAssetCategoryModels.addAll(assetCategoryModels);
+			}
 		}
 
 		return allAssetCategoryModels;
 	}
 
-	public List<Long> getAssetTagIds(long groupId) {
-		SimpleCounter counter = _assetTagCounters.get(groupId);
+	public List<Long> getAssetTagIds(AssetEntryModel assetEntryModel) {
+		Map<Long, List<AssetTagModel>> assetTagModelsMap =
+			_assetTagModelsMaps[(int)assetEntryModel.getGroupId() - 1];
 
-		if (counter == null) {
-			counter = new SimpleCounter(0);
-
-			_assetTagCounters.put(groupId, counter);
+		if ((assetTagModelsMap == null) || assetTagModelsMap.isEmpty()) {
+			return Collections.emptyList();
 		}
 
-		List<AssetTagModel> assetTagModels =
-			_assetTagModelsArray[(int)groupId - 1];
+		List<AssetTagModel> assetTagModels = assetTagModelsMap.get(
+			assetEntryModel.getClassNameId());
 
 		if ((assetTagModels == null) || assetTagModels.isEmpty()) {
 			return Collections.emptyList();
 		}
+
+		if (_assetTagCounters == null) {
+			_assetTagCounters =
+				(Map<Long, SimpleCounter>[])new HashMap<?, ?>[_maxGroupsCount];
+		}
+
+		SimpleCounter counter = getSimpleCounter(
+			_assetTagCounters, assetEntryModel.getGroupId(),
+			assetEntryModel.getClassNameId());
 
 		List<Long> assetTagIds = new ArrayList<>(_maxAssetEntryToAssetTagCount);
 
@@ -435,8 +462,14 @@ public class DataFactory {
 	public List<AssetTagModel> getAssetTagModels() {
 		List<AssetTagModel> allAssetTagModels = new ArrayList<>();
 
-		for (List<AssetTagModel> assetTagModels : _assetTagModelsArray) {
-			allAssetTagModels.addAll(assetTagModels);
+		for (Map<Long, List<AssetTagModel>> assetTagModelsMap :
+				_assetTagModelsMaps) {
+
+			for (List<AssetTagModel> assetTagModels :
+					assetTagModelsMap.values()) {
+
+				allAssetTagModels.addAll(assetTagModels);
+			}
 		}
 
 		return allAssetTagModels;
@@ -663,6 +696,25 @@ public class DataFactory {
 		return groupIds;
 	}
 
+	public long getNextAssetClassNameId(long groupId) {
+		Integer index = _assetClassNameIdsIndexes.get(groupId);
+
+		if (index == null) {
+			index = 0;
+		}
+
+		long classNameId =
+			_assetClassNameIds[index % _assetClassNameIds.length];
+
+		_assetClassNameIdsIndexes.put(groupId, ++index);
+
+		return classNameId;
+	}
+
+	public String getPortletId(String portletPrefix) {
+		return portletPrefix.concat(PortletConstants.generateInstanceId());
+	}
+
 	public RoleModel getPowerUserRoleModel() {
 		return _powerUserRoleModel;
 	}
@@ -700,6 +752,9 @@ public class DataFactory {
 	public void initAssetCategoryModels() {
 		_assetCategoryModelsArray =
 			(List<AssetCategoryModel>[])new List<?>[_maxGroupsCount];
+		_assetCategoryModelsMaps =
+			(Map<Long, List<AssetCategoryModel>>[])
+				new HashMap<?, ?>[_maxGroupsCount];
 		_assetVocabularyModelsArray =
 			(List<AssetVocabularyModel>[])new List<?>[_maxGroupsCount];
 		_defaultAssetVocabularyModel = newAssetVocabularyModel(
@@ -751,12 +806,36 @@ public class DataFactory {
 
 			_assetCategoryModelsArray[i - 1] = assetCategoryModels;
 			_assetVocabularyModelsArray[i - 1] = assetVocabularyModels;
+
+			Map<Long, List<AssetCategoryModel>> assetCategoryModelsMap =
+				new HashMap<>();
+
+			int pageSize =
+				assetCategoryModels.size() / _assetClassNameIds.length;
+
+			for (int j = 0; j < _assetClassNameIds.length; j++) {
+				int fromIndex = j * pageSize;
+				int toIndex = (j + 1) * pageSize;
+
+				if (j == (_assetClassNameIds.length - 1)) {
+					toIndex = assetCategoryModels.size();
+				}
+
+				assetCategoryModelsMap.put(
+					_assetClassNameIds[j],
+					assetCategoryModels.subList(fromIndex, toIndex));
+			}
+
+			_assetCategoryModelsMaps[i - 1] = assetCategoryModelsMap;
 		}
 	}
 
 	public void initAssetTagModels() {
 		_assetTagModelsArray =
 			(List<AssetTagModel>[])new List<?>[_maxGroupsCount];
+		_assetTagModelsMaps =
+			(Map<Long, List<AssetTagModel>>[])
+				new HashMap<?, ?>[_maxGroupsCount];
 		_assetTagStatsModelsArray =
 			(List<AssetTagStatsModel>[])new List<?>[_maxGroupsCount];
 
@@ -801,6 +880,25 @@ public class DataFactory {
 
 			_assetTagModelsArray[i - 1] = assetTagModels;
 			_assetTagStatsModelsArray[i - 1] = assetTagStatsModels;
+
+			Map<Long, List<AssetTagModel>> assetTagModelsMap = new HashMap<>();
+
+			int pageSize = assetTagModels.size() / _assetClassNameIds.length;
+
+			for (int j = 0; j < _assetClassNameIds.length; j++) {
+				int fromIndex = j * pageSize;
+				int toIndex = (j + 1) * pageSize;
+
+				if (j == (_assetClassNameIds.length - 1)) {
+					toIndex = assetTagModels.size();
+				}
+
+				assetTagModelsMap.put(
+					_assetClassNameIds[j],
+					assetTagModels.subList(fromIndex, toIndex));
+			}
+
+			_assetTagModelsMaps[i - 1] = assetTagModelsMap;
 		}
 	}
 
@@ -838,13 +936,6 @@ public class DataFactory {
 					FastDateFormatFactoryUtil.getSimpleDateFormat(
 						"yyyy-MM-dd HH:mm:ss", timeZone);
 			}
-		}
-
-		_assetPublisherQueryName = GetterUtil.getString(
-			properties.getProperty("sample.sql.asset.publisher.query.name"));
-
-		if (!_assetPublisherQueryName.equals("assetCategories")) {
-			_assetPublisherQueryName = "assetTags";
 		}
 
 		_maxAssetCategoryCount = GetterUtil.getInteger(
@@ -1742,23 +1833,24 @@ public class DataFactory {
 		return dlFolderModels;
 	}
 
-	public FriendlyURLModel newFriendlyURLModel(
+	public FriendlyURLEntryModel newFriendlyURLEntryModel(
 		BlogsEntryModel blogsEntryModel) {
 
-		FriendlyURLModel friendlyURLModel = new FriendlyURLModelImpl();
+		FriendlyURLEntryModel friendlyURLEntryModel =
+			new FriendlyURLEntryModelImpl();
 
-		friendlyURLModel.setUuid(SequentialUUID.generate());
-		friendlyURLModel.setFriendlyURLId(_counter.get());
-		friendlyURLModel.setGroupId(blogsEntryModel.getGroupId());
-		friendlyURLModel.setCompanyId(_companyId);
-		friendlyURLModel.setCreateDate(new Date());
-		friendlyURLModel.setModifiedDate(new Date());
-		friendlyURLModel.setClassNameId(getClassNameId(BlogsEntry.class));
-		friendlyURLModel.setClassPK(blogsEntryModel.getEntryId());
-		friendlyURLModel.setUrlTitle(blogsEntryModel.getUrlTitle());
-		friendlyURLModel.setMain(true);
+		friendlyURLEntryModel.setUuid(SequentialUUID.generate());
+		friendlyURLEntryModel.setFriendlyURLEntryId(_counter.get());
+		friendlyURLEntryModel.setGroupId(blogsEntryModel.getGroupId());
+		friendlyURLEntryModel.setCompanyId(_companyId);
+		friendlyURLEntryModel.setCreateDate(new Date());
+		friendlyURLEntryModel.setModifiedDate(new Date());
+		friendlyURLEntryModel.setClassNameId(getClassNameId(BlogsEntry.class));
+		friendlyURLEntryModel.setClassPK(blogsEntryModel.getEntryId());
+		friendlyURLEntryModel.setUrlTitle(blogsEntryModel.getUrlTitle());
+		friendlyURLEntryModel.setMain(true);
 
-		return friendlyURLModel;
+		return friendlyURLEntryModel;
 	}
 
 	public GroupModel newGroupModel(UserModel userModel) throws Exception {
@@ -1898,23 +1990,24 @@ public class DataFactory {
 	public LayoutFriendlyURLModel newLayoutFriendlyURLModel(
 		LayoutModel layoutModel) {
 
-		LayoutFriendlyURLModel layoutFriendlyURLModel =
+		LayoutFriendlyURLModel layoutFriendlyURLEntryModel =
 			new LayoutFriendlyURLModelImpl();
 
-		layoutFriendlyURLModel.setUuid(SequentialUUID.generate());
-		layoutFriendlyURLModel.setLayoutFriendlyURLId(_counter.get());
-		layoutFriendlyURLModel.setGroupId(layoutModel.getGroupId());
-		layoutFriendlyURLModel.setCompanyId(_companyId);
-		layoutFriendlyURLModel.setUserId(_sampleUserId);
-		layoutFriendlyURLModel.setUserName(_SAMPLE_USER_NAME);
-		layoutFriendlyURLModel.setCreateDate(new Date());
-		layoutFriendlyURLModel.setModifiedDate(new Date());
-		layoutFriendlyURLModel.setPlid(layoutModel.getPlid());
-		layoutFriendlyURLModel.setFriendlyURL(layoutModel.getFriendlyURL());
-		layoutFriendlyURLModel.setLanguageId("en_US");
-		layoutFriendlyURLModel.setLastPublishDate(new Date());
+		layoutFriendlyURLEntryModel.setUuid(SequentialUUID.generate());
+		layoutFriendlyURLEntryModel.setLayoutFriendlyURLId(_counter.get());
+		layoutFriendlyURLEntryModel.setGroupId(layoutModel.getGroupId());
+		layoutFriendlyURLEntryModel.setCompanyId(_companyId);
+		layoutFriendlyURLEntryModel.setUserId(_sampleUserId);
+		layoutFriendlyURLEntryModel.setUserName(_SAMPLE_USER_NAME);
+		layoutFriendlyURLEntryModel.setCreateDate(new Date());
+		layoutFriendlyURLEntryModel.setModifiedDate(new Date());
+		layoutFriendlyURLEntryModel.setPlid(layoutModel.getPlid());
+		layoutFriendlyURLEntryModel.setFriendlyURL(
+			layoutModel.getFriendlyURL());
+		layoutFriendlyURLEntryModel.setLanguageId("en_US");
+		layoutFriendlyURLEntryModel.setLastPublishDate(new Date());
 
-		return layoutFriendlyURLModel;
+		return layoutFriendlyURLEntryModel;
 	}
 
 	public LayoutModel newLayoutModel(
@@ -2170,19 +2263,26 @@ public class DataFactory {
 				plid, portletId, PortletConstants.DEFAULT_PREFERENCES);
 		}
 
-		SimpleCounter counter = _assetPublisherQueryCounter.get(groupId);
+		String assetPublisherQueryName = "assetCategories";
 
-		if (counter == null) {
-			counter = new SimpleCounter(0);
-
-			_assetPublisherQueryCounter.put(groupId, counter);
+		if ((currentIndex % 2) == 0) {
+			assetPublisherQueryName = "assetTags";
 		}
 
-		String[] assetPublisherQueryValues = null;
+		ObjectValuePair<String[], Integer> objectValuePair = null;
 
-		if (_assetPublisherQueryName.equals("assetCategories")) {
+		Integer startIndex = _assetPublisherQueryStartIndexes.get(groupId);
+
+		if (startIndex == null) {
+			startIndex = 0;
+		}
+
+		if (assetPublisherQueryName.equals("assetCategories")) {
+			Map<Long, List<AssetCategoryModel>> assetCategoryModelsMap =
+				_assetCategoryModelsMaps[(int)groupId - 1];
+
 			List<AssetCategoryModel> assetCategoryModels =
-				_assetCategoryModelsArray[(int)groupId - 1];
+				assetCategoryModelsMap.get(getNextAssetClassNameId(groupId));
 
 			if ((assetCategoryModels == null) ||
 				assetCategoryModels.isEmpty()) {
@@ -2191,29 +2291,36 @@ public class DataFactory {
 					plid, portletId, PortletConstants.DEFAULT_PREFERENCES);
 			}
 
-			assetPublisherQueryValues =
-				getAssetPublisherAssetCategoriesQueryValues(
-					assetCategoryModels, (int)counter.get());
+			objectValuePair = getAssetPublisherAssetCategoriesQueryValues(
+				assetCategoryModels, startIndex);
 		}
 		else {
-			List<AssetTagModel> assetTagModels =
-				_assetTagModelsArray[(int)groupId - 1];
+			Map<Long, List<AssetTagModel>> assetTagModelsMap =
+				_assetTagModelsMaps[(int)groupId - 1];
+
+			List<AssetTagModel> assetTagModels = assetTagModelsMap.get(
+				getNextAssetClassNameId(groupId));
 
 			if ((assetTagModels == null) || assetTagModels.isEmpty()) {
 				return newPortletPreferencesModel(
 					plid, portletId, PortletConstants.DEFAULT_PREFERENCES);
 			}
 
-			assetPublisherQueryValues = getAssetPublisherAssetTagsQueryValues(
-				assetTagModels, (int)counter.get());
+			objectValuePair = getAssetPublisherAssetTagsQueryValues(
+				assetTagModels, startIndex);
 		}
+
+		String[] assetPublisherQueryValues = objectValuePair.getKey();
+
+		_assetPublisherQueryStartIndexes.put(
+			groupId, objectValuePair.getValue());
 
 		PortletPreferences jxPortletPreferences =
 			(PortletPreferences)_defaultAssetPublisherPortletPreference.clone();
 
 		jxPortletPreferences.setValue("queryAndOperator0", "false");
 		jxPortletPreferences.setValue("queryContains0", "true");
-		jxPortletPreferences.setValue("queryName0", _assetPublisherQueryName);
+		jxPortletPreferences.setValue("queryName0", assetPublisherQueryName);
 		jxPortletPreferences.setValues(
 			"queryValues0",
 			new String[] {
@@ -2222,7 +2329,7 @@ public class DataFactory {
 			});
 		jxPortletPreferences.setValue("queryAndOperator1", "false");
 		jxPortletPreferences.setValue("queryContains1", "false");
-		jxPortletPreferences.setValue("queryName1", _assetPublisherQueryName);
+		jxPortletPreferences.setValue("queryName1", assetPublisherQueryName);
 		jxPortletPreferences.setValue(
 			"queryValues1", assetPublisherQueryValues[3]);
 
@@ -2710,7 +2817,6 @@ public class DataFactory {
 					}
 				}
 				catch (NoSuchMethodException nsme) {
-					continue;
 				}
 			}
 
@@ -2721,8 +2827,9 @@ public class DataFactory {
 		}
 	}
 
-	protected String[] getAssetPublisherAssetCategoriesQueryValues(
-		List<AssetCategoryModel> assetCategoryModels, int index) {
+	protected ObjectValuePair<String[], Integer>
+		getAssetPublisherAssetCategoriesQueryValues(
+			List<AssetCategoryModel> assetCategoryModels, int index) {
 
 		AssetCategoryModel assetCategoryModel0 = assetCategoryModels.get(
 			index % assetCategoryModels.size());
@@ -2732,20 +2839,27 @@ public class DataFactory {
 		AssetCategoryModel assetCategoryModel2 = assetCategoryModels.get(
 			(index + _maxAssetEntryToAssetCategoryCount * 2) %
 				assetCategoryModels.size());
-		AssetCategoryModel assetCategoryModel3 = assetCategoryModels.get(
-			(index + _maxAssetEntryToAssetCategoryCount * 3) %
-				assetCategoryModels.size());
 
-		return new String[] {
-			String.valueOf(assetCategoryModel0.getCategoryId()),
-			String.valueOf(assetCategoryModel1.getCategoryId()),
-			String.valueOf(assetCategoryModel2.getCategoryId()),
-			String.valueOf(assetCategoryModel3.getCategoryId())
-		};
+		int lastIndex =
+			(index + _maxAssetEntryToAssetCategoryCount * 3) %
+				assetCategoryModels.size();
+
+		AssetCategoryModel assetCategoryModel3 = assetCategoryModels.get(
+			lastIndex);
+
+		return new ObjectValuePair<>(
+			new String[] {
+				String.valueOf(assetCategoryModel0.getCategoryId()),
+				String.valueOf(assetCategoryModel1.getCategoryId()),
+				String.valueOf(assetCategoryModel2.getCategoryId()),
+				String.valueOf(assetCategoryModel3.getCategoryId())
+			},
+			lastIndex + _maxAssetEntryToAssetCategoryCount);
 	}
 
-	protected String[] getAssetPublisherAssetTagsQueryValues(
-		List<AssetTagModel> assetTagModels, int index) {
+	protected ObjectValuePair<String[], Integer>
+		getAssetPublisherAssetTagsQueryValues(
+			List<AssetTagModel> assetTagModels, int index) {
 
 		AssetTagModel assetTagModel0 = assetTagModels.get(
 			index % assetTagModels.size());
@@ -2754,14 +2868,18 @@ public class DataFactory {
 		AssetTagModel assetTagModel2 = assetTagModels.get(
 			(index + _maxAssetEntryToAssetTagCount * 2) %
 				assetTagModels.size());
-		AssetTagModel assetTagModel3 = assetTagModels.get(
-			(index + _maxAssetEntryToAssetTagCount * 3) %
-				assetTagModels.size());
 
-		return new String[] {
-			assetTagModel0.getName(), assetTagModel1.getName(),
-			assetTagModel2.getName(), assetTagModel3.getName()
-		};
+		int lastIndex =
+			(index + _maxAssetEntryToAssetTagCount * 3) % assetTagModels.size();
+
+		AssetTagModel assetTagModel3 = assetTagModels.get(lastIndex);
+
+		return new ObjectValuePair<>(
+			new String[] {
+				assetTagModel0.getName(), assetTagModel1.getName(),
+				assetTagModel2.getName(), assetTagModel3.getName()
+			},
+			lastIndex + _maxAssetEntryToAssetTagCount);
 	}
 
 	protected String getClassName(long classNameId) {
@@ -2782,6 +2900,30 @@ public class DataFactory {
 
 		return classLoader.getResourceAsStream(
 			_DEPENDENCIES_DIR + resourceName);
+	}
+
+	protected SimpleCounter getSimpleCounter(
+		Map<Long, SimpleCounter>[] simpleCountersArray, long groupId,
+		long classNameId) {
+
+		Map<Long, SimpleCounter> simpleCounters =
+			simpleCountersArray[(int)groupId - 1];
+
+		if (simpleCounters == null) {
+			simpleCounters = new HashMap<>();
+
+			simpleCountersArray[(int)groupId - 1] = simpleCounters;
+		}
+
+		SimpleCounter simpleCounter = simpleCounters.get(classNameId);
+
+		if (simpleCounter == null) {
+			simpleCounter = new SimpleCounter(0);
+
+			simpleCounters.put(classNameId, simpleCounter);
+		}
+
+		return simpleCounter;
 	}
 
 	protected AssetCategoryModel newAssetCategoryModel(
@@ -3561,14 +3703,17 @@ public class DataFactory {
 	private final long _accountId;
 	private AccountModel _accountModel;
 	private RoleModel _administratorRoleModel;
-	private final Map<Long, SimpleCounter> _assetCategoryCounters =
-		new HashMap<>();
+	private Map<Long, SimpleCounter>[] _assetCategoryCounters;
 	private List<AssetCategoryModel>[] _assetCategoryModelsArray;
-	private final Map<Long, SimpleCounter> _assetPublisherQueryCounter =
+	private Map<Long, List<AssetCategoryModel>>[] _assetCategoryModelsMaps;
+	private final long[] _assetClassNameIds;
+	private final Map<Long, Integer> _assetClassNameIdsIndexes =
 		new HashMap<>();
-	private String _assetPublisherQueryName;
-	private final Map<Long, SimpleCounter> _assetTagCounters = new HashMap<>();
+	private final Map<Long, Integer> _assetPublisherQueryStartIndexes =
+		new HashMap<>();
+	private Map<Long, SimpleCounter>[] _assetTagCounters;
 	private List<AssetTagModel>[] _assetTagModelsArray;
+	private Map<Long, List<AssetTagModel>>[] _assetTagModelsMaps;
 	private List<AssetTagStatsModel>[] _assetTagStatsModelsArray;
 	private List<AssetVocabularyModel>[] _assetVocabularyModelsArray;
 	private final Map<String, ClassNameModel> _classNameModels =

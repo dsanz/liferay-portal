@@ -39,7 +39,6 @@ import org.gradle.api.internal.plugins.osgi.OsgiHelper;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.TaskOutputs;
 
 /**
  * @author Andrea Di Giorgi
@@ -144,6 +143,16 @@ public class NodePlugin implements Plugin<Project> {
 
 			});
 
+		downloadNodeTask.setNpmUrl(
+			new Callable<String>() {
+
+				@Override
+				public String call() throws Exception {
+					return nodeExtension.getNpmUrl();
+				}
+
+			});
+
 		downloadNodeTask.onlyIf(
 			new Spec<Task>() {
 
@@ -170,18 +179,6 @@ public class NodePlugin implements Plugin<Project> {
 		npmInstallTask.setDescription(
 			"Installs Node packages from package.json.");
 		npmInstallTask.setNpmInstallRetries(2);
-
-		TaskOutputs taskOutputs = npmInstallTask.getOutputs();
-
-		taskOutputs.upToDateWhen(
-			new Spec<Task>() {
-
-				@Override
-				public boolean isSatisfiedBy(Task task) {
-					return false;
-				}
-
-			});
 
 		return npmInstallTask;
 	}
@@ -280,23 +277,24 @@ public class NodePlugin implements Plugin<Project> {
 
 					JsonSlurper jsonSlurper = new JsonSlurper();
 
-					Map<String, Object> packageJson =
+					Map<String, Object> packageJsonMap =
 						(Map<String, Object>)jsonSlurper.parse(packageJsonFile);
 
-					Map<String, Object> dependenciesJson =
-						(Map<String, Object>)packageJson.get("dependencies");
+					Map<String, Object> dependenciesJsonMap =
+						(Map<String, Object>)packageJsonMap.get("dependencies");
 
-					if ((dependenciesJson != null) &&
-						dependenciesJson.containsKey(moduleName)) {
+					if ((dependenciesJsonMap != null) &&
+						dependenciesJsonMap.containsKey(moduleName)) {
 
 						return false;
 					}
 
-					dependenciesJson = (Map<String, Object>)packageJson.get(
-						"devDependencies");
+					dependenciesJsonMap =
+						(Map<String, Object>)packageJsonMap.get(
+							"devDependencies");
 
-					if ((dependenciesJson != null) &&
-						dependenciesJson.containsKey(moduleName)) {
+					if ((dependenciesJsonMap != null) &&
+						dependenciesJsonMap.containsKey(moduleName)) {
 
 						return false;
 					}

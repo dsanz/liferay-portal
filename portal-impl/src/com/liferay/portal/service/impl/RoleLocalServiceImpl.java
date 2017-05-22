@@ -954,6 +954,22 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	}
 
 	/**
+	 * Returns the team roles in the company.
+	 *
+	 * @param  companyId the primary key of the company
+	 * @param  teamIds the primary keys of the teams
+	 * @return the team roles in the company
+	 */
+	@Override
+	public List<Role> getTeamsRoles(long companyId, long[] teamIds)
+		throws PortalException {
+
+		long classNameId = classNameLocalService.getClassNameId(Team.class);
+
+		return rolePersistence.findByC_C_C(companyId, classNameId, teamIds);
+	}
+
+	/**
 	 * Returns all the roles of the type.
 	 *
 	 * @param  type the role's type (optionally <code>0</code>)
@@ -1073,6 +1089,11 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	@Override
 	public List<Role> getUserRelatedRoles(long userId, long[] groupIds) {
 		return roleFinder.findByU_G(userId, groupIds);
+	}
+
+	@Override
+	public List<Role> getUserTeamRoles(long userId, long groupId) {
+		return roleFinder.findByTeamsUser(userId, groupId);
 	}
 
 	/**

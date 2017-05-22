@@ -70,7 +70,6 @@
 			<message key="name.invalidPattern" value="Class, interface, enum or annotation ''{0}'' must match pattern ''{1}''" />
 		</module>
 		<module name="UnnecessaryParentheses" />
-		<module name="UpperEll" />
 		<module name="WhitespaceAfter">
 			<property name="tokens" value="COMMA, SEMI" />
 		</module>
@@ -86,10 +85,14 @@
 		<module name="com.liferay.source.formatter.checkstyle.checks.Arquillian">
 			<message key="import.invalid" value="Use import ''com.liferay.arquillian.extension.junit.bridge.junit.Arquillian'' instead of ''org.jboss.arquillian.junit.Arquillian'', see LPS-68945" />
 		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.AssertEquals">
+			<message key="assert.add.information" value="Add ''{0}'' as extra parameter at the beginning of the ''Assert.assertEquals'' call to provide more information to the test. See LPS-70411." />
+		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.Chaining">
-			<property name="chainingAllowedFormat" value="(^|.*\.)(bind|stream)\..*" />
-			<message key="chaining.avoid" value="Avoid chaining on method ''{0}'" />
-			<message key="chaining.avoid.multiple" value="Avoid multiple chaining on method ''{0}'" />
+			<property name="allowedMethodNames" value="bind" />
+			<property name="allowedVariableNames" value=".*[Bb]uilder,.*[Ss]tream" />
+			<message key="chaining.avoid" value="Avoid chaining on method ''{0}''. See https://github.com/liferay/liferay-portal/blob/master/modules/util/source-formatter/documentation/chaining.markdown" />
+			<message key="chaining.avoid.multiple" value="Avoid multiple chaining on method ''{0}''. See https://github.com/liferay/liferay-portal/blob/master/modules/util/source-formatter/documentation/chaining.markdown" />
 			<message key="concat.avoid.too.many" value="Use StringBundler instead of chaining concat when there is more than 3 parts" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.ConstantName">
@@ -98,8 +101,12 @@
 			<message key="name.collectionPrivatePattern" value="Private collection ''{0}'' must match pattern ''{1}''" />
 			<message key="name.collectionProtectedPublicPattern" value="Protected or public collection ''{0}'' must match pattern ''{1}''" />
 		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.FilterStringWhitespace">
+			<message key="whitespace.incorrect" value="The value of ''{0}'' should not have spaces around ''='', see LPS-70526" />
+		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.Indentation">
 			<message key="indentation.incorrect" value="Line starts with ''{0}'' tabs, but ''{1}'' tabs are expected" />
+			<message key="indentation.inside.chain.incorrect" value="Incorrect indentation inside chain. See https://github.com/liferay/liferay-portal/blob/master/modules/util/source-formatter/documentation/chaining.markdown" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.InstanceofOrder">
 			<message key="instanceof.order" value="''{0}'' should come before ''{1}''" />
@@ -109,6 +116,10 @@
 			<message key="javadoc.incorrect.first.line" value="Javadoc should start with ''/**''" />
 			<message key="javadoc.incorrect.last.line" value="Javadoc should end with ''*/''" />
 			<message key="javadoc.multiple" value="''{0}'' has multiple javadocs" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.JSONNaming">
+			<message key="variable.name.reserved" value="{0} name ending with ''{1}'' is reserved for object ''{2}''" />
+			<message key="variable.rename" value="Rename {0} ''{1}'' to ''{2}''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.LocalPattern">
 			<message key="pattern.local" value="Create a global variable for Pattern ''{0}''" />
@@ -140,11 +151,14 @@
 		<module name="com.liferay.source.formatter.checkstyle.checks.MissingModifier">
 			<message key="modifier.missing" value="Missing modifier for ''{0}''" />
 		</module>
-		<module name="com.liferay.source.formatter.checkstyle.checks.MissingOverride">
+		<!--<module name="com.liferay.source.formatter.checkstyle.checks.MissingOverride">
 			<message key="override.missing" value="Missing @Override" />
-		</module>
+		</module>-->
 		<module name="com.liferay.source.formatter.checkstyle.checks.NotRequireThis">
 			<message key="variable.not.require.this" value="Reference to variable ''{0}'' does not need ''.this''" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.NumberSuffix">
+			<message key="suffix.incorrect" value="Use uppercase ''{0}'' as suffix for the type ''{1}''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.OperatorOrder">
 			<message key="left.argument.literal.or.num" value="''{0}'' should be on the right hand side of the operator" />
@@ -174,6 +188,11 @@
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.TernaryOperator">
 			<message key="ternary.operator.avoid" value="Use if-else-statement instead of ternary conditional operator for better readability" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.TestClass">
+			<message key="test.base.class.invalidName" value="Base test class ''{0}'' should start with ''Base''" />
+			<message key="test.case.class.incorrect.abstract" value="Class ending in *TestCase should be abstract. Either make the class abstract or rename to ''{0}'' if the class contains actual tests" />
+			<message key="test.class.incorrect.abstract" value="Test class ''{0}'' should not be abstract" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.TransactionalTestRule">
 			<message key="import.invalid" value="Avoid using import TransactionalTestRule in *StagedModelDataHandlerTest, see LPS-68908" />

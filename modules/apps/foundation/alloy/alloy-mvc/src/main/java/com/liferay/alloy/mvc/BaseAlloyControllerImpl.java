@@ -429,7 +429,7 @@ public abstract class BaseAlloyControllerImpl implements AlloyController {
 	}
 
 	protected String buildIncludePath(String viewPath) {
-		StringBundler sb = new StringBundler(4);
+		StringBundler sb = new StringBundler(5);
 
 		sb.append("/WEB-INF/jsp/");
 		sb.append(portlet.getFriendlyURLMapping());
@@ -441,10 +441,6 @@ public abstract class BaseAlloyControllerImpl implements AlloyController {
 			return sb.toString();
 		}
 
-		sb = new StringBundler(new String[] {sb.toString()}, 4);
-
-		sb.append(controllerPath);
-		sb.append(StringPool.SLASH);
 		sb.append(viewPath);
 		sb.append(".jsp");
 
@@ -522,7 +518,7 @@ public abstract class BaseAlloyControllerImpl implements AlloyController {
 
 		if (Validator.isNull(responseContent)) {
 			if (Validator.isNull(viewPath)) {
-				viewPath = actionPath;
+				viewPath = controllerPath + StringPool.SLASH + actionPath;
 			}
 
 			String includePath = buildIncludePath(viewPath);
@@ -659,7 +655,7 @@ public abstract class BaseAlloyControllerImpl implements AlloyController {
 		Layout layout = themeDisplay.getLayout();
 
 		PortletURL portletURL = PortletURLFactoryUtil.create(
-			request, portlet.getPortletId(), layout.getPlid(), lifecycle);
+			request, portlet, layout, lifecycle);
 
 		portletURL.setParameter("action", action);
 		portletURL.setParameter("controller", controller);

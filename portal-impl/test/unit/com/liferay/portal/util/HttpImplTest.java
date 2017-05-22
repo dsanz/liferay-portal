@@ -21,8 +21,10 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
@@ -198,6 +200,41 @@ public class HttpImplTest extends PowerMockito {
 	}
 
 	@Test
+	public void testParameterMapFromString() {
+		Map<String, String[]> expectedParameterMap = new HashMap();
+
+		expectedParameterMap.put("key1", new String[] {"value1", "value2"});
+		expectedParameterMap.put("key2", new String[] {"value3"});
+
+		StringBundler sb = new StringBundler(12);
+
+		for (Entry<String, String[]> entry : expectedParameterMap.entrySet()) {
+			String key = entry.getKey();
+
+			for (String value : entry.getValue()) {
+				sb.append(key);
+				sb.append(StringPool.EQUAL);
+				sb.append(value);
+				sb.append(StringPool.AMPERSAND);
+			}
+		}
+
+		sb.setIndex(sb.index() - 1);
+
+		Map<String, String[]> actualParameterMap = _httpImpl.getParameterMap(
+			sb.toString());
+
+		Assert.assertEquals(
+			"Actual parameter map size: " + actualParameterMap.size(),
+			expectedParameterMap.size(), actualParameterMap.size());
+
+		for (String key : actualParameterMap.keySet()) {
+			Assert.assertArrayEquals(
+				expectedParameterMap.get(key), actualParameterMap.get(key));
+		}
+	}
+
+	@Test
 	public void testProtocolizeMalformedURL() {
 		Assert.assertEquals(
 			"foo.com", _httpImpl.protocolize("foo.com", 8080, true));
@@ -339,7 +376,7 @@ public class HttpImplTest extends PowerMockito {
 
 			List<LogRecord> logRecords = captureHandler.getLogRecords();
 
-			Assert.assertEquals(1, logRecords.size());
+			Assert.assertEquals(logRecords.toString(), 1, logRecords.size());
 
 			LogRecord logRecord = logRecords.get(0);
 

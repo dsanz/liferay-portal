@@ -20,6 +20,7 @@
 
 <%@ taglib uri="http://liferay.com/tld/asset" prefix="liferay-asset" %><%@
 taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
+taglib uri="http://liferay.com/tld/comment" prefix="liferay-comment" %><%@
 taglib uri="http://liferay.com/tld/expando" prefix="liferay-expando" %><%@
 taglib uri="http://liferay.com/tld/frontend" prefix="liferay-frontend" %><%@
 taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
@@ -213,21 +214,9 @@ Calendar defaultCalendar = null;
 CalendarDisplayContext calendarDisplayContext = (CalendarDisplayContext)renderRequest.getAttribute(CalendarWebKeys.CALENDAR_DISPLAY_CONTEXT);
 
 if (calendarDisplayContext != null) {
-	otherCalendars = calendarDisplayContext.getOtherCalendars(calendarIds);
-}
+	otherCalendars = calendarDisplayContext.getOtherCalendars(user, calendarIds);
 
-for (Calendar groupCalendar : groupCalendars) {
-	if (groupCalendar.isDefaultCalendar() && CalendarPermission.contains(themeDisplay.getPermissionChecker(), groupCalendar, CalendarActionKeys.MANAGE_BOOKINGS)) {
-		defaultCalendar = groupCalendar;
-	}
-}
-
-if (defaultCalendar == null) {
-	for (Calendar userCalendar : userCalendars) {
-		if (userCalendar.isDefaultCalendar()) {
-			defaultCalendar = userCalendar;
-		}
-	}
+	defaultCalendar = calendarDisplayContext.getDefaultCalendar(groupCalendars, userCalendars);
 }
 
 TimeZone userTimeZone = CalendarUtil.getCalendarBookingDisplayTimeZone(calendarBooking, TimeZone.getTimeZone(timeZoneId));

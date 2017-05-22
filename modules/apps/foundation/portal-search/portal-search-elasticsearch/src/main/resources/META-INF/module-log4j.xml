@@ -5,6 +5,7 @@
 	<category name="com.liferay.portal.search.elasticsearch">
 		<priority value="ERROR" />
 	</category>
+
 	<category name="com.liferay.portal.search.elasticsearch.internal.connection.EmbeddedElasticsearchConnection">
 		<priority value="WARN" />
 	</category>

@@ -32,7 +32,7 @@ import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
 	rules = {
 		@DDMFormRule(
 			actions = {
-				"call('getDataProviderInstanceOutputParameters', 'dataProviderInstanceId=ddmDataProviderInstanceId', 'ddmDataProviderInstanceOutput={key: outputParameterName, value: outputParameterName}')"
+				"call('getDataProviderInstanceOutputParameters', 'dataProviderInstanceId=ddmDataProviderInstanceId', 'ddmDataProviderInstanceOutput=outputParameterNames')"
 			},
 			condition = "not(equals(getValue('ddmDataProviderInstanceId'), 0))"
 		)
@@ -105,7 +105,10 @@ public interface SelectDDMFormFieldTypeSettings
 	)
 	public String ddmDataProviderInstanceOutput();
 
-	@DDMFormField(label = "%multiple", properties = {"showAsSwitcher=true"})
+	@DDMFormField(
+		label = "%allow-multiple-selections",
+		properties = {"showAsSwitcher=true"}
+	)
 	public boolean multiple();
 
 	@DDMFormField(

@@ -84,8 +84,8 @@ $microblogs-border-color: #EAEAEA;
 	.autocomplete {
 		&, &.textarea {
 			background-color: #FFF;
-			height: 32px;
 			margin-bottom: 10px;
+			min-height: 32px;
 			padding: 5px 8px;
 			position: relative;
 		}
@@ -111,6 +111,7 @@ $microblogs-border-color: #EAEAEA;
 	}
 
 	.thumbnail {
+		border-width: 0;
 		float: left;
 		height: 45px;
 		margin-right: 2px;
@@ -302,7 +303,6 @@ $microblogs-border-color: #EAEAEA;
 		line-height: 1.5em;
 		min-width: 100%;
 		outline: none;
-		position: absolute;
 		resize: none;
 		top: 0;
 	}

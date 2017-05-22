@@ -1,6 +1,7 @@
 <definition component-name="portal-workflow">
 	<property name="portal.release" value="true" />
 	<property name="portal.upstream" value="true" />
+	<property name="testray.component.names" value="Dynamic Data Lists,Workflow" />
 	<property name="testray.main.component.name" value="Workflow" />
 
 	<var name="workflowAssetType" value="Dynamic Data Lists Record" />
@@ -152,9 +153,7 @@
 		</execute>
 	</command>
 
-	<command name="RejectDynamicdatalistCP" priority="5">
-		<property name="portal.acceptance" value="true" />
-
+	<command name="RejectDynamicdatalistCP" priority="4">
 		<var name="ddlDataDefinitionName" value="DDL Definition" />
 		<var name="ddlListName" value="DDL List" />
 		<var name="ddlRecordFieldData" value="Record Text" />

@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.source.formatter.util.FileUtil;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import java.net.URL;
@@ -41,7 +42,7 @@ import org.junit.BeforeClass;
 /**
  * @author Hugo Huijser
  */
-public class BaseSourceProcessorTestCase {
+public abstract class BaseSourceProcessorTestCase {
 
 	@BeforeClass
 	public static void setUpClass() {
@@ -70,7 +71,6 @@ public class BaseSourceProcessorTestCase {
 		sourceFormatterArgs.setAutoFix(true);
 		sourceFormatterArgs.setPrintErrors(false);
 		sourceFormatterArgs.setThrowException(false);
-		sourceFormatterArgs.setUseProperties(false);
 
 		return sourceFormatterArgs;
 	}
@@ -117,9 +117,13 @@ public class BaseSourceProcessorTestCase {
 		String fullFileName =
 			_DIR_NAME + StringPool.SLASH + fileName + "." + originalExtension;
 
-		File newFile = new File(_temporaryFolder, fileName + "." + extension);
-
 		URL url = classLoader.getResource(fullFileName);
+
+		if (url == null) {
+			throw new FileNotFoundException(fullFileName);
+		}
+
+		File newFile = new File(_temporaryFolder, fileName + "." + extension);
 
 		try (InputStream inputStream = url.openStream()) {
 			FileUtils.copyInputStreamToFile(inputStream, newFile);
@@ -151,7 +155,8 @@ public class BaseSourceProcessorTestCase {
 			(expectedMessages.length > 0)) {
 
 			Assert.assertEquals(
-				expectedMessages.length, sourceFormatterMessages.size());
+				sourceFormatterMessages.toString(), expectedMessages.length,
+				sourceFormatterMessages.size());
 
 			for (int i = 0; i < sourceFormatterMessages.size(); i++) {
 				SourceFormatterMessage sourceFormatterMessage =
@@ -180,8 +185,14 @@ public class BaseSourceProcessorTestCase {
 			String actualFormattedContent = FileUtil.read(
 				new File(modifiedFileNames.get(0)));
 
-			URL expectedURL = classLoader.getResource(
-				_DIR_NAME + "/expected/" + fileName + "." + originalExtension);
+			String expectedFileName =
+				_DIR_NAME + "/expected/" + fileName + "." + originalExtension;
+
+			URL expectedURL = classLoader.getResource(expectedFileName);
+
+			if (expectedURL == null) {
+				throw new FileNotFoundException(expectedFileName);
+			}
 
 			String expectedFormattedContent = IOUtils.toString(
 				expectedURL, StringPool.UTF8);

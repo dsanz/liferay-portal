@@ -148,6 +148,14 @@ public class KaleoTaskAssignmentInstanceLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.workflow.kaleo.model.KaleoTaskAssignmentInstance fetchFirstKaleoTaskAssignmentInstance(
+		long kaleoTaskInstanceTokenId,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.workflow.kaleo.model.KaleoTaskAssignmentInstance> orderByComparator) {
+		return _kaleoTaskAssignmentInstanceLocalService.fetchFirstKaleoTaskAssignmentInstance(kaleoTaskInstanceTokenId,
+			orderByComparator);
+	}
+
+	@Override
 	public com.liferay.portal.workflow.kaleo.model.KaleoTaskAssignmentInstance fetchKaleoTaskAssignmentInstance(
 		long kaleoTaskAssignmentInstanceId) {
 		return _kaleoTaskAssignmentInstanceLocalService.fetchKaleoTaskAssignmentInstance(kaleoTaskAssignmentInstanceId);
@@ -187,6 +195,12 @@ public class KaleoTaskAssignmentInstanceLocalServiceWrapper
 	@Override
 	public int getKaleoTaskAssignmentInstancesCount() {
 		return _kaleoTaskAssignmentInstanceLocalService.getKaleoTaskAssignmentInstancesCount();
+	}
+
+	@Override
+	public int getKaleoTaskAssignmentInstancesCount(
+		long kaleoTaskInstanceTokenId) {
+		return _kaleoTaskAssignmentInstanceLocalService.getKaleoTaskAssignmentInstancesCount(kaleoTaskInstanceTokenId);
 	}
 
 	/**

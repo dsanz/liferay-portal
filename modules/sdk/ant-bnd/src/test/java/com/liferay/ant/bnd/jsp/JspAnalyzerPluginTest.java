@@ -16,14 +16,16 @@ package com.liferay.ant.bnd.jsp;
 
 import aQute.bnd.osgi.Builder;
 import aQute.bnd.osgi.Constants;
-
+import aQute.bnd.osgi.Packages;
 import aQute.lib.io.IO;
 
 import java.io.InputStream;
 
 import java.net.URL;
 
+import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -72,6 +74,38 @@ public class JspAnalyzerPluginTest {
 	}
 
 	@Test
+	public void testImportsWithMulitplesAndStatics() throws Exception {
+		JspAnalyzerPlugin jspAnalyzerPlugin = new JspAnalyzerPlugin();
+
+		URL url = getResource(
+			"dependencies/imports_without_mutlipackages_and_statics.jsp");
+
+		InputStream inputStream = url.openStream();
+
+		String content = IO.collect(inputStream);
+
+		Builder builder = new Builder();
+
+		builder.build();
+
+		jspAnalyzerPlugin.addApiUses(builder, content);
+
+		Packages referredPackages = builder.getReferred();
+
+		Assert.assertTrue(referredPackages.containsFQN("java.io"));
+		Assert.assertTrue(referredPackages.containsFQN("java.util"));
+		Assert.assertTrue(referredPackages.containsFQN("java.util.logging"));
+		Assert.assertTrue(referredPackages.containsFQN("javax.portlet"));
+		Assert.assertTrue(referredPackages.containsFQN("javax.portlet.filter"));
+		Assert.assertTrue(
+			referredPackages.containsFQN("javax.portlet.tck.beans"));
+		Assert.assertTrue(
+			referredPackages.containsFQN("javax.portlet.tck.constants"));
+		Assert.assertTrue(referredPackages.containsFQN("javax.servlet"));
+		Assert.assertTrue(referredPackages.containsFQN("javax.servlet.http"));
+	}
+
+	@Test
 	public void testRemoveDuplicateTaglibRequirements() throws Exception {
 		JspAnalyzerPlugin jspAnalyzerPlugin = new JspAnalyzerPlugin();
 
@@ -85,12 +119,14 @@ public class JspAnalyzerPluginTest {
 
 		builder.build();
 
-		jspAnalyzerPlugin.addTaglibRequirements(builder, content);
+		Set<String> taglibURIs = new HashSet<>();
+
+		jspAnalyzerPlugin.addTaglibRequirements(builder, content, taglibURIs);
 
 		String requireCapability1 = builder.getProperty(
 			Constants.REQUIRE_CAPABILITY);
 
-		jspAnalyzerPlugin.addTaglibRequirements(builder, content);
+		jspAnalyzerPlugin.addTaglibRequirements(builder, content, taglibURIs);
 
 		String requireCapability2 = builder.getProperty(
 			Constants.REQUIRE_CAPABILITY);

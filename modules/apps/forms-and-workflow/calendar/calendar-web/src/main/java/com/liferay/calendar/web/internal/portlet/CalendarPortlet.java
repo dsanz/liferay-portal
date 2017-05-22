@@ -93,7 +93,7 @@ import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -161,14 +161,13 @@ import org.osgi.service.component.annotations.Reference;
 		"com.liferay.portlet.icon=/icons/calendar.png",
 		"com.liferay.portlet.instanceable=true",
 		"com.liferay.portlet.preferences-owned-by-group=true",
-		"com.liferay.portlet.preferences-unique-per-layout=true",
 		"javax.portlet.display-name=Calendar",
 		"javax.portlet.expiration-cache=0",
 		"javax.portlet.init-param.copy-request-parameters=true",
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + CalendarPortletKeys.CALENDAR,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=administrator,guest,power-user,user",
+		"javax.portlet.security-role-ref=administrator,power-user,user",
 		"javax.portlet.supports.mime-type=text/html"
 	},
 	service = Portlet.class
@@ -531,7 +530,7 @@ public class CalendarPortlet extends MVCPortlet {
 
 		String redirect = getRedirect(actionRequest, actionResponse);
 
-		redirect = HttpUtil.setParameter(
+		redirect = _http.setParameter(
 			redirect, actionResponse.getNamespace() + "calendarBookingId",
 			calendarBooking.getCalendarBookingId());
 
@@ -759,18 +758,18 @@ public class CalendarPortlet extends MVCPortlet {
 
 		String namespace = actionResponse.getNamespace();
 
-		editCalendarURL = HttpUtil.setParameter(
+		editCalendarURL = _http.setParameter(
 			editCalendarURL, "p_p_id", themeDisplay.getPpid());
-		editCalendarURL = HttpUtil.setParameter(
+		editCalendarURL = _http.setParameter(
 			editCalendarURL, namespace + "mvcPath",
 			templatePath + "edit_calendar.jsp");
-		editCalendarURL = HttpUtil.setParameter(
+		editCalendarURL = _http.setParameter(
 			editCalendarURL, namespace + "redirect",
 			getRedirect(actionRequest, actionResponse));
-		editCalendarURL = HttpUtil.setParameter(
+		editCalendarURL = _http.setParameter(
 			editCalendarURL, namespace + "backURL",
 			ParamUtil.getString(actionRequest, "backURL"));
-		editCalendarURL = HttpUtil.setParameter(
+		editCalendarURL = _http.setParameter(
 			editCalendarURL, namespace + "calendarId",
 			calendar.getCalendarId());
 
@@ -1452,10 +1451,10 @@ public class CalendarPortlet extends MVCPortlet {
 			themeDisplay.getCompanyId(), null, new long[] {calendarResourceId},
 			null, true, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 
-		JSONArray jsonObject = CalendarUtil.toCalendarsJSONArray(
+		JSONArray jsonArray = CalendarUtil.toCalendarsJSONArray(
 			themeDisplay, calendars);
 
-		writeJSON(resourceRequest, resourceResponse, jsonObject);
+		writeJSON(resourceRequest, resourceResponse, jsonArray);
 	}
 
 	protected void serveUnknownResource(
@@ -1652,6 +1651,9 @@ public class CalendarPortlet extends MVCPortlet {
 	private CalendarResourceService _calendarResourceService;
 	private CalendarService _calendarService;
 	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private Http _http;
 
 	@Reference
 	private Portal _portal;

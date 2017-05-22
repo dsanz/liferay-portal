@@ -17,14 +17,16 @@ package com.liferay.journal.web.internal.messaging;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.web.configuration.JournalWebConfiguration;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
-import com.liferay.portal.kernel.messaging.BaseSchedulerEntryMessageListener;
+import com.liferay.portal.kernel.messaging.BaseMessageListener;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.scheduler.SchedulerEngineHelper;
+import com.liferay.portal.kernel.scheduler.SchedulerEntry;
+import com.liferay.portal.kernel.scheduler.SchedulerEntryImpl;
 import com.liferay.portal.kernel.scheduler.TimeUnit;
+import com.liferay.portal.kernel.scheduler.Trigger;
 import com.liferay.portal.kernel.scheduler.TriggerFactory;
-import com.liferay.portal.kernel.scheduler.TriggerFactoryUtil;
 
 import java.util.Map;
 
@@ -44,8 +46,7 @@ import org.osgi.service.component.annotations.Reference;
 	configurationPolicy = ConfigurationPolicy.OPTIONAL, immediate = true,
 	service = CheckArticleMessageListener.class
 )
-public class CheckArticleMessageListener
-	extends BaseSchedulerEntryMessageListener {
+public class CheckArticleMessageListener extends BaseMessageListener {
 
 	@Activate
 	protected void activate(Map<String, Object> properties) {
@@ -53,13 +54,19 @@ public class CheckArticleMessageListener
 			ConfigurableUtil.createConfigurable(
 				JournalWebConfiguration.class, properties);
 
-		schedulerEntryImpl.setTrigger(
-			TriggerFactoryUtil.createTrigger(
-				getEventListenerClass(), getEventListenerClass(),
-				journalWebConfiguration.checkInterval(), TimeUnit.MINUTE));
+		Class<?> clazz = getClass();
+
+		String className = clazz.getName();
+
+		Trigger trigger = _triggerFactory.createTrigger(
+			className, className, null, null,
+			journalWebConfiguration.checkInterval(), TimeUnit.MINUTE);
+
+		SchedulerEntry schedulerEntry = new SchedulerEntryImpl(
+			className, trigger);
 
 		_schedulerEngineHelper.register(
-			this, schedulerEntryImpl, DestinationNames.SCHEDULER_DISPATCH);
+			this, schedulerEntry, DestinationNames.SCHEDULER_DISPATCH);
 	}
 
 	@Deactivate
@@ -91,11 +98,10 @@ public class CheckArticleMessageListener
 		_schedulerEngineHelper = schedulerEngineHelper;
 	}
 
-	@Reference(unbind = "-")
-	protected void setTriggerFactory(TriggerFactory triggerFactory) {
-	}
-
 	private JournalArticleLocalService _journalArticleLocalService;
 	private SchedulerEngineHelper _schedulerEngineHelper;
+
+	@Reference
+	private TriggerFactory _triggerFactory;
 
 }

@@ -2,29 +2,38 @@
 	<var name="assetType" value="Bookmarks Entry" />
 
 	<command name="addBookmarkViaAP">
-		<execute function="Click#makeVisibleClickAt" locator1="AP#ADD_ASSET_PLUS_ICON" />
+		<execute macro="AssetPublisherPortlet#addAsset">
+			<var name="assetType" value="Bookmarks Entry" />
+		</execute>
 
-		<execute function="AssertClick" locator1="MenuItem#BOOKMARKS_ENTRY" value1="Bookmarks Entry" />
+		<if>
+			<isset var="bookmarkFolderName" />
+			<then>
+				<execute function="AssertClick#pauseAssertTextClickAt" locator1="Button#SELECT" value1="Select" />
 
-		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
+				<execute function="SelectFrameTop" />
 
-		<execute function="AssertClick#pauseAssertTextClickAt" locator1="Button#SELECT" value1="Select" />
+				<execute function="SelectFrame" locator1="IFrame#SELECT_FOLDER" />
 
-		<execute function="SelectFrameTop" />
+				<var name="key_folderName" value="${bookmarkFolderName}" />
 
-		<execute function="SelectFrame" locator1="IFrame#SELECT_FOLDER" />
-
-		<var name="key_folderName" value="${bookmarkFolderName}" />
-
-		<execute function="AssertClick" locator1="Bookmarks#FOLDER_TABLE_CHOOSE" value1="Choose" />
+				<execute function="AssertClick" locator1="Bookmarks#FOLDER_TABLE_CHOOSE" value1="Choose" />
+			</then>
+		</if>
 
 		<execute function="SelectFrameTop" />
 
 		<execute function="SelectFrame" locator1="IFrame#EDIT_ASSET" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${bookmarkName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${bookmarkName}" />
+		</execute>
+
 		<execute function="Type" locator1="TextInput#URL" value1="${bookmarkURL}" />
-		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${bookmarkDescription}" />
+
+		<execute macro="PortletEntry#inputDescription">
+			<var name="description" value="${bookmarkDescription}" />
+		</execute>
 
 		<execute function="AssertClick#pauseAssertTextClickAt" locator1="Button#SAVE" value1="Save" />
 	</command>
@@ -40,7 +49,9 @@
 		<if>
 			<isset var="bookmarkName" />
 			<then>
-				<execute function="Type" locator1="TextInput#NAME" value1="${bookmarkName}" />
+				<execute macro="PortletEntry#inputName">
+					<var name="name" value="${bookmarkName}" />
+				</execute>
 			</then>
 			<else>
 				<var name="bookmarkName" value="${bookmarkURL}" />
@@ -52,7 +63,9 @@
 		<if>
 			<isset var="bookmarkDescription" />
 			<then>
-				<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${bookmarkDescription}" />
+				<execute macro="PortletEntry#inputDescription">
+					<var name="description" value="${bookmarkDescription}" />
+				</execute>
 			</then>
 		</if>
 
@@ -70,9 +83,15 @@
 
 		<execute function="AssertClick" locator1="MenuItem#BOOKMARK" value1="Bookmark" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${bookmarkName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${bookmarkName}" />
+		</execute>
+
 		<execute function="Type" locator1="TextInput#URL" value1="${bookmarkURLInvalid}" />
-		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${bookmarkDescription}" />
+
+		<execute macro="PortletEntry#inputDescription">
+			<var name="description" value="${bookmarkDescription}" />
+		</execute>
 
 		<execute macro="Button#clickSave" />
 
@@ -86,9 +105,15 @@
 
 		<execute function="AssertClick" locator1="MenuItem#BOOKMARK" value1="Bookmark" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${bookmarkName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${bookmarkName}" />
+		</execute>
+
 		<execute function="Type" locator1="TextInput#URL" value1="${bookmarkURLInvalid}" />
-		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${bookmarkDescription}" />
+
+		<execute macro="PortletEntry#inputDescription">
+			<var name="description" value="${bookmarkDescription}" />
+		</execute>
 
 		<execute macro="Button#clickSave" />
 
@@ -103,14 +128,18 @@
 		<if>
 			<isset var="bookmarkName" />
 			<then>
-				<execute function="Type" locator1="TextInput#NAME" value1="${bookmarkName}" />
+				<execute macro="PortletEntry#inputName">
+					<var name="name" value="${bookmarkName}" />
+				</execute>
 			</then>
 		</if>
 
 		<if>
 			<isset var="bookmarkDescription" />
 			<then>
-				<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${bookmarkDescription}" />
+				<execute macro="PortletEntry#inputDescription">
+					<var name="description" value="${bookmarkDescription}" />
+				</execute>
 			</then>
 		</if>
 
@@ -132,7 +161,9 @@
 		<if>
 			<isset var="bookmarkName" />
 			<then>
-				<execute function="Type" locator1="TextInput#NAME" value1="${bookmarkName}" />
+				<execute macro="PortletEntry#inputName">
+					<var name="name" value="${bookmarkName}" />
+				</execute>
 			</then>
 			<else>
 				<var name="bookmarkName" value="${bookmarkURL}" />
@@ -144,7 +175,9 @@
 		<if>
 			<isset var="bookmarkDescription" />
 			<then>
-				<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${bookmarkDescription}" />
+				<execute macro="PortletEntry#inputDescription">
+					<var name="description" value="${bookmarkDescription}" />
+				</execute>
 			</then>
 		</if>
 
@@ -173,7 +206,10 @@
 
 		<execute function="Click" locator1="Button#PLUS" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${bookmarkName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${bookmarkName}" />
+		</execute>
+
 		<execute function="Type" locator1="TextInput#URL" value1="${bookmarkURL}" />
 
 		<execute macro="Button#clickSave" />
@@ -198,9 +234,15 @@
 
 		<execute function="AssertClick" locator1="MenuItem#BOOKMARK" value1="Bookmark" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${bookmarkName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${bookmarkName}" />
+		</execute>
+
 		<execute function="Type" locator1="TextInput#URL" value1="${bookmarkURL}" />
-		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${bookmarkDescription}" />
+
+		<execute macro="PortletEntry#inputDescription">
+			<var name="description" value="${bookmarkDescription}" />
+		</execute>
 
 		<execute macro="PortletEntry#save" />
 
@@ -241,13 +283,18 @@
 
 		<execute function="AssertClick" locator1="MenuItem#EDIT" value1="Edit" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${editBookmarkName}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${editBookmarkName}" />
+		</execute>
+
 		<execute function="Type" locator1="TextInput#URL" value1="${editBookmarkURL}" />
 
 		<if>
 			<isset var="bookmarkDescription" />
 			<then>
-				<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${editBookmarkDescription}" />
+				<execute macro="PortletEntry#inputDescription">
+					<var name="description" value="${editBookmarkDescription}" />
+				</execute>
 			</then>
 		</if>
 
@@ -269,7 +316,10 @@
 
 		<execute function="AssertClick" locator1="MenuItem#EDIT" value1="Edit" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="${bookmarkNameEdit}" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="${bookmarkNameEdit}" />
+		</execute>
+
 		<execute function="Type" locator1="TextInput#URL" value1="${bookmarkURLEdit}" />
 
 		<execute macro="PortletEntry#save" />
@@ -458,11 +508,11 @@
 
 		<execute function="Click" locator1="AP#ASSET_ABSTRACT_BOOKMARK_DETAIL_LINK" />
 
-		<execute function="SelectWindow" locator1="title=Liferay: Put people at the heart of your business" />
+		<execute function="SelectWindow" locator1="title=Liferay: Transform your whole enterprise" />
 
 		<execute function="AssertElementPresent#assertElementPresent" locator1="AP#ASSET_ABSTRACT_BOOKMARK_LIFERAY_LOGO" />
 
-		<execute function="Close" locator1="title=Liferay - Enterprise open source portal and collaboration software | Liferay" />
+		<execute function="Close" locator1="title=Liferay: Transform your whole enterprise" />
 	</command>
 
 	<command name="viewEntry">

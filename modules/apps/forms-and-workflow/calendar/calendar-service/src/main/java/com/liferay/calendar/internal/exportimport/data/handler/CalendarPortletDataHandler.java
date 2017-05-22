@@ -28,6 +28,7 @@ import com.liferay.exportimport.kernel.lar.BasePortletDataHandler;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataHandler;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerBoolean;
+import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
@@ -36,6 +37,9 @@ import com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.xml.Element;
 
@@ -199,6 +203,21 @@ public class CalendarPortletDataHandler extends BasePortletDataHandler {
 			PortletPreferences portletPreferences, String data)
 		throws Exception {
 
+		Group scopeGroup = _groupLocalService.fetchGroup(
+			portletDataContext.getScopeGroupId());
+
+		String layoutsImportMode = MapUtil.getString(
+			portletDataContext.getParameterMap(),
+			PortletDataHandlerKeys.LAYOUTS_IMPORT_MODE);
+
+		if (layoutsImportMode.equals(
+				PortletDataHandlerKeys.
+					LAYOUTS_IMPORT_MODE_CREATED_FROM_PROTOTYPE) &&
+			(scopeGroup != null) && scopeGroup.isUser()) {
+
+			return portletPreferences;
+		}
+
 		if (portletDataContext.getBooleanParameter(NAMESPACE, "calendars")) {
 			Element calendarsElement =
 				portletDataContext.getImportDataGroupElement(Calendar.class);
@@ -344,11 +363,17 @@ public class CalendarPortletDataHandler extends BasePortletDataHandler {
 		_calendarResourceLocalService = calendarResourceLocalService;
 	}
 
+	@Reference(unbind = "-")
+	protected void setGroupLocalService(GroupLocalService groupLocalService) {
+		_groupLocalService = groupLocalService;
+	}
+
 	private CalendarBookingLocalService _calendarBookingLocalService;
 	private CalendarLocalService _calendarLocalService;
 	private CalendarNotificationTemplateLocalService
 		_calendarNotificationTemplateLocalService;
 	private CalendarResourceLocalService _calendarResourceLocalService;
+	private GroupLocalService _groupLocalService;
 
 	@Reference
 	private Portal _portal;

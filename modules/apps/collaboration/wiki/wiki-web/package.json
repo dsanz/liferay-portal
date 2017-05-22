@@ -6,9 +6,9 @@
 	"devDependencies": {
 		"gulp": "^3.9.1",
 		"gulp-metal": "^1.9.10",
-		"liferay-module-config-generator": "^1.1.10",
-		"metal-cli": "^2.1.2"
+		"liferay-module-config-generator": "^1.2.1",
+		"metal-cli": "^4.0.1"
 	},
 	"name": "wiki-web",
-	"version": "2.1.17"
+	"version": "2.1.28"
 }

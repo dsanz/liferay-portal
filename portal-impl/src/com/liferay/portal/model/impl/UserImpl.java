@@ -36,6 +36,7 @@ import com.liferay.portal.kernel.model.Website;
 import com.liferay.portal.kernel.security.auth.EmailAddressGenerator;
 import com.liferay.portal.kernel.security.auth.FullNameGenerator;
 import com.liferay.portal.kernel.security.auth.FullNameGeneratorFactory;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.AddressLocalServiceUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.ContactLocalServiceUtil;
@@ -100,7 +101,23 @@ public class UserImpl extends UserBaseImpl {
 
 	@Override
 	public Contact fetchContact() {
-		return ContactLocalServiceUtil.fetchContact(getContactId());
+		if (_contact == _NULL_CONTACT) {
+			return null;
+		}
+
+		if (_contact == null) {
+			Contact contact = ContactLocalServiceUtil.fetchContact(
+				getContactId());
+
+			if (contact == null) {
+				_contact = _NULL_CONTACT;
+			}
+			else {
+				_contact = contact;
+			}
+		}
+
+		return _contact;
 	}
 
 	/**
@@ -145,7 +162,7 @@ public class UserImpl extends UserBaseImpl {
 	 */
 	@Override
 	public Contact getContact() throws PortalException {
-		if (_contact == null) {
+		if ((_contact == null) || (_contact == _NULL_CONTACT)) {
 			_contact = ContactLocalServiceUtil.getContact(getContactId());
 		}
 
@@ -597,8 +614,7 @@ public class UserImpl extends UserBaseImpl {
 	public PasswordPolicy getPasswordPolicy() throws PortalException {
 		if (_passwordPolicy == null) {
 			_passwordPolicy =
-				PasswordPolicyLocalServiceUtil.getPasswordPolicyByUserId(
-					getUserId());
+				PasswordPolicyLocalServiceUtil.getPasswordPolicyByUser(this);
 		}
 
 		return _passwordPolicy;
@@ -775,6 +791,13 @@ public class UserImpl extends UserBaseImpl {
 	public boolean hasMySites() throws PortalException {
 		if (isDefaultUser()) {
 			return false;
+		}
+
+		if ((PropsValues.LAYOUT_USER_PRIVATE_LAYOUTS_ENABLED ||
+			 PropsValues.LAYOUT_USER_PUBLIC_LAYOUTS_ENABLED) &&
+			(getUserId() == PrincipalThreadLocal.getUserId())) {
+
+			return true;
 		}
 
 		List<Group> groups = getMySiteGroups(1);
@@ -965,6 +988,8 @@ public class UserImpl extends UserBaseImpl {
 				HtmlUtil.escapeURL(getScreenName()), String.valueOf(getUserId())
 			});
 	}
+
+	private static final Contact _NULL_CONTACT = new ContactImpl();
 
 	private static final Log _log = LogFactoryUtil.getLog(UserImpl.class);
 

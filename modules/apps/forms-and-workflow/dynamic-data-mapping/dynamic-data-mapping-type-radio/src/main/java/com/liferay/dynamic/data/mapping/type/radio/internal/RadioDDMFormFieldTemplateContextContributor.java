@@ -17,9 +17,11 @@ package com.liferay.dynamic.data.mapping.type.radio.internal;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTemplateContextContributor;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
+import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +56,14 @@ public class RadioDDMFormFieldTemplateContextContributor
 			GetterUtil.getBoolean(ddmFormField.getProperty("inline")));
 		parameters.put(
 			"options", getOptions(ddmFormField, ddmFormFieldRenderingContext));
+
+		String predefinedValue = getPredefinedValue(
+			ddmFormField, ddmFormFieldRenderingContext);
+
+		if (predefinedValue != null) {
+			parameters.put("predefinedValue", predefinedValue);
+		}
+
 		parameters.put(
 			"value", getValue(ddmFormField, ddmFormFieldRenderingContext));
 
@@ -103,6 +113,22 @@ public class RadioDDMFormFieldTemplateContextContributor
 				ddmFormFieldRenderingContext.getLocale());
 
 		return radioDDMFormFieldContextHelper.getOptions();
+	}
+
+	protected String getPredefinedValue(
+		DDMFormField ddmFormField,
+		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
+
+		Object predefinedValue = ddmFormField.getProperty("predefinedValue");
+
+		if (Validator.isNotNull(predefinedValue)) {
+			LocalizedValue localizedValue = (LocalizedValue)predefinedValue;
+
+			return localizedValue.getString(
+				ddmFormFieldRenderingContext.getLocale());
+		}
+
+		return null;
 	}
 
 	protected String getValue(

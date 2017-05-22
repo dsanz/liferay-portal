@@ -338,9 +338,12 @@ AUI.add(
 									destroyOnHide: true,
 									modal: true
 								},
+								dialogIframe: {
+									bodyCssClass: 'dialog-with-footer'
+								},
 								refreshWindow: window,
 								title: Liferay.Language.get('edit-calendar-booking'),
-								uri: Lang.sub(editCalendarBookingURL, data)
+								uri: CalendarUtil.fillURLParameters(editCalendarBookingURL, data)
 							}
 						);
 
@@ -405,7 +408,7 @@ AUI.add(
 								},
 								refreshWindow: window,
 								title: Liferay.Language.get('view-calendar-booking-details'),
-								uri: Lang.sub(viewCalendarBookingURL, data)
+								uri: CalendarUtil.fillURLParameters(viewCalendarBookingURL, data)
 							}
 						);
 

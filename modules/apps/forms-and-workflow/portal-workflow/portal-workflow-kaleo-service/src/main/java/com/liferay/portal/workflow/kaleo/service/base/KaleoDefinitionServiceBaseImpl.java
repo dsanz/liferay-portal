@@ -31,6 +31,7 @@ import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionService;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoActionPersistence;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoConditionPersistence;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoDefinitionPersistence;
+import com.liferay.portal.workflow.kaleo.service.persistence.KaleoDefinitionVersionPersistence;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoInstancePersistence;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoInstanceTokenPersistence;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoLogPersistence;
@@ -60,8 +61,10 @@ import javax.sql.DataSource;
  * @author Brian Wing Shun Chan
  * @see com.liferay.portal.workflow.kaleo.service.impl.KaleoDefinitionServiceImpl
  * @see com.liferay.portal.workflow.kaleo.service.KaleoDefinitionServiceUtil
+ * @deprecated As of 2.0.0, with no direct replacement
  * @generated
  */
+@Deprecated
 public abstract class KaleoDefinitionServiceBaseImpl extends BaseServiceImpl
 	implements KaleoDefinitionService, IdentifiableOSGiService {
 	/*
@@ -201,6 +204,44 @@ public abstract class KaleoDefinitionServiceBaseImpl extends BaseServiceImpl
 	public void setKaleoDefinitionPersistence(
 		KaleoDefinitionPersistence kaleoDefinitionPersistence) {
 		this.kaleoDefinitionPersistence = kaleoDefinitionPersistence;
+	}
+
+	/**
+	 * Returns the kaleo definition version local service.
+	 *
+	 * @return the kaleo definition version local service
+	 */
+	public com.liferay.portal.workflow.kaleo.service.KaleoDefinitionVersionLocalService getKaleoDefinitionVersionLocalService() {
+		return kaleoDefinitionVersionLocalService;
+	}
+
+	/**
+	 * Sets the kaleo definition version local service.
+	 *
+	 * @param kaleoDefinitionVersionLocalService the kaleo definition version local service
+	 */
+	public void setKaleoDefinitionVersionLocalService(
+		com.liferay.portal.workflow.kaleo.service.KaleoDefinitionVersionLocalService kaleoDefinitionVersionLocalService) {
+		this.kaleoDefinitionVersionLocalService = kaleoDefinitionVersionLocalService;
+	}
+
+	/**
+	 * Returns the kaleo definition version persistence.
+	 *
+	 * @return the kaleo definition version persistence
+	 */
+	public KaleoDefinitionVersionPersistence getKaleoDefinitionVersionPersistence() {
+		return kaleoDefinitionVersionPersistence;
+	}
+
+	/**
+	 * Sets the kaleo definition version persistence.
+	 *
+	 * @param kaleoDefinitionVersionPersistence the kaleo definition version persistence
+	 */
+	public void setKaleoDefinitionVersionPersistence(
+		KaleoDefinitionVersionPersistence kaleoDefinitionVersionPersistence) {
+		this.kaleoDefinitionVersionPersistence = kaleoDefinitionVersionPersistence;
 	}
 
 	/**
@@ -1004,6 +1045,10 @@ public abstract class KaleoDefinitionServiceBaseImpl extends BaseServiceImpl
 	protected KaleoDefinitionService kaleoDefinitionService;
 	@BeanReference(type = KaleoDefinitionPersistence.class)
 	protected KaleoDefinitionPersistence kaleoDefinitionPersistence;
+	@BeanReference(type = com.liferay.portal.workflow.kaleo.service.KaleoDefinitionVersionLocalService.class)
+	protected com.liferay.portal.workflow.kaleo.service.KaleoDefinitionVersionLocalService kaleoDefinitionVersionLocalService;
+	@BeanReference(type = KaleoDefinitionVersionPersistence.class)
+	protected KaleoDefinitionVersionPersistence kaleoDefinitionVersionPersistence;
 	@BeanReference(type = com.liferay.portal.workflow.kaleo.service.KaleoInstanceLocalService.class)
 	protected com.liferay.portal.workflow.kaleo.service.KaleoInstanceLocalService kaleoInstanceLocalService;
 	@BeanReference(type = KaleoInstancePersistence.class)

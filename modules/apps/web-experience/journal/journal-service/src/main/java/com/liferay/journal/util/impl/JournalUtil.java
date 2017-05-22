@@ -79,6 +79,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -836,6 +837,13 @@ public class JournalUtil {
 		return false;
 	}
 
+	public static boolean isSubscribedToArticle(
+		long companyId, long groupId, long userId, long articleId) {
+
+		return SubscriptionLocalServiceUtil.isSubscribed(
+			companyId, userId, JournalArticle.class.getName(), articleId);
+	}
+
 	public static boolean isSubscribedToFolder(
 			long companyId, long groupId, long userId, long folderId)
 		throws PortalException {
@@ -1434,7 +1442,7 @@ public class JournalUtil {
 			return;
 		}
 
-		if (_customTokens == null) {
+		if (MapUtil.isEmpty(_customTokens)) {
 			synchronized (JournalUtil.class) {
 				_customTokens = new HashMap<>();
 

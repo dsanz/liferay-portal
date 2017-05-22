@@ -93,16 +93,16 @@ public interface JournalArticleLocalizationModel extends BaseModel<JournalArticl
 	public void setCompanyId(long companyId);
 
 	/**
-	 * Returns the article p k of this journal article localization.
+	 * Returns the article pk of this journal article localization.
 	 *
-	 * @return the article p k of this journal article localization
+	 * @return the article pk of this journal article localization
 	 */
 	public long getArticlePK();
 
 	/**
-	 * Sets the article p k of this journal article localization.
+	 * Sets the article pk of this journal article localization.
 	 *
-	 * @param articlePK the article p k of this journal article localization
+	 * @param articlePK the article pk of this journal article localization
 	 */
 	public void setArticlePK(long articlePK);
 

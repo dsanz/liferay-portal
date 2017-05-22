@@ -107,30 +107,29 @@ public class ChildSitesItemSelectorViewDisplayContext
 
 		_groupParams.put("active", Boolean.TRUE);
 
-		Group parentGroup = GroupLocalServiceUtil.getGroup(getGroupId());
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
 		List<Group> parentGroups = new ArrayList<>();
 
-		parentGroups.add(parentGroup);
+		parentGroups.add(themeDisplay.getSiteGroup());
 
 		_groupParams.put("groupsTree", parentGroups);
 
 		_groupParams.put("site", Boolean.TRUE);
 
-		if (getGroupId() > 0) {
-			List<Long> excludedGroupIds = new ArrayList<>();
+		List<Long> excludedGroupIds = new ArrayList<>();
 
-			Group group = GroupLocalServiceUtil.getGroup(getGroupId());
+		Group group = themeDisplay.getSiteGroup();
 
-			if (group.isStagingGroup()) {
-				excludedGroupIds.add(group.getLiveGroupId());
-			}
-			else {
-				excludedGroupIds.add(getGroupId());
-			}
-
-			_groupParams.put("excludedGroupIds", excludedGroupIds);
+		if (group.isStagingGroup()) {
+			excludedGroupIds.add(group.getLiveGroupId());
 		}
+		else {
+			excludedGroupIds.add(themeDisplay.getSiteGroupId());
+		}
+
+		_groupParams.put("excludedGroupIds", excludedGroupIds);
 
 		return _groupParams;
 	}

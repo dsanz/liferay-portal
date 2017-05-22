@@ -14,17 +14,24 @@
 
 package com.liferay.portal.kernel.lock;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 
 /**
  * @author Tina Tian
  */
+@ProviderType
 public interface LockManager {
 
 	public void clear();
 
 	public Lock createLock(
 		long lockId, long companyId, long userId, String userName);
+
+	public Lock fetchLock(String className, long key);
+
+	public Lock fetchLock(String className, String key);
 
 	public Lock getLock(String className, long key) throws PortalException;
 
@@ -47,8 +54,18 @@ public interface LockManager {
 		throws PortalException;
 
 	public Lock lock(
+			long userId, String className, long key, String owner,
+			boolean inheritable, long expirationTime, boolean renew)
+		throws PortalException;
+
+	public Lock lock(
 			long userId, String className, String key, String owner,
 			boolean inheritable, long expirationTime)
+		throws PortalException;
+
+	public Lock lock(
+			long userId, String className, String key, String owner,
+			boolean inheritable, long expirationTime, boolean renew)
 		throws PortalException;
 
 	public Lock lock(String className, String key, String owner);

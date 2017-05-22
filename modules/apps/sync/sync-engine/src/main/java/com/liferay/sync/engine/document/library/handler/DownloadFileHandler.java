@@ -206,6 +206,11 @@ public class DownloadFileHandler extends BaseHandler {
 			}
 			else {
 				if (exists && (boolean)getParameterValue("patch")) {
+					if (_logger.isDebugEnabled()) {
+						_logger.debug(
+							"Patching {}", syncFile.getFilePathName());
+					}
+
 					Files.copy(
 						filePath, tempFilePath,
 						StandardCopyOption.REPLACE_EXISTING);

@@ -19,10 +19,14 @@ import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldType;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeSettings;
 import com.liferay.dynamic.data.mapping.internal.util.DDMImpl;
+import com.liferay.dynamic.data.mapping.io.DDMFormFieldJSONObjectTransformer;
 import com.liferay.dynamic.data.mapping.io.DDMFormJSONDeserializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormJSONSerializer;
+import com.liferay.dynamic.data.mapping.io.internal.DDMFormFieldJSONObjectTransformerImpl;
+import com.liferay.dynamic.data.mapping.io.internal.DDMFormFieldToJSONObjectTransformer;
 import com.liferay.dynamic.data.mapping.io.internal.DDMFormJSONDeserializerImpl;
 import com.liferay.dynamic.data.mapping.io.internal.DDMFormJSONSerializerImpl;
+import com.liferay.dynamic.data.mapping.io.internal.JSONObjectToDDMFormFieldTransformer;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayoutColumn;
@@ -40,8 +44,9 @@ import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.Field;
 import com.liferay.dynamic.data.mapping.storage.Fields;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormFieldTypeSettingsTestUtil;
-import com.liferay.portal.configuration.ConfigurationFactoryImpl;
 import com.liferay.portal.json.JSONFactoryImpl;
+import com.liferay.portal.kernel.configuration.Configuration;
+import com.liferay.portal.kernel.configuration.ConfigurationFactory;
 import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.language.Language;
@@ -51,9 +56,6 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
-import com.liferay.portal.kernel.util.Props;
-import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -64,6 +66,7 @@ import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.util.HtmlImpl;
 import com.liferay.portal.util.LocalizationImpl;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.xml.SAXReaderImpl;
 
 import java.io.IOException;
@@ -468,6 +471,36 @@ public abstract class BaseDDMTestCase extends PowerMockito {
 		return valuesMap;
 	}
 
+	protected DDMFormFieldJSONObjectTransformer
+			getDDMFormFieldJSONObjectTransformer()
+		throws Exception {
+
+		DDMFormFieldJSONObjectTransformer ddmFormFieldJSONObjectTransformer =
+			new DDMFormFieldJSONObjectTransformerImpl();
+
+		java.lang.reflect.Field field = ReflectionUtil.getDeclaredField(
+			DDMFormFieldJSONObjectTransformerImpl.class,
+			"ddmFormFieldToJSONObjectTransformer");
+
+		field.set(
+			ddmFormFieldJSONObjectTransformer,
+			new DDMFormFieldToJSONObjectTransformer(
+				getMockedDDMFormFieldTypeServicesTracker(),
+				new JSONFactoryImpl()));
+
+		field = ReflectionUtil.getDeclaredField(
+			DDMFormFieldJSONObjectTransformerImpl.class,
+			"jsonObjectToDDMFormFieldTransformer");
+
+		field.set(
+			ddmFormFieldJSONObjectTransformer,
+			new JSONObjectToDDMFormFieldTransformer(
+				getMockedDDMFormFieldTypeServicesTracker(),
+				new JSONFactoryImpl()));
+
+		return ddmFormFieldJSONObjectTransformer;
+	}
+
 	protected DDMFormFieldTypeServicesTracker
 		getMockedDDMFormFieldTypeServicesTracker() {
 
@@ -547,45 +580,52 @@ public abstract class BaseDDMTestCase extends PowerMockito {
 	}
 
 	protected void setUpConfigurationFactoryUtil() {
-		ConfigurationFactoryUtil.setConfigurationFactory(
-			new ConfigurationFactoryImpl());
+		mockStatic(ConfigurationFactoryUtil.class);
+
+		when(
+			_configurationFactory.getConfiguration(
+				Matchers.any(ClassLoader.class), Matchers.anyString())
+		).thenReturn(
+			_configuration
+		);
+
+		ConfigurationFactoryUtil.setConfigurationFactory(_configurationFactory);
 	}
 
 	protected void setUpDDMFormJSONDeserializer() throws Exception {
 
-		// DDM form field type services tracker
+		// DDM form field JSON transformer
 
 		java.lang.reflect.Field field = ReflectionUtil.getDeclaredField(
 			DDMFormJSONDeserializerImpl.class,
-			"_ddmFormFieldTypeServicesTracker");
+			"ddmFormFieldJSONObjectTransformer");
 
 		field.set(
-			ddmFormJSONDeserializer,
-			getMockedDDMFormFieldTypeServicesTracker());
+			ddmFormJSONDeserializer, getDDMFormFieldJSONObjectTransformer());
 
 		// JSON factory
 
 		field = ReflectionUtil.getDeclaredField(
-			DDMFormJSONDeserializerImpl.class, "_jsonFactory");
+			DDMFormJSONDeserializerImpl.class, "jsonFactory");
 
 		field.set(ddmFormJSONDeserializer, new JSONFactoryImpl());
 	}
 
 	protected void setUpDDMFormJSONSerializer() throws Exception {
 
-		// DDM form field type services tracker
+		// DDM form field JSON converter
 
 		java.lang.reflect.Field field = ReflectionUtil.getDeclaredField(
 			DDMFormJSONSerializerImpl.class,
-			"_ddmFormFieldTypeServicesTracker");
+			"ddmFormFieldJSONObjectTransformer");
 
 		field.set(
-			ddmFormJSONSerializer, getMockedDDMFormFieldTypeServicesTracker());
+			ddmFormJSONSerializer, getDDMFormFieldJSONObjectTransformer());
 
 		// JSON factory
 
 		field = ReflectionUtil.getDeclaredField(
-			DDMFormJSONSerializerImpl.class, "_jsonFactory");
+			DDMFormJSONSerializerImpl.class, "jsonFactory");
 
 		field.set(ddmFormJSONSerializer, new JSONFactoryImpl());
 	}
@@ -797,22 +837,8 @@ public abstract class BaseDDMTestCase extends PowerMockito {
 		);
 	}
 
-	protected void setUpPropsUtil() throws Exception {
-		Props props = mock(Props.class);
-
-		when(
-			props.get(PropsKeys.INDEX_DATE_FORMAT_PATTERN)
-		).thenReturn(
-			"yyyyMMddHHmmss"
-		);
-
-		when(
-			props.get(PropsKeys.XML_SECURITY_ENABLED)
-		).thenReturn(
-			Boolean.TRUE.toString()
-		);
-
-		PropsUtil.setProps(props);
+	protected void setUpPropsValues() {
+		mockStatic(PropsValues.class);
 	}
 
 	protected void setUpResourceBundleUtil() {
@@ -932,6 +958,12 @@ public abstract class BaseDDMTestCase extends PowerMockito {
 
 	@Mock
 	private ClassLoader _classLoader;
+
+	@Mock
+	private Configuration _configuration;
+
+	@Mock
+	private ConfigurationFactory _configurationFactory;
 
 	@Mock
 	private DDMFormFieldType _defaultDDMFormFieldType;

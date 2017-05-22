@@ -25,7 +25,6 @@ import com.liferay.asset.publisher.test.util.AssetPublisherTestUtil;
 import com.liferay.asset.publisher.web.constants.AssetPublisherPortletKeys;
 import com.liferay.asset.publisher.web.display.context.AssetEntryResult;
 import com.liferay.asset.publisher.web.display.context.AssetPublisherDisplayContext;
-import com.liferay.asset.publisher.web.util.AssetPublisherCustomizer;
 import com.liferay.asset.publisher.web.util.AssetPublisherUtil;
 import com.liferay.asset.publisher.web.util.DefaultAssetPublisherCustomizer;
 import com.liferay.document.library.kernel.model.DLFileEntry;
@@ -975,7 +974,8 @@ public class AssetPublisherExportImportTest
 		List<AssetEntry> actualAssetEntries) {
 
 		Assert.assertEquals(
-			expectedAssetEntries.size(), actualAssetEntries.size());
+			actualAssetEntries.toString(), expectedAssetEntries.size(),
+			actualAssetEntries.size());
 
 		Iterator<AssetEntry> expectedAssetEntriesIterator =
 			expectedAssetEntries.iterator();
@@ -1109,6 +1109,11 @@ public class AssetPublisherExportImportTest
 				ServiceContextTestUtil.getServiceContext());
 		}
 
+		DefaultAssetPublisherCustomizer defaultAssetPublisherCustomizer =
+			new DefaultAssetPublisherCustomizer();
+
+		defaultAssetPublisherCustomizer.activate(new HashMap<String, Object>());
+
 		MockPortletRequest mockPortletRequest = new MockPortletRequest();
 
 		MockHttpServletRequest mockHttpServletRequest =
@@ -1146,12 +1151,9 @@ public class AssetPublisherExportImportTest
 		mockHttpServletRequest.setAttribute(
 			JavaConstants.JAVAX_PORTLET_REQUEST, mockPortletRequest);
 
-		AssetPublisherCustomizer assetPublisherCustomizer =
-			new DefaultAssetPublisherCustomizer();
-
 		AssetPublisherDisplayContext assetPublisherDisplayContext =
 			new AssetPublisherDisplayContext(
-				assetPublisherCustomizer, mockPortletRequest,
+				defaultAssetPublisherCustomizer, mockPortletRequest,
 				new MockPortletResponse(), portletPreferences);
 
 		SearchContainer<AssetEntry> searchContainer = new SearchContainer<>();

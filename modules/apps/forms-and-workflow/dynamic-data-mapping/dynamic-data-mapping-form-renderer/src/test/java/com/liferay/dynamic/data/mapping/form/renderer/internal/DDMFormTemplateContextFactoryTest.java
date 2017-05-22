@@ -14,11 +14,9 @@
 
 package com.liferay.dynamic.data.mapping.form.renderer.internal;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluationResult;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluator;
+import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluatorContext;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
 import com.liferay.dynamic.data.mapping.internal.util.DDMImpl;
@@ -28,10 +26,8 @@ import com.liferay.dynamic.data.mapping.io.DDMFormLayoutJSONSerializer;
 import com.liferay.dynamic.data.mapping.io.internal.DDMFormJSONSerializerImpl;
 import com.liferay.dynamic.data.mapping.io.internal.DDMFormLayoutJSONSerializerImpl;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
-import com.liferay.dynamic.data.mapping.model.DDMFormField;
-import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
-import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
+import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceService;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONFactory;
@@ -41,7 +37,6 @@ import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.ReflectionUtil;
-import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.util.PortalImpl;
 
@@ -51,7 +46,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.Set;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -65,18 +59,18 @@ import org.junit.runner.RunWith;
 
 import org.mockito.Matchers;
 
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Marcellus Tavares
  */
 @RunWith(PowerMockRunner.class)
-public class DDMFormTemplateContextFactoryTest {
+public class DDMFormTemplateContextFactoryTest extends PowerMockito {
 
 	@Before
 	public void setUp() throws Exception {
-		_ddmFormTemplateContextFactory =
-			new DDMFormTemplateContextFactoryImpl();
+		setUpDDMFormTemplateContextFactory();
 
 		setUpDDM();
 		setUpDDMFormContextProviderServlet();
@@ -142,53 +136,6 @@ public class DDMFormTemplateContextFactoryTest {
 
 		Assert.assertEquals(
 			expectedEvaluatorURL, templateContext.get("evaluatorURL"));
-	}
-
-	@Test
-	public void testGetEvaluableFieldNames() throws Exception {
-		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
-
-		ddmForm.addDDMFormField(
-			DDMFormTestUtil.createTextDDMFormField(
-				"Field0", false, false, false));
-		ddmForm.addDDMFormField(
-			DDMFormTestUtil.createTextDDMFormField(
-				"Field1", false, false, false));
-		ddmForm.addDDMFormField(
-			DDMFormTestUtil.createTextDDMFormField(
-				"Field2", false, false, true));
-
-		DDMFormField ddmFormField3 = DDMFormTestUtil.createTextDDMFormField(
-			"Field3", false, false, false);
-
-		ddmFormField3.setVisibilityExpression("equals(Field0, 'Joe')");
-
-		ddmForm.addDDMFormField(ddmFormField3);
-
-		DDMFormField ddmFormField4 = DDMFormTestUtil.createTextDDMFormField(
-			"Field4", false, false, false);
-
-		DDMFormFieldValidation ddmFormFieldValidation =
-			new DDMFormFieldValidation();
-
-		ddmFormFieldValidation.setExpression("isEmailAddress(Field4)");
-
-		ddmFormField4.setDDMFormFieldValidation(ddmFormFieldValidation);
-
-		ddmForm.addDDMFormField(ddmFormField4);
-
-		DDMFormTemplateContextFactoryImpl ddmFormTemplateContextFactoryIml =
-			new DDMFormTemplateContextFactoryImpl();
-
-		Set<String> expectedEvaluableFieldNames = SetUtil.fromArray(
-			new String[] {"Field0", "Field2", "Field4"});
-
-		Set<String> actualEvaluableFieldNames =
-			ddmFormTemplateContextFactoryIml.getEvaluableDDMFormFieldNames(
-				ddmForm);
-
-		Assert.assertEquals(
-			expectedEvaluableFieldNames, actualEvaluableFieldNames);
 	}
 
 	@Test
@@ -464,8 +411,7 @@ public class DDMFormTemplateContextFactoryTest {
 
 		when(
 			ddmFormEvaluator.evaluate(
-				Matchers.any(DDMForm.class), Matchers.any(DDMFormValues.class),
-				Matchers.any(Locale.class))
+				Matchers.any(DDMFormEvaluatorContext.class))
 		).thenReturn(
 			new DDMFormEvaluationResult()
 		);
@@ -521,6 +467,23 @@ public class DDMFormTemplateContextFactoryTest {
 
 		setDeclaredField(
 			ddmFormLayoutJSONSerializer, "_jsonFactory", _jsonFactory);
+	}
+
+	protected void setUpDDMFormTemplateContextFactory() throws Exception {
+		_ddmFormTemplateContextFactory =
+			new DDMFormTemplateContextFactoryImpl();
+
+		DDMDataProviderInstanceService ddmDataProviderInstanceService = mock(
+			DDMDataProviderInstanceService.class);
+
+		field(
+			DDMFormTemplateContextFactoryImpl.class,
+			"_ddmFormTemplateContextFactoryHelper"
+		).set(
+			_ddmFormTemplateContextFactory,
+			new DDMFormTemplateContextFactoryHelper(
+				ddmDataProviderInstanceService)
+		);
 	}
 
 	protected void setUpJSONFactory() throws Exception {

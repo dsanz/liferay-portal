@@ -77,6 +77,7 @@ AUI.add(
 						fieldName: instance.get('fieldName'),
 						parent: instance.get('parent'),
 						portletNamespace: instance.get('portletNamespace'),
+						repeatable: instance.get('repeatable'),
 						repeatedIndex: repetitions.length,
 						repetitions: repetitions,
 						type: instance.get('type'),

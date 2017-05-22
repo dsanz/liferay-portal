@@ -86,8 +86,7 @@
 		<execute macro="FormRules#configureActionOptions">
 			<var name="action" value="Jump to Page" />
 			<var name="actionRowNumber" value="1" />
-			<var name="actionTarget" value="Page 1" />
-			<var name="actionTarget2" value="Page 3" />
+			<var name="actionTarget" value="3 Page 3" />
 		</execute>
 
 		<execute macro="FormRules#save" />
@@ -105,8 +104,7 @@
 		<execute macro="FormRules#configureActionOptions">
 			<var name="action" value="Jump to Page" />
 			<var name="actionRowNumber" value="1" />
-			<var name="actionTarget" value="Page 1" />
-			<var name="actionTarget2" value="Page 4" />
+			<var name="actionTarget" value="4 Page 4" />
 		</execute>
 
 		<execute macro="FormRules#save" />
@@ -144,9 +142,8 @@
 		<execute macro="FormsAdminNavigator#gotoRules" />
 
 		<execute macro="FormRules#viewSummary">
-			<var name="action" value="Jump from page" />
-			<var name="actionTarget" value="Page 1" />
-			<var name="actionTarget2" value="Page 3" />
+			<var name="action" value="Jump to Page" />
+			<var name="actionTarget" value="3 Page 3" />
 			<var name="conditionField" value="Choose Your Destiny" />
 			<var name="conditionFieldConstant" value="Destiny 2" />
 			<var name="conditionOperator" value="equal to" />
@@ -154,9 +151,8 @@
 		</execute>
 
 		<execute macro="FormRules#viewSummary">
-			<var name="action" value="Jump from page" />
-			<var name="actionTarget" value="Page 1" />
-			<var name="actionTarget2" value="Page 4" />
+			<var name="action" value="Jump to Page" />
+			<var name="actionTarget" value="4 Page 4" />
 			<var name="conditionField" value="Choose Your Destiny" />
 			<var name="conditionFieldConstant" value="Destiny 3" />
 			<var name="conditionOperator" value="equal to" />
@@ -168,19 +164,10 @@
 		<description message="This is a use case for LPS-69372." />
 		<property name="portal.acceptance" value="pending" />
 
-		<execute macro="FormsAdminNavigator#gotoPublish" />
+		<execute macro="Form#publishForm" />
 
-		<execute macro="Form#clickPublishSwitcher" />
-
-		<execute macro="Form#getPublishedFormPublicURL">
-			<return from="publicURL" name="publicURL" />
-			<var name="publicURL" value="${publicURL}" />
-		</execute>
-
-		<execute macro="Button#clickConfirm" />
-
-		<execute macro="Navigator#openSpecificURL">
-			<var name="url" value="${publicURL}" />
+		<execute macro="FormsAdminNavigator#openPublishURL">
+			<var name="publishFormURL" value="${publishedFormPublicURL}" />
 		</execute>
 
 		<for list="1,2,3" param="option">
@@ -308,6 +295,6 @@
 
 		<var name="key_actionRowNumber" value="1" />
 
-		<execute function="AssertTextEquals" locator1="FormRules#RULE_BUILDER_ACTION_TARGET_FIELD_2" value1="Renamed Page" />
+		<execute function="AssertTextEquals" locator1="FormRules#RULE_BUILDER_JUMP_TO_PAGE_ACTION_TARGET" value1="3 Renamed Page" />
 	</command>
 </definition>

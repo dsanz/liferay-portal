@@ -28,10 +28,14 @@ import com.liferay.asset.kernel.service.AssetCategoryLocalServiceUtil;
 import com.liferay.asset.kernel.service.AssetCategoryServiceUtil;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalServiceUtil;
 import com.liferay.asset.kernel.service.AssetVocabularyServiceUtil;
+import com.liferay.exportimport.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
+import com.liferay.portal.kernel.exception.NoSuchModelException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
@@ -40,6 +44,7 @@ import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -50,7 +55,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portlet.asset.service.permission.AssetPermission;
+import com.liferay.portlet.asset.service.permission.AssetCategoriesPermission;
+import com.liferay.portlet.asset.service.permission.AssetCategoryPermission;
+import com.liferay.portlet.asset.service.permission.AssetVocabularyPermission;
 import com.liferay.portlet.asset.util.comparator.AssetCategoryCreateDateComparator;
 import com.liferay.portlet.asset.util.comparator.AssetVocabularyCreateDateComparator;
 
@@ -103,10 +110,22 @@ public class AssetCategoriesDisplayContext {
 					ClassTypeReader classTypeReader =
 						assetRendererFactory.getClassTypeReader();
 
-					ClassType classType = classTypeReader.getClassType(
-						classTypePK, themeDisplay.getLocale());
+					try {
+						ClassType classType = classTypeReader.getClassType(
+							classTypePK, themeDisplay.getLocale());
 
-					name = classType.getName();
+						name = classType.getName();
+					}
+					catch (NoSuchModelException nsme) {
+						if (_log.isDebugEnabled()) {
+							_log.debug(
+								"Unable to get asset type for class type " +
+									"primary key " + classTypePK,
+								nsme);
+						}
+
+						continue;
+					}
 				}
 				else {
 					name = ResourceActionsUtil.getModelResource(
@@ -122,7 +141,11 @@ public class AssetCategoriesDisplayContext {
 				sb.append(StringPool.STAR);
 			}
 
-			sb.append(StringPool.COMMA);
+			sb.append(StringPool.COMMA_AND_SPACE);
+		}
+
+		if (sb.index() == 0) {
+			return StringPool.BLANK;
 		}
 
 		sb.setIndex(sb.index() - 1);
@@ -529,6 +552,50 @@ public class AssetCategoriesDisplayContext {
 		return _vocabularyId;
 	}
 
+	public boolean hasPermission(AssetCategory category, String actionId)
+		throws PortalException {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PermissionChecker permissionChecker =
+			themeDisplay.getPermissionChecker();
+
+		Boolean hasPermission = StagingPermissionUtil.hasPermission(
+			permissionChecker, themeDisplay.getScopeGroupId(),
+			AssetCategory.class.getName(), category.getCategoryId(),
+			AssetCategoriesAdminPortletKeys.ASSET_CATEGORIES_ADMIN, actionId);
+
+		if (hasPermission != null) {
+			return hasPermission.booleanValue();
+		}
+
+		return AssetCategoryPermission.contains(
+			permissionChecker, category, actionId);
+	}
+
+	public boolean hasPermission(AssetVocabulary vocabulary, String actionId)
+		throws PortalException {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PermissionChecker permissionChecker =
+			themeDisplay.getPermissionChecker();
+
+		Boolean hasPermission = StagingPermissionUtil.hasPermission(
+			permissionChecker, themeDisplay.getScopeGroupId(),
+			AssetVocabulary.class.getName(), vocabulary.getVocabularyId(),
+			AssetCategoriesAdminPortletKeys.ASSET_CATEGORIES_ADMIN, actionId);
+
+		if (hasPermission != null) {
+			return hasPermission.booleanValue();
+		}
+
+		return AssetVocabularyPermission.contains(
+			permissionChecker, vocabulary, actionId);
+	}
+
 	public boolean isDisabledCategoriesManagementBar() throws PortalException {
 		SearchContainer categoriesSearchContainer =
 			getCategoriesSearchContainer();
@@ -557,8 +624,10 @@ public class AssetCategoriesDisplayContext {
 		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (AssetPermission.contains(
+		if (AssetCategoriesPermission.contains(
 				themeDisplay.getPermissionChecker(),
+				AssetCategoriesPermission.RESOURCE_NAME,
+				AssetCategoriesAdminPortletKeys.ASSET_CATEGORIES_ADMIN,
 				themeDisplay.getSiteGroupId(), ActionKeys.ADD_CATEGORY)) {
 
 			return true;
@@ -586,8 +655,10 @@ public class AssetCategoriesDisplayContext {
 		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (AssetPermission.contains(
+		if (AssetCategoriesPermission.contains(
 				themeDisplay.getPermissionChecker(),
+				AssetCategoriesPermission.RESOURCE_NAME,
+				AssetCategoriesAdminPortletKeys.ASSET_CATEGORIES_ADMIN,
 				themeDisplay.getSiteGroupId(), ActionKeys.ADD_VOCABULARY)) {
 
 			return true;
@@ -610,6 +681,9 @@ public class AssetCategoriesDisplayContext {
 
 		return false;
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		AssetCategoriesDisplayContext.class);
 
 	private SearchContainer _categoriesSearchContainer;
 	private AssetCategory _category;

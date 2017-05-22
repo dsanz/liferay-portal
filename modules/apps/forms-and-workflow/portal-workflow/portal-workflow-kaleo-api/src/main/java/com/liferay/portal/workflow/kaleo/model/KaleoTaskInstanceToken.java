@@ -56,6 +56,8 @@ public interface KaleoTaskInstanceToken extends KaleoTaskInstanceTokenModel,
 			}
 		};
 
+	public KaleoTaskAssignmentInstance getFirstKaleoTaskAssignmentInstance();
+
 	public KaleoInstanceToken getKaleoInstanceToken()
 		throws com.liferay.portal.kernel.exception.PortalException;
 

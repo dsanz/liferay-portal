@@ -40,7 +40,7 @@ if (bodyContent != null) {
 					icon="exclamation-full"
 					message="<%= bodyContentString %>"
 					targetNode="<%= targetNode %>"
-					timeout="0"
+					timeout="<%= 0 %>"
 					type="danger"
 				/>
 
@@ -64,24 +64,22 @@ if (bodyContent != null) {
 			icon="exclamation-full"
 			message="<%= alertMessage %>"
 			targetNode="<%= targetNode %>"
-			timeout="0"
+			timeout="<%= 0 %>"
 			type="warning"
 		/>
 
 		<%= rowBreak %>
 	</c:when>
 	<c:when test="<%= key == null %>">
-		<c:if test="<%= !SessionErrors.isEmpty(portletRequest) %>">
-			<liferay-ui:alert
-				icon="exclamation-full"
-				message='<%= LanguageUtil.get(resourceBundle, "your-request-failed-to-complete") %>'
-				targetNode="<%= targetNode %>"
-				timeout="0"
-				type="danger"
-			/>
+		<liferay-ui:alert
+			icon="exclamation-full"
+			message='<%= LanguageUtil.get(resourceBundle, "your-request-failed-to-complete") %>'
+			targetNode="<%= targetNode %>"
+			timeout="<%= 0 %>"
+			type="danger"
+		/>
 
-			<%= rowBreak %>
-		</c:if>
+		<%= rowBreak %>
 	</c:when>
 	<c:otherwise>
 		<c:if test="<%= SessionErrors.contains(portletRequest, key) %>">
@@ -89,7 +87,7 @@ if (bodyContent != null) {
 				icon="exclamation-full"
 				message="<%= translateMessage ? LanguageUtil.get(resourceBundle, message) : message %>"
 				targetNode="<%= targetNode %>"
-				timeout="0"
+				timeout="<%= 0 %>"
 				type="danger"
 			/>
 

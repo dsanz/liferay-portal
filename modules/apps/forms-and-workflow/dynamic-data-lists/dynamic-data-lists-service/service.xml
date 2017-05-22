@@ -27,6 +27,7 @@
 
 		<column name="DDMStorageId" type="long" />
 		<column name="recordSetId" type="long" />
+		<column name="recordSetVersion" type="String" />
 		<column name="version" type="String" />
 		<column name="displayIndex" type="int" />
 		<column name="lastPublishDate" type="Date" />
@@ -42,6 +43,10 @@
 		<finder name="R_U" return-type="Collection">
 			<finder-column name="recordSetId" />
 			<finder-column name="userId" />
+		</finder>
+		<finder name="R_R" return-type="Collection">
+			<finder-column name="recordSetId" />
+			<finder-column name="recordSetVersion" />
 		</finder>
 
 		<!-- References -->
@@ -68,6 +73,8 @@
 		<column name="companyId" type="long" />
 		<column name="userId" type="long" />
 		<column name="userName" type="String" />
+		<column name="versionUserId" type="long" />
+		<column name="versionUserName" type="String" />
 		<column name="createDate" type="Date" />
 		<column name="modifiedDate" type="Date" />
 
@@ -75,6 +82,7 @@
 
 		<column name="DDMStructureId" type="long" />
 		<column name="recordSetKey" type="String" />
+		<column name="version" type="String" />
 		<column localized="true" name="name" type="String" />
 		<column localized="true" name="description" type="String" />
 		<column name="minDisplayRows" type="int" />
@@ -95,10 +103,55 @@
 		<!-- References -->
 
 		<reference entity="DDLRecord" package-path="com.liferay.dynamic.data.lists" />
+		<reference entity="DDLRecordSetVersion" package-path="com.liferay.dynamic.data.lists" />
 		<reference entity="ClassName" package-path="com.liferay.portal" />
 		<reference entity="Resource" package-path="com.liferay.portal" />
 		<reference entity="User" package-path="com.liferay.portal" />
 		<reference entity="WorkflowDefinitionLink" package-path="com.liferay.portal" />
+	</entity>
+	<entity local-service="true" name="DDLRecordSetVersion" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="recordSetVersionId" primary="true" type="long" />
+
+		<!-- Group instance -->
+
+		<column name="groupId" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="recordSetId" type="long" />
+		<column name="DDMStructureVersionId" type="long" />
+		<column localized="true" name="name" type="String" />
+		<column localized="true" name="description" type="String" />
+		<column name="settings" type="String" />
+		<column name="version" type="String" />
+		<column name="status" type="int" />
+		<column name="statusByUserId" type="long" />
+		<column name="statusByUserName" type="String" />
+		<column name="statusDate" type="Date" />
+
+		<!-- Finder methods -->
+
+		<finder name="RecordSetId" return-type="Collection">
+			<finder-column name="recordSetId" />
+		</finder>
+		<finder name="RS_V" return-type="DDLRecordSetVersion" unique="true">
+			<finder-column name="recordSetId" />
+			<finder-column name="version" />
+		</finder>
+		<finder name="RS_S" return-type="Collection">
+			<finder-column name="recordSetId" />
+			<finder-column name="status" />
+		</finder>
 	</entity>
 	<entity local-service="true" name="DDLRecordVersion" remote-service="true">
 
@@ -121,6 +174,7 @@
 
 		<column name="DDMStorageId" type="long" />
 		<column name="recordSetId" type="long" />
+		<column name="recordSetVersion" type="String" />
 		<column name="recordId" type="long" />
 		<column name="version" type="String" />
 		<column name="displayIndex" type="int" />
@@ -134,6 +188,10 @@
 		<finder name="RecordId" return-type="Collection">
 			<finder-column name="recordId" />
 		</finder>
+		<finder name="R_R" return-type="Collection">
+			<finder-column name="recordSetId" />
+			<finder-column name="recordSetVersion" />
+		</finder>
 		<finder name="R_V" return-type="DDLRecordVersion" unique="true">
 			<finder-column name="recordId" />
 			<finder-column name="version" />
@@ -142,11 +200,18 @@
 			<finder-column name="recordId" />
 			<finder-column name="status" />
 		</finder>
+		<finder name="U_R_R_S" return-type="Collection">
+			<finder-column name="userId" />
+			<finder-column name="recordSetId" />
+			<finder-column name="recordSetVersion" />
+			<finder-column name="status" type="int" />
+		</finder>
 	</entity>
 	<exceptions>
 		<exception>RecordGroupId</exception>
 		<exception>RecordSetDDMStructureId</exception>
 		<exception>RecordSetDuplicateRecordSetKey</exception>
 		<exception>RecordSetName</exception>
+		<exception>RecordSetSettingsRedirectURL</exception>
 	</exceptions>
 </service-builder>

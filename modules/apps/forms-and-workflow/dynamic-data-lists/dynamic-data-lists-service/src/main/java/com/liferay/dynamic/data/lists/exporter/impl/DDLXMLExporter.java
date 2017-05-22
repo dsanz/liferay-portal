@@ -14,7 +14,6 @@
 
 package com.liferay.dynamic.data.lists.exporter.impl;
 
-import com.liferay.dynamic.data.lists.exporter.DDLExporter;
 import com.liferay.dynamic.data.lists.model.DDLRecord;
 import com.liferay.dynamic.data.lists.model.DDLRecordSet;
 import com.liferay.dynamic.data.lists.model.DDLRecordVersion;
@@ -39,14 +38,14 @@ import java.io.Serializable;
 
 import java.util.List;
 
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Marcellus Tavares
  * @author Manuel de la Peña
+ * @deprecated As of 1.1.0, with no direct replacement
  */
-@Component(immediate = true, service = DDLExporter.class)
+@Deprecated
 public class DDLXMLExporter extends BaseDDLExporter {
 
 	@Override

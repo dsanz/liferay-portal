@@ -4,13 +4,10 @@ apply plugin: "java"
 task runGradleTest
 
 buildLang {
-	translateClientId = project.properties["microsoft.translator.client.id"]
-	translateClientSecret = project.properties["microsoft.translator.client.secret"]
+	translateSubscriptionKey = project.properties["microsoft.translator.subscription.key"]
 }
 
 repositories {
-	mavenLocal()
-
 	maven {
 		url "https://cdn.lfrs.sl/repository.liferay.com/nexus/content/groups/public"
 	}

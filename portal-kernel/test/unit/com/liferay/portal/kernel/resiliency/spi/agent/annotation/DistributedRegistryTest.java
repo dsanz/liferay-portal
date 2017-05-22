@@ -54,7 +54,8 @@ public class DistributedRegistryTest {
 	public void testClassRegisterAndUnregister() {
 		DistributedRegistry.registerDistributed(ChildClass.class);
 
-		Assert.assertEquals(3, _exactDirections.size());
+		Assert.assertEquals(
+			_exactDirections.toString(), 3, _exactDirections.size());
 		Assert.assertEquals(
 			Direction.REQUEST, _exactDirections.get(ChildClass.name1));
 		Assert.assertEquals(
@@ -62,7 +63,8 @@ public class DistributedRegistryTest {
 		Assert.assertEquals(
 			Direction.REQUEST, _exactDirections.get(ChildClass.name10));
 
-		Assert.assertEquals(3, _postfixDirections.size());
+		Assert.assertEquals(
+			_postfixDirections.toString(), 3, _postfixDirections.size());
 		Assert.assertEquals(
 			Direction.RESPONSE, _postfixDirections.get(ChildClass.name2));
 		Assert.assertEquals(
@@ -70,7 +72,8 @@ public class DistributedRegistryTest {
 		Assert.assertEquals(
 			Direction.RESPONSE, _postfixDirections.get(ChildClass.name11));
 
-		Assert.assertEquals(3, _prefixDirections.size());
+		Assert.assertEquals(
+			_prefixDirections.toString(), 3, _prefixDirections.size());
 		Assert.assertEquals(
 			Direction.DUPLEX, _prefixDirections.get(ChildClass.name3));
 		Assert.assertEquals(
@@ -89,7 +92,6 @@ public class DistributedRegistryTest {
 
 			Assert.fail();
 		}
-
 		catch (RuntimeException re) {
 			Throwable throwable = re.getCause();
 
@@ -211,7 +213,8 @@ public class DistributedRegistryTest {
 		DistributedRegistry.registerDistributed(
 			"name1", Direction.REQUEST, MatchType.EXACT);
 
-		Assert.assertEquals(1, _exactDirections.size());
+		Assert.assertEquals(
+			_exactDirections.toString(), 1, _exactDirections.size());
 		Assert.assertTrue(_postfixDirections.isEmpty());
 		Assert.assertTrue(_prefixDirections.isEmpty());
 		Assert.assertEquals(Direction.REQUEST, _exactDirections.get("name1"));
@@ -238,7 +241,8 @@ public class DistributedRegistryTest {
 		DistributedRegistry.registerDistributed(
 			"name2", Direction.RESPONSE, MatchType.POSTFIX);
 
-		Assert.assertEquals(1, _postfixDirections.size());
+		Assert.assertEquals(
+			_postfixDirections.toString(), 1, _postfixDirections.size());
 		Assert.assertTrue(_exactDirections.isEmpty());
 		Assert.assertTrue(_prefixDirections.isEmpty());
 		Assert.assertEquals(
@@ -266,7 +270,8 @@ public class DistributedRegistryTest {
 		DistributedRegistry.registerDistributed(
 			"name3", Direction.DUPLEX, MatchType.PREFIX);
 
-		Assert.assertEquals(1, _prefixDirections.size());
+		Assert.assertEquals(
+			_prefixDirections.toString(), 1, _prefixDirections.size());
 		Assert.assertTrue(_exactDirections.isEmpty());
 		Assert.assertTrue(_postfixDirections.isEmpty());
 		Assert.assertEquals(Direction.DUPLEX, _prefixDirections.get("name3"));
@@ -307,7 +312,8 @@ public class DistributedRegistryTest {
 		public static final String name10 = "nam10";
 
 		@Distributed(
-			direction = Direction.RESPONSE, matchType = MatchType.POSTFIX)
+			direction = Direction.RESPONSE, matchType = MatchType.POSTFIX
+		)
 		public static final String name11 = "name11";
 
 		@Distributed(direction = Direction.DUPLEX, matchType = MatchType.PREFIX)

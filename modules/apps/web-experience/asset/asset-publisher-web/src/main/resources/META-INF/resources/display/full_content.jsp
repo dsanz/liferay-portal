@@ -46,12 +46,13 @@ String languageId = LanguageUtil.getLanguageId(request);
 String title = assetRenderer.getTitle(LocaleUtil.fromLanguageId(languageId));
 
 boolean print = ((Boolean)request.getAttribute("view.jsp-print")).booleanValue();
+boolean workflowEnabled = WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(assetEntry.getCompanyId(), assetEntry.getGroupId(), assetEntry.getClassName());
 
 assetPublisherDisplayContext.setLayoutAssetEntry(assetEntry);
 
 assetEntry = assetPublisherDisplayContext.incrementViewCounter(assetEntry);
 
-request.setAttribute("view.jsp-fullContentRedirect", currentURL);
+request.setAttribute("view.jsp-fullContentRedirect", workflowEnabled ? redirect : currentURL);
 request.setAttribute("view.jsp-showIconLabel", true);
 %>
 
@@ -161,11 +162,20 @@ request.setAttribute("view.jsp-showIconLabel", true);
 		</c:if>
 
 		<c:if test="<%= assetPublisherDisplayContext.isEnableFlags() %>">
+
+			<%
+			TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(assetRenderer.getClassName());
+
+			boolean inTrash = trashHandler.isInTrash(assetEntry.getClassPK());
+			%>
+
 			<div class="asset-flag">
 				<liferay-flags:flags
 					className="<%= assetEntry.getClassName() %>"
 					classPK="<%= assetEntry.getClassPK() %>"
 					contentTitle="<%= title %>"
+					enabled="<%= !inTrash %>"
+					message='<%= inTrash ? "flags-are-disabled-because-this-entry-is-in-the-recycle-bin" : StringPool.BLANK %>'
 					reportedUserId="<%= assetRenderer.getUserId() %>"
 				/>
 			</div>
@@ -187,9 +197,20 @@ request.setAttribute("view.jsp-showIconLabel", true);
 		</c:if>
 
 		<c:if test="<%= assetPublisherDisplayContext.isEnableRelatedAssets() %>">
+
+			<%
+			PortletURL assetLingsURL = renderResponse.createRenderURL();
+
+			assetLingsURL.setParameter("mvcPath", "/view_content.jsp");
+
+			if (print) {
+				assetLingsURL.setParameter("viewMode", Constants.PRINT);
+			}
+			%>
+
 			<liferay-ui:asset-links
 				assetEntryId="<%= assetEntry.getEntryId() %>"
-				portletURL="<%= viewFullContentURL %>"
+				portletURL="<%= assetLingsURL %>"
 			/>
 		</c:if>
 

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.osgi.web.servlet.jsp.compiler.internal;
 
+import com.liferay.portal.kernel.exception.PortalException;
+
 import java.io.IOException;
 
 import java.net.URL;
@@ -30,7 +32,7 @@ import org.osgi.framework.Bundle;
 public class JspBundleClassloader extends URLClassLoader {
 
 	public JspBundleClassloader(Bundle... bundles) {
-		super(new URL[0]);
+		super(new URL[0], PortalException.class.getClassLoader());
 
 		if (bundles.length == 0) {
 			throw new IllegalArgumentException(

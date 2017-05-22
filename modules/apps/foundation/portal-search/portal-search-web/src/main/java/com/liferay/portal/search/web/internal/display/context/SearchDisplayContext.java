@@ -17,16 +17,17 @@ package com.liferay.portal.search.web.internal.display.context;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.Document;
+import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchContextFactory;
-import com.liferay.portal.kernel.search.facet.AssetEntriesFacet;
 import com.liferay.portal.kernel.search.facet.Facet;
-import com.liferay.portal.kernel.search.facet.ScopeFacet;
-import com.liferay.portal.kernel.search.facet.faceted.searcher.FacetedSearcher;
 import com.liferay.portal.kernel.search.facet.faceted.searcher.FacetedSearcherManager;
+import com.liferay.portal.kernel.search.generic.BooleanClauseImpl;
+import com.liferay.portal.kernel.search.generic.TermQueryImpl;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Html;
@@ -40,8 +41,14 @@ import com.liferay.portal.search.web.constants.SearchPortletParameterNames;
 import com.liferay.portal.search.web.facet.SearchFacet;
 import com.liferay.portal.search.web.facet.util.SearchFacetTracker;
 import com.liferay.portal.search.web.internal.portlet.SearchPortletSearchResultPreferences;
+import com.liferay.portal.search.web.internal.search.request.SearchRequestImpl;
+import com.liferay.portal.search.web.internal.search.request.SearchResponseImpl;
+import com.liferay.portal.search.web.search.request.SearchSettings;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.portlet.PortletException;
 import javax.portlet.PortletPreferences;
@@ -61,7 +68,7 @@ public class SearchDisplayContext {
 			FacetedSearcherManager facetedSearcherManager,
 			IndexSearchPropsValues indexSearchPropsValues,
 			PortletURLFactory portletURLFactory)
-		throws Exception {
+		throws PortletException {
 
 		_renderRequest = renderRequest;
 		_portletPreferences = portletPreferences;
@@ -83,8 +90,8 @@ public class SearchDisplayContext {
 
 		if (keywords == null) {
 			_hits = null;
-			_searchContext = null;
 			_searchContainer = null;
+			_searchContext = null;
 
 			return;
 		}
@@ -99,32 +106,20 @@ public class SearchDisplayContext {
 		SearchContainer<Document> searchContainer = new SearchContainer<>(
 			_renderRequest, getPortletURL(), null, emptyResultMessage);
 
-		FacetedSearcher facetedSearcher =
-			facetedSearcherManager.createFacetedSearcher();
-
 		SearchContext searchContext = SearchContextFactory.getInstance(request);
 
-		searchContext.setAttribute("paginationType", "more");
-		searchContext.setEnd(searchContainer.getEnd());
-		searchContext.setQueryConfig(getQueryConfig());
-		searchContext.setStart(searchContainer.getStart());
+		SearchRequestImpl searchRequestImpl = new SearchRequestImpl(
+			() -> searchContext, searchContainerOptions -> searchContainer,
+			facetedSearcherManager);
 
-		addAssetEntriesFacet(searchContext);
+		searchRequestImpl.addSearchSettingsContributor(
+			this::contributeSearchSettings);
 
-		addScopeFacet(searchContext);
+		SearchResponseImpl searchResponseImpl = searchRequestImpl.search();
 
-		addEnabledSearchFacets(searchContext);
-
-		Hits hits = facetedSearcher.search(searchContext);
-
-		searchContainer.setTotal(hits.getLength());
-		searchContainer.setResults(hits.toList());
-
-		searchContainer.setSearch(true);
-
-		_hits = hits;
-		_searchContext = searchContext;
-		_searchContainer = searchContainer;
+		_hits = searchResponseImpl.getHits();
+		_searchContainer = searchResponseImpl.getSearchContainer();
+		_searchContext = searchResponseImpl.getSearchContext();
 	}
 
 	public int getCollatedSpellCheckResultDisplayThreshold() {
@@ -449,41 +444,72 @@ public class SearchDisplayContext {
 		return _searchResultPreferences.isViewInContext();
 	}
 
-	protected void addAssetEntriesFacet(SearchContext searchContext) {
-		Facet assetEntriesFacet = new AssetEntriesFacet(searchContext);
-
-		assetEntriesFacet.setStatic(true);
-
-		searchContext.addFacet(assetEntriesFacet);
-	}
-
-	protected void addEnabledSearchFacets(SearchContext searchContext)
-		throws Exception {
-
+	protected void addEnabledSearchFacets(SearchSettings searchSettings) {
 		ThemeDisplay themeDisplay = _themeDisplaySupplier.getThemeDisplay();
 
 		long companyId = themeDisplay.getCompanyId();
 
-		for (SearchFacet searchFacet : getEnabledSearchFacets()) {
-			searchFacet.init(
-				companyId, getSearchConfiguration(), searchContext);
+		Collection<SearchFacet> searchFacets = getEnabledSearchFacets();
 
-			Facet facet = searchFacet.getFacet();
+		Stream<SearchFacet> searchFacetsStream = searchFacets.stream();
 
-			if (facet == null) {
-				continue;
-			}
+		Stream<Optional<Facet>> facetOptionalsStream = searchFacetsStream.map(
+			searchFacet -> createFacet(
+				searchFacet, companyId, searchSettings.getSearchContext()));
 
-			searchContext.addFacet(facet);
-		}
+		facetOptionalsStream.forEach(
+			facetOptional -> facetOptional.ifPresent(searchSettings::addFacet));
 	}
 
-	protected void addScopeFacet(SearchContext searchContext) {
-		Facet scopeFacet = new ScopeFacet(searchContext);
+	protected void contributeSearchSettings(SearchSettings searchSettings) {
+		searchSettings.setKeywords(getKeywords());
 
-		scopeFacet.setStatic(true);
+		QueryConfig queryConfig = searchSettings.getQueryConfig();
 
-		searchContext.addFacet(scopeFacet);
+		queryConfig.setCollatedSpellCheckResultEnabled(
+			isCollatedSpellCheckResultEnabled());
+		queryConfig.setCollatedSpellCheckResultScoresThreshold(
+			getCollatedSpellCheckResultDisplayThreshold());
+		queryConfig.setQueryIndexingEnabled(isQueryIndexingEnabled());
+		queryConfig.setQueryIndexingThreshold(getQueryIndexingThreshold());
+		queryConfig.setQuerySuggestionEnabled(isQuerySuggestionsEnabled());
+		queryConfig.setQuerySuggestionScoresThreshold(
+			getQuerySuggestionsDisplayThreshold());
+		queryConfig.setQuerySuggestionsMax(getQuerySuggestionsMax());
+
+		addEnabledSearchFacets(searchSettings);
+
+		filterByThisSite(searchSettings);
+	}
+
+	protected Optional<Facet> createFacet(
+		SearchFacet searchFacet, long companyId, SearchContext searchContext) {
+
+		try {
+			searchFacet.init(
+				companyId, getSearchConfiguration(), searchContext);
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		return Optional.ofNullable(searchFacet.getFacet());
+	}
+
+	protected void filterByThisSite(SearchSettings searchSettings) {
+		Optional<Long> groupIdOptional = getThisSiteGroupId();
+
+		groupIdOptional.ifPresent(
+			groupId -> {
+				searchSettings.addCondition(
+					new BooleanClauseImpl(
+						new TermQueryImpl(
+							Field.GROUP_ID, String.valueOf(groupId)),
+						BooleanClauseOccur.MUST));
+			});
 	}
 
 	protected SearchScope getSearchScope() {
@@ -515,6 +541,16 @@ public class SearchDisplayContext {
 
 	protected ThemeDisplay getThemeDisplay() {
 		return _themeDisplaySupplier.getThemeDisplay();
+	}
+
+	protected Optional<Long> getThisSiteGroupId() {
+		long searchScopeGroupId = getSearchScopeGroupId();
+
+		if (searchScopeGroupId == 0) {
+			return Optional.empty();
+		}
+
+		return Optional.of(searchScopeGroupId);
 	}
 
 	private Integer _collatedSpellCheckResultDisplayThreshold;

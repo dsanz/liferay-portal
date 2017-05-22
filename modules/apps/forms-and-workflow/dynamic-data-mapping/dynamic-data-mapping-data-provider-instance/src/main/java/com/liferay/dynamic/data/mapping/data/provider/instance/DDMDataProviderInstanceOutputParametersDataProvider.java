@@ -21,6 +21,7 @@ import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderOutputParam
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderParameterSettings;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderRequest;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponse;
+import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponseOutput;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderTracker;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesJSONDeserializer;
 import com.liferay.dynamic.data.mapping.model.DDMDataProviderInstance;
@@ -38,9 +39,7 @@ import com.liferay.portal.kernel.util.KeyValuePair;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -68,17 +67,14 @@ public class DDMDataProviderInstanceOutputParametersDataProvider
 			DDMDataProviderRequest ddmDataProviderRequest)
 		throws DDMDataProviderException {
 
-		DDMDataProviderContext ddmDataProviderContext =
-			ddmDataProviderRequest.getDDMDataProviderContext();
-
 		long dataProviderInstanceId = GetterUtil.getLong(
-			ddmDataProviderContext.getParameter("dataProviderInstanceId"));
-
-		List<Map<Object, Object>> data = new ArrayList<>();
+			ddmDataProviderRequest.getParameter("dataProviderInstanceId"));
 
 		if (dataProviderInstanceId == 0) {
-			return new DDMDataProviderResponse(data);
+			return DDMDataProviderResponse.of();
 		}
+
+		List<KeyValuePair> data = new ArrayList<>();
 
 		try {
 			DDMDataProviderOutputParametersSettings[]
@@ -90,9 +86,12 @@ public class DDMDataProviderInstanceOutputParametersDataProvider
 					ddmDataProviderOutputParametersSetting :
 						ddmDataProviderOutputParametersSettings) {
 
+				String outputParameterName =
+					ddmDataProviderOutputParametersSetting.
+						outputParameterName();
+
 				data.add(
-					createDDMDataProviderOutputParameterMap(
-						ddmDataProviderOutputParametersSetting));
+					new KeyValuePair(outputParameterName, outputParameterName));
 			}
 		}
 		catch (Exception e) {
@@ -104,31 +103,14 @@ public class DDMDataProviderInstanceOutputParametersDataProvider
 				e);
 		}
 
-		return new DDMDataProviderResponse(data);
+		return DDMDataProviderResponse.of(
+			DDMDataProviderResponseOutput.of(
+				"outputParameterNames", "list", data));
 	}
 
 	@Override
 	public Class<?> getSettings() {
 		throw new UnsupportedOperationException();
-	}
-
-	protected Map<Object, Object> createDDMDataProviderOutputParameterMap(
-		DDMDataProviderOutputParametersSettings
-			ddmDataProviderOutputParametersSetting) {
-
-		Map<Object, Object> map = new HashMap<>();
-
-		map.put(
-			"outputParameterName",
-			ddmDataProviderOutputParametersSetting.outputParameterName());
-		map.put(
-			"outputParameterPath",
-			ddmDataProviderOutputParametersSetting.outputParameterPath());
-		map.put(
-			"outputParameterType",
-			ddmDataProviderOutputParametersSetting.outputParameterType());
-
-		return map;
 	}
 
 	protected DDMFormValues getDataProviderInstanceFormValues(
@@ -167,9 +149,8 @@ public class DDMDataProviderInstanceOutputParametersDataProvider
 				ddmDataProvider, ddmDataProviderInstance);
 
 		DDMDataProviderParameterSettings ddmDataProviderParameterSetting =
-			(DDMDataProviderParameterSettings)
-				DDMFormInstanceFactory.create(
-					ddmDataProvider.getSettings(), dataProviderFormValues);
+			DDMFormInstanceFactory.create(
+				DDMDataProviderParameterSettings.class, dataProviderFormValues);
 
 		return ddmDataProviderParameterSetting.outputParameters();
 	}

@@ -64,8 +64,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>REPLICATE_INDIVIDUAL_DELETIONS</td>
-	<td>//label[contains(.,'Replicate Individual Deletions')]//input</td>
+	<td>EXPORT_INDIVIDUAL_DELETIONS</td>
+	<td>//label[contains(.,'Export Individual Deletions')]//input</td>
 	<td></td>
 </tr>
 <tr>
@@ -76,6 +76,11 @@
 <tr>
 	<td>SET_AS_THE_DEFAULT_ASSET_PUBLISHER_FOR_THIS_PAGE</td>
 	<td>//label[contains(.,'Set as the Default Asset Publisher for This Page')]/input[@type='checkbox']/../span[2]/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INHERIT_MOBILE_DEVICE_RULES_FROM_PAGE</td>
+	<td>//label[contains(.,'mobile device rules')]/input[@type='checkbox']/../span[2]/span</td>
 	<td></td>
 </tr>
 <tr>

@@ -97,8 +97,10 @@ StringBuilder friendlyURLBase = new StringBuilder();
 				<div class="form-group">
 					<label for="<portlet:namespace />friendlyURL"><liferay-ui:message key="friendly-url" /> <liferay-ui:icon-help message='<%= LanguageUtil.format(request, "for-example-x", "<em>/news</em>", false) %>' /></label>
 
-					<div class="input-group">
-						<span class="input-group-addon" id="<portlet:namespace />urlBase"><liferay-ui:message key="<%= StringUtil.shorten(friendlyURLBase.toString(), 40) %>" /></span>
+					<div class="input-group lfr-friendly-url-input-group">
+						<span class="input-group-addon" id="<portlet:namespace />urlBase">
+							<span class="input-group-constrain"><liferay-ui:message key="<%= StringUtil.shorten(friendlyURLBase.toString(), 40) %>" /></span>
+						</span>
 
 						<liferay-ui:input-localized defaultLanguageId="<%= LocaleUtil.toLanguageId(themeDisplay.getSiteDefaultLocale()) %>" name="friendlyURL" xml="<%= HttpUtil.decodeURL(selLayout.getFriendlyURLsXML()) %>" />
 					</div>
@@ -158,10 +160,6 @@ StringBuilder friendlyURLBase = new StringBuilder();
 
 		<%
 		for (String type : types) {
-			if (type.equals("article") && (group.isLayoutPrototype() || group.isLayoutSetPrototype())) {
-				continue;
-			}
-
 			LayoutTypeController layoutTypeController = LayoutTypeControllerTracker.getLayoutTypeController(type);
 
 			if (!layoutTypeController.isInstanceable()) {

@@ -22,7 +22,7 @@ import com.liferay.sync.engine.util.JSONUtil;
 /**
  * @author Shinn Lok
  */
-public class UpdateFolderHandler extends BaseSyncDLObjectHandler {
+public class UpdateFolderHandler extends BaseJSONHandler {
 
 	public UpdateFolderHandler(Event event) {
 		super(event);
@@ -37,8 +37,6 @@ public class UpdateFolderHandler extends BaseSyncDLObjectHandler {
 		if (localSyncFile == null) {
 			return;
 		}
-
-		processFilePathChange(localSyncFile, remoteSyncFile);
 
 		localSyncFile.setModifiedTime(remoteSyncFile.getModifiedTime());
 		localSyncFile.setState(SyncFile.STATE_SYNCED);

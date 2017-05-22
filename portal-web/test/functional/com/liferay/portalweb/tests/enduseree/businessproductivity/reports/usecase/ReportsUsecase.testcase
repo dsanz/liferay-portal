@@ -42,7 +42,9 @@
 
 		<execute macro="LexiconEntry#gotoAdd" />
 
-		<execute function="Type" locator1="TextInput#NAME" value1="Reports Definition Name" />
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="Reports Definition Name" />
+		</execute>
 
 		<execute macro="Button#clickSave" />
 
@@ -125,10 +127,10 @@
 		<execute function="AssertElementNotPresent" locator1="ReportsAdmin#DEFINITIONS_DEFINITION_TABLE_DEFINITION_NAME" />
 	</command>
 
-	<!-- LPS-69070 -->
-
-	<!-- <command name="ViewReportEmailNewConfiguration" priority="4">
+	<command name="ViewReportEmailNewConfiguration" priority="4">
 		<description message="This is a use case for LPS-51009." />
+
+		<var method="TestPropsUtil#get('portal.url')" name="portalURL" />
 
 		<property name="test.smtp.server.enabled" value="true" />
 
@@ -215,7 +217,7 @@ Thanks,<br/>
 			<var name="subject" value="reports_admin_template_source_sample_class_name.pdf" />
 		</execute>
 
-		<execute function="Open" locator1="http://localhost:8080" />
+		<execute function="Open" locator1="${portalURL}" />
 
 		<execute macro="Navigator#openURL" />
 
@@ -224,7 +226,7 @@ Thanks,<br/>
 		</execute>
 
 		<execute macro="ReportsAdmin#tearDownConfiguration" />
-	</command> -->
+	</command>
 
 	<command name="ViewReportPG" priority="4">
 		<execute macro="Navigator#openURL" />

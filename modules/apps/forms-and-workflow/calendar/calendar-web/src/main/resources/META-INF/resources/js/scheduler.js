@@ -230,12 +230,6 @@ AUI.add(
 						instance.load();
 					},
 
-					_afterAddEventModalLoad: function(event) {
-						var instance = this;
-
-						event.target.node.getDOMNode().contentWindow.focus();
-					},
-
 					_afterDateChange: function(event) {
 						var instance = this;
 
@@ -406,13 +400,7 @@ AUI.add(
 									modal: true
 								},
 								title: Liferay.Language.get('new-calendar-booking'),
-								uri: Lang.sub(editCalendarBookingURL, data)
-							},
-							function(modal) {
-								modal.iframe.on(
-									'load',
-									A.bind(instance._afterAddEventModalLoad, instance)
-								);
+								uri: CalendarUtil.fillURLParameters(editCalendarBookingURL, data)
 							}
 						);
 					},
@@ -533,7 +521,34 @@ AUI.add(
 
 		Liferay.Scheduler = Scheduler;
 
-		Liferay.SchedulerDayView = A.SchedulerDayView;
+		var SchedulerDayView = A.Component.create(
+			{
+				EXTENDS: A.SchedulerDayView,
+
+				NAME: 'scheduler-day-view',
+
+				ATTRS: {
+					navigationDateFormatter: {
+						value: function(date) {
+							var instance = this;
+
+							var scheduler = instance.get('scheduler');
+
+							return A.DataType.Date.format(
+								date,
+								{
+									format: Liferay.Language.get('a-b-d-y'),
+									locale: scheduler.get('locale')
+								}
+							);
+						},
+						validator: isFunction
+					}
+				}
+			}
+		);
+
+		Liferay.SchedulerDayView = SchedulerDayView;
 
 		Liferay.SchedulerWeekView = A.SchedulerWeekView;
 

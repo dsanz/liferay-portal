@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.util.ReflectionUtil;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
@@ -71,9 +72,10 @@ public class CounterTransactionExecutorTest {
 		try {
 			_transactionExecutor.execute(
 				recordPlatformTransactionManager, transactionAttributeAdapter,
-				_newMethodInvocation(() -> {
-					throw appException;
-				}));
+				_newMethodInvocation(
+					() -> {
+						throw appException;
+					}));
 
 			Assert.fail();
 		}
@@ -105,9 +107,10 @@ public class CounterTransactionExecutorTest {
 		try {
 			_transactionExecutor.execute(
 				recordPlatformTransactionManager, transactionAttributeAdapter,
-				_newMethodInvocation(() -> {
-					throw appException;
-				}));
+				_newMethodInvocation(
+					() -> {
+						throw appException;
+					}));
 
 			Assert.fail();
 		}
@@ -116,7 +119,8 @@ public class CounterTransactionExecutorTest {
 
 			Throwable[] throwables = commitException.getSuppressed();
 
-			Assert.assertEquals(1, throwables.length);
+			Assert.assertEquals(
+				Arrays.toString(throwables), 1, throwables.length);
 			Assert.assertEquals(appException, throwables[0]);
 		}
 
@@ -165,9 +169,10 @@ public class CounterTransactionExecutorTest {
 		try {
 			_transactionExecutor.execute(
 				recordPlatformTransactionManager, transactionAttributeAdapter,
-				_newMethodInvocation(() -> {
-					throw appException;
-				}));
+				_newMethodInvocation(
+					() -> {
+						throw appException;
+					}));
 
 			Assert.fail();
 		}
@@ -199,9 +204,10 @@ public class CounterTransactionExecutorTest {
 		try {
 			_transactionExecutor.execute(
 				recordPlatformTransactionManager, transactionAttributeAdapter,
-				_newMethodInvocation(() -> {
-					throw appException;
-				}));
+				_newMethodInvocation(
+					() -> {
+						throw appException;
+					}));
 
 			Assert.fail();
 		}
@@ -210,7 +216,8 @@ public class CounterTransactionExecutorTest {
 
 			Throwable[] throwables = rollbackException.getSuppressed();
 
-			Assert.assertEquals(1, throwables.length);
+			Assert.assertEquals(
+				Arrays.toString(throwables), 1, throwables.length);
 			Assert.assertEquals(appException, throwables[0]);
 		}
 

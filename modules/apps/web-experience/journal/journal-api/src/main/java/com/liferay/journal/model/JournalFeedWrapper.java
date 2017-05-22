@@ -316,9 +316,9 @@ public class JournalFeedWrapper implements JournalFeed,
 	}
 
 	/**
-	* Returns the d d m renderer template key of this journal feed.
+	* Returns the ddm renderer template key of this journal feed.
 	*
-	* @return the d d m renderer template key of this journal feed
+	* @return the ddm renderer template key of this journal feed
 	*/
 	@Override
 	public java.lang.String getDDMRendererTemplateKey() {
@@ -326,9 +326,9 @@ public class JournalFeedWrapper implements JournalFeed,
 	}
 
 	/**
-	* Returns the d d m structure key of this journal feed.
+	* Returns the ddm structure key of this journal feed.
 	*
-	* @return the d d m structure key of this journal feed
+	* @return the ddm structure key of this journal feed
 	*/
 	@Override
 	public java.lang.String getDDMStructureKey() {
@@ -336,9 +336,9 @@ public class JournalFeedWrapper implements JournalFeed,
 	}
 
 	/**
-	* Returns the d d m template key of this journal feed.
+	* Returns the ddm template key of this journal feed.
 	*
-	* @return the d d m template key of this journal feed
+	* @return the ddm template key of this journal feed
 	*/
 	@Override
 	public java.lang.String getDDMTemplateKey() {
@@ -613,9 +613,9 @@ public class JournalFeedWrapper implements JournalFeed,
 	}
 
 	/**
-	* Sets the d d m renderer template key of this journal feed.
+	* Sets the ddm renderer template key of this journal feed.
 	*
-	* @param DDMRendererTemplateKey the d d m renderer template key of this journal feed
+	* @param DDMRendererTemplateKey the ddm renderer template key of this journal feed
 	*/
 	@Override
 	public void setDDMRendererTemplateKey(
@@ -624,9 +624,9 @@ public class JournalFeedWrapper implements JournalFeed,
 	}
 
 	/**
-	* Sets the d d m structure key of this journal feed.
+	* Sets the ddm structure key of this journal feed.
 	*
-	* @param DDMStructureKey the d d m structure key of this journal feed
+	* @param DDMStructureKey the ddm structure key of this journal feed
 	*/
 	@Override
 	public void setDDMStructureKey(java.lang.String DDMStructureKey) {
@@ -634,9 +634,9 @@ public class JournalFeedWrapper implements JournalFeed,
 	}
 
 	/**
-	* Sets the d d m template key of this journal feed.
+	* Sets the ddm template key of this journal feed.
 	*
-	* @param DDMTemplateKey the d d m template key of this journal feed
+	* @param DDMTemplateKey the ddm template key of this journal feed
 	*/
 	@Override
 	public void setDDMTemplateKey(java.lang.String DDMTemplateKey) {

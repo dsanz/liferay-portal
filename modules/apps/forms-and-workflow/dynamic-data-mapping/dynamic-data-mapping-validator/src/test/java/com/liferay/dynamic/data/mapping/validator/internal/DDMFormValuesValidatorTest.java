@@ -15,6 +15,7 @@
 package com.liferay.dynamic.data.mapping.validator.internal;
 
 import com.liferay.dynamic.data.mapping.expression.internal.DDMExpressionFactoryImpl;
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
@@ -43,13 +44,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Marcellus Tavares
  */
 @RunWith(PowerMockRunner.class)
-public class DDMFormValuesValidatorTest {
+public class DDMFormValuesValidatorTest extends PowerMockito {
 
 	@Before
 	public void setUp() throws Exception {
@@ -704,6 +706,13 @@ public class DDMFormValuesValidatorTest {
 			new DDMExpressionFactoryImpl());
 
 		_ddmFormValuesValidatorImpl.setJSONFactory(new JSONFactoryImpl());
+
+		field(
+			DDMFormValuesValidatorImpl.class, "_ddmFormFieldTypeServicesTracker"
+		).set(
+			_ddmFormValuesValidatorImpl,
+			mock(DDMFormFieldTypeServicesTracker.class)
+		);
 	}
 
 	private final DDMFormValuesValidatorImpl _ddmFormValuesValidatorImpl =

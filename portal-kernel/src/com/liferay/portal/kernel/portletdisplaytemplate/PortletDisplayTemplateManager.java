@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.portletdisplaytemplate;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.dynamic.data.mapping.kernel.DDMTemplate;
 import com.liferay.portal.kernel.template.TemplateVariableGroup;
 
@@ -26,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Leonardo Barros
  */
+@ProviderType
 public interface PortletDisplayTemplateManager {
 
 	public static final String DISPLAY_STYLE_PREFIX = "ddmTemplate_";
@@ -40,6 +43,12 @@ public interface PortletDisplayTemplateManager {
 
 	public Map<String, TemplateVariableGroup> getTemplateVariableGroups(
 		String language);
+
+	public String renderDDMTemplate(
+			HttpServletRequest request, HttpServletResponse response,
+			DDMTemplate ddmTemplate, List<?> entries,
+			Map<String, Object> contextObjects)
+		throws Exception;
 
 	public String renderDDMTemplate(
 			HttpServletRequest request, HttpServletResponse response,

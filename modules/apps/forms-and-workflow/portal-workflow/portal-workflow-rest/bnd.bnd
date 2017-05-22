@@ -1,0 +1,4 @@
+Bundle-Name: Liferay Portal Workflow REST
+Bundle-SymbolicName: com.liferay.portal.workflow.rest
+Bundle-Version: 1.0.0
+Liferay-Configuration-Path: /configuration

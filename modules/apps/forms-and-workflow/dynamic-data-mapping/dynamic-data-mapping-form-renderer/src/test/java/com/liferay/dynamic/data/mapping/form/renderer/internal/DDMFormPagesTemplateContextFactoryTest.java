@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 
 import com.liferay.dynamic.data.mapping.expression.internal.DDMExpressionFactoryImpl;
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluator;
-import com.liferay.dynamic.data.mapping.form.evaluator.impl.internal.DDMFormEvaluatorImpl;
+import com.liferay.dynamic.data.mapping.form.evaluator.internal.DDMFormEvaluatorImpl;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
@@ -37,6 +37,8 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.ResourceBundleLoader;
+import com.liferay.portal.kernel.util.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.ArrayList;
@@ -44,20 +46,33 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.mockito.Matchers;
+
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Marcellus Tavares
  */
+@PrepareForTest(ResourceBundleLoaderUtil.class)
+@RunWith(PowerMockRunner.class)
+@SuppressStaticInitializationFor(
+	"com.liferay.portal.kernel.util.ResourceBundleLoaderUtil"
+)
 public class DDMFormPagesTemplateContextFactoryTest {
 
 	@Before
 	public void setUp() {
+		setUpResourceBundleLoaderUtil();
 		setUpLanguageUtil();
 	}
 
@@ -149,7 +164,8 @@ public class DDMFormPagesTemplateContextFactoryTest {
 		List<Object> pagesTemplateContext =
 			ddmFormPagesTemplateContextFactory.create();
 
-		Assert.assertEquals(3, pagesTemplateContext.size());
+		Assert.assertEquals(
+			pagesTemplateContext.toString(), 3, pagesTemplateContext.size());
 
 		Map<String, Object> page1TemplateContext =
 			(Map<String, Object>)pagesTemplateContext.get(0);
@@ -213,7 +229,7 @@ public class DDMFormPagesTemplateContextFactoryTest {
 
 		List<Object> pages = ddmFormPagesTemplateContextFactory.create();
 
-		Assert.assertEquals(1, pages.size());
+		Assert.assertEquals(pages.toString(), 1, pages.size());
 
 		Map<String, Object> page1 = (Map<String, Object>)pages.get(0);
 
@@ -222,13 +238,13 @@ public class DDMFormPagesTemplateContextFactoryTest {
 
 		List<Object> rows = (List<Object>)page1.get("rows");
 
-		Assert.assertEquals(3, rows.size());
+		Assert.assertEquals(rows.toString(), 3, rows.size());
 
 		Map<String, Object> row1 = (Map<String, Object>)rows.get(0);
 
 		List<Object> columnsRow1 = (List<Object>)row1.get("columns");
 
-		Assert.assertEquals(2, columnsRow1.size());
+		Assert.assertEquals(columnsRow1.toString(), 2, columnsRow1.size());
 
 		assertColumnSize(6, (Map<String, Object>)columnsRow1.get(0));
 		assertColumnSize(6, (Map<String, Object>)columnsRow1.get(1));
@@ -237,7 +253,7 @@ public class DDMFormPagesTemplateContextFactoryTest {
 
 		List<Object> columnsRow2 = (List<Object>)row2.get("columns");
 
-		Assert.assertEquals(1, columnsRow2.size());
+		Assert.assertEquals(columnsRow2.toString(), 1, columnsRow2.size());
 
 		assertColumnSize(12, (Map<String, Object>)columnsRow2.get(0));
 
@@ -245,7 +261,7 @@ public class DDMFormPagesTemplateContextFactoryTest {
 
 		List<Object> columnsRow3 = (List<Object>)row3.get("columns");
 
-		Assert.assertEquals(1, columnsRow3.size());
+		Assert.assertEquals(columnsRow3.toString(), 1, columnsRow3.size());
 
 		assertColumnSize(12, (Map<String, Object>)columnsRow3.get(0));
 	}
@@ -306,7 +322,8 @@ public class DDMFormPagesTemplateContextFactoryTest {
 		List<Object> pagesTemplateContext =
 			ddmFormPagesTemplateContextFactory.create();
 
-		Assert.assertEquals(2, pagesTemplateContext.size());
+		Assert.assertEquals(
+			pagesTemplateContext.toString(), 2, pagesTemplateContext.size());
 
 		Map<String, Object> page1TemplateContext =
 			(Map<String, Object>)pagesTemplateContext.get(0);
@@ -379,7 +396,8 @@ public class DDMFormPagesTemplateContextFactoryTest {
 		List<Object> pagesTemplateContext =
 			ddmFormPagesTemplateContextFactory.create();
 
-		Assert.assertEquals(2, pagesTemplateContext.size());
+		Assert.assertEquals(
+			pagesTemplateContext.toString(), 2, pagesTemplateContext.size());
 
 		Map<String, Object> page1TemplateContext =
 			(Map<String, Object>)pagesTemplateContext.get(0);
@@ -505,11 +523,24 @@ public class DDMFormPagesTemplateContextFactoryTest {
 		languageUtil.setLanguage(language);
 	}
 
+	protected void setUpResourceBundleLoaderUtil() {
+		PowerMockito.mockStatic(ResourceBundleLoaderUtil.class);
+
+		ResourceBundleLoader portalResourceBundleLoader = mock(
+			ResourceBundleLoader.class);
+
+		when(
+			ResourceBundleLoaderUtil.getPortalResourceBundleLoader()
+		).thenReturn(
+			portalResourceBundleLoader
+		);
+	}
+
 	protected void whenLanguageGet(
 		Language language, Locale locale, String key, String returnValue) {
 
 		when(
-			language.get(Matchers.eq(locale), Matchers.eq(key))
+			language.get(Matchers.any(ResourceBundle.class), Matchers.eq(key))
 		).thenReturn(
 			returnValue
 		);

@@ -15,6 +15,7 @@
 package com.liferay.taglib.theme;
 
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +35,14 @@ public class DefineObjectsTag extends TagSupport {
 			WebKeys.THEME_DISPLAY);
 
 		if (themeDisplay == null) {
+			return SKIP_BODY;
+		}
+
+		if (!GetterUtil.getBoolean(
+				pageContext.getAttribute(WebKeys.THEME_DEFINE_OBJECTS), true)) {
+
+			pageContext.setAttribute("themeDisplay", themeDisplay);
+
 			return SKIP_BODY;
 		}
 

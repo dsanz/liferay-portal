@@ -14,15 +14,20 @@
 
 package com.liferay.portal.workflow.kaleo.service.impl;
 
+import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowException;
 import com.liferay.portal.workflow.kaleo.definition.Definition;
 import com.liferay.portal.workflow.kaleo.exception.NoSuchDefinitionException;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
+import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion;
 import com.liferay.portal.workflow.kaleo.service.base.KaleoDefinitionLocalServiceBaseImpl;
+
+import java.math.BigDecimal;
 
 import java.util.Date;
 import java.util.List;
@@ -39,20 +44,13 @@ public class KaleoDefinitionLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
+		// Kaleo definition
+
 		KaleoDefinition kaleoDefinition =
 			kaleoDefinitionPersistence.findByPrimaryKey(kaleoDefinitionId);
 
-		try {
-			KaleoDefinition previousKaleoDefinition = getLatestKaleoDefinition(
-				kaleoDefinition.getName(), serviceContext);
-
-			previousKaleoDefinition.setModifiedDate(new Date());
-			previousKaleoDefinition.setActive(false);
-
-			kaleoDefinitionPersistence.update(previousKaleoDefinition);
-		}
-		catch (NoSuchDefinitionException nsde) {
-		}
+		deactivatePreviousKaleoDefinition(
+			kaleoDefinition.getName(), serviceContext);
 
 		kaleoDefinition.setStartKaleoNodeId(startKaleoNodeId);
 		kaleoDefinition.setModifiedDate(new Date());
@@ -65,6 +63,8 @@ public class KaleoDefinitionLocalServiceImpl
 	public void activateKaleoDefinition(
 			long kaleoDefinitionId, ServiceContext serviceContext)
 		throws PortalException {
+
+		// Kaleo definition
 
 		KaleoDefinition kaleoDefinition =
 			kaleoDefinitionPersistence.findByPrimaryKey(kaleoDefinitionId);
@@ -79,6 +79,8 @@ public class KaleoDefinitionLocalServiceImpl
 	public void activateKaleoDefinition(
 			String name, int version, ServiceContext serviceContext)
 		throws PortalException {
+
+		// Kaleo definition
 
 		KaleoDefinition kaleoDefinition =
 			kaleoDefinitionPersistence.findByC_N_V(
@@ -96,6 +98,8 @@ public class KaleoDefinitionLocalServiceImpl
 			int version, ServiceContext serviceContext)
 		throws PortalException {
 
+		// Kaleo definition
+
 		User user = userLocalService.getUser(serviceContext.getGuestOrUserId());
 		Date now = new Date();
 
@@ -103,6 +107,11 @@ public class KaleoDefinitionLocalServiceImpl
 
 		KaleoDefinition kaleoDefinition = kaleoDefinitionPersistence.create(
 			kaleoDefinitionId);
+
+		long groupId = StagingUtil.getLiveGroupId(
+			serviceContext.getScopeGroupId());
+
+		kaleoDefinition.setGroupId(groupId);
 
 		kaleoDefinition.setCompanyId(user.getCompanyId());
 		kaleoDefinition.setUserId(user.getUserId());
@@ -117,6 +126,12 @@ public class KaleoDefinitionLocalServiceImpl
 		kaleoDefinition.setActive(false);
 
 		kaleoDefinitionPersistence.update(kaleoDefinition);
+
+		// Kaleo definition version
+
+		kaleoDefinitionVersionLocalService.addKaleoDefinitionVersion(
+			name, title, description, content, getVersion(version),
+			serviceContext);
 
 		return kaleoDefinition;
 	}
@@ -142,6 +157,10 @@ public class KaleoDefinitionLocalServiceImpl
 		// Kaleo definitions
 
 		kaleoDefinitionPersistence.removeByCompanyId(companyId);
+
+		// Kaleo definition version
+
+		kaleoDefinitionVersionPersistence.removeByCompanyId(companyId);
 
 		// Kaleo condition
 
@@ -187,6 +206,29 @@ public class KaleoDefinitionLocalServiceImpl
 		}
 
 		kaleoDefinitionPersistence.remove(kaleoDefinition);
+
+		// Kaleo definition version
+
+		List<KaleoDefinitionVersion> kaleoDefinitionVersions =
+			kaleoDefinitionVersionPersistence.findByC_N(
+				serviceContext.getCompanyId(), name);
+
+		for (KaleoDefinitionVersion kaleoDefinitionVersion :
+				kaleoDefinitionVersions) {
+
+			BigDecimal kaleoDefinitionVersionBigDecimal = new BigDecimal(
+				kaleoDefinitionVersion.getVersion());
+
+			int value1 = kaleoDefinitionVersionBigDecimal.compareTo(
+				new BigDecimal(version));
+			int value2 = kaleoDefinitionVersionBigDecimal.compareTo(
+				new BigDecimal(version + 1));
+
+			if ((value1 >= 0) && (value2 < 0)) {
+				kaleoDefinitionVersionPersistence.remove(
+					kaleoDefinitionVersion);
+			}
+		}
 
 		// Kaleo condition
 
@@ -346,6 +388,8 @@ public class KaleoDefinitionLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
+		// Kaleo definition
+
 		KaleoDefinition kaleoDefinition =
 			kaleoDefinitionPersistence.findByC_N_V(
 				serviceContext.getCompanyId(), name, version);
@@ -354,7 +398,33 @@ public class KaleoDefinitionLocalServiceImpl
 
 		kaleoDefinitionPersistence.update(kaleoDefinition);
 
+		// Kaleo definition version
+
+		kaleoDefinitionVersionLocalService.updateKaleoDefinitionVersionTitle(
+			serviceContext.getCompanyId(), name, getVersion(version), title);
+
 		return kaleoDefinition;
+	}
+
+	protected void deactivatePreviousKaleoDefinition(
+			String name, ServiceContext serviceContext)
+		throws PortalException {
+
+		KaleoDefinition previousKaleoDefinition = fetchLatestKaleoDefinition(
+			name, serviceContext);
+
+		if (previousKaleoDefinition == null) {
+			return;
+		}
+
+		previousKaleoDefinition.setModifiedDate(new Date());
+		previousKaleoDefinition.setActive(false);
+
+		kaleoDefinitionPersistence.update(previousKaleoDefinition);
+	}
+
+	protected String getVersion(int version) {
+		return version + StringPool.PERIOD + 0;
 	}
 
 }

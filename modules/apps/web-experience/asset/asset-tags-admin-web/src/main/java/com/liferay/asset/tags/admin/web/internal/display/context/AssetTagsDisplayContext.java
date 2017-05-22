@@ -19,13 +19,19 @@ import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
 import com.liferay.asset.kernel.service.AssetTagLocalServiceUtil;
 import com.liferay.asset.kernel.service.AssetTagServiceUtil;
 import com.liferay.asset.tags.admin.web.internal.constants.AssetTagsAdminPortletKeys;
+import com.liferay.exportimport.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portal.kernel.search.BaseModelSearchResult;
+import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.search.SortFactoryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -34,7 +40,8 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portlet.asset.service.permission.AssetPermission;
+import com.liferay.portlet.asset.service.permission.AssetTagPermission;
+import com.liferay.portlet.asset.service.permission.AssetTagsPermission;
 import com.liferay.portlet.asset.util.comparator.AssetTagAssetCountComparator;
 import com.liferay.portlet.asset.util.comparator.AssetTagNameComparator;
 
@@ -105,10 +112,6 @@ public class AssetTagsDisplayContext {
 		}
 
 		_keywords = ParamUtil.getString(_request, "keywords", null);
-
-		if (Validator.isNotNull(_keywords)) {
-			_keywords = StringUtil.quote(_keywords, StringPool.PERCENT);
-		}
 
 		return _keywords;
 	}
@@ -186,7 +189,7 @@ public class AssetTagsDisplayContext {
 		return _tagId;
 	}
 
-	public SearchContainer getTagsSearchContainer() {
+	public SearchContainer getTagsSearchContainer() throws PortalException {
 		if (_tagsSearchContainer != null) {
 			return _tagsSearchContainer;
 		}
@@ -210,54 +213,102 @@ public class AssetTagsDisplayContext {
 			tagsSearchContainer.setSearch(true);
 		}
 
-		String orderByCol = getOrderByCol();
-
-		tagsSearchContainer.setOrderByCol(orderByCol);
-
-		OrderByComparator<AssetTag> orderByComparator = null;
-
-		boolean orderByAsc = false;
-
-		String orderByType = getOrderByType();
-
-		if (orderByType.equals("asc")) {
-			orderByAsc = true;
-		}
-
-		if (orderByCol.equals("name")) {
-			orderByComparator = new AssetTagNameComparator(orderByAsc);
-		}
-		else if (orderByCol.equals("usages")) {
-			orderByComparator = new AssetTagAssetCountComparator(orderByAsc);
-		}
-
-		tagsSearchContainer.setOrderByComparator(orderByComparator);
-
-		tagsSearchContainer.setOrderByType(orderByType);
-
 		tagsSearchContainer.setRowChecker(
 			new EmptyOnClickRowChecker(_renderResponse));
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		long scopeGroupId = themeDisplay.getScopeGroupId();
+		if (Validator.isNotNull(keywords)) {
+			Sort sort = null;
 
-		int tagsCount = AssetTagServiceUtil.getTagsCount(
-			scopeGroupId, keywords);
+			String orderByCol = getOrderByCol();
 
-		tagsSearchContainer.setTotal(tagsCount);
+			if (orderByCol.equals("name")) {
+				sort = SortFactoryUtil.getSort(
+					AssetTag.class, Sort.STRING_TYPE, Field.NAME,
+					getOrderByType());
+			}
+			else if (orderByCol.equals("usages")) {
+				sort = SortFactoryUtil.getSort(
+					AssetTag.class, Sort.INT_TYPE, "assetCount_Number",
+					getOrderByType());
+			}
 
-		List<AssetTag> tags = AssetTagServiceUtil.getTags(
-			scopeGroupId, keywords, tagsSearchContainer.getStart(),
-			tagsSearchContainer.getEnd(),
-			tagsSearchContainer.getOrderByComparator());
+			BaseModelSearchResult<AssetTag> baseModelSearchResult =
+				AssetTagLocalServiceUtil.searchTags(
+					new long[] {themeDisplay.getScopeGroupId()}, keywords,
+					tagsSearchContainer.getStart(),
+					tagsSearchContainer.getEnd(), sort);
 
-		tagsSearchContainer.setResults(tags);
+			tagsSearchContainer.setResults(
+				baseModelSearchResult.getBaseModels());
+			tagsSearchContainer.setTotal(baseModelSearchResult.getLength());
+		}
+		else {
+			String orderByCol = getOrderByCol();
+
+			tagsSearchContainer.setOrderByCol(orderByCol);
+
+			OrderByComparator<AssetTag> orderByComparator = null;
+
+			boolean orderByAsc = false;
+
+			String orderByType = getOrderByType();
+
+			if (orderByType.equals("asc")) {
+				orderByAsc = true;
+			}
+
+			if (orderByCol.equals("name")) {
+				orderByComparator = new AssetTagNameComparator(orderByAsc);
+			}
+			else if (orderByCol.equals("usages")) {
+				orderByComparator = new AssetTagAssetCountComparator(
+					orderByAsc);
+			}
+
+			tagsSearchContainer.setOrderByComparator(orderByComparator);
+
+			tagsSearchContainer.setOrderByType(orderByType);
+
+			long scopeGroupId = themeDisplay.getScopeGroupId();
+
+			int tagsCount = AssetTagServiceUtil.getTagsCount(
+				scopeGroupId, keywords);
+
+			tagsSearchContainer.setTotal(tagsCount);
+
+			List<AssetTag> tags = AssetTagServiceUtil.getTags(
+				scopeGroupId, StringPool.BLANK, tagsSearchContainer.getStart(),
+				tagsSearchContainer.getEnd(),
+				tagsSearchContainer.getOrderByComparator());
+
+			tagsSearchContainer.setResults(tags);
+		}
 
 		_tagsSearchContainer = tagsSearchContainer;
 
 		return _tagsSearchContainer;
+	}
+
+	public boolean hasPermission(AssetTag tag, String actionId) {
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PermissionChecker permissionChecker =
+			themeDisplay.getPermissionChecker();
+
+		Boolean hasPermission = StagingPermissionUtil.hasPermission(
+			permissionChecker, themeDisplay.getScopeGroupId(),
+			AssetTag.class.getName(), tag.getTagId(),
+			AssetTagsAdminPortletKeys.ASSET_TAGS_ADMIN, actionId);
+
+		if (hasPermission != null) {
+			return hasPermission.booleanValue();
+		}
+
+		return AssetTagPermission.contains(permissionChecker, tag, actionId);
 	}
 
 	public boolean isDisabledTagsManagementBar() throws PortalException {
@@ -274,8 +325,10 @@ public class AssetTagsDisplayContext {
 		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (AssetPermission.contains(
+		if (AssetTagsPermission.contains(
 				themeDisplay.getPermissionChecker(),
+				AssetTagsPermission.RESOURCE_NAME,
+				AssetTagsAdminPortletKeys.ASSET_TAGS_ADMIN,
 				themeDisplay.getSiteGroupId(), ActionKeys.ADD_TAG)) {
 
 			return true;

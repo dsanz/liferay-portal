@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -189,6 +190,14 @@ public class CalendarBookingStagedModelDataHandler
 				calendarBooking.getParentCalendarBookingId());
 		}
 
+		long recurringCalendarBookingId =
+			CalendarBookingConstants.RECURRING_CALENDAR_BOOKING_ID_DEFAULT;
+
+		if (!calendarBooking.isMasterRecurringBooking()) {
+			recurringCalendarBookingId =
+				calendarBooking.getRecurringCalendarBookingId();
+		}
+
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
 			calendarBooking);
 
@@ -206,8 +215,7 @@ public class CalendarBookingStagedModelDataHandler
 				importedCalendarBooking =
 					_calendarBookingLocalService.addCalendarBooking(
 						userId, calendarId, new long[0],
-						parentCalendarBookingId,
-						calendarBooking.getRecurringCalendarBookingId(),
+						parentCalendarBookingId, recurringCalendarBookingId,
 						calendarBooking.getTitleMap(),
 						calendarBooking.getDescriptionMap(),
 						calendarBooking.getLocation(),
@@ -243,8 +251,7 @@ public class CalendarBookingStagedModelDataHandler
 			importedCalendarBooking =
 				_calendarBookingLocalService.addCalendarBooking(
 					userId, calendarId, new long[0], parentCalendarBookingId,
-					calendarBooking.getRecurringCalendarBookingId(),
-					calendarBooking.getTitleMap(),
+					recurringCalendarBookingId, calendarBooking.getTitleMap(),
 					calendarBooking.getDescriptionMap(),
 					calendarBooking.getLocation(),
 					calendarBooking.getStartTime(),
@@ -292,7 +299,8 @@ public class CalendarBookingStagedModelDataHandler
 			return;
 		}
 
-		TrashHandler trashHandler = existingBooking.getTrashHandler();
+		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
+			CalendarBooking.class.getName());
 
 		if (trashHandler.isRestorable(existingBooking.getCalendarBookingId())) {
 			trashHandler.restoreTrashEntry(

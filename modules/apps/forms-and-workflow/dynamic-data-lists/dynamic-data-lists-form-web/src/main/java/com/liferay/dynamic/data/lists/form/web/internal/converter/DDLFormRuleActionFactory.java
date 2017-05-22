@@ -33,6 +33,10 @@ public class DDLFormRuleActionFactory {
 			return AutoFillDDLFormRuleActionFactory.create(
 				expressions, visitor);
 		}
+		else if (action.equals("calculate")) {
+			return CalculateDDLFormRuleActionFactory.create(
+				expressions, visitor);
+		}
 		else if (action.equals("jump-to-page")) {
 			return JumpToPageDDLFormRuleActionFactory.create(
 				expressions, visitor);

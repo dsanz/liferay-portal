@@ -57,9 +57,8 @@ public class JCIFSEngine implements NTLMEngine {
 		try {
 			type2Message = new Type2Message(Base64.decode(challenge));
 		}
-		catch (final IOException ioe) {
-			throw new NTLMEngineException(
-				"Invalid NTLM type 2 message", ioe);
+		catch (IOException ioe) {
+			throw new NTLMEngineException("Invalid NTLM type 2 message", ioe);
 		}
 
 		int type2Flags = type2Message.getFlags();

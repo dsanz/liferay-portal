@@ -155,31 +155,6 @@ public abstract class BaseMobileDriverImpl
 	}
 
 	@Override
-	public String getCurrentDay() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public String getCurrentDayName() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public String getCurrentHour() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public String getCurrentMonth() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public String getCurrentYear() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public String getElementValue(String locator, String timeout)
 		throws Exception {
 
@@ -294,13 +269,11 @@ public abstract class BaseMobileDriverImpl
 	}
 
 	public boolean isInViewport(String locator) {
-		int elementPositionCenterY = WebDriverHelper.getElementPositionCenterY(
-			this, locator);
+		int elementPositionCenterY = getElementPositionCenterY(locator);
 
-		int viewportPositionBottom = WebDriverHelper.getViewportPositionBottom(
-			this);
+		int viewportPositionBottom = getViewportPositionBottom();
 
-		int viewportPositionTop = WebDriverHelper.getScrollOffsetY(this);
+		int viewportPositionTop = getScrollOffsetY();
 
 		if ((elementPositionCenterY >= viewportPositionBottom) ||
 			(elementPositionCenterY <= viewportPositionTop)) {
@@ -334,7 +307,7 @@ public abstract class BaseMobileDriverImpl
 			return isInViewport(locator);
 		}
 		else {
-			WebDriverHelper.scrollWebElementIntoView(this, webElement);
+			scrollWebElementIntoView(webElement);
 
 			return webElement.isDisplayed();
 		}
@@ -356,27 +329,12 @@ public abstract class BaseMobileDriverImpl
 	}
 
 	@Override
-	public void keyDownAndWait(String locator, String keySequence) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public void keyPress(String locator, String keySequence) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void keyPressAndWait(String locator, String keySequence) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public void keyUp(String locator, String keySequence) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void keyUpAndWait(String locator, String keySequence) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -463,11 +421,6 @@ public abstract class BaseMobileDriverImpl
 
 	public byte[] pullFolder(String remotePath) {
 		return _mobileDriver.pullFolder(remotePath);
-	}
-
-	@Override
-	public void refreshAndWait() {
-		throw new UnsupportedOperationException();
 	}
 
 	public void removeApp(String bundleId) {
@@ -588,11 +541,6 @@ public abstract class BaseMobileDriverImpl
 	}
 
 	@Override
-	public void waitForPageToLoad(String timeout) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public void waitForPopUp(String windowID, String timeout) {
 		throw new UnsupportedOperationException();
 	}
@@ -608,7 +556,7 @@ public abstract class BaseMobileDriverImpl
 	protected void swipeWebElementIntoView(String locator) {
 		WebElement webElement = getWebElement(locator, "1");
 
-		WebDriverHelper.scrollWebElementIntoView(this, webElement);
+		scrollWebElementIntoView(webElement);
 	}
 
 	protected void tap(String locator) {

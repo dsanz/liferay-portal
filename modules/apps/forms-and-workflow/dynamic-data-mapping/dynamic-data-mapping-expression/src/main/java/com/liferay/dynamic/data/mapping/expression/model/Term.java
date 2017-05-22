@@ -35,6 +35,11 @@ public class Term extends Expression {
 		return _value;
 	}
 
+	@Override
+	public String toString() {
+		return _value;
+	}
+
 	private final String _value;
 
 }

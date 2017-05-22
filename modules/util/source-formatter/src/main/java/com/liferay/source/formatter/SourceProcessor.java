@@ -33,9 +33,7 @@ public interface SourceProcessor {
 
 	public Set<SourceFormatterMessage> getSourceFormatterMessages();
 
-	public void processMessage(String fileName, String message);
-
-	public void processMessage(String fileName, String message, int lineCount);
+	public void setAllFileNames(List<String> allFileNames);
 
 	public void setProperties(Properties properties);
 

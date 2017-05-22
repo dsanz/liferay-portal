@@ -21,14 +21,9 @@ WikiEngineRenderer wikiEngineRenderer = (WikiEngineRenderer)request.getAttribute
 WikiNode node = (WikiNode)request.getAttribute(WikiWebKeys.WIKI_NODE);
 WikiPage wikiPage = (WikiPage)request.getAttribute(WikiWebKeys.WIKI_PAGE);
 
-List<FileEntry> attachmentsFileEntries = null;
+List<FileEntry> attachmentsFileEntries = wikiPage.getAttachmentsFileEntries();
 
-if (wikiPage != null) {
-	attachmentsFileEntries = wikiPage.getAttachmentsFileEntries();
-}
-
-int numOfVersions = WikiPageLocalServiceUtil.getPagesCount(wikiPage.getNodeId(), wikiPage.getTitle());
-WikiPage initialPage = (WikiPage)WikiPageLocalServiceUtil.getPages(wikiPage.getNodeId(), wikiPage.getTitle(), numOfVersions - 1, numOfVersions).get(0);
+WikiPage initialPage = WikiPageLocalServiceUtil.getPage(wikiPage.getNodeId(), wikiPage.getTitle(), WikiPageConstants.VERSION_DEFAULT);
 
 PortletURL viewPageURL = renderResponse.createRenderURL();
 
@@ -87,7 +82,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "details
 			<liferay-ui:message key="created-by" />
 		</th>
 		<td class="table-cell">
-			<%= HtmlUtil.escape(initialPage.getUserName()) %> (<%= dateFormatDateTime.format(initialPage.getCreateDate()) %>)
+			<%= HtmlUtil.escape(Validator.isNotNull(initialPage.getUserName()) ? initialPage.getUserName() : "Liferay") %> (<%= dateFormatDateTime.format(initialPage.getCreateDate()) %>)
 		</td>
 	</tr>
 	<tr>
@@ -107,7 +102,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "details
 		</td>
 	</tr>
 
-	<c:if test="<%= PrefsPropsUtil.getBoolean(PropsKeys.OPENOFFICE_SERVER_ENABLED, GetterUtil.getBoolean(PropsUtil.get(PropsKeys.OPENOFFICE_SERVER_ENABLED)) && WikiPagePermissionChecker.contains(permissionChecker, wikiPage, ActionKeys.VIEW)) %>">
+	<c:if test="<%= DocumentConversionUtil.isEnabled() && WikiPagePermissionChecker.contains(permissionChecker, wikiPage, ActionKeys.VIEW) %>">
 
 		<%
 		String[] conversions = DocumentConversionUtil.getConversions("html");
@@ -345,7 +340,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "details
 
 						deletePageURL.setParameter(ActionRequest.ACTION_NAME, "/wiki/edit_page");
 
-						if (TrashUtil.isTrashEnabled(scopeGroupId)) {
+						if (trashHelper.isTrashEnabled(scopeGroupId)) {
 							deletePageURL.setParameter(Constants.CMD, Constants.MOVE_TO_TRASH);
 						}
 						else {
@@ -355,7 +350,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "details
 						deletePageURL.setParameter("redirect", frontPageURL.toString());
 						%>
 
-						<liferay-ui:icon-delete label="<%= true %>" trash="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>" url="<%= deletePageURL.toString() %>" />
+						<liferay-ui:icon-delete label="<%= true %>" trash="<%= trashHelper.isTrashEnabled(scopeGroupId) %>" url="<%= deletePageURL.toString() %>" />
 					</c:if>
 				</liferay-ui:icon-list>
 			</td>

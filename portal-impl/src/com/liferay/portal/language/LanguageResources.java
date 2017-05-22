@@ -60,8 +60,17 @@ public class LanguageResources {
 		new ResourceBundleLoader() {
 
 			@Override
+			public ResourceBundle loadResourceBundle(Locale locale) {
+				return LanguageResources.getResourceBundle(locale);
+			}
+
+			/**
+			 * @deprecated As of 7.0.0, replaced by {@link #loadResourceBundle(
+			 *             Locale)}
+			 */
+			@Deprecated
 			public ResourceBundle loadResourceBundle(String languageId) {
-				return LanguageResources.getResourceBundle(
+				return loadResourceBundle(
 					LocaleUtil.fromLanguageId(languageId));
 			}
 
@@ -177,7 +186,13 @@ public class LanguageResources {
 			Locale priorityLocale = LanguageUtil.getLocale(
 				locale.getLanguage());
 
-			if ((priorityLocale != null) && !locale.equals(priorityLocale)) {
+			if (priorityLocale != null) {
+				variant = priorityLocale.getVariant();
+			}
+
+			if ((priorityLocale != null) && !locale.equals(priorityLocale) &&
+				(variant.length() <= 0)) {
+
 				return new Locale(
 					priorityLocale.getLanguage(), priorityLocale.getCountry());
 			}
@@ -287,11 +302,27 @@ public class LanguageResources {
 			newLanguageMap.putAll(oldLanguageMap);
 		}
 
-		newLanguageMap.putAll(languageMap);
+		Map<String, String> diffLanguageMap = new HashMap<>();
+
+		for (Map.Entry<String, String> entry : languageMap.entrySet()) {
+			String key = entry.getKey();
+			String value = entry.getValue();
+
+			String oldValue = null;
+
+			if (value == null) {
+				oldValue = newLanguageMap.remove(key);
+			}
+			else {
+				oldValue = newLanguageMap.put(key, value);
+			}
+
+			diffLanguageMap.put(entry.getKey(), oldValue);
+		}
 
 		_languageMaps.put(locale, newLanguageMap);
 
-		return oldLanguageMap;
+		return diffLanguageMap;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -393,10 +424,10 @@ public class LanguageResources {
 				languageMap.put(key, value);
 			}
 
-			Map<String, String> oldLanguageMap = _putLanguageMap(
+			Map<String, String> diffLanguageMap = _putLanguageMap(
 				locale, languageMap);
 
-			_oldLanguageMaps.put(serviceReference, oldLanguageMap);
+			_diffLanguageMap.put(serviceReference, diffLanguageMap);
 
 			return resourceBundle;
 		}
@@ -427,14 +458,14 @@ public class LanguageResources {
 				locale = new Locale(StringPool.BLANK);
 			}
 
-			Map<String, String> languageMap = _oldLanguageMaps.get(
+			Map<String, String> languageMap = _diffLanguageMap.remove(
 				serviceReference);
 
 			_putLanguageMap(locale, languageMap);
 		}
 
 		private final Map<ServiceReference<?>, Map<String, String>>
-			_oldLanguageMaps = new HashMap<>();
+			_diffLanguageMap = new HashMap<>();
 
 	}
 

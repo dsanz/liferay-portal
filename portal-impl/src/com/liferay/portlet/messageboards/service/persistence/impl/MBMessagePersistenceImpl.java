@@ -48,6 +48,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -59,6 +60,8 @@ import com.liferay.portlet.messageboards.model.impl.MBMessageImpl;
 import com.liferay.portlet.messageboards.model.impl.MBMessageModelImpl;
 
 import java.io.Serializable;
+
+import java.lang.reflect.Field;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -18895,6 +18898,22 @@ public class MBMessagePersistenceImpl extends BasePersistenceImpl<MBMessage>
 
 	public MBMessagePersistenceImpl() {
 		setModelClass(MBMessage.class);
+
+		try {
+			Field field = ReflectionUtil.getDeclaredField(BasePersistenceImpl.class,
+					"_dbColumnNames");
+
+			Map<String, String> dbColumnNames = new HashMap<String, String>();
+
+			dbColumnNames.put("uuid", "uuid_");
+
+			field.set(this, dbColumnNames);
+		}
+		catch (Exception e) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(e, e);
+			}
+		}
 	}
 
 	/**
@@ -19204,8 +19223,242 @@ public class MBMessagePersistenceImpl extends BasePersistenceImpl<MBMessage>
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (isNew || !MBMessageModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!MBMessageModelImpl.COLUMN_BITMASK_ENABLED) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+		else
+		 if (isNew) {
+			Object[] args = new Object[] { mbMessageModelImpl.getUuid() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_UUID,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getUuid(),
+					mbMessageModelImpl.getCompanyId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID_C, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_UUID_C,
+				args);
+
+			args = new Object[] { mbMessageModelImpl.getGroupId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_GROUPID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_GROUPID,
+				args);
+
+			args = new Object[] { mbMessageModelImpl.getCompanyId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_COMPANYID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_COMPANYID,
+				args);
+
+			args = new Object[] { mbMessageModelImpl.getUserId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_USERID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_USERID,
+				args);
+
+			args = new Object[] { mbMessageModelImpl.getThreadId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_THREADID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_THREADID,
+				args);
+
+			args = new Object[] { mbMessageModelImpl.getThreadId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_THREADREPLIES, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_THREADREPLIES,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getGroupId(),
+					mbMessageModelImpl.getUserId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_U, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_U,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getGroupId(),
+					mbMessageModelImpl.getCategoryId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_C, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_C,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getGroupId(),
+					mbMessageModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_S,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getCompanyId(),
+					mbMessageModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_C_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_S,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getUserId(),
+					mbMessageModelImpl.getClassNameId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_U_C, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_U_C,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getClassNameId(),
+					mbMessageModelImpl.getClassPK()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_C_C, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_C,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getThreadId(),
+					mbMessageModelImpl.getParentMessageId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_T_P, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_T_P,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getThreadId(),
+					mbMessageModelImpl.getAnswer()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_T_A, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_T_A,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getThreadId(),
+					mbMessageModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_T_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_T_S,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getThreadId(),
+					mbMessageModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_TR_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_TR_S,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getGroupId(),
+					mbMessageModelImpl.getUserId(),
+					mbMessageModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_U_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_U_S,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getGroupId(),
+					mbMessageModelImpl.getCategoryId(),
+					mbMessageModelImpl.getThreadId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_C_T, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_C_T,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getGroupId(),
+					mbMessageModelImpl.getCategoryId(),
+					mbMessageModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_C_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_C_S,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getUserId(),
+					mbMessageModelImpl.getClassNameId(),
+					mbMessageModelImpl.getClassPK()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_U_C_C, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_U_C_C,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getUserId(),
+					mbMessageModelImpl.getClassNameId(),
+					mbMessageModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_U_C_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_U_C_S,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getClassNameId(),
+					mbMessageModelImpl.getClassPK(),
+					mbMessageModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_C_C_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_C_S,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getGroupId(),
+					mbMessageModelImpl.getCategoryId(),
+					mbMessageModelImpl.getThreadId(),
+					mbMessageModelImpl.getAnswer()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_C_T_A, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_C_T_A,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getGroupId(),
+					mbMessageModelImpl.getCategoryId(),
+					mbMessageModelImpl.getThreadId(),
+					mbMessageModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_C_T_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_C_T_S,
+				args);
+
+			args = new Object[] {
+					mbMessageModelImpl.getUserId(),
+					mbMessageModelImpl.getClassNameId(),
+					mbMessageModelImpl.getClassPK(),
+					mbMessageModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_U_C_C_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_U_C_C_S,
+				args);
+
+			finderCache.removeResult(FINDER_PATH_COUNT_ALL, FINDER_ARGS_EMPTY);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL,
+				FINDER_ARGS_EMPTY);
 		}
 
 		else {
@@ -19958,7 +20211,7 @@ public class MBMessagePersistenceImpl extends BasePersistenceImpl<MBMessage>
 		query.append(_SQL_SELECT_MBMESSAGE_WHERE_PKS_IN);
 
 		for (Serializable primaryKey : uncachedPrimaryKeys) {
-			query.append(String.valueOf(primaryKey));
+			query.append((long)primaryKey);
 
 			query.append(StringPool.COMMA);
 		}

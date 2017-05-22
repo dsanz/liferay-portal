@@ -1071,7 +1071,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns all the journal articles where DDMStructureKey = &#63;.
 	*
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @return the matching journal articles
 	*/
 	public static List<JournalArticle> findByDDMStructureKey(
@@ -1086,7 +1086,7 @@ public class JournalArticleUtil {
 	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @return the range of matching journal articles
@@ -1104,7 +1104,7 @@ public class JournalArticleUtil {
 	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -1125,7 +1125,7 @@ public class JournalArticleUtil {
 	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -1144,7 +1144,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns the first journal article in the ordered set where DDMStructureKey = &#63;.
 	*
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -1161,7 +1161,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns the first journal article in the ordered set where DDMStructureKey = &#63;.
 	*
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -1176,7 +1176,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns the last journal article in the ordered set where DDMStructureKey = &#63;.
 	*
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -1193,7 +1193,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns the last journal article in the ordered set where DDMStructureKey = &#63;.
 	*
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -1209,7 +1209,7 @@ public class JournalArticleUtil {
 	* Returns the journal articles before and after the current journal article in the ordered set where DDMStructureKey = &#63;.
 	*
 	* @param id the primary key of the current journal article
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next journal article
 	* @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -1230,7 +1230,7 @@ public class JournalArticleUtil {
 	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
-	* @param DDMStructureKeies the d d m structure keies
+	* @param DDMStructureKeies the ddm structure keies
 	* @return the matching journal articles
 	*/
 	public static List<JournalArticle> findByDDMStructureKey(
@@ -1245,7 +1245,7 @@ public class JournalArticleUtil {
 	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
-	* @param DDMStructureKeies the d d m structure keies
+	* @param DDMStructureKeies the ddm structure keies
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @return the range of matching journal articles
@@ -1263,7 +1263,7 @@ public class JournalArticleUtil {
 	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
-	* @param DDMStructureKeies the d d m structure keies
+	* @param DDMStructureKeies the ddm structure keies
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -1284,7 +1284,7 @@ public class JournalArticleUtil {
 	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -1303,7 +1303,7 @@ public class JournalArticleUtil {
 	/**
 	* Removes all the journal articles where DDMStructureKey = &#63; from the database.
 	*
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	*/
 	public static void removeByDDMStructureKey(java.lang.String DDMStructureKey) {
 		getPersistence().removeByDDMStructureKey(DDMStructureKey);
@@ -1312,7 +1312,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns the number of journal articles where DDMStructureKey = &#63;.
 	*
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @return the number of matching journal articles
 	*/
 	public static int countByDDMStructureKey(java.lang.String DDMStructureKey) {
@@ -1322,7 +1322,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns the number of journal articles where DDMStructureKey = any &#63;.
 	*
-	* @param DDMStructureKeies the d d m structure keies
+	* @param DDMStructureKeies the ddm structure keies
 	* @return the number of matching journal articles
 	*/
 	public static int countByDDMStructureKey(
@@ -1333,7 +1333,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns all the journal articles where DDMTemplateKey = &#63;.
 	*
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @return the matching journal articles
 	*/
 	public static List<JournalArticle> findByDDMTemplateKey(
@@ -1348,7 +1348,7 @@ public class JournalArticleUtil {
 	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @return the range of matching journal articles
@@ -1365,7 +1365,7 @@ public class JournalArticleUtil {
 	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -1386,7 +1386,7 @@ public class JournalArticleUtil {
 	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link JournalArticleModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -1405,7 +1405,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns the first journal article in the ordered set where DDMTemplateKey = &#63;.
 	*
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -1421,7 +1421,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns the first journal article in the ordered set where DDMTemplateKey = &#63;.
 	*
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -1436,7 +1436,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns the last journal article in the ordered set where DDMTemplateKey = &#63;.
 	*
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -1452,7 +1452,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns the last journal article in the ordered set where DDMTemplateKey = &#63;.
 	*
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -1467,7 +1467,7 @@ public class JournalArticleUtil {
 	* Returns the journal articles before and after the current journal article in the ordered set where DDMTemplateKey = &#63;.
 	*
 	* @param id the primary key of the current journal article
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next journal article
 	* @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -1484,7 +1484,7 @@ public class JournalArticleUtil {
 	/**
 	* Removes all the journal articles where DDMTemplateKey = &#63; from the database.
 	*
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	*/
 	public static void removeByDDMTemplateKey(java.lang.String DDMTemplateKey) {
 		getPersistence().removeByDDMTemplateKey(DDMTemplateKey);
@@ -1493,7 +1493,7 @@ public class JournalArticleUtil {
 	/**
 	* Returns the number of journal articles where DDMTemplateKey = &#63;.
 	*
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @return the number of matching journal articles
 	*/
 	public static int countByDDMTemplateKey(java.lang.String DDMTemplateKey) {
@@ -3460,7 +3460,7 @@ public class JournalArticleUtil {
 	* Returns all the journal articles where groupId = &#63; and DDMStructureKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @return the matching journal articles
 	*/
 	public static List<JournalArticle> findByG_DDMSK(long groupId,
@@ -3476,7 +3476,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @return the range of matching journal articles
@@ -3495,7 +3495,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -3517,7 +3517,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -3537,7 +3537,7 @@ public class JournalArticleUtil {
 	* Returns the first journal article in the ordered set where groupId = &#63; and DDMStructureKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -3555,7 +3555,7 @@ public class JournalArticleUtil {
 	* Returns the first journal article in the ordered set where groupId = &#63; and DDMStructureKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -3571,7 +3571,7 @@ public class JournalArticleUtil {
 	* Returns the last journal article in the ordered set where groupId = &#63; and DDMStructureKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -3589,7 +3589,7 @@ public class JournalArticleUtil {
 	* Returns the last journal article in the ordered set where groupId = &#63; and DDMStructureKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -3606,7 +3606,7 @@ public class JournalArticleUtil {
 	*
 	* @param id the primary key of the current journal article
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next journal article
 	* @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -3624,7 +3624,7 @@ public class JournalArticleUtil {
 	* Returns all the journal articles that the user has permission to view where groupId = &#63; and DDMStructureKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @return the matching journal articles that the user has permission to view
 	*/
 	public static List<JournalArticle> filterFindByG_DDMSK(long groupId,
@@ -3640,7 +3640,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @return the range of matching journal articles that the user has permission to view
@@ -3659,7 +3659,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -3678,7 +3678,7 @@ public class JournalArticleUtil {
 	*
 	* @param id the primary key of the current journal article
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next journal article
 	* @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -3696,7 +3696,7 @@ public class JournalArticleUtil {
 	* Removes all the journal articles where groupId = &#63; and DDMStructureKey = &#63; from the database.
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	*/
 	public static void removeByG_DDMSK(long groupId,
 		java.lang.String DDMStructureKey) {
@@ -3707,7 +3707,7 @@ public class JournalArticleUtil {
 	* Returns the number of journal articles where groupId = &#63; and DDMStructureKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @return the number of matching journal articles
 	*/
 	public static int countByG_DDMSK(long groupId,
@@ -3719,7 +3719,7 @@ public class JournalArticleUtil {
 	* Returns the number of journal articles that the user has permission to view where groupId = &#63; and DDMStructureKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @return the number of matching journal articles that the user has permission to view
 	*/
 	public static int filterCountByG_DDMSK(long groupId,
@@ -3731,7 +3731,7 @@ public class JournalArticleUtil {
 	* Returns all the journal articles where groupId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @return the matching journal articles
 	*/
 	public static List<JournalArticle> findByG_DDMTK(long groupId,
@@ -3747,7 +3747,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @return the range of matching journal articles
@@ -3766,7 +3766,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -3788,7 +3788,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -3808,7 +3808,7 @@ public class JournalArticleUtil {
 	* Returns the first journal article in the ordered set where groupId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -3826,7 +3826,7 @@ public class JournalArticleUtil {
 	* Returns the first journal article in the ordered set where groupId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -3842,7 +3842,7 @@ public class JournalArticleUtil {
 	* Returns the last journal article in the ordered set where groupId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -3860,7 +3860,7 @@ public class JournalArticleUtil {
 	* Returns the last journal article in the ordered set where groupId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -3877,7 +3877,7 @@ public class JournalArticleUtil {
 	*
 	* @param id the primary key of the current journal article
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next journal article
 	* @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -3895,7 +3895,7 @@ public class JournalArticleUtil {
 	* Returns all the journal articles that the user has permission to view where groupId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @return the matching journal articles that the user has permission to view
 	*/
 	public static List<JournalArticle> filterFindByG_DDMTK(long groupId,
@@ -3911,7 +3911,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @return the range of matching journal articles that the user has permission to view
@@ -3930,7 +3930,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -3949,7 +3949,7 @@ public class JournalArticleUtil {
 	*
 	* @param id the primary key of the current journal article
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next journal article
 	* @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -3967,7 +3967,7 @@ public class JournalArticleUtil {
 	* Removes all the journal articles where groupId = &#63; and DDMTemplateKey = &#63; from the database.
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	*/
 	public static void removeByG_DDMTK(long groupId,
 		java.lang.String DDMTemplateKey) {
@@ -3978,7 +3978,7 @@ public class JournalArticleUtil {
 	* Returns the number of journal articles where groupId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @return the number of matching journal articles
 	*/
 	public static int countByG_DDMTK(long groupId,
@@ -3990,7 +3990,7 @@ public class JournalArticleUtil {
 	* Returns the number of journal articles that the user has permission to view where groupId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param groupId the group ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @return the number of matching journal articles that the user has permission to view
 	*/
 	public static int filterCountByG_DDMTK(long groupId,
@@ -5459,7 +5459,7 @@ public class JournalArticleUtil {
 	* Returns all the journal articles where classNameId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @return the matching journal articles
 	*/
 	public static List<JournalArticle> findByC_DDMTK(long classNameId,
@@ -5475,7 +5475,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @return the range of matching journal articles
@@ -5494,7 +5494,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -5516,7 +5516,7 @@ public class JournalArticleUtil {
 	* </p>
 	*
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -5536,7 +5536,7 @@ public class JournalArticleUtil {
 	* Returns the first journal article in the ordered set where classNameId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -5554,7 +5554,7 @@ public class JournalArticleUtil {
 	* Returns the first journal article in the ordered set where classNameId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -5570,7 +5570,7 @@ public class JournalArticleUtil {
 	* Returns the last journal article in the ordered set where classNameId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -5588,7 +5588,7 @@ public class JournalArticleUtil {
 	* Returns the last journal article in the ordered set where classNameId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -5605,7 +5605,7 @@ public class JournalArticleUtil {
 	*
 	* @param id the primary key of the current journal article
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next journal article
 	* @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -5623,7 +5623,7 @@ public class JournalArticleUtil {
 	* Removes all the journal articles where classNameId = &#63; and DDMTemplateKey = &#63; from the database.
 	*
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	*/
 	public static void removeByC_DDMTK(long classNameId,
 		java.lang.String DDMTemplateKey) {
@@ -5634,7 +5634,7 @@ public class JournalArticleUtil {
 	* Returns the number of journal articles where classNameId = &#63; and DDMTemplateKey = &#63;.
 	*
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @return the number of matching journal articles
 	*/
 	public static int countByC_DDMTK(long classNameId,
@@ -6850,7 +6850,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @return the matching journal articles
 	*/
 	public static List<JournalArticle> findByG_C_C(long groupId,
@@ -6867,7 +6867,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @return the range of matching journal articles
@@ -6887,7 +6887,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -6910,7 +6910,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -6931,7 +6931,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -6950,7 +6950,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -6967,7 +6967,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -6986,7 +6986,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -7004,7 +7004,7 @@ public class JournalArticleUtil {
 	* @param id the primary key of the current journal article
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next journal article
 	* @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -7023,7 +7023,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @return the matching journal articles that the user has permission to view
 	*/
 	public static List<JournalArticle> filterFindByG_C_C(long groupId,
@@ -7040,7 +7040,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @return the range of matching journal articles that the user has permission to view
@@ -7060,7 +7060,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -7080,7 +7080,7 @@ public class JournalArticleUtil {
 	* @param id the primary key of the current journal article
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next journal article
 	* @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -7099,7 +7099,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	*/
 	public static void removeByG_C_C(long groupId, long classNameId,
 		long classPK) {
@@ -7111,7 +7111,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @return the number of matching journal articles
 	*/
 	public static int countByG_C_C(long groupId, long classNameId, long classPK) {
@@ -7123,7 +7123,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param classPK the class p k
+	* @param classPK the class pk
 	* @return the number of matching journal articles that the user has permission to view
 	*/
 	public static int filterCountByG_C_C(long groupId, long classNameId,
@@ -7136,7 +7136,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @return the matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
 	*/
@@ -7152,7 +7152,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @return the matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
 	public static JournalArticle fetchByG_C_DDMSK(long groupId,
@@ -7166,7 +7166,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @param retrieveFromCache whether to retrieve from the finder cache
 	* @return the matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -7183,7 +7183,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @return the journal article that was removed
 	*/
 	public static JournalArticle removeByG_C_DDMSK(long groupId,
@@ -7198,7 +7198,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMStructureKey the d d m structure key
+	* @param DDMStructureKey the ddm structure key
 	* @return the number of matching journal articles
 	*/
 	public static int countByG_C_DDMSK(long groupId, long classNameId,
@@ -7212,7 +7212,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @return the matching journal articles
 	*/
 	public static List<JournalArticle> findByG_C_DDMTK(long groupId,
@@ -7230,7 +7230,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @return the range of matching journal articles
@@ -7251,7 +7251,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -7274,7 +7274,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -7295,7 +7295,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -7314,7 +7314,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -7331,7 +7331,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article
 	* @throws NoSuchArticleException if a matching journal article could not be found
@@ -7350,7 +7350,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the last matching journal article, or <code>null</code> if a matching journal article could not be found
 	*/
@@ -7368,7 +7368,7 @@ public class JournalArticleUtil {
 	* @param id the primary key of the current journal article
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next journal article
 	* @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -7387,7 +7387,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @return the matching journal articles that the user has permission to view
 	*/
 	public static List<JournalArticle> filterFindByG_C_DDMTK(long groupId,
@@ -7405,7 +7405,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @return the range of matching journal articles that the user has permission to view
@@ -7426,7 +7426,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param start the lower bound of the range of journal articles
 	* @param end the upper bound of the range of journal articles (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
@@ -7446,7 +7446,7 @@ public class JournalArticleUtil {
 	* @param id the primary key of the current journal article
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the previous, current, and next journal article
 	* @throws NoSuchArticleException if a journal article with the primary key could not be found
@@ -7465,7 +7465,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	*/
 	public static void removeByG_C_DDMTK(long groupId, long classNameId,
 		java.lang.String DDMTemplateKey) {
@@ -7477,7 +7477,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @return the number of matching journal articles
 	*/
 	public static int countByG_C_DDMTK(long groupId, long classNameId,
@@ -7491,7 +7491,7 @@ public class JournalArticleUtil {
 	*
 	* @param groupId the group ID
 	* @param classNameId the class name ID
-	* @param DDMTemplateKey the d d m template key
+	* @param DDMTemplateKey the ddm template key
 	* @return the number of matching journal articles that the user has permission to view
 	*/
 	public static int filterCountByG_C_DDMTK(long groupId, long classNameId,

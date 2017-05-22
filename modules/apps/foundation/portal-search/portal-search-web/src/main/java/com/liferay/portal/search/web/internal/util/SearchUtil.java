@@ -32,7 +32,6 @@ import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PredicateFilter;
 import com.liferay.portal.kernel.util.Tuple;
@@ -156,10 +155,9 @@ public class SearchUtil {
 	}
 
 	public static String getSearchResultViewURL(
-			RenderRequest renderRequest, RenderResponse renderResponse,
-			String className, long classPK, boolean viewInContext,
-			String currentURL)
-		throws Exception {
+		RenderRequest renderRequest, RenderResponse renderResponse,
+		String className, long classPK, boolean viewInContext,
+		String currentURL) {
 
 		try {
 			PortletURL viewContentURL = renderResponse.createRenderURL();
@@ -189,18 +187,13 @@ public class SearchUtil {
 			viewContentURL.setParameter("type", assetRendererFactory.getType());
 
 			if (viewInContext) {
-				String viewFullContentURLString = viewContentURL.toString();
-
-				viewFullContentURLString = HttpUtil.setParameter(
-					viewFullContentURLString, "redirect", currentURL);
-
 				AssetRenderer<?> assetRenderer =
 					assetRendererFactory.getAssetRenderer(classPK);
 
 				String viewURL = assetRenderer.getURLViewInContext(
 					(LiferayPortletRequest)renderRequest,
 					(LiferayPortletResponse)renderResponse,
-					viewFullContentURLString);
+					viewContentURL.toString());
 
 				ThemeDisplay themeDisplay =
 					(ThemeDisplay)renderRequest.getAttribute(

@@ -33,7 +33,7 @@ String tagNames = GetterUtil.getString((String)request.getAttribute("liferay-ass
 	<aui:input name="<%= hiddenInput %>" type="hidden" />
 
 	<c:if test="<%= allowAddEntry %>">
-		<input class="form-control lfr-tag-selector-input" id="<%= id %>assetTagNames" maxlength="<%= ModelHintsConstants.TEXT_MAX_LENGTH %>" size="15" title="<liferay-ui:message key="add-tags" />" type="text" />
+		<input class="form-control lfr-tag-selector-input" id="<%= id %>assetTagNames" size="15" title="<liferay-ui:message key="add-tags" />" type="text" />
 	</c:if>
 </div>
 
@@ -56,6 +56,8 @@ String tagNames = GetterUtil.getString((String)request.getAttribute("liferay-ass
 			<c:if test="<%= Validator.isNotNull(eventName) %>">
 				eventName: '<%= eventName %>',
 			</c:if>
+
+			maxLength: <%= ModelHintsConstants.TEXT_MAX_LENGTH %>,
 
 			<c:if test="<%= portletURL != null %>">
 				portletURL: '<%= portletURL.toString() %>',

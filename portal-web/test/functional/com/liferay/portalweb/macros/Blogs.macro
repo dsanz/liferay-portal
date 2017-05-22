@@ -139,6 +139,8 @@
 			<var name="tagName" value="${tagName}" />
 		</execute>
 
+		<execute function="SelectFrameTop" value1="relative=top" />
+
 		<execute macro="PortletEntry#publish" />
 	</command>
 
@@ -160,6 +162,8 @@
 				<var name="tagName" value="${tagName}" />
 			</execute>
 		</for>
+
+		<execute function="SelectFrameTop" value1="relative=top" />
 
 		<execute macro="PortletEntry#publish" />
 	</command>
@@ -256,11 +260,9 @@
 			<var name="panelHeading" value="Configuration" />
 		</execute>
 
-		<execute function="Click" locator1="Radio#CUSTOM_ABSTRACT" />
-
-		<execute function="Click" locator1="AlloyEditor#DESCRIPTION_FIELD" />
-
-		<execute function="Type#typeEditor" locator1="AlloyEditor#DESCRIPTION_FIELD" value1="${entryAbstractDescription}" />
+		<execute macro="BlogsEntry#addCustomAbstract">
+			<var name="entryAbstractDescription" value="${entryAbstractDescription}" />
+		</execute>
 
 		<execute macro="PortletEntry#publish" />
 	</command>
@@ -286,8 +288,13 @@
 
 		<execute function="UploadCommonFile" locator1="TextInput#FILE" value1="${dmDocumentFile}" />
 
-		<execute function="Type" locator1="TextInput#TITLE" value1="${dmDocumentTitle}" />
-		<execute function="Type" locator1="TextArea#DESCRIPTION" value1="${dmDocumentDescription}" />
+		<execute macro="PortletEntry#inputTitle">
+			<var name="title" value="${dmDocumentTitle}" />
+		</execute>
+
+		<execute macro="PortletEntry#inputDescription">
+			<var name="description" value="${dmDocumentDescription}" />
+		</execute>
 
 		<execute macro="PortletEntry#publish" />
 	</command>

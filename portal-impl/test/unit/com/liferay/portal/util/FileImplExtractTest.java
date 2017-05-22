@@ -16,7 +16,10 @@ package com.liferay.portal.util;
 
 import com.liferay.portal.kernel.util.File;
 
+import java.io.IOException;
 import java.io.InputStream;
+
+import java.nio.charset.Charset;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -103,6 +106,18 @@ public class FileImplExtractTest {
 		String text = extractText("test.txt");
 
 		Assert.assertEquals("Extract test.", text);
+	}
+
+	@Test
+	public void testTxtEncodedWithShift_JIS() throws IOException {
+		String expectedText = new String(
+			_file.getBytes(
+				FileImplExtractTest.class.getResourceAsStream(
+					"dependencies/test-encoding-Shift_JIS.txt")),
+			Charset.forName("Shift_JIS"));
+
+		Assert.assertEquals(
+			expectedText.trim(), extractText("test-encoding-Shift_JIS.txt"));
 	}
 
 	@Test

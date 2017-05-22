@@ -39,15 +39,16 @@ import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
-import com.liferay.portal.kernel.service.SubscriptionLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.settings.LocalizedValuesMap;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.EscapableLocalizableFunction;
+import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.SubscriptionSender;
 import com.liferay.portal.kernel.util.Validator;
@@ -60,6 +61,7 @@ import com.liferay.portlet.messageboards.service.permission.MBPermission;
 import com.liferay.portlet.messageboards.util.MBSubscriptionSender;
 import com.liferay.portlet.messageboards.util.MBUtil;
 import com.liferay.portlet.messageboards.util.MailingListThreadLocal;
+import com.liferay.subscription.service.SubscriptionLocalService;
 
 import java.io.Serializable;
 
@@ -182,9 +184,18 @@ public class SubscriptionMBMessageLocalServiceWrapper
 				"[$CATEGORY_NAME$]", category.getName(), true);
 		}
 		else {
-			subscriptionSender.setLocalizedContextAttributeWithFunction(
-				"[$CATEGORY_NAME$]",
-				locale -> _getLocalizedRootCategoryName(groupId, locale));
+			try {
+				Group group = _groupLocalService.getGroup(groupId);
+
+				subscriptionSender.setLocalizedContextAttribute(
+					"[$CATEGORY_NAME$]",
+					new EscapableLocalizableFunction(
+						locale -> _getLocalizedRootCategoryName(
+							group, locale)));
+			}
+			catch (PortalException pe) {
+				ReflectionUtil.throwException(pe);
+			}
 		}
 
 		subscriptionSender.setContextAttributes(
@@ -257,7 +268,7 @@ public class SubscriptionMBMessageLocalServiceWrapper
 
 		String contentURL = (String)serviceContext.getAttribute("contentURL");
 
-		contentURL = HttpUtil.addParameter(
+		contentURL = _http.addParameter(
 			contentURL, serviceContext.getAttribute("namespace") + "messageId",
 			message.getMessageId());
 
@@ -266,8 +277,8 @@ public class SubscriptionMBMessageLocalServiceWrapper
 			"pingbackUserName");
 
 		if (Validator.isNull(userName)) {
-			userAddress = PortalUtil.getUserEmailAddress(message.getUserId());
-			userName = PortalUtil.getUserName(
+			userAddress = _portal.getUserEmailAddress(message.getUserId());
+			userName = _portal.getUserName(
 				message.getUserId(), StringPool.BLANK);
 		}
 
@@ -458,7 +469,7 @@ public class SubscriptionMBMessageLocalServiceWrapper
 
 			Date modifiedDate = parentMessage.getModifiedDate();
 
-			inReplyTo = PortalUtil.getMailId(
+			inReplyTo = _portal.getMailId(
 				company.getMx(), MBUtil.MESSAGE_POP_PORTLET_PREFIX,
 				message.getCategoryId(), parentMessage.getMessageId(),
 				modifiedDate.getTime());
@@ -554,16 +565,18 @@ public class SubscriptionMBMessageLocalServiceWrapper
 		_userLocalService = userLocalService;
 	}
 
-	private String _getLocalizedRootCategoryName(long groupId, Locale locale) {
-		try {
-			Group group = _groupLocalService.getGroup(groupId);
+	private static String _getLocalizedRootCategoryName(
+		Group group, Locale locale) {
 
+		try {
 			return LanguageUtil.get(locale, "message-boards-home") + " - " +
 				group.getDescriptiveName(locale);
 		}
 		catch (PortalException pe) {
 			_log.error(
-				"Unable to get descriptive name for group " + groupId, pe);
+				"Unable to get descriptive name for group " +
+					group.getGroupId(),
+				pe);
 
 			return LanguageUtil.get(locale, "message-boards-home");
 		}
@@ -574,8 +587,16 @@ public class SubscriptionMBMessageLocalServiceWrapper
 
 	private CompanyLocalService _companyLocalService;
 	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private Http _http;
+
 	private MBDiscussionLocalService _mbDiscussionLocalService;
 	private MBMessageLocalService _mbMessageLocalService;
+
+	@Reference
+	private Portal _portal;
+
 	private SubscriptionLocalService _subscriptionLocalService;
 	private UserLocalService _userLocalService;
 

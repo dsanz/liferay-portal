@@ -86,16 +86,19 @@ public class DDMDataProviderInstanceServiceImpl
 	public DDMDataProviderInstance fetchDataProviderInstanceByUuid(String uuid)
 		throws PortalException {
 
-		DDMDataProviderInstance ddmDataProviderInstance =
+		DDMDataProviderInstance dataProviderInstance =
 			ddmDataProviderInstanceLocalService.fetchDataProviderInstanceByUuid(
 				uuid);
 
+		if (dataProviderInstance == null) {
+			return null;
+		}
+
 		DDMDataProviderInstancePermission.check(
 			getPermissionChecker(),
-			ddmDataProviderInstance.getDataProviderInstanceId(),
-			ActionKeys.VIEW);
+			dataProviderInstance.getDataProviderInstanceId(), ActionKeys.VIEW);
 
-		return ddmDataProviderInstance;
+		return dataProviderInstance;
 	}
 
 	@Override

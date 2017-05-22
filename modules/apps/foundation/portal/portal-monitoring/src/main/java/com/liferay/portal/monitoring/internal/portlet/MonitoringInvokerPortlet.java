@@ -188,7 +188,9 @@ public class MonitoringInvokerPortlet
 
 			_invokerPortlet.processAction(actionRequest, actionResponse);
 
-			if (_portletMonitoringControl.isMonitorPortletActionRequest()) {
+			if (_portletMonitoringControl.isMonitorPortletActionRequest() &&
+				(dataSample != null)) {
+
 				dataSample.capture(RequestStatus.SUCCESS);
 			}
 		}
@@ -223,7 +225,9 @@ public class MonitoringInvokerPortlet
 
 			_invokerPortlet.processEvent(eventRequest, eventResponse);
 
-			if (_portletMonitoringControl.isMonitorPortletEventRequest()) {
+			if (_portletMonitoringControl.isMonitorPortletEventRequest() &&
+				(dataSample != null)) {
+
 				dataSample.capture(RequestStatus.SUCCESS);
 			}
 		}
@@ -260,7 +264,9 @@ public class MonitoringInvokerPortlet
 
 			_invokerPortlet.render(renderRequest, renderResponse);
 
-			if (_portletMonitoringControl.isMonitorPortletRenderRequest()) {
+			if (_portletMonitoringControl.isMonitorPortletRenderRequest() &&
+				(dataSample != null)) {
+
 				dataSample.capture(RequestStatus.SUCCESS);
 			}
 		}
@@ -296,7 +302,9 @@ public class MonitoringInvokerPortlet
 
 			_invokerPortlet.serveResource(resourceRequest, resourceResponse);
 
-			if (_portletMonitoringControl.isMonitorPortletResourceRequest()) {
+			if (_portletMonitoringControl.isMonitorPortletResourceRequest() &&
+				(dataSample != null)) {
+
 				dataSample.capture(RequestStatus.SUCCESS);
 			}
 		}
@@ -325,7 +333,7 @@ public class MonitoringInvokerPortlet
 			boolean monitorPortletRequest, DataSample dataSample, Exception e)
 		throws IOException, PortletException {
 
-		if (monitorPortletRequest) {
+		if (monitorPortletRequest && (dataSample != null)) {
 			dataSample.capture(RequestStatus.ERROR);
 		}
 

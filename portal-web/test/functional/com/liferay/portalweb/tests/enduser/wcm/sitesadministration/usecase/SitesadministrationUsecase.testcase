@@ -34,6 +34,27 @@
 	</tear-down>
 
 	<command name="AddOrganizationSitesAndDeactivate" priority="4">
+		<property name="test.name.skip.portal.instance" value="SitesadministrationUsecase#AddOrganizationSitesAndDeactivate" />
+		<property name="testray.component.names" value="Site Administration,Users and Organizations" />
+
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="System Settings" />
+		</execute>
+
+		<execute macro="Navigator#gotoNavItem">
+			<var name="navItem" value="Foundation" />
+		</execute>
+
+		<execute macro="SystemSettings#editConfiguration">
+			<var name="configurationName" value="Inactive Request Handler" />
+		</execute>
+
+		<execute macro="SystemSettings#enableSetting">
+			<var name="checkboxSetting" value="SHOW_INACTIVE_REQUEST_MESSAGE" />
+		</execute>
+
+		<execute macro="SystemSettings#saveConfiguration" />
+
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
@@ -206,7 +227,9 @@
 			<var name="siteName" value="Organization Name 2" />
 		</execute>
 
-		<execute function="AssertTextEquals" locator1="Home#STATUS_MESSAGE" value1="This site is inactive. Please contact the administrator." />
+		<execute macro="Page#viewInactiveRequestMessage">
+			<var name="resource" value="site" />
+		</execute>
 
 		<execute macro="User#firstLoginPG">
 			<var name="password" value="test" />
@@ -214,7 +237,67 @@
 		</execute>
 	</command>
 
+	<command name="AddSiteNameTranslations" priority="4">
+		<property name="testray.component.names" value="Localization,Site Administration" />
+
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Sites" />
+		</execute>
+
+		<execute macro="LexiconEntry#gotoAddMenuItem">
+			<var name="menuItem" value="Blank Site" />
+		</execute>
+
+		<execute macro="PortletEntry#inputName">
+			<var name="name" value="Site Name" />
+		</execute>
+
+		<execute macro="PortletEntry#inputLocalizedName">
+			<var name="language" value="es_ES" />
+			<var name="localizedName" value="Nombre del Sitio" />
+		</execute>
+
+		<execute macro="PortletEntry#inputLocalizedName">
+			<var name="language" value="zh_CN" />
+			<var name="localizedName" value="站点名称" />
+		</execute>
+
+		<execute macro="PortletEntry#save" />
+
+		<execute macro="Page#add">
+			<var name="pageName" value="Page Name" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Language Selector" />
+		</execute>
+
+		<execute macro="Navigator#gotoSitePage">
+			<var name="pageName" value="Page Name" />
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="Page#viewSiteNameTranslationsPG">
+			<var name="language" value="English" />
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="Page#viewSiteNameTranslationsPG">
+			<var name="language" value="español" />
+			<var name="siteName" value="Nombre del Sitio" />
+		</execute>
+
+		<execute macro="Page#viewSiteNameTranslationsPG">
+			<var name="language" value="中文" />
+			<var name="siteName" value="站点名称" />
+		</execute>
+
+		<execute macro="LanguagePortlet#tearDownLanguagePG" />
+	</command>
+
 	<command name="MySitesDropDownDoesNotShowUserOrganizationOnTop" priority="3">
+		<property name="testray.component.names" value="Site Administration,Users and Organization" />
+
 		<for list="Site1 Name,Site2 Name,Site3 Name,Site4 Name,Site5 Name,Site6 Name,Site7 Name,Site8 Name,Site9 Name,Site10 Name" param="siteNameListsCount" >
 			<execute macro="ProductMenu#gotoControlPanelSites">
 				<var name="portlet" value="Sites" />
@@ -265,6 +348,8 @@
 	</command>
 
 	<command name="OnlySiteOwnersCanAssignSiteRolesToUserGroups" priority="3">
+		<property name="testray.component.names" value="Site Administration,User Groups" />
+
 		<execute macro="TestCase#getSiteName">
 			<return from="siteName" name="siteName" />
 			<var name="siteName" value="${siteName}" />
@@ -274,9 +359,12 @@
 			<var name="portlet" value="Roles" />
 		</execute>
 
-		<execute macro="Role#addCP">
-			<var name="roleTitle" value="Roles Siterole Name" />
+		<execute macro="RoleNavigator#gotoRoleType">
 			<var name="roleType" value="Site" />
+		</execute>
+
+		<execute macro="Role#add">
+			<var name="roleTitle" value="Roles Siterole Name" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
@@ -301,7 +389,7 @@
 			<var name="portlet" value="Roles" />
 		</execute>
 
-		<execute macro="Role#addCP">
+		<execute macro="Role#add">
 			<var name="roleTitle" value="Roles Regrole Name" />
 		</execute>
 
@@ -428,6 +516,8 @@
 	</command>
 
 	<command name="PrivateVirtualHostUrlDoesNotRedirectUserToLoginPage" priority="4">
+		<property name="testray.component.names" value="Site Administration" />
+
 		<execute macro="TestCase#getSiteName">
 			<return from="siteName" name="siteName" />
 			<var name="siteName" value="${siteName}" />
@@ -517,6 +607,8 @@
 
 	<command name="ReturnWrongLayoutForSignedInUserWithVirtualHostsConfigured" priority="3">
 		<property name="custom.properties" value="layout.default.template.id=2_columns_iii${line.separator}layout.user.private.layouts.enabled=false${line.separator}layout.user.private.layouts.auto.create=false${line.separator}layout.user.private.layouts.power.user.required=true${line.separator}layout.user.public.layouts.enabled=false${line.separator}layout.user.public.layouts.auto.create=false${line.separator}layout.user.public.layouts.power.user.required=true" />
+		<property name="test.name.skip.portal.instance" value="SiteadministrationUsecase#ReturnWrongLayoutForSignedInUserWithVirtualHostsConfigured" />
+		<property name="testray.component.names" value="Site Administration" />
 
 		<execute macro="TestCase#getSiteName">
 			<return from="siteName" name="siteName" />
@@ -531,16 +623,8 @@
 			<var name="virtualHostName" value="www.able.com" />
 		</execute>
 
-		<execute macro="ProductMenu#gotoControlPanelConfiguration">
-			<var name="portlet" value="Instance Settings" />
-		</execute>
-
 		<execute macro="PortalSettings#editConfigurationAuthenticationGeneral">
 			<var name="enableRequireStrangers" value="true" />
-		</execute>
-
-		<execute macro="ProductMenu#gotoControlPanelConfiguration">
-			<var name="portlet" value="Instance Settings" />
 		</execute>
 
 		<execute macro="PortalSettings#editConfigurationUsersEmailNotificationsCP" />
@@ -684,6 +768,10 @@
 	</command>
 
 	<command name="SiteFriendlyURLLayoutImporter" priority="3">
+		<property name="testray.component.names" value="Site Administration" />
+
+		<var method="TestPropsUtil#get('portal.url')" name="portalURL" />
+
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="User Groups" />
 		</execute>
@@ -738,7 +826,7 @@
 
 		<execute macro="UserBar#gotoDashboard" />
 
-		<execute function="AssertLocation" value1="http://localhost:8080/user/usersn" />
+		<execute function="AssertLocation" value1="${portalURL}/user/usersn" />
 
 		<execute macro="User#firstLoginPG">
 			<var name="password" value="test" />
@@ -759,9 +847,9 @@
 			<var name="siteFriendlyURLEdit" value="/liferay" />
 		</execute>
 
-		<execute function="Open" locator1="http://localhost:8080/web/liferay/site-page-name" />
+		<execute function="Open" locator1="${portalURL}/web/liferay/site-page-name" />
 
-		<execute function="AssertLocation" value1="http://localhost:8080/web/liferay/site-page-name" />
+		<execute function="AssertLocation" value1="${portalURL}/web/liferay/site-page-name" />
 
 		<execute macro="Navigator#openURL" />
 
@@ -775,6 +863,27 @@
 	</command>
 
 	<command name="SitesDeactivated" priority="3">
+		<property name="test.name.skip.portal.instance" value="SitesadministrationUsecase#SitesDeactivated" />
+		<property name="testray.component.names" value="Site Administration" />
+
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="System Settings" />
+		</execute>
+
+		<execute macro="Navigator#gotoNavItem">
+			<var name="navItem" value="Foundation" />
+		</execute>
+
+		<execute macro="SystemSettings#editConfiguration">
+			<var name="configurationName" value="Inactive Request Handler" />
+		</execute>
+
+		<execute macro="SystemSettings#enableSetting">
+			<var name="checkboxSetting" value="SHOW_INACTIVE_REQUEST_MESSAGE" />
+		</execute>
+
+		<execute macro="SystemSettings#saveConfiguration" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -879,7 +988,9 @@
 			<var name="siteName" value="Site1 Name" />
 		</execute>
 
-		<execute function="AssertTextEquals" locator1="Home#ERROR_MESSAGE_ALERT_INFO" value1="This site is inactive. Please contact the administrator." />
+		<execute macro="Page#viewInactiveRequestMessage">
+			<var name="resource" value="site" />
+		</execute>
 
 		<execute macro="User#firstLoginPG">
 			<var name="password" value="test" />
@@ -888,6 +999,11 @@
 	</command>
 
 	<command name="SitesDemoSiteManagement" priority="4">
+		<property name="test.name.skip.portal.instance" value="SitesadministrationUsecase#SitesDemoSiteManagement" />
+		<property name="testray.component.names" value="Site Administration,Site Pages Administration" />
+
+		<var method="TestPropsUtil#get('portal.url')" name="portalURL" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -951,7 +1067,7 @@
 			<var name="pageName" value="Arenas" />
 		</execute>
 
-		<execute function="Open#openNoError" locator1="http://localhost:8080/web/russia2018" />
+		<execute function="Open#openNoError" locator1="${portalURL}/web/russia2018" />
 
 		<execute macro="Page#viewCustomLogoPG" />
 
@@ -964,7 +1080,7 @@
 			</execute>
 		</for>
 
-		<execute function="Open#openNoError" locator1="http://localhost:8080/web/russia2018" />
+		<execute function="Open#openNoError" locator1="${portalURL}/web/russia2018" />
 
 		<execute macro="ProductMenu#gotoPublicPages" />
 
@@ -1025,7 +1141,7 @@
 			<var name="pageNameList" value="Accomodations,Maps" />
 		</execute>
 
-		<execute function="Open" locator1="http://localhost:8080/web/russia2018" />
+		<execute function="Open" locator1="${portalURL}/web/russia2018" />
 
 		<execute macro="ProductMenu#gotoSitesPublishing">
 			<var name="portlet" value="Export" />
@@ -1074,12 +1190,12 @@
 			<var name="siteName" value="Site Name" />
 		</execute>
 
-		<execute macro="Navigator#gotoSitePage">
-			<var name="pageName" value="Home" />
-			<var name="siteName" value="Site Name" />
-		</execute>
-
 		<for list="Arena Baltika,Zenit Arena,Kazan Arena" param="childPageName" >
+			<execute macro="Navigator#gotoSitePage">
+				<var name="pageName" value="Home" />
+				<var name="siteName" value="Site Name" />
+			</execute>
+
 			<execute macro="Page#viewChildPageDropdown">
 				<var name="childPageName" value="${childPageName}" />
 				<var name="pageName" value="Arenas" />
@@ -1089,6 +1205,8 @@
 	</command>
 
 	<command name="SiteTeamsPermissions" priority="4">
+		<property name="testray.component.names" value="Permissions,Site Administration" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -1269,6 +1387,8 @@
 	</command>
 
 	<command name="SiteTeamsXSS" priority="4">
+		<property name="testray.component.names" value="Site Administration,XSS" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>

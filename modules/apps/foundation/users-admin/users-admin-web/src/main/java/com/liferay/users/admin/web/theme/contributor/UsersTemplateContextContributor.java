@@ -56,27 +56,27 @@ public class UsersTemplateContextContributor
 
 		contextObjects.put("is_default_user", user.isDefaultUser());
 
-		Contact contact = user.fetchContact();
+		try {
+			Contact contact = user.getContact();
 
-		if (contact != null) {
 			contextObjects.put("is_female", !contact.isMale());
 			contextObjects.put("is_male", contact.isMale());
+			contextObjects.put("user_birthday", contact.getBirthday());
+		}
+		catch (PortalException pe) {
+			_log.error(pe, pe);
 		}
 
 		contextObjects.put("is_setup_complete", user.isSetupComplete());
 		contextObjects.put("language", themeDisplay.getLanguageId());
 		contextObjects.put("language_id", user.getLanguageId());
-
-		if (contact != null) {
-			contextObjects.put("user_birthday", contact.getBirthday());
-		}
-
 		contextObjects.put("user_comments", user.getComments());
 		contextObjects.put("user_email_address", user.getEmailAddress());
 		contextObjects.put("user_first_name", user.getFirstName());
 		contextObjects.put(
 			"user_greeting", HtmlUtil.escape(user.getGreeting()));
 		contextObjects.put("user_id", user.getUserId());
+		contextObjects.put("user_initialized", true);
 		contextObjects.put("user_last_login_ip", user.getLastLoginIP());
 		contextObjects.put("user_last_name", user.getLastName());
 		contextObjects.put("user_login_ip", user.getLoginIP());

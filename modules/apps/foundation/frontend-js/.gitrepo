@@ -2,8 +2,10 @@
 ; Do not manually edit this file.
 ;
 [subrepo]
+	autopull = false
 	cmdver = liferay
-	commit = b036d2809eb2d3e629af2ad7056b39f963edd5fd
+	commit = ed31d67768b6d3d4ce6e003839fdb9d082648a8f
+	mergebuttonmergecommits = false
 	mode = push
-	parent = dd5640b9f9f0aacd1785a154d6cbcfdca9e30e88
+	parent = 391b8c1a86f7f4fd43303a83b8de03d438e56280
 	remote = git@github.com:liferay/com-liferay-frontend-js.git

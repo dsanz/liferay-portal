@@ -29,6 +29,7 @@ class LiferayApp extends App {
 		this.on('endNavigate', this.onEndNavigate);
 		this.on('startNavigate', this.onStartNavigate);
 
+		Liferay.on('beforeScreenFlip', Utils.resetAllPortlets);
 		Liferay.on('io:complete', this.onLiferayIOComplete, this);
 
 		var body = document.body;
@@ -124,9 +125,25 @@ class LiferayApp extends App {
 
 		if (event.error) {
 			if (event.error.invalidStatus || event.error.requestError || event.error.timeout) {
+				let message = Liferay.Language.get('there-was-an-unexpected-error.-please-refresh-the-current-page');
+
+				if (Liferay.SPA.debugEnabled) {
+					console.error(event.error);
+
+					if (event.error.invalidStatus) {
+						message = Liferay.Language.get('the-spa-navigation-request-received-an-invalid-http-status-code');
+					}
+					if (event.error.requestError) {
+						message = Liferay.Language.get('there-was-an-unexpected-error-in-the-spa-request');
+					}
+					if (event.error.timeout) {
+						message = Liferay.Language.get('the-spa-request-timed-out');
+					}
+				}
+
 				this._createNotification(
 					{
-						message: Liferay.Language.get('there-was-an-unexpected-error.-please-refresh-the-current-page'),
+						message: message,
 						title: Liferay.Language.get('error'),
 						type: 'danger'
 					}

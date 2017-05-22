@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.search.facet.collector.FacetCollector;
 import com.liferay.portal.kernel.search.facet.collector.TermCollector;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.search.web.internal.facet.display.builder.ScopeSearchFacetDisplayBuilder;
 
 import java.util.Collections;
 import java.util.List;
@@ -51,20 +52,21 @@ public class ScopeSearchFacetDisplayContextTest {
 
 	@Test
 	public void testEmptySearchResults() throws Exception {
-		String facetParam = "0";
+		String parameterValue = "0";
 
 		ScopeSearchFacetDisplayContext scopeSearchFacetDisplayContext =
-			createDisplayContext(facetParam);
+			createDisplayContext(parameterValue);
 
 		List<ScopeSearchFacetTermDisplayContext>
 			scopeSearchFacetTermDisplayContexts =
 				scopeSearchFacetDisplayContext.getTermDisplayContexts();
 
-		Assert.assertEquals(0, scopeSearchFacetTermDisplayContexts.size());
+		Assert.assertEquals(
+			scopeSearchFacetTermDisplayContexts.toString(), 0,
+			scopeSearchFacetTermDisplayContexts.size());
 
 		Assert.assertEquals(
-			facetParam,
-			scopeSearchFacetDisplayContext.getFieldParamInputValue());
+			parameterValue, scopeSearchFacetDisplayContext.getParameterValue());
 		Assert.assertTrue(scopeSearchFacetDisplayContext.isNothingSelected());
 		Assert.assertTrue(scopeSearchFacetDisplayContext.isRenderNothing());
 	}
@@ -76,16 +78,18 @@ public class ScopeSearchFacetDisplayContextTest {
 
 		addGroup(groupId, name);
 
-		String facetParam = String.valueOf(groupId);
+		String parameterValue = String.valueOf(groupId);
 
 		ScopeSearchFacetDisplayContext scopeSearchFacetDisplayContext =
-			createDisplayContext(facetParam);
+			createDisplayContext(parameterValue);
 
 		List<ScopeSearchFacetTermDisplayContext>
 			scopeSearchFacetTermDisplayContexts =
 				scopeSearchFacetDisplayContext.getTermDisplayContexts();
 
-		Assert.assertEquals(1, scopeSearchFacetTermDisplayContexts.size());
+		Assert.assertEquals(
+			scopeSearchFacetTermDisplayContexts.toString(), 1,
+			scopeSearchFacetTermDisplayContexts.size());
 
 		ScopeSearchFacetTermDisplayContext scopeSearchFacetTermDisplayContext =
 			scopeSearchFacetTermDisplayContexts.get(0);
@@ -99,8 +103,7 @@ public class ScopeSearchFacetDisplayContextTest {
 		Assert.assertTrue(scopeSearchFacetTermDisplayContext.isShowCount());
 
 		Assert.assertEquals(
-			facetParam,
-			scopeSearchFacetDisplayContext.getFieldParamInputValue());
+			parameterValue, scopeSearchFacetDisplayContext.getParameterValue());
 		Assert.assertFalse(scopeSearchFacetDisplayContext.isNothingSelected());
 		Assert.assertFalse(scopeSearchFacetDisplayContext.isRenderNothing());
 	}
@@ -116,16 +119,18 @@ public class ScopeSearchFacetDisplayContextTest {
 
 		setUpOneTermCollector(groupId, count);
 
-		String facetParam = "0";
+		String parameterValue = "0";
 
 		ScopeSearchFacetDisplayContext scopeSearchFacetDisplayContext =
-			createDisplayContext(facetParam);
+			createDisplayContext(parameterValue);
 
 		List<ScopeSearchFacetTermDisplayContext>
 			scopeSearchFacetTermDisplayContexts =
 				scopeSearchFacetDisplayContext.getTermDisplayContexts();
 
-		Assert.assertEquals(1, scopeSearchFacetTermDisplayContexts.size());
+		Assert.assertEquals(
+			scopeSearchFacetTermDisplayContexts.toString(), 1,
+			scopeSearchFacetTermDisplayContexts.size());
 
 		ScopeSearchFacetTermDisplayContext scopeSearchFacetTermDisplayContext =
 			scopeSearchFacetTermDisplayContexts.get(0);
@@ -140,8 +145,7 @@ public class ScopeSearchFacetDisplayContextTest {
 		Assert.assertTrue(scopeSearchFacetTermDisplayContext.isShowCount());
 
 		Assert.assertEquals(
-			facetParam,
-			scopeSearchFacetDisplayContext.getFieldParamInputValue());
+			parameterValue, scopeSearchFacetDisplayContext.getParameterValue());
 		Assert.assertTrue(scopeSearchFacetDisplayContext.isNothingSelected());
 		Assert.assertFalse(scopeSearchFacetDisplayContext.isRenderNothing());
 	}
@@ -157,16 +161,18 @@ public class ScopeSearchFacetDisplayContextTest {
 
 		setUpOneTermCollector(groupId, count);
 
-		String facetParam = String.valueOf(groupId);
+		String parameterValue = String.valueOf(groupId);
 
 		ScopeSearchFacetDisplayContext scopeSearchFacetDisplayContext =
-			createDisplayContext(facetParam);
+			createDisplayContext(parameterValue);
 
 		List<ScopeSearchFacetTermDisplayContext>
 			scopeSearchFacetTermDisplayContexts =
 				scopeSearchFacetDisplayContext.getTermDisplayContexts();
 
-		Assert.assertEquals(1, scopeSearchFacetTermDisplayContexts.size());
+		Assert.assertEquals(
+			scopeSearchFacetTermDisplayContexts.toString(), 1,
+			scopeSearchFacetTermDisplayContexts.size());
 
 		ScopeSearchFacetTermDisplayContext scopeSearchFacetTermDisplayContext =
 			scopeSearchFacetTermDisplayContexts.get(0);
@@ -181,8 +187,7 @@ public class ScopeSearchFacetDisplayContextTest {
 		Assert.assertTrue(scopeSearchFacetTermDisplayContext.isShowCount());
 
 		Assert.assertEquals(
-			facetParam,
-			scopeSearchFacetDisplayContext.getFieldParamInputValue());
+			parameterValue, scopeSearchFacetDisplayContext.getParameterValue());
 		Assert.assertFalse(scopeSearchFacetDisplayContext.isNothingSelected());
 		Assert.assertFalse(scopeSearchFacetDisplayContext.isRenderNothing());
 	}
@@ -198,10 +203,17 @@ public class ScopeSearchFacetDisplayContextTest {
 	}
 
 	protected ScopeSearchFacetDisplayContext createDisplayContext(
-		String facetParam) {
+		String parameterValue) {
 
-		return new ScopeSearchFacetDisplayContext(
-			_facet, facetParam, null, 0, 0, true, _groupLocalService);
+		ScopeSearchFacetDisplayBuilder scopeSearchFacetDisplayBuilder =
+			new ScopeSearchFacetDisplayBuilder();
+
+		scopeSearchFacetDisplayBuilder.setFacet(_facet);
+		scopeSearchFacetDisplayBuilder.setFrequenciesVisible(true);
+		scopeSearchFacetDisplayBuilder.setGroupLocalService(_groupLocalService);
+		scopeSearchFacetDisplayBuilder.setParameterValue(parameterValue);
+
+		return scopeSearchFacetDisplayBuilder.build();
 	}
 
 	protected Group createGroup(long groupId, String name) throws Exception {

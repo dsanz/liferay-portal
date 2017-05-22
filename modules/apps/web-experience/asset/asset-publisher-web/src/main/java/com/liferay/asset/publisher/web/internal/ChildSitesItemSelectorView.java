@@ -19,9 +19,10 @@ import com.liferay.asset.publisher.web.display.context.ChildSitesItemSelectorVie
 import com.liferay.item.selector.ItemSelectorReturnType;
 import com.liferay.item.selector.ItemSelectorView;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.site.item.selector.criteria.SiteItemSelectorReturnType;
 import com.liferay.site.item.selector.criterion.SiteItemSelectorCriterion;
@@ -67,7 +68,7 @@ public class ChildSitesItemSelectorView
 
 	@Override
 	public String getTitle(Locale locale) {
-		ResourceBundle resourceBundle = PortalUtil.getResourceBundle(locale);
+		ResourceBundle resourceBundle = _portal.getResourceBundle(locale);
 
 		return ResourceBundleUtil.getString(resourceBundle, "child-sites");
 	}
@@ -89,7 +90,10 @@ public class ChildSitesItemSelectorView
 			return false;
 		}
 
-		if (!siteGroup.isRoot()) {
+		int groupsCount = _groupLocalService.getGroupsCount(
+			themeDisplay.getCompanyId(), siteGroup.getGroupId(), Boolean.TRUE);
+
+		if (groupsCount > 0) {
 			return true;
 		}
 
@@ -133,6 +137,12 @@ public class ChildSitesItemSelectorView
 				new ItemSelectorReturnType[] {
 					new SiteItemSelectorReturnType()
 				}));
+
+	@Reference(unbind = "-")
+	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private Portal _portal;
 
 	private ServletContext _servletContext;
 

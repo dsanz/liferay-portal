@@ -383,7 +383,7 @@ public class DDMStructureLocalServiceImpl
 
 		String resourceName =
 			DDMStructurePermission.getStructureModelResourceName(
-				structure.getClassNameId());
+				structure.getClassName());
 
 		resourceLocalService.addResources(
 			structure.getCompanyId(), structure.getGroupId(),
@@ -404,7 +404,7 @@ public class DDMStructureLocalServiceImpl
 
 		String resourceName =
 			DDMStructurePermission.getStructureModelResourceName(
-				structure.getClassNameId());
+				structure.getClassName());
 
 		resourceLocalService.addModelResources(
 			structure.getCompanyId(), structure.getGroupId(),
@@ -529,7 +529,7 @@ public class DDMStructureLocalServiceImpl
 
 		String resourceName =
 			DDMStructurePermission.getStructureModelResourceName(
-				structure.getClassNameId());
+				structure.getClassName());
 
 		resourceLocalService.deleteResource(
 			structure.getCompanyId(), resourceName,
@@ -676,9 +676,8 @@ public class DDMStructureLocalServiceImpl
 	 */
 	@Override
 	public DDMStructure fetchStructure(
-			long groupId, long classNameId, String structureKey,
-			boolean includeAncestorStructures)
-		throws PortalException {
+		long groupId, long classNameId, String structureKey,
+		boolean includeAncestorStructures) {
 
 		structureKey = getStructureKey(structureKey);
 
@@ -1067,6 +1066,41 @@ public class DDMStructureLocalServiceImpl
 	}
 
 	/**
+	 * Returns an ordered range of all the structures matching the group,
+	 * class name ID, name, and description.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end -
+	 * start</code> instances. <code>start</code> and <code>end</code> are not
+	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
+	 * refers to the first result in the set. Setting both <code>start</code>
+	 * and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full
+	 * result set.
+	 * </p>
+	 *
+	 * @param  groupIds the primary keys of the groups
+	 * @param  classNameId the primary key of the class name for the structure's
+	 *         related model
+	 * @param  name the name keywords
+	 * @param  description the description keywords
+	 * @param  start the lower bound of the range of structures to return
+	 * @param  end the upper bound of the range of structures to return (not
+	 *         inclusive)
+	 * @param  orderByComparator the comparator to order the structures
+	 *         (optionally <code>null</code>)
+	 * @return the range of matching structures ordered by the comparator
+	 */
+	@Override
+	public List<DDMStructure> getStructures(
+		long[] groupIds, long classNameId, String name, String description,
+		int start, int end, OrderByComparator<DDMStructure> orderByComparator) {
+
+		return ddmStructurePersistence.findByG_C_N_D(
+			groupIds, classNameId, name, description, start, end,
+			orderByComparator);
+	}
+
+	/**
 	 * Returns the number of structures belonging to the group.
 	 *
 	 * @param  groupId the primary key of the group
@@ -1142,6 +1176,18 @@ public class DDMStructureLocalServiceImpl
 			structure.getStructureKey(), structureVersion.getNameMap(),
 			structureVersion.getDescriptionMap(), structureVersion.getDDMForm(),
 			structureVersion.getDDMFormLayout(), serviceContext);
+	}
+
+	@Override
+	public List<DDMStructure> search(
+			long companyId, long[] groupIds, long classNameId, long classPK,
+			String keywords, int start, int end,
+			OrderByComparator<DDMStructure> orderByComparator)
+		throws PortalException {
+
+		return ddmStructureFinder.findByKeywords(
+			companyId, groupIds, classNameId, classPK, keywords, start, end,
+			orderByComparator);
 	}
 
 	/**
@@ -1224,6 +1270,16 @@ public class DDMStructureLocalServiceImpl
 		return ddmStructureFinder.findByC_G_C_N_D_S_T_S(
 			companyId, groupIds, classNameId, name, description, storageType,
 			type, status, andOperator, start, end, orderByComparator);
+	}
+
+	@Override
+	public int searchCount(
+			long companyId, long[] groupIds, long classNameId, long classPK,
+			String keywords)
+		throws PortalException {
+
+		return ddmStructureFinder.countByKeywords(
+			companyId, groupIds, classNameId, classPK, keywords);
 	}
 
 	/**
@@ -1947,7 +2003,7 @@ public class DDMStructureLocalServiceImpl
 	protected DDMXML ddmXML;
 
 	private final Pattern _callFunctionPattern = Pattern.compile(
-		"call\\(\\s*\"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-" +
-			"[0-9a-f]{12})\"\\s*,\\s*\"(.*)\"\\s*,\\s*\"(.*)\"\\s*\\)");
+		"call\\(\\s*\'([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-" +
+			"[0-9a-f]{12})\'\\s*,\\s*\'(.*)\'\\s*,\\s*\'(.*)\'\\s*\\)");
 
 }

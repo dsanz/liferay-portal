@@ -14,8 +14,6 @@
 
 package com.liferay.portlet.exportimport.service.impl;
 
-import aQute.bnd.annotation.ProviderType;
-
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
 import com.liferay.document.library.kernel.exception.NoSuchFolderException;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
@@ -90,7 +88,6 @@ import javax.portlet.PortletRequest;
  * @author Mate Thurzo
  * @author Vilmos Papp
  */
-@ProviderType
 public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 
 	@Override
@@ -464,7 +461,10 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			return missingReferences;
 		}
 		catch (IOException ioe) {
-			throw new SystemException(ioe);
+			throw new SystemException(
+				"Unable to complete remote staging publication request " +
+					stagingRequestId + " due to a file system error",
+				ioe);
 		}
 		finally {
 			ExportImportThreadLocal.setLayoutImportInProcess(false);
@@ -889,7 +889,10 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			String checksum = FileUtil.getMD5Checksum(tempFile);
 
 			if (!checksum.equals(folder.getName())) {
-				throw new SystemException("Invalid checksum for LAR file");
+				throw new SystemException(
+					"Unable to process LAR file pieces for remote staging " +
+						"publication because LAR file checksum is not " +
+							checksum);
 			}
 
 			PortletFileRepositoryUtil.addPortletFileEntry(
@@ -903,13 +906,18 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 				stagingRequestId, folder);
 
 			if (stagingRequestFileEntry == null) {
-				throw new SystemException("Unable to assemble LAR file");
+				throw new SystemException(
+					"Unable to assemble LAR file for remote staging " +
+						"publication request " + stagingRequestId);
 			}
 
 			return stagingRequestFileEntry;
 		}
 		catch (IOException ioe) {
-			throw new SystemException("Unable to reassemble LAR file", ioe);
+			throw new SystemException(
+				"Unable to reassemble LAR file for remote staging " +
+					"publication request " + stagingRequestId,
+				ioe);
 		}
 		finally {
 			StreamUtil.cleanUp(fileOutputStream);

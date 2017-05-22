@@ -46,6 +46,9 @@ public class DDMForm implements Serializable {
 		for (DDMFormRule ddmFormRule : ddmForm._ddmFormRules) {
 			addDDMFormRule(new DDMFormRule(ddmFormRule));
 		}
+
+		_ddmFormSuccessPageSettings = new DDMFormSuccessPageSettings(
+			ddmForm.getDDMFormSuccessPageSettings());
 	}
 
 	public void addAvailableLocale(Locale locale) {
@@ -77,7 +80,10 @@ public class DDMForm implements Serializable {
 		if (Objects.equals(_availableLocales, ddmForm._availableLocales) &&
 			Objects.equals(_defaultLocale, ddmForm._defaultLocale) &&
 			Objects.equals(_ddmFormFields, ddmForm._ddmFormFields) &&
-			Objects.equals(_ddmFormRules, ddmForm._ddmFormRules)) {
+			Objects.equals(_ddmFormRules, ddmForm._ddmFormRules) &&
+			Objects.equals(
+				_ddmFormSuccessPageSettings,
+				ddmForm._ddmFormSuccessPageSettings)) {
 
 			return true;
 		}
@@ -114,6 +120,10 @@ public class DDMForm implements Serializable {
 		return _ddmFormRules;
 	}
 
+	public DDMFormSuccessPageSettings getDDMFormSuccessPageSettings() {
+		return _ddmFormSuccessPageSettings;
+	}
+
 	public Locale getDefaultLocale() {
 		return _defaultLocale;
 	}
@@ -126,7 +136,9 @@ public class DDMForm implements Serializable {
 
 		hash = HashUtil.hash(hash, _ddmFormFields);
 
-		return HashUtil.hash(hash, _ddmFormRules);
+		hash = HashUtil.hash(hash, _ddmFormRules);
+
+		return HashUtil.hash(hash, _ddmFormSuccessPageSettings);
 	}
 
 	public void setAvailableLocales(Set<Locale> availableLocales) {
@@ -145,6 +157,13 @@ public class DDMForm implements Serializable {
 		_ddmFormRules = ddmFormRules;
 	}
 
+	public void setDDMFormSuccessPageSettings(
+		DDMFormSuccessPageSettings ddmFormSuccessPageSettings) {
+
+		_ddmFormSuccessPageSettings = new DDMFormSuccessPageSettings(
+			ddmFormSuccessPageSettings);
+	}
+
 	public void setDefaultLocale(Locale defaultLocale) {
 		_defaultLocale = defaultLocale;
 	}
@@ -152,6 +171,8 @@ public class DDMForm implements Serializable {
 	private Set<Locale> _availableLocales = new LinkedHashSet<>();
 	private List<DDMFormField> _ddmFormFields = new ArrayList<>();
 	private List<DDMFormRule> _ddmFormRules = new ArrayList<>();
+	private DDMFormSuccessPageSettings _ddmFormSuccessPageSettings =
+		new DDMFormSuccessPageSettings();
 	private Locale _defaultLocale;
 
 }

@@ -86,7 +86,15 @@
 
 		<execute function="AssertClickNoError" locator1="DDMSelectStructure#DDM_STRUCTURE_TABLE_NAME_LINK" value1="${parentStructureName}" />
 
-		<execute function="Confirm#assertConfirmationNoWait" value1="Selecting a new structure changes the available input fields and available templates. Do you want to proceed?" />
+		<toggle name="LPS-70946">
+			<off>
+				<execute function="Confirm#assertConfirmationNoWait" value1="Selecting a new structure changes the available input fields and available templates. Do you want to proceed?" />
+			</off>
+
+			<on>
+				<execute function="Confirm#assertConfirmationNoWait" value1="Selecting a new structure deletes all unsaved content. Do you want to proceed?" />
+			</on>
+		</toggle>
 
 		<execute function="SelectFrame" value1="relative=top" />
 	</command>
@@ -101,7 +109,9 @@
 		<if>
 			<isset var="structureName" />
 			<then>
-				<execute function="Type" locator1="TextInput#NAME" value1="${structureName}" />
+				<execute macro="PortletEntry#inputName">
+					<var name="name" value="${structureName}" />
+				</execute>
 			</then>
 		</if>
 
@@ -248,7 +258,9 @@
 			</then>
 		</while>
 
-		<execute macro="Portlet#viewEmptyMessage" />
+		<execute macro="Portlet#viewEmptyMessage">
+			<var name="message" value="There are no results." />
+		</execute>
 	</command>
 
 	<command name="viewCP">

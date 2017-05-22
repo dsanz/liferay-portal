@@ -1,5 +1,6 @@
 <definition component-name="portal-knowledge-base">
 	<property name="custom.properties" value="default.layout.template.id=1_column" />
+	<property name="portal.release" value="true" />
 	<property name="portal.upstream" value="true" />
 	<property name="testray.main.component.name" value="Knowledge Base" />
 
@@ -72,6 +73,8 @@
 			<var name="kbArticleContent" value="Child Article Content" />
 			<var name="kbArticleTitle" value="Child Article Title" />
 		</execute>
+
+		<execute function="Pause" locator1="5000" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Knowledge Base Display Page" />
@@ -303,6 +306,8 @@
 			<var name="kbArticleTitle" value="Child Article Title" />
 		</execute>
 
+		<execute function="Pause" locator1="5000" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Knowledge Base Display Page" />
 		</execute>
@@ -378,6 +383,8 @@
 			<var name="kbArticleTitleEdit" value="Knowledge Base Article Parent Title Edited 1" />
 		</execute>
 
+		<execute function="Pause" locator1="5000" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Knowledge Base Display Page" />
 		</execute>
@@ -391,6 +398,8 @@
 			<var name="kbArticleContentEdit" value="Knowledge Base Child Article Content Edited 1" />
 			<var name="kbArticleTitleEdit" value="Knowledge Base Article Parent Title Edited 1 Child 1" />
 		</execute>
+
+		<execute function="Pause" locator1="5000" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Knowledge Base Display Page" />
@@ -435,6 +444,8 @@
 			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
 			<var name="kbArticleTitleEdit" value="Knowledge Base Article Title Edit" />
 		</execute>
+
+		<execute function="Pause" locator1="5000" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Knowledge Base Display Page" />
@@ -838,6 +849,8 @@
 	</command>
 
 	<command name="ViewKBArticleWithEditedStarRatings" priority="3">
+		<property name="test.name.skip.portal.instance" value="PGKnowledgebasedisplay#ViewKBArticleWithEditedStarRatings" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -998,6 +1011,8 @@
 	</command>
 
 	<command name="ViewKBArticleWithStarRatings" priority="4">
+		<property name="test.name.skip.portal.instance" value="PGKnowledgebasedisplay#ViewKBArticleWithStarRatings" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">

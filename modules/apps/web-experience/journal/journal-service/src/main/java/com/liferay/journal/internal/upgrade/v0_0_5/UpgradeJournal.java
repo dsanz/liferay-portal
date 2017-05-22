@@ -23,6 +23,7 @@ import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.petra.content.ContentUtil;
 import com.liferay.petra.xml.XMLUtil;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
@@ -30,6 +31,7 @@ import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
+import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
@@ -79,7 +81,9 @@ public class UpgradeJournal extends UpgradeProcess {
 		DefaultDDMStructureHelper defaultDDMStructureHelper,
 		GroupLocalService groupLocalService,
 		ResourceActionLocalService resourceActionLocalService,
-		ResourceActions resourceActions, UserLocalService userLocalService) {
+		ResourceActions resourceActions,
+		ResourceLocalService resourceLocalService,
+		UserLocalService userLocalService) {
 
 		_companyLocalService = companyLocalService;
 		_ddmStorageLinkLocalService = ddmStorageLinkLocalService;
@@ -89,6 +93,7 @@ public class UpgradeJournal extends UpgradeProcess {
 		_groupLocalService = groupLocalService;
 		_resourceActionLocalService = resourceActionLocalService;
 		_resourceActions = resourceActions;
+		_resourceLocalService = resourceLocalService;
 		_userLocalService = userLocalService;
 	}
 
@@ -110,6 +115,8 @@ public class UpgradeJournal extends UpgradeProcess {
 			"com/liferay/journal/internal/upgrade/v1_0_0/dependencies" +
 				"/basic-web-content-structure.xml",
 			new ServiceContext());
+
+		addDefaultResourcePermissions(group.getGroupId());
 
 		String defaultLanguageId = UpgradeProcessUtil.getDefaultLanguageId(
 			companyId);
@@ -217,6 +224,21 @@ public class UpgradeJournal extends UpgradeProcess {
 		}
 	}
 
+	protected void addDefaultResourcePermissions(long groupId)
+		throws Exception {
+
+		String modelResource = _resourceActions.getCompositeModelName(
+			DDMStructure.class.getName(), JournalArticle.class.getName());
+
+		DDMStructure ddmStructure = _ddmStructureLocalService.fetchStructure(
+			groupId, PortalUtil.getClassNameId(JournalArticle.class),
+			"BASIC-WEB-CONTENT");
+
+		_resourceLocalService.addResources(
+			ddmStructure.getCompanyId(), 0, 0, modelResource,
+			ddmStructure.getStructureId(), false, false, true);
+	}
+
 	protected boolean containsDateFieldType(String content) {
 		if (content.indexOf(_TYPE_ATTRIBUTE_DDM_DATE) != -1) {
 			return true;
@@ -234,9 +256,12 @@ public class UpgradeJournal extends UpgradeProcess {
 
 		Element rootElement = document.getRootElement();
 
-		String availableLocales = rootElement.attributeValue(
-			"available-locales");
-		String defaultLocale = rootElement.attributeValue("default-locale");
+		String availableLocales = GetterUtil.getString(
+			rootElement.attributeValue("available-locales"),
+			_getDefaultLanguageId());
+		String defaultLocale = GetterUtil.getString(
+			rootElement.attributeValue("default-locale"),
+			_getDefaultLanguageId());
 
 		Element newRootElement = SAXReaderUtil.createElement("root");
 
@@ -250,7 +275,7 @@ public class UpgradeJournal extends UpgradeProcess {
 
 		dynamicElementElement.addAttribute("name", "content");
 		dynamicElementElement.addAttribute("type", "text_area");
-		dynamicElementElement.addAttribute("index-type", "keyword");
+		dynamicElementElement.addAttribute("index-type", "text");
 		dynamicElementElement.addAttribute("index", String.valueOf(0));
 
 		newRootElement.add(dynamicElementElement);
@@ -259,8 +284,9 @@ public class UpgradeJournal extends UpgradeProcess {
 			"static-content");
 
 		for (Element staticContentElement : staticContentElements) {
-			String languageId = staticContentElement.attributeValue(
-				"language-id");
+			String languageId = GetterUtil.getString(
+				staticContentElement.attributeValue("language-id"),
+				_getDefaultLanguageId());
 			String text = staticContentElement.getText();
 
 			Element dynamicContentElement = SAXReaderUtil.createElement(
@@ -577,6 +603,12 @@ public class UpgradeJournal extends UpgradeProcess {
 		}
 	}
 
+	private String _getDefaultLanguageId() {
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
+
+		return LanguageUtil.getLanguageId(defaultLocale);
+	}
+
 	private static final String _INVALID_FIELD_NAME_CHARS_REGEX =
 		"([\\p{Punct}&&[^_]]|\\p{Space})+";
 
@@ -595,6 +627,7 @@ public class UpgradeJournal extends UpgradeProcess {
 		"name=\"([^\"]+)\"");
 	private final ResourceActionLocalService _resourceActionLocalService;
 	private final ResourceActions _resourceActions;
+	private final ResourceLocalService _resourceLocalService;
 	private final UserLocalService _userLocalService;
 
 }

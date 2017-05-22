@@ -50,7 +50,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	immediate = true,
-	property = {"javax.portlet.name=" + PollsPortletKeys.POLLS},
+	property = {"javax.portlet.name=" + PollsPortletKeys.POLLS_DISPLAY},
 	service = ExportImportPortletPreferencesProcessor.class
 )
 public class PollsDisplayExportImportPortletPreferencesProcessor

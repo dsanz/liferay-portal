@@ -18,16 +18,15 @@ import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lifecycle.BaseExportImportLifecycleListener;
-import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleListener;
 import com.liferay.portal.security.permission.PermissionCacheUtil;
 import com.liferay.portal.servlet.filters.cache.CacheUtil;
 
-import org.osgi.service.component.annotations.Component;
-
 /**
  * @author Mate Thurzo
+ *
+ * @deprecated As of 4.0.0
  */
-@Component(immediate = true, service = ExportImportLifecycleListener.class)
+@Deprecated
 @ProviderType
 public class CacheExportImportLifecycleListener
 	extends BaseExportImportLifecycleListener {

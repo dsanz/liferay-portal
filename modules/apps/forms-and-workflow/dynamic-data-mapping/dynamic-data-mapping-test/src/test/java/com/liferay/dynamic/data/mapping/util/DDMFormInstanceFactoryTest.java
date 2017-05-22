@@ -19,6 +19,9 @@ import com.liferay.dynamic.data.mapping.annotations.DDMFormField;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+
+import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -47,13 +50,13 @@ public class DDMFormInstanceFactoryTest {
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
 				"boolean", Boolean.toString(expectedBooleanValue)));
 
-		double expectedDoubleValue = 2.5d;
+		double expectedDoubleValue = 2.5D;
 
 		primitiveTypesDDMFormFieldValue.addNestedDDMFormFieldValue(
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
 				"double", Double.toString(expectedDoubleValue)));
 
-		float expectedFloatValue = 3.5f;
+		float expectedFloatValue = 3.5F;
 
 		primitiveTypesDDMFormFieldValue.addNestedDDMFormFieldValue(
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
@@ -209,7 +212,9 @@ public class DDMFormInstanceFactoryTest {
 				dynamicFormWithRepeatablePrimitiveArrayTypesFieldSet.
 					primitiveArrayTypes();
 
-		Assert.assertEquals(2, dynamicFormWithPrimitiveArrayTypes.length);
+		Assert.assertEquals(
+			Arrays.toString(dynamicFormWithPrimitiveArrayTypes), 2,
+			dynamicFormWithPrimitiveArrayTypes.length);
 
 		Assert.assertArrayEquals(
 			new Boolean[] {true, false},
@@ -240,13 +245,13 @@ public class DDMFormInstanceFactoryTest {
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
 				"boolean", Boolean.toString(expectedBooleanValue)));
 
-		double expectedDoubleValue = 2.5d;
+		double expectedDoubleValue = 2.5D;
 
 		ddmFormValues.addDDMFormFieldValue(
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
 				"double", Double.toString(expectedDoubleValue)));
 
-		float expectedFloatValue = 3.5f;
+		float expectedFloatValue = 3.5F;
 
 		ddmFormValues.addDDMFormFieldValue(
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
@@ -341,6 +346,74 @@ public class DDMFormInstanceFactoryTest {
 	}
 
 	@Test
+	public void testCreateDynamicFormWithTuple() {
+		com.liferay.dynamic.data.mapping.model.DDMForm ddmForm =
+			DDMFormFactory.create(DynamicFormWithTuple.class);
+
+		DDMFormValues ddmFormValues = DDMFormValuesTestUtil.createDDMFormValues(
+			ddmForm);
+
+		String expectedId = StringUtil.randomString();
+
+		ddmFormValues.addDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"id", expectedId));
+
+		String expectedName = StringUtil.randomString();
+
+		ddmFormValues.addDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"name", expectedName));
+
+		String expectedValue = StringUtil.randomString();
+
+		ddmFormValues.addDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"value", expectedValue));
+
+		DynamicFormWithTuple dynamicFormWithTuple =
+			DDMFormInstanceFactory.create(
+				DynamicFormWithTuple.class, ddmFormValues);
+
+		Assert.assertEquals(expectedId, dynamicFormWithTuple.id());
+		Assert.assertEquals(expectedName, dynamicFormWithTuple.name());
+		Assert.assertEquals(expectedValue, dynamicFormWithTuple.value());
+
+		Parameter parameter = DDMFormInstanceFactory.create(
+			Parameter.class, ddmFormValues);
+
+		Assert.assertEquals(expectedName, parameter.name());
+		Assert.assertEquals(expectedValue, parameter.value());
+	}
+
+	@Test
+	public void testCreateDynamicFormWithUnrelatedClassDefinition() {
+		com.liferay.dynamic.data.mapping.model.DDMForm ddmForm =
+			DDMFormFactory.create(Parameter.class);
+
+		DDMFormValues ddmFormValues = DDMFormValuesTestUtil.createDDMFormValues(
+			ddmForm);
+
+		String expectedName = StringUtil.randomString();
+
+		ddmFormValues.addDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"name", expectedName));
+
+		String expectedValue = StringUtil.randomString();
+
+		ddmFormValues.addDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"value", expectedValue));
+
+		DynamicFormWithFieldSet dynamicFormWithFieldSet =
+			DDMFormInstanceFactory.create(
+				DynamicFormWithFieldSet.class, ddmFormValues);
+
+		Assert.assertNull(dynamicFormWithFieldSet.parameter());
+	}
+
+	@Test
 	public void testGetDefaultValueDynamicFormWithFieldSet() {
 		com.liferay.dynamic.data.mapping.model.DDMForm ddmForm =
 			DDMFormFactory.create(DynamicFormWithFieldSet.class);
@@ -404,9 +477,9 @@ public class DDMFormInstanceFactoryTest {
 		Assert.assertEquals(
 			false, dynamicFormWithPrimitiveTypes.booleanValue());
 		Assert.assertEquals(
-			0.0d, dynamicFormWithPrimitiveTypes.doubleValue(), 0.1);
+			0.0D, dynamicFormWithPrimitiveTypes.doubleValue(), 0.1);
 		Assert.assertEquals(
-			0.0f, dynamicFormWithPrimitiveTypes.floatValue(), 0.1);
+			0.0F, dynamicFormWithPrimitiveTypes.floatValue(), 0.1);
 		Assert.assertEquals(0, dynamicFormWithPrimitiveTypes.integerValue());
 		Assert.assertEquals(0, dynamicFormWithPrimitiveTypes.longValue());
 		Assert.assertEquals(0, dynamicFormWithPrimitiveTypes.shortValue());
@@ -432,11 +505,11 @@ public class DDMFormInstanceFactoryTest {
 			true,
 			dynamicFormWithPrimitiveTypesWithPredefinedValue.booleanValue());
 		Assert.assertEquals(
-			1.0d,
+			1.0D,
 			dynamicFormWithPrimitiveTypesWithPredefinedValue.doubleValue(),
 			0.1);
 		Assert.assertEquals(
-			1.0f, dynamicFormWithPrimitiveTypesWithPredefinedValue.floatValue(),
+			1.0F, dynamicFormWithPrimitiveTypesWithPredefinedValue.floatValue(),
 			0.1);
 		Assert.assertEquals(
 			1, dynamicFormWithPrimitiveTypesWithPredefinedValue.integerValue());
@@ -541,6 +614,14 @@ public class DDMFormInstanceFactoryTest {
 
 		@DDMFormField
 		public DynamicFormWithPrimitiveArrayTypes[] primitiveArrayTypes();
+
+	}
+
+	@DDMForm
+	private interface DynamicFormWithTuple extends Parameter {
+
+		@DDMFormField
+		public String id();
 
 	}
 

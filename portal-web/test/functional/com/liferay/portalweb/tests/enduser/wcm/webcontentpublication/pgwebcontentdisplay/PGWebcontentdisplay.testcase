@@ -43,6 +43,8 @@
 	</tear-down>
 
 	<command name="AddDraftNotApproved" priority="4">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="WebContent#addDraftPGViaWCD">
 			<var name="webContentContent" value="WC WebContent Content" />
 			<var name="webContentTitle" value="WC WebContent Title" />
@@ -59,6 +61,8 @@
 	</command>
 
 	<command name="AddNewWebContentViaAddContentPanel" priority="4">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="Page#add">
 			<var name="pageName" value="Web Content Page" />
 		</execute>
@@ -90,6 +94,8 @@
 	</command>
 
 	<command name="AddPortletWCDSite" priority="4">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -119,6 +125,7 @@
 
 	<command name="AddWebContent" priority="5">
 		<property name="portal.acceptance" value="true" />
+		<property name="testray.component.names" value="Web Content Display" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />
@@ -135,6 +142,8 @@
 	</command>
 
 	<command name="AddWebContentPortalScopeCurrentPage" priority="3">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<for list="1,2,3" param="i">
 			<execute macro="Page#add">
 				<var name="pageName" value="Web Content Display Page${i}" />
@@ -181,14 +190,8 @@
 			<var name="pageName" value="Web Content Display Page3" />
 		</execute>
 
-		<execute macro="TestCase#getSiteName">
-			<return from="siteName" name="siteName" />
-			<var name="siteName" value="${siteName}" />
-		</execute>
-
-		<execute macro="WebContentDisplayPortlet#viewConfigureScopePG">
-			<var name="scopeSelection" value="${siteName}" />
-			<var name="scopeSelectionDefault" value="true" />
+		<execute macro="WebContentDisplayPortlet#configureScopePG">
+			<var name="scopeSelection" value="Web Content Display Page3" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -234,6 +237,8 @@
 	</command>
 
 	<command name="AddWebContentViaAddContentPanel" priority="4">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -269,6 +274,8 @@
 	</command>
 
 	<command name="AddWithStructure" priority="4">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -326,6 +333,8 @@
 	</command>
 
 	<command name="AssertExpired" priority="4">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />
 		</execute>
@@ -360,6 +369,8 @@
 	</command>
 
 	<command name="ChangeTemplate" priority="4">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="Page#add">
@@ -439,6 +450,8 @@
 	</command>
 
 	<command name="EditWebContent" priority="4">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />
 		</execute>
@@ -461,6 +474,9 @@
 	</command>
 
 	<command name="LocalizeWebContent" priority="4">
+		<property name="test.name.skip.portal.instance" value="PGWebcontentdisplay#LocalizeWebContent" />
+		<property name="testray.component.names" value="Localization,Web Content Display" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />
 		</execute>
@@ -480,11 +496,14 @@
 
 		<execute macro="WebContentNavigator#gotoEditPGViaWCD" />
 
-		<execute macro="WebContent#addTranslation">
-			<var name="localizedContent" value="世界您好 Content" />
-			<var name="localizedLanguage" value="Chinese (China)" />
-			<var name="localizedTitle" value="世界您好 Title" />
-			<var name="webContentTitle" value="WC WebContent Title" />
+		<execute macro="WebContent#addLocale">
+			<var name="language" value="Chinese (China)" />
+			<var name="locale" value="zh-CN" />
+		</execute>
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="世界您好 Content" />
+			<var name="webContentTitle" value="世界您好 Title" />
 		</execute>
 
 		<execute macro="Button#clickPublish" />
@@ -510,6 +529,7 @@
 
 	<command name="RemoveWCDPortletSite" priority="5">
 		<property name="portal.acceptance" value="true" />
+		<property name="testray.component.names" value="Web Content Display" />
 
 		<execute macro="Portlet#deletePG">
 			<var name="portletName" value="Web Content Display" />
@@ -517,6 +537,8 @@
 	</command>
 
 	<command name="SearchWebContent" priority="4">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -573,6 +595,7 @@
 
 	<command name="SelectWebContent" priority="5">
 		<property name="portal.acceptance" value="true" />
+		<property name="testray.component.names" value="Web Content Display" />
 
 		<execute macro="Navigator#openURL" />
 
@@ -607,6 +630,8 @@
 	</command>
 
 	<command name="SelectWebContentScopeGlobal" priority="3">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="ProductMenu#gotoSite">
 			<var name="site" value="Global" />
 		</execute>
@@ -658,6 +683,9 @@
 	</command>
 
 	<command name="ViewAllFileTypesEnabled" priority="4">
+		<property name="test.name.skip.portal.instance" value="PGWebcontentdisplay#ViewAllFileTypesEnabled" />
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />
 		</execute>
@@ -672,12 +700,22 @@
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
-			<var name="portlet" value="Server Administration" />
+			<var name="portlet" value="System Settings" />
 		</execute>
 
-		<execute macro="ServerAdministration#configureExternalServices">
-			<var name="enableOpenOfficeIntegration" value="true" />
+		<execute macro="Navigator#gotoNavItem">
+			<var name="navItem" value="Other" />
 		</execute>
+
+		<execute macro="SystemSettings#editConfiguration">
+			<var name="configurationName" value="OpenOffice Integration" />
+		</execute>
+
+		<execute macro="SystemSettings#enableSetting">
+			<var name="checkboxSetting" value="SERVER_ENABLED" />
+		</execute>
+
+		<execute macro="SystemSettings#saveConfiguration" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />
@@ -704,6 +742,9 @@
 	</command>
 
 	<command name="ViewAllSettingsEnabledWCDConfiguration" priority="4">
+		<property name="test.name.skip.portal.instance" value="PGWebcontentdisplay#ViewAllSettingsEnabledWCDConfiguration" />
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -795,6 +836,8 @@
 	</command>
 
 	<command name="ViewArticleWithGuestViewPermission" priority="4">
+		<property name="testray.component.names" value="Permissions,Web Content Display" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />
 		</execute>
@@ -910,6 +953,8 @@
 	</command>
 
 	<command name="ViewEditTemplate" priority="4">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />
 		</execute>
@@ -933,6 +978,8 @@
 	</command>
 
 	<command name="ViewPortletWCDShowAvailableLocales" priority="4">
+		<property name="testray.component.names" value="Localization,Web Content Display" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />
 		</execute>
@@ -948,11 +995,14 @@
 
 		<execute macro="WebContentNavigator#gotoEditPGViaWCD" />
 
-		<execute macro="WebContent#addTranslation">
-			<var name="localizedContent" value="世界您好 Content" />
-			<var name="localizedLanguage" value="Chinese (China)" />
-			<var name="localizedTitle" value="世界您好 Title" />
-			<var name="webContentTitle" value="WC WebContent Title" />
+		<execute macro="WebContent#addLocale">
+			<var name="language" value="Chinese (China)" />
+			<var name="locale" value="zh-CN" />
+		</execute>
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentContent" value="世界您好 Content" />
+			<var name="webContentTitle" value="世界您好 Title" />
 		</execute>
 
 		<execute macro="Button#clickPublish" />
@@ -990,6 +1040,8 @@
 	</command>
 
 	<command name="ViewWCDWithDeletedWCArticle" priority="4">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />
 		</execute>
@@ -1017,12 +1069,14 @@
 			<var name="pageName" value="Web Content Display Page" />
 		</execute>
 
-		<execute macro="WebContentDisplayPortlet#viewDeletedArticlePGViaWCD">
+		<execute macro="WebContentDisplayPortlet#viewDeletedArticle">
 			<var name="webContentTitle" value="WC WebContent Title" />
 		</execute>
 	</command>
 
 	<command name="ViewWithPaginationScript" priority="4">
+		<property name="testray.component.names" value="Web Content Display" />
+
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Web Content Display Page" />
 		</execute>

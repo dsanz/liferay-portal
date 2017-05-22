@@ -287,11 +287,11 @@ public class ImageToolImpl implements ImageTool {
 		BufferedImage targetImage = new BufferedImage(
 			sourceImage.getWidth(), sourceImage.getHeight(), type);
 
-		Graphics2D graphics = targetImage.createGraphics();
+		Graphics2D graphics2D = targetImage.createGraphics();
 
-		graphics.drawRenderedImage(sourceImage, null);
+		graphics2D.drawRenderedImage(sourceImage, null);
 
-		graphics.dispose();
+		graphics2D.dispose();
 
 		return targetImage;
 	}
@@ -682,11 +682,11 @@ public class ImageToolImpl implements ImageTool {
 		affineTransform.rotate(radians);
 		affineTransform.translate(imageWidth / (-2), imageHeight / (-2));
 
-		Graphics2D graphics = rotatedBufferedImage.createGraphics();
+		Graphics2D graphics2D = rotatedBufferedImage.createGraphics();
 
-		graphics.drawImage(bufferedImage, affineTransform, null);
+		graphics2D.drawImage(bufferedImage, affineTransform, null);
 
-		graphics.dispose();
+		graphics2D.dispose();
 
 		return rotatedBufferedImage;
 	}

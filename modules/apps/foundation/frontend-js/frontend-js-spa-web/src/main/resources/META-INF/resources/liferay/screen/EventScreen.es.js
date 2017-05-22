@@ -10,6 +10,7 @@ class EventScreen extends HtmlScreen {
 		super();
 
 		this.cacheable = false;
+		this.timeout = Liferay.SPA.app.timeout;
 	}
 
 	dispose() {
@@ -52,8 +53,6 @@ class EventScreen extends HtmlScreen {
 
 	deactivate() {
 		super.deactivate();
-
-		Utils.resetAllPortlets();
 
 		Liferay.fire(
 			'screenDeactivate',

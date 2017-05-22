@@ -123,20 +123,10 @@ AUI.add(
 						}
 					},
 
-					_findAncestor: function(node, ancestorClass) {
-						var child = node;
-
-						while (child && !child.classList.contains(ancestorClass)) {
-							child = child.parentElement;
-						}
-
-						return child;
-					},
-
 					_hasAlloyEditorFocus: function() {
 						var instance = this;
 
-						return !!instance._findAncestor(document.activeElement, 'ae-ui');
+						return !!A.one(document.activeElement).ancestor('.ae-ui');
 					},
 
 					_onActionPerformed: function() {

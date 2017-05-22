@@ -149,6 +149,59 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 			portletDataContext, exportedStagedModel);
 	}
 
+	@Test
+	public void testExportImportWithDefaultData() throws Exception {
+
+		// Export default data
+
+		initExport();
+
+		Map<String, List<StagedModel>> defaultDependentStagedModelsMap =
+			addDefaultDependentStagedModelsMap(stagingGroup);
+
+		StagedModel stagedModel = addDefaultStagedModel(
+			stagingGroup, defaultDependentStagedModelsMap);
+
+		if (stagedModel == null) {
+			return;
+		}
+
+		StagedModelDataHandlerUtil.exportStagedModel(
+			portletDataContext, stagedModel);
+
+		validateExport(
+			portletDataContext, stagedModel, defaultDependentStagedModelsMap);
+
+		// Add default data to live site
+
+		Map<String, List<StagedModel>> secondDependentStagedModelsMap =
+			addDefaultDependentStagedModelsMap(liveGroup);
+
+		addDefaultStagedModel(liveGroup, secondDependentStagedModelsMap);
+
+		// Import
+
+		initImport();
+
+		StagedModel exportedStagedModel = readExportedStagedModel(stagedModel);
+
+		Assert.assertNotNull(exportedStagedModel);
+
+		StagedModelDataHandlerUtil.importStagedModel(
+			portletDataContext, exportedStagedModel);
+
+		// Import again for more robustness (i.e. filter name issues)
+
+		StagedModelDataHandlerUtil.importStagedModel(
+			portletDataContext, exportedStagedModel);
+
+		String uuid = exportedStagedModel.getUuid();
+
+		StagedModel importedModel = getStagedModel(uuid, liveGroup);
+
+		Assert.assertNotNull(importedModel);
+	}
+
 	public void testLastPublishDate() throws Exception {
 		if (!supportLastPublishDateUpdate()) {
 			return;
@@ -369,6 +422,21 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 			new IdentityServiceContextFunction(serviceContext));
 	}
 
+	protected Map<String, List<StagedModel>> addDefaultDependentStagedModelsMap(
+			Group group)
+		throws Exception {
+
+		return new HashMap<>();
+	}
+
+	protected StagedModel addDefaultStagedModel(
+			Group group,
+			Map<String, List<StagedModel>> dependentStagedModelsMap)
+		throws Exception {
+
+		return null;
+	}
+
 	protected List<StagedModel> addDependentStagedModel(
 		Map<String, List<StagedModel>> dependentStagedModelsMap, Class<?> clazz,
 		StagedModel dependentStagedModel) {
@@ -513,6 +581,9 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 				stagingGroup.getCompanyId(), stagingGroup.getGroupId(),
 				getParameterMap(), getStartDate(), getEndDate(), zipWriter);
 
+		portletDataContext.setExportImportProcessId(
+			BaseStagedModelDataHandlerTestCase.class.getName());
+
 		rootElement = SAXReaderUtil.createElement("root");
 
 		portletDataContext.setExportDataRootElement(rootElement);
@@ -547,6 +618,8 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 				liveGroup.getCompanyId(), liveGroup.getGroupId(),
 				getParameterMap(), userIdStrategy, zipReader);
 
+		portletDataContext.setExportImportProcessId(
+			BaseStagedModelDataHandlerTestCase.class.getName());
 		portletDataContext.setImportDataRootElement(rootElement);
 
 		Element missingReferencesElement = rootElement.element(
@@ -676,7 +749,9 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 			AssetCategoryLocalServiceUtil.getEntryCategories(
 				importedAssetEntry.getEntryId());
 
-		Assert.assertEquals(2, importedAssetCategories.size());
+		Assert.assertEquals(
+			importedAssetCategories.toString(), 2,
+			importedAssetCategories.size());
 
 		AssetCategory stagedAssetCategory =
 			stagedModelAssets.getAssetCategory();
@@ -705,7 +780,8 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 			AssetTagLocalServiceUtil.getEntryTags(
 				importedAssetEntry.getEntryId());
 
-		Assert.assertEquals(1, importedAssetTags.size());
+		Assert.assertEquals(
+			importedAssetTags.toString(), 1, importedAssetTags.size());
 
 		AssetTag assetTag = stagedModelAssets.getAssetTag();
 		AssetTag importedAssetTag = importedAssetTags.get(0);
@@ -809,7 +885,9 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 
 			List<Element> elements = stagedModelGroupElement.elements();
 
-			Assert.assertEquals(dependentStagedModels.size(), elements.size());
+			Assert.assertEquals(
+				elements.toString(), dependentStagedModels.size(),
+				elements.size());
 
 			for (Element element : elements) {
 				String path = element.attributeValue("path");
@@ -899,7 +977,8 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 				WorkflowConstants.STATUS_ANY);
 
 		Assert.assertEquals(
-			ratingsEntries.size(), importedRatingsEntries.size());
+			importedRatingsEntries.toString(), ratingsEntries.size(),
+			importedRatingsEntries.size());
 
 		for (RatingsEntry ratingsEntry : ratingsEntries) {
 			Iterator<RatingsEntry> iterator = importedRatingsEntries.iterator();

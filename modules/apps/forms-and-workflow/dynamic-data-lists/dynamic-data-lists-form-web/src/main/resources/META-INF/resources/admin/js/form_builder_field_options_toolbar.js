@@ -37,7 +37,7 @@ AUI.add(
 							},
 							{
 								handler: 'cancelFieldEdition',
-								label: Liferay.Language.get('cancel-field-edition')
+								label: Liferay.Language.get('cancel-field-changes')
 							}
 						]
 					}

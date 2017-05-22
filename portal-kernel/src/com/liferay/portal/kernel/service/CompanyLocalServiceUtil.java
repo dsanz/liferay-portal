@@ -681,6 +681,11 @@ public class CompanyLocalServiceUtil {
 		getService().updateDisplay(companyId, languageId, timeZoneId);
 	}
 
+	public static void updateDisplayGroupNames(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		getService().updateDisplayGroupNames(companyId);
+	}
+
 	/**
 	* Updates the company's preferences. The company's default properties are
 	* found in portal.properties.

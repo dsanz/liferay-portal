@@ -37,6 +37,8 @@
 	</tear-down>
 
 	<command name="AddCategorywithLocalization" priority="4">
+		<property name="testray.component.names" value="Categories,Localization" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -180,6 +182,8 @@
 	</command>
 
 	<command name="AddCategorywithSiteRole" priority="4">
+		<property name="testray.component.names" value="Categories,Permissions,Roles" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -240,9 +244,12 @@
 			<var name="portlet" value="Roles" />
 		</execute>
 
-		<execute macro="Role#addCP">
-			<var name="roleTitle" value="Category Role Name" />
+		<execute macro="RoleNavigator#gotoRoleType">
 			<var name="roleType" value="Site" />
+		</execute>
+
+		<execute macro="Role#add">
+			<var name="roleTitle" value="Category Role Name" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
@@ -266,7 +273,7 @@
 			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_CATEGORIES_RESOURCE_PERMISSIONS_ASSET_ENTRIES_ADD_CATEGORY_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Add Category" />
 			<var name="permissionNavigationKey" value="SITE_ADMIN_CONTENT_CATEGORIES" />
-			<var name="permissionNavigationValue" value="Tags" />
+			<var name="permissionNavigationValue" value="Categories" />
 			<var name="roleTitle" value="Category Role Name" />
 			<var name="roleType" value="Site" />
 		</execute>
@@ -279,7 +286,7 @@
 			<var name="permissionDefinitionKey" value="SITE_ADMIN_CONTENT_CATEGORIES_RESOURCE_PERMISSIONS_ASSET_ENTRIES_ADD_VOCABULARY_CHECKBOX" />
 			<var name="permissionDefinitionValue" value="Add Vocabulary" />
 			<var name="permissionNavigationKey" value="SITE_ADMIN_CONTENT_CATEGORIES" />
-			<var name="permissionNavigationValue" value="Tags" />
+			<var name="permissionNavigationValue" value="Categories" />
 			<var name="roleTitle" value="Category Role Name" />
 			<var name="roleType" value="Site" />
 		</execute>
@@ -358,6 +365,8 @@
 	</command>
 
 	<command name="AddPageWithRequiredVocabulary" priority="4">
+		<property name="testray.component.names" value="Categories" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -408,6 +417,8 @@
 	</command>
 
 	<command name="AddSubcategoryProperty" priority="3">
+		<property name="testray.component.names" value="Categories" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -452,7 +463,95 @@
 		</execute>
 	</command>
 
+	<command name="AddVocabularyWithAssetSubtype" priority="3">
+		<property name="testray.component.names" value="Categories,Web Content Administration" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentNavigator#gotoManageStructures" />
+
+		<execute macro="WebContentStructures#addCP">
+			<var name="structureName" value="WC Structure Name" />
+		</execute>
+
+		<execute macro="DynamicDataMapping#addField">
+			<var name="field" value="Text" />
+			<var name="fieldFieldLabel" value="Text" />
+			<var name="fieldName" value="Text" />
+		</execute>
+
+		<execute macro="WebContentStructures#saveCP">
+			<var name="structureName" value="WC Structure Name" />
+		</execute>
+
+		<execute macro="WebContentNavigator#gotoManageTemplatesViaStructures">
+			<var name="structureName" value="WC Structure Name" />
+		</execute>
+
+		<execute macro="WebContentTemplates#addCP">
+			<var name="templateName" value="WC Template Name" />
+		</execute>
+
+		<execute macro="WebContentTemplates#addField">
+			<var name="fieldName" value="Text" />
+		</execute>
+
+		<execute macro="WebContentTemplates#save" />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Categories" />
+		</execute>
+
+		<execute macro="Vocabulary#addWithAssociatedAssetTypeCP">
+			<var name="assetSubtype" value="Basic Web Content" />
+			<var name="assetType" value="Web Content Article" />
+			<var name="vocabularyName" value="Vocabulary Name" />
+		</execute>
+
+		<execute macro="Category#addCP">
+			<var name="categoryName" value="Category Name" />
+			<var name="vocabularyName" value="Vocabulary Name" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentNavigator#gotoAddCP" />
+
+		<execute macro="WebContent#addCP">
+			<var name="webContentTitle" value="WC Title" />
+		</execute>
+
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Metadata" />
+		</execute>
+
+		<execute macro="AssetCategorization#addCategory">
+			<var name="categoryName" value="Category Name" />
+			<var name="vocabularyName" value="Vocabulary Name" />
+		</execute>
+
+		<execute macro="PortletEntry#publish" />
+
+		<execute macro="WebContentNavigator#gotoAddWithStructureCP">
+			<var name="structureName" value="WC Structure Name" />
+		</execute>
+
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Metadata" />
+		</execute>
+
+		<execute function="AssertTextNotPresent" value1="Vocabulary Name" />
+	</command>
+
 	<command name="AddVocabularyWithMultipleAssetTypes" priority="4">
+		<property name="testray.component.names" value="Categories" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -513,6 +612,8 @@
 	</command>
 
 	<command name="AddWCFailWithRequiredVocabularyAssetType" priority="3">
+		<property name="testray.component.names" value="Categories,Web Content Administration" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -574,6 +675,8 @@
 	</command>
 
 	<command name="AddWCWithOptionalVocabularyAssetType" priority="3">
+		<property name="testray.component.names" value="Categories,Web Content Administration" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -632,6 +735,8 @@
 	</command>
 
 	<command name="DeletePartialCategory" priority="4">
+		<property name="testray.component.names" value="Categories,Permissions,Roles" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -694,9 +799,12 @@
 			<var name="portlet" value="Roles" />
 		</execute>
 
-		<execute macro="Role#addCP">
-			<var name="roleTitle" value="Category Role Name" />
+		<execute macro="RoleNavigator#gotoRoleType">
 			<var name="roleType" value="Site" />
+		</execute>
+
+		<execute macro="Role#add">
+			<var name="roleTitle" value="Category Role Name" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
@@ -768,6 +876,8 @@
 	</command>
 
 	<command name="DisableMultipleCategories" priority="4">
+		<property name="testray.component.names" value="Categories,Web Content Administration" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -880,6 +990,8 @@
 	</command>
 
 	<command name="DuplicateCategoriesViaWebContentCopy" priority="3">
+		<property name="testray.component.names" value="Categories,Web Content Administration" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -936,11 +1048,13 @@
 			<var name="webContentTitle" value="Web Content Title" />
 		</execute>
 
-		<execute macro="WebContent#gotoEditDuplicateEntryCP" />
+		<execute macro="WebContentNavigator#gotoEditCP">
+			<var name="webContentTitle" value="Web Content Title Duplicate 1" />
+		</execute>
 
 		<execute macro="WebContent#viewCP">
 			<var name="webContentContent" value="Web Content Content" />
-			<var name="webContentTitle" value="Web Content Title" />
+			<var name="webContentTitle" value="Web Content Title Duplicate 1" />
 		</execute>
 
 		<execute macro="WebContent#viewCategorizationVocabularyCP">
@@ -953,6 +1067,8 @@
 	</command>
 
 	<command name="ExportImportWCWithCategoryViaAP" priority="4">
+		<property name="testray.component.names" value="Asset Publisher,Categories,Web Content Administration" />
+
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
 		</execute>
@@ -1119,6 +1235,8 @@
 	</command>
 
 	<command name="MoveSubcategory" priority="3">
+		<property name="testray.component.names" value="Categories" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -1183,6 +1301,8 @@
 	</command>
 
 	<command name="SearchCategory" priority="4">
+		<property name="testray.component.names" value="Categories" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -1269,6 +1389,8 @@
 	</command>
 
 	<command name="SearchCategoryWithNullResult" priority="3">
+		<property name="testray.component.names" value="Categories" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -1307,6 +1429,8 @@
 	</command>
 
 	<command name="SearchEditedCategory" priority="4">
+		<property name="testray.component.names" value="Categories,Documents Management" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -1363,6 +1487,8 @@
 	</command>
 
 	<command name="SearchSubcategory" priority="4">
+		<property name="testray.component.names" value="Categories" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -1459,6 +1585,8 @@
 	</command>
 
 	<command name="SearchSubcategoryWithNullResult" priority="3">
+		<property name="testray.component.names" value="Categories" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -1504,6 +1632,8 @@
 	</command>
 
 	<command name="SearchVocabulary" priority="4">
+		<property name="testray.component.names" value="Categories" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -1575,6 +1705,8 @@
 	</command>
 
 	<command name="SearchVocabularyWithNullResult" priority="3">
+		<property name="testray.component.names" value="Categories" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -1602,6 +1734,8 @@
 	</command>
 
 	<command name="UseCategoryFromParentSiteViaSiteHierarchy" priority="4">
+		<property name="testray.component.names" value="Categories,Site Administration,Web Content Administration" />
+
 		<execute macro="TestCase#getSiteName">
 			<return from="siteName" name="parentSiteName" />
 			<var name="siteName" value="${siteName}" />
@@ -1664,6 +1798,8 @@
 	</command>
 
 	<command name="ViewCannotAddDuplicateSubCategory" priority="3">
+		<property name="testray.component.names" value="Categories" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -1711,6 +1847,8 @@
 	</command>
 
 	<command name="ViewNavigation" priority="3">
+		<property name="testray.component.names" value="Categories" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">

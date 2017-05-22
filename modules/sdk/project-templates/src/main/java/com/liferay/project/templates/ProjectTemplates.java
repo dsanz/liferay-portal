@@ -24,23 +24,24 @@ import com.liferay.project.templates.internal.util.Validator;
 import com.liferay.project.templates.internal.util.WorkspaceUtil;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.InputStream;
 
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
 
 import org.apache.maven.archetype.ArchetypeGenerationResult;
 
@@ -52,8 +53,8 @@ public class ProjectTemplates {
 	public static final String TEMPLATE_BUNDLE_PREFIX =
 		"com.liferay.project.templates.";
 
-	public static String[] getTemplates() throws Exception {
-		List<String> templates = new ArrayList<>();
+	public static Map<String, String> getTemplates() throws Exception {
+		Map<String, String> templates = new TreeMap<>();
 
 		File file = FileUtil.getJarFile();
 
@@ -65,12 +66,9 @@ public class ProjectTemplates {
 				Iterator<Path> iterator = directoryStream.iterator();
 
 				while (iterator.hasNext()) {
-					Path templateBundleFile = iterator.next();
+					Path path = iterator.next();
 
-					Path templateBundleFileNamePath =
-						templateBundleFile.getFileName();
-
-					String template = templateBundleFileNamePath.toString();
+					String template = String.valueOf(path.getFileName());
 
 					template = template.substring(
 						TEMPLATE_BUNDLE_PREFIX.length(),
@@ -79,7 +77,17 @@ public class ProjectTemplates {
 					template = template.replace('.', '-');
 
 					if (!template.startsWith(WorkspaceUtil.WORKSPACE)) {
-						templates.add(template);
+						try (JarFile jarFile = new JarFile(path.toFile())) {
+							Manifest manifest = jarFile.getManifest();
+
+							Attributes attributes =
+								manifest.getMainAttributes();
+
+							String bundleDescription = attributes.getValue(
+								"Bundle-Description");
+
+							templates.put(template, bundleDescription);
+						}
 					}
 				}
 			}
@@ -97,24 +105,37 @@ public class ProjectTemplates {
 
 					String template = jarEntry.getName();
 
-					if (template.startsWith(TEMPLATE_BUNDLE_PREFIX)) {
-						template = template.substring(
-							TEMPLATE_BUNDLE_PREFIX.length(),
-							template.indexOf("-"));
+					if (!template.startsWith(TEMPLATE_BUNDLE_PREFIX)) {
+						continue;
+					}
 
-						template = template.replace('.', '-');
+					template = template.substring(
+						TEMPLATE_BUNDLE_PREFIX.length(), template.indexOf("-"));
 
-						if (!template.startsWith(WorkspaceUtil.WORKSPACE)) {
-							templates.add(template);
+					template = template.replace('.', '-');
+
+					if (!template.startsWith(WorkspaceUtil.WORKSPACE)) {
+						try (InputStream inputStream = jarFile.getInputStream(
+								jarEntry);
+							JarInputStream jarInputStream = new JarInputStream(
+								inputStream)) {
+
+							Manifest manifest = jarInputStream.getManifest();
+
+							Attributes attributes =
+								manifest.getMainAttributes();
+
+							String bundleDescription = attributes.getValue(
+								"Bundle-Description");
+
+							templates.put(template, bundleDescription);
 						}
 					}
 				}
 			}
 		}
 
-		Collections.sort(templates);
-
-		return templates.toArray(new String[templates.size()]);
+		return templates;
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -176,38 +197,35 @@ public class ProjectTemplates {
 		templateDirPath = templateDirPath.resolve(
 			projectTemplatesArgs.getName());
 
-		FileUtil.extractDirectory("gradle-wrapper", templateDirPath);
-
-		try {
-			Files.setPosixFilePermissions(
-				templateDirPath.resolve("gradlew"),
-				PosixFilePermissions.fromString("rwxrwxr--"));
-		}
-		catch (UnsupportedOperationException uoe) {
-		}
-
 		if (WorkspaceUtil.isWorkspace(destinationDir)) {
-			FileUtil.deleteDir(templateDirPath.resolve("gradle"));
-			Files.delete(templateDirPath.resolve("gradlew"));
-			Files.delete(templateDirPath.resolve("gradlew.bat"));
 			Files.deleteIfExists(templateDirPath.resolve("settings.gradle"));
 		}
+		else {
+			if (projectTemplatesArgs.isGradle()) {
+				FileUtil.extractDirectory("gradle-wrapper", templateDirPath);
 
-		Files.walkFileTree(
-			templateDirPath,
-			new SimpleFileVisitor<Path>() {
+				FileUtil.setPosixFilePermissions(
+					templateDirPath.resolve("gradlew"),
+					_wrapperPosixFilePermissions);
+			}
 
-				@Override
-				public FileVisitResult preVisitDirectory(
-						Path dirPath, BasicFileAttributes basicFileAttributes)
-					throws IOException {
+			if (projectTemplatesArgs.isMaven()) {
+				FileUtil.extractDirectory("maven-wrapper", templateDirPath);
 
-					Files.deleteIfExists(dirPath.resolve("pom.xml"));
+				FileUtil.setPosixFilePermissions(
+					templateDirPath.resolve("mvnw"),
+					_wrapperPosixFilePermissions);
+			}
+		}
 
-					return FileVisitResult.CONTINUE;
-				}
+		if (!projectTemplatesArgs.isGradle()) {
+			FileUtil.deleteFiles(
+				templateDirPath, "build.gradle", "settings.gradle");
+		}
 
-			});
+		if (!projectTemplatesArgs.isMaven()) {
+			FileUtil.deleteFiles(templateDirPath, "pom.xml");
+		}
 	}
 
 	private static void _printHelp(JCommander jCommander) throws Exception {
@@ -217,12 +235,16 @@ public class ProjectTemplates {
 			"Create a new Liferay module project from several available " +
 				"templates:");
 
-		String[] templates = getTemplates();
+		Map<String, String> templates = getTemplates();
 
 		int lineLength = 0;
 
-		for (int i = 0; i < templates.length; i++) {
-			String template = templates[i];
+		Set<String> templateNames = templates.keySet();
+
+		Iterator<String> iterator = templateNames.iterator();
+
+		while (iterator.hasNext()) {
+			String template = iterator.next();
 
 			if ((lineLength + template.length() + 1) >
 					jCommander.getColumnSize()) {
@@ -236,7 +258,7 @@ public class ProjectTemplates {
 
 			lineLength += template.length();
 
-			if (i < (templates.length - 1)) {
+			if (iterator.hasNext()) {
 				System.out.print(", ");
 
 				lineLength += 2;
@@ -250,8 +272,10 @@ public class ProjectTemplates {
 	}
 
 	private static void _printList() throws Exception {
-		for (String template : getTemplates()) {
-			System.out.println(template);
+		Map<String, String> templates = getTemplates();
+
+		for (String template : templates.keySet()) {
+			System.out.println(template + " - " + templates.get(template));
 		}
 	}
 
@@ -345,5 +369,8 @@ public class ProjectTemplates {
 
 		return name.toLowerCase();
 	}
+
+	private static final Set<PosixFilePermission> _wrapperPosixFilePermissions =
+		PosixFilePermissions.fromString("rwxrwxr--");
 
 }

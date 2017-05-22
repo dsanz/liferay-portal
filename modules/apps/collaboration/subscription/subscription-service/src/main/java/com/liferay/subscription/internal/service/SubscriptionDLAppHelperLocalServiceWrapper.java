@@ -35,9 +35,9 @@ import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
-import com.liferay.portal.kernel.service.SubscriptionLocalService;
 import com.liferay.portal.kernel.settings.LocalizedValuesMap;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.EscapableLocalizableFunction;
 import com.liferay.portal.kernel.util.GroupSubscriptionCheckSubscriptionSender;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.SubscriptionSender;
@@ -45,6 +45,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portlet.documentlibrary.DLGroupServiceSettings;
 import com.liferay.portlet.documentlibrary.service.permission.DLPermission;
+import com.liferay.subscription.service.SubscriptionLocalService;
 
 import java.io.Serializable;
 
@@ -85,6 +86,8 @@ public class SubscriptionDLAppHelperLocalServiceWrapper
 
 	@Override
 	public void deleteFolder(Folder folder) throws PortalException {
+		super.deleteFolder(folder);
+
 		if (!DLAppHelperThreadLocal.isEnabled()) {
 			return;
 		}
@@ -199,8 +202,10 @@ public class SubscriptionDLAppHelperLocalServiceWrapper
 				"[$FOLDER_NAME$]", folder.getName(), true);
 		}
 		else {
-			subscriptionSender.setLocalizedContextAttributeWithFunction(
-				"[$FOLDER_NAME$]", locale -> LanguageUtil.get(locale, "home"));
+			subscriptionSender.setLocalizedContextAttribute(
+				"[$FOLDER_NAME$]",
+				new EscapableLocalizableFunction(
+					locale -> LanguageUtil.get(locale, "home")));
 		}
 
 		subscriptionSender.setContextAttributes(
@@ -216,8 +221,10 @@ public class SubscriptionDLAppHelperLocalServiceWrapper
 		subscriptionSender.setHtmlFormat(true);
 		subscriptionSender.setLocalizedBodyMap(
 			LocalizationUtil.getMap(bodyLocalizedValuesMap));
-		subscriptionSender.setLocalizedContextAttributeWithFunction(
-			"[$DOCUMENT_TYPE$]", locale -> dlFileEntryType.getName(locale));
+		subscriptionSender.setLocalizedContextAttribute(
+			"[$DOCUMENT_TYPE$]",
+			new EscapableLocalizableFunction(
+				locale -> dlFileEntryType.getName(locale)));
 		subscriptionSender.setLocalizedSubjectMap(
 			LocalizationUtil.getMap(subjectLocalizedValuesMap));
 		subscriptionSender.setMailId(

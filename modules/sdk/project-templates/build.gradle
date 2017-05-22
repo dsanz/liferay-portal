@@ -3,6 +3,14 @@ import com.liferay.gradle.util.copy.StripPathSegmentsAction
 
 task writeProjectTemplateVersions
 
+File mavenWrapperPropertiesFile = file("src/main/resources/maven-wrapper/.mvn/wrapper/maven-wrapper.properties")
+
+Properties mavenWrapperProperties = GUtil.loadProperties(mavenWrapperPropertiesFile)
+
+String mavenDistributionVersion = mavenWrapperProperties["distributionUrl"]
+
+mavenDistributionVersion = mavenDistributionVersion.find(/\d+\.\d+\.\d+/)
+
 Set<Project> projectTemplateProjects = project.parent.subprojects.findAll {
 	it.name.startsWith "project-templates-"
 }
@@ -19,7 +27,7 @@ configurations {
 dependencies {
 	compileInclude group: "com.beust", name: "jcommander", version: "1.48"
 
-	mavenDistribution classifier: "bin", ext: "zip", group: "org.apache.maven", name: "apache-maven", version: "3.3.9"
+	mavenDistribution classifier: "bin", ext: "zip", group: "org.apache.maven", name: "apache-maven", version: mavenDistributionVersion
 
 	projectTemplates project(":sdk:project-templates-activator")
 	projectTemplates project(":sdk:project-templates-api")
@@ -29,6 +37,7 @@ dependencies {
 	projectTemplates project(":sdk:project-templates-control-menu-entry")
 	projectTemplates project(":sdk:project-templates-form-field")
 	projectTemplates project(":sdk:project-templates-fragment")
+	projectTemplates project(":sdk:project-templates-layout-template")
 	projectTemplates project(":sdk:project-templates-mvc-portlet")
 	projectTemplates project(":sdk:project-templates-panel-app")
 	projectTemplates project(":sdk:project-templates-portlet")
@@ -40,6 +49,7 @@ dependencies {
 	projectTemplates project(":sdk:project-templates-service-builder")
 	projectTemplates project(":sdk:project-templates-service-wrapper")
 	projectTemplates project(":sdk:project-templates-simulation-panel-entry")
+	projectTemplates project(":sdk:project-templates-soy-portlet")
 	projectTemplates project(":sdk:project-templates-template-context-contributor")
 	projectTemplates project(":sdk:project-templates-theme")
 	projectTemplates project(":sdk:project-templates-theme-contributor")
@@ -49,9 +59,14 @@ dependencies {
 
 	testCompile gradleTestKit()
 	testCompile group: "biz.aQute.bnd", name: "biz.aQute.bnd", version: "3.2.0"
+	testCompile group: "com.googlecode.java-diff-utils", name: "diffutils", version: "1.3.0"
 	testCompile group: "junit", name: "junit", version: "4.12"
 	testCompile group: "net.diibadaaba.zipdiff", name: "zipdiff", version: "1.0"
 	testCompile project(":test:maven-executor")
+}
+
+liferayOSGi {
+	expandCompileInclude = true
 }
 
 processResources {
@@ -85,9 +100,12 @@ test {
 	jvmArgs "-XX:MaxMetaspaceSize=256m"
 	maxHeapSize = "1024m"
 
-	systemProperty "repository.url", System.properties["repository.url"]
 	systemProperty "http.proxyHost", System.properties["http.proxyHost"]
 	systemProperty "http.proxyPort", System.properties["http.proxyPort"]
+	systemProperty "maven.debug", System.properties["maven.debug"]
+	systemProperty "maven.repo.local", System.properties["maven.repo.local"]
+	systemProperty "repository.url", System.properties["repository.url"]
+	systemProperty "test.debug.bundle.diffs", System.properties["test.debug.bundle.diffs"]
 
 	systemProperties projectTemplateTokens
 }

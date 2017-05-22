@@ -71,6 +71,30 @@ public class WikiPageStagedModelDataHandlerTest
 			SynchronousDestinationTestRule.INSTANCE);
 
 	@Override
+	protected Map<String, List<StagedModel>> addDefaultDependentStagedModelsMap(
+			Group group)
+		throws Exception {
+
+		Map<String, List<StagedModel>> dependentStagedModelsMap =
+			new HashMap<>();
+
+		WikiNode node = WikiTestUtil.addDefaultNode(group.getGroupId());
+
+		addDependentStagedModel(dependentStagedModelsMap, WikiNode.class, node);
+
+		return dependentStagedModelsMap;
+	}
+
+	@Override
+	protected StagedModel addDefaultStagedModel(
+			Group group,
+			Map<String, List<StagedModel>> dependentStagedModelsMap)
+		throws Exception {
+
+		return addStagedModel(group, dependentStagedModelsMap, "Front Page");
+	}
+
+	@Override
 	protected Map<String, List<StagedModel>> addDependentStagedModelsMap(
 			Group group)
 		throws Exception {
@@ -91,6 +115,16 @@ public class WikiPageStagedModelDataHandlerTest
 			Map<String, List<StagedModel>> dependentStagedModelsMap)
 		throws Exception {
 
+		return addStagedModel(
+			group, dependentStagedModelsMap, RandomTestUtil.randomString());
+	}
+
+	protected StagedModel addStagedModel(
+			Group group,
+			Map<String, List<StagedModel>> dependentStagedModelsMap,
+			String name)
+		throws Exception {
+
 		List<StagedModel> dependentStagedModels = dependentStagedModelsMap.get(
 			WikiNode.class.getSimpleName());
 
@@ -100,9 +134,8 @@ public class WikiPageStagedModelDataHandlerTest
 			ServiceContextTestUtil.getServiceContext(group.getGroupId());
 
 		WikiPage page = WikiTestUtil.addPage(
-			TestPropsValues.getUserId(), node.getNodeId(),
-			RandomTestUtil.randomString(), RandomTestUtil.randomString(), true,
-			serviceContext);
+			TestPropsValues.getUserId(), node.getNodeId(), name,
+			RandomTestUtil.randomString(), true, serviceContext);
 
 		WikiTestUtil.addWikiAttachment(
 			TestPropsValues.getUserId(), node.getNodeId(), page.getTitle(),
@@ -224,7 +257,8 @@ public class WikiPageStagedModelDataHandlerTest
 		List<StagedModel> dependentStagedModels = dependentStagedModelsMap.get(
 			WikiNode.class.getSimpleName());
 
-		Assert.assertEquals(1, dependentStagedModels.size());
+		Assert.assertEquals(
+			dependentStagedModels.toString(), 1, dependentStagedModels.size());
 
 		WikiNode node = (WikiNode)dependentStagedModels.get(0);
 
@@ -247,7 +281,8 @@ public class WikiPageStagedModelDataHandlerTest
 		List<FileEntry> attachmentFileEntries =
 			page.getAttachmentsFileEntries();
 
-		Assert.assertEquals(1, attachmentFileEntries.size());
+		Assert.assertEquals(
+			attachmentFileEntries.toString(), 1, attachmentFileEntries.size());
 
 		validateImport(dependentStagedModelsMap, group);
 	}

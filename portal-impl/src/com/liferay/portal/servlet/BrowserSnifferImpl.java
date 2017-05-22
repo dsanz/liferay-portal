@@ -15,6 +15,7 @@
 package com.liferay.portal.servlet;
 
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.servlet.BrowserMetadata;
 import com.liferay.portal.kernel.servlet.BrowserSniffer;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.util.CharPool;
@@ -49,15 +50,22 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 
 	@Override
 	public String getBrowserId(HttpServletRequest request) {
-		if (isIe(request)) {
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
+
+		if (browserMetadata.isIe()) {
 			return BROWSER_ID_IE;
 		}
-		else if (isFirefox(request)) {
+		else if (browserMetadata.isFirefox()) {
 			return BROWSER_ID_FIREFOX;
 		}
 		else {
 			return BROWSER_ID_OTHER;
 		}
+	}
+
+	@Override
+	public BrowserMetadata getBrowserMetadata(HttpServletRequest request) {
+		return new BrowserMetadata(getUserAgent(request));
 	}
 
 	@Override
@@ -107,254 +115,135 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 
 	@Override
 	public boolean isAir(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (userAgent.contains("adobeair")) {
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isAir();
 	}
 
 	@Override
 	public boolean isAndroid(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (userAgent.contains("android")) {
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isAndroid();
 	}
 
 	@Override
 	public boolean isChrome(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (userAgent.contains("chrome")) {
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isChrome();
 	}
 
 	@Override
 	public boolean isFirefox(HttpServletRequest request) {
-		if (!isMozilla(request)) {
-			return false;
-		}
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		String userAgent = getUserAgent(request);
-
-		for (String firefoxAlias : _FIREFOX_ALIASES) {
-			if (userAgent.contains(firefoxAlias)) {
-				return true;
-			}
-		}
-
-		return false;
+		return browserMetadata.isFirefox();
 	}
 
 	@Override
 	public boolean isGecko(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (userAgent.contains("gecko")) {
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isGecko();
 	}
 
 	@Override
 	public boolean isIe(HttpServletRequest request) {
-		return isIe(getUserAgent(request));
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
+
+		return browserMetadata.isIe();
 	}
 
 	@Override
 	public boolean isIeOnWin32(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (isIe(userAgent) &&
-			!(userAgent.contains("wow64") || userAgent.contains("win64"))) {
-
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isIeOnWin32();
 	}
 
 	@Override
 	public boolean isIeOnWin64(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (isIe(userAgent) &&
-			(userAgent.contains("wow64") || userAgent.contains("win64"))) {
-
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isIeOnWin64();
 	}
 
 	@Override
 	public boolean isIphone(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (userAgent.contains("iphone")) {
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isIphone();
 	}
 
 	@Override
 	public boolean isLinux(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (userAgent.contains("linux")) {
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isLinux();
 	}
 
 	@Override
 	public boolean isMac(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (userAgent.contains("mac")) {
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isMac();
 	}
 
 	@Override
 	public boolean isMobile(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (userAgent.contains("mobile") ||
-			(userAgent.contains("android") && userAgent.contains("nexus"))) {
-
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isMobile();
 	}
 
 	@Override
 	public boolean isMozilla(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (userAgent.contains("mozilla") &&
-			!(userAgent.contains("compatible") ||
-			  userAgent.contains("webkit"))) {
-
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isMozilla();
 	}
 
 	@Override
 	public boolean isOpera(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (userAgent.contains("opera")) {
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isOpera();
 	}
 
 	@Override
 	public boolean isRtf(HttpServletRequest request) {
-		if (isAndroid(request)) {
-			return true;
-		}
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (isChrome(request)) {
-			return true;
-		}
-
-		float majorVersion = getMajorVersion(request);
-
-		if (isIe(request) && (majorVersion >= 5.5)) {
-			return true;
-		}
-
-		if (isMozilla(request) && (majorVersion >= 1.3)) {
-			return true;
-		}
-
-		if (isOpera(request)) {
-			if (isMobile(request) && (majorVersion >= 10.0)) {
-				return true;
-			}
-			else if (!isMobile(request)) {
-				return true;
-			}
-		}
-
-		if (isSafari(request)) {
-			if (isMobile(request) && (majorVersion >= 5.0)) {
-				return true;
-			}
-			else if (!isMobile(request) && (majorVersion >= 3.0)) {
-				return true;
-			}
-		}
-
-		return false;
+		return browserMetadata.isRtf(getVersion(request));
 	}
 
 	@Override
 	public boolean isSafari(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (isWebKit(request) && userAgent.contains("safari")) {
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isSafari();
 	}
 
 	@Override
 	public boolean isSun(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		if (userAgent.contains("sunos")) {
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isSun();
 	}
 
 	@Override
 	public boolean isWebKit(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		for (String webKitAlias : _WEBKIT_ALIASES) {
-			if (userAgent.contains(webKitAlias)) {
-				return true;
-			}
-		}
-
-		return false;
+		return browserMetadata.isWebKit();
 	}
 
 	@Override
 	public boolean isWindows(HttpServletRequest request) {
-		String userAgent = getUserAgent(request);
+		BrowserMetadata browserMetadata = getBrowserMetadata(request);
 
-		for (String windowsAlias : _WINDOWS_ALIASES) {
-			if (userAgent.contains(windowsAlias)) {
-				return true;
-			}
-		}
-
-		return false;
+		return browserMetadata.isWindows();
 	}
 
 	protected static String parseVersion(
@@ -458,20 +347,17 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 	}
 
 	protected String getUserAgent(HttpServletRequest request) {
-		String userAgent = StringPool.BLANK;
-
 		if (request == null) {
-			return userAgent;
+			return StringPool.BLANK;
 		}
 
-		userAgent = String.valueOf(
-			request.getAttribute(HttpHeaders.USER_AGENT));
+		Object userAgentObject = request.getAttribute(HttpHeaders.USER_AGENT);
 
-		if (Validator.isNotNull(userAgent)) {
-			return userAgent;
+		if (userAgentObject != null) {
+			return userAgentObject.toString();
 		}
 
-		userAgent = request.getHeader(HttpHeaders.USER_AGENT);
+		String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
 
 		if (userAgent != null) {
 			userAgent = StringUtil.toLowerCase(userAgent);
@@ -485,14 +371,14 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 		return userAgent;
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link BrowserMetadata#isIe()}
+	 */
+	@Deprecated
 	protected boolean isIe(String userAgent) {
-		if ((userAgent.contains("msie") || userAgent.contains("trident")) &&
-			!userAgent.contains("opera")) {
+		BrowserMetadata browserMetadata = new BrowserMetadata(userAgent);
 
-			return true;
-		}
-
-		return false;
+		return browserMetadata.isIe();
 	}
 
 	protected static String[] revisionLeadings = {"rv", "it", "ra", "ie"};
@@ -502,16 +388,5 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 		{"version", "firefox", "minefield", "chrome"};
 	protected static char[] versionSeparators =
 		{CharPool.BACK_SLASH, CharPool.SLASH};
-
-	private static final String[] _FIREFOX_ALIASES = {
-		"firefox", "minefield", "granparadiso", "bonecho", "firebird",
-		"phoenix", "camino"
-	};
-
-	private static final String[] _WEBKIT_ALIASES = {"khtml", "applewebkit"};
-
-	private static final String[] _WINDOWS_ALIASES = {
-		"windows", "win32", "16bit"
-	};
 
 }

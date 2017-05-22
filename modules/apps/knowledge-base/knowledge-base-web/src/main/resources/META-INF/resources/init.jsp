@@ -88,6 +88,7 @@ page import="com.liferay.knowledge.base.service.permission.KBFolderPermission" %
 page import="com.liferay.knowledge.base.service.permission.KBTemplatePermission" %><%@
 page import="com.liferay.knowledge.base.service.permission.SuggestionPermission" %><%@
 page import="com.liferay.knowledge.base.service.util.AdminUtil" %><%@
+page import="com.liferay.knowledge.base.service.util.KnowledgeBaseConstants" %><%@
 page import="com.liferay.knowledge.base.util.KnowledgeBaseUtil" %><%@
 page import="com.liferay.knowledge.base.util.comparator.KBArticlePriorityComparator" %><%@
 page import="com.liferay.knowledge.base.util.comparator.KBObjectsTitleComparator" %><%@
@@ -116,7 +117,6 @@ page import="com.liferay.portal.kernel.bean.BeanPropertiesUtil" %><%@
 page import="com.liferay.portal.kernel.dao.orm.QueryUtil" %><%@
 page import="com.liferay.portal.kernel.dao.search.RowChecker" %><%@
 page import="com.liferay.portal.kernel.dao.search.SearchContainer" %><%@
-page import="com.liferay.portal.kernel.exception.NoSuchSubscriptionException" %><%@
 page import="com.liferay.portal.kernel.exception.PortalException" %><%@
 page import="com.liferay.portal.kernel.language.LanguageUtil" %><%@
 page import="com.liferay.portal.kernel.language.UnicodeLanguageUtil" %><%@
@@ -145,7 +145,6 @@ page import="com.liferay.portal.kernel.security.permission.ActionKeys" %><%@
 page import="com.liferay.portal.kernel.service.ClassNameLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.PortletLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.ServiceContext" %><%@
-page import="com.liferay.portal.kernel.service.SubscriptionLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.TicketLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil" %><%@
 page import="com.liferay.portal.kernel.service.permission.GroupPermissionUtil" %><%@
@@ -178,6 +177,8 @@ page import="com.liferay.portal.kernel.util.WebKeys" %><%@
 page import="com.liferay.portal.kernel.workflow.WorkflowConstants" %><%@
 page import="com.liferay.ratings.kernel.RatingsType" %><%@
 page import="com.liferay.ratings.kernel.definition.PortletRatingsDefinitionUtil" %><%@
+page import="com.liferay.subscription.exception.NoSuchSubscriptionException" %><%@
+page import="com.liferay.subscription.service.SubscriptionLocalServiceUtil" %><%@
 page import="com.liferay.taglib.search.ResultRow" %><%@
 page import="com.liferay.wiki.model.WikiPage" %>
 
@@ -207,7 +208,7 @@ page import="javax.portlet.WindowState" %>
 <portlet:defineObjects />
 
 <%
-String redirect = ParamUtil.getString(request, "redirect", currentURL);
+String redirect = PortalUtil.escapeRedirect(ParamUtil.getString(request, "redirect", currentURL));
 
 String rootPortletId = portletDisplay.getRootPortletId();
 

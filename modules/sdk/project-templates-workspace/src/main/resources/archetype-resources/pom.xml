@@ -22,7 +22,7 @@
 				<version>@com.liferay.portal.tools.bundle.support.version@</version>
 				<executions>
 					<execution>
-						<id>default-clean</id>
+						<id>clean</id>
 						<goals>
 							<goal>clean</goal>
 						</goals>
@@ -31,28 +31,32 @@
 
 					<!--
 					<execution>
-						<id>default-init-bundle</id>
+						<id>init</id>
 						<goals>
-							<goal>init-bundle</goal>
+							<goal>init</goal>
 						</goals>
 						<phase>initialize</phase>
 					</execution>
 					-->
 
 					<execution>
-						<id>default-deploy</id>
+						<id>deploy</id>
 						<goals>
 							<goal>deploy</goal>
 						</goals>
 						<phase>pre-integration-test</phase>
 					</execution>
+
+					<!--
 					<execution>
-						<id>default-dist-bundle</id>
+						<id>dist</id>
 						<goals>
-							<goal>dist-bundle</goal>
+							<goal>dist</goal>
 						</goals>
 						<phase>post-integration-test</phase>
 					</execution>
+					-->
+
 				</executions>
 			</plugin>
 		</plugins>

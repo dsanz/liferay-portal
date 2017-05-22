@@ -213,6 +213,11 @@ public class KaleoTaskInstanceTokenWrapper implements KaleoTaskInstanceToken,
 	}
 
 	@Override
+	public KaleoTaskAssignmentInstance getFirstKaleoTaskAssignmentInstance() {
+		return _kaleoTaskInstanceToken.getFirstKaleoTaskAssignmentInstance();
+	}
+
+	@Override
 	public KaleoTaskInstanceToken toEscapedModel() {
 		return new KaleoTaskInstanceTokenWrapper(_kaleoTaskInstanceToken.toEscapedModel());
 	}

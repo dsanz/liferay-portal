@@ -14,6 +14,7 @@
 
 package com.liferay.dynamic.data.lists.form.web.internal.portlet.action;
 
+import com.liferay.dynamic.data.lists.exception.RecordSetSettingsRedirectURLException;
 import com.liferay.dynamic.data.lists.form.web.internal.converter.DDLFormRuleDeserializer;
 import com.liferay.dynamic.data.lists.form.web.internal.converter.DDLFormRuleToDDMFormRuleConverter;
 import com.liferay.dynamic.data.lists.form.web.internal.converter.model.DDLFormRule;
@@ -42,12 +43,14 @@ import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -86,6 +89,9 @@ public class SaveRecordSetMVCCommandHelper {
 			PortletRequest portletRequest, DDMFormValues settingsDDMFormValues)
 		throws Exception {
 
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			DDMStructure.class.getName(), portletRequest);
+
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -95,11 +101,8 @@ public class SaveRecordSetMVCCommandHelper {
 		String storageType = getStorageType(settingsDDMFormValues);
 		String name = ParamUtil.getString(portletRequest, "name");
 		String description = ParamUtil.getString(portletRequest, "description");
-		DDMForm ddmForm = getDDMForm(portletRequest);
+		DDMForm ddmForm = getDDMForm(portletRequest, serviceContext);
 		DDMFormLayout ddmFormLayout = getDDMFormLayout(portletRequest);
-
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			DDMStructure.class.getName(), portletRequest);
 
 		return ddmStructureService.addStructure(
 			groupId, DDMStructureConstants.DEFAULT_PARENT_STRUCTURE_ID,
@@ -138,6 +141,11 @@ public class SaveRecordSetMVCCommandHelper {
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			DDLRecordSet.class.getName(), portletRequest);
 
+		if (ParamUtil.getBoolean(portletRequest, "autoSave")) {
+			serviceContext.setAttribute(
+				"status", WorkflowConstants.STATUS_DRAFT);
+		}
+
 		return ddlRecordSetService.addRecordSet(
 			groupId, ddmStructureId, recordSetKey, nameMap, descriptionMap,
 			DDLRecordSetConstants.MIN_DISPLAY_ROWS_DEFAULT,
@@ -163,7 +171,8 @@ public class SaveRecordSetMVCCommandHelper {
 		return recordSet;
 	}
 
-	protected DDMForm getDDMForm(PortletRequest portletRequest)
+	protected DDMForm getDDMForm(
+			PortletRequest portletRequest, ServiceContext serviceContext)
 		throws PortalException {
 
 		try {
@@ -171,6 +180,10 @@ public class SaveRecordSetMVCCommandHelper {
 				portletRequest, "definition");
 
 			DDMForm ddmForm = ddmFormJSONDeserializer.deserialize(definition);
+
+			serviceContext.setAttribute("form", ddmForm);
+
+			ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
 			List<DDMFormRule> ddmFormRules = getDDMFormRules(portletRequest);
 
@@ -180,6 +193,9 @@ public class SaveRecordSetMVCCommandHelper {
 		}
 		catch (PortalException pe) {
 			throw new StructureDefinitionException(pe);
+		}
+		finally {
+			ServiceContextThreadLocal.popServiceContext();
 		}
 	}
 
@@ -273,15 +289,15 @@ public class SaveRecordSetMVCCommandHelper {
 	protected DDMStructure updateDDMStructure(PortletRequest portletRequest)
 		throws Exception {
 
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			DDMStructure.class.getName(), portletRequest);
+
 		long ddmStructureId = ParamUtil.getLong(
 			portletRequest, "ddmStructureId");
 		String name = ParamUtil.getString(portletRequest, "name");
 		String description = ParamUtil.getString(portletRequest, "description");
-		DDMForm ddmForm = getDDMForm(portletRequest);
+		DDMForm ddmForm = getDDMForm(portletRequest, serviceContext);
 		DDMFormLayout ddmFormLayout = getDDMFormLayout(portletRequest);
-
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			DDMStructure.class.getName(), portletRequest);
 
 		return ddmStructureService.updateStructure(
 			ddmStructureId, DDMStructureConstants.DEFAULT_PARENT_STRUCTURE_ID,
@@ -304,6 +320,11 @@ public class SaveRecordSetMVCCommandHelper {
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			DDLRecordSet.class.getName(), portletRequest);
+
+		if (ParamUtil.getBoolean(portletRequest, "autoSave")) {
+			serviceContext.setAttribute(
+				"status", WorkflowConstants.ACTION_SAVE_DRAFT);
+		}
 
 		return ddlRecordSetService.updateRecordSet(
 			recordSetId, ddmStructureId,
@@ -335,6 +356,8 @@ public class SaveRecordSetMVCCommandHelper {
 			DDMFormValues settingsDDMFormValues)
 		throws PortalException {
 
+		validateRedirectURL(settingsDDMFormValues);
+
 		ddlRecordSetService.updateRecordSet(
 			recordSet.getRecordSetId(), settingsDDMFormValues);
 
@@ -362,6 +385,36 @@ public class SaveRecordSetMVCCommandHelper {
 			themeDisplay.getUserId(), themeDisplay.getCompanyId(), groupId,
 			DDLRecordSet.class.getName(), recordSet.getRecordSetId(), 0,
 			workflowDefinition);
+	}
+
+	protected void validateRedirectURL(DDMFormValues settingsDDMFormValues)
+		throws PortalException {
+
+		Map<String, List<DDMFormFieldValue>> ddmFormFieldValuesMap =
+			settingsDDMFormValues.getDDMFormFieldValuesMap();
+
+		if (!ddmFormFieldValuesMap.containsKey("redirectURL")) {
+			return;
+		}
+
+		List<DDMFormFieldValue> ddmFormFieldValues = ddmFormFieldValuesMap.get(
+			"redirectURL");
+
+		DDMFormFieldValue ddmFormFieldValue = ddmFormFieldValues.get(0);
+
+		Value value = ddmFormFieldValue.getValue();
+
+		for (Locale availableLocale : value.getAvailableLocales()) {
+			String valueString = value.getString(availableLocale);
+
+			if (Validator.isNotNull(valueString)) {
+				String escapedRedirect = _portal.escapeRedirect(valueString);
+
+				if (Validator.isNull(escapedRedirect)) {
+					throw new RecordSetSettingsRedirectURLException();
+				}
+			}
+		}
 	}
 
 	@Reference

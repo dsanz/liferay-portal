@@ -8,7 +8,6 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>${artifactId}-service</artifactId>
 	<version>${version}</version>
-	<packaging>jar</packaging>
 	<parent>
 		<groupId>${groupId}</groupId>
 		<artifactId>${artifactId}</artifactId>
@@ -57,6 +56,7 @@
 					<buildNumberIncrement>true</buildNumberIncrement>
 					<hbmFileName>src/main/resources/META-INF/module-hbm.xml</hbmFileName>
 					<implDirName>src/main/java</implDirName>
+					<mergeModelHintsConfigs>src/main/resources/META-INF/portlet-model-hints.xml</mergeModelHintsConfigs>
 					<modelHintsFileName>src/main/resources/META-INF/portlet-model-hints.xml</modelHintsFileName>
 					<osgiModule>true</osgiModule>
 					<propsUtil>${package}.service.util.ServiceProps</propsUtil>

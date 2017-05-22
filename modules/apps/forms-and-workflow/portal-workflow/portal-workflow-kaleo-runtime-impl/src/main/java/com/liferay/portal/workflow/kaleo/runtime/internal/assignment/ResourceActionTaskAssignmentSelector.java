@@ -14,6 +14,7 @@
 
 package com.liferay.portal.workflow.kaleo.runtime.internal.assignment;
 
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.service.RoleLocalService;
@@ -61,6 +62,14 @@ public class ResourceActionTaskAssignmentSelector
 			(ServiceContext)workflowContext.get(
 				WorkflowConstants.CONTEXT_SERVICE_CONTEXT);
 
+		String companyId = GetterUtil.getString(
+			(String)workflowContextServiceContext.getAttribute("companyId"),
+			(String)workflowContext.get("companyId"));
+
+		String groupId = GetterUtil.getString(
+			(String)workflowContextServiceContext.getAttribute("groupId"),
+			(String)workflowContext.get("groupId"));
+
 		String resourceName = GetterUtil.getString(
 			(String)workflowContextServiceContext.getAttribute(
 				WorkflowConstants.CONTEXT_ENTRY_CLASS_NAME),
@@ -73,10 +82,32 @@ public class ResourceActionTaskAssignmentSelector
 			(String)workflowContext.get(
 				WorkflowConstants.CONTEXT_ENTRY_CLASS_PK));
 
-		List<Role> roles = _roleLocalService.getResourceRoles(
-			serviceContext.getCompanyId(), resourceName,
-			ResourceConstants.SCOPE_INDIVIDUAL, resourceClassPK,
-			kaleoTaskAssignment.getAssigneeActionId());
+		List<Role> roles = new ArrayList<>();
+
+		roles.addAll(
+			_roleLocalService.getResourceRoles(
+				serviceContext.getCompanyId(), resourceName,
+				ResourceConstants.SCOPE_COMPANY, companyId,
+				kaleoTaskAssignment.getAssigneeActionId()));
+
+		roles.addAll(
+			_roleLocalService.getResourceRoles(
+				serviceContext.getCompanyId(), resourceName,
+				ResourceConstants.SCOPE_GROUP_TEMPLATE,
+				String.valueOf(GroupConstants.DEFAULT_PARENT_GROUP_ID),
+				kaleoTaskAssignment.getAssigneeActionId()));
+
+		roles.addAll(
+			_roleLocalService.getResourceRoles(
+				serviceContext.getCompanyId(), resourceName,
+				ResourceConstants.SCOPE_GROUP, groupId,
+				kaleoTaskAssignment.getAssigneeActionId()));
+
+		roles.addAll(
+			_roleLocalService.getResourceRoles(
+				serviceContext.getCompanyId(), resourceName,
+				ResourceConstants.SCOPE_INDIVIDUAL, resourceClassPK,
+				kaleoTaskAssignment.getAssigneeActionId()));
 
 		List<KaleoTaskAssignment> kaleoTaskAssignments = new ArrayList<>(
 			roles.size());

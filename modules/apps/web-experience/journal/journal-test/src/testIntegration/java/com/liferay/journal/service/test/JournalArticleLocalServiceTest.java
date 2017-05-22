@@ -157,7 +157,7 @@ public class JournalArticleLocalServiceTest {
 		List<JournalArticle> articles =
 			JournalArticleLocalServiceUtil.getNoPermissionArticles();
 
-		Assert.assertEquals(1, articles.size());
+		Assert.assertEquals(articles.toString(), 1, articles.size());
 		Assert.assertEquals(article, articles.get(0));
 	}
 

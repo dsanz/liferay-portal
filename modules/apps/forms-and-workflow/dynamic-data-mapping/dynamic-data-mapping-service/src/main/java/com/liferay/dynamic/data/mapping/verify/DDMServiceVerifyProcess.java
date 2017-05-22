@@ -259,7 +259,18 @@ public class DDMServiceVerifyProcess extends VerifyProcess {
 
 						DDMStructure structure = (DDMStructure)object;
 
-						verifyStructure(structure);
+						try {
+							verifyStructure(structure);
+						}
+						catch (PortalException pe) {
+							_log.error(
+								String.format(
+									"Invalid data for DDM structure %d " +
+										"causes: {%s}",
+									structure.getStructureId(),
+									pe.getMessage()),
+								pe);
+						}
 					}
 
 				});

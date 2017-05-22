@@ -38,7 +38,9 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.TransactionalTestRule;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -94,6 +96,45 @@ public class RoleFinderTest {
 
 		ResourceBlockPermissionLocalServiceUtil.deleteResourceBlockPermission(
 			_resourceBlockPermission);
+	}
+
+	@Test
+	public void testFindByC_N_S_P() throws Exception {
+		long companyId = _resourcePermission.getCompanyId();
+		String name = _resourcePermission.getName();
+		int scope = _resourcePermission.getScope();
+		String primKey = _resourcePermission.getPrimKey();
+
+		Map<String, List<String>> actionIdsLists = new HashMap<>();
+
+		List<ResourcePermission> resourcePermissions =
+			ResourcePermissionLocalServiceUtil.getResourcePermissions(
+				companyId, name, scope, primKey);
+
+		List<ResourceAction> resourceActions =
+			ResourceActionLocalServiceUtil.getResourceActions(name);
+
+		for (ResourcePermission resourcePermission : resourcePermissions) {
+			long roleId = resourcePermission.getRoleId();
+
+			Role role = RoleLocalServiceUtil.getRole(roleId);
+
+			long actionIds = resourcePermission.getActionIds();
+
+			List<String> actionIdsList = new ArrayList<>();
+
+			for (ResourceAction resourceAction : resourceActions) {
+				if ((resourceAction.getBitwiseValue() & actionIds) != 0) {
+					actionIdsList.add(resourceAction.getActionId());
+				}
+			}
+
+			actionIdsLists.put(role.getName(), actionIdsList);
+		}
+
+		Assert.assertEquals(
+			actionIdsLists,
+			RoleFinderUtil.findByC_N_S_P(companyId, name, scope, primKey));
 	}
 
 	@Test

@@ -154,6 +154,13 @@ public class WorkflowDefinitionManagerTest {
 	}
 
 	@Test
+	public void testValidateJoinXorDefinition() throws Exception {
+		InputStream inputStream = getResource("join-xor-definition.xml");
+
+		assertValid(inputStream);
+	}
+
+	@Test
 	public void testValidateLegalMarketingDefinition() throws Exception {
 		InputStream inputStream = getResource("legal-marketing-definition.xml");
 
@@ -401,7 +408,7 @@ public class WorkflowDefinitionManagerTest {
 		ClassLoader classLoader = clazz.getClassLoader();
 
 		return classLoader.getResourceAsStream(
-			"com/liferay/portal/workflow/kaleo/runtime/dependencies/" + name);
+			"com/liferay/portal/workflow/kaleo/dependencies/" + name);
 	}
 
 	private BundleContext _bundleContext;

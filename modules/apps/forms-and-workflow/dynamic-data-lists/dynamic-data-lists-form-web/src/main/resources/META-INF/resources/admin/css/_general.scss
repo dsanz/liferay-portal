@@ -14,17 +14,8 @@
 	margin-top: $baseline * 4;
 }
 
-.form-builder-rulles-builder-popover .popover-content {
-	padding: 0;
-
-	.dropdown-menu {
-		border-width: 0;
-		box-shadow: none;
-		display: block;
-		float: none;
-		margin: 0;
-		position: relative;
-	}
+.liferay-ddl-form-builder-rule-builder-content .text-default {
+	font-weight: normal;
 }
 
 .ddl-form-settings-modal,
@@ -302,5 +293,24 @@
 
 	.lfr-ddm-form-page .required-warning {
 		margin-top: 0;
+	}
+}
+
+.form-builder-success-page {
+	padding: 35px;
+}
+
+.progress-bar-success-item {
+	margin-bottom: 42px !important;
+
+	&:before {
+		background-color: #CAD3DB;
+		content: '';
+		display: block;
+		height: 12px;
+		margin-top: -5px;
+		position: absolute;
+		right: 0;
+		width: 12px;
 	}
 }

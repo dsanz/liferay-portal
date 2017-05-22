@@ -427,6 +427,7 @@ public class DDMStructureServiceUtil {
 	structure is related to
 	* @param keywords the keywords (space separated), which may occur in the
 	structure's name or description (optionally <code>null</code>)
+	* @param status the workflow's status.
 	* @return the number of matching structures
 	*/
 	public static int searchCount(long companyId, long[] groupIds,
@@ -434,6 +435,28 @@ public class DDMStructureServiceUtil {
 		return getService()
 				   .searchCount(companyId, groupIds, classNameId, keywords,
 			status);
+	}
+
+	/**
+	* Returns the number of structures matching the groups and class name IDs,
+	* and matching the keywords in the structure names and descriptions.
+	*
+	* @param companyId the primary key of the structure's company
+	* @param groupIds the primary keys of the groups
+	* @param classNameId the primary key of the class name of the model the
+	structure is related to
+	* @param keywords the keywords (space separated), which may occur in the
+	structure's name or description (optionally <code>null</code>)
+	* @param type the structure's type. For more information, see {@link
+	com.liferay.dynamic.data.mapping.model.DDMStructureConstants}.
+	* @param status the workflow's status.
+	* @return the number of matching structures
+	*/
+	public static int searchCount(long companyId, long[] groupIds,
+		long classNameId, java.lang.String keywords, int type, int status) {
+		return getService()
+				   .searchCount(companyId, groupIds, classNameId, keywords,
+			type, status);
 	}
 
 	/**
@@ -505,6 +528,7 @@ public class DDMStructureServiceUtil {
 	* @param groupIds the primary keys of the groups
 	* @param classNameId the primary key of the class name of the model the
 	structure is related to
+	* @param status the workflow's status.
 	* @param keywords the keywords (space separated), which may occur in the
 	structure's name or description (optionally <code>null</code>)
 	* @param start the lower bound of the range of structures to return
@@ -521,6 +545,45 @@ public class DDMStructureServiceUtil {
 		return getService()
 				   .search(companyId, groupIds, classNameId, keywords, status,
 			start, end, orderByComparator);
+	}
+
+	/**
+	* Returns an ordered range of all the structures matching the groups and
+	* class name IDs, and matching the keywords in the structure names and
+	* descriptions.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end -
+	* start</code> instances. <code>start</code> and <code>end</code> are not
+	* primary keys, they are indexes in the result set. Thus, <code>0</code>
+	* refers to the first result in the set. Setting both <code>start</code>
+	* and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full
+	* result set.
+	* </p>
+	*
+	* @param companyId the primary key of the structure's company
+	* @param groupIds the primary keys of the groups
+	* @param classNameId the primary key of the class name of the model the
+	structure is related to
+	* @param keywords the keywords (space separated), which may occur in the
+	structure's name or description (optionally <code>null</code>)
+	* @param type the structure's type. For more information, see {@link
+	com.liferay.dynamic.data.mapping.model.DDMStructureConstants}.
+	* @param status the workflow's status.
+	* @param start the lower bound of the range of structures to return
+	* @param end the upper bound of the range of structures to return (not
+	inclusive)
+	* @param orderByComparator the comparator to order the structures
+	(optionally <code>null</code>)
+	* @return the range of matching structures ordered by the comparator
+	*/
+	public static java.util.List<com.liferay.dynamic.data.mapping.model.DDMStructure> search(
+		long companyId, long[] groupIds, long classNameId,
+		java.lang.String keywords, int type, int status, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.mapping.model.DDMStructure> orderByComparator) {
+		return getService()
+				   .search(companyId, groupIds, classNameId, keywords, type,
+			status, start, end, orderByComparator);
 	}
 
 	/**
@@ -547,6 +610,7 @@ public class DDMStructureServiceUtil {
 	com.liferay.dynamic.data.mapping.storage.StorageType}.
 	* @param type the structure's type. For more information, see {@link
 	com.liferay.dynamic.data.mapping.model.DDMStructureConstants}.
+	* @param status the workflow's status.
 	* @param andOperator whether every field must match its keywords, or just
 	one field
 	* @param start the lower bound of the range of structures to return

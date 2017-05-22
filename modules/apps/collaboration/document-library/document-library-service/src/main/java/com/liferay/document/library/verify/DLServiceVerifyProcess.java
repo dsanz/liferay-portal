@@ -31,7 +31,7 @@ import com.liferay.document.library.kernel.service.DLFileVersionLocalService;
 import com.liferay.document.library.kernel.service.DLFolderLocalService;
 import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.document.library.kernel.util.DLUtil;
-import com.liferay.document.library.kernel.util.DLValidatorUtil;
+import com.liferay.document.library.kernel.util.DLValidator;
 import com.liferay.document.library.kernel.util.comparator.DLFileVersionVersionComparator;
 import com.liferay.portal.instances.service.PortalInstancesLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
@@ -68,7 +68,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import org.springframework.context.ApplicationContext;
@@ -77,12 +76,10 @@ import org.springframework.context.ApplicationContext;
  * @author Raymond Augé
  * @author Douglas Wong
  * @author Alexander Chow
+ * @deprecated As of 1.1.0, replaced by {@link
+ *             com.liferay.document.library.internal.verify.DLServiceVerifyProcess}
  */
-@Component(
-	immediate = true,
-	property = {"verify.process.name=com.liferay.document.library.service"},
-	service = VerifyProcess.class
-)
+@Deprecated
 public class DLServiceVerifyProcess extends VerifyProcess {
 
 	protected void addDLFileVersion(DLFileEntry dlFileEntry) {
@@ -357,11 +354,10 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 
 						String title = dlFileEntry.getTitle();
 
-						if (!DLValidatorUtil.isValidName(title)) {
+						if (!_dlValidator.isValidName(title)) {
 							try {
 								dlFileEntry = renameTitle(
-									dlFileEntry,
-									DLValidatorUtil.fixName(title));
+									dlFileEntry, _dlValidator.fixName(title));
 							}
 							catch (Exception e) {
 								if (_log.isWarnEnabled()) {
@@ -776,6 +772,9 @@ public class DLServiceVerifyProcess extends VerifyProcess {
 	private DLFileEntryTypeLocalService _dlFileEntryTypeLocalService;
 	private DLFileVersionLocalService _dlFileVersionLocalService;
 	private DLFolderLocalService _dlFolderLocalService;
+
+	@Reference
+	private DLValidator _dlValidator;
 
 	@Reference
 	private PortalInstancesLocalService _portalInstancesLocalService;

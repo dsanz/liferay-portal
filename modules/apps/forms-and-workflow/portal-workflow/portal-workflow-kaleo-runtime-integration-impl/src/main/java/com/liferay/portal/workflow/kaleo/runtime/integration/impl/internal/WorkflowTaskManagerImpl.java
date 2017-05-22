@@ -59,8 +59,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.osgi.service.component.annotations.Component;
@@ -251,15 +253,21 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 			List<KaleoTaskAssignment> calculatedKaleoTaskAssignments =
 				getCalculatedKaleoTaskAssignments(kaleoTaskInstanceToken);
 
-			Map<String, Long> pooledActors = new TreeMap<>(
-				new NaturalOrderStringComparator());
+			Set<User> users = new HashSet<>();
 
 			for (KaleoTaskAssignment calculatedKaleoTaskAssignment :
 					calculatedKaleoTaskAssignments) {
 
-				populatePooledActors(
+				populateUsers(
 					calculatedKaleoTaskAssignment, kaleoTaskInstanceToken,
-					pooledActors);
+					users);
+			}
+
+			Map<String, Long> pooledActors = new TreeMap<>(
+				new NaturalOrderStringComparator());
+
+			for (User user : users) {
+				pooledActors.put(user.getFullName(), user.getUserId());
 			}
 
 			return ArrayUtil.toLongArray(pooledActors.values());
@@ -907,10 +915,9 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 		return false;
 	}
 
-	protected void populatePooledActors(
+	protected void populateUsers(
 			KaleoTaskAssignment kaleoTaskAssignment,
-			KaleoTaskInstanceToken kaleoTaskInstanceToken,
-			Map<String, Long> pooledActors)
+			KaleoTaskInstanceToken kaleoTaskInstanceToken, Set<User> users)
 		throws PortalException {
 
 		String assigneeClassName = kaleoTaskAssignment.getAssigneeClassName();
@@ -920,7 +927,7 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 			User user = _userLocalService.fetchUser(assigneeClassPK);
 
 			if (user != null) {
-				pooledActors.put(user.getFullName(), user.getUserId());
+				users.add(user);
 			}
 
 			return;
@@ -938,7 +945,7 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 			for (UserGroupRole userGroupRole : userGroupRoles) {
 				User user = userGroupRole.getUser();
 
-				pooledActors.put(user.getFullName(), user.getUserId());
+				users.add(user);
 			}
 
 			List<UserGroupGroupRole> userGroupGroupRoles =
@@ -950,9 +957,7 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 				List<User> userGroupUsers = _userLocalService.getUserGroupUsers(
 					userGroupGroupRole.getUserGroupId());
 
-				for (User user : userGroupUsers) {
-					pooledActors.put(user.getFullName(), user.getUserId());
-				}
+				users.addAll(userGroupUsers);
 			}
 		}
 		else {
@@ -961,9 +966,7 @@ public class WorkflowTaskManagerImpl implements WorkflowTaskManager {
 					assigneeClassPK, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 					null);
 
-			for (User user : inheritedRoleUsers) {
-				pooledActors.put(user.getFullName(), user.getUserId());
-			}
+			users.addAll(inheritedRoleUsers);
 		}
 	}
 

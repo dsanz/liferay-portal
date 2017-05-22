@@ -44,6 +44,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>TITLE_FIELD_HELPER</td>
+	<td>//div[contains(@class,'required') and contains(.,'This field is required to publish the entry')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SUBTITLE</td>
 	<td>//div[contains(@class,'entry-subtitle')]//h4[contains(.,'${key_entrySubtitle}')]</td>
 	<td></td>
@@ -81,6 +86,11 @@
 <tr>
 	<td>CONTENT_ABSTRACT</td>
 	<td>//div[contains(@class,'entry-body')]/p[contains(.,'${key_entryAbstractDescription}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_FIELD_HELPER</td>
+	<td>//div[contains(@class,'required') and contains(.,'This field is required.')]</td>
 	<td></td>
 </tr>
 <tr>

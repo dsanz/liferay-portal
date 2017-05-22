@@ -13,6 +13,7 @@
 		<property name="defaultDDMFormFieldValueRenderers">
 			<list>
 				<bean class="com.liferay.dynamic.data.mapping.internal.render.CheckboxDDMFormFieldValueRenderer" />
+				<bean class="com.liferay.dynamic.data.mapping.internal.render.ColorDDMFormFieldValueRenderer" />
 				<bean class="com.liferay.dynamic.data.mapping.internal.render.DateDDMFormFieldValueRenderer" />
 				<bean class="com.liferay.dynamic.data.mapping.internal.render.DecimalDDMFormFieldValueRenderer" />
 				<bean class="com.liferay.dynamic.data.mapping.internal.render.DocumentLibraryDDMFormFieldValueRenderer" />

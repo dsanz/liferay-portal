@@ -14,6 +14,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>AUTOMATIC_URL</td>
+	<td>//label[contains(.,'Automatic')]/input[@type='radio']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CUSTOM_URL</td>
+	<td>//label[contains(.,'Custom')]/input[@type='radio']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>BASIC</td>
 	<td>//input[contains(@id,'basic') and @type='radio']</td>
 	<td></td>
@@ -36,6 +46,11 @@
 <tr>
 	<td>CUSTOM_ABSTRACT</td>
 	<td>//label[contains(.,'Custom Abstract')]/input[contains(@id,'customAbstract')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CUSTOM_ID</td>
+	<td>//label[contains(.,'Custom')]/input[contains(@id,'AdaptiveMedia') and @type='radio']</td>
 	<td></td>
 </tr>
 <tr>

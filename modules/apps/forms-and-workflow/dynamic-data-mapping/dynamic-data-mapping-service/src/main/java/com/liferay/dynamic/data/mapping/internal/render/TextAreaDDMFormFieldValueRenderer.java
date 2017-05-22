@@ -15,6 +15,11 @@
 package com.liferay.dynamic.data.mapping.internal.render;
 
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldType;
+import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
+import com.liferay.portal.kernel.util.StringPool;
+
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Marcellus Tavares
@@ -25,6 +30,15 @@ public class TextAreaDDMFormFieldValueRenderer
 	@Override
 	public String getSupportedDDMFormFieldType() {
 		return DDMFormFieldType.TEXT_AREA;
+	}
+
+	@Override
+	public String render(
+		List<DDMFormFieldValue> ddmFormFieldValues, Locale locale) {
+
+		String valueRendered = super.render(ddmFormFieldValues, locale);
+
+		return valueRendered.replace(StringPool.NEW_LINE, "<br>");
 	}
 
 }

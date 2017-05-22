@@ -325,17 +325,18 @@ public class FileUtil {
 	public static String getSanitizedFileName(
 		String fileName, String extension) {
 
+		fileName = fileName.trim();
+
 		for (String blacklistChar : PropsValues.SYNC_FILE_BLACKLIST_CHARS) {
+			blacklistChar = unescapeJava(blacklistChar);
+
 			fileName = fileName.replace(blacklistChar, "_");
 		}
 
 		for (String blacklistCharLast :
 				PropsValues.SYNC_FILE_BLACKLIST_CHARS_LAST) {
 
-			if (blacklistCharLast.startsWith("\\u")) {
-				blacklistCharLast = StringEscapeUtils.unescapeJava(
-					blacklistCharLast);
-			}
+			blacklistCharLast = unescapeJava(blacklistCharLast);
 
 			if (fileName.endsWith(blacklistCharLast)) {
 				fileName = fileName.substring(0, fileName.length() - 1);
@@ -343,6 +344,8 @@ public class FileUtil {
 		}
 
 		if (!Validator.isBlank(extension)) {
+			extension = extension.trim();
+
 			int x = fileName.lastIndexOf(".");
 
 			if ((x == -1) ||
@@ -483,6 +486,10 @@ public class FileUtil {
 			}
 		}
 
+		if (Validator.isBlank(syncFile.getChecksum())) {
+			return true;
+		}
+
 		return !checksumsEqual(getChecksum(filePath), syncFile.getChecksum());
 	}
 
@@ -548,6 +555,8 @@ public class FileUtil {
 		}
 
 		for (String blacklistChar : PropsValues.SYNC_FILE_BLACKLIST_CHARS) {
+			blacklistChar = unescapeJava(blacklistChar);
+
 			if (fileName.contains(blacklistChar)) {
 				return false;
 			}
@@ -556,10 +565,7 @@ public class FileUtil {
 		for (String blacklistLastChar :
 				PropsValues.SYNC_FILE_BLACKLIST_CHARS_LAST) {
 
-			if (blacklistLastChar.startsWith("\\u")) {
-				blacklistLastChar = StringEscapeUtils.unescapeJava(
-					blacklistLastChar);
-			}
+			blacklistLastChar = unescapeJava(blacklistLastChar);
 
 			if (fileName.endsWith(blacklistLastChar)) {
 				return false;
@@ -725,6 +731,14 @@ public class FileUtil {
 		FileTime fileTime = FileTime.fromMillis(modifiedTime);
 
 		Files.setLastModifiedTime(filePath, fileTime);
+	}
+
+	public static String unescapeJava(String value) {
+		if (value.startsWith("\\u")) {
+			return StringEscapeUtils.unescapeJava(value);
+		}
+
+		return value;
 	}
 
 	private static final Logger _logger = LoggerFactory.getLogger(

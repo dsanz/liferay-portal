@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.ToLongFunction;
 
 /**
  * @author Brian Wing Shun Chan
@@ -212,13 +213,7 @@ public class ListUtil {
 			return new ArrayList<>();
 		}
 
-		List<E> list = new ArrayList<>(map.size());
-
-		for (Map.Entry<? extends E, ?> entry : map.entrySet()) {
-			list.add(entry.getKey());
-		}
-
-		return list;
+		return new ArrayList<>(map.keySet());
 	}
 
 	public static <E> List<E> fromMapValues(Map<?, ? extends E> map) {
@@ -226,13 +221,7 @@ public class ListUtil {
 			return new ArrayList<>();
 		}
 
-		List<E> list = new ArrayList<>(map.size());
-
-		for (Map.Entry<?, ? extends E> entry : map.entrySet()) {
-			list.add(entry.getValue());
-		}
-
-		return list;
+		return new ArrayList<>(map.values());
 	}
 
 	public static List<String> fromString(String s) {
@@ -503,10 +492,10 @@ public class ListUtil {
 		List<? extends T> list, Accessor<T, Long> accessor) {
 
 		if (isEmpty(list)) {
-			return (long[])Array.newInstance(long.class, 0);
+			return _EMPTY_LONG_ARRAY;
 		}
 
-		long[] array = (long[])Array.newInstance(long.class, list.size());
+		long[] array = new long[list.size()];
 
 		for (int i = 0; i < list.size(); i++) {
 			T bean = list.get(i);
@@ -514,6 +503,22 @@ public class ListUtil {
 			Long attribute = accessor.get(bean);
 
 			array[i] = attribute;
+		}
+
+		return array;
+	}
+
+	public static <T> long[] toLongArray(
+		List<? extends T> list, ToLongFunction<T> toLongFunction) {
+
+		if (isEmpty(list)) {
+			return _EMPTY_LONG_ARRAY;
+		}
+
+		long[] array = new long[list.size()];
+
+		for (int i = 0; i < list.size(); i++) {
+			array[i] = toLongFunction.applyAsLong(list.get(i));
 		}
 
 		return array;
@@ -611,6 +616,8 @@ public class ListUtil {
 
 		return new ArrayList<>(set);
 	}
+
+	private static final long[] _EMPTY_LONG_ARRAY = {};
 
 	private static final Class<? extends List<?>> _unmodifiableListClass;
 

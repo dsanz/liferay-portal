@@ -18,8 +18,6 @@ import com.liferay.sync.engine.file.system.BarbaryWatcher;
 import com.liferay.sync.engine.file.system.DummyWatcher;
 import com.liferay.sync.engine.file.system.JPathWatcher;
 import com.liferay.sync.engine.file.system.Watcher;
-import com.liferay.sync.engine.file.system.listener.SyncSiteWatchEventListener;
-import com.liferay.sync.engine.file.system.listener.WatchEventListener;
 import com.liferay.sync.engine.model.SyncAccount;
 import com.liferay.sync.engine.service.SyncAccountService;
 import com.liferay.sync.engine.util.OSDetector;
@@ -48,16 +46,15 @@ public class WatcherManager {
 			return _dummyWatcher;
 		}
 
-		WatchEventListener watchEventListener = new SyncSiteWatchEventListener(
-			syncAccountId);
-
 		if (OSDetector.isApple()) {
 			watcher = new BarbaryWatcher(
-				Paths.get(syncAccount.getFilePathName()), watchEventListener);
+				syncAccount.getSyncAccountId(),
+				Paths.get(syncAccount.getFilePathName()));
 		}
 		else {
 			watcher = new JPathWatcher(
-				Paths.get(syncAccount.getFilePathName()), watchEventListener);
+				syncAccount.getSyncAccountId(),
+				Paths.get(syncAccount.getFilePathName()));
 		}
 
 		_watchers.put(syncAccountId, watcher);

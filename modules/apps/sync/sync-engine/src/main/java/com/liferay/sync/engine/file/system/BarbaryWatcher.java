@@ -22,8 +22,6 @@ import com.barbarysoftware.watchservice.WatchKey;
 import com.barbarysoftware.watchservice.WatchService;
 import com.barbarysoftware.watchservice.WatchableFile;
 
-import com.liferay.sync.engine.file.system.listener.WatchEventListener;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -39,10 +37,8 @@ import org.slf4j.LoggerFactory;
  */
 public class BarbaryWatcher extends Watcher {
 
-	public BarbaryWatcher(
-		Path filePath, WatchEventListener watchEventListener) {
-
-		super(filePath, watchEventListener);
+	public BarbaryWatcher(long syncAccountId, Path filePath) {
+		super(syncAccountId, filePath);
 	}
 
 	@Override

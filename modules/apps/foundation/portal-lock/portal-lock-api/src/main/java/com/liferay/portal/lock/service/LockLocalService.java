@@ -130,6 +130,12 @@ public interface LockLocalService extends BaseLocalService,
 	public Lock deleteLock(long lockId) throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public Lock fetchLock(java.lang.String className, java.lang.String key);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public Lock fetchLock(java.lang.String className, long key);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public Lock fetchLock(long lockId);
 
 	/**
@@ -185,9 +191,17 @@ public interface LockLocalService extends BaseLocalService,
 		java.lang.String key, java.lang.String owner, boolean inheritable,
 		long expirationTime) throws PortalException;
 
+	public Lock lock(long userId, java.lang.String className,
+		java.lang.String key, java.lang.String owner, boolean inheritable,
+		long expirationTime, boolean renew) throws PortalException;
+
 	public Lock lock(long userId, java.lang.String className, long key,
 		java.lang.String owner, boolean inheritable, long expirationTime)
 		throws PortalException;
+
+	public Lock lock(long userId, java.lang.String className, long key,
+		java.lang.String owner, boolean inheritable, long expirationTime,
+		boolean renew) throws PortalException;
 
 	public Lock refresh(java.lang.String uuid, long companyId,
 		long expirationTime) throws PortalException;

@@ -64,7 +64,7 @@ public class BatchBuild extends BaseBuild {
 
 		String result = getResult();
 
-		if (result.equals("ABORTED")) {
+		if (result.equals("ABORTED") && (getDownstreamBuildCount(null) == 0)) {
 			return messageElement;
 		}
 
@@ -184,6 +184,51 @@ public class BatchBuild extends BaseBuild {
 		return testResults;
 	}
 
+	@Override
+	public void update() {
+		super.update();
+
+		String status = getStatus();
+
+		if (badBuildNumbers.size() >= MAX_REINVOCATIONS) {
+			return;
+		}
+
+		if ((status.equals("completed") && result.equals("SUCCESS")) ||
+			fromArchive) {
+
+			return;
+		}
+
+		boolean reinvoked = false;
+
+		for (Build downstreamBuild : getDownstreamBuilds("completed")) {
+			if (reinvoked) {
+				break;
+			}
+
+			for (ReinvokeRule reinvokeRule : reinvokeRules) {
+				String downstreamBuildResult = downstreamBuild.getResult();
+
+				if ((downstreamBuildResult == null) ||
+					downstreamBuildResult.equals("SUCCESS")) {
+
+					continue;
+				}
+
+				if (!reinvokeRule.matches(downstreamBuild)) {
+					continue;
+				}
+
+				reinvoke(reinvokeRule);
+
+				reinvoked = true;
+
+				break;
+			}
+		}
+	}
+
 	protected BatchBuild(String url) {
 		this(url, null);
 	}
@@ -193,7 +238,9 @@ public class BatchBuild extends BaseBuild {
 	}
 
 	@Override
-	protected List<String> findDownstreamBuildsInConsoleText() {
+	protected List<String> findDownstreamBuildsInConsoleText(
+		String consoleText) {
+
 		return Collections.emptyList();
 	}
 

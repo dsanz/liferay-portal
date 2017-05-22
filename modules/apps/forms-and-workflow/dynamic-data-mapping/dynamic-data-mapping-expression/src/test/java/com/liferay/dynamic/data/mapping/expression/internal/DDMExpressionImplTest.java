@@ -131,9 +131,9 @@ public class DDMExpressionImplTest {
 		DDMExpressionImpl ddmExpression = new DDMExpressionImpl<>(
 			"true", Double.class);
 
-		double result = (double)ddmExpression.toRetunType(1.5d);
+		double result = (double)ddmExpression.toRetunType(1.5D);
 
-		Assert.assertEquals(1.5d, result, 0.1);
+		Assert.assertEquals(1.5D, result, 0.1);
 	}
 
 	@Test
@@ -141,9 +141,9 @@ public class DDMExpressionImplTest {
 		DDMExpressionImpl ddmExpression = new DDMExpressionImpl<>(
 			"true", Float.class);
 
-		float result = (float)ddmExpression.toRetunType(1.5d);
+		float result = (float)ddmExpression.toRetunType(1.5D);
 
-		Assert.assertEquals(1.5f, result, 0.1);
+		Assert.assertEquals(1.5F, result, 0.1);
 	}
 
 	@Test

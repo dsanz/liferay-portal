@@ -15,7 +15,6 @@
 package com.liferay.dynamic.data.mapping.util;
 
 import com.liferay.dynamic.data.mapping.annotations.DDMFormField;
-import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
@@ -44,13 +43,6 @@ public class DDMFormInstanceFactory {
 
 	public static <T> T create(
 		Class<T> clazz, DDMFormValues ddmFormValues, Locale locale) {
-
-		DDMForm ddmForm = DDMFormFactory.create(clazz);
-
-		if (!ddmForm.equals(ddmFormValues.getDDMForm())) {
-			throw new IllegalArgumentException(
-				"DDM form values does not match with the given class " + clazz);
-		}
 
 		Object proxy = ProxyUtil.newProxyInstance(
 			clazz.getClassLoader(), new Class<?>[] {clazz},

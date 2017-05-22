@@ -318,7 +318,7 @@ public class SyncEngine {
 
 		Watcher watcher = WatcherManager.getWatcher(syncAccountId);
 
-		watcher.walkFileTree(syncAccountFilePath);
+		watcher.walkFileTree(syncAccountFilePath, false);
 
 		SyncWatchEventProcessor syncWatchEventProcessor =
 			new SyncWatchEventProcessor(syncAccountId);

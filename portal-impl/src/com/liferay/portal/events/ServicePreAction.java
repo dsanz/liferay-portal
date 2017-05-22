@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.events.Action;
 import com.liferay.portal.kernel.events.ActionException;
 import com.liferay.portal.kernel.exception.LayoutPermissionException;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
+import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.interval.IntervalActionProcessor;
@@ -173,7 +174,7 @@ public class ServicePreAction extends Action {
 		String friendlyURLPublicPath = PortalUtil.getPathFriendlyURLPublic();
 		String imagePath = dynamicResourcesCDNHost.concat(
 			PortalUtil.getPathImage());
-		String mainPath = PortalUtil.getPathMain();
+		String mainPath = _PATH_MAIN;
 
 		String i18nPath = (String)request.getAttribute(WebKeys.I18N_PATH);
 
@@ -291,9 +292,15 @@ public class ServicePreAction extends Action {
 		// Permission checker
 
 		PermissionChecker permissionChecker =
-			PermissionCheckerFactoryUtil.create(user);
+			PermissionThreadLocal.getPermissionChecker();
 
-		PermissionThreadLocal.setPermissionChecker(permissionChecker);
+		if ((permissionChecker == null) ||
+			(permissionChecker.getUserId() != user.getUserId())) {
+
+			permissionChecker = PermissionCheckerFactoryUtil.create(user);
+
+			PermissionThreadLocal.setPermissionChecker(permissionChecker);
+		}
 
 		// Cookie support
 
@@ -402,6 +409,7 @@ public class ServicePreAction extends Action {
 				!group.isControlPanel() &&
 				GroupPermissionUtil.contains(
 					permissionChecker, group, ActionKeys.VIEW_STAGING);
+			boolean loginRequest = isLoginRequest(request);
 
 			if (viewableStaging) {
 				layouts = LayoutLocalServiceUtil.getLayouts(
@@ -413,7 +421,7 @@ public class ServicePreAction extends Action {
 
 				layout = null;
 			}
-			else if (!isLoginRequest(request) &&
+			else if (!loginRequest &&
 					 (!viewableGroup || !viewableSourceGroup ||
 					  (!redirectToDefaultLayout &&
 					   !hasAccessPermission(
@@ -439,9 +447,9 @@ public class ServicePreAction extends Action {
 					_log.warn(sb.toString());
 				}
 
-				throw new PrincipalException();
+				throw new NoSuchLayoutException(sb.toString());
 			}
-			else if (isLoginRequest(request) && !viewableGroup) {
+			else if (loginRequest && !viewableGroup) {
 				layout = null;
 			}
 			else if (group.isLayoutPrototype()) {
@@ -928,7 +936,7 @@ public class ServicePreAction extends Action {
 				themeDisplay.setShowPageSettingsIcon(true);
 			}
 
-			if (group.hasStagingGroup() && !group.isStagingGroup()) {
+			if (group.hasStagingGroup()) {
 				themeDisplay.setShowLayoutTemplatesIcon(false);
 				themeDisplay.setURLPublishToLive(null);
 			}
@@ -1017,7 +1025,7 @@ public class ServicePreAction extends Action {
 			themeDisplay.setShowPageCustomizationIcon(false);
 		}
 
-		if (group.hasStagingGroup() && !group.isStagingGroup()) {
+		if (group.hasStagingGroup()) {
 			themeDisplay.setShowLayoutTemplatesIcon(false);
 			themeDisplay.setShowPageCustomizationIcon(false);
 		}
@@ -1659,26 +1667,25 @@ public class ServicePreAction extends Action {
 	protected boolean isLoginRequest(HttpServletRequest request) {
 		String requestURI = request.getRequestURI();
 
-		String mainPath = PortalUtil.getPathMain();
+		String mainPath = _PATH_MAIN;
 
-		String pathProxy = PortalUtil.getPathProxy();
-
-		if (!Validator.isBlank(pathProxy)) {
-			if (!requestURI.startsWith(pathProxy)) {
-				requestURI = pathProxy + requestURI;
+		if (_PATH_PROXY != null) {
+			if (!requestURI.startsWith(_PATH_PROXY)) {
+				requestURI = _PATH_PROXY.concat(requestURI);
 			}
 
-			if (!mainPath.startsWith(pathProxy)) {
-				mainPath = pathProxy + mainPath;
+			if (!mainPath.startsWith(_PATH_PROXY)) {
+				mainPath = _PATH_PROXY.concat(mainPath);
 			}
 		}
 
-		if (requestURI.startsWith(mainPath.concat(_PATH_PORTAL_LOGIN))) {
+		if (requestURI.startsWith(mainPath) &&
+			requestURI.startsWith(_PATH_PORTAL_LOGIN, mainPath.length())) {
+
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	protected List<Layout> mergeAdditionalLayouts(
@@ -2018,16 +2025,31 @@ public class ServicePreAction extends Action {
 		return portalDomain;
 	}
 
+	private static final String _PATH_MAIN = PortalUtil.getPathMain();
+
 	private static final String _PATH_PORTAL_LAYOUT = "/portal/layout";
 
 	private static final String _PATH_PORTAL_LOGIN = "/portal/login";
 
 	private static final String _PATH_PORTAL_LOGOUT = "/portal/logout";
 
+	private static final String _PATH_PROXY;
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		ServicePreAction.class);
 
 	private static final Map<String, String> _portalDomains =
 		new ConcurrentHashMap<>();
+
+	static {
+		String pathProxy = PortalUtil.getPathProxy();
+
+		if (Validator.isBlank(pathProxy)) {
+			_PATH_PROXY = null;
+		}
+		else {
+			_PATH_PROXY = pathProxy;
+		}
+	}
 
 }

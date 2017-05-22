@@ -222,6 +222,16 @@ public class JournalFolderServiceUtil {
 		return getService().getSubfolderIds(groupId, folderId, recurse);
 	}
 
+	public static java.util.List<com.liferay.dynamic.data.mapping.model.DDMStructure> searchDDMStructures(
+		long companyId, long[] groupIds, long folderId, int restrictionType,
+		java.lang.String keywords, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.dynamic.data.mapping.model.DDMStructure> obc)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return getService()
+				   .searchDDMStructures(companyId, groupIds, folderId,
+			restrictionType, keywords, start, end, obc);
+	}
+
 	public static void deleteFolder(long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		getService().deleteFolder(folderId);

@@ -31,6 +31,7 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.tools.ForwardingJavaFileManager;
@@ -50,15 +51,13 @@ public class BundleJavaFileManager
 	public static final String OPT_VERBOSE = "-verbose";
 
 	public BundleJavaFileManager(
-		ClassLoader classLoader, Set<String> systemPackageNames,
-		JavaFileManager javaFileManager,
-		JavaFileObjectResolver javaFileObjectResolver) {
+		ClassLoader classLoader, JavaFileManager javaFileManager,
+		List<JavaFileObjectResolver> javaFileObjectResolvers) {
 
 		super(javaFileManager);
 
 		_classLoader = classLoader;
-		_systemPackageNames = systemPackageNames;
-		_javaFileObjectResolver = javaFileObjectResolver;
+		_javaFileObjectResolvers = javaFileObjectResolvers;
 	}
 
 	@Override
@@ -133,13 +132,15 @@ public class BundleJavaFileManager
 		if (!packageName.startsWith("java.") &&
 			(location == StandardLocation.CLASS_PATH)) {
 
-			Collection<JavaFileObject> javaFileObjects =
-				_javaFileObjectResolver.resolveClasses(recurse, packagePath);
+			for (JavaFileObjectResolver javaFileObjectResolver :
+					_javaFileObjectResolvers) {
 
-			if (!javaFileObjects.isEmpty() ||
-				!_systemPackageNames.contains(packageName)) {
+				Collection<JavaFileObject> javaFileObjects =
+					javaFileObjectResolver.resolveClasses(recurse, packagePath);
 
-				return javaFileObjects;
+				if (!javaFileObjects.isEmpty()) {
+					return javaFileObjects;
+				}
 			}
 		}
 
@@ -209,7 +210,6 @@ public class BundleJavaFileManager
 	}
 
 	private final ClassLoader _classLoader;
-	private final JavaFileObjectResolver _javaFileObjectResolver;
-	private final Set<String> _systemPackageNames;
+	private final List<JavaFileObjectResolver> _javaFileObjectResolvers;
 
 }

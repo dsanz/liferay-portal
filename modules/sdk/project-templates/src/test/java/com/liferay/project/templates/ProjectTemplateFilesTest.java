@@ -18,6 +18,7 @@ import com.liferay.project.templates.internal.util.FileUtil;
 import com.liferay.project.templates.internal.util.Validator;
 import com.liferay.project.templates.internal.util.WorkspaceUtil;
 import com.liferay.project.templates.util.FileTestUtil;
+import com.liferay.project.templates.util.StringTestUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -34,12 +35,23 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.junit.Assert;
 import org.junit.Test;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * @author Andrea Di Giorgi
@@ -47,18 +59,37 @@ import org.junit.Test;
 public class ProjectTemplateFilesTest {
 
 	@Test
-	public void testProjectTemplateFiles() throws IOException {
-		String gitIgnoreTemplate = FileTestUtil.read(
-			"com/liferay/project/templates/dependencies" +
-				"/archetype_resources_gitignore.tmpl");
+	public void testProjectTemplateFiles() throws Exception {
+		DocumentBuilderFactory documentBuilderFactory =
+			DocumentBuilderFactory.newInstance();
+
+		DocumentBuilder documentBuilder =
+			documentBuilderFactory.newDocumentBuilder();
 
 		try (DirectoryStream<Path> directoryStream =
 				FileTestUtil.getProjectTemplatesDirectoryStream()) {
 
 			for (Path path : directoryStream) {
-				_testProjectTemplateFiles(path, gitIgnoreTemplate);
+				_testProjectTemplateFiles(path, documentBuilder);
 			}
 		}
+	}
+
+	private Element _getChildElement(Element parentElement, String name) {
+		Node node = parentElement.getFirstChild();
+
+		do {
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				Element element = (Element)node;
+
+				if (name.equals(element.getTagName())) {
+					return element;
+				}
+			}
+		}
+		while ((node = node.getNextSibling()) != null);
+
+		return null;
 	}
 
 	private boolean _isInJavaSrcDir(Path path) throws IOException {
@@ -89,6 +120,122 @@ public class ProjectTemplateFilesTest {
 		return false;
 	}
 
+	private void _testArchetypeMetadataXml(
+			Path projectTemplateDirPath, String projectTemplateDirName,
+			boolean hasJavaFiles)
+		throws IOException {
+
+		Path archetypeMetadataXmlPath = projectTemplateDirPath.resolve(
+			"src/main/resources/META-INF/maven/archetype-metadata.xml");
+
+		Assert.assertTrue(
+			"Missing " + archetypeMetadataXmlPath,
+			Files.exists(archetypeMetadataXmlPath));
+
+		String archetypeDescriptorName = projectTemplateDirName.substring(
+			FileTestUtil.PROJECT_TEMPLATE_DIR_PREFIX.length());
+
+		if (archetypeDescriptorName.equals(WorkspaceUtil.WORKSPACE)) {
+			archetypeDescriptorName = "liferay-" + archetypeDescriptorName;
+		}
+		else {
+			archetypeDescriptorName =
+				"liferay-module-" + archetypeDescriptorName;
+		}
+
+		String archetypeMetadataXml = FileUtil.read(archetypeMetadataXmlPath);
+
+		Assert.assertTrue(
+			"Incorrect archetype descriptor name in " +
+				archetypeMetadataXmlPath,
+			archetypeMetadataXml.startsWith(
+				"<?xml version=\"1.0\"?>\n\n<archetype-descriptor name=\"" +
+					archetypeDescriptorName + "\">"));
+
+		boolean hasArchetypeMetadataAuthorProperty =
+			archetypeMetadataXml.contains("<requiredProperty key=\"author\">");
+
+		if (hasJavaFiles) {
+			Assert.assertTrue(
+				"Missing \"author\" required property in " +
+					archetypeMetadataXmlPath,
+				hasArchetypeMetadataAuthorProperty);
+		}
+		else {
+			Assert.assertFalse(
+				"Forbidden \"author\" required property in " +
+					archetypeMetadataXmlPath,
+				hasArchetypeMetadataAuthorProperty);
+		}
+	}
+
+	private void _testBndBnd(Path projectTemplateDirPath) throws IOException {
+		Path bndBndPath = projectTemplateDirPath.resolve("bnd.bnd");
+
+		Properties properties = FileUtil.readProperties(bndBndPath);
+
+		String bundleDescription = properties.getProperty("Bundle-Description");
+
+		Assert.assertTrue(
+			"Missing 'Bundle-Description' header in " + bndBndPath,
+			Validator.isNotNull(bundleDescription));
+
+		Matcher matcher = _bundleDescriptionPattern.matcher(bundleDescription);
+
+		Assert.assertTrue(
+			"Header \"Bundle-Description\" in " + bndBndPath +
+				" must match pattern \"" + _bundleDescriptionPattern.pattern() +
+					"\"",
+			matcher.matches());
+	}
+
+	private void _testBuildGradle(Path archetypeResourcesDirPath) {
+		Path buildGradlePath = archetypeResourcesDirPath.resolve(
+			"build.gradle");
+
+		Assert.assertTrue(
+			"Missing " + buildGradlePath, Files.exists(buildGradlePath));
+	}
+
+	private void _testGitIgnore(
+			String projectTemplateDirName, Path archetypeResourcesDirPath)
+		throws IOException {
+
+		Path dotGitIgnorePath = archetypeResourcesDirPath.resolve(".gitignore");
+		Path gitIgnorePath = archetypeResourcesDirPath.resolve("gitignore");
+
+		Assert.assertFalse(
+			"Rename " + dotGitIgnorePath + " to " + gitIgnorePath +
+				" to bypass GRADLE-1883",
+			Files.exists(dotGitIgnorePath));
+
+		Assert.assertTrue(
+			"Missing " + gitIgnorePath, Files.exists(gitIgnorePath));
+
+		if (!projectTemplateDirName.equals(
+				FileTestUtil.PROJECT_TEMPLATE_DIR_PREFIX +
+					WorkspaceUtil.WORKSPACE)) {
+
+			String gitIgnore = _GIT_IGNORE;
+
+			if (Files.exists(
+					archetypeResourcesDirPath.resolve("package.json"))) {
+
+				gitIgnore = _GIT_IGNORE_WITH_PACKAGE_JSON;
+			}
+
+			Assert.assertEquals(
+				"Incorrect " + gitIgnorePath, gitIgnore,
+				FileUtil.read(gitIgnorePath));
+		}
+	}
+
+	private void _testGradleWrapper(Path archetypeResourcesDirPath) {
+		Assert.assertFalse(
+			"Forbidden Gradle Wrapper in " + archetypeResourcesDirPath,
+			Files.exists(archetypeResourcesDirPath.resolve("gradlew")));
+	}
+
 	private void _testLanguageProperties(Path path) throws IOException {
 		try (BufferedReader bufferedReader = Files.newBufferedReader(
 				path, StandardCharsets.UTF_8)) {
@@ -104,16 +251,114 @@ public class ProjectTemplateFilesTest {
 		}
 	}
 
+	private void _testMavenWrapper(Path archetypeResourcesDirPath) {
+		Assert.assertFalse(
+			"Forbidden Maven Wrapper in " + archetypeResourcesDirPath,
+			Files.exists(archetypeResourcesDirPath.resolve("mvnw")));
+	}
+
+	private void _testPomXml(
+			Path archetypeResourcesDirPath, DocumentBuilder documentBuilder)
+		throws Exception {
+
+		Path pomXmlPath = archetypeResourcesDirPath.resolve("pom.xml");
+
+		Assert.assertTrue("Missing " + pomXmlPath, Files.exists(pomXmlPath));
+
+		Document document = documentBuilder.parse(pomXmlPath.toFile());
+
+		Element projectElement = document.getDocumentElement();
+
+		Element packagingElement = _getChildElement(
+			projectElement, "packaging");
+
+		if (packagingElement != null) {
+			Assert.assertNotEquals(
+				"Incorrect packaging in " + pomXmlPath, "jar",
+				packagingElement.getTextContent());
+		}
+
+		Element propertiesElement = _getChildElement(
+			projectElement, "properties");
+
+		Assert.assertNotNull(
+			"Missing \"properties\" element in " + pomXmlPath,
+			propertiesElement);
+
+		String sourceEncoding = null;
+
+		Element sourceEncodingElement = _getChildElement(
+			propertiesElement, "project.build.sourceEncoding");
+
+		if (sourceEncodingElement != null) {
+			sourceEncoding = sourceEncodingElement.getTextContent();
+		}
+
+		Assert.assertEquals(
+			"Incorrect property \"project.build.sourceEncoding\" in " +
+				pomXmlPath,
+			sourceEncoding, StandardCharsets.UTF_8.name());
+
+		NodeList executionNodeList = projectElement.getElementsByTagName(
+			"execution");
+
+		for (int i = 0; i < executionNodeList.getLength(); i++) {
+			Element executionElement = (Element)executionNodeList.item(i);
+
+			Element idElement = _getChildElement(executionElement, "id");
+
+			if (idElement != null) {
+				String id = idElement.getTextContent();
+
+				Assert.assertFalse(
+					"Execution ID \"" + id + "\" in " + pomXmlPath +
+						" cannot start with \"default-\"",
+					id.startsWith("default-"));
+
+				Matcher matcher = _pomXmlExecutionIdPattern.matcher(id);
+
+				Assert.assertTrue(
+					"Execution ID \"" + id + "\" in " + pomXmlPath +
+						" must match pattern \"" +
+							_pomXmlExecutionIdPattern.pattern() + "\"",
+					matcher.matches());
+			}
+		}
+
+		_testPomXmlVersions(pomXmlPath, projectElement, "dependency");
+		_testPomXmlVersions(pomXmlPath, projectElement, "plugin");
+	}
+
+	private void _testPomXmlVersions(
+		Path pomXmlPath, Element projectElement, String name) {
+
+		Properties systemProperties = System.getProperties();
+
+		NodeList nodeList = projectElement.getElementsByTagName(name);
+
+		for (int i = 0; i < nodeList.getLength(); i++) {
+			Element element = (Element)nodeList.item(i);
+
+			Element artifactIdElement = _getChildElement(element, "artifactId");
+
+			String artifactId = artifactIdElement.getTextContent();
+
+			String key = artifactId + ".version";
+
+			if (systemProperties.containsKey(key)) {
+				Element versionElement = _getChildElement(element, "version");
+
+				Assert.assertEquals(
+					"Incorrect version of " + name + " \"" + artifactId +
+						"\" in " + pomXmlPath,
+					"@" + key + "@", versionElement.getTextContent());
+			}
+		}
+	}
+
 	private void _testProjectTemplateFiles(
-			Path projectTemplateDirPath, String gitIgnoreTemplate)
-		throws IOException {
-
-		Path archetypeMetadataXmlPath = projectTemplateDirPath.resolve(
-			"src/main/resources/META-INF/maven/archetype-metadata.xml");
-
-		Assert.assertTrue(
-			"Missing " + archetypeMetadataXmlPath,
-			Files.exists(archetypeMetadataXmlPath));
+			Path projectTemplateDirPath, DocumentBuilder documentBuilder)
+		throws Exception {
 
 		Path archetypeResourcesDirPath = projectTemplateDirPath.resolve(
 			"src/main/resources/archetype-resources");
@@ -122,43 +367,17 @@ public class ProjectTemplateFilesTest {
 			"Missing " + archetypeResourcesDirPath,
 			Files.isDirectory(archetypeResourcesDirPath));
 
-		Path buildGradlePath = archetypeResourcesDirPath.resolve(
-			"build.gradle");
+		String projectTemplateDirName = String.valueOf(
+			projectTemplateDirPath.getFileName());
 
-		Assert.assertTrue(
-			"Missing " + buildGradlePath, Files.exists(buildGradlePath));
+		_testBndBnd(projectTemplateDirPath);
+		_testBuildGradle(archetypeResourcesDirPath);
+		_testGitIgnore(projectTemplateDirName, archetypeResourcesDirPath);
+		_testGradleWrapper(archetypeResourcesDirPath);
+		_testMavenWrapper(archetypeResourcesDirPath);
+		_testPomXml(archetypeResourcesDirPath, documentBuilder);
 
-		Path dotGitIgnorePath = archetypeResourcesDirPath.resolve(".gitignore");
-		Path gitIgnorePath = archetypeResourcesDirPath.resolve("gitignore");
-
-		Assert.assertFalse(
-			"Rename " + dotGitIgnorePath + " to " + gitIgnorePath +
-				" to bypass GRADLE-1883",
-			Files.exists(dotGitIgnorePath));
-
-		Assert.assertTrue(
-			"Missing " + gitIgnorePath, Files.exists(gitIgnorePath));
-
-		Path projectTemplateDirNamePath = projectTemplateDirPath.getFileName();
-
-		String projectTemplateDirName = projectTemplateDirNamePath.toString();
-
-		if (!projectTemplateDirName.equals(
-				FileTestUtil.PROJECT_TEMPLATE_DIR_PREFIX +
-					WorkspaceUtil.WORKSPACE)) {
-
-			Assert.assertEquals(
-				"Incorrect " + gitIgnorePath, gitIgnoreTemplate,
-				FileUtil.read(gitIgnorePath));
-		}
-
-		Assert.assertFalse(
-			"Forbidden Gradle wrapper in " + archetypeResourcesDirPath,
-			Files.exists(archetypeResourcesDirPath.resolve("gradlew")));
-
-		Path pomXmlPath = archetypeResourcesDirPath.resolve("pom.xml");
-
-		Assert.assertTrue("Missing " + pomXmlPath, Files.exists(pomXmlPath));
+		final AtomicBoolean hasJavaFiles = new AtomicBoolean();
 
 		Files.walkFileTree(
 			archetypeResourcesDirPath,
@@ -190,14 +409,18 @@ public class ProjectTemplateFilesTest {
 						Path path, BasicFileAttributes basicFileAttributes)
 					throws IOException {
 
-					Path fileNamePath = path.getFileName();
-
-					String fileName = fileNamePath.toString();
+					String fileName = String.valueOf(path.getFileName());
 
 					String extension = FileTestUtil.getExtension(fileName);
 
+					boolean javaFile = extension.equals("java");
+
+					if (javaFile) {
+						hasJavaFiles.set(true);
+					}
+
 					if (!fileName.equals(".gitkeep") &&
-						(_isInJavaSrcDir(path) != extension.equals("java"))) {
+						(_isInJavaSrcDir(path) != javaFile)) {
 
 						Assert.fail("Wrong source directory " + path);
 					}
@@ -210,6 +433,9 @@ public class ProjectTemplateFilesTest {
 				}
 
 			});
+
+		_testArchetypeMetadataXml(
+			projectTemplateDirPath, projectTemplateDirName, hasJavaFiles.get());
 	}
 
 	private void _testTextFile(Path path, String fileName, String extension)
@@ -219,7 +445,7 @@ public class ProjectTemplateFilesTest {
 
 		boolean trailingEmptyLine = false;
 
-		if ((text.length() > 0) && text.charAt(text.length() - 1) == '\n') {
+		if ((text.length() > 0) && (text.charAt(text.length() - 1) == '\n')) {
 			trailingEmptyLine = true;
 		}
 
@@ -248,7 +474,16 @@ public class ProjectTemplateFilesTest {
 				"#if (" + condition.trim() + ")", matcher.group());
 		}
 
-		if (extension.equals("xml") && Validator.isNotNull(text)) {
+		if (extension.equals("java")) {
+			Assert.assertTrue(
+				"Missing @author tag in " + path,
+				text.contains("* @author ${author}"));
+		}
+
+		if (extension.equals("xml") &&
+			!fileName.equals("liferay-layout-templates.xml") &&
+			Validator.isNotNull(text)) {
+
 			String xmlDeclaration = _XML_DECLARATION;
 
 			if (fileName.equals("service.xml")) {
@@ -261,6 +496,10 @@ public class ProjectTemplateFilesTest {
 		}
 	}
 
+	private static final String _GIT_IGNORE;
+
+	private static final String _GIT_IGNORE_WITH_PACKAGE_JSON;
+
 	private static final String _SERVICE_XML_DECLARATION;
 
 	private static final String[] _SOURCESET_NAMES = {
@@ -270,6 +509,10 @@ public class ProjectTemplateFilesTest {
 	private static final String _XML_DECLARATION =
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n";
 
+	private static final Pattern _bundleDescriptionPattern = Pattern.compile(
+		"Creates a .+\\.");
+	private static final Pattern _pomXmlExecutionIdPattern = Pattern.compile(
+		"[a-z]+(?:-[a-z]+)*");
 	private static final Set<String> _textFileExtensions = new HashSet<>(
 		Arrays.asList(
 			"bnd", "gradle", "java", "jsp", "jspf", "properties", "xml"));
@@ -277,6 +520,19 @@ public class ProjectTemplateFilesTest {
 		"#if\\s*\\(\\s*(.+)\\s*\\)");
 
 	static {
+		Set<String> gitIgnoreLines = new TreeSet<>();
+
+		gitIgnoreLines.add(".gradle/");
+		gitIgnoreLines.add("build/");
+		gitIgnoreLines.add("target/");
+
+		_GIT_IGNORE = StringTestUtil.merge(gitIgnoreLines, '\n');
+
+		gitIgnoreLines.add("node_modules/");
+
+		_GIT_IGNORE_WITH_PACKAGE_JSON = StringTestUtil.merge(
+			gitIgnoreLines, '\n');
+
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("<?xml version=\"1.0\"?>");

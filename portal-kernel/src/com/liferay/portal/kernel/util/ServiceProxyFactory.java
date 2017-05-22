@@ -14,12 +14,15 @@
 
 package com.liferay.portal.kernel.util;
 
+import com.liferay.portal.kernel.memory.FinalizeAction;
+import com.liferay.portal.kernel.memory.FinalizeManager;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
 import com.liferay.registry.ServiceTracker;
 import com.liferay.registry.ServiceTrackerCustomizer;
 import com.liferay.registry.ServiceTrackerFieldUpdaterCustomizer;
 
+import java.lang.ref.Reference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -39,12 +42,30 @@ public class ServiceProxyFactory {
 		boolean blocking) {
 
 		return newServiceTrackedInstance(
-			serviceClass, declaringClass, fieldName, null, blocking);
+			serviceClass, declaringClass, fieldName, null, blocking, false);
+	}
+
+	public static <T> T newServiceTrackedInstance(
+		Class<T> serviceClass, Class<?> declaringClass, String fieldName,
+		boolean blocking, boolean useNullAsDummyService) {
+
+		return newServiceTrackedInstance(
+			serviceClass, declaringClass, fieldName, null, blocking,
+			useNullAsDummyService);
 	}
 
 	public static <T> T newServiceTrackedInstance(
 		Class<T> serviceClass, Class<?> declaringClass, String fieldName,
 		String filterString, boolean blocking) {
+
+		return newServiceTrackedInstance(
+			serviceClass, declaringClass, fieldName, filterString, blocking,
+			false);
+	}
+
+	public static <T> T newServiceTrackedInstance(
+		Class<T> serviceClass, Class<?> declaringClass, String fieldName,
+		String filterString, boolean blocking, boolean useNullAsDummyService) {
 
 		try {
 			Field field = declaringClass.getDeclaredField(fieldName);
@@ -55,51 +76,109 @@ public class ServiceProxyFactory {
 
 			field.setAccessible(true);
 
-			ServiceTrackerCustomizer<?, ?> serviceTrackerCustomizer = null;
-
-			if (blocking) {
-				ReentrantLock lock = new ReentrantLock();
-
-				Condition realServiceSet = lock.newCondition();
-
-				T awaitService = (T)ProxyUtil.newProxyInstance(
-					serviceClass.getClassLoader(),
-					new Class<?>[] {serviceClass},
-					new AwaitServiceInvocationHandler(
-						field, realServiceSet, lock));
-
-				field.set(null, awaitService);
-
-				serviceTrackerCustomizer =
-					new AwaitServiceTrackerFieldUpdaterCustomizer<>(
-						field, null, awaitService, realServiceSet, lock);
-			}
-			else {
-				T dummyService = ProxyFactory.newDummyInstance(serviceClass);
-
-				field.set(null, dummyService);
-
-				serviceTrackerCustomizer =
-					new ServiceTrackerFieldUpdaterCustomizer<>(
-						field, null, dummyService);
-			}
-
-			_openServiceTracker(
-				serviceClass, filterString, serviceTrackerCustomizer);
-
-			return (T)field.get(null);
+			return _newServiceTrackedInstance(
+				serviceClass, null, field, filterString, blocking,
+				useNullAsDummyService);
 		}
 		catch (ReflectiveOperationException roe) {
 			return ReflectionUtil.throwException(roe);
 		}
 	}
 
-	private static void _openServiceTracker(
-			Class<?> serviceClass, String filterString,
-			ServiceTrackerCustomizer<?, ?> serviceTrackerCustomizer)
+	public static <T, V> T newServiceTrackedInstance(
+		Class<T> serviceClass, Class<V> declaringClass, V declaringInstance,
+		String fieldName, String filterString, boolean blocking) {
+
+		if (declaringInstance == null) {
+			return newServiceTrackedInstance(
+				serviceClass, declaringClass, fieldName, filterString, blocking,
+				false);
+		}
+
+		try {
+			Field field = declaringClass.getDeclaredField(fieldName);
+
+			if (Modifier.isStatic(field.getModifiers())) {
+				throw new IllegalArgumentException(field + " is static");
+			}
+
+			field.setAccessible(true);
+
+			T serviceInstance = null;
+
+			synchronized (declaringInstance) {
+				serviceInstance = (T)field.get(declaringInstance);
+
+				if (serviceInstance == null) {
+					return _newServiceTrackedInstance(
+						serviceClass, declaringInstance, field, filterString,
+						blocking, false);
+				}
+			}
+
+			return serviceInstance;
+		}
+		catch (ReflectiveOperationException roe) {
+			return ReflectionUtil.throwException(roe);
+		}
+	}
+
+	private static <T, V> T _newServiceTrackedInstance(
+			Class<T> serviceClass, V declaringInstance, Field field,
+			String filterString, boolean blocking,
+			boolean useNullAsDummyService)
 		throws ReflectiveOperationException {
 
-		ServiceTracker<?, ?> serviceTracker = null;
+		ServiceTrackerCustomizer<T, T> serviceTrackerCustomizer = null;
+
+		if (blocking) {
+			ReentrantLock lock = new ReentrantLock();
+
+			Condition realServiceSet = lock.newCondition();
+
+			T awaitService = (T)ProxyUtil.newProxyInstance(
+				serviceClass.getClassLoader(), new Class<?>[] {serviceClass},
+				new AwaitServiceInvocationHandler(field, realServiceSet, lock));
+
+			field.set(declaringInstance, awaitService);
+
+			serviceTrackerCustomizer =
+				new AwaitServiceTrackerFieldUpdaterCustomizer<>(
+					field, declaringInstance, awaitService, realServiceSet,
+					lock);
+		}
+		else {
+			T dummyService = null;
+
+			if (!useNullAsDummyService) {
+				dummyService = ProxyFactory.newDummyInstance(serviceClass);
+
+				field.set(declaringInstance, dummyService);
+			}
+
+			serviceTrackerCustomizer =
+				new ServiceTrackerFieldUpdaterCustomizer<>(
+					field, declaringInstance, dummyService);
+		}
+
+		ServiceTracker<T, T> serviceTracker = _openServiceTracker(
+			serviceClass, filterString, serviceTrackerCustomizer);
+
+		if (declaringInstance != null) {
+			FinalizeManager.register(
+				declaringInstance,
+				new CloseServiceTrackerFinalizeAction(serviceTracker),
+				FinalizeManager.PHANTOM_REFERENCE_FACTORY);
+		}
+
+		return (T)field.get(declaringInstance);
+	}
+
+	private static <T> ServiceTracker<T, T> _openServiceTracker(
+		Class<T> serviceClass, String filterString,
+		ServiceTrackerCustomizer<T, T> serviceTrackerCustomizer) {
+
+		ServiceTracker<T, T> serviceTracker = null;
 
 		String serviceName = serviceClass.getName();
 
@@ -123,6 +202,8 @@ public class ServiceProxyFactory {
 		}
 
 		serviceTracker.open();
+
+		return serviceTracker;
 	}
 
 	private static class AwaitServiceInvocationHandler
@@ -199,6 +280,24 @@ public class ServiceProxyFactory {
 		private final T _awaitService;
 		private final Lock _lock;
 		private final Condition _realServiceSet;
+
+	}
+
+	private static class CloseServiceTrackerFinalizeAction
+		implements FinalizeAction {
+
+		@Override
+		public void doFinalize(Reference<?> reference) {
+			_serviceTracker.close();
+		}
+
+		private CloseServiceTrackerFinalizeAction(
+			ServiceTracker<?, ?> serviceTracker) {
+
+			_serviceTracker = serviceTracker;
+		}
+
+		private final ServiceTracker<?, ?> _serviceTracker;
 
 	}
 

@@ -254,47 +254,47 @@ public interface JournalFeedModel extends BaseModel<JournalFeed>, ShardedModel,
 	public void setDescription(String description);
 
 	/**
-	 * Returns the d d m structure key of this journal feed.
+	 * Returns the ddm structure key of this journal feed.
 	 *
-	 * @return the d d m structure key of this journal feed
+	 * @return the ddm structure key of this journal feed
 	 */
 	@AutoEscape
 	public String getDDMStructureKey();
 
 	/**
-	 * Sets the d d m structure key of this journal feed.
+	 * Sets the ddm structure key of this journal feed.
 	 *
-	 * @param DDMStructureKey the d d m structure key of this journal feed
+	 * @param DDMStructureKey the ddm structure key of this journal feed
 	 */
 	public void setDDMStructureKey(String DDMStructureKey);
 
 	/**
-	 * Returns the d d m template key of this journal feed.
+	 * Returns the ddm template key of this journal feed.
 	 *
-	 * @return the d d m template key of this journal feed
+	 * @return the ddm template key of this journal feed
 	 */
 	@AutoEscape
 	public String getDDMTemplateKey();
 
 	/**
-	 * Sets the d d m template key of this journal feed.
+	 * Sets the ddm template key of this journal feed.
 	 *
-	 * @param DDMTemplateKey the d d m template key of this journal feed
+	 * @param DDMTemplateKey the ddm template key of this journal feed
 	 */
 	public void setDDMTemplateKey(String DDMTemplateKey);
 
 	/**
-	 * Returns the d d m renderer template key of this journal feed.
+	 * Returns the ddm renderer template key of this journal feed.
 	 *
-	 * @return the d d m renderer template key of this journal feed
+	 * @return the ddm renderer template key of this journal feed
 	 */
 	@AutoEscape
 	public String getDDMRendererTemplateKey();
 
 	/**
-	 * Sets the d d m renderer template key of this journal feed.
+	 * Sets the ddm renderer template key of this journal feed.
 	 *
-	 * @param DDMRendererTemplateKey the d d m renderer template key of this journal feed
+	 * @param DDMRendererTemplateKey the ddm renderer template key of this journal feed
 	 */
 	public void setDDMRendererTemplateKey(String DDMRendererTemplateKey);
 

@@ -24,10 +24,20 @@ import java.io.File;
 import java.io.IOException;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+
+import java.util.Arrays;
+import java.util.Set;
 
 /**
  * @author David Truong
@@ -49,12 +59,22 @@ public class InitBundleCommand extends BaseCommand implements StreamLogger {
 			cacheDirPath = _cacheDir.toPath();
 		}
 
-		Path path = FileUtil.downloadFile(
-			_url.toURI(), _userName, _password, cacheDirPath, this);
+		Path path;
+
+		URI uri = _url.toURI();
+
+		if ("file".equals(uri.getScheme())) {
+			path = Paths.get(uri);
+		}
+		else {
+			path = FileUtil.downloadFile(
+				uri, _userName, _password, cacheDirPath, this);
+		}
 
 		FileUtil.unpack(path, getLiferayHomePath(), _stripComponents);
 
 		_copyConfigs();
+		_fixPosixFilePermissions();
 	}
 
 	public File getCacheDir() {
@@ -140,7 +160,15 @@ public class InitBundleCommand extends BaseCommand implements StreamLogger {
 	}
 
 	protected void onProgress(String message) {
-		System.out.print("\r" + message);
+		char[] chars = new char[80];
+
+		System.arraycopy(message.toCharArray(), 0, chars, 0, message.length());
+
+		Arrays.fill(chars, message.length(), chars.length - 2, ' ');
+
+		chars[chars.length - 1] = '\r';
+
+		System.out.print(chars);
 	}
 
 	protected void onStarted(String message) {
@@ -176,9 +204,41 @@ public class InitBundleCommand extends BaseCommand implements StreamLogger {
 		}
 	}
 
+	private void _fixPosixFilePermissions() throws IOException {
+		Path dirPath = getLiferayHomePath();
+
+		if (!FileUtil.isPosixSupported(dirPath)) {
+			return;
+		}
+
+		Files.walkFileTree(
+			dirPath,
+			new SimpleFileVisitor<Path>() {
+
+				@Override
+				public FileVisitResult visitFile(
+						Path path, BasicFileAttributes basicFileAttributes)
+					throws IOException {
+
+					String fileName = String.valueOf(path.getFileName());
+
+					if (fileName.endsWith(".sh")) {
+						Files.setPosixFilePermissions(
+							path, _shPosixFilePermissions);
+					}
+
+					return FileVisitResult.CONTINUE;
+				}
+
+			});
+	}
+
 	private static final int _DEFAULT_STRIP_COMPONENTS = 1;
 
 	private static final URL _DEFAULT_URL;
+
+	private static final Set<PosixFilePermission> _shPosixFilePermissions =
+		PosixFilePermissions.fromString("rwxr-x---");
 
 	static {
 		try {

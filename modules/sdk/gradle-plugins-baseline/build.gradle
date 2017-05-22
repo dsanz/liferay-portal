@@ -3,13 +3,15 @@ apply plugin: "org.ysb33r.gradletest"
 task copyGradleTestDependencies(type: Copy)
 task installGradleTestSmokeSample100(type: GradleBuild)
 
+File userMavenRepoLocalDir = new File(System.getProperty("user.home"), ".m2/repository")
+
 copyGradleTestDependencies {
 	from configurations.compile
 	into jar.destinationDir
 }
 
 dependencies {
-	compile group: "com.liferay", name: "com.liferay.ant.bnd", version: "2.0.33"
+	compile group: "com.liferay", name: "com.liferay.ant.bnd", version: "2.0.37"
 	compile group: "com.liferay", name: "com.liferay.gradle.util", version: "1.0.26"
 
 	compileOnly fileTree(builtBy: [rootProject.tasks.extractGradleApi25], dir: new File(rootProject.buildDir, "gradle-2.5"))
@@ -25,5 +27,6 @@ gradleTest {
 
 installGradleTestSmokeSample100 {
 	dir = "src/gradleTest/smoke/dependencies/sample-100"
+	startParameter.systemPropertiesArgs = ["maven.repo.local": userMavenRepoLocalDir.absolutePath]
 	tasks = ["install"]
 }

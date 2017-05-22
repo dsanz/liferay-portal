@@ -22,6 +22,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.util.Dictionary;
+import java.util.function.Consumer;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -30,48 +31,33 @@ import org.osgi.service.cm.ManagedService;
 
 /**
  * @author Iván Zaera
+ * @author Shuyang Zhou
  */
 public class ConfigurationBeanManagedService implements ManagedService {
 
 	public ConfigurationBeanManagedService(
-		BundleContext bundleContext, Class<?> configurationBeanClass) {
+		BundleContext bundleContext, Class<?> configurationBeanClass,
+		Consumer<Object> configurationBeanConsumer) {
 
 		_bundleContext = bundleContext;
 		_configurationBeanClass = configurationBeanClass;
+		_configurationBeanConsumer = configurationBeanConsumer;
 
 		_configurationPid = ConfigurationPidUtil.getConfigurationPid(
 			configurationBeanClass);
-	}
-
-	public Object getConfigurationBean() {
-		return _configurationBean;
-	}
-
-	public Class<?> getConfigurationBeanClass() {
-		return _configurationBeanClass;
 	}
 
 	public String getConfigurationPid() {
 		return _configurationPid;
 	}
 
-	public boolean register() {
-		if (_bundleContext != null) {
-			Dictionary<String, Object> properties = new HashMapDictionary<>();
+	public void register() {
+		Dictionary<String, Object> properties = new HashMapDictionary<>();
 
-			properties.put(Constants.SERVICE_PID, _configurationPid);
+		properties.put(Constants.SERVICE_PID, _configurationPid);
 
-			_managedServiceServiceRegistration = _bundleContext.registerService(
-				ManagedService.class, this, properties);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	public void setBundleContext(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
+		_managedServiceServiceRegistration = _bundleContext.registerService(
+			ManagedService.class, this, properties);
 	}
 
 	public void unregister() {
@@ -86,11 +72,11 @@ public class ConfigurationBeanManagedService implements ManagedService {
 				new UpdatePrivilegedAction(properties));
 		}
 		else {
-			doUdated(properties);
+			doUpdated(properties);
 		}
 	}
 
-	protected void doUdated(Dictionary<String, ?> properties) {
+	protected void doUpdated(Dictionary<String, ?> properties) {
 		if (properties == null) {
 			properties = new HashMapDictionary<>();
 		}
@@ -98,35 +84,38 @@ public class ConfigurationBeanManagedService implements ManagedService {
 		_configurationBean = ConfigurableUtil.createConfigurable(
 			_configurationBeanClass, properties);
 
+		_configurationBeanConsumer.accept(_configurationBean);
+
 		if (_configurationBeanServiceRegistration != null) {
 			_configurationBeanServiceRegistration.unregister();
 		}
 
 		_configurationBeanServiceRegistration = _bundleContext.registerService(
 			_configurationBeanClass.getName(), _configurationBean,
-			new HashMapDictionary<String, Object>());
+			new HashMapDictionary<>());
 	}
 
 	protected class UpdatePrivilegedAction implements PrivilegedAction<Void> {
 
-		public UpdatePrivilegedAction(Dictionary<String, ?> properties) {
-			_properties = properties;
-		}
-
 		@Override
 		public Void run() {
-			doUdated(_properties);
+			doUpdated(_properties);
 
 			return null;
+		}
+
+		private UpdatePrivilegedAction(Dictionary<String, ?> properties) {
+			_properties = properties;
 		}
 
 		private final Dictionary<String, ?> _properties;
 
 	}
 
-	private BundleContext _bundleContext;
+	private final BundleContext _bundleContext;
 	private volatile Object _configurationBean;
 	private final Class<?> _configurationBeanClass;
+	private final Consumer<Object> _configurationBeanConsumer;
 	private ServiceRegistration<?> _configurationBeanServiceRegistration;
 	private final String _configurationPid;
 	private ServiceRegistration<ManagedService>

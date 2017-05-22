@@ -285,6 +285,11 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
+			<name>linkData</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
 			<description>If you pass in a <![CDATA[<code>rowChecker</code>]]> value, a result row is mandatory. A result row is of type <![CDATA[<code>com.liferay.portal.kernel.dao.search.ResultRow</code>]]>.</description>
 			<name>resultRow</name>
 			<required>false</required>
@@ -912,6 +917,69 @@
 			<name>searchContainerId</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	<tag>
+		<description><![CDATA[Creates a UI component for managing translation of associated content.]]></description>
+		<name>translation-manager</name>
+		<tag-class>com.liferay.frontend.taglib.servlet.taglib.soy.TranslationManagerTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<description><![CDATA[Available locales of translation languages from which to choose.]]></description>
+			<name>availableLocales</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>java.util.Locale[]</type>
+		</attribute>
+		<attribute>
+			<description><![CDATA[Whether to make the translation manager default language changeable. The default value is <code>true</code>.]]></description>
+			<name>changeableDefaultLanguage</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>boolean</type>
+		</attribute>
+		<attribute>
+			<description><![CDATA[An ID for the component instance.]]></description>
+			<name>componentId</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<description>A CSS class for styling the translation manager main container.</description>
+			<name>cssClass</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<description><![CDATA[The language ID to which the translation manager defaults when no other translations are available in the user's language.]]></description>
+			<name>defaultLanguageId</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>editingLanguageId</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<description><![CDATA[An ID for the component instance.]]></description>
+			<name>id</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<description><![CDATA[Whether to activate the translation manager. The default value is <code>true</code>. If this is set to <code>false</code>, the translation manager will not work entirely.]]></description>
+			<name>initialize</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>boolean</type>
+		</attribute>
+		<attribute>
+			<description><![CDATA[Whether to make the translation manager read-only for the user. The default value is <code>false</code>.]]></description>
+			<name>readOnly</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>boolean</type>
 		</attribute>
 	</tag>
 	<tag>

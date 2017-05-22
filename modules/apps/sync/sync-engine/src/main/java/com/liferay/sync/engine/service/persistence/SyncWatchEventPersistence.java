@@ -111,20 +111,4 @@ public class SyncWatchEventPersistence
 		return where.query();
 	}
 
-	public List<SyncWatchEvent> findBySyncAccountId(
-			long syncAccountId, String orderByColumn, boolean ascending)
-		throws SQLException {
-
-		QueryBuilder<SyncWatchEvent, Long> queryBuilder = queryBuilder();
-
-		queryBuilder.orderBy(orderByColumn, ascending);
-		queryBuilder.orderBy("fileType", false);
-
-		Where<SyncWatchEvent, Long> where = queryBuilder.where();
-
-		where.eq("syncAccountId", syncAccountId);
-
-		return where.query();
-	}
-
 }

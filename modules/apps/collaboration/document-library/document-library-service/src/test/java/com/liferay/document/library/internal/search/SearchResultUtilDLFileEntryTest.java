@@ -184,7 +184,8 @@ public class SearchResultUtilDLFileEntryTest
 		).getSummary(
 			(Document)Matchers.any(), Matchers.anyString(),
 			(PortletRequest)Matchers.isNull(),
-			(PortletResponse)Matchers.isNull());
+			(PortletResponse)Matchers.isNull()
+		);
 
 		SearchResult searchResult = assertOneSearchResult(
 			SearchTestUtil.createAttachmentDocument(_DL_FILE_ENTRY_CLASS_NAME));
@@ -207,7 +208,8 @@ public class SearchResultUtilDLFileEntryTest
 		List<RelatedSearchResult<FileEntry>> relatedSearchResults =
 			searchResult.getFileEntryRelatedSearchResults();
 
-		Assert.assertEquals(1, relatedSearchResults.size());
+		Assert.assertEquals(
+			relatedSearchResults.toString(), 1, relatedSearchResults.size());
 
 		RelatedSearchResult<FileEntry> relatedSearchResult =
 			relatedSearchResults.get(0);
@@ -283,7 +285,8 @@ public class SearchResultUtilDLFileEntryTest
 			_indexer
 		).getSummary(
 			(Document)Matchers.any(), Matchers.anyString(),
-			(PortletRequest)Matchers.any(), (PortletResponse)Matchers.any());
+			(PortletRequest)Matchers.any(), (PortletResponse)Matchers.any()
+		);
 
 		Mockito.when(
 			_indexerRegistry.getIndexer(Mockito.anyString())
@@ -307,7 +310,7 @@ public class SearchResultUtilDLFileEntryTest
 
 			List<LogRecord> logRecords = captureHandler.getLogRecords();
 
-			Assert.assertEquals(1, logRecords.size());
+			Assert.assertEquals(logRecords.toString(), 1, logRecords.size());
 
 			LogRecord logRecord = logRecords.get(0);
 

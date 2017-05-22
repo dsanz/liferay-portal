@@ -56,6 +56,13 @@ public class DDMFormRuleToDDLFormRuleConverterTest
 	}
 
 	@Test
+	public void testBelongsToCondition() throws Exception {
+		assertConversion(
+			"ddm-form-rules-belongs-to-condition.json",
+			"ddl-form-rules-belongs-to-condition-without-user-operand.json");
+	}
+
+	@Test
 	public void testBooleanActions() throws Exception {
 		assertConversion(
 			"ddm-form-rules-boolean-actions.json",
@@ -63,10 +70,31 @@ public class DDMFormRuleToDDLFormRuleConverterTest
 	}
 
 	@Test
+	public void testCalculateAction() throws Exception {
+		assertConversion(
+			"ddm-form-rules-calculate-action.json",
+			"ddl-form-rules-calculate-action.json");
+	}
+
+	@Test
 	public void testComparisonOperatorsCondition() throws Exception {
 		assertConversion(
 			"ddm-form-rules-comparison-operators-condition.json",
 			"ddl-form-rules-comparison-operators-condition.json");
+	}
+
+	@Test
+	public void testIsEmptyCondition() throws Exception {
+		assertConversion(
+			"ddm-form-rules-is-empty-condition.json",
+			"ddl-form-rules-is-empty-condition.json");
+	}
+
+	@Test
+	public void testIsNotEmptyCondition() throws Exception {
+		assertConversion(
+			"ddm-form-rules-is-not-empty-condition.json",
+			"ddl-form-rules-is-not-empty-condition.json");
 	}
 
 	@Test

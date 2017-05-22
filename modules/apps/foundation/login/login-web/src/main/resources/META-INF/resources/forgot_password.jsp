@@ -96,7 +96,7 @@ if (reminderAttempts == null) {
 					<aui:validator name="required" />
 				</aui:input>
 
-				<c:if test="<%= PropsValues.CAPTCHA_CHECK_PORTAL_SEND_PASSWORD %>">
+				<c:if test="<%= captchaConfiguration.sendPasswordCaptchaEnabled() %>">
 					<portlet:resourceURL id="/login/captcha" var="captchaURL" />
 
 					<liferay-captcha:captcha url="<%= captchaURL %>" />
@@ -167,4 +167,4 @@ if (reminderAttempts == null) {
 	</aui:fieldset>
 </aui:form>
 
-<liferay-util:include page="/navigation.jsp" servletContext="<%= application %>" />
+<%@ include file="/navigation.jspf" %>

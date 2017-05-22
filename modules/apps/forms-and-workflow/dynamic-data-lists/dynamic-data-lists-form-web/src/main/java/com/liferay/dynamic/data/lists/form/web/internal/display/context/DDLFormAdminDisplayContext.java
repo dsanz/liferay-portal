@@ -21,6 +21,8 @@ import com.liferay.dynamic.data.lists.form.web.constants.DDLFormPortletKeys;
 import com.liferay.dynamic.data.lists.form.web.internal.converter.DDMFormRuleToDDLFormRuleConverter;
 import com.liferay.dynamic.data.lists.form.web.internal.converter.model.DDLFormRule;
 import com.liferay.dynamic.data.lists.form.web.internal.display.context.util.DDLFormAdminRequestHelper;
+import com.liferay.dynamic.data.lists.form.web.internal.display.context.util.DDMExpressionFunctionMetadataHelper;
+import com.liferay.dynamic.data.lists.form.web.internal.display.context.util.DDMExpressionFunctionMetadataHelper.DDMExpressionFunctionMetadata;
 import com.liferay.dynamic.data.lists.form.web.internal.search.RecordSetSearch;
 import com.liferay.dynamic.data.lists.model.DDLFormRecord;
 import com.liferay.dynamic.data.lists.model.DDLRecord;
@@ -61,10 +63,14 @@ import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.AggregateResourceBundle;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ResourceBundleLoader;
+import com.liferay.portal.kernel.util.ResourceBundleLoaderUtil;
+import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
@@ -74,6 +80,8 @@ import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
@@ -130,6 +138,8 @@ public class DDLFormAdminDisplayContext {
 
 		_ddlFormAdminRequestHelper = new DDLFormAdminRequestHelper(
 			renderRequest);
+		_ddmExpressionFunctionMetadataHelper =
+			new DDMExpressionFunctionMetadataHelper(getResourceBundle());
 	}
 
 	public int getAutosaveInterval() {
@@ -143,7 +153,7 @@ public class DDLFormAdminDisplayContext {
 			PortalUtil.getHttpServletRequest(_renderRequest),
 			PortalUtil.getHttpServletResponse(_renderResponse),
 			_ddlRecordLocalService, _ddmFormRenderer, _ddmFormValuesFactory,
-			_ddmFormValuesMerger, _ddmStructureLocalService);
+			_ddmFormValuesMerger);
 	}
 
 	public DDLFormViewRecordsDisplayContext
@@ -236,8 +246,10 @@ public class DDLFormAdminDisplayContext {
 	}
 
 	public String getFormURL() throws PortalException {
-		DDLRecordSet recordSet = getRecordSet();
+		return getFormURL(getRecordSet());
+	}
 
+	public String getFormURL(DDLRecordSet recordSet) throws PortalException {
 		DDLRecordSetSettings recordSetSettings = recordSet.getSettingsModel();
 
 		String formURL = null;
@@ -250,6 +262,19 @@ public class DDLFormAdminDisplayContext {
 		}
 
 		return formURL;
+	}
+
+	public String getLexiconIconsPath() {
+		ThemeDisplay themeDisplay =
+			_ddlFormAdminRequestHelper.getThemeDisplay();
+
+		StringBundler sb = new StringBundler(3);
+
+		sb.append(themeDisplay.getPathThemeImages());
+		sb.append("/lexicon/icons.svg");
+		sb.append(StringPool.POUND);
+
+		return sb.toString();
 	}
 
 	public String getOrderByCol() {
@@ -282,13 +307,19 @@ public class DDLFormAdminDisplayContext {
 	}
 
 	public String getPublishedFormURL() throws PortalException {
-		if (_recordSet == null) {
+		return getPublishedFormURL(_recordSet);
+	}
+
+	public String getPublishedFormURL(DDLRecordSet recordSet)
+		throws PortalException {
+
+		if (recordSet == null) {
 			return StringPool.BLANK;
 		}
 
-		String formURL = getFormURL();
+		String formURL = getFormURL(recordSet);
 
-		return formURL.concat(String.valueOf(_recordSet.getRecordSetId()));
+		return formURL.concat(String.valueOf(recordSet.getRecordSetId()));
 	}
 
 	public DDLRecordSet getRecordSet() throws PortalException {
@@ -351,8 +382,35 @@ public class DDLFormAdminDisplayContext {
 		return record.getLatestRecordVersion();
 	}
 
+	public ResourceBundle getResourceBundle() {
+		Locale locale = getSiteDefaultLocale();
+
+		ResourceBundleLoader portalResourceBundleLoader =
+			ResourceBundleLoaderUtil.getPortalResourceBundleLoader();
+
+		ResourceBundle portalResourceBundle =
+			portalResourceBundleLoader.loadResourceBundle(locale);
+
+		ResourceBundle portletResourceBundle = ResourceBundleUtil.getBundle(
+			"content.Language", getSiteDefaultLocale(), getClass());
+
+		return new AggregateResourceBundle(
+			portletResourceBundle, portalResourceBundle);
+	}
+
 	public String getRestrictedFormURL() {
 		return getFormLayoutURL(true);
+	}
+
+	public String getSerializedDDMExpressionFunctionsMetadata() {
+		JSONSerializer jsonSerializer = _jsonFactory.createJSONSerializer();
+
+		Map<String, List<DDMExpressionFunctionMetadata>>
+			ddmExpressionFunctionsMetadata =
+				_ddmExpressionFunctionMetadataHelper.
+					getDDMExpressionFunctionsMetadata();
+
+		return jsonSerializer.serializeDeep(ddmExpressionFunctionsMetadata);
 	}
 
 	public String getSerializedDDMForm() throws PortalException {
@@ -439,7 +497,11 @@ public class DDLFormAdminDisplayContext {
 	}
 
 	public boolean isFormPublished() throws PortalException {
-		DDLRecordSet recordSet = getRecordSet();
+		return isFormPublished(getRecordSet());
+	}
+
+	public boolean isFormPublished(DDLRecordSet recordSet)
+		throws PortalException {
 
 		if (recordSet == null) {
 			return false;
@@ -459,6 +521,12 @@ public class DDLFormAdminDisplayContext {
 
 	public boolean isShowCopyRecordSetButton() {
 		return isShowAddRecordSetButton();
+	}
+
+	public boolean isShowCopyURLRecordSetIcon(DDLRecordSet recordSet) {
+		return DDLRecordSetPermission.contains(
+			_ddlFormAdminRequestHelper.getPermissionChecker(), recordSet,
+			ActionKeys.VIEW);
 	}
 
 	public boolean isShowDeleteRecordSetIcon(DDLRecordSet recordSet) {
@@ -554,6 +622,7 @@ public class DDLFormAdminDisplayContext {
 
 			jsonObject.put("localizable", ddmFormField.isLocalizable());
 			jsonObject.put("name", ddmFormField.getName());
+			jsonObject.put("type", ddmFormField.getType());
 
 			jsonArray.put(jsonObject);
 		}
@@ -724,6 +793,8 @@ public class DDLFormAdminDisplayContext {
 	private final DDLFormWebConfiguration _ddlFormWebConfiguration;
 	private final DDLRecordLocalService _ddlRecordLocalService;
 	private final DDLRecordSetService _ddlRecordSetService;
+	private final DDMExpressionFunctionMetadataHelper
+		_ddmExpressionFunctionMetadataHelper;
 	private final Servlet _ddmFormContextProviderServlet;
 	private final DDMFormFieldTypeServicesTracker
 		_ddmFormFieldTypeServicesTracker;

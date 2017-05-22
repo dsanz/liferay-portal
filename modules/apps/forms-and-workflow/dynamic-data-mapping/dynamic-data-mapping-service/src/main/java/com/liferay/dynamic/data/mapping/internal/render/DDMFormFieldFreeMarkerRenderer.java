@@ -30,21 +30,27 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.language.LanguageConstants;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.auth.AuthTokenUtil;
 import com.liferay.portal.kernel.template.ClassLoaderTemplateResource;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.template.TemplateManager;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.template.TemplateResource;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import java.io.Writer;
 
@@ -491,8 +497,23 @@ public class DDMFormFieldFreeMarkerRenderer implements DDMFormFieldRenderer {
 		freeMarkerContext.put(
 			"ddmPortletId", DDMPortletKeys.DYNAMIC_DATA_MAPPING);
 		freeMarkerContext.put("fieldStructure", fieldContext);
-		freeMarkerContext.put(
-			"itemSelectorPortletId", PortletKeys.ITEM_SELECTOR);
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		try {
+			String itemSelectorAuthToken = AuthTokenUtil.getToken(
+				request,
+				PortalUtil.getControlPanelPlid(themeDisplay.getCompanyId()),
+				PortletKeys.ITEM_SELECTOR);
+
+			freeMarkerContext.put(
+				"itemSelectorAuthToken", itemSelectorAuthToken);
+		}
+		catch (PortalException pe) {
+			_log.error("Unable to generate item selector auth token ", pe);
+		}
+
 		freeMarkerContext.put("namespace", namespace);
 		freeMarkerContext.put("parentFieldStructure", parentFieldContext);
 		freeMarkerContext.put("portletNamespace", portletNamespace);
@@ -632,17 +653,20 @@ public class DDMFormFieldFreeMarkerRenderer implements DDMFormFieldRenderer {
 	private static final String _DEFAULT_READ_ONLY_NAMESPACE = "readonly";
 
 	private static final String[] _SUPPORTED_DDM_FORM_FIELD_TYPES = {
-		"checkbox", "ddm-date", "ddm-decimal", "ddm-documentlibrary",
-		"ddm-geolocation", "ddm-image", "ddm-integer", "ddm-journal-article",
-		"ddm-link-to-page", "ddm-number", "ddm-paragraph", "ddm-separator",
-		"ddm-text-html", "fieldset", "option", "radio", "select", "text",
-		"textarea"
+		"checkbox", "ddm-color", "ddm-date", "ddm-decimal",
+		"ddm-documentlibrary", "ddm-geolocation", "ddm-image", "ddm-integer",
+		"ddm-journal-article", "ddm-link-to-page", "ddm-number",
+		"ddm-paragraph", "ddm-separator", "ddm-text-html", "fieldset", "option",
+		"radio", "select", "text", "textarea"
 	};
 
 	private static final String _TPL_EXT = ".ftl";
 
 	private static final String _TPL_PATH =
 		"com/liferay/dynamic/data/mapping/dependencies/";
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		DDMFormFieldFreeMarkerRenderer.class);
 
 	private final TemplateResource _defaultReadOnlyTemplateResource;
 	private final TemplateResource _defaultTemplateResource;

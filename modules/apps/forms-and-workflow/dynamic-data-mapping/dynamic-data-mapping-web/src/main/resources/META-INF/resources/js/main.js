@@ -808,6 +808,12 @@ AUI.add(
 				},
 				{
 					hiddenAttributes: MAP_HIDDEN_FIELD_ATTRS.DEFAULT,
+					iconClass: 'icon-adjust',
+					label: Liferay.Language.get('color'),
+					type: 'ddm-color'
+				},
+				{
+					hiddenAttributes: MAP_HIDDEN_FIELD_ATTRS.DEFAULT,
 					iconClass: 'icon-calendar',
 					label: Liferay.Language.get('date'),
 					type: 'ddm-date'

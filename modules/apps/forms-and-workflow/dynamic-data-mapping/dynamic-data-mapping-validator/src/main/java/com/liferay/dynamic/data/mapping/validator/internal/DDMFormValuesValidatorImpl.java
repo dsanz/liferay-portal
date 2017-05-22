@@ -17,6 +17,8 @@ package com.liferay.dynamic.data.mapping.validator.internal;
 import com.liferay.dynamic.data.mapping.expression.DDMExpression;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionException;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFactory;
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldValueAccessor;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldValueValidator;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
@@ -165,13 +167,32 @@ public class DDMFormValuesValidatorImpl implements DDMFormValuesValidator {
 		}
 	}
 
-	protected boolean isNull(Value value) {
+	protected boolean isNull(
+		DDMFormField ddmFormField,
+		DDMFormFieldValueAccessor<?> ddmFormFieldValueAccessor, Value value,
+		Locale locale) {
+
+		if (ddmFormFieldValueAccessor == null) {
+			return Validator.isNull(value.getString(locale));
+		}
+
+		return ddmFormFieldValueAccessor.isEmpty(ddmFormField, value, locale);
+	}
+
+	protected boolean isNull(DDMFormField ddmFormField, Value value) {
 		if (value == null) {
 			return true;
 		}
 
+		DDMFormFieldValueAccessor<?> ddmFormFieldValueAccessor =
+			_ddmFormFieldTypeServicesTracker.getDDMFormFieldValueAccessor(
+				ddmFormField.getType());
+
 		for (Locale availableLocale : value.getAvailableLocales()) {
-			if (Validator.isNull(value.getString(availableLocale))) {
+			if (isNull(
+					ddmFormField, ddmFormFieldValueAccessor, value,
+					availableLocale)) {
+
 				return true;
 			}
 		}
@@ -193,6 +214,13 @@ public class DDMFormValuesValidatorImpl implements DDMFormValuesValidator {
 		DDMExpressionFactory ddmExpressionFactory) {
 
 		_ddmExpressionFactory = ddmExpressionFactory;
+	}
+
+	@Reference(unbind = "-")
+	protected void setDDMFormFieldTypeServicesTracker(
+		DDMFormFieldTypeServicesTracker ddmFormFieldTypeServicesTracker) {
+
+		_ddmFormFieldTypeServicesTracker = ddmFormFieldTypeServicesTracker;
 	}
 
 	@Reference(unbind = "-")
@@ -302,7 +330,7 @@ public class DDMFormValuesValidatorImpl implements DDMFormValuesValidator {
 		}
 		else {
 			if ((value == null) ||
-				(ddmFormField.isRequired() && isNull(value))) {
+				(ddmFormField.isRequired() && isNull(ddmFormField, value))) {
 
 				throw new RequiredValue(ddmFormField.getName());
 			}
@@ -353,6 +381,7 @@ public class DDMFormValuesValidatorImpl implements DDMFormValuesValidator {
 	}
 
 	private DDMExpressionFactory _ddmExpressionFactory;
+	private DDMFormFieldTypeServicesTracker _ddmFormFieldTypeServicesTracker;
 	private final Map<String, DDMFormFieldValueValidator>
 		_ddmFormFieldValueValidators = new ConcurrentHashMap<>();
 	private JSONFactory _jsonFactory;

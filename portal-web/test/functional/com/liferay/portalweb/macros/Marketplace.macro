@@ -605,6 +605,32 @@
 			<var name="siteName" value="${siteName}" />
 			<var name="siteURL" value="${siteURL}" />
 		</execute>
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Bookmarks Test Page" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="${siteURL}" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Sites" />
+		</execute>
+
+		<execute macro="Site#addCommunityCP">
+			<var name="siteName" value="Site Name" />
+		</execute>
+
+		<execute macro="Navigator#gotoSitePage">
+			<var name="pageName" value="Home" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="${siteURL}" />
+		</execute>
+
+		<execute macro="Navigator#gotoSitePage">
+			<var name="pageName" value="Wiki" />
+			<var name="siteName" value="Site Name" />
+			<var name="siteURL" value="${siteURL}" />
+		</execute>
 	</command>
 
 	<command name="smokeSites">

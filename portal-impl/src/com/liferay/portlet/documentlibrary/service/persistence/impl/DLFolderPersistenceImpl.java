@@ -46,6 +46,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -57,6 +58,8 @@ import com.liferay.portlet.documentlibrary.model.impl.DLFolderImpl;
 import com.liferay.portlet.documentlibrary.model.impl.DLFolderModelImpl;
 
 import java.io.Serializable;
+
+import java.lang.reflect.Field;
 
 import java.util.Collections;
 import java.util.Date;
@@ -12198,6 +12201,23 @@ public class DLFolderPersistenceImpl extends BasePersistenceImpl<DLFolder>
 
 	public DLFolderPersistenceImpl() {
 		setModelClass(DLFolder.class);
+
+		try {
+			Field field = ReflectionUtil.getDeclaredField(BasePersistenceImpl.class,
+					"_dbColumnNames");
+
+			Map<String, String> dbColumnNames = new HashMap<String, String>();
+
+			dbColumnNames.put("uuid", "uuid_");
+			dbColumnNames.put("hidden", "hidden_");
+
+			field.set(this, dbColumnNames);
+		}
+		catch (Exception e) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(e, e);
+			}
+		}
 	}
 
 	/**
@@ -12557,8 +12577,116 @@ public class DLFolderPersistenceImpl extends BasePersistenceImpl<DLFolder>
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (isNew || !DLFolderModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!DLFolderModelImpl.COLUMN_BITMASK_ENABLED) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+		else
+		 if (isNew) {
+			Object[] args = new Object[] { dlFolderModelImpl.getUuid() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_UUID,
+				args);
+
+			args = new Object[] {
+					dlFolderModelImpl.getUuid(),
+					dlFolderModelImpl.getCompanyId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_UUID_C, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_UUID_C,
+				args);
+
+			args = new Object[] { dlFolderModelImpl.getGroupId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_GROUPID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_GROUPID,
+				args);
+
+			args = new Object[] { dlFolderModelImpl.getCompanyId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_COMPANYID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_COMPANYID,
+				args);
+
+			args = new Object[] { dlFolderModelImpl.getRepositoryId() };
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_REPOSITORYID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_REPOSITORYID,
+				args);
+
+			args = new Object[] {
+					dlFolderModelImpl.getGroupId(),
+					dlFolderModelImpl.getParentFolderId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_P,
+				args);
+
+			args = new Object[] {
+					dlFolderModelImpl.getRepositoryId(),
+					dlFolderModelImpl.getParentFolderId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_R_P, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_R_P,
+				args);
+
+			args = new Object[] {
+					dlFolderModelImpl.getParentFolderId(),
+					dlFolderModelImpl.getName()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_P_N, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_P_N,
+				args);
+
+			args = new Object[] {
+					dlFolderModelImpl.getGroupId(),
+					dlFolderModelImpl.getMountPoint(),
+					dlFolderModelImpl.getParentFolderId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_M_P, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_M_P,
+				args);
+
+			args = new Object[] {
+					dlFolderModelImpl.getGroupId(),
+					dlFolderModelImpl.getMountPoint(),
+					dlFolderModelImpl.getParentFolderId(),
+					dlFolderModelImpl.getHidden()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_M_P_H, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_M_P_H,
+				args);
+
+			args = new Object[] {
+					dlFolderModelImpl.getGroupId(),
+					dlFolderModelImpl.getParentFolderId(),
+					dlFolderModelImpl.getHidden(), dlFolderModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_P_H_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_P_H_S,
+				args);
+
+			args = new Object[] {
+					dlFolderModelImpl.getGroupId(),
+					dlFolderModelImpl.getMountPoint(),
+					dlFolderModelImpl.getParentFolderId(),
+					dlFolderModelImpl.getHidden(), dlFolderModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_G_M_P_H_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_G_M_P_H_S,
+				args);
+
+			finderCache.removeResult(FINDER_PATH_COUNT_ALL, FINDER_ARGS_EMPTY);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL,
+				FINDER_ARGS_EMPTY);
 		}
 
 		else {
@@ -13009,7 +13137,7 @@ public class DLFolderPersistenceImpl extends BasePersistenceImpl<DLFolder>
 		query.append(_SQL_SELECT_DLFOLDER_WHERE_PKS_IN);
 
 		for (Serializable primaryKey : uncachedPrimaryKeys) {
-			query.append(String.valueOf(primaryKey));
+			query.append((long)primaryKey);
 
 			query.append(StringPool.COMMA);
 		}

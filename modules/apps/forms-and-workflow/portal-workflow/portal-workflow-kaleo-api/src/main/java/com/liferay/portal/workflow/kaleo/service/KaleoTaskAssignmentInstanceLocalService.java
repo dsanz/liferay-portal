@@ -139,6 +139,11 @@ public interface KaleoTaskAssignmentInstanceLocalService
 		long kaleoTaskAssignmentInstanceId) throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public KaleoTaskAssignmentInstance fetchFirstKaleoTaskAssignmentInstance(
+		long kaleoTaskInstanceTokenId,
+		OrderByComparator<KaleoTaskAssignmentInstance> orderByComparator);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public KaleoTaskAssignmentInstance fetchKaleoTaskAssignmentInstance(
 		long kaleoTaskAssignmentInstanceId);
 
@@ -170,6 +175,10 @@ public interface KaleoTaskAssignmentInstanceLocalService
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getKaleoTaskAssignmentInstancesCount();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getKaleoTaskAssignmentInstancesCount(
+		long kaleoTaskInstanceTokenId);
 
 	/**
 	* Returns the OSGi service identifier.

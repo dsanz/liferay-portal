@@ -26,18 +26,15 @@ import com.liferay.portal.verify.VerifyProcess;
 
 import java.util.List;
 
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 /**
- * @author Raymond Augé
- * @author Alexander Chow
+ * @author     Raymond Augé
+ * @author     Alexander Chow
+ * @deprecated As of 1.1.0, replaced by {@link
+ *             com.liferay.bookmarks.internal.verify.BookmarksServiceVerifyProcess}
  */
-@Component(
-	immediate = true,
-	property = {"verify.process.name=com.liferay.bookmarks.service"},
-	service = VerifyProcess.class
-)
+@Deprecated
 public class BookmarksServiceVerifyProcess extends VerifyProcess {
 
 	@Override

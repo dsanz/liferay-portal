@@ -59,7 +59,7 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 @Component(
 	enabled = false, immediate = true,
 	property = {
-		"after-filter=Session Max Allowed Filter", "dispatcher=FORWARD",
+		"after-filter=Absolute Redirects Filter", "dispatcher=FORWARD",
 		"dispatcher=REQUEST", "servlet-context-name=",
 		"servlet-filter-name=Monitoring Filter", "url-pattern=/c/*",
 		"url-pattern=/group/*", "url-pattern=/user/*", "url-pattern=/web/*"
@@ -261,7 +261,7 @@ public class MonitoringFilter
 	private static final ThreadLocal<AtomicInteger> _processFilterCount =
 		new AutoResetThreadLocal<>(
 			MonitoringFilter.class + "._processFilterCount",
-			new AtomicInteger(0));
+			AtomicInteger::new);
 
 	private DataSampleFactory _dataSampleFactory;
 	private LayoutLocalService _layoutLocalService;

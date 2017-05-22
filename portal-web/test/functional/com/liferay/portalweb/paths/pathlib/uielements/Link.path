@@ -20,7 +20,7 @@
 </tr>
 <tr>
 	<td>ATTACHMENTS</td>
-	<td>//div[@class='article-actions']//span/a[contains(.,'Attachments')]</td>
+	<td>//a[contains(.,'Attachments')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -36,6 +36,11 @@
 <tr>
 	<td>CHANGE_EMAIL_ADDRESS</td>
 	<td>//div/a[contains(.,'Change Email Address')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONFIRM</td>
+	<td>//a[contains(.,'Confirm')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -56,16 +61,6 @@
 <tr>
 	<td>EDIT</td>
 	<td>//a/span[contains(@class,'taglib-text') and contains(.,'Edit')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FACEBOOK_LOGIN</td>
-	<td>//span[contains(.,'Facebook')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>GOOGLE_LOGIN</td>
-	<td>//span[contains(.,'Google')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -105,7 +100,7 @@
 </tr>
 <tr>
 	<td>OPENID</td>
-	<td>//span[contains(.,'OpenID')]</td>
+	<td>//a[contains(.,'OpenID')]</td>
 	<td></td>
 </tr>
 <tr>

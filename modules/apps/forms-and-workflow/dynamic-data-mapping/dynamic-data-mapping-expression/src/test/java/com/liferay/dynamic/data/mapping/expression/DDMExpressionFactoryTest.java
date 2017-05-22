@@ -37,7 +37,7 @@ public class DDMExpressionFactoryTest {
 		DDMExpression<Double> ddmExpression =
 			_ddmExpressionFactory.createDoubleDDMExpression(".1");
 
-		Assert.assertEquals(.1d, ddmExpression.evaluate(), .001);
+		Assert.assertEquals(.1D, ddmExpression.evaluate(), .001);
 	}
 
 	@Test
@@ -45,7 +45,7 @@ public class DDMExpressionFactoryTest {
 		DDMExpression<Float> ddmExpression =
 			_ddmExpressionFactory.createFloatDDMExpression(".1");
 
-		Assert.assertEquals(.1f, ddmExpression.evaluate(), .001);
+		Assert.assertEquals(.1F, ddmExpression.evaluate(), .001);
 	}
 
 	@Test

@@ -92,11 +92,15 @@ public interface LiferaySelenium {
 
 	public void assertPartialConfirmation(String pattern) throws Exception;
 
+	public void assertPartialLocation(String pattern) throws Exception;
+
 	public void assertPartialText(String locator, String pattern)
 		throws Exception;
 
 	public void assertPartialTextAceEditor(String locator, String pattern)
 		throws Exception;
+
+	public void assertPrompt(String pattern, String value) throws Exception;
 
 	public void assertSelectedLabel(String selectLocator, String pattern)
 		throws Exception;
@@ -115,11 +119,7 @@ public interface LiferaySelenium {
 
 	public void click(String locator) throws Exception;
 
-	public void clickAndWait(String locator);
-
 	public void clickAt(String locator, String coordString);
-
-	public void clickAtAndWait(String locator, String coordString);
 
 	public void close();
 
@@ -154,15 +154,7 @@ public interface LiferaySelenium {
 
 	public String getConfirmation();
 
-	public String getCurrentDay();
-
-	public String getCurrentDayName();
-
-	public String getCurrentHour();
-
-	public String getCurrentMonth();
-
-	public String getCurrentYear();
+	public String getConfirmation(String value);
 
 	public int getElementHeight(String locator);
 
@@ -205,8 +197,6 @@ public interface LiferaySelenium {
 	public String getTitle();
 
 	public void goBack();
-
-	public void goBackAndWait();
 
 	public boolean isAlertPresent();
 
@@ -274,15 +264,9 @@ public interface LiferaySelenium {
 
 	public void keyDown(String locator, String keySequence);
 
-	public void keyDownAndWait(String locator, String keySequence);
-
 	public void keyPress(String locator, String keySequence);
 
-	public void keyPressAndWait(String locator, String keySequence);
-
 	public void keyUp(String locator, String keySequence);
-
-	public void keyUpAndWait(String locator, String keySequence);
 
 	public void makeVisible(String locator);
 
@@ -316,8 +300,6 @@ public interface LiferaySelenium {
 
 	public void refresh();
 
-	public void refreshAndWait();
-
 	public void replyToEmail(String to, String body) throws Exception;
 
 	public void runScript(String script);
@@ -334,8 +316,6 @@ public interface LiferaySelenium {
 	public void scrollWebElementIntoView(String locator) throws Exception;
 
 	public void select(String selectLocator, String optionLocator);
-
-	public void selectAndWait(String selectLocator, String optionLocator);
 
 	public void selectFieldText();
 
@@ -457,8 +437,6 @@ public interface LiferaySelenium {
 	public void waitForNotValue(String locator, String value) throws Exception;
 
 	public void waitForNotVisible(String locator) throws Exception;
-
-	public void waitForPageToLoad(String timeout);
 
 	public void waitForPartialText(String locator, String value)
 		throws Exception;

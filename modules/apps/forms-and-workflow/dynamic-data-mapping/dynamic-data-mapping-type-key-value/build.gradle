@@ -1,3 +1,12 @@
+apply plugin: "com.liferay.gulp"
+
+task testJS
+
+configJSModules {
+	dependsOn = []
+	enabled = false
+}
+
 dependencies {
 	provided group: "com.liferay", name: "com.liferay.dynamic.data.mapping.type.text", version: "2.0.0"
 	provided group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "2.0.0"
@@ -8,10 +17,8 @@ dependencies {
 	provided project(":apps:forms-and-workflow:dynamic-data-mapping:dynamic-data-mapping-form-field-type")
 }
 
-task wrapSoyTemplates
-
-classes {
-	dependsOn wrapSoyTemplates
+testJS {
+	dependsOn gulpTest
 }
 
 transpileJS {
@@ -19,17 +26,8 @@ transpileJS {
 	srcIncludes = "**/*.es.js"
 }
 
-wrapSoyTemplates {
-	doLast {
-		FileTree soyJsFileTree = fileTree(dir: "classes", include: "**/*.soy.js")
-
-		String soyJsWrapperHeader = "AUI.add('liferay-ddm-form-field-key-value-template', function(A) {"
-		String soyJsWrapperFooter = "}, '', {requires: ['soyutils']});";
-
-		soyJsFileTree.each {
-			File soyJsFile ->
-
-			soyJsFile.text = soyJsWrapperHeader + soyJsFile.text.replace("(typeof ddm == 'undefined') { var ddm = {}; }", "(typeof ddm == 'undefined') { window.ddm = {}; }") + soyJsWrapperFooter
-		}
-	}
+wrapSoyAlloyTemplate {
+	enabled = true
+	moduleName = "liferay-ddm-form-field-key-value-template"
+	namespace = "ddm"
 }

@@ -20,7 +20,6 @@ import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
 
 import java.io.File;
-import java.io.IOException;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -31,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.util.GUtil;
 
@@ -38,6 +39,21 @@ import org.gradle.util.GUtil;
  * @author Andrea Di Giorgi
  */
 public class NpmShrinkwrapTask extends ExecuteNpmTask {
+
+	public NpmShrinkwrapTask() {
+		onlyIf(
+			new Spec<Task>() {
+
+				@Override
+				public boolean isSatisfiedBy(Task task) {
+					File packageJsonFile = new File(
+						getWorkingDir(), "package.json");
+
+					return packageJsonFile.exists();
+				}
+
+			});
+	}
 
 	public NpmShrinkwrapTask excludeDependencies(
 		Iterable<?> excludedDependencies) {
@@ -57,7 +73,28 @@ public class NpmShrinkwrapTask extends ExecuteNpmTask {
 	public void executeNode() throws Exception {
 		super.executeNode();
 
-		_removeExcludedDependencies();
+		File shrinkwrapJsonFile = new File(
+			getWorkingDir(), "npm-shrinkwrap.json");
+
+		JsonSlurper jsonSlurper = new JsonSlurper();
+
+		Map<String, Object> shrinkwrap = (Map<String, Object>)jsonSlurper.parse(
+			shrinkwrapJsonFile);
+
+		List<String> excludedDependencies = getExcludedDependencies();
+
+		if (!excludedDependencies.isEmpty()) {
+			_removeExcludedDependencies(shrinkwrap, getExcludedDependencies());
+		}
+
+		String shrinkwrapJSON = JsonOutput.prettyPrint(
+			JsonOutput.toJson(shrinkwrap));
+
+		shrinkwrapJSON = shrinkwrapJSON.replace(_FOUR_SPACES, "\t");
+
+		Files.write(
+			shrinkwrapJsonFile.toPath(),
+			shrinkwrapJSON.getBytes(StandardCharsets.UTF_8));
 	}
 
 	@Input
@@ -95,33 +132,6 @@ public class NpmShrinkwrapTask extends ExecuteNpmTask {
 		}
 
 		return completeArgs;
-	}
-
-	private void _removeExcludedDependencies() throws IOException {
-		List<String> excludedDependencies = getExcludedDependencies();
-
-		if (excludedDependencies.isEmpty()) {
-			return;
-		}
-
-		File shrinkwrapJsonFile = new File(
-			getWorkingDir(), "npm-shrinkwrap.json");
-
-		JsonSlurper jsonSlurper = new JsonSlurper();
-
-		Map<String, Object> shrinkwrap = (Map<String, Object>)jsonSlurper.parse(
-			shrinkwrapJsonFile);
-
-		_removeExcludedDependencies(shrinkwrap, excludedDependencies);
-
-		String shrinkwrapJson = JsonOutput.prettyPrint(
-			JsonOutput.toJson(shrinkwrap));
-
-		shrinkwrapJson = shrinkwrapJson.replace(_FOUR_SPACES, "\t");
-
-		Files.write(
-			shrinkwrapJsonFile.toPath(),
-			shrinkwrapJson.getBytes(StandardCharsets.UTF_8));
 	}
 
 	private void _removeExcludedDependencies(

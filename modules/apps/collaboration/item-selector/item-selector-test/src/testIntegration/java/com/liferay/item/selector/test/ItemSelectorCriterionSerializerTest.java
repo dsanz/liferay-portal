@@ -66,9 +66,7 @@ public class ItemSelectorCriterionSerializerTest {
 	}
 
 	@Test
-	public void
-		testSerializationAndDeserializationWithProvidedSupportedReturnTypes() {
-
+	public void testSerializationAndDeserializationWithProvidedSupportedReturnTypes() {
 		TestItemSelectorView testItemSelectorView = new TestItemSelectorView();
 
 		ServiceRegistration<ItemSelectorView>
@@ -108,7 +106,8 @@ public class ItemSelectorCriterionSerializerTest {
 						getDesiredItemSelectorReturnTypes();
 
 			Assert.assertEquals(
-				1, deserializedDesiredItemSelectorReturnTypes.size());
+				deserializedDesiredItemSelectorReturnTypes.toString(), 1,
+				deserializedDesiredItemSelectorReturnTypes.size());
 
 			ItemSelectorReturnType deserializedItemSelectorReturnType =
 				deserializedDesiredItemSelectorReturnTypes.get(0);

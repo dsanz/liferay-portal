@@ -51,7 +51,8 @@ List<TrashEntry> trashEntries = (List<TrashEntry>)request.getAttribute(TrashWebK
 								<c:otherwise>
 
 									<%
-									request.setAttribute(TrashWebKeys.TRASH_RENDERER, trashRenderer);
+									request.setAttribute("view.jsp-className", trashRenderer.getClassName());
+									request.setAttribute("view.jsp-classPK", String.valueOf(trashRenderer.getClassPK()));
 									%>
 
 									<liferay-util:include page="/view_content_action.jsp" servletContext="<%= application %>" />
@@ -61,6 +62,10 @@ List<TrashEntry> trashEntries = (List<TrashEntry>)request.getAttribute(TrashWebK
 					</ul>
 
 					<h4><%= HtmlUtil.escape(trashRenderer.getTitle(locale)) %></h4>
+
+					<p>
+						<%= ResourceActionsUtil.getModelResource(locale, trashEntry.getClassName()) %>
+					</p>
 				</div>
 
 				<aui:nav-bar cssClass="navbar-no-collapse" markupView="lexicon">
@@ -70,12 +75,6 @@ List<TrashEntry> trashEntries = (List<TrashEntry>)request.getAttribute(TrashWebK
 				</aui:nav-bar>
 
 				<div class="sidebar-body">
-					<h5><liferay-ui:message key="type" /></h5>
-
-					<p>
-						<%= ResourceActionsUtil.getModelResource(locale, trashEntry.getClassName()) %>
-					</p>
-
 					<h5><liferay-ui:message key="removed-date" /></h5>
 
 					<p>

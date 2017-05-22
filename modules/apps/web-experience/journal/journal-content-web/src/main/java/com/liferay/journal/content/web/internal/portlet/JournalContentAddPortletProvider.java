@@ -88,6 +88,9 @@ public class JournalContentAddPortletProvider
 		portletPreferences.setValue(
 			"groupId", String.valueOf(article.getGroupId()));
 
+		portletPreferences.setValue(
+			"assetEntryId", String.valueOf(assetEntry.getEntryId()));
+
 		Layout layout = themeDisplay.getLayout();
 
 		_journalContentSearchLocal.updateContentSearch(

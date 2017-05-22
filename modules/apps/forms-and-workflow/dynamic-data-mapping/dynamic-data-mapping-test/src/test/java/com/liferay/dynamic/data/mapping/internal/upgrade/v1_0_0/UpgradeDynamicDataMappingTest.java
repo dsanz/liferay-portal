@@ -39,9 +39,6 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
-import com.liferay.portal.kernel.util.Props;
-import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -53,6 +50,7 @@ import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.security.xml.SecureXMLFactoryProviderImpl;
 import com.liferay.portal.util.LocalizationImpl;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.xml.SAXReaderImpl;
 
 import java.lang.reflect.InvocationHandler;
@@ -82,6 +80,7 @@ import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -90,8 +89,14 @@ import org.skyscreamer.jsonassert.JSONAssert;
  * @author Marcellus Tavares
  */
 @PowerMockIgnore("javax.xml.stream.*")
-@PrepareForTest(LocaleUtil.class)
+@PrepareForTest({LocaleUtil.class, PropsValues.class})
 @RunWith(PowerMockRunner.class)
+@SuppressStaticInitializationFor(
+	{
+		"com.liferay.portal.kernel.xml.SAXReaderUtil",
+		"com.liferay.portal.util.PropsValues"
+	}
+)
 public class UpgradeDynamicDataMappingTest extends PowerMockito {
 
 	@Before
@@ -101,7 +106,7 @@ public class UpgradeDynamicDataMappingTest extends PowerMockito {
 		setUpLanguageUtil();
 		setUpLocaleUtil();
 		setUpLocalizationUtil();
-		setUpPropsUtil();
+		setUpPropsValues();
 		setUpSecureXMLFactoryProviderUtil();
 		setUpSAXReaderUtil();
 		setUpJSONFactoryUtil();
@@ -251,7 +256,9 @@ public class UpgradeDynamicDataMappingTest extends PowerMockito {
 		List<DDMFormFieldValue> updatedDDMFormFieldValues =
 			updatedDDMFormValues.getDDMFormFieldValues();
 
-		Assert.assertEquals(1, updatedDDMFormFieldValues.size());
+		Assert.assertEquals(
+			updatedDDMFormFieldValues.toString(), 1,
+			updatedDDMFormFieldValues.size());
 
 		DDMFormFieldValue updatedDDMFormFieldValue =
 			updatedDDMFormFieldValues.get(0);
@@ -728,7 +735,9 @@ public class UpgradeDynamicDataMappingTest extends PowerMockito {
 
 		int expectedDataValuesSize = expectedDataValues.size();
 
-		Assert.assertEquals(expectedDataValuesSize, actualDataValues.size());
+		Assert.assertEquals(
+			actualDataValues.toString(), expectedDataValuesSize,
+			actualDataValues.size());
 
 		for (int i = 0; i < expectedDataValuesSize; i++) {
 			Assert.assertEquals(
@@ -923,16 +932,8 @@ public class UpgradeDynamicDataMappingTest extends PowerMockito {
 		localizationUtil.setLocalization(new LocalizationImpl());
 	}
 
-	protected void setUpPropsUtil() {
-		Props props = mock(Props.class);
-
-		when(
-			props.get(PropsKeys.XML_SECURITY_ENABLED)
-		).thenReturn(
-			Boolean.TRUE.toString()
-		);
-
-		PropsUtil.setProps(props);
+	protected void setUpPropsValues() {
+		mockStatic(PropsValues.class);
 	}
 
 	protected void setUpSAXReaderUtil() {

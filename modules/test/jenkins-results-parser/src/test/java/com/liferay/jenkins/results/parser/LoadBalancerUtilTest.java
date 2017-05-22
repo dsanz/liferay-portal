@@ -35,6 +35,8 @@ public class LoadBalancerUtilTest extends BaseJenkinsResultsParserTestCase {
 	public void setUp() throws Exception {
 		downloadSample("test-1", null);
 		downloadSample("test-2", null);
+
+		LoadBalancerUtil.setUpdateInterval(0);
 	}
 
 	@After
@@ -46,7 +48,7 @@ public class LoadBalancerUtilTest extends BaseJenkinsResultsParserTestCase {
 
 	@Test
 	public void testGetMostAvailableMasterURL() throws Exception {
-		LoadBalancerUtil.RECENT_BATCH_AGE = 0;
+		JenkinsMaster.maxRecentBatchAge = 0;
 
 		assertSamples();
 	}
@@ -153,9 +155,7 @@ public class LoadBalancerUtilTest extends BaseJenkinsResultsParserTestCase {
 	}
 
 	@Override
-	protected String getMessage(String urlString) throws Exception {
-		File sampleDir = new File(urlString.substring("file:".length()));
-
+	protected String getMessage(File sampleDir) throws Exception {
 		Properties properties = getTestProperties(sampleDir.getName());
 
 		return LoadBalancerUtil.getMostAvailableMasterURL(properties);

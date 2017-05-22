@@ -14,6 +14,7 @@
 
 package com.liferay.portal.webserver;
 
+import com.liferay.document.library.kernel.document.conversion.DocumentConversionUtil;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
 import com.liferay.document.library.kernel.exception.NoSuchFileException;
 import com.liferay.document.library.kernel.exception.NoSuchFolderException;
@@ -106,9 +107,9 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.impl.ImageImpl;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portlet.documentlibrary.util.DocumentConversionUtil;
 import com.liferay.trash.kernel.model.TrashEntry;
 import com.liferay.trash.kernel.util.TrashUtil;
+import com.liferay.users.admin.kernel.file.uploads.UserFileUploadsSettings;
 
 import java.awt.image.RenderedImage;
 
@@ -180,7 +181,12 @@ public class WebServerServlet extends HttpServlet {
 				}
 			}
 			else {
-				long groupId = _getGroupId(user.getCompanyId(), pathArray[0]);
+				Group group = _getGroup(user.getCompanyId(), pathArray[0]);
+
+				_checkDirectoryIndexingEnabled(group);
+
+				long groupId = group.getGroupId();
+
 				long folderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
 
 				for (int i = 1; i < pathArray.length; i++) {
@@ -493,7 +499,11 @@ public class WebServerServlet extends HttpServlet {
 					PermissionChecker permissionChecker =
 						PermissionCheckerFactoryUtil.create(user);
 
-					if (!GroupPermissionUtil.contains(
+					Group group = layoutSet.getGroup();
+
+					if (!group.isShowSite(
+							permissionChecker, layoutSet.isPrivateLayout()) &&
+						!GroupPermissionUtil.contains(
 							permissionChecker, layoutSet.getGroupId(),
 							ActionKeys.VIEW)) {
 
@@ -624,7 +634,7 @@ public class WebServerServlet extends HttpServlet {
 			}
 		}
 
-		if (PropsValues.USERS_IMAGE_CHECK_TOKEN && (imageId > 0)) {
+		if (_userFileUploadsSettings.isImageCheckToken() && (imageId > 0)) {
 			String imageIdToken = ParamUtil.getString(request, "img_id_token");
 
 			if (user == null) {
@@ -715,10 +725,13 @@ public class WebServerServlet extends HttpServlet {
 			return null;
 		}
 
-		if (((PropsValues.USERS_IMAGE_MAX_HEIGHT > 0) &&
-			 (image.getHeight() > PropsValues.USERS_IMAGE_MAX_HEIGHT)) ||
-			((PropsValues.USERS_IMAGE_MAX_WIDTH > 0) &&
-			 (image.getWidth() > PropsValues.USERS_IMAGE_MAX_WIDTH))) {
+		int usersImageMaxHeight = _userFileUploadsSettings.getImageMaxHeight();
+		int usersImageMaxWidth = _userFileUploadsSettings.getImageMaxWidth();
+
+		if (((usersImageMaxHeight > 0) &&
+			 (image.getHeight() > usersImageMaxHeight)) ||
+			((usersImageMaxWidth > 0) &&
+			 (image.getWidth() > usersImageMaxWidth))) {
 
 			User user = UserLocalServiceUtil.getUserByPortraitId(imageId);
 
@@ -831,20 +844,11 @@ public class WebServerServlet extends HttpServlet {
 			String path, String[] pathArray)
 		throws Exception {
 
-		long groupId = _getGroupId(user.getCompanyId(), pathArray[0]);
+		Group group = _getGroup(user.getCompanyId(), pathArray[0]);
 
-		Group group = GroupLocalServiceUtil.getGroup(groupId);
+		_checkDirectoryIndexingEnabled(group);
 
-		UnicodeProperties typeSettingsProperties =
-			group.getTypeSettingsProperties();
-
-		boolean directoryIndexingEnabled = GetterUtil.getBoolean(
-			typeSettingsProperties.getProperty("directoryIndexingEnabled"),
-			PropsValues.WEB_SERVER_SERVLET_DIRECTORY_INDEXING_ENABLED);
-
-		if (!directoryIndexingEnabled) {
-			throw new NoSuchFolderException();
-		}
+		long groupId = group.getGroupId();
 
 		long folderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
 
@@ -1207,13 +1211,15 @@ public class WebServerServlet extends HttpServlet {
 		List<Group> groups = WebDAVUtil.getGroups(user);
 
 		for (Group group : groups) {
-			String name = HttpUtil.fixPath(group.getFriendlyURL());
+			if (_isDirectoryIndexingEnabled(group)) {
+				String name = HttpUtil.fixPath(group.getFriendlyURL());
 
-			WebServerEntry webServerEntry = new WebServerEntry(
-				path, name + StringPool.SLASH, null, null,
-				group.getDescription(), 0);
+				WebServerEntry webServerEntry = new WebServerEntry(
+					path, name + StringPool.SLASH, null, null,
+					group.getDescription(), 0);
 
-			webServerEntries.add(webServerEntry);
+				webServerEntries.add(webServerEntry);
+			}
 		}
 
 		sendHTML(response, path, webServerEntries);
@@ -1335,6 +1341,20 @@ public class WebServerServlet extends HttpServlet {
 		}
 	}
 
+	private static void _checkDirectoryIndexingEnabled(Group group)
+		throws Exception {
+
+		if (!_isDirectoryIndexingEnabled(group)) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					"Directory indexing is not enabled for group " +
+						group.getGroupId());
+			}
+
+			throw new NoSuchFolderException();
+		}
+	}
+
 	private static void _checkFileEntry(String[] pathArray) throws Exception {
 		if (pathArray.length == 1) {
 			long fileShortcutId = GetterUtil.getLong(pathArray[0]);
@@ -1386,21 +1406,21 @@ public class WebServerServlet extends HttpServlet {
 		}
 	}
 
-	private static long _getGroupId(long companyId, String name)
+	private static Group _getGroup(long companyId, String name)
 		throws Exception {
 
 		Group group = GroupLocalServiceUtil.fetchFriendlyURLGroup(
 			companyId, StringPool.SLASH + name);
 
 		if (group != null) {
-			return group.getGroupId();
+			return group;
 		}
 
 		User user = UserLocalServiceUtil.getUserByScreenName(companyId, name);
 
 		group = user.getGroup();
 
-		return group.getGroupId();
+		return group;
 	}
 
 	private static User _getUser(HttpServletRequest request) throws Exception {
@@ -1433,6 +1453,15 @@ public class WebServerServlet extends HttpServlet {
 		}
 
 		return user;
+	}
+
+	private static boolean _isDirectoryIndexingEnabled(Group group) {
+		UnicodeProperties typeSettingsProperties =
+			group.getTypeSettingsProperties();
+
+		return GetterUtil.getBoolean(
+			typeSettingsProperties.getProperty("directoryIndexingEnabled"),
+			PropsValues.WEB_SERVER_SERVLET_DIRECTORY_INDEXING_ENABLED);
 	}
 
 	private Callable<Void> _createFileServingCallable(
@@ -1472,14 +1501,14 @@ public class WebServerServlet extends HttpServlet {
 
 						Image image = getImage(request, true);
 
-						if ((image.getCompanyId() != user.getCompanyId()) &&
-							_processCompanyInactiveRequest(
-								request, response, image.getCompanyId())) {
-
-							return null;
-						}
-
 						if (image != null) {
+							if ((image.getCompanyId() != user.getCompanyId()) &&
+								_processCompanyInactiveRequest(
+									request, response, image.getCompanyId())) {
+
+								return null;
+							}
+
 							writeImage(image, request, response);
 						}
 						else {
@@ -1538,6 +1567,10 @@ public class WebServerServlet extends HttpServlet {
 		ServiceProxyFactory.newServiceTrackedInstance(
 			InactiveRequestHandler.class, WebServerServlet.class,
 			"_inactiveRequesthandler", false);
+	private static volatile UserFileUploadsSettings _userFileUploadsSettings =
+		ServiceProxyFactory.newServiceTrackedInstance(
+			UserFileUploadsSettings.class, WebServerServlet.class,
+			"_userFileUploadsSettings", false);
 
 	private final Format _dateFormat =
 		FastDateFormatFactoryUtil.getSimpleDateFormat("d MMM yyyy HH:mm z");

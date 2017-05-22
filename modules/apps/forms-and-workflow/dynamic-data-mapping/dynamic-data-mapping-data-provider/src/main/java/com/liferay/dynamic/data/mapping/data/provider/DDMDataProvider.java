@@ -16,10 +16,7 @@ package com.liferay.dynamic.data.mapping.data.provider;
 
 import com.liferay.portal.kernel.util.KeyValuePair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Luca Comin
@@ -42,17 +39,11 @@ public interface DDMDataProvider {
 		List<KeyValuePair> keyValuePairs = getData(
 			ddmDataProviderRequest.getDDMDataProviderContext());
 
-		List<Map<Object, Object>> data = new ArrayList<>();
+		DDMDataProviderResponseOutput defaultDDMDataProviderResponseOutput =
+			DDMDataProviderResponseOutput.of(
+				"Default-Output", "list", keyValuePairs);
 
-		for (KeyValuePair keyValuePair : keyValuePairs) {
-			Map<Object, Object> map = new HashMap<>();
-
-			data.add(map);
-
-			map.put(keyValuePair.getKey(), keyValuePair.getValue());
-		}
-
-		return new DDMDataProviderResponse(data);
+		return DDMDataProviderResponse.of(defaultDDMDataProviderResponseOutput);
 	}
 
 	public Class<?> getSettings();

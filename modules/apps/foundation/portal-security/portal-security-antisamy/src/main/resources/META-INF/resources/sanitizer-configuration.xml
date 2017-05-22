@@ -487,7 +487,6 @@ http://www.w3.org/TR/html401/struct/global.html
 		<tag>grin</tag>
 	</tags-to-encode>
 
-
 	<allowed-empty-tags>
 		<literal-list>
 			<literal value="br"/>
@@ -505,12 +504,17 @@ http://www.w3.org/TR/html401/struct/global.html
 	</allowed-empty-tags>
 
 	<tag-rules>
-		<tag name="picture" action="validate" />
+		<tag name="picture" action="validate">
+			<attribute name="data-fileEntryId" onInvalid="removeAttribute">
+				<regexp-list>
+					<regexp name="positiveInteger" />
+				</regexp-list>
+			</attribute>
+		</tag>
 		<tag name="source" action="validate">
 			<attribute name="srcset">
 				<regexp-list>
-					<regexp name="onsiteURL"/>
-					<regexp name="offsiteURL"/>
+					<regexp name="anything"/>
 				</regexp-list>
 			</attribute>
 			<attribute name="media">
@@ -666,6 +670,11 @@ http://www.w3.org/TR/html401/struct/global.html
 		<!-- Image & image related tags -->
 
 		<tag name="img" action="validate">
+			<attribute name="data-fileEntryId" onInvalid="removeAttribute">
+				<regexp-list>
+					<regexp name="positiveInteger"/>
+				</regexp-list>
+			</attribute>
 			<attribute name="src" onInvalid="removeTag">
 				<regexp-list>
 					<regexp name="onsiteURL"/>

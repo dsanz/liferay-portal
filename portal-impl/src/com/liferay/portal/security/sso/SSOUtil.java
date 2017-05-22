@@ -16,6 +16,7 @@ package com.liferay.portal.security.sso;
 
 import com.liferay.portal.kernel.security.sso.SSO;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.registry.Registry;
@@ -36,11 +37,16 @@ public class SSOUtil {
 	public static String getSessionExpirationRedirectURL(
 		long companyId, String sessionExpirationRedirectURL) {
 
-		if (_instance._ssoMap.isEmpty()) {
+		String ssoSessionExpirationRedirectURL =
+			_instance._getSessionExpirationRedirectURL(companyId);
+
+		if (_instance._ssoMap.isEmpty() ||
+			Validator.isNull(ssoSessionExpirationRedirectURL)) {
+
 			return sessionExpirationRedirectURL;
 		}
 
-		return _instance._getSessionExpirationRedirectUrl(companyId);
+		return ssoSessionExpirationRedirectURL;
 	}
 
 	public static String getSignInURL(long companyId, String signInURL) {
@@ -48,7 +54,7 @@ public class SSOUtil {
 			return null;
 		}
 
-		return _instance._getSignInUrl(companyId, signInURL);
+		return _instance._getSignInURL(companyId, signInURL);
 	}
 
 	public static boolean isLoginRedirectRequired(long companyId) {
@@ -78,16 +84,8 @@ public class SSOUtil {
 		boolean sessionRedirectOnExpire =
 			PropsValues.SESSION_TIMEOUT_REDIRECT_ON_EXPIRE;
 
-		if (_instance._ssoMap.isEmpty()) {
+		if (_instance._ssoMap.isEmpty() || sessionRedirectOnExpire) {
 			return sessionRedirectOnExpire;
-		}
-
-		if (PrefsPropsUtil.getBoolean(
-				companyId, PropsKeys.OPEN_SSO_AUTH_ENABLED,
-				PropsValues.OPEN_SSO_AUTH_ENABLED) &&
-			PropsValues.OPEN_SSO_LOGOUT_ON_SESSION_EXPIRATION) {
-
-			return true;
 		}
 
 		return _instance._isSessionRedirectOnExpire(companyId);
@@ -102,20 +100,20 @@ public class SSOUtil {
 		_serviceTracker.open();
 	}
 
-	private String _getSessionExpirationRedirectUrl(long companyId) {
+	private String _getSessionExpirationRedirectURL(long companyId) {
 		for (SSO sso : _ssoMap.values()) {
-			String sessionExpirationRedirectUrl =
+			String sessionExpirationRedirectURL =
 				sso.getSessionExpirationRedirectUrl(companyId);
 
-			if (sessionExpirationRedirectUrl != null) {
-				return sessionExpirationRedirectUrl;
+			if (sessionExpirationRedirectURL != null) {
+				return sessionExpirationRedirectURL;
 			}
 		}
 
 		return null;
 	}
 
-	private String _getSignInUrl(long companyId, String defaultSignInURL) {
+	private String _getSignInURL(long companyId, String defaultSignInURL) {
 		for (SSO sso : _ssoMap.values()) {
 			String signInURL = sso.getSignInURL(companyId, defaultSignInURL);
 

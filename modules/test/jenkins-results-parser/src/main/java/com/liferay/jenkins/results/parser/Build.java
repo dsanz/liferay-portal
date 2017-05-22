@@ -36,6 +36,10 @@ public interface Build {
 
 	public List<String> getBadBuildURLs();
 
+	public String getBaseRepositoryName();
+
+	public String getBaseRepositorySHA(String repositoryName);
+
 	public String getBranchName();
 
 	public String getBrowser();
@@ -74,6 +78,8 @@ public interface Build {
 
 	public String getJobVariant();
 
+	public Long getLatestStartTimestamp();
+
 	public String getMaster();
 
 	public String getOperatingSystem();
@@ -84,13 +90,11 @@ public interface Build {
 
 	public Build getParentBuild();
 
-	public String getRepositoryName();
-
-	public String getRepositorySHA(String repositoryName);
-
 	public String getResult();
 
 	public Map<String, String> getStartPropertiesTempMap();
+
+	public Long getStartTimestamp();
 
 	public String getStatus();
 
@@ -113,6 +117,8 @@ public interface Build {
 	public boolean hasBuildURL(String buildURL);
 
 	public void reinvoke();
+
+	public void reinvoke(ReinvokeRule reinvokeRule);
 
 	public String replaceBuildURL(String text);
 

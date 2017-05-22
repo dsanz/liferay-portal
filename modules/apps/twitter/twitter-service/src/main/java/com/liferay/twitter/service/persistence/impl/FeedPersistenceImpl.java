@@ -628,8 +628,14 @@ public class FeedPersistenceImpl extends BasePersistenceImpl<Feed>
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (isNew || !FeedModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!FeedModelImpl.COLUMN_BITMASK_ENABLED) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+		else
+		 if (isNew) {
+			finderCache.removeResult(FINDER_PATH_COUNT_ALL, FINDER_ARGS_EMPTY);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL,
+				FINDER_ARGS_EMPTY);
 		}
 
 		entityCache.putResult(FeedModelImpl.ENTITY_CACHE_ENABLED,
@@ -813,7 +819,7 @@ public class FeedPersistenceImpl extends BasePersistenceImpl<Feed>
 		query.append(_SQL_SELECT_FEED_WHERE_PKS_IN);
 
 		for (Serializable primaryKey : uncachedPrimaryKeys) {
-			query.append(String.valueOf(primaryKey));
+			query.append((long)primaryKey);
 
 			query.append(StringPool.COMMA);
 		}

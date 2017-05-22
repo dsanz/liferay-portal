@@ -14,7 +14,6 @@
 
 package com.liferay.jenkins.results.parser;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import java.util.ArrayList;
@@ -62,7 +61,7 @@ public class TestResult {
 
 		className = caseJSONObject.getString("className");
 
-		duration = (long)(caseJSONObject.getDouble("duration") * 1000d);
+		duration = (long)(caseJSONObject.getDouble("duration") * 1000D);
 
 		int x = className.lastIndexOf(".");
 
@@ -167,7 +166,7 @@ public class TestResult {
 		encodedTestName = encodedTestName.replace("]", "_");
 		encodedTestName = encodedTestName.replace("#", "_");
 
-		if (simpleClassName.equals("junit.framework")) {
+		if (packageName.equals("junit.framework")) {
 			encodedTestName = encodedTestName.replace(".", "_");
 		}
 
@@ -183,12 +182,8 @@ public class TestResult {
 			liferayLog = JenkinsResultsParserUtil.toString(
 				getLiferayLogURL(), false, 0, 0, 0);
 		}
-		catch (FileNotFoundException fnfe) {
-			return false;
-		}
 		catch (IOException ioe) {
-			throw new RuntimeException(
-				"Unable to verify existence of Liferay log");
+			return false;
 		}
 
 		return !liferayLog.isEmpty();

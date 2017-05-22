@@ -16,7 +16,6 @@ package com.liferay.sync.engine.lan.session;
 
 import com.liferay.sync.engine.document.library.event.LanDownloadFileEvent;
 import com.liferay.sync.engine.document.library.handler.LanDownloadFileHandler;
-import com.liferay.sync.engine.lan.util.LanClientUtil;
 import com.liferay.sync.engine.lan.util.LanPEMParserUtil;
 import com.liferay.sync.engine.lan.util.LanTokenUtil;
 import com.liferay.sync.engine.model.ModelListener;
@@ -28,10 +27,6 @@ import com.liferay.sync.engine.service.SyncLanClientService;
 import com.liferay.sync.engine.service.SyncLanEndpointService;
 import com.liferay.sync.engine.util.GetterUtil;
 import com.liferay.sync.engine.util.PropsValues;
-
-import java.io.IOException;
-
-import java.net.Socket;
 
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -55,11 +50,8 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.RequestLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -71,7 +63,6 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.protocol.HttpContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -534,32 +525,8 @@ public class LanSession {
 			keyManagerFactory.getKeyManagers(),
 			trustManagerFactory.getTrustManagers(), null);
 
-		return new SSLConnectionSocketFactory(
-			sslContext, new NoopHostnameVerifier()) {
-
-			@Override
-			public Socket createLayeredSocket(
-					Socket socket, String target, int port,
-					HttpContext httpContext)
-				throws IOException {
-
-				HttpClientContext httpClientContext =
-					(HttpClientContext)httpContext;
-
-				HttpRequest httpRequest = httpClientContext.getRequest();
-
-				RequestLine requestLine = httpRequest.getRequestLine();
-
-				String[] parts = StringUtils.split(requestLine.getUri(), "/");
-
-				String sniCompliantLanServerUuid = LanClientUtil.getSNIHostname(
-					parts[0]);
-
-				return super.createLayeredSocket(
-					socket, sniCompliantLanServerUuid, port, httpContext);
-			}
-
-		};
+		return new SNISSLConnectionSocketFactory(
+			sslContext, new NoopHostnameVerifier());
 	}
 
 	private static String _getUrl(

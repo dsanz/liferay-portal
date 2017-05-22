@@ -166,16 +166,6 @@ AUI.add(
 				}
 			},
 
-			_afterNestedFieldsChange: function(event) {
-				var instance = this;
-
-				instance.eachField(
-					function(field) {
-						field.render();
-					}
-				);
-			},
-
 			_setFields: function(fields) {
 				var instance = this;
 

@@ -22,6 +22,7 @@ import java.io.File;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -75,10 +76,6 @@ public class FormatSourceTask extends Task {
 		_sourceFormatterArgs.setBaseDirName(baseDir);
 	}
 
-	public void setCopyright(String copyright) {
-		_sourceFormatterArgs.setCopyrightFileName(copyright);
-	}
-
 	public void setFileNames(String fileNames) {
 		_sourceFormatterArgs.setFileNames(
 			Arrays.asList(StringUtil.split(fileNames)));
@@ -116,12 +113,12 @@ public class FormatSourceTask extends Task {
 		_sourceFormatterArgs.setProcessorThreadCount(processorThreadCount);
 	}
 
-	public void setThrowException(boolean throwException) {
-		_sourceFormatterArgs.setThrowException(throwException);
+	public void setShowDocumentation(boolean showDocumentation) {
+		_sourceFormatterArgs.setShowDocumentation(showDocumentation);
 	}
 
-	public void setUseProperties(boolean useProperties) {
-		_sourceFormatterArgs.setUseProperties(useProperties);
+	public void setThrowException(boolean throwException) {
+		_sourceFormatterArgs.setThrowException(throwException);
 	}
 
 	private void _collectFromFileSets() {
@@ -141,7 +138,7 @@ public class FormatSourceTask extends Task {
 				includedFiles[i] = file.getAbsolutePath();
 			}
 
-			fileNames.addAll(Arrays.asList(includedFiles));
+			Collections.addAll(fileNames, includedFiles);
 		}
 
 		_sourceFormatterArgs.setFileNames(fileNames);

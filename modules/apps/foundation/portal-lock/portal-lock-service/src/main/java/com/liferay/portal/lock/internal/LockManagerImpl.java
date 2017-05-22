@@ -58,6 +58,30 @@ public class LockManagerImpl implements LockManager {
 	}
 
 	@Override
+	public Lock fetchLock(String className, long key) {
+		com.liferay.portal.lock.model.Lock lock = _lockLocalService.fetchLock(
+			className, key);
+
+		if (lock == null) {
+			return null;
+		}
+
+		return new LockImpl(lock);
+	}
+
+	@Override
+	public Lock fetchLock(String className, String key) {
+		com.liferay.portal.lock.model.Lock lock = _lockLocalService.fetchLock(
+			className, key);
+
+		if (lock == null) {
+			return null;
+		}
+
+		return new LockImpl(lock);
+	}
+
+	@Override
 	public Lock getLock(String className, long key) throws PortalException {
 		try {
 			return new LockImpl(_lockLocalService.getLock(className, key));
@@ -116,11 +140,21 @@ public class LockManagerImpl implements LockManager {
 			boolean inheritable, long expirationTime)
 		throws PortalException {
 
+		return lock(
+			userId, className, key, owner, inheritable, expirationTime, true);
+	}
+
+	@Override
+	public Lock lock(
+			long userId, String className, long key, String owner,
+			boolean inheritable, long expirationTime, boolean renew)
+		throws PortalException {
+
 		try {
 			return new LockImpl(
 				_lockLocalService.lock(
-					userId, className, key, owner, inheritable,
-					expirationTime));
+					userId, className, key, owner, inheritable, expirationTime,
+					renew));
 		}
 		catch (PortalException pe) {
 			throw translate(pe);
@@ -133,11 +167,21 @@ public class LockManagerImpl implements LockManager {
 			boolean inheritable, long expirationTime)
 		throws PortalException {
 
+		return lock(
+			userId, className, key, owner, inheritable, expirationTime, true);
+	}
+
+	@Override
+	public Lock lock(
+			long userId, String className, String key, String owner,
+			boolean inheritable, long expirationTime, boolean renew)
+		throws PortalException {
+
 		try {
 			return new LockImpl(
 				_lockLocalService.lock(
-					userId, className, key, owner, inheritable,
-					expirationTime));
+					userId, className, key, owner, inheritable, expirationTime,
+					renew));
 		}
 		catch (PortalException pe) {
 			throw translate(pe);

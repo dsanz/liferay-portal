@@ -14,10 +14,13 @@
 
 package com.liferay.document.library.repository.cmis.internal;
 
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.repository.DocumentRepository;
+import com.liferay.portal.kernel.repository.capabilities.CommentCapability;
 import com.liferay.portal.kernel.repository.capabilities.PortalCapabilityLocator;
 import com.liferay.portal.kernel.repository.capabilities.ProcessorCapability;
+import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.repository.registry.BaseRepositoryDefiner;
 import com.liferay.portal.kernel.repository.registry.CapabilityRegistry;
 import com.liferay.portal.kernel.util.CacheResourceBundleLoader;
@@ -27,6 +30,8 @@ import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
+
+import org.apache.chemistry.opencmis.client.api.Document;
 
 import org.osgi.service.component.annotations.Reference;
 
@@ -38,8 +43,7 @@ public abstract class BaseCMISRepositoryDefiner extends BaseRepositoryDefiner {
 	@Override
 	public String getRepositoryTypeLabel(Locale locale) {
 		ResourceBundle resourceBundle =
-			_resourceBundleLoader.loadResourceBundle(
-				LanguageUtil.getLanguageId(locale));
+			_resourceBundleLoader.loadResourceBundle(locale);
 
 		return ResourceBundleUtil.getString(
 			resourceBundle, _MODEL_RESOURCE_NAME_PREFIX + getClassName());
@@ -54,9 +58,14 @@ public abstract class BaseCMISRepositoryDefiner extends BaseRepositoryDefiner {
 		PortalCapabilityLocator portalCapabilityLocator =
 			getPortalCapabilityLocator();
 
+		capabilityRegistry.addExportedCapability(
+			CommentCapability.class,
+			portalCapabilityLocator.getCommentCapability(documentRepository));
 		capabilityRegistry.addSupportedCapability(
 			ProcessorCapability.class,
-			portalCapabilityLocator.getProcessorCapability(documentRepository));
+			new RefreshingProcessorCapability(
+				portalCapabilityLocator.getProcessorCapability(
+					documentRepository)));
 	}
 
 	protected PortalCapabilityLocator getPortalCapabilityLocator() {
@@ -81,5 +90,63 @@ public abstract class BaseCMISRepositoryDefiner extends BaseRepositoryDefiner {
 		new CacheResourceBundleLoader(
 			new ClassResourceBundleLoader(
 				"content.Language", BaseCMISRepositoryDefiner.class));
+
+	private static class RefreshingProcessorCapability
+		implements ProcessorCapability {
+
+		public RefreshingProcessorCapability(
+			ProcessorCapability processorCapability) {
+
+			_processorCapability = processorCapability;
+		}
+
+		@Override
+		public void cleanUp(FileEntry fileEntry) throws PortalException {
+			_refresh(fileEntry);
+
+			_processorCapability.cleanUp(fileEntry);
+		}
+
+		@Override
+		public void cleanUp(FileVersion fileVersion) throws PortalException {
+			_refresh(fileVersion);
+
+			_processorCapability.cleanUp(fileVersion);
+		}
+
+		@Override
+		public void copy(FileEntry fileEntry, FileVersion fileVersion)
+			throws PortalException {
+
+			_refresh(fileEntry);
+			_refresh(fileVersion);
+
+			_processorCapability.copy(fileEntry, fileVersion);
+		}
+
+		@Override
+		public void generateNew(FileEntry fileEntry) throws PortalException {
+			_refresh(fileEntry);
+
+			_processorCapability.generateNew(fileEntry);
+		}
+
+		private void _refresh(FileEntry fileEntry) {
+			Document document = (Document)fileEntry.getModel();
+
+			document.refresh();
+		}
+
+		private void _refresh(FileVersion fileVersion) throws PortalException {
+			Document document = (Document)fileVersion.getModel();
+
+			document.refresh();
+
+			_refresh(fileVersion.getFileEntry());
+		}
+
+		private final ProcessorCapability _processorCapability;
+
+	}
 
 }

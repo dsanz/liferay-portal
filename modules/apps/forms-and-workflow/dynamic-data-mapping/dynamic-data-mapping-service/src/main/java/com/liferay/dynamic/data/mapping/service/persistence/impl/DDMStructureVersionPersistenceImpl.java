@@ -1673,8 +1673,31 @@ public class DDMStructureVersionPersistenceImpl extends BasePersistenceImpl<DDMS
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (isNew || !DDMStructureVersionModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!DDMStructureVersionModelImpl.COLUMN_BITMASK_ENABLED) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+		else
+		 if (isNew) {
+			Object[] args = new Object[] {
+					ddmStructureVersionModelImpl.getStructureId()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_STRUCTUREID, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_STRUCTUREID,
+				args);
+
+			args = new Object[] {
+					ddmStructureVersionModelImpl.getStructureId(),
+					ddmStructureVersionModelImpl.getStatus()
+				};
+
+			finderCache.removeResult(FINDER_PATH_COUNT_BY_S_S, args);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_S_S,
+				args);
+
+			finderCache.removeResult(FINDER_PATH_COUNT_ALL, FINDER_ARGS_EMPTY);
+			finderCache.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL,
+				FINDER_ARGS_EMPTY);
 		}
 
 		else {
@@ -1913,7 +1936,7 @@ public class DDMStructureVersionPersistenceImpl extends BasePersistenceImpl<DDMS
 		query.append(_SQL_SELECT_DDMSTRUCTUREVERSION_WHERE_PKS_IN);
 
 		for (Serializable primaryKey : uncachedPrimaryKeys) {
-			query.append(String.valueOf(primaryKey));
+			query.append((long)primaryKey);
 
 			query.append(StringPool.COMMA);
 		}

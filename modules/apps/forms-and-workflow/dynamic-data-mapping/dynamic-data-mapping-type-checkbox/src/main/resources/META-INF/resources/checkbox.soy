@@ -60,12 +60,14 @@
 							<span class="icon-asterisk text-warning"></span>
 						{/if}
 					</label>
-
-					{if $tip}
-						<p class="liferay-ddm-form-field-tip">{$tip}</p>
-					{/if}
 				{/if}
 			</div>
+
+			{if $showLabel}
+				{if $tip}
+					<p class="liferay-ddm-form-field-tip">{$tip}</p>
+				{/if}
+			{/if}
 		{/if}
 
 		{if $childElementsHTML}

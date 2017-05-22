@@ -75,6 +75,25 @@ public class CentralizedThreadLocal<T> extends ThreadLocal<T> {
 		else {
 			_hashCode = _longLivedNextHasCode.getAndAdd(_HASH_INCREMENT);
 		}
+
+		boolean hasInitialValueMethod = false;
+
+		Class<?> clazz = getClass();
+
+		while (clazz != CentralizedThreadLocal.class) {
+			try {
+				clazz.getDeclaredMethod("initialValue");
+
+				hasInitialValueMethod = true;
+
+				break;
+			}
+			catch (ReflectiveOperationException roe) {
+				clazz = clazz.getSuperclass();
+			}
+		}
+
+		_hasInitialValueMethod = hasInitialValueMethod;
 	}
 
 	@Override
@@ -93,15 +112,18 @@ public class CentralizedThreadLocal<T> extends ThreadLocal<T> {
 		Entry entry = threadLocalMap.getEntry(this);
 
 		if (entry == null) {
-			T value = initialValue();
+			if (_hasInitialValueMethod) {
+				T value = initialValue();
 
-			threadLocalMap.putEntry(this, value);
+				threadLocalMap.putEntry(this, value);
 
-			return value;
+				return value;
+			}
+
+			return null;
 		}
-		else {
-			return (T)entry._value;
-		}
+
+		return (T)entry._value;
 	}
 
 	@Override
@@ -142,7 +164,7 @@ public class CentralizedThreadLocal<T> extends ThreadLocal<T> {
 			threadLocalMap._table.length);
 
 		for (Entry entry : threadLocalMap._table) {
-			if (entry != null) {
+			while (entry != null) {
 				CentralizedThreadLocal<Object> centralizedThreadLocal =
 					(CentralizedThreadLocal<Object>)entry._key;
 
@@ -151,6 +173,8 @@ public class CentralizedThreadLocal<T> extends ThreadLocal<T> {
 				if (value != null) {
 					map.put(centralizedThreadLocal, value);
 				}
+
+				entry = entry._next;
 			}
 		}
 
@@ -191,6 +215,7 @@ public class CentralizedThreadLocal<T> extends ThreadLocal<T> {
 	}
 
 	private final int _hashCode;
+	private final boolean _hasInitialValueMethod;
 	private final boolean _shortLived;
 
 	private static class Entry {

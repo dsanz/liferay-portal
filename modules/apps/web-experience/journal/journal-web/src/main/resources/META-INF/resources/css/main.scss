@@ -12,6 +12,10 @@
 		.input-localized-content {
 			display: none;
 		}
+
+		.alloy-editor-switch {
+			display: none;
+		}
 	}
 
 	.journal-article-preview {
@@ -21,5 +25,11 @@
 	.lfr-description-column, .lfr-title-column {
 		max-width: 150px;
 		min-width: 150px;
+	}
+
+	.metadata .lfr-ddm-field-group {
+		margin-bottom: 20px;
+		margin-top: 0;
+		padding: 0;
 	}
 }

@@ -21,10 +21,8 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.PortletConstants;
 import com.liferay.portal.kernel.resource.manager.ClassLoaderResourceManager;
-import com.liferay.portal.kernel.resource.manager.ResourceManager;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.service.GroupLocalService;
-import com.liferay.portal.kernel.service.PortalPreferencesLocalService;
 import com.liferay.portal.kernel.service.PortletLocalService;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
 import com.liferay.portal.kernel.settings.ConfigurationBeanSettings;
@@ -32,33 +30,37 @@ import com.liferay.portal.kernel.settings.LocationVariableResolver;
 import com.liferay.portal.kernel.settings.PortletPreferencesSettings;
 import com.liferay.portal.kernel.settings.PropertiesSettings;
 import com.liferay.portal.kernel.settings.Settings;
-import com.liferay.portal.kernel.settings.SettingsFactoryUtil;
 import com.liferay.portal.kernel.settings.SettingsLocatorHelper;
 import com.liferay.portal.kernel.settings.definition.ConfigurationBeanDeclaration;
 import com.liferay.portal.kernel.settings.definition.ConfigurationPidMapping;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
-import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.Props;
+import com.liferay.portal.util.PrefsPropsUtil;
 
-import java.util.Properties;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import javax.portlet.PortletPreferences;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.util.tracker.ServiceTracker;
 
 /**
  * @author Iván Zaera
  * @author Jorge Ferrer
+ * @author Shuyang Zhou
  */
-@Component(service = SettingsLocatorHelper.class)
+@Component(immediate = true, service = SettingsLocatorHelper.class)
 @DoPrivileged
 public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 
@@ -80,20 +82,34 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 	}
 
 	@Override
+	public Settings getConfigurationBeanSettings(String configurationPid) {
+		Class<?> configurationBeanClass = _configurationBeanClasses.get(
+			configurationPid);
+
+		if (configurationBeanClass == null) {
+			return _portalPropertiesSettings;
+		}
+
+		Settings configurationBeanSettings = _configurationBeanSettings.get(
+			configurationBeanClass);
+
+		if (configurationBeanSettings == null) {
+			return _portalPropertiesSettings;
+		}
+
+		return configurationBeanSettings;
+	}
+
+	/**
+	 * @deprecated As of 2.0.0, replaced by {@link
+	 *             #getConfigurationBeanSettings(String)}
+	 */
+	@Deprecated
+	@Override
 	public Settings getConfigurationBeanSettings(
 		String configurationPid, Settings parentSettings) {
 
-		Object configurationBean = getConfigurationBean(configurationPid);
-
-		if (configurationBean == null) {
-			return parentSettings;
-		}
-
-		return new ConfigurationBeanSettings(
-			new LocationVariableResolver(
-				getResourceManager(configurationPid),
-				SettingsFactoryUtil.getSettingsFactory()),
-			configurationBean, parentSettings);
+		return getConfigurationBeanSettings(configurationPid);
 	}
 
 	public PortletPreferences getGroupPortletPreferences(
@@ -119,31 +135,21 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 			getGroupPortletPreferences(groupId, settingsId), parentSettings);
 	}
 
-	public PortletPreferences getPortalPreferences(long companyId) {
-		return _portalPreferencesLocalService.getPreferences(
-			companyId, PortletKeys.PREFS_OWNER_TYPE_COMPANY);
-	}
-
 	@Override
 	public Settings getPortalPreferencesSettings(
 		long companyId, Settings parentSettings) {
 
 		return new PortletPreferencesSettings(
-			getPortalPreferences(companyId), parentSettings);
+			PrefsPropsUtil.getPreferences(companyId), parentSettings);
 	}
 
-	public Properties getPortalProperties() {
-		return PropsUtil.getProperties();
-	}
-
+	/**
+	 * @deprecated As of 2.0.0, with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public Settings getPortalPropertiesSettings() {
-		return new PropertiesSettings(
-			new LocationVariableResolver(
-				new ClassLoaderResourceManager(
-					PortalClassLoaderUtil.getClassLoader()),
-				SettingsFactoryUtil.getSettingsFactory()),
-			getPortalProperties());
+		return _portalPropertiesSettings;
 	}
 
 	public PortletPreferences getPortletInstancePortletPreferences(
@@ -187,79 +193,22 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 			parentSettings);
 	}
 
+	@Override
+	public Settings getServerSettings(String settingsId) {
+		return getConfigurationBeanSettings(settingsId);
+	}
+
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
+		_configurationBeanDeclarationServiceTracker =
+			new ConfigurationBeanDeclarationServiceTracker(bundleContext);
 
-		for (ConfigurationBeanManagedService configurationBeanManagedService :
-				_configurationBeanManagedServices.values()) {
-
-			configurationBeanManagedService.setBundleContext(bundleContext);
-
-			configurationBeanManagedService.register();
-		}
+		_configurationBeanDeclarationServiceTracker.open();
 	}
 
-	protected Object getConfigurationBean(String configurationPid) {
-		Class<?> configurationBeanClass = _configurationBeanClasses.get(
-			configurationPid);
-
-		if (configurationBeanClass == null) {
-			return null;
-		}
-
-		ConfigurationBeanManagedService configurationBeanManagedService =
-			_configurationBeanManagedServices.get(configurationBeanClass);
-
-		return configurationBeanManagedService.getConfigurationBean();
-	}
-
-	protected ResourceManager getResourceManager(String configurationPid) {
-		Class<?> configurationBeanClass = _configurationBeanClasses.get(
-			configurationPid);
-
-		if (configurationBeanClass == null) {
-			return new ClassLoaderResourceManager(
-				PortalClassLoaderUtil.getClassLoader());
-		}
-
-		return new ClassLoaderResourceManager(
-			configurationBeanClass.getClassLoader());
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.MULTIPLE,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void setConfigurationBeanDeclaration(
-		ConfigurationBeanDeclaration configurationBeanDeclaration) {
-
-		Class<?> configurationBeanClass =
-			configurationBeanDeclaration.getConfigurationBeanClass();
-
-		if (_configurationBeanManagedServices.containsKey(
-				configurationBeanClass)) {
-
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Configuration bean declaration for configuration bean " +
-						configurationBeanClass.getName() + " already exists");
-			}
-
-			return;
-		}
-
-		ConfigurationBeanManagedService configurationBeanManagedService =
-			new ConfigurationBeanManagedService(
-				_bundleContext, configurationBeanClass);
-
-		_configurationBeanClasses.put(
-			configurationBeanManagedService.getConfigurationPid(),
-			configurationBeanClass);
-		_configurationBeanManagedServices.put(
-			configurationBeanClass, configurationBeanManagedService);
-
-		configurationBeanManagedService.register();
+	@Deactivate
+	protected void deactivate() {
+		_configurationBeanDeclarationServiceTracker.close();
 	}
 
 	@Reference(
@@ -284,13 +233,6 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 	}
 
 	@Reference(unbind = "-")
-	protected void setPortalPreferencesLocalService(
-		PortalPreferencesLocalService portalPreferencesLocalService) {
-
-		_portalPreferencesLocalService = portalPreferencesLocalService;
-	}
-
-	@Reference(unbind = "-")
 	protected void setPortletLocalService(
 		PortletLocalService portletLocalService) {
 	}
@@ -302,21 +244,14 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 		_portletPreferencesLocalService = portletPreferencesLocalService;
 	}
 
-	protected void unsetConfigurationBeanDeclaration(
-		ConfigurationBeanDeclaration configurationBeanDeclaration) {
-
-		Class<?> configurationBeanClass =
-			configurationBeanDeclaration.getConfigurationBeanClass();
-
-		ConfigurationBeanManagedService configurationBeanManagedService =
-			_configurationBeanManagedServices.get(configurationBeanClass);
-
-		configurationBeanManagedService.unregister();
-
-		_configurationBeanClasses.remove(
-			configurationBeanManagedService.getConfigurationPid());
-
-		_configurationBeanManagedServices.remove(configurationBeanClass);
+	@Reference(unbind = "-")
+	protected void setProps(Props props) {
+		_portalPropertiesSettings = new PropertiesSettings(
+			new LocationVariableResolver(
+				new ClassLoaderResourceManager(
+					PortalClassLoaderUtil.getClassLoader()),
+				this),
+			props.getProperties());
 	}
 
 	protected void unsetConfigurationPidMapping(
@@ -329,13 +264,81 @@ public class SettingsLocatorHelperImpl implements SettingsLocatorHelper {
 	private static final Log _log = LogFactoryUtil.getLog(
 		SettingsLocatorHelperImpl.class);
 
-	private BundleContext _bundleContext;
 	private final ConcurrentMap<String, Class<?>> _configurationBeanClasses =
 		new ConcurrentHashMap<>();
-	private final ConcurrentMap<Class<?>, ConfigurationBeanManagedService>
-		_configurationBeanManagedServices = new ConcurrentHashMap<>();
+	private ServiceTracker
+		<ConfigurationBeanDeclaration, ConfigurationBeanManagedService>
+			_configurationBeanDeclarationServiceTracker;
+	private final Map<Class<?>, Settings> _configurationBeanSettings =
+		new ConcurrentHashMap<>();
 	private GroupLocalService _groupLocalService;
-	private PortalPreferencesLocalService _portalPreferencesLocalService;
+	private Settings _portalPropertiesSettings;
 	private PortletPreferencesLocalService _portletPreferencesLocalService;
+
+	private class ConfigurationBeanDeclarationServiceTracker
+		extends ServiceTracker
+			<ConfigurationBeanDeclaration, ConfigurationBeanManagedService> {
+
+		@Override
+		public ConfigurationBeanManagedService addingService(
+			ServiceReference<ConfigurationBeanDeclaration> serviceReference) {
+
+			ConfigurationBeanDeclaration configurationBeanDeclaration =
+				context.getService(serviceReference);
+
+			Class<?> configurationBeanClass =
+				configurationBeanDeclaration.getConfigurationBeanClass();
+
+			ConfigurationBeanManagedService configurationBeanManagedService =
+				new ConfigurationBeanManagedService(
+					context, configurationBeanClass,
+					(configurationBean) -> {
+						ClassLoader classLoader =
+							configurationBeanClass.getClassLoader();
+
+						LocationVariableResolver locationVariableResolver =
+							new LocationVariableResolver(
+								new ClassLoaderResourceManager(classLoader),
+								SettingsLocatorHelperImpl.this);
+
+						_configurationBeanSettings.put(
+							configurationBeanClass,
+							new ConfigurationBeanSettings(
+								locationVariableResolver, configurationBean,
+								_portalPropertiesSettings));
+					});
+
+			_configurationBeanClasses.put(
+				configurationBeanManagedService.getConfigurationPid(),
+				configurationBeanClass);
+
+			configurationBeanManagedService.register();
+
+			return configurationBeanManagedService;
+		}
+
+		@Override
+		public void removedService(
+			ServiceReference<ConfigurationBeanDeclaration> serviceReference,
+			ConfigurationBeanManagedService configurationBeanManagedService) {
+
+			context.ungetService(serviceReference);
+
+			configurationBeanManagedService.unregister();
+
+			_configurationBeanClasses.remove(
+				configurationBeanManagedService.getConfigurationPid());
+
+			_configurationBeanSettings.remove(
+				configurationBeanManagedService.getConfigurationPid());
+		}
+
+		private ConfigurationBeanDeclarationServiceTracker(
+			BundleContext context) {
+
+			super(context, ConfigurationBeanDeclaration.class, null);
+		}
+
+	}
 
 }

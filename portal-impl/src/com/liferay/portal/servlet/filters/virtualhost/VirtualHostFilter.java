@@ -194,7 +194,7 @@ public class VirtualHostFilter extends BasePortalFilter {
 		if (!friendlyURL.equals(StringPool.SLASH) && !_contextPath.isEmpty() &&
 			(friendlyURL.length() > _contextPath.length()) &&
 			friendlyURL.startsWith(_contextPath) &&
-			friendlyURL.charAt(_contextPath.length()) == CharPool.SLASH) {
+			(friendlyURL.charAt(_contextPath.length()) == CharPool.SLASH)) {
 
 			friendlyURL = friendlyURL.substring(_contextPath.length());
 		}
@@ -211,8 +211,16 @@ public class VirtualHostFilter extends BasePortalFilter {
 			friendlyURL = friendlyURL.substring(i18nLanguageId.length());
 		}
 
-		friendlyURL = StringUtil.replace(
-			friendlyURL, PropsValues.WIDGET_SERVLET_MAPPING, StringPool.BLANK);
+		int widgetServletMappingPos = 0;
+
+		if (friendlyURL.contains(PropsValues.WIDGET_SERVLET_MAPPING)) {
+			friendlyURL = StringUtil.replaceFirst(
+				friendlyURL, PropsValues.WIDGET_SERVLET_MAPPING,
+				StringPool.BLANK);
+
+			widgetServletMappingPos =
+				PropsValues.WIDGET_SERVLET_MAPPING.length();
+		}
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Friendly URL " + friendlyURL);
@@ -224,14 +232,14 @@ public class VirtualHostFilter extends BasePortalFilter {
 			_log.debug("Friendly URL is not valid");
 
 			if (i18nLanguageId != null) {
-				String forwardURL = originalFriendlyURL;
-
 				int offset =
 					originalFriendlyURL.length() - friendlyURL.length() -
-						i18nLanguageId.length();
+						(i18nLanguageId.length() + widgetServletMappingPos);
 
 				if (!originalFriendlyURL.regionMatches(
 						offset, i18nLanguageId, 0, i18nLanguageId.length())) {
+
+					String forwardURL = originalFriendlyURL;
 
 					if (offset > 0) {
 						String prefix = originalFriendlyURL.substring(
@@ -244,22 +252,21 @@ public class VirtualHostFilter extends BasePortalFilter {
 					}
 
 					forwardURL = forwardURL.concat(friendlyURL);
+
+					RequestDispatcher requestDispatcher =
+						_servletContext.getRequestDispatcher(forwardURL);
+
+					requestDispatcher.forward(request, response);
+
+					return;
 				}
-
-				RequestDispatcher requestDispatcher =
-					_servletContext.getRequestDispatcher(forwardURL);
-
-				requestDispatcher.forward(request, response);
-
-				return;
 			}
-			else {
-				processFilter(
-					VirtualHostFilter.class.getName(), request, response,
-					filterChain);
 
-				return;
-			}
+			processFilter(
+				VirtualHostFilter.class.getName(), request, response,
+				filterChain);
+
+			return;
 		}
 
 		LayoutSet layoutSet = (LayoutSet)request.getAttribute(

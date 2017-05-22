@@ -14,8 +14,6 @@
 
 package com.liferay.portlet.exportimport.service.impl;
 
-import aQute.bnd.annotation.ProviderType;
-
 import com.liferay.document.library.kernel.util.DLValidatorUtil;
 import com.liferay.exportimport.kernel.background.task.BackgroundTaskExecutorNames;
 import com.liferay.exportimport.kernel.controller.ExportController;
@@ -48,7 +46,6 @@ import java.util.Map;
 /**
  * @author Daniel Kocsis
  */
-@ProviderType
 public class ExportImportLocalServiceImpl
 	extends ExportImportLocalServiceBaseImpl {
 
@@ -220,7 +217,10 @@ public class ExportImportLocalServiceImpl
 			importLayouts(exportImportConfiguration, file);
 		}
 		catch (IOException ioe) {
-			throw new SystemException(ioe);
+			throw new SystemException(
+				"Unable to process LAR file for layout import due to a file " +
+					"system error",
+				ioe);
 		}
 		finally {
 			FileUtil.delete(file);
@@ -299,7 +299,10 @@ public class ExportImportLocalServiceImpl
 				userId, exportImportConfiguration, file);
 		}
 		catch (IOException ioe) {
-			throw new SystemException(ioe);
+			throw new SystemException(
+				"Unable to process LAR file for layout import due to a file " +
+					"system error",
+				ioe);
 		}
 		finally {
 			FileUtil.delete(file);
@@ -421,7 +424,10 @@ public class ExportImportLocalServiceImpl
 			importPortletInfo(exportImportConfiguration, file);
 		}
 		catch (IOException ioe) {
-			throw new SystemException(ioe);
+			throw new SystemException(
+				"Unable to process LAR file for layout import due to a file " +
+					"system error",
+				ioe);
 		}
 		finally {
 			FileUtil.delete(file);
@@ -470,7 +476,10 @@ public class ExportImportLocalServiceImpl
 				userId, exportImportConfiguration, file);
 		}
 		catch (IOException ioe) {
-			throw new SystemException(ioe);
+			throw new SystemException(
+				"Unable to process LAR file for portlet import due to a file " +
+					"system error",
+				ioe);
 		}
 		finally {
 			FileUtil.delete(file);
@@ -550,7 +559,10 @@ public class ExportImportLocalServiceImpl
 			return validateImportLayoutsFile(exportImportConfiguration, file);
 		}
 		catch (IOException ioe) {
-			throw new SystemException(ioe);
+			throw new SystemException(
+				"Unable to process LAR file for layout import validation due " +
+					"to a file system error",
+				ioe);
 		}
 		finally {
 			FileUtil.delete(file);
@@ -603,7 +615,10 @@ public class ExportImportLocalServiceImpl
 			return validateImportPortletInfo(exportImportConfiguration, file);
 		}
 		catch (IOException ioe) {
-			throw new SystemException(ioe);
+			throw new SystemException(
+				"Unable to process LAR file for portlet import validation " +
+					"due to a file system error",
+				ioe);
 		}
 		finally {
 			FileUtil.delete(file);

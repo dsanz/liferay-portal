@@ -225,8 +225,8 @@ public class Encryptor {
 			if (ServerDetector.isWebSphere() &&
 				PROVIDER_CLASS.equals(SUN_PROVIDER_CLASS)) {
 
-				if (_log.isWarnEnabled()) {
-					_log.warn(
+				if (_log.isInfoEnabled()) {
+					_log.info(
 						"WebSphere does not have " + SUN_PROVIDER_CLASS +
 							", using " + IBM_PROVIDER_CLASS + " instead");
 				}
@@ -236,8 +236,8 @@ public class Encryptor {
 			else if (System.getProperty("java.vm.vendor").equals(
 						"IBM Corporation")) {
 
-				if (_log.isWarnEnabled()) {
-					_log.warn(
+				if (_log.isInfoEnabled()) {
+					_log.info(
 						"IBM JVM does not have " + SUN_PROVIDER_CLASS +
 							", using " + IBM_PROVIDER_CLASS + " instead");
 				}
@@ -259,8 +259,8 @@ public class Encryptor {
 	private static final Log _log = LogFactoryUtil.getLog(Encryptor.class);
 
 	private static final Map<String, Cipher> _decryptCipherMap =
-		new ConcurrentHashMap<>(1, 1f, 1);
+		new ConcurrentHashMap<>(1, 1F, 1);
 	private static final Map<String, Cipher> _encryptCipherMap =
-		new ConcurrentHashMap<>(1, 1f, 1);
+		new ConcurrentHashMap<>(1, 1F, 1);
 
 }
