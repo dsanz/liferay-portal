@@ -32,7 +32,7 @@ import org.osgi.service.component.annotations.Reference;
 
 		"com.liferay.portlet.css-class-wrapper=portlet-message-boards-subscription-manager",
 		"com.liferay.portlet.display-category=category.collaboration",
-		"com.liferay.portlet.icon=/message_boards_subscription_manager/icons/message_boards.png",
+		"com.liferay.portlet.icon=/message_boards_subscription_manager/icons/message_boards_subscription_manager.png",
 		"com.liferay.portlet.preferences-owned-by-group=true",
 		"com.liferay.portlet.private-request-attributes=false",
 		"com.liferay.portlet.private-session-attributes=false",
