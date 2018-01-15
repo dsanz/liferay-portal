@@ -14,7 +14,7 @@
  */
 --%>
 
-<%@ include file="/META-INF/resources/message_boards_subscription_manager/init.jsp/resources/message_boards_subscription_manager/init.jsp" %>
+<%@ include file="/message_boards_subscription_manager/init.jsp" %>
 
 <%
 SearchContainer searchContainer = (SearchContainer)request.getAttribute("liferay-ui:search:searchContainer");

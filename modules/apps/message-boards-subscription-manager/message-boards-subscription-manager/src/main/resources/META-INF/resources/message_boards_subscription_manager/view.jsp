@@ -14,7 +14,7 @@
  */
 --%>
 
-<%@ include file="/META-INF/resources/message_boards_subscription_manager/init.jsp" %>
+<%@ include file="/message_boards_subscription_manager/init.jsp" %>
 
 <%
 String keywords = ParamUtil.getString(request, "keywords");

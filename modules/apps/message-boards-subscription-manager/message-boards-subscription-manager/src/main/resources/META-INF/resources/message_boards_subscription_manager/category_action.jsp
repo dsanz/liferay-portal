@@ -14,7 +14,7 @@
  */
 --%>
 
-<%@ include file="/META-INF/resources/message_boards_subscription_manager/init.jsp/resources/message_boards_subscription_manager/init.jsp" %>
+<%@ include file="/message_boards_subscription_manager/init.jsp" %>
 
 <%
 ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);

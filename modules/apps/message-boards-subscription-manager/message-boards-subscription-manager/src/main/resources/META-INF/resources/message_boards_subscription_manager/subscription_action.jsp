@@ -14,7 +14,7 @@
  */
 --%>
 
-<%@ include file="/META-INF/resources/message_boards_subscription_manager/init.jsp" %>
+<%@ include file="/message_boards_subscription_manager/init.jsp" %>
 
 <%
 long mbCategoryId = ParamUtil.getLong(request, "mbCategoryId");
