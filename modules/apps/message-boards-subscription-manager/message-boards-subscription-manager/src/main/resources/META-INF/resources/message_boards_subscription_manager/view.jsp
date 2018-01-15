@@ -20,59 +20,71 @@
 String keywords = ParamUtil.getString(request, "keywords");
 %>
 
-<liferay-ui:header
-	title="categories"
-/>
+<aui:nav-bar cssClass="collapse-basic-search" markupView="lexicon">
+	<aui:nav cssClass="navbar-nav">
+		<portlet:renderURL var="viewEntriesURL" />
 
-<aui:form action="<%= portletURL %>" cssClass="form-search" method="post" name="fm1">
-	<liferay-ui:input-search placeholder='<%= LanguageUtil.get(request, "keywords") %>' title='<%= LanguageUtil.get(request, "keywords") %>' />
-</aui:form>
+		<aui:nav-item
+			href="<%= viewEntriesURL %>"
+			label="categories"
+			selected="<%= true %>"
+		/>
+	</aui:nav>
 
-<liferay-ui:search-container
-	emptyResultsMessage="no-categories-were-found"
-	iteratorURL="<%= portletURL %>"
-	total="<%= SubscriptionManagerUtil.getMBCategoriesCount(scopeGroupId, keywords) %>"
->
-	<liferay-ui:search-container-results
-		results="<%= SubscriptionManagerUtil.getMBCategories(scopeGroupId, keywords, searchContainer.getStart(), searchContainer.getEnd()) %>"
-	/>
+	<aui:form action="<%= portletURL.toString() %>" name="searchFm">
+		<aui:nav-bar-search>
+			<liferay-ui:input-search markupView="lexicon" />
+		</aui:nav-bar-search>
+	</aui:form>
+</aui:nav-bar>
 
-	<liferay-ui:search-container-row
-		className="com.liferay.message.boards.kernel.model.MBCategory"
-		escapedModel="<%= true %>"
-		keyProperty="categoryId"
-		modelVar="mbCategory"
+<div class="container-fluid-1280 main-content-body">
+	<liferay-ui:search-container
+		emptyResultsMessage="no-categories-were-found"
+		iteratorURL="<%= portletURL %>"
+		total="<%= SubscriptionManagerUtil.getMBCategoriesCount(scopeGroupId, keywords) %>"
 	>
-		<liferay-portlet:renderURL var="editSubscriptionsURL">
-			<portlet:param name="mvcRenderCommandName" value="/message_boards_subscription_manager/edit_subscriptions" />
-			<portlet:param name="redirect" value="<%= currentURL %>" />
-			<portlet:param name="mbCategoryId" value="<%= String.valueOf(mbCategory.getCategoryId()) %>" />
-		</liferay-portlet:renderURL>
-
-		<liferay-ui:search-container-column-text
-			href="<%= editSubscriptionsURL %>"
-			name="category"
-			value="<%= mbCategory.getName() %>"
+		<liferay-ui:search-container-results
+			results="<%= SubscriptionManagerUtil.getMBCategories(scopeGroupId, keywords, searchContainer.getStart(), searchContainer.getEnd()) %>"
 		/>
 
-		<liferay-ui:search-container-column-text
-			name="path"
-			value="<%= _getCategoryBreadcrumb(mbCategory) %>"
-		/>
+		<liferay-ui:search-container-row
+			className="com.liferay.message.boards.kernel.model.MBCategory"
+			escapedModel="<%= true %>"
+			keyProperty="categoryId"
+			modelVar="mbCategory"
+		>
+			<liferay-portlet:renderURL var="editSubscriptionsURL">
+				<portlet:param name="mvcRenderCommandName" value="/message_boards_subscription_manager/edit_subscriptions" />
+				<portlet:param name="redirect" value="<%= currentURL %>" />
+				<portlet:param name="mbCategoryId" value="<%= String.valueOf(mbCategory.getCategoryId()) %>" />
+			</liferay-portlet:renderURL>
 
-		<liferay-ui:search-container-column-text
-			name="subscribers"
-			value="<%= _getSubscribers(pageContext, mbCategory) %>"
-		/>
+			<liferay-ui:search-container-column-text
+				href="<%= editSubscriptionsURL %>"
+				name="category"
+				value="<%= mbCategory.getName() %>"
+			/>
 
-		<liferay-ui:search-container-column-jsp
-			align="right"
-			path="/message_boards_subscription_manager/category_action.jsp"
-		/>
-	</liferay-ui:search-container-row>
+			<liferay-ui:search-container-column-text
+				name="path"
+				value="<%= _getCategoryBreadcrumb(mbCategory) %>"
+			/>
 
-	<liferay-ui:search-iterator />
-</liferay-ui:search-container>
+			<liferay-ui:search-container-column-text
+				name="subscribers"
+				value="<%= _getSubscribers(pageContext, mbCategory) %>"
+			/>
+
+			<liferay-ui:search-container-column-jsp
+				align="right"
+				path="/message_boards_subscription_manager/category_action.jsp"
+			/>
+		</liferay-ui:search-container-row>
+
+		<liferay-ui:search-iterator markupView="lexicon" />
+	</liferay-ui:search-container>
+</div>
 
 <%!
 private String _getCategoryBreadcrumb(MBCategory mbCategory) throws Exception {
@@ -128,7 +140,7 @@ private String _getSubscribers(PageContext pageContext, MBCategory mbCategory) t
 
 	PortletURL portletURL = PortletURLFactoryUtil.create(request, MBSubscriptionManagerPortletKeys.MESSAGE_BOARDS_SUBSCRIPTION_MANAGER, themeDisplay.getPlid(), PortletRequest.RENDER_PHASE);
 
-	portletURL.setParameter("mvcRenderCommandName", "/message_boards_subscription_manager/edit_subscriptions.jsp");
+	portletURL.setParameter("mvcRenderCommandName", "/message_boards_subscription_manager/edit_subscriptions");
 	portletURL.setParameter("redirect", PortalUtil.getCurrentURL(request));
 	portletURL.setParameter("mbCategoryId", String.valueOf(mbCategory.getCategoryId()));
 

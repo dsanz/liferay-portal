@@ -19,8 +19,6 @@
 <%
 long mbCategoryId = ParamUtil.getLong(request, "mbCategoryId");
 
-portletURL = (PortletURL)request.getAttribute("edit_subscriptions.jsp-portletURL");
-
 ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
 
 User user2 = (User)row.getObject();
@@ -30,26 +28,24 @@ boolean subscribed = SubscriptionLocalServiceUtil.isSubscribed(user2.getCompanyI
 
 <portlet:actionURL name="/message_boards_subscription_manager/edit_subscription" var="editSubscriptionURL">
 	<portlet:param name="<%= Constants.CMD %>" value="<%= subscribed ? Constants.UNSUBSCRIBE : Constants.SUBSCRIBE %>" />
-	<portlet:param name="redirect" value="<%= String.valueOf(portletURL) %>" />
+	<portlet:param name="redirect" value="<%= currentURL %>" />
 	<portlet:param name="mbCategoryId" value="<%= String.valueOf(mbCategoryId) %>" />
 	<portlet:param name="userIds" value="<%= String.valueOf(user2.getUserId()) %>" />
 </portlet:actionURL>
 
-<c:choose>
-	<c:when test="<%= subscribed %>">
-		<liferay-ui:icon
-			iconCssClass="icon-remove-sign"
-			label="<%= true %>"
-			message="unsubscribe"
-			url="<%= editSubscriptionURL %>"
-		/>
-	</c:when>
-	<c:otherwise>
-		<liferay-ui:icon
-			iconCssClass="icon-ok-sign"
-			label="<%= true %>"
-			message="subscribe"
-			url="<%= editSubscriptionURL %>"
-		/>
-	</c:otherwise>
-</c:choose>
+<liferay-ui:icon-menu direction="left-side" icon="<%= StringPool.BLANK %>" markupView="lexicon" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>">
+	<c:choose>
+		<c:when test="<%= subscribed %>">
+			<liferay-ui:icon
+				message="unsubscribe"
+				url="<%= editSubscriptionURL %>"
+			/>
+		</c:when>
+		<c:otherwise>
+			<liferay-ui:icon
+				message="subscribe"
+				url="<%= editSubscriptionURL %>"
+			/>
+		</c:otherwise>
+	</c:choose>
+</liferay-ui:icon-menu>

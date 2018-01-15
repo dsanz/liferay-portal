@@ -1,4 +1,5 @@
-<%--
+<%@ page import="com.liferay.portal.kernel.workflow.WorkflowConstants" %>
+<%@ page import="com.liferay.portal.kernel.dao.search.RowChecker" %><%--
 /**
  * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
@@ -21,151 +22,178 @@ String redirect = ParamUtil.getString(request, "redirect");
 
 long mbCategoryId = ParamUtil.getLong(request, "mbCategoryId");
 
-portletURL.setParameter("mvcRenderCommandName", "/message_boards_subscription_manager/edit_subscriptions");
-portletURL.setParameter("redirect", redirect);
-portletURL.setParameter("mbCategoryId", String.valueOf(mbCategoryId));
+PortletURL iteratorURL = PortletURLUtil.clone(currentURLObj, liferayPortletResponse);
 
-request.setAttribute("edit_subscriptions.jsp-portletURL", portletURL);
+iteratorURL.setParameter("redirect", redirect);
 
 MBCategory mbCategory = MBCategoryLocalServiceUtil.getMBCategory(mbCategoryId);
+
+portletDisplay.setShowBackIcon(true);
+portletDisplay.setURLBack(redirect);
+
+renderResponse.setTitle(mbCategory.getName());
+
+SearchContainer userSearchContainer = new UserSearch(renderRequest, iteratorURL);
+
+UserSearchTerms searchTerms = (UserSearchTerms)userSearchContainer.getSearchTerms();
+
+List<User> users = null;
+int usersCount = 0;
+
+String navigation = ParamUtil.getString(request, "navigation", "active");
+
+searchTerms.setStatus(WorkflowConstants.STATUS_APPROVED);
+
+if (navigation.equals("inactive")) {
+	searchTerms.setStatus(WorkflowConstants.STATUS_INACTIVE);
+}
+
+if (searchTerms.isAdvancedSearch()) {
+	usersCount = UserLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getFirstName(), searchTerms.getMiddleName(), searchTerms.getLastName(), searchTerms.getScreenName(), searchTerms.getEmailAddress(), searchTerms.getStatus(), new LinkedHashMap(), searchTerms.isAndOperator());
+
+	userSearchContainer.setTotal(usersCount);
+
+	users = UserLocalServiceUtil.search(company.getCompanyId(), searchTerms.getFirstName(), searchTerms.getMiddleName(), searchTerms.getLastName(), searchTerms.getScreenName(), searchTerms.getEmailAddress(), searchTerms.getStatus(), new LinkedHashMap(), searchTerms.isAndOperator(), userSearchContainer.getStart(), userSearchContainer.getEnd(), userSearchContainer.getOrderByComparator());
+}
+else {
+	usersCount = UserLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getKeywords(), searchTerms.getStatus(), new LinkedHashMap());
+
+	userSearchContainer.setTotal(usersCount);
+
+	users = UserLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), searchTerms.getStatus(), new LinkedHashMap(), userSearchContainer.getStart(), userSearchContainer.getEnd(), userSearchContainer.getOrderByComparator());
+}
+
+userSearchContainer.setResults(users);
+
+RowChecker rowChecker = new EmptyOnClickRowChecker(renderResponse);
+
+rowChecker.setRowIds("userIds");
+
+userSearchContainer.setRowChecker(rowChecker);
 %>
 
-<liferay-ui:header
-	title="<%= mbCategory.getName() %>"
-/>
+<aui:nav-bar cssClass="collapse-basic-search" markupView="lexicon">
+	<aui:nav cssClass="navbar-nav">
+		<portlet:renderURL var="viewEntriesURL" />
 
-<form action="<%= portletURL.toString() %>" method="post" name="<portlet:namespace />fm" onSubmit="submitForm(this); return false;">
-	<aui:input name="mbCategoryId" type="hidden" value="<%= mbCategoryId %>" />
-	<aui:input name="userIds" type="hidden" />
+		<aui:nav-item
+			href="<%= portletURL %>"
+			label="users"
+			selected="<%= true %>"
+		/>
+	</aui:nav>
+</aui:nav-bar>
 
-	<h3 class="lfr-panel-title"><span><liferay-ui:message key="users" /></span></h3>
-
-	<%
-	SearchContainer userSearchContainer = new UserSearch(renderRequest, portletURL);
-
-	UserSearchTerms searchTerms = (UserSearchTerms)userSearchContainer.getSearchTerms();
-
-	List<User> users = null;
-	int usersCount = 0;
-
-	if (searchTerms.isAdvancedSearch()) {
-		usersCount = UserLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getFirstName(), searchTerms.getMiddleName(), searchTerms.getLastName(), searchTerms.getScreenName(), searchTerms.getEmailAddress(), searchTerms.getStatus(), new LinkedHashMap(), searchTerms.isAndOperator());
-
-		userSearchContainer.setTotal(usersCount);
-
-		users = UserLocalServiceUtil.search(company.getCompanyId(), searchTerms.getFirstName(), searchTerms.getMiddleName(), searchTerms.getLastName(), searchTerms.getScreenName(), searchTerms.getEmailAddress(), searchTerms.getStatus(), new LinkedHashMap(), searchTerms.isAndOperator(), userSearchContainer.getStart(), userSearchContainer.getEnd(), userSearchContainer.getOrderByComparator());
-	}
-	else {
-		usersCount = UserLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getKeywords(), searchTerms.getStatus(), new LinkedHashMap());
-
-		userSearchContainer.setTotal(usersCount);
-
-		users = UserLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), searchTerms.getStatus(), new LinkedHashMap(), userSearchContainer.getStart(), userSearchContainer.getEnd(), userSearchContainer.getOrderByComparator());
-	}
-
-	userSearchContainer.setResults(users);
-
-	userSearchContainer.setRowChecker(new RowChecker(renderResponse));
-	%>
-
-	<liferay-ui:search-container
-		headerNames="name,screen-name"
-		searchContainer="<%= userSearchContainer %>"
-		total="<%= userSearchContainer.getTotal() %>"
-	>
-		<liferay-ui:search-container-results
-			results="<%= userSearchContainer.getResults() %>"
+<liferay-frontend:management-bar
+	includeCheckBox="<%= true %>"
+	searchContainerId="users"
+>
+	<liferay-frontend:management-bar-filters>
+		<liferay-frontend:management-bar-navigation
+			navigationKeys='<%= new String[] {"active", "inactive"} %>'
+			portletURL="<%= PortletURLUtil.clone(currentURLObj, renderResponse) %>"
 		/>
 
-		<c:if test="<%= !users.isEmpty() %>">
-			<aui:button-row>
-				<aui:button onClick='<%= renderResponse.getNamespace() + "subscribeUsers();" %>' value="subscribe" />
+		<liferay-frontend:management-bar-sort
+			orderByCol="<%= userSearchContainer.getOrderByCol() %>"
+			orderByType="<%= userSearchContainer.getOrderByType() %>"
+			orderColumns='<%= new String[] {"first-name", "last-name", "screen-name"} %>'
+			portletURL="<%= PortletURLUtil.clone(currentURLObj, renderResponse) %>"
+		/>
+	</liferay-frontend:management-bar-filters>
 
-				<aui:button onClick='<%= renderResponse.getNamespace() + "unsubscribeUsers();" %>' value="unsubscribe" />
-			</aui:button-row>
-		</c:if>
+	<liferay-frontend:management-bar-action-buttons>
+		<liferay-frontend:management-bar-button href='<%= "javascript:" + renderResponse.getNamespace() + "subscribeUsers();" %>' icon="star" label="subscribe" />
+		<liferay-frontend:management-bar-button href='<%= "javascript:" + renderResponse.getNamespace() + "unsubscribeUsers();" %>' icon="star-o" label="unsubscribe" />
+	</liferay-frontend:management-bar-action-buttons>
+</liferay-frontend:management-bar>
 
-		<liferay-ui:search-container-row
-			className="com.liferay.portal.kernel.model.User"
-			escapedModel="<%= true %>"
-			keyProperty="userId"
-			modelVar="user2"
-			rowIdProperty="screenName"
+<div class="container-fluid-1280 main-content-body">
+	<liferay-portlet:actionURL name="/message_boards_subscription_manager/edit_subscription" var="editSubscriptionURL" />
+
+	<aui:form action="<%= editSubscriptionURL.toString() %>" method="post" name="fm">
+		<aui:input name="mbCategoryId" type="hidden" value="<%= mbCategoryId %>" />
+		<aui:input name="<%= Constants.CMD %>" type="hidden" />
+		<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
+
+		<liferay-ui:search-container
+			headerNames="name,screen-name"
+			id="users"
+			searchContainer="<%= userSearchContainer %>"
+			total="<%= userSearchContainer.getTotal() %>"
 		>
-			<liferay-ui:search-container-column-text
-				name="first-name"
-				orderable="<%= true %>"
-				property="firstName"
+			<liferay-ui:search-container-results
+				results="<%= userSearchContainer.getResults() %>"
 			/>
 
-			<liferay-ui:search-container-column-text
-				name="last-name"
-				orderable="<%= true %>"
-				property="lastName"
-			/>
-
-			<liferay-ui:search-container-column-text
-				name="screen-name"
-				orderable="<%= true %>"
-				property="screenName"
-			/>
-
-			<liferay-ui:search-container-column-text
-				name="job-title"
-				orderable="<%= true %>"
-				value="<%= user2.getJobTitle() %>"
-			/>
-
-			<liferay-ui:search-container-column-text
-				name="organizations"
+			<liferay-ui:search-container-row
+				className="com.liferay.portal.kernel.model.User"
+				escapedModel="<%= true %>"
+				keyProperty="userId"
+				modelVar="user2"
+				rowIdProperty="screenName"
 			>
-				<liferay-ui:write bean="<%= user2 %>" property="organizations" />
-			</liferay-ui:search-container-column-text>
+				<liferay-ui:search-container-column-text
+					name="first-name"
+					orderable="<%= true %>"
+					property="firstName"
+				/>
 
-			<liferay-ui:search-container-column-text
-				name="user-groups"
-			>
-				<liferay-ui:write bean="<%= user2 %>" property="user-groups" />
-			</liferay-ui:search-container-column-text>
+				<liferay-ui:search-container-column-text
+					name="last-name"
+					orderable="<%= true %>"
+					property="lastName"
+				/>
 
-			<liferay-ui:search-container-column-jsp
-				align="right"
-				path="/message_boards_subscription_manager/subscription_action.jsp"
-			/>
-		</liferay-ui:search-container-row>
+				<liferay-ui:search-container-column-text
+					name="screen-name"
+					orderable="<%= true %>"
+					property="screenName"
+				/>
 
-		<liferay-ui:search-iterator />
-	</liferay-ui:search-container>
-</form>
+				<liferay-ui:search-container-column-text
+					name="job-title"
+					orderable="<%= true %>"
+					value="<%= user2.getJobTitle() %>"
+				/>
+
+				<liferay-ui:search-container-column-text
+					name="organizations"
+				>
+					<liferay-ui:write bean="<%= user2 %>" property="organizations" />
+				</liferay-ui:search-container-column-text>
+
+				<liferay-ui:search-container-column-text
+					name="user-groups"
+				>
+					<liferay-ui:write bean="<%= user2 %>" property="user-groups" />
+				</liferay-ui:search-container-column-text>
+
+				<liferay-ui:search-container-column-jsp
+					align="right"
+					path="/message_boards_subscription_manager/subscription_action.jsp"
+				/>
+			</liferay-ui:search-container-row>
+
+			<liferay-ui:search-iterator markupView="lexicon" />
+		</liferay-ui:search-container>
+	</aui:form>
+</div>
 
 <aui:script>
-	Liferay.provide(
-		window,
-		'<portlet:namespace />subscribeUsers',
-		function() {
-			var userIds = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+	function <portlet:namespace />subscribeUsers() {
+		var form = AUI.$(document.<portlet:namespace />fm);
 
-			if (userIds) {
-				document.<portlet:namespace />fm.<portlet:namespace />userIds.value = userIds;
+		form.fm('<%= Constants.CMD %>').val('<%= Constants.SUBSCRIBE %>')
 
-				submitForm(document.<portlet:namespace />fm, '<portlet:actionURL name="subscribeUsers"><portlet:param name="redirect" value="<%= portletURL.toString() %>" /></portlet:actionURL>');
-			}
-		},
-		['liferay-util-list-fields']
-	);
+		submitForm(form);
+	}
 
-	Liferay.provide(
-		window,
-		'<portlet:namespace />unsubscribeUsers',
-		function() {
-			var userIds = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+	function <portlet:namespace />unsubscribeUsers() {
+		var form = AUI.$(document.<portlet:namespace />fm);
 
-			if (userIds) {
-				document.<portlet:namespace />fm.<portlet:namespace />userIds.value = userIds;
+		form.fm('<%= Constants.CMD %>').val('<%= Constants.UNSUBSCRIBE %>')
 
-				submitForm(document.<portlet:namespace />fm, '<portlet:actionURL name="unsubscribeUsers"><portlet:param name="redirect" value="<%= portletURL.toString() %>" /></portlet:actionURL>');
-			}
-		},
-		['liferay-util-list-fields']
-	);
+		submitForm(form);
+	}
 </aui:script>

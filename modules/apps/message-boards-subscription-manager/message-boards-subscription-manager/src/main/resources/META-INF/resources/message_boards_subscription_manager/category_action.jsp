@@ -24,13 +24,16 @@ MBCategory mbCategory = (MBCategory)row.getObject();
 String portletId = PortletProviderUtil.getPortletId(MBCategory.class.getName(), PortletProvider.Action.MANAGE);
 %>
 
-<liferay-ui:icon-menu>
+<liferay-ui:icon-menu direction="left-side" icon="<%= StringPool.BLANK %>" markupView="lexicon" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>">
 	<liferay-portlet:renderURL plid="<%= PortalUtil.getPlidFromPortletId(mbCategory.getGroupId(), portletId) %>" portletName="<%= portletId %>" var="viewURL">
 		<portlet:param name="mvcRenderCommandName" value="/message_boards/view" />
 		<portlet:param name="mbCategoryId" value="<%= String.valueOf(mbCategory.getCategoryId()) %>" />
 	</liferay-portlet:renderURL>
 
-	<liferay-ui:icon image="view" message="view" target="_blank" url="<%= viewURL %>" />
+	<liferay-ui:icon
+		message="view"
+		url="<%= viewURL %>"
+	/>
 
 	<liferay-portlet:renderURL var="editSubscriptionsURL">
 		<portlet:param name="mvcRenderCommandName" value="/message_boards_subscription_manager/edit_subscriptions" />
@@ -39,9 +42,7 @@ String portletId = PortletProviderUtil.getPortletId(MBCategory.class.getName(), 
 	</liferay-portlet:renderURL>
 
 	<liferay-ui:icon
-		image="edit"
 		message="manage-subscriptions"
-		method="get"
 		url="<%= editSubscriptionsURL %>"
 	/>
 </liferay-ui:icon-menu>
