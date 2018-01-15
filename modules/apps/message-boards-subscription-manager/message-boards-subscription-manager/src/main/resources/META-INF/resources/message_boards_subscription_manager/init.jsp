@@ -24,8 +24,8 @@
 <%@ taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 <%@ taglib uri="http://liferay.com/tld/util" prefix="liferay-util" %>
 
-<%@ page import="com.liferay.mbsubscriptionmanager.util.PortletKeys" %><%@
-page import="com.liferay.mbsubscriptionmanager.util.SubscriptionManagerUtil" %><%@
+<%@ page import="com.liferay.message.boards.subscription.manager.internal.util.MBSubscriptionManagerPortletKeys" %><%@
+page import="com.liferay.message.boards.subscription.manager.internal.util.SubscriptionManagerUtil" %><%@
 page import="com.liferay.portal.kernel.dao.search.DisplayTerms" %><%@
 page import="com.liferay.portal.kernel.dao.search.ResultRow" %><%@
 page import="com.liferay.portal.kernel.dao.search.RowChecker" %><%@
@@ -37,14 +37,14 @@ page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
 page import="com.liferay.portal.kernel.util.StringBundler" %><%@
 page import="com.liferay.portal.kernel.util.StringPool" %><%@
 page import="com.liferay.portal.kernel.util.WebKeys" %><%@
-page import="com.liferay.portal.model.Subscription" %><%@
-page import="com.liferay.portal.model.User" %><%@
-page import="com.liferay.portal.service.SubscriptionLocalServiceUtil" %><%@
-page import="com.liferay.portal.theme.ThemeDisplay" %><%@
-page import="com.liferay.portal.util.PortalUtil" %><%@
-page import="com.liferay.portlet.PortletURLFactoryUtil" %><%@
-page import="com.liferay.portlet.messageboards.model.MBCategory" %><%@
-page import="com.liferay.portlet.messageboards.service.MBCategoryLocalServiceUtil" %>
+page import="com.liferay.portal.kernel.model.Subscription" %><%@
+page import="com.liferay.portal.kernel.model.User" %><%@
+page import="com.liferay.portal.kernel.service.SubscriptionLocalServiceUtil" %><%@
+page import="com.liferay.portal.kernel.theme.ThemeDisplay" %><%@
+page import="com.liferay.portal.kernel.util.PortalUtil" %><%@
+page import="com.liferay.portal.kernel.portlet.PortletURLFactoryUtil" %><%@
+page import="com.liferay.message.boards.kernel.model.MBCategory" %><%@
+page import="com.liferay.message.boards.kernel.service.MBCategoryLocalServiceUtil" %>
 
 <%@ page import="java.util.Collections" %><%@
 page import="java.util.Iterator" %><%@
