@@ -5,17 +5,17 @@
 		<execute macro="User#firstLoginPG" />
 	</set-up>
 
-	<command name="MBSubscriptionManagerPortletSmoke" priority="4">
+	<command name="SubscriptionManagerPortletSmoke" priority="4">
 		<property name="portlet.plugins.includes" value="mb-subscription-manager-portlet" />
 
-		<var name="appName" value="Message Boards Subscription Manager" />
+		<var name="appName" value="Subscription Manager" />
 
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoPortlet">
 			<var name="category" value="Configuration" />
 			<var name="panel" value="Site Administration" />
-			<var name="portlet" value="Message Boards Subscription Manager" />
+			<var name="portlet" value="Subscription Manager" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoPortlet">

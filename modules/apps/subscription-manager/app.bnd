@@ -1,0 +1,12 @@
+Liferay-Releng-App-Description: Note: This app is deprecated as of version 1.0.0.
+Liferay-Releng-App-Title: ${liferay.releng.app.title.prefix} Subscription Manager
+Liferay-Releng-Bundle: false
+Liferay-Releng-Category: Utility
+Liferay-Releng-Deprecated: true
+Liferay-Releng-Labs: true
+Liferay-Releng-Marketplace: true
+Liferay-Releng-Portal-Required: false
+Liferay-Releng-Public: ${liferay.releng.public}
+Liferay-Releng-Restart-Required: false
+Liferay-Releng-Support-Url: http://www.liferay.com
+Liferay-Releng-Supported: ${liferay.releng.supported}
