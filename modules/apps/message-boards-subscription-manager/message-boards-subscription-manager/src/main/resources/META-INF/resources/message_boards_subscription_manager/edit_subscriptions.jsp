@@ -1,5 +1,4 @@
-<%@ page import="com.liferay.portal.kernel.workflow.WorkflowConstants" %>
-<%@ page import="com.liferay.portal.kernel.dao.search.RowChecker" %><%--
+<%--
 /**
  * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
@@ -133,6 +132,17 @@ userSearchContainer.setRowChecker(rowChecker);
 				modelVar="user2"
 				rowIdProperty="screenName"
 			>
+
+				<%
+				boolean subscribed = SubscriptionLocalServiceUtil.isSubscribed(user2.getCompanyId(), user2.getUserId(), MBCategory.class.getName(), mbCategoryId);
+
+				request.setAttribute("edit_subscriptions.jsp-subscribed", subscribed);
+				%>
+
+				<liferay-ui:search-container-column-text>
+					<liferay-ui:icon alt='<%= subscribed ? "subscribed" : "unsubscribed" %>' icon='<%= subscribed ? "star" : "star-o" %>' markupView="lexicon" message='<%= subscribed ? "subscribed" : "unsubscribed" %>' />
+				</liferay-ui:search-container-column-text>
+
 				<liferay-ui:search-container-column-text
 					name="first-name"
 					orderable="<%= true %>"
