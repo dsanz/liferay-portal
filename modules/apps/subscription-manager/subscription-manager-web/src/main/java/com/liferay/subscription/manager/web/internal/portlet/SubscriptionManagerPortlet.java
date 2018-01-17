@@ -14,9 +14,9 @@
 
 package com.liferay.subscription.manager.web.internal.portlet;
 
-import com.liferay.subscription.manager.web.internal.util.SubscriptionManagerPortletKeys;
 import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
+import com.liferay.subscription.manager.web.internal.util.SubscriptionManagerPortletKeys;
 
 import javax.portlet.Portlet;
 
@@ -53,7 +53,7 @@ import org.osgi.service.component.annotations.Reference;
 public class SubscriptionManagerPortlet extends MVCPortlet {
 
 	@Reference(
-		target = "(&(release.bundle.symbolic.name=com.liferay.message.boards.subscription.manager)(release.schema.version=1.0.0))",
+		target = "(&(release.bundle.symbolic.name=com.liferay.subscription.manager)(release.schema.version=1.0.0))",
 		unbind = "-"
 	)
 	protected void setRelease(Release release) {

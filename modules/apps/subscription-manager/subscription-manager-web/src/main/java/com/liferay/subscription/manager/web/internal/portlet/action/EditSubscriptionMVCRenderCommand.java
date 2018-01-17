@@ -14,8 +14,8 @@
 
 package com.liferay.subscription.manager.web.internal.portlet.action;
 
-import com.liferay.subscription.manager.web.internal.util.SubscriptionManagerPortletKeys;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
+import com.liferay.subscription.manager.web.internal.util.SubscriptionManagerPortletKeys;
 
 import javax.portlet.PortletException;
 import javax.portlet.RenderRequest;

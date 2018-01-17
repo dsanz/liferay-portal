@@ -1,4 +1,3 @@
-<%--
 /**
  * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
@@ -12,16 +11,15 @@
  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  */
---%>
 
-<%@ include file="/subscription_manager/init.jsp" %>
+package com.liferay.subscription.manager.web.internal.constants;
 
-<%
-SearchContainer searchContainer = (SearchContainer)request.getAttribute("liferay-ui:search:searchContainer");
+/**
+ * @author Roberto Díaz
+ */
+public class SubscriptionManagerWebKeys {
 
-DisplayTerms displayTerms = searchContainer.getDisplayTerms();
-%>
+	public static final String SUBSCRIPTION_MANAGER_HANDLER_MAP =
+		"SUBSCRIPTION_MANAGER_HANDLER_MAP";
 
-<aui:input inlineField="<%= true %>" label="" name="<%= displayTerms.KEYWORDS %>" size="30" type="text" value="<%= displayTerms.getKeywords() %>" />
-
-<aui:button type="submit" value="search" />
+}

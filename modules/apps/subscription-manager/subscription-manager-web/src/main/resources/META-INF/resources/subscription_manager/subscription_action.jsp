@@ -17,19 +17,22 @@
 <%@ include file="/subscription_manager/init.jsp" %>
 
 <%
-long mbCategoryId = ParamUtil.getLong(request, "mbCategoryId");
+String className = ParamUtil.getString(request, "className");
+long classPK = ParamUtil.getLong(request, "classPK");
 
 ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
 
 User user2 = (User)row.getObject();
 
-boolean subscribed = SubscriptionLocalServiceUtil.isSubscribed(user2.getCompanyId(), user2.getUserId(), MBCategory.class.getName(), mbCategoryId);
+boolean subscribed = SubscriptionLocalServiceUtil.isSubscribed(user2.getCompanyId(), user2.getUserId(), className, Long.valueOf(classPK));
 %>
 
 <portlet:actionURL name="/subscription_manager/edit_subscription" var="editSubscriptionURL">
 	<portlet:param name="<%= Constants.CMD %>" value="<%= subscribed ? Constants.UNSUBSCRIBE : Constants.SUBSCRIBE %>" />
 	<portlet:param name="redirect" value="<%= currentURL %>" />
-	<portlet:param name="mbCategoryId" value="<%= String.valueOf(mbCategoryId) %>" />
+	<portlet:param name="className" value="<%= className %>" />
+	<portlet:param name="classPK" value="<%= String.valueOf(classPK) %>" />
+	<portlet:param name="groupId" value="<%= String.valueOf(scopeGroupId) %>" />
 	<portlet:param name="userIds" value="<%= String.valueOf(user2.getUserId()) %>" />
 </portlet:actionURL>
 

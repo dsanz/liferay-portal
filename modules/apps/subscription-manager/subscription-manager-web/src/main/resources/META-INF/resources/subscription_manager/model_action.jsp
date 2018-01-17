@@ -19,26 +19,30 @@
 <%
 ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
 
-MBCategory mbCategory = (MBCategory)row.getObject();
+SubscriptionManagerHandler subscriptionManagerHandler = (SubscriptionManagerHandler)request.getAttribute("view.jsp-subscriptionManagerHandler");
 
-String portletId = PortletProviderUtil.getPortletId(MBCategory.class.getName(), PortletProvider.Action.MANAGE);
+Object object = row.getObject();
+
+long classPK = subscriptionManagerHandler.getClassPK(object);
 %>
 
 <liferay-ui:icon-menu direction="left-side" icon="<%= StringPool.BLANK %>" markupView="lexicon" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>">
-	<liferay-portlet:renderURL plid="<%= PortalUtil.getPlidFromPortletId(mbCategory.getGroupId(), portletId) %>" portletName="<%= portletId %>" var="viewURL">
-		<portlet:param name="mvcRenderCommandName" value="/message_boards/view" />
-		<portlet:param name="mbCategoryId" value="<%= String.valueOf(mbCategory.getCategoryId()) %>" />
-	</liferay-portlet:renderURL>
+
+	<%
+	PortletURL viewURL = subscriptionManagerHandler.getViewURL(classPK, request, currentURL);
+	%>
 
 	<liferay-ui:icon
 		message="view"
-		url="<%= viewURL %>"
+		url="<%= viewURL.toString() %>"
 	/>
 
 	<liferay-portlet:renderURL var="editSubscriptionsURL">
 		<portlet:param name="mvcRenderCommandName" value="/subscription_manager/edit_subscriptions" />
 		<portlet:param name="redirect" value="<%= currentURL %>" />
-		<portlet:param name="mbCategoryId" value="<%= String.valueOf(mbCategory.getCategoryId()) %>" />
+		<portlet:param name="className" value="<%= subscriptionManagerHandler.getClassName() %>" />
+		<portlet:param name="classPK" value="<%= String.valueOf(classPK) %>" />
+		<portlet:param name="title" value="<%= subscriptionManagerHandler.getName(object) %>" />
 	</liferay-portlet:renderURL>
 
 	<liferay-ui:icon

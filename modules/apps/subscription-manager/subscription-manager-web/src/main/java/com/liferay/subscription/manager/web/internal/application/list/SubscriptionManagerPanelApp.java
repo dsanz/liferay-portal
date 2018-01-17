@@ -17,8 +17,8 @@ package com.liferay.subscription.manager.web.internal.application.list;
 import com.liferay.application.list.BasePanelApp;
 import com.liferay.application.list.PanelApp;
 import com.liferay.application.list.constants.PanelCategoryKeys;
-import com.liferay.subscription.manager.web.internal.util.SubscriptionManagerPortletKeys;
 import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.subscription.manager.web.internal.util.SubscriptionManagerPortletKeys;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;

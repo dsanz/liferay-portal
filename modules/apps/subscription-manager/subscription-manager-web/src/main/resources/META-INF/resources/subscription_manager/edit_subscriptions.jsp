@@ -19,18 +19,18 @@
 <%
 String redirect = ParamUtil.getString(request, "redirect");
 
-long mbCategoryId = ParamUtil.getLong(request, "mbCategoryId");
+String className = ParamUtil.getString(request, "className");
+long classPK = ParamUtil.getLong(request, "classPK");
+String title = ParamUtil.getString(request, "title");
 
 PortletURL iteratorURL = PortletURLUtil.clone(currentURLObj, liferayPortletResponse);
 
 iteratorURL.setParameter("redirect", redirect);
 
-MBCategory mbCategory = MBCategoryLocalServiceUtil.getMBCategory(mbCategoryId);
-
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(redirect);
 
-renderResponse.setTitle(mbCategory.getName());
+renderResponse.setTitle(title);
 
 SearchContainer userSearchContainer = new UserSearch(renderRequest, iteratorURL);
 
@@ -111,8 +111,10 @@ userSearchContainer.setRowChecker(rowChecker);
 	<liferay-portlet:actionURL name="/subscription_manager/edit_subscription" var="editSubscriptionURL" />
 
 	<aui:form action="<%= editSubscriptionURL.toString() %>" method="post" name="fm">
-		<aui:input name="mbCategoryId" type="hidden" value="<%= mbCategoryId %>" />
+		<aui:input name="className" type="hidden" value="<%= className %>" />
+		<aui:input name="classPK" type="hidden" value="<%= classPK %>" />
 		<aui:input name="<%= Constants.CMD %>" type="hidden" />
+		<aui:input name="groupId" type="hidden" value="<%= String.valueOf(scopeGroupId) %>" />
 		<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 
 		<liferay-ui:search-container
@@ -134,7 +136,7 @@ userSearchContainer.setRowChecker(rowChecker);
 			>
 
 				<%
-				boolean subscribed = SubscriptionLocalServiceUtil.isSubscribed(user2.getCompanyId(), user2.getUserId(), MBCategory.class.getName(), mbCategoryId);
+				boolean subscribed = SubscriptionLocalServiceUtil.isSubscribed(user2.getCompanyId(), user2.getUserId(), className, classPK);
 
 				request.setAttribute("edit_subscriptions.jsp-subscribed", subscribed);
 				%>

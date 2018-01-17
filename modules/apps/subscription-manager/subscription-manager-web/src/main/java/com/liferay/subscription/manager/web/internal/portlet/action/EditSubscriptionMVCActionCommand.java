@@ -14,16 +14,17 @@
 
 package com.liferay.subscription.manager.web.internal.portlet.action;
 
-import com.liferay.message.boards.kernel.model.MBCategory;
-import com.liferay.message.boards.kernel.service.MBCategoryLocalService;
-import com.liferay.subscription.manager.web.internal.util.SubscriptionManagerPortletKeys;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.SubscriptionLocalService;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.subscription.manager.web.internal.registry.SubscriptionManagerHandlerRegistry;
+import com.liferay.subscription.manager.web.internal.util.SubscriptionManagerPortletKeys;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -43,43 +44,47 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class EditSubscriptionMVCActionCommand extends BaseMVCActionCommand {
 
+	@Reference(unbind = "-")
+	public void setSubscriptionManagerHandlerRegistry(
+		SubscriptionManagerHandlerRegistry subscriptionManagerHandlerRegistry) {
+
+		_subscriptionManagerHandlerRegistry =
+			subscriptionManagerHandlerRegistry;
+	}
+
 	public void subscribeUsers(ActionRequest actionRequest)
 		throws PortalException {
 
-		long mbCategoryId = ParamUtil.getLong(actionRequest, "mbCategoryId");
-
-		MBCategory mbCategory = _mbCategoryLocalService.getMBCategory(
-			mbCategoryId);
-
+		String className = ParamUtil.getString(actionRequest, "className");
+		long classPK = ParamUtil.getLong(actionRequest, "classPK");
+		long groupId = ParamUtil.getLong(actionRequest, "groupId");
 		long[] userIds = ParamUtil.getLongValues(actionRequest, "userIds");
 
 		for (long userId : userIds) {
 			_subscriptionLocalService.addSubscription(
-				userId, mbCategory.getGroupId(), MBCategory.class.getName(),
-				mbCategory.getCategoryId());
+				userId, groupId, className, classPK);
 		}
 	}
 
 	public void unsubscribeUsers(ActionRequest actionRequest)
 		throws PortalException {
 
-		long mbCategoryId = ParamUtil.getLong(actionRequest, "mbCategoryId");
-
-		MBCategory mbCategory = _mbCategoryLocalService.getMBCategory(
-			mbCategoryId);
-
+		String className = ParamUtil.getString(actionRequest, "className");
+		long classPK = ParamUtil.getLong(actionRequest, "classPK");
+		long groupId = ParamUtil.getLong(actionRequest, "groupId");
 		long[] userIds = ParamUtil.getLongValues(actionRequest, "userIds");
+
+		Group group = _groupLocalService.getGroup(groupId);
 
 		for (long userId : userIds) {
 			if (!_subscriptionLocalService.isSubscribed(
-					mbCategory.getCompanyId(), userId,
-					MBCategory.class.getName(), mbCategoryId)) {
+					group.getCompanyId(), userId, className, classPK)) {
 
 				continue;
 			}
 
 			_subscriptionLocalService.deleteSubscription(
-				userId, MBCategory.class.getName(), mbCategoryId);
+				userId, className, classPK);
 		}
 	}
 
@@ -107,20 +112,20 @@ public class EditSubscriptionMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	@Reference(unbind = "-")
-	protected void setMBCategoryLocalService(
-		MBCategoryLocalService mbCategoryLocalService) {
-
-		_mbCategoryLocalService = mbCategoryLocalService;
+	protected void setGroupLocalService(GroupLocalService groupLocalService) {
+		_groupLocalService = groupLocalService;
 	}
 
 	@Reference(unbind = "-")
-	protected void setMBCategoryService(
+	protected void setSubscriptionLocalService(
 		SubscriptionLocalService subscriptionLocalService) {
 
 		_subscriptionLocalService = subscriptionLocalService;
 	}
 
-	private MBCategoryLocalService _mbCategoryLocalService;
+	private GroupLocalService _groupLocalService;
 	private SubscriptionLocalService _subscriptionLocalService;
+	private SubscriptionManagerHandlerRegistry
+		_subscriptionManagerHandlerRegistry;
 
 }
