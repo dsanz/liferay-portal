@@ -93,15 +93,16 @@ public class MBSubscriptionManagerHandler
 	}
 
 	@Override
-	public List<MBCategory> getResults(long groupId, int start, int end)
+	public List<MBCategory> getResults(
+			long groupId, long classPK, int start, int end)
 		throws PortalException {
 
-		return _mbCategoryService.getCategories(groupId, 0, start, end);
+		return _mbCategoryService.getCategories(groupId, classPK, start, end);
 	}
 
 	@Override
-	public int getTotal(long groupId) throws PortalException {
-		return _mbCategoryService.getCategoriesCount(groupId, 0);
+	public int getTotal(long groupId,long classPK) throws PortalException {
+		return _mbCategoryService.getCategoriesCount(groupId, classPK);
 	}
 
 	@Override

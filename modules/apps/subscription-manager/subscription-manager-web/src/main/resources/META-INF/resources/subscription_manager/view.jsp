@@ -18,6 +18,7 @@
 
 <%
 String navigation = ParamUtil.getString(request, "navigation");
+long classPK = ParamUtil.getLong(request, "classPK", 0);
 
 Map<String, SubscriptionManagerHandler> subscriptionManagerHandlerMap = subscriptionManagerDisplayContext.getSubscriptionManagerHandlerMap();
 
@@ -76,8 +77,8 @@ if (Validator.isNotNull(navigation) && !subscriptionManagerHandlerMap.isEmpty())
 		<%
 		SearchContainer modelSearchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, null, subscriptionManagerHandler.getEmptyResultsMessage());
 
-		modelSearchContainer.setTotal(subscriptionManagerHandler.getTotal(scopeGroupId));
-		modelSearchContainer.setResults(subscriptionManagerHandler.getResults(scopeGroupId, modelSearchContainer.getStart(), modelSearchContainer.getEnd()));
+		modelSearchContainer.setTotal(subscriptionManagerHandler.getTotal(scopeGroupId, classPK));
+		modelSearchContainer.setResults(subscriptionManagerHandler.getResults(scopeGroupId, classPK, modelSearchContainer.getStart(), modelSearchContainer.getEnd()));
 		%>
 
 		<div class="container-fluid-1280 main-content-body">
@@ -89,16 +90,28 @@ if (Validator.isNotNull(navigation) && !subscriptionManagerHandlerMap.isEmpty())
 					escapedModel="<%= true %>"
 					modelVar="object"
 				>
-					<liferay-portlet:renderURL var="editSubscriptionsURL">
-						<portlet:param name="mvcRenderCommandName" value="/subscription_manager/edit_subscriptions" />
-						<portlet:param name="redirect" value="<%= currentURL %>" />
-						<portlet:param name="className" value="<%= subscriptionManagerHandler.getClassName() %>" />
-						<portlet:param name="classPK" value="<%= String.valueOf(subscriptionManagerHandler.getClassPK(object)) %>" />
-						<portlet:param name="title" value="<%= subscriptionManagerHandler.getName(object) %>" />
-					</liferay-portlet:renderURL>
+
+					<%
+					PortletURL rowURL = liferayPortletResponse.createRenderURL();
+
+					long curModelClassPK = subscriptionManagerHandler.getClassPK(object);
+
+					boolean modelBrowseable = subscriptionManagerHandler.isModelBrowseable(curModelClassPK);
+
+					if (modelBrowseable) {
+						rowURL.setParameter("classPK", String.valueOf(curModelClassPK));
+					}
+					else {
+						rowURL.setParameter("mvcRenderCommandName", "/subscription_manager/edit_subscriptions");
+						rowURL.setParameter("redirect", currentURL);
+						rowURL.setParameter("className", subscriptionManagerHandler.getClassName());
+						rowURL.setParameter("classPK", String.valueOf(curModelClassPK));
+						rowURL.setParameter("title", subscriptionManagerHandler.getName(object));
+					}
+					%>
 
 					<liferay-ui:search-container-column-text
-						href="<%= editSubscriptionsURL %>"
+						href="<%= rowURL.toString() %>"
 						name="<%= subscriptionManagerHandler.getNameLabel(locale) %>"
 						value="<%= subscriptionManagerHandler.getName(object) %>"
 					/>

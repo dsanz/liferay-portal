@@ -40,13 +40,19 @@ public interface SubscriptionManagerHandler<T> {
 
 	public String getNameLabel(Locale locale);
 
-	public List<T> getResults(long groupId, int start, int end)
+	public List<T> getResults(long groupId, long classPK, int start, int end)
 		throws PortalException;
 
-	public int getTotal(long groupId) throws PortalException;
+	public int getTotal(long groupId, long classPK) throws PortalException;
 
 	public PortletURL getViewURL(
 			long classPK, HttpServletRequest request, String redirect)
 		throws PortalException;
+
+	public default boolean isModelBrowseable(long classPK)
+		throws PortalException {
+
+		return false;
+	}
 
 }

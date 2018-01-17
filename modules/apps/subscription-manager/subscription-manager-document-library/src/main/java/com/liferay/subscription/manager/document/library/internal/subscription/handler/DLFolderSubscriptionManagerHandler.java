@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleLoader;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.language.LanguageResources;
 import com.liferay.subscription.manager.SubscriptionManagerHandler;
 
@@ -94,17 +95,16 @@ public class DLFolderSubscriptionManagerHandler
 	}
 
 	@Override
-	public List<Folder> getResults(long groupId, int start, int end)
+	public List<Folder> getResults(
+			long groupId, long classPK, int start, int end)
 		throws PortalException {
 
-		return _dlAppService.getFolders(
-			groupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, start, end);
+		return _dlAppService.getFolders(groupId, classPK, start, end);
 	}
 
 	@Override
-	public int getTotal(long groupId) throws PortalException {
-		return _dlAppService.getFoldersCount(
-			groupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+	public int getTotal(long groupId, long classPK) throws PortalException {
+		return _dlAppService.getFoldersCount(groupId, classPK);
 	}
 
 	@Override
@@ -128,6 +128,20 @@ public class DLFolderSubscriptionManagerHandler
 		viewURL.setParameter("folderId", String.valueOf(classPK));
 
 		return viewURL;
+	}
+
+	@Override
+	public boolean isModelBrowseable(long classPK) throws PortalException {
+		Folder folder = _dlAppService.getFolder(classPK);
+
+		int foldersCount = _dlAppService.getFoldersCount(
+			folder.getRepositoryId(), folder.getFolderId());
+
+		if (foldersCount > 0) {
+			return true;
+		}
+
+		return false;
 	}
 
 	protected ResourceBundleLoader getResourceBundleLoader() {
