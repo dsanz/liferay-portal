@@ -27,9 +27,9 @@ import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleLoader;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.language.LanguageResources;
 import com.liferay.subscription.manager.SubscriptionManagerHandler;
+import com.liferay.subscription.manager.document.library.internal.breadcrumb.DLFolderSubscriptionManagerBreadcrumbHandler;
 
 import java.util.List;
 import java.util.Locale;
@@ -52,6 +52,23 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class DLFolderSubscriptionManagerHandler
 	implements SubscriptionManagerHandler<Folder> {
+
+	@Override
+	public void addPortletBreadcrumbEntries(
+			long classPK, HttpServletRequest request,
+			LiferayPortletResponse liferayPortletResponse)
+		throws Exception {
+
+		Folder folder = null;
+
+		if (classPK > DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			folder = _dlAppService.getFolder(classPK);
+		}
+
+		_dlFolderSubscriptionManagerBreadcrumbHandler.
+			addPortletBreadcrumbEntries(
+				folder, request, liferayPortletResponse);
+	}
 
 	@Override
 	public String getClassName() {
@@ -144,6 +161,11 @@ public class DLFolderSubscriptionManagerHandler
 		return false;
 	}
 
+	@Override
+	public boolean isShowPortletBreadcrumb() throws PortalException {
+		return true;
+	}
+
 	protected ResourceBundleLoader getResourceBundleLoader() {
 		return LanguageResources.RESOURCE_BUNDLE_LOADER;
 	}
@@ -154,11 +176,22 @@ public class DLFolderSubscriptionManagerHandler
 	}
 
 	@Reference(unbind = "-")
+	protected void setDLFolderSubscriptionManagerBreadcrumbHandler(
+		DLFolderSubscriptionManagerBreadcrumbHandler
+			dlFolderSubscriptionManagerBreadcrumbHandler) {
+
+		_dlFolderSubscriptionManagerBreadcrumbHandler =
+			dlFolderSubscriptionManagerBreadcrumbHandler;
+	}
+
+	@Reference(unbind = "-")
 	protected void setPortal(Portal portal) {
 		_portal = portal;
 	}
 
 	private DLAppService _dlAppService;
+	private DLFolderSubscriptionManagerBreadcrumbHandler
+		_dlFolderSubscriptionManagerBreadcrumbHandler;
 	private Portal _portal;
 
 }

@@ -60,7 +60,7 @@ if (Validator.isNotNull(navigation) && !subscriptionManagerHandlerMap.isEmpty())
 
 					String curSubscriptionManagerHandlerClassName = curSubscriptionManagerHandler.getClassName();
 
-					PortletURL viewURL = PortletURLUtil.clone(currentURLObj, liferayPortletResponse);
+					PortletURL viewURL = liferayPortletResponse.createRenderURL();
 
 					viewURL.setParameter("navigation", curSubscriptionManagerHandlerClassName);
 				%>
@@ -82,6 +82,20 @@ if (Validator.isNotNull(navigation) && !subscriptionManagerHandlerMap.isEmpty())
 		%>
 
 		<div class="container-fluid-1280 main-content-body">
+			<c:if test="<%= subscriptionManagerHandler.isShowPortletBreadcrumb() %>">
+
+				<%
+				subscriptionManagerHandler.addPortletBreadcrumbEntries(classPK, request, liferayPortletResponse);
+				%>
+
+				<liferay-ui:breadcrumb
+					showCurrentGroup="<%= false %>"
+					showGuestGroup="<%= false %>"
+					showLayout="<%= false %>"
+					showParentGroups="<%= false %>"
+				/>
+			</c:if>
+
 			<liferay-ui:search-container
 				searchContainer="<%= modelSearchContainer %>"
 			>

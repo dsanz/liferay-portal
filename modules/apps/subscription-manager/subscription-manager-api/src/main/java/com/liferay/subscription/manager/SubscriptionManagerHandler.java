@@ -15,6 +15,7 @@
 package com.liferay.subscription.manager;
 
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 
 import java.util.List;
 import java.util.Locale;
@@ -27,6 +28,14 @@ import javax.servlet.http.HttpServletRequest;
  * @author Roberto Díaz
  */
 public interface SubscriptionManagerHandler<T> {
+
+	public default void addPortletBreadcrumbEntries(
+			long classPK, HttpServletRequest request,
+			LiferayPortletResponse liferayPortletResponse)
+		throws Exception {
+
+		return;
+	}
 
 	public String getClassName();
 
@@ -52,6 +61,10 @@ public interface SubscriptionManagerHandler<T> {
 	public default boolean isModelBrowseable(long classPK)
 		throws PortalException {
 
+		return false;
+	}
+
+	public default boolean isShowPortletBreadcrumb() throws PortalException {
 		return false;
 	}
 

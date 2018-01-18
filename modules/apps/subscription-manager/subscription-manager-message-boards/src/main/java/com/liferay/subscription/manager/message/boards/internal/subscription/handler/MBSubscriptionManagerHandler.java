@@ -101,7 +101,7 @@ public class MBSubscriptionManagerHandler
 	}
 
 	@Override
-	public int getTotal(long groupId,long classPK) throws PortalException {
+	public int getTotal(long groupId, long classPK) throws PortalException {
 		return _mbCategoryService.getCategoriesCount(groupId, classPK);
 	}
 
