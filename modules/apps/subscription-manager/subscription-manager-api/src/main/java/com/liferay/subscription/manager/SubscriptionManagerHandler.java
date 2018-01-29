@@ -52,6 +52,8 @@ public interface SubscriptionManagerHandler<T> {
 	public List<T> getResults(long groupId, long classPK, int start, int end)
 		throws PortalException;
 
+	public int getTabPosition();
+
 	public int getTotal(long groupId, long classPK) throws PortalException;
 
 	public PortletURL getViewURL(

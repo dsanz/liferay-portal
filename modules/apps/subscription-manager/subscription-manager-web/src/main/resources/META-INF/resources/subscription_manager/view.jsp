@@ -55,9 +55,18 @@ if (Validator.isNotNull(navigation) && !subscriptionManagerHandlerMap.isEmpty())
 				<%
 				keys = subscriptionManagerHandlerMap.keySet();
 
-				for (String key : keys) {
-					SubscriptionManagerHandler curSubscriptionManagerHandler = subscriptionManagerHandlerMap.get(key);
+				List<SubscriptionManagerHandler> subscriptionManagerHandlerList = new ArrayList<>();
 
+				for (String key : keys) {
+					SubscriptionManagerHandler curSubscriptionManagerHandler =
+						subscriptionManagerHandlerMap.get(key);
+
+					subscriptionManagerHandlerList.add(curSubscriptionManagerHandler);
+				}
+
+				Collections.sort(subscriptionManagerHandlerList, new SubscriptionManagerHandlerTabOrderComparator());
+
+				for (SubscriptionManagerHandler curSubscriptionManagerHandler : subscriptionManagerHandlerList) {
 					String curSubscriptionManagerHandlerClassName = curSubscriptionManagerHandler.getClassName();
 
 					PortletURL viewURL = liferayPortletResponse.createRenderURL();

@@ -101,6 +101,11 @@ public class MBSubscriptionManagerHandler
 	}
 
 	@Override
+	public int getTabPosition() {
+		return 100;
+	}
+
+	@Override
 	public int getTotal(long groupId, long classPK) throws PortalException {
 		return _mbCategoryService.getCategoriesCount(groupId, classPK);
 	}

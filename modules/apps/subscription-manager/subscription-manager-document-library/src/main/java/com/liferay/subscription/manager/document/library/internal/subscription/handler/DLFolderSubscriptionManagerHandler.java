@@ -120,6 +120,11 @@ public class DLFolderSubscriptionManagerHandler
 	}
 
 	@Override
+	public int getTabPosition() {
+		return 200;
+	}
+
+	@Override
 	public int getTotal(long groupId, long classPK) throws PortalException {
 		return _dlAppService.getFoldersCount(groupId, classPK);
 	}

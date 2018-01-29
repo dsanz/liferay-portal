@@ -41,9 +41,12 @@ page import="com.liferay.portal.kernel.workflow.WorkflowConstants" %><%@
 page import="com.liferay.portlet.usersadmin.search.UserSearch" %><%@
 page import="com.liferay.portlet.usersadmin.search.UserSearchTerms" %><%@
 page import="com.liferay.subscription.manager.SubscriptionManagerHandler" %><%@
+page import="com.liferay.subscription.manager.web.internal.comparator.SubscriptionManagerHandlerTabOrderComparator" %><%@
 page import="com.liferay.subscription.manager.web.internal.display.context.SubscriptionManagerDisplayContext" %>
 
-<%@ page import="java.util.LinkedHashMap" %><%@
+<%@ page import="java.util.ArrayList" %><%@
+page import="java.util.Collections" %><%@
+page import="java.util.LinkedHashMap" %><%@
 page import="java.util.List" %><%@
 page import="java.util.Map" %><%@
 page import="java.util.Set" %>
