@@ -31,7 +31,9 @@ if (Validator.isNotNull(navigation) && !subscriptionManagerHandlerMap.isEmpty())
 
 <c:choose>
 	<c:when test="<%= subscriptionManagerHandlerMap.isEmpty() %>">
-		<liferay-ui:message key="no-portlet-has-been-configured-to-manage-subscription-from-here" />
+		<div class="alert alert-warning">
+			<liferay-ui:message key="no-portlet-has-been-configured-to-manage-subscription-from-here" />
+		</div>
 	</c:when>
 	<c:otherwise>
 
