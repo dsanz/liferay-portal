@@ -110,7 +110,7 @@ String displayStyle = blogImagesManagementToolbarDisplayContext.getDisplayStyle(
 
 <aui:script>
 	var deleteImages = function() {
-		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-the-selected-images" />')) {
+		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-the-selected-images" unicode="true" />')) {
 			var form = document.getElementById('<portlet:namespace />fm');
 
 			if (form) {

@@ -166,7 +166,7 @@ List<LayoutPageTemplateCollection> layoutPageTemplateCollections = layoutPageTem
 									var selectedItems = event.newVal;
 
 									if (selectedItems) {
-										if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-the-selected-entries" />')) {
+										if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-the-selected-entries" unicode="true" />')) {
 											Array.prototype.forEach.call(
 												selectedItems,
 												function(item, index) {

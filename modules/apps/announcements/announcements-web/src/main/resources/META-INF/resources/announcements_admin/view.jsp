@@ -158,7 +158,7 @@ AnnouncementsAdminViewManagementToolbarDisplayContext announcementsAdminViewMana
 
 <aui:script>
 	var deleteEntries = function() {
-		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-the-selected-entries" />')) {
+		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-the-selected-entries" unicode="true" />')) {
 			var form = document.getElementById('<portlet:namespace />fm');
 
 			if (form) {

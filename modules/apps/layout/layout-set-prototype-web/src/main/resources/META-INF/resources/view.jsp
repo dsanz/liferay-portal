@@ -199,7 +199,7 @@
 
 <aui:script sandbox="<%= true %>">
 	var deleteLayoutSetPrototypes = function() {
-		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" />')) {
+		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" unicode="true" />')) {
 			submitForm(document.querySelector('#<portlet:namespace />fm'));
 		}
 	};

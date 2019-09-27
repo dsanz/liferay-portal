@@ -128,7 +128,7 @@ PortletURL portletURL = viewPasswordPoliciesManagementToolbarDisplayContext.getP
 
 <aui:script>
 	function <portlet:namespace />deletePasswordPolicies() {
-		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" />')) {
+		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" unicode="true" />')) {
 			var form = document.getElementById('<portlet:namespace />fm');
 
 			if (form) {

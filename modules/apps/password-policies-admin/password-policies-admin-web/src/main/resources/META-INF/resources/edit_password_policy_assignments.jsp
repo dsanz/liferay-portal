@@ -176,7 +176,7 @@ SearchContainer searchContainer = editPasswordPolicyAssignmentsManagementToolbar
 
 <aui:script>
 	function <portlet:namespace />deleteOrganizations() {
-		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" />')) {
+		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" unicode="true" />')) {
 			var form = document.getElementById('<portlet:namespace />fm');
 
 			if (form) {
@@ -192,7 +192,7 @@ SearchContainer searchContainer = editPasswordPolicyAssignmentsManagementToolbar
 	};
 
 	function <portlet:namespace />deleteUsers() {
-		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" />')) {
+		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" unicode="true" />')) {
 			var form = document.getElementById('<portlet:namespace />fm');
 
 			if (form) {

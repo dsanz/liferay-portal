@@ -114,7 +114,7 @@ KBTemplatesManagementToolbarDisplayContext kbTemplatesManagementToolbarDisplayCo
 
 <aui:script>
 	var deleteKBTemplates = function() {
-		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-the-selected-templates" />')) {
+		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-the-selected-templates" unicode="true" />')) {
 			var form = document.querySelector('#<portlet:namespace />fm');
 
 			if (form) {

@@ -90,7 +90,7 @@
 
 <aui:script sandbox="<%= true %>">
 	var deleteSelectedPages = function() {
-		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" />')) {
+		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" unicode="true" />')) {
 			submitForm(document.<portlet:namespace />fm);
 		}
 	};

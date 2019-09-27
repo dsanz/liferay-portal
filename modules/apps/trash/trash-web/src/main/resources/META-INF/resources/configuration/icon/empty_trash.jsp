@@ -23,7 +23,7 @@
 <liferay-util:buffer
 	var="onClickFn"
 >
-	if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-empty-the-recycle-bin" />')) {
+	if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-empty-the-recycle-bin" unicode="true" />')) {
 		submitForm(document.hrefFm, '<%= emptyTrashURL.toString() %>');
 	}
 </liferay-util:buffer>

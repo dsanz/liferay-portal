@@ -212,7 +212,7 @@ portletURL.setParameter("delta", String.valueOf(delta));
 		if (form) {
 			var groupIds = Liferay.Util.listCheckedExcept(form, '<portlet:namespace />allRowIds');
 
-			if (groupIds && confirm('<liferay-ui:message key="disabling-a-sync-site-will-delete-all-associated-files-from-all-clients" />')) {
+			if (groupIds && confirm('<liferay-ui:message key="disabling-a-sync-site-will-delete-all-associated-files-from-all-clients" unicode="true" />')) {
 				form.querySelector('#<portlet:namespace />groupIds').value = groupIds;
 				form.querySelector('#<portlet:namespace />enabled').value = false;
 

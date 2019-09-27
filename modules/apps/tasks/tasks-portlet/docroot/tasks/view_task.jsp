@@ -217,7 +217,7 @@ TasksEntry tasksEntry = TasksEntryLocalServiceUtil.fetchTasksEntry(tasksEntryId)
 						<portlet:namespace />deleteTasksEntry.addEventListener(
 							'click',
 							function(event) {
-								if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this-entry" />')) {
+								if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this-entry" unicode="true" />')) {
 									A.io.request(
 										'<portlet:actionURL name="deleteTasksEntry" />',
 										{
