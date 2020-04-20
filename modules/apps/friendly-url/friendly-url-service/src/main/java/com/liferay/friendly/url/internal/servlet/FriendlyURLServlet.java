@@ -270,6 +270,17 @@ public class FriendlyURLServlet extends HttpServlet {
 							group.getDefaultLanguageId());
 					}
 
+					// LPP-36214
+
+					if ((PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 3) &&
+						(localeUnavailable ||
+						 Validator.isNull(i18nLanguageId)) &&
+						LanguageUtil.isAvailableLocale(
+							group.getGroupId(), originalLocale)) {
+
+						locale = originalLocale;
+					}
+
 					String redirect = portal.getLocalizedFriendlyURL(
 						httpServletRequest, layout, locale, originalLocale);
 
