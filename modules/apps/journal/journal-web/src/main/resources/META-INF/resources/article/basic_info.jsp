@@ -125,6 +125,7 @@ DDMStructure ddmStructure = journalEditArticleDisplayContext.getDDMStructure();
 
 	<liferay-ui:input-localized
 		availableLocales="<%= journalEditArticleDisplayContext.getAvailableLocales() %>"
+    activeLocales="<%= journalEditArticleDisplayContext.getTranslatedLanguageIds() %>"
 		cssClass="form-control"
 		defaultLanguageId="<%= journalEditArticleDisplayContext.getDefaultArticleLanguageId() %>"
 		editorName="ckeditor"
