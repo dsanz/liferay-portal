@@ -471,6 +471,10 @@ AUI.add(
 
 					var activeLocales = instance.get('activeLocales');
 
+					var translatedLanguages = instance.get(
+						'translatedLanguages'
+					);
+
 					var selectedLanguageId = instance.getSelectedLanguageId();
 
 					var currentFlagsNode = instance._flags.getDOMNode();
@@ -492,7 +496,8 @@ AUI.add(
 									newFlagsNode.removeChild(localeNode);
 								}
 
-								instance.removeInputLanguage(key);
+								instance.removeInputLanguage(key);	
+								translatedLanguages['remove'](key);
 
 								if (key === selectedLanguageId) {
 									instance.selectFlag(
