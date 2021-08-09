@@ -31,6 +31,7 @@ JournalEditArticleDisplayContext journalEditArticleDisplayContext = new JournalE
 </p>
 
 <liferay-ui:input-localized
+  activeLanguageIds="<%= journalEditArticleDisplayContext.getTranslatedLanguageIds() %>"
 	availableLocales="<%= journalEditArticleDisplayContext.getAvailableLocales() %>"
 	defaultLanguageId="<%= journalEditArticleDisplayContext.getDefaultArticleLanguageId() %>"
 	maxLength='<%= String.valueOf(ModelHintsUtil.getMaxLength(JournalArticle.class.getName(), "urlTitle")) %>'

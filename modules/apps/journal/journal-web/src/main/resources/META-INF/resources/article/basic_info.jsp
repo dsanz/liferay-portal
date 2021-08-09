@@ -124,6 +124,7 @@ DDMStructure ddmStructure = journalEditArticleDisplayContext.getDDMStructure();
 	<label for="<portlet:namespace />descriptionMapAsXML"><liferay-ui:message key="description" /></label>
 
 	<liferay-ui:input-localized
+    activeLanguageIds="<%= journalEditArticleDisplayContext.getTranslatedLanguageIds() %>"
 		availableLocales="<%= journalEditArticleDisplayContext.getAvailableLocales() %>"
 		cssClass="form-control"
 		defaultLanguageId="<%= journalEditArticleDisplayContext.getDefaultArticleLanguageId() %>"
