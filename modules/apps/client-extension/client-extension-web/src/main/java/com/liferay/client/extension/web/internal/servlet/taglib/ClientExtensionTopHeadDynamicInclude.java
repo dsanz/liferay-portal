@@ -14,12 +14,20 @@
 
 package com.liferay.client.extension.web.internal.servlet.taglib;
 
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.servlet.taglib.BaseDynamicInclude;
 import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
+import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
+import com.liferay.portal.url.builder.AbsolutePortalURLBuilderFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -32,6 +40,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
@@ -53,6 +62,25 @@ public class ClientExtensionTopHeadDynamicInclude extends BaseDynamicInclude {
 		PrintWriter printWriter = httpServletResponse.getWriter();
 
 		for (String url : _referenceCounts.keySet()) {
+			try {
+				URI uri = HttpComponentsUtil.getURI(url);
+
+				if ((uri != null) && !uri.isAbsolute()) {
+					AbsolutePortalURLBuilder absolutePortalURLBuilder =
+						_absolutePortalURLBuilderFactory.
+							getAbsolutePortalURLBuilder(httpServletRequest);
+
+					url = absolutePortalURLBuilder.forBrowserModule(
+						url
+					).build();
+				}
+			}
+			catch (URISyntaxException uriSyntaxException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(uriSyntaxException);
+				}
+			}
+
 			printWriter.println(
 				"<script type=\"module\" src=\"" + url + "\"></script>");
 		}
@@ -100,6 +128,12 @@ public class ClientExtensionTopHeadDynamicInclude extends BaseDynamicInclude {
 	}
 
 	private static final Integer _REFERENCE_COUNT_1 = 1;
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		ClientExtensionTopHeadDynamicInclude.class);
+
+	@Reference
+	private AbsolutePortalURLBuilderFactory _absolutePortalURLBuilderFactory;
 
 	private BundleContext _bundleContext;
 	private final ConcurrentMap<String, Integer> _referenceCounts =
