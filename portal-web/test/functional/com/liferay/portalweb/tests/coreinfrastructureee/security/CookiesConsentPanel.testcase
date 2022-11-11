@@ -11,6 +11,8 @@ definition {
 			TestCase.setUpPortalInstance();
 
 			User.firstLoginPG();
+
+			CookiePreferenceHandlingAdmin.enablePreferenceHandlingInInstanceSettings();
 		}
 	}
 
