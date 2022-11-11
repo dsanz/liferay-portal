@@ -9,6 +9,15 @@ definition {
 		CookiePreferenceHandlingAdmin.saveConfiguration();
 	}
 
+	@description = "Enable Cookie Preference handling on instance level"
+	macro enablePreferenceHandlingInInstanceSettings {
+		CookieNavigator.gotoInstanceSettings(portlet = "Preference Handling");
+
+		FormFields.enableCheckbox(fieldName = "Enabled");
+
+		CookiePreferenceHandlingAdmin.saveConfiguration();
+	}
+
 	@description = "Enable Cookie Preference handling with Explicit cookie setting Enabled"
 	macro enablePreferenceHandlingWithCookieConsent {
 		CookieNavigator.gotoSiteSettings(portlet = "Preference Handling");
