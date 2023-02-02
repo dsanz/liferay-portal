@@ -16,9 +16,11 @@ package com.liferay.frontend.taglib.clay.sample.web.internal.portlet;
 
 import com.liferay.frontend.taglib.clay.sample.web.constants.ClaySamplePortletKeys;
 import com.liferay.frontend.taglib.clay.sample.web.internal.display.context.CardsDisplayContext;
+import com.liferay.frontend.taglib.clay.sample.web.internal.display.context.ClaySampleDisplayContext;
 import com.liferay.frontend.taglib.clay.sample.web.internal.display.context.DropdownsDisplayContext;
 import com.liferay.frontend.taglib.clay.sample.web.internal.display.context.MultiselectDisplayContext;
 import com.liferay.frontend.taglib.clay.sample.web.internal.display.context.NavigationBarsDisplayContext;
+import com.liferay.frontend.taglib.clay.sample.web.internal.display.context.TabsDisplayContext;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 
 import java.io.IOException;
@@ -66,6 +68,10 @@ public class ClaySamplePortlet extends MVCPortlet {
 			new CardsDisplayContext());
 
 		renderRequest.setAttribute(
+			ClaySamplePortletKeys.CLAY_SAMPLE_DISPLAY_CONTEXT,
+			new ClaySampleDisplayContext());
+
+		renderRequest.setAttribute(
 			ClaySamplePortletKeys.DROPDOWNS_DISPLAY_CONTEXT,
 			new DropdownsDisplayContext());
 
@@ -76,6 +82,10 @@ public class ClaySamplePortlet extends MVCPortlet {
 		renderRequest.setAttribute(
 			ClaySamplePortletKeys.NAVIGATION_BARS_DISPLAY_CONTEXT,
 			new NavigationBarsDisplayContext());
+
+		renderRequest.setAttribute(
+			ClaySamplePortletKeys.TABS_DISPLAY_CONTEXT,
+			new TabsDisplayContext());
 
 		super.doDispatch(renderRequest, renderResponse);
 	}

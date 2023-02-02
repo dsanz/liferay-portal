@@ -1,4 +1,3 @@
-<%--
 /**
  * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
@@ -12,28 +11,16 @@
  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  */
---%>
 
-<%@ include file="/init.jsp" %>
+package com.liferay.frontend.taglib.clay.servlet.taglib.util;
 
-<%
-List<TabsItem> tabsItems = claySampleDisplayContext.getTabsItems();
-%>
+/**
+ * @author Carlos Lancha
+ */
+public class TabsItem extends NavigationItem {
 
-<clay:tabs
-	tabsItems="<%= tabsItems %>"
->
-
-	<%
-	for (TabsItem tabsItem : tabsItems) {
-	%>
-
-		<clay:tabs-panel>
-			<liferay-util:include page='<%= "/partials/" + tabsItem.get("panelId") + ".jsp" %>' servletContext="<%= application %>" />
-		</clay:tabs-panel>
-
-	<%
+	public void setPanelId(String panelId) {
+		put("panelId", panelId);
 	}
-	%>
 
-</clay:tabs>
+}

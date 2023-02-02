@@ -16,24 +16,13 @@
 
 <%@ include file="/init.jsp" %>
 
-<%
-List<TabsItem> tabsItems = claySampleDisplayContext.getTabsItems();
-%>
+<h3>TABS</h3>
 
 <clay:tabs
-	tabsItems="<%= tabsItems %>"
+	tabsItems="<%= tabsDisplayContext.getDefaultTabsItems() %>"
 >
-
-	<%
-	for (TabsItem tabsItem : tabsItems) {
-	%>
-
-		<clay:tabs-panel>
-			<liferay-util:include page='<%= "/partials/" + tabsItem.get("panelId") + ".jsp" %>' servletContext="<%= application %>" />
-		</clay:tabs-panel>
-
-	<%
-	}
-	%>
-
+	<clay:tabs-panel>Tab Content 1</clay:tabs-panel>
+	<clay:tabs-panel>Tab Content 2</clay:tabs-panel>
+	<clay:tabs-panel>Tab Content 3</clay:tabs-panel>
+	<clay:tabs-panel>Tab Content 4</clay:tabs-panel>
 </clay:tabs>
