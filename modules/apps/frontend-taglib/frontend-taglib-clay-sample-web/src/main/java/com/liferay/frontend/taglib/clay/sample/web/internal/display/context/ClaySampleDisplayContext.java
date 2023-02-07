@@ -30,78 +30,7 @@ public class ClaySampleDisplayContext {
 		}
 
 		_tabsItems = TabsItemListBuilder.add(
-			tabsItem -> {
-				tabsItem.setActive(true);
-				tabsItem.setLabel("Alerts");
-				tabsItem.setPanelId("alerts");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Badges");
-				tabsItem.setPanelId("badges");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Buttons");
-				tabsItem.setPanelId("buttons");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Cards");
-				tabsItem.setPanelId("cards");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Dropdowns");
-				tabsItem.setPanelId("dropdowns");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Form Elements");
-				tabsItem.setPanelId("form_elements");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Icons");
-				tabsItem.setPanelId("icons");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Labels");
-				tabsItem.setPanelId("labels");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Links");
-				tabsItem.setPanelId("links");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Management Toolbar");
-				tabsItem.setPanelId("management_toolbar");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Navigation Bars");
-				tabsItem.setPanelId("navigation_bars");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Pagination Bars");
-				tabsItem.setPanelId("pagination_bars");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Progress Bars");
-				tabsItem.setPanelId("progress_bars");
-			}
-		).add(
-			tabsItem -> {
-				tabsItem.setLabel("Stickers");
-				tabsItem.setPanelId("stickers");
-			}
-		).add(
-			tabsItem -> {
+				tabsItem -> {
 				tabsItem.setLabel("Tabs");
 				tabsItem.setPanelId("tabs");
 			}

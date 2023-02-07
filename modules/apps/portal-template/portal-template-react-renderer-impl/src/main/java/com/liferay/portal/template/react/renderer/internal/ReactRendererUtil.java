@@ -97,7 +97,7 @@ public class ReactRendererUtil {
 
 		JSONSerializer jsonSerializer = JSONFactoryUtil.createJSONSerializer();
 
-		contentSB.append("render(componentModule, ");
+		contentSB.append("debugger;render(componentModule, ");
 
 		if (Validator.isNotNull(propsTransformer)) {
 			contentSB.append("propsTransformer");
