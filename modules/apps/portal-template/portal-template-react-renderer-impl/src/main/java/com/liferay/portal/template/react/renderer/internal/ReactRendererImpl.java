@@ -46,7 +46,7 @@ public class ReactRendererImpl implements ReactRenderer {
 			HttpServletRequest httpServletRequest, Writer writer)
 		throws IOException {
 
-		String placeholderId = StringUtil.randomId();
+		String placeholderId = "__RENDER__" + StringUtil.randomId();
 
 		_renderPlaceholder(writer, placeholderId);
 
