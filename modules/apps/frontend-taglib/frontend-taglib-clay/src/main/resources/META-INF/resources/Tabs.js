@@ -13,7 +13,7 @@
  */
 
 import ClayTabs from '@clayui/tabs';
-import React from 'react';
+import React, {useEffect} from 'react';
 
 export default function Tabs({
 	activation,
@@ -36,6 +36,27 @@ export default function Tabs({
 	const activeIndex = tabsItems.indexOf(
 		tabsItems.find((item) => item.active)
 	);
+
+	function isRenderNode(element) {
+	  if (element.nodeName == "DIV" && element.innerText == "") {
+        const id = element.getAttribute("id");
+        if (id && id.startsWith("__RENDER__")) {
+          return id;
+      }
+    }
+	  return null;
+  }
+
+
+	useEffect(() => {
+    panels.map((panel) => {
+        const panelDocument = new DOMParser().parseFromString(panel, "text/html");
+        panelDocument.body.querySelectorAll("div div[id^=__RENDER__]").forEach((c) => {
+          const id = isRenderNode(c);
+          id && Liferay.fire(id)
+        })
+      })
+    })
 
 	return (
 		<>
