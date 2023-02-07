@@ -18,6 +18,18 @@ export default function (renderFunction, renderData, placeholderId) {
 	const element = document.getElementById(placeholderId);
 
 	if (element) {
+    console.log("Rendering (sync) " + placeholderId)
 		render(renderFunction, renderData, element.parentElement);
 	}
+	else {
+	  console.log("Could not find placeholder " + placeholderId + ". Registering async render handler")
+	  Liferay.on(placeholderId, ()=>{
+      console.log("Looks like " + placeholderId + " is available now")
+      const element = document.getElementById(placeholderId);
+      if (element) {
+          console.log("Rendering (async)" + placeholderId)
+      		render(renderFunction, renderData, element.parentElement);
+      	}
+    })
+  }
 }
