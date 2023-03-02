@@ -37,4 +37,4 @@
 			</clay:button>
 		</c:if>
 
-		<div class="info-panel-content" id="<%= namespace %>sidebarPanel">
+		<div class="info-panel-content" id="<%= namespace %>sidebarPanel" tabindex="-1" aria-label="info panel - tab panel">

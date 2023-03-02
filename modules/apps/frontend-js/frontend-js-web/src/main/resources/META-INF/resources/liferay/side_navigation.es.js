@@ -348,15 +348,26 @@ SideNavigation.prototype = {
 
 			const button = container.querySelector('.sidenav-close');
 
-			if (!button) {
-				return;
-			}
+      if (button && button.classList.contains("d-sm-none")) {
+        const panel = button.nextElementSibling;
+        if (!panel || window.getComputedStyle(panel).visibility === "hidden") {
+        	return;
+        }
+        panel.focus({
+          focusVisible: true  // testing purposes
+        });
+      }
+      else {
+        if (!button) {
+          return;
+        }
 
-			button.addEventListener('click', () => this.toggler.focus(), {
-				once: true,
-			});
+        button.addEventListener('click', () => this.toggler.focus(), {
+          once: true,
+        });
 
-			button.focus();
+        button.focus();
+      }
 
 			clearInterval(intervalId);
 			clearTimeout(timeoutId);
