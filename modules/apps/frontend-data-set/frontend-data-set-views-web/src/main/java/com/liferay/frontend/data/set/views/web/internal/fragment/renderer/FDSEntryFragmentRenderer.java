@@ -1,202 +1,360 @@
 /**
  * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
- * <p>
+ *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation; either version 2.1 of the License, or (at your option)
  * any later version.
- * <p>
+ *
  * This library is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  */
 
-
 package com.liferay.frontend.data.set.views.web.internal.fragment.renderer;
 
-import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
-import com.liferay.frontend.js.loader.modules.extender.npm.ModuleNameUtil;
+import com.liferay.frontend.data.set.views.web.internal.js.loader.modules.extender.npm.NPMResolverProvider;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
-import com.liferay.frontend.taglib.clay.internal.js.loader.modules.extender.npm.NPMResolverProvider;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.servlet.taglib.util.OutputData;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.template.react.renderer.ComponentDescriptor;
 import com.liferay.portal.template.react.renderer.ReactRenderer;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 
+import java.util.Locale;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Daniel Sanz
  */
-
 @Component(service = FragmentRenderer.class)
 public class FDSEntryFragmentRenderer implements FragmentRenderer {
-  @Override
-  public String getCollectionKey() {
-    return "content-display";
-  }
 
-  @Override
-  public String getConfiguration(
-    FragmentRendererContext fragmentRendererContext) {
+	public String getApiUrl(JSONObject configurationJSONObject) {
+		return "/o/headless-commerce-admin-catalog/v1.0/products" +
+			"?nestedFields=skus,catalog";
+	}
 
-    return JSONUtil.put(
-      "fieldSets",
-      JSONUtil.putAll(
-        JSONUtil.put(
-          "fields",
-          JSONUtil.putAll(
-            JSONUtil.put(
-              "label", "dataset"
-            ).put(
-              "name", "itemSelector"
-            ).put(
-              "type", "itemSelector"
-            ).put(
-              "typeOptions",
-              JSONUtil.put("itemType",
-                _FDSEntryObjectDefinition.getClassName())
-            ))))).toString();
-  }
+	@Override
+	public String getCollectionKey() {
+		return "content-display";
+	}
 
-  @Override
-  public String getIcon() {
-    return "web-content";
-  }
+	@Override
+	public String getConfiguration(
+		FragmentRendererContext fragmentRendererContext) {
 
-  @Override
-  public boolean isSelectable(
-    HttpServletRequest httpServletRequest) {
-    return false;
-  }
+		FragmentEntryLink fragmentEntryLink =
+			fragmentRendererContext.getFragmentEntryLink();
 
-  @Override
-  public void render(
-    FragmentRendererContext fragmentRendererContext,
-    HttpServletRequest httpServletRequest,
-    HttpServletResponse httpServletResponse) throws IOException {
+		ObjectDefinition fdsEntryObjectDefinition =
+			_objectDefinitionLocalService.fetchObjectDefinition(
+				fragmentEntryLink.getCompanyId(), "C_FDSEntry");
 
-    try {
-      PrintWriter printWriter = httpServletResponse.getWriter();
+		String className = "";
 
-      FragmentEntryLink fragmentEntryLink =
-      			fragmentRendererContext.getFragmentEntryLink();
+		if (fdsEntryObjectDefinition != null) {
+			className = fdsEntryObjectDefinition.getClassName();
+		}
 
-      JSONObject configurationJSONObject =
-      	_jsonFactory.createJSONObject();
+		return JSONUtil.put(
+			"fieldSets",
+			JSONUtil.putAll(
+				JSONUtil.put(
+					"fields",
+					JSONUtil.putAll(
+						JSONUtil.put(
+							"label", "Dataset"
+						).put(
+							"name", "itemSelector"
+						).put(
+							"type", "itemSelector"
+						).put(
+							"typeOptions", JSONUtil.put("itemType", className)
+						))))
+		).toString();
+	}
 
-      			if (Validator.isNotNull(fragmentEntryLink.getConfiguration())) {
-              configurationJSONObject =
-                _fragmentEntryConfigurationParser.
-                  getConfigurationJSONObject(
-                    fragmentEntryLink.getConfiguration(),
-                    fragmentEntryLink.getEditableValues(),
-                    LocaleUtil.getMostRelevantLocale());
-            }
+	public JSONArray getFiltersJSONArray(JSONObject configurationJSONObject) {
+		return JSONUtil.putAll(
+			JSONUtil.put(
+				"autocompleteEnabled", false
+			).put(
+				"id", "productType"
+			).put(
+				"items",
+				JSONUtil.putAll(
+					JSONUtil.put(
+						"label", "Simple"
+					).put(
+						"value", "simple"
+					),
+					JSONUtil.put(
+						"label", "Grouped"
+					).put(
+						"value", "grouped"
+					),
+					JSONUtil.put(
+						"label", "Virtual"
+					).put(
+						"value", "virtual"
+					))
+			).put(
+				"label", "Product Type"
+			).put(
+				"multiple", false
+			).put(
+				"type", "selection"
+			));
+	}
 
+	@Override
+	public String getIcon() {
+		return "web-content";  // TODO: find the right icon
+	}
 
-      printWriter.write(
-        _renderFragmentEntry(
-          fragmentRendererContext.getFragmentElementId(),
-          fragmentRendererContext,
-          configurationJSONObject,
-          httpServletRequest));
-    }
-    catch (PortalException portalException) {
-      throw new IOException(portalException);
-    }
-  }
+	public String getLabel(Locale locale) {
+		return "Frontend Dataset";     // TODO: add language keys
+	}
 
-  private String _renderFragmentEntry(
-    String fragmentElementId,
-    FragmentRendererContext fragmentRendererContext,
-    JSONObject configurationJSONObject, HttpServletRequest httpServletRequest)
-    throws IOException {
+	public JSONObject getPaginationJSONObject(
+		JSONObject configurationJSONObject) {
 
-    NPMResolver npmResolver = NPMResolverProvider.getNPMResolver();
+		return JSONUtil.put(
+			"deltas",
+			JSONUtil.putAll(
+				JSONUtil.put("label", 4), JSONUtil.put("label", 10),
+				JSONUtil.put("label", 20))
+		).put(
+			"initialDelta", 10
+		).put(
+			"initialPageNumber", 0
+		);
+	}
 
-    String moduleName = npmResolver.resolveModuleName(
-  		"@liferay/frontend-data-set-web/FrontendDataSet");
+	public JSONArray getViewsJSONArray(JSONObject configurationJSONObject) {
+		return JSONUtil.putAll(
+			JSONUtil.put(
+				"contentRenderer", "table"
+			).put(
+				"default", false
+			).put(
+				"label", "Table"
+			).put(
+				"name", "table"
+			).put(
+				"quickActionsEnabled", false
+			).put(
+				"schema",
+				JSONUtil.put(
+					"fields",
+					JSONUtil.putAll(
+						JSONUtil.put(
+							"contentRenderer", "image"
+						).put(
+							"expand", false
+						).put(
+							"fieldName", "thumbnail"
+						).put(
+							"label", ""
+						).put(
+							"localizeLabel", true
+						).put(
+							"sortable", false
+						),
+						JSONUtil.put(
+							"contentRenderer", "actionLink"
+						).put(
+							"expand", false
+						).put(
+							"fieldName", JSONUtil.putAll("name", "LANG")
+						).put(
+							"label", "Name"
+						).put(
+							"localizeLabel", true
+						).put(
+							"sortable", true
+						),
+						JSONUtil.put(
+							"contentRenderer", "actionLink"
+						).put(
+							"expand", false
+						).put(
+							"fieldName", JSONUtil.putAll("catalog", "name")
+						).put(
+							"label", "Catalog"
+						).put(
+							"localizeLabel", true
+						).put(
+							"sortable", false
+						),
+						JSONUtil.put(
+							"expand", false
+						).put(
+							"fieldName", "productTypeI18n"
+						).put(
+							"label", "Type"
+						).put(
+							"localizeLabel", true
+						).put(
+							"sortable", false
+						),
+						JSONUtil.put(
+							"contentRenderer", "status"
+						).put(
+							"expand", false
+						).put(
+							"fieldName", "workflowStatusInfo"
+						).put(
+							"label", "Status"
+						).put(
+							"localizeLabel", true
+						).put(
+							"sortable", false
+						),
+						JSONUtil.put(
+							"contentRenderer", "dateTime"
+						).put(
+							"expand", false
+						).put(
+							"fieldName", "modifiedDate"
+						).put(
+							"label", "Modified Date"
+						).put(
+							"localizeLabel", true
+						).put(
+							"sortable", true
+						)))
+			).put(
+				"thumbnail", "table"
+			));
+	}
 
-    StringBundler sb = new StringBundler(9);
+	@Override
+	public void render(
+			FragmentRendererContext fragmentRendererContext,
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse)
+		throws IOException {
 
-    sb.append("<div id=\"");
-    sb.append(fragmentElementId);
-    sb.append("\" >");
+		try {
+			PrintWriter printWriter = httpServletResponse.getWriter();
 
-    Writer writer = new CharArrayWriter();
+			FragmentEntryLink fragmentEntryLink =
+				fragmentRendererContext.getFragmentEntryLink();
 
-    ComponentDescriptor componentDescriptor = new ComponentDescriptor(
-  			moduleName, fragmentElementId);
+			JSONObject configurationJSONObject =
+				_jsonFactory.createJSONObject();
 
-    _reactRenderer.renderReact(
-      componentDescriptor, prepareData(configurationJSONObject)
-      , httpServletRequest, writer);
+			if (Validator.isNotNull(fragmentEntryLink.getConfiguration())) {
+				configurationJSONObject =
+					_fragmentEntryConfigurationParser.
+						getConfigurationJSONObject(
+							fragmentEntryLink.getConfiguration(),
+							fragmentEntryLink.getEditableValues(),
+							LocaleUtil.getMostRelevantLocale());
+			}
 
-    sb.append(writer.toString());
+			printWriter.write(
+				_renderFragmentEntry(
+					fragmentRendererContext, configurationJSONObject,
+					httpServletRequest));
+		}
+		catch (PortalException portalException) {
+			throw new IOException(portalException);
+		}
+	}
 
-    sb.append("</div>");
+	private Map<String, Object> _prepareData(
+		String fragmentElementId, JSONObject configurationJSONObject) {
 
-    return sb.toString();
+		return HashMapBuilder.<String, Object>put(
+			"apiURL", getApiUrl(configurationJSONObject)
+		).put(
+			"filters", getFiltersJSONArray(configurationJSONObject)
+		).put(
+			"namespace", fragmentElementId
+		).put(
+			"pagination", getPaginationJSONObject(configurationJSONObject)
+		).put(
+			"selectedItems", ""
+		).put(
+			"uniformActionsDisplay", false
+		).put(
+			"views", getViewsJSONArray(configurationJSONObject)
+		).build();
+	}
 
-    }
+	private String _renderFragmentEntry(
+			FragmentRendererContext fragmentRendererContext,
+			JSONObject configurationJSONObject,
+			HttpServletRequest httpServletRequest)
+		throws IOException {
 
-    private Map<String, Object> prepareData(JSONObject configurationJSONObject) {
-      return HashMapBuilder.<String, Object>put(
-      			"customViews", ""
-      		).put(
-      			"namespace", getNamespace()
-      		).put(
-      			"pagination",
-      			HashMapBuilder.<String, Object>put(
-      				"deltas", _fdsPaginationEntries
-      			).put(
-      				"initialDelta", 10
-      			).put(
-      				"initialPageNumber", 1
-      			).build()
-      		).put(
-      			"selectedItems", ""
-      		).put(
-      			"uniformActionsDisplay", false
-      		).build();
-    }
+		NPMResolver npmResolver = NPMResolverProvider.getNPMResolver();
 
-    @Reference
-   	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
+		String moduleName = npmResolver.resolveModuleName(
+			"@liferay/frontend-data-set-web/FrontendDataSet");
 
+		StringBundler sb = new StringBundler(5);
 
-   	@Reference
-   	private JSONFactory _jsonFactory;
+		sb.append("<div id=\"");
+		sb.append(fragmentRendererContext.getFragmentElementId());
+		sb.append("\" >");
 
-  @Reference
- 	private ReactRenderer _reactRenderer;
+		Writer writer = new CharArrayWriter();
+
+		ComponentDescriptor componentDescriptor = new ComponentDescriptor(
+			moduleName, fragmentRendererContext.getFragmentElementId());
+
+		_reactRenderer.renderReact(
+			componentDescriptor,
+			_prepareData(
+				fragmentRendererContext.getFragmentElementId(),
+				configurationJSONObject),
+			httpServletRequest, writer);
+
+		sb.append(writer.toString());
+
+		sb.append("</div>");
+
+		return sb.toString();
+	}
+
+	@Reference
+	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
+
+	@Reference
+	private JSONFactory _jsonFactory;
+
+	@Reference
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ReactRenderer _reactRenderer;
+
 }
-
