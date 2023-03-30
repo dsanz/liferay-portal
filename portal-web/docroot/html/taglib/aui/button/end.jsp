@@ -22,6 +22,29 @@
 
 <c:choose>
 	<c:when test="<%= Validator.isNotNull(escapedHREF) %>">
+		<c:when test="<%= type.equals("cancel") %>">
+			<button
+				class="<%= AUIUtil.buildCss(AUIUtil.BUTTON_PREFIX, disabled, false, false, cssClass) %>"
+
+				<c:if test="<%= disabled %>">
+					disabled
+				</c:if>
+
+				id="<%= id %>"
+
+				<c:if test="<%= Validator.isNotNull(name) %>">
+					name="<%= namespace %><%= name %>"
+				</c:if>
+
+				onClick='<%= "location.href=\'" + escapedHREF + "\'" %>'
+
+				type="button"
+
+				<%= AUIUtil.buildData(data) %>
+				<%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>
+			>
+		</c:when>
+		<c:otherwise>
 		<a
 			class="<%= AUIUtil.buildCss(AUIUtil.BUTTON_PREFIX, disabled, false, false, cssClass) %>"
 			href="<%= escapedHREF %>"
