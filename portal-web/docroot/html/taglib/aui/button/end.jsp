@@ -22,43 +22,46 @@
 
 <c:choose>
 	<c:when test="<%= Validator.isNotNull(escapedHREF) %>">
-		<c:when test="<%= type.equals("cancel") %>">
-			<button
-				class="<%= AUIUtil.buildCss(AUIUtil.BUTTON_PREFIX, disabled, false, false, cssClass) %>"
+		<c:choose>
+			<c:when test='<%= Validator.isNull(onClick) && type.equals("cancel") %>'>
+				<button
+					class="<%= AUIUtil.buildCss(AUIUtil.BUTTON_PREFIX, disabled, false, false, cssClass) %>"
 
-				<c:if test="<%= disabled %>">
-					disabled
-				</c:if>
+					<c:if test="<%= disabled %>">
+						disabled
+					</c:if>
 
-				id="<%= id %>"
+					id="<%= id %>"
 
-				<c:if test="<%= Validator.isNotNull(name) %>">
-					name="<%= namespace %><%= name %>"
-				</c:if>
+					<c:if test="<%= Validator.isNotNull(name) %>">
+						name="<%= namespace %><%= name %>"
+					</c:if>
 
-				onClick='<%= "location.href=\'" + escapedHREF + "\'" %>'
+					onClick="<%= "Liferay.Util.navigate('" + escapedHREF + "')" %>"
 
-				type="button"
+					type="button"
 
-				<%= AUIUtil.buildData(data) %>
-				<%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>
-			>
-		</c:when>
-		<c:otherwise>
-		<a
-			class="<%= AUIUtil.buildCss(AUIUtil.BUTTON_PREFIX, disabled, false, false, cssClass) %>"
-			href="<%= escapedHREF %>"
-			id="<%= id %>"
+					<%= AUIUtil.buildData(data) %>
+					<%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>
+				>
+			</c:when>
+			<c:otherwise>
+				<a
+					class="<%= AUIUtil.buildCss(AUIUtil.BUTTON_PREFIX, disabled, false, false, cssClass) %>"
+					href="<%= escapedHREF %>"
+					id="<%= id %>"
 
-			<c:if test="<%= Validator.isNotNull(onClick) %>">
-				onClick="<%= onClick %>"
-			</c:if>
+					<c:if test="<%= Validator.isNotNull(onClick) %>">
+						onClick="<%= onClick %>"
+					</c:if>
 
-			role="button"
+					role="button"
 
-			<%= AUIUtil.buildData(data) %>
-			<%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>
-		>
+					<%= AUIUtil.buildData(data) %>
+					<%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>
+				>
+			</c:otherwise>
+		</c:choose>
 	</c:when>
 	<c:otherwise>
 		<button
