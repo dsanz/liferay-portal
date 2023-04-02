@@ -18,19 +18,25 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.APIUrlDatasetProvider;
 import com.liferay.frontend.data.set.views.web.internal.js.loader.modules.extender.npm.NPMResolverProvider;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
 import com.liferay.object.model.ObjectDefinition;
+
+import com.liferay.object.rest.dto.v1_0.ObjectEntry;
+import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.template.react.renderer.ComponentDescriptor;
 import com.liferay.portal.template.react.renderer.ReactRenderer;
 
@@ -41,10 +47,13 @@ import java.io.Writer;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
+import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -53,11 +62,6 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(service = FragmentRenderer.class)
 public class FDSEntryFragmentRenderer implements FragmentRenderer {
-
-	public String getApiUrl(JSONObject configurationJSONObject) {
-		return "/o/headless-commerce-admin-catalog/v1.0/products" +
-			"?nestedFields=skus,catalog";
-	}
 
 	@Override
 	public String getCollectionKey() {
@@ -68,18 +72,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 	public String getConfiguration(
 		FragmentRendererContext fragmentRendererContext) {
 
-		FragmentEntryLink fragmentEntryLink =
-			fragmentRendererContext.getFragmentEntryLink();
-
-		ObjectDefinition fdsEntryObjectDefinition =
-			_objectDefinitionLocalService.fetchObjectDefinition(
-				fragmentEntryLink.getCompanyId(), "C_FDSEntry");
-
-		String className = "";
-
-		if (fdsEntryObjectDefinition != null) {
-			className = fdsEntryObjectDefinition.getClassName();
-		}
+		String className = _getFDSViewClassName(fragmentRendererContext);
 
 		return JSONUtil.put(
 			"fieldSets",
@@ -88,7 +81,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 					"fields",
 					JSONUtil.putAll(
 						JSONUtil.put(
-							"label", "Dataset"
+							"label", "Dataset View"
 						).put(
 							"name", "itemSelector"
 						).put(
@@ -99,7 +92,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		).toString();
 	}
 
-	public JSONArray getFiltersJSONArray(JSONObject configurationJSONObject) {
+	public JSONArray getFiltersJSONArray(ObjectEntry fdsView) {
 		return JSONUtil.putAll(
 			JSONUtil.put(
 				"autocompleteEnabled", false
@@ -142,7 +135,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 	}
 
 	public JSONObject getPaginationJSONObject(
-		JSONObject configurationJSONObject) {
+		ObjectEntry fdsView) {
 
 		return JSONUtil.put(
 			"deltas",
@@ -156,7 +149,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		);
 	}
 
-	public JSONArray getViewsJSONArray(JSONObject configurationJSONObject) {
+	public JSONArray getViewsJSONArray(ObjectEntry fdsView) {
 		return JSONUtil.putAll(
 			JSONUtil.put(
 				"contentRenderer", "table"
@@ -264,54 +257,126 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		try {
 			PrintWriter printWriter = httpServletResponse.getWriter();
 
-			FragmentEntryLink fragmentEntryLink =
-				fragmentRendererContext.getFragmentEntryLink();
+			ObjectEntry fdsView = _getFDSView(httpServletRequest,
+				fragmentRendererContext);
 
-			JSONObject configurationJSONObject =
-				_jsonFactory.createJSONObject();
+			if ((fdsView == null) && fragmentRendererContext.isEditMode()) {
+				printWriter.write(
+					StringBundler.concat(
+						"<div class=\"portlet-msg-info\">",
+							_language.get(httpServletRequest,
+								"select-a-dataset-view"), "</div>"));
+			}
 
-			if (Validator.isNotNull(fragmentEntryLink.getConfiguration())) {
-				configurationJSONObject =
-					_fragmentEntryConfigurationParser.
-						getConfigurationJSONObject(
-							fragmentEntryLink.getConfiguration(),
-							fragmentEntryLink.getEditableValues(),
-							LocaleUtil.getMostRelevantLocale());
+			if (fdsView == null) {
+				return;
 			}
 
 			printWriter.write(
 				_renderFragmentEntry(
-					fragmentRendererContext, configurationJSONObject,
+					fragmentRendererContext, fdsView,
 					httpServletRequest));
 		}
-		catch (PortalException portalException) {
-			throw new IOException(portalException);
+		catch (Exception e) {
+			throw new IOException(e);
 		}
 	}
 
+	private ObjectEntry _getFDSView(HttpServletRequest httpServletRequest,
+																	 FragmentRendererContext fragmentRendererContext) {
+
+		try {
+			FragmentEntryLink fragmentEntryLink =
+				fragmentRendererContext.getFragmentEntryLink();
+
+			JSONObject jsonObject =
+				(JSONObject)_fragmentEntryConfigurationParser.getFieldValue(
+					getConfiguration(fragmentRendererContext),
+					fragmentEntryLink.getEditableValues(),
+					fragmentRendererContext.getLocale(), "itemSelector");
+
+			if ((jsonObject != null) && jsonObject.has("className") &&
+				jsonObject.has("classPK") &&
+				Objects.equals(jsonObject.get("className"),
+					_getFDSViewClassName(fragmentRendererContext))) {
+
+				long fdsViewId = jsonObject.getLong("classPK");
+
+				ObjectDefinition fdsViewObjectDefinition =
+					_getFDSViewObjectDefinition(fragmentRendererContext);
+
+				DTOConverterContext dtoConverterContext = new DefaultDTOConverterContext(
+					false, null, null, null, null, LocaleUtil.getSiteDefault(), null,
+					null);
+
+				return _objectEntryManager.getObjectEntry(
+					dtoConverterContext, fdsViewObjectDefinition, fdsViewId);
+
+			}
+
+			return null;
+		}
+		catch (Exception e) {
+			_log.error(e);
+			return null;
+		}
+	}
+
+	private ObjectDefinition _getFDSViewObjectDefinition(FragmentRendererContext
+			fragmentRendererContext) {
+
+		long companyId = CompanyThreadLocal.getCompanyId();
+
+		FragmentEntryLink fragmentEntryLink =
+			fragmentRendererContext.getFragmentEntryLink();
+
+		if (fragmentEntryLink != null) {
+			companyId = fragmentEntryLink.getCompanyId();
+		}
+
+		return _objectDefinitionLocalService.fetchObjectDefinition(
+			companyId, "C_FDSView");
+	}
+
+
+	private String _getFDSViewClassName(FragmentRendererContext
+			fragmentRendererContext) {
+
+		ObjectDefinition fdsViewObjectDefinition =
+			_getFDSViewObjectDefinition(fragmentRendererContext);
+
+		String className = "";
+
+		if (fdsViewObjectDefinition != null) {
+			className = fdsViewObjectDefinition.getClassName();
+		}
+
+		return className;
+	}
+
 	private Map<String, Object> _prepareData(
-		String fragmentElementId, JSONObject configurationJSONObject) {
+		String fragmentElementId, ObjectEntry fdsView) {
 
 		return HashMapBuilder.<String, Object>put(
-			"apiURL", getApiUrl(configurationJSONObject)
+			"apiURL", _apiUrlDatasetProvider.getApiUrl(fdsView)
 		).put(
-			"filters", getFiltersJSONArray(configurationJSONObject)
+			"filters", getFiltersJSONArray(fdsView)
 		).put(
 			"namespace", fragmentElementId
 		).put(
-			"pagination", getPaginationJSONObject(configurationJSONObject)
+			"pagination", getPaginationJSONObject(fdsView)
 		).put(
 			"selectedItems", ""
 		).put(
 			"uniformActionsDisplay", false
 		).put(
-			"views", getViewsJSONArray(configurationJSONObject)
+			"views", getViewsJSONArray(fdsView)
 		).build();
 	}
 
 	private String _renderFragmentEntry(
 			FragmentRendererContext fragmentRendererContext,
-			JSONObject configurationJSONObject,
+			ObjectEntry fdsView,
 			HttpServletRequest httpServletRequest)
 		throws IOException {
 
@@ -335,7 +400,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 			componentDescriptor,
 			_prepareData(
 				fragmentRendererContext.getFragmentElementId(),
-				configurationJSONObject),
+				fdsView),
 			httpServletRequest, writer);
 
 		sb.append(writer.toString());
@@ -345,6 +410,12 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		return sb.toString();
 	}
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		FDSEntryFragmentRenderer.class);
+
+	@Reference
+	private APIUrlDatasetProvider _apiUrlDatasetProvider;
+
 	@Reference
 	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
 
@@ -352,7 +423,13 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 	private JSONFactory _jsonFactory;
 
 	@Reference
+	private Language _language;
+
+	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference(target = "(object.entry.manager.storage.type=default)")
+	private ObjectEntryManager _objectEntryManager;
 
 	@Reference
 	private ReactRenderer _reactRenderer;
