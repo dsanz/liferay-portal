@@ -12,15 +12,16 @@
  * details.
  */
 
-
-package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
+package com.liferay.frontend.data.set.views.web.internal.dataset.provider.api;
 
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
-import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONObject;
 
 /**
  * @author Daniel Sanz
  */
-public interface FilterProvider {
-	public JSONArray getFiltersJSONArray(ObjectEntry fdsView);
+public interface PaginationProvider {
+
+	public JSONObject getPaginationJSONObject(ObjectEntry fdsView);
+
 }
