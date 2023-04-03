@@ -14,6 +14,7 @@
 
 package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.PaginationProvider;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;

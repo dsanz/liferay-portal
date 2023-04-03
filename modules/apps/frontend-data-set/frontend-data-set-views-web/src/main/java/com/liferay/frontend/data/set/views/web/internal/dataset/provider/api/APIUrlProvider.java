@@ -12,16 +12,15 @@
  * details.
  */
 
-package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
+package com.liferay.frontend.data.set.views.web.internal.dataset.provider.api;
 
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
-import com.liferay.portal.kernel.json.JSONArray;
 
 /**
  * @author Daniel Sanz
  */
-public interface ViewProvider {
+public interface APIUrlProvider {
 
-	public JSONArray getViewsJSONArray(ObjectEntry fdsView);
+	public String getApiUrl(ObjectEntry fdsView);
 
 }
