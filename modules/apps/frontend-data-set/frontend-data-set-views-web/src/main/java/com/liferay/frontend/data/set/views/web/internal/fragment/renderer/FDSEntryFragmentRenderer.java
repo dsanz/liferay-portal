@@ -21,6 +21,7 @@ import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.APIUrlProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FilterProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.PaginationProvider;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.ViewProvider;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
@@ -98,104 +99,6 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 	public String getLabel(Locale locale) {
 		return "Frontend Dataset";     // TODO: add language keys
-	}
-
-	public JSONArray getViewsJSONArray(ObjectEntry fdsView) {
-		return JSONUtil.putAll(
-			JSONUtil.put(
-				"contentRenderer", "table"
-			).put(
-				"default", false
-			).put(
-				"label", "Table"
-			).put(
-				"name", "table"
-			).put(
-				"quickActionsEnabled", false
-			).put(
-				"schema",
-				JSONUtil.put(
-					"fields",
-					JSONUtil.putAll(
-						JSONUtil.put(
-							"contentRenderer", "image"
-						).put(
-							"expand", false
-						).put(
-							"fieldName", "thumbnail"
-						).put(
-							"label", ""
-						).put(
-							"localizeLabel", true
-						).put(
-							"sortable", false
-						),
-						JSONUtil.put(
-							"contentRenderer", "actionLink"
-						).put(
-							"expand", false
-						).put(
-							"fieldName", JSONUtil.putAll("name", "LANG")
-						).put(
-							"label", "Name"
-						).put(
-							"localizeLabel", true
-						).put(
-							"sortable", true
-						),
-						JSONUtil.put(
-							"contentRenderer", "actionLink"
-						).put(
-							"expand", false
-						).put(
-							"fieldName", JSONUtil.putAll("catalog", "name")
-						).put(
-							"label", "Catalog"
-						).put(
-							"localizeLabel", true
-						).put(
-							"sortable", false
-						),
-						JSONUtil.put(
-							"expand", false
-						).put(
-							"fieldName", "productTypeI18n"
-						).put(
-							"label", "Type"
-						).put(
-							"localizeLabel", true
-						).put(
-							"sortable", false
-						),
-						JSONUtil.put(
-							"contentRenderer", "status"
-						).put(
-							"expand", false
-						).put(
-							"fieldName", "workflowStatusInfo"
-						).put(
-							"label", "Status"
-						).put(
-							"localizeLabel", true
-						).put(
-							"sortable", false
-						),
-						JSONUtil.put(
-							"contentRenderer", "dateTime"
-						).put(
-							"expand", false
-						).put(
-							"fieldName", "modifiedDate"
-						).put(
-							"label", "Modified Date"
-						).put(
-							"localizeLabel", true
-						).put(
-							"sortable", true
-						)))
-			).put(
-				"thumbnail", "table"
-			));
 	}
 
 	@Override
@@ -324,7 +227,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		).put(
 			"uniformActionsDisplay", false
 		).put(
-			"views", getViewsJSONArray(fdsView)
+			"views", _viewProvider.getViewsJSONArray(fdsView)
 		).build();
 	}
 
@@ -392,5 +295,8 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 	@Reference
 	private ReactRenderer _reactRenderer;
+
+	@Reference
+	private ViewProvider _viewProvider;
 
 }
