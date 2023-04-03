@@ -20,7 +20,6 @@ import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.APIUrlDatasetProvider;
 import com.liferay.object.model.ObjectDefinition;
-
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
 import com.liferay.object.service.ObjectDefinitionLocalService;
@@ -37,6 +36,8 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.template.react.renderer.ComponentDescriptor;
 import com.liferay.portal.template.react.renderer.ReactRenderer;
+import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
+import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 
 import java.io.CharArrayWriter;
 import java.io.IOException;
@@ -50,8 +51,6 @@ import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
-import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -132,9 +131,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		return "Frontend Dataset";     // TODO: add language keys
 	}
 
-	public JSONObject getPaginationJSONObject(
-		ObjectEntry fdsView) {
-
+	public JSONObject getPaginationJSONObject(ObjectEntry fdsView) {
 		return JSONUtil.put(
 			"deltas",
 			JSONUtil.putAll(
@@ -255,15 +252,15 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		try {
 			PrintWriter printWriter = httpServletResponse.getWriter();
 
-			ObjectEntry fdsView = _getFDSView(httpServletRequest,
-				fragmentRendererContext);
+			ObjectEntry fdsView = _getFDSView(fragmentRendererContext);
 
 			if ((fdsView == null) && fragmentRendererContext.isEditMode()) {
 				printWriter.write(
 					StringBundler.concat(
 						"<div class=\"portlet-msg-info\">",
-							_language.get(httpServletRequest,
-								"select-a-dataset-view"), "</div>"));
+						_language.get(
+							httpServletRequest, "select-a-dataset-view"),
+						"</div>"));
 			}
 
 			if (fdsView == null) {
@@ -272,15 +269,14 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 			printWriter.write(
 				_renderFragmentEntry(
-					fragmentRendererContext, fdsView,
-					httpServletRequest));
+					fragmentRendererContext, fdsView, httpServletRequest));
 		}
-		catch (Exception e) {
-			throw new IOException(e);
+		catch (Exception exception) {
+			throw new IOException(exception);
 		}
 	}
 
-	private ObjectEntry _getFDSView(HttpServletRequest httpServletRequest,
+	private ObjectEntry _getFDSView(
 		FragmentRendererContext fragmentRendererContext) {
 
 		try {
@@ -295,20 +291,22 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 			if ((jsonObject != null) && jsonObject.has("className") &&
 				jsonObject.has("externalReferenceCode") &&
-				Objects.equals(jsonObject.get("className"),
+				Objects.equals(
+					jsonObject.get("className"),
 					_getFDSViewClassName(fragmentRendererContext))) {
 
-				String externalReferenceCode =
-					jsonObject.getString("externalReferenceCode");
+				String externalReferenceCode = jsonObject.getString(
+					"externalReferenceCode");
 
 				ObjectDefinition fdsViewObjectDefinition =
 					_getFDSViewObjectDefinition(fragmentRendererContext);
 
 				DTOConverterContext dtoConverterContext =
-					new DefaultDTOConverterContext(false, null, null, null,
-						null, LocaleUtil.getSiteDefault(), null, null);
+					new DefaultDTOConverterContext(
+						false, null, null, null, null,
+						LocaleUtil.getSiteDefault(), null, null);
 
-				return  _objectEntryManager.getObjectEntry(
+				return _objectEntryManager.getObjectEntry(
 					dtoConverterContext, externalReferenceCode,
 					fdsViewObjectDefinition.getCompanyId(),
 					fdsViewObjectDefinition, null);
@@ -316,14 +314,30 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 			return null;
 		}
-		catch (Exception e) {
-			_log.error(e);
+		catch (Exception exception) {
+			_log.error(exception);
+
 			return null;
 		}
 	}
 
-	private ObjectDefinition _getFDSViewObjectDefinition(FragmentRendererContext
-			fragmentRendererContext) {
+	private String _getFDSViewClassName(
+		FragmentRendererContext fragmentRendererContext) {
+
+		ObjectDefinition fdsViewObjectDefinition = _getFDSViewObjectDefinition(
+			fragmentRendererContext);
+
+		String className = "";
+
+		if (fdsViewObjectDefinition != null) {
+			className = fdsViewObjectDefinition.getClassName();
+		}
+
+		return className;
+	}
+
+	private ObjectDefinition _getFDSViewObjectDefinition(
+		FragmentRendererContext fragmentRendererContext) {
 
 		long companyId = CompanyThreadLocal.getCompanyId();
 
@@ -336,22 +350,6 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 		return _objectDefinitionLocalService.fetchObjectDefinition(
 			companyId, "C_FDSView");
-	}
-
-
-	private String _getFDSViewClassName(FragmentRendererContext
-			fragmentRendererContext) {
-
-		ObjectDefinition fdsViewObjectDefinition =
-			_getFDSViewObjectDefinition(fragmentRendererContext);
-
-		String className = "";
-
-		if (fdsViewObjectDefinition != null) {
-			className = fdsViewObjectDefinition.getClassName();
-		}
-
-		return className;
 	}
 
 	private Map<String, Object> _prepareData(
@@ -376,15 +374,16 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 	private String _renderFragmentEntry(
 			FragmentRendererContext fragmentRendererContext,
-			ObjectEntry fdsView,
-			HttpServletRequest httpServletRequest)
+			ObjectEntry fdsView, HttpServletRequest httpServletRequest)
 		throws IOException {
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(8);
 
-		String fdsViewLabel = (String)fdsView.getProperties().get("label");
+		Map<String, Object> fdsViewProperties = fdsView.getProperties();
 
-		sb.append("<span>" + fdsViewLabel + "</span>");
+		sb.append("<span>");
+		sb.append(fdsViewProperties.get("label"));
+		sb.append("</span>");
 		sb.append("<div id=\"");
 		sb.append(fragmentRendererContext.getFragmentElementId());
 		sb.append("\" >");
@@ -398,8 +397,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		_reactRenderer.renderReact(
 			componentDescriptor,
 			_prepareData(
-				fragmentRendererContext.getFragmentElementId(),
-				fdsView),
+				fragmentRendererContext.getFragmentElementId(), fdsView),
 			httpServletRequest, writer);
 
 		sb.append(writer.toString());
