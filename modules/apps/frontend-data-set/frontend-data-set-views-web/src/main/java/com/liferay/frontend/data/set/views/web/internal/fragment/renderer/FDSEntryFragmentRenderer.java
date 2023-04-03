@@ -20,6 +20,7 @@ import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.APIUrlProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FilterProvider;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.PaginationProvider;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
@@ -97,19 +98,6 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 	public String getLabel(Locale locale) {
 		return "Frontend Dataset";     // TODO: add language keys
-	}
-
-	public JSONObject getPaginationJSONObject(ObjectEntry fdsView) {
-		return JSONUtil.put(
-			"deltas",
-			JSONUtil.putAll(
-				JSONUtil.put("label", 4), JSONUtil.put("label", 10),
-				JSONUtil.put("label", 20))
-		).put(
-			"initialDelta", 10
-		).put(
-			"initialPageNumber", 0
-		);
 	}
 
 	public JSONArray getViewsJSONArray(ObjectEntry fdsView) {
@@ -330,7 +318,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		).put(
 			"namespace", fragmentElementId
 		).put(
-			"pagination", getPaginationJSONObject(fdsView)
+			"pagination", _paginationProvider.getPaginationJSONObject(fdsView)
 		).put(
 			"selectedItems", ""
 		).put(
@@ -398,6 +386,9 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 	@Reference(target = "(object.entry.manager.storage.type=default)")
 	private ObjectEntryManager _objectEntryManager;
+
+	@Reference
+	private PaginationProvider _paginationProvider;
 
 	@Reference
 	private ReactRenderer _reactRenderer;
