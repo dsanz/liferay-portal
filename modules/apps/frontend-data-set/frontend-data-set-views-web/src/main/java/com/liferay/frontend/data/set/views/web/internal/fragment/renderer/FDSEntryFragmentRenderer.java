@@ -287,7 +287,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 	}
 
 	private ObjectEntry _getFDSView(HttpServletRequest httpServletRequest,
-																	 FragmentRendererContext fragmentRendererContext) {
+		FragmentRendererContext fragmentRendererContext) {
 
 		try {
 			FragmentEntryLink fragmentEntryLink =
@@ -300,22 +300,24 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 					fragmentRendererContext.getLocale(), "itemSelector");
 
 			if ((jsonObject != null) && jsonObject.has("className") &&
-				jsonObject.has("classPK") &&
+				jsonObject.has("externalReferenceCode") &&
 				Objects.equals(jsonObject.get("className"),
 					_getFDSViewClassName(fragmentRendererContext))) {
 
-				long fdsViewId = jsonObject.getLong("classPK");
+				String externalReferenceCode =
+					jsonObject.getString("externalReferenceCode");
 
 				ObjectDefinition fdsViewObjectDefinition =
 					_getFDSViewObjectDefinition(fragmentRendererContext);
 
-				DTOConverterContext dtoConverterContext = new DefaultDTOConverterContext(
-					false, null, null, null, null, LocaleUtil.getSiteDefault(), null,
-					null);
+				DTOConverterContext dtoConverterContext =
+					new DefaultDTOConverterContext(false, null, null, null,
+						null, LocaleUtil.getSiteDefault(), null, null);
 
-				return _objectEntryManager.getObjectEntry(
-					dtoConverterContext, fdsViewObjectDefinition, fdsViewId);
-
+				return  _objectEntryManager.getObjectEntry(
+					dtoConverterContext, externalReferenceCode,
+					fdsViewObjectDefinition.getCompanyId(),
+					fdsViewObjectDefinition, null);
 			}
 
 			return null;
