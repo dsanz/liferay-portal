@@ -16,25 +16,11 @@ package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 
-import org.osgi.service.component.annotations.Component;
-
 /**
  * @author Daniel Sanz
  */
-@Component(service = APIUrlDatasetProvider.class)
-public class APIUrlDatasetProviderImpl implements APIUrlDatasetProvider {
-	/* main things to do here:
-	    - interpolate URL parameters with context values (siteId, userId)
-	    - add required nested fields depending on field mappings
-	    - add sorting options
+public interface APIUrlProvider {
 
-	  things we don't need to worry about (FDS manages them)
-	    - Add page numbers and items per page
-	    - Add odata query in case filters are pre-applied
-	 */
-	public String getApiUrl(ObjectEntry fdsView) {
-		return "/o/headless-commerce-admin-catalog/v1.0/products" +
-			"?nestedFields=skus,catalog";
-	}
+	public String getApiUrl(ObjectEntry fdsView);
 
 }
