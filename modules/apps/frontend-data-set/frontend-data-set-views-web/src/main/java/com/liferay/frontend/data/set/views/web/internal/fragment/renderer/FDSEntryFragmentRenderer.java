@@ -19,8 +19,6 @@ import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.APIUrlDatasetProvider;
-import com.liferay.frontend.data.set.views.web.internal.js.loader.modules.extender.npm.NPMResolverProvider;
-import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
 import com.liferay.object.model.ObjectDefinition;
 
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
@@ -382,21 +380,17 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 			HttpServletRequest httpServletRequest)
 		throws IOException {
 
-		NPMResolver npmResolver = NPMResolverProvider.getNPMResolver();
-
-		String moduleName = npmResolver.resolveModuleName(
-			"@liferay/frontend-data-set-web/FrontendDataSet");
-
 		StringBundler sb = new StringBundler(5);
 
 		sb.append("<div id=\"");
 		sb.append(fragmentRendererContext.getFragmentElementId());
 		sb.append("\" >");
 
-		Writer writer = new CharArrayWriter();
-
 		ComponentDescriptor componentDescriptor = new ComponentDescriptor(
-			moduleName, fragmentRendererContext.getFragmentElementId());
+			"{FrontendDataSet} from frontend-data-set-web",
+			fragmentRendererContext.getFragmentElementId(), null, true);
+
+		Writer writer = new CharArrayWriter();
 
 		_reactRenderer.renderReact(
 			componentDescriptor,
