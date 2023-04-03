@@ -19,6 +19,7 @@ import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.APIUrlProvider;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FilterProvider;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
@@ -87,39 +88,6 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 							"typeOptions", JSONUtil.put("itemType", className)
 						))))
 		).toString();
-	}
-
-	public JSONArray getFiltersJSONArray(ObjectEntry fdsView) {
-		return JSONUtil.putAll(
-			JSONUtil.put(
-				"autocompleteEnabled", false
-			).put(
-				"id", "productType"
-			).put(
-				"items",
-				JSONUtil.putAll(
-					JSONUtil.put(
-						"label", "Simple"
-					).put(
-						"value", "simple"
-					),
-					JSONUtil.put(
-						"label", "Grouped"
-					).put(
-						"value", "grouped"
-					),
-					JSONUtil.put(
-						"label", "Virtual"
-					).put(
-						"value", "virtual"
-					))
-			).put(
-				"label", "Product Type"
-			).put(
-				"multiple", false
-			).put(
-				"type", "selection"
-			));
 	}
 
 	@Override
@@ -358,7 +326,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		return HashMapBuilder.<String, Object>put(
 			"apiURL", _apiUrlProvider.getApiUrl(fdsView)
 		).put(
-			"filters", getFiltersJSONArray(fdsView)
+			"filters", _filterProvider.getFiltersJSONArray(fdsView)
 		).put(
 			"namespace", fragmentElementId
 		).put(
@@ -412,6 +380,9 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 	@Reference
 	private APIUrlProvider _apiUrlProvider;
+
+	@Reference
+	private FilterProvider _filterProvider;
 
 	@Reference
 	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
