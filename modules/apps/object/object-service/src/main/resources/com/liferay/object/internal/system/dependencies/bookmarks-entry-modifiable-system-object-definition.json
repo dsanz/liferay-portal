@@ -5,7 +5,7 @@
 		"en_US": "Bookmarks Entry"
 	},
 	"modifiable": true,
-	"name": "Bookmarks Entry",
+	"name": "BookmarksEntry",
 	"objectFields": [
 		{
 			"DBType": "Clob",
