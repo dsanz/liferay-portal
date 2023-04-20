@@ -18,10 +18,14 @@ import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.Pag
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import org.osgi.service.component.annotations.Component;
 
 /**
  * @author Daniel Sanz
  */
+@Component(
+	service = PaginationProvider.class
+)
 public class PaginationProviderImpl implements PaginationProvider {
 
 	@Override

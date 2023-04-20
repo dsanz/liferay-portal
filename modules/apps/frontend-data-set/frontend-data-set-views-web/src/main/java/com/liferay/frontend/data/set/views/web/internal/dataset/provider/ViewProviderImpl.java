@@ -18,10 +18,14 @@ import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.Vie
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONUtil;
+import org.osgi.service.component.annotations.Component;
 
 /**
  * @author Daniel Sanz
  */
+@Component (
+	service=ViewProvider.class
+)
 public class ViewProviderImpl implements ViewProvider {
 
 	@Override
