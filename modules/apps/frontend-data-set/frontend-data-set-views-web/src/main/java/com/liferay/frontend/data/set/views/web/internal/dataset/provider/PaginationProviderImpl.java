@@ -16,9 +16,16 @@ package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.PaginationProvider;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
+import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringUtil;
+import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.util.PropsValues;
 import org.osgi.service.component.annotations.Component;
+
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * @author Daniel Sanz
@@ -30,17 +37,60 @@ public class PaginationProviderImpl implements PaginationProvider {
 
 	@Override
 	public JSONObject getPaginationJSONObject(ObjectEntry fdsView) {
-		return _getSamplePaginationJSONObject();
+		Map<String, Object> fdsViewProperties = fdsView.getProperties();
+
+		JSONObject paginationJSONObject;
+
+		try {
+			String itemsPerPageList =
+				(String)fdsViewProperties.get("listOfItemsPerPage");
+
+			paginationJSONObject = JSONUtil.put(
+				"deltas",
+				JSONUtil.toJSONArray(
+					StringUtil.split(itemsPerPageList, CharPool.COMMA),
+					(String itemPerPageElement) ->
+						JSONUtil.put(
+							"label",
+							Integer.parseInt(itemPerPageElement.trim()))
+				)
+			).put(
+				"initialDelta", fdsViewProperties.get("defaultItemsPerPage")
+			).put(
+				"initialPageNumber", 0
+			);
+		} catch (Exception exception) {
+			paginationJSONObject = _getDefaultPaginationJSONObject();
+		}
+		return paginationJSONObject;
 	}
 
-	private JSONObject _getSamplePaginationJSONObject() {
-		return JSONUtil.put(
-			"deltas",
-			JSONUtil.putAll(
+	private JSONObject _getDefaultPaginationJSONObject() {
+		JSONArray itemsPerPageList;
+
+		int defaultItemsPerPage;
+
+		try {
+			itemsPerPageList = JSONUtil.toJSONArray(
+				Arrays.asList(PropsValues.SEARCH_CONTAINER_PAGE_DELTA_VALUES),
+				(itemPerPageElement) ->
+					JSONUtil.put("label", itemPerPageElement));
+
+			defaultItemsPerPage =
+				PropsValues.SEARCH_CONTAINER_PAGE_DEFAULT_DELTA;
+		}
+		catch (Exception exception) {
+			itemsPerPageList = JSONUtil.putAll(
 				JSONUtil.put("label", 4), JSONUtil.put("label", 10),
-				JSONUtil.put("label", 20))
+				JSONUtil.put("label", 20));
+
+			defaultItemsPerPage = 10;
+		}
+
+		return JSONUtil.put(
+			"deltas", itemsPerPageList
 		).put(
-			"initialDelta", 10
+			"initialDelta", defaultItemsPerPage
 		).put(
 			"initialPageNumber", 0
 		);
