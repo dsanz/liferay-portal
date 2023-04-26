@@ -16,11 +16,13 @@ package com.liferay.frontend.data.set.views.web.internal.dataset.provider.api;
 
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * @author Daniel Sanz
  */
 public interface APIUrlProvider {
 
-	public String getApiUrl(ObjectEntry fdsView);
+	public String getApiUrl(ObjectEntry fdsView, HttpServletRequest httpServletRequest);
 
 }

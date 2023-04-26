@@ -211,14 +211,16 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 	}
 
 	private Map<String, Object> _prepareData(
-		String fragmentElementId, ObjectEntry fdsView) {
+		String fragmentElementId, ObjectEntry fdsView, HttpServletRequest httpServletRequest) {
 
 		return HashMapBuilder.<String, Object>put(
-			"apiURL", _apiUrlProvider.getApiUrl(fdsView)
+			"apiURL", _apiUrlProvider.getApiUrl(fdsView, httpServletRequest)
 		).put(
 			"filters", _filterProvider.getFiltersJSONArray(fdsView)
 		).put(
 			"namespace", fragmentElementId
+		).put(
+			"id", "FDS_" + fragmentElementId
 		).put(
 			"pagination", _paginationProvider.getPaginationJSONObject(fdsView)
 		).put(
@@ -253,9 +255,9 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		Writer writer = new CharArrayWriter();
 
 		_reactRenderer.renderReact(
-			componentDescriptor,
+			componentDescriptor, // TODO: prepare the ID for the FDS component
 			_prepareData(
-				fragmentRendererContext.getFragmentElementId(), fdsView),
+				fragmentRendererContext.getFragmentElementId(), fdsView, httpServletRequest),
 			httpServletRequest, writer);
 
 		sb.append(writer.toString());
