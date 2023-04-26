@@ -19,6 +19,8 @@ import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 
 import org.osgi.service.component.annotations.Component;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * @author Daniel Sanz
  */
@@ -33,7 +35,8 @@ public class APIUrlProviderImpl implements APIUrlProvider {
 	    - Add page numbers and items per page
 	    - Add odata query in case filters are pre-applied
 	 */
-	public String getApiUrl(ObjectEntry fdsView) {
+	public String getApiUrl(ObjectEntry fdsView, HttpServletRequest httpServletRequest) {
+
 		return "/o/headless-commerce-admin-catalog/v1.0/products" +
 			"?nestedFields=skus,catalog";
 	}
