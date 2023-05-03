@@ -18,8 +18,11 @@ import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.Vie
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONUtil;
-
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author Daniel Sanz
@@ -29,7 +32,110 @@ public class ViewProviderImpl implements ViewProvider {
 
 	@Override
 	public JSONArray getViewsJSONArray(ObjectEntry fdsView) {
-		return _getSampleViewsJSONArray();
+		Collection<ObjectEntry> fdsFields = _fdsEntryProviderUtil.getFDSFields(fdsView);
+
+		if (fdsFields == null || fdsFields.size() == 0) {
+			return _getDefaultJSONArray();
+		}
+
+		return _getViewsJSONArray(fdsFields);
+	}
+
+	private JSONArray _getViewsJSONArray(Collection<ObjectEntry> fdsFields) {
+		try {
+			return JSONUtil.putAll(
+				JSONUtil.put(
+					"contentRenderer", "table"
+				).put(
+					"default", false
+				).put(
+					"label", "Table"
+				).put(
+					"name", "table"
+				).put(
+					"quickActionsEnabled", false
+				).put(
+					"schema",
+					JSONUtil.put(
+						"fields",
+						JSONUtil.toJSONArray(
+							fdsFields,
+							(ObjectEntry fdsField) -> {
+								Map<String, Object> fdsFieldProperties = fdsField.getProperties();
+
+								JSONArray jsonArray =
+									_fdsEntryProviderUtil.getFieldName(fdsField);
+
+								Object fieldName;
+
+								if (jsonArray.length() > 1) {
+									fieldName = jsonArray;
+								}
+								else {
+									fieldName = jsonArray.get(0);
+								}
+
+								return JSONUtil.put(
+									"contentRenderer",
+									(String) fdsFieldProperties.get("renderer")
+								).put(
+									"expand", false
+								).put(
+									"fieldName", fieldName
+								).put(
+									"label",
+									(String) fdsFieldProperties.get("label")
+								).put(
+									"localizeLabel", false
+								).put(
+									"sortable",
+									(Boolean) fdsFieldProperties.get("sortable")
+								);
+							}
+						)
+					)
+				).put(
+					"thumbnail", "table"
+				));
+		}
+		catch (Exception exception) {
+			return _getDefaultJSONArray();
+		}
+	}
+
+	private JSONArray _getDefaultJSONArray() {
+		return JSONUtil.putAll(
+			JSONUtil.put(
+				"contentRenderer", "table"
+			).put(
+				"default", false
+			).put(
+				"label", "Table"
+			).put(
+				"name", "table"
+			).put(
+				"quickActionsEnabled", false
+			).put(
+				"schema",
+				JSONUtil.put(
+					"fields",
+					JSONUtil.putAll(
+						JSONUtil.put(
+							"contentRenderer", "default"
+						).put(
+							"expand", false
+						).put(
+							"fieldName", "id"
+						).put(
+							"label", "ID"
+						).put(
+							"localizeLabel", false
+						).put(
+							"sortable", false
+						)))
+			).put(
+				"thumbnail", "table"
+			));
 	}
 
 	private JSONArray _getSampleViewsJSONArray() {
@@ -130,4 +236,6 @@ public class ViewProviderImpl implements ViewProvider {
 			));
 	}
 
+	@Reference
+	private FDSEntryProviderUtil _fdsEntryProviderUtil;
 }
