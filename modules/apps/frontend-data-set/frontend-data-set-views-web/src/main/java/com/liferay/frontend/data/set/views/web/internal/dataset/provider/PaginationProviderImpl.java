@@ -17,10 +17,14 @@ package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.PaginationProvider;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.util.PropsValues;
 
 import java.util.Arrays;
@@ -40,10 +44,10 @@ public class PaginationProviderImpl implements PaginationProvider {
 
 		JSONObject paginationJSONObject;
 
-		try {
-			String itemsPerPageList = (String)fdsViewProperties.get(
-				"listOfItemsPerPage");
+		String itemsPerPageList = (String)fdsViewProperties.get(
+			"listOfItemsPerPage");
 
+		try {
 			paginationJSONObject = JSONUtil.put(
 				"deltas",
 				JSONUtil.toJSONArray(
@@ -57,6 +61,14 @@ public class PaginationProviderImpl implements PaginationProvider {
 			);
 		}
 		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					StringBundler.concat(
+						"Unable to create pagination JSONArray from '",
+						itemsPerPageList, "'"),
+					exception);
+			}
+
 			paginationJSONObject = _getDefaultPaginationJSONObject();
 		}
 
@@ -64,12 +76,12 @@ public class PaginationProviderImpl implements PaginationProvider {
 	}
 
 	private JSONObject _getDefaultPaginationJSONObject() {
-		JSONArray itemsPerPageList;
+		JSONArray itemsPerPageListJSONArray;
 
 		int defaultItemsPerPage;
 
 		try {
-			itemsPerPageList = JSONUtil.toJSONArray(
+			itemsPerPageListJSONArray = JSONUtil.toJSONArray(
 				Arrays.asList(PropsValues.SEARCH_CONTAINER_PAGE_DELTA_VALUES),
 				itemPerPageElement -> JSONUtil.put(
 					"label", itemPerPageElement));
@@ -78,7 +90,16 @@ public class PaginationProviderImpl implements PaginationProvider {
 				PropsValues.SEARCH_CONTAINER_PAGE_DEFAULT_DELTA;
 		}
 		catch (Exception exception) {
-			itemsPerPageList = JSONUtil.putAll(
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					StringBundler.concat(
+						"Please check ",
+						PropsKeys.SEARCH_CONTAINER_PAGE_DELTA_VALUES,
+						" property"),
+					exception);
+			}
+
+			itemsPerPageListJSONArray = JSONUtil.putAll(
 				JSONUtil.put("label", 4), JSONUtil.put("label", 10),
 				JSONUtil.put("label", 20));
 
@@ -86,12 +107,15 @@ public class PaginationProviderImpl implements PaginationProvider {
 		}
 
 		return JSONUtil.put(
-			"deltas", itemsPerPageList
+			"deltas", itemsPerPageListJSONArray
 		).put(
 			"initialDelta", defaultItemsPerPage
 		).put(
 			"initialPageNumber", 0
 		);
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		PaginationProviderImpl.class);
 
 }

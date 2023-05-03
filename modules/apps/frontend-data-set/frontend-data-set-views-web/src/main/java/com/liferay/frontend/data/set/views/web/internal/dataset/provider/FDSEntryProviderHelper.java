@@ -21,6 +21,7 @@ import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.log.Log;
@@ -30,25 +31,29 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
+import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 import java.util.Collection;
 import java.util.Map;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Daniel Sanz
  */
-@Component(service = FDSEntryProviderUtil.class)
-public class FDSEntryProviderUtil {
+@Component(service = FDSEntryProviderHelper.class)
+public class FDSEntryProviderHelper {
 
 	public ObjectEntry getFDSEntry(ObjectEntry fdsView) {
 		Map<String, Object> fdsViewProperties = fdsView.getProperties();
 
-		Long fdsEntryId = (Long)fdsViewProperties.get("r_fdsEntryFDSViewRelationship_c_fdsEntryId");
+		Long fdsEntryId = (Long)fdsViewProperties.get(
+			"r_fdsEntryFDSViewRelationship_c_fdsEntryId");
 
-		ObjectDefinition fdsEntryObjectDefinition = getFDSEntryObjectDefinition();
+		ObjectDefinition fdsEntryObjectDefinition =
+			getFDSEntryObjectDefinition();
 
 		DTOConverterContext dtoConverterContext =
 			new DefaultDTOConverterContext(
@@ -57,62 +62,13 @@ public class FDSEntryProviderUtil {
 
 		try {
 			return _objectEntryManager.getObjectEntry(
-				dtoConverterContext, fdsEntryObjectDefinition,
-				fdsEntryId);
+				dtoConverterContext, fdsEntryObjectDefinition, fdsEntryId);
 		}
 		catch (Exception exception) {
 			_log.error(exception);
 
 			return null;
 		}
-	}
-
-	public Collection<ObjectEntry> getFDSFields(ObjectEntry fdsView) {
-		ObjectDefinition fdsViewObjectDefinition = getFDSViewObjectDefinition();
-
-		DTOConverterContext dtoConverterContext =
-			new DefaultDTOConverterContext(
-				false, null, null, null, null, LocaleUtil.getSiteDefault(),
-				null, null);
-
-		try {
-			return _objectEntryManager.getObjectEntryRelatedObjectEntries(
-				dtoConverterContext, fdsViewObjectDefinition, fdsView.getId(),
-				"fdsViewFDSFieldRelationship", Pagination.of(1, 500)).getItems();
-
-		}
-		catch (Exception exception) {
-			_log.error(exception);
-
-			return null;
-		}
-	}
-
-	public JSONArray getFieldName(ObjectEntry fdsField) {
-		Map<String, Object> fdsFieldProperties = fdsField.getProperties();
-
-		String fieldName = (String) fdsFieldProperties.get("name");
-
-		JSONArray jsonArray = null;
-
-		try {
-			jsonArray = _jsonFactory.createJSONArray(
-				StringUtil.split(fieldName, CharPool.PERIOD));
-
-		}
-		catch (Exception exception) {
-		}
-
-		return jsonArray;
-	}
-
-	public ObjectDefinition getFDSFieldObjectDefinition() {
-		return getFDSFieldObjectDefinition(CompanyThreadLocal.getCompanyId());
-	}
-
-	public ObjectDefinition getFDSFieldObjectDefinition(long companyId) {
-		return _objectDefinitionLocalService.fetchObjectDefinition(
-			companyId, "C_FDSField");
 	}
 
 	public ObjectDefinition getFDSEntryObjectDefinition() {
@@ -124,13 +80,37 @@ public class FDSEntryProviderUtil {
 			companyId, "C_FDSEntry");
 	}
 
-	public ObjectDefinition getFDSViewObjectDefinition() {
-		return getFDSViewObjectDefinition(CompanyThreadLocal.getCompanyId());
+	public ObjectDefinition getFDSFieldObjectDefinition() {
+		return getFDSFieldObjectDefinition(CompanyThreadLocal.getCompanyId());
 	}
 
-	public ObjectDefinition getFDSViewObjectDefinition(long companyId) {
+	public ObjectDefinition getFDSFieldObjectDefinition(long companyId) {
 		return _objectDefinitionLocalService.fetchObjectDefinition(
-			companyId, "C_FDSView");
+			companyId, "C_FDSField");
+	}
+
+	public Collection<ObjectEntry> getFDSFields(ObjectEntry fdsView) {
+		ObjectDefinition fdsViewObjectDefinition = getFDSViewObjectDefinition();
+
+		DTOConverterContext dtoConverterContext =
+			new DefaultDTOConverterContext(
+				false, null, null, null, null, LocaleUtil.getSiteDefault(),
+				null, null);
+
+		try {
+			Page<ObjectEntry> fieldsPage =
+				_objectEntryManager.getObjectEntryRelatedObjectEntries(
+					dtoConverterContext, fdsViewObjectDefinition,
+					fdsView.getId(), "fdsViewFDSFieldRelationship",
+					Pagination.of(1, 500));
+
+			return fieldsPage.getItems();
+		}
+		catch (Exception exception) {
+			_log.error(exception);
+
+			return null;
+		}
 	}
 
 	public ObjectEntry getFDSView(
@@ -158,6 +138,10 @@ public class FDSEntryProviderUtil {
 		}
 	}
 
+	public ObjectDefinition getFDSViewObjectDefinition() {
+		return getFDSViewObjectDefinition(CompanyThreadLocal.getCompanyId());
+	}
+
 	public ObjectDefinition getFDSViewObjectDefinition(
 		FragmentRendererContext fragmentRendererContext) {
 
@@ -173,8 +157,36 @@ public class FDSEntryProviderUtil {
 		return getFDSViewObjectDefinition(companyId);
 	}
 
+	public ObjectDefinition getFDSViewObjectDefinition(long companyId) {
+		return _objectDefinitionLocalService.fetchObjectDefinition(
+			companyId, "C_FDSView");
+	}
+
+	public JSONArray getFieldNameJSONArray(ObjectEntry fdsField) {
+		Map<String, Object> fdsFieldProperties = fdsField.getProperties();
+
+		String fieldName = (String)fdsFieldProperties.get("name");
+
+		JSONArray jsonArray = null;
+
+		try {
+			jsonArray = _jsonFactory.createJSONArray(
+				StringUtil.split(fieldName, CharPool.PERIOD));
+		}
+		catch (Exception exception) {
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					StringBundler.concat(
+						"Unable to build JSONArray from '", fieldName, "'"),
+					exception);
+			}
+		}
+
+		return jsonArray;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
-		FDSEntryProviderUtil.class);
+		FDSEntryProviderHelper.class);
 
 	@Reference
 	private JSONFactory _jsonFactory;

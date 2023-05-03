@@ -18,7 +18,7 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FDSEntryProviderUtil;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FDSEntryProviderHelper;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.APIUrlProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.FilterProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.PaginationProvider;
@@ -26,12 +26,9 @@ import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.Vie
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.template.react.renderer.ComponentDescriptor;
 import com.liferay.portal.template.react.renderer.ReactRenderer;
@@ -150,7 +147,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 			String externalReferenceCode = jsonObject.getString(
 				"externalReferenceCode");
 
-			return _fdsEntryProviderUtil.getFDSView(
+			return _fdsEntryProviderHelper.getFDSView(
 				externalReferenceCode, fragmentRendererContext);
 		}
 
@@ -161,7 +158,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		FragmentRendererContext fragmentRendererContext) {
 
 		ObjectDefinition fdsViewObjectDefinition =
-			_fdsEntryProviderUtil.getFDSViewObjectDefinition(
+			_fdsEntryProviderHelper.getFDSViewObjectDefinition(
 				fragmentRendererContext);
 
 		String className = "";
@@ -231,23 +228,17 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		return sb.toString();
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		FDSEntryFragmentRenderer.class);
-
 	@Reference
 	private APIUrlProvider _apiUrlProvider;
 
 	@Reference
-	private FDSEntryProviderUtil _fdsEntryProviderUtil;
+	private FDSEntryProviderHelper _fdsEntryProviderHelper;
 
 	@Reference
 	private FilterProvider _filterProvider;
 
 	@Reference
 	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
-
-	@Reference
-	private JSONFactory _jsonFactory;
 
 	@Reference
 	private Language _language;
