@@ -18,14 +18,13 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FDSEntryProviderUtil;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.APIUrlProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.FilterProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.PaginationProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.ViewProvider;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
-import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
-import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -33,13 +32,9 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.template.react.renderer.ComponentDescriptor;
 import com.liferay.portal.template.react.renderer.ReactRenderer;
-import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
-import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 
 import java.io.CharArrayWriter;
 import java.io.IOException;
@@ -137,53 +132,37 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 	private ObjectEntry _getFDSView(
 		FragmentRendererContext fragmentRendererContext) {
 
-		try {
-			FragmentEntryLink fragmentEntryLink =
-				fragmentRendererContext.getFragmentEntryLink();
+		FragmentEntryLink fragmentEntryLink =
+			fragmentRendererContext.getFragmentEntryLink();
 
-			JSONObject jsonObject =
-				(JSONObject)_fragmentEntryConfigurationParser.getFieldValue(
-					getConfiguration(fragmentRendererContext),
-					fragmentEntryLink.getEditableValues(),
-					fragmentRendererContext.getLocale(), "itemSelector");
+		JSONObject jsonObject =
+			(JSONObject)_fragmentEntryConfigurationParser.getFieldValue(
+				getConfiguration(fragmentRendererContext),
+				fragmentEntryLink.getEditableValues(),
+				fragmentRendererContext.getLocale(), "itemSelector");
 
-			if ((jsonObject != null) && jsonObject.has("className") &&
-				jsonObject.has("externalReferenceCode") &&
-				Objects.equals(
-					jsonObject.get("className"),
-					_getFDSViewClassName(fragmentRendererContext))) {
+		if ((jsonObject != null) && jsonObject.has("className") &&
+			jsonObject.has("externalReferenceCode") &&
+			Objects.equals(
+				jsonObject.get("className"),
+				_getFDSViewClassName(fragmentRendererContext))) {
 
-				String externalReferenceCode = jsonObject.getString(
-					"externalReferenceCode");
+			String externalReferenceCode = jsonObject.getString(
+				"externalReferenceCode");
 
-				ObjectDefinition fdsViewObjectDefinition =
-					_getFDSViewObjectDefinition(fragmentRendererContext);
-
-				DTOConverterContext dtoConverterContext =
-					new DefaultDTOConverterContext(
-						false, null, null, null, null,
-						LocaleUtil.getSiteDefault(), null, null);
-
-				return _objectEntryManager.getObjectEntry(
-					dtoConverterContext, externalReferenceCode,
-					fdsViewObjectDefinition.getCompanyId(),
-					fdsViewObjectDefinition, null);
-			}
-
-			return null;
+			return _fdsEntryProviderUtil.getFDSView(
+				externalReferenceCode, fragmentRendererContext);
 		}
-		catch (Exception exception) {
-			_log.error(exception);
 
-			return null;
-		}
+		return null;
 	}
 
 	private String _getFDSViewClassName(
 		FragmentRendererContext fragmentRendererContext) {
 
-		ObjectDefinition fdsViewObjectDefinition = _getFDSViewObjectDefinition(
-			fragmentRendererContext);
+		ObjectDefinition fdsViewObjectDefinition =
+			_fdsEntryProviderUtil.getFDSViewObjectDefinition(
+				fragmentRendererContext);
 
 		String className = "";
 
@@ -194,33 +173,18 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		return className;
 	}
 
-	private ObjectDefinition _getFDSViewObjectDefinition(
-		FragmentRendererContext fragmentRendererContext) {
-
-		long companyId = CompanyThreadLocal.getCompanyId();
-
-		FragmentEntryLink fragmentEntryLink =
-			fragmentRendererContext.getFragmentEntryLink();
-
-		if (fragmentEntryLink != null) {
-			companyId = fragmentEntryLink.getCompanyId();
-		}
-
-		return _objectDefinitionLocalService.fetchObjectDefinition(
-			companyId, "C_FDSView");
-	}
-
 	private Map<String, Object> _prepareData(
-		String fragmentElementId, ObjectEntry fdsView, HttpServletRequest httpServletRequest) {
+		String fragmentElementId, ObjectEntry fdsView,
+		HttpServletRequest httpServletRequest) {
 
 		return HashMapBuilder.<String, Object>put(
 			"apiURL", _apiUrlProvider.getApiUrl(fdsView, httpServletRequest)
 		).put(
 			"filters", _filterProvider.getFiltersJSONArray(fdsView)
 		).put(
-			"namespace", fragmentElementId
-		).put(
 			"id", "FDS_" + fragmentElementId
+		).put(
+			"namespace", fragmentElementId
 		).put(
 			"pagination", _paginationProvider.getPaginationJSONObject(fdsView)
 		).put(
@@ -274,6 +238,9 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 	private APIUrlProvider _apiUrlProvider;
 
 	@Reference
+	private FDSEntryProviderUtil _fdsEntryProviderUtil;
+
+	@Reference
 	private FilterProvider _filterProvider;
 
 	@Reference
@@ -284,12 +251,6 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 	@Reference
 	private Language _language;
-
-	@Reference
-	private ObjectDefinitionLocalService _objectDefinitionLocalService;
-
-	@Reference(target = "(object.entry.manager.storage.type=default)")
-	private ObjectEntryManager _objectEntryManager;
 
 	@Reference
 	private PaginationProvider _paginationProvider;
