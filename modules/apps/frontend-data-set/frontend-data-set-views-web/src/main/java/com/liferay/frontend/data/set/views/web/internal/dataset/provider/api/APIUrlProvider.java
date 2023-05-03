@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface APIUrlProvider {
 
-	public String getApiUrl(ObjectEntry fdsView, HttpServletRequest httpServletRequest);
+	public String getApiUrl(
+		ObjectEntry fdsView, HttpServletRequest httpServletRequest);
 
 }

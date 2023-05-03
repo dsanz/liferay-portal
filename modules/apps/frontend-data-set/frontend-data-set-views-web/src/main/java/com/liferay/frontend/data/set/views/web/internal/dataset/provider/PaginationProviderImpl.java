@@ -22,17 +22,16 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.util.PropsValues;
-import org.osgi.service.component.annotations.Component;
 
 import java.util.Arrays;
 import java.util.Map;
 
+import org.osgi.service.component.annotations.Component;
+
 /**
  * @author Daniel Sanz
  */
-@Component(
-	service = PaginationProvider.class
-)
+@Component(service = PaginationProvider.class)
 public class PaginationProviderImpl implements PaginationProvider {
 
 	@Override
@@ -42,26 +41,25 @@ public class PaginationProviderImpl implements PaginationProvider {
 		JSONObject paginationJSONObject;
 
 		try {
-			String itemsPerPageList =
-				(String)fdsViewProperties.get("listOfItemsPerPage");
+			String itemsPerPageList = (String)fdsViewProperties.get(
+				"listOfItemsPerPage");
 
 			paginationJSONObject = JSONUtil.put(
 				"deltas",
 				JSONUtil.toJSONArray(
 					StringUtil.split(itemsPerPageList, CharPool.COMMA),
-					(String itemPerPageElement) ->
-						JSONUtil.put(
-							"label",
-							Integer.parseInt(itemPerPageElement.trim()))
-				)
+					(String itemPerPageElement) -> JSONUtil.put(
+						"label", Integer.parseInt(itemPerPageElement.trim())))
 			).put(
 				"initialDelta", fdsViewProperties.get("defaultItemsPerPage")
 			).put(
 				"initialPageNumber", 0
 			);
-		} catch (Exception exception) {
+		}
+		catch (Exception exception) {
 			paginationJSONObject = _getDefaultPaginationJSONObject();
 		}
+
 		return paginationJSONObject;
 	}
 
@@ -73,8 +71,8 @@ public class PaginationProviderImpl implements PaginationProvider {
 		try {
 			itemsPerPageList = JSONUtil.toJSONArray(
 				Arrays.asList(PropsValues.SEARCH_CONTAINER_PAGE_DELTA_VALUES),
-				(itemPerPageElement) ->
-					JSONUtil.put("label", itemPerPageElement));
+				itemPerPageElement -> JSONUtil.put(
+					"label", itemPerPageElement));
 
 			defaultItemsPerPage =
 				PropsValues.SEARCH_CONTAINER_PAGE_DEFAULT_DELTA;
