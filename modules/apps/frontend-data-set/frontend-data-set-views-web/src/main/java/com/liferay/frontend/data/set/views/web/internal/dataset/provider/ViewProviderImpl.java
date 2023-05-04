@@ -103,26 +103,24 @@ public class ViewProviderImpl implements ViewProvider {
 								Map<String, Object> fdsFieldProperties =
 									fdsField.getProperties();
 
-								JSONArray jsonArray =
-									_fdsEntryProviderHelper.
-										getFieldNameJSONArray(fdsField);
-
-								Object fieldName;
-
-								if (jsonArray.length() > 1) {
-									fieldName = jsonArray;
-								}
-								else {
-									fieldName = jsonArray.get(0);
-								}
-
 								return JSONUtil.put(
 									"contentRenderer",
 									(String)fdsFieldProperties.get("renderer")
 								).put(
 									"expand", false
 								).put(
-									"fieldName", fieldName
+									"fieldName",
+									() -> {
+										JSONArray jsonArray =
+											_fdsEntryProviderHelper.
+												getFieldNameJSONArray(fdsField);
+
+										if (jsonArray.length() > 1) {
+											return jsonArray;
+										}
+
+										return jsonArray.get(0);
+									}
 								).put(
 									"label",
 									(String)fdsFieldProperties.get("label")
