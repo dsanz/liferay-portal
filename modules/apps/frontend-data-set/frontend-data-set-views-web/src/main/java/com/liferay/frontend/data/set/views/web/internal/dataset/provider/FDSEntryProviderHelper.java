@@ -37,6 +37,7 @@ import com.liferay.portal.vulcan.pagination.Pagination;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -237,6 +238,14 @@ public class FDSEntryProviderHelper {
 
 			return false;
 		}
+	}
+
+	public boolean isRenderedByClientExtension(ObjectEntry fdsField) {
+		Map<String, Object> fdsFieldProperties = fdsField.getProperties();
+
+		String rendererType = (String)fdsFieldProperties.get("rendererType");
+
+		return Objects.equals(rendererType, "clientExtension");
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
