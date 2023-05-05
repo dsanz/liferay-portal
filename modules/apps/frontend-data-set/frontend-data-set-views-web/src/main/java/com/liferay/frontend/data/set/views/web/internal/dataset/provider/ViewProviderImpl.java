@@ -14,12 +14,16 @@
 
 package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 
+import com.liferay.client.extension.type.FDSCellRendererCET;
+import com.liferay.client.extension.type.manager.CETManager;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.ViewProvider;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.Collection;
 import java.util.Map;
@@ -103,9 +107,40 @@ public class ViewProviderImpl implements ViewProvider {
 								Map<String, Object> fdsFieldProperties =
 									fdsField.getProperties();
 
+								String renderer =
+									(String)fdsFieldProperties.get("renderer");
+
+								String jsonKey = "contentRenderer";
+
+								boolean contentRendererClientExtension =
+									renderer.startsWith("@CE@:");
+
+								if (contentRendererClientExtension) {
+									renderer = StringUtil.removeSubstring(
+										renderer, "@CE@:");
+
+									FDSCellRendererCET fdsCellRendererCET =
+										(FDSCellRendererCET)_cetManager.getCET(
+											CompanyThreadLocal.getCompanyId(),
+											renderer);
+
+									if (fdsCellRendererCET != null) {
+										renderer =
+											"default from " +
+												fdsCellRendererCET.getURL();
+										jsonKey = "contentRendererModuleURL";
+									}
+									else {
+										renderer = "default";
+										contentRendererClientExtension = false;
+									}
+								}
+
 								return JSONUtil.put(
-									"contentRenderer",
-									(String)fdsFieldProperties.get("renderer")
+									jsonKey, renderer
+								).put(
+									"contentRendererClientExtension",
+									contentRendererClientExtension
 								).put(
 									"expand", false
 								).put(
@@ -144,6 +179,9 @@ public class ViewProviderImpl implements ViewProvider {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ViewProviderImpl.class);
+
+	@Reference
+	private CETManager _cetManager;
 
 	@Reference
 	private FDSEntryProviderHelper _fdsEntryProviderHelper;
