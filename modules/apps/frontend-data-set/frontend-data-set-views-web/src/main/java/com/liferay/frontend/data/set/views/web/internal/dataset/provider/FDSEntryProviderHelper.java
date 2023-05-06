@@ -17,6 +17,7 @@ package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
 import com.liferay.object.service.ObjectDefinitionLocalService;
@@ -35,6 +36,7 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -45,6 +47,16 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(service = FDSEntryProviderHelper.class)
 public class FDSEntryProviderHelper {
+
+	public ObjectDefinition getFDSDateFilterObjectDefinition() {
+		return getFDSDateFilterObjectDefinition(
+			CompanyThreadLocal.getCompanyId());
+	}
+
+	public ObjectDefinition getFDSDateFilterObjectDefinition(long companyId) {
+		return _objectDefinitionLocalService.fetchObjectDefinition(
+			companyId, "C_FDSDateFilter");
+	}
 
 	public ObjectEntry getFDSEntry(ObjectEntry fdsView) {
 		Map<String, Object> fdsViewProperties = fdsView.getProperties();
@@ -90,6 +102,25 @@ public class FDSEntryProviderHelper {
 	}
 
 	public Collection<ObjectEntry> getFDSFields(ObjectEntry fdsView) {
+		return getFDSRelatedObjects(fdsView, "fdsViewFDSFieldRelationship");
+	}
+
+	public Collection<ObjectEntry> getFDSFilters(ObjectEntry fdsView) {
+		Collection<ObjectEntry> fdsFilters = Collections.emptyList();
+
+		fdsFilters.addAll(
+			getFDSRelatedObjects(fdsView, "fdsViewFDSDateFilterRelationship"));
+
+		fdsFilters.addAll(
+			getFDSRelatedObjects(
+				fdsView, "fdsViewFDSDynamicFilterRelationship"));
+
+		return fdsFilters;
+	}
+
+	public Collection<ObjectEntry> getFDSRelatedObjects(
+		ObjectEntry fdsView, String relationshipName) {
+
 		ObjectDefinition fdsViewObjectDefinition = getFDSViewObjectDefinition();
 
 		DTOConverterContext dtoConverterContext =
@@ -98,13 +129,12 @@ public class FDSEntryProviderHelper {
 				null, null);
 
 		try {
-			Page<ObjectEntry> fieldsPage =
+			Page<ObjectEntry> relatedObjectEntriesPage =
 				_objectEntryManager.getObjectEntryRelatedObjectEntries(
 					dtoConverterContext, fdsViewObjectDefinition,
-					fdsView.getId(), "fdsViewFDSFieldRelationship",
-					Pagination.of(1, 500));
+					fdsView.getId(), relationshipName, Pagination.of(1, 500));
 
-			return fieldsPage.getItems();
+			return relatedObjectEntriesPage.getItems();
 		}
 		catch (Exception exception) {
 			_log.error(exception);
