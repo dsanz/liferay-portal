@@ -332,7 +332,7 @@ function Filters({fdsView, fdsViewsURL, namespace}: IProps) {
 						name: 'label',
 					},
 					{
-						label: Liferay.Language.get('Field Name'),
+						label: Liferay.Language.get('field-name'),
 						name: 'fieldName',
 					},
 					{
