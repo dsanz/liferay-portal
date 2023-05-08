@@ -163,7 +163,7 @@ function AddFDSFilterModalContent({
 		let body: any = {};
 		let url: string = '';
 
-		if (field.format === 'date-time') {
+		if (field.format === 'date-time' || field.format === 'date') {
 			url = API_URL.FDS_DATE_FILTERS;
 
 			body = {
