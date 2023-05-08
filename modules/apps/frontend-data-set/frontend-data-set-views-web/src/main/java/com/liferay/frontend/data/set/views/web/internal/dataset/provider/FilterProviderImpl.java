@@ -14,12 +14,21 @@
 
 package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 
+import com.liferay.frontend.data.set.constants.FDSEntityFieldTypes;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.FilterProvider;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+
+import java.util.Collection;
+import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Daniel Sanz
@@ -29,40 +38,60 @@ public class FilterProviderImpl implements FilterProvider {
 
 	@Override
 	public JSONArray getFiltersJSONArray(ObjectEntry fdsView) {
-		return _getSampleFiltersJSONArray();
+		Collection<ObjectEntry> fdsFilters =
+			_fdsEntryProviderHelper.getFDSFilters(fdsView);
+
+		if ((fdsFilters == null) || fdsFilters.isEmpty()) {
+			return null;
+		}
+
+		return _getFiltersJSONArray(fdsFilters);
 	}
 
-	private JSONArray _getSampleFiltersJSONArray() {
-		return JSONUtil.putAll(
-			JSONUtil.put(
-				"autocompleteEnabled", false
-			).put(
-				"id", "productType"
-			).put(
-				"items",
-				JSONUtil.putAll(
-					JSONUtil.put(
-						"label", "Simple"
-					).put(
-						"value", "simple"
-					),
-					JSONUtil.put(
-						"label", "Grouped"
-					).put(
-						"value", "grouped"
-					),
-					JSONUtil.put(
-						"label", "Virtual"
-					).put(
-						"value", "virtual"
-					))
-			).put(
-				"label", "Product Type"
-			).put(
-				"multiple", false
-			).put(
-				"type", "selection"
-			));
+	private JSONObject _getFDSDateFilterJSONObject(ObjectEntry fdsDateFilter) {
+		Map<String, Object> fdsDateFilterProperties =
+			fdsDateFilter.getProperties();
+
+		return JSONUtil.put(
+			"entityFieldType", FDSEntityFieldTypes.DATE
+		).put(
+			"id", fdsDateFilterProperties.get("fieldName")
+		).put(
+			"label", (String)fdsDateFilterProperties.get("label")
+		).put(
+			"type", "dateRange"
+		);
 	}
+
+	private JSONArray _getFiltersJSONArray(Collection<ObjectEntry> fdsFilters) {
+		try {
+			return JSONUtil.toJSONArray(
+				fdsFilters,
+				(ObjectEntry fdsFilter) -> {
+					if (_fdsEntryProviderHelper.isFDSDateFilter(fdsFilter)) {
+						return _getFDSDateFilterJSONObject(fdsFilter);
+					}
+
+					return null;
+				});
+		}
+		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to generate FDS filters from FDSView", exception);
+			}
+
+			return _jsonFactory.createJSONArray();
+		}
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		FilterProviderImpl.class);
+
+	@Reference
+	private FDSEntryProviderHelper _fdsEntryProviderHelper;
+
+	@Reference
+	private JSONFactory _jsonFactory;
 
 }

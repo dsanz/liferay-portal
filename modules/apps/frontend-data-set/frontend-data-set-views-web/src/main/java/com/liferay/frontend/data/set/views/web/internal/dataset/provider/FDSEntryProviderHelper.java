@@ -17,7 +17,6 @@ package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.object.model.ObjectDefinition;
-import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
 import com.liferay.object.service.ObjectDefinitionLocalService;
@@ -35,8 +34,8 @@ import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -106,7 +105,7 @@ public class FDSEntryProviderHelper {
 	}
 
 	public Collection<ObjectEntry> getFDSFilters(ObjectEntry fdsView) {
-		Collection<ObjectEntry> fdsFilters = Collections.emptyList();
+		Collection<ObjectEntry> fdsFilters = new ArrayList<>();
 
 		fdsFilters.addAll(
 			getFDSRelatedObjects(fdsView, "fdsViewFDSDateFilterRelationship"));
@@ -157,9 +156,8 @@ public class FDSEntryProviderHelper {
 					null, null);
 
 			return _objectEntryManager.getObjectEntry(
-				dtoConverterContext, externalReferenceCode,
-				fdsViewObjectDefinition.getCompanyId(), fdsViewObjectDefinition,
-				null);
+				fdsViewObjectDefinition.getCompanyId(), dtoConverterContext,
+				externalReferenceCode, fdsViewObjectDefinition, null);
 		}
 		catch (Exception exception) {
 			_log.error(exception);
@@ -213,6 +211,32 @@ public class FDSEntryProviderHelper {
 		}
 
 		return jsonArray;
+	}
+
+	public boolean isFDSDateFilter(ObjectEntry fdsFilter) {
+		ObjectDefinition fdsDateFilterObjectDefinition =
+			getFDSDateFilterObjectDefinition();
+
+		DTOConverterContext dtoConverterContext =
+			new DefaultDTOConverterContext(
+				false, null, null, null, null, LocaleUtil.getSiteDefault(),
+				null, null);
+
+		try {
+			ObjectEntry fdsDateFilterObjectEntry =
+				_objectEntryManager.getObjectEntry(
+					dtoConverterContext, fdsDateFilterObjectDefinition,
+					fdsFilter.getId());
+
+			return fdsFilter.equals(fdsDateFilterObjectEntry);
+		}
+		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(exception);
+			}
+
+			return false;
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
