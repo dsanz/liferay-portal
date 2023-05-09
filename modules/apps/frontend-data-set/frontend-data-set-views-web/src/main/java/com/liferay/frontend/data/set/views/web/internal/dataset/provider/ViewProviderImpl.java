@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
-import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.Collection;
 import java.util.Map;
@@ -113,12 +112,10 @@ public class ViewProviderImpl implements ViewProvider {
 								String jsonKey = "contentRenderer";
 
 								boolean contentRendererClientExtension =
-									renderer.startsWith("@CE@:");
+									_fdsEntryProviderHelper.
+										isRenderedByClientExtension(fdsField);
 
 								if (contentRendererClientExtension) {
-									renderer = StringUtil.removeSubstring(
-										renderer, "@CE@:");
-
 									FDSCellRendererCET fdsCellRendererCET =
 										(FDSCellRendererCET)_cetManager.getCET(
 											CompanyThreadLocal.getCompanyId(),
