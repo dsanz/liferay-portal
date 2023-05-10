@@ -19,10 +19,9 @@ import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.APIUrlProvider;
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FDSObjectEntryHelper;
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FilterProvider;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FiltersProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.PaginationProvider;
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.ViewProvider;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.ViewsProvider;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.petra.string.StringBundler;
@@ -176,7 +175,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		return HashMapBuilder.<String, Object>put(
 			"apiURL", _apiUrlProvider.getApiUrl(fdsView)
 		).put(
-			"filters", _filterProvider.getFiltersJSONArray(fdsView)
+			"filters", _filtersProvider.getFiltersJSONArray(fdsView)
 		).put(
 			"id", "FDS_" + fragmentElementId
 		).put(
@@ -188,7 +187,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		).put(
 			"uniformActionsDisplay", false
 		).put(
-			"views", _viewProvider.getViewsJSONArray(fdsView)
+			"views", _viewsProvider.getViewsJSONArray(fdsView)
 		).build();
 	}
 
@@ -234,7 +233,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 	private FDSObjectEntryProviderHelper _fdsObjectEntryProviderHelper;
 
 	@Reference
-	private FilterProvider _filterProvider;
+	private FiltersProvider _filtersProvider;
 
 	@Reference
 	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
@@ -249,6 +248,6 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 	private ReactRenderer _reactRenderer;
 
 	@Reference
-	private ViewProvider _viewProvider;
+	private ViewsProvider _viewsProvider;
 
 }

@@ -33,8 +33,8 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Daniel Sanz
  */
-@Component(service = ViewProvider.class)
-public class ViewProvider {
+@Component(service = ViewsProvider.class)
+public class ViewsProvider {
 
 	public JSONArray getViewsJSONArray(ObjectEntry fdsView) {
 		Collection<ObjectEntry> fdsFields =
@@ -173,7 +173,7 @@ public class ViewProvider {
 		}
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(ViewProvider.class);
+	private static final Log _log = LogFactoryUtil.getLog(ViewsProvider.class);
 
 	@Reference
 	private CETManager _cetManager;

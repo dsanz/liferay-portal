@@ -33,8 +33,8 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Daniel Sanz
  */
-@Component(service = FilterProvider.class)
-public class FilterProvider {
+@Component(service = FiltersProvider.class)
+public class FiltersProvider {
 
 	public JSONArray getFiltersJSONArray(ObjectEntry fdsView) {
 		Collection<ObjectEntry> fdsFilters =
@@ -86,7 +86,8 @@ public class FilterProvider {
 		}
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(FilterProvider.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		FiltersProvider.class);
 
 	@Reference
 	private FDSObjectEntryProviderHelper _fdsObjectEntryProviderHelper;
