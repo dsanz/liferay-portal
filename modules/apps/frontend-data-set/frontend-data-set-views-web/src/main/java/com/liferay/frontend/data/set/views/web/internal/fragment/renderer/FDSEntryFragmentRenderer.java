@@ -18,11 +18,11 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FDSEntryProviderHelper;
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.APIUrlProvider;
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.FilterProvider;
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.PaginationProvider;
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.ViewProvider;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.APIUrlProvider;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FDSObjectEntryHelper;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FilterProvider;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.PaginationProvider;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.ViewProvider;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.petra.string.StringBundler;
@@ -147,7 +147,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 			String externalReferenceCode = jsonObject.getString(
 				"externalReferenceCode");
 
-			return _fdsEntryProviderHelper.getFDSView(
+			return _fdsObjectEntryHelper.getFDSView(
 				externalReferenceCode, fragmentRendererContext);
 		}
 
@@ -158,7 +158,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		FragmentRendererContext fragmentRendererContext) {
 
 		ObjectDefinition fdsViewObjectDefinition =
-			_fdsEntryProviderHelper.getFDSViewObjectDefinition(
+			_fdsObjectEntryHelper.getFDSViewObjectDefinition(
 				fragmentRendererContext);
 
 		String className = "";
@@ -232,7 +232,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 	private APIUrlProvider _apiUrlProvider;
 
 	@Reference
-	private FDSEntryProviderHelper _fdsEntryProviderHelper;
+	private FDSObjectEntryHelper _fdsObjectEntryHelper;
 
 	@Reference
 	private FilterProvider _filterProvider;

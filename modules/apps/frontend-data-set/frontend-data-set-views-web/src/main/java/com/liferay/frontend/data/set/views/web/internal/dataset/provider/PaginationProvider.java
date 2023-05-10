@@ -14,7 +14,6 @@
 
 package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.PaginationProvider;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -36,9 +35,8 @@ import org.osgi.service.component.annotations.Component;
  * @author Daniel Sanz
  */
 @Component(service = PaginationProvider.class)
-public class PaginationProviderImpl implements PaginationProvider {
+public class PaginationProvider {
 
-	@Override
 	public JSONObject getPaginationJSONObject(ObjectEntry fdsView) {
 		Map<String, Object> fdsViewProperties = fdsView.getProperties();
 
@@ -116,6 +114,6 @@ public class PaginationProviderImpl implements PaginationProvider {
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		PaginationProviderImpl.class);
+		PaginationProvider.class);
 
 }

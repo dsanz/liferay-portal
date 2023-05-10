@@ -14,7 +14,6 @@
 
 package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.APIUrlProvider;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -35,7 +34,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Daniel Sanz
  */
 @Component(service = APIUrlProvider.class)
-public class APIUrlProviderImpl implements APIUrlProvider {
+public class APIUrlProvider {
 	/* main things to do here:
 	    - interpolate URL parameters with context values (siteId, userId)
 	    - add required nested fields depending on field mappings
@@ -49,7 +48,7 @@ public class APIUrlProviderImpl implements APIUrlProvider {
 		ObjectEntry fdsView, HttpServletRequest httpServletRequest) {
 
 		String apiUrl = _getAPIUrlBasePath(
-			_fdsEntryProviderHelper.getFDSEntry(fdsView));
+			_fdsObjectEntryHelper.getFDSEntry(fdsView));
 
 		return _getNestedFields(apiUrl, fdsView);
 	}
@@ -77,7 +76,7 @@ public class APIUrlProviderImpl implements APIUrlProvider {
 
 	private String _getNestedFields(String apiUrl, ObjectEntry fdsView) {
 		Collection<ObjectEntry> fdsFields =
-			_fdsEntryProviderHelper.getFDSFields(fdsView);
+			_fdsObjectEntryHelper.getFDSFields(fdsView);
 
 		if ((fdsFields == null) || fdsFields.isEmpty()) {
 			return apiUrl;
@@ -86,7 +85,7 @@ public class APIUrlProviderImpl implements APIUrlProvider {
 		String nestedFields = StringPool.BLANK;
 
 		for (ObjectEntry fdsField : fdsFields) {
-			JSONArray jsonArray = _fdsEntryProviderHelper.getFieldNameJSONArray(
+			JSONArray jsonArray = _fdsObjectEntryHelper.getFieldNameJSONArray(
 				fdsField);
 
 			if (jsonArray.length() > 1) {
@@ -111,7 +110,7 @@ public class APIUrlProviderImpl implements APIUrlProvider {
 	}
 
 	@Reference
-	private FDSEntryProviderHelper _fdsEntryProviderHelper;
+	private FDSObjectEntryHelper _fdsObjectEntryHelper;
 
 	@Reference
 	private JSONFactory _jsonFactory;

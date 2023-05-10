@@ -45,8 +45,8 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Daniel Sanz
  */
-@Component(service = FDSEntryProviderHelper.class)
-public class FDSEntryProviderHelper {
+@Component(service = FDSObjectEntryHelper.class)
+public class FDSObjectEntryHelper {
 
 	public ObjectDefinition getFDSDateFilterObjectDefinition() {
 		return getFDSDateFilterObjectDefinition(
@@ -249,7 +249,7 @@ public class FDSEntryProviderHelper {
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		FDSEntryProviderHelper.class);
+		FDSObjectEntryHelper.class);
 
 	@Reference
 	private JSONFactory _jsonFactory;

@@ -15,7 +15,6 @@
 package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 
 import com.liferay.frontend.data.set.constants.FDSEntityFieldTypes;
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.FilterProvider;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
@@ -34,12 +33,11 @@ import org.osgi.service.component.annotations.Reference;
  * @author Daniel Sanz
  */
 @Component(service = FilterProvider.class)
-public class FilterProviderImpl implements FilterProvider {
+public class FilterProvider {
 
-	@Override
 	public JSONArray getFiltersJSONArray(ObjectEntry fdsView) {
 		Collection<ObjectEntry> fdsFilters =
-			_fdsEntryProviderHelper.getFDSFilters(fdsView);
+			_fdsObjectEntryHelper.getFDSFilters(fdsView);
 
 		if ((fdsFilters == null) || fdsFilters.isEmpty()) {
 			return null;
@@ -68,7 +66,7 @@ public class FilterProviderImpl implements FilterProvider {
 			return JSONUtil.toJSONArray(
 				fdsFilters,
 				(ObjectEntry fdsFilter) -> {
-					if (_fdsEntryProviderHelper.isFDSDateFilter(fdsFilter)) {
+					if (_fdsObjectEntryHelper.isFDSDateFilter(fdsFilter)) {
 						return _getFDSDateFilterJSONObject(fdsFilter);
 					}
 
@@ -85,11 +83,10 @@ public class FilterProviderImpl implements FilterProvider {
 		}
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		FilterProviderImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(FilterProvider.class);
 
 	@Reference
-	private FDSEntryProviderHelper _fdsEntryProviderHelper;
+	private FDSObjectEntryHelper _fdsObjectEntryHelper;
 
 	@Reference
 	private JSONFactory _jsonFactory;

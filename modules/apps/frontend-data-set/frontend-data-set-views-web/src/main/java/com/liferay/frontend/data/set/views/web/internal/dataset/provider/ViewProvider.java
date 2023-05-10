@@ -16,7 +16,6 @@ package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 
 import com.liferay.client.extension.type.FDSCellRendererCET;
 import com.liferay.client.extension.type.manager.CETManager;
-import com.liferay.frontend.data.set.views.web.internal.dataset.provider.api.ViewProvider;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -34,12 +33,11 @@ import org.osgi.service.component.annotations.Reference;
  * @author Daniel Sanz
  */
 @Component(service = ViewProvider.class)
-public class ViewProviderImpl implements ViewProvider {
+public class ViewProvider {
 
-	@Override
 	public JSONArray getViewsJSONArray(ObjectEntry fdsView) {
 		Collection<ObjectEntry> fdsFields =
-			_fdsEntryProviderHelper.getFDSFields(fdsView);
+			_fdsObjectEntryHelper.getFDSFields(fdsView);
 
 		if ((fdsFields == null) || fdsFields.isEmpty()) {
 			return _getDefaultJSONArray();
@@ -112,7 +110,7 @@ public class ViewProviderImpl implements ViewProvider {
 								String jsonKey = "contentRenderer";
 
 								boolean contentRendererClientExtension =
-									_fdsEntryProviderHelper.
+									_fdsObjectEntryHelper.
 										isRenderedByClientExtension(fdsField);
 
 								if (contentRendererClientExtension) {
@@ -144,7 +142,7 @@ public class ViewProviderImpl implements ViewProvider {
 									"fieldName",
 									() -> {
 										JSONArray jsonArray =
-											_fdsEntryProviderHelper.
+											_fdsObjectEntryHelper.
 												getFieldNameJSONArray(fdsField);
 
 										if (jsonArray.length() > 1) {
@@ -174,13 +172,12 @@ public class ViewProviderImpl implements ViewProvider {
 		}
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		ViewProviderImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(ViewProvider.class);
 
 	@Reference
 	private CETManager _cetManager;
 
 	@Reference
-	private FDSEntryProviderHelper _fdsEntryProviderHelper;
+	private FDSObjectEntryHelper _fdsObjectEntryHelper;
 
 }
