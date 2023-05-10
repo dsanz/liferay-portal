@@ -16,6 +16,7 @@ package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 
 import com.liferay.client.extension.type.FDSCellRendererCET;
 import com.liferay.client.extension.type.manager.CETManager;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.helper.FDSObjectEntryProviderHelper;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -37,7 +38,7 @@ public class ViewProvider {
 
 	public JSONArray getViewsJSONArray(ObjectEntry fdsView) {
 		Collection<ObjectEntry> fdsFields =
-			_fdsObjectEntryHelper.getFDSFields(fdsView);
+			_fdsObjectEntryProviderHelper.getFDSFields(fdsView);
 
 		if ((fdsFields == null) || fdsFields.isEmpty()) {
 			return _getDefaultJSONArray();
@@ -110,7 +111,7 @@ public class ViewProvider {
 								String jsonKey = "contentRenderer";
 
 								boolean contentRendererClientExtension =
-									_fdsObjectEntryHelper.
+									_fdsObjectEntryProviderHelper.
 										isRenderedByClientExtension(fdsField);
 
 								if (contentRendererClientExtension) {
@@ -142,7 +143,7 @@ public class ViewProvider {
 									"fieldName",
 									() -> {
 										JSONArray jsonArray =
-											_fdsObjectEntryHelper.
+											_fdsObjectEntryProviderHelper.
 												getFieldNameJSONArray(fdsField);
 
 										if (jsonArray.length() > 1) {
@@ -178,6 +179,6 @@ public class ViewProvider {
 	private CETManager _cetManager;
 
 	@Reference
-	private FDSObjectEntryHelper _fdsObjectEntryHelper;
+	private FDSObjectEntryProviderHelper _fdsObjectEntryProviderHelper;
 
 }

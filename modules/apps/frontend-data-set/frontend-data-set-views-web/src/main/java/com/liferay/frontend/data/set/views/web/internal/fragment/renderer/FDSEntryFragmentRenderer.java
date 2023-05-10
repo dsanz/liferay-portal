@@ -147,7 +147,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 			String externalReferenceCode = jsonObject.getString(
 				"externalReferenceCode");
 
-			return _fdsObjectEntryHelper.getFDSView(
+			return _fdsObjectEntryProviderHelper.getFDSView(
 				externalReferenceCode, fragmentRendererContext);
 		}
 
@@ -158,7 +158,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		FragmentRendererContext fragmentRendererContext) {
 
 		ObjectDefinition fdsViewObjectDefinition =
-			_fdsObjectEntryHelper.getFDSViewObjectDefinition(
+			_fdsObjectEntryProviderHelper.getFDSViewObjectDefinition(
 				fragmentRendererContext);
 
 		String className = "";
@@ -232,7 +232,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 	private APIUrlProvider _apiUrlProvider;
 
 	@Reference
-	private FDSObjectEntryHelper _fdsObjectEntryHelper;
+	private FDSObjectEntryProviderHelper _fdsObjectEntryProviderHelper;
 
 	@Reference
 	private FilterProvider _filterProvider;

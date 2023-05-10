@@ -14,6 +14,7 @@
 
 package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.helper.FDSObjectEntryProviderHelper;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -48,7 +49,7 @@ public class APIUrlProvider {
 		ObjectEntry fdsView, HttpServletRequest httpServletRequest) {
 
 		String apiUrl = _getAPIUrlBasePath(
-			_fdsObjectEntryHelper.getFDSEntry(fdsView));
+			_fdsObjectEntryProviderHelper.getFDSEntry(fdsView));
 
 		return _getNestedFields(apiUrl, fdsView);
 	}
@@ -76,7 +77,7 @@ public class APIUrlProvider {
 
 	private String _getNestedFields(String apiUrl, ObjectEntry fdsView) {
 		Collection<ObjectEntry> fdsFields =
-			_fdsObjectEntryHelper.getFDSFields(fdsView);
+			_fdsObjectEntryProviderHelper.getFDSFields(fdsView);
 
 		if ((fdsFields == null) || fdsFields.isEmpty()) {
 			return apiUrl;
@@ -85,8 +86,8 @@ public class APIUrlProvider {
 		String nestedFields = StringPool.BLANK;
 
 		for (ObjectEntry fdsField : fdsFields) {
-			JSONArray jsonArray = _fdsObjectEntryHelper.getFieldNameJSONArray(
-				fdsField);
+			JSONArray jsonArray =
+				_fdsObjectEntryProviderHelper.getFieldNameJSONArray(fdsField);
 
 			if (jsonArray.length() > 1) {
 				nestedFields = StringUtil.add(
@@ -110,7 +111,7 @@ public class APIUrlProvider {
 	}
 
 	@Reference
-	private FDSObjectEntryHelper _fdsObjectEntryHelper;
+	private FDSObjectEntryProviderHelper _fdsObjectEntryProviderHelper;
 
 	@Reference
 	private JSONFactory _jsonFactory;

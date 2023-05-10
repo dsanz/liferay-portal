@@ -12,7 +12,7 @@
  * details.
  */
 
-package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
+package com.liferay.frontend.data.set.views.web.internal.dataset.provider.helper;
 
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRendererContext;
@@ -45,8 +45,8 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Daniel Sanz
  */
-@Component(service = FDSObjectEntryHelper.class)
-public class FDSObjectEntryHelper {
+@Component(service = FDSObjectEntryProviderHelper.class)
+public class FDSObjectEntryProviderHelper {
 
 	public ObjectDefinition getFDSDateFilterObjectDefinition() {
 		return getFDSDateFilterObjectDefinition(
@@ -249,7 +249,7 @@ public class FDSObjectEntryHelper {
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		FDSObjectEntryHelper.class);
+		FDSObjectEntryProviderHelper.class);
 
 	@Reference
 	private JSONFactory _jsonFactory;
