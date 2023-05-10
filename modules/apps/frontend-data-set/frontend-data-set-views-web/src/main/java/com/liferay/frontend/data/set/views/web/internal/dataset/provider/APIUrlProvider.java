@@ -26,8 +26,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import java.util.Collection;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -36,17 +34,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(service = APIUrlProvider.class)
 public class APIUrlProvider {
-	/* main things to do here:
-	    - interpolate URL parameters with context values (siteId, userId)
-	    - add required nested fields depending on field mappings
-	    - add sorting options
-
-	  things we don't need to worry about (FDS manages them)
-	    - Add page numbers and items per page
-	    - Add odata query in case filters are pre-applied
-	 */
-	public String getApiUrl(
-		ObjectEntry fdsView, HttpServletRequest httpServletRequest) {
+	public String getApiUrl(ObjectEntry fdsView) {
 
 		String apiUrl = _getAPIUrlBasePath(
 			_fdsObjectEntryProviderHelper.getFDSEntry(fdsView));
