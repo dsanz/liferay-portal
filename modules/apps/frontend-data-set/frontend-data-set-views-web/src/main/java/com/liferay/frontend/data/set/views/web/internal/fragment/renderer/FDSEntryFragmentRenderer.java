@@ -18,6 +18,7 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.APIUrlDatasetProvider;
 import com.liferay.frontend.data.set.views.web.internal.js.loader.modules.extender.npm.NPMResolverProvider;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
 import com.liferay.object.model.ObjectDefinition;
@@ -61,11 +62,6 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(service = FragmentRenderer.class)
 public class FDSEntryFragmentRenderer implements FragmentRenderer {
-
-	public String getApiUrl(JSONObject configurationJSONObject) {
-		return "/o/headless-commerce-admin-catalog/v1.0/products" +
-			"?nestedFields=skus,catalog";
-	}
 
 	@Override
 	public String getCollectionKey() {
@@ -364,7 +360,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		String fragmentElementId, ObjectEntry fdsView) {
 
 		return HashMapBuilder.<String, Object>put(
-			"apiURL", getApiUrl(configurationJSONObject)
+			"apiURL", _apiUrlDatasetProvider.getApiUrl(fdsView)
 		).put(
 			"filters", getFiltersJSONArray(fdsView)
 		).put(
@@ -418,6 +414,9 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		FDSEntryFragmentRenderer.class);
+
+	@Reference
+	private APIUrlDatasetProvider _apiUrlDatasetProvider;
 
 	@Reference
 	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
