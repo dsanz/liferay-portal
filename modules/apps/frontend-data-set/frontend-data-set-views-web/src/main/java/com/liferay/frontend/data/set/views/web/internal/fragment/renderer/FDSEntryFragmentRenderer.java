@@ -22,6 +22,7 @@ import com.liferay.frontend.data.set.views.web.internal.dataset.provider.APIUrlP
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FiltersProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.PaginationProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.ViewsProvider;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.helper.FDSObjectEntryProviderHelper;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.petra.string.StringBundler;
