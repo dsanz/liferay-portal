@@ -41,7 +41,7 @@ public class FiltersProvider {
 			_fdsObjectEntryProviderHelper.getFDSFilters(fdsView);
 
 		if ((fdsFilters == null) || fdsFilters.isEmpty()) {
-			return null;
+			return _jsonFactory.createJSONArray();
 		}
 
 		return _getFiltersJSONArray(fdsFilters);
