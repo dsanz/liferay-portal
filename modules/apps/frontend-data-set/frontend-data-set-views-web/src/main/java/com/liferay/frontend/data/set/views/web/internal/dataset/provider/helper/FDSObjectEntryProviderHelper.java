@@ -18,7 +18,9 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
-import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
+import com.liferay.object.rest.manager.v1_0.DefaultObjectEntryManager;
+import com.liferay.object.rest.manager.v1_0.DefaultObjectEntryManagerProvider;
+import com.liferay.object.rest.manager.v1_0.ObjectEntryManagerRegistry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -73,7 +75,12 @@ public class FDSObjectEntryProviderHelper {
 				null, null);
 
 		try {
-			return _objectEntryManager.getObjectEntry(
+			DefaultObjectEntryManager defaultObjectEntryManager =
+				DefaultObjectEntryManagerProvider.provide(
+					_objectEntryManagerRegistry.getObjectEntryManager(
+						fdsEntryObjectDefinition.getStorageType()));
+
+			return defaultObjectEntryManager.getObjectEntry(
 				dtoConverterContext, fdsEntryObjectDefinition, fdsEntryId);
 		}
 		catch (Exception exception) {
@@ -129,8 +136,13 @@ public class FDSObjectEntryProviderHelper {
 				null, null);
 
 		try {
+			DefaultObjectEntryManager defaultObjectEntryManager =
+				DefaultObjectEntryManagerProvider.provide(
+					_objectEntryManagerRegistry.getObjectEntryManager(
+						fdsViewObjectDefinition.getStorageType()));
+
 			Page<ObjectEntry> relatedObjectEntriesPage =
-				_objectEntryManager.getObjectEntryRelatedObjectEntries(
+				defaultObjectEntryManager.getObjectEntryRelatedObjectEntries(
 					dtoConverterContext, fdsViewObjectDefinition,
 					fdsView.getId(), relationshipName, Pagination.of(1, 500));
 
@@ -156,7 +168,12 @@ public class FDSObjectEntryProviderHelper {
 					false, null, null, null, null, LocaleUtil.getSiteDefault(),
 					null, null);
 
-			return _objectEntryManager.getObjectEntry(
+			DefaultObjectEntryManager defaultObjectEntryManager =
+				DefaultObjectEntryManagerProvider.provide(
+					_objectEntryManagerRegistry.getObjectEntryManager(
+						fdsViewObjectDefinition.getStorageType()));
+
+			return defaultObjectEntryManager.getObjectEntry(
 				fdsViewObjectDefinition.getCompanyId(), dtoConverterContext,
 				externalReferenceCode, fdsViewObjectDefinition, null);
 		}
@@ -224,8 +241,13 @@ public class FDSObjectEntryProviderHelper {
 				null, null);
 
 		try {
+			DefaultObjectEntryManager defaultObjectEntryManager =
+				DefaultObjectEntryManagerProvider.provide(
+					_objectEntryManagerRegistry.getObjectEntryManager(
+						fdsDateFilterObjectDefinition.getStorageType()));
+
 			ObjectEntry fdsDateFilterObjectEntry =
-				_objectEntryManager.getObjectEntry(
+				defaultObjectEntryManager.getObjectEntry(
 					dtoConverterContext, fdsDateFilterObjectDefinition,
 					fdsFilter.getId());
 
@@ -257,7 +279,7 @@ public class FDSObjectEntryProviderHelper {
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
 
-	@Reference(target = "(object.entry.manager.storage.type=default)")
-	private ObjectEntryManager _objectEntryManager;
+	@Reference
+	private ObjectEntryManagerRegistry _objectEntryManagerRegistry;
 
 }
