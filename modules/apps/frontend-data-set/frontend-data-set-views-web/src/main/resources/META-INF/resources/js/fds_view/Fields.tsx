@@ -29,7 +29,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {API_URL, OBJECT_RELATIONSHIP} from '../Constants';
 import {FDSViewSectionInterface} from '../FDSView';
 import {FDSViewType} from '../FDSViews';
-import {getFields} from '../api';
+import {getFields, IFDSCellRendererCET} from '../api';
 import OrderableTable from '../components/OrderableTable';
 
 const DATA_RENDERER_LABELS: {[key: string]: string} = {
@@ -327,6 +327,7 @@ const SaveFDSFieldsModalContent = ({
 };
 
 interface IEditFDSFieldModalContentProps {
+	cellRendererCETs: IFDSCellRendererCET[],
 	closeModal: Function;
 	fdsField: IFDSField;
 	namespace: string;
@@ -334,6 +335,7 @@ interface IEditFDSFieldModalContentProps {
 }
 
 const EditFDSFieldModalContent = ({
+	cellRendererCETs,
 	closeModal,
 	fdsField,
 	namespace,
@@ -348,9 +350,15 @@ const EditFDSFieldModalContent = ({
 
 	const fdsFieldLabelRef = useRef<HTMLInputElement>(null);
 
+	const isClientExtension = () => {
+
+		return !Object.keys(DataRenderers).includes(selectedFDSFieldRenderer, 0);
+	}
+
 	const editFDSField = async () => {
 		const body = {
 			label: fdsFieldLabelRef.current?.value,
+			rendererType: isClientExtension() ? "clientExtension" : "default",
 			renderer: selectedFDSFieldRenderer,
 			sortable: fdsFieldSortable,
 		};
@@ -393,6 +401,19 @@ const EditFDSFieldModalContent = ({
 	const fdsFieldNameInputId = `${namespace}fdsFieldNameInput`;
 	const fdsFieldLabelInputId = `${namespace}fdsFieldLabelInput`;
 	const fdsFieldRendererSelectId = `${namespace}fdsFieldRendererSelectId`;
+
+	const options = Object.keys(DataRenderers).map(
+						(dataRendererId) => ({
+							label: DATA_RENDERER_LABELS[dataRendererId],
+							value: dataRendererId,
+						})
+					);
+	options.push(...cellRendererCETs.map(
+		(item) => ({
+			label: item.name,
+			value: item.erc,
+		})
+	));
 
 	return (
 		<>
@@ -441,12 +462,7 @@ const EditFDSFieldModalContent = ({
 						onChange={(event) => {
 							setSelectedFDSFieldRenderer(event.target.value);
 						}}
-						options={Object.keys(DataRenderers).map(
-							(dataRendererId) => ({
-								label: DATA_RENDERER_LABELS[dataRendererId],
-								value: dataRendererId,
-							})
-						)}
+						options={options}
 						value={selectedFDSFieldRenderer}
 					/>
 				</ClayForm.Group>
@@ -483,6 +499,7 @@ const EditFDSFieldModalContent = ({
 };
 
 const Fields = ({
+	cellRendererCETs,
 	fdsView,
 	fdsViewsURL,
 	namespace,
@@ -740,6 +757,7 @@ const Fields = ({
 										closeModal: Function;
 									}) => (
 										<EditFDSFieldModalContent
+											cellRendererCETs={cellRendererCETs}
 											closeModal={closeModal}
 											fdsField={item}
 											namespace={namespace}
