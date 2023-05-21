@@ -29,7 +29,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {API_URL, OBJECT_RELATIONSHIP} from '../Constants';
 import {FDSViewSectionInterface} from '../FDSView';
 import {FDSViewType} from '../FDSViews';
-import {getFields, IFDSCellRendererCET} from '../api';
+import {IFDSCellRendererCET, getFields} from '../api';
 import OrderableTable from '../components/OrderableTable';
 
 const DATA_RENDERER_LABELS: {[key: string]: string} = {
@@ -327,7 +327,7 @@ const SaveFDSFieldsModalContent = ({
 };
 
 interface IEditFDSFieldModalContentProps {
-	cellRendererCETs: IFDSCellRendererCET[],
+	cellRendererCETs: IFDSCellRendererCET[];
 	closeModal: Function;
 	fdsField: IFDSField;
 	namespace: string;
@@ -351,15 +351,17 @@ const EditFDSFieldModalContent = ({
 	const fdsFieldLabelRef = useRef<HTMLInputElement>(null);
 
 	const isClientExtension = () => {
-
-		return !Object.keys(DataRenderers).includes(selectedFDSFieldRenderer, 0);
-	}
+		return !Object.keys(DataRenderers).includes(
+			selectedFDSFieldRenderer,
+			0
+		);
+	};
 
 	const editFDSField = async () => {
 		const body = {
 			label: fdsFieldLabelRef.current?.value,
-			rendererType: isClientExtension() ? "clientExtension" : "default",
 			renderer: selectedFDSFieldRenderer,
+			rendererType: isClientExtension() ? 'clientExtension' : 'default',
 			sortable: fdsFieldSortable,
 		};
 
@@ -402,18 +404,16 @@ const EditFDSFieldModalContent = ({
 	const fdsFieldLabelInputId = `${namespace}fdsFieldLabelInput`;
 	const fdsFieldRendererSelectId = `${namespace}fdsFieldRendererSelectId`;
 
-	const options = Object.keys(DataRenderers).map(
-						(dataRendererId) => ({
-							label: DATA_RENDERER_LABELS[dataRendererId],
-							value: dataRendererId,
-						})
-					);
-	options.push(...cellRendererCETs.map(
-		(item) => ({
+	const options = Object.keys(DataRenderers).map((dataRendererId) => ({
+		label: DATA_RENDERER_LABELS[dataRendererId],
+		value: dataRendererId,
+	}));
+	options.push(
+		...cellRendererCETs.map((item) => ({
 			label: item.name,
 			value: item.erc,
-		})
-	));
+		}))
+	);
 
 	return (
 		<>

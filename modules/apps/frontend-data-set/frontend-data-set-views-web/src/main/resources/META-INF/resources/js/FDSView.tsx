@@ -17,7 +17,9 @@ import ClayLoadingIndicator from '@clayui/loading-indicator';
 import ClayNavigationBar from '@clayui/navigation-bar';
 import {fetch, openToast} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
+
 import {IFDSCellRendererCET} from './api';
+
 import '../css/FDSView.scss';
 import {API_URL, OBJECT_RELATIONSHIP} from './Constants';
 import {FDSViewType} from './FDSViews';

@@ -34,8 +34,8 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(service = APIUrlProvider.class)
 public class APIUrlProvider {
-	public String getApiUrl(ObjectEntry fdsView) {
 
+	public String getApiUrl(ObjectEntry fdsView) {
 		String apiUrl = _getAPIUrlBasePath(
 			_fdsObjectEntryProviderHelper.getFDSEntry(fdsView));
 
