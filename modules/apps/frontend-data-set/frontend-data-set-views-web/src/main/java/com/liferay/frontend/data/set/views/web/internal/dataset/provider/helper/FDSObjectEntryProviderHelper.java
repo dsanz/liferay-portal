@@ -24,11 +24,13 @@ import com.liferay.object.rest.manager.v1_0.ObjectEntryManagerRegistry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
@@ -37,9 +39,14 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -109,7 +116,26 @@ public class FDSObjectEntryProviderHelper {
 	}
 
 	public Collection<ObjectEntry> getFDSFields(ObjectEntry fdsView) {
-		return getFDSRelatedObjects(fdsView, "fdsViewFDSFieldRelationship");
+		Collection<ObjectEntry> fdsFields = getFDSRelatedObjects(
+			fdsView, "fdsViewFDSFieldRelationship");
+
+		Map<String, Object> fdsViewProperties = fdsView.getProperties();
+
+		String fdsFieldsOrder = (String)fdsViewProperties.get("fdsFieldsOrder");
+
+		List<Long> fdsFieldOrderIds = ListUtil.toList(
+			Arrays.asList(StringUtil.split(fdsFieldsOrder, StringPool.COMMA)),
+			Long::parseLong);
+
+		List<ObjectEntry> fdsFieldList = new ArrayList<>(fdsFields);
+
+		Collections.sort(
+			fdsFieldList,
+			Comparator.comparing(
+				ObjectEntry::getId,
+				Comparator.comparingInt(fdsFieldOrderIds::indexOf)));
+
+		return fdsFieldList;
 	}
 
 	public Collection<ObjectEntry> getFDSFilters(ObjectEntry fdsView) {
