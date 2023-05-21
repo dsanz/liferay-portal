@@ -50,16 +50,6 @@ import org.osgi.service.component.annotations.Reference;
 @Component(service = FDSObjectEntryProviderHelper.class)
 public class FDSObjectEntryProviderHelper {
 
-	public ObjectDefinition getFDSSortObjectDefinition() {
-		return getFDSSortObjectDefinition(
-			CompanyThreadLocal.getCompanyId());
-	}
-
-	public ObjectDefinition getFDSSortObjectDefinition(long companyId) {
-		return _objectDefinitionLocalService.fetchObjectDefinition(
-			companyId, "C_FDSSort");
-	}
-
 	public ObjectDefinition getFDSDateFilterObjectDefinition() {
 		return getFDSDateFilterObjectDefinition(
 			CompanyThreadLocal.getCompanyId());
@@ -135,10 +125,6 @@ public class FDSObjectEntryProviderHelper {
 		return fdsFilters;
 	}
 
-	public Collection<ObjectEntry> getFDSSorts(ObjectEntry fdsView) {
-		return getFDSRelatedObjects(fdsView, "fdsViewFDSSortRelationship");
-	}
-
 	public Collection<ObjectEntry> getFDSRelatedObjects(
 		ObjectEntry fdsView, String relationshipName) {
 
@@ -167,6 +153,19 @@ public class FDSObjectEntryProviderHelper {
 
 			return null;
 		}
+	}
+
+	public ObjectDefinition getFDSSortObjectDefinition() {
+		return getFDSSortObjectDefinition(CompanyThreadLocal.getCompanyId());
+	}
+
+	public ObjectDefinition getFDSSortObjectDefinition(long companyId) {
+		return _objectDefinitionLocalService.fetchObjectDefinition(
+			companyId, "C_FDSSort");
+	}
+
+	public Collection<ObjectEntry> getFDSSorts(ObjectEntry fdsView) {
+		return getFDSRelatedObjects(fdsView, "fdsViewFDSSortRelationship");
 	}
 
 	public ObjectEntry getFDSView(

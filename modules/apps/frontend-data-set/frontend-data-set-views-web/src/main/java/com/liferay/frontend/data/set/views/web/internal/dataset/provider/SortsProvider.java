@@ -14,7 +14,6 @@
 
 package com.liferay.frontend.data.set.views.web.internal.dataset.provider;
 
-import com.liferay.frontend.data.set.constants.FDSEntityFieldTypes;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.helper.FDSObjectEntryProviderHelper;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -41,53 +40,39 @@ public class SortsProvider {
 			_fdsObjectEntryProviderHelper.getFDSSorts(fdsView);
 
 		if ((fdsSorts == null) || fdsSorts.isEmpty()) {
-			return null;
+			return _jsonFactory.createJSONArray();
 		}
 
 		return _getSortsJSONArray(fdsSorts);
 	}
 
-	private JSONObject _getFDSDateFilterJSONObject(ObjectEntry fdsDateFilter) {
-		Map<String, Object> fdsDateFilterProperties =
-			fdsDateFilter.getProperties();
+	private JSONObject _getFDSSortJSONObject(ObjectEntry fdsSort) {
+		Map<String, Object> fdsSortProperties = fdsSort.getProperties();
 
 		return JSONUtil.put(
-			"entityFieldType", FDSEntityFieldTypes.DATE
+			"direction", fdsSortProperties.get("sortingDirection")
 		).put(
-			"id", fdsDateFilterProperties.get("fieldName")
-		).put(
-			"label", (String)fdsDateFilterProperties.get("label")
-		).put(
-			"type", "dateRange"
+			"key", fdsSortProperties.get("fieldName")
 		);
 	}
 
-	private JSONArray _getSortsJSONArray(Collection<ObjectEntry> fdsFilters) {
+	private JSONArray _getSortsJSONArray(Collection<ObjectEntry> fdsSorts) {
 		try {
 			return JSONUtil.toJSONArray(
-				fdsFilters,
-				(ObjectEntry fdsFilter) -> {
-					if (_fdsObjectEntryProviderHelper.isFDSDateFilter(
-							fdsFilter)) {
-
-						return _getFDSDateFilterJSONObject(fdsFilter);
-					}
-
-					return null;
-				});
+				fdsSorts,
+				(ObjectEntry fdsSort) -> _getFDSSortJSONObject(fdsSort));
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					"Unable to generate FDS filters from FDSView", exception);
+					"Unable to generate FDS sorts from FDSView", exception);
 			}
 
 			return _jsonFactory.createJSONArray();
 		}
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		SortsProvider.class);
+	private static final Log _log = LogFactoryUtil.getLog(SortsProvider.class);
 
 	@Reference
 	private FDSObjectEntryProviderHelper _fdsObjectEntryProviderHelper;

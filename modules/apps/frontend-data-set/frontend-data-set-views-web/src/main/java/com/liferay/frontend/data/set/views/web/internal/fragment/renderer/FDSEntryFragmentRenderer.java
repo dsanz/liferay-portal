@@ -21,6 +21,7 @@ import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.APIUrlProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.FiltersProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.PaginationProvider;
+import com.liferay.frontend.data.set.views.web.internal.dataset.provider.SortsProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.ViewsProvider;
 import com.liferay.frontend.data.set.views.web.internal.dataset.provider.helper.FDSObjectEntryProviderHelper;
 import com.liferay.object.model.ObjectDefinition;
@@ -186,6 +187,8 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 		).put(
 			"selectedItems", ""
 		).put(
+			"sorting", _sortsProvider.getSortsJSONArray(fdsView)
+		).put(
 			"uniformActionsDisplay", false
 		).put(
 			"views", _viewsProvider.getViewsJSONArray(fdsView)
@@ -247,6 +250,9 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 	@Reference
 	private ReactRenderer _reactRenderer;
+
+	@Reference
+	private SortsProvider _sortsProvider;
 
 	@Reference
 	private ViewsProvider _viewsProvider;
