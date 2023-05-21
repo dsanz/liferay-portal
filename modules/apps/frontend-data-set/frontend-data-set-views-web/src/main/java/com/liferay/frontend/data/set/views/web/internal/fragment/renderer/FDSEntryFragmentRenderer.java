@@ -200,13 +200,8 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 			ObjectEntry fdsView, HttpServletRequest httpServletRequest)
 		throws IOException {
 
-		StringBundler sb = new StringBundler(8);
+		StringBundler sb = new StringBundler(5);
 
-		Map<String, Object> fdsViewProperties = fdsView.getProperties();
-
-		sb.append("<span>");
-		sb.append(fdsViewProperties.get("label"));
-		sb.append("</span>");
 		sb.append("<div id=\"");
 		sb.append(fragmentRendererContext.getFragmentElementId());
 		sb.append("\" >");
