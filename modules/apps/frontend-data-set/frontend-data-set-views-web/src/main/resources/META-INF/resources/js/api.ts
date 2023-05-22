@@ -77,8 +77,16 @@ export async function getFields(fdsView: FDSViewType) {
 
 		const type = propertyValue.type;
 
-		if (type === 'object' || type === 'array') {
+		if (type === 'array') {
 			return;
+		}
+
+		if (type === 'object') {
+			const additionalProperties = propertyValue.additionalProperties;
+
+			if (additionalProperties?.type !== 'string') {
+				return;
+			}
 		}
 
 		if (propertyValue.$ref) {
@@ -88,7 +96,7 @@ export async function getFields(fdsView: FDSViewType) {
 		fieldsArray.push({
 			format: properties[propertyKey].format || type,
 			label: propertyKey,
-			name: propertyKey,
+			name: propertyKey.concat(type === 'object' ? '.LANG' : ''),
 			type,
 		});
 	});
