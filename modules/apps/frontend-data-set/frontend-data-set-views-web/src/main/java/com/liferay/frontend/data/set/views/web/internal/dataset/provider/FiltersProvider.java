@@ -52,7 +52,7 @@ public class FiltersProvider {
 			fdsDateFilter.getProperties();
 
 		return JSONUtil.put(
-			"entityFieldType", FDSEntityFieldTypes.DATE
+			"entityFieldType",fdsDateFilterProperties.get("type")
 		).put(
 			"id", fdsDateFilterProperties.get("fieldName")
 		).put(

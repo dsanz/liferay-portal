@@ -172,7 +172,7 @@ function AddFDSFilterModalContent({
 				from,
 				label: label || field.label,
 				to,
-				type: field.format,
+				type: 'date-time',
 			};
 		}
 		else {
