@@ -46,7 +46,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -123,23 +122,16 @@ public class FDSObjectEntryProviderHelper {
 
 		String fdsFieldsOrder = (String)fdsViewProperties.get("fdsFieldsOrder");
 
-		List<Long> fdsFieldOrderIds = ListUtil.toList(
-			Arrays.asList(StringUtil.split(fdsFieldsOrder, StringPool.COMMA)),
-			Long::parseLong);
-
-		List<ObjectEntry> fdsFieldList = new ArrayList<>(fdsFields);
-
-		Collections.sort(
-			fdsFieldList,
-			Comparator.comparing(
-				ObjectEntry::getId,
-				Comparator.comparingInt(fdsFieldOrderIds::indexOf)));
-
-		return fdsFieldList;
+		return _sortObjectEntriesByIdsList(fdsFields, fdsFieldsOrder);
 	}
 
 	public Collection<ObjectEntry> getFDSFilters(ObjectEntry fdsView) {
 		Collection<ObjectEntry> fdsFilters = new ArrayList<>();
+
+		Map<String, Object> fdsViewProperties = fdsView.getProperties();
+
+		String fdsFiltersOrder = (String)fdsViewProperties.get(
+			"fdsFiltersOrder");
 
 		fdsFilters.addAll(
 			getFDSRelatedObjects(fdsView, "fdsViewFDSDateFilterRelationship"));
@@ -148,7 +140,7 @@ public class FDSObjectEntryProviderHelper {
 			getFDSRelatedObjects(
 				fdsView, "fdsViewFDSDynamicFilterRelationship"));
 
-		return fdsFilters;
+		return _sortObjectEntriesByIdsList(fdsFilters, fdsFiltersOrder);
 	}
 
 	public Collection<ObjectEntry> getFDSRelatedObjects(
@@ -191,7 +183,14 @@ public class FDSObjectEntryProviderHelper {
 	}
 
 	public Collection<ObjectEntry> getFDSSorts(ObjectEntry fdsView) {
-		return getFDSRelatedObjects(fdsView, "fdsViewFDSSortRelationship");
+		Collection<ObjectEntry> fdsSorts = getFDSRelatedObjects(
+			fdsView, "fdsViewFDSSortRelationship");
+
+		Map<String, Object> fdsViewProperties = fdsView.getProperties();
+
+		String fdsSortsOrder = (String)fdsViewProperties.get("fdsSortsOrder");
+
+		return _sortObjectEntriesByIdsList(fdsSorts, fdsSortsOrder);
 	}
 
 	public ObjectEntry getFDSView(
@@ -307,6 +306,24 @@ public class FDSObjectEntryProviderHelper {
 		String rendererType = (String)fdsFieldProperties.get("rendererType");
 
 		return Objects.equals(rendererType, "clientExtension");
+	}
+
+	private Collection<ObjectEntry> _sortObjectEntriesByIdsList(
+		Collection<ObjectEntry> objectEntries, String idsOrderString) {
+
+		List<Long> idsOrder = ListUtil.toList(
+			Arrays.asList(StringUtil.split(idsOrderString, StringPool.COMMA)),
+			Long::parseLong);
+
+		List<ObjectEntry> objectEntriesList = new ArrayList<>(objectEntries);
+
+		Collections.sort(
+			objectEntriesList,
+			Comparator.comparing(
+				ObjectEntry::getId,
+				Comparator.comparingInt(idsOrder::indexOf)));
+
+		return objectEntriesList;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
