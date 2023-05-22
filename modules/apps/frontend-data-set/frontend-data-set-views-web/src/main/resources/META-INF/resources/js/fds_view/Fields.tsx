@@ -156,7 +156,10 @@ const SaveFDSFieldsModalContent = ({
 		});
 
 		onSave({
-			createdFDSFields,
+			createdFDSFields: createdFDSFields.map((fdsField) => ({
+				...fdsField,
+				id: Number(fdsField.id),
+			})),
 			deletedFDSFieldsIds: deletionIds,
 		});
 	};

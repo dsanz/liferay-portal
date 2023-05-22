@@ -98,6 +98,7 @@ public class SaveFDSFieldsMVCResourceCommand
 			JSONObject jsonObject = _jsonFactory.createJSONObject(
 				objectEntry.getValues());
 
+			jsonObject.put("externalReferenceCode", objectEntry.getExternalReferenceCode());
 			jsonObject.put("id", objectEntry.getObjectEntryId());
 
 			jsonArray.put(jsonObject);
