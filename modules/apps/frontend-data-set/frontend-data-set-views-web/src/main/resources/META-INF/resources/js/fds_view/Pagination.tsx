@@ -131,6 +131,9 @@ function Pagination({
 				),
 				type: 'success',
 			});
+			fdsView.defaultItemsPerPage = Number(defaultItemsPerPage);
+			fdsView.listOfItemsPerPage = itemsPerPage;
+			setDefaultItemsPerPage(defaultItemsPerPage)
 			setListOfItemsPerPage(itemsPerPage);
 		}
 		else {
