@@ -18,6 +18,7 @@ import ClayDropDown from '@clayui/drop-down';
 import ClayForm, {ClayInput} from '@clayui/form';
 import ClayLayout from '@clayui/layout';
 import ClayModal from '@clayui/modal';
+import ClayLink from '@clayui/link';
 import {FrontendDataSet} from '@liferay/frontend-data-set-web';
 import classNames from 'classnames';
 import {fetch, navigate, openModal, openToast} from 'frontend-js-web';
@@ -732,13 +733,17 @@ const FDSEntries = ({
 		],
 	};
 
-	const onViewClick = ({itemData}: {itemData: FDSEntryType}) => {
+	const getViewURL = (itemData: FDSEntryType) => {
 		const url = new URL(fdsViewsURL);
 
 		url.searchParams.set(`${namespace}fdsEntryId`, itemData.id);
 		url.searchParams.set(`${namespace}fdsEntryLabel`, itemData.label);
 
-		navigate(url);
+		return url;
+	};
+
+	const onViewClick = ({itemData}: {itemData: FDSEntryType}) => {
+		navigate(getViewURL(itemData));
 	};
 
 	const onDeleteClick = ({
@@ -794,13 +799,27 @@ const FDSEntries = ({
 		});
 	};
 
+	const NameRenderer = ({itemData}: {itemData: FDSEntryType}) => {
+			return (
+				<div className="table-list-title">
+					<ClayLink href={getViewURL(itemData).toString()}>
+						{itemData.label}
+					</ClayLink>
+				</div>
+			);
+		};
+	
 	const views = [
 		{
 			contentRenderer: 'table',
 			name: 'table',
 			schema: {
 				fields: [
-					{fieldName: 'label', label: Liferay.Language.get('name')},
+					{
+						fieldName: 'label',
+						label: Liferay.Language.get('name'),
+						contentRenderer: 'name',
+					},
 					{
 						fieldName: 'restApplication',
 						label: Liferay.Language.get('rest-application'),
@@ -835,6 +854,7 @@ const FDSEntries = ({
 				creationMenu={creationMenu}
 				customDataRenderers={{
 					viewsCount: ViewsCountRenderer,
+					name: NameRenderer,
 				}}
 				id={`${namespace}FDSEntries`}
 				itemsActions={[
