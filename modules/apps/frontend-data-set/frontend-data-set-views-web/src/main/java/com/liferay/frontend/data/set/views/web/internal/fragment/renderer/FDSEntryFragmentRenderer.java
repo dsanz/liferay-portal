@@ -86,7 +86,7 @@ public class FDSEntryFragmentRenderer implements FragmentRenderer {
 
 	@Override
 	public String getIcon() {
-		return "web-content";  // TODO: find the right icon
+		return "display-content";  // TODO: find the right icon
 	}
 
 	public String getLabel(Locale locale) {
