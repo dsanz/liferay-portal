@@ -3,3 +3,7 @@
 html:not(#__):not(#___) .cadmin .fds-view-fields-modal .fields {
 	background-color: $gray-200;
 }
+
+.liferay-modal .modal-dialog .modal-content, html:not(#__):not(#___) .cadmin .modal-dialog .modal-content {
+    --modal-bottom-spacing: 175px;
+}
