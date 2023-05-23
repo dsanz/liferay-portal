@@ -17,13 +17,13 @@ const fdsDateRenderer: FDSCellRenderer = ({value}) => {
 	if (diff < 60) { return setMessage("Less than a minute ago") }
 	// minutes
 	diff = diff/60;
-	if (diff < 60) { return setMessage(diff.toFixed() + " minutes ago") } 
+	if (diff < 60) { return setMessage(diff.toFixed() + " minute(s) ago") } 
 	// hours
 	diff = diff/60;
-	if (diff < 24) { return setMessage(diff.toFixed() + " hours ago") } 
+	if (diff < 24) { return setMessage(diff.toFixed() + " hour(s) ago") } 
 	// days
 	diff = diff/24;
-	if (diff < 7) {	 return setMessage(diff.toFixed() + " days ago") } 
+	if (diff < 7) {	 return setMessage(diff.toFixed() + " day(s) ago") } 
 
 	return setMessage("Long ago");
 };
