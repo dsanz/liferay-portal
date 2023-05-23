@@ -3,7 +3,7 @@ import type {FDSCellRenderer} from '@liferay/js-api/data-set';
 const fdsCellRenderer: FDSCellRenderer = ({value}) => {
 	const element = document.createElement('div');
 
-	element.innerHTML = value === 'Green' ? '🍏' : value.toString();
+	element.innerHTML = value === 'Simple' ? '🍏' : value.toString();
 
 	return element;
 };

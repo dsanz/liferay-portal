@@ -1,0 +1,7 @@
+assemble:
+    - from: build
+      into: static
+liferay-sample-fds-date-renderer:
+    name: Liferay Sample Frontend Data Set Date Renderer
+    type: fdsCellRenderer
+    url: index.js
