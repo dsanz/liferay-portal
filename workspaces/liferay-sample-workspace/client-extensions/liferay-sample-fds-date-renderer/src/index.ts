@@ -1,48 +1,31 @@
 import type {FDSCellRenderer} from '@liferay/js-api/data-set';
 
-const fdsDateRenderer: FDSCellRenderer = ({value}) => {
+const setMessage = (message) => {
 	const element = document.createElement('div');
+	element.innerHTML = message;
+	return element;
+}
 
+const fdsDateRenderer: FDSCellRenderer = ({value}) => {
 	const now = new Date().getTime();
 	const date = new Date(value as string).getTime();
 	let diff = (now-date)/(1000);
 
 	// seconds
-	if (diff < 5) {
-		element.innerHTML = "Now"
-		return element;
-	}
-	if (diff < 30) {
-		element.innerHTML = diff.toFixed() + " seconds ago"
-		return element;
-	}
-	if (diff < 60) {
-		element.innerHTML = "Less than a minute ago"
-		return element;
-	}
-
+	if (diff < 5)  { return setMessage("Now") }
+	if (diff < 20) { return setMessage(diff.toFixed() + " seconds ago") }
+	if (diff < 60) { return setMessage("Less than a minute ago") }
 	// minutes
 	diff = diff/60;
-	if (diff < 60) {
-		element.innerHTML = diff.toFixed() + " minutes ago"
-		return element;
-	} 
+	if (diff < 60) { return setMessage(diff.toFixed() + " minutes ago") } 
 	// hours
 	diff = diff/60;
-	if (diff < 24) {
-		element.innerHTML = diff.toFixed() + " hours ago"
-		return element;
-	} 
+	if (diff < 24) { return setMessage(diff.toFixed() + " hours ago") } 
 	// days
 	diff = diff/24;
-	if (diff < 7) {
-		element.innerHTML = diff.toFixed() + " days ago"
-		return element;
-	} 
-	
-	element.innerHTML = "More than a week ago"
+	if (diff < 7) {	 return setMessage(diff.toFixed() + " days ago") } 
 
-	return element;
+	return setMessage("Long ago");
 };
 
 export default fdsDateRenderer;
