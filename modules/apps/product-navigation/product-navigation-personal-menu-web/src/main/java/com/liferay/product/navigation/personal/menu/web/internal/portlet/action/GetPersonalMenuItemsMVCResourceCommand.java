@@ -152,6 +152,8 @@ public class GetPersonalMenuItemsMVCResourceCommand
 				"label",
 				_language.get(themeDisplay.getLocale(), "be-yourself-again")
 			).put(
+				"data-senna-off", true
+			).put(
 				"symbolRight", "change"
 			));
 
