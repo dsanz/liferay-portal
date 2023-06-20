@@ -131,7 +131,7 @@ Format format = FastDateFormatFactoryUtil.getSimpleDateFormat(_SIMPLE_DATE_FORMA
 
 				var container = instance.get('container');
 
-				var hours = date.getHours();
+				var hours = date?.getHours();
 
 				var amPm = 0;
 
