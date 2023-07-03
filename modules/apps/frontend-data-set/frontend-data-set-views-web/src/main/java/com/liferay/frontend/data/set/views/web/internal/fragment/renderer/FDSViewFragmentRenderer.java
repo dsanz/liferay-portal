@@ -20,6 +20,7 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
+import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.manager.v1_0.DefaultObjectEntryManager;
@@ -51,6 +52,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -148,6 +150,28 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 
 			if ((fdsViewObjectEntry == null) &&
 				fragmentRendererContext.isEditMode()) {
+
+				String betaBadgeComponentId =
+					fragmentRendererContext.getFragmentElementId() + "_beta";
+
+				String moduleName = _npmResolver.resolveModuleName(
+					"@liferay/object-js-components-web");
+
+				ComponentDescriptor componentDescriptor =
+					new ComponentDescriptor(
+						moduleName + "/components/BetaButton",
+						betaBadgeComponentId, null, true);
+
+				Writer writer = new CharArrayWriter();
+
+				_reactRenderer.renderReact(
+					componentDescriptor, new HashMap<>(), httpServletRequest,
+					writer);
+
+				printWriter.write(
+					StringBundler.concat(
+						"<div id=\"", betaBadgeComponentId, "\">", writer,
+						"</div>"));
 
 				printWriter.write(
 					StringBundler.concat(
@@ -375,6 +399,9 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 
 	@Reference
 	private Language _language;
+
+	@Reference
+	private NPMResolver _npmResolver;
 
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
