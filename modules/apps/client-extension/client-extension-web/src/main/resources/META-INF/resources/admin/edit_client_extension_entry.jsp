@@ -1,4 +1,7 @@
-<%--
+<%@ page import="com.liferay.client.extension.type.annotation.CETType" %>
+<%@ page
+	import="com.liferay.client.extension.constants.ClientExtensionEntryConstants" %>
+<%@ page import="com.liferay.portal.servlet.delegate.ServletContextDelegate" %><%--
 /**
  * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
@@ -47,7 +50,13 @@ renderResponse.setTitle(editClientExtensionEntryDisplayContext.getTitle());
 	</liferay-ui:error>
 
 	<liferay-frontend:edit-form-body>
-		<h3 class="mb-3"><%= editClientExtensionEntryDisplayContext.getTitle() %></h3>
+		<h3 class="mb-3"><%= editClientExtensionEntryDisplayContext.getTitle() %>
+			<c:if test="<%= editClientExtensionEntryDisplayContext.getCET().getType().equals(ClientExtensionEntryConstants.TYPE_FDS_CELL_RENDERER) %>">
+				<div>
+					<react:component module="js/components/BetaBadge"/>
+				</div>
+			</c:if>
+		</h3>
 
 		<p class="text-secondary"><%= editClientExtensionEntryDisplayContext.getHelpLabel() %>
 			<liferay-learn:message
