@@ -51,3 +51,5 @@ export function BetaButton() {
 		</ClayTooltipProvider>
 	);
 }
+
+export default BetaButton;

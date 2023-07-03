@@ -15,3 +15,4 @@
 /// <reference types="react" />
 
 export declare function BetaButton(): JSX.Element;
+export default BetaButton;
