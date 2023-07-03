@@ -19,6 +19,7 @@ import ClayForm, {ClayInput} from '@clayui/form';
 import ClayLayout from '@clayui/layout';
 import ClayModal from '@clayui/modal';
 import {FrontendDataSet} from '@liferay/frontend-data-set-web';
+import {BetaButton} from '@liferay/object-js-components-web';
 import classNames from 'classnames';
 import {fetch, navigate, openModal, openToast} from 'frontend-js-web';
 import fuzzy from 'fuzzy';
@@ -976,6 +977,8 @@ const FDSEntries = ({
 
 	return (
 		<div className="fds-entries">
+			<BetaButton />
+
 			<FrontendDataSet
 				{...FDS_DEFAULT_PROPS}
 				apiURL={`${API_URL.FDS_ENTRIES}?nestedFields=${OBJECT_RELATIONSHIP.FDS_ENTRY_FDS_VIEW}`}
