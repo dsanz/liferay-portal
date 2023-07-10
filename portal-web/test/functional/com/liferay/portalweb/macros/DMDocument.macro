@@ -1576,9 +1576,7 @@ definition {
 
 	macro editCmd {
 		if (isSet(dmDocumentFileEdit)) {
-			UploadCommonFile.uploadCommonFileHiddenNoMouseOver(
-				locator1 = "TextInput#FILE",
-				value1 = ${dmDocumentFileEdit});
+			UploadDependencyFile.uploadFile(fileName = ${dmDocumentFileEdit});
 		}
 
 		if (isSet(dmDocumentTitleEdit)) {
@@ -2036,6 +2034,8 @@ definition {
 			KeyPress(
 				locator1 = "DocumentsAndMedia#EDIT_TAGS_FIELD",
 				value1 = ",");
+
+			Click(locator1 = "Modal#BODY");
 		}
 
 		Button.clickSave();

@@ -13,12 +13,12 @@
  */
 
 const API_URL = {
-	FDS_DATE_FILTERS: '/o/c/fdsdatefilters',
-	FDS_DYNAMIC_FILTERS: '/o/c/fdsdynamicfilters',
-	FDS_ENTRIES: '/o/c/fdsentries',
-	FDS_FIELDS: '/o/c/fdsfields',
-	FDS_SORTS: '/o/c/fdssorts',
-	FDS_VIEWS: '/o/c/fdsviews',
+	FDS_DATE_FILTERS: '/o/data-set-manager/date-filters',
+	FDS_DYNAMIC_FILTERS: '/o/data-set-manager/dynamic-filters',
+	FDS_ENTRIES: '/o/data-set-manager/entries',
+	FDS_FIELDS: '/o/data-set-manager/fields',
+	FDS_SORTS: '/o/data-set-manager/sorts',
+	FDS_VIEWS: '/o/data-set-manager/views',
 };
 
 const FUZZY_OPTIONS = {
@@ -49,4 +49,12 @@ const FDS_DEFAULT_PROPS = {
 	style: 'fluid' as const,
 };
 
-export {API_URL, FDS_DEFAULT_PROPS, FUZZY_OPTIONS, OBJECT_RELATIONSHIP};
+const ALLOWED_ENDPOINTS_PARAMETERS = ['scopeKey', 'siteId', 'userId'];
+
+export {
+	API_URL,
+	FDS_DEFAULT_PROPS,
+	FUZZY_OPTIONS,
+	OBJECT_RELATIONSHIP,
+	ALLOWED_ENDPOINTS_PARAMETERS,
+};

@@ -90,9 +90,9 @@ public class GetCompletionMVCResourceCommand extends BaseMVCResourceCommand {
 						"message",
 						_language.get(
 							themeDisplay.getLocale(),
-							"api-authentication-is-needed-to-use-this-" +
-								"feature.-add-an-api-key-from-the-settings-" +
-									"page-or-contact-your-administrator")
+							"authentication-is-needed-to-use-this-feature.-" +
+								"contact-your-administrator-to-add-an-api-" +
+									"key-in-instance-or-site-settings")
 					).put(
 						"retry", false
 					)));
@@ -145,14 +145,7 @@ public class GetCompletionMVCResourceCommand extends BaseMVCResourceCommand {
 						"message",
 						aiCreatorOpenAIClientException.
 							getCompletionLocalizedMessage(
-								themeDisplay.getLocale())
-					).put(
-						"retry",
-						(aiCreatorOpenAIClientException.getResponseCode() ==
-							429) ||
-						(aiCreatorOpenAIClientException.getResponseCode() ==
-							500)
-					)));
+								themeDisplay.getLocale()))));
 		}
 	}
 

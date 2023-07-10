@@ -1,5 +1,6 @@
 {
 	"accountEntryRestricted": true,
+	"accountEntryRestrictedObjectFieldName": "r_accountEntryToUserAdditionalInfo_accountEntryId",
 	"enableCategorization": true,
 	"externalReferenceCode": "MARKETPLACE-USER-ADDITIONAL",
 	"label": {
@@ -98,18 +99,6 @@
 				"en_US": "Mother's Name"
 			},
 			"name": "mothersName",
-			"required": false,
-			"type": "String"
-		},
-		{
-			"DBType": "String",
-			"businessType": "Text",
-			"indexed": true,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Account Group ERC"
-			},
-			"name": "accountGroupERC",
 			"required": false,
 			"type": "String"
 		},

@@ -97,7 +97,7 @@ export function CreateAPIApplicationModalContent({
 			})
 			.catch((error) => {
 				openToast({
-					message: error,
+					message: error.message,
 					type: 'danger',
 				});
 			});
@@ -159,7 +159,6 @@ export function CreateAPIApplicationModalContent({
 					data={data}
 					displayError={displayError}
 					setData={setData}
-					urlAutoFill
 				/>
 			</div>
 

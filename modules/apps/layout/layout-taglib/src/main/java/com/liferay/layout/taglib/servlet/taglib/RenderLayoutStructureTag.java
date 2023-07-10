@@ -46,7 +46,6 @@ import com.liferay.layout.taglib.internal.display.context.RenderLayoutStructureD
 import com.liferay.layout.taglib.internal.servlet.ServletContextUtil;
 import com.liferay.layout.taglib.internal.util.SegmentsExperienceUtil;
 import com.liferay.layout.util.CollectionPaginationUtil;
-import com.liferay.layout.util.constants.LayoutStructureConstants;
 import com.liferay.layout.util.structure.CollectionStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.ColumnLayoutStructureItem;
 import com.liferay.layout.util.structure.ContainerStyledLayoutStructureItem;
@@ -472,16 +471,9 @@ public class RenderLayoutStructureTag extends IncludeTag {
 
 						ColTag colTag = new ColTag();
 
-						int columnSize = LayoutStructureConstants.COLUMN_SIZES
-							[numberOfColumns - 1][j];
-
 						colTag.setCssClass(
 							ResponsiveLayoutStructureUtil.getColumnCssClass(
-								columnSize,
-								collectionStyledLayoutStructureItem.
-									getVerticalAlignment(),
-								collectionStyledLayoutStructureItem.
-									getViewportConfigurationJSONObjects()));
+								collectionStyledLayoutStructureItem, j));
 
 						colTag.setPageContext(pageContext);
 
@@ -935,7 +927,7 @@ public class RenderLayoutStructureTag extends IncludeTag {
 
 		jspWriter.write("<form action=\"");
 		jspWriter.write(
-			renderLayoutStructureDisplayContext.getAddInfoItemActionURL());
+			renderLayoutStructureDisplayContext.getEditInfoItemActionURL());
 		jspWriter.write("\" class=\"");
 		jspWriter.write(formStyledLayoutStructureItem.getUniqueCssClass());
 		jspWriter.write(StringPool.SPACE);
@@ -1015,6 +1007,16 @@ public class RenderLayoutStructureTag extends IncludeTag {
 			"\"><input name=\"classTypeId\" type=\"hidden\" value=\"");
 		jspWriter.write(
 			String.valueOf(formStyledLayoutStructureItem.getClassTypeId()));
+
+		if (FeatureFlagManagerUtil.isEnabled("LPS-183498")) {
+			jspWriter.write(
+				"\"><input name=\"displayPage\" type=\"hidden\" value=\"");
+			jspWriter.write(
+				renderLayoutStructureDisplayContext.
+					getFormStyledLayoutStructureItemSuccessMessageDisplayPage(
+						formStyledLayoutStructureItem));
+		}
+
 		jspWriter.write(
 			"\"><input name=\"formItemId\" type=\"hidden\" value=\"");
 		jspWriter.write(formStyledLayoutStructureItem.getItemId());

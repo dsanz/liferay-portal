@@ -34,10 +34,15 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.template.react.renderer.ComponentDescriptor;
 import com.liferay.portal.template.react.renderer.ReactRenderer;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
@@ -50,7 +55,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -138,7 +148,7 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 
 			ObjectDefinition fdsViewObjectDefinition =
 				_objectDefinitionLocalService.fetchObjectDefinition(
-					fragmentEntryLink.getCompanyId(), "C_FDSView");
+					fragmentEntryLink.getCompanyId(), "FDSView");
 
 			if (externalReferenceCode != StringPool.BLANK) {
 				fdsViewObjectEntry = _getObjectEntry(
@@ -224,7 +234,7 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 
 		ObjectDefinition fdsEntryObjectDefinition =
 			_objectDefinitionLocalService.fetchObjectDefinition(
-				fragmentEntryLink.getCompanyId(), "C_FDSEntry");
+				fragmentEntryLink.getCompanyId(), "FDSEntry");
 
 		ObjectEntry fdsEntryObjectEntry = _getObjectEntry(
 			fragmentEntryLink.getCompanyId(), fdsEntryObjectEntryERC,
@@ -233,7 +243,7 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 		_reactRenderer.renderReact(
 			componentDescriptor,
 			HashMapBuilder.<String, Object>put(
-				"apiURL", _getAPIURL(fdsEntryObjectEntry)
+				"apiURL", _getAPIURL(fdsEntryObjectEntry, httpServletRequest)
 			).put(
 				"id", "FDS_" + fragmentRendererContext.getFragmentElementId()
 			).put(
@@ -267,7 +277,10 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 		return sb.toString();
 	}
 
-	private String _getAPIURL(ObjectEntry fdsEntryObjectEntry) {
+	private String _getAPIURL(
+		ObjectEntry fdsEntryObjectEntry,
+		HttpServletRequest httpServletRequest) {
+
 		Map<String, Object> properties = fdsEntryObjectEntry.getProperties();
 
 		StringBundler sb = new StringBundler(3);
@@ -279,7 +292,7 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 				StringPool.BLANK));
 		sb.append(String.valueOf(properties.get("restEndpoint")));
 
-		return sb.toString();
+		return _interpolateURL(sb.toString(), httpServletRequest);
 	}
 
 	private JSONArray _getFieldsJSONArray(
@@ -287,12 +300,30 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 			ObjectDefinition objectDefinition, ObjectEntry objectEntry)
 		throws Exception {
 
-		return JSONUtil.toJSONArray(
+		List<ObjectEntry> fdsFieldObjectEntries = new ArrayList<>(
 			_getRelatedObjectEntries(
-				objectDefinition, objectEntry, "fdsViewFDSFieldRelationship"),
-			(ObjectEntry fdsField) -> {
+				objectDefinition, objectEntry, "fdsViewFDSFieldRelationship"));
+
+		Map<String, Object> fdsViewProperties = objectEntry.getProperties();
+
+		List<Long> fdsFieldIds = ListUtil.toList(
+			Arrays.asList(
+				StringUtil.split(
+					(String)fdsViewProperties.get("fdsFieldsOrder"),
+					StringPool.COMMA)),
+			Long::parseLong);
+
+		Collections.sort(
+			fdsFieldObjectEntries,
+			Comparator.comparing(
+				ObjectEntry::getId,
+				Comparator.comparingInt(fdsFieldIds::indexOf)));
+
+		return JSONUtil.toJSONArray(
+			fdsFieldObjectEntries,
+			(ObjectEntry fdsFieldObjectEntry) -> {
 				Map<String, Object> fdsFieldProperties =
-					fdsField.getProperties();
+					fdsFieldObjectEntry.getProperties();
 
 				JSONObject jsonObject = JSONUtil.put(
 					"contentRenderer",
@@ -388,6 +419,31 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 
 		return relatedObjectEntriesPage.getItems();
 	}
+
+	private String _interpolateURL(
+		String apiUrl, HttpServletRequest httpServletRequest) {
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		apiUrl = StringUtil.replace(
+			apiUrl, "{siteId}", String.valueOf(themeDisplay.getScopeGroupId()));
+		apiUrl = StringUtil.replace(
+			apiUrl, "{scopeKey}",
+			String.valueOf(themeDisplay.getScopeGroupId()));
+		apiUrl = StringUtil.replace(
+			apiUrl, "{userId}", String.valueOf(themeDisplay.getUserId()));
+
+		if (StringUtil.contains(apiUrl, "{") && _log.isWarnEnabled()) {
+			_log.warn("Unsupported parameter in API URL: " + apiUrl);
+		}
+
+		return apiUrl;
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		FDSViewFragmentRenderer.class);
 
 	@Reference
 	private CETManager _cetManager;

@@ -757,9 +757,12 @@ definition {
 
 		WaitForConsoleTextPresent(value1 = "Returning connection with ID: __REMOTE__");
 
-		Navigator.openSpecificURL(url = "http://localhost:9201");
+		var javaProcesses = ExecUtil.executeCommand("jps -v");
+		var sidecarCurlResponse = ExecUtil.executeCommand("curl -X GET http://localhost:9201");
 
-		AssertTextNotPresent(value1 = "cluster_name");
+		if (contains(${javaProcesses}, "sidecar") || contains(${sidecarCurlResponse}, "cluster_name")) {
+			fail("Failed: Sidecar is still running.");
+		}
 
 		Navigator.openURL();
 

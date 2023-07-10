@@ -303,8 +303,12 @@ const SelectSubscription = ({
 							<ClaySelect
 								className="mr-2"
 								onChange={({target}) => {
+									setInfoSelectedKey({
+										licenseEntryType: selectedKeyType,
+										productType: productGroupName,
+										productVersion: target.value,
+									});
 									setSelectedVersion(target.value);
-									setSelectedSubscription({});
 								}}
 								value={selectedVersion}
 							>
@@ -335,6 +339,7 @@ const SelectSubscription = ({
 							onChange={({target}) => {
 								setSelectedKeyType(target.value);
 								setSelectedSubscription({});
+								setHasKeyComplementary(false);
 							}}
 							value={selectedKeyType}
 						>
@@ -448,13 +453,11 @@ const SelectSubscription = ({
 										});
 										setHasKeyComplementary(true);
 
-										const infoSelectedKey = {
+										setInfoSelectedKey({
 											licenseEntryType: selectedKeyType,
 											productType: productGroupName,
 											productVersion: selectedVersion,
-										};
-
-										setInfoSelectedKey(infoSelectedKey);
+										});
 									}}
 									selected={hasKeyComplementary}
 									subtitle={i18n.translate(

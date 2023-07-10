@@ -481,13 +481,14 @@ public class ContentPageEditorDisplayContext {
 						layoutURL, "disableCommonStyles", Boolean.TRUE);
 				}
 			).put(
+				"getInfoItemActionErrorMessageURL",
+				_getResourceURL(
+					"/layout_content_page_editor" +
+						"/get_info_item_action_error_message")
+			).put(
 				"getInfoItemFieldValueURL",
 				_getResourceURL(
 					"/layout_content_page_editor/get_info_item_field_value")
-			).put(
-				"getInfoItemMappingFieldsURL",
-				_getResourceURL(
-					"/layout_content_page_editor/get_info_item_mapping_fields")
 			).put(
 				"getLayoutFriendlyURL",
 				_getResourceURL(

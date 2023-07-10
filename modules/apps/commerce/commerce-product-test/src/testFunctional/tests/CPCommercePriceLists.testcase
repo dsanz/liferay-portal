@@ -1995,7 +1995,7 @@ definition {
 
 		CommerceNavigator.gotoEntry(entryName = "Test Price List");
 
-		CommerceEntry.viewPriceListEntry(
+		CommercePriceLists.viewPriceListEntry(
 			priceListCatalog = "Test Catalog",
 			priceListCurrency = "USD",
 			priceListName = "Test Price List");
@@ -2134,6 +2134,8 @@ definition {
 		CommerceNavigator.gotoEntry(entryName = "Test Price List");
 
 		var timeString = selenium.getElementValue("TextInput#DATE_TIME_PRICE_LISTS");
+
+		var timeString = DateUtil.format(${timeString}, "HH:mm", "hh:mm a");
 
 		var ampm = RegexUtil.replace(${timeString}, "([0-9]*):([0-9]*) ([A-Z]*)", 3);
 		var hours = RegexUtil.replace(${timeString}, "([0-9]*):([0-9]*) ([A-Z]*)", 1);
@@ -2280,6 +2282,8 @@ definition {
 			value1 = 30);
 
 		var timeString = selenium.getElementValue("TextInput#DATE_TIME_PRICE_LISTS");
+
+		var timeString = DateUtil.format(${timeString}, "HH:mm", "hh:mm a");
 
 		var ampm = RegexUtil.replace(${timeString}, "([0-9]*):([0-9]*) ([A-Z]*)", 3);
 		var hours = RegexUtil.replace(${timeString}, "([0-9]*):([0-9]*) ([A-Z]*)", 1);
@@ -2442,6 +2446,8 @@ definition {
 		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
 
 		var timeString = selenium.getElementValue("TextInput#DATE_TIME_PRICE_LISTS");
+
+		var timeString = DateUtil.format(${timeString}, "HH:mm", "hh:mm a");
 
 		var ampm = RegexUtil.replace(${timeString}, "([0-9]*):([0-9]*) ([A-Z]*)", 3);
 		var hours = RegexUtil.replace(${timeString}, "([0-9]*):([0-9]*) ([A-Z]*)", 1);
@@ -2622,6 +2628,8 @@ definition {
 				value1 = 30);
 
 			var timeString = selenium.getElementValue("TextInput#DATE_TIME_PRICE_LISTS");
+
+			var timeString = DateUtil.format(${timeString}, "HH:mm", "hh:mm a");
 
 			var ampm = RegexUtil.replace(${timeString}, "([0-9]*):([0-9]*) ([A-Z]*)", 3);
 			var hours = RegexUtil.replace(${timeString}, "([0-9]*):([0-9]*) ([A-Z]*)", 1);

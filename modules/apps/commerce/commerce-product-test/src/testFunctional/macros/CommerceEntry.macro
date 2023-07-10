@@ -21,7 +21,6 @@ definition {
 		AssertElementPresent(locator1 = "CommerceEntry#PAYMENT_SUBSCRIPTION_TOGGLE_ACTIVE");
 	}
 
-	@summary = "Add a new user that is part of an account(the creation of a new account, the membership and the user's role are optional)"
 	macro addAccountEntryUser {
 		Variables.assertDefined(parameterList = "${accountName},${userEmailAddress},${userFirstName},${userLastName},${userScreenName}");
 
@@ -134,6 +133,16 @@ definition {
 			key_title = "Currency",
 			locator1 = "CommerceEntry#CATALOGS_FORM",
 			value1 = ${catalogCurrency});
+
+		if (isSet(linkCatalogSupplier)) {
+			Click(
+				key_label = "Link Catalog to a Supplier",
+				locator1 = "CommerceEntry#ANY_AUTOCOMPLETE_CONTAINS_TEXT_FIELD");
+
+			Click(
+				key_categoryName = ${supplierAccountName},
+				locator1 = "CommerceEntry#COMMERCE_CATEGORY_AUTOCOMPLETE_SPECIFIC");
+		}
 	}
 
 	macro addNewChannelsEntry {
@@ -1714,6 +1723,13 @@ definition {
 				locator1 = "TextInput#SPECIFIC_LABEL_TEXT_INPUT",
 				value1 = ${catalogBasePromotion});
 		}
+
+		if (isSet(linkCatalogSupplier)) {
+			AssertValue(
+				key_labelName = "Link Catalog to a Supplier",
+				locator1 = "TextInput#SPECIFIC_LABEL_TEXT_INPUT",
+				value1 = ${supplierAccountName});
+		}
 	}
 
 	macro viewChannelsEntry {
@@ -1875,22 +1891,6 @@ definition {
 		AssertTextEquals(
 			locator1 = "CommerceEntry#PAGINATION_RESULTS",
 			value1 = ${results});
-	}
-
-	macro viewPriceListEntry {
-		AssertTextEquals(
-			locator1 = "CommerceEntry#NAME_FIELD",
-			value1 = ${priceListName});
-
-		AssertSelectedLabel(
-			key_fieldLabel = "Catalog",
-			locator1 = "Select#GENERIC_SELECT_FIELD",
-			value1 = ${priceListCatalog});
-
-		AssertSelectedLabel(
-			key_fieldLabel = "Currency",
-			locator1 = "Select#GENERIC_SELECT_FIELD",
-			value1 = ${priceListCurrency});
 	}
 
 	macro viewProductOptions {
