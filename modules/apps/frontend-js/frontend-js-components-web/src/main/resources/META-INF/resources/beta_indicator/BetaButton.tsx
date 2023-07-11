@@ -17,18 +17,43 @@ import ClayIcon from '@clayui/icon';
 import ClayPopover, {ALIGN_POSITIONS} from '@clayui/popover';
 import {useId} from '@clayui/shared';
 import {ClayTooltipProvider} from '@clayui/tooltip';
-import React, {useState} from 'react';
+import {sub} from 'frontend-js-web';
+import React, {useEffect, useState} from 'react';
+import ReactDOM from 'react-dom';
 
+import LearnMessage, {
+	LearnResourcesContext,
+} from '../learn_message/LearnMessage';
 import BetaBadge, {betaClassNames} from './BetaBadge';
 
 export default function BetaButton({
+	learnResourceContext,
 	tooltipAlign = 'top',
 }: {
+	learnResourceContext: object;
 	tooltipAlign: typeof ALIGN_POSITIONS[number];
 }) {
 	const ariaControlsId = useId();
 
 	const [show, setShow] = useState(false);
+
+	const [learnMessageNode, setLearnMessageNode] = useState(
+		document.createElement('span')
+	);
+
+	useEffect(() => {
+		// eslint-disable-next-line @liferay/portal/no-react-dom-render
+		ReactDOM.render(
+			<LearnResourcesContext.Provider value={learnResourceContext}>
+				<LearnMessage
+					resource="frontend-js-components-web"
+					resourceKey="beta-features-page"
+				/>
+			</LearnResourcesContext.Provider>,
+			learnMessageNode
+		);
+		setLearnMessageNode(learnMessageNode);
+	}, [learnMessageNode, learnResourceContext]);
 
 	return (
 		<ClayTooltipProvider>
@@ -61,6 +86,20 @@ export default function BetaButton({
 					}
 				>
 					{Liferay.Language.get('this-feature-is-in-testing')}
+
+					{learnMessageNode.innerHTML && (
+						<span
+							dangerouslySetInnerHTML={{
+								__html: sub(
+									'&nbsp;' +
+										Liferay.Language.get(
+											'see-x-for-more-information'
+										),
+									learnMessageNode.innerHTML
+								),
+							}}
+						/>
+					)}
 				</ClayPopover>
 			</div>
 		</ClayTooltipProvider>

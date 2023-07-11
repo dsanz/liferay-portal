@@ -1,6 +1,7 @@
 {
 	"dependencies": {
 		"@liferay/frontend-js-state-web": "*",
+		"frontend-js-web": "*",
 		"dom-align": "1.12.2"
 	},
 	"main": "index.js",
