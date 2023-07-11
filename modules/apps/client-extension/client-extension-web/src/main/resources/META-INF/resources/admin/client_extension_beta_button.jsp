@@ -21,6 +21,8 @@
 		module="{BetaButton} from frontend-js-components-web"
 		props='<%=
 			HashMapBuilder.<String, Object>put(
+				"learnResourceContext", LearnMessageUtil.getReactDataJSONObject("frontend-js-components-web")
+			).put(
 				"tooltipAlign", "bottom"
 			).build()
 		%>'
