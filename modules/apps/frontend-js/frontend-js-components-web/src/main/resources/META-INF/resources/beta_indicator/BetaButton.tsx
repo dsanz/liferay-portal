@@ -15,8 +15,9 @@
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import ClayPopover, {ALIGN_POSITIONS} from '@clayui/popover';
+import {useId} from '@clayui/shared';
 import {ClayTooltipProvider} from '@clayui/tooltip';
-import React from 'react';
+import React, {useState} from 'react';
 
 import BetaBadge, {betaClassNames} from './BetaBadge';
 
@@ -25,6 +26,10 @@ export default function BetaButton({
 }: {
 	tooltipAlign: typeof ALIGN_POSITIONS[number];
 }) {
+	const ariaControlsId = useId();
+
+	const [show, setShow] = useState(false);
+
 	return (
 		<ClayTooltipProvider>
 			<div
@@ -37,8 +42,16 @@ export default function BetaButton({
 					data-tooltip-align={tooltipAlign}
 					disableScroll
 					header={Liferay.Language.get('beta-feature')}
+					id={ariaControlsId}
+					onShowChange={setShow}
+					role="dialog"
 					trigger={
-						<ClayButton className={betaClassNames}>
+						<ClayButton
+							aria-controls={ariaControlsId}
+							aria-expanded={show}
+							aria-haspopup="dialog"
+							className={betaClassNames}
+						>
 							<BetaBadge standalone={false} />
 
 							<span className="inline-item inline-item-after">
