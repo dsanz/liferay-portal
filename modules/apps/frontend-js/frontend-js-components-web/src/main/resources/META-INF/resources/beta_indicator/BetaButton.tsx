@@ -17,9 +17,7 @@ import ClayIcon from '@clayui/icon';
 import ClayPopover, {ALIGN_POSITIONS} from '@clayui/popover';
 import {useId} from '@clayui/shared';
 import {ClayTooltipProvider} from '@clayui/tooltip';
-import {sub} from 'frontend-js-web';
-import React, {useEffect, useState} from 'react';
-import ReactDOM from 'react-dom';
+import React, {useState} from 'react';
 
 import LearnMessage, {
 	LearnResourcesContext,
@@ -37,71 +35,47 @@ export default function BetaButton({
 
 	const [show, setShow] = useState(false);
 
-	const [learnMessageNode, setLearnMessageNode] = useState(
-		document.createElement('span')
-	);
-
-	useEffect(() => {
-		// eslint-disable-next-line @liferay/portal/no-react-dom-render
-		ReactDOM.render(
-			<LearnResourcesContext.Provider value={learnResourceContext}>
-				<LearnMessage
-					resource="frontend-js-components-web"
-					resourceKey="beta-features-page"
-				/>
-			</LearnResourcesContext.Provider>,
-			learnMessageNode
-		);
-		setLearnMessageNode(learnMessageNode);
-	}, [learnMessageNode, learnResourceContext]);
-
 	return (
-		<ClayTooltipProvider>
-			<div
-				className="tooltip-container"
-				data-tooltip-align={tooltipAlign}
-				title={Liferay.Language.get('open-beta-definition')}
-			>
-				<ClayPopover
-					closeOnClickOutside
+		<LearnResourcesContext.Provider value={learnResourceContext}>
+			<ClayTooltipProvider>
+				<div
+					className="tooltip-container"
 					data-tooltip-align={tooltipAlign}
-					disableScroll
-					header={Liferay.Language.get('beta-feature')}
-					id={ariaControlsId}
-					onShowChange={setShow}
-					role="dialog"
-					trigger={
-						<ClayButton
-							aria-controls={ariaControlsId}
-							aria-expanded={show}
-							aria-haspopup="dialog"
-							className={betaClassNames}
-						>
-							<BetaBadge standalone={false} />
-
-							<span className="inline-item inline-item-after">
-								<ClayIcon symbol="info-panel-open" />
-							</span>
-						</ClayButton>
-					}
+					title={Liferay.Language.get('open-beta-definition')}
 				>
-					{Liferay.Language.get('this-feature-is-in-testing')}
+					<ClayPopover
+						closeOnClickOutside
+						data-tooltip-align={tooltipAlign}
+						disableScroll
+						header={Liferay.Language.get('beta-feature')}
+						id={ariaControlsId}
+						onShowChange={setShow}
+						role="dialog"
+						trigger={
+							<ClayButton
+								aria-controls={ariaControlsId}
+								aria-expanded={show}
+								aria-haspopup="dialog"
+								className={betaClassNames}
+							>
+								<BetaBadge standalone={false} />
 
-					{learnMessageNode.innerHTML && (
-						<span
-							dangerouslySetInnerHTML={{
-								__html: sub(
-									'&nbsp;' +
-										Liferay.Language.get(
-											'see-x-for-more-information'
-										),
-									learnMessageNode.innerHTML
-								),
-							}}
+								<span className="inline-item inline-item-after">
+									<ClayIcon symbol="info-panel-open" />
+								</span>
+							</ClayButton>
+						}
+					>
+						{Liferay.Language.get('this-feature-is-in-testing')}
+
+						<LearnMessage
+							className="pl-1"
+							resource="frontend-js-components-web"
+							resourceKey="beta-features-page"
 						/>
-					)}
-				</ClayPopover>
-			</div>
-		</ClayTooltipProvider>
+					</ClayPopover>
+				</div>
+			</ClayTooltipProvider>
+		</LearnResourcesContext.Provider>
 	);
 }
