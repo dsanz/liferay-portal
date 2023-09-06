@@ -380,7 +380,8 @@ function AddFDSFilterModalContent({
 					</ClayForm.Group>
 				)}
 
-				{selectedField?.format === 'string' && (
+				{(selectedField?.format === 'string' ||
+					selectedField?.format === 'object') && (
 					<>
 						<ClayForm.Group>
 							<label htmlFor={sourceOptionFormElementId}>
