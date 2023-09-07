@@ -393,21 +393,61 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 					fdsFilterObjectEntry.getProperties();
 
 				if (!Objects.equals(
-						MapUtil.getString(properties, "type"), "date")) {
+						MapUtil.getString(properties, "type"), "date") &&
+					!Objects.equals(
+						MapUtil.getString(properties, "type"), "date-time")) {
 
 					return null;
 				}
 
+				boolean hasPreloadedData;
+
+				String from = MapUtil.getString(properties, "from");
+				String to = MapUtil.getString(properties, "to");
+
+				if (Validator.isNotNull(to) || Validator.isNotNull(from)) {
+					hasPreloadedData = true;
+				}
+				else {
+					hasPreloadedData = false;
+				}
+
 				return JSONUtil.put(
+					"active", hasPreloadedData
+				).put(
 					"entityFieldType", properties.get("type")
 				).put(
 					"id", properties.get("fieldName")
 				).put(
 					"label", properties.get("name")
 				).put(
-					"max", _getDateJSONObject(properties.get("to"))
-				).put(
-					"min", _getDateJSONObject(properties.get("from"))
+					"preloadedData",
+					() -> {
+						if (!hasPreloadedData) {
+							return null;
+						}
+
+						return JSONUtil.put(
+							"from",
+							() -> {
+								if (Validator.isNull(from)) {
+									return null;
+								}
+
+								return _getDateJSONObject(
+									properties.get("from"));
+							}
+						).put(
+							"to",
+							() -> {
+								if (Validator.isNull(to)) {
+									return null;
+								}
+
+								return _getDateJSONObject(properties.get("to"));
+							}
+						);
+					}
 				).put(
 					"type", "dateRange"
 				);
