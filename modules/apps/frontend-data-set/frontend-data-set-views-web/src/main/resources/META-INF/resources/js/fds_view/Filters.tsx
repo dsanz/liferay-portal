@@ -87,7 +87,7 @@ function AddFDSFilterModalContent({
 	onSave,
 }: IPropsAddFDSFilterModalContent) {
 	const [from, setFrom] = useState<string>(
-		(filter as IDateFilter)?.from ?? format(new Date(), 'yyyy-MM-dd')
+		(filter as IDateFilter)?.from ?? ''
 	);
 	const [includeMode, setIncludeMode] = useState<string>(
 		filter
@@ -110,7 +110,7 @@ function AddFDSFilterModalContent({
 	);
 	const [selectedPicklist, setSelectedPicklist] = useState<IPickList>();
 	const [to, setTo] = useState<string>(
-		(filter as IDateFilter)?.to ?? format(new Date(), 'yyyy-MM-dd')
+		(filter as IDateFilter)?.to ?? ''
 	);
 
 	useEffect(() => {
@@ -335,10 +335,7 @@ function AddFDSFilterModalContent({
 								inputName={fromFormElementId}
 								onChange={setFrom}
 								placeholder="YYYY-MM-DD"
-								value={format(
-									from ? new Date(from) : new Date(),
-									'yyyy-MM-dd'
-								)}
+								value={from ? format(new Date(from), 'yyyy-MM-dd') : undefined}
 								years={{
 									end: getYear(new Date()) + 25,
 									start: getYear(new Date()) - 50,
@@ -367,10 +364,7 @@ function AddFDSFilterModalContent({
 								inputName={toFormElementId}
 								onChange={setTo}
 								placeholder="YYYY-MM-DD"
-								value={format(
-									to ? new Date(to) : new Date(),
-									'yyyy-MM-dd'
-								)}
+								value={to ? format(new Date(to), 'yyyy-MM-dd') : undefined}
 								years={{
 									end: getYear(new Date()) + 25,
 									start: getYear(new Date()) - 50,
