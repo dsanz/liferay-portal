@@ -79,6 +79,23 @@ export function getLocalizedValue(
 		navigatedValue =
 			navigatedValue[fieldName][getLanguageKey(item[fieldName])];
 	}
+	else if (
+
+		// TODO: remove when LPS-194819 is fixed
+
+		typeof fieldName === 'string' &&
+		item[fieldName] &&
+		item[fieldName + '_i18n'] &&
+		Object.keys(Liferay.Language.available).includes(
+			Object.keys(item[fieldName + '_i18n'])[0]
+		)
+	) {
+		valuePath.push(fieldName + '_i18n');
+		navigatedValue =
+			navigatedValue[fieldName + '_i18n'][
+				getLanguageKey(item[fieldName + '_i18n'])
+			];
+	}
 	else {
 		valuePath.push(fieldName);
 		navigatedValue = navigatedValue[fieldName];
