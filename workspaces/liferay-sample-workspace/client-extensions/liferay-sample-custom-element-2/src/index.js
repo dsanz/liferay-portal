@@ -8,7 +8,6 @@ import {createRoot} from 'react-dom/client';
 
 import Comic from './common/components/Comic.js';
 import DadJoke from './common/components/DadJoke.js';
-import api from './common/services/liferay/api.js';
 import {Liferay} from './common/services/liferay/liferay.js';
 import HelloBar from './routes/hello-bar/pages/HelloBar.js';
 import HelloFoo from './routes/hello-foo/pages/HelloFoo.js';
@@ -52,15 +51,7 @@ class WebComponent extends HTMLElement {
 			<App route={this.getAttribute('route')} />,
 			this
 		);
-
-		if (Liferay.ThemeDisplay.isSignedIn()) {
-			api('o/headless-admin-user/v1.0/my-user-account')
-				.then((response) => response.json())
-				.then((response) => {
-					if (response.givenName) {
-						const nameElements = document.getElementsByClassName(
-							'hello-world-name'
-						);
+	}
 
 	disconnectedCallback() {
 		this.root.unmount();
