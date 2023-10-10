@@ -43,8 +43,12 @@ const App = ({route}) => {
 };
 
 class WebComponent extends HTMLElement {
+	root;
+
 	connectedCallback() {
-		createRoot(this).render(
+		this.root = createRoot(this);
+
+		this.root.render(
 			<App route={this.getAttribute('route')} />,
 			this
 		);
@@ -58,16 +62,8 @@ class WebComponent extends HTMLElement {
 							'hello-world-name'
 						);
 
-						if (nameElements.length) {
-							nameElements[0].innerHTML = response.givenName;
-						}
-					}
-				})
-				.catch((error) => {
-					// eslint-disable-next-line no-console
-					console.log(error);
-				});
-		}
+	disconnectedCallback() {
+		this.root.unmount();
 	}
 }
 
