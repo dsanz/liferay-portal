@@ -335,19 +335,10 @@ public class ClientExtensionEntryLocalServiceImpl
 			clientExtensionEntryPersistence.findByPrimaryKey(
 				clientExtensionEntryId);
 
-		if (status == clientExtensionEntry.getStatus()) {
+		int initialStatus = clientExtensionEntry.getStatus();
+
+		if (status == initialStatus) {
 			return clientExtensionEntry;
-		}
-
-		if (status == WorkflowConstants.STATUS_APPROVED) {
-			clientExtensionEntryLocalService.deployClientExtensionEntry(
-				clientExtensionEntry);
-		}
-		else if (clientExtensionEntry.getStatus() ==
-					WorkflowConstants.STATUS_APPROVED) {
-
-			clientExtensionEntryLocalService.undeployClientExtensionEntry(
-				clientExtensionEntry);
 		}
 
 		User user = _userLocalService.getUser(userId);
@@ -357,7 +348,19 @@ public class ClientExtensionEntryLocalServiceImpl
 		clientExtensionEntry.setStatusByUserName(user.getFullName());
 		clientExtensionEntry.setStatusDate(new Date());
 
-		return clientExtensionEntryPersistence.update(clientExtensionEntry);
+		clientExtensionEntry = clientExtensionEntryPersistence.update(
+			clientExtensionEntry);
+
+		if (status == WorkflowConstants.STATUS_APPROVED) {
+			clientExtensionEntryLocalService.deployClientExtensionEntry(
+				clientExtensionEntry);
+		}
+		else if (initialStatus == WorkflowConstants.STATUS_APPROVED) {
+			clientExtensionEntryLocalService.undeployClientExtensionEntry(
+				clientExtensionEntry);
+		}
+
+		return clientExtensionEntry;
 	}
 
 	private void _addResources(ClientExtensionEntry clientExtensionEntry)
