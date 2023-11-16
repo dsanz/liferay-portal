@@ -5,8 +5,15 @@
 
 import {flipThirdPartyCookiesOff} from '@liferay/cookies-banner-web';
 import CKEditor from 'ckeditor4-react';
+import {getEditorConfigurationCX} from 'frontend-js-web';
 import PropTypes from 'prop-types';
-import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
+import React, {
+	forwardRef,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
 
 import '../css/main.scss';
 
@@ -26,7 +33,10 @@ function createElementFromHTML(htmlString) {
  * DXP implementations of CKEditor. Please don't import it directly.
  */
 const BaseEditor = forwardRef(
-	({contents, name, onChange, onChangeMethodName, ...props}, ref) => {
+	({config, contents, name, onChange, onChangeMethodName, ...props}, ref) => {
+		const [editorConfiguration, setEditorConfiguration] = useState(config);
+		const [cxLoaded, setCXLoaded] = useState(false);
+
 		const editorRef = useRef();
 
 		useEffect(() => {
@@ -93,13 +103,26 @@ const BaseEditor = forwardRef(
 			};
 		}, [contents, getHTML, name]);
 
-		return (
+		useEffect(() => {
+			getEditorConfigurationCX(config).then((config) => {
+				setEditorConfiguration(config);
+				setCXLoaded(true);
+			});
+		}, [config]);
+
+		return cxLoaded ? (
 			<CKEditor
+				config={editorConfiguration}
 				name={name}
 				onChange={onChangeCallback}
 				onChangeMethodName={onChangeMethodName}
 				ref={editorRefsCallback}
 				{...props}
+			/>
+		) : (
+			<span
+				aria-hidden="true"
+				className="loading-animation loading-animation-sm"
 			/>
 		);
 	}
@@ -111,6 +134,7 @@ window.CKEDITOR_BASEPATH = CURRENT_PATH;
 BaseEditor.displayName = 'BaseEditor';
 
 BaseEditor.propTypes = {
+	config: PropTypes.object,
 	contents: PropTypes.string,
 	name: PropTypes.string.isRequired,
 	onChange: PropTypes.func,
