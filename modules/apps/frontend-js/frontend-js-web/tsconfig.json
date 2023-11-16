@@ -1,6 +1,12 @@
 {
-	"@generated": "e1cfacada806e3a4ae578071d90ce85a568d5ad2",
+	"@generated": "26ad6910ec8daa7a0cf7f868cf5afcb5b2f256f5",
 	"@overrides": {
+		"compilerOptions": {
+			"lib": [
+				"es2020",
+				"DOM"
+			]
+		}
 	},
 	"@readonly": "** AUTO-GENERATED: DO NOT EDIT OUTSIDE @overrides **",
 	"@see": "https://git.io/JY2EA",
@@ -9,6 +15,10 @@
 		"baseUrl": ".",
 		"composite": true,
 		"jsx": "react",
+		"lib": [
+			"es2020",
+			"DOM"
+		],
 		"module": "es6",
 		"moduleResolution": "node",
 		"outDir": "./types",

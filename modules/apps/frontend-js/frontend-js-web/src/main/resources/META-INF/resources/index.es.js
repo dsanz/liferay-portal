@@ -85,6 +85,7 @@ export {default as createResourceURL} from './liferay/util/portlet_url/create_re
 // Renderer API
 
 export {default as getRenderer} from './renderer/getRenderer';
+export {default as getEditorConfigurationCX} from './renderer/getEditorConfigurationCX';
 
 // Session API
 
