@@ -140,6 +140,14 @@ if (showSource) {
 name = HtmlUtil.escapeJS(name);
 %>
 
+<aui:script require="frontend-js-web/index as frontendJsWeb">
+	var {getEditorConfigurationCX} = frontendJsWeb;
+
+	if (!Liferay.Util.getEditorConfigurationCX) {
+		Liferay.Util.getEditorConfigurationCX = getEditorConfigurationCX;
+	}
+</aui:script>
+
 <aui:script use="<%= modules %>">
 	var windowNode = A.getWin();
 
@@ -234,52 +242,56 @@ name = HtmlUtil.escapeJS(name);
 			plugins.push(A.Plugin.LiferayAlloyEditorSource);
 		</c:if>
 
-		alloyEditor = new A.LiferayAlloyEditor({
-			contents: '<%= HtmlUtil.escapeJS(contents) %>',
-			editorConfig: editorConfig,
-			editorPaths: [
-				'<%= PortalWebResourcesUtil.getContextPath(PortalWebResourceConstants.RESOURCE_TYPE_EDITOR_ALLOYEDITOR) %>',
-				'<%= PortalWebResourcesUtil.getContextPath(PortalWebResourceConstants.RESOURCE_TYPE_EDITOR_CKEDITOR) %>',
-			],
-			namespace: '<%= name %>',
+		Liferay.Util.getEditorConfigurationCX(editorConfig).then((editorConfig) => {
+			alloyEditor = new A.LiferayAlloyEditor({
+				contents: '<%= HtmlUtil.escapeJS(contents) %>',
+				editorConfig: editorConfig,
+				editorPaths: [
+					'<%= PortalWebResourcesUtil.getContextPath(PortalWebResourceConstants.RESOURCE_TYPE_EDITOR_ALLOYEDITOR) %>',
+					'<%= PortalWebResourcesUtil.getContextPath(PortalWebResourceConstants.RESOURCE_TYPE_EDITOR_CKEDITOR) %>',
+				],
+				namespace: '<%= name %>',
 
-			<c:if test="<%= Validator.isNotNull(onBlurMethod) %>">
-				onBlurMethod: '<%= HtmlUtil.escapeJS(namespace + onBlurMethod) %>',
-			</c:if>
+				<c:if test="<%= Validator.isNotNull(onBlurMethod) %>">
+					onBlurMethod: '<%= HtmlUtil.escapeJS(namespace + onBlurMethod) %>',
+				</c:if>
 
-			<c:if test="<%= Validator.isNotNull(onChangeMethod) %>">
-				onChangeMethod: '<%= HtmlUtil.escapeJS(namespace + onChangeMethod) %>',
-			</c:if>
+				<c:if test="<%= Validator.isNotNull(onChangeMethod) %>">
+					onChangeMethod:
+						'<%= HtmlUtil.escapeJS(namespace + onChangeMethod) %>',
+				</c:if>
 
-			<c:if test="<%= Validator.isNotNull(onFocusMethod) %>">
-				onFocusMethod: '<%= HtmlUtil.escapeJS(namespace + onFocusMethod) %>',
-			</c:if>
+				<c:if test="<%= Validator.isNotNull(onFocusMethod) %>">
+					onFocusMethod:
+						'<%= HtmlUtil.escapeJS(namespace + onFocusMethod) %>',
+				</c:if>
 
-			<c:if test="<%= Validator.isNotNull(onInitMethod) %>">
-				onInitMethod: '<%= HtmlUtil.escapeJS(namespace + onInitMethod) %>',
-			</c:if>
+				<c:if test="<%= Validator.isNotNull(onInitMethod) %>">
+					onInitMethod: '<%= HtmlUtil.escapeJS(namespace + onInitMethod) %>',
+				</c:if>
 
-			plugins: plugins,
-			portletId: '<%= portletId %>',
-			textMode: <%= (editorOptions != null) ? editorOptions.isTextMode() : Boolean.FALSE.toString() %>,
+				plugins: plugins,
+				portletId: '<%= portletId %>',
+				textMode: <%= (editorOptions != null) ? editorOptions.isTextMode() : Boolean.FALSE.toString() %>,
 
-			useCustomDataProcessor: <%= (editorOptionsDynamicAttributes != null) && GetterUtil.getBoolean(editorOptionsDynamicAttributes.get("useCustomDataProcessor")) %>,
-		}).render();
+				useCustomDataProcessor: <%= (editorOptionsDynamicAttributes != null) && GetterUtil.getBoolean(editorOptionsDynamicAttributes.get("useCustomDataProcessor")) %>,
+			}).render();
 
-		CKEDITOR.dom.selection.prototype.selectElement = function (element) {
-			this.isLocked = 0;
+			CKEDITOR.dom.selection.prototype.selectElement = function (element) {
+				this.isLocked = 0;
 
-			var range = new CKEDITOR.dom.range(this.root);
+				var range = new CKEDITOR.dom.range(this.root);
 
-			range.setEndAfter(element);
-			range.setStartBefore(element);
+				range.setEndAfter(element);
+				range.setStartBefore(element);
 
-			this.selectRanges([range]);
-		};
+				this.selectRanges([range]);
+			};
 
-		<liferay-util:dynamic-include key='<%= "com.liferay.frontend.editor.alloyeditor.web#" + editorName + "#onEditorCreate" %>' />
+			<liferay-util:dynamic-include key='<%= "com.liferay.frontend.editor.alloyeditor.web#" + editorName + "#onEditorCreate" %>' />
 
-		Liferay.namespace('EDITORS').alloyEditor.addInstance();
+			Liferay.namespace('EDITORS').alloyEditor.addInstance();
+		});
 	};
 
 	var ignoreClass = ['ddm-options-target'];
