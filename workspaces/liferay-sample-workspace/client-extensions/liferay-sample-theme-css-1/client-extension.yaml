@@ -1,8 +1,8 @@
 assemble:
-    - from: build/buildTheme/img
-      into: static/img
+    - from: build/buildTheme/css/assets
+      into: static/assets
 liferay-sample-theme-css-1:
-    clayURL: css/clay.css
-    mainURL: css/main.css
+    clayURL: css/clay.*.css
+    mainURL: css/main.*.css
     name: Liferay Sample Theme CSS 1
     type: themeCSS
