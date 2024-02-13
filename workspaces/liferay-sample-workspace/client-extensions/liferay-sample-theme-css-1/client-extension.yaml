@@ -1,5 +1,5 @@
 assemble:
-    - from: build/buildTheme/css/assets
+    - from: build/buildTheme/assets
       into: static/assets
 liferay-sample-theme-css-1:
     clayURL: css/clay.*.css
