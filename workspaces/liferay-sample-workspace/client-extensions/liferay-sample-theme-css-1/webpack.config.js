@@ -33,7 +33,10 @@ module.exports = {
 						options: {
 							url: {
 								filter: (url, resourcePath) => {
-									if (url.startsWith("data:image") || url.includes("@theme_image_path@")) {
+									"@base_url@", "@portal_ctx@", "@theme_image_path@", ""
+
+
+									if (url.startsWith("data:image") || url.includes("@theme_image_path@")) { 
 										return false;
 									}
 
