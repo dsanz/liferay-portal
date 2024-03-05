@@ -4,22 +4,28 @@
  */
 
 const FileManagerPlugin = require('filemanager-webpack-plugin');
-const fs = require('fs');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const path = require('path');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
 
-const buildThemeDir = path.join(__dirname, '/build/buildTheme/');
-const sourceCSSDir = path.join(__dirname, "src", "css");
+const fs = require('fs');
+const path = require('path');
 
+const buildDir = path.join(__dirname, 'build', 'buildTheme');
+const buildAssetsDir = path.join(buildDir, 'assets');
+const buildCSSDir = path.join(buildDir, 'css');
+
+const sourceCSSDir = path.join(__dirname, 'src', 'css');
+const urlTokens = ['@base_url@', '@portal_ctx@', '@theme_image_path@']
+
+const DEVELOPMENT = process.env.NODE_ENV === 'development';
 
 module.exports = {
-	context: path.join(__dirname, '/build/buildTheme/css/'),
+	context: buildCSSDir,
 	entry: {
 		clay: './clay.css',
 		main: './main.css'
 	},
-	mode: 'production',
+	mode: DEVELOPMENT ? 'development' : 'production',
 	module: {
 		rules: [
 			{
@@ -33,10 +39,8 @@ module.exports = {
 						options: {
 							url: {
 								filter: (url, resourcePath) => {
-									"@base_url@", "@portal_ctx@", "@theme_image_path@", ""
 
-
-									if (url.startsWith("data:image") || url.includes("@theme_image_path@")) { 
+									if (url.startsWith("data:image") || urlTokens.some((str) => url.includes(str))) {
 										return false;
 									}
 
@@ -61,24 +65,33 @@ module.exports = {
 		],
 	},
 	output: {
-		//assetModuleFilename: '../assets/[name].[contenthash][ext]',
-		clean: {
-			keep(asset) {
-				return !['main.css', 'main_rtl.css', 'clay.css', 'clay_rtl.css'].some((file) => asset.includes(file));
-			}
-		},
-		path: buildThemeDir
-		//path: path.resolve(__dirname, 'build/buildTheme/css/')
+		//clean: {
+			//keep: '*.scss'
+
+			//	keep(asset) {
+//		return !['main.css', 'main_rtl.css', 'clay.css', 'clay_rtl.css'].some((file) => asset.includes(file));
+//	}
+		//},
+		path: buildCSSDir
 	},
 	plugins: [
-		new FileManagerPlugin({
-			events: {
-				onStart: {
-					delete: [path.resolve(__dirname, 'build/buildTheme/assets'), path.resolve(__dirname, 'build/buildTheme/css/') + '/main.?*.css', path.resolve(__dirname, 'build/buildTheme/css/') + '/clay.?*.css',  ],
-				}
-			},
-		}),
-		new RemoveEmptyScriptsPlugin(),
+		// new FileManagerPlugin({
+		// 	events: {
+		// 		onStart: {
+		// 			delete: [
+		// 				buildAssetsDir,
+		// 				path.join(buildCSSDir, 'main.?*.css'),
+		// 				path.join(buildCSSDir, 'clay.?*.css'),
+		// 			],
+		// 		},
+		// 		onEnd: {
+		// 			delete: [
+		// 				path.join(buildCSSDir, 'main.js'),
+		// 				path.join(buildCSSDir, 'clay.js')
+		// 			],
+		// 		}
+		// 	},
+		// }),
 		new MiniCssExtractPlugin({
 			filename: "[name].[contenthash].css"
 		})
