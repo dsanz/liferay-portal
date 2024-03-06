@@ -96,6 +96,7 @@ function FolderTree({filterQuery, handleSelectionChange, items: initialItems}) {
 
 	return filteredItems.length ? (
 		<ClayTreeView
+			defaultExpandedKeys={new Set(['0'])}
 			items={filteredItems}
 			onItemsChange={setItems}
 			showExpanderOnHover={false}
