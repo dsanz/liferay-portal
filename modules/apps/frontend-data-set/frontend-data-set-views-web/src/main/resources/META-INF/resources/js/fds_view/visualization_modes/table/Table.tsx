@@ -23,7 +23,7 @@ import React, {useEffect, useState} from 'react';
 
 import {IFDSViewSectionProps} from '../../../FDSView';
 import {FDSViewType} from '../../../FDSViews';
-import {getFields} from '../../../api';
+import {getFields, isSortable} from '../../../api';
 import AutoSearch from '../../../components/AutoSearch';
 import OrderableTable from '../../../components/OrderableTable';
 import SearchResultsMessage from '../../../components/SearchResultsMessage';
@@ -161,13 +161,18 @@ const SaveFDSFieldsModalContent = ({
 	const saveFDSFields = async () => {
 		setSaveButtonDisabled(true);
 
-		const creationData: Array<{name: string; type: string}> = [];
+		const creationData: Array<{
+			name: string;
+			sortable: boolean;
+			type: string;
+		}> = [];
 		const deletionIds: Array<number> = [];
 
 		fields?.forEach((field) => {
 			if (field.selected && !field.id) {
 				creationData.push({
 					name: field.name,
+					sortable: isSortable(field),
 					type: field.type || 'string',
 				});
 			}
@@ -433,8 +438,11 @@ const EditFDSFieldModalContent = ({
 	const [selectedFDSFieldRenderer, setSelectedFDSFieldRenderer] = useState(
 		fdsField.renderer ?? 'default'
 	);
+
+	const isSortableField = isSortable(fdsField);
+
 	const [fdsFieldSortable, setFSDFieldSortable] = useState<boolean>(
-		fdsField.sortable ?? true
+		fdsField.sortable ?? isSortableField
 	);
 
 	const fdsInternalCellRendererNames = FDS_INTERNAL_CELL_RENDERERS.map(
@@ -615,6 +623,7 @@ const EditFDSFieldModalContent = ({
 				<ClayForm.Group>
 					<ClayCheckbox
 						checked={fdsFieldSortable}
+						disabled={!isSortableField}
 						inline
 						label={Liferay.Language.get('sortable')}
 						onChange={({target: {checked}}) =>
@@ -622,14 +631,16 @@ const EditFDSFieldModalContent = ({
 						}
 					/>
 
-					<span
-						className="label-icon lfr-portal-tooltip ml-2"
-						title={Liferay.Language.get(
-							'if-checked,-data-set-items-can-be-sorted-by-this-field'
-						)}
-					>
-						<ClayIcon symbol="question-circle-full" />
-					</span>
+					{isSortableField && (
+						<span
+							className="label-icon lfr-portal-tooltip ml-2"
+							title={Liferay.Language.get(
+								'if-checked,-data-set-items-can-be-sorted-by-this-field'
+							)}
+						>
+							<ClayIcon symbol="question-circle-full" />
+						</span>
+					)}
 				</ClayForm.Group>
 			</ClayModal.Body>
 
