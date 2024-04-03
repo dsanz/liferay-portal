@@ -11,6 +11,7 @@ import React, {useContext, useRef} from 'react';
 
 import FrontendDataSetContext from '../../FrontendDataSetContext';
 import handleActionClick from '../../actions/HandleActionClick';
+import filterItemActions from '../../utils/actionItems/filterItemActions';
 import {getLocalizedValue} from '../../utils/getLocalizedValue';
 import isLink from '../../utils/isLink';
 
@@ -70,9 +71,11 @@ const Card = ({item, schema}) => {
 		?.value;
 	const localizedTitle = getLocalizedValue(item, schema.title)?.value || '';
 
+	const formattedActions = filterItemActions(actionsRef.current, item);
+
 	return (
 		<ClayCardWithInfo
-			actions={actionsRef.current?.map((action) => ({
+			actions={formattedActions?.map((action) => ({
 				...action,
 				href: isLink(action.target, null) ? action.href : null,
 				onClick: (event) => {
