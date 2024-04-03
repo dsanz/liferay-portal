@@ -10,6 +10,7 @@ import PropTypes from 'prop-types';
 import React, {useContext, useRef} from 'react';
 
 import FrontendDataSetContext from '../../FrontendDataSetContext';
+import handleActionClick from '../../actions/HandleActionClick';
 import {getLocalizedValue} from '../../utils/getLocalizedValue';
 import isLink from '../../utils/isLink';
 
@@ -47,14 +48,18 @@ const Cards = ({items, schema}) => {
 
 const Card = ({item, schema}) => {
 	const {
+		executeAsyncItemAction,
+		highlightItems,
 		itemsActions,
 		loadData,
 		onActionDropdownItemClick,
+		openModal,
 		openSidePanel,
 		selectItems,
 		selectable,
 		selectedItemsKey,
 		selectedItemsValue,
+		toggleItemInlineEdit,
 	} = useContext(FrontendDataSetContext);
 
 	const actionsRef = useRef(
@@ -78,6 +83,21 @@ const Card = ({item, schema}) => {
 							itemData: item,
 							loadData,
 							openSidePanel,
+						});
+					}
+					else {
+						handleActionClick({
+							action,
+							event,
+							executeAsyncItemAction,
+							highlightItems,
+							itemData: item,
+							itemId: item[selectedItemsKey],
+							loadData,
+							onActionDropdownItemClick,
+							openModal,
+							openSidePanel,
+							toggleItemInlineEdit,
 						});
 					}
 				},
