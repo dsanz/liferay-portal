@@ -36,7 +36,7 @@ import ClayAlert from '@clayui/alert';
 import ClayIcon from '@clayui/icon';
 
 import sortItems from '../../../utils/sortItems';
-import {EFieldType, IFDSField, IOrderable} from '../../../utils/types';
+import {EFieldType, IFDSField} from '../../../utils/types';
 import AddFieldsModalContent from './modal_content/AddFieldsModalContent';
 
 const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
@@ -466,15 +466,13 @@ function Table({
 
 		const storedFDSFieldsOrder = responseJSON?.fdsFieldsOrder;
 
-		const storedFDSFields = fdsFields;
-
 		if (
-			storedFDSFields &&
+			fdsFields &&
 			storedFDSFieldsOrder &&
 			storedFDSFieldsOrder === fdsFieldsOrder
 		) {
 			setFDSFields(
-				sortItems(storedFDSFields, fdsFieldsOrder) as IFDSField[]
+				sortItems(fdsFields, storedFDSFieldsOrder) as IFDSField[]
 			);
 
 			openDefaultSuccessToast();
