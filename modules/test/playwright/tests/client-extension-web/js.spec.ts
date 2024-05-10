@@ -5,9 +5,11 @@
 
 import {Page, expect, mergeTests} from '@playwright/test';
 
+import {localizationSiteSettingsPageTest} from '../../fixtures/LocalizationSiteSettingsPageTest';
 import {pagesAdminPageTest} from '../../fixtures/PagesAdminPageTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {PagesAdminPage} from '../../pages/layout-admin-web/PagesAdminPage';
+import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import getRandomString from '../../utils/getRandomString';
 import {clientExtensionsPageTest} from './fixtures/clientExtensionsPageTest';
 import {editJSClientExtensionsPageTest} from './fixtures/editJSClientExtensionsPageTest';
@@ -18,7 +20,8 @@ export const test = mergeTests(
 	clientExtensionsPageTest,
 	loginTest(),
 	pagesAdminPageTest,
-	editJSClientExtensionsPageTest
+	editJSClientExtensionsPageTest,
+	localizationSiteSettingsPageTest
 );
 
 test('Create a new JS client extension with a script element attribute', async ({
@@ -320,4 +323,80 @@ test('GlobalJS client extension with async and defer attributes set to false and
 			},
 		],
 	});
+});
+
+test('GlobalJS client extension can be created with name translations while having a language configuration for the site settings', async ({
+	clientExtensionsPage,
+	editJSClientExtensionsPage,
+	localizationSiteSettingsPage,
+	page,
+}) => {
+	try {
+		await localizationSiteSettingsPage.setDefaultCustomLanguage(
+			'Spanish (Spain)'
+		);
+
+		await editJSClientExtensionsPage.goto();
+
+		await expect(
+			page.getByLabel('Current translation is English', {exact: false})
+		).toBeVisible();
+
+		const englishName = getRandomString();
+
+		await editJSClientExtensionsPage.nameInput.fill(englishName);
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('menuitem', {name: 'spanish'}),
+			trigger: page.getByRole('button', {
+				exact: false,
+				name: 'Current translation',
+			}),
+		});
+
+		await expect(
+			page.getByLabel('Current translation is Spanish', {exact: false})
+		).toBeVisible();
+
+		const spanishName = getRandomString();
+
+		await editJSClientExtensionsPage.nameInput.fill(spanishName);
+
+		await editJSClientExtensionsPage.javaScriptURLInput.fill(
+			'https://www.example.com/script.js'
+		);
+
+		await editJSClientExtensionsPage.publish();
+
+		await page.getByRole('link', {name: englishName}).click();
+
+		await expect(
+			page.getByLabel('Current translation is English', {exact: false})
+		).toBeVisible();
+
+		await expect(editJSClientExtensionsPage.nameInput).toHaveValue(
+			englishName
+		);
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('menuitem', {name: 'spanish'}),
+			trigger: page.getByRole('button', {
+				exact: false,
+				name: 'Current translation',
+			}),
+		});
+
+		await expect(editJSClientExtensionsPage.nameInput).toHaveValue(
+			spanishName
+		);
+
+		await clientExtensionsPage.goto();
+
+		await clientExtensionsPage.deleteClientExtension(englishName);
+	}
+	finally {
+		await localizationSiteSettingsPage.useDefaultLanguageOptions();
+	}
 });
