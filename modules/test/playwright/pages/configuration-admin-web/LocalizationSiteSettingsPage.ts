@@ -8,11 +8,13 @@ import {Locator, Page} from '@playwright/test';
 import {SiteSettingsPage} from './SiteSettingsPage';
 
 export class LocalizationSiteSettingsPage {
+	readonly languageSelector: Locator;
 	readonly page: Page;
 	readonly saveButton: Locator;
 	readonly siteSettingsPage: SiteSettingsPage;
 
 	constructor(page: Page) {
+		this.languageSelector = page.getByRole('combobox');
 		this.saveButton = page.getByRole('button', {name: 'Save'});
 		this.page = page;
 		this.siteSettingsPage = new SiteSettingsPage(page);
@@ -44,9 +46,11 @@ export class LocalizationSiteSettingsPage {
 			.getByRole('radio', {name: 'Define a custom default language'})
 			.click();
 
-		await this.page.getByRole('combobox').selectOption(language);
+		await this.languageSelector.waitFor();
 
-		await this.page.getByRole('button', {name: 'Save'}).click();
+		await this.languageSelector.selectOption(language);
+
+		await this.saveButton.click();
 
 		await this.page.waitForLoadState();
 	}
