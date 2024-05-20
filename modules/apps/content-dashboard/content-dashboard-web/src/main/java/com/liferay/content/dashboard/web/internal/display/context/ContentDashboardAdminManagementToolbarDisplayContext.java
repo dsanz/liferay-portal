@@ -34,6 +34,7 @@ import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -682,8 +683,13 @@ public class ContentDashboardAdminManagementToolbarDisplayContext
 		DropdownItemList dropdownItemList = DropdownItemList.of(
 			() -> DropdownItemBuilder.putData(
 				"action", "exampleAction"
-			).setItems(
-				JSONUtil.put(JSONUtil.put("label", "Second Level"))
+			).setDropdownItems(
+				DropdownItemListBuilder.add(
+					dropdownItem -> {
+						dropdownItem.setIcon("trash");
+						dropdownItem.setLabel("Second Level");
+					}
+				).build()
 			).setLabel(
 				"First level"
 			).setType(
