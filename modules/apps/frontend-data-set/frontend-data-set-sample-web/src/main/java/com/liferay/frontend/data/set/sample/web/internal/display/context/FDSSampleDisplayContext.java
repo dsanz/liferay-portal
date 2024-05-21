@@ -12,12 +12,16 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.Arrays;
 import java.util.List;
+
+import javax.portlet.RenderResponse;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -27,7 +31,11 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class FDSSampleDisplayContext {
 
-	public FDSSampleDisplayContext(HttpServletRequest httpServletRequest) {
+	public FDSSampleDisplayContext(
+		HttpServletRequest httpServletRequest, RenderResponse renderResponse) {
+
+		_renderResponse = renderResponse;
+
 		_fdsRequestHelper = new FDSRequestHelper(httpServletRequest);
 	}
 
@@ -61,6 +69,36 @@ public class FDSSampleDisplayContext {
 		String portalURL = company.getPortalURL(
 			GroupConstants.DEFAULT_PARENT_GROUP_ID);
 
+		FDSActionDropdownItem openFullSidePanelAction =
+			new FDSActionDropdownItem(
+				PortletURLBuilder.createRenderURL(
+					_renderResponse
+				).setMVCRenderCommandName(
+					"/side_panel/full"
+				).setWindowState(
+					LiferayWindowState.POP_UP
+				).buildRenderURL(
+				).toString(),
+				"rectangle-split", "open-side-panel-title",
+				"Open a side panel with title", null, null, "sidePanel");
+
+		openFullSidePanelAction.putData("disableHeader", "true");
+
+		FDSActionDropdownItem openEmptySidePanelAction =
+			new FDSActionDropdownItem(
+				PortletURLBuilder.createRenderURL(
+					_renderResponse
+				).setMVCRenderCommandName(
+					"/side_panel/empty"
+				).setWindowState(
+					LiferayWindowState.POP_UP
+				).buildRenderURL(
+				).toString(),
+				"rectangle-split", "open-side-panel-no-title",
+				"Open a side panel with no title", null, null, "sidePanel");
+
+		openEmptySidePanelAction.putData("title", "Side panel title via props");
+
 		return Arrays.asList(
 			new FDSActionDropdownItem(
 				null, "view", "sampleMessage", "Sample View", null, null, null),
@@ -80,6 +118,7 @@ public class FDSSampleDisplayContext {
 				"http://localhost", "times-circle",
 				"asyncErrorConnectionRefused", "Async Connection Refused",
 				"get", null, "async"),
+			openFullSidePanelAction, openEmptySidePanelAction,
 			new FDSActionDropdownItem(
 				portalURL + "/abc", "staging", "asyncErrorResourceNotFound",
 				"Async Resource Not Found", "get", null, "async"),
@@ -91,5 +130,6 @@ public class FDSSampleDisplayContext {
 	}
 
 	private final FDSRequestHelper _fdsRequestHelper;
+	private final RenderResponse _renderResponse;
 
 }
