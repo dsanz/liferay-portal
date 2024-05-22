@@ -83,7 +83,12 @@ const DEFAULT_VISUALIZATION_MODES: Array<IBaseVisualizationMode<any>> = [
 	},
 ];
 
-const ALLOWED_ENDPOINTS_PARAMETERS = ['scopeKey', 'siteId', 'userId'];
+const ALLOWED_ENDPOINTS_PARAMETERS = [
+	'scopeKey',
+	'siteId',
+	'userId',
+	'structuredContentId',
+];
 
 export {
 	API_URL,
