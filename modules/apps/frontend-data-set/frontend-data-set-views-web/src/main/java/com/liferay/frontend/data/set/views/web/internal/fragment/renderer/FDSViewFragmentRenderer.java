@@ -13,6 +13,13 @@ import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.frontend.data.set.constants.FDSEntityFieldTypes;
+import com.liferay.info.constants.InfoDisplayWebKeys;
+import com.liferay.info.item.ClassPKInfoItemIdentifier;
+import com.liferay.info.item.ERCInfoItemIdentifier;
+import com.liferay.info.item.InfoItemDetails;
+import com.liferay.info.item.InfoItemIdentifier;
+import com.liferay.info.item.InfoItemReference;
+import com.liferay.info.item.InfoItemServiceRegistry;
 import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.model.ListTypeEntry;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
@@ -1027,6 +1034,67 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 	private String _interpolateURL(
 		String apiURL, HttpServletRequest httpServletRequest) {
 
+		// first use the closest context object (infoItem)
+		apiURL = _interpolateURLFromInfoItem(apiURL, httpServletRequest);
+
+		// then use the outer context object (themeDisplay)
+		apiURL = _interpolateURLFromThemeDisplay(apiURL, httpServletRequest);
+
+		if (StringUtil.contains(apiURL, "{") && _log.isWarnEnabled()) {
+			_log.warn("Unsupported parameter in API URL: " + apiURL);
+		}
+
+		return apiURL;
+	}
+
+	private String _interpolateURLFromInfoItem(
+		String apiURL, HttpServletRequest httpServletRequest) {
+
+		InfoItemDetails infoItemDetails =
+			(InfoItemDetails)httpServletRequest.getAttribute(
+				InfoDisplayWebKeys.INFO_ITEM_DETAILS);
+
+		Object infoItem = httpServletRequest.getAttribute(
+			InfoDisplayWebKeys.INFO_ITEM);
+
+		if ((infoItem != null) && (infoItemDetails != null)) {
+			InfoItemReference infoItemReference =
+				infoItemDetails.getInfoItemReference();
+
+			InfoItemIdentifier infoItemIdentifier =
+				infoItemReference.getInfoItemIdentifier();
+
+			String value = StringPool.BLANK;
+
+			if (infoItemIdentifier instanceof ClassPKInfoItemIdentifier) {
+				ClassPKInfoItemIdentifier classPKInfoItemIdentifier =
+					(ClassPKInfoItemIdentifier)infoItemIdentifier;
+
+				value = String.valueOf(classPKInfoItemIdentifier.getClassPK());
+			}
+
+			if (infoItemIdentifier instanceof ERCInfoItemIdentifier) {
+				ERCInfoItemIdentifier ercInfoItemIdentifier =
+					(ERCInfoItemIdentifier)infoItemIdentifier;
+
+				value = ercInfoItemIdentifier.getExternalReferenceCode();
+			}
+
+			/* this needs {structuredContentId} to be part of the apiURL,
+			bounding the PoC to some endpoints in the headless-delivery REST app */
+
+			if (Validator.isNotNull(value)) {
+				apiURL = StringUtil.replace(
+					apiURL, "{structuredContentId}", value);
+			}
+		}
+
+		return apiURL;
+	}
+
+	private String _interpolateURLFromThemeDisplay(
+		String apiURL, HttpServletRequest httpServletRequest) {
+
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
@@ -1039,10 +1107,6 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 		apiURL = StringUtil.replace(
 			apiURL, "{userId}", String.valueOf(themeDisplay.getUserId()));
 
-		if (StringUtil.contains(apiURL, "{") && _log.isWarnEnabled()) {
-			_log.warn("Unsupported parameter in API URL: " + apiURL);
-		}
-
 		return apiURL;
 	}
 
@@ -1054,6 +1118,9 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 
 	@Reference
 	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
+
+	@Reference
+	private InfoItemServiceRegistry _infoItemServiceRegistry;
 
 	@Reference
 	private JSONFactory _jsonFactory;
