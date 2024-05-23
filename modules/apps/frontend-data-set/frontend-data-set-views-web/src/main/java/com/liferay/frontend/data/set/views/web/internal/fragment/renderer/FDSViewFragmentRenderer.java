@@ -14,12 +14,10 @@ import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.frontend.data.set.constants.FDSEntityFieldTypes;
 import com.liferay.info.constants.InfoDisplayWebKeys;
-import com.liferay.info.item.ClassPKInfoItemIdentifier;
-import com.liferay.info.item.ERCInfoItemIdentifier;
 import com.liferay.info.item.InfoItemDetails;
-import com.liferay.info.item.InfoItemIdentifier;
-import com.liferay.info.item.InfoItemReference;
+import com.liferay.info.item.InfoItemRESTEndpointParameterMap;
 import com.liferay.info.item.InfoItemServiceRegistry;
+import com.liferay.info.item.provider.InfoItemRESTEndpointParameterMapProvider;
 import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.model.ListTypeEntry;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
@@ -1035,9 +1033,11 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 		String apiURL, HttpServletRequest httpServletRequest) {
 
 		// first use the closest context object (infoItem)
+
 		apiURL = _interpolateURLFromInfoItem(apiURL, httpServletRequest);
 
 		// then use the outer context object (themeDisplay)
+
 		apiURL = _interpolateURLFromThemeDisplay(apiURL, httpServletRequest);
 
 		if (StringUtil.contains(apiURL, "{") && _log.isWarnEnabled()) {
@@ -1057,36 +1057,34 @@ public class FDSViewFragmentRenderer implements FragmentRenderer {
 		Object infoItem = httpServletRequest.getAttribute(
 			InfoDisplayWebKeys.INFO_ITEM);
 
-		if ((infoItem != null) && (infoItemDetails != null)) {
-			InfoItemReference infoItemReference =
-				infoItemDetails.getInfoItemReference();
+		if ((infoItem == null) || (infoItemDetails == null)) {
+			return apiURL;
+		}
 
-			InfoItemIdentifier infoItemIdentifier =
-				infoItemReference.getInfoItemIdentifier();
+		InfoItemRESTEndpointParameterMapProvider
+			infoItemRESTEndpointParameterMapProvider =
+				_infoItemServiceRegistry.getFirstInfoItemService(
+					InfoItemRESTEndpointParameterMapProvider.class,
+					infoItemDetails.getInfoItemClassDetails(
+					).getClassName());
 
-			String value = StringPool.BLANK;
+		if (infoItemRESTEndpointParameterMapProvider == null) {
+			return apiURL;
+		}
 
-			if (infoItemIdentifier instanceof ClassPKInfoItemIdentifier) {
-				ClassPKInfoItemIdentifier classPKInfoItemIdentifier =
-					(ClassPKInfoItemIdentifier)infoItemIdentifier;
+		InfoItemRESTEndpointParameterMap infoItemRESTEndpointParameterMap =
+			infoItemRESTEndpointParameterMapProvider.
+				getInfoItemRESTEndpointParameterMap(infoItem);
 
-				value = String.valueOf(classPKInfoItemIdentifier.getClassPK());
-			}
+		Map<String, Object> restEndpointParameterMap =
+			infoItemRESTEndpointParameterMap.getRESTEndpointParameterMap();
 
-			if (infoItemIdentifier instanceof ERCInfoItemIdentifier) {
-				ERCInfoItemIdentifier ercInfoItemIdentifier =
-					(ERCInfoItemIdentifier)infoItemIdentifier;
+		for (Map.Entry<String, Object> entry :
+				restEndpointParameterMap.entrySet()) {
 
-				value = ercInfoItemIdentifier.getExternalReferenceCode();
-			}
-
-			/* this needs {structuredContentId} to be part of the apiURL,
-			bounding the PoC to some endpoints in the headless-delivery REST app */
-
-			if (Validator.isNotNull(value)) {
-				apiURL = StringUtil.replace(
-					apiURL, "{structuredContentId}", value);
-			}
+			apiURL = StringUtil.replace(
+				apiURL, "{" + entry.getKey() + "}",
+				String.valueOf(entry.getValue()));
 		}
 
 		return apiURL;

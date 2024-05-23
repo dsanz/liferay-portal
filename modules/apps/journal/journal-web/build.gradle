@@ -38,6 +38,7 @@ dependencies {
 	compileOnly project(":apps:fragment:fragment-api")
 	compileOnly project(":apps:friendly-url:friendly-url-api")
 	compileOnly project(":apps:friendly-url:friendly-url-taglib")
+	compileOnly project(":apps:frontend-data-set:frontend-data-set-views-web")
 	compileOnly project(":apps:frontend-editor:frontend-editor-taglib")
 	compileOnly project(":apps:frontend-js:frontend-js-loader-modules-extender-api")
 	compileOnly project(":apps:frontend-taglib:frontend-taglib")

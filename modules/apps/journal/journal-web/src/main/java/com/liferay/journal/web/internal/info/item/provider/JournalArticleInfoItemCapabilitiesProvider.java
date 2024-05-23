@@ -5,6 +5,7 @@
 
 package com.liferay.journal.web.internal.info.item.provider;
 
+import com.liferay.frontend.data.set.views.web.internal.info.item.capability.RESTEndpointInfoItemCapability;
 import com.liferay.info.item.capability.InfoItemCapability;
 import com.liferay.info.item.provider.InfoItemCapabilitiesProvider;
 import com.liferay.journal.model.JournalArticle;
@@ -27,13 +28,19 @@ public class JournalArticleInfoItemCapabilitiesProvider
 	@Override
 	public List<InfoItemCapability> getInfoItemCapabilities() {
 		return ListUtil.fromArray(
-			_displayPageInfoItemCapability, _templateInfoItemCapability);
+			_displayPageInfoItemCapability, _templateInfoItemCapability,
+			_restEndpointInfoItemCapability);
 	}
 
 	@Reference(
 		target = "(info.item.capability.key=" + DisplayPageInfoItemCapability.KEY + ")"
 	)
 	private InfoItemCapability _displayPageInfoItemCapability;
+
+	@Reference(
+		target = "(info.item.capability.key=" + RESTEndpointInfoItemCapability.KEY + ")"
+	)
+	private InfoItemCapability _restEndpointInfoItemCapability;
 
 	@Reference(
 		target = "(info.item.capability.key=" + TemplateInfoItemCapability.KEY + ")"
