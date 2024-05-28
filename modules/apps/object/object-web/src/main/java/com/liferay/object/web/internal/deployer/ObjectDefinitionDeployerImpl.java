@@ -18,6 +18,7 @@ import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.frontend.data.set.view.FDSView;
 import com.liferay.frontend.data.set.view.table.FDSTableSchemaBuilderFactory;
+import com.liferay.frontend.data.set.views.web.internal.info.item.capability.RESTEndpointInfoItemCapability;
 import com.liferay.info.collection.provider.InfoCollectionProvider;
 import com.liferay.info.item.action.executor.InfoItemActionExecutor;
 import com.liferay.info.item.capability.InfoItemCapability;
@@ -272,6 +273,7 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 				InfoItemCapabilitiesProvider.class,
 				new ObjectEntryInfoItemCapabilitiesProvider(
 					_displayPageInfoItemCapability, _editPageInfoItemCapability,
+					_restEndpointInfoItemCapability,
 					_templateInfoItemCapability),
 				HashMapDictionaryBuilder.<String, Object>put(
 					"company.id", objectDefinition.getCompanyId()
@@ -754,6 +756,11 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 
 	@Reference
 	private RESTContextPathResolverRegistry _restContextPathResolverRegistry;
+
+	@Reference(
+		target = "(info.item.capability.key=" + RESTEndpointInfoItemCapability.KEY + ")"
+	)
+	private InfoItemCapability _restEndpointInfoItemCapability;
 
 	@Reference(target = "(osgi.web.symbolicname=com.liferay.object.web)")
 	private ServletContext _servletContext;

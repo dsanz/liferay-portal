@@ -21,10 +21,12 @@ public class ObjectEntryInfoItemCapabilitiesProvider
 	public ObjectEntryInfoItemCapabilitiesProvider(
 		InfoItemCapability displayPageInfoItemCapability,
 		InfoItemCapability editPageInfoItemCapability,
+		InfoItemCapability restEndpointInfoItemCapability,
 		InfoItemCapability templateInfoItemCapability) {
 
 		_displayPageInfoItemCapability = displayPageInfoItemCapability;
 		_editPageInfoItemCapability = editPageInfoItemCapability;
+		_restEndpointInfoItemCapability = restEndpointInfoItemCapability;
 		_templateInfoItemCapability = templateInfoItemCapability;
 	}
 
@@ -37,6 +39,7 @@ public class ObjectEntryInfoItemCapabilitiesProvider
 
 	private final InfoItemCapability _displayPageInfoItemCapability;
 	private final InfoItemCapability _editPageInfoItemCapability;
+	private final InfoItemCapability _restEndpointInfoItemCapability;
 	private final InfoItemCapability _templateInfoItemCapability;
 
 }
