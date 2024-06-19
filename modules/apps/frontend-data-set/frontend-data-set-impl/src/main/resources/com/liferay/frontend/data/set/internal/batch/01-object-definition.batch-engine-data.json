@@ -1,0 +1,984 @@
+{
+	"configuration": {
+		"className": "com.liferay.object.admin.rest.dto.v1_0.ObjectDefinition",
+		"multiCompany": true,
+		"parameters": {
+			"containsHeaders": "true",
+			"createStrategy": "UPSERT",
+			"featureFlag": "LPS-178642",
+			"importStrategy": "ON_ERROR_FAIL",
+			"updateStrategy": "UPDATE"
+		},
+		"taskItemDelegateName": "DEFAULT",
+		"userId": 0,
+		"version": "v1.0"
+	},
+	"items": [
+		{
+			"accountEntryRestricted": false,
+			"accountEntryRestrictedObjectFieldName": "",
+			"actions": {
+				"exportObjectDefinition": {},
+				"get": {},
+				"permissions": {},
+				"update": {}
+			},
+			"active": true,
+			"defaultLanguageId": "en_US",
+			"enableCategorization": true,
+			"enableComments": false,
+			"enableLocalization": false,
+			"enableObjectEntryDraft": false,
+			"enableObjectEntryHistory": false,
+			"externalReferenceCode": "FDSView",
+			"label": {
+				"en_US": "Data Set"
+			},
+			"modifiable": true,
+			"name": "FDSView",
+			"objectActions": [],
+			"objectFields": [
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "f3dfe839-c181-9ceb-191b-3a5c51019111",
+					"indexed": false,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "",
+					"label": {
+						"en_US": "Author"
+					},
+					"localized": false,
+					"name": "creator",
+					"objectFieldSettings": [],
+					"readOnly": "true",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "Date",
+					"businessType": "Date",
+					"externalReferenceCode": "c498c8b3-0d15-f3e6-f351-392166a0ad9f",
+					"indexed": false,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "",
+					"label": {
+						"en_US": "Create Date"
+					},
+					"localized": false,
+					"name": "createDate",
+					"objectFieldSettings": [],
+					"readOnly": "true",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "Date",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "aacd4675-0683-69a9-9ecf-ccf9f11d2ad8",
+					"indexed": false,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "",
+					"label": {
+						"en_US": "External Reference Code"
+					},
+					"localized": false,
+					"name": "externalReferenceCode",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "Long",
+					"businessType": "LongInteger",
+					"externalReferenceCode": "ae38d278-cded-04cf-a3cf-a4bd3611e30b",
+					"indexed": true,
+					"indexedAsKeyword": true,
+					"indexedLanguageId": "",
+					"label": {
+						"en_US": "ID"
+					},
+					"localized": false,
+					"name": "id",
+					"objectFieldSettings": [],
+					"readOnly": "true",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "Long",
+					"unique": false
+				},
+				{
+					"DBType": "Date",
+					"businessType": "Date",
+					"externalReferenceCode": "d0ce05ac-4432-02d5-9eb1-09ac8718ff52",
+					"indexed": false,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "",
+					"label": {
+						"en_US": "Modified Date"
+					},
+					"localized": false,
+					"name": "modifiedDate",
+					"objectFieldSettings": [],
+					"readOnly": "true",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "Date",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "fe383db3-ac57-e6ce-7cb3-3ec1d843331f",
+					"indexed": false,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "",
+					"label": {
+						"en_US": "Status"
+					},
+					"localized": false,
+					"name": "status",
+					"objectFieldSettings": [],
+					"readOnly": "true",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "e60d5156-7de5-8b32-e932-57fe948c59db",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "Name"
+					},
+					"localized": false,
+					"name": "label",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": true,
+					"state": false,
+					"system": false,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "3c6500a4-df95-bb9a-9a85-21386c529a5a",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "Description"
+					},
+					"localized": false,
+					"name": "description",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": false,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "7faf057a-906f-221d-3ce0-67000976b38f",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "REST Application"
+					},
+					"localized": false,
+					"name": "restApplication",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": true,
+					"state": false,
+					"system": false,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "84bf069c-6eb6-f1f5-451a-e093352efec2",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "REST Endpoint"
+					},
+					"localized": false,
+					"name": "restEndpoint",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": true,
+					"state": false,
+					"system": false,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "f6b5424a-8185-99cc-410e-689696675ff8",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "REST Schema"
+					},
+					"localized": false,
+					"name": "restSchema",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": true,
+					"state": false,
+					"system": false,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "84279348-1798-64dd-62b5-69074fd63760",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "List of Items per Page"
+					},
+					"localized": false,
+					"name": "listOfItemsPerPage",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": true,
+					"state": false,
+					"system": false,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "Integer",
+					"businessType": "Integer",
+					"externalReferenceCode": "4c49c976-63f8-4665-c25a-fbd66afc6925",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "",
+					"label": {
+						"en_US": "Default Items per Page"
+					},
+					"localized": false,
+					"name": "defaultItemsPerPage",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": true,
+					"state": false,
+					"system": false,
+					"type": "Integer",
+					"unique": false
+				},
+				{
+					"DBType": "Clob",
+					"businessType": "LongText",
+					"externalReferenceCode": "97a2b544-1e46-7f5b-2a61-e19ee767c247",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "creation-actions-order"
+					},
+					"localized": false,
+					"name": "fdsCreationActionsOrder",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": false,
+					"type": "Clob",
+					"unique": false
+				},
+				{
+					"DBType": "Clob",
+					"businessType": "LongText",
+					"externalReferenceCode": "28ae585a-3dc5-797b-1ebc-2d3465207c2c",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "fields-order"
+					},
+					"localized": false,
+					"name": "fdsFieldsOrder",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": false,
+					"type": "Clob",
+					"unique": false
+				},
+				{
+					"DBType": "Clob",
+					"businessType": "LongText",
+					"externalReferenceCode": "5c53aaf4-a829-57a4-6728-b30e639806bd",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "filters-order"
+					},
+					"localized": false,
+					"name": "fdsFiltersOrder",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": false,
+					"type": "Clob",
+					"unique": false
+				},
+				{
+					"DBType": "Clob",
+					"businessType": "LongText",
+					"externalReferenceCode": "bc0c34f2-d921-e446-1276-cf2e2b0b218d",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "item-actions-order"
+					},
+					"localized": false,
+					"name": "fdsItemActionsOrder",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": false,
+					"type": "Clob",
+					"unique": false
+				},
+				{
+					"DBType": "Clob",
+					"businessType": "LongText",
+					"externalReferenceCode": "8a0fffd3-ddea-c9bd-371f-ad9c48bdf1e0",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "sorts-order"
+					},
+					"localized": false,
+					"name": "fdsSortsOrder",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": false,
+					"type": "Clob",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "c4d36db8-26a6-0341-05f2-347478328415",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"indexedLanguageId": "en_US",
+					"label": {
+						"en_US": "Default Visualization Mode"
+					},
+					"localized": false,
+					"name": "defaultVisualizationMode",
+					"objectFieldSettings": [],
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": false,
+					"type": "String",
+					"unique": false
+				}
+			],
+			"objectFolderExternalReferenceCode": "default",
+			"objectLayouts": [],
+			"objectRelationships": [
+				{
+					"deletionType": "cascade",
+					"edge": false,
+					"externalReferenceCode": "f88e4475-3e95-70cd-b3c5-1fe9ffe3ab43",
+					"label": {
+						"en_US": "Data Set Creation Actions"
+					},
+					"name": "fdsViewFDSCreationActionRelationship",
+					"objectDefinitionExternalReferenceCode1": "FDSView",
+					"objectDefinitionExternalReferenceCode2": "FDSAction",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "FDSAction",
+					"objectDefinitionSystem2": true,
+					"objectField": {
+						"DBType": "Long",
+						"businessType": "Relationship",
+						"externalReferenceCode": "bffef7af-15a2-9d0a-66ce-851d99ae8bad",
+						"indexed": true,
+						"indexedAsKeyword": false,
+						"indexedLanguageId": "",
+						"label": {
+							"en_US": "Data Set Creation Actions"
+						},
+						"localized": false,
+						"name": "r_fdsViewFDSCreationActionRelationship_c_fdsViewId",
+						"objectDefinitionExternalReferenceCode1": "FDSView",
+						"objectFieldSettings": [
+							{
+								"name": "objectDefinition1ShortName",
+								"value": "FDSView"
+							},
+							{
+								"name": "objectRelationshipERCObjectFieldName",
+								"value": "r_fdsViewFDSCreationActionRelationship_c_fdsViewERC"
+							}
+						],
+						"objectRelationshipExternalReferenceCode": "f88e4475-3e95-70cd-b3c5-1fe9ffe3ab43",
+						"readOnly": "false",
+						"readOnlyConditionExpression": "",
+						"relationshipType": "oneToMany",
+						"required": false,
+						"state": false,
+						"system": false,
+						"type": "Long",
+						"unique": false
+					},
+					"parameterObjectFieldId": 0,
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": false,
+					"type": "oneToMany"
+				},
+				{
+					"deletionType": "cascade",
+					"edge": false,
+					"externalReferenceCode": "4905662a-f374-00ef-818d-5a36b5718ac3",
+					"label": {
+						"en_US": "Data Set Item Actions"
+					},
+					"name": "fdsViewFDSItemActionRelationship",
+					"objectDefinitionExternalReferenceCode1": "FDSView",
+					"objectDefinitionExternalReferenceCode2": "FDSAction",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "FDSAction",
+					"objectDefinitionSystem2": true,
+					"objectField": {
+						"DBType": "Long",
+						"businessType": "Relationship",
+						"externalReferenceCode": "0aa449a4-7ad5-767b-b15b-abe30037d024",
+						"indexed": true,
+						"indexedAsKeyword": false,
+						"indexedLanguageId": "",
+						"label": {
+							"en_US": "Data Set Item Actions"
+						},
+						"localized": false,
+						"name": "r_fdsViewFDSItemActionRelationship_c_fdsViewId",
+						"objectDefinitionExternalReferenceCode1": "FDSView",
+						"objectFieldSettings": [
+							{
+								"name": "objectDefinition1ShortName",
+								"value": "FDSView"
+							},
+							{
+								"name": "objectRelationshipERCObjectFieldName",
+								"value": "r_fdsViewFDSItemActionRelationship_c_fdsViewERC"
+							}
+						],
+						"objectRelationshipExternalReferenceCode": "4905662a-f374-00ef-818d-5a36b5718ac3",
+						"readOnly": "false",
+						"readOnlyConditionExpression": "",
+						"relationshipType": "oneToMany",
+						"required": false,
+						"state": false,
+						"system": false,
+						"type": "Long",
+						"unique": false
+					},
+					"parameterObjectFieldId": 0,
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": false,
+					"type": "oneToMany"
+				},
+				{
+					"deletionType": "cascade",
+					"edge": false,
+					"externalReferenceCode": "97d68289-430c-59cc-8c73-902e9b536f3e",
+					"label": {
+						"en_US": "Data Set Cards Sections"
+					},
+					"name": "fdsViewFDSCardsSectionRelationship",
+					"objectDefinitionExternalReferenceCode1": "FDSView",
+					"objectDefinitionExternalReferenceCode2": "FDSCardsSection",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "FDSCardsSection",
+					"objectDefinitionSystem2": true,
+					"objectField": {
+						"DBType": "Long",
+						"businessType": "Relationship",
+						"externalReferenceCode": "487b05ab-6593-3191-b81c-61296c382767",
+						"indexed": true,
+						"indexedAsKeyword": false,
+						"indexedLanguageId": "",
+						"label": {
+							"en_US": "Data Set Cards Sections"
+						},
+						"localized": false,
+						"name": "r_fdsViewFDSCardsSectionRelationship_c_fdsViewId",
+						"objectDefinitionExternalReferenceCode1": "FDSView",
+						"objectFieldSettings": [
+							{
+								"name": "objectDefinition1ShortName",
+								"value": "FDSView"
+							},
+							{
+								"name": "objectRelationshipERCObjectFieldName",
+								"value": "r_fdsViewFDSCardsSectionRelationship_c_fdsViewERC"
+							}
+						],
+						"objectRelationshipExternalReferenceCode": "97d68289-430c-59cc-8c73-902e9b536f3e",
+						"readOnly": "false",
+						"readOnlyConditionExpression": "",
+						"relationshipType": "oneToMany",
+						"required": false,
+						"state": false,
+						"system": false,
+						"type": "Long",
+						"unique": false
+					},
+					"parameterObjectFieldId": 0,
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": false,
+					"type": "oneToMany"
+				},
+				{
+					"deletionType": "cascade",
+					"edge": false,
+					"externalReferenceCode": "59d88329-1ae8-2f0e-99af-c5428c8b1acd",
+					"label": {
+						"en_US": "Data Set Client Extension Filters"
+					},
+					"name": "fdsViewFDSClientExtensionFilter",
+					"objectDefinitionExternalReferenceCode1": "FDSView",
+					"objectDefinitionExternalReferenceCode2": "FDSClientExtensionFilter",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "FDSClientExtensionFilter",
+					"objectDefinitionSystem2": true,
+					"objectField": {
+						"DBType": "Long",
+						"businessType": "Relationship",
+						"externalReferenceCode": "1af0c736-81c1-3619-e1c0-78808fb16d80",
+						"indexed": true,
+						"indexedAsKeyword": false,
+						"indexedLanguageId": "",
+						"label": {
+							"en_US": "Data Set Client Extension Filters"
+						},
+						"localized": false,
+						"name": "r_fdsViewFDSClientExtensionFilter_c_fdsViewId",
+						"objectDefinitionExternalReferenceCode1": "FDSView",
+						"objectFieldSettings": [
+							{
+								"name": "objectDefinition1ShortName",
+								"value": "FDSView"
+							},
+							{
+								"name": "objectRelationshipERCObjectFieldName",
+								"value": "r_fdsViewFDSClientExtensionFilter_c_fdsViewERC"
+							}
+						],
+						"objectRelationshipExternalReferenceCode": "59d88329-1ae8-2f0e-99af-c5428c8b1acd",
+						"readOnly": "false",
+						"readOnlyConditionExpression": "",
+						"relationshipType": "oneToMany",
+						"required": false,
+						"state": false,
+						"system": false,
+						"type": "Long",
+						"unique": false
+					},
+					"parameterObjectFieldId": 0,
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": false,
+					"type": "oneToMany"
+				},
+				{
+					"deletionType": "cascade",
+					"edge": false,
+					"externalReferenceCode": "7242db96-c351-0703-23bf-3237e7f396da",
+					"label": {
+						"en_US": "Data Set Date Filters"
+					},
+					"name": "fdsViewFDSDateFilterRelationship",
+					"objectDefinitionExternalReferenceCode1": "FDSView",
+					"objectDefinitionExternalReferenceCode2": "FDSDateFilter",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "FDSDateFilter",
+					"objectDefinitionSystem2": true,
+					"objectField": {
+						"DBType": "Long",
+						"businessType": "Relationship",
+						"externalReferenceCode": "76509752-61af-d0da-a562-149d5372c085",
+						"indexed": true,
+						"indexedAsKeyword": false,
+						"indexedLanguageId": "",
+						"label": {
+							"en_US": "Data Set Date Filters"
+						},
+						"localized": false,
+						"name": "r_fdsViewFDSDateFilterRelationship_c_fdsViewId",
+						"objectDefinitionExternalReferenceCode1": "FDSView",
+						"objectFieldSettings": [
+							{
+								"name": "objectDefinition1ShortName",
+								"value": "FDSView"
+							},
+							{
+								"name": "objectRelationshipERCObjectFieldName",
+								"value": "r_fdsViewFDSDateFilterRelationship_c_fdsViewERC"
+							}
+						],
+						"objectRelationshipExternalReferenceCode": "7242db96-c351-0703-23bf-3237e7f396da",
+						"readOnly": "false",
+						"readOnlyConditionExpression": "",
+						"relationshipType": "oneToMany",
+						"required": false,
+						"state": false,
+						"system": false,
+						"type": "Long",
+						"unique": false
+					},
+					"parameterObjectFieldId": 0,
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": false,
+					"type": "oneToMany"
+				},
+				{
+					"deletionType": "cascade",
+					"edge": false,
+					"externalReferenceCode": "74c3c6ba-e576-322a-241a-25bc9294036e",
+					"label": {
+						"en_US": "Data Set Selection Filters"
+					},
+					"name": "fdsViewFDSDynamicFilterRelationship",
+					"objectDefinitionExternalReferenceCode1": "FDSView",
+					"objectDefinitionExternalReferenceCode2": "FDSDynamicFilter",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "FDSDynamicFilter",
+					"objectDefinitionSystem2": true,
+					"objectField": {
+						"DBType": "Long",
+						"businessType": "Relationship",
+						"externalReferenceCode": "e168224f-991b-9b8c-ce85-994148f74a3e",
+						"indexed": true,
+						"indexedAsKeyword": false,
+						"indexedLanguageId": "",
+						"label": {
+							"en_US": "Data Set Selection Filters"
+						},
+						"localized": false,
+						"name": "r_fdsViewFDSDynamicFilterRelationship_c_fdsViewId",
+						"objectDefinitionExternalReferenceCode1": "FDSView",
+						"objectFieldSettings": [
+							{
+								"name": "objectDefinition1ShortName",
+								"value": "FDSView"
+							},
+							{
+								"name": "objectRelationshipERCObjectFieldName",
+								"value": "r_fdsViewFDSDynamicFilterRelationship_c_fdsViewERC"
+							}
+						],
+						"objectRelationshipExternalReferenceCode": "74c3c6ba-e576-322a-241a-25bc9294036e",
+						"readOnly": "false",
+						"readOnlyConditionExpression": "",
+						"relationshipType": "oneToMany",
+						"required": false,
+						"state": false,
+						"system": false,
+						"type": "Long",
+						"unique": false
+					},
+					"parameterObjectFieldId": 0,
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": false,
+					"type": "oneToMany"
+				},
+				{
+					"deletionType": "cascade",
+					"edge": false,
+					"externalReferenceCode": "d0814716-559f-29a1-6e9f-4742c8378150",
+					"label": {
+						"en_US": "Data Set Table Sections"
+					},
+					"name": "fdsViewFDSFieldRelationship",
+					"objectDefinitionExternalReferenceCode1": "FDSView",
+					"objectDefinitionExternalReferenceCode2": "FDSField",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "FDSField",
+					"objectDefinitionSystem2": true,
+					"objectField": {
+						"DBType": "Long",
+						"businessType": "Relationship",
+						"externalReferenceCode": "2be8c0e1-8954-43c3-cb0c-dfe83b648bce",
+						"indexed": true,
+						"indexedAsKeyword": false,
+						"indexedLanguageId": "",
+						"label": {
+							"en_US": "Data Set Table Sections"
+						},
+						"localized": false,
+						"name": "r_fdsViewFDSFieldRelationship_c_fdsViewId",
+						"objectDefinitionExternalReferenceCode1": "FDSView",
+						"objectFieldSettings": [
+							{
+								"name": "objectDefinition1ShortName",
+								"value": "FDSView"
+							},
+							{
+								"name": "objectRelationshipERCObjectFieldName",
+								"value": "r_fdsViewFDSFieldRelationship_c_fdsViewERC"
+							}
+						],
+						"objectRelationshipExternalReferenceCode": "d0814716-559f-29a1-6e9f-4742c8378150",
+						"readOnly": "false",
+						"readOnlyConditionExpression": "",
+						"relationshipType": "oneToMany",
+						"required": false,
+						"state": false,
+						"system": false,
+						"type": "Long",
+						"unique": false
+					},
+					"parameterObjectFieldId": 0,
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": false,
+					"type": "oneToMany"
+				},
+				{
+					"deletionType": "cascade",
+					"edge": false,
+					"externalReferenceCode": "d1054c29-144d-cc74-91d3-918fd5f45e20",
+					"label": {
+						"en_US": "Data Set List Sections"
+					},
+					"name": "fdsViewFDSListSectionRelationship",
+					"objectDefinitionExternalReferenceCode1": "FDSView",
+					"objectDefinitionExternalReferenceCode2": "FDSListSection",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "FDSListSection",
+					"objectDefinitionSystem2": true,
+					"objectField": {
+						"DBType": "Long",
+						"businessType": "Relationship",
+						"externalReferenceCode": "0bf428b7-a3bd-3271-6ddf-b953480475d2",
+						"indexed": true,
+						"indexedAsKeyword": false,
+						"indexedLanguageId": "",
+						"label": {
+							"en_US": "Data Set List Sections"
+						},
+						"localized": false,
+						"name": "r_fdsViewFDSListSectionRelationship_c_fdsViewId",
+						"objectDefinitionExternalReferenceCode1": "FDSView",
+						"objectFieldSettings": [
+							{
+								"name": "objectDefinition1ShortName",
+								"value": "FDSView"
+							},
+							{
+								"name": "objectRelationshipERCObjectFieldName",
+								"value": "r_fdsViewFDSListSectionRelationship_c_fdsViewERC"
+							}
+						],
+						"objectRelationshipExternalReferenceCode": "d1054c29-144d-cc74-91d3-918fd5f45e20",
+						"readOnly": "false",
+						"readOnlyConditionExpression": "",
+						"relationshipType": "oneToMany",
+						"required": false,
+						"state": false,
+						"system": false,
+						"type": "Long",
+						"unique": false
+					},
+					"parameterObjectFieldId": 0,
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": false,
+					"type": "oneToMany"
+				},
+				{
+					"deletionType": "cascade",
+					"edge": false,
+					"externalReferenceCode": "f02b8f3e-a504-8870-1091-583e55fafa8c",
+					"label": {
+						"en_US": "Data Set Sorts"
+					},
+					"name": "fdsViewFDSSortRelationship",
+					"objectDefinitionExternalReferenceCode1": "FDSView",
+					"objectDefinitionExternalReferenceCode2": "FDSSort",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "FDSSort",
+					"objectDefinitionSystem2": true,
+					"objectField": {
+						"DBType": "Long",
+						"businessType": "Relationship",
+						"externalReferenceCode": "85cd8376-e35b-c3a6-c28b-e0f1150c85af",
+						"indexed": true,
+						"indexedAsKeyword": false,
+						"indexedLanguageId": "",
+						"label": {
+							"en_US": "Data Set Sorts"
+						},
+						"localized": false,
+						"name": "r_fdsViewFDSSortRelationship_c_fdsViewId",
+						"objectDefinitionExternalReferenceCode1": "FDSView",
+						"objectFieldSettings": [
+							{
+								"name": "objectDefinition1ShortName",
+								"value": "FDSView"
+							},
+							{
+								"name": "objectRelationshipERCObjectFieldName",
+								"value": "r_fdsViewFDSSortRelationship_c_fdsViewERC"
+							}
+						],
+						"objectRelationshipExternalReferenceCode": "f02b8f3e-a504-8870-1091-583e55fafa8c",
+						"readOnly": "false",
+						"readOnlyConditionExpression": "",
+						"relationshipType": "oneToMany",
+						"required": false,
+						"state": false,
+						"system": false,
+						"type": "Long",
+						"unique": false
+					},
+					"parameterObjectFieldId": 0,
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": false,
+					"type": "oneToMany"
+				},
+				{
+					"deletionType": "prevent",
+					"edge": false,
+					"externalReferenceCode": "93363f28-c534-ff00-a5eb-8d5739fe2523",
+					"label": {
+						"en_US": "ds"
+					},
+					"name": "ds",
+					"objectDefinitionExternalReferenceCode1": "FDSView",
+					"objectDefinitionExternalReferenceCode2": "f010a9c9-b5fc-c5d4-dba7-b62b29078a8f",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "TestRM",
+					"objectDefinitionSystem2": false,
+					"objectField": {
+						"DBType": "Long",
+						"businessType": "Relationship",
+						"externalReferenceCode": "69bfce97-a6e8-4f85-1bd8-404bbec404b0",
+						"indexed": true,
+						"indexedAsKeyword": false,
+						"indexedLanguageId": "",
+						"label": {
+							"en_US": "ds"
+						},
+						"localized": false,
+						"name": "r_ds_c_fdsViewId",
+						"objectDefinitionExternalReferenceCode1": "FDSView",
+						"objectFieldSettings": [
+							{
+								"name": "objectDefinition1ShortName",
+								"value": "FDSView"
+							},
+							{
+								"name": "objectRelationshipERCObjectFieldName",
+								"value": "r_ds_c_fdsViewERC"
+							}
+						],
+						"objectRelationshipExternalReferenceCode": "93363f28-c534-ff00-a5eb-8d5739fe2523",
+						"readOnly": "false",
+						"readOnlyConditionExpression": "",
+						"relationshipType": "oneToMany",
+						"required": false,
+						"state": false,
+						"system": false,
+						"type": "Long",
+						"unique": false
+					},
+					"parameterObjectFieldId": 0,
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": false,
+					"type": "oneToMany"
+				}
+			],
+			"objectValidationRules": [],
+			"objectViews": [],
+			"panelCategoryKey": "",
+			"parameterRequired": false,
+			"pluralLabel": {
+				"en_US": "Data Sets"
+			},
+			"portlet": false,
+			"restContextPath": "/o/data-set-manager/data-sets",
+			"scope": "company",
+			"status": {
+				"code": 0,
+				"label": "approved",
+				"label_i18n": "Approved"
+			},
+			"system": true,
+			"titleObjectFieldName": "id"
+		}
+	]
+}
