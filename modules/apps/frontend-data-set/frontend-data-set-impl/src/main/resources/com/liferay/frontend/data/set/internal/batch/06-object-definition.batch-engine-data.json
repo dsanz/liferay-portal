@@ -21,25 +21,63 @@
 			"enableLocalization": true,
 			"enableObjectEntryDraft": false,
 			"enableObjectEntryHistory": false,
-			"externalReferenceCode": "L_DATA_SET_TABLE_SECTION",
+			"externalReferenceCode": "L_DATA_SET_DATE_FILTER",
 			"label": {
-				"en_US": "Data Set Table Section"
+				"en_US": "Data Set Date Filter"
 			},
 			"modifiable": true,
-			"name": "DataSetTableSection",
+			"name": "DataSetDateFilter",
 			"objectActions": [],
 			"objectFields": [
 				{
-					"DBType": "String",
-					"businessType": "Text",
-					"externalReferenceCode": "820fd978-945c-5792-0a2e-c78a45542c0e",
+					"DBType": "Date",
+					"businessType": "Date",
+					"externalReferenceCode": "954b67e9-80dc-33f9-c92b-527ed6cea1bc",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"label": {
-						"en_US": "Name"
+						"en_US": "To"
 					},
 					"localized": false,
-					"name": "name",
+					"name": "toDate",
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "Date",
+					"unique": false
+				},
+				{
+					"DBType": "Date",
+					"businessType": "Date",
+					"externalReferenceCode": "431890a9-c027-be72-7dc9-559a64f0473b",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"label": {
+						"en_US": "From"
+					},
+					"localized": false,
+					"name": "fromDate",
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "Date",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "75a1de2d-dbd4-1421-8fb5-77b3704b1645",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"label": {
+						"en_US": "Field Name"
+					},
+					"localized": false,
+					"name": "fieldName",
 					"readOnly": "false",
 					"readOnlyConditionExpression": "",
 					"required": true,
@@ -51,7 +89,7 @@
 				{
 					"DBType": "String",
 					"businessType": "Text",
-					"externalReferenceCode": "0617099c-1853-dd5d-e280-6ce125525577",
+					"externalReferenceCode": "bb0e28e2-5c19-1996-3526-b817acc623a7",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"label": {
@@ -61,25 +99,6 @@
 					"name": "type",
 					"readOnly": "false",
 					"readOnlyConditionExpression": "",
-					"required": true,
-					"state": false,
-					"system": true,
-					"type": "String",
-					"unique": false
-				},
-				{
-					"DBType": "String",
-					"businessType": "Text",
-					"externalReferenceCode": "bba9d277-7abe-ffd5-0c55-a25ceb7d5372",
-					"indexed": true,
-					"indexedAsKeyword": false,
-					"label": {
-						"en_US": "Renderer"
-					},
-					"localized": false,
-					"name": "renderer",
-					"readOnly": "false",
-					"readOnlyConditionExpression": "",
 					"required": false,
 					"state": false,
 					"system": true,
@@ -89,49 +108,11 @@
 				{
 					"DBType": "String",
 					"businessType": "Text",
-					"externalReferenceCode": "96e60ae3-926a-062e-477f-d0e73c6b5b8d",
+					"externalReferenceCode": "c2b22788-b3e2-3a14-c666-68378220c73e",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"label": {
-						"en_US": "rendererType"
-					},
-					"localized": false,
-					"name": "rendererType",
-					"readOnly": "false",
-					"readOnlyConditionExpression": "",
-					"required": false,
-					"state": false,
-					"system": true,
-					"type": "String",
-					"unique": false
-				},
-				{
-					"DBType": "Boolean",
-					"businessType": "Boolean",
-					"externalReferenceCode": "41628acf-080d-3819-1b8d-7b4547bee317",
-					"indexed": true,
-					"indexedAsKeyword": false,
-					"label": {
-						"en_US": "Sortable"
-					},
-					"localized": false,
-					"name": "sortable",
-					"readOnly": "false",
-					"readOnlyConditionExpression": "",
-					"required": false,
-					"state": false,
-					"system": true,
-					"type": "Boolean",
-					"unique": false
-				},
-				{
-					"DBType": "String",
-					"businessType": "Text",
-					"externalReferenceCode": "04ae08eb-a543-5810-bd68-1757dfe5ec8c",
-					"indexed": true,
-					"indexedAsKeyword": false,
-					"label": {
-						"en_US": "Column Label"
+						"en_US": "Label"
 					},
 					"localized": true,
 					"name": "label",
@@ -152,7 +133,7 @@
 			"panelCategoryKey": "",
 			"parameterRequired": false,
 			"pluralLabel": {
-				"en_US": "Data Set Table Sections"
+				"en_US": "Data Set Date Filters"
 			},
 			"portlet": false,
 			"scope": "company",

@@ -21,101 +21,25 @@
 			"enableLocalization": true,
 			"enableObjectEntryDraft": false,
 			"enableObjectEntryHistory": false,
-			"externalReferenceCode": "L_DATA_SET_TABLE_SECTION",
+			"externalReferenceCode": "L_DATA_SET_SORT",
 			"label": {
-				"en_US": "Data Set Table Section"
+				"en_US": "Data Set Sort"
 			},
 			"modifiable": true,
-			"name": "DataSetTableSection",
+			"name": "DataSetSort",
 			"objectActions": [],
 			"objectFields": [
 				{
-					"DBType": "String",
-					"businessType": "Text",
-					"externalReferenceCode": "820fd978-945c-5792-0a2e-c78a45542c0e",
-					"indexed": true,
-					"indexedAsKeyword": false,
-					"label": {
-						"en_US": "Name"
-					},
-					"localized": false,
-					"name": "name",
-					"readOnly": "false",
-					"readOnlyConditionExpression": "",
-					"required": true,
-					"state": false,
-					"system": true,
-					"type": "String",
-					"unique": false
-				},
-				{
-					"DBType": "String",
-					"businessType": "Text",
-					"externalReferenceCode": "0617099c-1853-dd5d-e280-6ce125525577",
-					"indexed": true,
-					"indexedAsKeyword": false,
-					"label": {
-						"en_US": "Type"
-					},
-					"localized": false,
-					"name": "type",
-					"readOnly": "false",
-					"readOnlyConditionExpression": "",
-					"required": true,
-					"state": false,
-					"system": true,
-					"type": "String",
-					"unique": false
-				},
-				{
-					"DBType": "String",
-					"businessType": "Text",
-					"externalReferenceCode": "bba9d277-7abe-ffd5-0c55-a25ceb7d5372",
-					"indexed": true,
-					"indexedAsKeyword": false,
-					"label": {
-						"en_US": "Renderer"
-					},
-					"localized": false,
-					"name": "renderer",
-					"readOnly": "false",
-					"readOnlyConditionExpression": "",
-					"required": false,
-					"state": false,
-					"system": true,
-					"type": "String",
-					"unique": false
-				},
-				{
-					"DBType": "String",
-					"businessType": "Text",
-					"externalReferenceCode": "96e60ae3-926a-062e-477f-d0e73c6b5b8d",
-					"indexed": true,
-					"indexedAsKeyword": false,
-					"label": {
-						"en_US": "rendererType"
-					},
-					"localized": false,
-					"name": "rendererType",
-					"readOnly": "false",
-					"readOnlyConditionExpression": "",
-					"required": false,
-					"state": false,
-					"system": true,
-					"type": "String",
-					"unique": false
-				},
-				{
 					"DBType": "Boolean",
 					"businessType": "Boolean",
-					"externalReferenceCode": "41628acf-080d-3819-1b8d-7b4547bee317",
+					"externalReferenceCode": "3fc8b82c-d336-ccb6-b434-907353e7e8bb",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"label": {
-						"en_US": "Sortable"
+						"en_US": "Default"
 					},
 					"localized": false,
-					"name": "sortable",
+					"name": "isDefault",
 					"readOnly": "false",
 					"readOnlyConditionExpression": "",
 					"required": false,
@@ -127,11 +51,49 @@
 				{
 					"DBType": "String",
 					"businessType": "Text",
-					"externalReferenceCode": "04ae08eb-a543-5810-bd68-1757dfe5ec8c",
+					"externalReferenceCode": "5f43b6ca-aa61-ded8-1d26-30894c9a236a",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"label": {
-						"en_US": "Column Label"
+						"en_US": "Field Name"
+					},
+					"localized": false,
+					"name": "fieldName",
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": true,
+					"state": false,
+					"system": true,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "cf0b2eb2-cb84-7a0d-4755-a7f4005d1cab",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"label": {
+						"en_US": "Order Type"
+					},
+					"localized": false,
+					"name": "orderType",
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": true,
+					"state": false,
+					"system": true,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "a01460ae-ebd1-c980-bc46-243f67a5d906",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"label": {
+						"en_US": "Label"
 					},
 					"localized": true,
 					"name": "label",
@@ -152,7 +114,7 @@
 			"panelCategoryKey": "",
 			"parameterRequired": false,
 			"pluralLabel": {
-				"en_US": "Data Set Table Sections"
+				"en_US": "Data Set Sorts"
 			},
 			"portlet": false,
 			"scope": "company",

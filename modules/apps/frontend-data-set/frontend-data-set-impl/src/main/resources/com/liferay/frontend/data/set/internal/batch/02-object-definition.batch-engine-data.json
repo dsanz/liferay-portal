@@ -18,21 +18,40 @@
 			"defaultLanguageId": "en_US",
 			"enableCategorization": true,
 			"enableComments": false,
-			"enableLocalization": true,
+			"enableLocalization": false,
 			"enableObjectEntryDraft": false,
 			"enableObjectEntryHistory": false,
-			"externalReferenceCode": "L_DATA_SET_TABLE_SECTION",
+			"externalReferenceCode": "L_DATA_SET_CARDS_SECTION",
 			"label": {
-				"en_US": "Data Set Table Section"
+				"en_US": "Data Set Cards Section"
 			},
 			"modifiable": true,
-			"name": "DataSetTableSection",
+			"name": "DataSetCardsSection",
 			"objectActions": [],
 			"objectFields": [
 				{
 					"DBType": "String",
 					"businessType": "Text",
-					"externalReferenceCode": "820fd978-945c-5792-0a2e-c78a45542c0e",
+					"externalReferenceCode": "ff906ae0-5ba7-e2d6-da19-7fbb77a8a063",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"label": {
+						"en_US": "Field Name"
+					},
+					"localized": false,
+					"name": "fieldName",
+					"readOnly": "false",
+					"readOnlyConditionExpression": "",
+					"required": true,
+					"state": false,
+					"system": true,
+					"type": "String",
+					"unique": false
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "3b4f06d0-e355-72df-de88-f870279dd48d",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"label": {
@@ -51,90 +70,14 @@
 				{
 					"DBType": "String",
 					"businessType": "Text",
-					"externalReferenceCode": "0617099c-1853-dd5d-e280-6ce125525577",
+					"externalReferenceCode": "b7d17707-01a4-0fd3-0459-8b23a9bc6078",
 					"indexed": true,
 					"indexedAsKeyword": false,
 					"label": {
-						"en_US": "Type"
+						"en_US": "renderer-name"
 					},
 					"localized": false,
-					"name": "type",
-					"readOnly": "false",
-					"readOnlyConditionExpression": "",
-					"required": true,
-					"state": false,
-					"system": true,
-					"type": "String",
-					"unique": false
-				},
-				{
-					"DBType": "String",
-					"businessType": "Text",
-					"externalReferenceCode": "bba9d277-7abe-ffd5-0c55-a25ceb7d5372",
-					"indexed": true,
-					"indexedAsKeyword": false,
-					"label": {
-						"en_US": "Renderer"
-					},
-					"localized": false,
-					"name": "renderer",
-					"readOnly": "false",
-					"readOnlyConditionExpression": "",
-					"required": false,
-					"state": false,
-					"system": true,
-					"type": "String",
-					"unique": false
-				},
-				{
-					"DBType": "String",
-					"businessType": "Text",
-					"externalReferenceCode": "96e60ae3-926a-062e-477f-d0e73c6b5b8d",
-					"indexed": true,
-					"indexedAsKeyword": false,
-					"label": {
-						"en_US": "rendererType"
-					},
-					"localized": false,
-					"name": "rendererType",
-					"readOnly": "false",
-					"readOnlyConditionExpression": "",
-					"required": false,
-					"state": false,
-					"system": true,
-					"type": "String",
-					"unique": false
-				},
-				{
-					"DBType": "Boolean",
-					"businessType": "Boolean",
-					"externalReferenceCode": "41628acf-080d-3819-1b8d-7b4547bee317",
-					"indexed": true,
-					"indexedAsKeyword": false,
-					"label": {
-						"en_US": "Sortable"
-					},
-					"localized": false,
-					"name": "sortable",
-					"readOnly": "false",
-					"readOnlyConditionExpression": "",
-					"required": false,
-					"state": false,
-					"system": true,
-					"type": "Boolean",
-					"unique": false
-				},
-				{
-					"DBType": "String",
-					"businessType": "Text",
-					"externalReferenceCode": "04ae08eb-a543-5810-bd68-1757dfe5ec8c",
-					"indexed": true,
-					"indexedAsKeyword": false,
-					"label": {
-						"en_US": "Column Label"
-					},
-					"localized": true,
-					"name": "label",
+					"name": "rendererName",
 					"readOnly": "false",
 					"readOnlyConditionExpression": "",
 					"required": false,
@@ -152,7 +95,7 @@
 			"panelCategoryKey": "",
 			"parameterRequired": false,
 			"pluralLabel": {
-				"en_US": "Data Set Table Sections"
+				"en_US": "Data Set Cards Sections"
 			},
 			"portlet": false,
 			"scope": "company",
