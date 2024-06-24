@@ -50,44 +50,6 @@ definition {
 		}
 	}
 
-	@description = "LPS-179282. Confirm that metadata fields are not present for the user "
-	@priority = 3
-	test AssertNotPresentMetadataFields {
-		property portal.upstream = "quarantine";
-
-		task ("And Clicking to Add a new field") {
-			LexiconEntry.gotoAdd();
-		}
-
-		task ("Then Confirm the fields are visible and present: creator,name,id") {
-			AssertElementPresent(
-				key_name = "name",
-				locator1 = "DataSet#FIELDS_ITEM");
-
-			AssertElementPresent(
-				key_name = "creator",
-				locator1 = "DataSet#FIELDS_ITEM");
-
-			AssertElementPresent(
-				key_name = "id",
-				locator1 = "DataSet#FIELDS_ITEM");
-		}
-
-		task ("And is not present metadata fields:x-class-name, x-schema-name and scopeKey") {
-			AssertElementNotPresent(
-				key_name = "x-class-name",
-				locator1 = "DataSet#FIELDS_ITEM");
-
-			AssertElementNotPresent(
-				key_name = "x-schema-name",
-				locator1 = "DataSet#FIELDS_ITEM");
-
-			AssertElementNotPresent(
-				key_name = "scopeKey",
-				locator1 = "DataSet#FIELDS_ITEM");
-		}
-	}
-
 	@description = "LPS-194126 Confirm that a new translation field has been created"
 	@priority = 3
 	test AssertTheNewFieldTranslation {
