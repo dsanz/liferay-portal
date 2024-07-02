@@ -265,6 +265,43 @@
 				{
 					"deletionType": "cascade",
 					"edge": false,
+					"externalReferenceCode": "L_DATA_SET_TO_CREATION_L_DATA_SET_ACTIONS",
+					"label": {
+						"en_US": "Data Set to Creation Data Set Actions"
+					},
+					"name": "dataSetToCreationDataSetActions",
+					"objectDefinitionExternalReferenceCode1": "L_DATA_SET",
+					"objectDefinitionExternalReferenceCode2": "L_DATA_SET_ACTION",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "DataSetAction",
+					"objectDefinitionSystem2": true,
+					"parameterObjectFieldId": 0,
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": true,
+					"type": "oneToMany"
+				},
+				{
+					"deletionType": "cascade",
+					"externalReferenceCode": "L_DATA_SET_TO_ITEM_L_DATA_SET_ACTIONS",
+					"label": {
+						"en_US": "Data Set to Item Data Set Actions"
+					},
+					"name": "dataSetToItemDataSetActions",
+					"objectDefinitionExternalReferenceCode1": "L_DATA_SET",
+					"objectDefinitionExternalReferenceCode2": "L_DATA_SET_ACTION",
+					"objectDefinitionModifiable2": true,
+					"objectDefinitionName2": "DataSetAction",
+					"objectDefinitionSystem2": true,
+					"parameterObjectFieldId": 0,
+					"parameterObjectFieldName": "",
+					"reverse": false,
+					"system": true,
+					"type": "oneToMany"
+				},
+				{
+					"deletionType": "cascade",
+					"edge": false,
 					"externalReferenceCode": "L_DATA_SET_TO_L_DATA_SET_CARDS_SECTIONS",
 					"label": {
 						"en_US": "Data Set to Data Set Cards Sections"
@@ -303,25 +340,6 @@
 				{
 					"deletionType": "cascade",
 					"edge": false,
-					"externalReferenceCode": "L_DATA_SET_TO_CREATION_L_DATA_SET_ACTIONS",
-					"label": {
-						"en_US": "Data Set to Creation Data Set Actions"
-					},
-					"name": "dataSetToCreationDataSetActions",
-					"objectDefinitionExternalReferenceCode1": "L_DATA_SET",
-					"objectDefinitionExternalReferenceCode2": "L_DATA_SET_ACTION",
-					"objectDefinitionModifiable2": true,
-					"objectDefinitionName2": "DataSetAction",
-					"objectDefinitionSystem2": true,
-					"parameterObjectFieldId": 0,
-					"parameterObjectFieldName": "",
-					"reverse": false,
-					"system": true,
-					"type": "oneToMany"
-				},
-				{
-					"deletionType": "cascade",
-					"edge": false,
 					"externalReferenceCode": "L_DATA_SET_TO_L_DATA_SET_DATE_FILTERS",
 					"label": {
 						"en_US": "Data Set to Data Set Date Filters"
@@ -331,24 +349,6 @@
 					"objectDefinitionExternalReferenceCode2": "L_DATA_SET_DATE_FILTER",
 					"objectDefinitionModifiable2": true,
 					"objectDefinitionName2": "DataSetDateFilter",
-					"objectDefinitionSystem2": true,
-					"parameterObjectFieldId": 0,
-					"parameterObjectFieldName": "",
-					"reverse": false,
-					"system": true,
-					"type": "oneToMany"
-				},
-				{
-					"deletionType": "cascade",
-					"externalReferenceCode": "L_DATA_SET_TO_ITEM_L_DATA_SET_ACTIONS",
-					"label": {
-						"en_US": "Data Set to Item Data Set Actions"
-					},
-					"name": "dataSetToItemDataSetActions",
-					"objectDefinitionExternalReferenceCode1": "L_DATA_SET",
-					"objectDefinitionExternalReferenceCode2": "L_DATA_SET_ACTION",
-					"objectDefinitionModifiable2": true,
-					"objectDefinitionName2": "DataSetAction",
 					"objectDefinitionSystem2": true,
 					"parameterObjectFieldId": 0,
 					"parameterObjectFieldName": "",
