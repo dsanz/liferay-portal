@@ -303,11 +303,11 @@
 				{
 					"deletionType": "cascade",
 					"edge": false,
-					"externalReferenceCode": "L_DATA_SET_TO_L_DATA_SET_CREATION_ACTIONS",
+					"externalReferenceCode": "L_DATA_SET_TO_CREATION_L_DATA_SET_ACTIONS",
 					"label": {
-						"en_US": "Data Set to Data Set Creation Actions"
+						"en_US": "Data Set to Creation Data Set Actions"
 					},
-					"name": "dataSetToDataSetCreationActions",
+					"name": "dataSetToCreationDataSetActions",
 					"objectDefinitionExternalReferenceCode1": "L_DATA_SET",
 					"objectDefinitionExternalReferenceCode2": "L_DATA_SET_ACTION",
 					"objectDefinitionModifiable2": true,
@@ -340,11 +340,11 @@
 				},
 				{
 					"deletionType": "cascade",
-					"externalReferenceCode": "L_DATA_SET_TO_L_DATA_SET_ITEM_ACTIONS",
+					"externalReferenceCode": "L_DATA_SET_TO_ITEM_L_DATA_SET_ACTIONS",
 					"label": {
-						"en_US": "Data Set to Data Set Item Actions"
+						"en_US": "Data Set to Item Data Set Actions"
 					},
-					"name": "dataSetToDataSetItemActions",
+					"name": "dataSetToItemDataSetActions",
 					"objectDefinitionExternalReferenceCode1": "L_DATA_SET",
 					"objectDefinitionExternalReferenceCode2": "L_DATA_SET_ACTION",
 					"objectDefinitionModifiable2": true,
