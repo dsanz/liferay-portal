@@ -90,6 +90,14 @@ public abstract class BasePortletContainerTestCase {
 			String portletName, boolean addToLayout)
 		throws Exception {
 
+		setUpPortlet(portlet, properties, portletName, addToLayout, false);
+	}
+
+	protected void setUpPortlet(
+			Portlet portlet, Dictionary<String, Object> properties,
+			String portletName, boolean addToLayout, boolean checkPermission)
+		throws Exception {
+
 		properties.put("javax.portlet.name", portletName);
 
 		registerService(Portlet.class, portlet, properties);
@@ -97,7 +105,7 @@ public abstract class BasePortletContainerTestCase {
 		if (addToLayout) {
 			LayoutTestUtil.addPortletToLayout(
 				TestPropsValues.getUserId(), layout, portletName, "column-1",
-				new HashMap<String, String[]>());
+				new HashMap<String, String[]>(), checkPermission);
 		}
 	}
 
