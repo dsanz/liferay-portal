@@ -109,20 +109,12 @@ public class LayoutTestUtil {
 			Map<String, String[]> preferenceMap)
 		throws Exception {
 
-		return addPortletToLayout(
-			userId, layout, portletId, columnId, preferenceMap, false);
-	}
-
-	public static String addPortletToLayout(
-			long userId, Layout layout, String portletId, String columnId,
-			Map<String, String[]> preferenceMap, boolean checkPermission)
-		throws Exception {
 
 		LayoutTypePortlet layoutTypePortlet =
 			(LayoutTypePortlet)layout.getLayoutType();
 
 		String newPortletId = layoutTypePortlet.addPortletId(
-			userId, portletId, columnId, -1, checkPermission);
+			userId, portletId, columnId, -1);
 
 		LayoutLocalServiceUtil.updateLayout(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
