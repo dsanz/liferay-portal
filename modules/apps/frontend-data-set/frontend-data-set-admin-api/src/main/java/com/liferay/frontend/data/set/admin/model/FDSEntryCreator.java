@@ -5,15 +5,13 @@
 
 package com.liferay.frontend.data.set.admin.model;
 
-import com.liferay.portal.kernel.model.Company;
-
 /**
  * @author Daniel Sanz
  */
-public interface DataSetModelManager {
+public interface FDSEntryCreator {
 
-	public void checkCompany(Company company);
+	public void create(long companyId, long userId);
 
-	public void checkCompany(long companyId);
+	public String getFDSEntryERC();
 
 }

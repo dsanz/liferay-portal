@@ -5,7 +5,7 @@
 
 package com.liferay.frontend.data.set.admin.web.internal.model.listener;
 
-import com.liferay.frontend.data.set.admin.model.DataSetModelManager;
+import com.liferay.frontend.data.set.admin.model.FDSAdminModelManager;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.Company;
@@ -25,13 +25,16 @@ public class CompanyModelListener extends BaseModelListener<Company> {
 	public void onAfterCreate(Company company) throws ModelListenerException {
 		TransactionCommitCallbackUtil.registerCallback(
 			() -> {
-				_dataSetModelManager.checkCompany(company);
+				_fdsAdminModelManager.checkCompanyModel(company.getCompanyId());
+
+				_fdsAdminModelManager.checkCompanyEntries(
+					company.getCompanyId());
 
 				return null;
 			});
 	}
 
 	@Reference
-	private DataSetModelManager _dataSetModelManager;
+	private FDSAdminModelManager _fdsAdminModelManager;
 
 }

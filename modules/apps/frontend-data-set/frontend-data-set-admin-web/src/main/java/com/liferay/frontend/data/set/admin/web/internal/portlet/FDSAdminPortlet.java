@@ -6,7 +6,7 @@
 package com.liferay.frontend.data.set.admin.web.internal.portlet;
 
 import com.liferay.client.extension.type.manager.CETManager;
-import com.liferay.frontend.data.set.admin.model.DataSetModelManager;
+import com.liferay.frontend.data.set.admin.model.FDSAdminModelManager;
 import com.liferay.frontend.data.set.admin.web.internal.constants.FDSAdminPortletKeys;
 import com.liferay.frontend.data.set.admin.web.internal.constants.FDSAdminWebKeys;
 import com.liferay.frontend.data.set.admin.web.internal.display.context.FDSAdminDisplayContext;
@@ -98,7 +98,8 @@ public class FDSAdminPortlet extends MVCPortlet {
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
-		_dataSetModelManager.checkCompany(CompanyThreadLocal.getCompanyId());
+		_fdsAdminModelManager.checkCompanyModel(
+			CompanyThreadLocal.getCompanyId());
 
 		renderRequest.setAttribute(
 			FDSAdminWebKeys.FDS_ADMIN_DISPLAY_CONTEXT,
@@ -113,7 +114,7 @@ public class FDSAdminPortlet extends MVCPortlet {
 	private CETManager _cetManager;
 
 	@Reference
-	private DataSetModelManager _dataSetModelManager;
+	private FDSAdminModelManager _fdsAdminModelManager;
 
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;

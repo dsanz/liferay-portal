@@ -6,18 +6,22 @@
 package com.liferay.frontend.data.set.admin.web.internal.model;
 
 import com.liferay.batch.engine.unit.BatchEngineUnitThreadLocal;
-import com.liferay.frontend.data.set.admin.model.DataSetModelManager;
+import com.liferay.frontend.data.set.admin.model.FDSAdminModelManager;
+import com.liferay.frontend.data.set.admin.model.FDSEntryCreator;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.constants.ObjectRelationshipConstants;
 import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFolder;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectFolderLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
+import com.liferay.osgi.util.ServiceTrackerFactory;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -35,90 +39,55 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author Daniel Sanz
  */
-@Component(service = DataSetModelManager.class)
-public class DataSetModelManagerImpl implements DataSetModelManager {
+@Component(service = FDSAdminModelManager.class)
+public class FDSAdminModelManagerImpl implements FDSAdminModelManager {
 
-	public void checkCompany(Company company) {
-		if (_checkedCompanies == null) {
-			_checkedCompanies = new HashSet<>();
+	public void checkCompanyEntries(long companyId) {
+		for (FDSEntryCreator fdsEntryCreator :
+				_serviceTracker.getServices(new FDSEntryCreator[0])) {
+
+			try {
+				_checkDataSetEntry(fdsEntryCreator, companyId);
+			}
+			catch (Exception exception) {
+				_log.error(exception);
+			}
 		}
-
-		if (_checkedCompanies.contains(company.getCompanyId())) {
-			return;
-		}
-
-		ObjectDefinition fdsViewObjectDefinition =
-			_objectDefinitionLocalService.fetchObjectDefinition(
-				company.getCompanyId(), "FDSView");
-
-		if (fdsViewObjectDefinition != null) {
-			_checkedCompanies.add(company.getCompanyId());
-
-			return;
-		}
-
-		generate(company);
 	}
 
-	public void checkCompany(long companyId) {
+	public void checkCompanyModel(long companyId) {
 		try {
-			checkCompany(_companyLocalService.getCompany(companyId));
+			Company company = _companyLocalService.getCompany(companyId);
+
+			synchronized (company) {
+				ObjectDefinition fdsViewObjectDefinition =
+					_objectDefinitionLocalService.fetchObjectDefinition(
+						companyId, "FDSView");
+
+				if (fdsViewObjectDefinition != null) {
+					return;
+				}
+
+				_createDataModel(company);
+			}
 		}
 		catch (PortalException portalException) {
 			_log.error(portalException);
-		}
-	}
-
-	public void generate(Company company) {
-		try {
-			BatchEngineUnitThreadLocal.setFileName(_bundle.toString());
-
-			if (_log.isInfoEnabled()) {
-				_log.info("Generating data set model for " + company.getName());
-			}
-
-			List<User> users = _userLocalService.getCompanyUsers(
-				company.getCompanyId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
-			User adminUser = null;
-
-			for (User user : users) {
-				if (_portal.isCompanyAdmin(user)) {
-					adminUser = user;
-
-					break;
-				}
-			}
-
-			if (adminUser == null) {
-				throw new PortalException(
-					"Unable to find administrator user for company " +
-						company.getCompanyId());
-			}
-
-			_generate(
-				company.getCompanyId(), company.getLocale(),
-				adminUser.getUserId());
-		}
-		catch (Exception exception) {
-			_log.error(exception);
-		}
-		finally {
-			BatchEngineUnitThreadLocal.setFileName(StringPool.BLANK);
 		}
 	}
 
@@ -127,7 +96,42 @@ public class DataSetModelManagerImpl implements DataSetModelManager {
 		_bundle = BundleUtil.getBundle(
 			bundleContext, "com.liferay.frontend.data.set.admin.web");
 
-		_companyLocalService.forEachCompany(company -> checkCompany(company));
+		_companyLocalService.forEachCompanyId(
+			companyId -> checkCompanyModel(companyId));
+
+		_serviceTracker = ServiceTrackerFactory.open(
+			bundleContext, FDSEntryCreator.class,
+			new ServiceTrackerCustomizer<FDSEntryCreator, FDSEntryCreator>() {
+
+				@Override
+				public FDSEntryCreator addingService(
+					ServiceReference<FDSEntryCreator> serviceReference) {
+
+					FDSEntryCreator fdsEntryCreator = bundleContext.getService(
+						serviceReference);
+
+					_companyLocalService.forEachCompanyId(
+						companyId -> _checkDataSetEntry(
+							fdsEntryCreator, companyId));
+
+					return fdsEntryCreator;
+				}
+
+				@Override
+				public void modifiedService(
+					ServiceReference<FDSEntryCreator> serviceReference,
+					FDSEntryCreator fdsEntryCreator) {
+				}
+
+				@Override
+				public void removedService(
+					ServiceReference<FDSEntryCreator> serviceReference,
+					FDSEntryCreator fdsEntryCreator) {
+
+					bundleContext.ungetService(serviceReference);
+				}
+
+			});
 	}
 
 	private void _addLocalizedCustomObjectField(
@@ -151,6 +155,41 @@ public class DataSetModelManagerImpl implements DataSetModelManager {
 			objectField.getReadOnlyConditionExpression(),
 			objectField.isRequired(), objectField.isState(),
 			objectField.getObjectFieldSettings());
+	}
+
+	private synchronized void _checkDataSetEntry(
+		FDSEntryCreator fdsEntryCreator, long companyId) {
+
+		checkCompanyModel(companyId);
+
+		if (_mainModelObjectEntryExists(
+				companyId, fdsEntryCreator.getFDSEntryERC())) {
+
+			return;
+		}
+
+		try {
+			fdsEntryCreator.create(companyId, _getAdminUserId(companyId));
+		}
+		catch (Exception exception) {
+			_log.error(exception);
+		}
+	}
+
+	private void _createDataModel(Company company) {
+		try {
+			BatchEngineUnitThreadLocal.setFileName(_bundle.toString());
+
+			_generate(
+				company.getCompanyId(), company.getLocale(),
+				_getAdminUserId(company.getCompanyId()));
+		}
+		catch (Exception exception) {
+			_log.error(exception);
+		}
+		finally {
+			BatchEngineUnitThreadLocal.setFileName(StringPool.BLANK);
+		}
 	}
 
 	private void _createFDSActionObjectDefintion(
@@ -924,8 +963,7 @@ public class DataSetModelManagerImpl implements DataSetModelManager {
 		_objectDefinitionLocalService.updateObjectDefinition(objectDefinition);
 	}
 
-	private synchronized void _generate(
-			long companyId, Locale locale, long userId)
+	private void _generate(long companyId, Locale locale, long userId)
 		throws Exception {
 
 		ObjectDefinition fdsViewObjectDefinition =
@@ -979,15 +1017,51 @@ public class DataSetModelManagerImpl implements DataSetModelManager {
 			fdsViewObjectDefinition, locale, userId, objectFolderId);
 		_createFDSSortObjectDefinition(
 			fdsViewObjectDefinition, locale, userId, objectFolderId);
+	}
 
-		_checkedCompanies.add(companyId);
+	private long _getAdminUserId(long companyId) throws Exception {
+		List<User> users = _userLocalService.getCompanyUsers(
+			companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		User adminUser = null;
+
+		for (User user : users) {
+			if (_portal.isCompanyAdmin(user)) {
+				adminUser = user;
+
+				break;
+			}
+		}
+
+		if (adminUser == null) {
+			throw new PortalException(
+				"Unable to find administrator user for company " + companyId);
+		}
+
+		return adminUser.getUserId();
+	}
+
+	private boolean _mainModelObjectEntryExists(
+		long companyId, String externalReferenceCode) {
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.fetchObjectDefinition(
+				companyId, "FDSView");
+
+		ObjectEntry objectEntry = _objectEntryLocalService.fetchObjectEntry(
+			externalReferenceCode, objectDefinition.getObjectDefinitionId());
+
+		if (objectEntry != null) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		DataSetModelManagerImpl.class);
+		FDSAdminModelManagerImpl.class);
 
 	private Bundle _bundle;
-	private Set<Long> _checkedCompanies;
 
 	@Reference
 	private CompanyLocalService _companyLocalService;
@@ -997,6 +1071,9 @@ public class DataSetModelManagerImpl implements DataSetModelManager {
 
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Reference
 	private ObjectFieldLocalService _objectFieldLocalService;
@@ -1009,6 +1086,8 @@ public class DataSetModelManagerImpl implements DataSetModelManager {
 
 	@Reference
 	private Portal _portal;
+
+	private ServiceTracker<FDSEntryCreator, FDSEntryCreator> _serviceTracker;
 
 	@Reference
 	private UserLocalService _userLocalService;
