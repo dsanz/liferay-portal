@@ -1,0 +1,7 @@
+.dnd-td,
+.dnd-th {
+	&[data-fds-column-name="sku"] {
+		min-width: 78px;
+		padding-left: 4px;
+	}
+}

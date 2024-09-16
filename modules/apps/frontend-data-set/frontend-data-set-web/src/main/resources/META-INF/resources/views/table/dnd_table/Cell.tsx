@@ -119,6 +119,7 @@ const Cell = ({
 	return (
 		<div
 			className={classNames(heading ? 'dnd-th' : 'dnd-td', className)}
+			data-fds-column-name={columnName}
 			ref={cellRef}
 			style={{
 				width: width ?? defaultWidth,
