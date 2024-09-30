@@ -70,7 +70,6 @@ const Title = ({item, title, titleRenderer}) => {
 const ListItem = ({item, schema}) => {
 	const {
 		itemsActions,
-		onSelect,
 		selectItems,
 		selectable,
 		selectedItemsKey,
@@ -92,8 +91,6 @@ const ListItem = ({item, schema}) => {
 			onClick={() => {
 				if (selectable) {
 					selectItems(item[selectedItemsKey]);
-
-					onSelect?.({selectedItems: [item]});
 				}
 			}}
 		>

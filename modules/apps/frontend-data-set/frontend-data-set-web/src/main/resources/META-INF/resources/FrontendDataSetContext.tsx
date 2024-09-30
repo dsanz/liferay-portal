@@ -35,7 +35,6 @@ export interface IFrontendDataSetContext {
 	nestedItemsReferenceKey?: string;
 	onActionDropdownItemClick: Function;
 	onBulkActionItemClick: Function;
-	onSelect: Function;
 	openModal: Function;
 	openSidePanel: Function;
 	portletId?: string;
@@ -85,7 +84,6 @@ const FrontendDataSetContext = React.createContext({
 	loadData: () => {},
 	onActionDropdownItemClick: () => {},
 	onBulkActionItemClick: () => {},
-	onSelect: () => {},
 	openModal: () => {},
 	openSidePanel: () => {},
 	selectItems: () => {},
