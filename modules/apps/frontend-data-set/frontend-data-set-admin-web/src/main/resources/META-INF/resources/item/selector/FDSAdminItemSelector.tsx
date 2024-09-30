@@ -68,11 +68,15 @@ const FDSAdminItemSelector = ({
 					{...FDS_DEFAULT_PROPS}
 					apiURL={API_URL.DATA_SETS}
 					id={`${namespace}FDSAdminItemSelector`}
-					onSelect={({
-						selectedItems,
-					}: {
-						selectedItems: Array<ISelectedItem>;
-					}) => {
+					onItemSelected={(selectedItems: Array<ISelectedItem>) => {
+						if (
+							selectedItems?.length === 0 ||
+							selectedItems[0].externalReferenceCode ===
+								selectedItem?.externalReferenceCode
+						) {
+							return;
+						}
+
 						setSelectedItem({
 							externalReferenceCode:
 								selectedItems[0].externalReferenceCode,
