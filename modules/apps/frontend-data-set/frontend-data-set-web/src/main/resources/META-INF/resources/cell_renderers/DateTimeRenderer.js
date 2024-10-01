@@ -10,15 +10,21 @@ function DateTimeRenderer({options, value}) {
 		return null;
 	}
 
-	const locale = themeDisplay.getLanguageId().replaceAll('_', '-');
-	const dateOptions = options?.format || {
-		day: 'numeric',
-		hour: 'numeric',
-		minute: 'numeric',
-		month: 'short',
-		second: 'numeric',
-		year: 'numeric',
+	const locale = themeDisplay.getBCP47LanguageId();
+	const dateOptions = {
+		day: options?.format?.day || 'numeric',
+		hour: options?.format?.hour || 'numeric',
+		minute: options?.format?.minute || 'numeric',
+		month: options?.format?.month || 'short',
+		second: options?.format?.second || 'numeric',
+		timeZone: options?.format?.timeZone,
+		year: options?.format?.year || 'numeric',
 	};
+
+	if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{3}Z$/.test(value)) {
+		dateOptions.timeZone = Liferay.ThemeDisplay.getTimeZone();
+	}
+
 	const formattedDate = new Intl.DateTimeFormat(locale, dateOptions).format(
 		new Date(value)
 	);

@@ -32,7 +32,8 @@ function DateRenderer({options, value}) {
 	const dateOptions = {
 		day: options?.format?.day || 'numeric',
 		month: options?.format?.month || 'short',
-		timeZone: options?.format?.timeZone || 'UTC',
+		timeZone:
+			options?.format?.timeZone || Liferay.ThemeDisplay.getTimeZone(),
 		year: options?.format?.year || 'numeric',
 	};
 
