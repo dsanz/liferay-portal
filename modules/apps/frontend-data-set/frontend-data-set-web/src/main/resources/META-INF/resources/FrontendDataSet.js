@@ -598,7 +598,7 @@ const FrontendDataSet = ({
 							Liferay.Language.get('sorry,-no-results-were-found')
 						}
 						imgSrc={
-							themeDisplay.getPathThemeImages() +
+							Liferay.ThemeDisplay.getPathThemeImages() +
 							(emptyState?.image ?? '/states/search_state.svg')
 						}
 						title={
