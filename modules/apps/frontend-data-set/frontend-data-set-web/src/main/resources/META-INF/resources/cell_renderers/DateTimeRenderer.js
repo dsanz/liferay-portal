@@ -21,7 +21,10 @@ function DateTimeRenderer({options, value}) {
 		year: options?.format?.year || 'numeric',
 	};
 
-	if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{3}Z$/.test(value)) {
+	if (
+		!dateOptions.timeZone &&
+		/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2,3}Z$/.test(value)
+	) {
 		dateOptions.timeZone = Liferay.ThemeDisplay.getTimeZone();
 	}
 
