@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.frontend.data.set.internal;
+package com.liferay.frontend.data.set.internal.action;
 
-import com.liferay.frontend.data.set.DataSet;
-import com.liferay.frontend.data.set.DataSetRegistry;
+import com.liferay.frontend.data.set.action.FDSCreationMenu;
+import com.liferay.frontend.data.set.action.FDSCreationMenuRegistry;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerCustomizerFactory;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
@@ -21,17 +21,18 @@ import org.osgi.service.component.annotations.Deactivate;
 /**
  * @author Daniel Sanz
  */
-@Component(service = DataSetRegistry.class)
-public class DataSetRegistryImpl implements DataSetRegistry {
+@Component(service = FDSCreationMenuRegistry.class)
+public class FDSCreationMenuRegistryImpl implements FDSCreationMenuRegistry {
 
 	@Override
-	public DataSet getDataSet(String fdsName) {
-		ServiceTrackerCustomizerFactory.ServiceWrapper<DataSet> serviceWrapper =
-			_serviceTrackerMap.getService(fdsName);
+	public FDSCreationMenu getFDSCreationMenu(String fdsName) {
+		ServiceTrackerCustomizerFactory.ServiceWrapper<FDSCreationMenu>
+			serviceWrapper = _serviceTrackerMap.getService(fdsName);
 
 		if (serviceWrapper == null) {
 			if (_log.isDebugEnabled()) {
-				_log.debug("No data set is associated with " + fdsName);
+				_log.debug(
+					"No creation action list is associated with " + fdsName);
 			}
 
 			return null;
@@ -43,8 +44,8 @@ public class DataSetRegistryImpl implements DataSetRegistry {
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
-			bundleContext, DataSet.class, "frontend.data.set.name",
-			ServiceTrackerCustomizerFactory.<DataSet>serviceWrapper(
+			bundleContext, FDSCreationMenu.class, "frontend.data.set.name",
+			ServiceTrackerCustomizerFactory.<FDSCreationMenu>serviceWrapper(
 				bundleContext));
 	}
 
@@ -54,10 +55,11 @@ public class DataSetRegistryImpl implements DataSetRegistry {
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		DataSetRegistryImpl.class);
+		FDSCreationMenuRegistryImpl.class);
 
 	private ServiceTrackerMap
-		<String, ServiceTrackerCustomizerFactory.ServiceWrapper<DataSet>>
+		<String,
+		 ServiceTrackerCustomizerFactory.ServiceWrapper<FDSCreationMenu>>
 			_serviceTrackerMap;
 
 }

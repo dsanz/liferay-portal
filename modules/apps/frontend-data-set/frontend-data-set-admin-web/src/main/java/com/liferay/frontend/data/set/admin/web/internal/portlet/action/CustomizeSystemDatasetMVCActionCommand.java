@@ -39,7 +39,8 @@ public class CustomizeSystemDatasetMVCActionCommand extends
 		String fdsName = ParamUtil.getString(actionRequest, "fdsName");
 
 			_fdsObjectEntryProxyFactory.create(fdsName,
-				PortalUtil.getHttpServletRequest(actionRequest));
+				PortalUtil.getHttpServletRequest(actionRequest),
+				PortalUtil.getHttpServletResponse(actionResponse));
 	}
 
 	@Reference
