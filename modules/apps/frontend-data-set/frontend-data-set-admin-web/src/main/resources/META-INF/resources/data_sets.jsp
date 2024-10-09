@@ -17,20 +17,20 @@ portletDisplay.setBeta(true);
 
 <a href="<%= customizeURL %>">Customize</a>
 <div>
-<react:component
-	module="{DataSets} from frontend-data-set-admin-web"
-	props='<%=
-		HashMapBuilder.<String, Object>put(
-			"editDataSetURL", fdsAdminDisplayContext.getEditDataSetURL()
-		).put(
-			"namespace", liferayPortletResponse.getNamespace()
-		).put(
-			"permissionsURL", fdsAdminDisplayContext.getDataSetPermissionsURL()
-		).put(
-			"resolvedRESTSchemas", fdsAdminDisplayContext.getRESTApplicationResolvedSchemasJSONArray()
-		).put(
-			"restApplications", fdsAdminDisplayContext.getRESTApplicationsJSONArray()
-		).build()
-	%>'
-/>
+	<react:component
+		module="{DataSets} from frontend-data-set-admin-web"
+		props='<%=
+			HashMapBuilder.<String, Object>put(
+				"editDataSetURL", fdsAdminDisplayContext.getEditDataSetURL()
+			).put(
+				"namespace", liferayPortletResponse.getNamespace()
+			).put(
+				"permissionsURL", fdsAdminDisplayContext.getDataSetPermissionsURL()
+			).put(
+				"resolvedRESTSchemas", fdsAdminDisplayContext.getRESTApplicationResolvedSchemasJSONArray()
+			).put(
+				"restApplications", fdsAdminDisplayContext.getRESTApplicationsJSONArray()
+			).build()
+		%>'
+	/>
 </div>
