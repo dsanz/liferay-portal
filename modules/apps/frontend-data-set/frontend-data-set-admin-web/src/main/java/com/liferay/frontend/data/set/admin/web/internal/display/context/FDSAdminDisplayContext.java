@@ -7,6 +7,8 @@ package com.liferay.frontend.data.set.admin.web.internal.display.context;
 
 import com.liferay.client.extension.constants.ClientExtensionEntryConstants;
 import com.liferay.client.extension.type.manager.CETManager;
+import com.liferay.frontend.data.set.DataSet;
+import com.liferay.frontend.data.set.DataSetRegistry;
 import com.liferay.frontend.data.set.admin.web.internal.constants.FDSAdminPortletKeys;
 import com.liferay.frontend.data.set.admin.web.internal.portlet.FDSAdminPortlet;
 import com.liferay.frontend.data.set.resolver.FDSAPIURLResolver;
@@ -24,6 +26,7 @@ import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.vulcan.pagination.Pagination;
@@ -31,6 +34,8 @@ import com.liferay.portal.vulcan.pagination.Pagination;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.RenderRequest;
@@ -43,7 +48,7 @@ import javax.portlet.ResourceURL;
 public class FDSAdminDisplayContext {
 
 	public FDSAdminDisplayContext(
-		CETManager cetManager,
+		CETManager cetManager, DataSetRegistry dataSetRegistry,
 		FDSAPIURLResolverRegistry fdsAPIURLResolverRegistry,
 		ObjectDefinitionLocalService objectDefinitionLocalService,
 		RenderRequest renderRequest, RenderResponse renderResponse,
@@ -51,6 +56,7 @@ public class FDSAdminDisplayContext {
 			serviceTrackerList) {
 
 		_cetManager = cetManager;
+		_dataSetRegistry = dataSetRegistry;
 		_fdsAPIURLResolverRegistry = fdsAPIURLResolverRegistry;
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
@@ -80,6 +86,27 @@ public class FDSAdminDisplayContext {
 				fdsCellRendererCET.getExternalReferenceCode()
 			).put(
 				"name", fdsCellRendererCET.getName(themeDisplay.getLocale())
+			));
+	}
+
+	public JSONArray getCustomizableDataSetsJSONArray() throws Exception {
+		Map<String, DataSet> dataSetMap = _dataSetRegistry.getDataSets();
+
+		Set<Map.Entry<String, DataSet>> dataSetMapEntries =
+			Collections.emptySet();
+
+		if (MapUtil.isNotEmpty(dataSetMap)) {
+			dataSetMapEntries = dataSetMap.entrySet();
+		}
+
+		return JSONUtil.toJSONArray(
+			dataSetMapEntries,
+			dataSetMapEntry -> JSONUtil.put(
+				"externalReferenceCode", dataSetMapEntry.getKey()
+			).put(
+				"name",
+				dataSetMapEntry.getValue(
+				).getName()
 			));
 	}
 
@@ -217,6 +244,7 @@ public class FDSAdminDisplayContext {
 
 	private final CETManager _cetManager;
 	private final ObjectDefinition _dataSetObjectDefinition;
+	private final DataSetRegistry _dataSetRegistry;
 	private final FDSAPIURLResolverRegistry _fdsAPIURLResolverRegistry;
 	private final RenderRequest _renderRequest;
 	private final RenderResponse _renderResponse;

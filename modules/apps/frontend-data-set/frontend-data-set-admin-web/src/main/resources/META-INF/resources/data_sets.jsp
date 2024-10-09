@@ -11,19 +11,32 @@
 portletDisplay.setBeta(true);
 %>
 
-<react:component
-	module="{DataSets} from frontend-data-set-admin-web"
-	props='<%=
-		HashMapBuilder.<String, Object>put(
-			"editDataSetURL", fdsAdminDisplayContext.getEditDataSetURL()
-		).put(
-			"namespace", liferayPortletResponse.getNamespace()
-		).put(
-			"permissionsURL", fdsAdminDisplayContext.getDataSetPermissionsURL()
-		).put(
-			"resolvedRESTSchemas", fdsAdminDisplayContext.getRESTApplicationResolvedSchemasJSONArray()
-		).put(
-			"restApplications", fdsAdminDisplayContext.getRESTApplicationsJSONArray()
-		).build()
-	%>'
-/>
+<liferay-ui:error exception="<%= DuplicateObjectEntryExternalReferenceCodeException.class %>" message="this-data-set-is-already-customized" />
+
+<portlet:actionURL name="/frontend_data_set_admin/customize_system_data_set" var="customizeDataSetURL">
+	<portlet:param name="fdsName" value="{0}" />
+	<portlet:param name="redirect" value="<%= currentURL %>" />
+</portlet:actionURL>
+
+<div>
+	<react:component
+		module="{DataSets} from frontend-data-set-admin-web"
+		props='<%=
+			HashMapBuilder.<String, Object>put(
+				"customizableDataSets", fdsAdminDisplayContext.getCustomizableDataSetsJSONArray()
+			).put(
+				"customizeDataSetURL", customizeDataSetURL
+			).put(
+				"editDataSetURL", fdsAdminDisplayContext.getEditDataSetURL()
+			).put(
+				"namespace", liferayPortletResponse.getNamespace()
+			).put(
+				"permissionsURL", fdsAdminDisplayContext.getDataSetPermissionsURL()
+			).put(
+				"resolvedRESTSchemas", fdsAdminDisplayContext.getRESTApplicationResolvedSchemasJSONArray()
+			).put(
+				"restApplications", fdsAdminDisplayContext.getRESTApplicationsJSONArray()
+			).build()
+		%>'
+	/>
+</div>

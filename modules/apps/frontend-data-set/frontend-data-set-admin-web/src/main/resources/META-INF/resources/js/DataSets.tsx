@@ -30,6 +30,10 @@ import openDefaultSuccessToast from './utils/openDefaultSuccessToast';
 
 const LIST_OF_ITEMS_PER_PAGE = '4, 8, 20, 40, 60';
 const DEFAULT_ITEMS_PER_PAGE = 20;
+export interface ICustomizableDataSet {
+	externalReferenceCode: string;
+	name: string;
+}
 export interface IDataSet {
 	actions: {
 		delete: {
@@ -540,12 +544,16 @@ const NewDataSetModalContent = ({
 };
 
 const DataSets = ({
+	customizableDataSets,
+	customizeDataSetURL,
 	editDataSetURL,
 	namespace,
 	permissionsURL,
 	resolvedRESTSchemas,
 	restApplications,
 }: {
+	customizableDataSets: ICustomizableDataSet[];
+	customizeDataSetURL: string;
 	editDataSetURL: string;
 	namespace: string;
 	permissionsURL: string;
@@ -574,6 +582,18 @@ const DataSets = ({
 					});
 				},
 			},
+			...customizableDataSets.map((customizableDataSet) => {
+				return {
+					label: 'Customize ' + customizableDataSet.name,
+					onClick: () =>
+						navigate(
+							customizeDataSetURL.replace(
+								'%7B0%7D',
+								customizableDataSet.externalReferenceCode
+							)
+						),
+				};
+			}),
 		],
 	};
 

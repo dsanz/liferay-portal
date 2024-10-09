@@ -5,11 +5,15 @@
 
 package com.liferay.frontend.data.set;
 
+import java.util.Map;
+
 /**
  * @author Daniel Sanz
  */
 public interface DataSetRegistry {
 
 	public DataSet getDataSet(String fdsName);
+
+	public Map<String, DataSet> getDataSets();
 
 }
