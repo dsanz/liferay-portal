@@ -475,6 +475,11 @@ public class ObjectServiceUpgradeStepRegistrator
 			"9.2.2", "10.0.0",
 			new com.liferay.object.internal.upgrade.v10_0_0.
 				ObjectDefinitionUpgradeProcess());
+
+		registry.register(
+			"10.0.0", "10.1.0",
+			UpgradeProcessFactory.alterColumnType(
+				"ObjectEntry", "externalReferenceCode", "VARCHAR(255)"));
 	}
 
 	@Reference
