@@ -76,6 +76,7 @@ import javax.servlet.http.HttpServletRequest;
  * @author Alessio Antonio Rendina
  * @author Marco Leo
  */
+
 public class CPDefinitionsDisplayContext
 	extends BaseCPDefinitionsDisplayContext {
 

@@ -11,6 +11,12 @@
 portletDisplay.setBeta(true);
 %>
 
+<portlet:actionURL name="/frontend_data_set_admin/customize_system_data_set" var="customizeURL">
+	<portlet:param name="fdsName" value="com_liferay_commerce_product_definitions_web_internal_portlet_CPDefinitionsPortlet-productDefinitions" />
+</portlet:actionURL>
+
+<a href="<%= customizeURL %>">Customize</a>
+<div>
 <react:component
 	module="{DataSets} from frontend-data-set-admin-web"
 	props='<%=
@@ -27,3 +33,4 @@ portletDisplay.setBeta(true);
 		).build()
 	%>'
 />
+</div>
