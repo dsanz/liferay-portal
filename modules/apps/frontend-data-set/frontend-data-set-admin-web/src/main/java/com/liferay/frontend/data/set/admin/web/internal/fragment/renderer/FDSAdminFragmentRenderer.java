@@ -12,9 +12,16 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
+import com.liferay.frontend.data.set.action.FDSCreationMenu;
+import com.liferay.frontend.data.set.action.FDSCreationMenuRegistry;
+import com.liferay.frontend.data.set.action.FDSItemActionList;
+import com.liferay.frontend.data.set.action.FDSItemActionListRegistry;
 import com.liferay.frontend.data.set.constants.FDSEntityFieldTypes;
+import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.data.set.resolver.FDSAPIURLResolver;
 import com.liferay.frontend.data.set.resolver.FDSAPIURLResolverRegistry;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.model.ListTypeEntry;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
@@ -222,7 +229,8 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 			printWriter.write(
 				_buildFragmentHTML(
 					dataSetObjectDefinition, dataSetObjectEntry,
-					fragmentRendererContext, httpServletRequest));
+					fragmentRendererContext, httpServletRequest,
+					httpServletResponse));
 		}
 		catch (Exception exception) {
 			_log.error("Unable to render frontend data set view", exception);
@@ -238,7 +246,8 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 			ObjectDefinition dataSetObjectDefinition,
 			ObjectEntry dataSetObjectEntry,
 			FragmentRendererContext fragmentRendererContext,
-			HttpServletRequest httpServletRequest)
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse)
 		throws Exception {
 
 		StringBundler sb = new StringBundler(5);
@@ -277,7 +286,8 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 			).put(
 				"creationMenu",
 				_getCreationMenuJSONObject(
-					dataSetObjectDefinition, dataSetObjectEntry)
+					dataSetObjectDefinition, dataSetObjectEntry,
+					httpServletRequest, httpServletResponse)
 			).put(
 				"filters",
 				_getFiltersJSONArray(
@@ -288,7 +298,8 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 			).put(
 				"itemsActions",
 				_getItemsActionsJSONArray(
-					dataSetObjectDefinition, dataSetObjectEntry)
+					dataSetObjectDefinition, dataSetObjectEntry,
+					httpServletRequest, httpServletResponse)
 			).put(
 				"namespace", fragmentRendererContext.getFragmentElementId()
 			).put(
@@ -354,7 +365,9 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 
 	private JSONObject _getCreationMenuJSONObject(
 			ObjectDefinition dataSetObjectDefinition,
-			ObjectEntry dataSetObjectEntry)
+			ObjectEntry dataSetObjectEntry,
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse)
 		throws Exception {
 
 		return JSONUtil.put(
@@ -366,6 +379,77 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 				(ObjectEntry objectEntry) -> {
 					Map<String, Object> properties =
 						objectEntry.getProperties();
+
+					if (Objects.equals(properties.get("type"), "proxy")) {
+						FDSCreationMenu fdsCreationMenu =
+							_fdsCreationMenuRegistry.getFDSCreationMenu(
+								dataSetObjectEntry.getExternalReferenceCode());
+
+						if (fdsCreationMenu == null) {
+							return null;
+						}
+
+						if (fdsCreationMenu.isProxy()) {
+							CreationMenu creationMenu =
+								fdsCreationMenu.getCreationMenu(
+									httpServletRequest, httpServletResponse);
+
+							List<DropdownItem> dropdownItems =
+								(List<DropdownItem>)
+									creationMenu.get("primaryItems");
+
+							for (DropdownItem dropdownItem : dropdownItems) {
+								if (!Objects.equals(
+									String.valueOf(
+										dropdownItem.get("id")),
+									objectEntry.getExternalReferenceCode())) {
+
+									continue;
+								}
+
+								Map<String, Object> data =
+									(Map<String, Object>) dropdownItem.get(
+										"data");
+
+								if (data == null) {
+									data = new HashMap<>();
+								}
+
+								return JSONUtil.put(
+									"data",
+									JSONUtil.put(
+										"confirmationMessage",
+										String.valueOf(
+											data.get("confirmationMessage"))
+									).put(
+										"disableHeader", false
+									).put(
+										"method",
+										String.valueOf(data.get("method"))
+									).put(
+										"permissionKey",
+										String.valueOf(
+											data.get("permissionKey"))
+									)
+								).put(
+									"href",
+									String.valueOf(dropdownItem.get("href"))
+								).put(
+									"icon",
+									String.valueOf(dropdownItem.get("icon"))
+								).put(
+									"label",
+									String.valueOf(dropdownItem.get("label"))
+								).put(
+									"target",
+									String.valueOf(dropdownItem.get("target"))
+								);
+							}
+
+						}
+
+						return null;
+					}
 
 					return JSONUtil.put(
 						"data",
@@ -388,7 +472,8 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 					).put(
 						"target", properties.get("type")
 					);
-				}));
+				}
+			));
 	}
 
 	private Set<ObjectEntry> _getDataSetTableSectionObjectEntries(
@@ -786,7 +871,9 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 
 	private JSONArray _getItemsActionsJSONArray(
 			ObjectDefinition dataSetObjectDefinition,
-			ObjectEntry dataSetObjectEntry)
+			ObjectEntry dataSetObjectEntry,
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse)
 		throws Exception {
 
 		return JSONUtil.toJSONArray(
@@ -795,6 +882,73 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 				"dataSetToItemDataSetActions"),
 			(ObjectEntry objectEntry) -> {
 				Map<String, Object> properties = objectEntry.getProperties();
+
+				if (Objects.equals(properties.get("type"), "proxy")) {
+					FDSItemActionList fdsItemActionList =
+						_fdsItemActionListRegistry.getFDSItemActionList(
+							dataSetObjectEntry.getExternalReferenceCode());
+
+					if (fdsItemActionList == null) {
+						return null;
+					}
+
+					if (fdsItemActionList.isProxy()) {
+						for (FDSActionDropdownItem fdsActionDropdownItem :
+								fdsItemActionList.getDropdownItems(
+									httpServletRequest, httpServletResponse)) {
+
+							if (!Objects.equals(
+									String.valueOf(
+										fdsActionDropdownItem.get("id")),
+									objectEntry.getExternalReferenceCode())) {
+
+								continue;
+							}
+
+							Map<String, Object> data =
+								(Map<String, Object>)fdsActionDropdownItem.get(
+									"data");
+
+							if (data == null) {
+								data = new HashMap<>();
+							}
+
+							return JSONUtil.put(
+								"data",
+								JSONUtil.put(
+									"confirmationMessage",
+									String.valueOf(
+										data.get("confirmationMessage"))
+								).put(
+									"disableHeader", false
+								).put(
+									"method", String.valueOf(data.get("method"))
+								).put(
+									"permissionKey",
+									String.valueOf(data.get("permissionKey"))
+								)
+							).put(
+								"href",
+								String.valueOf(
+									fdsActionDropdownItem.get("href"))
+							).put(
+								"icon",
+								String.valueOf(
+									fdsActionDropdownItem.get("icon"))
+							).put(
+								"label",
+								String.valueOf(
+									fdsActionDropdownItem.get("label"))
+							).put(
+								"target",
+								String.valueOf(
+									fdsActionDropdownItem.get("target"))
+							);
+						}
+
+						return null;
+					}
+				}
 
 				return JSONUtil.put(
 					"data",
@@ -1140,6 +1294,12 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 
 	@Reference
 	private FDSAPIURLResolverRegistry _fdsAPIURLResolverRegistry;
+
+	@Reference
+	private FDSCreationMenuRegistry _fdsCreationMenuRegistry;
+
+	@Reference
+	private FDSItemActionListRegistry _fdsItemActionListRegistry;
 
 	@Reference
 	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
