@@ -9,11 +9,14 @@ import com.liferay.frontend.data.set.admin.web.internal.constants.FDSAdminPortle
 import com.liferay.frontend.data.set.bridge.FDSObjectEntryProxyFactory;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseTransactionalMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 
+import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.Validator;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -40,6 +43,12 @@ public class CustomizeSystemDataSetMVCActionCommand
 		_fdsObjectEntryProxyFactory.create(
 			fdsName, _portal.getHttpServletRequest(actionRequest),
 			_portal.getHttpServletResponse(actionResponse));
+
+		String redirect = ParamUtil.getString(actionRequest, "redirect");
+
+		if (Validator.isNotNull(redirect)) {
+			sendRedirect(actionRequest, actionResponse, redirect);
+		}
 	}
 
 	@Reference
