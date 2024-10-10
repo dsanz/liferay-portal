@@ -6,6 +6,7 @@
 package com.liferay.frontend.data.set.internal.bridge;
 
 import com.liferay.frontend.data.set.DataSet;
+import com.liferay.frontend.data.set.DataSetEntityImportPolicy;
 import com.liferay.frontend.data.set.DataSetRegistry;
 import com.liferay.frontend.data.set.action.FDSItemActionList;
 import com.liferay.frontend.data.set.action.FDSItemActionListRegistry;
@@ -264,7 +265,32 @@ public class FDSObjectEntryProxyFactoryImpl
 					"L_DATA_SET_ACTION",
 					_portal.getCompanyId(httpServletRequest));
 
-		if (fdsItemActionList.isProxy()) {
+		if (fdsItemActionList.getImportPolicy() == DataSetEntityImportPolicy.GROUP_PROXY) {
+			_objectEntryService.addObjectEntry(
+				0,
+				actionObjectDefinition.getObjectDefinitionId(),
+				HashMapBuilder.<String, Serializable>put(
+
+					// TODO: handle this new type where we delegate
+					//  rendering to the back end
+
+					"type", "proxy"
+				).put(
+					"icon", "times"
+				).put(
+					"label_i18n", HashMapBuilder.put(
+							"en_US",
+							"Proxy for item actions")
+						.build()
+				).put(
+					"r_dataSetToItemDataSetActions_l_dataSetId",
+					fdsObjectEntry.getObjectEntryId()
+				).put(
+					"url", StringBundler.concat(fdsItemActionList.getImportPolicy(), "://",
+						datasetERC, "/", fdsItemActionList.getClass().getName())
+				).build(), new ServiceContext());
+		}
+		else if (fdsItemActionList.getImportPolicy() == DataSetEntityImportPolicy.ITEM_PROXY) {
 			for (FDSActionDropdownItem fdsActionDropdownItem :
 					fdsItemActionList.getDropdownItems(
 						httpServletRequest, httpServletResponse)) {
@@ -302,7 +328,7 @@ public class FDSObjectEntryProxyFactoryImpl
 						"r_dataSetToItemDataSetActions_l_dataSetId",
 						fdsObjectEntry.getObjectEntryId()
 					).put(
-						"url", StringBundler.concat("proxy://",
+						"url", StringBundler.concat(fdsItemActionList.getImportPolicy(), "://",
 							datasetERC, "/",
 							fdsItemActionList.getClass().getName(), "/",
 							data.get("id"))
