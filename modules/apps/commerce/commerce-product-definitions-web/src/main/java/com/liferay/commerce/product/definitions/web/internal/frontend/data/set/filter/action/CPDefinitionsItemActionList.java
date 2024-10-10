@@ -48,10 +48,12 @@ import javax.portlet.PortletMode;
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletResponse;
 import javax.portlet.RenderRequest;
+import javax.portlet.RenderResponse;
 import javax.portlet.WindowState;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
@@ -89,13 +91,15 @@ public class CPDefinitionsItemActionList implements FDSItemActionList {
 			Collections.emptyList();
 
 		try {
+			HttpServletRequest newHttpServletRequest = new HttpServletRequestWrapper(httpServletRequest);
+
 			InvokerPortlet invokerPortlet = PortletInstanceFactoryUtil.create(
 				portlet, servletContext);
 
 			PortletPreferences portletPreferences =
 				_portletPreferencesLocalService.getStrictPreferences(
 					PortletPreferencesFactoryUtil.getPortletPreferencesIds(
-						httpServletRequest, portlet.getPortletId()));
+						newHttpServletRequest, portlet.getPortletId()));
 
 			PortletConfig portletConfig = PortletConfigFactoryUtil.create(
 				portlet, servletContext);
@@ -108,12 +112,12 @@ public class CPDefinitionsItemActionList implements FDSItemActionList {
 
 			LiferayRenderRequest liferayRenderRequest =
 				RenderRequestFactory.create(
-					httpServletRequest, portlet, invokerPortlet, portletContext,
+					newHttpServletRequest, portlet, invokerPortlet, portletContext,
 					WindowState.NORMAL, PortletMode.VIEW, portletPreferences,
 					themeDisplay.getPlid());
 
 			liferayRenderRequest.setPortletRequestDispatcherRequest(
-				httpServletRequest);
+				newHttpServletRequest);
 
 			PortletResponse portletResponse = RenderResponseFactory.create(
 				httpServletResponse, liferayRenderRequest);
@@ -124,12 +128,22 @@ public class CPDefinitionsItemActionList implements FDSItemActionList {
 				(RenderRequest)httpServletRequest.getAttribute(
 					JavaConstants.JAVAX_PORTLET_REQUEST);
 
-			httpServletRequest.setAttribute(
+			RenderResponse renderResponse =
+				(RenderResponse)httpServletRequest.getAttribute(
+					JavaConstants.JAVAX_PORTLET_RESPONSE);
+
+
+
+			newHttpServletRequest.setAttribute(
 				JavaConstants.JAVAX_PORTLET_REQUEST, liferayRenderRequest);
+
+			newHttpServletRequest.setAttribute(
+				JavaConstants.JAVAX_PORTLET_RESPONSE, portletResponse);
+
 
 			CPDefinitionsDisplayContext cpDefinitionsDisplayContext =
 				new CPDefinitionsDisplayContext(
-					_actionHelper, httpServletRequest,
+					_actionHelper, newHttpServletRequest,
 					_accountGroupRelLocalService, _commerceCatalogService,
 					_commerceChannelRelService, _configurationProvider,
 					_cpDefinitionService, _cpFriendlyURL, _itemSelector,
@@ -140,19 +154,19 @@ public class CPDefinitionsItemActionList implements FDSItemActionList {
 
 			httpServletRequest.setAttribute(
 				JavaConstants.JAVAX_PORTLET_REQUEST, renderRequest);
+
+			httpServletRequest.setAttribute(
+				JavaConstants.JAVAX_PORTLET_RESPONSE, renderResponse);
+
 		}
 		catch (PortletException portletException) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(portletException);
 			}
+
 		}
 
 		return fdsActionDropdownItems;
-	}
-
-	@Override
-	public boolean isProxy() {
-		return true;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
