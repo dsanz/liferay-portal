@@ -265,7 +265,9 @@ public class FDSObjectEntryProxyFactoryImpl
 					"L_DATA_SET_ACTION",
 					_portal.getCompanyId(httpServletRequest));
 
-		if (fdsItemActionList.getImportPolicy() == DataSetEntityImportPolicy.GROUP_PROXY) {
+		if (fdsItemActionList.getImportPolicy() ==
+				DataSetEntityImportPolicy.GROUP_PROXY) {
+
 			_objectEntryService.addObjectEntry(
 				0,
 				actionObjectDefinition.getObjectDefinitionId(),
@@ -290,7 +292,9 @@ public class FDSObjectEntryProxyFactoryImpl
 						datasetERC, "/", fdsItemActionList.getClass().getName())
 				).build(), new ServiceContext());
 		}
-		else if (fdsItemActionList.getImportPolicy() == DataSetEntityImportPolicy.ITEM_PROXY) {
+		else if (fdsItemActionList.getImportPolicy() ==
+					DataSetEntityImportPolicy.ITEM_PROXY) {
+
 			for (FDSActionDropdownItem fdsActionDropdownItem :
 					fdsItemActionList.getDropdownItems(
 						httpServletRequest, httpServletResponse)) {
