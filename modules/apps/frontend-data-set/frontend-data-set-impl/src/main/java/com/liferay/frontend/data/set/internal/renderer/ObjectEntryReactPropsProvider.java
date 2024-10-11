@@ -8,8 +8,11 @@ package com.liferay.frontend.data.set.internal.renderer;
 import com.liferay.client.extension.type.FDSCellRendererCET;
 import com.liferay.client.extension.type.FDSFilterCET;
 import com.liferay.client.extension.type.manager.CETManager;
+import com.liferay.frontend.data.set.DataSetEntityImportPolicy;
+import com.liferay.frontend.data.set.action.FDSItemActionList;
 import com.liferay.frontend.data.set.action.FDSItemActionListRegistry;
 import com.liferay.frontend.data.set.constants.FDSEntityFieldTypes;
+import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.data.set.renderer.ReactPropsProvider;
 import com.liferay.frontend.data.set.resolver.FDSAPIURLResolver;
 import com.liferay.frontend.data.set.resolver.FDSAPIURLResolverRegistry;
@@ -60,6 +63,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -270,8 +275,8 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
-						"Unable to get data set entry with " +
-							"external reference code " + fdsName,
+						"Unable to get data set entry with external " +
+							"reference code " + fdsName,
 						exception);
 				}
 			}
@@ -680,12 +685,92 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 			HttpServletResponse httpServletResponse)
 		throws Exception {
 
-		return JSONUtil.toJSONArray(
+		JSONArray jsonArray = JSONUtil.toJSONArray(
 			_getSortedRelatedObjectEntries(
 				dataSetObjectDefinition, dataSetObjectEntry, "itemActionsOrder",
 				"dataSetToItemDataSetActions"),
 			(ObjectEntry objectEntry) -> {
 				Map<String, Object> properties = objectEntry.getProperties();
+
+				String type = String.valueOf(properties.get("type"));
+
+				DataSetEntityImportPolicy dataSetEntityImportPolicy =
+					DataSetEntityImportPolicy.valueOf(type);
+
+				if ((dataSetEntityImportPolicy != null) &&
+					(dataSetEntityImportPolicy !=
+						DataSetEntityImportPolicy.DETACHED)) {
+
+					FDSItemActionList fdsItemActionList =
+						_fdsItemActionListRegistry.getFDSItemActionList(
+							dataSetObjectEntry.getExternalReferenceCode());
+
+					if (fdsItemActionList == null) {
+						return null;
+					}
+
+					JSONArray actionItemsJSONArray =
+						_jsonFactory.createJSONArray();
+
+					for (FDSActionDropdownItem fdsActionDropdownItem :
+							fdsItemActionList.getDropdownItems(
+								httpServletRequest, httpServletResponse)) {
+
+						Map<String, Object> data =
+							(Map<String, Object>)fdsActionDropdownItem.get(
+								"data");
+
+						if (data == null) {
+							data = new HashMap<>();
+						}
+
+						if ((fdsItemActionList.getImportPolicy() ==
+								DataSetEntityImportPolicy.ITEM_PROXY) &&
+							!Objects.equals(
+								String.valueOf(data.get("id")),
+								objectEntry.getExternalReferenceCode())) {
+
+							continue;
+						}
+
+						actionItemsJSONArray.put(
+							JSONUtil.put(
+								"data",
+								JSONUtil.put(
+									"confirmationMessage",
+									_getValueIfNotNull(
+										data.get("confirmationMessage"))
+								).put(
+									"disableHeader", true
+								).put(
+									"method",
+									_getValueIfNotNull(data.get("method"))
+								).put(
+									"permissionKey",
+									_getValueIfNotNull(
+										data.get("permissionKey"))
+								)
+							).put(
+								"href",
+								_getValueIfNotNull(
+									fdsActionDropdownItem.get("href"))
+							).put(
+								"icon",
+								_getValueIfNotNull(
+									fdsActionDropdownItem.get("icon"))
+							).put(
+								"label",
+								_getValueIfNotNull(
+									fdsActionDropdownItem.get("label"))
+							).put(
+								"target",
+								_getValueIfNotNull(
+									fdsActionDropdownItem.get("target"))
+							));
+					}
+
+					return actionItemsJSONArray;
+				}
 
 				return JSONUtil.put(
 					"data",
@@ -722,6 +807,37 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 					"target", properties.get("type")
 				);
 			});
+
+		Iterator<Object> jsonArrayIterator = jsonArray.iterator();
+
+		JSONArray resultJSONArray = _jsonFactory.createJSONArray();
+
+		while (jsonArrayIterator.hasNext()) {
+			Object object = jsonArrayIterator.next();
+
+			if (object == null) {
+				continue;
+			}
+
+			if (object instanceof JSONObject) {
+				resultJSONArray.put((JSONObject)object);
+			}
+			else if (object instanceof JSONArray) {
+				JSONArray actionItemsJSONArray = (JSONArray)object;
+
+				if (actionItemsJSONArray != null) {
+					Iterator<JSONObject> actionItemsJsonArrayIterator =
+						actionItemsJSONArray.iterator();
+
+					while (actionItemsJsonArrayIterator.hasNext()) {
+						resultJSONArray.put(
+							actionItemsJsonArrayIterator.next());
+					}
+				}
+			}
+		}
+
+		return resultJSONArray;
 	}
 
 	private String _getLabelValue(
@@ -954,6 +1070,14 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 					"label", label
 				);
 			});
+	}
+
+	private String _getValueIfNotNull(Object object) {
+		if (Validator.isNull(object)) {
+			return null;
+		}
+
+		return String.valueOf(object);
 	}
 
 	private JSONObject _getViewSchemaJSONObject(
