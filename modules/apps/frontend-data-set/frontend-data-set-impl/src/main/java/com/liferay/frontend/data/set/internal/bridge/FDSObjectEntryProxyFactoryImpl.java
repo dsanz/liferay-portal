@@ -276,7 +276,7 @@ public class FDSObjectEntryProxyFactoryImpl
 					// TODO: handle this new type where we delegate
 					//  rendering to the back end
 
-					"type", "proxy"
+					"type", fdsItemActionList.getImportPolicy()
 				).put(
 					"icon", "times"
 				).put(
@@ -288,7 +288,8 @@ public class FDSObjectEntryProxyFactoryImpl
 					"r_dataSetToItemDataSetActions_l_dataSetId",
 					fdsObjectEntry.getObjectEntryId()
 				).put(
-					"url", StringBundler.concat(fdsItemActionList.getImportPolicy(), "://",
+					"url", StringBundler.concat(
+						fdsItemActionList.getImportPolicy(), "://",
 						datasetERC, "/", fdsItemActionList.getClass().getName())
 				).build(), new ServiceContext());
 		}
@@ -314,7 +315,7 @@ public class FDSObjectEntryProxyFactoryImpl
 						// TODO: handle this new type where we delegate
 						//  rendering to the back end
 
-						"type", "proxy"
+						"type", fdsItemActionList.getImportPolicy()
 					).put(
 						"externalReferenceCode",
 						String.valueOf(data.get("id"))
@@ -332,7 +333,8 @@ public class FDSObjectEntryProxyFactoryImpl
 						"r_dataSetToItemDataSetActions_l_dataSetId",
 						fdsObjectEntry.getObjectEntryId()
 					).put(
-						"url", StringBundler.concat(fdsItemActionList.getImportPolicy(), "://",
+						"url", StringBundler.concat(
+							fdsItemActionList.getImportPolicy(), "://",
 							datasetERC, "/",
 							fdsItemActionList.getClass().getName(), "/",
 							data.get("id"))
