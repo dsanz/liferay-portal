@@ -6,6 +6,7 @@
 package com.liferay.frontend.data.set.creator;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Daniel Sanz
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 public interface DataSetObjectEntryCreator {
 
 	public void create(
-		String datasetERC, HttpServletRequest httpServletRequest);
+		String datasetERC, HttpServletRequest httpServletRequest,
+		HttpServletResponse httpServletResponse);
 
 }
