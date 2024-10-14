@@ -327,6 +327,7 @@ public class CPDefinitionsDisplayContext
 
 			creationMenu.addDropdownItem(
 				dropdownItem -> {
+					dropdownItem.putData("id", cpType.getName());
 					dropdownItem.setHref(portletURL.toString());
 					dropdownItem.setLabel(
 						cpType.getLabel(cpRequestHelper.getLocale()));
