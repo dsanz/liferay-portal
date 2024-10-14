@@ -135,7 +135,6 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 					dataSetObjectDefinition, dataSetObjectEntry,
 					httpServletRequest)
 			).put(
-//				"id", "FDS_" + fragmentRendererContext.getFragmentElementId()
 				"id", "FDS_" + fdsName
 			).put(
 				"itemsActions",
@@ -143,7 +142,6 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 					dataSetObjectDefinition, dataSetObjectEntry,
 					httpServletRequest, httpServletResponse)
 			).put(
-//				"namespace", fragmentRendererContext.getFragmentElementId()
 				"namespace", fdsName
 			).put(
 				"pagination", _getPaginationJSONObject(dataSetObjectEntry)
