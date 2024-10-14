@@ -5,6 +5,7 @@
 
 package com.liferay.frontend.data.set.action;
 
+import com.liferay.frontend.data.set.DataSetEntityImportPolicy;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.portal.kernel.exception.PortalException;
 
@@ -21,8 +22,8 @@ public interface FDSCreationMenu {
 			HttpServletResponse httpServletResponse)
 		throws PortalException;
 
-	public default boolean isProxy() {
-		return true;
+	public default DataSetEntityImportPolicy getImportPolicy() {
+		return DataSetEntityImportPolicy.ITEM_PROXY;
 	}
 
 }

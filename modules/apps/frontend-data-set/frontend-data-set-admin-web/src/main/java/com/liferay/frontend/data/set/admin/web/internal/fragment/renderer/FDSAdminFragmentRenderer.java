@@ -12,6 +12,7 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
+import com.liferay.frontend.data.set.DataSetEntityImportPolicy;
 import com.liferay.frontend.data.set.action.FDSCreationMenu;
 import com.liferay.frontend.data.set.action.FDSCreationMenuRegistry;
 import com.liferay.frontend.data.set.action.FDSItemActionList;
@@ -389,7 +390,9 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 							return null;
 						}
 
-						if (fdsCreationMenu.isProxy()) {
+						if (fdsCreationMenu..getImportPolicy() ==
+								DataSetEntityImportPolicy.ITEM_PROXY) {
+
 							CreationMenu creationMenu =
 								fdsCreationMenu.getCreationMenu(
 									httpServletRequest, httpServletResponse);
@@ -892,7 +895,9 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 						return null;
 					}
 
-					if (fdsItemActionList.isProxy()) {
+					if (fdsItemActionList.getImportPolicy() ==
+							DataSetEntityImportPolicy.ITEM_PROXY) {
+
 						for (FDSActionDropdownItem fdsActionDropdownItem :
 								fdsItemActionList.getDropdownItems(
 									httpServletRequest, httpServletResponse)) {
