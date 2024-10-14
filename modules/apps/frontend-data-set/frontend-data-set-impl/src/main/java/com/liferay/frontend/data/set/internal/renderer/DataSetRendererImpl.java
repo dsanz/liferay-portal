@@ -10,7 +10,6 @@ import com.liferay.frontend.data.set.renderer.ReactPropsProvider;
 import com.liferay.frontend.data.set.renderer.ReactPropsProviderRegistry;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.template.react.renderer.ComponentDescriptor;
 import com.liferay.portal.template.react.renderer.ReactRenderer;
 
