@@ -10,6 +10,7 @@ import com.liferay.frontend.data.set.renderer.ReactPropsProviderRegistry;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,9 +42,7 @@ public class ReactPropsProviderRegistryImpl
 		List<ReactPropsProviderWrapper> reactPropsProviderWrappers =
 			_reactPropsProviderWrappers.get();
 
-		if ((reactPropsProviderWrappers == null) ||
-			reactPropsProviderWrappers.isEmpty()) {
-
+		if (ListUtil.isEmpty(reactPropsProviderWrappers)) {
 			if (_log.isDebugEnabled()) {
 				_log.debug("No react props provider is registered");
 			}

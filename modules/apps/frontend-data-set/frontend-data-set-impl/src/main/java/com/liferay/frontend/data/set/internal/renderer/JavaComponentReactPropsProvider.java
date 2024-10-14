@@ -5,10 +5,7 @@
 
 package com.liferay.frontend.data.set.internal.renderer;
 
-import com.liferay.frontend.data.set.DataSetRegistry;
 import com.liferay.frontend.data.set.renderer.ReactPropsProvider;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.io.IOException;
 
@@ -18,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Daniel Sanz
@@ -36,6 +32,8 @@ public class JavaComponentReactPropsProvider implements ReactPropsProvider {
 			Map<String, Object> context)
 		throws IOException {
 
+		/* This is a dummy implementation for JavaComponentReactPropsProvider */
+
 		/* TODO: use new APIs to serialize from here. In this PoC we are
 		using all the info provided by the BaseDisplayTag. If we want fragment
 		to render system datasets from java services, we'll need to
@@ -52,11 +50,5 @@ public class JavaComponentReactPropsProvider implements ReactPropsProvider {
 		return true;
 		//return _dataSetRegistry.getDataSet(fdsName) != null;
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		JavaComponentReactPropsProvider.class);
-
-	@Reference
-	private DataSetRegistry _dataSetRegistry;
 
 }
