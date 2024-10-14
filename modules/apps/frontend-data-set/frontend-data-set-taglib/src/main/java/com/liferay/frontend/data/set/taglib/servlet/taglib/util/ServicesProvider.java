@@ -1,0 +1,23 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2024 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.frontend.data.set.taglib.servlet.taglib.util;
+
+import com.liferay.frontend.data.set.renderer.DataSetRenderer;
+import com.liferay.portal.kernel.module.service.Snapshot;
+
+/**
+ * @author Daniel Sanz
+ */
+public class ServicesProvider {
+
+	public static DataSetRenderer getDataSetRenderer() {
+		return _dataSetRendererSnapshot.get();
+	}
+
+	private static final Snapshot<DataSetRenderer> _dataSetRendererSnapshot =
+		new Snapshot<>(ServicesProvider.class, DataSetRenderer.class);
+
+}
