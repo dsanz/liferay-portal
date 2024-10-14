@@ -6,6 +6,7 @@
 package com.liferay.frontend.data.set.internal.creator;
 
 import com.liferay.frontend.data.set.DataSet;
+import com.liferay.frontend.data.set.DataSetEntityImportPolicy;
 import com.liferay.frontend.data.set.DataSetRegistry;
 import com.liferay.frontend.data.set.action.FDSCreationMenu;
 import com.liferay.frontend.data.set.action.FDSCreationMenuRegistry;
@@ -152,7 +153,37 @@ public class DataSetObjectEntryCreatorImpl
 		List<DropdownItem> dropdownItems = (List<DropdownItem>)creationMenu.get(
 			"primaryItems");
 
-		if (fdsCreationMenu.isProxy()) {
+		if (fdsCreationMenu.getImportPolicy() ==
+				DataSetEntityImportPolicy.GROUP_PROXY) {
+
+			_objectEntryService.addObjectEntry(
+				0, actionObjectDefinition.getObjectDefinitionId(),
+				HashMapBuilder.<String, Serializable>put(
+					"icon", "times"
+				).put(
+					"label_i18n",
+					HashMapBuilder.put(
+						"en_US", "Proxy for creation menu"
+					).build()
+				).put(
+					"r_dataSetToCreationDataSetActions_l_dataSetId",
+					fdsObjectEntry.getObjectEntryId()
+				).put(
+					"type", fdsCreationMenu.getImportPolicy()
+				).put(
+					"url",
+					StringBundler.concat(
+						fdsCreationMenu.getImportPolicy(), "://", datasetERC,
+						"/",
+						fdsCreationMenu.getClass(
+						).getName(),
+						"/")
+				).build(),
+				new ServiceContext());
+		}
+		else if (fdsCreationMenu.getImportPolicy() ==
+					DataSetEntityImportPolicy.ITEM_PROXY) {
+
 			for (DropdownItem dropdownItem : dropdownItems) {
 				Map<String, Object> data =
 					(Map<String, Object>)dropdownItem.get("data");
@@ -162,36 +193,34 @@ public class DataSetObjectEntryCreatorImpl
 				}
 
 				_objectEntryService.addObjectEntry(
-					0,
-					actionObjectDefinition.getObjectDefinitionId(),
+					0, actionObjectDefinition.getObjectDefinitionId(),
 					HashMapBuilder.<String, Serializable>put(
-
-						// TODO: handle this new type where we delegate
-						//  rendering to the back end
-
-						"type", "proxy"
+						"externalReferenceCode", String.valueOf(data.get("id"))
 					).put(
-						"externalReferenceCode",
-						String.valueOf(data.get("id"))
+						"icon", String.valueOf(dropdownItem.get("icon"))
 					).put(
-						"icon",
-						String.valueOf(dropdownItem.get("icon"))
-					).put(
-						"label_i18n", HashMapBuilder.put(
+						"label_i18n",
+						HashMapBuilder.put(
 							"en_US",
-							StringBundler.concat("Proxy for ",
-								dropdownItem.get("label"),
-								" item action")
+							StringBundler.concat(
+								"Proxy for ", dropdownItem.get("label"),
+								" creation action")
 						).build()
 					).put(
 						"r_dataSetToCreationDataSetActions_l_dataSetId",
 						fdsObjectEntry.getObjectEntryId()
 					).put(
-						"url", StringBundler.concat("proxy://",
+						"type", fdsCreationMenu.getImportPolicy()
+					).put(
+						"url",
+						StringBundler.concat(
+							fdsCreationMenu.getImportPolicy(), "://",
 							datasetERC, "/",
-							fdsCreationMenu.getClass().getName(), "/",
-							data.get("id"))
-					).build(), new ServiceContext());
+							fdsCreationMenu.getClass(
+							).getName(),
+							"/", data.get("id"))
+					).build(),
+					new ServiceContext());
 			}
 		}
 		else {
@@ -373,7 +402,36 @@ public class DataSetObjectEntryCreatorImpl
 					"L_DATA_SET_ACTION",
 					_portal.getCompanyId(httpServletRequest));
 
-		if (fdsItemActionList.isProxy()) {
+		if (fdsItemActionList.getImportPolicy() ==
+				DataSetEntityImportPolicy.GROUP_PROXY) {
+
+			_objectEntryService.addObjectEntry(
+				0, actionObjectDefinition.getObjectDefinitionId(),
+				HashMapBuilder.<String, Serializable>put(
+					"icon", "times"
+				).put(
+					"label_i18n",
+					HashMapBuilder.put(
+						"en_US", "Proxy for item actions"
+					).build()
+				).put(
+					"r_dataSetToItemDataSetActions_l_dataSetId",
+					fdsObjectEntry.getObjectEntryId()
+				).put(
+					"type", fdsItemActionList.getImportPolicy()
+				).put(
+					"url",
+					StringBundler.concat(
+						fdsItemActionList.getImportPolicy(), "://", datasetERC,
+						"/",
+						fdsItemActionList.getClass(
+						).getName())
+				).build(),
+				new ServiceContext());
+		}
+		else if (fdsItemActionList.getImportPolicy() ==
+					DataSetEntityImportPolicy.ITEM_PROXY) {
+
 			for (FDSActionDropdownItem fdsActionDropdownItem :
 					fdsItemActionList.getDropdownItems(
 						httpServletRequest, httpServletResponse)) {
@@ -386,36 +444,36 @@ public class DataSetObjectEntryCreatorImpl
 				}
 
 				_objectEntryService.addObjectEntry(
-					0,
-					actionObjectDefinition.getObjectDefinitionId(),
+					0, actionObjectDefinition.getObjectDefinitionId(),
 					HashMapBuilder.<String, Serializable>put(
-
-						// TODO: handle this new type where we delegate
-						//  rendering to the back end
-
-						"type", "proxy"
-					).put(
-						"externalReferenceCode",
-						String.valueOf(data.get("id"))
+						"externalReferenceCode", String.valueOf(data.get("id"))
 					).put(
 						"icon",
 						String.valueOf(fdsActionDropdownItem.get("icon"))
 					).put(
-						"label_i18n", HashMapBuilder.put(
-								"en_US",
-								StringBundler.concat("Proxy for ",
-									fdsActionDropdownItem.get("label"),
-									"item action")
+						"label_i18n",
+						HashMapBuilder.put(
+							"en_US",
+							StringBundler.concat(
+								"Proxy for ",
+								fdsActionDropdownItem.get("label"),
+								" item action")
 						).build()
 					).put(
 						"r_dataSetToItemDataSetActions_l_dataSetId",
 						fdsObjectEntry.getObjectEntryId()
 					).put(
-						"url", StringBundler.concat("proxy://",
+						"type", fdsItemActionList.getImportPolicy()
+					).put(
+						"url",
+						StringBundler.concat(
+							fdsItemActionList.getImportPolicy(), "://",
 							datasetERC, "/",
-							fdsItemActionList.getClass().getName(), "/",
-							data.get("id"))
-					).build(), new ServiceContext());
+							fdsItemActionList.getClass(
+							).getName(),
+							"/", data.get("id"))
+					).build(),
+					new ServiceContext());
 			}
 		}
 		else {
