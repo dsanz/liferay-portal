@@ -61,6 +61,8 @@ public class DataSetRegistryImpl implements DataSetRegistry {
 			_bundleContext, DataSet.class,
 			new DataSetServiceTrackerCustomizer());
 
+		_serviceTracker.open();
+
 		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
 			bundleContext, DataSet.class, "frontend.data.set.name",
 			ServiceTrackerCustomizerFactory.<DataSet>serviceWrapper(
