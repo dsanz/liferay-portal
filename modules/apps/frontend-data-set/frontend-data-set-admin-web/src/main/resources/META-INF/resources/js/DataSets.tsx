@@ -9,7 +9,7 @@ import ClayForm, {ClayInput} from '@clayui/form';
 import ClayModal from '@clayui/modal';
 import {FrontendDataSet} from '@liferay/frontend-data-set-web';
 import classNames from 'classnames';
-import {fetch, navigate, openModal} from 'frontend-js-web';
+import {fetch, navigate, openModal, sub} from 'frontend-js-web';
 import React, {useState} from 'react';
 
 import '../css/DataSets.scss';
@@ -30,6 +30,10 @@ import openDefaultSuccessToast from './utils/openDefaultSuccessToast';
 
 const LIST_OF_ITEMS_PER_PAGE = '4, 8, 20, 40, 60';
 const DEFAULT_ITEMS_PER_PAGE = 20;
+export interface ICustomizableDataSet {
+	externalReferenceCode: string;
+	name: string;
+}
 export interface IDataSet {
 	actions: {
 		delete: {
@@ -540,12 +544,16 @@ const NewDataSetModalContent = ({
 };
 
 const DataSets = ({
+	customizeDataSetURL,
+	customizableDataSets,
 	editDataSetURL,
 	namespace,
 	permissionsURL,
 	resolvedRESTSchemas,
 	restApplications,
 }: {
+	customizeDataSetURL: string;
+	customizableDataSets: ICustomizableDataSet[];
 	editDataSetURL: string;
 	namespace: string;
 	permissionsURL: string;
@@ -574,6 +582,17 @@ const DataSets = ({
 					});
 				},
 			},
+			...customizableDataSets.map(
+				(customizableDataSet) =>
+				{
+					return {
+						label: "Customize " + customizableDataSet.name,
+						onClick: () => navigate(sub(
+							customizeDataSetURL,
+							customizableDataSet.externalReferenceCode))
+					}
+				}
+			)
 		],
 	};
 

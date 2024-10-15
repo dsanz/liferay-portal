@@ -12,7 +12,7 @@ portletDisplay.setBeta(true);
 %>
 
 <portlet:actionURL name="/frontend_data_set_admin/customize_system_data_set" var="customizeURL">
-	<portlet:param name="fdsName" value="com_liferay_commerce_product_definitions_web_internal_portlet_CPDefinitionsPortlet-productDefinitions" />
+	<portlet:param name="fdsName" value="{0}" />
 	<portlet:param name="redirect" value="<%= currentURL %>" />
 </portlet:actionURL>
 
@@ -22,6 +22,10 @@ portletDisplay.setBeta(true);
 		module="{DataSets} from frontend-data-set-admin-web"
 		props='<%=
 			HashMapBuilder.<String, Object>put(
+				"customizableDataSets", fdsAdminDisplayContext.getCustomizableDataSets()
+			).put(
+				"customizeDataSetURL", "<%= customizeURL %>"
+			).put(
 				"editDataSetURL", fdsAdminDisplayContext.getEditDataSetURL()
 			).put(
 				"namespace", liferayPortletResponse.getNamespace()
