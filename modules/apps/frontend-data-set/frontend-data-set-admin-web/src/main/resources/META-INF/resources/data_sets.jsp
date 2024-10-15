@@ -24,7 +24,7 @@ portletDisplay.setBeta(true);
 			HashMapBuilder.<String, Object>put(
 				"customizableDataSets", fdsAdminDisplayContext.getCustomizableDataSets()
 			).put(
-				"customizeDataSetURL", <%= customizeURL %>
+				"customizeDataSetURL", customizeURL
 			).put(
 				"editDataSetURL", fdsAdminDisplayContext.getEditDataSetURL()
 			).put(
