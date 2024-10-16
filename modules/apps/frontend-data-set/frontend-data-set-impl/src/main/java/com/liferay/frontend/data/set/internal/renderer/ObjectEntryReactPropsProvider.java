@@ -270,7 +270,11 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 
 							if (!Objects.equals(
 									String.valueOf(data.get("id")),
-									objectEntry.getExternalReferenceCode())) {
+									_trimDataSetERC(
+										dataSetObjectEntry.
+											getExternalReferenceCode(),
+										objectEntry.
+											getExternalReferenceCode()))) {
 
 								continue;
 							}
@@ -839,7 +843,10 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 								DataSetEntityImportPolicy.ITEM_PROXY) &&
 							!Objects.equals(
 								String.valueOf(data.get("id")),
-								objectEntry.getExternalReferenceCode())) {
+								_trimDataSetERC(
+									dataSetObjectEntry.
+										getExternalReferenceCode(),
+									objectEntry.getExternalReferenceCode()))) {
 
 							continue;
 						}
@@ -1250,6 +1257,10 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 		}
 
 		return apiURL;
+	}
+
+	private String _trimDataSetERC(String dataSetERC, String id) {
+		return id.substring(dataSetERC.length() + 1);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
