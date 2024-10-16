@@ -249,37 +249,37 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 						return null;
 					}
 
-					if (fdsCreationMenu.getImportPolicy() ==
-							DataSetEntityImportPolicy.ITEM_PROXY) {
+					CreationMenu creationMenu = fdsCreationMenu.getCreationMenu(
+						httpServletRequest, httpServletResponse);
 
-						CreationMenu creationMenu =
-							fdsCreationMenu.getCreationMenu(
-								httpServletRequest, httpServletResponse);
+					List<DropdownItem> dropdownItems =
+						(List<DropdownItem>)creationMenu.get("primaryItems");
 
-						List<DropdownItem> dropdownItems =
-							(List<DropdownItem>)creationMenu.get(
-								"primaryItems");
+					JSONArray creationMenuItemsJSONArray =
+						_jsonFactory.createJSONArray();
 
-						for (DropdownItem dropdownItem : dropdownItems) {
-							Map<String, Object> data =
-								(Map<String, Object>)dropdownItem.get("data");
+					for (DropdownItem dropdownItem : dropdownItems) {
+						Map<String, Object> data =
+							(Map<String, Object>)dropdownItem.get("data");
 
-							if (data == null) {
-								data = new HashMap<>();
-							}
+						if (data == null) {
+							data = new HashMap<>();
+						}
 
-							if (!Objects.equals(
-									String.valueOf(data.get("id")),
-									_trimDataSetERC(
-										dataSetObjectEntry.
-											getExternalReferenceCode(),
-										objectEntry.
-											getExternalReferenceCode()))) {
+						if ((fdsCreationMenu.getImportPolicy() ==
+								DataSetEntityImportPolicy.ITEM_PROXY) &&
+							!Objects.equals(
+								String.valueOf(data.get("id")),
+								_trimDataSetERC(
+									dataSetObjectEntry.
+										getExternalReferenceCode(),
+									objectEntry.getExternalReferenceCode()))) {
 
-								continue;
-							}
+							continue;
+						}
 
-							return JSONUtil.put(
+						creationMenuItemsJSONArray.put(
+							JSONUtil.put(
 								"data",
 								JSONUtil.put(
 									"confirmationMessage",
@@ -307,11 +307,10 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 							).put(
 								"target",
 								_getValueIfNotNull(dropdownItem.get("target"))
-							);
-						}
+							));
 					}
 
-					return null;
+					return creationMenuItemsJSONArray;
 				}
 
 				return JSONUtil.put(
