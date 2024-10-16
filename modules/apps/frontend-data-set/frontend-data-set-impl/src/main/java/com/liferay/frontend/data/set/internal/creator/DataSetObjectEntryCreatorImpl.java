@@ -190,7 +190,8 @@ public class DataSetObjectEntryCreatorImpl
 				_objectEntryService.addObjectEntry(
 					0, actionObjectDefinition.getObjectDefinitionId(),
 					HashMapBuilder.<String, Serializable>put(
-						"externalReferenceCode", String.valueOf(data.get("id"))
+						"externalReferenceCode",
+						StringBundler.concat(datasetERC, "_", data.get("id"))
 					).put(
 						"icon", String.valueOf(dropdownItem.get("icon"))
 					).put(
@@ -441,7 +442,8 @@ public class DataSetObjectEntryCreatorImpl
 				_objectEntryService.addObjectEntry(
 					0, actionObjectDefinition.getObjectDefinitionId(),
 					HashMapBuilder.<String, Serializable>put(
-						"externalReferenceCode", String.valueOf(data.get("id"))
+						"externalReferenceCode",
+						StringBundler.concat(datasetERC, "_", data.get("id"))
 					).put(
 						"icon",
 						String.valueOf(fdsActionDropdownItem.get("icon"))
@@ -590,7 +592,8 @@ public class DataSetObjectEntryCreatorImpl
 							fdsTableSchemaField.getFieldName(), "_",
 							RandomUtil.nextInts(0, 5))
 					).put(
-						"fieldName", StringUtil.removeLast(
+						"fieldName",
+						StringUtil.removeLast(
 							fdsTableSchemaField.getFieldName(), ".LANG")
 					).put(
 						"label_i18n",
