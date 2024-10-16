@@ -14,7 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 public interface DataSetObjectEntryCreator {
 
 	public void create(
-		String datasetERC, HttpServletRequest httpServletRequest,
-		HttpServletResponse httpServletResponse);
+			String datasetERC, HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse)
+		throws Exception;
 
 }

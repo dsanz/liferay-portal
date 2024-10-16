@@ -32,7 +32,6 @@ import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
@@ -68,8 +67,9 @@ public class DataSetObjectEntryCreatorImpl
 
 	@Override
 	public void create(
-		String datasetERC, HttpServletRequest httpServletRequest,
-		HttpServletResponse httpServletResponse) {
+			String datasetERC, HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse)
+		throws Exception {
 
 		DataSet dataSet = _dataSetRegistry.getDataSet(datasetERC);
 
@@ -82,54 +82,48 @@ public class DataSetObjectEntryCreatorImpl
 				fetchObjectDefinitionByExternalReferenceCode(
 					"L_DATA_SET", _portal.getCompanyId(httpServletRequest));
 
-		try {
-			ObjectEntry fdsObjectEntry = _objectEntryService.addObjectEntry(
-				0, objectDefinition.getObjectDefinitionId(),
-				HashMapBuilder.<String, Serializable>put(
-					"additionalAPIURLParameters",
-					dataSet.getAdditionalAPIURLParameters()
-				).put(
-					"defaultItemsPerPage", dataSet.getDefaultItemsPerPage()
-				).put(
-					"externalReferenceCode", datasetERC
-				).put(
-					"label", dataSet.getName()
-				).put(
-					"listOfItemsPerPage", dataSet.getListOfItemsPerPage()
-				).put(
-					"name", datasetERC
-				).put(
-					"restApplication", dataSet.getRESTApplication()
-				).put(
-					"restEndpoint", dataSet.getRESTEndpoint()
-				).put(
-					"restSchema", dataSet.getRESTSchema()
-				).build(),
-				new ServiceContext());
+		ObjectEntry fdsObjectEntry = _objectEntryService.addObjectEntry(
+			0, objectDefinition.getObjectDefinitionId(),
+			HashMapBuilder.<String, Serializable>put(
+				"additionalAPIURLParameters",
+				dataSet.getAdditionalAPIURLParameters()
+			).put(
+				"defaultItemsPerPage", dataSet.getDefaultItemsPerPage()
+			).put(
+				"externalReferenceCode", datasetERC
+			).put(
+				"label", dataSet.getName()
+			).put(
+				"listOfItemsPerPage", dataSet.getListOfItemsPerPage()
+			).put(
+				"name", datasetERC
+			).put(
+				"restApplication", dataSet.getRESTApplication()
+			).put(
+				"restEndpoint", dataSet.getRESTEndpoint()
+			).put(
+				"restSchema", dataSet.getRESTSchema()
+			).build(),
+			new ServiceContext());
 
-			_createFilters(datasetERC, fdsObjectEntry, httpServletRequest);
+		_createFilters(datasetERC, fdsObjectEntry, httpServletRequest);
 
-			_createTableSections(
-				datasetERC, fdsObjectEntry, httpServletRequest);
+		_createTableSections(datasetERC, fdsObjectEntry, httpServletRequest);
 
-			_createItemActions(
-				datasetERC, fdsObjectEntry, httpServletRequest,
-				httpServletResponse);
+		_createItemActions(
+			datasetERC, fdsObjectEntry, httpServletRequest,
+			httpServletResponse);
 
-			_createCreationMenu(
-				datasetERC, fdsObjectEntry, httpServletRequest,
-				httpServletResponse);
-		}
-		catch (PortalException portalException) {
-			throw new RuntimeException(portalException);
-		}
+		_createCreationMenu(
+			datasetERC, fdsObjectEntry, httpServletRequest,
+			httpServletResponse);
 	}
 
 	private void _createCreationMenu(
 			String datasetERC, ObjectEntry fdsObjectEntry,
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
-		throws PortalException {
+		throws Exception {
 
 		FDSCreationMenu fdsCreationMenu =
 			_fdsCreationMenuRegistry.getFDSCreationMenu(datasetERC);
@@ -288,7 +282,7 @@ public class DataSetObjectEntryCreatorImpl
 	private void _createFilters(
 			String datasetERC, ObjectEntry fdsObjectEntry,
 			HttpServletRequest httpServletRequest)
-		throws PortalException {
+		throws Exception {
 
 		List<FDSFilter> fdsFilters = _fdsFilterRegistry.getFDSFilters(
 			datasetERC);
@@ -388,7 +382,7 @@ public class DataSetObjectEntryCreatorImpl
 			String datasetERC, ObjectEntry fdsObjectEntry,
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
-		throws PortalException {
+		throws Exception {
 
 		FDSItemActionList fdsItemActionList =
 			_fdsItemActionListRegistry.getFDSItemActionList(datasetERC);
@@ -545,7 +539,7 @@ public class DataSetObjectEntryCreatorImpl
 	private void _createTableSections(
 			String datasetERC, ObjectEntry fdsObjectEntry,
 			HttpServletRequest httpServletRequest)
-		throws PortalException {
+		throws Exception {
 
 		List<FDSView> fdsViews = _fdsViewRegistry.getFDSViews(datasetERC);
 
