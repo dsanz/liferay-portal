@@ -224,6 +224,7 @@ const ActionForm = ({
 			method,
 			modalSize,
 			permissionKey,
+			[OBJECT_RELATIONSHIP.DATA_SET_ACTIONS_ID]: dataSet.id,
 			[relationship]: dataSet.id,
 			requestBody,
 			title_i18n: titleTranslations,
