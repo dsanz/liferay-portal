@@ -5,7 +5,7 @@
 
 import {IBaseVisualizationMode} from './types';
 
-const API_URL_PREFIX = '/o/data-set-admin';
+const API_URL_PREFIX = '/o/data-set-admin/data-sets';
 
 const API_URL = {
 	ACTIONS: `${API_URL_PREFIX}/actions`,
