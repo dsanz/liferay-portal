@@ -22,7 +22,7 @@ function DateTimeRenderer({options, value}) {
 	};
 
 	if (
-		!dateOptions.timeZone &&
+		options?.format?.convertToUserTimeZone &&
 		/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2,3}Z$/.test(value)
 	) {
 		dateOptions.timeZone = Liferay.ThemeDisplay.getTimeZone();

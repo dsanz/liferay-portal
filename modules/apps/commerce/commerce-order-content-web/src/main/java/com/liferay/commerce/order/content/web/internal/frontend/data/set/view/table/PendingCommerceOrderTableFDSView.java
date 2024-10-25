@@ -8,10 +8,12 @@ package com.liferay.commerce.order.content.web.internal.frontend.data.set.view.t
 import com.liferay.commerce.order.content.web.internal.constants.CommerceOrderFDSNames;
 import com.liferay.frontend.data.set.view.FDSView;
 import com.liferay.frontend.data.set.view.table.BaseTableFDSView;
+import com.liferay.frontend.data.set.view.table.DateTimeFDSTableSchemaField;
 import com.liferay.frontend.data.set.view.table.FDSTableSchema;
 import com.liferay.frontend.data.set.view.table.FDSTableSchemaBuilder;
 import com.liferay.frontend.data.set.view.table.FDSTableSchemaBuilderFactory;
 import com.liferay.frontend.data.set.view.table.StringFDSTableSchemaField;
+import com.liferay.portal.kernel.json.JSONUtil;
 
 import java.util.Locale;
 
@@ -45,8 +47,7 @@ public class PendingCommerceOrderTableFDSView extends BaseTableFDSView {
 		).add(
 			"purchaseOrderNumber", "purchase-order-number"
 		).add(
-			"date", "create-date",
-			fdsTableSchemaField -> fdsTableSchemaField.setSortable(true)
+			_addDateFDSTableSchemaField()
 		).add(
 			_addAccountNameStringFDSTableSchemaField()
 		).add(
@@ -73,6 +74,22 @@ public class PendingCommerceOrderTableFDSView extends BaseTableFDSView {
 		stringFDSTableSchemaField.setTruncate(true);
 
 		return stringFDSTableSchemaField;
+	}
+
+	private DateTimeFDSTableSchemaField _addDateFDSTableSchemaField() {
+		DateTimeFDSTableSchemaField dateFDSTableSchemaField =
+			new DateTimeFDSTableSchemaField();
+
+		dateFDSTableSchemaField.setFieldName(
+			"date"
+		).setLabel(
+			"create-date"
+		);
+
+		dateFDSTableSchemaField.setFormat(
+			JSONUtil.put("convertToUserTimeZone", true));
+
+		return dateFDSTableSchemaField;
 	}
 
 	@Reference
