@@ -88,7 +88,7 @@ function Filter({selectedData, fieldName, setFilter}) {
 						<ClayLabel displayType={'success'}>
 							{RiderTypeDescriptions[riderType]}
 						</ClayLabel>
-						<img src={RiderTypeImages[riderType]} width='25%'/>
+						<img src={RiderTypeImages[riderType]} width='45%'/>
 					</ClayButton>
 				))
 			}
