@@ -1,14 +1,12 @@
 {
 	"dependencies": {
 		"@liferay/js-api": "0.6.0",
-		"@clayui/label": "*",
-		"@clayui/form": "*",
+		"@clayui/slider": "*",
 		"@clayui/button": "*"
 
 	},
-	"description": "Liferay Sample FDS Rider Type Filter",
+	"description": "Liferay Sample FDS Rank Filter",
 	"devDependencies": {
-		"file-loader": "^6.2.0",
 		"ts-loader": "9.5.1",
 		"typescript": "^5.0.4",
 		"webpack": "5.90.1",
@@ -16,7 +14,7 @@
 		"webpack-dev-server": "4.15.1"
 	},
 	"main": "./src/index.ts",
-	"name": "@liferay/liferay-sample-fds-rider-type-filter",
+	"name": "@liferay/liferay-sample-fds-rank-filter",
 	"scripts": {
 		"build": "webpack",
 		"start": "webpack serve",

@@ -26,7 +26,6 @@ module.exports = {
 	externals: {
 		'react': 'react',
 		'react-dom': 'react-dom',
-		// TODO: clay externals
 	},
 	mode: DEVELOPMENT ? 'development' : 'production',
 	module: {
@@ -34,17 +33,6 @@ module.exports = {
 			{
 				test: /\.tsx$/i,
 				use: ['ts-loader'],
-			},
-			{
-				test: /\.(png|svg|jpg|jpeg|gif)$/i,
-				use: [
-					{
-						loader: 'file-loader',
-						options: {
-							outputPath: 'assets/',
-						},
-					}
-				],
 			},
 		],
 	},
