@@ -1,0 +1,25 @@
+{
+	"dependencies": {
+		"@liferay/js-api": "0.6.0",
+		"@clayui/layout": "*",
+		"@clayui/label": "*",
+		"@clayui/button": "*"
+
+	},
+	"description": "Liferay Sample FDS Rider Type Filter",
+	"devDependencies": {
+		"ts-loader": "9.5.1",
+		"typescript": "^5.0.4",
+		"webpack": "5.90.1",
+		"webpack-cli": "5.1.4",
+		"webpack-dev-server": "4.15.1"
+	},
+	"main": "./src/index.ts",
+	"name": "@liferay/liferay-sample-fds-rider-type-filter",
+	"scripts": {
+		"build": "webpack",
+		"start": "webpack serve",
+		"watch": "tsc --watch"
+	},
+	"version": "0.0.0"
+}

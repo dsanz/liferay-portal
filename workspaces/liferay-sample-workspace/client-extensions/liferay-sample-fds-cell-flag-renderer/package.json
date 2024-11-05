@@ -1,0 +1,23 @@
+{
+	"dependencies": {
+		"@liferay/js-api": "0.6.0",
+		"@clayui/icon": "*",
+		"@clayui/tooltip": "*",
+		"country-locale-map": "^1.9.8"
+	},
+	"description": "Liferay Frontend Data Set Cell Flag Renderer",
+	"devDependencies": {
+		"ts-loader": "9.5.1",
+		"typescript": "^5.0.4",
+		"webpack": "5.90.1",
+		"webpack-cli": "5.1.4",
+		"webpack-dev-server": "4.15.1"
+	},
+	"name": "@liferay/liferay-sample-fds-cell-flag-renderer",
+	"scripts": {
+		"build": "webpack",
+		"start": "webpack serve",
+		"watch": "tsc --watch"
+	},
+	"version": "0.0.0"
+}
