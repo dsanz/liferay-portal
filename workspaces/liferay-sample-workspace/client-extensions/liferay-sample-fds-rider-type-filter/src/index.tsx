@@ -7,25 +7,45 @@ import type {
 	FDSFilter,
 	FDSFilterHTMLElementBuilderArgs,
 } from '@liferay/js-api/data-set';
-import ClayLayout from '@clayui/layout';
 import ClayLabel from '@clayui/label';
 import ClayButton from '@clayui/button';
 import React, {useState, useEffect} from 'react';
 import ReactDOM from 'react-dom';
+// @ts-ignore
+import AllRounder from './assets/allrounder.png';
+// @ts-ignore
+import Climber from './assets/climber.png';
+// @ts-ignore
+import Sprinter from './assets/sprinter.png';
 
 // Declare the structure of the internal data that describes the filter state (in this case it will
 // be the plain odata string the user enters through the filter's UI).
 
 enum RiderType {
+	AllRounder = "AllRounder",
 	Climber = "Climber",
 	Sprinter = "Sprinter",
-	TimeTrialist = "Time Trialist"
+	None = "None"
+}
+
+const RiderTypeDescriptions = {
+	[`${RiderType.AllRounder}`]: "All Rounders",
+	[`${RiderType.Climber}`]: "Climbers",
+	[`${RiderType.Sprinter}`]: "Sprinters",
+	[`${RiderType.None}`]: "Everyone",
+
+}
+
+const RiderTypeImages = {
+	[`${RiderType.AllRounder}`]: AllRounder,
+	[`${RiderType.Climber}`]: Climber,
+	[`${RiderType.Sprinter}`]: Sprinter,
 }
 
 let theFieldName = ""
 
 function descriptionBuilder(selectedData: RiderType): string {
-	return selectedData;
+	return RiderTypeDescriptions[selectedData];
 }
 
 function htmlElementBuilder({
@@ -47,24 +67,39 @@ function Filter({selectedData, fieldName, setFilter}) {
 	useEffect(() => {
 		setFilter({
 			selectedData: selection
-		})
+		});
 	}, [selection]);
 
 	return (
-		<ClayLayout.Row size={12}>
-			Hello
-			{ Object.keys(RiderType).map(
+		<ClayButton.Group spaced={true} vertical={true}>
+			{ Object.keys(RiderType).filter((riderType) => riderType!= RiderType.None).map(
 				(riderType) => (
 					<ClayButton displayType={selection == riderType ? "primary" : "secondary"}
-						onClick={() => setSelection(riderType)}
+						onClick={() => {
+							if (selection != riderType) {
+								setSelection(riderType)
+							}
+							else {
+								setSelection(RiderType.None);
+							}
+						}
+					}
 					>
 						<ClayLabel displayType={'success'}>
-							{riderType}
+							{RiderTypeDescriptions[riderType]}
 						</ClayLabel>
+						<img src={RiderTypeImages[riderType]} width='25%'/>
 					</ClayButton>
 				))
 			}
-		</ClayLayout.Row>
+
+			<ClayButton borderless
+				onClick={() => setSelection(RiderType.None)}
+			>
+				Clear
+			</ClayButton>
+
+		</ClayButton.Group>
 	);
 }
 
@@ -77,7 +112,7 @@ function oDataQueryBuilder(selectedData: RiderType): string {
 	else if (selectedData == RiderType.Sprinter) {
 		expression = `${theFieldName} ge 5 and ${theFieldName} le 100`;
 	}
-	else if (selectedData == RiderType.TimeTrialist) {
+	else if (selectedData == RiderType.AllRounder) {
 		expression = `${theFieldName} ge 100`;
 	}
 	return expression;

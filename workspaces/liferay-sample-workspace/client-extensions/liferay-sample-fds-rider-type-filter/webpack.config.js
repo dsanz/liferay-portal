@@ -34,6 +34,17 @@ module.exports = {
 				test: /\.tsx$/i,
 				use: ['ts-loader'],
 			},
+			{
+				test: /\.(png|svg|jpg|jpeg|gif)$/i,
+				use: [
+					{
+						loader: 'file-loader',
+						options: {
+							outputPath: 'assets/',
+						},
+					}
+				],
+			},
 		],
 	},
 	optimization: {
