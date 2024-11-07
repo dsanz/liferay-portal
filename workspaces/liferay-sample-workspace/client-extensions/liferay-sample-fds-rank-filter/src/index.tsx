@@ -9,7 +9,7 @@ import type {
 } from '@liferay/js-api/data-set';
 import ClaySlider from '@clayui/slider';
 import ClayButton from '@clayui/button';
-import {ClayToggle} from '@clayui/form';
+import ClayForm, {ClayToggle} from '@clayui/form';
 import React, {useState, useEffect} from 'react';
 import ReactDOM from 'react-dom';
 import ClayButtonGroup from "@clayui/button/lib/Group";
@@ -22,6 +22,29 @@ type Range = {
 }
 
 let theFieldName = ""
+let translations = {};
+
+function debounce(func, wait, immediate=false) {
+let timeout;
+
+return () => {
+	const context = this;
+	const args = arguments;
+	function later() {
+		timeout = null;
+		if (!immediate) {
+			func.apply(context, args);
+		}
+	}
+	const callNow = immediate && !timeout;
+
+	clearTimeout(timeout);
+	timeout = setTimeout(later, wait);
+	if (callNow) {
+		func.apply(context, args);
+	}
+};
+}
 
 function descriptionBuilder(selectedData: Range): string {
 	return `from ${selectedData.from} to ${selectedData.to}`;
@@ -40,22 +63,51 @@ function htmlElementBuilder({
 	return div;
 }
 
+function Text({label, defaultValue} : {label: string, defaultValue: string}) {
+	// @ts-ignore
+	const locale = Liferay.ThemeDisplay.getBCP47LanguageId();
+	const [value, setValue] = useState((translations[locale] && translations[locale][label]) || defaultValue);
+
+	useEffect(() => {
+			if ((translations[locale] && translations[locale][label])) {
+				return;
+			}
+
+			// @ts-ignore
+			Liferay.Util.fetch(
+				`/o/language/v1.0/messages?key=${label}&languageId=${locale}`
+			).then((response) => response.json())
+			.then(({value}) => {
+				translations[locale] || (translations[locale] = {})
+
+				translations[locale][label]= value
+				setValue(value);
+			});
+		}
+	);
+
+	return (<>{value}</>);
+}
+
 function RangeSelector({selectedData, setFilter}) {
 	const [from, setFrom] = useState(selectedData?.from || 0);
 	const [to, setTo] = useState(selectedData?.to || 0);
 	const [lock, setLock] = useState(false);
 
 	useEffect(() => {
+		let newFrom = from;
+
 		if (from > to) {
-			setFrom(to)
+			newFrom = to;
+			setFrom(newFrom);
 		}
 
 		if (lock) {
-			setFilter({
+			debounce(setFilter({
 				selectedData: {
-					from,
+					from: newFrom,
 					to
-				}})
+				}}), 250);
 		}
 	}, [to]);
 
@@ -64,39 +116,65 @@ function RangeSelector({selectedData, setFilter}) {
 
 		if (to < from) {
 			newTo = from;
-			setTo(newTo)
+			setTo(newTo);
 		}
 
 		if (lock) {
-			setFilter({
+			debounce(setFilter({
 				selectedData: {
 					from,
 					to: newTo
-				}});
+				}}), 250);
 		}
 	}, [from])
 
 	return (
-		<div className="form-group">
-			<label htmlFor="slider-from">{"Minimum rank"}</label>
-			<ClaySlider onChange={(value) => setFrom(value)} min={0} max={1000} defaultValue={from} value={from} id="slider-from"/>
+		<ClayForm style={{padding: '0.75rem'}}>
+			<ClayForm.Group>
+				<label htmlFor="slider-from">{<Text label={'minimum'} defaultValue={'Minimum'}/>}</label>
+				<ClaySlider
+					id="slider-from"
+					defaultValue={from}
+					min={0}
+					max={1000}
+					onChange={(value) => setFrom(value)}
+					value={from}
+				/>
+			</ClayForm.Group>
 
-			<label htmlFor="slider-to">{"Maximum rank"}</label>
-			<ClaySlider onChange={(value) => setTo(value)}  min={0} max={1000} defaultValue={to} value={to} id="slider-to"/>
+			<ClayForm.Group>
+				<label htmlFor="slider-to">{"Maximum rank"}</label>
+				<ClaySlider
+					id="slider-to"
+					defaultValue={to}
+					min={0}
+					max={1000}
+					onChange={(value) => setTo(value)}
+					value={to}
+				/>
+			</ClayForm.Group>
 
-			<ClayButton disabled={lock}
-				onClick={() => setFilter({
+			<ClayForm.Group>
+				<ClayButton
+					disabled={lock}
+					onClick={() =>
+						setFilter({
 							selectedData: {
 								from,
 								to
 							}
 						})}
-			>
-				Apply
-			</ClayButton>
+				>
+					<Text label={'apply'} defaultValue={'Apply'}/>
+				</ClayButton>
 
-			<ClayToggle label="Lock" onToggle={setLock} toggled={lock} />
-		</div>
+				<ClayToggle
+					label={<Text label={'lock'} defaultValue={'Lock'}/>}
+					onToggle={setLock}
+					toggled={lock}
+				/>
+			</ClayForm.Group>
+		</ClayForm>
 	);
 }
 

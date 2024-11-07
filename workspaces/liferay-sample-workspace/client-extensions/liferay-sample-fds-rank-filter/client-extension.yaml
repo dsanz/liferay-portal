@@ -2,6 +2,6 @@ assemble:
     - from: build/static
       into: static
 liferay-sample-fds-rank-filter:
-    name: Liferay Sample FDS Rider Type Filter
+    name: Liferay Sample FDS Rank Filter
     type: fdsFilter
     url: index.*.js

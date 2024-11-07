@@ -17,6 +17,7 @@
 	"name": "@liferay/liferay-sample-fds-rank-filter",
 	"scripts": {
 		"build": "webpack",
+		"format": "tsc",
 		"start": "webpack serve",
 		"watch": "tsc --watch"
 	},
