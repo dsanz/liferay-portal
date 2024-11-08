@@ -191,7 +191,9 @@ module.exports = {
 					},
 					'frontend-editor-ckeditor-web': {
 						'/': '*',
+						'@ckeditor/ckeditor5-react': '*',
 						'ckeditor4-react': '*',
+						'ckeditor5': '*',
 					},
 					'frontend-js-components-web': {
 						'/': '*',
@@ -459,7 +461,11 @@ module.exports = {
 				'leaflet/dist/leaflet.css',
 			],
 			'frontend-editor-alloyeditor-web': [],
-			'frontend-editor-ckeditor-web': [],
+			'frontend-editor-ckeditor-web': [
+				'@ckeditor/ckeditor5-react',
+				'ckeditor5',
+				'ckeditor5/ckeditor5.css',
+			],
 			'frontend-js-components-web': [],
 			'frontend-js-node-shims': [
 				'assert',
