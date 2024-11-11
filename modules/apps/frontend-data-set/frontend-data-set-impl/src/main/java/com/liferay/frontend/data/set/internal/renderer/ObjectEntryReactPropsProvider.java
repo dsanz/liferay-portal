@@ -232,10 +232,8 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 			(ObjectEntry objectEntry) -> {
 				Map<String, Object> properties = objectEntry.getProperties();
 
-				String type = String.valueOf(properties.get("type"));
-
 				DataSetEntityImportPolicy dataSetEntityImportPolicy =
-					DataSetEntityImportPolicy.valueOf(type);
+					_getImportPolicy(String.valueOf(properties.get("type")));
 
 				if ((dataSetEntityImportPolicy != null) &&
 					(dataSetEntityImportPolicy !=
@@ -792,6 +790,17 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 			});
 	}
 
+	private DataSetEntityImportPolicy _getImportPolicy(String type) {
+		DataSetEntityImportPolicy dataSetEntityImportPolicy = null;
+
+		try {
+			dataSetEntityImportPolicy = DataSetEntityImportPolicy.valueOf(type);
+		}
+		finally {
+			return dataSetEntityImportPolicy;
+		}
+	}
+
 	private JSONArray _getItemsActionsJSONArray(
 			ObjectDefinition dataSetObjectDefinition,
 			ObjectEntry dataSetObjectEntry,
@@ -806,10 +815,8 @@ public class ObjectEntryReactPropsProvider implements ReactPropsProvider {
 			(ObjectEntry objectEntry) -> {
 				Map<String, Object> properties = objectEntry.getProperties();
 
-				String type = String.valueOf(properties.get("type"));
-
 				DataSetEntityImportPolicy dataSetEntityImportPolicy =
-					DataSetEntityImportPolicy.valueOf(type);
+					_getImportPolicy(String.valueOf(properties.get("type")));
 
 				if ((dataSetEntityImportPolicy != null) &&
 					(dataSetEntityImportPolicy !=
