@@ -11,7 +11,7 @@ import com.liferay.commerce.context.CommerceContext;
 import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
-import com.liferay.frontend.data.set.resolver.FDSAPIURLResolver;
+import com.liferay.frontend.data.set.url.builder.FDSAPIURLResolver;
 import com.liferay.portal.kernel.exception.PortalException;
 
 import javax.servlet.http.HttpServletRequest;

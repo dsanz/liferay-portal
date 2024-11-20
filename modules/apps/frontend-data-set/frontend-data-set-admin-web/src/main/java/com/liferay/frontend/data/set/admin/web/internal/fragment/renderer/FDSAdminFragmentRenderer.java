@@ -13,8 +13,8 @@ import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.frontend.data.set.constants.FDSEntityFieldTypes;
-import com.liferay.frontend.data.set.resolver.FDSAPIURLResolver;
-import com.liferay.frontend.data.set.resolver.FDSAPIURLResolverRegistry;
+import com.liferay.frontend.data.set.url.builder.FDSAPIURLBuilder;
+import com.liferay.frontend.data.set.url.builder.FDSAPIURLBuilderFactory;
 import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.model.ListTypeEntry;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
@@ -30,7 +30,6 @@ import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
@@ -235,6 +234,63 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 		}
 	}
 
+	private FDSAPIURLBuilder _addNestedFields(
+			FDSAPIURLBuilder fdsapiurlBuilder,
+			Set<ObjectEntry> dataSetTableSectionObjectEntries)
+		throws Exception {
+
+		if (dataSetTableSectionObjectEntries == null) {
+			return fdsapiurlBuilder;
+		}
+
+		String nestedFields = StringPool.BLANK;
+		int nestedFieldsDepth = 1;
+
+		for (ObjectEntry fdsFieldObjectEntry :
+				dataSetTableSectionObjectEntries) {
+
+			Map<String, Object> properties =
+				fdsFieldObjectEntry.getProperties();
+
+			String[] fieldNameList = StringUtil.split(
+				StringUtil.replace(
+					String.valueOf(properties.get("fieldName")), "[]",
+					StringPool.PERIOD),
+				CharPool.PERIOD);
+
+			if (fieldNameList.length > 1) {
+				String[] fieldsName = new String[fieldNameList.length - 1];
+
+				System.arraycopy(
+					fieldNameList, 0, fieldsName, 0, fieldNameList.length - 1);
+
+				for (String fieldName : fieldsName) {
+					nestedFields = StringUtil.add(nestedFields, fieldName);
+				}
+
+				if (fieldNameList.length > nestedFieldsDepth) {
+					nestedFieldsDepth = fieldNameList.length - 1;
+				}
+			}
+		}
+
+		if (nestedFields.equals(StringPool.BLANK)) {
+			return fdsapiurlBuilder;
+		}
+
+		fdsapiurlBuilder.addParameter(
+			"nestedFields",
+			StringUtil.replaceLast(
+				nestedFields, CharPool.COMMA, StringPool.BLANK));
+
+		if (nestedFieldsDepth > 1) {
+			fdsapiurlBuilder.addParameter(
+				"nestedFieldsDepth", String.valueOf(nestedFieldsDepth));
+		}
+
+		return fdsapiurlBuilder;
+	}
+
 	private String _buildFragmentHTML(
 			ObjectDefinition dataSetObjectDefinition,
 			ObjectEntry dataSetObjectEntry,
@@ -330,27 +386,16 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 			HttpServletRequest httpServletRequest)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(3);
-
-		sb.append("/o");
-
 		Map<String, Object> properties = dataSetObjectEntry.getProperties();
 
-		String restApplication = String.valueOf(
-			properties.get("restApplication"));
+		FDSAPIURLBuilder fdsAPIURLBuilder = _fdsAPIURLBuilderFactory.create(
+			String.valueOf(properties.get("restEndpoint")),
+			String.valueOf(properties.get("restApplication")),
+			String.valueOf(properties.get("restSchema")), httpServletRequest);
 
-		sb.append(
-			StringUtil.replaceLast(restApplication, "/v1.0", StringPool.BLANK));
-
-		sb.append(String.valueOf(properties.get("restEndpoint")));
-
-		return _resolveParameters(
-			_interpolateURL(
-				_getNestedFields(
-					sb.toString(), dataSetTableSectionObjectEntries),
-				httpServletRequest),
-			restApplication, String.valueOf(properties.get("restSchema")),
-			httpServletRequest);
+		return _addNestedFields(
+			fdsAPIURLBuilder, dataSetTableSectionObjectEntries
+		).build();
 	}
 
 	private JSONObject _getCreationMenuJSONObject(
@@ -853,65 +898,6 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 		return String.valueOf(dataSetTableSectionProperties.get(fallbackKey));
 	}
 
-	private String _getNestedFields(
-			String apiURL, Set<ObjectEntry> dataSetTableSectionObjectEntries)
-		throws Exception {
-
-		if (dataSetTableSectionObjectEntries == null) {
-			return apiURL;
-		}
-
-		String nestedFields = StringPool.BLANK;
-		int nestedFieldsDepth = 1;
-
-		for (ObjectEntry fdsFieldObjectEntry :
-				dataSetTableSectionObjectEntries) {
-
-			Map<String, Object> properties =
-				fdsFieldObjectEntry.getProperties();
-
-			String[] fieldNameList = StringUtil.split(
-				StringUtil.replace(
-					String.valueOf(properties.get("fieldName")), "[]",
-					StringPool.PERIOD),
-				CharPool.PERIOD);
-
-			if (fieldNameList.length > 1) {
-				String[] fieldsName = new String[fieldNameList.length - 1];
-
-				System.arraycopy(
-					fieldNameList, 0, fieldsName, 0, fieldNameList.length - 1);
-
-				for (String fieldName : fieldsName) {
-					nestedFields = StringUtil.add(nestedFields, fieldName);
-				}
-
-				if (fieldNameList.length > nestedFieldsDepth) {
-					nestedFieldsDepth = fieldNameList.length - 1;
-				}
-			}
-		}
-
-		if (nestedFields.equals(StringPool.BLANK)) {
-			return apiURL;
-		}
-
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(apiURL);
-		sb.append("?nestedFields=");
-		sb.append(
-			StringUtil.replaceLast(
-				nestedFields, CharPool.COMMA, StringPool.BLANK));
-
-		if (nestedFieldsDepth > 1) {
-			sb.append("&nestedFieldsDepth=");
-			sb.append(nestedFieldsDepth);
-		}
-
-		return sb.toString();
-	}
-
 	private ObjectEntry _getObjectEntry(
 			long companyId, String externalReferenceCode,
 			ObjectDefinition dataSetObjectDefinition)
@@ -1102,50 +1088,6 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 		return jsonObject;
 	}
 
-	private String _interpolateURL(
-		String apiURL, HttpServletRequest httpServletRequest) {
-
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		apiURL = StringUtil.replace(
-			apiURL, "{siteId}", String.valueOf(themeDisplay.getScopeGroupId()));
-		apiURL = StringUtil.replace(
-			apiURL, "{scopeKey}",
-			String.valueOf(themeDisplay.getScopeGroupId()));
-		apiURL = StringUtil.replace(
-			apiURL, "{userId}", String.valueOf(themeDisplay.getUserId()));
-
-		if (StringUtil.contains(apiURL, "{") && _log.isWarnEnabled()) {
-			_log.warn("Unsupported parameter in API URL: " + apiURL);
-		}
-
-		return apiURL;
-	}
-
-	private String _resolveParameters(
-		String apiURL, String restApplication, String restSchema,
-		HttpServletRequest httpServletRequest) {
-
-		FDSAPIURLResolver fdsAPIURLResolver =
-			_fdsAPIURLResolverRegistry.getFDSAPIURLResolver(
-				restApplication, restSchema);
-
-		if (fdsAPIURLResolver != null) {
-			try {
-				return fdsAPIURLResolver.resolve(apiURL, httpServletRequest);
-			}
-			catch (PortalException portalException) {
-				_log.error(portalException);
-
-				return apiURL;
-			}
-		}
-
-		return apiURL;
-	}
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		FDSAdminFragmentRenderer.class);
 
@@ -1159,7 +1101,7 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 	private ObjectEntryManagerRegistry _dataSetObjectEntryManagerRegistry;
 
 	@Reference
-	private FDSAPIURLResolverRegistry _fdsAPIURLResolverRegistry;
+	private FDSAPIURLBuilderFactory _fdsAPIURLBuilderFactory;
 
 	@Reference
 	private FragmentEntryConfigurationParser _fragmentEntryConfigurationParser;
