@@ -34,7 +34,7 @@ export interface SetFilterArgs {
 	active?: boolean;
 	id?: string;
 	odataFilterString?: string;
-	selectedData?: unknown;
+	selectedData?: Object;
 }
 
 interface FilterConfiguration {
@@ -74,6 +74,19 @@ function getFakeComponent() {
 const Filter = ({id, moduleURL, type, ...otherProps}: FilterComponentArgs) => {
 	const [{filters}, viewsDispatch] = useContext(ViewsContext);
 
+	//const [stringifiedSelectedData, setStringifiedSelectedData] = useState(JSON.stringify(selectedData));
+
+	const [selectedData, setSelectedData] = useState(
+		filters.find(
+			(filter: FilterConfiguration) => filter.id === id
+		)?.selectedData);
+
+	/*useEffect(() => {
+		setStringifiedSelectedData(JSON.stringify(selectedData));
+	}, [selectedData]);*/
+
+	console.log("Filter id: " + id + " selectedData: " + selectedData);
+
 	const filterImplementation = FILTER_IMPLEMENTATIONS[type];
 
 	if (!filterImplementation) {
@@ -105,7 +118,7 @@ const Filter = ({id, moduleURL, type, ...otherProps}: FilterComponentArgs) => {
 			...filters.find(
 				(filter: FilterConfiguration) => filter.id === filterId
 			),
-			selectedData,
+			selectedData: {...selectedData},
 			...otherProps,
 		};
 
@@ -124,7 +137,7 @@ const Filter = ({id, moduleURL, type, ...otherProps}: FilterComponentArgs) => {
 
 	return Component ? (
 		<div className="data-set-filter">
-			<Component id={id} setFilter={setFilter} {...otherProps} />
+			<Component id={id} selectedData={selectedData} setFilter={setFilter} {...otherProps} />
 		</div>
 	) : (
 		<ClayLoadingIndicator size="sm" />

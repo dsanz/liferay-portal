@@ -7,7 +7,7 @@ import ClayButton from '@clayui/button';
 import ClayDropDown from '@clayui/drop-down';
 import ClayForm from '@clayui/form';
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {
 	formatDateObject,
@@ -114,12 +114,33 @@ const DateRangeFilter = ({
 	selectedData,
 	setFilter,
 }: DateRangeFilterImplementationArgs) => {
+	console.log("DATE renderer called");
 	const [fromValue, setFromValue] = useState(
 		selectedData?.from && formatDateObject(selectedData.from)
 	);
 	const [toValue, setToValue] = useState(
 		selectedData?.to && formatDateObject(selectedData.to)
 	);
+
+	/*const [selection, setSelection] = useState(selectedData);
+
+	useEffect(() => {
+		if (selection) {
+			if (!selectedData || (selection != selectedData)) {
+				setFilter({
+					selectedData: selection
+				});
+			}
+		}
+	}, [selection]);*/
+
+	//const [stringifiedSelectedData, setStringifiedSelectedData] = useState(JSON.stringify(selectedData));
+
+	useEffect(() => {
+		//setStringifiedSelectedData(JSON.stringify(selectedData));
+		setFromValue(selectedData?.from && formatDateObject(selectedData.from));
+		setToValue(selectedData?.to && formatDateObject(selectedData.to))
+	}, [selectedData]);
 
 	let actionType = 'edit';
 

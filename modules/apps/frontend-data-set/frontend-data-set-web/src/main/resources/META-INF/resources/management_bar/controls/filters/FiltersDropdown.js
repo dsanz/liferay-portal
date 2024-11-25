@@ -35,6 +35,8 @@ const FiltersDropdown = () => {
 		setFilters(initialFilters);
 	}, [initialFilters]);
 
+	// get selected data
+
 	return (
 		<ClayDropDown
 			active={active}

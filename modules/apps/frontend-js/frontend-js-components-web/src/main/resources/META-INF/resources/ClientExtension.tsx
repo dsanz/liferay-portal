@@ -4,7 +4,8 @@
  */
 
 import ClayLoadingIndicator from '@clayui/loading-indicator';
-import React, {useEffect, useRef} from 'react';
+import React, {forwardRef, useEffect, useRef, useState} from 'react';
+import ReactDOM from 'react-dom';
 
 export interface IHTMLElementBuilder<T> {
 	(args: T): HTMLElement;
@@ -15,20 +16,22 @@ interface IClientExtensionProps<T> {
 	htmlElementBuilder?: IHTMLElementBuilder<T>;
 }
 
+const CXWrapper = forwardRef(
+	function CXWrapper<T>(props: any, ref: any) {
+		return (<div ref={ref}></div>);
+	});
+
 export default function ClientExtension<T>({
 	args,
 	htmlElementBuilder,
 }: IClientExtensionProps<T>): React.ReactElement {
 	const containerRef = useRef<HTMLDivElement>(null);
+	const [stringifiedArgs, setStringfiedArgs] = useState(JSON.stringify(args));
 
 	useEffect(() => {
 		const {current} = containerRef;
 
 		if (current && htmlElementBuilder) {
-			while (current.firstChild) {
-				current.removeChild(current.firstChild);
-			}
-
 			try {
 				current.appendChild(htmlElementBuilder(args));
 			}
@@ -42,12 +45,17 @@ export default function ClientExtension<T>({
 				);
 			}
 		}
-
+		return (() => {
+				if (containerRef?.current) {
+					ReactDOM.unmountComponentAtNode(containerRef.current);
+				}
+			}
+		)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [htmlElementBuilder]);
+	}, [htmlElementBuilder, stringifiedArgs]);
 
 	return htmlElementBuilder ? (
-		<div ref={containerRef}></div>
+		<CXWrapper ref={containerRef} />
 	) : (
 		<ClayLoadingIndicator />
 	);

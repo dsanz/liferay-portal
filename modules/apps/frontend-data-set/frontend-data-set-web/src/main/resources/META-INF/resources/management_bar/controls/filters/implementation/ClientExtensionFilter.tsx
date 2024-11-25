@@ -120,7 +120,7 @@ function ClientExtensionFilter({
 	const [htmlElementBuilder, setHTMLElementBuilder] = useState<
 		ClientExtensionFilterHTMLElementBuilder | undefined
 	>(undefined);
-
+	console.log("CX selectedData " + selectedData + " htmlBuilder: " + htmlElementBuilder?.name);
 	useEffect(() => {
 		if (!clientExtensionFilterImplementation) {
 			setHTMLElementBuilder(undefined);
@@ -150,6 +150,7 @@ function ClientExtensionFilter({
 
 	return (
 		<ClientExtension
+			key={Math.random()}
 			args={{
 				fieldName: id,
 				filter: {
