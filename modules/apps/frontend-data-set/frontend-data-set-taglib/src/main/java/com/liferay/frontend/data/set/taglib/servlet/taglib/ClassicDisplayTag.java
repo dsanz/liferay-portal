@@ -7,8 +7,8 @@ package com.liferay.frontend.data.set.taglib.servlet.taglib;
 
 import com.liferay.frontend.data.set.model.FDSSortItem;
 import com.liferay.frontend.data.set.model.FDSSortItemList;
+import com.liferay.frontend.data.set.serializer.FDSViewSerializer;
 import com.liferay.frontend.data.set.taglib.internal.servlet.ServletContextUtil;
-import com.liferay.frontend.data.set.view.FDSViewSerializer;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.petra.string.StringBundler;

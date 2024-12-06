@@ -7,7 +7,7 @@ package com.liferay.frontend.data.set.sample.web.internal.display.context;
 
 import com.liferay.frontend.data.set.sample.web.internal.constants.FDSSampleFDSNames;
 import com.liferay.frontend.data.set.sample.web.internal.view.util.FDSViewSerializerUtil;
-import com.liferay.frontend.data.set.view.FDSViewSerializer;
+import com.liferay.frontend.data.set.serializer.FDSViewSerializer;
 import com.liferay.portal.kernel.util.PortalUtil;
 
 import javax.servlet.http.HttpServletRequest;

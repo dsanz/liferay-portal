@@ -5,8 +5,8 @@
 
 package com.liferay.frontend.data.set.taglib.internal.servlet;
 
-import com.liferay.frontend.data.set.filter.FDSFilterSerializer;
-import com.liferay.frontend.data.set.view.FDSViewSerializer;
+import com.liferay.frontend.data.set.serializer.FDSFilterSerializer;
+import com.liferay.frontend.data.set.serializer.FDSViewSerializer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.module.service.Snapshot;

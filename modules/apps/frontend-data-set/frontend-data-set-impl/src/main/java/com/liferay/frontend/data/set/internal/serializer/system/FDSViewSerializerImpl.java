@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.frontend.data.set.internal.view;
+package com.liferay.frontend.data.set.internal.serializer.system;
 
+import com.liferay.frontend.data.set.serializer.FDSViewSerializer;
 import com.liferay.frontend.data.set.view.FDSView;
 import com.liferay.frontend.data.set.view.FDSViewContextContributor;
 import com.liferay.frontend.data.set.view.FDSViewContextContributorRegistry;
 import com.liferay.frontend.data.set.view.FDSViewRegistry;
-import com.liferay.frontend.data.set.view.FDSViewSerializer;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
