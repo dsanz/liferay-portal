@@ -5,11 +5,13 @@
 
 package com.liferay.frontend.data.set.serializer;
 
-import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
+
+import java.util.List;
 
 /**
  * @author Daniel Sanz
  */
 public interface FDSItemActionListSerializer
-	extends FDSSerializer<JSONArray> {
+	extends FDSSerializer<List<FDSActionDropdownItem>> {
 }
