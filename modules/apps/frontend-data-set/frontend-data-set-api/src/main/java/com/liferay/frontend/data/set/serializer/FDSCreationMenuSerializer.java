@@ -5,11 +5,10 @@
 
 package com.liferay.frontend.data.set.serializer;
 
-import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 
 /**
  * @author Daniel Sanz
  */
-public interface FDSCreationMenuSerializer
-	extends FDSSerializer<JSONObject> {
+public interface FDSCreationMenuSerializer extends FDSSerializer<CreationMenu> {
 }

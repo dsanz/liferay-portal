@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface FDSSerializer<T> {
 
-	public T serialize(
-		String fdsName, HttpServletRequest httpServletRequest);
+	public T serialize(String fdsName, HttpServletRequest httpServletRequest);
 
 }
