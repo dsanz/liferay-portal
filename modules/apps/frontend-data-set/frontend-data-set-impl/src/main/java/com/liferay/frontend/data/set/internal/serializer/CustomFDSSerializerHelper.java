@@ -153,6 +153,15 @@ public class CustomFDSSerializerHelper {
 		return String.valueOf(dataSetTableSectionProperties.get(fallbackKey));
 	}
 
+	public Set<ObjectEntry> getSortObjectEntries(
+		String externalReferenceCode, HttpServletRequest httpServletRequest) {
+
+		return _getSortedRelatedObjectEntries(
+			getDataSetObjectDefinition(httpServletRequest),
+			getDataSetObjectEntry(externalReferenceCode, httpServletRequest),
+			"sortsOrder", (Predicate)null, "dataSetToDataSetSorts");
+	}
+
 	private ObjectEntry _getObjectEntry(
 		long companyId, String externalReferenceCode,
 		ObjectDefinition dataSetObjectDefinition) {
@@ -178,7 +187,7 @@ public class CustomFDSSerializerHelper {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to get data set object entry with ERC " +
-					externalReferenceCode,
+						externalReferenceCode,
 					exception);
 			}
 		}
@@ -221,7 +230,7 @@ public class CustomFDSSerializerHelper {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to get related object entries for " +
-					relationshipName,
+						relationshipName,
 					exception);
 			}
 		}
