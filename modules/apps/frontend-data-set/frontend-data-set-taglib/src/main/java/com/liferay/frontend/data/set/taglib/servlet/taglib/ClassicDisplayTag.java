@@ -7,7 +7,7 @@ package com.liferay.frontend.data.set.taglib.servlet.taglib;
 
 import com.liferay.frontend.data.set.model.FDSSortItem;
 import com.liferay.frontend.data.set.model.FDSSortItemList;
-import com.liferay.frontend.data.set.serializer.FDSViewSerializer;
+import com.liferay.frontend.data.set.serializer.SystemFDSViewSerializer;
 import com.liferay.frontend.data.set.taglib.internal.servlet.ServletContextUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
@@ -226,7 +226,8 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 
 	@Override
 	public void setPageContext(PageContext pageContext) {
-		_fdsViewSerializer = ServletContextUtil.getFDSViewSerializer();
+		_systemFDSViewSerializer =
+			ServletContextUtil.getSystemFDSViewSerializer();
 
 		super.setPageContext(pageContext);
 
@@ -285,7 +286,6 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 		_dataSetDisplayViewsContext = null;
 		_deltaParam = null;
 		_fdsSortItemList = new FDSSortItemList();
-		_fdsViewSerializer = null;
 		_formId = null;
 		_formName = null;
 		_nestedItemsKey = null;
@@ -298,6 +298,7 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 		_showPagination = true;
 		_showSearch = true;
 		_style = "default";
+		_systemFDSViewSerializer = null;
 	}
 
 	@Override
@@ -373,7 +374,7 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 	}
 
 	private void _setDataSetDisplayViewsContext() {
-		_dataSetDisplayViewsContext = _fdsViewSerializer.serialize(
+		_dataSetDisplayViewsContext = _systemFDSViewSerializer.serialize(
 			getId(), PortalUtil.getLocale(getRequest()));
 	}
 
@@ -399,7 +400,6 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 	private Object _dataSetDisplayViewsContext;
 	private String _deltaParam;
 	private FDSSortItemList _fdsSortItemList = new FDSSortItemList();
-	private FDSViewSerializer _fdsViewSerializer;
 	private String _formId;
 	private String _formName;
 	private String _nestedItemsKey;
@@ -412,5 +412,6 @@ public class ClassicDisplayTag extends BaseDisplayTag {
 	private boolean _showPagination = true;
 	private boolean _showSearch = true;
 	private String _style = "default";
+	private SystemFDSViewSerializer _systemFDSViewSerializer;
 
 }

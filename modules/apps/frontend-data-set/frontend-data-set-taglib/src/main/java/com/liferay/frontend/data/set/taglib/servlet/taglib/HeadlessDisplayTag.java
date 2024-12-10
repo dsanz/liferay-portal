@@ -9,8 +9,8 @@ import com.liferay.frontend.data.set.filter.FDSFilter;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.data.set.model.FDSSortItem;
 import com.liferay.frontend.data.set.model.FDSSortItemList;
-import com.liferay.frontend.data.set.serializer.FDSViewSerializer;
 import com.liferay.frontend.data.set.serializer.SystemFDSFilterSerializer;
+import com.liferay.frontend.data.set.serializer.SystemFDSViewSerializer;
 import com.liferay.frontend.data.set.taglib.internal.servlet.ServletContextUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
@@ -197,7 +197,8 @@ public class HeadlessDisplayTag extends BaseDisplayTag {
 
 	@Override
 	public void setPageContext(PageContext pageContext) {
-		_fdsViewSerializer = ServletContextUtil.getFDSViewSerializer();
+		_systemFDSViewSerializer =
+			ServletContextUtil.getSystemFDSViewSerializer();
 
 		_systemFDSFilterSerializer =
 			ServletContextUtil.getSystemFDSFilterSerializer();
@@ -260,7 +261,6 @@ public class HeadlessDisplayTag extends BaseDisplayTag {
 		_fdsFiltersContext = null;
 		_fdsSortItemList = new FDSSortItemList();
 		_fdsViewsContext = null;
-		_fdsViewSerializer = null;
 		_formId = null;
 		_formName = null;
 		_nestedItemsKey = null;
@@ -274,6 +274,7 @@ public class HeadlessDisplayTag extends BaseDisplayTag {
 		_showSearch = true;
 		_style = "default";
 		_systemFDSFilterSerializer = null;
+		_systemFDSViewSerializer = null;
 	}
 
 	@Override
@@ -358,7 +359,7 @@ public class HeadlessDisplayTag extends BaseDisplayTag {
 	}
 
 	private void _setFDSViewsContext() {
-		_fdsViewsContext = _fdsViewSerializer.serialize(
+		_fdsViewsContext = _systemFDSViewSerializer.serialize(
 			getId(), PortalUtil.getLocale(getRequest()));
 	}
 
@@ -386,7 +387,6 @@ public class HeadlessDisplayTag extends BaseDisplayTag {
 	private Object _fdsFiltersContext;
 	private FDSSortItemList _fdsSortItemList = new FDSSortItemList();
 	private Object _fdsViewsContext;
-	private FDSViewSerializer _fdsViewSerializer;
 	private String _formId;
 	private String _formName;
 	private String _nestedItemsKey;
@@ -400,5 +400,6 @@ public class HeadlessDisplayTag extends BaseDisplayTag {
 	private boolean _showSearch = true;
 	private String _style = "default";
 	private SystemFDSFilterSerializer _systemFDSFilterSerializer;
+	private SystemFDSViewSerializer _systemFDSViewSerializer;
 
 }

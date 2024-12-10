@@ -5,7 +5,7 @@
 
 package com.liferay.frontend.data.set.sample.web.internal.view.util;
 
-import com.liferay.frontend.data.set.serializer.FDSViewSerializer;
+import com.liferay.frontend.data.set.serializer.SystemFDSViewSerializer;
 import com.liferay.portal.kernel.module.service.Snapshot;
 
 /**
@@ -13,12 +13,12 @@ import com.liferay.portal.kernel.module.service.Snapshot;
  */
 public class FDSViewSerializerUtil {
 
-	public static FDSViewSerializer getFDSViewSerializer() {
-		return _fdsViewSerializerSnapshot.get();
+	public static SystemFDSViewSerializer getSystemFDSViewSerializer() {
+		return _systemFDSViewSerializerSnapshot.get();
 	}
 
-	private static final Snapshot<FDSViewSerializer>
-		_fdsViewSerializerSnapshot = new Snapshot<>(
-			FDSViewSerializerUtil.class, FDSViewSerializer.class);
+	private static final Snapshot<SystemFDSViewSerializer>
+		_systemFDSViewSerializerSnapshot = new Snapshot<>(
+			FDSViewSerializerUtil.class, SystemFDSViewSerializer.class);
 
 }

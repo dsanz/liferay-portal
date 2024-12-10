@@ -60,6 +60,24 @@ public class CustomFDSSerializerHelper {
 			"dataSetToDataSetActions");
 	}
 
+	public Collection<ObjectEntry> getDataSetCardSectionObjectEntries(
+		String externalReferenceCode, HttpServletRequest httpServletRequest) {
+
+		return _getRelatedObjectEntries(
+			getDataSetObjectDefinition(httpServletRequest),
+			getDataSetObjectEntry(externalReferenceCode, httpServletRequest),
+			null, "dataSetToDataSetCardsSections");
+	}
+
+	public Collection<ObjectEntry> getDataSetListSectionObjectEntries(
+		String externalReferenceCode, HttpServletRequest httpServletRequest) {
+
+		return _getRelatedObjectEntries(
+			getDataSetObjectDefinition(httpServletRequest),
+			getDataSetObjectEntry(externalReferenceCode, httpServletRequest),
+			null, "dataSetToDataSetListSections");
+	}
+
 	public ObjectDefinition getDataSetObjectDefinition(
 		HttpServletRequest httpServletRequest) {
 

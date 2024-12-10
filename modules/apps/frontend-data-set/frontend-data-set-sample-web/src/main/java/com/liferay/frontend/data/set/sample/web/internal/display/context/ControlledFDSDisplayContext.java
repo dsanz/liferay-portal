@@ -8,7 +8,7 @@ package com.liferay.frontend.data.set.sample.web.internal.display.context;
 import com.liferay.frontend.data.set.sample.web.internal.constants.FDSSampleFDSNames;
 import com.liferay.frontend.data.set.sample.web.internal.model.UserEntry;
 import com.liferay.frontend.data.set.sample.web.internal.view.util.FDSViewSerializerUtil;
-import com.liferay.frontend.data.set.serializer.FDSViewSerializer;
+import com.liferay.frontend.data.set.serializer.SystemFDSViewSerializer;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -42,10 +42,10 @@ public class ControlledFDSDisplayContext {
 	}
 
 	public Object getViews() {
-		FDSViewSerializer fdsViewSerializer =
-			FDSViewSerializerUtil.getFDSViewSerializer();
+		SystemFDSViewSerializer systemFDSViewSerializer =
+			FDSViewSerializerUtil.getSystemFDSViewSerializer();
 
-		return fdsViewSerializer.serialize(
+		return systemFDSViewSerializer.serialize(
 			FDSSampleFDSNames.CONTROLLED,
 			PortalUtil.getLocale(_httpServletRequest));
 	}

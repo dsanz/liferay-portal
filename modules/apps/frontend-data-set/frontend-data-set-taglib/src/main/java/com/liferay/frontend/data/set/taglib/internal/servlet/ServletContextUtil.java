@@ -5,8 +5,8 @@
 
 package com.liferay.frontend.data.set.taglib.internal.servlet;
 
-import com.liferay.frontend.data.set.serializer.FDSViewSerializer;
 import com.liferay.frontend.data.set.serializer.SystemFDSFilterSerializer;
+import com.liferay.frontend.data.set.serializer.SystemFDSViewSerializer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.module.service.Snapshot;
@@ -49,10 +49,6 @@ public class ServletContextUtil {
 		return sb.toString();
 	}
 
-	public static FDSViewSerializer getFDSViewSerializer() {
-		return _fdsViewSerializerSnapshot.get();
-	}
-
 	public static ServletContext getServletContext() {
 		return _servletContextSnapshot.get();
 	}
@@ -61,9 +57,10 @@ public class ServletContextUtil {
 		return _systemFDSFilterSerializerSnapshot.get();
 	}
 
-	private static final Snapshot<FDSViewSerializer>
-		_fdsViewSerializerSnapshot = new Snapshot<>(
-			ServletContextUtil.class, FDSViewSerializer.class);
+	public static SystemFDSViewSerializer getSystemFDSViewSerializer() {
+		return _systemFDSViewSerializerSnapshot.get();
+	}
+
 	private static final Snapshot<Portal> _portalSnapshot = new Snapshot<>(
 		ServletContextUtil.class, Portal.class);
 	private static final Snapshot<ServletContext> _servletContextSnapshot =
@@ -73,5 +70,8 @@ public class ServletContextUtil {
 	private static final Snapshot<SystemFDSFilterSerializer>
 		_systemFDSFilterSerializerSnapshot = new Snapshot<>(
 			ServletContextUtil.class, SystemFDSFilterSerializer.class);
+	private static final Snapshot<SystemFDSViewSerializer>
+		_systemFDSViewSerializerSnapshot = new Snapshot<>(
+			ServletContextUtil.class, SystemFDSViewSerializer.class);
 
 }

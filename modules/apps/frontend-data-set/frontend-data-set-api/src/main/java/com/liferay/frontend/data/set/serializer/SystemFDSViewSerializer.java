@@ -7,8 +7,13 @@ package com.liferay.frontend.data.set.serializer;
 
 import com.liferay.portal.kernel.json.JSONArray;
 
+import java.util.Locale;
+
 /**
- * @author Daniel Sanz
+ * @author Marco Leo
  */
-public interface FDSViewSerializer extends FDSSerializer<JSONArray> {
+public interface SystemFDSViewSerializer extends FDSViewSerializer {
+
+	public JSONArray serialize(String fdsName, Locale locale);
+
 }

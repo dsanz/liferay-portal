@@ -5,7 +5,9 @@
 
 package com.liferay.frontend.data.set.internal.serializer.system;
 
+import com.liferay.frontend.data.set.constants.FDSTypes;
 import com.liferay.frontend.data.set.serializer.FDSViewSerializer;
+import com.liferay.frontend.data.set.serializer.SystemFDSViewSerializer;
 import com.liferay.frontend.data.set.view.FDSView;
 import com.liferay.frontend.data.set.view.FDSViewContextContributor;
 import com.liferay.frontend.data.set.view.FDSViewContextContributorRegistry;
@@ -15,11 +17,14 @@ import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -27,8 +32,18 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Marco Leo
  */
-@Component(service = FDSViewSerializer.class)
-public class FDSViewSerializerImpl implements FDSViewSerializer {
+@Component(
+	property = "dataset.type=" + FDSTypes.SYSTEM,
+	service = FDSViewSerializer.class
+)
+public class SystemFDSViewSerializerImpl implements SystemFDSViewSerializer {
+
+	@Override
+	public JSONArray serialize(
+		String fdsName, HttpServletRequest httpServletRequest) {
+
+		return serialize(fdsName, _portal.getLocale(httpServletRequest));
+	}
 
 	@Override
 	public JSONArray serialize(String fdsName, Locale locale) {
@@ -98,5 +113,8 @@ public class FDSViewSerializerImpl implements FDSViewSerializer {
 
 	@Reference
 	private Language _language;
+
+	@Reference
+	private Portal _portal;
 
 }
