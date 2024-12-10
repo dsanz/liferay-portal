@@ -5,18 +5,10 @@
 
 package com.liferay.frontend.data.set.serializer;
 
-import com.liferay.frontend.data.set.filter.FDSFilter;
 import com.liferay.portal.kernel.json.JSONArray;
 
-import java.util.List;
-import java.util.Locale;
-
 /**
- * @author Marco Leo
+ * @author Daniel Sanz
  */
 public interface FDSFilterSerializer extends FDSSerializer<JSONArray> {
-
-	public JSONArray serialize(
-		String fdsDisplayName, List<FDSFilter> fdsFilters, Locale locale);
-
 }

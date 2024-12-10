@@ -5,22 +5,28 @@
 
 package com.liferay.frontend.data.set.internal.serializer.system;
 
+import com.liferay.frontend.data.set.constants.FDSTypes;
 import com.liferay.frontend.data.set.filter.FDSFilter;
 import com.liferay.frontend.data.set.filter.FDSFilterContextContributor;
 import com.liferay.frontend.data.set.filter.FDSFilterContextContributorRegistry;
 import com.liferay.frontend.data.set.filter.FDSFilterRegistry;
 import com.liferay.frontend.data.set.serializer.FDSFilterSerializer;
+import com.liferay.frontend.data.set.serializer.SystemFDSFilterSerializer;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -28,19 +34,31 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Marco Leo
  */
-@Component(service = FDSFilterSerializer.class)
-public class FDSFilterSerializerImpl implements FDSFilterSerializer {
+@Component(
+	property = "dataset.type=" + FDSTypes.SYSTEM,
+	service = FDSFilterSerializer.class
+)
+public class SystemFDSFilterSerializerImpl
+	implements SystemFDSFilterSerializer {
 
 	@Override
 	public JSONArray serialize(
-		String fdsDisplayName, List<FDSFilter> fdsFilters, Locale locale) {
+		String fdsName, HttpServletRequest httpServletRequest) {
+
+		return serialize(
+			fdsName, Collections.emptyList(),
+			_portal.getLocale(httpServletRequest));
+	}
+
+	@Override
+	public JSONArray serialize(
+		String fdsName, List<FDSFilter> fdsFilters, Locale locale) {
 
 		JSONArray jsonArray = _jsonFactory.createJSONArray();
 
 		_serialize(fdsFilters, jsonArray, locale);
 		_serialize(
-			_fdsFilterRegistry.getFDSFilters(fdsDisplayName), jsonArray,
-			locale);
+			_fdsFilterRegistry.getFDSFilters(fdsName), jsonArray, locale);
 
 		return jsonArray;
 	}
@@ -106,5 +124,8 @@ public class FDSFilterSerializerImpl implements FDSFilterSerializer {
 
 	@Reference
 	private Language _language;
+
+	@Reference
+	private Portal _portal;
 
 }
