@@ -153,6 +153,15 @@ public class CustomFDSSerializerHelper {
 		return String.valueOf(dataSetTableSectionProperties.get(fallbackKey));
 	}
 
+	public Set<ObjectEntry> getSortObjectEntries(
+		String externalReferenceCode, HttpServletRequest httpServletRequest) {
+
+		return _getSortedRelatedObjectEntries(
+			getDataSetObjectDefinition(httpServletRequest),
+			getDataSetObjectEntry(externalReferenceCode, httpServletRequest),
+			"sortsOrder", (Predicate)null, "dataSetToDataSetSorts");
+	}
+
 	private ObjectEntry _getObjectEntry(
 		long companyId, String externalReferenceCode,
 		ObjectDefinition dataSetObjectDefinition) {
