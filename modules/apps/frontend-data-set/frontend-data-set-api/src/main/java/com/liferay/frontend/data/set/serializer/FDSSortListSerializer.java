@@ -5,10 +5,13 @@
 
 package com.liferay.frontend.data.set.serializer;
 
-import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.frontend.data.set.model.FDSSortItem;
+
+import java.util.List;
 
 /**
  * @author Daniel Sanz
  */
-public interface FDSSortSerializer extends FDSSerializer<JSONArray> {
+public interface FDSSortListSerializer
+	extends FDSSerializer<List<FDSSortItem>> {
 }
