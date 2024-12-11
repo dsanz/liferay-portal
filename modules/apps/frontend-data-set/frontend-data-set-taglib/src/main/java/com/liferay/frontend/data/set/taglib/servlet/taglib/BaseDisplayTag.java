@@ -6,10 +6,12 @@
 package com.liferay.frontend.data.set.taglib.servlet.taglib;
 
 import com.liferay.frontend.data.set.model.FDSPaginationEntry;
+import com.liferay.frontend.data.set.renderer.FDSEntryRenderer;
 import com.liferay.frontend.data.set.taglib.internal.servlet.ServletContextUtil;
+import com.liferay.frontend.data.set.taglib.servlet.taglib.util.ServicesProvider;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolvedPackageNameUtil;
-import com.liferay.frontend.taglib.react.servlet.taglib.util.ServicesProvider;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
@@ -33,6 +35,7 @@ import javax.portlet.PortletURL;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 
@@ -274,15 +277,26 @@ public class BaseDisplayTag extends AttributesTagSupport {
 			}
 		}
 
-		ComponentDescriptor componentDescriptor = new ComponentDescriptor(
-			"{FrontendDataSet} from frontend-data-set-web", getId(),
-			new LinkedHashSet<>(), false, propsTransformer);
+		if (FeatureFlagManagerUtil.isEnabled("LPD-37531")) {
+			FDSEntryRenderer fdsEntryRenderer =
+				ServicesProvider.getFDSEntryRenderer();
 
-		ReactRenderer reactRenderer = ServicesProvider.getReactRenderer();
+			fdsEntryRenderer.render(
+				getId(), getId(), propsTransformer, true, getRequest(),
+				(HttpServletResponse)pageContext.getResponse(),
+				prepareProps(new HashMap<>()), jspWriter);
+		}
+		else {
+			ComponentDescriptor componentDescriptor = new ComponentDescriptor(
+				"{FrontendDataSet} from frontend-data-set-web", getId(),
+				new LinkedHashSet<>(), false, propsTransformer);
 
-		reactRenderer.renderReact(
-			componentDescriptor, prepareProps(new HashMap<>()), getRequest(),
-			jspWriter);
+			ReactRenderer reactRenderer = ServicesProvider.getReactRenderer();
+
+			reactRenderer.renderReact(
+				componentDescriptor, prepareProps(new HashMap<>()),
+				getRequest(), jspWriter);
+		}
 
 		jspWriter.write("</div>");
 

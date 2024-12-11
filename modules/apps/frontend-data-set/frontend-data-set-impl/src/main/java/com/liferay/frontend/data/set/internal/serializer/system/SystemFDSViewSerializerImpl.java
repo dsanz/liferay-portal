@@ -34,7 +34,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	property = "dataset.type=" + FDSTypes.SYSTEM,
-	service = FDSViewSerializer.class
+	service = {FDSViewSerializer.class, SystemFDSViewSerializer.class}
 )
 public class SystemFDSViewSerializerImpl implements SystemFDSViewSerializer {
 
