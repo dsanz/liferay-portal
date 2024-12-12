@@ -45,7 +45,7 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Daniel Sanz
  */
-@Component(service = {})
+@Component(service = CustomFDSSerializerHelper.class)
 public class CustomFDSSerializerHelper {
 
 	public Set<ObjectEntry> getCreationActionObjectEntries(
