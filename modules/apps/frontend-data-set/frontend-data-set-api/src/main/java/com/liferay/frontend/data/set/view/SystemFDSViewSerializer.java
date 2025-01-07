@@ -12,7 +12,7 @@ import java.util.Locale;
 /**
  * @author Marco Leo
  */
-public interface FDSViewSerializer {
+public interface SystemFDSViewSerializer {
 
 	public JSONArray serialize(String fdsName, Locale locale);
 
