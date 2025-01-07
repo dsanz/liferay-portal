@@ -9,7 +9,7 @@ import com.liferay.frontend.data.set.view.FDSView;
 import com.liferay.frontend.data.set.view.FDSViewContextContributor;
 import com.liferay.frontend.data.set.view.FDSViewContextContributorRegistry;
 import com.liferay.frontend.data.set.view.FDSViewRegistry;
-import com.liferay.frontend.data.set.view.FDSViewSerializer;
+import com.liferay.frontend.data.set.view.SystemFDSViewSerializer;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -27,8 +27,8 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Marco Leo
  */
-@Component(service = FDSViewSerializer.class)
-public class FDSViewSerializerImpl implements FDSViewSerializer {
+@Component(service = SystemFDSViewSerializer.class)
+public class SystemFDSViewSerializerImpl implements SystemFDSViewSerializer {
 
 	@Override
 	public JSONArray serialize(String fdsName, Locale locale) {

@@ -5,20 +5,20 @@
 
 package com.liferay.frontend.data.set.sample.web.internal.view.util;
 
-import com.liferay.frontend.data.set.view.FDSViewSerializer;
+import com.liferay.frontend.data.set.view.SystemFDSViewSerializer;
 import com.liferay.portal.kernel.module.service.Snapshot;
 
 /**
  * @author Marko Cikos
  */
-public class FDSViewSerializerUtil {
+public class SystemFDSViewSerializerUtil {
 
-	public static FDSViewSerializer getFDSViewSerializer() {
+	public static SystemFDSViewSerializer getSystemFDSViewSerializer() {
 		return _fdsViewSerializerSnapshot.get();
 	}
 
-	private static final Snapshot<FDSViewSerializer>
+	private static final Snapshot<SystemFDSViewSerializer>
 		_fdsViewSerializerSnapshot = new Snapshot<>(
-			FDSViewSerializerUtil.class, FDSViewSerializer.class);
+			SystemFDSViewSerializerUtil.class, SystemFDSViewSerializer.class);
 
 }
