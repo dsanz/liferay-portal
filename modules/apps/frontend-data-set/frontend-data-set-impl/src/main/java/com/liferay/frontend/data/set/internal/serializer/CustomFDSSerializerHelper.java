@@ -60,6 +60,24 @@ public class CustomFDSSerializerHelper {
 			"dataSetToDataSetActions");
 	}
 
+	public Collection<ObjectEntry> getDataSetCardSectionObjectEntries(
+		String externalReferenceCode, HttpServletRequest httpServletRequest) {
+
+		return _getRelatedObjectEntries(
+			getDataSetObjectDefinition(httpServletRequest),
+			getDataSetObjectEntry(externalReferenceCode, httpServletRequest),
+			null, "dataSetToDataSetCardsSections");
+	}
+
+	public Collection<ObjectEntry> getDataSetListSectionObjectEntries(
+		String externalReferenceCode, HttpServletRequest httpServletRequest) {
+
+		return _getRelatedObjectEntries(
+			getDataSetObjectDefinition(httpServletRequest),
+			getDataSetObjectEntry(externalReferenceCode, httpServletRequest),
+			null, "dataSetToDataSetListSections");
+	}
+
 	public ObjectDefinition getDataSetObjectDefinition(
 		HttpServletRequest httpServletRequest) {
 
@@ -160,7 +178,7 @@ public class CustomFDSSerializerHelper {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to get data set object entry with ERC " +
-						externalReferenceCode,
+					externalReferenceCode,
 					exception);
 			}
 		}
@@ -203,7 +221,7 @@ public class CustomFDSSerializerHelper {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to get related object entries for " +
-						relationshipName,
+					relationshipName,
 					exception);
 			}
 		}
