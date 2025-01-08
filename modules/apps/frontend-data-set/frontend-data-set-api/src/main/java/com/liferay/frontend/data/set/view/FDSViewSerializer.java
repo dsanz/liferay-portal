@@ -5,15 +5,17 @@
 
 package com.liferay.frontend.data.set.view;
 
+import com.liferay.frontend.data.set.serializer.FDSSerializer;
 import com.liferay.portal.kernel.json.JSONArray;
 
-import java.util.Locale;
-
 /**
- * @author Marco Leo
+ * @author Daniel Sanz
  */
-public interface SystemFDSViewSerializer extends FDSViewSerializer {
+public interface FDSViewSerializer extends FDSSerializer<JSONArray> {
 
-	public JSONArray serialize(String fdsName, Locale locale);
+	@Override
+	public default String getKey() {
+		return "views";
+	}
 
 }
