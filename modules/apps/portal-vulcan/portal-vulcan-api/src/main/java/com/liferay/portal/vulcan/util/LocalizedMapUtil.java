@@ -257,12 +257,26 @@ public class LocalizedMapUtil {
 		String defaultLanguageId, Map<String, String> i18nMap,
 		String siteDefaultValue) {
 
-		if ((defaultLanguageId == null) && (siteDefaultValue == null)) {
-			return i18nMap;
-		}
-
 		String siteDefaultLanguageId = LocaleUtil.toLanguageId(
 			LocaleUtil.getSiteDefault());
+
+		if (siteDefaultValue == null) {
+			siteDefaultValue = i18nMap.get(defaultLanguageId);
+		}
+
+		if (siteDefaultValue == null) {
+			siteDefaultValue = i18nMap.get(siteDefaultLanguageId);
+		}
+
+		if (siteDefaultValue == null) {
+			String[] keys = i18nMap.keySet().toArray(new String[0]);
+
+			siteDefaultValue = i18nMap.get(keys[0]);
+		}
+
+		if (siteDefaultValue == null) {
+			return i18nMap;
+		}
 
 		if (MapUtil.isEmpty(i18nMap)) {
 			return HashMapBuilder.put(
@@ -279,9 +293,7 @@ public class LocalizedMapUtil {
 				entry.getValue());
 		}
 
-		newI18nMap.putIfAbsent(
-			siteDefaultLanguageId,
-			MapUtil.getString(newI18nMap, defaultLanguageId, siteDefaultValue));
+		newI18nMap.putIfAbsent(siteDefaultLanguageId, siteDefaultValue);
 
 		return newI18nMap;
 	}
