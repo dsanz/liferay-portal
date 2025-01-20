@@ -8,6 +8,7 @@ const webpack = require('webpack');
 
 const DEVELOPMENT = process.env.NODE_ENV === 'development';
 const WEBPACK_SERVE = !!process.env.WEBPACK_SERVE;
+const dummy = 'make test relevant run the right pw';
 
 module.exports = {
 	devServer: {
