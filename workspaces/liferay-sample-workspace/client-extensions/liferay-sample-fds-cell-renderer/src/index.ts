@@ -8,7 +8,7 @@ import type {FDSTableCellHTMLElementBuilder} from '@liferay/js-api/data-set';
 const fdsCellRenderer: FDSTableCellHTMLElementBuilder = ({value}) => {
 	const element = document.createElement('div');
 
-	element.innerHTML = value === 'Green' ? '🍏' : value.toString();
+	element.innerHTML = value === 'Greenish' ? '🍏' : value.toString();
 
 	return element;
 };
