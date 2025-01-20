@@ -29,7 +29,7 @@ import './style.css';
 
 			this.incrementButton = document.createElement('button');
 			this.incrementButton.setAttribute('class', 'increment');
-			this.incrementButton.innerText = '+';
+			this.incrementButton.innerText = '++';
 
 			const style = document.createElement('style');
 
