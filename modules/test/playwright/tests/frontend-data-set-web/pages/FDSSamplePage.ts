@@ -23,6 +23,7 @@ export class FDSSamplePage {
 	readonly sidePanelFrame: FrameLocator;
 	readonly tablist: Locator;
 	readonly table: {
+		bodyRows: Locator;
 		container: Locator;
 		headerCells: Locator;
 		itemActionsCells: Locator;
@@ -51,6 +52,7 @@ export class FDSSamplePage {
 		const tableContainer = page.locator('.fds table');
 
 		this.table = {
+			bodyRows: tableContainer.locator('tbody tr'),
 			container: tableContainer,
 			headerCells: tableContainer.locator('th'),
 			itemActionsCells: tableContainer.locator('.cell-item-actions'),
@@ -84,6 +86,18 @@ export class FDSSamplePage {
 				name: itemAction,
 			})
 			.click();
+	}
+
+	selectItemActionsByRow(text: string) {
+		return this.table.bodyRows
+			.filter({
+				hasText: text,
+			})
+			.locator('.cell-item-actions')
+			.getByRole('button', {
+				exact: true,
+				name: 'Actions',
+			});
 	}
 
 	async selectTab(label: string) {
