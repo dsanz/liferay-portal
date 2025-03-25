@@ -846,7 +846,22 @@ public class CustomFDSSerializer
 			Objects.equals(sourceType, "API_REST_APPLICATION")) {
 
 			return jsonObject.put(
-				"apiURL", source
+				"apiURL", () -> {
+					try {
+						FDSAPIURLBuilder fdsAPIURLBuilder = createFDSAPIURLBuilder(
+							httpServletRequest,
+							String.valueOf(properties.get("restApplication")),
+							String.valueOf(properties.get("restEndpoint")),
+							String.valueOf(properties.get("restSchema")));
+
+						return fdsAPIURLBuilder.build();
+					}
+					catch (Exception exception) {
+						_log.warn("Error while serializing filter '" + fieldName + "' API url ", exception);
+
+						return source;
+					}
+				}
 			).put(
 				"itemKey", properties.get("itemKey")
 			).put(
