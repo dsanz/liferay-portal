@@ -5,10 +5,13 @@
 
 import formatActionURL from '../../../src/main/resources/META-INF/resources/utils/actionItems/formatActionURL';
 
+const url = 'http://foo.bar?param=%áàäâ&^/#{2}/ç';
+
 const testItem = {
+	encodedURL: encodeURI(url),
 	id: 1235,
 	name: 'test_item_name',
-	url: 'https://www.liferay.com',
+	url,
 };
 
 describe('formatActionURL helper', () => {
@@ -140,21 +143,71 @@ describe('formatActionURL helper', () => {
 		expect(anotherFormattedURL).toEqual('/test/page?p_p_id=random');
 	});
 
-	it('does not encode the value when the URL is fully wrapped with braces', () => {
-		const URLFullyWrapped = '{url}';
-		const target = 'link';
-		const formattedURL = formatActionURL(URLFullyWrapped, testItem, target);
+	it('when URL is interpolated entirely, returns item data as it comes', () => {
+		const target = 'modal';
 
-		expect(formattedURL).toEqual(testItem.url);
+		expect(formatActionURL('{url}', testItem, target)).toEqual(
+			testItem.url
+		);
+
+		expect(formatActionURL('{encodedURL}', testItem, target)).toEqual(
+			testItem.encodedURL
+		);
 	});
 
-	it('encodes only the value inside braces when part of the URL is wrapped with braces', () => {
-		const partialURL = '{id}/test/{url}';
-		const target = 'link';
-		const formattedURL = formatActionURL(partialURL, testItem, target);
+	it('when only parts of the URL are interpolated, uses encodeURIComponent: target is not "link", URL with no query', () => {
+		const target = 'modal';
 
-		expect(formattedURL).toEqual(
+		expect(formatActionURL('{id}/test/{url}', testItem, target)).toEqual(
 			`${testItem.id}/test/${encodeURIComponent(testItem.url)}`
+		);
+
+		expect(
+			formatActionURL('{id}/test/{encodedURL}', testItem, target)
+		).toEqual(
+			`${testItem.id}/test/${encodeURIComponent(testItem.encodedURL)}`
+		);
+	});
+
+	it('when only parts of the URL are interpolated, uses encodeURIComponent: target is not "link", URL with query', () => {
+		const target = 'modal';
+
+		expect(
+			formatActionURL('{id}/test?param={url}', testItem, target)
+		).toEqual(
+			`${testItem.id}/test?param=${encodeURIComponent(testItem.url)}`
+		);
+
+		expect(
+			formatActionURL('{id}/test?param={encodedURL}', testItem, target)
+		).toEqual(
+			`${testItem.id}/test?param=${encodeURIComponent(testItem.encodedURL)}`
+		);
+	});
+
+	it('when only parts of the URL are interpolated, uses decodeURIComponent: target is "link", URL with query', () => {
+		const target = 'link';
+
+		expect(
+			formatActionURL('{id}/test?param={url}', testItem, target)
+		).toEqual(`${testItem.id}/test?param=${testItem.url}`);
+
+		expect(
+			formatActionURL('{id}/test?param={encodedURL}', testItem, target)
+		).toEqual(`${testItem.id}/test?param=${testItem.encodedURL}`);
+	});
+
+	it('when only parts of the URL are interpolated, uses encodeURIComponent: target is "link", URL with no query', () => {
+		const target = 'link';
+
+		expect(formatActionURL('{id}/test/{url}', testItem, target)).toEqual(
+			`${testItem.id}/test/${encodeURIComponent(testItem.url)}`
+		);
+
+		expect(
+			formatActionURL('{id}/test/{encodedURL}', testItem, target)
+		).toEqual(
+			`${testItem.id}/test/${encodeURIComponent(testItem.encodedURL)}`
 		);
 	});
 });
