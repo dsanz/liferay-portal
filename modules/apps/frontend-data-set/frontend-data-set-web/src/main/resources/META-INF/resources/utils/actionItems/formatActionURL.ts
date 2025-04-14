@@ -26,6 +26,9 @@
 
 import getValueFromItem from '../getValueFromItem';
 
+import { log, error } from "console";
+import * as repl from "repl";
+
 const formatActionURL = function (
 	url: string | undefined,
 	item: any,
@@ -35,10 +38,16 @@ const formatActionURL = function (
 		return '';
 	}
 
-	const replacedURL = url.replace(
+	let fullInterpolation = false;
+
+	let replacedURL = url.replace(
 		/(?:%7B|{)(.*?)(?:%7D|})/g,
 		(match, key) => {
 			const value = getValueFromItem(item, key.split('.'));
+
+			if (match.length === url.length) {
+				fullInterpolation = true;
+			}
 
 			return match.length === url.length
 				? value
@@ -48,8 +57,16 @@ const formatActionURL = function (
 
 	if (target === 'link' && replacedURL.includes('?')) {
 		const redirectionURL = window.location.href;
+
+		if (fullInterpolation) {
+			replacedURL = encodeURI(replacedURL);
+		}
+
+		const hashIndex = replacedURL.indexOf('#');
+
 		const searchParams = new URLSearchParams(
-			replacedURL.slice(replacedURL.indexOf('?'))
+			hashIndex === -1 ? replacedURL.slice(replacedURL.indexOf('?')) :
+			replacedURL.slice(replacedURL.indexOf('?'), hashIndex)
 		);
 
 		const backURL = 'backURL';
@@ -74,12 +91,26 @@ const formatActionURL = function (
 			searchParams.set(backURLParam, redirectionURL);
 		}
 
-		const updatedURL = decodeURIComponent(
+		log(searchParams.toString());
+
+		/*const updatedURL = decodeURIComponent(
 			`${replacedURL.slice(
 				0,
 				replacedURL.indexOf('?')
 			)}?${searchParams.toString()}`
-		);
+		); */
+
+		const updatedURL =
+			decodeURIComponent(`${replacedURL.slice(
+				0,
+				replacedURL.indexOf('?')
+			)}`) + '?' +
+			decodeURIComponent(searchParams.toString())
+			+
+			(hashIndex !== -1 ?
+				(fullInterpolation ? decodeURIComponent(replacedURL.slice(hashIndex)) : replacedURL.slice(hashIndex)) : '');
+
+		log(updatedURL);
 
 		return updatedURL;
 	}

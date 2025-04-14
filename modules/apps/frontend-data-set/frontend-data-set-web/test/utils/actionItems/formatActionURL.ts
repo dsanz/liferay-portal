@@ -7,6 +7,10 @@ import formatActionURL from '../../../src/main/resources/META-INF/resources/util
 
 const url = 'http://foo.bar?param=%áàäâ&^/#{2}/ç';
 
+// 'http://foo.bar?param=%áàäâ&^/#{2}/ç'
+// '/documents/34879/34881/%23small_pexels-photo-1000498.jpeg/2d193f5d-5b3f-1f7a-c221-8392333f56ba?version=1.0&t=1744616121055&download=true&objectDefinitionExternalReferenceCode=L_BASIC_DOCUMENT&objectEntryExternalReferenceCode=07dd3433-04b4-eec7-2d21-be307eb0a06c';
+
+
 const testItem = {
 	encodedURL: encodeURI(url),
 	id: 1235,
@@ -143,7 +147,7 @@ describe('formatActionURL helper', () => {
 		expect(anotherFormattedURL).toEqual('/test/page?p_p_id=random');
 	});
 
-	it('when URL is interpolated entirely, returns item data as it comes: target is not "link"', () => {
+	it('fullInterpolation, returns item data as it comes: target is not "link"', () => {
 		const target = 'modal';
 
 		expect(formatActionURL('{url}', testItem, target)).toEqual(
@@ -155,7 +159,7 @@ describe('formatActionURL helper', () => {
 		);
 	});
 
-	it('when URL is interpolated entirely, returns item data as it comes: target is "link"', () => {
+	it('fullInterpolation, returns item data as it comes: target is "link"', () => {
 		const target = 'link';
 
 		expect(formatActionURL('{url}', testItem, target)).toEqual(
