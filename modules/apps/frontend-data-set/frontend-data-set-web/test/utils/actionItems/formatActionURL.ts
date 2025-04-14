@@ -143,7 +143,7 @@ describe('formatActionURL helper', () => {
 		expect(anotherFormattedURL).toEqual('/test/page?p_p_id=random');
 	});
 
-	it('when URL is interpolated entirely, returns item data as it comes', () => {
+	it('when URL is interpolated entirely, returns item data as it comes: target is not "link"', () => {
 		const target = 'modal';
 
 		expect(formatActionURL('{url}', testItem, target)).toEqual(
@@ -154,6 +154,19 @@ describe('formatActionURL helper', () => {
 			testItem.encodedURL
 		);
 	});
+
+	it('when URL is interpolated entirely, returns item data as it comes: target is "link"', () => {
+		const target = 'link';
+
+		expect(formatActionURL('{url}', testItem, target)).toEqual(
+			testItem.url
+		);
+
+		expect(formatActionURL('{encodedURL}', testItem, target)).toEqual(
+			testItem.encodedURL
+		);
+	});
+
 
 	it('when only parts of the URL are interpolated, uses encodeURIComponent: target is not "link", URL with no query', () => {
 		const target = 'modal';
