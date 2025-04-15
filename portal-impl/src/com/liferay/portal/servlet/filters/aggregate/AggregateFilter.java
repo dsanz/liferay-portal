@@ -714,12 +714,26 @@ public class AggregateFilter extends IgnoreModuleRequestFilter {
 						httpServletRequest.getRequestDispatcher(resourcePath),
 						httpServletRequest, httpServletResponse);
 
-			return objectValuePair.getKey();
+			return _removeByteOrderMark(objectValuePair.getKey());
 		}
 
 		URLConnection urlConnection = url.openConnection();
 
 		return StringUtil.read(urlConnection.getInputStream());
+	}
+
+	private String _removeByteOrderMark(String content) {
+		if (Validator.isNull(content)) {
+			return content;
+		}
+
+		// UTF-8 BOM
+
+		if (content.startsWith("\uFEFF")) {
+			return content.substring(1);
+		}
+
+		return content;
 	}
 
 	private static final String _BASE_URL = "@base_url@";
