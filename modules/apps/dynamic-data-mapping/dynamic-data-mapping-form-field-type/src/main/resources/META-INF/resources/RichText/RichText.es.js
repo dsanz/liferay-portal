@@ -335,7 +335,6 @@ const RichText = ({
 			label={label}
 			name={name}
 			readOnly={readOnly}
-			style={readOnly ? {pointerEvents: 'none'} : null}
 			visible={visible}
 		>
 			<ClayInput.Group>
@@ -362,7 +361,13 @@ const RichText = ({
 										]
 									: ''
 							}
-							editorConfig={editorConfig}
+							editorConfig={
+								readOnly ?
+									{
+										...editorConfig,
+										removePlugins: 'codemirror'
+									} : editorConfig
+							}
 							name={name}
 							onBlur={onBlur}
 							onChange={(content) => handleContentChange(content)}
