@@ -6,19 +6,27 @@
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import {ClayPaginationBarWithBasicItems} from '@clayui/pagination-bar';
 import {useIsMounted, useThunk} from '@liferay/frontend-js-react-web';
-import {openToast} from 'frontend-js-components-web';
+import {
+	openModal as originalOpenModal,
+	openToast,
+} from 'frontend-js-components-web';
 import {fetch, loadClientExtensions, loadModule} from 'frontend-js-web';
 import React, {
+	forwardRef,
 	useCallback,
 	useEffect,
+	useImperativeHandle,
 	useReducer,
 	useRef,
 	useState,
 } from 'react';
+import {DndProvider, useDrop} from 'react-dnd';
+import ReactDOM, {createPortal} from 'react-dom';
 
 import './styles/main.scss';
 
 import ClayEmptyState from '@clayui/empty-state';
+import {HTML5Backend, NativeTypes} from 'react-dnd-html5-backend';
 
 import FrontendDataSetContext from './FrontendDataSetContext';
 import ManagementBar from './management_bar/ManagementBar';
@@ -39,7 +47,7 @@ import {VIEWS_ACTION_TYPES, viewsReducer} from './views/viewsReducer';
 const DEFAULT_PAGINATION_DELTA = 20;
 const DEFAULT_PAGINATION_PAGE_NUMBER = 1;
 
-const FrontendDataSet = ({
+const FrontendDataSetBody = ({
 	actionParameterName,
 	activeViewSettings,
 	additionalAPIURLParameters,
@@ -52,6 +60,7 @@ const FrontendDataSet = ({
 	customRenderers,
 	customViews,
 	customViewsEnabled,
+	dropZone,
 	emptyState,
 	filters: initialFilters,
 	formId,
@@ -624,9 +633,11 @@ const FrontendDataSet = ({
 		</div>
 	) : null;
 
+	const viewRef = useRef(null);
+
 	const view =
 		!dataLoading && !componentLoading ? (
-			<div className="data-set-content-wrapper">
+			<div className="data-set-content-wrapper" ref={viewRef}>
 				<input
 					hidden
 					name={`${namespace || id + '_'}${
@@ -952,6 +963,123 @@ const FrontendDataSet = ({
 		}
 	};
 
+	const [droppedFiles, setDroppedFiles] = useState([]);
+
+	const [dropTarget, setDropTarget] = useState(null);
+
+	const handleFileDrop = useCallback(
+		(item, rowItem) => {
+			if (item) {
+				const files = item.files;
+				setDroppedFiles(files);
+				setDropTarget(rowItem);
+			}
+		},
+		[setDroppedFiles, setDropTarget]
+	);
+
+	useEffect(() => {
+		if (!droppedFiles?.length) {
+			return;
+		}
+
+		const ModalBody = () => {
+			const label = (file) =>
+				`'${file.name}' of size '${file.size}' and type '${file.type}'`;
+
+			return (
+				<div>
+					{droppedFiles.map((file) => (
+						<li key={file.name}>{label(file)}</li>
+					))}
+
+					{dropTarget ? (
+						<span>
+							Dropped on id {dropTarget[selectedItemsKey]}
+						</span>
+					) : (
+						<span> No drop target</span>
+					)}
+				</div>
+			);
+		};
+
+		originalOpenModal({
+			bodyComponent: ModalBody,
+			containerProps: {
+				className: 'dsm-actions-icon-selection-modal',
+			},
+			size: 'lg',
+			title: Liferay.Language.get('files'),
+		});
+	}, [droppedFiles, dropTarget]);
+
+	const isWithinView = (clientOffset) => {
+		if (!viewRef.current || !clientOffset) {
+			return false;
+		}
+
+		const viewRect = viewRef.current.getBoundingClientRect();
+
+		return (
+			clientOffset.x >= viewRect.left &&
+			clientOffset.x <= viewRect.right &&
+			clientOffset.y >= viewRect.top &&
+			clientOffset.y <= viewRect.bottom
+		);
+	};
+
+	const [{isOver, isOverCurrent}, drop] = useDrop({
+		accept: [NativeTypes.FILE],
+		canDrop(item) {
+			return true;
+		},
+		collect: (monitor) => {
+			return {
+				isOver:
+					monitor.isOver() &&
+					!isWithinView(monitor.getClientOffset()),
+				isOverCurrent:
+					monitor.isOver({shallow: true}) &&
+					!isWithinView(monitor.getClientOffset()),
+			};
+		},
+		drop(item, monitor) {
+			if (
+				monitor.isOver({shallow: true}) &&
+				!isWithinView(monitor.getClientOffset())
+			) {
+				dropZone?.releaseItemDropZone(wrapperRef, drop);
+				handleFileDrop(item);
+			}
+		},
+		hover(item, monitor) {
+			if (isWithinView(monitor.getClientOffset())) {
+				console.log('FDS releases ref to inner dropzone');
+				dropZone?.releaseItemDropZone(wrapperRef, drop);
+			}
+			else if (monitor.isOver({shallow: true})) {
+				console.log('FDS gets ref from inner dropzone');
+				dropZone?.lockItemDropZone(wrapperRef, drop);
+			}
+		},
+	});
+
+	drop(wrapperRef);
+
+	useEffect(() => {
+		if (isOverCurrent) {
+			console.log('FDS gets ref');
+			dropZone?.lockItemDropZone(wrapperRef, drop);
+		}
+		else {
+			if (!isOver) {
+				console.log('FDS releases ref');
+				dropZone?.releaseItemDropZone(wrapperRef, drop);
+			}
+		}
+	}, [isOverCurrent, isOver]);
+
 	return (
 		<FrontendDataSetContext.Provider
 			value={{
@@ -963,9 +1091,11 @@ const FrontendDataSet = ({
 				createInlineItem,
 				customDataRenderers,
 				customRenderers,
+				dropZone,
 				executeAsyncItemAction,
 				formId,
 				formName,
+				handleFileDrop,
 				highlightItems,
 				highlightedItemsValue,
 				id,
@@ -1057,6 +1187,177 @@ const FrontendDataSet = ({
 				</div>
 			</ViewsContext.Provider>
 		</FrontendDataSetContext.Provider>
+	);
+};
+
+const FrontendDataSet = ({
+	actionParameterName,
+	activeViewSettings,
+	additionalAPIURLParameters,
+	apiURL,
+	appURL,
+	bulkActions,
+	creationMenu,
+	currentURL,
+	customDataRenderers,
+	customRenderers,
+	customViews,
+	customViewsEnabled,
+	emptyState,
+	filters,
+	formId,
+	formName,
+	header,
+	id,
+	inlineAddingSettings,
+	inlineEditingSettings,
+	items,
+	itemsActions,
+	namespace,
+	nestedItemsKey,
+	nestedItemsReferenceKey,
+	onActionDropdownItemClick,
+	onBulkActionItemClick,
+	onSelect,
+	onSelectedItemsChange,
+	overrideEmptyResultView,
+	pagination,
+	portletId,
+	selectedItems,
+	selectedItemsKey,
+	selectionType,
+	showBulkActionsManagementBar,
+	showBulkActionsManagementBarActions,
+	showManagementBar,
+	showPagination,
+	showSearch,
+	showSelectAll,
+	sidePanelId,
+	sorts,
+	style,
+	uniformActionsDisplay,
+	views,
+}) => {
+	const itemDropZoneRef = useRef(null);
+
+	const lockItemDropZone = (itemRef, dropRef) => {
+		itemDropZoneRef.current.lock(itemRef, dropRef);
+	};
+
+	const releaseItemDropZone = (itemRef, dropRef) => {
+		itemDropZoneRef.current.release(itemRef, dropRef);
+	};
+
+	const Overlay = forwardRef((props, ref) => {
+		const overlayRef = useRef(null);
+
+		useImperativeHandle(ref, () => ({
+			lock(itemRef, dropRef) {
+				if (!overlayRef.current || !itemRef.current) {
+					return;
+				}
+
+				const domRect = itemRef.current.getBoundingClientRect();
+				overlayRef.current.style.setProperty('top', `${domRect.top}px`);
+				overlayRef.current.style.setProperty(
+					'left',
+					`${domRect.left}px`
+				);
+				overlayRef.current.style.setProperty(
+					'width',
+					`${domRect.width}px`
+				);
+				overlayRef.current.style.setProperty(
+					'height',
+					`${domRect.height}px`
+				);
+				overlayRef.current.style.setProperty('display', 'block');
+				overlayRef.current.classList.add('fds_drop_zone');
+
+				// take ownership for drop on the overlay
+
+				dropRef(overlayRef);
+			},
+			release(itemRef, dropRef) {
+				if (!overlayRef.current || !itemRef.current) {
+					return;
+				}
+				overlayRef.current.style.setProperty('display', 'none');
+				overlayRef.current.classList.remove('fds_drop_zone');
+
+				// return ownership to the caller ref
+
+				dropRef && dropRef(itemRef);
+			},
+		}));
+
+		return ReactDOM.createPortal(
+			<div id={`${id}_fdsOverlay`} ref={overlayRef}></div>,
+			document.body
+		);
+	});
+
+	return (
+		<>
+			<Overlay ref={itemDropZoneRef} />
+
+			<DndProvider backend={HTML5Backend}>
+				<FrontendDataSetBody
+					actionParameterName={actionParameterName}
+					activeViewSettings={activeViewSettings}
+					additionalAPIURLParameters={additionalAPIURLParameters}
+					apiURL={apiURL}
+					appURL={appURL}
+					bulkActions={bulkActions}
+					creationMenu={creationMenu}
+					currentURL={currentURL}
+					customDataRenderers={customDataRenderers}
+					customRenderers={customRenderers}
+					customViews={customViews}
+					customViewsEnabled={customViewsEnabled}
+					dropZone={{
+						lockItemDropZone,
+						releaseItemDropZone,
+					}}
+					emptyState={emptyState}
+					filters={filters}
+					formId={formId}
+					formName={formName}
+					header={header}
+					id={id}
+					inlineAddingSettings={inlineAddingSettings}
+					inlineEditingSettings={inlineEditingSettings}
+					items={items}
+					itemsActions={itemsActions}
+					namespace={namespace}
+					nestedItemsKey={nestedItemsKey}
+					nestedItemsReferenceKey={nestedItemsReferenceKey}
+					onActionDropdownItemClick={onActionDropdownItemClick}
+					onBulkActionItemClick={onBulkActionItemClick}
+					onSelect={onSelect}
+					onSelectedItemsChange={onSelectedItemsChange}
+					overrideEmptyResultView={overrideEmptyResultView}
+					pagination={pagination}
+					portletId={portletId}
+					selectedItems={selectedItems}
+					selectedItemsKey={selectedItemsKey}
+					selectionType={selectionType}
+					showBulkActionsManagementBar={showBulkActionsManagementBar}
+					showBulkActionsManagementBarActions={
+						showBulkActionsManagementBarActions
+					}
+					showManagementBar={showManagementBar}
+					showPagination={showPagination}
+					showSearch={showSearch}
+					showSelectAll={showSelectAll}
+					sidePanelId={sidePanelId}
+					sorts={sorts}
+					style={style}
+					uniformActionsDisplay={uniformActionsDisplay}
+					views={views}
+				/>
+			</DndProvider>
+		</>
 	);
 };
 

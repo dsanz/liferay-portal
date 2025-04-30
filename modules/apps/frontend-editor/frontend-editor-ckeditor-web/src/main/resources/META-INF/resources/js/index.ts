@@ -23,6 +23,8 @@ export {InlineEditor} from './ckeditor4/InlineEditor';
 
 export {default as CKEditor5BalloonEditor} from './ckeditor5/BalloonEditor';
 export {default as CKEditor5ClassicEditor} from './ckeditor5/ClassicEditor';
+export {default as LocalizedCKEditor5ClassicEditor} from './ckeditor5/ClassicEditor';
+
 
 export {
 	EEditorConfigPreset,

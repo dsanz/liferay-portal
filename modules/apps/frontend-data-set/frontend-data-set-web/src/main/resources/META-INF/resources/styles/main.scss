@@ -6,6 +6,15 @@
 @import 'side_panel';
 @import 'views/list';
 
+.fds_drop_zone {
+	background-color: $info-l1;
+	border: 1.5px solid;
+	border-color: $info;
+	opacity: 0.5;
+	position: fixed;
+	z-index: 999999;
+}
+
 .fds {
 	@import 'data_renderers/comment';
 	@import 'data_renderers/quantity_selector';

@@ -19,9 +19,14 @@ export interface IFrontendDataSetContext {
 		tableCell?: Array<TRenderer>;
 		views?: Array<TRenderer>;
 	};
+	dropZone?: {
+		lockItemDropZone: Function;
+		releaseItemDropZone: Function;
+	};
 	executeAsyncItemAction: Function;
 	formId?: string;
 	formName?: string;
+	handleFileDrop: Function;
 	highlightItems: Function;
 	highlightedItemsValue?: string;
 	id?: string;
@@ -96,6 +101,7 @@ const FrontendDataSetContext = React.createContext({
 	applyItemInlineUpdates: () => {},
 	createInlineItem: () => {},
 	executeAsyncItemAction: () => {},
+	handleFileDrop: () => {},
 	highlightItems: () => {},
 	loadData: () => {},
 	onActionDropdownItemClick: () => {},
