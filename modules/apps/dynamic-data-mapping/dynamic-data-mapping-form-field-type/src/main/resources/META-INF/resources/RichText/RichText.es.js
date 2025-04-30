@@ -365,7 +365,7 @@ const RichText = ({
 								readOnly ?
 									{
 										...editorConfig,
-										removePlugins: 'codemirror'
+										'toolbar_simple': []
 									} : editorConfig
 							}
 							name={name}
