@@ -7,6 +7,12 @@
 @import 'views/list';
 
 .fds {
+	#fds_drop_zone {
+	  border: 5px solid blue;
+	  width: 200px;
+	  height: 100px;
+	}
+
 	@import 'data_renderers/comment';
 	@import 'data_renderers/quantity_selector';
 
