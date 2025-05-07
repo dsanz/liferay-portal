@@ -976,10 +976,17 @@ const FrontendDataSet = ({
 
 
 const onDragOver = (event) => {
-	console.log("dragging over: " + event)
+	console.log("dragging enter: " + event)
 
 	event.preventDefault();
 }
+
+	const onDragExit = (event) => {
+		console.log("dragging exit: " + event)
+
+		event.preventDefault();
+	}
+
 
 
 	return (
@@ -1038,9 +1045,21 @@ const onDragOver = (event) => {
 		>
 			<ViewsContext.Provider value={[viewsState, viewsDispatch]}>
 				<div className="fds"
-					 id="fds_drop_zone"
+
 					 onDrop={(event) => onDrop(event)}
-					 onDragOver={(event) => onDragOver(event)}>
+					 onDragEnter={
+							(event) => {
+						 		event.preventDefault();
+								event.currentTarget.classList.add("fds_drop_zone")
+						 		console.log("drag enter")
+							}}
+					 onDragLeave={
+						(event) =>  {
+							event.preventDefault();
+							event.currentTarget.classList.remove("fds_drop_zone")
+					 		console.log("drag leave")
+
+						}}>
 					<Modal id={dataSetSupportModalId} onClose={refreshData} />
 
 					{!sidePanelId && (

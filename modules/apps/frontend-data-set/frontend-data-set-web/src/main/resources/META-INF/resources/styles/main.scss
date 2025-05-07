@@ -6,12 +6,12 @@
 @import 'side_panel';
 @import 'views/list';
 
-.fds {
-	#fds_drop_zone {
+.fds_drop_zone {
 	  border: 5px solid blue;
-	  width: 200px;
-	  height: 100px;
 	}
+
+.fds {
+
 
 	@import 'data_renderers/comment';
 	@import 'data_renderers/quantity_selector';
