@@ -38,6 +38,7 @@ export interface IFrontendDataSetContext {
 	nestedItemsKey?: string;
 	nestedItemsReferenceKey?: string;
 	onActionDropdownItemClick: Function;
+	onDropZoneChange: Function;
 	onBulkActionItemClick: Function;
 	onItemsChange: ({
 		itemKey,
@@ -100,6 +101,7 @@ const FrontendDataSetContext = React.createContext({
 	loadData: () => {},
 	onActionDropdownItemClick: () => {},
 	onBulkActionItemClick: () => {},
+	onDropZoneChange: () => {},
 	onItemsChange: () => {},
 	onSearch: () => {},
 	onSelect: () => {},

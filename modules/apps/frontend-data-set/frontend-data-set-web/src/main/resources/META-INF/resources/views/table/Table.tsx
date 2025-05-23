@@ -18,7 +18,14 @@ import {FDSTableCellHTMLElementBuilderArgs} from '@liferay/js-api/data-set';
 import classNames from 'classnames';
 import {ClientExtension} from 'frontend-js-components-web';
 import {throttle} from 'frontend-js-web';
-import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {
+	Ref,
+	useContext,
+	useEffect,
+	useMemo,
+	useRef,
+	useState
+} from 'react';
 
 import {IItemsActions, ITableSchema, TSort} from '../..';
 import FrontendDataSetContext, {
@@ -162,7 +169,7 @@ const Body = ({
 	selectedItemsValue: any;
 	selectionType?: string;
 }) => {
-	const {allItemsSelectedActive, itemsChanges, updateItem} = useContext(
+	const {allItemsSelectedActive, itemsChanges, onDropZoneChange, updateItem} = useContext(
 		FrontendDataSetContext
 	);
 
@@ -174,6 +181,50 @@ const Body = ({
 		...fields,
 		{fieldName: 'actions'},
 	];
+
+
+	const refsMap = new Map<string, Ref<HTMLTableRowElement>>();
+
+	items.forEach(
+		(item) => {
+			refsMap.set(item[selectedItemsKey ?? 'id'], useRef<HTMLTableRowElement>());
+		}
+	)
+
+	useEffect(() => {
+		function onDragEnter(event : Event) {
+			event.preventDefault();
+			event.stopPropagation();
+			onDropZoneChange(event.currentTarget);
+			console.log("drag enter")
+		}
+
+		items.forEach(
+			(item) => {
+				const ref = refsMap.get(item[selectedItemsKey ?? 'id']);
+
+				if (ref && ref.current) {
+					ref?.current.addEventListener('dragenter', onDragEnter);
+				}
+			}
+		);
+
+		return () => {
+			items.forEach(
+				(item) => {
+					const ref = refsMap.get(item[selectedItemsKey ?? 'id']);
+
+					if (ref && ref.current) {
+						ref?.current.removeEventListener('dragenter', onDragEnter);
+					}
+				}
+			);
+
+		}
+
+
+	}, [items]
+	);
 
 	return (
 		<ClayTableBody
@@ -187,7 +238,7 @@ const Body = ({
 					const id = item[selectedItemsKey ?? 'id'];
 
 					return (
-						<ClayTableRow items={columns}>
+						<ClayTableRow ref={refsMap.get(id)} items={columns}>
 							{
 
 								// @ts-ignore
@@ -382,6 +433,7 @@ const Body = ({
 								}
 							}
 						</ClayTableRow>
+
 					);
 				}
 			}

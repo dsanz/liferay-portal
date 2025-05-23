@@ -107,6 +107,10 @@ const FrontendDataSet = ({
 
 	const [allItemsSelectedActive, setAllItemsSelectedActive] = useState(false);
 
+	const [dropZone, setDropZone] = useState({});
+
+	const previousDropZone = useRef(null);
+
 	const [selectedItemsValue, setSelectedItemsValue] = useState(
 		initialSelectedItemsValues || []
 	);
@@ -952,6 +956,16 @@ const FrontendDataSet = ({
 		}
 	};
 
+	const onDropZoneChange = (newDropZone) => {
+		previousDropZone.current?.classList?.remove("fds_drop_zone");
+
+		previousDropZone.current = newDropZone;
+
+		newDropZone.classList.add("fds_drop_zone");
+
+		//setDropZone(newDropZone);
+	}
+
 	const onDrop = (ev) => {
 		console.log("dropped: " + ev)
 		// Prevent default behavior (Prevent file from being opened)
@@ -987,8 +1001,6 @@ const onDragOver = (event) => {
 		event.preventDefault();
 	}
 
-
-
 	return (
 		<FrontendDataSetContext.Provider
 			value={{
@@ -1017,6 +1029,7 @@ const onDragOver = (event) => {
 				nestedItemsReferenceKey,
 				onActionDropdownItemClick,
 				onBulkActionItemClick,
+				onDropZoneChange,
 				onItemsChange,
 				onSearch,
 				onSelect,
@@ -1050,16 +1063,19 @@ const onDragOver = (event) => {
 					 onDragEnter={
 							(event) => {
 						 		event.preventDefault();
-								event.currentTarget.classList.add("fds_drop_zone")
+								event.stopPropagation();
+								onDropZoneChange(event.currentTarget);
 						 		console.log("drag enter")
 							}}
-					 onDragLeave={
+					/* onDragEnd={
 						(event) =>  {
 							event.preventDefault();
 							event.currentTarget.classList.remove("fds_drop_zone")
 					 		console.log("drag leave")
 
-						}}>
+						}}*/
+						>
+
 					<Modal id={dataSetSupportModalId} onClose={refreshData} />
 
 					{!sidePanelId && (
