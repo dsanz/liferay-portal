@@ -11,6 +11,8 @@
 	background-color: $info-l2 !important;
 }
 
+@import 'views/cards';
+
 .fds {
 	@import 'data_renderers/comment';
 	@import 'data_renderers/quantity_selector';
