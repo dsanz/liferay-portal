@@ -4,7 +4,6 @@
 
 @import 'modal';
 @import 'side_panel';
-@import 'views/list';
 
 @mixin common-drop-target {
 	animation: none !important;
@@ -12,6 +11,7 @@
 }
 
 @import 'views/cards';
+@import 'views/list';
 
 .fds {
 	@import 'data_renderers/comment';
