@@ -1,14 +1,11 @@
 @import 'variables';
 
+@import 'drag_drop';
+
 @import 'data_renderers/tooltip_summary';
 
 @import 'modal';
 @import 'side_panel';
-
-@mixin common-drop-target {
-	animation: none !important;
-	background-color: $info-l2 !important;
-}
 
 @import 'views/cards';
 @import 'views/list';
