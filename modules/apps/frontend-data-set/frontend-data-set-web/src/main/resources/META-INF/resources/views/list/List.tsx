@@ -9,7 +9,7 @@ import ClayLayout from '@clayui/layout';
 import ClayList from '@clayui/list';
 import ClaySticker from '@clayui/sticker';
 import classNames from 'classnames';
-import React, {forwardRef, useContext} from 'react';
+import React, {forwardRef, useCallback, useContext, useRef} from 'react';
 import {type DropTargetMonitor, useDrop} from 'react-dnd';
 import {NativeTypes} from 'react-dnd-html5-backend';
 
@@ -155,7 +155,7 @@ const ListItem = forwardRef<HTMLLIElement, any>(
 	}
 );
 
-const ListItemDropTarget = ({
+const ListItemOptionalDropTarget = ({
 	item,
 	schema,
 }: {
@@ -166,8 +166,13 @@ const ListItemDropTarget = ({
 		FrontendDataSetContext
 	);
 
-	const canDrop = (item: any) =>
-		fileDropSettings?.canDrop ? fileDropSettings.canDrop({item}) : true;
+	const nonDroppableRef = useRef(null);
+
+	const canDrop = useCallback(
+		(item: any) =>
+			fileDropSettings?.canDrop ? fileDropSettings.canDrop({item}) : true,
+		[fileDropSettings]
+	);
 
 	const [{isOverCurrent}, dropRef] = useDrop({
 		accept: isFileDropEnabled(fileDropSettings) ? [NativeTypes.FILE] : [],
@@ -193,7 +198,7 @@ const ListItemDropTarget = ({
 		<ListItem
 			className={classNames({'list-drop-target': isOverCurrent})}
 			item={item}
-			ref={dropRef}
+			ref={canDrop(item) ? dropRef : nonDroppableRef}
 			schema={schema}
 		/>
 	);
@@ -229,7 +234,7 @@ const List = ({
 			<GatedDndProvider>
 				<ClayList>
 					{items.map((item: any, index: number) => (
-						<ListItemDropTarget
+						<ListItemOptionalDropTarget
 							item={item}
 							key={
 								selectedItemsKey

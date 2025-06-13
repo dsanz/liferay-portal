@@ -18,7 +18,14 @@ import {FDSTableCellHTMLElementBuilderArgs} from '@liferay/js-api/data-set';
 import classNames from 'classnames';
 import {ClientExtension} from 'frontend-js-components-web';
 import {throttle} from 'frontend-js-web';
-import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react';
 import {useDrop} from 'react-dnd';
 import {NativeTypes} from 'react-dnd-html5-backend';
 
@@ -195,7 +202,10 @@ const Body = ({
 						const id = item[selectedItemsKey ?? 'id'];
 
 						return (
-							<ClayTableRowDropTarget item={item} items={columns}>
+							<ClayTableRowOptionalDropTarget
+								item={item}
+								items={columns}
+							>
 								{
 
 									// @ts-ignore
@@ -399,7 +409,7 @@ const Body = ({
 										}
 									}
 								}
-							</ClayTableRowDropTarget>
+							</ClayTableRowOptionalDropTarget>
 						);
 					}
 				}
@@ -408,7 +418,7 @@ const Body = ({
 	);
 };
 
-function ClayTableRowDropTarget({
+function ClayTableRowOptionalDropTarget({
 	children,
 	item,
 	items,
@@ -417,8 +427,13 @@ function ClayTableRowDropTarget({
 		FrontendDataSetContext
 	);
 
-	const canDrop = (item: any) =>
-		fileDropSettings?.canDrop ? fileDropSettings.canDrop({item}) : true;
+	const nonDroppableRef = useRef(null);
+
+	const canDrop = useCallback(
+		(item: any) =>
+			fileDropSettings?.canDrop ? fileDropSettings.canDrop({item}) : true,
+		[fileDropSettings]
+	);
 
 	const [{isOverCurrent}, dropRef] = useDrop({
 		accept: isFileDropEnabled(fileDropSettings) ? [NativeTypes.FILE] : [],
@@ -444,7 +459,7 @@ function ClayTableRowDropTarget({
 		<ClayTableRow
 			className={classNames({'table-row-drop-target': isOverCurrent})}
 			items={items}
-			ref={dropRef}
+			ref={canDrop(item) ? dropRef : nonDroppableRef}
 		>
 			{children}
 		</ClayTableRow>

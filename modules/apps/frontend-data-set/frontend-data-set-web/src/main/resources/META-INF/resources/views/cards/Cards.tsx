@@ -8,6 +8,7 @@ import classNames from 'classnames';
 import React, {
 	MutableRefObject,
 	forwardRef,
+	useCallback,
 	useContext,
 	useEffect,
 	useRef,
@@ -160,13 +161,19 @@ const Card = forwardRef<HTMLDivElement, any>(
 	}
 );
 
-function ClayCardDropTarget({item, schema}: React.ComponentProps<typeof Card>) {
+function ClayCardOptionalDropTarget({
+	item,
+	schema,
+}: React.ComponentProps<typeof Card>) {
 	const {fileDropSettings, handleFileDrop} = useContext(
 		FrontendDataSetContext
 	);
 
-	const canDrop = (item: any) =>
-		fileDropSettings?.canDrop ? fileDropSettings.canDrop({item}) : true;
+	const canDrop = useCallback(
+		(item: any): boolean =>
+			fileDropSettings?.canDrop ? fileDropSettings.canDrop({item}) : true,
+		[fileDropSettings]
+	);
 
 	const cardRef = useRef<HTMLDivElement>(null);
 
@@ -199,14 +206,14 @@ function ClayCardDropTarget({item, schema}: React.ComponentProps<typeof Card>) {
 	});
 
 	useEffect(() => {
-		if (!isFileDropEnabled(fileDropSettings)) {
+		if (!isFileDropEnabled(fileDropSettings) || !canDrop(item)) {
 			return;
 		}
 
 		dropRef(cardRef);
 
 		cardElementRef.current = cardRef?.current?.querySelector('.card');
-	}, [cardRef, dropRef, fileDropSettings]);
+	}, [canDrop, cardRef, dropRef, fileDropSettings, item]);
 
 	useEffect(() => {
 		if (!isFileDropEnabled(fileDropSettings)) {
@@ -248,7 +255,7 @@ const Cards = ({items, schema}: {items: Array<any>; schema: ICardSchema}) => {
 				<div className="row">
 					{items.map((item) => {
 						return (
-							<ClayCardDropTarget
+							<ClayCardOptionalDropTarget
 								item={item}
 								key={
 									selectedItemsKey
