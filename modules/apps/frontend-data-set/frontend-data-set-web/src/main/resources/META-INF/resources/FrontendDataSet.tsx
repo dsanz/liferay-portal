@@ -26,7 +26,7 @@ import {NativeTypes} from 'react-dnd-html5-backend';
 
 // @ts-ignore
 
-import GatedDndProvider from './drop/GatedDndProvider';
+import GatedDndProvider, {isFileDropEnabled} from './drop/GatedDndProvider';
 
 import './styles/main.scss';
 
@@ -1162,13 +1162,15 @@ const FrontendDataSetContent = ({
 	};
 
 	const [{isOverCurrent}, dropRef] = useDrop({
-		accept: [NativeTypes.FILE],
+		accept: isFileDropEnabled(fileDropSettings) ? [NativeTypes.FILE] : [],
 		canDrop() {
-			return true;
+			return isFileDropEnabled(fileDropSettings);
 		},
 		collect: (monitor) => {
 			return {
-				isOverCurrent: monitor.isOver({shallow: true}),
+				isOverCurrent:
+					isFileDropEnabled(fileDropSettings) &&
+					monitor.isOver({shallow: true}),
 			};
 		},
 		drop(item: DragObjectWithType, monitor) {
@@ -1180,8 +1182,8 @@ const FrontendDataSetContent = ({
 	});
 
 	useEffect(() => {
-		Liferay.FeatureFlags['LPD-44645'] && dropRef(wrapperRef);
-	}, [dropRef, wrapperRef]);
+		isFileDropEnabled(fileDropSettings) && dropRef(wrapperRef);
+	}, [dropRef, fileDropSettings, wrapperRef]);
 
 	useEffect(() => {
 		if (isOverCurrent) {
@@ -1190,10 +1192,10 @@ const FrontendDataSetContent = ({
 		else {
 			wrapperRef?.current?.classList.remove('data-set-drop-target');
 		}
-	}, [isOverCurrent]);
+	}, [fileDropSettings, isOverCurrent]);
 
 	useEffect(() => {
-		if (!droppedFiles?.length) {
+		if (!isFileDropEnabled(fileDropSettings) || !droppedFiles?.length) {
 			return;
 		}
 
@@ -1232,7 +1234,7 @@ const FrontendDataSetContent = ({
 			size: 'lg',
 			title: Liferay.Language.get('files'),
 		});
-	}, [droppedFiles, dropTarget, selectedItemsKey]);
+	}, [droppedFiles, dropTarget, fileDropSettings, selectedItemsKey]);
 
 	return (
 		<FrontendDataSetContext.Provider
@@ -1301,7 +1303,9 @@ const FrontendDataSetContent = ({
 			}}
 		>
 			<ViewsContext.Provider value={[viewsState, viewsDispatch]}>
-                <CustomDragLayer fdsRef={wrapperRef} />
+				{isFileDropEnabled(fileDropSettings) && (
+					<CustomDragLayer fdsRef={wrapperRef} />
+				)}
 
                 <div className="fds" ref={fdsRef}>
 					<Modal
