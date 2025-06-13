@@ -160,6 +160,7 @@ const FrontendDataSetContent = ({
 	customViews = '{}',
 	customViewsEnabled,
 	emptyState,
+	fileDropSettings,
 	filters: initialFilters,
 	formId,
 	formName,
@@ -1245,6 +1246,7 @@ const FrontendDataSetContent = ({
 				customDataRenderers,
 				customRenderers,
 				executeAsyncItemAction,
+				fileDropSettings,
 				formId,
 				formName,
 				handleFileDrop,
@@ -1382,6 +1384,7 @@ const FrontendDataSet = ({
 	customViews,
 	customViewsEnabled,
 	emptyState,
+	fileDropSettings,
 	filters,
 	formId,
 	formName,
@@ -1433,6 +1436,14 @@ const FrontendDataSet = ({
 				customViews={customViews}
 				customViewsEnabled={customViewsEnabled}
 				emptyState={emptyState}
+				fileDropSettings={
+					fileDropSettings
+						? fileDropSettings
+						: {
+								canDrop: () => true,
+								enabled: false,
+							}
+				}
 				filters={filters}
 				formId={formId}
 				formName={formName}
