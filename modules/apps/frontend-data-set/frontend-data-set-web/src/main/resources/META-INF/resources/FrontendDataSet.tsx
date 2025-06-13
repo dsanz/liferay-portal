@@ -32,6 +32,7 @@ import './styles/main.scss';
 
 import Badge from '@clayui/badge';
 import ClayEmptyState from '@clayui/empty-state';
+import classNames from 'classnames';
 
 import {
 	IField,
@@ -1175,7 +1176,6 @@ const FrontendDataSetContent = ({
 		},
 		drop(item: DragObjectWithType, monitor) {
 			if (monitor.isOver({shallow: true})) {
-				wrapperRef?.current?.classList.remove('data-set-drop-target');
 				handleFileDrop(item);
 			}
 		},
@@ -1184,15 +1184,6 @@ const FrontendDataSetContent = ({
 	useEffect(() => {
 		isFileDropEnabled(fileDropSettings) && dropRef(wrapperRef);
 	}, [dropRef, fileDropSettings, wrapperRef]);
-
-	useEffect(() => {
-		if (isOverCurrent) {
-			wrapperRef?.current?.classList.add('data-set-drop-target');
-		}
-		else {
-			wrapperRef?.current?.classList.remove('data-set-drop-target');
-		}
-	}, [fileDropSettings, isOverCurrent]);
 
 	useEffect(() => {
 		if (!isFileDropEnabled(fileDropSettings) || !droppedFiles?.length) {
@@ -1321,7 +1312,12 @@ const FrontendDataSetContent = ({
 					)}
 
 					<div
-						className={`data-set-wrapper visualization-mode-${activeView.contentRenderer}`}
+						className={classNames(
+							`data-set-wrapper visualization-mode-${activeView.contentRenderer}`,
+							{
+								'data-set-drop-target': isOverCurrent,
+							}
+						)}
 						data-testid={`visualization-mode-${activeView.name}`}
 						ref={wrapperRef}
 					>
