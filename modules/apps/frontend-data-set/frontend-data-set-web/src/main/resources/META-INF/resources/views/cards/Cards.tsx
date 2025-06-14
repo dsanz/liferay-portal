@@ -19,7 +19,7 @@ import {NativeTypes} from 'react-dnd-html5-backend';
 import FrontendDataSetContext, {
 	IFrontendDataSetContext,
 } from '../../FrontendDataSetContext';
-import GatedDndProvider, {isFileDropEnabled} from '../../drop/GatedDndProvider';
+import FDSDndProvider from '../../drop/FDSDndProvider';
 import {
 	DisplayType,
 	ICardLabelSchema,
@@ -31,25 +31,27 @@ import formatActionURL from '../../utils/actionItems/formatActionURL';
 import handleActionClick from '../../utils/actionItems/handleActionClick';
 import {getLocalizedValue} from '../../utils/getLocalizedValue';
 import getRandomId from '../../utils/getRandomId';
+import isFileDropEnabled from '../../utils/isFileDropEnabled';
 import isLink from '../../utils/isLink';
 import imagePropsTransformer from '../utils/imagePropsTransformer';
 
 const Card = forwardRef<HTMLDivElement, any>(
-	({item, schema}: {item: any; schema: ICardSchema}, ref) => {	const {
-		executeAsyncItemAction,
-		highlightItems,
-		itemsActions,
-		loadData,
-		onActionDropdownItemClick,
-		onInfoPanelToggleButtonClick,
-		openModal,
-		openSidePanel,
-		selectItems,
-		selectable,
-		selectedItemsKey,
-		selectedItemsValue,
-		toggleItemInlineEdit,
-	}: IFrontendDataSetContext = useContext(FrontendDataSetContext);
+	({item, schema}: {item: any; schema: ICardSchema}, ref) => {
+		const {
+			executeAsyncItemAction,
+			highlightItems,
+			itemsActions,
+			loadData,
+			onActionDropdownItemClick,
+			onInfoPanelToggleButtonClick,
+			openModal,
+			openSidePanel,
+			selectItems,
+			selectable,
+			selectedItemsKey,
+			selectedItemsValue,
+			toggleItemInlineEdit,
+		}: IFrontendDataSetContext = useContext(FrontendDataSetContext);
 
 		const actionsRef = useRef(
 			(itemsActions?.length && itemsActions) || item.actionDropdownItems
@@ -131,7 +133,7 @@ const Card = forwardRef<HTMLDivElement, any>(
 								itemId: selectedItemKey,
 								loadData,
 								onActionDropdownItemClick,
-                                onInfoPanelToggleButtonClick,
+								onInfoPanelToggleButtonClick,
 								openModal,
 								openSidePanel,
 								toggleItemInlineEdit,
@@ -251,7 +253,7 @@ const Cards = ({items, schema}: {items: Array<any>; schema: ICardSchema}) => {
 				style === 'default' && 'px-3 pt-4'
 			)}
 		>
-			<GatedDndProvider>
+			<FDSDndProvider>
 				<div className="row">
 					{items.map((item) => {
 						return (
@@ -267,7 +269,7 @@ const Cards = ({items, schema}: {items: Array<any>; schema: ICardSchema}) => {
 						);
 					})}
 				</div>
-			</GatedDndProvider>
+			</FDSDndProvider>
 		</div>
 	);
 };
