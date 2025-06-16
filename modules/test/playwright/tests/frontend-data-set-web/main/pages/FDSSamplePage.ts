@@ -8,21 +8,33 @@ import {FrameLocator, Locator, Page, expect} from '@playwright/test';
 import {ApiHelpers} from '../../../../helpers/ApiHelpers';
 import {liferayConfig} from '../../../../liferay.config';
 import getRandomString from '../../../../utils/getRandomString';
+import {VisualizationMode} from '../../../frontend-data-set-admin-web/main/utils/types';
 import getPageDefinition from '../../../layout-content-page-editor-web/main/utils/getPageDefinition';
 import getWidgetDefinition from '../../../layout-content-page-editor-web/main/utils/getWidgetDefinition';
 
 export class FDSSamplePage {
+	readonly activeViewSelector: Locator;
 	private readonly apiHelpers: ApiHelpers;
 	readonly bulkActions: {
 		actionsDropdownButton: Locator;
 		container: Locator;
 	};
+	readonly cards: {
+		container: Locator;
+		itemContainer: Locator;
+	};
 	readonly customViewsActionsButton: Locator;
 	readonly customViewsDeleteAlert: Locator;
 	readonly customViewsSaveModal: Locator;
 	readonly customViewsSelectorButton: Locator;
+	readonly fdsWrapper: Locator;
+	readonly fileDropModal: Locator;
+    readonly infoPanel: Locator;
 	readonly itemActionButton: Locator;
-	readonly infoPanel: Locator;
+	readonly list: {
+		container: Locator;
+		itemContainer: Locator;
+	};
 	readonly managementToolbar: Locator;
 	readonly page: Page;
 	readonly sidePanel: Locator;
@@ -39,12 +51,19 @@ export class FDSSamplePage {
 	readonly toggleInfoPanelButton: Locator;
 
 	constructor(page: Page) {
+		this.activeViewSelector = page.getByLabel('Show View Options');
 		this.apiHelpers = new ApiHelpers(page);
 		this.bulkActions = {
 			actionsDropdownButton: page
 				.locator('.bulk-actions')
 				.getByLabel('Actions'),
 			container: page.locator('.bulk-actions'),
+		};
+		const cardsContainer = page.locator('.cards-container');
+
+		this.cards = {
+			container: cardsContainer,
+			itemContainer: cardsContainer.locator('.card'),
 		};
 		this.customViewsActionsButton = page.getByLabel('Show View Actions', {
 			exact: true,
@@ -58,7 +77,16 @@ export class FDSSamplePage {
 		this.customViewsSelectorButton = page.getByLabel('Views', {
 			exact: true,
 		});
-		this.infoPanel = page.locator('.fds-info-panel');
+		this.fdsWrapper = page.locator('div.data-set-wrapper').first();
+		this.fileDropModal = page.getByRole('dialog', {
+			name: 'Files',
+		});
+        this.infoPanel = page.locator('.fds-info-panel');
+		const listContainer = page.locator('.list-sheet');
+		this.list = {
+			container: listContainer,
+			itemContainer: listContainer.locator('li.list-group-item'),
+		};
 		this.managementToolbar = page.getByTestId('management-toolbar');
 		this.page = page;
 		this.sidePanel = page.locator('.fds-side-panel');
@@ -87,6 +115,18 @@ export class FDSSamplePage {
 			exact: true,
 			name: 'Actions',
 		});
+	}
+
+	async changeVisualizationMode(visualizationMode: VisualizationMode) {
+		await this.activeViewSelector.waitFor({
+			state: 'visible',
+		});
+		await this.activeViewSelector.click();
+
+		await this.page
+			.getByRole('listbox')
+			.getByRole('option', {name: visualizationMode})
+			.click();
 	}
 
 	async clickItemAction(itemAction: string) {
