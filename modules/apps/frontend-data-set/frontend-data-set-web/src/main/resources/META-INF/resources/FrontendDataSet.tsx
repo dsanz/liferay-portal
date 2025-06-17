@@ -1236,7 +1236,7 @@ const FrontendDataSetContent = ({
 					<DragLayer fdsRef={wrapperRef} />
 				)}
 
-                <div className="fds" ref={fdsRef}>
+				<div className="fds" ref={fdsRef}>
 					<Modal
 						id={dataSetSupportModalIdRef.current}
 						onClose={refreshData}
@@ -1246,6 +1246,17 @@ const FrontendDataSetContent = ({
 						<SidePanel
 							id={dataSetSupportSidePanelIdRef.current}
 							onAfterSubmit={refreshData}
+						/>
+					)}
+
+					{infoPanelComponent && (
+						<InfoPanel
+							className="fds-info-panel"
+							component={infoPanelComponent}
+							containerRef={fdsRef}
+							id={dataSetSupportInfoPanelIdRef.current}
+							onOpenChange={setInfoPanelOpen}
+							open={infoPanelOpen}
 						/>
 					)}
 
@@ -1259,16 +1270,6 @@ const FrontendDataSetContent = ({
 						data-testid={`visualization-mode-${activeView.name}`}
 						ref={wrapperRef}
 					>
-						{infoPanelComponent && (
-							<InfoPanel
-								className="fds-info-panel"
-								component={infoPanelComponent}
-								containerRef={fdsRef}
-								id={dataSetSupportInfoPanelIdRef.current}
-								onOpenChange={setInfoPanelOpen}
-								open={infoPanelOpen}
-							/>
-						)}
 
 						{style === 'default' && (
 							<div className="data-set data-set-inline">
