@@ -136,7 +136,7 @@ const FrontendDataSetContent = ({
 	views,
 }: IFrontendDataSetProps) => {
 	const fdsRef = useRef(null);
-	const wrapperRef: RefObject<HTMLDivElement> = useRef(null);
+	const dataSetWrapperRef: RefObject<HTMLDivElement> = useRef(null);
 	const [componentLoading, setComponentLoading] = useState(false);
 	const [creationMenu, setCreationMenu] = useState(initialCreationMenu);
 	const [dataLoading, setDataLoading] = useState(!!apiURL);
@@ -502,14 +502,16 @@ const FrontendDataSetContent = ({
 	}
 
 	useEffect(() => {
-		if (wrapperRef.current) {
-			const form = (wrapperRef.current as HTMLElement).closest('form');
+		if (dataSetWrapperRef.current) {
+			const form = (dataSetWrapperRef.current as HTMLElement).closest(
+				'form'
+			);
 
 			if (form?.dataset.sennaOff === null) {
 				form.setAttribute('data-senna-off', 'true');
 			}
 		}
-	}, [wrapperRef]);
+	}, [dataSetWrapperRef]);
 
 	const refreshData = useCallback(
 		(successNotification?: ISuccessNotification) => {
@@ -1120,8 +1122,8 @@ const FrontendDataSetContent = ({
 	});
 
 	useEffect(() => {
-		isFileDropEnabled(fileDropSettings) && dropRef(wrapperRef);
-	}, [dropRef, fileDropSettings, wrapperRef]);
+		isFileDropEnabled(fileDropSettings) && dropRef(dataSetWrapperRef);
+	}, [dropRef, fileDropSettings, dataSetWrapperRef]);
 
 	useEffect(() => {
 		if (!isFileDropEnabled(fileDropSettings) || !droppedFiles?.length) {
@@ -1233,7 +1235,7 @@ const FrontendDataSetContent = ({
 		>
 			<ViewsContext.Provider value={[viewsState, viewsDispatch]}>
 				{isFileDropEnabled(fileDropSettings) && (
-					<DragLayer fdsRef={wrapperRef} />
+					<DragLayer dataSetWrapperRef={dataSetWrapperRef} />
 				)}
 
 				<div className="fds" ref={fdsRef}>
@@ -1268,9 +1270,8 @@ const FrontendDataSetContent = ({
 							}
 						)}
 						data-testid={`visualization-mode-${activeView.name}`}
-						ref={wrapperRef}
+						ref={dataSetWrapperRef}
 					>
-
 						{style === 'default' && (
 							<div className="data-set data-set-inline">
 								{managementBar}
@@ -1329,7 +1330,7 @@ const FrontendDataSet = ({
 	formName,
 	header,
 	id,
-    infoPanelComponent,
+	infoPanelComponent,
 	inlineAddingSettings,
 	inlineEditingSettings,
 	items,
@@ -1388,7 +1389,7 @@ const FrontendDataSet = ({
 				formName={formName}
 				header={header}
 				id={id}
-                infoPanelComponent={infoPanelComponent}
+				infoPanelComponent={infoPanelComponent}
 				inlineAddingSettings={inlineAddingSettings}
 				inlineEditingSettings={inlineEditingSettings}
 				items={items}
