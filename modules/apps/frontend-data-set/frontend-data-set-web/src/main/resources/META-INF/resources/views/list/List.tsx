@@ -171,7 +171,9 @@ const ListItemOptionalDropTarget = ({
 
 	const canDrop = useCallback(
 		(item: any) =>
-			fileDropSettings?.canDrop ? fileDropSettings.canDrop({item}) : true,
+			fileDropSettings?.canReceiveDrop
+				? fileDropSettings.canReceiveDrop({item})
+				: true,
 		[fileDropSettings]
 	);
 
