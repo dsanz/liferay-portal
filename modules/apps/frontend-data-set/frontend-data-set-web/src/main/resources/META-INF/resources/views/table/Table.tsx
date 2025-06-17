@@ -60,6 +60,10 @@ import TableContextProvider from './TableContextProvider';
 
 import type {DropTargetMonitor} from 'react-dnd';
 
+type Column = {
+	fieldName: string;
+};
+
 type Field = {
 	contentRenderer: string;
 	contentRendererClientExtension: boolean;
@@ -186,7 +190,7 @@ const Body = ({
 		...(selectable ? [{fieldName: 'select'}] : []),
 		...fields,
 		{fieldName: 'actions'},
-	];
+	] as Column[];
 
 	return (
 		<FDSDndProvider>
@@ -195,225 +199,194 @@ const Body = ({
 					inlineAddingSettings ? [...items, defaultAddItem] : items
 				}
 			>
-				{
+				{(item: any) => {
+					const id = item[selectedItemsKey ?? 'id'];
 
-					// @ts-ignore
+					return (
+						<ClayTableRowOptionalDropTarget
+							item={item}
+							items={columns}
+						>
+							{(cell: Column) => {
+								const cellColumnName = getCellColumnClassName(
+									cell.fieldName
+								);
 
-					(item) => {
-						const id = item[selectedItemsKey ?? 'id'];
-
-						return (
-							<ClayTableRowOptionalDropTarget
-								item={item}
-								items={columns}
-							>
-								{
-
-									// @ts-ignore
-
-									(cell: typeof columns) => {
-										const cellColumnName =
-											getCellColumnClassName(
-												cell.fieldName
-											);
-
-										switch (cell.fieldName) {
-											case 'actions': {
-												return (
-													<ClayTableCell
-														className="cell-item-actions"
-														key={`${id}:actions`}
-														textValue={Liferay.Language.get(
-															'item-actions'
-														)}
-													>
-														{item.editable ? (
-															<AddActions />
-														) : (
-															(itemsActions?.length >
-																0 ||
-																item
-																	.actionDropdownItems
-																	?.length >
-																	0) && (
-																<Actions
-																	actions={
-																		itemsActions ||
-																		item.actionDropdownItems
-																	}
-																	itemData={
-																		item
-																	}
-																	itemId={id}
-																/>
-															)
-														)}
-													</ClayTableCell>
-												);
-											}
-											case 'select':
-												return (
-													<ClayTableCell
-														className="cell-select-item"
-														key={`${id}:select`}
-														textValue={Liferay.Language.get(
-															'select-item'
-														)}
-													>
-														{!item.editable && (
-															<SelectionComponent
-																checked={
-																	allItemsSelectedActive ||
-																	!!selectedItemsValue.find(
-																		(
-																			element: any
-																		) =>
-																			String(
-																				element
-																			) ===
-																			String(
-																				id
-																			)
-																	)
-																}
-																onChange={() =>
-																	onItemSelectionChange(
-																		item
-																	)
-																}
-																title={Liferay.Language.get(
-																	'select-item'
-																)}
-																value={id}
-															/>
-														)}
-													</ClayTableCell>
-												);
-											default: {
-												if (item.editable) {
-													const field = cell as any;
-													let InputRenderer: any =
-														null;
-
-													if (
-														field.inlineEditSettings
-															?.type
-													) {
-														InputRenderer =
-															getInputRendererById(
-																field
-																	.inlineEditSettings
-																	.type
-															);
-													}
-
-													const valuePath =
-														Array.isArray(
-															field.fieldName
-														)
-															? field.fieldName.map(
-																	(
-																		property: string
-																	) =>
-																		property ===
-																		'LANG'
-																			? Liferay.ThemeDisplay.getDefaultLanguageId()
-																			: property
-																)
-															: [field.fieldName];
-
-													const rootPropertyName =
-														valuePath[0];
-
-													const newItem =
-														itemsChanges![0] || {};
-
-													return (
-														<ClayTableCell
-															className={
-																cellColumnName
-															}
-															key={`${id}:${cell.fieldName}`}
-														>
-															{InputRenderer ? (
-																<InputRenderer
-																	updateItem={(
-																		value: string
-																	) => {
-																		updateItem(
-																			0,
-																			rootPropertyName,
-																			valuePath,
-																			value
-																		);
-																	}}
-																	value={
-																		newItem[
-																			rootPropertyName
-																		] &&
-																		newItem[
-																			rootPropertyName
-																		].value
-																	}
-																	valuePath={
-																		rootPropertyName
-																	}
-																/>
-															) : null}
-														</ClayTableCell>
-													);
-												}
-
-												const localizedValue: ILocalizedItemDetails | null =
-													getLocalizedValue(
-														item,
-														cell.fieldName
-													);
-
-												const valuePath =
-													localizedValue?.valuePath ??
-													undefined;
-
-												return (
-													<ClayTableCell
-														className={
-															cellColumnName
-														}
-														key={`${id}:${cell.fieldName}`}
-													>
-														<CellRenderer
+								switch (cell.fieldName) {
+									case 'actions': {
+										return (
+											<ClayTableCell
+												className="cell-item-actions"
+												key={`${id}:actions`}
+												textValue={Liferay.Language.get(
+													'item-actions'
+												)}
+											>
+												{item.editable ? (
+													<AddActions />
+												) : (
+													(itemsActions?.length > 0 ||
+														item.actionDropdownItems
+															?.length > 0) && (
+														<Actions
 															actions={
 																itemsActions ||
 																item.actionDropdownItems
 															}
-															field={cell}
 															itemData={item}
 															itemId={id}
-															itemInlineChanges={
-																itemInlineChanges
-															}
-															rootPropertyName={
-																localizedValue?.rootPropertyName ??
-																undefined
-															}
+														/>
+													)
+												)}
+											</ClayTableCell>
+										);
+									}
+									case 'select':
+										return (
+											<ClayTableCell
+												className="cell-select-item"
+												key={`${id}:select`}
+												textValue={Liferay.Language.get(
+													'select-item'
+												)}
+											>
+												{!item.editable && (
+													<SelectionComponent
+														checked={
+															allItemsSelectedActive ||
+															!!selectedItemsValue.find(
+																(
+																	element: any
+																) =>
+																	String(
+																		element
+																	) ===
+																	String(id)
+															)
+														}
+														onChange={() =>
+															onItemSelectionChange(
+																item
+															)
+														}
+														title={Liferay.Language.get(
+															'select-item'
+														)}
+														value={id}
+													/>
+												)}
+											</ClayTableCell>
+										);
+									default: {
+										if (item.editable) {
+											const field = cell as any;
+											let InputRenderer: any = null;
+
+											if (
+												field.inlineEditSettings?.type
+											) {
+												InputRenderer =
+													getInputRendererById(
+														field.inlineEditSettings
+															.type
+													);
+											}
+
+											const valuePath = Array.isArray(
+												field.fieldName
+											)
+												? field.fieldName.map(
+														(property: string) =>
+															property === 'LANG'
+																? Liferay.ThemeDisplay.getDefaultLanguageId()
+																: property
+													)
+												: [field.fieldName];
+
+											const rootPropertyName =
+												valuePath[0];
+
+											const newItem =
+												itemsChanges![0] || {};
+
+											return (
+												<ClayTableCell
+													className={cellColumnName}
+													key={`${id}:${cell.fieldName}`}
+												>
+													{InputRenderer ? (
+														<InputRenderer
+															updateItem={(
+																value: string
+															) => {
+																updateItem(
+																	0,
+																	rootPropertyName,
+																	valuePath,
+																	value
+																);
+															}}
 															value={
-																localizedValue?.value ??
-																undefined
+																newItem[
+																	rootPropertyName
+																] &&
+																newItem[
+																	rootPropertyName
+																].value
 															}
 															valuePath={
-																valuePath
+																rootPropertyName
 															}
 														/>
-													</ClayTableCell>
-												);
-											}
+													) : null}
+												</ClayTableCell>
+											);
 										}
+
+										const localizedValue: ILocalizedItemDetails | null =
+											getLocalizedValue(
+												item,
+												cell.fieldName
+											);
+
+										const valuePath =
+											localizedValue?.valuePath ??
+											undefined;
+
+										return (
+											<ClayTableCell
+												className={cellColumnName}
+												key={`${id}:${cell.fieldName}`}
+											>
+												<CellRenderer
+													actions={
+														itemsActions ||
+														item.actionDropdownItems
+													}
+													field={cell}
+													itemData={item}
+													itemId={id}
+													itemInlineChanges={
+														itemInlineChanges
+													}
+													rootPropertyName={
+														localizedValue?.rootPropertyName ??
+														undefined
+													}
+													value={
+														localizedValue?.value ??
+														undefined
+													}
+													valuePath={valuePath}
+												/>
+											</ClayTableCell>
+										);
 									}
 								}
-							</ClayTableRowOptionalDropTarget>
-						);
-					}
-				}
+							}}
+						</ClayTableRowOptionalDropTarget>
+					);
+				}}
 			</ClayTableBody>
 		</FDSDndProvider>
 	);
@@ -423,7 +396,7 @@ function ClayTableRowOptionalDropTarget({
 	children,
 	item,
 	items,
-}: React.ComponentProps<typeof ClayTableRow> & {item: any}) {
+}: React.ComponentProps<typeof ClayTableRow<Column>> & {item: any}) {
 	const {fileDropSettings, handleFileDrop} = useContext(
 		FrontendDataSetContext
 	);
