@@ -29,7 +29,7 @@ export class FDSSamplePage {
 	readonly customViewsSelectorButton: Locator;
 	readonly fdsWrapper: Locator;
 	readonly fileDropModal: Locator;
-    readonly infoPanel: Locator;
+	readonly infoPanel: Locator;
 	readonly itemActionButton: Locator;
 	readonly list: {
 		container: Locator;
@@ -81,7 +81,7 @@ export class FDSSamplePage {
 		this.fileDropModal = page.getByRole('dialog', {
 			name: 'Files',
 		});
-        this.infoPanel = page.locator('.fds-info-panel');
+		this.infoPanel = page.locator('.fds-info-panel');
 		const listContainer = page.locator('.list-sheet');
 		this.list = {
 			container: listContainer,

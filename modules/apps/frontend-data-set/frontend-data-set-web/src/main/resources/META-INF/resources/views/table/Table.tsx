@@ -433,7 +433,7 @@ function ClayTableRowOptionalDropTarget({
 
 	return (
 		<ClayTableRow
-			className={classNames({'table-row-drop-target': isOverCurrent})}
+			className={classNames({'drop-target': isOverCurrent})}
 			items={items}
 			ref={canDrop(item) ? dropRef : nonDroppableRef}
 		>

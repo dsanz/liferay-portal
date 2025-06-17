@@ -77,13 +77,15 @@ const ListItem = forwardRef<HTMLLIElement, any>(
 				className={classNames(className, {
 					selectable,
 					selected: selectedItemsValue
-						? selectedItemsValue.includes(item[selectedItemsKey])
+						? selectedItemsValue.includes(
+								item[selectedItemsKey || 'id']
+							)
 						: false,
 				})}
 				flex
 				onClick={() => {
 					if (selectable) {
-						selectItems(item[selectedItemsKey]);
+						selectItems(item[selectedItemsKey || 'id']);
 
 						onSelect && onSelect({selectedItems: [item]});
 					}
@@ -98,12 +100,16 @@ const ListItem = forwardRef<HTMLLIElement, any>(
 									? selectedItemsValue
 											.map((element) => String(element))
 											.includes(
-												String(item[selectedItemsKey])
+												String(
+													item[
+														selectedItemsKey || 'id'
+													]
+												)
 											)
 									: false
 							}
 							onChange={() => {}}
-							value={item[selectedItemsKey]}
+							value={item[selectedItemsKey || 'id']}
 						/>
 					</ClayList.ItemField>
 				)}
@@ -147,7 +153,7 @@ const ListItem = forwardRef<HTMLLIElement, any>(
 						<Actions
 							actions={itemsActions || item.actionDropdownItems}
 							itemData={item}
-							itemId={item[selectedItemsKey]}
+							itemId={item[selectedItemsKey || 'id']}
 						/>
 					)}
 				</ClayList.ItemField>
@@ -199,7 +205,7 @@ const ListItemOptionalDropTarget = ({
 
 	return (
 		<ListItem
-			className={classNames({'list-drop-target': isOverCurrent})}
+			className={classNames({'drop-target': isOverCurrent})}
 			item={item}
 			ref={canDrop(item) ? dropRef : nonDroppableRef}
 			schema={schema}

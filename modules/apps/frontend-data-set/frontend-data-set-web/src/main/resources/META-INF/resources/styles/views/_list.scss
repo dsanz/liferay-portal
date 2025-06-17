@@ -7,7 +7,7 @@
 	padding: initial;
 }
 
-.list-drop-target {
+li.drop-target {
 	& * {
 		@include common-drop-target;
 	}
