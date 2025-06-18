@@ -1070,19 +1070,16 @@ const FrontendDataSetContent = ({
 			});
 	}
 
-	const handleFileDrop = useCallback(
-		(item: any, rowItem?: any) => {
-			if (item) {
+	const handleFileDrop = (item: any, rowItem?: any) => {
+		if (item) {
 
-				// @ts-ignore
+			// @ts-ignore
 
-				const files = item.files;
-				setDroppedFiles(files);
-				rowItem ? setDropTarget(rowItem) : setDropTarget(null);
-			}
-		},
-		[setDroppedFiles, setDropTarget]
-	);
+			const files = item.files;
+			setDroppedFiles(files);
+			setDropTarget(rowItem ? rowItem : null);
+		}
+	};
 
 	const onSearch = ({query}: {query: string}) => {
 		if (apiURL || appURL) {
@@ -1360,8 +1357,8 @@ const FrontendDataSet = ({
 					fileDropSettings
 						? fileDropSettings
 						: {
-								canReceiveDrop: () => true,
 								enabled: false,
+								isDropTarget: () => true,
 							}
 				}
 				filters={filters}
