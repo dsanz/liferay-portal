@@ -39,6 +39,7 @@ import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.PortletInstanceFactory;
 import com.liferay.portal.kernel.security.auth.CompanyInheritableThreadLocalCallable;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.PortletLocalService;
@@ -153,63 +154,74 @@ public class PortletTracker
 			return null;
 		}
 
-		com.liferay.portal.kernel.model.Portlet portletModel =
-			_portletLocalService.getPortletById(portletId);
+		Long companyId = (Long)serviceReference.getProperty(
+			"com.liferay.portlet.company");
 
-		if (portletModel != null) {
-			_log.error("Portlet id " + portletId + " is already in use");
-
-			_bundleContext.ungetService(serviceReference);
-
-			return null;
+		if (companyId == null) {
+			companyId = CompanyThreadLocal.getNonsystemCompanyId();
 		}
 
-		if (_log.isInfoEnabled()) {
-			_log.info("Adding " + serviceReference);
-		}
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(companyId)) {
 
-		String finalPortletName = portletName;
-		String finalPortletId = portletId;
+			com.liferay.portal.kernel.model.Portlet portletModel =
+				_portletLocalService.getPortletById(portletId);
 
-		FutureTask<com.liferay.portal.kernel.model.Portlet> futureTask =
-			new FutureTask<>(
-				new CompanyInheritableThreadLocalCallable<>(
-					() -> {
-						com.liferay.portal.kernel.model.Portlet
-							addedPortletModel = _addingPortlet(
-								serviceReference, portlet, finalPortletName,
-								finalPortletId);
+			if (portletModel != null) {
+				_log.error("Portlet id " + portletId + " is already in use");
 
-						if (addedPortletModel == null) {
-							_bundleContext.ungetService(serviceReference);
-						}
+				_bundleContext.ungetService(serviceReference);
 
-						return addedPortletModel;
-					}));
-
-		if (_parallel &&
-			GetterUtil.getBoolean(
-				serviceReference.getProperty(
-					"com.liferay.portlet.deploy.parallel"),
-				true)) {
-
-			ExecutorService executorService =
-				SystemExecutorServiceUtil.getExecutorService();
-
-			executorService.submit(futureTask);
-		}
-		else {
-			futureTask.run();
-		}
-
-		return () -> {
-			try {
-				return futureTask.get();
+				return null;
 			}
-			catch (Exception exception) {
-				return ReflectionUtil.throwException(exception);
+
+			if (_log.isInfoEnabled()) {
+				_log.info("Adding " + serviceReference);
 			}
-		};
+
+			String finalPortletName = portletName;
+			String finalPortletId = portletId;
+
+			FutureTask<com.liferay.portal.kernel.model.Portlet> futureTask =
+				new FutureTask<>(
+					new CompanyInheritableThreadLocalCallable<>(
+						() -> {
+							com.liferay.portal.kernel.model.Portlet
+								addedPortletModel = _addingPortlet(
+									serviceReference, portlet, finalPortletName,
+									finalPortletId);
+
+							if (addedPortletModel == null) {
+								_bundleContext.ungetService(serviceReference);
+							}
+
+							return addedPortletModel;
+						}));
+
+			if (_parallel &&
+				GetterUtil.getBoolean(
+					serviceReference.getProperty(
+						"com.liferay.portlet.deploy.parallel"),
+					true)) {
+
+				ExecutorService executorService =
+					SystemExecutorServiceUtil.getExecutorService();
+
+				executorService.submit(futureTask);
+			}
+			else {
+				futureTask.run();
+			}
+
+			return () -> {
+				try {
+					return futureTask.get();
+				}
+				catch (Exception exception) {
+					return ReflectionUtil.throwException(exception);
+				}
+			};
+		}
 	}
 
 	@Override
