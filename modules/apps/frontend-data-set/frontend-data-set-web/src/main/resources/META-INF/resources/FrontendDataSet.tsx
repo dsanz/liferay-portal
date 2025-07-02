@@ -268,6 +268,44 @@ const FrontendDataSetContent = ({
 
 	const {activeView, filters, paginationDelta, sorts} = viewsState;
 
+	const onDeltaChange = (delta : number) => {
+		setPageNumber(1);
+
+		viewsDispatch({
+			type: VIEWS_ACTION_TYPES.UPDATE_PAGINATION_DELTA,
+			value: delta,
+		});
+	}
+
+	useEffect(() => {
+
+	  const handlePopState = () => {
+
+		  const params = new URLSearchParams(window.location.search);
+
+		  const delta = params.get('delta');
+
+		  if (delta) {
+			  onDeltaChange(delta);
+		  }
+
+	  };
+
+	// this handles back/forward buttons on history
+	  window.addEventListener('popstate', handlePopState);
+
+	  // still we need to handle initial presence of parameters on first render
+
+	  return () => {
+
+	    window.removeEventListener('popstate', handlePopState);
+
+	  };
+
+	}, []);
+
+
+
 	const {
 		component: View,
 		contentRendererModuleURL,
@@ -848,14 +886,7 @@ const FrontendDataSetContent = ({
 						selectPerPageItems: Liferay.Language.get('x-items'),
 					}}
 					onActiveChange={setPageNumber}
-					onDeltaChange={(delta) => {
-						setPageNumber(1);
-
-						viewsDispatch({
-							type: VIEWS_ACTION_TYPES.UPDATE_PAGINATION_DELTA,
-							value: delta,
-						});
-					}}
+					onDeltaChange={onDeltaChange}
 					totalItems={total}
 				/>
 			</div>

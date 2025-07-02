@@ -135,6 +135,17 @@ export function viewsReducer(state, {type, value}) {
 		};
 	}
 	else if (type === VIEWS_ACTION_TYPES.UPDATE_PAGINATION_DELTA) {
+		const params = new URLSearchParams(window.location.search);
+
+		const delta = params.get('delta');
+
+		if (!delta || delta !== value)
+		{
+			params.set('delta', value);
+
+			window.history.pushState({}, '', `?${params.toString()}`);
+		}
+
 		return {
 			...state,
 			paginationDelta: value,
