@@ -165,6 +165,13 @@ const FrontendDataSetContent = ({
 
 	const {fileDropSettings} = useContext(DnDContext);
 
+	const getDeltaFromURL = () =>{
+		const params = new URLSearchParams(window.location.search);
+
+		return params.get('delta');
+	}
+
+
 	const getInitialViewsState = () => {
 		const customInternalViews =
 			customRenderers?.views?.map((customRenderer: TRenderer) => ({
@@ -240,7 +247,7 @@ const FrontendDataSetContent = ({
 
 		const paginationDelta =
 			showPagination &&
-			(pagination?.initialDelta || DEFAULT_PAGINATION_DELTA);
+			(getDeltaFromURL() || pagination?.initialDelta || DEFAULT_PAGINATION_DELTA);
 
 		return {
 			activeView,
@@ -280,10 +287,7 @@ const FrontendDataSetContent = ({
 	useEffect(() => {
 
 	  const handlePopState = () => {
-
-		  const params = new URLSearchParams(window.location.search);
-
-		  const delta = params.get('delta');
+		  const delta = getDeltaFromURL()
 
 		  if (delta) {
 			  onDeltaChange(delta);
@@ -293,8 +297,6 @@ const FrontendDataSetContent = ({
 
 	// this handles back/forward buttons on history
 	  window.addEventListener('popstate', handlePopState);
-
-	  // still we need to handle initial presence of parameters on first render
 
 	  return () => {
 
