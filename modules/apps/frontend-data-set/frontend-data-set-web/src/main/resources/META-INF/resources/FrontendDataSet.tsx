@@ -366,11 +366,32 @@ const FrontendDataSetContent = ({
 						);
 
 						if (bindingContext) {
-							return {
-								...filter,
-								clientExtensionFilterImplementation:
-									bindingContext.binding,
-							};
+							const preloadedData =
+								bindingContext.binding.preloadedDataBuilder?.({
+									fieldName: filter.id,
+									filter,
+								});
+
+							if (preloadedData) {
+								filter.active = true;
+								filter.selectedData = preloadedData;
+
+								const filterType: keyof typeof FILTER_IMPLEMENTATIONS =
+									filter.type;
+
+								const filterImplementation =
+									FILTER_IMPLEMENTATIONS[filterType];
+
+								filter.clientExtensionFilterImplementation =
+									bindingContext.binding;
+
+								filter.odataFilterString =
+									filterImplementation.getOdataString(filter);
+								filter.selectedItemsLabel =
+									filterImplementation.getSelectedItemsLabel(
+										filter
+									);
+							}
 						}
 
 						return filter;
