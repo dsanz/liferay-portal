@@ -5,8 +5,24 @@
 
 import type {
 	FDSFilter,
+	FDSFilterData,
 	FDSFilterHTMLElementBuilderArgs,
 } from '@liferay/js-api/data-set';
+
+
+// These 3 types go in js-api/data-set package
+interface FDSFilterPreloadedDataBuilderArgs<T> {
+	fieldName: string;
+	filter: FDSFilterData<T>;
+}
+
+interface FDSFilterPreloadedDataBuilder<T> {
+	(args: FDSFilterPreloadedDataBuilderArgs<T>): T;
+}
+
+type FDSFilter2<T> = FDSFilter<T> & {
+	preloadedDataBuilder : FDSFilterPreloadedDataBuilder<T>
+}
 
 // Declare the structure of the internal data that describes the filter state (in this case it will
 // be the plain odata string the user enters through the filter's UI).
@@ -57,10 +73,17 @@ function oDataQueryBuilder(selectedData: FilterData): string {
 	return selectedData;
 }
 
-const fdsFilter: FDSFilter<FilterData> = {
+function preloadedDataBuilder({
+	fieldName
+}: FDSFilterPreloadedDataBuilderArgs<FilterData>) : FilterData {
+	return `${fieldName} eq 'Sample1'`;
+}
+
+const fdsFilter: FDSFilter2<FilterData> = {
 	descriptionBuilder,
 	htmlElementBuilder,
 	oDataQueryBuilder,
+	preloadedDataBuilder
 };
 
 export default fdsFilter;
