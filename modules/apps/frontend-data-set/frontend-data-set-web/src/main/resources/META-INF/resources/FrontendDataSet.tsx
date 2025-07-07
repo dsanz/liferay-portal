@@ -165,12 +165,11 @@ const FrontendDataSetContent = ({
 
 	const {fileDropSettings} = useContext(DnDContext);
 
-	const getDeltaFromURL = () =>{
+	const getDeltaFromURL = () => {
 		const params = new URLSearchParams(window.location.search);
 
 		return params.get('delta');
-	}
-
+	};
 
 	const getInitialViewsState = () => {
 		const customInternalViews =
@@ -247,7 +246,9 @@ const FrontendDataSetContent = ({
 
 		const paginationDelta =
 			showPagination &&
-			(getDeltaFromURL() || pagination?.initialDelta || DEFAULT_PAGINATION_DELTA);
+			(getDeltaFromURL() ||
+				pagination?.initialDelta ||
+				DEFAULT_PAGINATION_DELTA);
 
 		return {
 			activeView,
@@ -275,38 +276,32 @@ const FrontendDataSetContent = ({
 
 	const {activeView, filters, paginationDelta, sorts} = viewsState;
 
-	const onDeltaChange = (delta : number) => {
+	const onDeltaChange = (delta: number) => {
 		setPageNumber(1);
 
 		viewsDispatch({
 			type: VIEWS_ACTION_TYPES.UPDATE_PAGINATION_DELTA,
 			value: delta,
 		});
-	}
+	};
 
 	useEffect(() => {
+		const handlePopState = () => {
+			const delta = getDeltaFromURL();
 
-	  const handlePopState = () => {
-		  const delta = getDeltaFromURL()
+			if (delta) {
+				onDeltaChange(delta);
+			}
+		};
 
-		  if (delta) {
-			  onDeltaChange(delta);
-		  }
+		// this handles back/forward buttons on history
 
-	  };
+		window.addEventListener('popstate', handlePopState);
 
-	// this handles back/forward buttons on history
-	  window.addEventListener('popstate', handlePopState);
-
-	  return () => {
-
-	    window.removeEventListener('popstate', handlePopState);
-
-	  };
-
+		return () => {
+			window.removeEventListener('popstate', handlePopState);
+		};
 	}, []);
-
-
 
 	const {
 		component: View,

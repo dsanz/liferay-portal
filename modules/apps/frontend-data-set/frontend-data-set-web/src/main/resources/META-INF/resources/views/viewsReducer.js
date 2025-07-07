@@ -139,8 +139,7 @@ export function viewsReducer(state, {type, value}) {
 
 		const delta = params.get('delta');
 
-		if (!delta || delta !== value)
-		{
+		if (!delta || delta !== value) {
 			params.set('delta', value);
 
 			window.history.pushState({}, '', `?${params.toString()}`);
