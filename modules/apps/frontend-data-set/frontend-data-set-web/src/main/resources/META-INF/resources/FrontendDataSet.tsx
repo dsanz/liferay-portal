@@ -366,6 +366,9 @@ const FrontendDataSetContent = ({
 						);
 
 						if (bindingContext) {
+							filter.clientExtensionFilterImplementation =
+								bindingContext.binding;
+
 							const preloadedData =
 								bindingContext.binding.preloadedDataBuilder?.({
 									fieldName: filter.id,
@@ -381,9 +384,6 @@ const FrontendDataSetContent = ({
 
 								const filterImplementation =
 									FILTER_IMPLEMENTATIONS[filterType];
-
-								filter.clientExtensionFilterImplementation =
-									bindingContext.binding;
 
 								filter.odataFilterString =
 									filterImplementation.getOdataString(filter);
