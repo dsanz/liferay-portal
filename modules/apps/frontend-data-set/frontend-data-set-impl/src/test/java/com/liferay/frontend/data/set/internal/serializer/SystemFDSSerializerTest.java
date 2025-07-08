@@ -429,15 +429,6 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 						return URL;
 					}
 
-					@Override
-					public Map<String, Object> getPreloadedData() {
-						return new HashMapBuilder<>().<String, Object>put(
-							IDS[1], LABELS[1]
-						).put(
-							IDS[2], LABELS[2]
-						).build();
-					}
-
 				},
 				FDS_NAMES[0]),
 			bundleContext.registerService(
@@ -455,13 +446,6 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 					"id", IDS[0]
 				).put(
 					"label", LABELS[0]
-				).put(
-					"preloadedData",
-					JSONUtil.put(
-						IDS[1], LABELS[1]
-					).put(
-						IDS[2], LABELS[2]
-					)
 				).put(
 					"type", "clientExtension"
 				)
