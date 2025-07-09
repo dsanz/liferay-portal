@@ -381,11 +381,32 @@ const FrontendDataSetContent = ({
 								};
 							}
 
-							return {
-								...filter,
-								clientExtensionFilterImplementation:
-									resolution.binding,
-							};
+							filter.clientExtensionFilterImplementation =
+								resolution.binding;
+
+							const preloadedData =
+								resolution.binding.preloadedDataBuilder?.({
+									fieldName: filter.id,
+									filter,
+								});
+
+							if (preloadedData) {
+								filter.active = true;
+								filter.selectedData = preloadedData;
+
+								const filterType: keyof typeof FILTER_IMPLEMENTATIONS =
+									filter.type;
+
+								const filterImplementation =
+									FILTER_IMPLEMENTATIONS[filterType];
+
+								filter.odataFilterString =
+									filterImplementation.getOdataString(filter);
+								filter.selectedItemsLabel =
+									filterImplementation.getSelectedItemsLabel(
+										filter
+									);
+							}
 						}
 
 						return filter;
