@@ -277,7 +277,9 @@ const FrontendDataSetContent = ({
 
 		const paginationDelta =
 			showPagination &&
-			(pagination?.initialDelta || DEFAULT_PAGINATION_DELTA);
+			(getDeltaFromURL() ||
+				pagination?.initialDelta ||
+				DEFAULT_PAGINATION_DELTA);
 
 		return {
 			activeView,
