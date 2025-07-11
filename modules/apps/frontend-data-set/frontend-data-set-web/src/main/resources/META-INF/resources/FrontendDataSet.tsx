@@ -69,6 +69,7 @@ import {loadData} from './utils/loadData';
 import {logError} from './utils/logError';
 import {
 	ESelectionTrigger,
+	EStateChangeTrigger,
 	IField,
 	IFrontendDataSetProps,
 	IModalConfig,
@@ -89,6 +90,36 @@ import {VIEWS_ACTION_TYPES, viewsReducer} from './views/viewsReducer';
 
 const DEFAULT_PAGINATION_DELTA = 20;
 const DEFAULT_PAGINATION_PAGE_NUMBER = 1;
+
+const getDeltaFromURL = (): number | null => {
+	const params = new URLSearchParams(window.location.search);
+
+	const deltaParam = params.get('delta');
+
+	if (!deltaParam) {
+		return null;
+	}
+
+	const delta = parseInt(deltaParam, 10);
+
+	if (isNaN(delta) || delta < 1) {
+		return null;
+	}
+
+	return delta;
+};
+
+const writeDeltaInURL = (delta: number) => {
+	const params = new URLSearchParams(window.location.search);
+
+	const deltaParam = getDeltaFromURL();
+
+	if (!deltaParam || deltaParam !== delta) {
+		params.set('delta', delta.toString());
+
+		window.history.pushState({}, '', `?${params.toString()}`);
+	}
+};
 
 const FrontendDataSetContent = ({
 	actionParameterName,
@@ -274,24 +305,21 @@ const FrontendDataSetContent = ({
 
 	const {activeView, filters, paginationDelta, sorts} = viewsState;
 
-	const onDeltaChange = (delta: number) => {
-		setPageNumber(1);
+	const onDeltaChange = useCallback(
+		({delta, trigger}: {delta: number; trigger: EStateChangeTrigger}) => {
+			setPageNumber(1);
 
-		viewsDispatch({
-			type: VIEWS_ACTION_TYPES.UPDATE_PAGINATION_DELTA,
-			value: delta,
-		});
+			viewsDispatch({
+				type: VIEWS_ACTION_TYPES.UPDATE_PAGINATION_DELTA,
+				value: delta,
+			});
 
-		const params = new URLSearchParams(window.location.search);
-
-		const deltaParam = params.get('delta');
-
-		if (!deltaParam || deltaParam !== delta.toString()) {
-			params.set('delta', delta.toString());
-
-			window.history.pushState({}, '', `?${params.toString()}`);
-		}
-	};
+			if (trigger === EStateChangeTrigger.UI) {
+				writeDeltaInURL(delta);
+			}
+		},
+		[setPageNumber, viewsDispatch]
+	);
 
 	const {
 		component: View,
@@ -369,6 +397,22 @@ const FrontendDataSetContent = ({
 			setPageNumber(() => dataSetData.lastPage);
 		}
 	}
+
+	useEffect(() => {
+		const handlePopState = () => {
+			const delta = getDeltaFromURL();
+
+			if (delta) {
+				onDeltaChange({delta, trigger: EStateChangeTrigger.URL});
+			}
+		};
+
+		window.addEventListener('popstate', handlePopState);
+
+		return () => {
+			window.removeEventListener('popstate', handlePopState);
+		};
+	}, [onDeltaChange]);
 
 	useEffect(() => {
 		loadClientExtensions([
@@ -906,7 +950,9 @@ const FrontendDataSetContent = ({
 						selectPerPageItems: Liferay.Language.get('x-items'),
 					}}
 					onActiveChange={setPageNumber}
-					onDeltaChange={onDeltaChange}
+					onDeltaChange={(delta) => {
+						onDeltaChange({delta, trigger: EStateChangeTrigger.UI});
+					}}
 					totalItems={total}
 				/>
 			</div>
