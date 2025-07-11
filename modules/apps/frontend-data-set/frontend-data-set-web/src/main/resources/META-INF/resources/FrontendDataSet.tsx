@@ -109,7 +109,7 @@ const getDeltaFromURL = (): number | null => {
 	return delta;
 };
 
-const writeDeltaInURL = (delta: number) => {
+const writeDeltaInURL = (delta: number, firstRender: boolean = false) => {
 	const params = new URLSearchParams(window.location.search);
 
 	const deltaParam = getDeltaFromURL();
@@ -117,7 +117,12 @@ const writeDeltaInURL = (delta: number) => {
 	if (!deltaParam || deltaParam !== delta) {
 		params.set('delta', delta.toString());
 
-		window.history.pushState({}, '', `?${params.toString()}`);
+		if (firstRender) {
+			window.history.replaceState({}, '', `?${params.toString()}`);
+		}
+		else {
+			window.history.pushState({}, '', `?${params.toString()}`);
+		}
 	}
 };
 
@@ -399,6 +404,12 @@ const FrontendDataSetContent = ({
 			setPageNumber(() => dataSetData.lastPage);
 		}
 	}
+
+	useEffect(() => {
+		writeDeltaInURL(paginationDelta, true);
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	useEffect(() => {
 		const handlePopState = () => {
