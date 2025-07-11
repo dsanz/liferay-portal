@@ -274,6 +274,25 @@ const FrontendDataSetContent = ({
 
 	const {activeView, filters, paginationDelta, sorts} = viewsState;
 
+	const onDeltaChange = (delta: number) => {
+		setPageNumber(1);
+
+		viewsDispatch({
+			type: VIEWS_ACTION_TYPES.UPDATE_PAGINATION_DELTA,
+			value: delta,
+		});
+
+		const params = new URLSearchParams(window.location.search);
+
+		const deltaParam = params.get('delta');
+
+		if (!deltaParam || deltaParam !== delta.toString()) {
+			params.set('delta', delta.toString());
+
+			window.history.pushState({}, '', `?${params.toString()}`);
+		}
+	};
+
 	const {
 		component: View,
 		contentRendererModuleURL,
@@ -887,14 +906,7 @@ const FrontendDataSetContent = ({
 						selectPerPageItems: Liferay.Language.get('x-items'),
 					}}
 					onActiveChange={setPageNumber}
-					onDeltaChange={(delta) => {
-						setPageNumber(1);
-
-						viewsDispatch({
-							type: VIEWS_ACTION_TYPES.UPDATE_PAGINATION_DELTA,
-							value: delta,
-						});
-					}}
+					onDeltaChange={onDeltaChange}
 					totalItems={total}
 				/>
 			</div>
