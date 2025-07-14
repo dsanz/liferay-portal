@@ -70,7 +70,6 @@ import {logError} from './utils/logError';
 import {getDeltaFromURL, writeStateInURL} from './utils/stateInURL';
 import {
 	ESelectionTrigger,
-	EStateChangeTrigger,
 	IField,
 	IFrontendDataSetProps,
 	IModalConfig,
@@ -279,7 +278,7 @@ const FrontendDataSetContent = ({
 	const {activeView, filters, paginationDelta, sorts} = viewsState;
 
 	const onDeltaChange = useCallback(
-		({delta, trigger}: {delta: number; trigger: EStateChangeTrigger}) => {
+		({delta}: {delta: number}) => {
 			setPageNumber(1);
 
 			viewsDispatch({
@@ -287,9 +286,7 @@ const FrontendDataSetContent = ({
 				value: delta,
 			});
 
-			if (trigger === EStateChangeTrigger.UI) {
-				writeStateInURL({delta});
-			}
+			writeStateInURL({delta});
 		},
 		[setPageNumber, viewsDispatch]
 	);
@@ -382,7 +379,7 @@ const FrontendDataSetContent = ({
 			const delta = getDeltaFromURL();
 
 			if (delta) {
-				onDeltaChange({delta, trigger: EStateChangeTrigger.URL});
+				onDeltaChange({delta});
 			}
 		};
 
@@ -930,7 +927,7 @@ const FrontendDataSetContent = ({
 					}}
 					onActiveChange={setPageNumber}
 					onDeltaChange={(delta) => {
-						onDeltaChange({delta, trigger: EStateChangeTrigger.UI});
+						onDeltaChange({delta});
 					}}
 					totalItems={total}
 				/>

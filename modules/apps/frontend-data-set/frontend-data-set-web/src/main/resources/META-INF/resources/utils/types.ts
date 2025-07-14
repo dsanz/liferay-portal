@@ -360,11 +360,6 @@ export {
 	FDS_NESTED_FIELD_NAME_PARENT_SUFFIX,
 } from '../constants';
 
-export enum EStateChangeTrigger {
-	UI = 'ui',
-	URL = 'url',
-}
-
 export interface IStateInURL {
 	delta: number;
 }
