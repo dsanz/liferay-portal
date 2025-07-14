@@ -365,4 +365,8 @@ export enum EStateChangeTrigger {
 	URL = 'url',
 }
 
+export interface IStateInURL {
+	delta: number;
+}
+
 export {Card} from '../views/cards/Cards';

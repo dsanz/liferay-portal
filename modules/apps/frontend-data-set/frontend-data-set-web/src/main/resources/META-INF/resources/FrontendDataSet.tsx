@@ -74,6 +74,7 @@ import {
 	IFrontendDataSetProps,
 	IModalConfig,
 	IRequestOptions,
+	IStateInURL,
 	ISuccessNotification,
 	IView,
 	TSort,
@@ -91,39 +92,60 @@ import {VIEWS_ACTION_TYPES, viewsReducer} from './views/viewsReducer';
 const DEFAULT_PAGINATION_DELTA = 20;
 const DEFAULT_PAGINATION_PAGE_NUMBER = 1;
 
-const getDeltaFromURL = (): number | null => {
+const getStateFromURL = (): Partial<IStateInURL> | null => {
 	const params = new URLSearchParams(window.location.search);
 
-	const deltaParam = params.get('delta');
+	const stateParam = params.get('state');
 
-	if (!deltaParam) {
+	if (!stateParam) {
 		return null;
 	}
 
-	const delta = parseInt(deltaParam, 10);
+	let state = {};
 
-	if (isNaN(delta) || delta < 1) {
+	try {
+		state = JSON.parse(stateParam);
+	}
+	catch (error) {
+		return null;
+	}
+
+	return state;
+};
+
+const writeStateInURL = (
+	state: Partial<IStateInURL>,
+	firstRender: boolean = false
+) => {
+	if (!state) {
+		return;
+	}
+
+	const params = new URLSearchParams(window.location.search);
+
+	params.set(
+		'state',
+		JSON.stringify({...(getStateFromURL() || {}), ...state})
+	);
+
+	if (firstRender) {
+		window.history.replaceState({}, '', `?${params.toString()}`);
+	}
+	else {
+		window.history.pushState({}, '', `?${params.toString()}`);
+	}
+};
+
+const getDeltaFromURL = (): number | null => {
+	const state = getStateFromURL();
+
+	const delta = state?.delta;
+
+	if (!state || !delta || isNaN(delta) || delta < 1) {
 		return null;
 	}
 
 	return delta;
-};
-
-const writeDeltaInURL = (delta: number, firstRender: boolean = false) => {
-	const params = new URLSearchParams(window.location.search);
-
-	const deltaParam = getDeltaFromURL();
-
-	if (!deltaParam || deltaParam !== delta) {
-		params.set('delta', delta.toString());
-
-		if (firstRender) {
-			window.history.replaceState({}, '', `?${params.toString()}`);
-		}
-		else {
-			window.history.pushState({}, '', `?${params.toString()}`);
-		}
-	}
 };
 
 const FrontendDataSetContent = ({
@@ -322,7 +344,7 @@ const FrontendDataSetContent = ({
 			});
 
 			if (trigger === EStateChangeTrigger.UI) {
-				writeDeltaInURL(delta);
+				writeStateInURL({delta});
 			}
 		},
 		[setPageNumber, viewsDispatch]
@@ -406,7 +428,7 @@ const FrontendDataSetContent = ({
 	}
 
 	useEffect(() => {
-		writeDeltaInURL(paginationDelta, true);
+		writeStateInURL({delta: paginationDelta}, true);
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
