@@ -285,8 +285,6 @@ const FrontendDataSetContent = ({
 				type: VIEWS_ACTION_TYPES.UPDATE_PAGINATION_DELTA,
 				value: delta,
 			});
-
-			writeStateInURL({delta});
 		},
 		[setPageNumber, viewsDispatch]
 	);
@@ -318,6 +316,8 @@ const FrontendDataSetContent = ({
 			sorts.length > 1
 				? sorts.filter((sort: TSort) => sort.active)
 				: sorts;
+
+		writeStateInURL({delta: paginationDelta});
 
 		return loadData({
 			additionalAPIURLParameters,
@@ -367,12 +367,6 @@ const FrontendDataSetContent = ({
 			setPageNumber(() => dataSetData.lastPage);
 		}
 	}
-
-	useEffect(() => {
-		writeStateInURL({delta: paginationDelta}, true);
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
 
 	useEffect(() => {
 		const handlePopState = () => {

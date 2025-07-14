@@ -26,22 +26,18 @@ export function getStateFromURL(): Partial<IStateInURL> | null {
 	return state;
 }
 
-export function writeStateInURL(
-	state: Partial<IStateInURL>,
-	firstRender: boolean = false
-) {
+export function writeStateInURL(state: Partial<IStateInURL>) {
 	if (!state) {
 		return;
 	}
 
 	const params = new URLSearchParams(window.location.search);
 
-	params.set(
-		'state',
-		JSON.stringify({...(getStateFromURL() || {}), ...state})
-	);
+	const currentState = getStateFromURL();
 
-	if (firstRender) {
+	params.set('state', JSON.stringify({...(currentState || {}), ...state}));
+
+	if (!currentState) {
 		window.history.replaceState({}, '', `?${params.toString()}`);
 	}
 	else {
