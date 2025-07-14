@@ -1,0 +1,62 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+import {IStateInURL} from './types';
+
+export function getStateFromURL(): Partial<IStateInURL> | null {
+	const params = new URLSearchParams(window.location.search);
+
+	const stateParam = params.get('state');
+
+	if (!stateParam) {
+		return null;
+	}
+
+	let state = {};
+
+	try {
+		state = JSON.parse(stateParam);
+	}
+	catch (error) {
+		return null;
+	}
+
+	return state;
+}
+
+export function writeStateInURL(
+	state: Partial<IStateInURL>,
+	firstRender: boolean = false
+) {
+	if (!state) {
+		return;
+	}
+
+	const params = new URLSearchParams(window.location.search);
+
+	params.set(
+		'state',
+		JSON.stringify({...(getStateFromURL() || {}), ...state})
+	);
+
+	if (firstRender) {
+		window.history.replaceState({}, '', `?${params.toString()}`);
+	}
+	else {
+		window.history.pushState({}, '', `?${params.toString()}`);
+	}
+}
+
+export function getDeltaFromURL(): number | null {
+	const state = getStateFromURL();
+
+	const delta = state?.delta;
+
+	if (!state || !delta || isNaN(delta) || delta < 1) {
+		return null;
+	}
+
+	return delta;
+}

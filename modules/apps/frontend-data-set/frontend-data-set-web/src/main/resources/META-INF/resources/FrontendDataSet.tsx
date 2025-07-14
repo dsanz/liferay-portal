@@ -67,6 +67,7 @@ import {loadData} from './utils/loadData';
 // @ts-ignore
 
 import {logError} from './utils/logError';
+import {getDeltaFromURL, writeStateInURL} from './utils/stateInURL';
 import {
 	ESelectionTrigger,
 	EStateChangeTrigger,
@@ -74,7 +75,6 @@ import {
 	IFrontendDataSetProps,
 	IModalConfig,
 	IRequestOptions,
-	IStateInURL,
 	ISuccessNotification,
 	IView,
 	TSort,
@@ -91,62 +91,6 @@ import {VIEWS_ACTION_TYPES, viewsReducer} from './views/viewsReducer';
 
 const DEFAULT_PAGINATION_DELTA = 20;
 const DEFAULT_PAGINATION_PAGE_NUMBER = 1;
-
-const getStateFromURL = (): Partial<IStateInURL> | null => {
-	const params = new URLSearchParams(window.location.search);
-
-	const stateParam = params.get('state');
-
-	if (!stateParam) {
-		return null;
-	}
-
-	let state = {};
-
-	try {
-		state = JSON.parse(stateParam);
-	}
-	catch (error) {
-		return null;
-	}
-
-	return state;
-};
-
-const writeStateInURL = (
-	state: Partial<IStateInURL>,
-	firstRender: boolean = false
-) => {
-	if (!state) {
-		return;
-	}
-
-	const params = new URLSearchParams(window.location.search);
-
-	params.set(
-		'state',
-		JSON.stringify({...(getStateFromURL() || {}), ...state})
-	);
-
-	if (firstRender) {
-		window.history.replaceState({}, '', `?${params.toString()}`);
-	}
-	else {
-		window.history.pushState({}, '', `?${params.toString()}`);
-	}
-};
-
-const getDeltaFromURL = (): number | null => {
-	const state = getStateFromURL();
-
-	const delta = state?.delta;
-
-	if (!state || !delta || isNaN(delta) || delta < 1) {
-		return null;
-	}
-
-	return delta;
-};
 
 const FrontendDataSetContent = ({
 	actionParameterName,
