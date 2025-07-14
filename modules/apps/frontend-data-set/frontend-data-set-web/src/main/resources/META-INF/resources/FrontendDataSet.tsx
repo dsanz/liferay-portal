@@ -67,7 +67,11 @@ import {loadData} from './utils/loadData';
 // @ts-ignore
 
 import {logError} from './utils/logError';
-import {getDeltaFromURL, writeStateInURL} from './utils/stateInURL';
+import {
+	getDeltaFromURL,
+	getFiltersFromURL,
+	writeStateInURL,
+} from './utils/stateInURL';
 import {
 	ESelectionTrigger,
 	IField,
@@ -221,8 +225,21 @@ const FrontendDataSetContent = ({
 			...initialActiveView,
 		};
 
+		const filtersFromURL = getFiltersFromURL();
+
 		const filters = initialFilters
 			? initialFilters.map((filter) => {
+					if (filtersFromURL) {
+						const filterFromURL = filtersFromURL.find(
+							(filterFromURL: any) =>
+								filterFromURL.id === filter.id
+						);
+
+						if (filterFromURL) {
+							filter.preloadedData = filterFromURL.preloadedData;
+						}
+					}
+
 					const preloadedData = filter.preloadedData;
 
 					if (preloadedData) {
@@ -317,7 +334,18 @@ const FrontendDataSetContent = ({
 				? sorts.filter((sort: TSort) => sort.active)
 				: sorts;
 
-		writeStateInURL({delta: paginationDelta});
+		writeStateInURL({
+			delta: paginationDelta,
+			filters: filters
+				.filter((filter: any) => filter.active)
+				.map((filter: any) => {
+					return {
+						id: filter.id,
+						preloadedData: filter.preloadedData,
+						type: filter.type,
+					};
+				}),
+		});
 
 		return loadData({
 			additionalAPIURLParameters,
@@ -374,6 +402,47 @@ const FrontendDataSetContent = ({
 
 			if (delta) {
 				onDeltaChange({delta});
+			}
+
+			const filtersFromURL = getFiltersFromURL();
+
+			if (filtersFromURL) {
+				viewsDispatch({
+					type: VIEWS_ACTION_TYPES.UPDATE_FILTERS,
+					value: filters?.map((filter: any): any => {
+						const filterFromURL = filtersFromURL.find(
+							(filterFromURL: any) =>
+								filterFromURL.id === filter.id
+						);
+
+						if (filterFromURL) {
+							filter.active = true;
+							filter.selectedData = filterFromURL.preloadedData;
+
+							const filterType: keyof typeof FILTER_IMPLEMENTATIONS =
+								filter.type;
+
+							const filterImplementation =
+								FILTER_IMPLEMENTATIONS[filterType];
+
+							filter.odataFilterString =
+								filterImplementation.getOdataString(filter);
+							filter.selectedItemsLabel =
+								filterImplementation.getSelectedItemsLabel(
+									filter
+								);
+
+							return filter;
+						}
+
+						return {
+							...filter,
+							active: false,
+							odataFilterString: undefined,
+							selectedData: undefined,
+						};
+					}),
+				});
 			}
 		};
 

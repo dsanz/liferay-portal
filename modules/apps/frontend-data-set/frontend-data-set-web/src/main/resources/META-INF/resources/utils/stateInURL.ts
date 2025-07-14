@@ -56,3 +56,15 @@ export function getDeltaFromURL(): number | null {
 
 	return delta;
 }
+
+export function getFiltersFromURL(): Array<any> | null {
+	const state = getStateFromURL();
+
+	const filters = state?.filters;
+
+	if (!state || !filters) {
+		return null;
+	}
+
+	return filters;
+}

@@ -362,6 +362,7 @@ export {
 
 export interface IStateInURL {
 	delta: number;
+	filters: Array<any>;
 }
 
 export {Card} from '../views/cards/Cards';
