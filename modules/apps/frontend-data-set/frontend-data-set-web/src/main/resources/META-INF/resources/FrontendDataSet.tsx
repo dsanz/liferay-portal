@@ -46,7 +46,6 @@ import {InfoPanel} from './info_panel/InfoPanel';
 
 import ManagementBar from './management_bar/ManagementBar';
 import CreationMenu from './management_bar/controls/CreationMenu';
-import {FILTER_IMPLEMENTATIONS} from './management_bar/controls/filters/Filter';
 
 // @ts-ignore
 
@@ -57,6 +56,8 @@ import Modal from './modal/Modal';
 import SidePanel from './side_panel/SidePanel';
 import filterCreationActions from './utils/actionItems/filterCreationActions';
 import EVENTS from './utils/eventsDefinitions';
+import {activateFilter} from './utils/filters/activateFilter';
+import {deactivateFilter} from './utils/filters/deactivateFilter';
 import getRandomId from './utils/getRandomId';
 
 // @ts-ignore
@@ -236,26 +237,14 @@ const FrontendDataSetContent = ({
 						);
 
 						if (filterFromURL) {
-							filter.preloadedData = filterFromURL.preloadedData;
+							filter.preloadedData = filterFromURL.selectedData;
 						}
 					}
 
 					const preloadedData = filter.preloadedData;
 
 					if (preloadedData) {
-						filter.active = true;
-						filter.selectedData = preloadedData;
-
-						const filterType: keyof typeof FILTER_IMPLEMENTATIONS =
-							filter.type;
-
-						const filterImplementation =
-							FILTER_IMPLEMENTATIONS[filterType];
-
-						filter.odataFilterString =
-							filterImplementation.getOdataString(filter);
-						filter.selectedItemsLabel =
-							filterImplementation.getSelectedItemsLabel(filter);
+						filter = activateFilter({filter, selectedData: preloadedData});
 					}
 
 					return filter;
@@ -341,7 +330,7 @@ const FrontendDataSetContent = ({
 				.map((filter: any) => {
 					return {
 						id: filter.id,
-						preloadedData: filter.preloadedData,
+						selectedData: filter.selectedData,
 						type: filter.type,
 					};
 				}),
@@ -416,31 +405,13 @@ const FrontendDataSetContent = ({
 						);
 
 						if (filterFromURL) {
-							filter.active = true;
-							filter.selectedData = filterFromURL.preloadedData;
-
-							const filterType: keyof typeof FILTER_IMPLEMENTATIONS =
-								filter.type;
-
-							const filterImplementation =
-								FILTER_IMPLEMENTATIONS[filterType];
-
-							filter.odataFilterString =
-								filterImplementation.getOdataString(filter);
-							filter.selectedItemsLabel =
-								filterImplementation.getSelectedItemsLabel(
-									filter
-								);
-
-							return filter;
+							return activateFilter({
+								filter,
+								selectedData: filterFromURL.selectedData,
+							});
 						}
 
-						return {
-							...filter,
-							active: false,
-							odataFilterString: undefined,
-							selectedData: undefined,
-						};
+						return deactivateFilter(filter);
 					}),
 				});
 			}

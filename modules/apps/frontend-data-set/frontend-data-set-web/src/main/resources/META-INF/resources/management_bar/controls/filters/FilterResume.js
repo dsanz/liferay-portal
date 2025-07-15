@@ -10,6 +10,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, {useContext, useState} from 'react';
 
+import {deactivateFilter} from '../../../utils/filters/deactivateFilter';
 import ViewsContext from '../../../views/ViewsContext';
 import {VIEWS_ACTION_TYPES} from '../../../views/viewsReducer';
 import Filter from './Filter';
@@ -67,11 +68,7 @@ function FilterResume(props) {
 						value: filters.map((filter) => ({
 							...filter,
 							...(filter.id === props.id
-								? {
-										active: false,
-										odataFilterString: undefined,
-										selectedData: undefined,
-									}
+								? deactivateFilter(filter)
 								: {}),
 						})),
 					})
