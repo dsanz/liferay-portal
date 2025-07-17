@@ -68,3 +68,13 @@ export function getFiltersFromURL(): Array<any> | null {
 
 	return filters;
 }
+
+export function getViewNameFromURL(): string | null {
+	const state = getStateFromURL();
+
+	if (!state?.view) {
+		return null;
+	}
+
+	return state?.view;
+}

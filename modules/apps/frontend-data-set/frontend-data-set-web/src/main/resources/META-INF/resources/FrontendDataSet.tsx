@@ -70,7 +70,7 @@ import {loadData} from './utils/loadData';
 import {logError} from './utils/logError';
 import {
 	getDeltaFromURL,
-	getFiltersFromURL,
+	getFiltersFromURL, getViewNameFromURL,
 	writeStateInURL,
 } from './utils/stateInURL';
 import {
@@ -221,6 +221,18 @@ const FrontendDataSetContent = ({
 			}
 		}
 
+		const viewNameFromURL = getViewNameFromURL();
+
+		if (viewNameFromURL) {
+			const activeView = views.find(
+				({name}) => name === viewNameFromURL
+			);
+
+			if (activeView) {
+				initialActiveView = activeView;
+			}
+		}
+
 		const activeView = {
 			component: getViewComponent(initialActiveView),
 			...initialActiveView,
@@ -334,6 +346,7 @@ const FrontendDataSetContent = ({
 						type: filter.type,
 					};
 				}),
+			view: activeViewName
 		});
 
 		return loadData({
@@ -413,6 +426,15 @@ const FrontendDataSetContent = ({
 
 						return deactivateFilter(filter);
 					}),
+				});
+			}
+
+			const viewNameFromURL = getViewNameFromURL();
+
+			if (viewNameFromURL) {
+				viewsDispatch({
+					type: VIEWS_ACTION_TYPES.UPDATE_ACTIVE_VIEW,
+					value: viewNameFromURL,
 				});
 			}
 		};

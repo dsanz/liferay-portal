@@ -4,6 +4,7 @@
  */
 
 import {saveViewSettings} from '../utils/saveViewSettings';
+import {writeStateInURL} from '../utils/stateInURL';
 import {VIEWS_ACTION_TYPES} from '../views/viewsReducer';
 
 export default function persistActiveView({
@@ -17,6 +18,8 @@ export default function persistActiveView({
 			type: VIEWS_ACTION_TYPES.UPDATE_ACTIVE_VIEW,
 			value: activeViewName,
 		});
+
+		writeStateInURL({view: activeViewName});
 
 		return saveViewSettings({
 			appURL,
