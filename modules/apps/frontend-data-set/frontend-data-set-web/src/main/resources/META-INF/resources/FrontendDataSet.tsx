@@ -354,7 +354,7 @@ const FrontendDataSetContent = ({
 						type: filter.type,
 					};
 				}),
-			view: activeViewName
+			view: activeViewName,
 		});
 
 		return loadData({
@@ -368,6 +368,7 @@ const FrontendDataSetContent = ({
 			sorts: activeSorts,
 		});
 	}, [
+		activeViewName,
 		additionalAPIURLParameters,
 		apiURL,
 		currentURL,
