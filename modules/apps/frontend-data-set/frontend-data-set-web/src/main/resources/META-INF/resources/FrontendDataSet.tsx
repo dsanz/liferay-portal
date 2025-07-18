@@ -177,7 +177,7 @@ const FrontendDataSetContent = ({
 	);
 	const [selectedItems, setSelectedItems] = useState<Array<any>>([]);
 	const [stateFromURL, setStateFromURL] =
-		useState<Partial<IStateInURL> | null>(getStateFromURL());
+		useState<Partial<IStateInURL> | null>(getStateFromURL(id));
 	const [total, setTotal] = useState(0);
 
 	const {fileDropSettings} = useContext(DnDContext);
@@ -274,8 +274,8 @@ const FrontendDataSetContent = ({
 		const paginationDelta =
 			showPagination &&
 			(getDeltaFromURL(stateFromURL) ||
-			 pagination?.initialDelta ||
-			 DEFAULT_PAGINATION_DELTA);
+				pagination?.initialDelta ||
+				DEFAULT_PAGINATION_DELTA);
 
 		return {
 			activeView,
@@ -343,7 +343,7 @@ const FrontendDataSetContent = ({
 				? sorts.filter((sort: TSort) => sort.active)
 				: sorts;
 
-		writeStateInURL({
+		writeStateInURL(id, {
 			delta: paginationDelta,
 			filters: filters
 				.filter((filter: any) => filter.active)
@@ -372,6 +372,7 @@ const FrontendDataSetContent = ({
 		additionalAPIURLParameters,
 		apiURL,
 		currentURL,
+		id,
 		paginationDelta,
 		filters,
 		pageNumber,
@@ -408,7 +409,7 @@ const FrontendDataSetContent = ({
 	}
 
 	const handlePopState = () => {
-		const stateFromURL = getStateFromURL();
+		const stateFromURL = getStateFromURL(id);
 		const stateUpdates = [];
 		const delta = getDeltaFromURL(stateFromURL);
 

@@ -5,10 +5,14 @@
 
 import {IStateInURL} from './types';
 
-export function getStateFromURL(): Partial<IStateInURL> | null {
+function getStateParamName(id: string): string {
+	return `fds_state_${id}`;
+}
+
+export function getStateFromURL(id: string): Partial<IStateInURL> | null {
 	const params = new URLSearchParams(window.location.search);
 
-	const stateParam = params.get('state');
+	const stateParam = params.get(getStateParamName(id));
 
 	if (!stateParam) {
 		return null;
@@ -26,16 +30,19 @@ export function getStateFromURL(): Partial<IStateInURL> | null {
 	return state;
 }
 
-export function writeStateInURL(state: Partial<IStateInURL>) {
+export function writeStateInURL(id: string, state: Partial<IStateInURL>) {
 	if (!state) {
 		return;
 	}
 
 	const params = new URLSearchParams(window.location.search);
 
-	const currentState = getStateFromURL();
+	const currentState = getStateFromURL(id);
 
-	params.set('state', JSON.stringify({...(currentState || {}), ...state}));
+	params.set(
+		getStateParamName(id),
+		JSON.stringify({...(currentState || {}), ...state})
+	);
 
 	if (!currentState) {
 		window.history.replaceState({}, '', `?${params.toString()}`);
