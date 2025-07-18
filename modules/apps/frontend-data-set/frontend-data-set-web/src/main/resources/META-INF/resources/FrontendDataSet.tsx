@@ -406,53 +406,66 @@ const FrontendDataSetContent = ({
 		}
 	}
 
+	const handlePopState = () => {
+		const stateFromURL = getStateFromURL();
+		const stateUpdates = [];
+		const delta = getDeltaFromURL(stateFromURL);
+
+		if (delta && delta !== paginationDelta) {
+			setPageNumber(1);
+			stateUpdates.push({
+				type: VIEWS_ACTION_TYPES.UPDATE_PAGINATION_DELTA,
+				value: delta,
+			});
+		}
+
+		const filtersFromURL = getFiltersFromURL(stateFromURL);
+
+		if (filtersFromURL) {
+			stateUpdates.push({
+				type: VIEWS_ACTION_TYPES.UPDATE_FILTERS,
+				value: filters?.map((filter: any): any => {
+					const filterFromURL = filtersFromURL.find(
+						(filterFromURL: any) => filterFromURL.id === filter.id
+					);
+
+					if (filterFromURL) {
+						return activateFilter({
+							filter,
+							selectedData: filterFromURL.selectedData,
+						});
+					}
+
+					return deactivateFilter(filter);
+				}),
+			});
+		}
+
+		const viewNameFromURL = getViewNameFromURL(stateFromURL);
+
+		if (viewNameFromURL) {
+			stateUpdates.push({
+				type: VIEWS_ACTION_TYPES.UPDATE_ACTIVE_VIEW,
+				value: viewNameFromURL,
+			});
+		}
+
+		if (stateUpdates.length) {
+			setStateFromURL(stateFromURL);
+			viewsDispatch({
+				type: VIEWS_ACTION_TYPES.BATCH_UPDATE,
+				value: stateUpdates,
+			});
+		}
+	};
+
 	useEffect(() => {
-		const handlePopState = () => {
-			const delta = getDeltaFromURL();
-
-			if (delta) {
-				onDeltaChange({delta});
-			}
-
-			const filtersFromURL = getFiltersFromURL();
-
-			if (filtersFromURL) {
-				viewsDispatch({
-					type: VIEWS_ACTION_TYPES.UPDATE_FILTERS,
-					value: filters?.map((filter: any): any => {
-						const filterFromURL = filtersFromURL.find(
-							(filterFromURL: any) =>
-								filterFromURL.id === filter.id
-						);
-
-						if (filterFromURL) {
-							return activateFilter({
-								filter,
-								selectedData: filterFromURL.selectedData,
-							});
-						}
-
-						return deactivateFilter(filter);
-					}),
-				});
-			}
-
-			const viewNameFromURL = getViewNameFromURL();
-
-			if (viewNameFromURL) {
-				viewsDispatch({
-					type: VIEWS_ACTION_TYPES.UPDATE_ACTIVE_VIEW,
-					value: viewNameFromURL,
-				});
-			}
-		};
-
 		window.addEventListener('popstate', handlePopState);
 
 		return () => {
 			window.removeEventListener('popstate', handlePopState);
 		};
-	}, [onDeltaChange]);
+	}, [handlePopState]);
 
 	useEffect(() => {
 		loadClientExtensions([
