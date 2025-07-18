@@ -256,6 +256,9 @@ const FrontendDataSetContent = ({
 						if (filterFromURL) {
 							filter.preloadedData = filterFromURL.selectedData;
 						}
+						else {
+							filter.preloadedData = null;
+						}
 					}
 
 					const preloadedData = filter.preloadedData;
@@ -265,6 +268,9 @@ const FrontendDataSetContent = ({
 							filter,
 							selectedData: preloadedData,
 						});
+					}
+					else {
+						filter = deactivateFilter(filter);
 					}
 
 					return filter;
