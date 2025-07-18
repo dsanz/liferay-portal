@@ -45,36 +45,36 @@ export function writeStateInURL(state: Partial<IStateInURL>) {
 	}
 }
 
-export function getDeltaFromURL(): number | null {
-	const state = getStateFromURL();
+export function getDeltaFromURL(
+	stateFromURL: Partial<IStateInURL> | null
+): number | null {
+	const delta = stateFromURL?.delta;
 
-	const delta = state?.delta;
-
-	if (!state || !delta || isNaN(delta) || delta < 1) {
+	if (!stateFromURL || !delta || isNaN(delta) || delta < 1) {
 		return null;
 	}
 
 	return delta;
 }
 
-export function getFiltersFromURL(): Array<any> | null {
-	const state = getStateFromURL();
+export function getFiltersFromURL(
+	stateFromURL: Partial<IStateInURL> | null
+): Array<any> | null {
+	const filters = stateFromURL?.filters;
 
-	const filters = state?.filters;
-
-	if (!state || !filters) {
+	if (!stateFromURL || !filters) {
 		return null;
 	}
 
 	return filters;
 }
 
-export function getViewNameFromURL(): string | null {
-	const state = getStateFromURL();
-
-	if (!state?.view) {
+export function getViewNameFromURL(
+	stateFromURL: Partial<IStateInURL> | null
+): string | null {
+	if (!stateFromURL?.view) {
 		return null;
 	}
 
-	return state?.view;
+	return stateFromURL?.view;
 }

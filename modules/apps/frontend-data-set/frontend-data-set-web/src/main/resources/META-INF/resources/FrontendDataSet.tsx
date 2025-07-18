@@ -70,7 +70,9 @@ import {loadData} from './utils/loadData';
 import {logError} from './utils/logError';
 import {
 	getDeltaFromURL,
-	getFiltersFromURL, getViewNameFromURL,
+	getFiltersFromURL,
+	getStateFromURL,
+	getViewNameFromURL,
 	writeStateInURL,
 } from './utils/stateInURL';
 import {
@@ -79,6 +81,7 @@ import {
 	IFrontendDataSetProps,
 	IModalConfig,
 	IRequestOptions,
+	IStateInURL,
 	ISuccessNotification,
 	IView,
 	TSort,
@@ -173,11 +176,15 @@ const FrontendDataSetContent = ({
 		initialSelectedItemsValues || []
 	);
 	const [selectedItems, setSelectedItems] = useState<Array<any>>([]);
+	const [stateFromURL, setStateFromURL] =
+		useState<Partial<IStateInURL> | null>(getStateFromURL());
 	const [total, setTotal] = useState(0);
 
 	const {fileDropSettings} = useContext(DnDContext);
 
-	const getInitialViewsState = () => {
+	const getInitialViewsState = (
+		stateFromURL: Partial<IStateInURL> | null
+	) => {
 		const customInternalViews =
 			customRenderers?.views?.map((customRenderer: TRenderer) => ({
 
@@ -221,12 +228,10 @@ const FrontendDataSetContent = ({
 			}
 		}
 
-		const viewNameFromURL = getViewNameFromURL();
+		const viewNameFromURL = getViewNameFromURL(stateFromURL);
 
 		if (viewNameFromURL) {
-			const activeView = views.find(
-				({name}) => name === viewNameFromURL
-			);
+			const activeView = views.find(({name}) => name === viewNameFromURL);
 
 			if (activeView) {
 				initialActiveView = activeView;
@@ -238,7 +243,7 @@ const FrontendDataSetContent = ({
 			...initialActiveView,
 		};
 
-		const filtersFromURL = getFiltersFromURL();
+		const filtersFromURL = getFiltersFromURL(stateFromURL);
 
 		const filters = initialFilters
 			? initialFilters.map((filter) => {
@@ -256,7 +261,10 @@ const FrontendDataSetContent = ({
 					const preloadedData = filter.preloadedData;
 
 					if (preloadedData) {
-						filter = activateFilter({filter, selectedData: preloadedData});
+						filter = activateFilter({
+							filter,
+							selectedData: preloadedData,
+						});
 					}
 
 					return filter;
@@ -265,9 +273,9 @@ const FrontendDataSetContent = ({
 
 		const paginationDelta =
 			showPagination &&
-			(getDeltaFromURL() ||
-				pagination?.initialDelta ||
-				DEFAULT_PAGINATION_DELTA);
+			(getDeltaFromURL(stateFromURL) ||
+			 pagination?.initialDelta ||
+			 DEFAULT_PAGINATION_DELTA);
 
 		return {
 			activeView,
@@ -290,7 +298,7 @@ const FrontendDataSetContent = ({
 	};
 
 	const [viewsState, viewsDispatch] = useThunk(
-		useReducer(viewsReducer, getInitialViewsState())
+		useReducer(viewsReducer, stateFromURL, getInitialViewsState)
 	);
 
 	const {activeView, filters, paginationDelta, sorts} = viewsState;
