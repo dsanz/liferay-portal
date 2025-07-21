@@ -44,11 +44,28 @@ export function writeStateInURL(id: string, state: Partial<IStateInURL>) {
 		JSON.stringify({...(currentState || {}), ...state})
 	);
 
+	const path = `${window.location.pathname}?${params.toString()}`;
+
+	if (Liferay.SPA && Liferay.SPA.app) {
+		Liferay.SPA.app.updateHistory_(
+			document.title,
+			path,
+			{
+				...window.history.state,
+				path,
+				redirectPath: path,
+			},
+			!currentState
+		);
+
+		return;
+	}
+
 	if (!currentState) {
-		window.history.replaceState({}, '', `?${params.toString()}`);
+		window.history.replaceState({}, '', path);
 	}
 	else {
-		window.history.pushState({}, '', `?${params.toString()}`);
+		window.history.pushState({}, '', path);
 	}
 }
 
