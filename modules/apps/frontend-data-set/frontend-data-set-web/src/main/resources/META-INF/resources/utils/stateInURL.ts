@@ -55,18 +55,13 @@ export function writeStateInURL(id: string, state: Partial<IStateInURL>) {
 				path,
 				redirectPath: path,
 			},
-			!currentState
+			true,
 		);
 
 		return;
 	}
 
-	if (!currentState) {
-		window.history.replaceState({}, '', path);
-	}
-	else {
-		window.history.pushState({}, '', path);
-	}
+	window.history.replaceState({}, '', path);
 }
 
 export function getDeltaFromURL(
