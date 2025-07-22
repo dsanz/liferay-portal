@@ -10,6 +10,10 @@ function getStateParamName(id: string): string {
 }
 
 export function getStateFromURL(id: string): Partial<IStateInURL> | null {
+	if (!Liferay.FeatureFlags['LPD-22473']) {
+		return null;
+	}
+
 	const params = new URLSearchParams(window.location.search);
 
 	const stateParam = params.get(getStateParamName(id));
@@ -31,7 +35,7 @@ export function getStateFromURL(id: string): Partial<IStateInURL> | null {
 }
 
 export function writeStateInURL(id: string, state: Partial<IStateInURL>) {
-	if (!state) {
+	if (!state || !Liferay.FeatureFlags['LPD-22473']) {
 		return;
 	}
 
