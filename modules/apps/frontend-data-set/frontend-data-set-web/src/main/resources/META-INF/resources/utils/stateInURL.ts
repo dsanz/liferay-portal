@@ -39,9 +39,13 @@ export function writeStateInURL(id: string, state: Partial<IStateInURL>) {
 		return;
 	}
 
-	const params = new URLSearchParams(window.location.search);
-
 	const currentState = getStateFromURL(id);
+
+	if (contains(state, currentState)) {
+		return;
+	}
+
+	const params = new URLSearchParams(window.location.search);
 
 	params.set(
 		getStateParamName(id),
@@ -59,7 +63,7 @@ export function writeStateInURL(id: string, state: Partial<IStateInURL>) {
 				path,
 				redirectPath: path,
 			},
-			true,
+			true
 		);
 
 		return;
@@ -100,4 +104,37 @@ export function getViewNameFromURL(
 	}
 
 	return stateFromURL?.view;
+}
+
+function contains(
+	a: Partial<IStateInURL> | null,
+	b: Partial<IStateInURL> | null
+) {
+	if (a === null || b === null) {
+		return false;
+	}
+
+	return deepContains(a, b);
+}
+
+function deepContains(subset: any, superset: any) {
+	if (typeof subset !== 'object' || subset === null) {
+		return subset === superset;
+	}
+
+	if (typeof superset !== 'object' || superset === null) {
+		return false;
+	}
+
+	for (const key of Object.keys(subset)) {
+		if (!Object.prototype.hasOwnProperty.call(superset, key)) {
+			return false;
+		}
+
+		if (!deepContains(subset[key], superset[key])) {
+			return false;
+		}
+	}
+
+	return true;
 }
