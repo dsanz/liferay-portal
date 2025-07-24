@@ -11,6 +11,10 @@ import {fetch} from 'frontend-js-web';
 import CustomAuthorTableCell from './CustomAuthorTableCell';
 import SampleInfoPanel from './SampleInfoPanel';
 
+import {
+	EStateInURLSettings
+} from '@liferay/frontend-data-set-web';
+
 import type {
 	ICardSchema,
 	IFileDropSettings,
@@ -169,6 +173,7 @@ export default function propsTransformer({
 				});
 			}
 		},
+		stateInURLSettings: EStateInURLSettings.PUSH,
 		views,
 	};
 }
