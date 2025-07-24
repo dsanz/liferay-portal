@@ -63,7 +63,7 @@ export function writeStateInURL(
 	const path = `${window.location.pathname}?${params.toString()}`;
 
 	const replaceState =
-		settings === EStateInURLSettings.REPLACE || !currentState
+		settings === EStateInURLSettings.REPLACE || !currentState;
 
 	if (Liferay.SPA && Liferay.SPA.app) {
 		Liferay.SPA.app.updateHistory_(
@@ -147,6 +147,14 @@ function deepContains(subset: any, superset: any) {
 	}
 
 	if (typeof superset !== 'object' || superset === null) {
+		return false;
+	}
+
+	if (
+		Array.isArray(subset) &&
+		Array.isArray(superset) &&
+		(subset.length > superset.length || !subset.length)
+	) {
 		return false;
 	}
 
