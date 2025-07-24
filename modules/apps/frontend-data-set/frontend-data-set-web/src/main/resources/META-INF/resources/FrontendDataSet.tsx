@@ -77,6 +77,7 @@ import {
 } from './utils/stateInURL';
 import {
 	ESelectionTrigger,
+	EStateInURLSettings,
 	IField,
 	IFrontendDataSetProps,
 	IModalConfig,
@@ -144,6 +145,7 @@ const FrontendDataSetContent = ({
 	showSelectAll = false,
 	sidePanelId,
 	sorts: sortsProp = [],
+	stateInURLSettings = EStateInURLSettings.OFF,
 	style = 'default',
 	uniformActionsDisplay,
 	views,
@@ -1336,6 +1338,7 @@ const FrontendDataSetContent = ({
 				showInfoPanel: infoPanelComponent ? true : false,
 				sidePanelId: dataSetSupportSidePanelIdRef.current,
 				sorts,
+				stateInURLSettings,
 				style,
 				toggleItemInlineEdit,
 				uniformActionsDisplay,
