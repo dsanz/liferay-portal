@@ -351,19 +351,23 @@ const FrontendDataSetContent = ({
 				? sorts.filter((sort: TSort) => sort.active)
 				: sorts;
 
-		writeStateInURL(id, {
-			delta: paginationDelta,
-			filters: filters
-				.filter((filter: any) => filter.active)
-				.map((filter: any) => {
-					return {
-						id: filter.id,
-						selectedData: filter.selectedData,
-						type: filter.type,
-					};
-				}),
-			view: activeViewName,
-		});
+		writeStateInURL(
+			id,
+			{
+				delta: paginationDelta,
+				filters: filters
+					.filter((filter: any) => filter.active)
+					.map((filter: any) => {
+						return {
+							id: filter.id,
+							selectedData: filter.selectedData,
+							type: filter.type,
+						};
+					}),
+				view: activeViewName,
+			},
+			stateInURLSettings
+		);
 
 		return loadData({
 			additionalAPIURLParameters,
@@ -470,10 +474,18 @@ const FrontendDataSetContent = ({
 	};
 
 	useEffect(() => {
-		window.addEventListener('popstate', handlePopState);
+		const registerEvent =
+			stateInURLSettings === EStateInURLSettings.PUSH &&
+			(!Liferay.SPA || !Liferay.SPA.app);
+
+		if (registerEvent) {
+			window.addEventListener('popstate', handlePopState);
+		}
 
 		return () => {
-			window.removeEventListener('popstate', handlePopState);
+			if (registerEvent) {
+				window.removeEventListener('popstate', handlePopState);
+			}
 		};
 	}, [handlePopState]);
 

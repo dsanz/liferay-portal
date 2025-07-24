@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {IStateInURL} from './types';
+import {EStateInURLSettings, IStateInURL} from './types';
 
 function getStateParamName(id: string): string {
 	return `fds_state_${id}`;
@@ -34,8 +34,16 @@ export function getStateFromURL(id: string): Partial<IStateInURL> | null {
 	return state;
 }
 
-export function writeStateInURL(id: string, state: Partial<IStateInURL>) {
-	if (!state || !Liferay.FeatureFlags['LPD-22473']) {
+export function writeStateInURL(
+	id: string,
+	state: Partial<IStateInURL>,
+	settings: EStateInURLSettings
+) {
+	if (
+		!state ||
+		settings === EStateInURLSettings.OFF ||
+		!Liferay.FeatureFlags['LPD-22473']
+	) {
 		return;
 	}
 
@@ -54,6 +62,9 @@ export function writeStateInURL(id: string, state: Partial<IStateInURL>) {
 
 	const path = `${window.location.pathname}?${params.toString()}`;
 
+	const replaceState =
+		settings === EStateInURLSettings.REPLACE || !currentState
+
 	if (Liferay.SPA && Liferay.SPA.app) {
 		Liferay.SPA.app.updateHistory_(
 			document.title,
@@ -63,13 +74,26 @@ export function writeStateInURL(id: string, state: Partial<IStateInURL>) {
 				path,
 				redirectPath: path,
 			},
-			true
+			replaceState
 		);
 
 		return;
 	}
 
-	window.history.replaceState({}, '', path);
+	if (replaceState) {
+		window.history.replaceState(
+			{...window.history.state},
+			document.title,
+			path
+		);
+	}
+	else {
+		window.history.pushState(
+			{...window.history.state},
+			document.title,
+			path
+		);
+	}
 }
 
 export function getDeltaFromURL(

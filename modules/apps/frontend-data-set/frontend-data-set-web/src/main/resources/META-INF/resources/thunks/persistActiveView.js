@@ -12,6 +12,7 @@ export default function persistActiveView({
 	appURL,
 	id,
 	portletId,
+	stateInURLSettings,
 }) {
 	return (viewsDispatch) => {
 		viewsDispatch({
@@ -19,7 +20,7 @@ export default function persistActiveView({
 			value: activeViewName,
 		});
 
-		writeStateInURL({view: activeViewName});
+		writeStateInURL(id, {view: activeViewName}, stateInURLSettings);
 
 		return saveViewSettings({
 			appURL,
