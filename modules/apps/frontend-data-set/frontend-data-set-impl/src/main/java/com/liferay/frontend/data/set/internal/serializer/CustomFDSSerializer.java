@@ -109,7 +109,7 @@ public class CustomFDSSerializer
 
 	@Override
 	public String serializeAdditionalAPIURLParameters(
-		String fdsName, HttpServletRequest httpServletRequest) {
+		String fdsName, HttpServletRequest httpServletRequest, JSONObject placeholdersJSONObject) {
 
 		Map<String, Object> properties = getDataSetObjectEntryProperties(
 			fdsName, httpServletRequest);
@@ -121,12 +121,12 @@ public class CustomFDSSerializer
 			String.valueOf(properties.get("restSchema"))
 		).addQueryString(
 			String.valueOf(properties.get("additionalAPIURLParameters"))
-		).buildQueryString();
+		).setPlaceholders(placeholdersJSONObject).buildQueryString();
 	}
 
 	@Override
 	public String serializeAPIURL(
-		String fdsName, HttpServletRequest httpServletRequest) {
+		String fdsName, HttpServletRequest httpServletRequest, JSONObject placeholdersJSONObject) {
 
 		Map<String, Object> properties = getDataSetObjectEntryProperties(
 			fdsName, httpServletRequest);
@@ -135,7 +135,7 @@ public class CustomFDSSerializer
 			httpServletRequest,
 			String.valueOf(properties.get("restApplication")),
 			String.valueOf(properties.get("restEndpoint")),
-			String.valueOf(properties.get("restSchema")));
+			String.valueOf(properties.get("restSchema"))).setPlaceholders(placeholdersJSONObject);
 
 		List<ObjectEntry> objectEntries = getSortedRelatedObjectEntries(
 			fdsName, httpServletRequest, (Predicate)null, "tableSectionsOrder",

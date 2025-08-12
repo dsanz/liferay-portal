@@ -5,6 +5,7 @@
 
 package com.liferay.frontend.data.set.renderer;
 
+import com.liferay.portal.kernel.json.JSONObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -16,6 +17,9 @@ import java.util.Map;
  * @author Daniel Sanz
  */
 public interface FDSRenderer {
+
+	public String getFDSAPIURL(String fdsName,
+			HttpServletRequest httpServletRequest, JSONObject placeholdersJSONObject);
 
 	public void render(
 		Map<String, Object> baseProps, String componentId, String fdsName,

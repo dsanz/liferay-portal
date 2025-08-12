@@ -33,10 +33,10 @@ public interface FDSSerializer {
 		String fdsName, HttpServletRequest httpServletRequest);
 
 	public String serializeAdditionalAPIURLParameters(
-		String fdsName, HttpServletRequest httpServletRequest);
+		String fdsName, HttpServletRequest httpServletRequest, JSONObject placeholdersJSONObject);
 
 	public String serializeAPIURL(
-		String fdsName, HttpServletRequest httpServletRequest);
+		String fdsName, HttpServletRequest httpServletRequest, JSONObject placeholdersJSONObject);
 
 	public List<FDSActionDropdownItem> serializeBulkActions(
 		String fdsName, HttpServletRequest httpServletRequest);

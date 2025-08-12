@@ -11,6 +11,7 @@ import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -56,6 +57,12 @@ public class FDSAPIURLBuilder {
 		return this;
 	}
 
+	public FDSAPIURLBuilder setPlaceholders(JSONObject placeholdersJSONObject) {
+		_placeholdersJSONObject = placeholdersJSONObject;
+
+		return this;
+	}
+
 	public String build() {
 		StringBundler sb = new StringBundler(
 			3 + (_queryStringItems.size() * 2));
@@ -68,7 +75,7 @@ public class FDSAPIURLBuilder {
 
 		_appendParameters(true, sb);
 
-		return _interpolate(_resolveParameters(sb.toString()));
+		return _interpolatePlaceholders(_interpolate(_resolveParameters(sb.toString())));
 	}
 
 	public String buildQueryString() {
@@ -82,7 +89,7 @@ public class FDSAPIURLBuilder {
 			return null;
 		}
 
-		return _interpolate(_resolveParameters(query));
+		return _interpolatePlaceholders(_interpolate(_resolveParameters(query)));
 	}
 
 	private void _appendParameters(
@@ -109,6 +116,19 @@ public class FDSAPIURLBuilder {
 		}
 	}
 
+	private String _interpolatePlaceholders(String apiURL) {
+		if (_placeholdersJSONObject == null) {
+			return apiURL;
+		}
+
+		for (String key :_placeholdersJSONObject.keySet()) {
+			apiURL = StringUtil.replace(
+			apiURL, "{" + key + "}", _placeholdersJSONObject.getString(key));
+		}
+		return apiURL;
+	}
+
+
 	private String _interpolate(String apiURL) {
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)_httpServletRequest.getAttribute(
@@ -116,9 +136,9 @@ public class FDSAPIURLBuilder {
 
 		apiURL = StringUtil.replace(
 			apiURL, "{siteId}", String.valueOf(themeDisplay.getScopeGroupId()));
-		apiURL = StringUtil.replace(
+/*		apiURL = StringUtil.replace(
 			apiURL, "{scopeKey}",
-			String.valueOf(themeDisplay.getScopeGroupId()));
+			String.valueOf(themeDisplay.getScopeGroupId()));*/
 		apiURL = StringUtil.replace(
 			apiURL, "{userId}", String.valueOf(themeDisplay.getUserId()));
 
@@ -157,5 +177,6 @@ public class FDSAPIURLBuilder {
 	private final String _restApplication;
 	private final String _restEndpoint;
 	private final String _restSchema;
+	private JSONObject _placeholdersJSONObject = null;
 
 }

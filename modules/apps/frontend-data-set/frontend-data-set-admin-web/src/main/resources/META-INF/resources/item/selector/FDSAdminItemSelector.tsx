@@ -17,6 +17,7 @@ interface ISelectedItem {
 	externalReferenceCode: string;
 	id: string;
 	label: string;
+	restApplication: string;
 }
 
 const views = [
@@ -79,6 +80,7 @@ const FDSAdminItemSelector = ({
 								selectedItems[0].externalReferenceCode,
 							id: selectedItems[0].id,
 							label: selectedItems[0].label,
+							restApplication: selectedItems[0].restApplication,
 						});
 					}}
 					selectedItems={[selectedItem?.externalReferenceCode]}
@@ -105,6 +107,7 @@ const FDSAdminItemSelector = ({
 								"classNameId": "${classNameId}",
 								"classPK": "${selectedItem?.id}",
 								"externalReferenceCode": "${selectedItem?.externalReferenceCode}",
+								"restApplication": "${selectedItem?.restApplication}",
 								"title": "${selectedItem?.label}"}`}
 						>
 							{Liferay.Language.get('save')}
