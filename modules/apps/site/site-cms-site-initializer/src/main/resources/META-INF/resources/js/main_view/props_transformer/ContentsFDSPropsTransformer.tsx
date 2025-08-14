@@ -5,10 +5,11 @@
 
 import {IInternalRenderer} from '@liferay/frontend-data-set-web';
 import {openModal} from 'frontend-js-components-web';
+import React from 'react';
 
 import formatActionURL from '../../common/utils/formatActionURL';
+import {ISearchAssetObjectEntry} from '../../structure_builder/types/AssetType';
 import AssetTypeInfoPanel from '../info_panel/AssetTypeInfoPanelContent';
-import {EVENTS} from '../info_panel/util/constants';
 import createAssetAction from './actions/createAssetAction';
 import createFolderAction from './actions/createFolderAction';
 import shareAction from './actions/shareAction';
@@ -80,7 +81,12 @@ export default function ContentFDSPropsTransformer({
 				} as IInternalRenderer,
 			],
 		},
-		infoPanelComponent: () => AssetTypeInfoPanel({additionalProps}),
+		infoPanelComponent: (items: {items: ISearchAssetObjectEntry[]}) => (
+			<AssetTypeInfoPanel
+				additionalProps={additionalProps as any}
+				{...items}
+			/>
+		),
 		itemsActions: itemsActions.map((action) => {
 			if (action?.data?.id === 'actionLink') {
 				return {
@@ -126,9 +132,6 @@ export default function ContentFDSPropsTransformer({
 					title: itemData.embedded?.title,
 				});
 			}
-			else if (action?.data?.id === 'show-details') {
-				Liferay.fire(EVENTS.ASSET_DATA, {items: [{...itemData}]});
-			}
 			else if (action?.data?.id === 'viewContent') {
 				event?.preventDefault();
 
@@ -138,9 +141,6 @@ export default function ContentFDSPropsTransformer({
 					url: formatActionURL(itemData, action.href),
 				});
 			}
-		},
-		onSelectedItemsChange: (selectedItems: any[]) => {
-			Liferay.fire(EVENTS.ASSET_DATA, {items: selectedItems});
 		},
 	};
 }

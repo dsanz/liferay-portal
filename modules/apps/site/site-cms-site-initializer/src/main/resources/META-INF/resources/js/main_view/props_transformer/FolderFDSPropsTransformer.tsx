@@ -4,23 +4,29 @@
  */
 
 import {IInternalRenderer} from '@liferay/frontend-data-set-web';
+import React from 'react';
 
+import {ISearchAssetObjectEntry} from '../../structure_builder/types/AssetType';
 import AssetTypeInfoPanel from '../info_panel/AssetTypeInfoPanelContent';
-import {EVENTS} from '../info_panel/util/constants';
 import createAssetAction from './actions/createAssetAction';
+import createFolderAction from './actions/createFolderAction';
 import multipleFilesUploadAction from './actions/multipleFilesUploadAction';
 import AuthorRenderer from './cell_renderers/AuthorRenderer';
 import NameRenderer from './cell_renderers/NameRenderer';
-import SpaceRenderer from './cell_renderers/SpaceRenderer';
+import SimpleActionLinkRenderer from './cell_renderers/SimpleActionLinkRenderer';
 import TypeRenderer from './cell_renderers/TypeRenderer';
 import addOnClickToCreationMenuItems from './utils/addOnClickToCreationMenuItems';
 
 const ACTIONS = {
 	createAsset: createAssetAction,
+	createFolder: createFolderAction,
 	uploadMultipleFiles: multipleFilesUploadAction,
 };
 
-export default function AllFDSPropsTransformer({
+const OBJECT_ENTRY_FOLDER_CLASSNAME =
+	'com.liferay.object.model.ObjectEntryFolder';
+
+export default function FolderFDSPropsTransformer({
 	creationMenu,
 	itemsActions = [],
 	...otherProps
@@ -51,8 +57,8 @@ export default function AllFDSPropsTransformer({
 					type: 'internal',
 				} as IInternalRenderer,
 				{
-					component: SpaceRenderer,
-					name: 'spaceTableCellRenderer',
+					component: SimpleActionLinkRenderer,
+					name: 'simpleActionLinkTableCellRenderer',
 					type: 'internal',
 				} as IInternalRenderer,
 				{
@@ -62,7 +68,9 @@ export default function AllFDSPropsTransformer({
 				} as IInternalRenderer,
 			],
 		},
-		infoPanelComponent: () => AssetTypeInfoPanel(otherProps),
+		infoPanelComponent: (items: {items: ISearchAssetObjectEntry[]}) => (
+			<AssetTypeInfoPanel {...(otherProps as any)} {...items} />
+		),
 		itemsActions: itemsActions.map((action) => {
 			if (action?.data?.id === 'download') {
 				return {
@@ -71,22 +79,18 @@ export default function AllFDSPropsTransformer({
 						Boolean(item?.embedded?.file?.link?.href),
 				};
 			}
+			else if (action?.data?.id === 'actionLink') {
+				return {
+					...action,
+					isVisible: (item: any) =>
+						Boolean(
+							item?.entryClassName !==
+								OBJECT_ENTRY_FOLDER_CLASSNAME
+						),
+				};
+			}
 
 			return action;
 		}),
-		onActionDropdownItemClick: ({
-			action,
-			itemData,
-		}: {
-			action: any;
-			itemData: [];
-		}) => {
-			if (action?.data?.id === 'show-details') {
-				Liferay.fire(EVENTS.ASSET_DATA, {items: [{...itemData}]});
-			}
-		},
-		onSelectedItemsChange: (selectedItems: any[]) => {
-			Liferay.fire(EVENTS.ASSET_DATA, {items: selectedItems});
-		},
 	};
 }

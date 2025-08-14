@@ -5,9 +5,10 @@
 
 import {IInternalRenderer} from '@liferay/frontend-data-set-web';
 import {openModal} from 'frontend-js-components-web';
+import React from 'react';
 
+import {ISearchAssetObjectEntry} from '../../structure_builder/types/AssetType';
 import AssetTypeInfoPanel from '../info_panel/AssetTypeInfoPanelContent';
-import {EVENTS} from '../info_panel/util/constants';
 import FilePreviewerModalContent from '../modal/FilePreviewerModalContent';
 import createAssetAction from './actions/createAssetAction';
 import createFolderAction from './actions/createFolderAction';
@@ -82,7 +83,12 @@ export default function FilesFDSPropsTransformer({
 				} as IInternalRenderer,
 			],
 		},
-		infoPanelComponent: () => AssetTypeInfoPanel({additionalProps}),
+		infoPanelComponent: (items: {items: ISearchAssetObjectEntry[]}) => (
+			<AssetTypeInfoPanel
+				additionalProps={additionalProps as any}
+				{...items}
+			/>
+		),
 		itemsActions: itemsActions.map((action) => {
 			if (action?.data?.id === 'download') {
 				return {
@@ -121,10 +127,7 @@ export default function FilesFDSPropsTransformer({
 			action: any;
 			itemData: any;
 		}) => {
-			if (action?.data?.id === 'show-details') {
-				Liferay.fire(EVENTS.ASSET_DATA, {items: [{...itemData}]});
-			}
-			else if (action?.data?.id === 'view-file') {
+			if (action?.data?.id === 'view-file') {
 				openModal({
 					containerProps: {
 						className: '',
@@ -145,9 +148,6 @@ export default function FilesFDSPropsTransformer({
 					title: itemData.embedded?.title,
 				});
 			}
-		},
-		onSelectedItemsChange: (selectedItems: any[]) => {
-			Liferay.fire(EVENTS.ASSET_DATA, {items: selectedItems});
 		},
 	};
 }
