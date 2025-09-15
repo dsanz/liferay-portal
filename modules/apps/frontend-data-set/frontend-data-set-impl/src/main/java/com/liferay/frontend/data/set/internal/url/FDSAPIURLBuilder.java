@@ -11,6 +11,7 @@ import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -68,7 +69,8 @@ public class FDSAPIURLBuilder {
 
 		_appendParameters(true, sb);
 
-		return _interpolate(_resolveParameters(sb.toString()));
+		return _interpolateResolvedParameters(
+			_interpolate(_resolveParameters(sb.toString())));
 	}
 
 	public String buildQueryString() {
@@ -82,7 +84,16 @@ public class FDSAPIURLBuilder {
 			return null;
 		}
 
-		return _interpolate(_resolveParameters(query));
+		return _interpolateResolvedParameters(
+			_interpolate(_resolveParameters(query)));
+	}
+
+	public FDSAPIURLBuilder setResolvedParameters(
+		JSONObject resolvedParametersJSONObject) {
+
+		_resolvedParametersJSONObject = resolvedParametersJSONObject;
+
+		return this;
 	}
 
 	private void _appendParameters(
@@ -129,6 +140,20 @@ public class FDSAPIURLBuilder {
 		return apiURL;
 	}
 
+	private String _interpolateResolvedParameters(String apiURL) {
+		if (_resolvedParametersJSONObject == null) {
+			return apiURL;
+		}
+
+		for (String key : _resolvedParametersJSONObject.keySet()) {
+			apiURL = StringUtil.replace(
+				apiURL, "{" + key + "}",
+				_resolvedParametersJSONObject.getString(key));
+		}
+
+		return apiURL;
+	}
+
 	private String _resolveParameters(String apiURL) {
 		FDSAPIURLResolver fdsAPIURLResolver =
 			_fdsAPIURLResolverRegistry.getFDSAPIURLResolver(
@@ -154,6 +179,7 @@ public class FDSAPIURLBuilder {
 	private final FDSAPIURLResolverRegistry _fdsAPIURLResolverRegistry;
 	private final HttpServletRequest _httpServletRequest;
 	private final List<String> _queryStringItems = new LinkedList<>();
+	private JSONObject _resolvedParametersJSONObject;
 	private final String _restApplication;
 	private final String _restEndpoint;
 	private final String _restSchema;
