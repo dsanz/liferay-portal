@@ -14,6 +14,10 @@ import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.frontend.data.set.renderer.FDSRenderer;
+import com.liferay.info.constants.InfoDisplayWebKeys;
+import com.liferay.info.item.ClassPKInfoItemIdentifier;
+import com.liferay.info.item.InfoItemIdentifier;
+import com.liferay.info.item.InfoItemReference;
 import com.liferay.object.entry.util.ObjectEntryThreadLocal;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
@@ -316,6 +320,29 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 
 		if (Validator.isNull(value)) {
 			value = editablePlaceholderJSONObject.getString("classPK");
+		}
+
+		if (Validator.isNull(value)) {
+			InfoItemReference infoItemReference = (InfoItemReference)
+				httpServletRequest.getAttribute(
+					InfoDisplayWebKeys.INFO_ITEM_REFERENCE);
+
+			if (infoItemReference == null) {
+				return null;
+			}
+
+			InfoItemIdentifier infoItemIdentifier =
+				infoItemReference.getInfoItemIdentifier();
+
+			if (!(infoItemIdentifier instanceof ClassPKInfoItemIdentifier)) {
+				return null;
+			}
+
+			ClassPKInfoItemIdentifier classPKInfoItemIdentifier =
+				(ClassPKInfoItemIdentifier)
+					infoItemReference.getInfoItemIdentifier();
+
+			value = String.valueOf(classPKInfoItemIdentifier.getClassPK());
 		}
 
 		return value;
