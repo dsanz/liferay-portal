@@ -191,7 +191,7 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 				/* prepare mapping UI */
 				StringBundler markupSB = new StringBundler();
 
-				Set<String> placeholders = _getPlaceholders(dataSetObjectEntry);
+				Set<String> placeholders = _getParameterNames(dataSetObjectEntry);
 
 				markupSB.append("<div class='p-2' data-fragment-namespace=");
 				markupSB.append("'${fragmentEntryLinkNamespace}'>");
@@ -209,7 +209,7 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 				}
 
 				Matcher matcher = _pattern.matcher(
-					_getFDSAPIURLWithPlaceholders(dataSetObjectEntry));
+					_getRawFDSAPIURL(dataSetObjectEntry));
 
 				String urlMarkup = matcher.replaceAll(
 					match -> {
@@ -264,8 +264,8 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 						"namespace",
 						fragmentRendererContext.getFragmentElementId()
 					).put(
-						"placeholders",
-						_getPlaceholderJSONObject(
+						"resolvedParameters",
+						_getParametersJSONObject(
 							dataSetObjectEntry, fragmentEntryLink,
 							httpServletRequest)
 					).put(
@@ -348,7 +348,7 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 		return value;
 	}
 
-	private String _getFDSAPIURLWithPlaceholders(
+	private String _getRawFDSAPIURL(
 		ObjectEntry dataSetObjectEntry) {
 
 		String restEndpoint = (String)dataSetObjectEntry.getPropertyValue(
@@ -366,67 +366,67 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 		return value;
 	}
 
-	private JSONObject _getPlaceholderJSONObject(
+	private JSONObject _getParametersJSONObject(
 		ObjectEntry dataSetObjectEntry, FragmentEntryLink fragmentEntryLink,
 		HttpServletRequest httpServletRequest) {
 
-		Set<String> placeholders = _getPlaceholders(dataSetObjectEntry);
+		Set<String> placeholders = _getParameterNames(dataSetObjectEntry);
 
-		JSONObject placeholderJSONObject = _jsonFactory.createJSONObject();
+		JSONObject parametersJSONObject = _jsonFactory.createJSONObject();
 
 		for (String placeholder : placeholders) {
 			String value = _getEditableValue(
 				fragmentEntryLink, httpServletRequest, placeholder);
 
 			if (Validator.isNotNull(value)) {
-				placeholderJSONObject.put(placeholder, value);
+				parametersJSONObject.put(placeholder, value);
 			}
 		}
 
-		return placeholderJSONObject;
+		return parametersJSONObject;
 	}
 
-	private Set<String> _getPlaceholders(ObjectEntry dataSetObjectEntry) {
-		Set<String> placeholders = new HashSet<>();
+	private Set<String> _getParameterNames(ObjectEntry dataSetObjectEntry) {
+		Set<String> parameterNames = new HashSet<>();
 
 		Matcher matcher = _pattern.matcher(
-			_getFDSAPIURLWithPlaceholders(dataSetObjectEntry));
+			_getRawFDSAPIURL(dataSetObjectEntry));
 
 		while (matcher.find()) {
-			placeholders.add(matcher.group(1));
+			parameterNames.add(matcher.group(1));
 		}
 
-		return placeholders;
+		return parameterNames;
 	}
 
 	private boolean _isMappingComplete(
 		FragmentEntryLink fragmentEntryLink,
 		HttpServletRequest httpServletRequest, ObjectEntry dataSetObjectEntry) {
 
-		Set<String> placeholders = _getPlaceholders(dataSetObjectEntry);
+		Set<String> parameterNames = _getParameterNames(dataSetObjectEntry);
 
-		if (SetUtil.isEmpty(placeholders)) {
+		if (SetUtil.isEmpty(parameterNames)) {
 			return true;
 		}
 
 		JSONObject editablesJSONObject =
 			fragmentEntryLink.getEditableValuesJSONObject();
 
-		JSONObject editablePlaceholdersJSONObject =
+		JSONObject parametersJSONObject =
 			editablesJSONObject.getJSONObject(
 				FragmentEntryProcessorConstants.
 					KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR);
 
-		if ((editablePlaceholdersJSONObject == null) ||
-			JSONUtil.isEmpty(editablePlaceholdersJSONObject)) {
+		if ((parametersJSONObject == null) ||
+			JSONUtil.isEmpty(parametersJSONObject)) {
 
 			return false;
 		}
 
-		for (String placeholder : placeholders) {
+		for (String parameter : parameterNames) {
 			if (Validator.isNull(
 					_getEditableValue(
-						fragmentEntryLink, httpServletRequest, placeholder))) {
+						fragmentEntryLink, httpServletRequest, parameter))) {
 
 				return false;
 			}
