@@ -180,22 +180,39 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 				return;
 			}
 
+			if (!FeatureFlagManagerUtil.isEnabled(
+					_portal.getCompanyId(httpServletRequest), "LPD-38564")) {
+
+				_fdsRenderer.render(
+					HashMapBuilder.<String, Object>put(
+						"namespace",
+						fragmentRendererContext.getFragmentElementId()
+					).put(
+						"style", "fluid"
+					).build(),
+					fragmentRendererContext.getFragmentElementId(),
+					externalReferenceCode, httpServletRequest,
+					httpServletResponse, true, null, printWriter);
+
+				return;
+			}
+
 			boolean mappingComplete = _isMappingComplete(
 				externalReferenceCode, fragmentEntryLink, httpServletRequest);
 
 			if (fragmentRendererContext.isEditMode()) {
-				/* prepare mapping UI */
-				StringBundler markupSB = new StringBundler();
+				StringBundler htmlSB = new StringBundler();
 
-				Set<String> parameterNames = _getParameterNames(
-					externalReferenceCode, httpServletRequest);
+				htmlSB.append("<div class='p-2' ");
+				htmlSB.append("data-fragment-namespace=");
+				htmlSB.append("'${fragmentEntryLinkNamespace}'>");
 
-				markupSB.append("<div class='p-2' data-fragment-namespace=");
-				markupSB.append("'${fragmentEntryLinkNamespace}'>");
+				for (String parameterName :
+						_getParameterNames(
+							externalReferenceCode, httpServletRequest)) {
 
-				for (String parameterName : parameterNames) {
-					markupSB.append("<div><span><strong>");
-					markupSB.append(parameterName);
+					htmlSB.append("<div><span><strong>");
+					htmlSB.append(parameterName);
 
 					if (!_isResolvedParameter(
 							_fdsRenderer.getFDSAPIURL(
@@ -203,18 +220,30 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 								null),
 							parameterName)) {
 
-						markupSB.append(" (*) ");
+						htmlSB.append(" (*) ");
 					}
 
-					markupSB.append(": </strong></span>");
-					markupSB.append("<span class='navbar-text-truncate'");
-					markupSB.append("data-lfr-editable-id=\"");
-					markupSB.append(parameterName);
-					markupSB.append("\" data-lfr-editable-type=\"text\">\n\t{");
-					markupSB.append(parameterName);
-					markupSB.append("}\n</span>");
-					markupSB.append("</div>");
+					htmlSB.append(": </strong></span>");
+					htmlSB.append("<span class='navbar-text-truncate'");
+					htmlSB.append("data-lfr-editable-id=\"");
+					htmlSB.append(parameterName);
+					htmlSB.append("\" data-lfr-editable-type=\"text\">\n\t{");
+					htmlSB.append(parameterName);
+					htmlSB.append("}\n</span>");
+					htmlSB.append("</div>");
 				}
+
+				htmlSB.append(
+					"<span class='workflow-status'><strong class='label ");
+
+				if (mappingComplete) {
+					htmlSB.append("label-success'>Mapped");
+				}
+				else {
+					htmlSB.append("label-info'>Unmapped");
+				}
+
+				htmlSB.append("</strong></span> Data Set URL: ");
 
 				Matcher matcher = _pattern.matcher(
 					_fdsRenderer.getFDSAPIURL(
@@ -223,45 +252,30 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 							externalReferenceCode, fragmentEntryLink,
 							httpServletRequest)));
 
-				String urlMarkup = matcher.replaceAll(
-					match -> {
-						String editableName = match.group(1);
+				htmlSB.append(
+					matcher.replaceAll(
+						match -> {
+							String editableName = match.group(1);
 
-						String editableValue = _getEditableValue(
-							fragmentEntryLink, httpServletRequest,
-							editableName);
+							String editableValue = _getEditableValue(
+								fragmentEntryLink, httpServletRequest,
+								editableName);
 
-						if (Validator.isNull(editableValue)) {
-							editableValue = "{" + editableName + "}";
-						}
+							if (Validator.isNull(editableValue)) {
+								editableValue = "{" + editableName + "}";
+							}
 
-						String editableMarkup =
-							"<span><strong>" + editableValue +
-								"</strong></span>";
+							String editableMarkup =
+								"<span><strong>" + editableValue +
+									"</strong></span>";
 
-						return Matcher.quoteReplacement(editableMarkup);
-					});
+							return Matcher.quoteReplacement(editableMarkup);
+						}));
 
-				markupSB.append(
-					"<span class='workflow-status'><strong class='label ");
+				htmlSB.append("</div>");
 
-				if (mappingComplete) {
-					markupSB.append("label-success'>Mapped");
-				}
-				else {
-					markupSB.append("label-info'>Unmapped");
-				}
+				fragmentEntryLink.setHtml(htmlSB.toString());
 
-				markupSB.append("</strong></span> Data Set URL: ");
-				markupSB.append(urlMarkup);
-				markupSB.append("</div>");
-
-				fragmentEntryLink.setHtml(markupSB.toString());
-
-				/* render mapping UI, PoC quality. Final version will be separated into:
-					- mapping UI being a react app
-					- calculation of the editables with _processFragmentEntryLinkHTML using dummy HTML or internal APIs
-				 */
 				printWriter.write(
 					_processFragmentEntryLinkHTML(
 						fragmentRendererContext, httpServletRequest,
