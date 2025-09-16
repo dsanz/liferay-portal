@@ -77,8 +77,8 @@ public class FDSAPIURLBuilder {
 			return sb.toString();
 		}
 
-		return _interpolateResolvedParameters(
-			_interpolate(_resolveParameters(sb.toString())));
+		return _interpolate(
+			_resolveParameters(_interpolateResolvedParameters(sb.toString())));
 	}
 
 	public String buildQueryString() {
@@ -100,8 +100,8 @@ public class FDSAPIURLBuilder {
 			return query;
 		}
 
-		return _interpolateResolvedParameters(
-			_interpolate(_resolveParameters(query)));
+		return _interpolate(
+			_resolveParameters(_interpolateResolvedParameters(query)));
 	}
 
 	public FDSAPIURLBuilder setResolvedParameters(
