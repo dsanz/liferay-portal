@@ -39,7 +39,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 
@@ -182,34 +181,47 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 			}
 
 			boolean mappingComplete = _isMappingComplete(
-				fragmentEntryLink, httpServletRequest, dataSetObjectEntry);
+				externalReferenceCode, fragmentEntryLink, httpServletRequest);
 
-			/*
-			similar to isMapping complete: check fdsAPIURL does not contain {
-			 */
 			if (fragmentRendererContext.isEditMode()) {
 				/* prepare mapping UI */
 				StringBundler markupSB = new StringBundler();
 
-				Set<String> placeholders = _getParameterNames(dataSetObjectEntry);
+				Set<String> parameterNames = _getParameterNames(
+					externalReferenceCode, httpServletRequest);
 
 				markupSB.append("<div class='p-2' data-fragment-namespace=");
 				markupSB.append("'${fragmentEntryLinkNamespace}'>");
 
-				for (String placeholder : placeholders) {
+				for (String parameterName : parameterNames) {
 					markupSB.append("<div><span><strong>");
-					markupSB.append(placeholder);
+					markupSB.append(parameterName);
+
+					if (!_isResolvedParameter(
+							_fdsRenderer.getFDSAPIURL(
+								externalReferenceCode, httpServletRequest, true,
+								null),
+							parameterName)) {
+
+						markupSB.append(" (*) ");
+					}
+
 					markupSB.append(": </strong></span>");
 					markupSB.append("<span class='navbar-text-truncate'");
 					markupSB.append("data-lfr-editable-id=\"");
-					markupSB.append(placeholder);
+					markupSB.append(parameterName);
 					markupSB.append("\" data-lfr-editable-type=\"text\">\n\t{");
-					markupSB.append(placeholder);
-					markupSB.append("}\n</span></div>");
+					markupSB.append(parameterName);
+					markupSB.append("}\n</span>");
+					markupSB.append("</div>");
 				}
 
 				Matcher matcher = _pattern.matcher(
-					_getRawFDSAPIURL(dataSetObjectEntry));
+					_fdsRenderer.getFDSAPIURL(
+						externalReferenceCode, httpServletRequest, true,
+						_getParametersJSONObject(
+							externalReferenceCode, fragmentEntryLink,
+							httpServletRequest)));
 
 				String urlMarkup = matcher.replaceAll(
 					match -> {
@@ -266,7 +278,7 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 					).put(
 						"resolvedParameters",
 						_getParametersJSONObject(
-							dataSetObjectEntry, fragmentEntryLink,
+							externalReferenceCode, fragmentEntryLink,
 							httpServletRequest)
 					).put(
 						"style", "fluid"
@@ -318,13 +330,20 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 		String value = editablePlaceholderJSONObject.getString(
 			LanguageUtil.getLanguageId(httpServletRequest));
 
+		if (Validator.isNull(value) &&
+			placeholder.equals("externalReferenceCode")) {
+
+			value = editablePlaceholderJSONObject.getString(
+				"externalReferenceCode");
+		}
+
 		if (Validator.isNull(value)) {
 			value = editablePlaceholderJSONObject.getString("classPK");
 		}
 
 		if (Validator.isNull(value)) {
-			InfoItemReference infoItemReference = (InfoItemReference)
-				httpServletRequest.getAttribute(
+			InfoItemReference infoItemReference =
+				(InfoItemReference)httpServletRequest.getAttribute(
 					InfoDisplayWebKeys.INFO_ITEM_REFERENCE);
 
 			if (infoItemReference == null) {
@@ -348,49 +367,14 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 		return value;
 	}
 
-	private String _getRawFDSAPIURL(
-		ObjectEntry dataSetObjectEntry) {
+	private Set<String> _getParameterNames(
+		String externalReferenceCode, HttpServletRequest httpServletRequest) {
 
-		String restEndpoint = (String)dataSetObjectEntry.getPropertyValue(
-			"restEndpoint");
-		String additionalURLParameters =
-			(String)dataSetObjectEntry.getPropertyValue(
-				"additionalAPIURLParameters");
-
-		String value = restEndpoint;
-
-		if (Validator.isNotNull(additionalURLParameters)) {
-			value += "?" + additionalURLParameters;
-		}
-
-		return value;
-	}
-
-	private JSONObject _getParametersJSONObject(
-		ObjectEntry dataSetObjectEntry, FragmentEntryLink fragmentEntryLink,
-		HttpServletRequest httpServletRequest) {
-
-		Set<String> placeholders = _getParameterNames(dataSetObjectEntry);
-
-		JSONObject parametersJSONObject = _jsonFactory.createJSONObject();
-
-		for (String placeholder : placeholders) {
-			String value = _getEditableValue(
-				fragmentEntryLink, httpServletRequest, placeholder);
-
-			if (Validator.isNotNull(value)) {
-				parametersJSONObject.put(placeholder, value);
-			}
-		}
-
-		return parametersJSONObject;
-	}
-
-	private Set<String> _getParameterNames(ObjectEntry dataSetObjectEntry) {
 		Set<String> parameterNames = new HashSet<>();
 
 		Matcher matcher = _pattern.matcher(
-			_getRawFDSAPIURL(dataSetObjectEntry));
+			_fdsRenderer.getFDSAPIURL(
+				externalReferenceCode, httpServletRequest, false, null));
 
 		while (matcher.find()) {
 			parameterNames.add(matcher.group(1));
@@ -399,40 +383,45 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 		return parameterNames;
 	}
 
-	private boolean _isMappingComplete(
-		FragmentEntryLink fragmentEntryLink,
-		HttpServletRequest httpServletRequest, ObjectEntry dataSetObjectEntry) {
+	private JSONObject _getParametersJSONObject(
+		String externalReferenceCode, FragmentEntryLink fragmentEntryLink,
+		HttpServletRequest httpServletRequest) {
 
-		Set<String> parameterNames = _getParameterNames(dataSetObjectEntry);
+		Set<String> parameterNames = _getParameterNames(
+			externalReferenceCode, httpServletRequest);
 
-		if (SetUtil.isEmpty(parameterNames)) {
-			return true;
-		}
+		JSONObject parametersJSONObject = _jsonFactory.createJSONObject();
 
-		JSONObject editablesJSONObject =
-			fragmentEntryLink.getEditableValuesJSONObject();
+		for (String parameterName : parameterNames) {
+			String value = _getEditableValue(
+				fragmentEntryLink, httpServletRequest, parameterName);
 
-		JSONObject parametersJSONObject =
-			editablesJSONObject.getJSONObject(
-				FragmentEntryProcessorConstants.
-					KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR);
-
-		if ((parametersJSONObject == null) ||
-			JSONUtil.isEmpty(parametersJSONObject)) {
-
-			return false;
-		}
-
-		for (String parameter : parameterNames) {
-			if (Validator.isNull(
-					_getEditableValue(
-						fragmentEntryLink, httpServletRequest, parameter))) {
-
-				return false;
+			if (Validator.isNotNull(value)) {
+				parametersJSONObject.put(parameterName, value);
 			}
 		}
 
-		return true;
+		return parametersJSONObject;
+	}
+
+	private boolean _isMappingComplete(
+		String externalReferenceCode, FragmentEntryLink fragmentEntryLink,
+		HttpServletRequest httpServletRequest) {
+
+		Matcher matcher = _pattern.matcher(
+			_fdsRenderer.getFDSAPIURL(
+				externalReferenceCode, httpServletRequest, true,
+				_getParametersJSONObject(
+					externalReferenceCode, fragmentEntryLink,
+					httpServletRequest)));
+
+		return !matcher.matches();
+	}
+
+	private boolean _isResolvedParameter(String url, String parameterName) {
+		return !url.contains(
+			StringPool.OPEN_CURLY_BRACE + parameterName +
+				StringPool.CLOSE_CURLY_BRACE);
 	}
 
 	private String _processFragmentEntryLinkHTML(
