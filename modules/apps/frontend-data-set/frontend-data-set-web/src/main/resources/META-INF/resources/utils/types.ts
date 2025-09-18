@@ -413,7 +413,7 @@ export interface IStateInURL {
 	[EStateInURLKeys.VIEW_NAME]: string;
 }
 
-export type IStateInURLSetter<K extends keyof IStateInURL> = (
+export type IStateInURLUpdaterThunk<K extends keyof IStateInURL> = (
 	value: IStateInURL[K]
 ) => (viewsDispatch: Function) => void;
 
