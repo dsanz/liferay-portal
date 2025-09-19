@@ -408,6 +408,7 @@ export enum EStateInURLKeys {
 	PAGE_NUMBER = 'page',
 	SEARCH_PARAM = 'q',
 	VIEW_NAME = 'view',
+	VISIBLE_FIELDS = 'vf',
 }
 
 export interface IStateInURL {
@@ -415,6 +416,7 @@ export interface IStateInURL {
 	[EStateInURLKeys.PAGE_NUMBER]: number;
 	[EStateInURLKeys.SEARCH_PARAM]: string;
 	[EStateInURLKeys.VIEW_NAME]: string;
+	[EStateInURLKeys.VISIBLE_FIELDS]: VisibleFieldNames;
 }
 
 export type IStateInURLUpdaterThunk<K extends keyof IStateInURL> = (
@@ -428,3 +430,7 @@ export type IStateInURLGetter<K extends keyof IStateInURL> = () =>
 export type IStateInitializer<K extends keyof IStateInURL> = (
 	value: IStateInURL[K]
 ) => IStateInURL[K] | undefined;
+
+export type VisibleFieldNames = {
+	[fieldName: string]: boolean;
+};
