@@ -431,6 +431,10 @@ export type IStateReader<K extends keyof IStateInURL> = (
 	value: IStateInURL[K]
 ) => IStateInURL[K] | undefined;
 
+export type IStateWriter<K extends keyof IStateInURL> = (
+	value: IStateInURL[K]
+) => IStateInURL[K] | undefined;
+
 export type VisibleFieldNames = {
 	[fieldName: string]: boolean;
 };
