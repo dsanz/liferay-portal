@@ -405,6 +405,7 @@ export {
 
 export enum EStateInURLKeys {
 	ACTIVE_FILTERS = 'filters',
+	ACTIVE_SORTS = 'sorts',
 	DELTA = 'delta',
 	PAGE_NUMBER = 'page',
 	SEARCH_PARAM = 'q',
@@ -414,6 +415,7 @@ export enum EStateInURLKeys {
 
 export interface IStateInURL {
 	[EStateInURLKeys.ACTIVE_FILTERS]: Array<any>;
+	[EStateInURLKeys.ACTIVE_SORTS]: Array<TSort>;
 	[EStateInURLKeys.DELTA]: number;
 	[EStateInURLKeys.PAGE_NUMBER]: number;
 	[EStateInURLKeys.SEARCH_PARAM]: string;
