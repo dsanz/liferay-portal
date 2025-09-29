@@ -197,9 +197,6 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 				return;
 			}
 
-			boolean mappingComplete = _isMappingComplete(
-				externalReferenceCode, fragmentEntryLink, httpServletRequest);
-
 			if (fragmentRendererContext.isEditMode()) {
 				_renderMappingUI(
 					externalReferenceCode, fragmentEntryLink,
@@ -214,7 +211,10 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 						httpServletResponse));
 			}
 
-			if (mappingComplete) {
+			if (_isMappingComplete(
+					externalReferenceCode, fragmentEntryLink,
+					httpServletRequest)) {
+
 				printWriter.write("<div>");
 
 				_fdsRenderer.render(
