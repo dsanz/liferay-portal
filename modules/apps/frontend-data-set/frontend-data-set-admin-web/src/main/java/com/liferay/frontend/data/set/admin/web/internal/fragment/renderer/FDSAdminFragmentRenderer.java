@@ -361,7 +361,7 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 					externalReferenceCode, fragmentEntryLink,
 					httpServletRequest)));
 
-		return !matcher.matches();
+		return !matcher.find();
 	}
 
 	private boolean _isResolvedParameter(String url, String parameterName) {
