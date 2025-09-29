@@ -197,14 +197,13 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 				return;
 			}
 
-			if (fragmentRendererContext.isEditMode()) {
+			if (fragmentRendererContext.isEditMode() &&
+				_hasParameters(externalReferenceCode, httpServletRequest)) {
+
 				_renderMappingUI(
 					externalReferenceCode, fragmentEntryLink,
 					httpServletRequest);
 
-				/* mapping UI is used to calculate editables. In the future
-				editables can be calculated via minimal markup, then UI can be implemented as react
-				 */
 				printWriter.write(
 					_processFragmentEntryLinkHTML(
 						fragmentRendererContext, httpServletRequest,
@@ -348,6 +347,16 @@ public class FDSAdminFragmentRenderer implements FragmentRenderer {
 		}
 
 		return parametersJSONObject;
+	}
+
+	private boolean _hasParameters(
+		String externalReferenceCode, HttpServletRequest httpServletRequest) {
+
+		Matcher matcher = _pattern.matcher(
+			_fdsRenderer.getFDSAPIURL(
+				externalReferenceCode, httpServletRequest, false, null));
+
+		return matcher.find();
 	}
 
 	private boolean _isMappingComplete(
