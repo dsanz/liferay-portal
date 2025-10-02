@@ -1,5 +1,5 @@
 {
-	"@generated": "db00bf523909fd9beefc7d88139828f601bafab2",
+	"@generated": "652fad263df3eaf0db0f752a3b06a3003dac2a3f",
 	"@readonly": "** AUTO-GENERATED: DO NOT EDIT **",
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
@@ -17,6 +17,9 @@
 			"@liferay/frontend-data-set-web": [
 				"../../../frontend-data-set/frontend-data-set-web/src/main/resources/META-INF/resources/index.ts"
 			],
+			"@liferay/frontend-js-item-selector-web": [
+				"../../../frontend-js/frontend-js-item-selector-web/src/main/resources/META-INF/resources/index.ts"
+			],
 			"@liferay/frontend-js-react-web": [
 				"../../../frontend-js/frontend-js-react-web/src/main/resources/META-INF/resources/js/index.ts"
 			],
@@ -26,11 +29,14 @@
 			"@liferay/object-js-components-web": [
 				"../../../object/object-js-components-web/src/main/resources/META-INF/resources/index.ts"
 			],
+			"document-library-preview-document": [
+				"../../../document-library/document-library-preview-document/src/main/resources/META-INF/resources/preview/js/index.tsx"
+			],
 			"document-library-preview-image": [
 				"../../../document-library/document-library-preview-image/src/main/resources/META-INF/resources/preview/js/index.tsx"
 			],
 			"document-library-video": [
-				"../../../document-library/document-library-video/src/main/resources/META-INF/resources/js/index.d.ts"
+				"../../../document-library/document-library-video/src/main/resources/META-INF/resources/js/index.ts"
 			],
 			"frontend-editor-ckeditor-web": [
 				"../../../frontend-editor/frontend-editor-ckeditor-web/src/main/resources/META-INF/resources/js/index.ts"
@@ -73,6 +79,9 @@
 			"path": "../../../frontend-data-set/frontend-data-set-web/src/main/resources/META-INF/resources/tsconfig.json"
 		},
 		{
+			"path": "../../../frontend-js/frontend-js-item-selector-web/src/main/resources/META-INF/resources/tsconfig.json"
+		},
+		{
 			"path": "../../../frontend-js/frontend-js-react-web/src/main/resources/META-INF/resources/tsconfig.json"
 		},
 		{
@@ -80,6 +89,9 @@
 		},
 		{
 			"path": "../../../object/object-js-components-web/src/main/resources/META-INF/resources/tsconfig.json"
+		},
+		{
+			"path": "../../../document-library/document-library-preview-document/src/main/resources/META-INF/resources/tsconfig.json"
 		},
 		{
 			"path": "../../../document-library/document-library-preview-image/src/main/resources/META-INF/resources/tsconfig.json"

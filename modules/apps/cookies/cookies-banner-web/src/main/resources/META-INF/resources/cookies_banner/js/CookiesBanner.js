@@ -43,11 +43,18 @@ export default function ({
 	const editMode = document.body.classList.contains('has-edit-mode-menu');
 
 	if (!editMode) {
+		const cookieManager = document.getElementById(
+			'_com_liferay_my_account_web_portlet_MyAccountPortlet_cookiesBannerConfigurationForm'
+		);
 		const productAnalyticsBanner = document.querySelector(
 			'.product-analytics-banner'
 		);
 
-		if (productAnalyticsBanner) {
+		if (
+			cookieManager ||
+			(productAnalyticsBanner &&
+				productAnalyticsBanner.style.display === 'block')
+		) {
 			cookieBanner.style.display = 'none';
 		}
 		else {

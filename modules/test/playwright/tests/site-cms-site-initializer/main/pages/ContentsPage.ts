@@ -42,8 +42,10 @@ export class ContentsPage {
 		this.page = page;
 
 		this.apiHelpers = new ApiHelpers(page);
-		this.newButton = page.locator('.nav-item').getByLabel('New');
-		this.publishButton = page.getByText('Publish', {exact: true});
+		this.newButton = page.getByTestId('fdsCreationActionButton').first();
+		this.publishButton = page
+			.getByText('Publish', {exact: true})
+			.or(page.getByText('Submit for Workflow', {exact: true}));
 	}
 
 	async goto() {
@@ -100,7 +102,7 @@ export class ContentsPage {
 		}
 	}
 
-	async createFolder(folderName: string) {
+	async createFolder(folderName: string, spaceName?: string) {
 		await clickAndExpectToBeVisible({
 			autoClick: true,
 			target: this.page.getByRole('menuitem', {name: 'Folder'}),
@@ -111,7 +113,14 @@ export class ContentsPage {
 
 		await this.page.getByLabel('NameRequired').fill(folderName);
 
+		if (spaceName) {
+			await this.page.getByLabel('SpaceRequired').click();
+			await this.page.getByRole('option', {name: spaceName}).click();
+		}
+
 		await this.page.getByRole('button', {name: 'Save'}).click();
+
+		await waitForAlert(this.page, `Success:${folderName} was created`);
 	}
 
 	async deleteContent(title: string, recycleBinEnabled: boolean = true) {

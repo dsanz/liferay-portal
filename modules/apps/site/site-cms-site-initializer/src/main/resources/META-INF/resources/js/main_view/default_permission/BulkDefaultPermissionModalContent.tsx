@@ -9,60 +9,47 @@ import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import ClayModal from '@clayui/modal';
 import {ClayTooltipProvider} from '@clayui/tooltip';
-import {openModal, openToast} from 'frontend-js-components-web';
+import {openModal} from 'frontend-js-components-web';
 import {sub} from 'frontend-js-web';
 import React, {useCallback, useEffect, useState} from 'react';
 
 import CMSDefaultPermissionService from '../../common/services/CMSDefaultPermissionService';
+import {triggerAssetBulkAction} from '../props_transformer/actions/triggerAssetBulkAction';
 import DefaultPermissionFormContainer from './DefaultPermissionFormContainer';
 import {
+	ActionsMap,
 	AssetRoleSelectedActions,
 	BulkDefaultPermissionModalContentProps,
 } from './DefaultPermissionTypes';
 
-const DEFAULT_PERMISSIONS = {
-	L_CONTENTS: {
-		'CMS Administrator': [
-			'UPDATE_DISCUSSION',
-			'DELETE',
-			'PERMISSIONS',
-			'OBJECT_ENTRY_HISTORY',
-			'DELETE_DISCUSSION',
-			'UPDATE',
-			'VIEW',
-			'ADD_DISCUSSION',
-		],
-	},
-	L_FILES: {
-		'CMS Administrator': [
-			'UPDATE_DISCUSSION',
-			'DELETE',
-			'PERMISSIONS',
-			'OBJECT_ENTRY_HISTORY',
-			'DELETE_DISCUSSION',
-			'UPDATE',
-			'VIEW',
-			'ADD_DISCUSSION',
-		],
-	},
-	OBJECT_ENTRY_FOLDERS: {
-		'CMS Administrator': [
-			'DELETE',
-			'PERMISSIONS',
-			'UPDATE',
-			'SUBSCRIBE',
-			'VIEW',
-			'ADD_ENTRY',
-		],
-	},
-};
-const DEPOT_CLASS_NAME = 'com.liferay.depot.model.DepotEntry';
+export function DEFAULT_PERMISSIONS(actions: ActionsMap) {
+	return {
+		L_CONTENTS: {
+			'CMS Administrator': actions.L_CONTENTS.map((item) => item.key),
+		},
+		L_FILES: {
+			'CMS Administrator': actions.L_FILES.map((item) => item.key),
+		},
+		OBJECT_ENTRY_FOLDERS: {
+			'CMS Administrator': actions.OBJECT_ENTRY_FOLDERS.map(
+				(item) => item.key
+			),
+		},
+	};
+}
+export const DEPOT_CLASS_NAME = 'com.liferay.depot.model.DepotEntry';
+export const OBJECT_DEFINITION_CLASS_NAME =
+	'com.liferay.object.model.ObjectDefinition';
+export const OBJECT_ENTRY_FOLDER_CLASS_NAME =
+	'com.liferay.object.model.ObjectEntryFolder';
 
 export function defaultPermissionsBulkAction({
+	apiURL,
 	className,
 	defaultPermissionAdditionalProps,
 	selectedData,
 }: {
+	apiURL?: string;
 	className: string;
 	defaultPermissionAdditionalProps: any;
 	selectedData: any;
@@ -100,6 +87,7 @@ export function defaultPermissionsBulkAction({
 		contentComponent: ({closeModal}: {closeModal: () => void}) =>
 			BulkDefaultPermissionModalContent({
 				...defaultPermissionAdditionalProps,
+				apiURL,
 				className,
 				closeModal,
 				selectedData,
@@ -110,11 +98,12 @@ export function defaultPermissionsBulkAction({
 
 export default function BulkDefaultPermissionModalContent({
 	actions,
+	apiURL,
 	className,
 	closeModal,
 	roles,
 	selectedData,
-}: BulkDefaultPermissionModalContentProps) {
+}: BulkDefaultPermissionModalContentProps & {apiURL?: string}) {
 	const [currentValues, setCurrentValues] =
 		useState<AssetRoleSelectedActions>({});
 	const [loading, setLoading] = useState(false);
@@ -122,40 +111,39 @@ export default function BulkDefaultPermissionModalContent({
 	const saveHandler = useCallback(() => {
 		setLoading(true);
 
-		return CMSDefaultPermissionService.batchUpdateObjectEntry({
-			bulkActionItems: selectedData.items.map((item: any) => {
-				return {
-					classExternalReferenceCode:
-						item.externalReferenceCode ||
-						item.embedded?.externalReferenceCode,
-					className: item.entryClassName || className,
-				};
-			}),
-			defaultPermissions: JSON.stringify(currentValues),
-			selectAll: false,
-		})
-			.then(() => {
-				openToast({
-					message: Liferay.Language.get(
-						'your-request-completed-successfully'
-					),
-					type: 'success',
-				});
-
-				closeModal();
-			})
-			.catch(() => {
-				openToast({
-					message: Liferay.Language.get(
-						'an-unexpected-system-error-occurred'
-					),
-					type: 'danger',
-				});
-			})
-			.finally(() => {
+		triggerAssetBulkAction({
+			apiURL,
+			keyValues: {
+				defaultPermissions: JSON.stringify(currentValues),
+			},
+			onCreateError: () => {
 				setLoading(false);
-			});
-	}, [className, closeModal, currentValues, selectedData.items]);
+			},
+			onCreateSuccess: (_response) => {
+				closeModal();
+
+				setLoading(false);
+			},
+			selectedData:
+				className !== DEPOT_CLASS_NAME
+					? selectedData
+					: {
+							...selectedData,
+							items: selectedData.items.map((item: any) => {
+								return {
+									...item,
+									embedded: {
+										externalReferenceCode:
+											item.externalReferenceCode,
+										id: item.siteId,
+									},
+									entryClassName: DEPOT_CLASS_NAME,
+								};
+							}),
+						},
+			type: 'DefaultPermissionBulkAction',
+		});
+	}, [apiURL, className, closeModal, currentValues, selectedData]);
 
 	const onChangeHandler = useCallback((data: any) => {
 		setCurrentValues(data);
@@ -173,7 +161,7 @@ export default function BulkDefaultPermissionModalContent({
 
 			try {
 				if (className === DEPOT_CLASS_NAME) {
-					setCurrentValues(DEFAULT_PERMISSIONS);
+					setCurrentValues(DEFAULT_PERMISSIONS(actions));
 				}
 				else {
 					let entryClassExternalReferenceCode = '';
@@ -202,7 +190,7 @@ export default function BulkDefaultPermissionModalContent({
 								);
 							})
 						) {
-							setCurrentValues(DEFAULT_PERMISSIONS);
+							setCurrentValues(DEFAULT_PERMISSIONS(actions));
 
 							return;
 						}
@@ -241,7 +229,7 @@ export default function BulkDefaultPermissionModalContent({
 			catch (error) {
 				console.error(error);
 
-				setCurrentValues(DEFAULT_PERMISSIONS);
+				setCurrentValues(DEFAULT_PERMISSIONS(actions));
 			}
 			finally {
 				setLoading(false);
@@ -253,7 +241,7 @@ export default function BulkDefaultPermissionModalContent({
 		return () => {
 			isMounted = false;
 		};
-	}, [className, selectedData.items]);
+	}, [actions, className, selectedData.items]);
 
 	return (
 		<>

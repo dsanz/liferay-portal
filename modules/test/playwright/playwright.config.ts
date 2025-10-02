@@ -33,6 +33,7 @@ import {config as commerceChannelWebConfig} from './tests/commerce/commerce-chan
 import {config as commerceCheckoutWebConfig} from './tests/commerce/commerce-checkout-web/main/config';
 import {config as commerceCurrencyWebConfig} from './tests/commerce/commerce-currency-web/main/config';
 import {config as commerceDiscountContentWebConfig} from './tests/commerce/commerce-discount-content-web/main/config';
+import {config as commerceFragmentImplConfig} from './tests/commerce/commerce-fragment-impl/main/config';
 import {config as commerceInitializerUtilConfig} from './tests/commerce/commerce-initializer-util/main/config';
 import {config as commerceInventoryWebConfig} from './tests/commerce/commerce-inventory-web/main/config';
 import {config as commerceOrderContentWebConfig} from './tests/commerce/commerce-order-content-web/main/config';
@@ -155,6 +156,7 @@ import {config as templateWebConfig} from './tests/template-web/main/config';
 import {config as usersAdminWebEmailConfig} from './tests/users-admin-web/email/config';
 import {config as usersAdminWebConfig} from './tests/users-admin-web/main/config';
 import {config as usersAdminWebPermissionsConfig} from './tests/users-admin-web/permissions/config';
+import {config as utilTaglibConfig} from './tests/util-taglib/main/config';
 import {config as wikiWebConfig} from './tests/wiki-web/main/config';
 import {config as customerConfig} from './tests/workspaces/liferay-customer-workspace/main/config';
 import {config as commerceWorkspaceConfig} from './tests/workspaces/liferay-workspace-commerce/main/config';
@@ -201,6 +203,7 @@ export default defineConfig({
 		commerceCheckoutWebConfig,
 		commerceCurrencyWebConfig,
 		commerceDiscountContentWebConfig,
+		commerceFragmentImplConfig,
 		commerceInitializerUtilConfig,
 		commerceInventoryWebConfig,
 		commerceOrderWebConfig,
@@ -325,6 +328,7 @@ export default defineConfig({
 		usersAdminWebConfig,
 		usersAdminWebEmailConfig,
 		usersAdminWebPermissionsConfig,
+		utilTaglibConfig,
 		wikiWebConfig,
 		...setupProjects,
 	],

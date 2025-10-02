@@ -6,6 +6,7 @@
 package com.liferay.site.cms.site.initializer.internal.display.context;
 
 import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.document.library.configuration.DLConfiguration;
@@ -28,6 +29,8 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.editor.configuration.EditorConfiguration;
+import com.liferay.portal.kernel.editor.configuration.EditorConfigurationFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -42,6 +45,7 @@ import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
@@ -55,6 +59,8 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -126,6 +132,10 @@ public abstract class BaseSectionDisplayContext {
 		).put(
 			"baseFolderViewURL", ActionUtil.getBaseViewFolderURL(themeDisplay)
 		).put(
+			"brokenLinksCheckerEnabled",
+			GetterUtil.getBoolean(
+				PropsUtil.get(PropsKeys.CMS_BROKEN_LINKS_CHECKER_ENABLED))
+		).put(
 			"cmsGroupId",
 			() -> {
 				try {
@@ -167,6 +177,48 @@ public abstract class BaseSectionDisplayContext {
 				return collaboratorURLs;
 			}
 		).put(
+			"commentsProps",
+			HashMapBuilder.<String, Object>put(
+				"addCommentURL",
+				StringBundler.concat(
+					themeDisplay.getPortalURL(), themeDisplay.getPathMain(),
+					GroupConstants.CMS_FRIENDLY_URL,
+					"/add_content_item_comment")
+			).put(
+				"deleteCommentURL",
+				StringBundler.concat(
+					themeDisplay.getPortalURL(), themeDisplay.getPathMain(),
+					GroupConstants.CMS_FRIENDLY_URL,
+					"/delete_content_item_comment")
+			).put(
+				"editCommentURL",
+				StringBundler.concat(
+					themeDisplay.getPortalURL(), themeDisplay.getPathMain(),
+					GroupConstants.CMS_FRIENDLY_URL,
+					"/edit_content_item_comment")
+			).put(
+				"editorConfig",
+				() -> {
+					EditorConfiguration contentItemCommentEditorConfiguration =
+						EditorConfigurationFactoryUtil.getEditorConfiguration(
+							StringPool.BLANK, "contentItemCommentEditor",
+							StringPool.BLANK, Collections.emptyMap(),
+							themeDisplay,
+							RequestBackedPortletURLFactoryUtil.create(
+								httpServletRequest));
+
+					Map<String, Object> data =
+						contentItemCommentEditorConfiguration.getData();
+
+					return data.get("editorConfig");
+				}
+			).put(
+				"getCommentsURL",
+				StringBundler.concat(
+					themeDisplay.getPortalURL(), themeDisplay.getPathMain(),
+					GroupConstants.CMS_FRIENDLY_URL, "/get_asset_comments")
+			).build()
+		).put(
 			"contentViewURL",
 			StringBundler.concat(
 				themeDisplay.getPortalURL(), themeDisplay.getPathMain(),
@@ -203,8 +255,6 @@ public abstract class BaseSectionDisplayContext {
 				"L_BASIC_WEB_CONTENT", "content-icon-basic-content"
 			).put(
 				"L_BLOG", "content-icon-blog"
-			).put(
-				"L_KNOWLEDGE_BASE", "content-icon-knowledge-base"
 			).build()
 		).put(
 			"objectDefinitionIcons",
@@ -214,8 +264,6 @@ public abstract class BaseSectionDisplayContext {
 				"L_BASIC_WEB_CONTENT", "forms"
 			).put(
 				"L_BLOG", "blogs"
-			).put(
-				"L_KNOWLEDGE_BASE", "wiki"
 			).build()
 		).put(
 			"parentObjectEntryFolderExternalReferenceCode",
@@ -226,7 +274,7 @@ public abstract class BaseSectionDisplayContext {
 	}
 
 	public String getAPIURL() {
-		StringBundler sb = new StringBundler(8);
+		StringBundler sb = new StringBundler(9);
 
 		sb.append("/o/search/v1.0/search?emptySearch=true&filter=");
 
@@ -250,8 +298,9 @@ public abstract class BaseSectionDisplayContext {
 			sb.append(getCMSSectionFilterString());
 		}
 
-		sb.append("&nestedFields=embedded,file.previewURL,file.");
-		sb.append("thumbnailURL,systemProperties.objectDefinitionBrief");
+		sb.append("&nestedFields=embedded,file.metadata,");
+		sb.append("file.previewURL,file.thumbnailURL,");
+		sb.append("systemProperties.objectDefinitionBrief");
 
 		return sb.toString();
 	}
@@ -600,11 +649,10 @@ public abstract class BaseSectionDisplayContext {
 					themeDisplay.getCompanyId(), null,
 					Arrays.asList(
 						RoleConstants.ADMINISTRATOR,
-						RoleConstants.SITE_ADMINISTRATOR,
-						RoleConstants.SITE_OWNER),
+						DepotRolesConstants.ASSET_LIBRARY_OWNER),
 					null, null,
 					new int[] {
-						RoleConstants.TYPE_REGULAR, RoleConstants.TYPE_SITE
+						RoleConstants.TYPE_REGULAR, RoleConstants.TYPE_DEPOT
 					},
 					0, 0, QueryUtil.ALL_POS, QueryUtil.ALL_POS),
 				role -> HashMapBuilder.put(
@@ -786,6 +834,8 @@ public abstract class BaseSectionDisplayContext {
 		}
 
 		return JSONUtil.put(
+			"externalReferenceCode", group.getExternalReferenceCode()
+		).put(
 			"groupId", group.getGroupId()
 		).put(
 			"name", group.getName(themeDisplay.getLocale())

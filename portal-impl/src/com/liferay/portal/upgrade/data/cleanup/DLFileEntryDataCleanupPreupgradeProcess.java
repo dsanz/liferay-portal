@@ -10,6 +10,7 @@ import com.liferay.document.library.kernel.model.DLFileEntryMetadata;
 import com.liferay.document.library.kernel.model.DLFileShortcut;
 import com.liferay.document.library.kernel.processor.RawMetadataProcessor;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -18,7 +19,7 @@ import com.liferay.portal.kernel.upgrade.data.cleanup.DataCleanupPreupgradeProce
 import com.liferay.portal.kernel.upgrade.data.cleanup.FilterableAllTablesOrphanReferencesDataCleanupPreupgradeProcess;
 import com.liferay.portal.kernel.upgrade.data.cleanup.TableOrphanReferencesDataCleanupPreupgradeProcess;
 import com.liferay.portal.kernel.upgrade.data.cleanup.util.DataCleanupLoggingUtil;
-import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -43,7 +44,7 @@ public class DLFileEntryDataCleanupPreupgradeProcess
 
 		Map<DataCleanupPreupgradeProcess, List<DataCleanupPreupgradeProcess>>
 			dataCleanupPreupgradeProcessMap =
-				HashMapBuilder.
+				LinkedHashMapBuilder.
 					<DataCleanupPreupgradeProcess,
 					 List<DataCleanupPreupgradeProcess>>put(
 						dlFileEntryDataCleanupPreupgradeProcess,
@@ -131,7 +132,9 @@ public class DLFileEntryDataCleanupPreupgradeProcess
 						DataCleanupLoggingUtil.logDelete(
 							_log, 1, dbInspector.normalizeName("DLFileEntry"),
 							StringBundler.concat(
-								"fileEntryId ", fileEntryId, " name was ",
+								dbInspector.normalizeName("fileEntryId"),
+								StringPool.SPACE, fileEntryId, StringPool.SPACE,
+								dbInspector.normalizeName("name"), " was ",
 								(name == null) ? "null" : "empty"));
 					}
 				}

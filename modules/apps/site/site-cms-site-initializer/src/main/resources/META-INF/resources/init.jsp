@@ -5,6 +5,8 @@
  */
 --%>
 
+<%@ taglib uri="jakarta.tags.core" prefix="c" %>
+
 <%@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
 taglib uri="http://liferay.com/tld/clay" prefix="clay" %><%@
 taglib uri="http://liferay.com/tld/frontend-data-set" prefix="frontend-data-set" %><%@
@@ -19,6 +21,8 @@ page import="com.liferay.site.cms.site.initializer.internal.display.context.Edit
 page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewAllSectionDisplayContext" %><%@
 page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewAllSpacesDisplayContext" %><%@
 page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewBulkActionTaskReportDisplayContext" %><%@
+page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewBulkActionTaskReportErrorItemsDisplayContext" %><%@
+page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewBulkActionTaskReportSuccessfulItemsDisplayContext" %><%@
 page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewCategoriesDisplayContext" %><%@
 page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewCategoryUsagesDisplayContext" %><%@
 page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewContentsSectionDisplayContext" %><%@

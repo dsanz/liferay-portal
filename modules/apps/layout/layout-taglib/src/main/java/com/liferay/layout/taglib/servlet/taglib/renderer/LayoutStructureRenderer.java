@@ -41,6 +41,7 @@ import com.liferay.layout.display.page.constants.LayoutDisplayPageWebKeys;
 import com.liferay.layout.helper.structure.LayoutStructureRulesHelper;
 import com.liferay.layout.list.retriever.ListObjectReference;
 import com.liferay.layout.responsive.ResponsiveLayoutStructureUtil;
+import com.liferay.layout.taglib.constants.LayoutStructureRendererConstants;
 import com.liferay.layout.taglib.internal.display.context.RenderCollectionLayoutStructureItemDisplayContext;
 import com.liferay.layout.taglib.internal.display.context.RenderLayoutStructureDisplayContext;
 import com.liferay.layout.taglib.internal.servlet.ServletContextUtil;
@@ -965,9 +966,101 @@ public class LayoutStructureRenderer {
 
 		jspWriter.write("\">");
 
-		_renderLayoutStructure(
-			formRelationshipStyledLayoutStructureItem.getChildrenItemIds(),
-			infoForm);
+		LayoutDisplayPageObjectProvider<?> layoutDisplayPageObjectProvider =
+			(LayoutDisplayPageObjectProvider<?>)
+				_httpServletRequest.getAttribute(
+					LayoutDisplayPageWebKeys.
+						LAYOUT_DISPLAY_PAGE_OBJECT_PROVIDER);
+
+		LayoutDisplayPageObjectProvider<?>
+			currentRelatedLayoutDisplayPageObjectProvider =
+				(LayoutDisplayPageObjectProvider<?>)
+					_httpServletRequest.getAttribute(
+						LayoutStructureRendererConstants.
+							LAYOUT_RELATED_ITEM_DISPLAY_PAGE_OBJECT_PROVIDER);
+
+		String currentParentItemExternalReferenceCode =
+			(String)_httpServletRequest.getAttribute(
+				LayoutStructureRendererConstants.
+					LAYOUT_PARENT_ITEM_EXTERNAL_REFERENCE_CODE);
+		String currentRelatedItemExternalReferenceCode =
+			(String)_httpServletRequest.getAttribute(
+				LayoutStructureRendererConstants.
+					LAYOUT_RELATED_ITEM_EXTERNAL_REFERENCE_CODE);
+
+		try {
+			_httpServletRequest.setAttribute(
+				LayoutStructureRendererConstants.
+					LAYOUT_PARENT_ITEM_EXTERNAL_REFERENCE_CODE,
+				LayoutStructureRendererConstants.
+					LAYOUT_DEFAULT_EXTERNAL_REFERENCE_CODE + 0);
+			_httpServletRequest.setAttribute(
+				LayoutStructureRendererConstants.
+					LAYOUT_RELATED_ITEM_EXTERNAL_REFERENCE_CODE,
+				LayoutStructureRendererConstants.
+					LAYOUT_DEFAULT_EXTERNAL_REFERENCE_CODE + 0);
+
+			if (layoutDisplayPageObjectProvider == null) {
+				_renderFormRelationshipStyledLayoutStructureItem(
+					infoForm, formRelationshipStyledLayoutStructureItem);
+			}
+			else {
+				List<? extends LayoutDisplayPageObjectProvider<?>>
+					relatedLayoutDisplayPageObjectProviders =
+						layoutDisplayPageObjectProvider.
+							getRelatedLayoutDisplayPageObjectProviders(
+								formRelationshipStyledLayoutStructureItem.
+									getContentType());
+
+				if (ListUtil.isEmpty(relatedLayoutDisplayPageObjectProviders)) {
+					_renderLayoutStructure(
+						formRelationshipStyledLayoutStructureItem.
+							getChildrenItemIds(),
+						infoForm);
+
+					return;
+				}
+
+				for (LayoutDisplayPageObjectProvider<?>
+						relatedLayoutDisplayPageObjectProvider :
+							relatedLayoutDisplayPageObjectProviders) {
+
+					_httpServletRequest.setAttribute(
+						LayoutStructureRendererConstants.
+							LAYOUT_PARENT_ITEM_EXTERNAL_REFERENCE_CODE,
+						relatedLayoutDisplayPageObjectProvider.
+							getParentExternalReferenceCode());
+					_httpServletRequest.setAttribute(
+						LayoutStructureRendererConstants.
+							LAYOUT_RELATED_ITEM_DISPLAY_PAGE_OBJECT_PROVIDER,
+						relatedLayoutDisplayPageObjectProvider);
+					_httpServletRequest.setAttribute(
+						LayoutStructureRendererConstants.
+							LAYOUT_RELATED_ITEM_EXTERNAL_REFERENCE_CODE,
+						relatedLayoutDisplayPageObjectProvider.
+							getExternalReferenceCode());
+
+					_renderLayoutStructure(
+						formRelationshipStyledLayoutStructureItem.
+							getChildrenItemIds(),
+						infoForm);
+				}
+			}
+		}
+		finally {
+			_httpServletRequest.setAttribute(
+				LayoutStructureRendererConstants.
+					LAYOUT_PARENT_ITEM_EXTERNAL_REFERENCE_CODE,
+				currentParentItemExternalReferenceCode);
+			_httpServletRequest.setAttribute(
+				LayoutStructureRendererConstants.
+					LAYOUT_RELATED_ITEM_DISPLAY_PAGE_OBJECT_PROVIDER,
+				currentRelatedLayoutDisplayPageObjectProvider);
+			_httpServletRequest.setAttribute(
+				LayoutStructureRendererConstants.
+					LAYOUT_RELATED_ITEM_EXTERNAL_REFERENCE_CODE,
+				currentRelatedItemExternalReferenceCode);
+		}
 
 		_renderReactComponent(
 			"{FormRelationshipAddButton} from layout-taglib/render",
@@ -1188,11 +1281,16 @@ public class LayoutStructureRenderer {
 				"\"><input name=\"classPK\" type=\"hidden\" value=\"");
 			jspWriter.write(
 				String.valueOf(layoutDisplayPageObjectProvider.getClassPK()));
-			jspWriter.write(
-				"\"><input name=\"externalReferenceCode\" type=\"hidden\"");
-			jspWriter.write(" value=\"");
-			jspWriter.write(
-				layoutDisplayPageObjectProvider.getExternalReferenceCode());
+
+			String externalReferenceCode =
+				layoutDisplayPageObjectProvider.getExternalReferenceCode();
+
+			if (Validator.isNotNull(externalReferenceCode)) {
+				jspWriter.write(
+					"\"><input name=\"externalReferenceCode\" type=\"hidden\"");
+				jspWriter.write(" value=\"");
+				jspWriter.write(externalReferenceCode);
+			}
 
 			String scopeExternalReferenceCode =
 				layoutDisplayPageObjectProvider.getScopeExternalReferenceCode(

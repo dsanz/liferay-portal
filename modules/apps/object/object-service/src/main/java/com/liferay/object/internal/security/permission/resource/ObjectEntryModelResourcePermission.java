@@ -169,16 +169,17 @@ public class ObjectEntryModelResourcePermission
 		if (user.isGuestUser()) {
 			return permissionChecker.hasPermission(
 				objectEntry.getGroupId(), objectDefinition.getClassName(),
-				objectEntry.getObjectEntryId(), actionId);
+				objectEntry.getHeadObjectEntryId(), actionId);
 		}
 
 		if (permissionChecker.hasOwnerPermission(
 				permissionChecker.getCompanyId(),
-				objectDefinition.getClassName(), objectEntry.getObjectEntryId(),
-				objectEntry.getUserId(), actionId) ||
+				objectDefinition.getClassName(),
+				objectEntry.getHeadObjectEntryId(), objectEntry.getUserId(),
+				actionId) ||
 			permissionChecker.hasPermission(
 				objectEntry.getGroupId(), objectDefinition.getClassName(),
-				objectEntry.getObjectEntryId(), actionId)) {
+				objectEntry.getHeadObjectEntryId(), actionId)) {
 
 			return true;
 		}
@@ -186,6 +187,11 @@ public class ObjectEntryModelResourcePermission
 		ModelResourcePermissionLogic<ObjectEntry>
 			objectEntryModelResourcePermissionLogic =
 				_objectEntryModelResourcePermissionLogicSupplier.get();
+
+		if (!objectEntry.isHead()) {
+			objectEntry = _objectEntryLocalService.fetchObjectEntry(
+				objectEntry.getHeadObjectEntryId());
+		}
 
 		if ((!actionId.equals(ActionKeys.VIEW) || objectEntry.isApproved()) &&
 			(objectEntryModelResourcePermissionLogic != null) &&
@@ -394,11 +400,11 @@ public class ObjectEntryModelResourcePermission
 
 			throw new PrincipalException.MustHavePermission(
 				permissionChecker, objectDefinition.getClassName(),
-				objectEntry.getObjectEntryId(), actionId);
+				objectEntry.getHeadObjectEntryId(), actionId);
 		}
 
 		throw new PrincipalException.MustHavePermission(
-			permissionChecker, _modelName, objectEntry.getObjectEntryId(),
+			permissionChecker, _modelName, objectEntry.getHeadObjectEntryId(),
 			actionId);
 	}
 

@@ -1847,7 +1847,10 @@ assetPublisherDeprecationTest(
 			.getByRole('option', {name: 'Full Content'})
 			.click();
 		await configurationFrame.getByRole('button', {name: 'Save'}).click();
-		await page.getByLabel('close', {exact: true}).click();
+		await page
+			.locator('.modal-header')
+			.getByLabel('Close', {exact: true})
+			.click();
 
 		await widgetPagePage.goto(widgetLayout, site.friendlyUrlPath);
 

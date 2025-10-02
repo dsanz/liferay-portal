@@ -5,6 +5,8 @@
 
 package com.liferay.fragment.internal.exportimport.content.processor;
 
+import com.liferay.asset.kernel.model.AssetVocabulary;
+import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
@@ -89,13 +91,34 @@ public class EditableValuesMappingExportImportContentProcessor
 	public void validateContentReferences(long groupId, JSONObject jsonObject) {
 	}
 
+	private void _exportAssetVocabularyReference(
+			String mappedField, PortletDataContext portletDataContext,
+			StagedModel stagedModel)
+		throws Exception {
+
+		long assetVocabularyId = GetterUtil.getLong(
+			mappedField.substring(
+				_EDITABLE_VALUE_PREFIX_ASSET_VOCABULARY.length()));
+
+		AssetVocabulary assetVocabulary =
+			_assetVocabularyLocalService.fetchAssetVocabulary(
+				assetVocabularyId);
+
+		if (assetVocabulary != null) {
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, stagedModel, assetVocabulary,
+				PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
+		}
+	}
+
 	private void _exportLayoutPageTemplateEntryReference(
 			String mappedField, PortletDataContext portletDataContext,
 			StagedModel stagedModel)
 		throws Exception {
 
 		long layoutPageTemplateEntryId = GetterUtil.getLong(
-			mappedField.substring(_LAYOUT_PAGE_TEMPLATE_ENTRY.length()));
+			mappedField.substring(
+				_EDITABLE_VALUE_PREFIX_LAYOUT_PAGE_TEMPLATE_ENTRY.length()));
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
@@ -115,9 +138,11 @@ public class EditableValuesMappingExportImportContentProcessor
 
 		StagedModel stagedModel;
 
-		if (mappedField.startsWith(_TEMPLATE)) {
+		if (mappedField.startsWith(_EDITABLE_VALUE_PREFIX_TEMPLATE)) {
 			stagedModel = _templateEntryLocalService.fetchTemplateEntry(
-				GetterUtil.getLong(mappedField.substring(_TEMPLATE.length())));
+				GetterUtil.getLong(
+					mappedField.substring(
+						_EDITABLE_VALUE_PREFIX_TEMPLATE.length())));
 		}
 		else {
 			stagedModel = _ddmTemplateLocalService.fetchTemplate(
@@ -137,9 +162,10 @@ public class EditableValuesMappingExportImportContentProcessor
 	private String _getTemplateEditableFieldValue(
 		String mappedField, PortletDataContext portletDataContext) {
 
-		if (mappedField.startsWith(_TEMPLATE)) {
+		if (mappedField.startsWith(_EDITABLE_VALUE_PREFIX_TEMPLATE)) {
 			long templateEntryId = GetterUtil.getLong(
-				mappedField.substring(_TEMPLATE.length()));
+				mappedField.substring(
+					_EDITABLE_VALUE_PREFIX_TEMPLATE.length()));
 
 			Map<Long, Long> templateEntryIds =
 				(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
@@ -148,7 +174,7 @@ public class EditableValuesMappingExportImportContentProcessor
 			long importedTemplateEntryId = MapUtil.getLong(
 				templateEntryIds, templateEntryId, templateEntryId);
 
-			return _TEMPLATE + importedTemplateEntryId;
+			return _EDITABLE_VALUE_PREFIX_TEMPLATE + importedTemplateEntryId;
 		}
 
 		String ddmTemplateKey = mappedField.substring(
@@ -244,13 +270,19 @@ public class EditableValuesMappingExportImportContentProcessor
 			GetterUtil.getString(
 				mappedField, editableJSONObject.getString("fieldId")));
 
-		if (mappedField.startsWith(
-				PortletDisplayTemplate.DISPLAY_STYLE_PREFIX)) {
+		if (mappedField.startsWith(_EDITABLE_VALUE_PREFIX_ASSET_VOCABULARY)) {
+			_exportAssetVocabularyReference(
+				mappedField, portletDataContext, stagedModel);
+		}
+		else if (mappedField.startsWith(
+					PortletDisplayTemplate.DISPLAY_STYLE_PREFIX)) {
 
 			_exportTemplateReference(
 				mappedField, portletDataContext, stagedModel);
 		}
-		else if (mappedField.startsWith(_LAYOUT_PAGE_TEMPLATE_ENTRY)) {
+		else if (mappedField.startsWith(
+					_EDITABLE_VALUE_PREFIX_LAYOUT_PAGE_TEMPLATE_ENTRY)) {
+
 			_exportLayoutPageTemplateEntryReference(
 				mappedField, portletDataContext, stagedModel);
 		}
@@ -282,17 +314,38 @@ public class EditableValuesMappingExportImportContentProcessor
 
 		String mappedField = editableJSONObject.getString(key);
 
-		if (mappedField.startsWith(
-				PortletDisplayTemplate.DISPLAY_STYLE_PREFIX)) {
+		if (mappedField.startsWith(_EDITABLE_VALUE_PREFIX_ASSET_VOCABULARY)) {
+			long assetVocabularyId = GetterUtil.getLong(
+				mappedField.substring(
+					_EDITABLE_VALUE_PREFIX_ASSET_VOCABULARY.length()));
+
+			Map<Long, Long> assetVocabularyIds =
+				(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+					AssetVocabulary.class);
+
+			long importedAssetVocabularyId = MapUtil.getLong(
+				assetVocabularyIds, assetVocabularyId, assetVocabularyId);
+
+			editableJSONObject.put(
+				key,
+				_EDITABLE_VALUE_PREFIX_ASSET_VOCABULARY +
+					importedAssetVocabularyId);
+		}
+		else if (mappedField.startsWith(
+					PortletDisplayTemplate.DISPLAY_STYLE_PREFIX)) {
 
 			editableJSONObject.put(
 				key,
 				_getTemplateEditableFieldValue(
 					mappedField, portletDataContext));
 		}
-		else if (mappedField.startsWith(_LAYOUT_PAGE_TEMPLATE_ENTRY)) {
+		else if (mappedField.startsWith(
+					_EDITABLE_VALUE_PREFIX_LAYOUT_PAGE_TEMPLATE_ENTRY)) {
+
 			long layoutPageTemplateEntryId = GetterUtil.getLong(
-				mappedField.substring(_LAYOUT_PAGE_TEMPLATE_ENTRY.length()));
+				mappedField.substring(
+					_EDITABLE_VALUE_PREFIX_LAYOUT_PAGE_TEMPLATE_ENTRY.
+						length()));
 
 			Map<Long, Long> layoutPageTemplateEntryIds =
 				(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
@@ -304,7 +357,7 @@ public class EditableValuesMappingExportImportContentProcessor
 
 			editableJSONObject.put(
 				key,
-				_LAYOUT_PAGE_TEMPLATE_ENTRY +
+				_EDITABLE_VALUE_PREFIX_LAYOUT_PAGE_TEMPLATE_ENTRY +
 					importedLayoutPageTemplateEntryId);
 		}
 
@@ -317,12 +370,20 @@ public class EditableValuesMappingExportImportContentProcessor
 		}
 	}
 
-	private static final String _LAYOUT_PAGE_TEMPLATE_ENTRY =
-		LayoutPageTemplateEntry.class.getSimpleName() + StringPool.UNDERLINE;
+	private static final String _EDITABLE_VALUE_PREFIX_ASSET_VOCABULARY =
+		AssetVocabulary.class.getSimpleName() + StringPool.UNDERLINE;
 
-	private static final String _TEMPLATE =
+	private static final String
+		_EDITABLE_VALUE_PREFIX_LAYOUT_PAGE_TEMPLATE_ENTRY =
+			LayoutPageTemplateEntry.class.getSimpleName() +
+				StringPool.UNDERLINE;
+
+	private static final String _EDITABLE_VALUE_PREFIX_TEMPLATE =
 		PortletDisplayTemplate.DISPLAY_STYLE_PREFIX + StringPool.UNDERLINE +
 			PortletDisplayTemplate.DISPLAY_STYLE_PREFIX;
+
+	@Reference
+	private AssetVocabularyLocalService _assetVocabularyLocalService;
 
 	@Reference
 	private DDMTemplateLocalService _ddmTemplateLocalService;

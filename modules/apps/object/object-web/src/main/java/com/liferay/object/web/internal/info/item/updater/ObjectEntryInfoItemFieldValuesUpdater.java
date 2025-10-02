@@ -23,6 +23,7 @@ import com.liferay.object.web.internal.info.item.handler.ObjectEntryInfoItemExce
 import com.liferay.object.web.internal.util.ObjectEntryUtil;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.kernel.exception.InfoFormException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -79,9 +80,8 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 
 		ThemeDisplay themeDisplay = serviceContext.getThemeDisplay();
 
-		Map<String, Object> curProperties = ObjectEntryUtil.toProperties(
-			themeDisplay.getCompanyId(), infoItemFieldValues,
-			objectEntry.getValues());
+		Map<String, Object> curProperties = _getProperties(
+			objectEntry, infoItemFieldValues, themeDisplay);
 
 		try {
 			String scopeKey = ObjectEntryInfoItemUtil.getScopeKey(
@@ -119,9 +119,20 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 					},
 					scopeKey);
 
-			if (curProperties.containsKey("reviewDate") ||
-				curProperties.containsKey("expirationDate")) {
+			if (curProperties.containsKey("displayDate") ||
+				curProperties.containsKey("expirationDate") ||
+				curProperties.containsKey("reviewDate")) {
 
+				dtoObjectEntry.setDisplayDate(
+					() -> {
+						if (curProperties.containsKey("displayDate")) {
+							return GetterUtil.getDate(
+								curProperties.get("displayDate"),
+								_dateTimeFormatter, null);
+						}
+
+						return objectEntry.getDisplayDate();
+					});
 				dtoObjectEntry.setExpirationDate(
 					() -> {
 						if (curProperties.containsKey("expirationDate")) {
@@ -132,7 +143,6 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 
 						return objectEntry.getExpirationDate();
 					});
-
 				dtoObjectEntry.setReviewDate(
 					() -> {
 						if (curProperties.containsKey("reviewDate")) {
@@ -149,8 +159,8 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 					new DefaultDTOConverterContext(
 						false, null, null, null, null, themeDisplay.getLocale(),
 						null, themeDisplay.getUser()),
-					objectEntry.getExternalReferenceCode(), _objectDefinition,
-					dtoObjectEntry, scopeKey);
+					dtoObjectEntry.getExternalReferenceCode(),
+					_objectDefinition, dtoObjectEntry, scopeKey);
 			}
 
 			return ObjectEntryUtil.toObjectEntry(
@@ -163,6 +173,23 @@ public class ObjectEntryInfoItemFieldValuesUpdater
 		}
 
 		return null;
+	}
+
+	private Map<String, Object> _getProperties(
+		ObjectEntry objectEntry, InfoItemFieldValues infoItemFieldValues,
+		ThemeDisplay themeDisplay) {
+
+		if (FeatureFlagManagerUtil.isEnabled(
+				themeDisplay.getScopeGroupId(), "LPD-50377")) {
+
+			return ObjectEntryUtil.toProperties(
+				infoItemFieldValues, _objectDefinition,
+				objectEntry.getValues());
+		}
+
+		return ObjectEntryUtil.toProperties(
+			themeDisplay.getCompanyId(), infoItemFieldValues,
+			objectEntry.getValues());
 	}
 
 	private TaxonomyCategoryBrief[] _toTaxonomyCategoryBriefs(

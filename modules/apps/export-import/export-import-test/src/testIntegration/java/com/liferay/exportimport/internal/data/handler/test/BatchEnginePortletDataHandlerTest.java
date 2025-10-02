@@ -53,12 +53,12 @@ import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
@@ -66,8 +66,10 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
@@ -85,6 +87,7 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -164,15 +167,15 @@ public class BatchEnginePortletDataHandlerTest {
 			PermissionCheckerMethodTestRule.INSTANCE);
 
 	@BeforeClass
-	public static void setUpClass() {
+	public static void setUpClass() throws PortalException {
 		FeatureFlagTestUtil.invokeFeatureFlagListeners(
-			CompanyConstants.SYSTEM, true, "LPD-35914");
+			TestPropsValues.getCompanyId(), true, "LPD-35914");
 	}
 
 	@AfterClass
-	public static void tearDownClass() {
+	public static void tearDownClass() throws PortalException {
 		FeatureFlagTestUtil.invokeFeatureFlagListeners(
-			CompanyConstants.SYSTEM, false, "LPD-35914");
+			TestPropsValues.getCompanyId(), false, "LPD-35914");
 	}
 
 	@Test
@@ -318,6 +321,34 @@ public class BatchEnginePortletDataHandlerTest {
 			ObjectRelationshipConstants.TYPE_MANY_TO_MANY);
 	}
 
+	@FeatureFlag("LPD-35443")
+	@Test
+	@TestInfo("LPD-64365")
+	public void testExportImportLayoutsToOtherSite() throws Exception {
+		Group group1 = GroupTestUtil.addGroup();
+
+		Layout layout1 = LayoutTestUtil.addTypePortletLayout(group1);
+		Layout layout2 = LayoutTestUtil.addTypePortletLayout(group1);
+
+		File larFile = _exportLayouts(
+			false, group1.getGroupId(), true, false,
+			new long[] {layout1.getLayoutId()});
+
+		Group group2 = GroupTestUtil.addGroup();
+
+		_importLayouts(false, false, larFile, group2.getGroupId(), true, false);
+
+		layout1 = _layoutLocalService.fetchLayoutByExternalReferenceCode(
+			layout1.getExternalReferenceCode(), group2.getGroupId());
+
+		Assert.assertNotNull(layout1);
+
+		layout2 = _layoutLocalService.fetchLayoutByExternalReferenceCode(
+			layout2.getExternalReferenceCode(), group2.getGroupId());
+
+		Assert.assertNull(layout2);
+	}
+
 	@Test
 	@TestInfo("LPD-54863")
 	public void testExportImportObjectEntriesWithErrorReport()
@@ -414,6 +445,33 @@ public class BatchEnginePortletDataHandlerTest {
 				serviceRegistration.unregister();
 			}
 		}
+	}
+
+	@Test
+	@TestInfo("LPD-64361")
+	public void testExportImportPrivateLayoutsToOtherSite() throws Exception {
+		Group group1 = GroupTestUtil.addGroup();
+
+		Layout layout1 = LayoutTestUtil.addTypePortletLayout(group1, true);
+		Layout layout2 = LayoutTestUtil.addTypePortletLayout(group1, true);
+
+		File larFile = _exportLayouts(
+			false, group1.getGroupId(), false, true,
+			new long[] {layout1.getLayoutId()});
+
+		Group group2 = GroupTestUtil.addGroup();
+
+		_importLayouts(false, false, larFile, group2.getGroupId(), false, true);
+
+		layout1 = _layoutLocalService.fetchLayoutByExternalReferenceCode(
+			layout1.getExternalReferenceCode(), group2.getGroupId());
+
+		Assert.assertNotNull(layout1);
+
+		layout2 = _layoutLocalService.fetchLayoutByExternalReferenceCode(
+			layout2.getExternalReferenceCode(), group2.getGroupId());
+
+		Assert.assertNull(layout2);
 	}
 
 	@Test
@@ -630,6 +688,11 @@ public class BatchEnginePortletDataHandlerTest {
 				).put(
 					"batch.engine.task.item.delegate.name",
 					RandomTestUtil.randomString()
+				).put(
+					"companyId", String.valueOf(TestPropsValues.getCompanyId())
+				).put(
+					"export.import.vulcan.batch.engine.task.item.delegate",
+					"true"
 				).build())) {
 
 			// Filter is not null
@@ -637,7 +700,8 @@ public class BatchEnginePortletDataHandlerTest {
 			Thread.sleep(1000);
 
 			PortletDataHandler portletDataHandler =
-				_portletDataHandlerProvider.provide(portletId);
+				_portletDataHandlerProvider.provide(
+					TestPropsValues.getCompanyId(), portletId);
 
 			Assert.assertEquals(
 				1,
@@ -1030,7 +1094,8 @@ public class BatchEnginePortletDataHandlerTest {
 	}
 
 	private File _exportLayouts(
-			boolean deletions, long groupId, boolean privateLayouts,
+			boolean deletions, long groupId,
+			boolean includeLayoutSetLayoutsPortlet, boolean privateLayouts,
 			long[] layoutIds, ObjectDefinition... objectDefinitions)
 		throws Exception {
 
@@ -1044,7 +1109,18 @@ public class BatchEnginePortletDataHandlerTest {
 							TestPropsValues.getUser(), groupId, privateLayouts,
 							layoutIds,
 							_getExportImportParameterMap(
-								deletions, Arrays.asList(objectDefinitions)))));
+								deletions, includeLayoutSetLayoutsPortlet,
+								Arrays.asList(objectDefinitions)))));
+	}
+
+	private File _exportLayouts(
+			boolean deletions, long groupId, boolean privateLayouts,
+			long[] layoutIds, ObjectDefinition... objectDefinitions)
+		throws Exception {
+
+		return _exportLayouts(
+			deletions, groupId, false, privateLayouts, layoutIds,
+			objectDefinitions);
 	}
 
 	private String _getBatchFileNameWithPath(String fileName, long groupId) {
@@ -1087,7 +1163,8 @@ public class BatchEnginePortletDataHandlerTest {
 	}
 
 	private Map<String, String[]> _getExportImportParameterMap(
-		boolean deletions, List<ObjectDefinition> objectDefinitions) {
+		boolean deletions, boolean includeLayoutSetLayoutsPortlet,
+		List<ObjectDefinition> objectDefinitions) {
 
 		Map<String, String[]> parameterMap = HashMapBuilder.put(
 			PortletDataHandlerKeys.DELETIONS,
@@ -1108,8 +1185,21 @@ public class BatchEnginePortletDataHandlerTest {
 			PortletDataHandlerKeys.PORTLET_DATA,
 			new String[] {Boolean.TRUE.toString()}
 		).put(
+			PortletDataHandlerKeys.PORTLET_DATA_CONTROL_DEFAULT,
+			new String[] {Boolean.FALSE.toString()}
+		).put(
 			PortletDataHandlerKeys.PORTLET_SETUP_ALL,
 			new String[] {Boolean.TRUE.toString()}
+		).put(
+			"PORTLET_DATA_com_liferay_layout_admin_web_portlet_" +
+				"LayoutSetLayoutsPortlet",
+			() -> {
+				if (includeLayoutSetLayoutsPortlet) {
+					return new String[] {Boolean.TRUE.toString()};
+				}
+
+				return null;
+			}
 		).build();
 
 		objectDefinitions.forEach(
@@ -1182,6 +1272,7 @@ public class BatchEnginePortletDataHandlerTest {
 
 	private ExportImportConfiguration _importLayouts(
 			boolean deletions, boolean expectError, File file, long groupId,
+			boolean includeLayoutSetLayoutsPortlet, boolean privateLayout,
 			ObjectDefinition... objectDefinitions)
 		throws Exception {
 
@@ -1193,9 +1284,10 @@ public class BatchEnginePortletDataHandlerTest {
 						ExportImportConfigurationConstants.TYPE_IMPORT_LAYOUT,
 						ExportImportConfigurationSettingsMapFactoryUtil.
 							buildImportLayoutSettingsMap(
-								TestPropsValues.getUser(), groupId, false, null,
+								TestPropsValues.getUser(), groupId,
+								privateLayout, null,
 								_getExportImportParameterMap(
-									deletions,
+									deletions, includeLayoutSetLayoutsPortlet,
 									Arrays.asList(objectDefinitions))));
 
 			if (deletions) {
@@ -1210,11 +1302,21 @@ public class BatchEnginePortletDataHandlerTest {
 		}
 	}
 
+	private ExportImportConfiguration _importLayouts(
+			boolean deletions, boolean expectError, File file, long groupId,
+			ObjectDefinition... objectDefinitions)
+		throws Exception {
+
+		return _importLayouts(
+			deletions, expectError, file, groupId, false, false,
+			objectDefinitions);
+	}
+
 	private <S> SafeCloseable _registerServiceWithSafeCloseable(
 		Class<S> clazz, S service, Dictionary<String, ?> properties) {
 
 		Bundle bundle = FrameworkUtil.getBundle(
-			BatchEnginePortletDataHandlerRegistryTest.class);
+			BatchEnginePortletDataHandlerTest.class);
 
 		BundleContext bundleContext = bundle.getBundleContext();
 
@@ -1264,7 +1366,7 @@ public class BatchEnginePortletDataHandlerTest {
 
 		objectEntry.setExternalReferenceCode(StringUtil.randomString());
 
-		_objectEntryLocalService.updateObjectEntry(objectEntry);
+		objectEntry = _objectEntryLocalService.updateObjectEntry(objectEntry);
 
 		ExportImportConfiguration exportImportConfiguration = _importLayouts(
 			false, true, file, group.getGroupId(), objectDefinition);
@@ -1277,15 +1379,27 @@ public class BatchEnginePortletDataHandlerTest {
 		Assert.assertEquals(
 			exportImportReportEntries.toString(), 1,
 			exportImportReportEntries.size());
-		Assert.assertTrue(
-			ListUtil.exists(
-				exportImportReportEntries,
-				exportImportReportEntry ->
-					Objects.equals(
-						exportImportReportEntry.getClassExternalReferenceCode(),
-						originalExternalReferenceCode) &&
-					(exportImportReportEntry.getType() ==
-						ExportImportReportEntryConstants.TYPE_ERROR)));
+
+		ExportImportReportEntry exportImportReportEntry =
+			exportImportReportEntries.get(0);
+
+		Assert.assertEquals(
+			originalExternalReferenceCode,
+			exportImportReportEntry.getClassExternalReferenceCode());
+		Assert.assertEquals(
+			_portal.getClassNameId(objectDefinition.getClassName()),
+			exportImportReportEntry.getClassNameId());
+		Assert.assertEquals(
+			objectEntry.getPrimaryKey(), exportImportReportEntry.getClassPK());
+		Assert.assertEquals(
+			objectEntry.getGroupId(), exportImportReportEntry.getGroupId());
+		Assert.assertEquals(
+			objectDefinition.getShortName(),
+			exportImportReportEntry.getModelName());
+		Assert.assertEquals(scope, exportImportReportEntry.getScope());
+		Assert.assertEquals(
+			ExportImportReportEntryConstants.TYPE_ERROR,
+			exportImportReportEntry.getType());
 	}
 
 	private void _testExportImportObjectEntriesWithRelatedObjectEntries(
@@ -1473,6 +1587,9 @@ public class BatchEnginePortletDataHandlerTest {
 		_batchEngineImportTaskLocalService;
 
 	@Inject
+	private ClassNameLocalService _classNameLocalService;
+
+	@Inject
 	private CompanyLocalService _companyLocalService;
 
 	@Inject
@@ -1493,10 +1610,16 @@ public class BatchEnginePortletDataHandlerTest {
 		_exportImportReportEntryLocalService;
 
 	@Inject
+	private LayoutLocalService _layoutLocalService;
+
+	@Inject
 	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Inject
 	private ObjectRelationshipLocalService _objectRelationshipLocalService;
+
+	@Inject
+	private Portal _portal;
 
 	@Inject
 	private PortletDataHandlerProvider _portletDataHandlerProvider;

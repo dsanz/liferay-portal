@@ -10,6 +10,7 @@ import com.liferay.headless.admin.user.client.dto.v1_0.Account;
 import com.liferay.headless.admin.user.client.resource.v1_0.AccountResource;
 import com.liferay.headless.commerce.admin.catalog.client.dto.v1_0.Product;
 import com.liferay.headless.commerce.admin.catalog.client.resource.v1_0.SkuResource;
+import com.liferay.headless.commerce.admin.order.client.dto.v1_0.BillingAddress;
 import com.liferay.headless.commerce.admin.order.client.dto.v1_0.Order;
 import com.liferay.headless.commerce.admin.order.client.dto.v1_0.OrderItem;
 import com.liferay.headless.commerce.admin.order.client.pagination.Page;
@@ -26,6 +27,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
+import java.math.BigDecimal;
+
 import java.net.URL;
 
 import java.time.ZoneOffset;
@@ -34,6 +37,7 @@ import java.time.format.DateTimeFormatter;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -49,6 +53,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -263,6 +268,58 @@ public class MarketplaceRestController extends BaseRestController {
 			).build());
 	}
 
+	@PostMapping("/tax-calculate/{orderId}")
+	public void postTaxCalculate(@PathVariable long orderId) throws Exception {
+		if (_log.isInfoEnabled()) {
+			_log.info("POST tax calculate for order " + orderId);
+		}
+
+		Order order = _marketplaceService.getOrder(orderId);
+
+		BillingAddress billingAddress = _marketplaceService.getBillingAddress(
+			orderId);
+
+		if (billingAddress == null) {
+			return;
+		}
+
+		OrderResource orderResource = _marketplaceService.getOrderResource();
+
+		com.liferay.headless.commerce.admin.order.client.dto.v1_0.Account
+			account = order.getAccount();
+
+		BigDecimal subtotalAmount = BigDecimal.valueOf(
+			order.getSubtotalAmount());
+
+		BigDecimal taxAmount = BigDecimal.ZERO;
+
+		BigDecimal total = subtotalAmount.add(taxAmount);
+
+		if ((Objects.equals(account.getType(), _ACCOUNT_TYPE_BUSINESS) &&
+			 _europeanCountriesISOCode.contains(
+				 billingAddress.getCountryISOCode())) ||
+			(Objects.equals(account.getType(), _ACCOUNT_TYPE_PERSON) &&
+			 Objects.equals(billingAddress.getCountryISOCode(), "IE"))) {
+
+			taxAmount = subtotalAmount.multiply(
+				BigDecimal.valueOf(_MARKETPLACE_TAX_PERCENTAGE));
+
+			total = subtotalAmount.add(taxAmount);
+		}
+
+		BigDecimal finalTaxAmount = taxAmount;
+		BigDecimal finalTotal = total;
+
+		orderResource.patchOrder(
+			orderId,
+			new Order() {
+				{
+					setTaxAmount(() -> finalTaxAmount);
+					setTotal(() -> finalTotal);
+				}
+			});
+	}
+
 	private void _setUpCloudProductPurchase(
 			Order order, Page<OrderItem> orderItemPage)
 		throws Exception {
@@ -340,8 +397,19 @@ public class MarketplaceRestController extends BaseRestController {
 		}
 	}
 
+	private static final int _ACCOUNT_TYPE_BUSINESS = 2;
+
+	private static final int _ACCOUNT_TYPE_PERSON = 1;
+
+	private static final double _MARKETPLACE_TAX_PERCENTAGE = 0.23;
+
 	private static final Log _log = LogFactory.getLog(
 		MarketplaceRestController.class);
+
+	private final Set<String> _europeanCountriesISOCode = Set.of(
+		"AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR",
+		"HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO",
+		"SE", "SI", "SK");
 
 	@Autowired
 	private KoroneikiService _koroneikiService;

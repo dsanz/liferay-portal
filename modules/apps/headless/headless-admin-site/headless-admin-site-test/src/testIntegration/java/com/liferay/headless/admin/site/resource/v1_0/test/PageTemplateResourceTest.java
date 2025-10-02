@@ -13,6 +13,7 @@ import com.liferay.exportimport.kernel.service.StagingLocalService;
 import com.liferay.headless.admin.site.client.dto.v1_0.ContentPageSpecification;
 import com.liferay.headless.admin.site.client.dto.v1_0.ContentPageTemplate;
 import com.liferay.headless.admin.site.client.dto.v1_0.ContentPageTemplateSettings;
+import com.liferay.headless.admin.site.client.dto.v1_0.Creator;
 import com.liferay.headless.admin.site.client.dto.v1_0.FavIcon;
 import com.liferay.headless.admin.site.client.dto.v1_0.NavigationSettings;
 import com.liferay.headless.admin.site.client.dto.v1_0.PageSpecification;
@@ -51,6 +52,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -767,8 +769,6 @@ public class PageTemplateResourceTest extends BasePageTemplateResourceTestCase {
 
 		return new ContentPageTemplate() {
 			{
-				creatorExternalReferenceCode = StringUtil.toLowerCase(
-					RandomTestUtil.randomString());
 				dateCreated = RandomTestUtil.nextDate();
 				dateModified = RandomTestUtil.nextDate();
 				datePublished = RandomTestUtil.nextDate();
@@ -846,6 +846,22 @@ public class PageTemplateResourceTest extends BasePageTemplateResourceTestCase {
 
 		return new PageTemplateSet() {
 			{
+				setCreator(
+					() -> {
+						User user = _userLocalService.fetchUser(
+							layoutPageTemplateCollection.getUserId());
+
+						if (user == null) {
+							return null;
+						}
+
+						return new Creator() {
+							{
+								setExternalReferenceCode(
+									user::getExternalReferenceCode);
+							}
+						};
+					});
 				setDateCreated(layoutPageTemplateCollection::getCreateDate);
 				setDateModified(layoutPageTemplateCollection::getModifiedDate);
 				setDescription(layoutPageTemplateCollection::getDescription);
@@ -928,8 +944,6 @@ public class PageTemplateResourceTest extends BasePageTemplateResourceTestCase {
 		return new WidgetPageTemplate() {
 			{
 				active = RandomTestUtil.randomBoolean();
-				creatorExternalReferenceCode = StringUtil.toLowerCase(
-					RandomTestUtil.randomString());
 				dateCreated = RandomTestUtil.nextDate();
 				dateModified = RandomTestUtil.nextDate();
 				datePublished = RandomTestUtil.nextDate();
@@ -1809,5 +1823,8 @@ public class PageTemplateResourceTest extends BasePageTemplateResourceTestCase {
 
 	@Inject
 	private StagingLocalService _stagingLocalService;
+
+	@Inject
+	private UserLocalService _userLocalService;
 
 }

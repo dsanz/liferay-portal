@@ -180,13 +180,14 @@ import com.liferay.portal.kernel.workflow.WorkflowInstanceManager;
 import com.liferay.portal.language.override.service.PLOEntryLocalService;
 import com.liferay.portal.search.batch.DynamicQueryBatchIndexingActionableFactory;
 import com.liferay.portal.search.localization.SearchLocalizationHelper;
+import com.liferay.portal.search.ml.embedding.text.TextEmbeddingDocumentContributor;
 import com.liferay.portal.search.spi.model.query.contributor.ModelPreFilterContributor;
 import com.liferay.portal.service.impl.LayoutLocalServiceHelper;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
+import com.liferay.portal.workflow.constants.WorkflowDefinitionConstants;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
 import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionLocalService;
-import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionService;
 import com.liferay.sharing.security.permission.resource.SharingModelResourcePermissionConfigurator;
 import com.liferay.sharing.service.SharingEntryLocalService;
 import com.liferay.subscription.service.SubscriptionLocalService;
@@ -682,6 +683,9 @@ public class ObjectDefinitionLocalServiceImpl
 			ResourceConstants.SCOPE_INDIVIDUAL,
 			objectDefinition.getObjectDefinitionId());
 
+		_workflowDefinitionLinkLocalService.deleteWorkflowDefinitionLinks(
+			objectDefinition.getCompanyId(), objectDefinition.getClassName());
+
 		if (objectDefinition.isUnmodifiableSystemObject()) {
 			_dropTable(objectDefinition.getExtensionDBTableName());
 		}
@@ -1065,7 +1069,8 @@ public class ObjectDefinitionLocalServiceImpl
 				_portletLocalService, _resourceActions, _userLocalService,
 				_resourcePermissionLocalService, _searchLocalizationHelper,
 				_sharingModelResourcePermissionConfigurator,
-				_systemEventLocalService, _workflowDefinitionLinkLocalService,
+				_systemEventLocalService, _textEmbeddingDocumentContributor,
+				_workflowDefinitionLinkLocalService,
 				_workflowStatusModelPreFilterContributor,
 				_userGroupRoleLocalService);
 
@@ -1779,7 +1784,6 @@ public class ObjectDefinitionLocalServiceImpl
 			return;
 		}
 
-		long groupId = 0;
 		Set<Long> oldWorkflowDefinitionLinkIds = new HashSet<>(
 			TransformUtil.transform(
 				_workflowDefinitionLinkLocalService.getWorkflowDefinitionLinks(
@@ -1794,27 +1798,33 @@ public class ObjectDefinitionLocalServiceImpl
 		for (WorkflowDefinitionLink workflowDefinitionLink :
 				workflowDefinitionLinks) {
 
-			if (!Objects.equals(
-					objectDefinition.getScope(),
-					ObjectDefinitionConstants.SCOPE_COMPANY)) {
+			String workflowDefinitionName =
+				workflowDefinitionLink.getWorkflowDefinitionName();
 
-				groupId = workflowDefinitionLink.getGroupId();
+			KaleoDefinition kaleoDefinition =
+				_kaleoDefinitionLocalService.fetchKaleoDefinition(
+					workflowDefinitionName, serviceContext);
+
+			if (kaleoDefinition == null) {
+				kaleoDefinition =
+					_kaleoDefinitionLocalService.addKaleoDefinition(
+						workflowDefinitionName, workflowDefinitionName,
+						workflowDefinitionName, null, null,
+						WorkflowDefinitionConstants.SCOPE_ALL, 1,
+						serviceContext);
 			}
 
 			WorkflowDefinitionLink existingWorkflowDefinitionLink =
 				_workflowDefinitionLinkLocalService.fetchWorkflowDefinitionLink(
-					objectDefinition.getCompanyId(), groupId,
+					objectDefinition.getCompanyId(),
+					workflowDefinitionLink.getGroupId(),
 					objectDefinition.getClassName(), 0, 0, true);
-
-			KaleoDefinition kaleoDefinition =
-				_kaleoDefinitionService.getOrAddEmptyKaleoDefinition(
-					workflowDefinitionLink.getWorkflowDefinitionName(),
-					serviceContext);
 
 			if (existingWorkflowDefinitionLink == null) {
 				_workflowDefinitionLinkLocalService.addWorkflowDefinitionLink(
 					null, workflowDefinitionLink.getUserId(),
-					objectDefinition.getCompanyId(), groupId,
+					objectDefinition.getCompanyId(),
+					workflowDefinitionLink.getGroupId(),
 					objectDefinition.getClassName(), 0, 0,
 					kaleoDefinition.getName(), kaleoDefinition.getVersion());
 
@@ -2381,33 +2391,6 @@ public class ObjectDefinitionLocalServiceImpl
 				"At least one object field must be added when publishing the " +
 					"object definition",
 				"at-least-one-object-field-must-be-added");
-		}
-
-		if ((objectDefinition.getStatus() == WorkflowConstants.STATUS_DRAFT) &&
-			objectDefinition.isRootNode()) {
-
-			for (ObjectRelationship objectRelationship :
-					_objectRelationshipLocalService.getObjectRelationships(
-						objectDefinition.getObjectDefinitionId())) {
-
-				int objectEntriesCount =
-					_objectEntryLocalService.getObjectEntriesCount(
-						objectRelationship.getObjectDefinitionId2());
-
-				if (objectEntriesCount > 0) {
-					throw new ObjectRelationshipEdgeException(
-						StringBundler.concat(
-							"There must be no unrelated object entries when ",
-							"both object definitions are published so that ",
-							"the object relationship can be an edge to a root ",
-							"context"),
-						StringBundler.concat(
-							"there-must-be-no-unrelated-object-entries-when-",
-							"both-object-definitions-are-published-so-that-",
-							"the-object-relationship-can-be-an-edge-to-a-root-",
-							"context"));
-				}
-			}
 		}
 
 		_validateFriendlyURLSeparator(objectDefinition);
@@ -3528,9 +3511,6 @@ public class ObjectDefinitionLocalServiceImpl
 	private KaleoDefinitionLocalService _kaleoDefinitionLocalService;
 
 	@Reference
-	private KaleoDefinitionService _kaleoDefinitionService;
-
-	@Reference
 	private Language _language;
 
 	@Reference
@@ -3643,6 +3623,9 @@ public class ObjectDefinitionLocalServiceImpl
 
 	@Reference
 	private SystemEventLocalService _systemEventLocalService;
+
+	@Reference
+	private TextEmbeddingDocumentContributor _textEmbeddingDocumentContributor;
 
 	@Reference
 	private TrashEntryLocalService _trashEntryLocalService;

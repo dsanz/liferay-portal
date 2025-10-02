@@ -16,6 +16,7 @@ import com.liferay.portal.tools.rest.builder.test.dto.v1_0.BatchTestEntity;
 import com.liferay.portal.tools.rest.builder.test.dto.v1_0.CompanyTestEntity;
 import com.liferay.portal.tools.rest.builder.test.resource.v1_0.BatchTestEntityResource;
 import com.liferay.portal.tools.rest.builder.test.resource.v1_0.CompanyTestEntityResource;
+import com.liferay.portal.vulcan.custom.field.CustomField;
 import com.liferay.portal.vulcan.fields.NestedFieldsSupplier;
 import com.liferay.portal.vulcan.pagination.Page;
 
@@ -34,6 +35,7 @@ import org.osgi.service.component.annotations.ServiceScope;
  */
 @Component(
 	properties = "OSGI-INF/liferay/rest/v1_0/batch-test-entity.properties",
+	property = "export.import.vulcan.batch.engine.task.item.delegate=true",
 	scope = ServiceScope.PROTOTYPE, service = BatchTestEntityResource.class
 )
 public class BatchTestEntityResourceImpl
@@ -293,6 +295,27 @@ public class BatchTestEntityResourceImpl
 
 		return new BatchTestEntity() {
 			{
+				setCustomFields(
+					() -> transform(
+						originalBatchTestEntity.getCustomFields(),
+						originalCustomField -> {
+							CustomField customField = new CustomField();
+
+							customField.setAttributeType(
+								() -> NestedFieldsSupplier.supply(
+									"customFields.attributeType",
+									nestedField ->
+										originalCustomField.
+											getAttributeType()));
+							customField.setCustomValue(
+								originalCustomField.getCustomValue());
+							customField.setDataType(
+								originalCustomField.getDataType());
+							customField.setName(originalCustomField.getName());
+
+							return customField;
+						},
+						CustomField.class));
 				setExternalReferenceCode(
 					originalBatchTestEntity.getExternalReferenceCode());
 				setId(originalBatchTestEntity.getId());

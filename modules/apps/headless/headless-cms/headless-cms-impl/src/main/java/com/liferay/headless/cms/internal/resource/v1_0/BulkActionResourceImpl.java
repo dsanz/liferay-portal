@@ -5,6 +5,7 @@
 
 package com.liferay.headless.cms.internal.resource.v1_0;
 
+import com.liferay.depot.model.DepotEntry;
 import com.liferay.document.library.display.context.DLMimeTypeDisplayContext;
 import com.liferay.headless.batch.engine.dto.v1_0.ImportTask;
 import com.liferay.headless.batch.engine.resource.v1_0.ImportTaskResource;
@@ -21,6 +22,7 @@ import com.liferay.headless.cms.resource.v1_0.BulkActionResource;
 import com.liferay.layout.service.LayoutClassedModelUsageLocalService;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
+import com.liferay.object.constants.ObjectFolderConstants;
 import com.liferay.object.entry.util.ObjectEntryThreadLocal;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
@@ -43,9 +45,13 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.servlet.DynamicServletRequest;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -75,6 +81,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -173,6 +180,23 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			throw new UnsupportedOperationException();
 		}
 
+		if (ArrayUtil.isNotEmpty(sorts)) {
+			Sort sort = sorts[0];
+
+			String fieldName = sort.getFieldName();
+
+			if ((!StringUtil.equalsIgnoreCase(fieldName, "name") &&
+				 !StringUtil.equalsIgnoreCase(fieldName, "usages")) ||
+				(sorts.length > 1)) {
+
+				throw new BadRequestException(
+					"Only the fields \"name\" and \"usages\" are sortable");
+			}
+		}
+		else {
+			sorts = new Sort[] {new Sort("usages", true)};
+		}
+
 		BulkActionItem[] bulkActionItems = bulkAction.getBulkActionItems();
 
 		if (GetterUtil.getBoolean(fetchChildren)) {
@@ -194,7 +218,7 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			return _getBulkActionItemPreviewPage(
 				_getObjectEntryFolderBulkActionItems(
 					bulkActionItem.getClassPK()),
-				pagination, search, sorts);
+				pagination, search, sorts[0]);
 		}
 
 		if (ArrayUtil.isEmpty(bulkActionItems) &&
@@ -203,23 +227,14 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			return Page.of(Collections.emptyList());
 		}
 
-		if (ArrayUtil.isNotEmpty(sorts)) {
-			Sort sort = sorts[0];
-
-			if (!StringUtil.equalsIgnoreCase(sort.getFieldName(), "name") ||
-				(sorts.length > 1)) {
-
-				throw new BadRequestException(
-					"Only the field \"name\" is sortable");
-			}
-		}
-
 		if (!GetterUtil.getBoolean(bulkAction.getSelectAll())) {
 			return _getBulkActionItemPreviewPage(
-				ListUtil.fromArray(bulkActionItems), pagination, search, sorts);
+				ListUtil.fromArray(bulkActionItems), pagination, search,
+				sorts[0]);
 		}
 
-		return _getBulkActionItemPreviewPage(filter, pagination, search, sorts);
+		return _getBulkActionItemPreviewPage(
+			filter, pagination, search, sorts[0]);
 	}
 
 	private BulkActionTask _addBulkActionTask(String type) throws Exception {
@@ -462,10 +477,12 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 		PermissionBulkAction permissionBulkAction =
 			(PermissionBulkAction)bulkAction;
 
+		String configuration = permissionBulkAction.getConfiguration();
 		Permission[] permissions = permissionBulkAction.getPermissions();
 
 		if (MapUtil.isEmpty(bulkActionItemsMap) ||
-			ArrayUtil.isEmpty(permissions)) {
+			(Validator.isNull(configuration) &&
+			 ArrayUtil.isEmpty(permissions))) {
 
 			return new BulkActionTask();
 		}
@@ -474,13 +491,23 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			permissionBulkAction.getTypeAsString());
 
 		List<BulkActionItem> bulkActionItems = new ArrayList<>();
+		JSONObject configurationJSONObject = _jsonFactory.createJSONObject(
+			GetterUtil.get(configuration, "{}"));
 		ImportTaskResource importTaskResource = _createImportTaskResource();
+		Map<String, Role> roles = new HashMap<>();
 
 		for (Map.Entry<String, List<BulkActionItem>> entry :
 				bulkActionItemsMap.entrySet()) {
 
 			String taskItemDelegateName = _getTaskItemDelegateName(
 				entry.getKey());
+
+			List<HashMap<String, Object>> permissionsList = _getPermissionsList(
+				configurationJSONObject, entry, permissions, roles);
+
+			if (ListUtil.isEmpty(permissionsList)) {
+				continue;
+			}
 
 			ImportTask importTask = importTaskResource.putImportTaskObject(
 				_getClassName(entry.getKey()), null, null,
@@ -491,20 +518,7 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 					bulkActionItem -> HashMapBuilder.<String, Object>put(
 						"id", bulkActionItem.getClassPK()
 					).put(
-						"permissions",
-						transformToList(
-							permissions,
-							permission -> HashMapBuilder.<String, Object>put(
-								"actionIds",
-								ListUtil.fromArray(permission.getActionIds())
-							).put(
-								"roleExternalReferenceCode",
-								permission.getRoleExternalReferenceCode()
-							).put(
-								"roleName", permission.getRoleName()
-							).put(
-								"roleType", permission.getRoleType()
-							).build())
+						"permissions", permissionsList
 					).build()));
 
 			_addBulkActionTaskItem(
@@ -576,7 +590,7 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 	}
 
 	private Page<BulkActionItem> _getBulkActionItemPreviewPage(
-			Filter filter, Pagination pagination, String search, Sort[] sorts)
+			Filter filter, Pagination pagination, String search, Sort sort)
 		throws Exception {
 
 		if (filter == null) {
@@ -604,16 +618,15 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 				contextUser
 			).build();
 
-		if (ArrayUtil.isNotEmpty(sorts)) {
-			Sort sort = sorts[0];
-
+		if (StringUtil.equalsIgnoreCase(sort.getFieldName(), "name")) {
 			sort.setFieldName(
 				Field.getSortableFieldName(
 					"localized_title_".concat(contextUser.getLanguageId())));
 		}
 
 		Page<SearchResult> searchPage = searchResultResource.getSearchPage(
-			null, true, null, null, search, filter, pagination, sorts);
+			null, true, null, null, search, filter, pagination,
+			new Sort[] {sort});
 
 		for (SearchResult searchResult : searchPage.getItems()) {
 			JSONObject jsonObject = _jsonFactory.createJSONObject(
@@ -622,23 +635,20 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			bulkActionItems.add(_toBulkActionItem(jsonObject.getLong("id")));
 		}
 
+		if (StringUtil.equalsIgnoreCase(sort.getFieldName(), "usages")) {
+			bulkActionItems = _sortBulkActionItems(bulkActionItems, sort);
+		}
+
 		return Page.of(bulkActionItems, pagination, searchPage.getTotalCount());
 	}
 
 	private Page<BulkActionItem> _getBulkActionItemPreviewPage(
-			List<BulkActionItem> bulkActionItems1, Pagination pagination,
-			String search, Sort[] sorts)
-		throws Exception {
+		List<BulkActionItem> bulkActionItems1, Pagination pagination,
+		String search, Sort sort) {
 
 		List<BulkActionItem> bulkActionItems2 = new ArrayList<>();
 
 		long totalCount = bulkActionItems1.size();
-
-		if (Validator.isNull(search) && ArrayUtil.isEmpty(sorts)) {
-			bulkActionItems1 = ListUtil.subList(
-				bulkActionItems1, pagination.getStartPosition(),
-				pagination.getEndPosition());
-		}
 
 		for (BulkActionItem bulkActionItem : bulkActionItems1) {
 			bulkActionItems2.add(
@@ -655,25 +665,9 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			totalCount = bulkActionItems2.size();
 		}
 
-		if (ArrayUtil.isNotEmpty(sorts)) {
-			Sort sort = sorts[0];
-
-			bulkActionItems2 = ListUtil.sort(
-				bulkActionItems2,
-				(bulkActionItem1, bulkActionItem2) -> {
-					String name = bulkActionItem1.getName();
-
-					int value = name.compareTo(bulkActionItem2.getName());
-
-					if (!sort.isReverse()) {
-						return value;
-					}
-
-					return -value;
-				});
-		}
-
-		return Page.of(bulkActionItems2, pagination, totalCount);
+		return Page.of(
+			_sortBulkActionItems(bulkActionItems2, sort), pagination,
+			totalCount);
 	}
 
 	private Map<String, List<BulkActionItem>> _getBulkActionItemsMap(
@@ -779,9 +773,10 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 	}
 
 	private String _getClassName(String key) {
-		if (StringUtil.equals(
-				key, "com.liferay.object.model.ObjectEntryFolder")) {
-
+		if (StringUtil.equals(key, DepotEntry.class.getName())) {
+			return "com.liferay.headless.asset.library.dto.v1_0.AssetLibrary";
+		}
+		else if (StringUtil.equals(key, ObjectEntryFolder.class.getName())) {
 			return "com.liferay.headless.object.dto.v1_0.ObjectEntryFolder";
 		}
 
@@ -801,12 +796,6 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 				throw new ValidationException();
 			}
 
-			ObjectDefinition objectDefinition =
-				_objectDefinitionLocalService.
-					getObjectDefinitionByExternalReferenceCode(
-						"L_CMS_DEFAULT_PERMISSION",
-						contextCompany.getCompanyId());
-
 			String filterString = StringBundler.concat(
 				"(className eq '", ObjectEntryFolder.class.getName(),
 				"') and ");
@@ -820,48 +809,30 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 					filterString, "(startswith(treePath, '", treePath, "'))");
 			}
 
-			Predicate predicate = _filterFactory.create(
-				filterString, objectDefinition);
-
-			List<Long> primaryKeys = _objectEntryLocalService.getPrimaryKeys(
-				new Long[0], contextCompany.getCompanyId(),
-				contextUser.getUserId(),
-				objectDefinition.getObjectDefinitionId(), predicate, null,
-				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
-
-			if (ListUtil.isEmpty(primaryKeys)) {
-				return bulkActionItemsMap;
-			}
-
-			for (long primaryKey : primaryKeys) {
-				bulkActionItemsMap.computeIfAbsent(
-					objectDefinition.getClassName(),
-					className -> new ArrayList<>()
-				).add(
-					new BulkActionItem() {
-						{
-							setClassPK(() -> primaryKey);
-						}
-					}
-				);
-			}
-
-			return bulkActionItemsMap;
+			return _populateDefaultPermissionBulkActionItemsMap(
+				bulkActionItemsMap, filterString);
 		}
 
 		if (ArrayUtil.isEmpty(bulkActionItems)) {
 			return bulkActionItemsMap;
 		}
 
-		for (BulkActionItem bulkActionItem : bulkActionItems) {
-			bulkActionItemsMap.computeIfAbsent(
-				bulkActionItem.getClassName(), className -> new ArrayList<>()
-			).add(
-				bulkActionItem
-			);
-		}
+		BulkActionItem bulkActionItem = bulkActionItems[0];
 
-		return bulkActionItemsMap;
+		String filterString = StringBundler.concat(
+			"(className eq '", bulkActionItem.getClassName(), "') and (",
+			StringUtil.merge(
+				transform(
+					bulkActionItems,
+					item ->
+						"(classExternalReferenceCode eq '" +
+							item.getClassExternalReferenceCode() + "')",
+					String.class),
+				" or "),
+			")");
+
+		return _populateDefaultPermissionBulkActionItemsMap(
+			bulkActionItemsMap, filterString);
 	}
 
 	private String _getDeletionType(long groupId) throws PortalException {
@@ -939,9 +910,117 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 		return bulkActionItems;
 	}
 
+	private List<HashMap<String, Object>> _getPermissionsList(
+		JSONObject configurationJSONObject,
+		Map.Entry<String, List<BulkActionItem>> entry, Permission[] permissions,
+		Map<String, Role> roles) {
+
+		if (ArrayUtil.isNotEmpty(permissions)) {
+			return transformToList(
+				permissions,
+				permission -> HashMapBuilder.<String, Object>put(
+					"actionIds", ListUtil.fromArray(permission.getActionIds())
+				).put(
+					"roleExternalReferenceCode",
+					permission.getRoleExternalReferenceCode()
+				).put(
+					"roleName", permission.getRoleName()
+				).put(
+					"roleType", permission.getRoleType()
+				).build());
+		}
+
+		JSONObject jsonObject = null;
+		List<String> resourceActions = null;
+
+		if (Objects.equals(entry.getKey(), ObjectEntryFolder.class.getName())) {
+			jsonObject = configurationJSONObject.getJSONObject(
+				"OBJECT_ENTRY_FOLDERS");
+			resourceActions = ResourceActionsUtil.getResourceActions(
+				ObjectEntryFolder.class.getName());
+		}
+		else {
+			ObjectDefinition objectDefinition =
+				_objectDefinitionLocalService.fetchObjectDefinitionByClassName(
+					contextCompany.getCompanyId(), entry.getKey());
+
+			if (objectDefinition == null) {
+				return null;
+			}
+
+			if (Objects.equals(
+					objectDefinition.getObjectFolderExternalReferenceCode(),
+					ObjectFolderConstants.
+						EXTERNAL_REFERENCE_CODE_CONTENT_STRUCTURES)) {
+
+				jsonObject = configurationJSONObject.getJSONObject(
+					ObjectEntryFolderConstants.
+						EXTERNAL_REFERENCE_CODE_CONTENTS);
+			}
+			else if (Objects.equals(
+						objectDefinition.getObjectFolderExternalReferenceCode(),
+						ObjectFolderConstants.
+							EXTERNAL_REFERENCE_CODE_FILE_TYPES)) {
+
+				jsonObject = configurationJSONObject.getJSONObject(
+					ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES);
+			}
+
+			resourceActions = ResourceActionsUtil.getResourceActions(
+				objectDefinition.getClassName());
+		}
+
+		if (jsonObject == null) {
+			return null;
+		}
+
+		List<HashMap<String, Object>> permissionsList = new ArrayList<>();
+
+		JSONObject finalJSONObject = jsonObject;
+		List<String> finalResourceActions = resourceActions;
+
+		Iterator<String> iterator = jsonObject.keys();
+
+		iterator.forEachRemaining(
+			key -> {
+				if (!roles.containsKey(key)) {
+					Role role = _roleLocalService.fetchRole(
+						contextCompany.getCompanyId(), key);
+
+					if (role == null) {
+						return;
+					}
+
+					roles.put(key, role);
+				}
+
+				Role role = roles.get(key);
+
+				permissionsList.add(
+					HashMapBuilder.<String, Object>put(
+						"actionIds",
+						ListUtil.fromArray(
+							ArrayUtil.filter(
+								JSONUtil.toStringArray(
+									finalJSONObject.getJSONArray(key)),
+								action -> finalResourceActions.contains(
+									action)))
+					).put(
+						"roleExternalReferenceCode",
+						role.getExternalReferenceCode()
+					).put(
+						"roleName", role.getName()
+					).put(
+						"roleType", role.getType()
+					).build());
+			});
+
+		return permissionsList;
+	}
+
 	private String _getTaskItemDelegateName(String className) throws Exception {
-		if (StringUtil.equals(
-				"com.liferay.object.model.ObjectEntryFolder", className)) {
+		if (StringUtil.equals(DepotEntry.class.getName(), className) ||
+			StringUtil.equals(ObjectEntryFolder.class.getName(), className)) {
 
 			return null;
 		}
@@ -991,6 +1070,81 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 		}
 
 		return usagesCount;
+	}
+
+	private Map<String, List<BulkActionItem>>
+			_populateDefaultPermissionBulkActionItemsMap(
+				Map<String, List<BulkActionItem>> bulkActionItemsMap,
+				String filterString)
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMS_DEFAULT_PERMISSION", contextCompany.getCompanyId());
+
+		Predicate predicate = _filterFactory.create(
+			filterString, objectDefinition);
+
+		List<Long> primaryKeys = _objectEntryLocalService.getPrimaryKeys(
+			new Long[0], contextCompany.getCompanyId(), contextUser.getUserId(),
+			objectDefinition.getObjectDefinitionId(), predicate, false, null,
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+
+		if (ListUtil.isEmpty(primaryKeys)) {
+			return bulkActionItemsMap;
+		}
+
+		for (long primaryKey : primaryKeys) {
+			bulkActionItemsMap.computeIfAbsent(
+				objectDefinition.getClassName(), className -> new ArrayList<>()
+			).add(
+				new BulkActionItem() {
+					{
+						setClassPK(() -> primaryKey);
+					}
+				}
+			);
+		}
+
+		return bulkActionItemsMap;
+	}
+
+	private List<BulkActionItem> _sortBulkActionItems(
+		List<BulkActionItem> bulkActionItems, Sort sort) {
+
+		return ListUtil.sort(
+			bulkActionItems,
+			(bulkActionItem1, bulkActionItem2) -> {
+				if (StringUtil.equalsIgnoreCase(sort.getFieldName(), "name")) {
+					String name = bulkActionItem1.getName();
+
+					int value = name.compareTo(bulkActionItem2.getName());
+
+					if (!sort.isReverse()) {
+						return value;
+					}
+
+					return -value;
+				}
+
+				Map<String, Object> attributes1 =
+					bulkActionItem1.getAttributes();
+
+				Long usages = GetterUtil.getLong(attributes1.get("usages"));
+
+				Map<String, Object> attributes2 =
+					bulkActionItem2.getAttributes();
+
+				int value = usages.compareTo(
+					GetterUtil.getLong(attributes2.get("usages")));
+
+				if (!sort.isReverse()) {
+					return value;
+				}
+
+				return -value;
+			});
 	}
 
 	private BulkActionItem _toBulkActionItem(long classPK) {
@@ -1058,8 +1212,7 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 							getObjectEntryFoldersCount(
 								objectEntryFolder.getGroupId(),
 								objectEntryFolder.getCompanyId(),
-								objectEntryFolder.
-									getParentObjectEntryFolderId());
+								objectEntryFolder.getObjectEntryFolderId());
 
 					itemsCount +=
 						_objectEntryLocalService.
@@ -1124,6 +1277,9 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private RoleLocalService _roleLocalService;
 
 	@Reference
 	private SearchResultResource.Factory _searchResultResourceFactory;

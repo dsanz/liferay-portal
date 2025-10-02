@@ -18,6 +18,8 @@ import com.liferay.portal.search.elasticsearch7.internal.connection.constants.Co
 import com.liferay.portal.search.elasticsearch7.internal.sidecar.constants.SidecarConstants;
 import com.liferay.portal.search.elasticsearch7.internal.util.ResourceUtil;
 
+import java.io.File;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -62,9 +64,13 @@ public class SidecarManager implements ElasticsearchConfigurationObserver {
 	}
 
 	protected void applyConfigurations() {
+		File processFile = _bundleContext.getDataFile("sidecar.process");
+
 		if (elasticsearchConfigurationWrapper.isProductionModeEnabled()) {
 			elasticsearchConnectionManager.removeElasticsearchConnection(
 				ConnectionConstants.SIDECAR_CONNECTION_ID);
+
+			processFile.delete();
 		}
 		else {
 			_startupSuccessful = false;
@@ -85,9 +91,11 @@ public class SidecarManager implements ElasticsearchConfigurationObserver {
 				_sidecar.stop();
 			}
 
+			Path workPath = Paths.get(PropsValues.LIFERAY_HOME);
+
 			_sidecar = new Sidecar(
-				elasticsearchConfigurationWrapper,
-				_getElasticsearchInstancePaths(), processExecutor, this);
+				elasticsearchConfigurationWrapper, processExecutor,
+				_resolveHomePath(workPath), this, processFile, workPath);
 
 			ElasticsearchConnectionBuilder elasticsearchConnectionBuilder =
 				new ElasticsearchConnectionBuilder();
@@ -136,23 +144,6 @@ public class SidecarManager implements ElasticsearchConfigurationObserver {
 
 	@Reference
 	protected ProcessExecutor processExecutor;
-
-	private ElasticsearchInstancePaths _getElasticsearchInstancePaths() {
-		ElasticsearchInstancePathsBuilder elasticsearchInstancePathsBuilder =
-			new ElasticsearchInstancePathsBuilder();
-
-		Path workPath = Paths.get(PropsValues.LIFERAY_HOME);
-
-		Path dataPath = workPath.resolve("data/elasticsearch7");
-
-		return elasticsearchInstancePathsBuilder.dataPath(
-			dataPath
-		).homePath(
-			_resolveHomePath(workPath)
-		).workPath(
-			workPath
-		).build();
-	}
 
 	private Path _resolveHomePath(Path path) {
 		String sidecarHome = elasticsearchConfigurationWrapper.sidecarHome();

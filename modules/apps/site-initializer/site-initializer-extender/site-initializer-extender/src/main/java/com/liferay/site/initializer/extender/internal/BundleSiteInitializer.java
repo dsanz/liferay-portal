@@ -3475,9 +3475,9 @@ public class BundleSiteInitializer implements SiteInitializer {
 			com.liferay.object.model.ObjectRelationship
 				existingObjectRelationship =
 					_objectRelationshipLocalService.
-						fetchObjectRelationshipByObjectDefinitionId1(
-							objectRelationship.getObjectDefinitionId1(),
-							objectRelationship.getName());
+						fetchObjectRelationshipByExternalReferenceCode(
+							objectRelationship.getExternalReferenceCode(),
+							objectRelationship.getObjectDefinitionId1());
 
 			if (existingObjectRelationship == null) {
 				objectRelationshipResource.
@@ -4012,6 +4012,16 @@ public class BundleSiteInitializer implements SiteInitializer {
 					"title", siteNavigationMenuItemSetting.title
 				).put(
 					"type", siteNavigationMenuItemSetting.type
+				).buildString();
+			}
+
+			String displayIcon = menuItemJSONObject.getString("displayIcon");
+
+			if (Validator.isNotNull(displayIcon)) {
+				typeSettings = UnicodePropertiesBuilder.load(
+					typeSettings
+				).put(
+					"displayIcon", displayIcon
 				).buildString();
 			}
 

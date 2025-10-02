@@ -27,27 +27,39 @@ async function addObjectEntry({
 
 async function batchUpdateObjectEntry({
 	bulkActionItems,
+	configuration,
 	defaultPermissions,
 	depotGroupId,
+	permissions,
 	selectAll,
 	treePath,
+	type = 'DefaultPermissionBulkAction',
 }: {
 	bulkActionItems?: Array<{
 		classExternalReferenceCode: string;
 		className: string;
 	}>;
-	defaultPermissions: string;
+	configuration?: string;
+	defaultPermissions?: string;
 	depotGroupId?: number;
+	permissions?: Array<{
+		actionIds: string[];
+		roleExternalReferenceCode?: string;
+		roleName: string;
+	}>;
 	selectAll: boolean;
 	treePath?: string;
+	type?: string;
 }) {
 	return await ApiHelper.post(`/o/headless-cms/v1.0/bulk-action`, {
 		bulkActionItems,
+		configuration,
 		defaultPermissions,
 		depotGroupId,
+		permissions,
 		selectAll,
 		treePath,
-		type: 'DefaultPermissionBulkAction',
+		type,
 	});
 }
 

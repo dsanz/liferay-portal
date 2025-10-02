@@ -6,6 +6,8 @@
 package com.liferay.headless.admin.site.internal.resource.v1_0;
 
 import com.liferay.client.extension.type.manager.CETManager;
+import com.liferay.exportimport.kernel.lar.PortletDataContext;
+import com.liferay.exportimport.vulcan.batch.engine.ExportImportVulcanBatchEngineTaskItemDelegate;
 import com.liferay.headless.admin.site.dto.v1_0.ContentPageSpecification;
 import com.liferay.headless.admin.site.dto.v1_0.MasterPage;
 import com.liferay.headless.admin.site.dto.v1_0.PageSpecification;
@@ -16,6 +18,7 @@ import com.liferay.headless.admin.site.internal.resource.v1_0.util.LayoutUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.PageSpecificationUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.ServiceContextUtil;
 import com.liferay.headless.admin.site.resource.v1_0.MasterPageResource;
+import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateConstants;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
@@ -42,6 +45,7 @@ import com.liferay.portal.vulcan.util.SearchUtil;
 import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -55,9 +59,12 @@ import org.osgi.service.component.annotations.ServiceScope;
  */
 @Component(
 	properties = "OSGI-INF/liferay/rest/v1_0/master-page.properties",
+	property = "export.import.vulcan.batch.engine.task.item.delegate=true",
 	scope = ServiceScope.PROTOTYPE, service = MasterPageResource.class
 )
-public class MasterPageResourceImpl extends BaseMasterPageResourceImpl {
+public class MasterPageResourceImpl
+	extends BaseMasterPageResourceImpl
+	implements ExportImportVulcanBatchEngineTaskItemDelegate<MasterPage> {
 
 	@Override
 	public void deleteSiteMasterPage(
@@ -77,7 +84,85 @@ public class MasterPageResourceImpl extends BaseMasterPageResourceImpl {
 	}
 
 	@Override
-	public MasterPage doGetSiteMasterPage(
+	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
+		return _entityModel;
+	}
+
+	@Override
+	public ExportImportDescriptor getExportImportDescriptor() {
+		return new ExportImportDescriptor() {
+
+			@Override
+			public String getItemClassName() {
+				return LayoutPageTemplateEntry.class.getName();
+			}
+
+			@Override
+			public String getLabel() {
+				return "master-pages";
+			}
+
+			@Override
+			public List<String> getNestedFields() {
+				return List.of("friendlyUrlHistory", "pageSpecifications");
+			}
+
+			@Override
+			public String getPortletId() {
+				return LayoutAdminPortletKeys.GROUP_PAGES;
+			}
+
+			@Override
+			public Scope getScope() {
+				return Scope.SITE;
+			}
+
+			@Override
+			public boolean isActive(PortletDataContext portletDataContext) {
+				return FeatureFlagManagerUtil.isEnabled("LPD-35443");
+			}
+
+		};
+	}
+
+	@Override
+	public ContentPageSpecification postSiteMasterPagePageSpecification(
+			String siteExternalReferenceCode,
+			String pageTemplateExternalReferenceCode,
+			ContentPageSpecification contentPageSpecification)
+		throws Exception {
+
+		if (!FeatureFlagManagerUtil.isEnabled("LPD-35443")) {
+			throw new UnsupportedOperationException();
+		}
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_layoutPageTemplateEntryService.
+				fetchLayoutPageTemplateEntryByExternalReferenceCode(
+					pageTemplateExternalReferenceCode,
+					GroupUtil.getGroupId(
+						false, contextCompany.getCompanyId(),
+						siteExternalReferenceCode));
+
+		if (!Objects.equals(
+				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT,
+				layoutPageTemplateEntry.getType())) {
+
+			throw new UnsupportedOperationException();
+		}
+
+		return (ContentPageSpecification)_pageSpecificationDTOConverter.toDTO(
+			LayoutUtil.addDraftToLayout(
+				_cetManager, contentPageSpecification,
+				_layoutLocalService.getLayout(
+					layoutPageTemplateEntry.getPlid()),
+				ServiceContextUtil.createServiceContext(
+					layoutPageTemplateEntry.getGroupId(),
+					contextHttpServletRequest, contextUser.getUserId())));
+	}
+
+	@Override
+	protected MasterPage doGetSiteMasterPage(
 			String siteExternalReferenceCode,
 			String masterPageExternalReferenceCode)
 		throws Exception {
@@ -105,7 +190,7 @@ public class MasterPageResourceImpl extends BaseMasterPageResourceImpl {
 	}
 
 	@Override
-	public Page<MasterPage> doGetSiteMasterPagesPage(
+	protected Page<MasterPage> doGetSiteMasterPagesPage(
 			String siteExternalReferenceCode, String search,
 			Aggregation aggregation, Filter filter, Pagination pagination,
 			Sort[] sorts)
@@ -142,7 +227,7 @@ public class MasterPageResourceImpl extends BaseMasterPageResourceImpl {
 	}
 
 	@Override
-	public MasterPage doPostSiteMasterPage(
+	protected MasterPage doPostSiteMasterPage(
 			String siteExternalReferenceCode, MasterPage masterPage)
 		throws Exception {
 
@@ -158,7 +243,7 @@ public class MasterPageResourceImpl extends BaseMasterPageResourceImpl {
 	}
 
 	@Override
-	public MasterPage doPutSiteMasterPage(
+	protected MasterPage doPutSiteMasterPage(
 			String siteExternalReferenceCode,
 			String masterPageExternalReferenceCode, MasterPage masterPage)
 		throws Exception {
@@ -230,47 +315,6 @@ public class MasterPageResourceImpl extends BaseMasterPageResourceImpl {
 		finally {
 			ServiceContextThreadLocal.popServiceContext();
 		}
-	}
-
-	@Override
-	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
-		return _entityModel;
-	}
-
-	@Override
-	public ContentPageSpecification postSiteMasterPagePageSpecification(
-			String siteExternalReferenceCode,
-			String pageTemplateExternalReferenceCode,
-			ContentPageSpecification contentPageSpecification)
-		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-35443")) {
-			throw new UnsupportedOperationException();
-		}
-
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			_layoutPageTemplateEntryService.
-				fetchLayoutPageTemplateEntryByExternalReferenceCode(
-					pageTemplateExternalReferenceCode,
-					GroupUtil.getGroupId(
-						false, contextCompany.getCompanyId(),
-						siteExternalReferenceCode));
-
-		if (!Objects.equals(
-				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT,
-				layoutPageTemplateEntry.getType())) {
-
-			throw new UnsupportedOperationException();
-		}
-
-		return (ContentPageSpecification)_pageSpecificationDTOConverter.toDTO(
-			LayoutUtil.addDraftToLayout(
-				_cetManager, contentPageSpecification,
-				_layoutLocalService.getLayout(
-					layoutPageTemplateEntry.getPlid()),
-				ServiceContextUtil.createServiceContext(
-					layoutPageTemplateEntry.getGroupId(),
-					contextHttpServletRequest, contextUser.getUserId())));
 	}
 
 	@Override

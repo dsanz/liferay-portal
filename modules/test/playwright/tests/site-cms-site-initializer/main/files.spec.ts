@@ -99,7 +99,7 @@ test(
 
 		await test.step('Check the Space name in the Basic Document creation page', async () => {
 			await page
-				.getByRole('heading', {name: 'New Basic Document'})
+				.getByRole('heading', {name: 'Edit Basic Document'})
 				.waitFor();
 
 			const spaceSpan = page.locator(
@@ -117,17 +117,13 @@ test(
 	async ({apiHelpers, assetsPage, page}) => {
 		const assetLibraryName = getRandomString();
 
-		const assetLibraryId =
-			await test.step('Create a new Space', async () => {
-				const assetLibrary =
-					await apiHelpers.headlessAssetLibrary.createAssetLibrary({
-						name: assetLibraryName,
-						settings: {},
-						type: 'Space',
-					});
-
-				return assetLibrary.id;
+		await test.step('Create a new Space', async () => {
+			await apiHelpers.headlessAssetLibrary.createAssetLibrary({
+				name: assetLibraryName,
+				settings: {},
+				type: 'Space',
 			});
+		});
 
 		await test.step('Check number of existing Spaces', async () => {
 			const assetLibraries =
@@ -159,7 +155,7 @@ test(
 
 		await test.step('Check the Space name in the Basic Document creation page', async () => {
 			await page
-				.getByRole('heading', {name: 'New Basic Document'})
+				.getByRole('heading', {name: 'Edit Basic Document'})
 				.waitFor();
 
 			const spaceSpan = page.locator(
@@ -168,10 +164,6 @@ test(
 
 			await expect(spaceSpan).toContainText(assetLibraryName);
 		});
-
-		await apiHelpers.headlessAssetLibrary.deleteAssetLibrary(
-			assetLibraryId
-		);
 	}
 );
 
@@ -181,17 +173,13 @@ test(
 	async ({apiHelpers, assetsPage, page}) => {
 		const assetLibraryName = getRandomString();
 
-		const assetLibraryId =
-			await test.step('Create a new Space', async () => {
-				const assetLibrary =
-					await apiHelpers.headlessAssetLibrary.createAssetLibrary({
-						name: assetLibraryName,
-						settings: {},
-						type: 'Space',
-					});
-
-				return assetLibrary.id;
+		await test.step('Create a new Space', async () => {
+			await apiHelpers.headlessAssetLibrary.createAssetLibrary({
+				name: assetLibraryName,
+				settings: {},
+				type: 'Space',
 			});
+		});
 
 		await test.step('Check number of existing Spaces', async () => {
 			const assetLibraries =
@@ -233,7 +221,7 @@ test(
 
 		await test.step('Check the Space name in the Basic Document creation page', async () => {
 			await page
-				.getByRole('heading', {name: 'New Basic Document'})
+				.getByRole('heading', {name: 'Edit Basic Document'})
 				.waitFor();
 
 			const spaceSpan = page.locator(
@@ -242,10 +230,6 @@ test(
 
 			await expect(spaceSpan).toContainText(assetLibraryName);
 		});
-
-		await apiHelpers.headlessAssetLibrary.deleteAssetLibrary(
-			assetLibraryId
-		);
 	}
 );
 

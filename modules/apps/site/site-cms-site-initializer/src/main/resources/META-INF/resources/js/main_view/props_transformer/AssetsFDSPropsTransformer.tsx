@@ -7,19 +7,23 @@ import {IInternalRenderer, IView} from '@liferay/frontend-data-set-web';
 import {openModal} from 'frontend-js-components-web';
 import React from 'react';
 
-import {START_TASK} from '../../common/utils/events';
+import {openAssetUsageListModal} from '../../common/components/asset_usage/utils';
+import {ISearchAssetObjectEntry} from '../../common/types/AssetType';
 import formatActionURL from '../../common/utils/formatActionURL';
-import {ISearchAssetObjectEntry} from '../../structure_builder/types/AssetType';
 import {defaultPermissionsBulkAction} from '../default_permission/BulkDefaultPermissionModalContent';
+import {permissionsBulkAction} from '../default_permission/BulkPermissionModalContent';
 import DefaultPermissionModalContent from '../default_permission/DefaultPermissionModalContent';
 import AssetTypeInfoPanel from '../info_panel/AssetTypeInfoPanelContent';
-import ItemNavigationModalContent from '../modal/item_navigation_view/ItemNavigationModalContent';
+import AssetNavigationModalContent from '../modal/asset_navigation_view/AssetNavigationModalContent';
 import createAssetAction from './actions/createAssetAction';
 import createFolderAction from './actions/createFolderAction';
-import deleteAssetEntriesBulkAction from './actions/deleteAssetEntriesBulkAction';
+import deleteAssetEntriesBulkAction, {
+	executeBulkDeleteAction,
+} from './actions/deleteAssetEntriesBulkAction';
 import deleteItemAction from './actions/deleteItemAction';
 import multipleFilesUploadAction from './actions/multipleFilesUploadAction';
 import shareAction from './actions/shareAction';
+import {triggerAssetBulkAction} from './actions/triggerAssetBulkAction';
 import AuthorRenderer from './cell_renderers/AuthorRenderer';
 import NameRenderer from './cell_renderers/NameRenderer';
 import SimpleActionLinkRenderer from './cell_renderers/SimpleActionLinkRenderer';
@@ -40,6 +44,7 @@ const ACTIONS = {
 export type AdditionalProps = {
 	autocompleteURL: string;
 	baseFolderViewURL: string;
+	brokenLinksCheckerEnabled: boolean;
 	cmsGroupId?: number;
 	collaboratorURLs: Record<string, string>;
 	contentViewURL: string;
@@ -59,9 +64,9 @@ export default function AssetsFDSPropsTransformer({
 	...otherProps
 }: {
 	additionalProps: AdditionalProps;
+	apiURL?: string;
 	creationMenu: any;
 	itemsActions?: any[];
-	otherProps: any;
 	views: IView[];
 }) {
 	return {
@@ -146,6 +151,7 @@ export default function AssetsFDSPropsTransformer({
 			else if (
 				action?.data?.id === 'export-for-translation' ||
 				action?.data?.id === 'import-translation' ||
+				action?.data?.id === 'translate' ||
 				action?.data?.id === 'view-content'
 			) {
 				return {
@@ -198,6 +204,7 @@ export default function AssetsFDSPropsTransformer({
 						DefaultPermissionModalContent({
 							...(additionalProps.defaultPermissionAdditionalProps ||
 								{}),
+							apiURL: otherProps.apiURL,
 							classExternalReferenceCode:
 								itemData.embedded.externalReferenceCode,
 							className: itemData.entryClassName,
@@ -207,7 +214,18 @@ export default function AssetsFDSPropsTransformer({
 				});
 			}
 			else if (action?.data?.id === 'delete') {
-				await deleteItemAction(itemData, loadData);
+				if (additionalProps.brokenLinksCheckerEnabled) {
+					openAssetUsageListModal({
+						itemsData: [itemData],
+						onDelete: async () => {
+							await deleteItemAction(itemData, loadData);
+						},
+						selectAll: false,
+					});
+				}
+				else {
+					await deleteItemAction(itemData, loadData);
+				}
 			}
 			else if (
 				action?.data?.id === 'export-for-translation' ||
@@ -252,7 +270,8 @@ export default function AssetsFDSPropsTransformer({
 						className: '',
 					},
 					contentComponent: () =>
-						ItemNavigationModalContent({
+						AssetNavigationModalContent({
+							additionalProps,
 							contentViewURL: additionalProps.contentViewURL,
 							currentIndex: currentItemPos,
 							items: filteredItems,
@@ -261,7 +280,7 @@ export default function AssetsFDSPropsTransformer({
 				});
 			}
 		},
-		onBulkActionItemClick: ({
+		onBulkActionItemClick: async ({
 			action,
 			selectedData,
 		}: {
@@ -270,6 +289,7 @@ export default function AssetsFDSPropsTransformer({
 		}) => {
 			if (action?.data?.id === 'default-permissions') {
 				defaultPermissionsBulkAction({
+					apiURL: otherProps.apiURL,
 					className: OBJECT_ENTRY_FOLDER_CLASS_NAME,
 					defaultPermissionAdditionalProps:
 						additionalProps.defaultPermissionAdditionalProps || {},
@@ -277,13 +297,51 @@ export default function AssetsFDSPropsTransformer({
 				});
 			}
 			else if (action?.data?.id === 'delete') {
-				deleteAssetEntriesBulkAction({
-					selectedData,
-				});
+				if (additionalProps.brokenLinksCheckerEnabled) {
+					openAssetUsageListModal({
+						apiURL: otherProps.apiURL,
+						itemsData: selectedData.items,
+						onDelete: async () => {
+							executeBulkDeleteAction(
+								otherProps.apiURL as string,
+								selectedData
+							);
+						},
+
+						// Callback triggered after the request returns all assets
+						// with no usages, will skip the asset usage list modal.
+						// Instead, the default delete asset entries bulk action modal
+						// will be displayed.
+
+						onSkip: async () => {
+							deleteAssetEntriesBulkAction({
+								apiURL: otherProps.apiURL,
+								selectedData,
+							});
+						},
+						selectAll: selectedData.selectAll,
+					});
+				}
+				else {
+					deleteAssetEntriesBulkAction({
+						apiURL: otherProps.apiURL,
+						selectedData,
+					});
+				}
 			}
 			else if (action?.data?.id === 'download') {
-				Liferay.fire(START_TASK, {
-					actionId: action.data.id,
+				triggerAssetBulkAction({
+					apiURL: otherProps.apiURL,
+					selectedData,
+					type: 'DownloadBulkAction',
+				});
+			}
+			else if (action?.data?.id === 'permissions') {
+				permissionsBulkAction({
+					apiURL: otherProps.apiURL,
+					className: OBJECT_ENTRY_FOLDER_CLASS_NAME,
+					defaultPermissionAdditionalProps:
+						additionalProps.defaultPermissionAdditionalProps || {},
 					selectedData,
 				});
 			}

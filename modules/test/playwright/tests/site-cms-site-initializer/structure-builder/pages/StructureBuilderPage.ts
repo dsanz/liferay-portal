@@ -37,6 +37,7 @@ type StructureType = 'content' | 'file';
 export class StructureBuilderPage {
 	readonly page: Page;
 
+	private readonly clearAllSpacesButton: Locator;
 	private readonly customizeExperienceButton: Locator;
 	private readonly labelInput: Locator;
 	private readonly nameInput: Locator;
@@ -49,15 +50,16 @@ export class StructureBuilderPage {
 	constructor(page: Page) {
 		this.page = page;
 
+		this.clearAllSpacesButton = this.page.getByLabel('Clear All');
 		this.customizeExperienceButton = this.page.getByRole('button', {
 			name: 'Customize Experience',
 		});
-		this.labelInput = this.page.getByLabel('Structure Label');
-		this.nameInput = this.page.getByLabel('Structure Name');
+		this.labelInput = this.page.getByLabel('Content Structure Label');
+		this.nameInput = this.page.getByLabel('Content Structure Name');
 		this.publishButton = this.page.getByRole('button', {name: 'Publish'});
 		this.saveButton = this.page.getByRole('button', {name: 'Save'});
 		this.spaceCheckbox = this.page.getByRole('checkbox', {
-			name: 'Make this structure available in all spaces',
+			name: 'Make this content structure available in all spaces',
 		});
 		this.spaceSelector = this.page.getByLabel('Spaces', {exact: true});
 	}
@@ -125,25 +127,27 @@ export class StructureBuilderPage {
 		await clickAndExpectToBeVisible({
 			target: this.page.getByRole('menuitem', {
 				exact: true,
-				name: 'Referenced Structure',
+				name: 'Referenced Content Structure',
 			}),
 			trigger,
 		});
 
 		await clickAndExpectToBeVisible({
 			target: this.page.locator('.modal-title', {
-				hasText: 'Referenced Structure',
+				hasText: 'Referenced Content Structure',
 			}),
 			timeout: 2000,
 			trigger: this.page.getByRole('menuitem', {
 				exact: true,
-				name: 'Referenced Structure',
+				name: 'Referenced Content Structure',
 			}),
 		});
 
 		for (const name of names) {
 			await expect(async () => {
-				await this.page.getByLabel('Structures').click({timeout: 1000});
+				await this.page
+					.getByLabel('Content Structures')
+					.click({timeout: 1000});
 
 				await this.page
 					.getByRole('option', {name})
@@ -157,7 +161,7 @@ export class StructureBuilderPage {
 
 		await clickAndExpectToBeHidden({
 			target: this.page.locator('.modal-title', {
-				hasText: 'Referenced Structure',
+				hasText: 'Referenced Content Structure',
 			}),
 			trigger: this.page.locator('.modal-footer').getByText('Add'),
 		});
@@ -427,7 +431,9 @@ export class StructureBuilderPage {
 
 	async enableForAllSpaces() {
 		await expect(async () => {
-			await this.page.getByText('Structure Fields').click({timeout: 500});
+			await this.page
+				.getByText('Content Structure Fields')
+				.click({timeout: 500});
 
 			await this.spaceCheckbox.click({timeout: 500});
 
@@ -522,6 +528,13 @@ export class StructureBuilderPage {
 	}
 
 	async selectSpaces(spaces: string[]) {
+		if (await this.spaceCheckbox.isChecked()) {
+			await this.spaceCheckbox.uncheck();
+		}
+		else if (await this.clearAllSpacesButton.isVisible()) {
+			await this.clearAllSpacesButton.click();
+		}
+
 		for (const space of spaces) {
 			await expect(async () => {
 				await this.spaceSelector.click({timeout: 1000});

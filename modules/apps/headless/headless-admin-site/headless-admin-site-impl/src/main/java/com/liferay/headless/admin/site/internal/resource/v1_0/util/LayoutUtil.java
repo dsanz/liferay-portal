@@ -26,6 +26,7 @@ import com.liferay.headless.admin.site.dto.v1_0.WidgetLookAndFeelConfig;
 import com.liferay.headless.admin.site.dto.v1_0.WidgetPageSection;
 import com.liferay.headless.admin.site.dto.v1_0.WidgetPageSpecification;
 import com.liferay.headless.admin.site.dto.v1_0.WidgetPageWidgetInstance;
+import com.liferay.headless.admin.site.internal.util.LogUtil;
 import com.liferay.layout.constants.LayoutTypeSettingsConstants;
 import com.liferay.layout.importer.util.PortletPermissionsImporterUtil;
 import com.liferay.layout.importer.util.PortletPreferencesPortletConfigurationImporterUtil;
@@ -42,15 +43,11 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CustomizedPages;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
-import com.liferay.portal.kernel.model.LayoutSet;
-import com.liferay.portal.kernel.model.LayoutSetPrototype;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.LayoutTypePortletConstants;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutServiceUtil;
-import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
-import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -215,23 +212,11 @@ public class LayoutUtil {
 			"draftLayoutExternalReferenceCode",
 			draftContentPageSpecification.getExternalReferenceCode());
 
-		Layout prototypeLayout = getLayoutPrototypeLayout(
+		ServiceContextUtil.setLayoutSetPrototypeLayoutERC(
 			groupId, publishedContentPageSpecification, serviceContext);
 
-		if (prototypeLayout != null) {
-			serviceContext.setAttribute(
-				"layoutSetPrototypeLayoutERC",
-				prototypeLayout.getExternalReferenceCode());
-
-			Layout draftPrototypeLayout = getLayoutPrototypeLayout(
-				groupId, draftContentPageSpecification, serviceContext);
-
-			if (draftPrototypeLayout != null) {
-				serviceContext.setAttribute(
-					"draftLayoutLayoutSetPrototypeLayoutERC",
-					draftPrototypeLayout.getExternalReferenceCode());
-			}
-		}
+		ServiceContextUtil.setLayoutSetPrototypeLayoutERC(
+			groupId, draftContentPageSpecification, serviceContext);
 
 		if (Objects.equals(
 				publishedContentPageSpecification.getStatus(),
@@ -343,69 +328,6 @@ public class LayoutUtil {
 			cetManager, layout, nameMap, layout.getFriendlyURLMap(),
 			typeSettingsUnicodeProperties, serviceContext,
 			widgetPageSpecification);
-	}
-
-	public static Layout getLayoutPrototypeLayout(
-			long groupId, PageSpecification pageSpecification,
-			ServiceContext serviceContext)
-		throws Exception {
-
-		if (Validator.isNull(
-				pageSpecification.
-					getSiteTemplatePageSpecificationExternalReferenceCode())) {
-
-			return null;
-		}
-
-		boolean privateLayout = Boolean.FALSE;
-
-		int layoutPageTemplateEntryType = GetterUtil.getInteger(
-			serviceContext.getAttribute("layout.page.template.entry.type"), -1);
-
-		if (Objects.equals(
-				LayoutPageTemplateEntryTypeConstants.BASIC,
-				layoutPageTemplateEntryType) ||
-			Objects.equals(
-				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT,
-				layoutPageTemplateEntryType) ||
-			Objects.equals(
-				LayoutPageTemplateEntryTypeConstants.WIDGET_PAGE,
-				layoutPageTemplateEntryType)) {
-
-			privateLayout = Boolean.TRUE;
-		}
-		else if (Objects.equals(
-					PageSpecification.Type.CONTENT_PAGE_SPECIFICATION,
-					pageSpecification.getType())) {
-
-			ContentPageSpecification contentPageSpecification =
-				(ContentPageSpecification)pageSpecification;
-
-			if (Validator.isNull(
-					contentPageSpecification.
-						getDraftContentPageSpecificationExternalReferenceCode())) {
-
-				privateLayout = Boolean.TRUE;
-			}
-		}
-
-		LayoutSet layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
-			groupId, privateLayout);
-
-		if (!layoutSet.isLayoutSetPrototypeLinkActive()) {
-			return null;
-		}
-
-		LayoutSetPrototype layoutSetPrototype =
-			LayoutSetPrototypeLocalServiceUtil.
-				getLayoutSetPrototypeByUuidAndCompanyId(
-					layoutSet.getLayoutSetPrototypeUuid(),
-					layoutSet.getCompanyId());
-
-		return LayoutLocalServiceUtil.fetchLayoutByUuidAndGroupId(
-			pageSpecification.
-				getSiteTemplatePageSpecificationExternalReferenceCode(),
-			layoutSetPrototype.getGroupId(), privateLayout);
 	}
 
 	public static String getParentSectionId(Layout layout, String portletId) {
@@ -881,7 +803,10 @@ public class LayoutUtil {
 				clientExtension.getExternalReferenceCode());
 
 			if (cet == null) {
-				throw new UnsupportedOperationException();
+				LogUtil.logOptionalReference(
+					ClientExtension.class,
+					clientExtension.getExternalReferenceCode(),
+					layout.getCompanyId());
 			}
 
 			ClientExtensionEntryRelLocalServiceUtil.addClientExtensionEntryRel(

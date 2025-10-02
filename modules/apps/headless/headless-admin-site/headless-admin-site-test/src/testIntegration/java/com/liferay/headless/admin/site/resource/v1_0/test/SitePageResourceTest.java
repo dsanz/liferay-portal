@@ -67,6 +67,7 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -187,6 +188,36 @@ public class SitePageResourceTest extends BaseSitePageResourceTestCase {
 					LayoutTypePortletConstants.LAYOUT_TEMPLATE_ID, "1_column"
 				).buildString(),
 				serviceContext));
+	}
+
+	@Override
+	@Test
+	public void testGetSiteSitePagesPage() throws Exception {
+		super.testGetSiteSitePagesPage();
+
+		String siteExternalReferenceCode =
+			testGetSiteSitePagesPage_getSiteExternalReferenceCode();
+
+		SitePage sitePage = sitePageResource.postSiteSitePage(
+			siteExternalReferenceCode,
+			_getRandomSitePage(
+				testGroup.getExternalReferenceCode(), null,
+				ServiceContextTestUtil.getServiceContext(
+					testGroup, TestPropsValues.getUserId()),
+				SitePage.Type.CONTENT_PAGE,
+				StringUtil.toLowerCase(RandomTestUtil.randomString())));
+
+		Page<SitePage> page = sitePageResource.getSiteSitePagesPage(
+			siteExternalReferenceCode, null, null,
+			"externalReferenceCode eq '" + sitePage.getExternalReferenceCode() +
+				"'",
+			Pagination.of(1, 10), null);
+
+		Assert.assertEquals(1, page.getTotalCount());
+
+		List<SitePage> pages = new ArrayList<>(page.getItems());
+
+		Assert.assertEquals(sitePage, pages.get(0));
 	}
 
 	@Override

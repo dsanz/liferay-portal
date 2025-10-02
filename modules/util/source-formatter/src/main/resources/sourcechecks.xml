@@ -529,6 +529,10 @@
 			<category name="Styling" />
 			<description name="Finds unnecessary call to no-argument constructor of the superclass." />
 		</check>
+		<check name="JavaDefaultAdminScreenNameCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that we do not use `PropsKeys.DEFAULT_ADMIN_SCREEN_NAME` or `PropsValues.DEFAULT_ADMIN_SCREEN_NAME`." />
+		</check>
 		<check name="JavaDeserializationSecurityCheck">
 			<category name="Security" />
 			<description name="Finds Java serialization vulnerabilities." />
@@ -1589,6 +1593,10 @@
 			<category name="Styling" />
 			<description name="Validates comments in `.properties` files." />
 		</check>
+		<check name="PropertiesDefaultAdminScreenNameCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that we do not use `default.admin.screen.name`." />
+		</check>
 		<check name="PropertiesDefinitionKeysCheck">
 			<category name="Styling" />
 			<description name="Sorts definition keys in `liferay-plugin-package.properties` file." />
@@ -1885,10 +1893,6 @@
 		<check name="UpgradeJavaBaseModelListenerCheck">
 			<category name="Upgrade" />
 			<description name="Add parameter in the onAfterUpdate and onBeforeUpdate methods of the BaseModelListener class." />
-		</check>
-		<check name="UpgradeJavaBasePanelAppExtendedClassesCheck">
-			<category name="Upgrade" />
-			<description name="Replace the setPortlet method with getPortlet." />
 		</check>
 		<check name="UpgradeJavaDDMFormValuesSerializerTrackerCheck">
 			<category name="Upgrade" />

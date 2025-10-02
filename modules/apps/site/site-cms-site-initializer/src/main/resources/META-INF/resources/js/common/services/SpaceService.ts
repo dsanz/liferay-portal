@@ -30,9 +30,10 @@ async function addSpace({
 async function getSpace({
 	externalReferenceCode,
 	spaceId,
-}:
-	| {externalReferenceCode: string; spaceId?: undefined}
-	| {externalReferenceCode?: undefined; spaceId: string}): Promise<Space> {
+}: {
+	externalReferenceCode?: string;
+	spaceId?: number | string;
+}): Promise<Space> {
 	let url = `/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${externalReferenceCode}`;
 
 	if (spaceId) {
@@ -183,7 +184,7 @@ async function unlinkUserGroupFromSpace({
 	userGroupExternalReferenceCode: string;
 }) {
 	return await ApiHelper.delete(
-		`/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${spaceExternalReferenceCode}/by-external-reference-code/${userGroupExternalReferenceCode}`
+		`/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${spaceExternalReferenceCode}/user-groups/by-external-reference-code/${userGroupExternalReferenceCode}`
 	);
 }
 

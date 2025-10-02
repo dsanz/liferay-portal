@@ -50,6 +50,7 @@ import com.liferay.portal.kernel.exception.RequiredRoleException;
 import com.liferay.portal.kernel.exception.RequiredUserException;
 import com.liferay.portal.kernel.exception.SendPasswordException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.UserCommentsException;
 import com.liferay.portal.kernel.exception.UserEmailAddressException;
 import com.liferay.portal.kernel.exception.UserIdException;
 import com.liferay.portal.kernel.exception.UserLockoutException;
@@ -3675,6 +3676,35 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 	}
 
 	@Override
+	public int searchCountBySocial(
+		long companyId, long[] groupIds, long[] userGroupIds, String keywords) {
+
+		return userFinder.countByKeywords(
+			companyId, keywords, WorkflowConstants.STATUS_APPROVED,
+			LinkedHashMapBuilder.<String, Object>put(
+				"usersGroups",
+				() -> {
+					if (ArrayUtil.isNotEmpty(groupIds)) {
+						return ArrayUtil.toLongArray(groupIds);
+					}
+
+					return null;
+				}
+			).put(
+				"usersUserGroups",
+				() -> {
+					if (ArrayUtil.isNotEmpty(userGroupIds)) {
+						return ArrayUtil.toLongArray(userGroupIds);
+					}
+
+					return null;
+				}
+			).put(
+				"wildcardMode", WildcardMode.TRAILING
+			).build());
+	}
+
+	@Override
 	public Map<Long, Integer> searchCounts(
 		long companyId, int status, long[] groupIds) {
 
@@ -5538,8 +5568,8 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		Locale locale = LocaleUtil.fromLanguageId(languageId);
 
 		validate(
-			userId, screenName, emailAddress, firstName, middleName, lastName,
-			smsSn, locale);
+			userId, screenName, emailAddress, comments, firstName, middleName,
+			lastName, smsSn, locale);
 
 		User user = userPersistence.findByPrimaryKey(userId);
 
@@ -7059,8 +7089,8 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 
 	protected void validate(
 			long userId, String screenName, String emailAddress,
-			String firstName, String middleName, String lastName, String smsSn,
-			Locale locale)
+			String comments, String firstName, String middleName,
+			String lastName, String smsSn, Locale locale)
 		throws PortalException {
 
 		User user = userPersistence.findByPrimaryKey(userId);
@@ -7070,6 +7100,14 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		}
 
 		validateEmailAddress(user.getCompanyId(), emailAddress);
+
+		int maxLength = ModelHintsUtil.getMaxLength(
+			User.class.getName(), "comments");
+
+		if (Validator.isNotNull(comments) && (comments.length() > maxLength)) {
+			throw new UserCommentsException.MustNotExceedMaximumLength(
+				comments, maxLength);
+		}
 
 		if (!user.isGuestUser()) {
 			if (Validator.isNotNull(emailAddress) &&

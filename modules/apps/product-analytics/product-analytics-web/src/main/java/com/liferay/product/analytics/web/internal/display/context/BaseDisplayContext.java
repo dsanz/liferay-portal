@@ -21,8 +21,6 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.product.analytics.web.internal.constants.ProductAnalyticsCookiesConstants;
 
-import jakarta.portlet.RenderRequest;
-
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
@@ -33,13 +31,13 @@ import java.util.List;
 public abstract class BaseDisplayContext {
 
 	public BaseDisplayContext(
+		HttpServletRequest httpServletRequest,
 		LayoutUtilityPageEntryLayoutProvider
-			layoutUtilityPageEntryLayoutProvider,
-		RenderRequest renderRequest) {
+			layoutUtilityPageEntryLayoutProvider) {
 
+		_httpServletRequest = httpServletRequest;
 		_layoutUtilityPageEntryLayoutProvider =
 			layoutUtilityPageEntryLayoutProvider;
-		_renderRequest = renderRequest;
 	}
 
 	public String getCookieTitle(
@@ -80,8 +78,9 @@ public abstract class BaseDisplayContext {
 	}
 
 	public String getPrivacyPolicyLink() throws PortalException {
-		ThemeDisplay themeDisplay = (ThemeDisplay)_renderRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)_httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		Layout layout =
 			_layoutUtilityPageEntryLayoutProvider.
@@ -124,8 +123,8 @@ public abstract class BaseDisplayContext {
 		return consentCookieTypeNamesJSONArray;
 	}
 
-	protected RenderRequest getRenderRequest() {
-		return _renderRequest;
+	protected HttpServletRequest getHttpServletRequest() {
+		return _httpServletRequest;
 	}
 
 	private ConsentCookieType _getConsentCookieType(
@@ -134,15 +133,15 @@ public abstract class BaseDisplayContext {
 		return new ConsentCookieType(
 			new LocalizedValuesMap(
 				LanguageUtil.get(
-					_renderRequest.getLocale(),
+					_httpServletRequest.getLocale(),
 					"cookies-description[" + name + "]")),
 			hideFromEndUser, name, prechecked);
 	}
 
+	private final HttpServletRequest _httpServletRequest;
 	private final LayoutUtilityPageEntryLayoutProvider
 		_layoutUtilityPageEntryLayoutProvider;
 	private List<ConsentCookieType> _optionalConsentCookieTypes;
-	private final RenderRequest _renderRequest;
 	private List<ConsentCookieType> _requiredConsentCookieTypes;
 
 }

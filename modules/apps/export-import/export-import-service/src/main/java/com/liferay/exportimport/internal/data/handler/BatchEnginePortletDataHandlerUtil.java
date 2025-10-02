@@ -10,6 +10,7 @@ import com.liferay.batch.engine.constants.CreateStrategy;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.exportimport.kernel.lar.UserIdStrategy;
+import com.liferay.exportimport.vulcan.batch.engine.ExportImportVulcanBatchEngineTaskItemDelegate;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
@@ -19,6 +20,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
@@ -36,13 +38,17 @@ import java.util.Map;
 public class BatchEnginePortletDataHandlerUtil {
 
 	public static Map<String, Serializable> buildExportParameters(
-		List<String> nestedFields, Map<String, Serializable> parameters,
-		PortletDataContext portletDataContext) {
+		ExportImportVulcanBatchEngineTaskItemDelegate.ExportImportDescriptor
+			exportImportDescriptor,
+		PortletDataContext portletDataContext,
+		String siteExternalReferenceCode) {
 
 		return HashMapBuilder.<String, Serializable>put(
 			"batchNestedFields",
 			() -> {
 				List<String> batchNestedFields = new ArrayList<>();
+
+				batchNestedFields.add("customFields.attributeType");
 
 				if (MapUtil.getBoolean(
 						portletDataContext.getParameterMap(),
@@ -51,8 +57,11 @@ public class BatchEnginePortletDataHandlerUtil {
 					batchNestedFields.add("permissions");
 				}
 
-				if (ListUtil.isNotEmpty(nestedFields)) {
-					batchNestedFields.addAll(nestedFields);
+				if (ListUtil.isNotEmpty(
+						exportImportDescriptor.getNestedFields())) {
+
+					batchNestedFields.addAll(
+						exportImportDescriptor.getNestedFields());
 				}
 
 				if (batchNestedFields.isEmpty()) {
@@ -90,6 +99,19 @@ public class BatchEnginePortletDataHandlerUtil {
 				return sb.toString();
 			}
 		).put(
+			"itemClassName", exportImportDescriptor.getItemClassName()
+		).put(
+			"itemModelName", exportImportDescriptor.getItemModelName()
+		).put(
+			"siteExternalReferenceCode",
+			() -> {
+				if (Validator.isNotNull(siteExternalReferenceCode)) {
+					return siteExternalReferenceCode;
+				}
+
+				return null;
+			}
+		).put(
 			"siteId",
 			() -> {
 				Map<String, String[]> map =
@@ -105,12 +127,15 @@ public class BatchEnginePortletDataHandlerUtil {
 				return portletDataContext.getScopeGroupId();
 			}
 		).putAll(
-			parameters
+			exportImportDescriptor.getParameters(portletDataContext)
 		).build();
 	}
 
 	public static Map<String, Serializable> buildImportParameters(
-		PortletDataContext portletDataContext) {
+		ExportImportVulcanBatchEngineTaskItemDelegate.ExportImportDescriptor
+			exportImportDescriptor,
+		PortletDataContext portletDataContext,
+		String siteExternalReferenceCode) {
 
 		return HashMapBuilder.<String, Serializable>put(
 			"batchRestrictFields",
@@ -141,7 +166,22 @@ public class BatchEnginePortletDataHandlerUtil {
 					IMPORT_CREATOR_STRATEGY_KEEP_CREATOR;
 			}
 		).put(
+			"itemClassName", exportImportDescriptor.getItemClassName()
+		).put(
+			"itemModelName", exportImportDescriptor.getItemModelName()
+		).put(
+			"siteExternalReferenceCode",
+			() -> {
+				if (Validator.isNotNull(siteExternalReferenceCode)) {
+					return siteExternalReferenceCode;
+				}
+
+				return null;
+			}
+		).put(
 			"siteId", portletDataContext.getScopeGroupId()
+		).putAll(
+			exportImportDescriptor.getParameters(portletDataContext)
 		).build();
 	}
 

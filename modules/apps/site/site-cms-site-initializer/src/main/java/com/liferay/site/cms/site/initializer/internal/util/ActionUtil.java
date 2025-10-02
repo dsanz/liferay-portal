@@ -63,6 +63,7 @@ import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -225,10 +226,7 @@ public class ActionUtil {
 		Set<String> uniqueInfoFieldIds = new HashSet<>();
 
 		for (InfoField<?> infoField : infoForm.getAllInfoFields()) {
-			if (!Objects.equals(infoField.getName(), "title") &&
-				!Objects.equals(
-					infoField.getName(), "objectEntryFriendlyURL")) {
-
+			if (!ArrayUtil.contains(_HIDDEN_INFO_FIELDS, infoField.getName())) {
 				uniqueInfoFieldIds.add(infoField.getUniqueId());
 			}
 		}
@@ -480,10 +478,6 @@ public class ActionUtil {
 					httpServletRequest,
 					ObjectEntryFolderConstants.
 						EXTERNAL_REFERENCE_CODE_CONTENTS),
-				getKnowledgeBaseDropdownItem(
-					httpServletRequest,
-					ObjectEntryFolderConstants.
-						EXTERNAL_REFERENCE_CODE_CONTENTS),
 				getExternalVideoShortcutDropdownItem(
 					httpServletRequest,
 					ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES)));
@@ -519,8 +513,8 @@ public class ActionUtil {
 
 		return StringBundler.concat(
 			themeDisplay.getPathFriendlyURLPublic(),
-			GroupConstants.CMS_FRIENDLY_URL, "/e/bulk-action-task",
-			PortalUtil.getClassNameId(className), StringPool.SLASH);
+			GroupConstants.CMS_FRIENDLY_URL, "/e/bulk-action-task/",
+			PortalUtil.getClassNameId(className));
 	}
 
 	public static String getBaseSpaceSettingsURL(ThemeDisplay themeDisplay) {
@@ -591,7 +585,7 @@ public class ActionUtil {
 		String objectEntryFolderExternalReferenceCode) {
 
 		return getStructuredContentDropdownItem(
-			httpServletRequest, "blogs", null, "L_BLOG",
+			httpServletRequest, "blogs", "blog", "L_BLOG",
 			objectEntryFolderExternalReferenceCode);
 	}
 
@@ -646,8 +640,6 @@ public class ActionUtil {
 				getBasicWebContentDropdownItem(
 					httpServletRequest, objectEntryFolderExternalReferenceCode),
 				getBlogDropdownItem(
-					httpServletRequest, objectEntryFolderExternalReferenceCode),
-				getKnowledgeBaseDropdownItem(
 					httpServletRequest,
 					objectEntryFolderExternalReferenceCode)));
 
@@ -868,15 +860,6 @@ public class ActionUtil {
 		dropdownItems.addAll(filesCustomDropdownItems);
 
 		return dropdownItems;
-	}
-
-	public static DropdownItem getKnowledgeBaseDropdownItem(
-		HttpServletRequest httpServletRequest,
-		String objectEntryFolderExternalReferenceCode) {
-
-		return getStructuredContentDropdownItem(
-			httpServletRequest, "wiki", null, "L_KNOWLEDGE_BASE",
-			objectEntryFolderExternalReferenceCode);
 	}
 
 	public static String getRecycleBinURL(ThemeDisplay themeDisplay) {
@@ -1364,6 +1347,11 @@ public class ActionUtil {
 
 		return FriendlyURLResolverConstants.URL_SEPARATOR_X_CUSTOM_ASSET;
 	}
+
+	private static final String[] _HIDDEN_INFO_FIELDS = {
+		"displayDate", "expirationDate", "externalReferenceCode",
+		"objectEntryFriendlyURL", "reviewDate", "title"
+	};
 
 	private static final String
 		_TRANSLATION_LAYOUT_PAGE_TEMPLATE_ENTRY_KEY_PREFIX =

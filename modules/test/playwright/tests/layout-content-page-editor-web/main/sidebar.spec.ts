@@ -890,6 +890,10 @@ test.describe('Fragments Panel', () => {
 
 			await pageEditorPage.goToSidebarTab('Components');
 
+			await page
+				.getByLabel('Search Fragments and Widgets')
+				.fill('External Video');
+
 			const fragment = page
 				.locator('.page-editor__fragments-widgets__tab-list-item')
 				.filter({hasText: 'External Video'});
@@ -1368,7 +1372,7 @@ test.describe('Page Contents Panel', () => {
 				trigger: row.getByLabel('Show Actions', {exact: true}),
 			});
 
-			await page.getByRole('dialog').getByLabel('close').click();
+			await page.getByRole('dialog').getByLabel('Close').click();
 
 			// Go to page contents panel, click in add items and add a new item
 
@@ -1877,7 +1881,10 @@ test.describe('Page Contents Panel', () => {
 						.getByText('Guest')
 				).toBeVisible({timeout: 1000});
 
-				await page.getByLabel('close', {exact: true}).click();
+				await page
+					.locator('.modal-header')
+					.getByLabel('Close', {exact: true})
+					.click();
 			}).toPass();
 
 			// Assert content page editor can view usages

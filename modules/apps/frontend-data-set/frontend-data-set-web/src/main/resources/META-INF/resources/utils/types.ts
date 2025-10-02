@@ -77,7 +77,7 @@ export interface IEmptyStateConfiguration extends IEmptyState {
 	};
 }
 
-export enum EStateInURLSettings {
+export enum EConfigInURLBehavior {
 	OFF = 'off',
 	PUSH = 'push',
 	REPLACE = 'replace',
@@ -125,6 +125,11 @@ export interface ICreationActionItem {
 		| string;
 }
 
+export enum EItemActionsType {
+	GROUP = 'group',
+	ITEM = 'item',
+}
+
 export interface IItemsActions {
 	className?: string;
 	data?: IItemActionsData;
@@ -150,7 +155,7 @@ export interface IItemsActions {
 		| 'modal-permissions'
 		| 'sidePanel'
 		| 'event';
-	type?: string;
+	type?: EItemActionsType | `${EItemActionsType}`;
 }
 
 export interface IItemActionsData {
@@ -276,6 +281,7 @@ export interface IFrontendDataSetProps {
 	apiURL?: string;
 	appURL?: string;
 	bulkActions?: any[];
+	configInURLSettings?: EConfigInURLBehavior;
 	creationMenu?: {
 		loadData?: Function;
 		primaryItems: Array<ICreationActionItem>;
@@ -333,7 +339,6 @@ export interface IFrontendDataSetProps {
 	showSelectAll?: boolean;
 	sidePanelId?: string;
 	sorts?: TSort[];
-	stateInURLSettings?: EStateInURLSettings;
 	style?: 'default' | 'fluid' | 'stacked';
 	uniformActionsDisplay?: boolean;
 	views: IView[];
@@ -403,24 +408,42 @@ export {
 	FDS_NESTED_FIELD_NAME_PARENT_SUFFIX,
 } from '../constants';
 
-export enum EStateInURLKeys {
+export enum EConfigInURLKeys {
+	ACTIVE_FILTERS = 'filters',
+	ACTIVE_SORTS = 'sorts',
 	DELTA = 'delta',
+	PAGE_NUMBER = 'page',
+	SEARCH_PARAM = 'q',
 	VIEW_NAME = 'view',
+	VISIBLE_FIELDS = 'vf',
 }
 
-export interface IStateInURL {
-	[EStateInURLKeys.DELTA]: number;
-	[EStateInURLKeys.VIEW_NAME]: string;
+export interface IConfigInURL {
+	[EConfigInURLKeys.ACTIVE_FILTERS]: Array<any>;
+	[EConfigInURLKeys.ACTIVE_SORTS]: Array<TSort>;
+	[EConfigInURLKeys.DELTA]: number;
+	[EConfigInURLKeys.PAGE_NUMBER]: number;
+	[EConfigInURLKeys.SEARCH_PARAM]: string;
+	[EConfigInURLKeys.VIEW_NAME]: string;
+	[EConfigInURLKeys.VISIBLE_FIELDS]: VisibleFieldNames;
 }
 
-export type IStateInURLSetter<K extends keyof IStateInURL> = (
-	value: IStateInURL[K]
+export type IConfigInURLUpdaterThunk<K extends keyof IConfigInURL> = (
+	value: IConfigInURL[K]
 ) => (viewsDispatch: Function) => void;
 
-export type IStateInURLGetter<K extends keyof IStateInURL> = () =>
-	| IStateInURL[K]
+export type IConfigInURLGetter<K extends keyof IConfigInURL> = () =>
+	| IConfigInURL[K]
 	| undefined;
 
-export type IStateInitializer<K extends keyof IStateInURL> = (
-	value: IStateInURL[K]
-) => IStateInURL[K] | undefined;
+export type IConfigReader<K extends keyof IConfigInURL> = (
+	value: IConfigInURL[K] | undefined
+) => IConfigInURL[K] | undefined;
+
+export type IConfigWriter<K extends keyof IConfigInURL> = (
+	value: IConfigInURL[K]
+) => IConfigInURL[K] | undefined;
+
+export type VisibleFieldNames = {
+	[fieldName: string]: boolean;
+};

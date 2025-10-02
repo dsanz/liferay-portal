@@ -30,6 +30,14 @@ export interface BulkDefaultPermissionModalContentProps {
 	selectedData: any;
 }
 
+export interface BulkPermissionModalContentProps {
+	actions: ActionsMap;
+	className: string;
+	closeModal: () => void;
+	roles: Role[];
+	selectedData: any;
+}
+
 export interface CheckedRoleActions {
 	[key: string]: boolean;
 }
@@ -78,6 +86,7 @@ export interface DefaultPermissionModalContentProps {
 }
 
 export interface Role {
+	actions?: string[];
 	key: string;
 	name: string;
 	type: string;
@@ -85,4 +94,12 @@ export interface Role {
 
 export interface RoleSelectedActions {
 	[key: string]: string[];
+}
+
+export interface SpacesBulkPermissionModalContentProps {
+	actions: Action[];
+	className: string;
+	closeModal: () => void;
+	roles: Role[];
+	selectedData: any;
 }

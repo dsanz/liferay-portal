@@ -6,7 +6,7 @@
 import {
 	ISearchAssetObjectEntry,
 	ISearchAssetTypeInformation,
-} from '../../../structure_builder/types/AssetType';
+} from '../../../common/types/AssetType';
 import {ASSET_TYPE} from './constants';
 
 export function getBaseAssetInformation({
@@ -33,11 +33,7 @@ export function getBaseAssetInformation({
 		baseAssetInfo.icon = 'document-image';
 		baseAssetInfo.type = ASSET_TYPE.FILES;
 	}
-	else if (
-		href.includes('basic-web-contents') ||
-		href.includes('blogs') ||
-		href.includes('knowledge-bases')
-	) {
+	else if (href.includes('basic-web-contents') || href.includes('blogs')) {
 		baseAssetInfo.icon = 'forms';
 		baseAssetInfo.type = ASSET_TYPE.CONTENTS;
 	}

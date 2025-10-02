@@ -10,7 +10,11 @@ import ClayList from '@clayui/list';
 import {useModal} from '@clayui/modal';
 import ClaySticker from '@clayui/sticker';
 import {IFrontendDataSetProps} from '@liferay/frontend-data-set-web';
-import {ItemSelector, ItemSelectorModal} from 'frontend-js-item-selector-web';
+import {
+	ItemSelector,
+	ItemSelectorModal,
+	openItemSelectorModal,
+} from '@liferay/frontend-js-item-selector-web';
 import React, {useState} from 'react';
 
 import CMSFilesItemSelectorModal from './CMSFilesItemSelectorModal';
@@ -472,6 +476,7 @@ export default function ItemSelectorSamples() {
 
 				<ItemSelectorModal<Document>
 					apiURL={documentsItemSelectorConfig.apiURL}
+					createItemURL={Liferay.ThemeDisplay.getPortalURL()}
 					fdsProps={{
 						...FDS_DEFAULT_PROPS,
 						id: `itemSelectorModal-documents-${getRandomId()}`,
@@ -517,6 +522,7 @@ export default function ItemSelectorSamples() {
 
 				<ItemSelectorModal<User>
 					apiURL={userAccountsItemSelectorConfig.apiURL}
+					createItemURL={Liferay.ThemeDisplay.getPortalURL()}
 					fdsProps={{
 						...FDS_DEFAULT_PROPS,
 						id: `itemSelectorModal-users-${getRandomId()}`,
@@ -571,6 +577,32 @@ export default function ItemSelectorSamples() {
 						}}
 					>
 						Select CMS Files
+					</ClayButton>
+
+					<ClayButton
+						displayType="primary"
+						onClick={() => {
+							openItemSelectorModal({
+								apiURL: userAccountsItemSelectorConfig.apiURL,
+								fdsProps: {
+									...FDS_DEFAULT_PROPS,
+									id: `itemSelectorModal-users-${getRandomId()}`,
+									views: getDefaultItemSelectorModalViews({
+										viewsConfig:
+											EItemSelectorModalViewsConfig.USER_ACCOUNTS,
+									}),
+								},
+								itemTypeLabel:
+									userAccountsItemSelectorConfig.itemTypeLabel,
+								items: usersItemSelectorModal,
+								locator: userAccountsItemSelectorConfig.locator,
+								onItemsChange: (items: User[]) => {
+									setUsersItemSelectorModal(items);
+								},
+							});
+						}}
+					>
+						Open Modal With JS Utility
 					</ClayButton>
 				</ClayButton.Group>
 
