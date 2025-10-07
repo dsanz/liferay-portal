@@ -28,6 +28,20 @@ const views = [
 			symbol: 'symbol',
 			title: 'label',
 		},
+		setItemComponentProps: ({item, props}: {item: any; props: any}) => {
+			if (
+				!item.dataSetToDataSetCardsSections.length &&
+				!item.dataSetToDataSetTableSections.length &&
+				!item.dataSetToDataSetListSections.length
+			) {
+
+				// we need to avoid item mutation
+
+				item.symbol = 'warning';
+			}
+
+			return props;
+		},
 	},
 ];
 
@@ -67,7 +81,12 @@ const FDSAdminItemSelector = ({
 			<ClayModal.Body>
 				<FrontendDataSet
 					{...FDS_DEFAULT_PROPS}
-					apiURL={getDataSetResourceURL({})}
+					apiURL={getDataSetResourceURL({
+						params: {
+							nestedFields:
+								'dataSetToDataSetCardsSections, dataSetToDataSetTableSections, dataSetToDataSetListSections',
+						},
+					})}
 					id={`${namespace}FDSAdminItemSelector`}
 					onSelectedItemsChange={(
 						selectedItems: Array<ISelectedItem>
