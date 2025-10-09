@@ -35,9 +35,15 @@ const views = [
 				!item.dataSetToDataSetListSections.length
 			) {
 
-				// we need to avoid item mutation
+				return {
+					...props, // we need to avoid item mutation
+					item: {
+						...item,
+						symbol: 'warning',
+						tooltip: 'perico'
+					}
+				}
 
-				item.symbol = 'warning';
 			}
 
 			return props;

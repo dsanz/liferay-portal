@@ -77,10 +77,6 @@ const ListItem = forwardRef<HTMLLIElement, any>(
 			selectionType,
 		} = useContext(FrontendDataSetContext);
 
-		const [viewsContext] = useContext(ViewsContext);
-
-		const activeView: IView = viewsContext.activeView;
-
 		const {description, image, sticker, symbol, title, titleRenderer} =
 			schema;
 
@@ -102,7 +98,6 @@ const ListItem = forwardRef<HTMLLIElement, any>(
 		return (
 			<ClayList.Item
 				{...props}
-				{...(activeView.setItemComponentProps?.({item, props}) ?? {})}
 				ref={ref}
 			>
 				{selectable && (
@@ -194,14 +189,23 @@ const ListItemOptionalDropTarget = ({
 }) => {
 	const {className, dropRef} = useFDSDrop({item});
 
+	const [viewsContext] = useContext(ViewsContext);
+
+	const activeView: IView = viewsContext.activeView;
+
+	const props = {
+		className,
+		item,
+		items,
+		onItemSelectionChange,
+		ref:dropRef,
+		schema,
+	};
+
 	return (
 		<ListItem
-			className={className}
-			item={item}
-			items={items}
-			onItemSelectionChange={onItemSelectionChange}
-			ref={dropRef}
-			schema={schema}
+			{...props}
+			{...(activeView.setItemComponentProps?.({item, props}) ?? {})}
 		/>
 	);
 };
