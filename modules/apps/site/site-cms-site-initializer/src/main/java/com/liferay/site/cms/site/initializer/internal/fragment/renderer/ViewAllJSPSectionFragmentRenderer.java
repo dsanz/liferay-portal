@@ -14,6 +14,7 @@ import com.liferay.object.service.ObjectDefinitionSettingLocalService;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.site.cms.site.initializer.internal.constants.CMSSiteInitializerFDSNames;
 import com.liferay.site.cms.site.initializer.internal.display.context.ViewAllSectionDisplayContext;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,7 +31,8 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	configurationPid = "com.liferay.document.library.configuration.DLConfiguration",
-	service = FragmentRenderer.class
+	property = "frontend.data.set.name=" + CMSSiteInitializerFDSNames.ALL_SECTION,
+	service = {BaseJSPSectionFragmentRenderer.class, FragmentRenderer.class}
 )
 public class ViewAllJSPSectionFragmentRenderer
 	extends BaseJSPSectionFragmentRenderer<ViewAllSectionDisplayContext> {
