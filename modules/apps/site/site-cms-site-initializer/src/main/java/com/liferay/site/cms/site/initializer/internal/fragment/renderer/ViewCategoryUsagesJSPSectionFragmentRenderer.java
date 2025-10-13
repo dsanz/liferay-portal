@@ -20,15 +20,15 @@ public class ViewCategoryUsagesJSPSectionFragmentRenderer
 	extends BaseJSPSectionFragmentRenderer<ViewCategoryUsagesDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "category-usages";
-	}
-
-	@Override
-	protected ViewCategoryUsagesDisplayContext getDisplayContext(
+	public ViewCategoryUsagesDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewCategoryUsagesDisplayContext(httpServletRequest);
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "category-usages";
 	}
 
 	@Override

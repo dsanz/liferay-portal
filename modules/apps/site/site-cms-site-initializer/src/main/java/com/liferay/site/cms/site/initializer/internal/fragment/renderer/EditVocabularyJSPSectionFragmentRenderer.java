@@ -22,18 +22,18 @@ public class EditVocabularyJSPSectionFragmentRenderer
 	extends BaseJSPSectionFragmentRenderer<EditVocabularyDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "edit-vocabulary";
-	}
-
-	@Override
-	protected EditVocabularyDisplayContext getDisplayContext(
+	public EditVocabularyDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new EditVocabularyDisplayContext(
 			httpServletRequest,
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY));
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "edit-vocabulary";
 	}
 
 }

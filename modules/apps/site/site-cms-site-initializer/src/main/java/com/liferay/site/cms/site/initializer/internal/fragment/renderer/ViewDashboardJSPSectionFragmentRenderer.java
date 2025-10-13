@@ -22,18 +22,18 @@ public class ViewDashboardJSPSectionFragmentRenderer
 	extends BaseJSPSectionFragmentRenderer<ViewDashboardDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "dashboard";
-	}
-
-	@Override
-	protected ViewDashboardDisplayContext getDisplayContext(
+	public ViewDashboardDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewDashboardDisplayContext(
 			groupLocalService,
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY));
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "dashboard";
 	}
 
 	@Override

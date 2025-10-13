@@ -34,7 +34,7 @@ public class ViewSpaceMembersSummaryJSPSectionFragmentRenderer
 	}
 
 	@Override
-	protected Object getDisplayContext(HttpServletRequest httpServletRequest)
+	public Object getDisplayContext(HttpServletRequest httpServletRequest)
 		throws PortalException {
 
 		return new ViewSpaceMembersSummarySectionDisplayContext(

@@ -24,16 +24,16 @@ public class ViewSharedWithMeJSPSectionFragmentRenderer
 		<ViewSharedWithMeSectionDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "shared-with-me";
-	}
-
-	@Override
-	protected ViewSharedWithMeSectionDisplayContext getDisplayContext(
+	public ViewSharedWithMeSectionDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewSharedWithMeSectionDisplayContext(
 			httpServletRequest, _objectDefinitionService, _portal);
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "shared-with-me";
 	}
 
 	@Override

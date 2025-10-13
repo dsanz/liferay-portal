@@ -36,12 +36,7 @@ public class ViewSpaceContentsSummaryJSPSectionFragmentRenderer
 	}
 
 	@Override
-	public String getLabelKey() {
-		return "space-contents-summary";
-	}
-
-	@Override
-	protected ViewSpaceContentsSummarySectionDisplayContext getDisplayContext(
+	public ViewSpaceContentsSummarySectionDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewSpaceContentsSummarySectionDisplayContext(
@@ -51,6 +46,11 @@ public class ViewSpaceContentsSummaryJSPSectionFragmentRenderer
 			_objectDefinitionSettingLocalService,
 			_objectEntryFolderLocalService,
 			_objectEntryFolderModelResourcePermission, _portal);
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "space-contents-summary";
 	}
 
 	@Override

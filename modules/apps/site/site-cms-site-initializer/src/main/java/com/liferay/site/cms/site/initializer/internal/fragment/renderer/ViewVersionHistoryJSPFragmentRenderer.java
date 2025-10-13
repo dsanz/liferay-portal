@@ -33,7 +33,7 @@ public class ViewVersionHistoryJSPFragmentRenderer
 	}
 
 	@Override
-	protected ViewVersionHistoryDisplayContext getDisplayContext(
+	public ViewVersionHistoryDisplayContext getDisplayContext(
 			HttpServletRequest httpServletRequest)
 		throws PortalException {
 

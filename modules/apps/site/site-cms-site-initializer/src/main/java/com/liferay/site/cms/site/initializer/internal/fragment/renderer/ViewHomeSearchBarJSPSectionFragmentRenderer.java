@@ -22,17 +22,17 @@ public class ViewHomeSearchBarJSPSectionFragmentRenderer
 	extends BaseJSPSectionFragmentRenderer<ViewHomeSearchBarDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "home-search-bar";
-	}
-
-	@Override
-	protected ViewHomeSearchBarDisplayContext getDisplayContext(
+	public ViewHomeSearchBarDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewHomeSearchBarDisplayContext(
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY));
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "home-search-bar";
 	}
 
 	@Override

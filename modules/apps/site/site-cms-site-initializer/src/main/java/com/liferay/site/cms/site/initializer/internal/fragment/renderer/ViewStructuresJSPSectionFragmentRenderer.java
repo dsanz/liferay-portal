@@ -25,15 +25,15 @@ public class ViewStructuresJSPSectionFragmentRenderer
 	}
 
 	@Override
-	public String getLabelKey() {
-		return "structures";
-	}
-
-	@Override
-	protected ViewStructuresDisplayContext getDisplayContext(
+	public ViewStructuresDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewStructuresDisplayContext(httpServletRequest);
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "structures";
 	}
 
 	@Override

@@ -25,17 +25,17 @@ public class ViewCategoriesJSPSectionFragmentRenderer
 	extends BaseJSPSectionFragmentRenderer<ViewCategoriesDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "categories";
-	}
-
-	@Override
-	protected ViewCategoriesDisplayContext getDisplayContext(
+	public ViewCategoriesDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewCategoriesDisplayContext(
 			_assetVocabularyLocalService, httpServletRequest,
 			_layoutLocalService, language, _portal);
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "categories";
 	}
 
 	@Override

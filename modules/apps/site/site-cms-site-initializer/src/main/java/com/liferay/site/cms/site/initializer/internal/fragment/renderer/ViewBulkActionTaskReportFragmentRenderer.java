@@ -30,7 +30,7 @@ public class ViewBulkActionTaskReportFragmentRenderer
 	}
 
 	@Override
-	protected ViewBulkActionTaskReportDisplayContext getDisplayContext(
+	public ViewBulkActionTaskReportDisplayContext getDisplayContext(
 			HttpServletRequest httpServletRequest)
 		throws PortalException {
 

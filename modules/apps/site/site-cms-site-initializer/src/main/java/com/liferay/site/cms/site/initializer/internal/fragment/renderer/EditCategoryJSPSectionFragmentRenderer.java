@@ -24,16 +24,16 @@ public class EditCategoryJSPSectionFragmentRenderer
 	extends BaseJSPSectionFragmentRenderer<EditCategoryDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "edit-category";
-	}
-
-	@Override
-	protected EditCategoryDisplayContext getDisplayContext(
+	public EditCategoryDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new EditCategoryDisplayContext(
 			httpServletRequest, _layoutLocalService, language, _portal);
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "edit-category";
 	}
 
 	@Reference

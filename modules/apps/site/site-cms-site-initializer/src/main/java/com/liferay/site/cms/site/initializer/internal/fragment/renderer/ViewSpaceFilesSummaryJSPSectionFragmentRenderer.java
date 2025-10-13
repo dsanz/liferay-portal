@@ -45,19 +45,7 @@ public class ViewSpaceFilesSummaryJSPSectionFragmentRenderer
 	}
 
 	@Override
-	public String getLabelKey() {
-		return "space-files-summary";
-	}
-
-	@Activate
-	@Modified
-	protected void activate(Map<String, Object> properties) {
-		_dlConfiguration = ConfigurableUtil.createConfigurable(
-			DLConfiguration.class, properties);
-	}
-
-	@Override
-	protected ViewSpaceFilesSummarySectionDisplayContext getDisplayContext(
+	public ViewSpaceFilesSummarySectionDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewSpaceFilesSummarySectionDisplayContext(
@@ -67,6 +55,18 @@ public class ViewSpaceFilesSummaryJSPSectionFragmentRenderer
 			_objectDefinitionSettingLocalService,
 			_objectEntryFolderLocalService,
 			_objectEntryFolderModelResourcePermission, _portal);
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "space-files-summary";
+	}
+
+	@Activate
+	@Modified
+	protected void activate(Map<String, Object> properties) {
+		_dlConfiguration = ConfigurableUtil.createConfigurable(
+			DLConfiguration.class, properties);
 	}
 
 	@Override

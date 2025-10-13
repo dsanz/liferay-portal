@@ -41,6 +41,17 @@ public class ViewAllJSPSectionFragmentRenderer
 	}
 
 	@Override
+	public ViewAllSectionDisplayContext getDisplayContext(
+		HttpServletRequest httpServletRequest) {
+
+		return new ViewAllSectionDisplayContext(
+			_depotEntryLocalService, _dlConfiguration, groupLocalService,
+			httpServletRequest, language, _objectDefinitionService,
+			_objectDefinitionSettingLocalService,
+			_objectEntryFolderModelResourcePermission, _portal);
+	}
+
+	@Override
 	public String getLabelKey() {
 		return "all-section";
 	}
@@ -50,17 +61,6 @@ public class ViewAllJSPSectionFragmentRenderer
 	protected void activate(Map<String, Object> properties) {
 		_dlConfiguration = ConfigurableUtil.createConfigurable(
 			DLConfiguration.class, properties);
-	}
-
-	@Override
-	protected ViewAllSectionDisplayContext getDisplayContext(
-		HttpServletRequest httpServletRequest) {
-
-		return new ViewAllSectionDisplayContext(
-			_depotEntryLocalService, _dlConfiguration, groupLocalService,
-			httpServletRequest, language, _objectDefinitionService,
-			_objectDefinitionSettingLocalService,
-			_objectEntryFolderModelResourcePermission, _portal);
 	}
 
 	@Override

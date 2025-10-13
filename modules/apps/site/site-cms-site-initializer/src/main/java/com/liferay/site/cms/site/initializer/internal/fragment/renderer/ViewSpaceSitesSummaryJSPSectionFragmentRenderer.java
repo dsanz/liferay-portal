@@ -35,7 +35,7 @@ public class ViewSpaceSitesSummaryJSPSectionFragmentRenderer
 	}
 
 	@Override
-	protected Object getDisplayContext(HttpServletRequest httpServletRequest)
+	public Object getDisplayContext(HttpServletRequest httpServletRequest)
 		throws PortalException {
 
 		long groupId = InfoItemUtil.getGroupId(httpServletRequest);

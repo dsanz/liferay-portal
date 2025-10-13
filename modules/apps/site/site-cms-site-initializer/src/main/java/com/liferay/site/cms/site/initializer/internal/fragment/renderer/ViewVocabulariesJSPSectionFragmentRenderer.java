@@ -22,18 +22,18 @@ public class ViewVocabulariesJSPSectionFragmentRenderer
 	extends BaseJSPSectionFragmentRenderer<ViewVocabulariesDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "vocabularies";
-	}
-
-	@Override
-	protected ViewVocabulariesDisplayContext getDisplayContext(
+	public ViewVocabulariesDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewVocabulariesDisplayContext(
 			httpServletRequest,
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY));
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "vocabularies";
 	}
 
 	@Override

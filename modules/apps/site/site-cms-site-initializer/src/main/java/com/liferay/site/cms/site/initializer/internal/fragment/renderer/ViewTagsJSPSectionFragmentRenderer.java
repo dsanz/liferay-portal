@@ -22,17 +22,17 @@ public class ViewTagsJSPSectionFragmentRenderer
 	extends BaseJSPSectionFragmentRenderer<ViewTagsDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "tags";
-	}
-
-	@Override
-	protected ViewTagsDisplayContext getDisplayContext(
+	public ViewTagsDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewTagsDisplayContext(
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY));
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "tags";
 	}
 
 	@Override

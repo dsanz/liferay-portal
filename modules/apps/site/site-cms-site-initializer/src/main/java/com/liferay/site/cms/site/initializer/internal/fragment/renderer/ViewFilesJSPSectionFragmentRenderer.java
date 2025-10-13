@@ -41,6 +41,17 @@ public class ViewFilesJSPSectionFragmentRenderer
 	}
 
 	@Override
+	public ViewFilesSectionDisplayContext getDisplayContext(
+		HttpServletRequest httpServletRequest) {
+
+		return new ViewFilesSectionDisplayContext(
+			_depotEntryLocalService, _dlConfiguration, groupLocalService,
+			httpServletRequest, language, _objectDefinitionService,
+			_objectDefinitionSettingLocalService,
+			_objectEntryFolderModelResourcePermission, _portal);
+	}
+
+	@Override
 	public String getLabelKey() {
 		return "files";
 	}
@@ -50,17 +61,6 @@ public class ViewFilesJSPSectionFragmentRenderer
 	protected void activate(Map<String, Object> properties) {
 		_dlConfiguration = ConfigurableUtil.createConfigurable(
 			DLConfiguration.class, properties);
-	}
-
-	@Override
-	protected ViewFilesSectionDisplayContext getDisplayContext(
-		HttpServletRequest httpServletRequest) {
-
-		return new ViewFilesSectionDisplayContext(
-			_depotEntryLocalService, _dlConfiguration, groupLocalService,
-			httpServletRequest, language, _objectDefinitionService,
-			_objectDefinitionSettingLocalService,
-			_objectEntryFolderModelResourcePermission, _portal);
 	}
 
 	@Override

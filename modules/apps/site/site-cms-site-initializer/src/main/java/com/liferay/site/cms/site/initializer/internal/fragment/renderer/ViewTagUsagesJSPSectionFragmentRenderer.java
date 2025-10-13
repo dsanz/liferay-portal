@@ -22,18 +22,18 @@ public class ViewTagUsagesJSPSectionFragmentRenderer
 	extends BaseJSPSectionFragmentRenderer<ViewTagUsagesDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "tag-usages";
-	}
-
-	@Override
-	protected ViewTagUsagesDisplayContext getDisplayContext(
+	public ViewTagUsagesDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewTagUsagesDisplayContext(
 			httpServletRequest,
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY));
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "tag-usages";
 	}
 
 	@Override

@@ -20,16 +20,16 @@ public class ViewStructureUsagesJSPSectionFragmentRenderer
 	extends BaseJSPSectionFragmentRenderer<ViewStructureUsagesDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "structure-usages";
-	}
-
-	@Override
-	protected ViewStructureUsagesDisplayContext getDisplayContext(
+	public ViewStructureUsagesDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewStructureUsagesDisplayContext(
 			httpServletRequest, language);
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "structure-usages";
 	}
 
 	@Override

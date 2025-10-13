@@ -34,12 +34,7 @@ public class ViewRecycleBinJSPSectionFragmentRenderer
 		<ViewRecycleBinSectionDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "recycle-bin";
-	}
-
-	@Override
-	protected ViewRecycleBinSectionDisplayContext getDisplayContext(
+	public ViewRecycleBinSectionDisplayContext getDisplayContext(
 			HttpServletRequest httpServletRequest)
 		throws PortalException {
 
@@ -54,6 +49,11 @@ public class ViewRecycleBinJSPSectionFragmentRenderer
 			_objectDefinitionSettingLocalService,
 			_objectEntryFolderLocalService,
 			_objectEntryFolderModelResourcePermission, _portal, _trashHelper);
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "recycle-bin";
 	}
 
 	@Override

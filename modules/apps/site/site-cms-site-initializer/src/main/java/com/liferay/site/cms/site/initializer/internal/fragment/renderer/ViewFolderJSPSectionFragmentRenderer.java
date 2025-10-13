@@ -42,15 +42,8 @@ public class ViewFolderJSPSectionFragmentRenderer
 		return "sections";
 	}
 
-	@Activate
-	@Modified
-	protected void activate(Map<String, Object> properties) {
-		_dlConfiguration = ConfigurableUtil.createConfigurable(
-			DLConfiguration.class, properties);
-	}
-
 	@Override
-	protected ViewFolderSectionDisplayContext getDisplayContext(
+	public ViewFolderSectionDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewFolderSectionDisplayContext(
@@ -59,6 +52,13 @@ public class ViewFolderJSPSectionFragmentRenderer
 			_objectDefinitionSettingLocalService,
 			_objectEntryFolderLocalService,
 			_objectEntryFolderModelResourcePermission, _portal);
+	}
+
+	@Activate
+	@Modified
+	protected void activate(Map<String, Object> properties) {
+		_dlConfiguration = ConfigurableUtil.createConfigurable(
+			DLConfiguration.class, properties);
 	}
 
 	@Override

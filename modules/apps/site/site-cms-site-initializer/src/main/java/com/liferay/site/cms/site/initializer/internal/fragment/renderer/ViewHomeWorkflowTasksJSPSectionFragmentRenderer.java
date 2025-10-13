@@ -26,18 +26,18 @@ public class ViewHomeWorkflowTasksJSPSectionFragmentRenderer
 		<ViewHomeWorkflowTasksDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "home-workflow-tasks";
-	}
-
-	@Override
-	protected ViewHomeWorkflowTasksDisplayContext getDisplayContext(
+	public ViewHomeWorkflowTasksDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewHomeWorkflowTasksDisplayContext(
 			httpServletRequest, _jsonFactory, _objectDefinitionResourceFactory,
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY));
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "home-workflow-tasks";
 	}
 
 	@Override

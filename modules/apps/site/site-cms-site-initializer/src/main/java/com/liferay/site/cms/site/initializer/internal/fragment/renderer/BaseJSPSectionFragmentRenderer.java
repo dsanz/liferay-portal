@@ -33,6 +33,9 @@ public abstract class BaseJSPSectionFragmentRenderer<T>
 		return getLabelKey();
 	}
 
+	public abstract T getDisplayContext(HttpServletRequest httpServletRequest)
+		throws PortalException;
+
 	@Override
 	public String getLabel(Locale locale) {
 		return language.get(locale, getLabelKey());
@@ -64,10 +67,6 @@ public abstract class BaseJSPSectionFragmentRenderer<T>
 			throw new IOException(exception);
 		}
 	}
-
-	protected abstract T getDisplayContext(
-			HttpServletRequest httpServletRequest)
-		throws PortalException;
 
 	protected String getJSPPath() {
 		return StringBundler.concat(

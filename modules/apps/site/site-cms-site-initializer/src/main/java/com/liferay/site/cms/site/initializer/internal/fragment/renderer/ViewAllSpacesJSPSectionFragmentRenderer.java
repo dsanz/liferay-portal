@@ -28,16 +28,16 @@ public class ViewAllSpacesJSPSectionFragmentRenderer
 	}
 
 	@Override
-	public String getLabelKey() {
-		return "all-spaces-section";
-	}
-
-	@Override
-	protected ViewAllSpacesDisplayContext getDisplayContext(
+	public ViewAllSpacesDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewAllSpacesDisplayContext(
 			_depotEntryPinLocalService, httpServletRequest, language, _portal);
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "all-spaces-section";
 	}
 
 	@Override

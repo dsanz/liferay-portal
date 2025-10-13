@@ -37,6 +37,17 @@ public class ViewHomeRecentAssetsJSPSectionFragmentRenderer
 		<ViewHomeRecentAssetsSectionDisplayContext> {
 
 	@Override
+	public ViewHomeRecentAssetsSectionDisplayContext getDisplayContext(
+		HttpServletRequest httpServletRequest) {
+
+		return new ViewHomeRecentAssetsSectionDisplayContext(
+			_depotEntryLocalService, _dlConfiguration, groupLocalService,
+			httpServletRequest, language, _objectDefinitionService,
+			_objectDefinitionSettingLocalService,
+			_objectEntryFolderModelResourcePermission, _portal);
+	}
+
+	@Override
 	public String getLabelKey() {
 		return "home-recent-assets";
 	}
@@ -46,17 +57,6 @@ public class ViewHomeRecentAssetsJSPSectionFragmentRenderer
 	protected void activate(Map<String, Object> properties) {
 		_dlConfiguration = ConfigurableUtil.createConfigurable(
 			DLConfiguration.class, properties);
-	}
-
-	@Override
-	protected ViewHomeRecentAssetsSectionDisplayContext getDisplayContext(
-		HttpServletRequest httpServletRequest) {
-
-		return new ViewHomeRecentAssetsSectionDisplayContext(
-			_depotEntryLocalService, _dlConfiguration, groupLocalService,
-			httpServletRequest, language, _objectDefinitionService,
-			_objectDefinitionSettingLocalService,
-			_objectEntryFolderModelResourcePermission, _portal);
 	}
 
 	@Override

@@ -28,12 +28,7 @@ public class ViewHomeQuickActionsJSPSectionFragmentRenderer
 	extends BaseJSPSectionFragmentRenderer<ViewHomeQuickActionsDisplayContext> {
 
 	@Override
-	public String getLabelKey() {
-		return "home-quick-actions";
-	}
-
-	@Override
-	protected ViewHomeQuickActionsDisplayContext getDisplayContext(
+	public ViewHomeQuickActionsDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewHomeQuickActionsDisplayContext(
@@ -42,6 +37,11 @@ public class ViewHomeQuickActionsJSPSectionFragmentRenderer
 			_objectEntryFolderModelResourcePermission,
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY));
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "home-quick-actions";
 	}
 
 	@Override

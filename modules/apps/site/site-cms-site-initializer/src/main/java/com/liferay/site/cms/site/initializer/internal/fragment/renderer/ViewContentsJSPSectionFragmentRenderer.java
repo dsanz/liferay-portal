@@ -32,12 +32,7 @@ public class ViewContentsJSPSectionFragmentRenderer
 	}
 
 	@Override
-	public String getLabelKey() {
-		return "contents";
-	}
-
-	@Override
-	protected ViewContentsSectionDisplayContext getDisplayContext(
+	public ViewContentsSectionDisplayContext getDisplayContext(
 		HttpServletRequest httpServletRequest) {
 
 		return new ViewContentsSectionDisplayContext(
@@ -45,6 +40,11 @@ public class ViewContentsJSPSectionFragmentRenderer
 			language, _objectDefinitionService,
 			_objectDefinitionSettingLocalService,
 			_objectEntryFolderModelResourcePermission, _portal);
+	}
+
+	@Override
+	public String getLabelKey() {
+		return "contents";
 	}
 
 	@Override
