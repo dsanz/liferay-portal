@@ -38,7 +38,7 @@ async function writeCSSExportLoaderModule(webContextPath, moduleName) {
 const link = document.createElement('link');
 link.setAttribute('rel','stylesheet');
 link.setAttribute('type','text/css');
-link.setAttribute('href', Liferay.ThemeDisplay.getPathContext() + '/o${webContextPath}/__liferay__/css/${flatModuleName}');
+link.setAttribute('href', Liferay.ThemeDisplay.getCDNHost() + Liferay.ThemeDisplay.getPathContext() + '/o${webContextPath}/__liferay__/css/${flatModuleName}');
 if (Liferay.CSP) {
 	link.setAttribute('nonce', Liferay.CSP.nonce);
 }

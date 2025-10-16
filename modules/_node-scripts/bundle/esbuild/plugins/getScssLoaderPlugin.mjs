@@ -56,7 +56,7 @@ link.setAttribute('rel', 'stylesheet');
 link.setAttribute('type', 'text/css');
 link.setAttribute(
 	'href', 
-	Liferay.ThemeDisplay.getPathContext() +
+	Liferay.ThemeDisplay.getCDNHost() + Liferay.ThemeDisplay.getPathContext() +
 		'/o${projectWebContextPath}/${cssBaseURI}' +
 		(document.dir === 'rtl' ? '_rtl' : '') +
 		'.(${hash}).css'
