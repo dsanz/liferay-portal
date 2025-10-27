@@ -14,11 +14,17 @@ import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+
+import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
+import com.liferay.portal.url.builder.AbsolutePortalURLBuilderFactory;
+import com.liferay.portal.url.builder.ESModuleAbsolutePortalURLBuilder;
+import com.liferay.portal.url.builder.ServletAbsolutePortalURLBuilder;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -32,6 +38,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.mockito.Mockito;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -68,6 +75,48 @@ public class JSImportMapsExtenderTopHeadDynamicIncludeTest {
 		}
 
 		_serviceRegistrations.clear();
+	}
+
+	@Test
+	public void newTest() throws Exception {
+		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+
+		mockHttpServletRequest.setAttribute(
+			WebKeys.THEME_DISPLAY, _mockThemeDisplay());
+
+		AbsolutePortalURLBuilder absolutePortalURLBuilder =
+			_absolutePortalURLBuilderFactory.getAbsolutePortalURLBuilder(
+				mockHttpServletRequest);
+
+		ESModuleAbsolutePortalURLBuilder esModuleAbsolutePortalURLBuilder =
+			absolutePortalURLBuilder.forESModule(
+				"frontend-js-importmaps-extender-test", "/@liferay$js-api.js");
+
+		System.out.println("\n\n" + esModuleAbsolutePortalURLBuilder.build());
+	}
+
+	private ThemeDisplay _mockThemeDisplay() {
+		ThemeDisplay themeDisplay = Mockito.mock(ThemeDisplay.class);
+
+		Mockito.when(
+			themeDisplay.getCDNBaseURL()
+		).thenReturn(
+			"http://portal.example.com"
+		);
+
+		Mockito.when(
+			themeDisplay.getCDNDynamicResourcesHost()
+		).thenReturn(
+			"http://portal.example.com"
+		);
+
+		Mockito.when(
+			themeDisplay.getCDNHost()
+		).thenReturn(
+			"http://portal.example.com"
+		);
+
+		return themeDisplay;
 	}
 
 	@Test
@@ -195,5 +244,11 @@ public class JSImportMapsExtenderTopHeadDynamicIncludeTest {
 
 	private final List<ServiceRegistration<?>> _serviceRegistrations =
 		new ArrayList<>();
+
+	@Inject
+	private AbsolutePortalURLBuilderFactory _absolutePortalURLBuilderFactory;
+
+	private AbsolutePortalURLBuilder _absolutePortalURLBuilder;
+	private ServletAbsolutePortalURLBuilder _servletAbsolutePortalURLBuilder;
 
 }
