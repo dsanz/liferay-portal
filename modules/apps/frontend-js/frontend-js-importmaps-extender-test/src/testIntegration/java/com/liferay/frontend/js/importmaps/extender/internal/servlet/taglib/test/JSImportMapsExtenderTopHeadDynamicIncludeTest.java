@@ -7,13 +7,18 @@ package com.liferay.frontend.js.importmaps.extender.internal.servlet.taglib.test
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.frontend.js.importmaps.extender.JSImportMapsContributor;
+import com.liferay.layout.test.util.ContentLayoutTestUtil;
+import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
+import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.portal.kernel.util.Portal;
@@ -38,7 +43,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.mockito.Mockito;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -79,10 +83,28 @@ public class JSImportMapsExtenderTopHeadDynamicIncludeTest {
 
 	@Test
 	public void newTest() throws Exception {
-		MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest();
+
+		_company1 = CompanyTestUtil.addCompany(false);
+		Group group = GroupTestUtil.addGroup(_company1.getCompanyId());
+		Layout layout = LayoutTestUtil.addTypeContentLayout(group);
+
+		mockHttpServletRequest.setAttribute(WebKeys.LAYOUT, layout);
+
+		ThemeDisplay themeDisplay = ContentLayoutTestUtil.getThemeDisplay(
+			_company1, group, layout);
+
+		themeDisplay.setCDNBaseURL("http://portal.example.com");
+		themeDisplay.setCDNHost("http://portal.example.com");
+		themeDisplay.setCDNDynamicResourcesHost("http://portal.example.com");
+
+		themeDisplay.setRequest(mockHttpServletRequest);
 
 		mockHttpServletRequest.setAttribute(
-			WebKeys.THEME_DISPLAY, _mockThemeDisplay());
+			WebKeys.THEME_DISPLAY, themeDisplay);
 
 		AbsolutePortalURLBuilder absolutePortalURLBuilder =
 			_absolutePortalURLBuilderFactory.getAbsolutePortalURLBuilder(
@@ -93,30 +115,6 @@ public class JSImportMapsExtenderTopHeadDynamicIncludeTest {
 				"frontend-js-importmaps-extender-test", "/@liferay$js-api.js");
 
 		System.out.println("\n\n" + esModuleAbsolutePortalURLBuilder.build());
-	}
-
-	private ThemeDisplay _mockThemeDisplay() {
-		ThemeDisplay themeDisplay = Mockito.mock(ThemeDisplay.class);
-
-		Mockito.when(
-			themeDisplay.getCDNBaseURL()
-		).thenReturn(
-			"http://portal.example.com"
-		);
-
-		Mockito.when(
-			themeDisplay.getCDNDynamicResourcesHost()
-		).thenReturn(
-			"http://portal.example.com"
-		);
-
-		Mockito.when(
-			themeDisplay.getCDNHost()
-		).thenReturn(
-			"http://portal.example.com"
-		);
-
-		return themeDisplay;
 	}
 
 	@Test
