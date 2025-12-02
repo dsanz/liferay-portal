@@ -8,6 +8,7 @@ package com.liferay.frontend.data.set.sample.web.internal.frontend.data.set.acti
 import com.liferay.frontend.data.set.FDSEntryItemImportPolicy;
 import com.liferay.frontend.data.set.action.FDSItemsActions;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
+import com.liferay.frontend.data.set.model.FDSActionDropdownItemList;
 import com.liferay.frontend.data.set.sample.web.internal.constants.FDSSampleFDSNames;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -96,7 +97,7 @@ public class AdvancedFDSItemsActions implements FDSItemsActions {
 
 		fdsActionDropdownItem3.putData("disableHeader", true);
 
-		return Arrays.asList(
+		return FDSActionDropdownItemList.of(
 			new FDSActionDropdownItem(
 				"#test-visibility-filter", "sun",
 				"sampleVisibilityFilterMessage", "Sample Visibility Filter",
