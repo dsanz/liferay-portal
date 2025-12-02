@@ -14,6 +14,9 @@ import java.util.Map;
  */
 public class FDSActionDropdownItem extends DropdownItem {
 
+	public FDSActionDropdownItem() {
+	}
+
 	public FDSActionDropdownItem(
 		String confirmationMessage, String confirmationMessageType,
 		String errorMessage, boolean highlighted, String href, String icon,
