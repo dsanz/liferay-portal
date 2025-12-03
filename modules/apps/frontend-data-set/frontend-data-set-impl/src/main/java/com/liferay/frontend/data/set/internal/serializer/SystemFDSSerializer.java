@@ -16,6 +16,8 @@ import com.liferay.frontend.data.set.action.FDSItemsActionsRegistry;
 import com.liferay.frontend.data.set.filter.FDSFilter;
 import com.liferay.frontend.data.set.filter.FDSFilterContextContributor;
 import com.liferay.frontend.data.set.filter.FDSFilterContextContributorRegistry;
+import com.liferay.frontend.data.set.filter.FDSFilterGroup;
+import com.liferay.frontend.data.set.filter.FDSFilterGroupRegistry;
 import com.liferay.frontend.data.set.filter.FDSFilterRegistry;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.data.set.model.FDSSortItem;
@@ -166,6 +168,40 @@ public class SystemFDSSerializer
 
 		return serializeFilters(
 			Collections.emptyList(), fdsName, httpServletRequest);
+	}
+
+	@Override
+	public JSONArray serializeFiltersGroups(
+		String fdsName,
+		HttpServletRequest httpServletRequest) {
+
+		JSONArray jsonArray = JSONUtil.putAll();
+
+		if (fdsFilterGroupRegistry.getFDSFiltersGroups(fdsName) == null) {
+			return jsonArray;
+		}
+
+		for (FDSFilterGroup filterGroup : fdsFilterGroupRegistry.getFDSFiltersGroups(fdsName)) {
+			jsonArray.put(
+				JSONUtil.put(
+					"label", filterGroup.getLabel()
+				).put(
+					"filters",
+					() -> {
+						JSONArray filtersJSONArray = JSONUtil.putAll();
+
+						for (FDSFilter filter : filterGroup.getFilters(httpServletRequest)) {
+							filtersJSONArray.put(
+								String.valueOf(filter.getId())
+							);
+						}
+						return filtersJSONArray;
+					}
+				)
+			);
+		}
+
+		return jsonArray;
 	}
 
 	@Override
@@ -334,6 +370,9 @@ public class SystemFDSSerializer
 
 	@Reference
 	protected FDSFilterRegistry fdsFilterRegistry;
+
+	@Reference
+	protected FDSFilterGroupRegistry fdsFilterGroupRegistry;
 
 	@Reference
 	protected FDSItemsActionsRegistry fdsItemsActionsRegistry;
