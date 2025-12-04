@@ -126,11 +126,18 @@ export default function propsTransformer({
 		return props;
 	};
 
-	const filtersGroups = [
-		{filters: ['date', 'color'], label: 'Group 1'},
-		{filters: ['invalid', 'size'], label: 'Group 2'},
-		{filters: ['status', 'title'], label: 'Group 3'},
-	];
+	const itemActionsWithStyling = itemsActions.map((action: IItemsActions) => {
+		const key = action?.data?.id as string;
+
+		if (!key || key !== 'sampleDeleteMessage') {
+			return action;
+		}
+
+		return {
+			...action,
+			className: 'text-danger',
+		};
+	});
 
 	return {
 		...otherProps,
@@ -138,7 +145,6 @@ export default function propsTransformer({
 			tableCell: [customAuthorTableCellRenderer],
 		},
 		fileDropSettings,
-		filtersGroups,
 		infoPanelComponent: SampleInfoPanel,
 		itemsActions: applyStyles(itemsActions),
 		onActionDropdownItemClick({
